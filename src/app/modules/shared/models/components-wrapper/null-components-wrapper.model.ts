@@ -1,5 +1,5 @@
 import {ComponentsWrapper} from './components-wrapper.model';
-import {ComponentRepresentation} from './component-representation.model';
+import {ComponentRepresentation} from '../component/component-representation.model';
 
 export class NullComponentsWrapper implements ComponentsWrapper {
 

@@ -1,0 +1,69 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Single Text Element": "https://schema.metadatacenter.org/properties/c651f360-612c-4664-9d11-175819245c8b"
+  },
+  "Single Text Element": [
+    {
+      "@context": {
+        "Text Field in Element": "https://schema.metadatacenter.org/properties/5bf90d05-c337-4dda-b52e-648bcb731162"
+      },
+      "Text Field in Element": {
+        "@value": "ABC"
+      },
+      "@id": "https://repo.metadatacenter.org/template-element-instances/9b212ce9-56d7-4894-90b2-ce07ee228c95"
+    },
+    {
+      "@context": {
+        "Text Field in Element": "https://schema.metadatacenter.org/properties/5bf90d05-c337-4dda-b52e-648bcb731162"
+      },
+      "Text Field in Element": {
+        "@value": "XYZ"
+      },
+      "@id": "https://repo.metadatacenter.org/template-element-instances/1db2798a-ad59-474f-ad00-c0d67fbe993f"
+    }
+  ],
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/4690b6c0-5bb8-4030-ae93-69450e343326",
+  "schema:name": "With Multiple element metadata",
+  "schema:description": "",
+  "pav:createdOn": "2020-07-15T14:23:30-07:00",
+  "pav:createdBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "pav:lastUpdatedOn": "2020-07-15T14:23:30-07:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "@id": "https://repo.metadatacenter.org/template-instances/b102f719-a0e1-424c-8e27-f9e71d0136b4"
+}

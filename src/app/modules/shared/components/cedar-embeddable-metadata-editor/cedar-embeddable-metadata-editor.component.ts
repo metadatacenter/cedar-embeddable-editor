@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 
-import {TemplateRepresentation} from '../../models/template-representation.model';
+import {TemplateRepresentation} from '../../models/template/template-representation.model';
 import {TemplateRepresentationFactory} from '../../factory/template-representation.factory';
 
 @Component({
@@ -21,14 +21,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   @Input() set templateJsonObject(value: object) {
     this.templateJsonObj = value;
-    if (value === null) {
-      this.templateRepresentation = null;
-    } else {
-      this.templateRepresentation = TemplateRepresentationFactory.create(this.templateJsonObj);
-    }
-    console.log('CHANGED:');
-    console.log(this.templateJsonObj);
-    console.log(this.templateRepresentation);
+    this.templateRepresentation = TemplateRepresentationFactory.create(this.templateJsonObj);
+    //console.log('CHANGED:');
+    //console.log(this.templateJsonObj);
+    //console.log(this.templateRepresentation);
   }
 
 }
