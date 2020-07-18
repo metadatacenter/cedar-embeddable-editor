@@ -1,58 +1,80 @@
-import {TemplateRepresentation} from '../models/template/template-representation.model';
-import {NullTemplateRepresentation} from '../models/template/null-template-representation.model';
-import {RegularTemplateRepresentation} from '../models/template/regular-template-representation.model';
 import {JsonSchema} from '../models/json-schema.model';
-import {SingleComponentRepresentation} from '../models/component/single-component-representation.model';
 import {CedarModel} from '../models/cedar-model.model';
 import {JavascriptTypes} from '../models/javascript-types.model';
-import {ComponentRepresentation} from '../models/component/component-representation.model';
-import {MultipleComponentRepresentation} from '../models/component/multiple-component-representation.model';
+import {CedarComponent} from '../models/component/cedar-component.model';
+import {MultiElementComponent} from '../models/element/multi-element-component.model';
+import {CedarTemplate} from '../models/template/cedar-template.model';
+import {NullTemplateComponent} from '../models/template/null-template-component.model';
+import {TemplateComponent} from '../models/template/template-component.model';
+import {MultiFieldComponent} from '../models/field/multi-field-component.model';
+import {SingleFieldComponent} from '../models/field/single-field-component.model';
+import {SingleElementComponent} from '../models/element/single-element-component.model';
+import {MultiComponent} from '../models/component/multi-component.model';
+import {ElementComponent} from '../models/component/element-component.model';
+import {FieldComponent} from '../models/component/field-component.model';
+import {ChoiceOption} from '../models/info/choice-option.model';
 
 export class TemplateRepresentationFactory {
 
-  static create(templateJsonObj: object): TemplateRepresentation {
+  static create(templateJsonObj: object): TemplateComponent {
     if (templateJsonObj === null) {
-      return new NullTemplateRepresentation();
+      return new NullTemplateComponent();
     } else {
-      const repr = new RegularTemplateRepresentation();
-      TemplateRepresentationFactory.wrap(templateJsonObj, repr);
-      return repr;
+      const template = new CedarTemplate();
+      TemplateRepresentationFactory.wrap(templateJsonObj, template);
+      return template;
     }
   }
 
-  private static wrap(templateJsonObj: object, repr: RegularTemplateRepresentation): void {
+  private static wrap(templateJsonObj: object, component: CedarComponent): void {
     const propertyNames: string[] = TemplateRepresentationFactory.getFilteredSchemaPropertyNames(templateJsonObj);
     for (const name of propertyNames) {
       const templateFragment = templateJsonObj[JsonSchema.properties][name];
 
-      let r: ComponentRepresentation = null;
       let isMulti: boolean;
       const fragmentType = templateFragment[CedarModel.type];
       if (fragmentType === JavascriptTypes.object) {
         isMulti = false;
-        r = new SingleComponentRepresentation();
-      }
-      if (fragmentType === JavascriptTypes.array) {
+      } else if (fragmentType === JavascriptTypes.array) {
         isMulti = true;
-        r = new MultipleComponentRepresentation();
-        const mr: MultipleComponentRepresentation = r as MultipleComponentRepresentation;
-        mr.minItems = templateFragment[CedarModel.minItems];
-        mr.maxItems = templateFragment[CedarModel.maxItems];
+      } else {
+        throw new Error(
+          'Invalid node value of ' + CedarModel.type + '. Value found:"' + fragmentType + '". ' +
+          'Expected "' + JavascriptTypes.object + '" or "' + JavascriptTypes.array + '"!'
+        );
       }
+
+      const dataNode: object = TemplateRepresentationFactory.getDataNode(templateFragment, isMulti);
+      const fragmentAtType = dataNode[JsonSchema.atType];
+      let r: CedarComponent = null;
+
+      if (fragmentAtType === CedarModel.templateFieldType) {
+        if (isMulti) {
+          r = new MultiFieldComponent();
+        } else {
+          r = new SingleFieldComponent();
+        }
+        TemplateRepresentationFactory.extractValueConstraints(dataNode, r as FieldComponent);
+      } else if (fragmentAtType === CedarModel.templateElementType) {
+        if (isMulti) {
+          r = new MultiElementComponent();
+        } else {
+          r = new SingleElementComponent();
+        }
+        TemplateRepresentationFactory.wrap(dataNode, r);
+      }
+
       if (r !== null) {
+        const wrapperElement: ElementComponent = component as ElementComponent;
+        wrapperElement.children.push(r);
         r.name = name;
-        const dataNode: object = TemplateRepresentationFactory.getDataNode(templateFragment, isMulti);
-
-
-        const fragmentAtType = templateFragment[JsonSchema.atType];
-        if (fragmentAtType === CedarModel.templateFieldType) {
-          TemplateRepresentationFactory.extractValueConstraints(dataNode, r);
-        }
-        if (fragmentAtType === CedarModel.templateElementType) {
-          //
-        }
       }
-      repr.componentsWrapper.components.push(r);
+
+      if (isMulti) {
+        const mr = r as MultiComponent;
+        TemplateRepresentationFactory.extractMultiInfo(templateFragment, mr);
+      }
+
     }
   }
 
@@ -79,20 +101,33 @@ export class TemplateRepresentationFactory {
     }
   }
 
-  private static extractValueConstraints(dataNode: object, r: ComponentRepresentation):void {
-    r.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
-    r.requiredValue = dataNode[CedarModel.valueConstraints][CedarModel.requiredValue];
-    r.defaultValue = dataNode[CedarModel.valueConstraints][CedarModel.defaultValue];
-    r.minLength = dataNode[CedarModel.valueConstraints][CedarModel.minLength];
-    r.maxLength = dataNode[CedarModel.valueConstraints][CedarModel.maxLength];
+  private static extractValueConstraints(dataNode: object, fc: FieldComponent): void {
+    fc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
 
-    r.numberType = dataNode[CedarModel.valueConstraints][CedarModel.numberType];
-    r.unitOfMeasure = dataNode[CedarModel.valueConstraints][CedarModel.unitOfMeasure];
-    r.minValue = dataNode[CedarModel.valueConstraints][CedarModel.minValue];
-    r.maxValue = dataNode[CedarModel.valueConstraints][CedarModel.maxValue];
-    r.decimalPlace = dataNode[CedarModel.valueConstraints][CedarModel.decimalPlace];
+    const vc: object = dataNode[CedarModel.valueConstraints];
+    fc.valueInfo.requiredValue = vc[CedarModel.requiredValue];
+    fc.valueInfo.defaultValue = vc[CedarModel.defaultValue];
+    fc.valueInfo.minLength = vc[CedarModel.minLength];
+    fc.valueInfo.maxLength = vc[CedarModel.maxLength];
 
-    // r.source = dataNode;
+    fc.numberInfo.numberType = vc[CedarModel.numberType];
+    fc.numberInfo.unitOfMeasure = vc[CedarModel.unitOfMeasure];
+    fc.numberInfo.minValue = vc[CedarModel.minValue];
+    fc.numberInfo.maxValue = vc[CedarModel.maxValue];
+    fc.numberInfo.decimalPlace = vc[CedarModel.decimalPlace];
+
+    fc.choiceInfo.multipleChoice = vc[CedarModel.multipleChoice];
+    for (const pair of vc[CedarModel.literals]) {
+      const option = new ChoiceOption();
+      option.label = pair[CedarModel.label];
+      option.selectedByDefault = pair[CedarModel.selectedByDefault];
+      fc.choiceInfo.choices.push(option);
+    }
+
   }
 
+  private static extractMultiInfo(templateFragment: object, mr: MultiComponent): void {
+    mr.multiInfo.minItems = templateFragment[CedarModel.minItems];
+    mr.multiInfo.maxItems = templateFragment[CedarModel.maxItems];
+  }
 }

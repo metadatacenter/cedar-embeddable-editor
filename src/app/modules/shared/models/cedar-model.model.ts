@@ -16,6 +16,12 @@ export class CedarModel {
   static minValue = 'minValue';
   static maxValue = 'maxValue';
   static decimalPlace = 'decimalPlace';
+
+  static multipleChoice = 'multipleChoice';
+  static literals = 'literals';
+  static label = 'label';
+  static selectedByDefault = 'selectedByDefault';
+
   static templateFieldType = 'https://schema.metadatacenter.org/core/TemplateField';
   static templateElementType = 'https://schema.metadatacenter.org/core/TemplateElement';
 

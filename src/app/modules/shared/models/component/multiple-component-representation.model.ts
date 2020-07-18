@@ -1,6 +1,13 @@
 import {ComponentRepresentation} from './component-representation.model';
+import {CedarComponent} from './cedar-component.model';
+import {MultiInfo} from '../info/multi-info.model';
 
 export class MultipleComponentRepresentation implements ComponentRepresentation {
+
+  className = 'MultipleComponentRepresentation';
+  children: CedarComponent[] = [];
+
+  multiInfo: MultiInfo = new MultiInfo();
 
   inputType: string;
   name: string;
@@ -8,8 +15,6 @@ export class MultipleComponentRepresentation implements ComponentRepresentation 
   requiredValue: boolean;
 
   defaultValue: string;
-  minItems: number;
-  maxItems: number;
 
   minLength: number;
   maxLength: number;

@@ -1,6 +1,9 @@
-import {CedarModel} from '../cedar-model.model';
+import {CedarComponent} from './cedar-component.model';
 
-export interface ComponentRepresentation {
+export interface ComponentRepresentation extends CedarComponent {
+
+  className: string;
+  children: CedarComponent[];
 
   // Generic
   inputType: string;
@@ -23,4 +26,5 @@ export interface ComponentRepresentation {
 
   // Multiple
   readonly multiple: boolean;
+
 }

@@ -36,22 +36,17 @@
     "skos:notation": {
       "@type": "xsd:string"
     },
-    "Multi Text Field": "https://schema.metadatacenter.org/properties/3886be18-9efb-4edf-a814-02257e29378d"
+    "Multiple choice": "https://schema.metadatacenter.org/properties/a48f13e0-80e5-4d26-b2f2-892430bd47cf"
   },
-  "Multi Text Field": [
-    {
-      "@value": "value 1"
-    },
-    {
-      "@value": "value 2"
-    }
-  ],
-  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/0829d5f1-303b-4fd8-be65-b40d2c8826f8",
-  "schema:name": "02 - multi text field metadata",
+  "Multiple choice": {
+    "@value": "Option 2"
+  },
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/8f1160ce-56e5-4f25-9d80-e3cda1fcc307",
+  "schema:name": "08 - multiple choice metadata",
   "schema:description": "",
-  "pav:createdOn": "2020-07-17T15:49:35-07:00",
+  "pav:createdOn": "2020-07-17T15:52:17-07:00",
   "pav:createdBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
-  "pav:lastUpdatedOn": "2020-07-17T15:49:35-07:00",
+  "pav:lastUpdatedOn": "2020-07-17T15:52:17-07:00",
   "oslc:modifiedBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
-  "@id": "https://repo.metadatacenter.org/template-instances/2ee5bd6a-47ca-4e77-be67-8a5d51d6fd9c"
+  "@id": "https://repo.metadatacenter.org/template-instances/acb7f018-6837-4df8-8512-ddf0d3838863"
 }

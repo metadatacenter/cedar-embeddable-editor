@@ -1,7 +1,8 @@
 import {Component, Input, OnInit} from '@angular/core';
 
-import {TemplateRepresentation} from '../../models/template/template-representation.model';
 import {TemplateRepresentationFactory} from '../../factory/template-representation.factory';
+import {CedarTemplate} from '../../models/template/cedar-template.model';
+import {TemplateComponent} from '../../models/template/template-component.model';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -11,7 +12,7 @@ import {TemplateRepresentationFactory} from '../../factory/template-representati
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   @Input() templateJsonObj: object;
-  templateRepresentation: TemplateRepresentation;
+  templateRepresentation: TemplateComponent;
 
   constructor() {
   }
@@ -22,9 +23,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   @Input() set templateJsonObject(value: object) {
     this.templateJsonObj = value;
     this.templateRepresentation = TemplateRepresentationFactory.create(this.templateJsonObj);
-    //console.log('CHANGED:');
-    //console.log(this.templateJsonObj);
-    //console.log(this.templateRepresentation);
   }
 
 }
