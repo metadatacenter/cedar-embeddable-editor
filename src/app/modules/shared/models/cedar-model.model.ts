@@ -22,6 +22,10 @@ export class CedarModel {
   static label = 'label';
   static selectedByDefault = 'selectedByDefault';
 
+  static skosPrefLabel = 'skos:prefLabel';
+  static propertyDescriptions = 'propertyDescriptions';
+  static propertyLabels = 'propertyLabels';
+
   static templateFieldType = 'https://schema.metadatacenter.org/core/TemplateField';
   static templateElementType = 'https://schema.metadatacenter.org/core/TemplateElement';
 

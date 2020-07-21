@@ -21,30 +21,35 @@ export class TemplateRepresentationFactory {
       return new NullTemplateComponent();
     } else {
       const template = new CedarTemplate();
-      TemplateRepresentationFactory.wrap(templateJsonObj, template);
+      TemplateRepresentationFactory.wrap(templateJsonObj, templateJsonObj, template);
+      TemplateRepresentationFactory.extractTemplateLabels(templateJsonObj, template);
       return template;
     }
   }
 
-  private static wrap(templateJsonObj: object, component: CedarComponent): void {
+  private static isFragmentMulti(templateFragment: object): boolean {
+    const fragmentType = templateFragment[CedarModel.type];
+    if (fragmentType === JavascriptTypes.object) {
+      return false;
+    } else if (fragmentType === JavascriptTypes.array) {
+      return true;
+    } else {
+      throw new Error(
+        'Invalid node value of ' + CedarModel.type + '. Value found:"' + fragmentType + '". ' +
+        'Expected "' + JavascriptTypes.object + '" or "' + JavascriptTypes.array + '"!'
+      );
+    }
+  }
+
+  private static wrap(templateJsonObj: object, parentJsonObj: object, component: CedarComponent): void {
     const propertyNames: string[] = TemplateRepresentationFactory.getFilteredSchemaPropertyNames(templateJsonObj);
     for (const name of propertyNames) {
       const templateFragment = templateJsonObj[JsonSchema.properties][name];
 
-      let isMulti: boolean;
-      const fragmentType = templateFragment[CedarModel.type];
-      if (fragmentType === JavascriptTypes.object) {
-        isMulti = false;
-      } else if (fragmentType === JavascriptTypes.array) {
-        isMulti = true;
-      } else {
-        throw new Error(
-          'Invalid node value of ' + CedarModel.type + '. Value found:"' + fragmentType + '". ' +
-          'Expected "' + JavascriptTypes.object + '" or "' + JavascriptTypes.array + '"!'
-        );
-      }
+      const isMulti: boolean = TemplateRepresentationFactory.isFragmentMulti(templateFragment);
 
-      const dataNode: object = TemplateRepresentationFactory.getDataNode(templateFragment, isMulti);
+      const parentDataNode: object = TemplateRepresentationFactory.getDataNode(parentJsonObj);
+      const dataNode: object = TemplateRepresentationFactory.getDataNode(templateFragment);
       const fragmentAtType = dataNode[JsonSchema.atType];
       let r: CedarComponent = null;
 
@@ -55,13 +60,15 @@ export class TemplateRepresentationFactory {
           r = new SingleFieldComponent();
         }
         TemplateRepresentationFactory.extractValueConstraints(dataNode, r as FieldComponent);
+        TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
       } else if (fragmentAtType === CedarModel.templateElementType) {
         if (isMulti) {
           r = new MultiElementComponent();
         } else {
           r = new SingleElementComponent();
         }
-        TemplateRepresentationFactory.wrap(dataNode, r);
+        TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
+        TemplateRepresentationFactory.wrap(dataNode, templateJsonObj, r);
       }
 
       if (r !== null) {
@@ -93,7 +100,11 @@ export class TemplateRepresentationFactory {
     return names;
   }
 
-  private static getDataNode(templateFragment: any, isMulti: boolean): object {
+  private static getDataNode(templateFragment: object): object {
+    if (templateFragment == null) {
+      return null;
+    }
+    const isMulti: boolean = TemplateRepresentationFactory.isFragmentMulti(templateFragment);
     if (isMulti) {
       return templateFragment[CedarModel.items];
     } else {
@@ -105,29 +116,49 @@ export class TemplateRepresentationFactory {
     fc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
 
     const vc: object = dataNode[CedarModel.valueConstraints];
-    fc.valueInfo.requiredValue = vc[CedarModel.requiredValue];
-    fc.valueInfo.defaultValue = vc[CedarModel.defaultValue];
-    fc.valueInfo.minLength = vc[CedarModel.minLength];
-    fc.valueInfo.maxLength = vc[CedarModel.maxLength];
+    if (vc != null) {
+      fc.valueInfo.requiredValue = vc[CedarModel.requiredValue];
+      fc.valueInfo.defaultValue = vc[CedarModel.defaultValue];
+      fc.valueInfo.minLength = vc[CedarModel.minLength];
+      fc.valueInfo.maxLength = vc[CedarModel.maxLength];
 
-    fc.numberInfo.numberType = vc[CedarModel.numberType];
-    fc.numberInfo.unitOfMeasure = vc[CedarModel.unitOfMeasure];
-    fc.numberInfo.minValue = vc[CedarModel.minValue];
-    fc.numberInfo.maxValue = vc[CedarModel.maxValue];
-    fc.numberInfo.decimalPlace = vc[CedarModel.decimalPlace];
+      fc.numberInfo.numberType = vc[CedarModel.numberType];
+      fc.numberInfo.unitOfMeasure = vc[CedarModel.unitOfMeasure];
+      fc.numberInfo.minValue = vc[CedarModel.minValue];
+      fc.numberInfo.maxValue = vc[CedarModel.maxValue];
+      fc.numberInfo.decimalPlace = vc[CedarModel.decimalPlace];
 
-    fc.choiceInfo.multipleChoice = vc[CedarModel.multipleChoice];
-    for (const pair of vc[CedarModel.literals]) {
-      const option = new ChoiceOption();
-      option.label = pair[CedarModel.label];
-      option.selectedByDefault = pair[CedarModel.selectedByDefault];
-      fc.choiceInfo.choices.push(option);
+      fc.choiceInfo.multipleChoice = vc[CedarModel.multipleChoice];
+      if (vc[CedarModel.literals] !== undefined) {
+        for (const pair of vc[CedarModel.literals]) {
+          const option = new ChoiceOption();
+          option.label = pair[CedarModel.label];
+          option.selectedByDefault = pair[CedarModel.selectedByDefault];
+          fc.choiceInfo.choices.push(option);
+        }
+      }
     }
+  }
 
+  private static extractLabels(dataNode: object, parentDataNode: object, name: string, fc: FieldComponent): void {
+    fc.labelInfo.preferredLabel = dataNode[CedarModel.skosPrefLabel];
+    if (parentDataNode != null) {
+      if (parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions] !== undefined) {
+        fc.labelInfo.description = parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions][name];
+      }
+      if (parentDataNode[CedarModel.ui][CedarModel.propertyLabels] !== undefined) {
+        fc.labelInfo.label = parentDataNode[CedarModel.ui][CedarModel.propertyLabels][name];
+      }
+    }
   }
 
   private static extractMultiInfo(templateFragment: object, mr: MultiComponent): void {
     mr.multiInfo.minItems = templateFragment[CedarModel.minItems];
     mr.multiInfo.maxItems = templateFragment[CedarModel.maxItems];
+  }
+
+  private static extractTemplateLabels(templateJsonObj: object, template: CedarTemplate): void {
+    template.labelInfo.label = templateJsonObj[JsonSchema.schemaName];
+    template.labelInfo.description = templateJsonObj[JsonSchema.schemaDescription];
   }
 }

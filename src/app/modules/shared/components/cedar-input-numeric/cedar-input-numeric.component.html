@@ -1,0 +1,9 @@
+<form class="example-container" [formGroup]="options" [style.fontSize.px]="getFontSize()">
+  <mat-form-field appearance="fill">
+    <mat-label>Label comes here</mat-label>
+    <input matInput type="number" placeholder="Ex. 12" [formControl]="inputValueControl" min="10">
+    <span matSuffix>unit of measure here</span>
+    <mat-error *ngIf="inputValueControl.invalid">Min size: 10px</mat-error>
+  </mat-form-field>
+</form>
+<pre>{{component | json}}</pre>

@@ -1,8 +1,8 @@
 import {Component, Input, OnInit} from '@angular/core';
 
 import {TemplateRepresentationFactory} from '../../factory/template-representation.factory';
-import {CedarTemplate} from '../../models/template/cedar-template.model';
 import {TemplateComponent} from '../../models/template/template-component.model';
+import {NullTemplateComponent} from '../../models/template/null-template-component.model';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -11,8 +11,8 @@ import {TemplateComponent} from '../../models/template/template-component.model'
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
-  @Input() templateJsonObj: object;
-  templateRepresentation: TemplateComponent;
+  templateJsonObj: object;
+  templateRepresentation: TemplateComponent = null;
 
   constructor() {
   }
@@ -25,4 +25,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     this.templateRepresentation = TemplateRepresentationFactory.create(this.templateJsonObj);
   }
 
+  templateAvailable(): boolean {
+    return this.templateRepresentation != null && !(this.templateRepresentation instanceof NullTemplateComponent);
+  }
 }
