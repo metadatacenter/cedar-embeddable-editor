@@ -10,10 +10,21 @@ import {RenderTemplateComponent} from './modules/shared/components/render-templa
 import {SharedModule} from './modules/shared/shared.module';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatCardModule} from '@angular/material/card';
-import {MatFormFieldModule} from '@angular/material/form-field';
 import {CedarComponentRendererComponent} from './modules/shared/components/cedar-component-renderer/cedar-component-renderer.component';
 import {CedarInputNumericComponent} from './modules/shared/components/cedar-input-numeric/cedar-input-numeric.component';
 import {ReactiveFormsModule} from '@angular/forms';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatIconModule} from '@angular/material/icon';
+import {MatExpansionModule} from '@angular/material/expansion';
+import {MatButtonModule} from '@angular/material/button';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatToolbarModule} from '@angular/material/toolbar';
+import {MatRippleModule} from '@angular/material/core';
+import {ClipboardModule} from '@angular/cdk/clipboard';
+import {JsonPipe} from '@angular/common';
+import { CedarInputTextfieldComponent } from './modules/shared/components/cedar-input-textfield/cedar-input-textfield.component';
+import { StaticFooterComponent } from './modules/shared/components/static-footer/static-footer.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +33,9 @@ import {ReactiveFormsModule} from '@angular/forms';
     DashboardComponent,
     RenderTemplateComponent,
     CedarComponentRendererComponent,
-    CedarInputNumericComponent
+    CedarInputNumericComponent,
+    CedarInputTextfieldComponent,
+    StaticFooterComponent
   ],
   imports: [
     BrowserModule,
@@ -32,9 +45,18 @@ import {ReactiveFormsModule} from '@angular/forms';
     BrowserAnimationsModule,
     MatCardModule,
     MatFormFieldModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatExpansionModule,
+    MatButtonModule,
+    MatTooltipModule,
+    ClipboardModule,
+    MatToolbarModule,
+    MatRippleModule
   ],
-  providers: [],
+  providers: [JsonPipe],
   bootstrap: [AppComponent]
 })
 export class AppModule {

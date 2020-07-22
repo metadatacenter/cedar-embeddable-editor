@@ -5,12 +5,12 @@ import {JsonPipe} from '@angular/common';
 import {ComponentDataService} from '../../service/component-data.service';
 
 @Component({
-  selector: 'app-cedar-input-numeric',
-  templateUrl: './cedar-input-numeric.component.html',
-  styleUrls: ['./cedar-input-numeric.component.scss'],
+  selector: 'app-cedar-input-textfield',
+  templateUrl: './cedar-input-textfield.component.html',
+  styleUrls: ['./cedar-input-textfield.component.scss'],
   providers: [ComponentDataService]
 })
-export class CedarInputNumericComponent implements OnInit {
+export class CedarInputTextfieldComponent implements OnInit {
 
   component: FieldComponent;
   options: FormGroup;
@@ -28,5 +28,4 @@ export class CedarInputNumericComponent implements OnInit {
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
   }
-
 }

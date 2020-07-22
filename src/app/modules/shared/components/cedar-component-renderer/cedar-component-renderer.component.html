@@ -1,11 +1,8 @@
 <ng-container *ngIf="iterableComponent">
-  <p>iterable-component-renderer</p>
   <mat-card class="child-component-card">
     <mat-card-header style="background-color: #fff0f0">
-      <mat-card-title>Name: {{iterableComponent.name}}</mat-card-title>
-      <mat-card-title>Label: {{iterableComponent.labelInfo.label}}</mat-card-title>
+      <mat-card-title>{{cds.getRenderingLabelForElement(iterableComponent)}}</mat-card-title>
       <mat-card-subtitle>Description: {{iterableComponent.labelInfo.description}}</mat-card-subtitle>
-      <mat-card-subtitle>Preferred Label: {{iterableComponent.labelInfo.preferredLabel}}</mat-card-subtitle>
       <mat-card-subtitle *ngIf="multiInfo">Multi info: {{multiInfo | json}}</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
@@ -15,19 +12,18 @@
     </mat-card-content>
   </mat-card>
 </ng-container>
+
 <ng-container *ngIf="nonIterableComponent">
-  <p>non-iterable-component-renderer</p>
   <mat-card class="child-component-card">
     <mat-card-header style="background-color: #f0fff0">
-      <mat-card-title>Name: {{nonIterableComponent.name}}</mat-card-title>
-      <mat-card-title>Label: {{nonIterableComponent.labelInfo.label}}</mat-card-title>
+      <mat-card-title>{{cds.getRenderingLabelForField(nonIterableComponent)}}</mat-card-title>
       <mat-card-subtitle>Description: {{nonIterableComponent.labelInfo.description}}</mat-card-subtitle>
-      <mat-card-subtitle>Preferred Label: {{nonIterableComponent.labelInfo.preferredLabel}}</mat-card-subtitle>
       <mat-card-subtitle *ngIf="multiInfo">Multi info: {{multiInfo | json}}</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
 
       <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType=='numeric'" [componentToRender]="nonIterableComponent"></app-cedar-input-numeric>
+      <app-cedar-input-textfield *ngIf="nonIterableComponent.basicInfo.inputType=='textfield'" [componentToRender]="nonIterableComponent"></app-cedar-input-textfield>
 
       <!--<pre>{{nonIterableComponent | json}}</pre>-->
     </mat-card-content>
