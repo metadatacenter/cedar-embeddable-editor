@@ -28,4 +28,8 @@ export class CedarInputTextfieldComponent implements OnInit {
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
   }
+
+  inputChanged($event: Event): void {
+    console.log(($event.target as HTMLTextAreaElement).value);
+  }
 }

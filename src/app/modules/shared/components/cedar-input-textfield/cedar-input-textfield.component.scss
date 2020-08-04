@@ -1,9 +1,10 @@
-.form-container .mat-form-field + .mat-form-field {
-  margin-left: 8px;
+.form-container {
+  min-width: 50%;
+  max-width: 100%;
+  border: 0px solid red;
+
 }
 
-.mat-expansion-panel {
-  max-width: 50%;
-  margin: 0px auto;
-  background-color: #f5f5f5;
+.full-width {
+  width: 100%
 }

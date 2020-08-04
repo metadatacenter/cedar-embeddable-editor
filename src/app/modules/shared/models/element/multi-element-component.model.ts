@@ -8,6 +8,7 @@ export class MultiElementComponent implements ElementComponent, MultiComponent {
 
   className = 'MultiElementComponent';
   name: string;
+  path: string[];
   children: CedarComponent[] = [];
   multiInfo: MultiInfo = new MultiInfo();
   labelInfo: LabelInfo = new LabelInfo();

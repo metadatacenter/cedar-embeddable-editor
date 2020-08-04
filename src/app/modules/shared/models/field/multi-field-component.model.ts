@@ -11,6 +11,7 @@ export class MultiFieldComponent implements MultiComponent, FieldComponent {
 
   className = 'MultiFieldComponent';
   name: string;
+  path: string[];
   multiInfo: MultiInfo = new MultiInfo();
   basicInfo: BasicInfo = new BasicInfo();
   valueInfo: ValueInfo = new ValueInfo();

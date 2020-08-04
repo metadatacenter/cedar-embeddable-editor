@@ -9,6 +9,7 @@ import {MultiFieldComponent} from '../../models/field/multi-field-component.mode
 import {SingleFieldComponent} from '../../models/field/single-field-component.model';
 import {MultiInfo} from '../../models/info/multi-info.model';
 import {ComponentDataService} from '../../service/component-data.service';
+import {DataObjectService} from '../../service/data-object.service';
 
 @Component({
   selector: 'app-cedar-component-renderer',
@@ -22,6 +23,7 @@ export class CedarComponentRendererComponent implements OnInit {
   iterableComponent: ElementComponent;
   nonIterableComponent: FieldComponent;
   multiInfo: MultiInfo;
+  @Input() dataObjectService: DataObjectService;
 
   constructor(public cds: ComponentDataService) {
   }

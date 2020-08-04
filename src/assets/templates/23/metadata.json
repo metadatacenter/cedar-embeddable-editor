@@ -1,0 +1,60 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Text Field": "https://schema.metadatacenter.org/properties/219434c5-5ebc-4701-b385-8ec50cc74a55"
+  },
+  "Text Field": [
+    {
+      "@value": "1a"
+    },
+    {
+      "@value": "2a"
+    },
+    {
+      "@value": "3a"
+    }
+  ],
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/9b23f2d8-16ca-4472-8a37-6ddf223f43a1",
+  "schema:name": "23 - multiple min 3 metadata",
+  "schema:description": "",
+  "pav:createdOn": "2020-08-03T16:39:00-07:00",
+  "pav:createdBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "pav:lastUpdatedOn": "2020-08-03T16:39:00-07:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "@id": "https://repo.metadatacenter.org/template-instances/a8123233-c303-4767-bc19-fbdfa3a7c03d"
+}

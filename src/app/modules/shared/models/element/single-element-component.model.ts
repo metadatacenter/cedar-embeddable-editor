@@ -7,6 +7,7 @@ export class SingleElementComponent implements SingleComponent, ElementComponent
 
   className = 'SingleElementComponent';
   name: string;
+  path: string[];
   children: CedarComponent[] = [];
   labelInfo: LabelInfo = new LabelInfo();
 

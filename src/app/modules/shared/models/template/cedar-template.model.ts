@@ -6,6 +6,7 @@ export class CedarTemplate implements TemplateComponent {
 
   className = 'CedarTemplate';
   name: string;
+  path: string[];
   public children: CedarComponent[] = [];
   labelInfo: LabelInfo = new LabelInfo();
 

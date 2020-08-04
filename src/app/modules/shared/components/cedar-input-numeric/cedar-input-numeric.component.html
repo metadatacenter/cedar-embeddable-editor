@@ -1,28 +1,8 @@
 <form class="form-container" [formGroup]="options">
-  <mat-form-field appearance="fill" >
+  <mat-form-field appearance="fill" class="full-width">
     <mat-label>{{cds.getRenderingLabelForField(component)}}</mat-label>
     <input matInput type="number" placeholder="Ex. 12" [formControl]="inputValueControl" min="10">
     <span matSuffix>unit of measure here</span>
     <mat-error *ngIf="inputValueControl.invalid">Invalid value</mat-error>
   </mat-form-field>
 </form>
-
-<mat-expansion-panel>
-  <mat-expansion-panel-header>
-    <mat-panel-title>
-      Component Rendering Representation
-    </mat-panel-title>
-    <mat-panel-description>
-      <button mat-button
-              matTooltipClass="allow-cr"
-              matTooltip="{{component | json}}">
-        Hover for intermediate source
-      </button>
-    </mat-panel-description>
-  </mat-expansion-panel-header>
-
-  <mat-card>
-    <pre>{{component | json}}</pre>
-  </mat-card>
-
-</mat-expansion-panel>

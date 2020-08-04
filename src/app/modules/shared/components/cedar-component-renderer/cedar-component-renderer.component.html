@@ -1,8 +1,9 @@
 <ng-container *ngIf="iterableComponent">
-  <mat-card class="child-component-card">
-    <mat-card-header style="background-color: #fff0f0">
+  <mat-card class="child-component-card iterable-component">
+    <mat-card-header>
       <mat-card-title>{{cds.getRenderingLabelForElement(iterableComponent)}}</mat-card-title>
-      <mat-card-subtitle>Description: {{iterableComponent.labelInfo.description}}</mat-card-subtitle>
+      <mat-icon matTooltip="{{iterableComponent.labelInfo.description}}">help</mat-icon>
+      <mat-icon matTooltipClass="allow-cr" matTooltip="{{iterableComponent | json}}">code</mat-icon>
       <mat-card-subtitle *ngIf="multiInfo">Multi info: {{multiInfo | json}}</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
@@ -14,16 +15,19 @@
 </ng-container>
 
 <ng-container *ngIf="nonIterableComponent">
-  <mat-card class="child-component-card">
-    <mat-card-header style="background-color: #f0fff0">
+  <mat-card class="child-component-card non-iterable-component">
+    <mat-card-header>
       <mat-card-title>{{cds.getRenderingLabelForField(nonIterableComponent)}}</mat-card-title>
-      <mat-card-subtitle>Description: {{nonIterableComponent.labelInfo.description}}</mat-card-subtitle>
+      <mat-icon matTooltip="{{nonIterableComponent.labelInfo.description}}">help</mat-icon>
+      <mat-icon matTooltipClass="allow-cr" matTooltip="{{nonIterableComponent | json}}">code</mat-icon>
       <mat-card-subtitle *ngIf="multiInfo">Multi info: {{multiInfo | json}}</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
 
-      <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType=='numeric'" [componentToRender]="nonIterableComponent"></app-cedar-input-numeric>
-      <app-cedar-input-textfield *ngIf="nonIterableComponent.basicInfo.inputType=='textfield'" [componentToRender]="nonIterableComponent"></app-cedar-input-textfield>
+      <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType=='numeric'"
+                               [componentToRender]="nonIterableComponent"></app-cedar-input-numeric>
+      <app-cedar-input-textfield *ngIf="nonIterableComponent.basicInfo.inputType=='textfield'"
+                                 [componentToRender]="nonIterableComponent"></app-cedar-input-textfield>
 
       <!--<pre>{{nonIterableComponent | json}}</pre>-->
     </mat-card-content>

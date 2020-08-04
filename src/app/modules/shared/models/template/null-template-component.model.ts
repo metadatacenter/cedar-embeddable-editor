@@ -6,6 +6,7 @@ export class NullTemplateComponent implements TemplateComponent {
 
   className = 'NullTemplateComponent';
   name: string;
+  path: string[];
   public children: CedarComponent[] = null;
   labelInfo: LabelInfo = null;
 

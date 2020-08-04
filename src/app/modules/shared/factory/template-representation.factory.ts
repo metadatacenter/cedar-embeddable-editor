@@ -21,7 +21,7 @@ export class TemplateRepresentationFactory {
       return new NullTemplateComponent();
     } else {
       const template = new CedarTemplate();
-      TemplateRepresentationFactory.wrap(templateJsonObj, templateJsonObj, template);
+      TemplateRepresentationFactory.wrap(templateJsonObj, templateJsonObj, template, []);
       TemplateRepresentationFactory.extractTemplateLabels(templateJsonObj, template);
       return template;
     }
@@ -41,7 +41,7 @@ export class TemplateRepresentationFactory {
     }
   }
 
-  private static wrap(templateJsonObj: object, parentJsonObj: object, component: CedarComponent): void {
+  private static wrap(templateJsonObj: object, parentJsonObj: object, component: CedarComponent, parentPath: string[]): void {
     const propertyNames: string[] = TemplateRepresentationFactory.getFilteredSchemaPropertyNames(templateJsonObj);
     for (const name of propertyNames) {
       const templateFragment = templateJsonObj[JsonSchema.properties][name];
@@ -52,6 +52,9 @@ export class TemplateRepresentationFactory {
       const dataNode: object = TemplateRepresentationFactory.getDataNode(templateFragment);
       const fragmentAtType = dataNode[JsonSchema.atType];
       let r: CedarComponent = null;
+
+      const myPath: string[] = parentPath.slice();
+      myPath.push(name);
 
       if (fragmentAtType === CedarModel.templateFieldType) {
         if (isMulti) {
@@ -68,13 +71,14 @@ export class TemplateRepresentationFactory {
           r = new SingleElementComponent();
         }
         TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
-        TemplateRepresentationFactory.wrap(dataNode, templateJsonObj, r);
+        TemplateRepresentationFactory.wrap(dataNode, templateJsonObj, r, myPath);
       }
 
       if (r !== null) {
         const wrapperElement: ElementComponent = component as ElementComponent;
         wrapperElement.children.push(r);
         r.name = name;
+        r.path = myPath;
       }
 
       if (isMulti) {

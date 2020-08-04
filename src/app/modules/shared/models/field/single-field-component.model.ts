@@ -10,6 +10,7 @@ export class SingleFieldComponent implements SingleComponent, FieldComponent {
 
   className = 'SingleFieldComponent';
   name: string;
+  path: string[];
   basicInfo: BasicInfo = new BasicInfo();
   valueInfo: ValueInfo = new ValueInfo();
   numberInfo: NumberInfo = new NumberInfo();

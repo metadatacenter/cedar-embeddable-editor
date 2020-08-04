@@ -1,17 +1,4 @@
-<p>
-  <mat-toolbar color="primary">
-    <button mat-icon-button>
-      <mat-icon [routerLink]="['/']">arrow_back</mat-icon>
-
-    </button>
-    <span>CEDAR Embeddable Editor</span>
-    <span class="toolbar-spacer"></span>
-    <button mat-icon-button>
-      <mat-icon>menu</mat-icon>
-    </button>
-  </mat-toolbar>
-</p>
-
+<app-static-header></app-static-header>
 
 <mat-card class="template-card" *ngIf="templateAvailable()">
   <mat-card-header>
@@ -22,73 +9,18 @@
   <mat-card-content>
 
     <ng-container *ngFor="let childComponent of templateRepresentation.children">
-      <app-cedar-component-renderer [componentToRender]="childComponent"></app-cedar-component-renderer>
+      <app-cedar-component-renderer [componentToRender]="childComponent" [dataObjectService]="dataObjectService"></app-cedar-component-renderer>
     </ng-container>
   </mat-card-content>
 </mat-card>
 
-<mat-accordion class="source-accordion" multi>
-
-  <mat-expansion-panel>
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <mat-icon>list_alt</mat-icon>
-        Template Rendering Representation - Intermediate Template Data
-      </mat-panel-title>
-      <mat-panel-description>
-        &nbsp;
-        <mat-icon matRipple [cdkCopyToClipboard]="templateRepresentationString" (click)="stopPropagation($event)">content_copy</mat-icon>
-      </mat-panel-description>
-    </mat-expansion-panel-header>
-
-    <ng-template matExpansionPanelContent>
-      <mat-card>
-        <pre>{{templateRepresentation | json}}</pre>
-      </mat-card>
-    </ng-template>
-
-  </mat-expansion-panel>
-
-  <mat-expansion-panel>
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <mat-icon>view_module</mat-icon>
-        Template JSON-LD - Template Source Data
-      </mat-panel-title>
-      <mat-panel-description>
-        &nbsp;
-        <mat-icon matRipple [cdkCopyToClipboard]="templateJsonObjString" (click)="stopPropagation($event)">content_copy</mat-icon>
-      </mat-panel-description>
-    </mat-expansion-panel-header>
-
-    <ng-template matExpansionPanelContent>
-      <mat-card>
-        <pre>{{templateJsonObj | json}}</pre>
-      </mat-card>
-    </ng-template>
-
-  </mat-expansion-panel>
-
-  <mat-expansion-panel>
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <mat-icon>device_hub</mat-icon>
-        Instance JSON-LD - Instance Data
-      </mat-panel-title>
-      <mat-panel-description>
-        &nbsp;
-        <mat-icon matRipple [cdkCopyToClipboard]="instanceDataString" (click)="stopPropagation($event)">content_copy</mat-icon>
-      </mat-panel-description>
-    </mat-expansion-panel-header>
-
-    <ng-template matExpansionPanelContent>
-      <mat-card>
-        <pre>{{instanceData | json}}</pre>
-      </mat-card>
-    </ng-template>
-
-  </mat-expansion-panel>
-
-</mat-accordion>
+<app-source-panels
+  [templateRepresentation]="templateRepresentation"
+  [templateRepresentationString]="templateRepresentationString"
+  [templateJson]="templateJsonObj"
+  [templateJsonString]="templateJsonObjString"
+  [instanceData]="instanceData"
+  [instanceDataString]="instanceData | json"
+></app-source-panels>
 
 <app-static-footer></app-static-footer>

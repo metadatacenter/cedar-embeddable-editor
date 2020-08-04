@@ -25,6 +25,8 @@ import {ClipboardModule} from '@angular/cdk/clipboard';
 import {JsonPipe} from '@angular/common';
 import { CedarInputTextfieldComponent } from './modules/shared/components/cedar-input-textfield/cedar-input-textfield.component';
 import { StaticFooterComponent } from './modules/shared/components/static-footer/static-footer.component';
+import { StaticHeaderComponent } from './modules/shared/components/static-header/static-header.component';
+import { SourcePanelsComponent } from './modules/shared/components/source-panels/source-panels.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +37,9 @@ import { StaticFooterComponent } from './modules/shared/components/static-footer
     CedarComponentRendererComponent,
     CedarInputNumericComponent,
     CedarInputTextfieldComponent,
-    StaticFooterComponent
+    StaticFooterComponent,
+    StaticHeaderComponent,
+    SourcePanelsComponent
   ],
   imports: [
     BrowserModule,
