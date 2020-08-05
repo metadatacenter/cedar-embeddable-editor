@@ -6,4 +6,6 @@ export interface ElementComponent extends CedarComponent {
   children: CedarComponent[];
   labelInfo: LabelInfo;
 
+  getChildByName(childName: string): CedarComponent;
+
 }

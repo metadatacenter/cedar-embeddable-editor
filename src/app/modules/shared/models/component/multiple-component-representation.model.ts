@@ -8,6 +8,7 @@ export class MultipleComponentRepresentation implements ComponentRepresentation 
   children: CedarComponent[] = [];
 
   multiInfo: MultiInfo = new MultiInfo();
+  currentMultiInfo: CurrentMultiInfo = new MultiInfo();
 
   inputType: string;
   name: string;

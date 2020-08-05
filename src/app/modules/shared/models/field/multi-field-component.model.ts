@@ -6,6 +6,7 @@ import {ValueInfo} from '../info/value-info.model';
 import {NumberInfo} from '../info/number-info.model';
 import {ChoiceInfo} from '../info/choice-info.model';
 import {LabelInfo} from '../info/label-info.model';
+import {CurrentMultiInfo} from '../info/current-multi-info.model';
 
 export class MultiFieldComponent implements MultiComponent, FieldComponent {
 
@@ -13,6 +14,7 @@ export class MultiFieldComponent implements MultiComponent, FieldComponent {
   name: string;
   path: string[];
   multiInfo: MultiInfo = new MultiInfo();
+  currentMultiInfo: CurrentMultiInfo = new CurrentMultiInfo();
   basicInfo: BasicInfo = new BasicInfo();
   valueInfo: ValueInfo = new ValueInfo();
   numberInfo: NumberInfo = new NumberInfo();

@@ -1,13 +1,8 @@
 import {TemplateComponent} from './template-component.model';
-import {CedarComponent} from '../component/cedar-component.model';
-import {LabelInfo} from '../info/label-info.model';
+import {AbstractElementComponent} from '../element/abstract-element-component.model';
 
-export class NullTemplateComponent implements TemplateComponent {
+export class NullTemplateComponent extends AbstractElementComponent implements TemplateComponent {
 
   className = 'NullTemplateComponent';
-  name: string;
-  path: string[];
-  public children: CedarComponent[] = null;
-  labelInfo: LabelInfo = null;
 
 }

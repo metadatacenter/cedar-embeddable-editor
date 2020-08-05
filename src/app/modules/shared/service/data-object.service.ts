@@ -7,17 +7,23 @@ import {ElementComponent} from '../models/component/element-component.model';
 import {SingleFieldComponent} from '../models/field/single-field-component.model';
 import {MultiFieldComponent} from '../models/field/multi-field-component.model';
 import {FieldComponent} from '../models/component/field-component.model';
+import {JsonSchema} from '../models/json-schema.model';
+import * as _ from 'lodash-es';
 
 export class DataObjectService {
 
+  private dataObject: object;
+  private templateRepresentation: TemplateComponent;
+
   buildNew(templateRepresentation: TemplateComponent): object {
-    const dataObject = {};
+    this.templateRepresentation = templateRepresentation;
+    this.dataObject = {};
     if (templateRepresentation != null && templateRepresentation.children != null) {
       for (const childComponent of templateRepresentation.children) {
-        this.buildRecursively(childComponent, dataObject);
+        this.buildRecursively(childComponent, this.dataObject);
       }
     }
-    return dataObject;
+    return this.dataObject;
   }
 
   private buildRecursively(component: CedarComponent, dataObject: object): void {
@@ -26,15 +32,16 @@ export class DataObjectService {
       const iterableComponent: ElementComponent = component as ElementComponent;
       const targetName = iterableComponent.name;
       if (component instanceof MultiElementComponent) {
-        const multiInfo = (component as MultiElementComponent).multiInfo;
+        const multiElement: MultiElementComponent = component as MultiElementComponent;
         dataObject[targetName] = this.getEmptyList();
-        if (multiInfo.minItems > 0) {
+        if (multiElement.currentMultiInfo.count > 0) {
           const dummyTargetObject: object = this.getEmptyObject();
           for (const childComponent of iterableComponent.children) {
             this.buildRecursively(childComponent, dummyTargetObject);
           }
-          for (let idx = 0; idx < multiInfo.minItems; idx++) {
-            dataObject[targetName].push(Object.assign({}, dummyTargetObject));
+          for (let idx = 0; idx < multiElement.currentMultiInfo.count; idx++) {
+            const clone = _.cloneDeep(dummyTargetObject as any);
+            dataObject[targetName].push(clone);
           }
         }
       } else {
@@ -49,10 +56,10 @@ export class DataObjectService {
       const nonIterableComponent = component as FieldComponent;
       const targetName = nonIterableComponent.name;
       if (component instanceof MultiFieldComponent) {
-        const multiInfo = (component as MultiFieldComponent).multiInfo;
+        const multiField: MultiFieldComponent = component as MultiFieldComponent;
         dataObject[targetName] = this.getEmptyList();
-        if (multiInfo.minItems > 0) {
-          for (let idx = 0; idx < multiInfo.minItems; idx++) {
+        if (multiField.currentMultiInfo.count > 0) {
+          for (let idx = 0; idx < multiField.currentMultiInfo.count; idx++) {
             dataObject[targetName].push(this.getEmptyValueWrapper());
           }
         }
@@ -65,9 +72,9 @@ export class DataObjectService {
   }
 
   private getEmptyValueWrapper(): object {
-    return {
-      '@value': ''
-    };
+    const obj = {};
+    obj[JsonSchema.atValue] = '';
+    return obj;
   }
 
   private getEmptyObject(): object {
@@ -76,5 +83,42 @@ export class DataObjectService {
 
   private getEmptyList(): [] {
     return [];
+  }
+
+  public setDataPath(component: CedarComponent, value: string): void {
+    const path = component.path;
+    this.setDataPathRecursively(this.dataObject, this.templateRepresentation, path, value);
+  }
+
+  private setDataPathRecursively(dataObject: object, component: CedarComponent, path: string[], value: string): void {
+    if (path.length === 0) {
+      if (component instanceof SingleFieldComponent) {
+        dataObject[JsonSchema.atValue] = value;
+      } else {
+        const multiField = component as MultiFieldComponent;
+        const currentIndex = multiField.currentMultiInfo.currentIndex;
+        dataObject[currentIndex][JsonSchema.atValue] = value;
+      }
+    } else {
+      const firstPath = path[0];
+      const remainingPath = path.slice(1);
+      let childComponent: CedarComponent = null;
+      let dataSubObject = null;
+      if (component instanceof SingleElementComponent) {
+        childComponent = (component as SingleElementComponent).getChildByName(firstPath);
+        dataSubObject = dataObject[firstPath];
+      } else if (component instanceof CedarTemplate) {
+        childComponent = (component as CedarTemplate).getChildByName(firstPath);
+        dataSubObject = dataObject[firstPath];
+      } else if (component instanceof MultiElementComponent) {
+        const multiElement = component as MultiElementComponent;
+        const currentIndex = multiElement.currentMultiInfo.currentIndex;
+        childComponent = multiElement.getChildByName(firstPath);
+        dataSubObject = dataObject[currentIndex][firstPath];
+      } else {
+        childComponent = component;
+      }
+      this.setDataPathRecursively(dataSubObject, childComponent, remainingPath, value);
+    }
   }
 }

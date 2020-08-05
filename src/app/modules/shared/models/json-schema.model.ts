@@ -5,6 +5,7 @@ export class JsonSchema {
   static atContext = '@context';
   static atId = '@id';
   static atType = '@type';
+  static atValue = '@value';
   static schemaIsBasedOn = 'schema:isBasedOn';
   static schemaName = 'schema:name';
   static schemaDescription = 'schema:description';
