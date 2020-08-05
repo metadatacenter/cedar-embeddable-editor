@@ -4,8 +4,8 @@
       <mat-card-title>{{cds.getRenderingLabelForElement(iterableComponent)}}</mat-card-title>
       <mat-icon matTooltip="{{iterableComponent.labelInfo.description}}">help</mat-icon>
       <mat-icon matTooltipClass="allow-cr" matTooltip="{{iterableComponent | json}}">code</mat-icon>
-      <mat-card-subtitle *ngIf="multiInfo">Multi info: {{multiInfo | json}}</mat-card-subtitle>
     </mat-card-header>
+    <app-cedar-multi-pager [componentToRender]="iterableComponent"></app-cedar-multi-pager>
     <mat-card-content>
       <ng-container *ngFor="let childComponent of iterableComponent.children">
         <app-cedar-component-renderer [componentToRender]="childComponent" [dataObjectService]="dataObjectService"></app-cedar-component-renderer>
@@ -20,18 +20,15 @@
       <mat-card-title>{{cds.getRenderingLabelForField(nonIterableComponent)}}</mat-card-title>
       <mat-icon matTooltip="{{nonIterableComponent.labelInfo.description}}">help</mat-icon>
       <mat-icon matTooltipClass="allow-cr" matTooltip="{{nonIterableComponent | json}}">code</mat-icon>
-      <mat-card-subtitle *ngIf="multiInfo">Multi info: {{multiInfo | json}}</mat-card-subtitle>
     </mat-card-header>
+    <app-cedar-multi-pager [componentToRender]="nonIterableComponent"></app-cedar-multi-pager>
     <mat-card-content>
-
       <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType=='numeric'"
                                [componentToRender]="nonIterableComponent"
                                [dataObjectService]="dataObjectService"></app-cedar-input-numeric>
       <app-cedar-input-textfield *ngIf="nonIterableComponent.basicInfo.inputType=='textfield'"
                                  [componentToRender]="nonIterableComponent"
                                  [dataObjectService]="dataObjectService"></app-cedar-input-textfield>
-
-      <!--<pre>{{nonIterableComponent | json}}</pre>-->
     </mat-card-content>
   </mat-card>
 </ng-container>

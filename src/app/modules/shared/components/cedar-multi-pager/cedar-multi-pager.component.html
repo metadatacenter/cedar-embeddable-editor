@@ -1,0 +1,26 @@
+<div *ngIf="component && component.currentMultiInfo" class="pager-container">
+  <!--  <p>Multi pager</p>
+    {{component.multiInfo | json}}
+    {{component.currentMultiInfo | json}}-->
+
+  <div class="pager-chips">
+    <mat-chip-list>
+      <mat-chip *ngFor="let pageNumber of pageNumbers"
+                [selected]="pageNumber == this.component.currentMultiInfo.currentIndex"
+                (click)="chipClicked(pageNumber)"
+                [selectable]="true"
+      >
+        {{pageNumber + 1}}
+      </mat-chip>
+    </mat-chip-list>
+  </div>
+
+  <div class="pager-pager">
+    <mat-paginator [length]="length"
+                   [pageSize]="pageSize"
+                   [pageSizeOptions]="pageSizeOptions"
+                   (page)="pageChanged($event)">
+    </mat-paginator>
+  </div>
+
+</div>

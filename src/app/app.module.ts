@@ -20,6 +20,9 @@ import {MatExpansionModule} from '@angular/material/expansion';
 import {MatButtonModule} from '@angular/material/button';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatToolbarModule} from '@angular/material/toolbar';
+import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatChipsModule} from '@angular/material/chips';
+import {MatGridListModule} from '@angular/material/grid-list';
 import {MatRippleModule} from '@angular/material/core';
 import {ClipboardModule} from '@angular/cdk/clipboard';
 import {JsonPipe} from '@angular/common';
@@ -27,6 +30,7 @@ import { CedarInputTextfieldComponent } from './modules/shared/components/cedar-
 import { StaticFooterComponent } from './modules/shared/components/static-footer/static-footer.component';
 import { StaticHeaderComponent } from './modules/shared/components/static-header/static-header.component';
 import { SourcePanelsComponent } from './modules/shared/components/source-panels/source-panels.component';
+import { CedarMultiPagerComponent } from './modules/shared/components/cedar-multi-pager/cedar-multi-pager.component';
 
 @NgModule({
   declarations: [
@@ -39,7 +43,8 @@ import { SourcePanelsComponent } from './modules/shared/components/source-panels
     CedarInputTextfieldComponent,
     StaticFooterComponent,
     StaticHeaderComponent,
-    SourcePanelsComponent
+    SourcePanelsComponent,
+    CedarMultiPagerComponent
   ],
   imports: [
     BrowserModule,
@@ -58,7 +63,10 @@ import { SourcePanelsComponent } from './modules/shared/components/source-panels
     MatTooltipModule,
     ClipboardModule,
     MatToolbarModule,
-    MatRippleModule
+    MatRippleModule,
+    MatPaginatorModule,
+    MatChipsModule,
+    MatGridListModule
   ],
   providers: [JsonPipe],
   bootstrap: [AppComponent]
