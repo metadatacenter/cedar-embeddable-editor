@@ -9,6 +9,7 @@ import {MultiFieldComponent} from '../models/field/multi-field-component.model';
 import {FieldComponent} from '../models/component/field-component.model';
 import {JsonSchema} from '../models/json-schema.model';
 import * as _ from 'lodash-es';
+import {MultiComponent} from '../models/component/multi-component.model';
 
 export class DataObjectService {
 
@@ -85,12 +86,12 @@ export class DataObjectService {
     return [];
   }
 
-  public setDataPath(component: CedarComponent, value: string): void {
+  public setDataPathValue(component: CedarComponent, value: string): void {
     const path = component.path;
-    this.setDataPathRecursively(this.dataObject, this.templateRepresentation, path, value);
+    this.setDataPathValueRecursively(this.dataObject, this.templateRepresentation, path, value);
   }
 
-  private setDataPathRecursively(dataObject: object, component: CedarComponent, path: string[], value: string): void {
+  private setDataPathValueRecursively(dataObject: object, component: CedarComponent, path: string[], value: string): void {
     if (path.length === 0) {
       if (component instanceof SingleFieldComponent) {
         dataObject[JsonSchema.atValue] = value;
@@ -115,10 +116,101 @@ export class DataObjectService {
         const currentIndex = multiElement.currentMultiInfo.currentIndex;
         childComponent = multiElement.getChildByName(firstPath);
         dataSubObject = dataObject[currentIndex][firstPath];
-      } else {
-        childComponent = component;
+        // } else {
+        //   childComponent = component;
       }
-      this.setDataPathRecursively(dataSubObject, childComponent, remainingPath, value);
+      this.setDataPathValueRecursively(dataSubObject, childComponent, remainingPath, value);
     }
   }
+
+  private getDataPathNode(path: string[]): object {
+    return this.getDataPathNodeRecursively(this.dataObject, this.templateRepresentation, path);
+  }
+
+  private getDataPathNodeRecursively(dataObject: object, component: CedarComponent, path: string[]): object {
+    if (path.length === 0) {
+      return dataObject;
+    } else {
+      const firstPath = path[0];
+      const remainingPath = path.slice(1);
+      let childComponent: CedarComponent = null;
+      let dataSubObject = null;
+      if (component instanceof SingleElementComponent) {
+        childComponent = (component as SingleElementComponent).getChildByName(firstPath);
+        dataSubObject = dataObject[firstPath];
+      } else if (component instanceof CedarTemplate) {
+        childComponent = (component as CedarTemplate).getChildByName(firstPath);
+        dataSubObject = dataObject[firstPath];
+      } else if (component instanceof MultiElementComponent) {
+        const multiElement = component as MultiElementComponent;
+        const currentIndex = multiElement.currentMultiInfo.currentIndex;
+        childComponent = multiElement.getChildByName(firstPath);
+        dataSubObject = dataObject[currentIndex][firstPath];
+        // } else {
+        //   childComponent = component;
+      }
+      return this.getDataPathNodeRecursively(dataSubObject, childComponent, remainingPath);
+    }
+  }
+
+  multiInstanceItemDelete(component: MultiComponent): void {
+    const currentNodeAny = this.getDataPathNode(component.path);
+    const currentNodeArray = currentNodeAny as [];
+    currentNodeArray.splice(component.currentMultiInfo.currentIndex, 1);
+    component.currentMultiInfo.count--;
+    if (component.currentMultiInfo.currentIndex > component.currentMultiInfo.count - 1) {
+      component.currentMultiInfo.currentIndex = component.currentMultiInfo.count - 1;
+    }
+  }
+
+  multiInstanceItemCopy(component: MultiComponent): void {
+    const currentNodeAny = this.getDataPathNode(component.path);
+    const currentNodeArray = currentNodeAny as [];
+    const sourceItem = currentNodeArray[component.currentMultiInfo.currentIndex];
+    const cloneItem = _.cloneDeep(sourceItem as any);
+    currentNodeArray.splice(component.currentMultiInfo.currentIndex + 1, 0, cloneItem as never);
+    component.currentMultiInfo.count++;
+    if (component.currentMultiInfo.count === 1) {
+      component.currentMultiInfo.currentIndex = 0;
+    } else {
+      component.currentMultiInfo.currentIndex++;
+    }
+  }
+
+  multiInstanceItemAdd(component: MultiComponent): void {
+    const dataObject = {};
+    const cloneComponent = _.cloneDeep(component);
+    this.setCurrentCountToMinRecursively(cloneComponent);
+    cloneComponent.currentMultiInfo.count = 1;
+    this.buildRecursively(cloneComponent, dataObject);
+    const newDataObject = dataObject[component.name][0];
+    const currentNodeAny = this.getDataPathNode(component.path);
+    const currentNodeArray = currentNodeAny as [];
+    currentNodeArray.splice(component.currentMultiInfo.currentIndex + 1, 0, newDataObject as never);
+    component.currentMultiInfo.count++;
+    if (component.currentMultiInfo.count === 1) {
+      component.currentMultiInfo.currentIndex = 0;
+    } else {
+      component.currentMultiInfo.currentIndex++;
+    }
+  }
+
+  setCurrentCountToMinRecursively(component: CedarComponent): void {
+    if (component instanceof SingleElementComponent) {
+      const singleElement: SingleElementComponent = component as SingleElementComponent;
+      for (const childComponent of singleElement.children) {
+        this.setCurrentCountToMinRecursively(childComponent);
+      }
+    } else if (component instanceof MultiElementComponent) {
+      const multiElement: MultiElementComponent = component as MultiElementComponent;
+      multiElement.currentMultiInfo.count = multiElement.multiInfo.getSafeMinItems();
+      for (const childComponent of multiElement.children) {
+        this.setCurrentCountToMinRecursively(childComponent);
+      }
+    } else if (component instanceof MultiFieldComponent) {
+      const multiField: MultiFieldComponent = component as MultiFieldComponent;
+      multiField.currentMultiInfo.count = multiField.multiInfo.getSafeMinItems();
+    }
+  }
+
 }

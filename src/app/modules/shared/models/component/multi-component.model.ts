@@ -8,4 +8,9 @@ export interface MultiComponent extends CedarComponent {
   currentMultiInfo: CurrentMultiInfo;
   name: string;
 
+  getCurrentMultiCount(): number;
+
+  setCurrentMultiCount(firstIndex: number): void;
+
+  hasMultiInstances(): boolean;
 }

@@ -1,24 +1,28 @@
 import {FieldComponent} from '../component/field-component.model';
 import {MultiComponent} from '../component/multi-component.model';
 import {MultiInfo} from '../info/multi-info.model';
-import {BasicInfo} from '../info/basic-info.model';
-import {ValueInfo} from '../info/value-info.model';
-import {NumberInfo} from '../info/number-info.model';
-import {ChoiceInfo} from '../info/choice-info.model';
-import {LabelInfo} from '../info/label-info.model';
 import {CurrentMultiInfo} from '../info/current-multi-info.model';
+import {AbstractFieldComponent} from './abstract-field-component.model';
 
-export class MultiFieldComponent implements MultiComponent, FieldComponent {
+export class MultiFieldComponent extends AbstractFieldComponent implements MultiComponent, FieldComponent {
 
   className = 'MultiFieldComponent';
-  name: string;
-  path: string[];
   multiInfo: MultiInfo = new MultiInfo();
   currentMultiInfo: CurrentMultiInfo = new CurrentMultiInfo();
-  basicInfo: BasicInfo = new BasicInfo();
-  valueInfo: ValueInfo = new ValueInfo();
-  numberInfo: NumberInfo = new NumberInfo();
-  choiceInfo: ChoiceInfo = new ChoiceInfo();
-  labelInfo: LabelInfo = new LabelInfo();
 
+  getCurrentMultiCount(): number {
+    return this.currentMultiInfo.count;
+  }
+
+  setCurrentMultiCount(index: number): void {
+    this.currentMultiInfo.currentIndex = index;
+  }
+
+  isMulti(): boolean {
+    return true;
+  }
+
+  hasMultiInstances(): boolean {
+    return this.currentMultiInfo.count > 0;
+  }
 }

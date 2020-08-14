@@ -1,14 +1,13 @@
 <ng-container *ngIf="iterableComponent">
   <mat-card class="child-component-card iterable-component">
-    <mat-card-header>
-      <mat-card-title>{{cds.getRenderingLabelForElement(iterableComponent)}}</mat-card-title>
-      <mat-icon matTooltip="{{iterableComponent.labelInfo.description}}">help</mat-icon>
-      <mat-icon matTooltipClass="allow-cr" matTooltip="{{iterableComponent | json}}">code</mat-icon>
-    </mat-card-header>
-    <app-cedar-multi-pager [componentToRender]="iterableComponent"></app-cedar-multi-pager>
-    <mat-card-content>
+    <app-cedar-component-header [componentToRender]="iterableComponent"></app-cedar-component-header>
+    <app-cedar-multi-pager *ngIf="iterableComponent.isMulti()"
+                           [componentToRender]="iterableComponent"
+                           [dataObjectService]="dataObjectService"></app-cedar-multi-pager>
+    <mat-card-content *ngIf="shouldRenderContentOfIterable(iterableComponent)">
       <ng-container *ngFor="let childComponent of iterableComponent.children">
-        <app-cedar-component-renderer [componentToRender]="childComponent" [dataObjectService]="dataObjectService"></app-cedar-component-renderer>
+        <app-cedar-component-renderer [componentToRender]="childComponent"
+                                      [dataObjectService]="dataObjectService"></app-cedar-component-renderer>
       </ng-container>
     </mat-card-content>
   </mat-card>
@@ -16,13 +15,11 @@
 
 <ng-container *ngIf="nonIterableComponent">
   <mat-card class="child-component-card non-iterable-component">
-    <mat-card-header>
-      <mat-card-title>{{cds.getRenderingLabelForField(nonIterableComponent)}}</mat-card-title>
-      <mat-icon matTooltip="{{nonIterableComponent.labelInfo.description}}">help</mat-icon>
-      <mat-icon matTooltipClass="allow-cr" matTooltip="{{nonIterableComponent | json}}">code</mat-icon>
-    </mat-card-header>
-    <app-cedar-multi-pager [componentToRender]="nonIterableComponent"></app-cedar-multi-pager>
-    <mat-card-content>
+    <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
+    <app-cedar-multi-pager *ngIf="nonIterableComponent.isMulti()"
+                           [componentToRender]="nonIterableComponent"
+                           [dataObjectService]="dataObjectService"></app-cedar-multi-pager>
+    <mat-card-content *ngIf="shouldRenderContentOfNonIterable(nonIterableComponent)">
       <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType=='numeric'"
                                [componentToRender]="nonIterableComponent"
                                [dataObjectService]="dataObjectService"></app-cedar-input-numeric>

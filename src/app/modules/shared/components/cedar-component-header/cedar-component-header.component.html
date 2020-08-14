@@ -1,0 +1,13 @@
+<mat-card-header>
+  <mat-card-title>{{cds.getRenderingLabelForComponent(component)}}</mat-card-title>
+  <div *ngIf="component.isMulti()">
+    (
+    {{multiComponent.multiInfo.getSafeMinItems()}}
+    ..
+    <span *ngIf="multiComponent.multiInfo.maxItems">{{multiComponent.multiInfo.maxItems}}</span>
+    <span *ngIf="!multiComponent.multiInfo.maxItems" matTooltip="Help">∞</span>
+    )
+  </div>
+  <mat-icon matTooltip="{{component.labelInfo.description}}" class="icon-help">help</mat-icon>
+  <mat-icon matTooltipClass="allow-cr" matTooltip="{{component | json}}" class="icon-src">code</mat-icon>
+</mat-card-header>

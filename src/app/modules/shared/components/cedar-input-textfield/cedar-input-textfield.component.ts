@@ -32,6 +32,6 @@ export class CedarInputTextfieldComponent implements OnInit {
   }
 
   inputChanged($event: Event): void {
-    this.dataObjectService.setDataPath(this.component, ($event.target as HTMLTextAreaElement).value);
+    this.dataObjectService.setDataPathValue(this.component, ($event.target as HTMLTextAreaElement).value);
   }
 }

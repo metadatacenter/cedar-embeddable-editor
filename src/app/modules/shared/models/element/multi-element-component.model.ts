@@ -10,4 +10,19 @@ export class MultiElementComponent extends AbstractElementComponent implements E
   multiInfo: MultiInfo = new MultiInfo();
   currentMultiInfo: CurrentMultiInfo = new CurrentMultiInfo();
 
+  getCurrentMultiCount(): number {
+    return this.currentMultiInfo.count;
+  }
+
+  setCurrentMultiCount(index: number): void {
+    this.currentMultiInfo.currentIndex = index;
+  }
+
+  isMulti(): boolean {
+    return true;
+  }
+
+  hasMultiInstances(): boolean {
+    return this.currentMultiInfo.count > 0;
+  }
 }

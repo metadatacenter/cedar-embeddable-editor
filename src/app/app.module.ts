@@ -31,6 +31,7 @@ import { StaticFooterComponent } from './modules/shared/components/static-footer
 import { StaticHeaderComponent } from './modules/shared/components/static-header/static-header.component';
 import { SourcePanelsComponent } from './modules/shared/components/source-panels/source-panels.component';
 import { CedarMultiPagerComponent } from './modules/shared/components/cedar-multi-pager/cedar-multi-pager.component';
+import { CedarComponentHeaderComponent } from './modules/shared/components/cedar-component-header/cedar-component-header.component';
 
 @NgModule({
   declarations: [
@@ -44,7 +45,8 @@ import { CedarMultiPagerComponent } from './modules/shared/components/cedar-mult
     StaticFooterComponent,
     StaticHeaderComponent,
     SourcePanelsComponent,
-    CedarMultiPagerComponent
+    CedarMultiPagerComponent,
+    CedarComponentHeaderComponent
   ],
   imports: [
     BrowserModule,
