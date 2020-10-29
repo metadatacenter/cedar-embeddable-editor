@@ -5,4 +5,11 @@ export class CedarTemplate extends AbstractElementComponent implements TemplateC
 
   className = 'CedarTemplate';
 
+  isMulti(): boolean {
+    return false;
+  }
+
+  updateViewToReflectData(): void {
+  }
+
 }

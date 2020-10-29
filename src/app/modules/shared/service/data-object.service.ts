@@ -123,7 +123,7 @@ export class DataObjectService {
     }
   }
 
-  private getDataPathNode(path: string[]): object {
+  public getDataPathNode(path: string[]): object {
     return this.getDataPathNodeRecursively(this.dataObject, this.templateRepresentation, path);
   }
 

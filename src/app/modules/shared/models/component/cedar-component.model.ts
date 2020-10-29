@@ -9,4 +9,6 @@ export interface CedarComponent {
   labelInfo: LabelInfo;
 
   isMulti(): boolean;
+
+  updateViewToReflectData(): void;
 }

@@ -3,6 +3,8 @@ import {MultiComponent} from '../component/multi-component.model';
 import {MultiInfo} from '../info/multi-info.model';
 import {CurrentMultiInfo} from '../info/current-multi-info.model';
 import {AbstractFieldComponent} from './abstract-field-component.model';
+import {DataObjectService} from '../../service/data-object.service';
+import {JsonSchema} from '../json-schema.model';
 
 export class MultiFieldComponent extends AbstractFieldComponent implements MultiComponent, FieldComponent {
 
@@ -14,8 +16,11 @@ export class MultiFieldComponent extends AbstractFieldComponent implements Multi
     return this.currentMultiInfo.count;
   }
 
-  setCurrentMultiCount(index: number): void {
-    this.currentMultiInfo.currentIndex = index;
+  setCurrentMultiCount(currentIndex: number, dataObjectService: DataObjectService): void {
+    this.currentMultiInfo.currentIndex = currentIndex;
+    const dataObject: object = dataObjectService.getDataPathNode(this.path);
+    this.uiComponent.setCurrentValue(dataObject[currentIndex][JsonSchema.atValue]);
+    //this.updateViewToReflectData();
   }
 
   isMulti(): boolean {
@@ -24,5 +29,8 @@ export class MultiFieldComponent extends AbstractFieldComponent implements Multi
 
   hasMultiInstances(): boolean {
     return this.currentMultiInfo.count > 0;
+  }
+
+  updateViewToReflectData(): void {
   }
 }

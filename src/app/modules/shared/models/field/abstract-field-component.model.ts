@@ -4,6 +4,7 @@ import {ValueInfo} from '../info/value-info.model';
 import {NumberInfo} from '../info/number-info.model';
 import {ChoiceInfo} from '../info/choice-info.model';
 import {LabelInfo} from '../info/label-info.model';
+import {CedarUIComponent} from '../ui/cedar-ui-component.model';
 
 export abstract class AbstractFieldComponent implements FieldComponent {
 
@@ -15,9 +16,13 @@ export abstract class AbstractFieldComponent implements FieldComponent {
   numberInfo: NumberInfo = new NumberInfo();
   choiceInfo: ChoiceInfo = new ChoiceInfo();
   labelInfo: LabelInfo = new LabelInfo();
+  uiComponent: CedarUIComponent = null;
 
-  isMulti(): boolean {
-    return false;
+  abstract isMulti(): boolean;
+
+  abstract updateViewToReflectData(): void;
+
+  setUIComponent(uiComponent: CedarUIComponent): void {
+    this.uiComponent = uiComponent;
   }
-
 }

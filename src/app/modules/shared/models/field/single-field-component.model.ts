@@ -6,4 +6,11 @@ export class SingleFieldComponent extends AbstractFieldComponent implements Sing
 
   className = 'SingleFieldComponent';
 
+  isMulti(): boolean {
+    return false;
+  }
+
+  updateViewToReflectData(): void {
+  }
+
 }

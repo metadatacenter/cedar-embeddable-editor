@@ -19,8 +19,8 @@ export abstract class AbstractElementComponent implements ElementComponent {
     return null;
   }
 
-  isMulti(): boolean {
-    return false;
-  }
+  abstract isMulti(): boolean;
+
+  abstract updateViewToReflectData(): void;
 
 }

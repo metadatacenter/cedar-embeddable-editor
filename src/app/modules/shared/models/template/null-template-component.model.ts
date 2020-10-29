@@ -5,4 +5,11 @@ export class NullTemplateComponent extends AbstractElementComponent implements T
 
   className = 'NullTemplateComponent';
 
+  isMulti(): boolean {
+    return false;
+  }
+
+  updateViewToReflectData(): void {
+  }
+
 }

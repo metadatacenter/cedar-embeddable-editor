@@ -3,6 +3,7 @@ import {ElementComponent} from '../component/element-component.model';
 import {MultiComponent} from '../component/multi-component.model';
 import {CurrentMultiInfo} from '../info/current-multi-info.model';
 import {AbstractElementComponent} from './abstract-element-component.model';
+import {DataObjectService} from '../../service/data-object.service';
 
 export class MultiElementComponent extends AbstractElementComponent implements ElementComponent, MultiComponent {
 
@@ -14,7 +15,7 @@ export class MultiElementComponent extends AbstractElementComponent implements E
     return this.currentMultiInfo.count;
   }
 
-  setCurrentMultiCount(index: number): void {
+  setCurrentMultiCount(index: number, dataObjectService: DataObjectService): void {
     this.currentMultiInfo.currentIndex = index;
   }
 
@@ -24,5 +25,8 @@ export class MultiElementComponent extends AbstractElementComponent implements E
 
   hasMultiInstances(): boolean {
     return this.currentMultiInfo.count > 0;
+  }
+
+  updateViewToReflectData(): void {
   }
 }

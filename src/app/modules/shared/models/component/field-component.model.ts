@@ -4,6 +4,7 @@ import {ValueInfo} from '../info/value-info.model';
 import {NumberInfo} from '../info/number-info.model';
 import {ChoiceInfo} from '../info/choice-info.model';
 import {LabelInfo} from '../info/label-info.model';
+import {CedarUIComponent} from '../ui/cedar-ui-component.model';
 
 export interface FieldComponent extends CedarComponent {
 
@@ -12,5 +13,8 @@ export interface FieldComponent extends CedarComponent {
   numberInfo: NumberInfo;
   choiceInfo: ChoiceInfo;
   labelInfo: LabelInfo;
+  uiComponent: CedarUIComponent;
+
+  setUIComponent(uiComponent: CedarUIComponent): void;
 
 }

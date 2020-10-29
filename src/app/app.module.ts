@@ -26,12 +26,12 @@ import {MatGridListModule} from '@angular/material/grid-list';
 import {MatRippleModule} from '@angular/material/core';
 import {ClipboardModule} from '@angular/cdk/clipboard';
 import {JsonPipe} from '@angular/common';
-import { CedarInputTextfieldComponent } from './modules/shared/components/cedar-input-textfield/cedar-input-textfield.component';
-import { StaticFooterComponent } from './modules/shared/components/static-footer/static-footer.component';
-import { StaticHeaderComponent } from './modules/shared/components/static-header/static-header.component';
-import { SourcePanelsComponent } from './modules/shared/components/source-panels/source-panels.component';
-import { CedarMultiPagerComponent } from './modules/shared/components/cedar-multi-pager/cedar-multi-pager.component';
-import { CedarComponentHeaderComponent } from './modules/shared/components/cedar-component-header/cedar-component-header.component';
+import {CedarInputTextfieldComponent} from './modules/shared/components/cedar-input-textfield/cedar-input-textfield.component';
+import {StaticFooterComponent} from './modules/shared/components/static-footer/static-footer.component';
+import {StaticHeaderComponent} from './modules/shared/components/static-header/static-header.component';
+import {SourcePanelsComponent} from './modules/shared/components/source-panels/source-panels.component';
+import {CedarMultiPagerComponent} from './modules/shared/components/cedar-multi-pager/cedar-multi-pager.component';
+import {CedarComponentHeaderComponent} from './modules/shared/components/cedar-component-header/cedar-component-header.component';
 
 @NgModule({
   declarations: [

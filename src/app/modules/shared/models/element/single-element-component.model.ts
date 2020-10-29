@@ -6,4 +6,11 @@ export class SingleElementComponent extends AbstractElementComponent implements 
 
   className = 'SingleElementComponent';
 
+  isMulti(): boolean {
+    return false;
+  }
+
+  updateViewToReflectData(): void {
+  }
+
 }

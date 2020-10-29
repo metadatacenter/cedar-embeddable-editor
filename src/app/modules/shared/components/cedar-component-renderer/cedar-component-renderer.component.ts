@@ -28,6 +28,9 @@ export class CedarComponentRendererComponent implements OnInit {
   constructor() {
   }
 
+  ngOnInit(): void {
+  }
+
   @Input() set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;
     this.iterableComponent = null;
@@ -47,10 +50,6 @@ export class CedarComponentRendererComponent implements OnInit {
         this.multiInfo = (componentToRender as MultiFieldComponent).multiInfo;
       }
     }
-  }
-
-
-  ngOnInit(): void {
   }
 
   shouldRenderContentOfIterable(iterableComponent: ElementComponent): boolean {

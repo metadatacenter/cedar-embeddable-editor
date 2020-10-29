@@ -21,7 +21,6 @@ export class CedarMultiPagerComponent implements OnInit {
   lastIndex = -1;
   pageNumbers: number[] = [];
 
-
   constructor() {
   }
 
@@ -40,7 +39,7 @@ export class CedarMultiPagerComponent implements OnInit {
   pageChanged($event: PageEvent): void {
     this.pageSize = $event.pageSize;
     this.firstIndex = $event.pageIndex * $event.pageSize;
-    this.component.setCurrentMultiCount(this.firstIndex);
+    this.component.setCurrentMultiCount(this.firstIndex, this.dataObjectService);
     this.computeLastIndex();
     this.updatePageNumber();
   }
@@ -65,25 +64,28 @@ export class CedarMultiPagerComponent implements OnInit {
   }
 
   chipClicked(chipIdx: number): void {
-    this.component.setCurrentMultiCount(chipIdx);
+    this.component.setCurrentMultiCount(chipIdx, this.dataObjectService);
   }
 
   clickedAdd(): void {
     this.dataObjectService.multiInstanceItemAdd(this.component);
     this.computeLastIndex();
     this.updatePageNumber();
+    this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex, this.dataObjectService);
   }
 
   clickedCopy(): void {
     this.dataObjectService.multiInstanceItemCopy(this.component);
     this.computeLastIndex();
     this.updatePageNumber();
+    this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex, this.dataObjectService);
   }
 
   clickedDelete(): void {
     this.dataObjectService.multiInstanceItemDelete(this.component);
     this.computeLastIndex();
     this.updatePageNumber();
+    this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex, this.dataObjectService);
   }
 
   isEnabledDelete(): boolean {
@@ -99,10 +101,7 @@ export class CedarMultiPagerComponent implements OnInit {
   }
 
   isEnabledCopy(): boolean {
-    if (this.component.currentMultiInfo.count === 0) {
-      return false;
-    }
-    return true;
+    return this.isEnabledAdd();
   }
 
   isEnabledAdd(): boolean {
