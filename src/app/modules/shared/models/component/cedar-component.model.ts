@@ -1,4 +1,5 @@
 import {LabelInfo} from '../info/label-info.model';
+import {DataObjectService} from '../../service/data-object.service';
 
 export interface CedarComponent {
 
@@ -10,5 +11,6 @@ export interface CedarComponent {
 
   isMulti(): boolean;
 
-  updateViewToReflectData(): void;
+  updateUIComponentToModel(dataObjectService: DataObjectService): void;
+
 }

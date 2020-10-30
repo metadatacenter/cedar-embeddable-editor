@@ -43,6 +43,7 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
   }
 
   setCurrentValue(currentValue: any): void {
+    console.log('CedarInputNumericComponent.setCurrentValue');
     this.inputValueControl.setValue(currentValue);
   }
 

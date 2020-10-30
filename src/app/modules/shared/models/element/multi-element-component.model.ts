@@ -15,8 +15,9 @@ export class MultiElementComponent extends AbstractElementComponent implements E
     return this.currentMultiInfo.count;
   }
 
-  setCurrentMultiCount(index: number, dataObjectService: DataObjectService): void {
-    this.currentMultiInfo.currentIndex = index;
+  setCurrentMultiCount(currentIndex: number, dataObjectService: DataObjectService): void {
+    this.currentMultiInfo.currentIndex = currentIndex;
+    this.updateUIComponentToModel(dataObjectService);
   }
 
   isMulti(): boolean {
@@ -27,6 +28,10 @@ export class MultiElementComponent extends AbstractElementComponent implements E
     return this.currentMultiInfo.count > 0;
   }
 
-  updateViewToReflectData(): void {
+  public updateUIComponentToModel(dataObjectService: DataObjectService): void {
+    // console.log('MultiElementComponent.updateUIComponentToModel');
+    for (const childComponent of this.children) {
+      childComponent.updateUIComponentToModel(dataObjectService);
+    }
   }
 }

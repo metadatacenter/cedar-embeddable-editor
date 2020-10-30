@@ -18,9 +18,7 @@ export class MultiFieldComponent extends AbstractFieldComponent implements Multi
 
   setCurrentMultiCount(currentIndex: number, dataObjectService: DataObjectService): void {
     this.currentMultiInfo.currentIndex = currentIndex;
-    const dataObject: object = dataObjectService.getDataPathNode(this.path);
-    this.uiComponent.setCurrentValue(dataObject[currentIndex][JsonSchema.atValue]);
-    //this.updateViewToReflectData();
+    this.updateUIComponentToModel(dataObjectService);
   }
 
   isMulti(): boolean {
@@ -31,6 +29,9 @@ export class MultiFieldComponent extends AbstractFieldComponent implements Multi
     return this.currentMultiInfo.count > 0;
   }
 
-  updateViewToReflectData(): void {
+  public updateUIComponentToModel(dataObjectService: DataObjectService): void {
+    // console.log('MultiFieldComponent.updateUIComponentToModel');
+    const dataObject: object = dataObjectService.getDataPathNode(this.path);
+    this.uiComponent.setCurrentValue(dataObject[this.currentMultiInfo.currentIndex][JsonSchema.atValue]);
   }
 }

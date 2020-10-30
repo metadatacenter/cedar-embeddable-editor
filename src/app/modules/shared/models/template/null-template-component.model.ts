@@ -1,5 +1,6 @@
 import {TemplateComponent} from './template-component.model';
 import {AbstractElementComponent} from '../element/abstract-element-component.model';
+import {DataObjectService} from '../../service/data-object.service';
 
 export class NullTemplateComponent extends AbstractElementComponent implements TemplateComponent {
 
@@ -9,7 +10,7 @@ export class NullTemplateComponent extends AbstractElementComponent implements T
     return false;
   }
 
-  updateViewToReflectData(): void {
+  updateUIComponentToModel(dataObjectService: DataObjectService): void {
   }
 
 }

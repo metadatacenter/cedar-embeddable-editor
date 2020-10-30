@@ -1,5 +1,6 @@
 import {TemplateComponent} from './template-component.model';
 import {AbstractElementComponent} from '../element/abstract-element-component.model';
+import {DataObjectService} from '../../service/data-object.service';
 
 export class CedarTemplate extends AbstractElementComponent implements TemplateComponent {
 
@@ -9,7 +10,7 @@ export class CedarTemplate extends AbstractElementComponent implements TemplateC
     return false;
   }
 
-  updateViewToReflectData(): void {
+  updateUIComponentToModel(dataObjectService: DataObjectService): void {
   }
 
 }

@@ -43,6 +43,7 @@ export class CedarInputTextfieldComponent extends CedarUIComponent implements On
   }
 
   setCurrentValue(currentValue: any): void {
+    console.log('CedarInputTextfieldComponent.setCurrentValue');
     this.inputValueControl.setValue(currentValue);
   }
 

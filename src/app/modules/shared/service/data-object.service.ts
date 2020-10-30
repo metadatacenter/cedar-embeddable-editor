@@ -145,9 +145,9 @@ export class DataObjectService {
         const multiElement = component as MultiElementComponent;
         const currentIndex = multiElement.currentMultiInfo.currentIndex;
         childComponent = multiElement.getChildByName(firstPath);
-        dataSubObject = dataObject[currentIndex][firstPath];
-        // } else {
-        //   childComponent = component;
+        if (dataObject.hasOwnProperty(currentIndex)) {
+          dataSubObject = dataObject[currentIndex][firstPath];
+        }
       }
       return this.getDataPathNodeRecursively(dataSubObject, childComponent, remainingPath);
     }
