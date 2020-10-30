@@ -1,5 +1,9 @@
 import {CedarComponent} from '../models/component/cedar-component.model';
+import {Injectable} from '@angular/core';
 
+@Injectable({
+  providedIn: 'root',
+})
 export class ComponentDataService {
 
   public getRenderingLabelForComponent(component: CedarComponent): string {

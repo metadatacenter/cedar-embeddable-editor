@@ -2,6 +2,7 @@ import {Component, Input, OnInit} from '@angular/core';
 import {MultiComponent} from '../../models/component/multi-component.model';
 import {PageEvent} from '@angular/material/paginator';
 import {DataObjectService} from '../../service/data-object.service';
+import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -12,6 +13,7 @@ export class CedarMultiPagerComponent implements OnInit {
 
   component: MultiComponent;
   @Input() dataObjectService: DataObjectService;
+  activeComponentRegistry: ActiveComponentRegistryService;
 
   length = 0;
   pageSize = 5;
@@ -21,7 +23,8 @@ export class CedarMultiPagerComponent implements OnInit {
   lastIndex = -1;
   pageNumbers: number[] = [];
 
-  constructor() {
+  constructor(activeComponentRegistry: ActiveComponentRegistryService) {
+    this.activeComponentRegistry = activeComponentRegistry;
   }
 
   ngOnInit(): void {
@@ -39,7 +42,8 @@ export class CedarMultiPagerComponent implements OnInit {
   pageChanged($event: PageEvent): void {
     this.pageSize = $event.pageSize;
     this.firstIndex = $event.pageIndex * $event.pageSize;
-    this.component.setCurrentMultiCount(this.firstIndex, this.dataObjectService);
+    this.component.setCurrentMultiCount(this.firstIndex);
+    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
     this.computeLastIndex();
     this.updatePageNumber();
   }
@@ -64,28 +68,32 @@ export class CedarMultiPagerComponent implements OnInit {
   }
 
   chipClicked(chipIdx: number): void {
-    this.component.setCurrentMultiCount(chipIdx, this.dataObjectService);
+    this.component.setCurrentMultiCount(chipIdx);
+    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
   }
 
   clickedAdd(): void {
     this.dataObjectService.multiInstanceItemAdd(this.component);
     this.computeLastIndex();
     this.updatePageNumber();
-    this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex, this.dataObjectService);
+    this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex);
+    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
   }
 
   clickedCopy(): void {
     this.dataObjectService.multiInstanceItemCopy(this.component);
     this.computeLastIndex();
     this.updatePageNumber();
-    this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex, this.dataObjectService);
+    this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex);
+    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
   }
 
   clickedDelete(): void {
     this.dataObjectService.multiInstanceItemDelete(this.component);
     this.computeLastIndex();
     this.updatePageNumber();
-    this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex, this.dataObjectService);
+    this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex);
+    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
   }
 
   isEnabledDelete(): boolean {

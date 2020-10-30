@@ -10,7 +10,11 @@ import {FieldComponent} from '../models/component/field-component.model';
 import {JsonSchema} from '../models/json-schema.model';
 import * as _ from 'lodash-es';
 import {MultiComponent} from '../models/component/multi-component.model';
+import {Injectable} from '@angular/core';
 
+@Injectable({
+  providedIn: 'root',
+})
 export class DataObjectService {
 
   private dataObject: object;

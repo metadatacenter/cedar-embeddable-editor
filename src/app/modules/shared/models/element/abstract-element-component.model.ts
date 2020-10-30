@@ -1,7 +1,6 @@
 import {CedarComponent} from '../component/cedar-component.model';
 import {ElementComponent} from '../component/element-component.model';
 import {LabelInfo} from '../info/label-info.model';
-import {DataObjectService} from '../../service/data-object.service';
 
 export abstract class AbstractElementComponent implements ElementComponent {
 
@@ -21,7 +20,5 @@ export abstract class AbstractElementComponent implements ElementComponent {
   }
 
   abstract isMulti(): boolean;
-
-  abstract updateUIComponentToModel(dataObjectService: DataObjectService): void;
 
 }

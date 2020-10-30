@@ -11,6 +11,4 @@ export interface CedarComponent {
 
   isMulti(): boolean;
 
-  updateUIComponentToModel(dataObjectService: DataObjectService): void;
-
 }

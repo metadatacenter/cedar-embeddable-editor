@@ -1,5 +1,6 @@
 import {CedarComponent} from './cedar-component.model';
 import {LabelInfo} from '../info/label-info.model';
+import {DataObjectService} from '../../service/data-object.service';
 
 export class NullComponent implements CedarComponent {
 

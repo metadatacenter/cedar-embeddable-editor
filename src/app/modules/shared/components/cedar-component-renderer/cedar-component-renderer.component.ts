@@ -14,8 +14,7 @@ import {DataObjectService} from '../../service/data-object.service';
 @Component({
   selector: 'app-cedar-component-renderer',
   templateUrl: './cedar-component-renderer.component.html',
-  styleUrls: ['./cedar-component-renderer.component.scss'],
-  providers: [ComponentDataService]
+  styleUrls: ['./cedar-component-renderer.component.scss']
 })
 export class CedarComponentRendererComponent implements OnInit {
 

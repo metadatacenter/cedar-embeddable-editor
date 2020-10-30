@@ -1,16 +1,15 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {FieldComponent} from '../../models/component/field-component.model';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {JsonPipe} from '@angular/common';
 import {ComponentDataService} from '../../service/component-data.service';
 import {DataObjectService} from '../../service/data-object.service';
 import {CedarUIComponent} from '../../models/ui/cedar-ui-component.model';
+import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 
 @Component({
   selector: 'app-cedar-input-textfield',
   templateUrl: './cedar-input-textfield.component.html',
-  styleUrls: ['./cedar-input-textfield.component.scss'],
-  providers: [ComponentDataService]
+  styleUrls: ['./cedar-input-textfield.component.scss']
 })
 export class CedarInputTextfieldComponent extends CedarUIComponent implements OnInit {
 
@@ -18,12 +17,14 @@ export class CedarInputTextfieldComponent extends CedarUIComponent implements On
   options: FormGroup;
   inputValueControl = new FormControl(null, Validators.min(10));
   dataObject: DataObjectService;
+  activeComponentRegistry: ActiveComponentRegistryService;
 
-  constructor(fb: FormBuilder, private jsonPipe: JsonPipe, public cds: ComponentDataService) {
+  constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
     super();
     this.options = fb.group({
       inputValue: this.inputValueControl,
     });
+    this.activeComponentRegistry = activeComponentRegistry;
   }
 
   ngOnInit(): void {
@@ -31,7 +32,7 @@ export class CedarInputTextfieldComponent extends CedarUIComponent implements On
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
-    componentToRender.setUIComponent(this);
+    this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
   @Input() set dataObjectService(dataObjectService: DataObjectService) {
@@ -43,7 +44,6 @@ export class CedarInputTextfieldComponent extends CedarUIComponent implements On
   }
 
   setCurrentValue(currentValue: any): void {
-    console.log('CedarInputTextfieldComponent.setCurrentValue');
     this.inputValueControl.setValue(currentValue);
   }
 

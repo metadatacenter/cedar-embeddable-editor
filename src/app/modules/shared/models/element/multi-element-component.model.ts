@@ -3,7 +3,6 @@ import {ElementComponent} from '../component/element-component.model';
 import {MultiComponent} from '../component/multi-component.model';
 import {CurrentMultiInfo} from '../info/current-multi-info.model';
 import {AbstractElementComponent} from './abstract-element-component.model';
-import {DataObjectService} from '../../service/data-object.service';
 
 export class MultiElementComponent extends AbstractElementComponent implements ElementComponent, MultiComponent {
 
@@ -15,9 +14,8 @@ export class MultiElementComponent extends AbstractElementComponent implements E
     return this.currentMultiInfo.count;
   }
 
-  setCurrentMultiCount(currentIndex: number, dataObjectService: DataObjectService): void {
+  setCurrentMultiCount(currentIndex: number): void {
     this.currentMultiInfo.currentIndex = currentIndex;
-    this.updateUIComponentToModel(dataObjectService);
   }
 
   isMulti(): boolean {
@@ -26,12 +24,5 @@ export class MultiElementComponent extends AbstractElementComponent implements E
 
   hasMultiInstances(): boolean {
     return this.currentMultiInfo.count > 0;
-  }
-
-  public updateUIComponentToModel(dataObjectService: DataObjectService): void {
-    // console.log('MultiElementComponent.updateUIComponentToModel');
-    for (const childComponent of this.children) {
-      childComponent.updateUIComponentToModel(dataObjectService);
-    }
   }
 }
