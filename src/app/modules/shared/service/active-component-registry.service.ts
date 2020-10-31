@@ -16,14 +16,10 @@ export class ActiveComponentRegistryService {
   private modelToUI: Map<CedarComponent, CedarUIComponent> = new Map<CedarComponent, CedarUIComponent>();
 
   private getUIComponent(component: CedarComponent): CedarUIComponent {
-    // console.log('ActiveComponentRegistryService.getUIComponent');
-    // console.log(this.modelToUI.size);
     return this.modelToUI.get(component);
   }
 
   updateViewToModel(component: CedarComponent, dataObjectService: DataObjectService): void {
-    // console.log('ActiveComponentRegistryService.updateViewToModel');
-    // console.log(this.getUIComponent(component));
     if (component instanceof SingleFieldComponent) {
       const dataObject: object = dataObjectService.getDataPathNode(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
@@ -42,11 +38,7 @@ export class ActiveComponentRegistryService {
   }
 
   registerComponent(modelComponent: CedarComponent, uiComponent: CedarUIComponent): void {
-    // console.log('ActiveComponentRegistryService.registerComponent');
-    // console.log(modelComponent);
-    // console.log(uiComponent);
     this.modelToUI.set(modelComponent, uiComponent);
-    // console.log(this.modelToUI.size);
   }
 
 }

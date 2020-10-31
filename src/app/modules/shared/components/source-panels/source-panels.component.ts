@@ -14,6 +14,8 @@ export class SourcePanelsComponent implements OnInit {
   @Input() templateJsonString: string = null;
   @Input() instanceData: object = null;
   @Input() instanceDataString: string = null;
+  @Input() multiInstanceData: object = null;
+  @Input() multiInstanceDataString: string = null;
 
   constructor() {
   }

@@ -9,7 +9,11 @@
   <mat-card-content>
 
     <ng-container *ngFor="let childComponent of templateRepresentation.children">
-      <app-cedar-component-renderer [componentToRender]="childComponent" [dataObjectService]="dataObjectService"></app-cedar-component-renderer>
+      <app-cedar-component-renderer
+        [componentToRender]="childComponent"
+        [dataObjectService]="dataObjectService"
+        [multiInstanceObjectService]="multiInstanceObjectService"
+      ></app-cedar-component-renderer>
     </ng-container>
   </mat-card-content>
 </mat-card>
@@ -21,6 +25,8 @@
   [templateJsonString]="templateJsonObjString"
   [instanceData]="instanceData"
   [instanceDataString]="instanceData | json"
+  [multiInstanceData]="multiInstanceData"
+  [multiInstanceDataString]="multiInstanceData | json"
 ></app-source-panels>
 
 <app-static-footer></app-static-footer>

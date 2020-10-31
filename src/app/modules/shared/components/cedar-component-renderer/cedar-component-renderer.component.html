@@ -3,11 +3,15 @@
     <app-cedar-component-header [componentToRender]="iterableComponent"></app-cedar-component-header>
     <app-cedar-multi-pager *ngIf="iterableComponent.isMulti()"
                            [componentToRender]="iterableComponent"
-                           [dataObjectService]="dataObjectService"></app-cedar-multi-pager>
+                           [dataObjectService]="dataObjectService"
+                           [multiInstanceObjectService]="multiInstanceObjectService"
+    ></app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfIterable(iterableComponent)">
       <ng-container *ngFor="let childComponent of iterableComponent.children">
         <app-cedar-component-renderer [componentToRender]="childComponent"
-                                      [dataObjectService]="dataObjectService"></app-cedar-component-renderer>
+                                      [dataObjectService]="dataObjectService"
+                                      [multiInstanceObjectService]="multiInstanceObjectService"
+        ></app-cedar-component-renderer>
       </ng-container>
     </mat-card-content>
   </mat-card>
@@ -18,7 +22,9 @@
     <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
     <app-cedar-multi-pager *ngIf="nonIterableComponent.isMulti()"
                            [componentToRender]="nonIterableComponent"
-                           [dataObjectService]="dataObjectService"></app-cedar-multi-pager>
+                           [dataObjectService]="dataObjectService"
+                           [multiInstanceObjectService]="multiInstanceObjectService"
+    ></app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfNonIterable(nonIterableComponent)">
       <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType=='numeric'"
                                [componentToRender]="nonIterableComponent"

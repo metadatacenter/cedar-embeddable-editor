@@ -3,6 +3,7 @@ import {MultiComponent} from '../../models/component/multi-component.model';
 import {PageEvent} from '@angular/material/paginator';
 import {DataObjectService} from '../../service/data-object.service';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
+import {MultiInstanceObjectService} from '../../service/multi-instance-object.service';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -12,8 +13,9 @@ import {ActiveComponentRegistryService} from '../../service/active-component-reg
 export class CedarMultiPagerComponent implements OnInit {
 
   component: MultiComponent;
-  @Input() dataObjectService: DataObjectService;
   activeComponentRegistry: ActiveComponentRegistryService;
+  @Input() dataObjectService: DataObjectService;
+  @Input() multiInstanceObjectService: MultiInstanceObjectService;
 
   length = 0;
   pageSize = 5;
@@ -44,6 +46,7 @@ export class CedarMultiPagerComponent implements OnInit {
     this.firstIndex = $event.pageIndex * $event.pageSize;
     this.component.setCurrentMultiCount(this.firstIndex);
     this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
+    this.multiInstanceObjectService.setCurrentIndex(this.component, this.firstIndex);
     this.computeLastIndex();
     this.updatePageNumber();
   }
@@ -70,18 +73,26 @@ export class CedarMultiPagerComponent implements OnInit {
   chipClicked(chipIdx: number): void {
     this.component.setCurrentMultiCount(chipIdx);
     this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
+    this.multiInstanceObjectService.setCurrentIndex(this.component, chipIdx);
   }
 
   clickedAdd(): void {
     this.dataObjectService.multiInstanceItemAdd(this.component);
+    this.multiInstanceObjectService.multiInstanceItemAdd(this.component);
     this.computeLastIndex();
     this.updatePageNumber();
     this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex);
-    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
+    const that = this;
+    // The component will be null if the count was 0 before
+    // We need to wait for it to be available
+    setTimeout(() => {
+      that.activeComponentRegistry.updateViewToModel(that.component, that.dataObjectService);
+    }, 0);
   }
 
   clickedCopy(): void {
     this.dataObjectService.multiInstanceItemCopy(this.component);
+    this.multiInstanceObjectService.multiInstanceItemCopy(this.component);
     this.computeLastIndex();
     this.updatePageNumber();
     this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex);
@@ -90,10 +101,13 @@ export class CedarMultiPagerComponent implements OnInit {
 
   clickedDelete(): void {
     this.dataObjectService.multiInstanceItemDelete(this.component);
+    this.multiInstanceObjectService.multiInstanceItemDelete(this.component);
     this.computeLastIndex();
     this.updatePageNumber();
     this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex);
-    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
+    if (this.component.currentMultiInfo.count > 0) {
+      this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
+    }
   }
 
   isEnabledDelete(): boolean {
