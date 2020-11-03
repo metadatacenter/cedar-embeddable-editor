@@ -8,7 +8,6 @@ import {FieldComponent} from '../../models/component/field-component.model';
 import {MultiFieldComponent} from '../../models/field/multi-field-component.model';
 import {SingleFieldComponent} from '../../models/field/single-field-component.model';
 import {MultiInfo} from '../../models/info/multi-info.model';
-import {ComponentDataService} from '../../service/component-data.service';
 import {DataObjectService} from '../../service/data-object.service';
 import {MultiInstanceObjectService} from '../../service/multi-instance-object.service';
 
@@ -56,7 +55,7 @@ export class CedarComponentRendererComponent implements OnInit {
   shouldRenderContentOfIterable(iterableComponent: ElementComponent): boolean {
     if (iterableComponent.isMulti()) {
       const multiElement: MultiElementComponent = iterableComponent as MultiElementComponent;
-      if (!multiElement.hasMultiInstances()) {
+      if (!this.multiInstanceObjectService.hasMultiInstances(multiElement)) {
         return false;
       }
     }
@@ -66,7 +65,7 @@ export class CedarComponentRendererComponent implements OnInit {
   shouldRenderContentOfNonIterable(nonIterableComponent: FieldComponent): boolean {
     if (nonIterableComponent.isMulti()) {
       const multiField: MultiFieldComponent = nonIterableComponent as MultiFieldComponent;
-      if (!multiField.hasMultiInstances()) {
+      if (!this.multiInstanceObjectService.hasMultiInstances(multiField)) {
         return false;
       }
     }

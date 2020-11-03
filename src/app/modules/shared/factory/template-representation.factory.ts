@@ -159,8 +159,6 @@ export class TemplateRepresentationFactory {
   private static extractMultiInfo(templateFragment: object, mr: MultiComponent): void {
     mr.multiInfo.minItems = templateFragment[CedarModel.minItems];
     mr.multiInfo.maxItems = templateFragment[CedarModel.maxItems];
-    mr.currentMultiInfo.count = mr.multiInfo.minItems;
-    mr.currentMultiInfo.currentIndex = 0;
   }
 
   private static extractTemplateLabels(templateJsonObj: object, template: CedarTemplate): void {

@@ -32,21 +32,28 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
 
   @Input() set templateJsonObject(value: object) {
-    this.templateJsonObj = value;
-    this.templateJsonObjString = this.jsonPipe.transform(this.templateJsonObj);
+    console.log('CEDAR Embeddable Editor');
+    if (value != null) {
+      this.templateJsonObj = value;
+      this.templateJsonObjString = this.jsonPipe.transform(this.templateJsonObj);
 
-    this.templateRepresentation = TemplateRepresentationFactory.create(this.templateJsonObj);
-    this.templateRepresentationString = this.jsonPipe.transform(this.templateRepresentation);
+      this.templateRepresentation = TemplateRepresentationFactory.create(this.templateJsonObj);
+      this.templateRepresentationString = this.jsonPipe.transform(this.templateRepresentation);
 
-    this.dataObjectService = new DataObjectService();
-    this.instanceData = this.dataObjectService.buildNew(this.templateRepresentation);
+      this.dataObjectService = new DataObjectService();
+      this.multiInstanceObjectService = new MultiInstanceObjectService();
 
-    this.multiInstanceObjectService = new MultiInstanceObjectService();
-    this.multiInstanceData = this.multiInstanceObjectService.buildNew(this.templateRepresentation);
+      this.dataObjectService.injectMultiInstanceService(this.multiInstanceObjectService);
+
+      this.instanceData = this.dataObjectService.buildNew(this.templateRepresentation);
+      this.multiInstanceData = this.multiInstanceObjectService.buildNew(this.templateRepresentation);
+    }
   }
 
-  templateAvailable(): boolean {
-    return this.templateRepresentation != null && !(this.templateRepresentation instanceof NullTemplateComponent);
+  dataAvailableForRender(): boolean {
+    return this.templateRepresentation != null
+      && !(this.templateRepresentation instanceof NullTemplateComponent)
+      && this.multiInstanceData != null;
   }
 
 }

@@ -1,6 +1,6 @@
 <app-static-header></app-static-header>
 
-<mat-card class="template-card" *ngIf="templateAvailable()">
+<mat-card class="template-card" *ngIf="dataAvailableForRender()">
   <mat-card-header>
     <div mat-card-avatar class="header-image"></div>
     <mat-card-title>{{templateRepresentation.labelInfo.label}}</mat-card-title>
@@ -18,7 +18,7 @@
   </mat-card-content>
 </mat-card>
 
-<app-source-panels
+<app-source-panels *ngIf="dataAvailableForRender()"
   [templateRepresentation]="templateRepresentation"
   [templateRepresentationString]="templateRepresentationString"
   [templateJson]="templateJsonObj"

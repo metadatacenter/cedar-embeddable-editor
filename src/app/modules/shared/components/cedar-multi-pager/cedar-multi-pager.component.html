@@ -1,13 +1,10 @@
-<div *ngIf="component && component.currentMultiInfo" class="pager-container">
-  <!--  <p>Multi pager</p>
-    {{component.multiInfo | json}}
-    {{component.currentMultiInfo | json}}-->
+<div *ngIf="component && currentMultiInfo" class="pager-container">
 
   <div class="pager-chips">
     <mat-chip-list>
-      <mat-chip selectable="false" disabled="true" *ngIf="!this.component.hasMultiInstances()">No instances yet</mat-chip>
+      <mat-chip selectable="false" disabled="true" *ngIf="!hasMultiInstances()">No instances yet</mat-chip>
       <mat-chip *ngFor="let pageNumber of pageNumbers"
-                [selected]="pageNumber == this.component.currentMultiInfo.currentIndex"
+                [selected]="pageNumber == currentMultiInfo.currentIndex"
                 (click)="chipClicked(pageNumber)"
                 selectable="true"
       >

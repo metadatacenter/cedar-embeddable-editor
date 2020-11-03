@@ -11,6 +11,8 @@ import {JsonSchema} from '../models/json-schema.model';
 import * as _ from 'lodash-es';
 import {MultiComponent} from '../models/component/multi-component.model';
 import {Injectable} from '@angular/core';
+import {MultiInstanceObjectService} from './multi-instance-object.service';
+import {MultiInstanceObjectInfo} from '../models/info/multi-instance-object-info.model';
 
 @Injectable({
   providedIn: 'root',
@@ -19,6 +21,11 @@ export class DataObjectService {
 
   private dataObject: object;
   private templateRepresentation: TemplateComponent;
+  private multiInstanceObjectService: MultiInstanceObjectService;
+
+  injectMultiInstanceService(multiInstanceObjectService: MultiInstanceObjectService): void {
+    this.multiInstanceObjectService = multiInstanceObjectService;
+  }
 
   buildNew(templateRepresentation: TemplateComponent): object {
     this.templateRepresentation = templateRepresentation;
@@ -39,12 +46,12 @@ export class DataObjectService {
       if (component instanceof MultiElementComponent) {
         const multiElement: MultiElementComponent = component as MultiElementComponent;
         dataObject[targetName] = this.getEmptyList();
-        if (multiElement.currentMultiInfo.count > 0) {
+        if (multiElement.multiInfo.minItems > 0) {
           const dummyTargetObject: object = this.getEmptyObject();
           for (const childComponent of iterableComponent.children) {
             this.buildRecursively(childComponent, dummyTargetObject);
           }
-          for (let idx = 0; idx < multiElement.currentMultiInfo.count; idx++) {
+          for (let idx = 0; idx < multiElement.multiInfo.minItems; idx++) {
             const clone = _.cloneDeep(dummyTargetObject as any);
             dataObject[targetName].push(clone);
           }
@@ -63,8 +70,8 @@ export class DataObjectService {
       if (component instanceof MultiFieldComponent) {
         const multiField: MultiFieldComponent = component as MultiFieldComponent;
         dataObject[targetName] = this.getEmptyList();
-        if (multiField.currentMultiInfo.count > 0) {
-          for (let idx = 0; idx < multiField.currentMultiInfo.count; idx++) {
+        if (multiField.multiInfo.minItems > 0) {
+          for (let idx = 0; idx < multiField.multiInfo.minItems; idx++) {
             dataObject[targetName].push(this.getEmptyValueWrapper());
           }
         }
@@ -101,7 +108,8 @@ export class DataObjectService {
         dataObject[JsonSchema.atValue] = value;
       } else {
         const multiField = component as MultiFieldComponent;
-        const currentIndex = multiField.currentMultiInfo.currentIndex;
+        const multiInstanceInfo: MultiInstanceObjectInfo = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(multiField);
+        const currentIndex = multiInstanceInfo.currentIndex;
         dataObject[currentIndex][JsonSchema.atValue] = value;
       }
     } else {
@@ -117,11 +125,10 @@ export class DataObjectService {
         dataSubObject = dataObject[firstPath];
       } else if (component instanceof MultiElementComponent) {
         const multiElement = component as MultiElementComponent;
-        const currentIndex = multiElement.currentMultiInfo.currentIndex;
+        const multiInstanceInfo: MultiInstanceObjectInfo = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(multiElement);
+        const currentIndex = multiInstanceInfo.currentIndex;
         childComponent = multiElement.getChildByName(firstPath);
         dataSubObject = dataObject[currentIndex][firstPath];
-        // } else {
-        //   childComponent = component;
       }
       this.setDataPathValueRecursively(dataSubObject, childComponent, remainingPath, value);
     }
@@ -147,7 +154,8 @@ export class DataObjectService {
         dataSubObject = dataObject[firstPath];
       } else if (component instanceof MultiElementComponent) {
         const multiElement = component as MultiElementComponent;
-        const currentIndex = multiElement.currentMultiInfo.currentIndex;
+        const multiInstanceInfo: MultiInstanceObjectInfo = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(multiElement);
+        const currentIndex = multiInstanceInfo.currentIndex;
         childComponent = multiElement.getChildByName(firstPath);
         if (dataObject.hasOwnProperty(currentIndex)) {
           dataSubObject = dataObject[currentIndex][firstPath];
@@ -158,45 +166,31 @@ export class DataObjectService {
   }
 
   multiInstanceItemDelete(component: MultiComponent): void {
+    const multiInstanceInfo: MultiInstanceObjectInfo = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const currentNodeAny = this.getDataPathNode(component.path);
     const currentNodeArray = currentNodeAny as [];
-    currentNodeArray.splice(component.currentMultiInfo.currentIndex, 1);
-    component.currentMultiInfo.count--;
-    if (component.currentMultiInfo.currentIndex > component.currentMultiInfo.count - 1) {
-      component.currentMultiInfo.currentIndex = component.currentMultiInfo.count - 1;
-    }
+    currentNodeArray.splice(multiInstanceInfo.currentIndex, 1);
   }
 
   multiInstanceItemCopy(component: MultiComponent): void {
+    const multiInstanceInfo: MultiInstanceObjectInfo = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const currentNodeAny = this.getDataPathNode(component.path);
     const currentNodeArray = currentNodeAny as [];
-    const sourceItem = currentNodeArray[component.currentMultiInfo.currentIndex];
+    const sourceItem = currentNodeArray[multiInstanceInfo.currentIndex];
     const cloneItem = _.cloneDeep(sourceItem as any);
-    currentNodeArray.splice(component.currentMultiInfo.currentIndex + 1, 0, cloneItem as never);
-    component.currentMultiInfo.count++;
-    if (component.currentMultiInfo.count === 1) {
-      component.currentMultiInfo.currentIndex = 0;
-    } else {
-      component.currentMultiInfo.currentIndex++;
-    }
+    currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, cloneItem as never);
   }
 
   multiInstanceItemAdd(component: MultiComponent): void {
+    const multiInstanceInfo: MultiInstanceObjectInfo = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const dataObject = {};
     const cloneComponent = _.cloneDeep(component);
     this.setCurrentCountToMinRecursively(cloneComponent);
-    cloneComponent.currentMultiInfo.count = 1;
     this.buildRecursively(cloneComponent, dataObject);
     const newDataObject = dataObject[component.name][0];
     const currentNodeAny = this.getDataPathNode(component.path);
     const currentNodeArray = currentNodeAny as [];
-    currentNodeArray.splice(component.currentMultiInfo.currentIndex + 1, 0, newDataObject as never);
-    component.currentMultiInfo.count++;
-    if (component.currentMultiInfo.count === 1) {
-      component.currentMultiInfo.currentIndex = 0;
-    } else {
-      component.currentMultiInfo.currentIndex++;
-    }
+    currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, newDataObject as never);
   }
 
   setCurrentCountToMinRecursively(component: CedarComponent): void {
@@ -207,14 +201,13 @@ export class DataObjectService {
       }
     } else if (component instanceof MultiElementComponent) {
       const multiElement: MultiElementComponent = component as MultiElementComponent;
-      multiElement.currentMultiInfo.count = multiElement.multiInfo.getSafeMinItems();
+      // multiElement.currentMultiInfo.count = multiElement.multiInfo.getSafeMinItems();
       for (const childComponent of multiElement.children) {
         this.setCurrentCountToMinRecursively(childComponent);
       }
     } else if (component instanceof MultiFieldComponent) {
       const multiField: MultiFieldComponent = component as MultiFieldComponent;
-      multiField.currentMultiInfo.count = multiField.multiInfo.getSafeMinItems();
+      // multiField.currentMultiInfo.count = multiField.multiInfo.getSafeMinItems();
     }
   }
-
 }

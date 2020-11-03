@@ -4,6 +4,7 @@ import {PageEvent} from '@angular/material/paginator';
 import {DataObjectService} from '../../service/data-object.service';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 import {MultiInstanceObjectService} from '../../service/multi-instance-object.service';
+import {MultiInstanceObjectInfo} from '../../models/info/multi-instance-object-info.model';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -13,9 +14,10 @@ import {MultiInstanceObjectService} from '../../service/multi-instance-object.se
 export class CedarMultiPagerComponent implements OnInit {
 
   component: MultiComponent;
+  currentMultiInfo: MultiInstanceObjectInfo;
   activeComponentRegistry: ActiveComponentRegistryService;
+  multiInstanceService: MultiInstanceObjectService;
   @Input() dataObjectService: DataObjectService;
-  @Input() multiInstanceObjectService: MultiInstanceObjectService;
 
   length = 0;
   pageSize = 5;
@@ -30,28 +32,42 @@ export class CedarMultiPagerComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.recomputeNumbers();
   }
 
   @Input() set componentToRender(componentToRender: MultiComponent) {
     this.component = componentToRender;
-    if (this.component != null) {
-      this.firstIndex = 0;
-      this.computeLastIndex();
-      this.updatePageNumber();
+    this.activeComponentRegistry.registerMultiPagerComponent(this.component, this);
+
+  }
+
+  @Input() set multiInstanceObjectService(multiInstanceObjectService: MultiInstanceObjectService) {
+    this.multiInstanceService = multiInstanceObjectService;
+  }
+
+  private recomputeNumbers(): void {
+    this.setCurrentMultiInfo();
+    this.firstIndex = 0;
+    this.computeLastIndex();
+    this.updatePageNumbers();
+  }
+
+  private setCurrentMultiInfo(): void {
+    if (this.component != null && this.multiInstanceService != null) {
+      this.currentMultiInfo = this.multiInstanceService.getMultiInstanceInfoForComponent(this.component);
     }
   }
 
   pageChanged($event: PageEvent): void {
     this.pageSize = $event.pageSize;
     this.firstIndex = $event.pageIndex * $event.pageSize;
-    this.component.setCurrentMultiCount(this.firstIndex);
-    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
-    this.multiInstanceObjectService.setCurrentIndex(this.component, this.firstIndex);
+    this.multiInstanceService.setCurrentIndex(this.component, this.firstIndex);
+    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService, this.multiInstanceService);
     this.computeLastIndex();
-    this.updatePageNumber();
+    this.updatePageNumbers();
   }
 
-  private updatePageNumber(): void {
+  private updatePageNumbers(): void {
     this.pageNumbers = [];
     for (let idx = this.firstIndex; idx <= this.lastIndex; idx++) {
       this.pageNumbers.push(idx);
@@ -59,7 +75,7 @@ export class CedarMultiPagerComponent implements OnInit {
   }
 
   private computeLastIndex(): void {
-    this.length = this.component.getCurrentMultiCount();
+    this.length = this.currentMultiInfo.currentCount;
     if (this.length > 0) {
       this.lastIndex = this.firstIndex + this.pageSize - 1;
       if (this.lastIndex > this.length - 1) {
@@ -71,51 +87,55 @@ export class CedarMultiPagerComponent implements OnInit {
   }
 
   chipClicked(chipIdx: number): void {
-    this.component.setCurrentMultiCount(chipIdx);
-    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
-    this.multiInstanceObjectService.setCurrentIndex(this.component, chipIdx);
+    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService, this.multiInstanceService);
+    this.multiInstanceService.setCurrentIndex(this.component, chipIdx);
+    this.recomputeNumbers();
+    const that = this;
+    setTimeout(() => {
+      that.activeComponentRegistry.updateViewToModel(that.component, that.dataObjectService, this.multiInstanceService);
+    }, 0);
   }
 
   clickedAdd(): void {
     this.dataObjectService.multiInstanceItemAdd(this.component);
-    this.multiInstanceObjectService.multiInstanceItemAdd(this.component);
-    this.computeLastIndex();
-    this.updatePageNumber();
-    this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex);
+    this.multiInstanceService.multiInstanceItemAdd(this.component);
+    this.recomputeNumbers();
     const that = this;
     // The component will be null if the count was 0 before
     // We need to wait for it to be available
     setTimeout(() => {
-      that.activeComponentRegistry.updateViewToModel(that.component, that.dataObjectService);
+      that.activeComponentRegistry.updateViewToModel(that.component, that.dataObjectService, that.multiInstanceService);
     }, 0);
   }
 
   clickedCopy(): void {
     this.dataObjectService.multiInstanceItemCopy(this.component);
-    this.multiInstanceObjectService.multiInstanceItemCopy(this.component);
-    this.computeLastIndex();
-    this.updatePageNumber();
-    this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex);
-    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
+    this.multiInstanceService.multiInstanceItemCopy(this.component);
+    this.recomputeNumbers();
+    const that = this;
+    setTimeout(() => {
+      that.activeComponentRegistry.updateViewToModel(that.component, that.dataObjectService, that.multiInstanceService);
+    }, 0);
   }
 
   clickedDelete(): void {
     this.dataObjectService.multiInstanceItemDelete(this.component);
-    this.multiInstanceObjectService.multiInstanceItemDelete(this.component);
-    this.computeLastIndex();
-    this.updatePageNumber();
-    this.component.setCurrentMultiCount(this.component.currentMultiInfo.currentIndex);
-    if (this.component.currentMultiInfo.count > 0) {
-      this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService);
+    this.multiInstanceService.multiInstanceItemDelete(this.component);
+    this.recomputeNumbers();
+    if (this.currentMultiInfo.currentCount > 0) {
+      const that = this;
+      setTimeout(() => {
+        that.activeComponentRegistry.updateViewToModel(that.component, that.dataObjectService, that.multiInstanceService);
+      }, 0);
     }
   }
 
   isEnabledDelete(): boolean {
-    if (this.component.currentMultiInfo.count === 0) {
+    if (this.currentMultiInfo.currentCount === 0) {
       return false;
     }
     if (this.component.multiInfo.minItems != null) {
-      if (this.component.currentMultiInfo.count <= this.component.multiInfo.minItems) {
+      if (this.currentMultiInfo.currentCount <= this.component.multiInfo.minItems) {
         return false;
       }
     }
@@ -128,10 +148,18 @@ export class CedarMultiPagerComponent implements OnInit {
 
   isEnabledAdd(): boolean {
     if (this.component.multiInfo.minItems != null) {
-      if (this.component.currentMultiInfo.count >= this.component.multiInfo.maxItems) {
+      if (this.currentMultiInfo.currentCount >= this.component.multiInfo.maxItems) {
         return false;
       }
     }
     return true;
+  }
+
+  updatePagingUI(): void {
+    this.recomputeNumbers();
+  }
+
+  hasMultiInstances(): boolean {
+    return this.currentMultiInfo.currentCount > 0;
   }
 }

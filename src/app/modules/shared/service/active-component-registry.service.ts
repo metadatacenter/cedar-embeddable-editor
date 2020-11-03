@@ -7,6 +7,9 @@ import {MultiFieldComponent} from '../models/field/multi-field-component.model';
 import {SingleElementComponent} from '../models/element/single-element-component.model';
 import {MultiElementComponent} from '../models/element/multi-element-component.model';
 import {Injectable} from '@angular/core';
+import {CedarMultiPagerComponent} from '../components/cedar-multi-pager/cedar-multi-pager.component';
+import {MultiInstanceObjectService} from './multi-instance-object.service';
+import {MultiInstanceObjectInfo} from '../models/info/multi-instance-object-info.model';
 
 @Injectable({
   providedIn: 'root',
@@ -14,12 +17,17 @@ import {Injectable} from '@angular/core';
 export class ActiveComponentRegistryService {
 
   private modelToUI: Map<CedarComponent, CedarUIComponent> = new Map<CedarComponent, CedarUIComponent>();
+  private modelToMultiPagerUI: Map<CedarComponent, CedarMultiPagerComponent> = new Map<CedarComponent, CedarMultiPagerComponent>();
 
   private getUIComponent(component: CedarComponent): CedarUIComponent {
     return this.modelToUI.get(component);
   }
 
-  updateViewToModel(component: CedarComponent, dataObjectService: DataObjectService): void {
+  private getMultiPagerUI(component: CedarComponent): CedarMultiPagerComponent {
+    return this.modelToMultiPagerUI.get(component);
+  }
+
+  updateViewToModel(component: CedarComponent, dataObjectService: DataObjectService, multiInstanceService: MultiInstanceObjectService): void {
     if (component instanceof SingleFieldComponent) {
       const dataObject: object = dataObjectService.getDataPathNode(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
@@ -29,10 +37,19 @@ export class ActiveComponentRegistryService {
     } else if (component instanceof MultiFieldComponent) {
       const dataObject: object = dataObjectService.getDataPathNode(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
-      uiComponent.setCurrentValue(dataObject[component.currentMultiInfo.currentIndex][JsonSchema.atValue]);
-    } else if (component instanceof SingleElementComponent || component instanceof MultiElementComponent) {
+      const multiInstanceInfo: MultiInstanceObjectInfo = multiInstanceService.getMultiInstanceInfoForComponent(component);
+      uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
+      const uiPager = this.getMultiPagerUI(component);
+      uiPager.updatePagingUI();
+    } else if (component instanceof SingleElementComponent) {
       for (const childComponent of component.children) {
-        this.updateViewToModel(childComponent, dataObjectService);
+        this.updateViewToModel(childComponent, dataObjectService, multiInstanceService);
+      }
+    } else if (component instanceof MultiElementComponent) {
+      const uiPager = this.getMultiPagerUI(component);
+      uiPager.updatePagingUI();
+      for (const childComponent of component.children) {
+        this.updateViewToModel(childComponent, dataObjectService, multiInstanceService);
       }
     }
   }
@@ -41,4 +58,7 @@ export class ActiveComponentRegistryService {
     this.modelToUI.set(modelComponent, uiComponent);
   }
 
+  registerMultiPagerComponent(modelComponent: CedarComponent, uiComponent: CedarMultiPagerComponent): void {
+    this.modelToMultiPagerUI.set(modelComponent, uiComponent);
+  }
 }
