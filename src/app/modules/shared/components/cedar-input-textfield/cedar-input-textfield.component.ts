@@ -2,9 +2,9 @@ import {Component, Input, OnInit} from '@angular/core';
 import {FieldComponent} from '../../models/component/field-component.model';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ComponentDataService} from '../../service/component-data.service';
-import {DataObjectService} from '../../service/data-object.service';
 import {CedarUIComponent} from '../../models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
+import {HandlerContext} from '../../util/handler-context';
 
 @Component({
   selector: 'app-cedar-input-textfield',
@@ -16,8 +16,8 @@ export class CedarInputTextfieldComponent extends CedarUIComponent implements On
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, Validators.min(10));
-  dataObject: DataObjectService;
   activeComponentRegistry: ActiveComponentRegistryService;
+  @Input() handlerContext: HandlerContext;
 
   constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
     super();
@@ -35,12 +35,8 @@ export class CedarInputTextfieldComponent extends CedarUIComponent implements On
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  @Input() set dataObjectService(dataObjectService: DataObjectService) {
-    this.dataObject = dataObjectService;
-  }
-
   inputChanged($event: Event): void {
-    this.dataObject.setDataPathValue(this.component, ($event.target as HTMLTextAreaElement).value);
+    this.handlerContext.changeValue(this.component, ($event.target as HTMLTextAreaElement).value);
   }
 
   setCurrentValue(currentValue: any): void {

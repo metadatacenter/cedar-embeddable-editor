@@ -4,7 +4,6 @@ import {ValueInfo} from '../info/value-info.model';
 import {NumberInfo} from '../info/number-info.model';
 import {ChoiceInfo} from '../info/choice-info.model';
 import {LabelInfo} from '../info/label-info.model';
-import {DataObjectService} from '../../service/data-object.service';
 
 export abstract class AbstractFieldComponent implements FieldComponent {
 

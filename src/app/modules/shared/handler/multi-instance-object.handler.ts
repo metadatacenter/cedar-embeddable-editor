@@ -15,12 +15,12 @@ import {MultiInstanceObjectInfo} from '../models/info/multi-instance-object-info
 @Injectable({
   providedIn: 'root',
 })
-export class MultiInstanceObjectService {
+export class MultiInstanceObjectHandler {
 
   private multiInstanceObject: MultiInstanceInfo;
   private templateRepresentation: TemplateComponent;
 
-  buildNew(templateRepresentation: TemplateComponent): object {
+  buildNew(templateRepresentation: TemplateComponent): MultiInstanceInfo {
     this.templateRepresentation = templateRepresentation;
     this.multiInstanceObject = new MultiInstanceInfo();
     this.buildRecursively(templateRepresentation, this.multiInstanceObject);

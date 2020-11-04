@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {TemplateComponent} from '../../models/template/template-component.model';
+import {DataContext} from '../../util/data-context';
 
 @Component({
   selector: 'app-source-panels',
@@ -8,14 +8,7 @@ import {TemplateComponent} from '../../models/template/template-component.model'
 })
 export class SourcePanelsComponent implements OnInit {
 
-  @Input() templateJson: object = null;
-  @Input() templateRepresentationString: string = null;
-  @Input() templateRepresentation: TemplateComponent = null;
-  @Input() templateJsonString: string = null;
-  @Input() instanceData: object = null;
-  @Input() instanceDataString: string = null;
-  @Input() multiInstanceData: object = null;
-  @Input() multiInstanceDataString: string = null;
+  @Input() dataContext: DataContext = null;
 
   constructor() {
   }

@@ -13,16 +13,17 @@ import {MultiComponent} from '../models/component/multi-component.model';
 import {ElementComponent} from '../models/component/element-component.model';
 import {FieldComponent} from '../models/component/field-component.model';
 import {ChoiceOption} from '../models/info/choice-option.model';
+import {CedarInputTemplate} from '../models/cedar-input-template.model';
 
 export class TemplateRepresentationFactory {
 
-  static create(templateJsonObj: object): TemplateComponent {
-    if (templateJsonObj === null) {
+  static create(inputTemplate: CedarInputTemplate): TemplateComponent {
+    if (inputTemplate === null) {
       return new NullTemplateComponent();
     } else {
       const template = new CedarTemplate();
-      TemplateRepresentationFactory.wrap(templateJsonObj, templateJsonObj, template, []);
-      TemplateRepresentationFactory.extractTemplateLabels(templateJsonObj, template);
+      TemplateRepresentationFactory.wrap(inputTemplate, inputTemplate, template, []);
+      TemplateRepresentationFactory.extractTemplateLabels(inputTemplate, template);
       return template;
     }
   }

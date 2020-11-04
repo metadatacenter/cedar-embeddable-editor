@@ -1,4 +1,3 @@
-import {DataObjectService} from './data-object.service';
 import {CedarUIComponent} from '../models/ui/cedar-ui-component.model';
 import {CedarComponent} from '../models/component/cedar-component.model';
 import {SingleFieldComponent} from '../models/field/single-field-component.model';
@@ -8,8 +7,8 @@ import {SingleElementComponent} from '../models/element/single-element-component
 import {MultiElementComponent} from '../models/element/multi-element-component.model';
 import {Injectable} from '@angular/core';
 import {CedarMultiPagerComponent} from '../components/cedar-multi-pager/cedar-multi-pager.component';
-import {MultiInstanceObjectService} from './multi-instance-object.service';
 import {MultiInstanceObjectInfo} from '../models/info/multi-instance-object-info.model';
+import {HandlerContext} from '../util/handler-context';
 
 @Injectable({
   providedIn: 'root',
@@ -27,29 +26,29 @@ export class ActiveComponentRegistryService {
     return this.modelToMultiPagerUI.get(component);
   }
 
-  updateViewToModel(component: CedarComponent, dataObjectService: DataObjectService, multiInstanceService: MultiInstanceObjectService): void {
+  updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
     if (component instanceof SingleFieldComponent) {
-      const dataObject: object = dataObjectService.getDataPathNode(component.path);
+      const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
       if (uiComponent != null && dataObject != null) {
         uiComponent.setCurrentValue(dataObject[JsonSchema.atValue]);
       }
     } else if (component instanceof MultiFieldComponent) {
-      const dataObject: object = dataObjectService.getDataPathNode(component.path);
+      const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
-      const multiInstanceInfo: MultiInstanceObjectInfo = multiInstanceService.getMultiInstanceInfoForComponent(component);
+      const multiInstanceInfo: MultiInstanceObjectInfo = handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
       uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
       const uiPager = this.getMultiPagerUI(component);
       uiPager.updatePagingUI();
     } else if (component instanceof SingleElementComponent) {
       for (const childComponent of component.children) {
-        this.updateViewToModel(childComponent, dataObjectService, multiInstanceService);
+        this.updateViewToModel(childComponent, handlerContext);
       }
     } else if (component instanceof MultiElementComponent) {
       const uiPager = this.getMultiPagerUI(component);
       uiPager.updatePagingUI();
       for (const childComponent of component.children) {
-        this.updateViewToModel(childComponent, dataObjectService, multiInstanceService);
+        this.updateViewToModel(childComponent, handlerContext);
       }
     }
   }

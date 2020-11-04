@@ -12,6 +12,7 @@ export class CedarModel {
   static minLength = 'minLength';
   static maxLength = 'maxLength';
   static numberType = 'numberType';
+  static temporalType = 'temporalType';
   static unitOfMeasure = 'unitOfMeasure';
   static minValue = 'minValue';
   static maxValue = 'maxValue';
@@ -25,6 +26,9 @@ export class CedarModel {
   static skosPrefLabel = 'skos:prefLabel';
   static propertyDescriptions = 'propertyDescriptions';
   static propertyLabels = 'propertyLabels';
+
+  static format = 'format';
+  static enum = 'enum';
 
   static templateFieldType = 'https://schema.metadatacenter.org/core/TemplateField';
   static templateElementType = 'https://schema.metadatacenter.org/core/TemplateElement';

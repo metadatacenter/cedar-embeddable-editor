@@ -8,8 +8,8 @@ import {FieldComponent} from '../../models/component/field-component.model';
 import {MultiFieldComponent} from '../../models/field/multi-field-component.model';
 import {SingleFieldComponent} from '../../models/field/single-field-component.model';
 import {MultiInfo} from '../../models/info/multi-info.model';
-import {DataObjectService} from '../../service/data-object.service';
-import {MultiInstanceObjectService} from '../../service/multi-instance-object.service';
+import {HandlerContext} from '../../util/handler-context';
+import {DataContext} from '../../util/data-context';
 
 @Component({
   selector: 'app-cedar-component-renderer',
@@ -22,8 +22,7 @@ export class CedarComponentRendererComponent implements OnInit {
   iterableComponent: ElementComponent;
   nonIterableComponent: FieldComponent;
   multiInfo: MultiInfo;
-  @Input() dataObjectService: DataObjectService;
-  @Input() multiInstanceObjectService: MultiInstanceObjectService;
+  @Input() handlerContext: HandlerContext;
 
   constructor() {
   }
@@ -55,7 +54,7 @@ export class CedarComponentRendererComponent implements OnInit {
   shouldRenderContentOfIterable(iterableComponent: ElementComponent): boolean {
     if (iterableComponent.isMulti()) {
       const multiElement: MultiElementComponent = iterableComponent as MultiElementComponent;
-      if (!this.multiInstanceObjectService.hasMultiInstances(multiElement)) {
+      if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiElement)) {
         return false;
       }
     }
@@ -65,7 +64,7 @@ export class CedarComponentRendererComponent implements OnInit {
   shouldRenderContentOfNonIterable(nonIterableComponent: FieldComponent): boolean {
     if (nonIterableComponent.isMulti()) {
       const multiField: MultiFieldComponent = nonIterableComponent as MultiFieldComponent;
-      if (!this.multiInstanceObjectService.hasMultiInstances(multiField)) {
+      if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiField)) {
         return false;
       }
     }

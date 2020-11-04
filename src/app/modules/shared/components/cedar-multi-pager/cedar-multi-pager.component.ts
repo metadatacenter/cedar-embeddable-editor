@@ -1,10 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {MultiComponent} from '../../models/component/multi-component.model';
 import {PageEvent} from '@angular/material/paginator';
-import {DataObjectService} from '../../service/data-object.service';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
-import {MultiInstanceObjectService} from '../../service/multi-instance-object.service';
 import {MultiInstanceObjectInfo} from '../../models/info/multi-instance-object-info.model';
+import {HandlerContext} from '../../util/handler-context';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -16,8 +15,7 @@ export class CedarMultiPagerComponent implements OnInit {
   component: MultiComponent;
   currentMultiInfo: MultiInstanceObjectInfo;
   activeComponentRegistry: ActiveComponentRegistryService;
-  multiInstanceService: MultiInstanceObjectService;
-  @Input() dataObjectService: DataObjectService;
+  @Input() handlerContext: HandlerContext;
 
   length = 0;
   pageSize = 5;
@@ -41,10 +39,6 @@ export class CedarMultiPagerComponent implements OnInit {
 
   }
 
-  @Input() set multiInstanceObjectService(multiInstanceObjectService: MultiInstanceObjectService) {
-    this.multiInstanceService = multiInstanceObjectService;
-  }
-
   private recomputeNumbers(): void {
     this.setCurrentMultiInfo();
     this.firstIndex = 0;
@@ -53,16 +47,16 @@ export class CedarMultiPagerComponent implements OnInit {
   }
 
   private setCurrentMultiInfo(): void {
-    if (this.component != null && this.multiInstanceService != null) {
-      this.currentMultiInfo = this.multiInstanceService.getMultiInstanceInfoForComponent(this.component);
+    if (this.component != null && this.handlerContext.multiInstanceObjectService != null) {
+      this.currentMultiInfo = this.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(this.component);
     }
   }
 
   pageChanged($event: PageEvent): void {
     this.pageSize = $event.pageSize;
     this.firstIndex = $event.pageIndex * $event.pageSize;
-    this.multiInstanceService.setCurrentIndex(this.component, this.firstIndex);
-    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService, this.multiInstanceService);
+    this.handlerContext.multiInstanceObjectService.setCurrentIndex(this.component, this.firstIndex);
+    this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
     this.computeLastIndex();
     this.updatePageNumbers();
   }
@@ -87,45 +81,42 @@ export class CedarMultiPagerComponent implements OnInit {
   }
 
   chipClicked(chipIdx: number): void {
-    this.activeComponentRegistry.updateViewToModel(this.component, this.dataObjectService, this.multiInstanceService);
-    this.multiInstanceService.setCurrentIndex(this.component, chipIdx);
+    this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
+    this.handlerContext.setCurrentIndex(this.component, chipIdx);
     this.recomputeNumbers();
     const that = this;
     setTimeout(() => {
-      that.activeComponentRegistry.updateViewToModel(that.component, that.dataObjectService, this.multiInstanceService);
+      that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
     }, 0);
   }
 
   clickedAdd(): void {
-    this.dataObjectService.multiInstanceItemAdd(this.component);
-    this.multiInstanceService.multiInstanceItemAdd(this.component);
+    this.handlerContext.addMultiInstance(this.component);
     this.recomputeNumbers();
     const that = this;
     // The component will be null if the count was 0 before
     // We need to wait for it to be available
     setTimeout(() => {
-      that.activeComponentRegistry.updateViewToModel(that.component, that.dataObjectService, that.multiInstanceService);
+      that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
     }, 0);
   }
 
   clickedCopy(): void {
-    this.dataObjectService.multiInstanceItemCopy(this.component);
-    this.multiInstanceService.multiInstanceItemCopy(this.component);
+    this.handlerContext.copyMultiInstance(this.component);
     this.recomputeNumbers();
     const that = this;
     setTimeout(() => {
-      that.activeComponentRegistry.updateViewToModel(that.component, that.dataObjectService, that.multiInstanceService);
+      that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
     }, 0);
   }
 
   clickedDelete(): void {
-    this.dataObjectService.multiInstanceItemDelete(this.component);
-    this.multiInstanceService.multiInstanceItemDelete(this.component);
+    this.handlerContext.deleteMultiInstance(this.component);
     this.recomputeNumbers();
     if (this.currentMultiInfo.currentCount > 0) {
       const that = this;
       setTimeout(() => {
-        that.activeComponentRegistry.updateViewToModel(that.component, that.dataObjectService, that.multiInstanceService);
+        that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
       }, 0);
     }
   }

@@ -1,0 +1,121 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Element with Several Fields, some Multi": "https://schema.metadatacenter.org/properties/bb8546eb-624f-4860-9ef2-3e2ef3189ae9",
+    "Multiple Text Field": "https://schema.metadatacenter.org/properties/a6740f98-d87a-42e7-9c18-912e38884f9a"
+  },
+  "Element with Several Fields, some Multi": [
+    {
+      "@context": {
+        "Text Field": "https://schema.metadatacenter.org/properties/0ef0406e-7ef7-4ebc-b603-3a6150a403b9",
+        "Numeric Field": "https://schema.metadatacenter.org/properties/b3d5bbb6-b064-4fa9-90a6-4e5d668035a9",
+        "Another text field": "https://schema.metadatacenter.org/properties/a26f0cec-2f19-4580-a09f-399e9bef7318"
+      },
+      "Text Field": [
+        {
+          "@value": "TF1-1"
+        },
+        {
+          "@value": "TF1-2"
+        }
+      ],
+      "Numeric Field": {
+        "@value": "1",
+        "@type": "xsd:decimal"
+      },
+      "Another text field": [
+        {
+          "@value": "TF another 1"
+        }
+      ]
+    },
+    {
+      "@context": {
+        "Text Field": "https://schema.metadatacenter.org/properties/0ef0406e-7ef7-4ebc-b603-3a6150a403b9",
+        "Numeric Field": "https://schema.metadatacenter.org/properties/b3d5bbb6-b064-4fa9-90a6-4e5d668035a9",
+        "Another text field": "https://schema.metadatacenter.org/properties/a26f0cec-2f19-4580-a09f-399e9bef7318"
+      },
+      "Text Field": [
+        {
+          "@value": "TF2-1"
+        },
+        {
+          "@value": "TF2-2"
+        },
+        {
+          "@value": "TF2-3"
+        }
+      ],
+      "Numeric Field": {
+        "@value": "2",
+        "@type": "xsd:decimal"
+      },
+      "Another text field": [
+        {
+          "@value": "Ano TF 1"
+        },
+        {
+          "@value": "Another 2"
+        },
+        {}
+      ]
+    }
+  ],
+  "Multiple Text Field": {
+    "@context": {
+      "Text Field": "https://schema.metadatacenter.org/properties/c909aa10-28c6-41c7-b46e-96b7934b4ffe"
+    },
+    "Text Field": [
+      {
+        "@value": "Another 3"
+      },
+      {
+        "@value": "TF other 1-2"
+      },
+      {
+        "@value": "TF other 1-3"
+      },
+      {
+        "@value": "TF other 1-4"
+      }
+    ]
+  },
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/29bf3771-caa4-47a6-b406-4a437b04bae1",
+  "schema:name": "29 - multi element with several fields, one multi metadata",
+  "schema:description": ""
+}
