@@ -53,7 +53,7 @@ export class DataObjectStructureHandler {
   private performItemAdd(instanceObject: InstanceExtractData, templateRepresentation: CedarTemplate, component: MultiComponent, multiInstanceObjectService: MultiInstanceObjectHandler, multiInstanceInfo: MultiInstanceObjectInfo, templateInput: CedarInputTemplate): void {
     const dataObject = {};
     const cloneComponent = _.cloneDeep(component);
-    // DataObjectBuilderHandler.setCurrentCountToMinRecursively(cloneComponent);
+    DataObjectBuilderHandler.setCurrentCountToMinRecursively(cloneComponent, component.path);
     let subTemplate = null;
     if (templateInput != null) {
       const shorterPath = component.path.slice(0, component.path.length - 1);

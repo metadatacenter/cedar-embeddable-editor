@@ -85,23 +85,34 @@ export class DataObjectBuilderHandler {
     return ret;
   }
 
-  // public static setCurrentCountToMinRecursively(component: CedarComponent): void {
-  //   if (component instanceof SingleElementComponent) {
-  //     const singleElement: SingleElementComponent = component as SingleElementComponent;
-  //     for (const childComponent of singleElement.children) {
-  //       DataObjectBuilderHandler.setCurrentCountToMinRecursively(childComponent);
-  //     }
-  //   } else if (component instanceof MultiElementComponent) {
-  //     const multiElement: MultiElementComponent = component as MultiElementComponent;
-  //     //multiElement.currentMultiInfo.count = multiElement.multiInfo.getSafeMinItems();
-  //     for (const childComponent of multiElement.children) {
-  //       DataObjectBuilderHandler.setCurrentCountToMinRecursively(childComponent);
-  //     }
-  //   } else if (component instanceof MultiFieldComponent) {
-  //     const multiField: MultiFieldComponent = component as MultiFieldComponent;
-  //     // multiField.currentMultiInfo.count = multiField.multiInfo.getSafeMinItems();
-  //   }
-  // }
+  public static setCurrentCountToMinRecursively(component: CedarComponent, path: string[]): void {
+    if (path.length === 0) {
+      return;
+    }
+    const firstPath = path[0];
+    const remainingPath = path.slice(1);
+    if (component instanceof SingleElementComponent) {
+      const singleElement: SingleElementComponent = component as SingleElementComponent;
+      for (const childComponent of singleElement.children) {
+        DataObjectBuilderHandler.setCurrentCountToMinRecursively(childComponent, remainingPath);
+      }
+    } else if (component instanceof MultiElementComponent) {
+      const multiElement: MultiElementComponent = component as MultiElementComponent;
+      const min = multiElement.multiInfo.getSafeMinItems();
+      if (min === 0) {
+        multiElement.multiInfo.minItems = 1;
+      }
+      for (const childComponent of multiElement.children) {
+        DataObjectBuilderHandler.setCurrentCountToMinRecursively(childComponent, remainingPath);
+      }
+    } else if (component instanceof MultiFieldComponent) {
+      const multiField: MultiFieldComponent = component as MultiFieldComponent;
+      const min = multiField.multiInfo.getSafeMinItems();
+      if (min === 0) {
+        multiField.multiInfo.minItems = 1;
+      }
+    }
+  }
 
   private static addContext(component: CedarComponent, dataObject: InstanceExtractData, templateJsonObj: CedarInputTemplate): void {
     const props = templateJsonObj[JsonSchema.properties];

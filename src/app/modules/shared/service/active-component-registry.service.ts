@@ -36,10 +36,14 @@ export class ActiveComponentRegistryService {
     } else if (component instanceof MultiFieldComponent) {
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
-      const multiInstanceInfo: MultiInstanceObjectInfo = handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
-      uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
-      const uiPager = this.getMultiPagerUI(component);
-      uiPager.updatePagingUI();
+      if (uiComponent != null) {
+        const multiInstanceInfo: MultiInstanceObjectInfo = handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
+        if (dataObject[multiInstanceInfo.currentIndex] != null) {
+          uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
+        }
+        const uiPager = this.getMultiPagerUI(component);
+        uiPager.updatePagingUI();
+      }
     } else if (component instanceof SingleElementComponent) {
       for (const childComponent of component.children) {
         this.updateViewToModel(childComponent, handlerContext);
