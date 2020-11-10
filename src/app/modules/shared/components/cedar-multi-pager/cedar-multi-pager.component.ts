@@ -18,7 +18,8 @@ export class CedarMultiPagerComponent implements OnInit {
   @Input() handlerContext: HandlerContext;
 
   length = 0;
-  pageSize = 5;
+  pageSize = 2;
+  pageIndex = 0;
   pageSizeOptions: number[] = [1, 2, 5, 10, 25];
 
   firstIndex = 0;
@@ -41,7 +42,7 @@ export class CedarMultiPagerComponent implements OnInit {
 
   private recomputeNumbers(): void {
     this.setCurrentMultiInfo();
-    this.firstIndex = 0;
+    this.computeFirstIndex();
     this.computeLastIndex();
     this.updatePageNumbers();
   }
@@ -52,13 +53,28 @@ export class CedarMultiPagerComponent implements OnInit {
     }
   }
 
-  pageChanged($event: PageEvent): void {
+  paginatorChanged($event: PageEvent): void {
+    if ($event.pageSize !== this.pageSize) {
+      this.pageSizeChanged($event);
+    } else {
+      this.pageChanged($event);
+    }
+  }
+
+  private pageSizeChanged($event: PageEvent): void {
+    this.pageSize = $event.pageSize;
+    this.computeFirstIndex();
+    this.computeLastIndex();
+    this.updatePageNumbers();
+  }
+
+  private pageChanged($event: PageEvent): void {
     this.pageSize = $event.pageSize;
     this.firstIndex = $event.pageIndex * $event.pageSize;
     this.handlerContext.multiInstanceObjectService.setCurrentIndex(this.component, this.firstIndex);
-    this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
     this.computeLastIndex();
     this.updatePageNumbers();
+    this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
   }
 
   private updatePageNumbers(): void {
@@ -66,6 +82,11 @@ export class CedarMultiPagerComponent implements OnInit {
     for (let idx = this.firstIndex; idx <= this.lastIndex; idx++) {
       this.pageNumbers.push(idx);
     }
+  }
+
+  private computeFirstIndex(): void {
+    this.pageIndex = Math.floor(this.currentMultiInfo.currentIndex / this.pageSize);
+    this.firstIndex = this.pageIndex * this.pageSize;
   }
 
   private computeLastIndex(): void {

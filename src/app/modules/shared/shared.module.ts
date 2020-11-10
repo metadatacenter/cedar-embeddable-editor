@@ -1,15 +1,15 @@
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {SecureJsonPipe} from './pipe/secure-json.pipe';
+import {RdfPipe} from './pipe/rdf.pipe';
 
 
 @NgModule({
   imports: [
     CommonModule
   ],
-  declarations: [SecureJsonPipe],
+  declarations: [RdfPipe],
   providers: [],
-  exports: [SecureJsonPipe]
+  exports: [RdfPipe]
 })
 export class SharedModule {
 }

@@ -29,7 +29,8 @@
     <mat-paginator [length]="length"
                    [pageSize]="pageSize"
                    [pageSizeOptions]="pageSizeOptions"
-                   (page)="pageChanged($event)">
+                   [pageIndex]="pageIndex"
+                   (page)="paginatorChanged($event)">
     </mat-paginator>
   </div>
 
