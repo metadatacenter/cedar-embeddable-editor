@@ -17,6 +17,9 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
   options: FormGroup;
   inputValueControl = new FormControl(null, Validators.min(10));
   activeComponentRegistry: ActiveComponentRegistryService;
+  unitOfMeasure: string = null;
+  constraintMinValue = null;
+  constraintMaxValue = null;
   @Input() handlerContext: HandlerContext;
 
   constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
@@ -28,6 +31,22 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
   }
 
   ngOnInit(): void {
+    this.unitOfMeasure = this.component.numberInfo.unitOfMeasure;
+
+    const validators: any[] = [];
+
+    this.constraintMinValue = this.component.numberInfo.minValue;
+    if (this.constraintMinValue != null) {
+      validators.push(Validators.min(this.constraintMinValue));
+    }
+    this.constraintMaxValue = this.component.numberInfo.maxValue;
+    if (this.constraintMaxValue != null) {
+      validators.push(Validators.max(this.constraintMaxValue));
+    }
+    if (this.component.valueInfo.requiredValue) {
+      validators.push(Validators.required);
+    }
+    this.inputValueControl = new FormControl(null, validators);
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -43,4 +62,33 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
     this.inputValueControl.setValue(currentValue);
   }
 
+  clearValue(): void {
+    this.setValueUIAndModel(null);
+  }
+
+  private setValueUIAndModel(value: string): void {
+    this.inputValueControl.setValue(value);
+    this.handlerContext.changeValue(this.component, value);
+  }
+
+  getMinMaxValueHint(): string {
+    let s = '';
+    let min = null;
+    let max = null;
+    if (this.component.numberInfo.minValue != null) {
+      min = this.component.numberInfo.minValue;
+    }
+    if (this.component.numberInfo.maxValue != null) {
+      max = this.component.numberInfo.maxValue;
+    }
+    if (min != null || max != null) {
+      if (min != null) {
+        s += 'min: ' + min + '; ';
+      }
+      if (max != null) {
+        s += 'max: ' + max + ';';
+      }
+    }
+    return s;
+  }
 }

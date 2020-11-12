@@ -43,7 +43,9 @@ export class TemplateRepresentationFactory {
   }
 
   private static wrap(templateJsonObj: object, parentJsonObj: object, component: CedarComponent, parentPath: string[]): void {
-    const propertyNames: string[] = TemplateRepresentationFactory.getFilteredSchemaPropertyNames(templateJsonObj);
+    // const propertyNames: string[] = TemplateRepresentationFactory.getFilteredSchemaPropertyNames(templateJsonObj);
+    // console.log(propertyNames);
+    const propertyNames: string[] = TemplateRepresentationFactory.getOrderedPropertyNames(templateJsonObj);
     for (const name of propertyNames) {
       const templateFragment = templateJsonObj[JsonSchema.properties][name];
 
@@ -90,19 +92,30 @@ export class TemplateRepresentationFactory {
     }
   }
 
-  private static getFilteredSchemaPropertyNames(jsonObj: object): string[] {
-    const names: string[] = [];
-    if (jsonObj.hasOwnProperty(JsonSchema.properties)) {
-      const prMap = jsonObj[JsonSchema.properties];
-      if (prMap instanceof Object) {
-        for (const name of Object.keys(prMap)) {
-          if (!JsonSchema.builtInProperties.has(name)) {
-            names.push(name);
-          }
-        }
+  // private static getFilteredSchemaPropertyNames(jsonObj: object): string[] {
+  //   const names: string[] = [];
+  //   if (jsonObj.hasOwnProperty(JsonSchema.properties)) {
+  //     const prMap = jsonObj[JsonSchema.properties];
+  //     if (prMap instanceof Object) {
+  //       for (const name of Object.keys(prMap)) {
+  //         if (!JsonSchema.builtInProperties.has(name)) {
+  //           names.push(name);
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return names;
+  // }
+
+  private static getOrderedPropertyNames(jsonObj: object): string[] {
+    const order: string[] = [];
+    if (jsonObj.hasOwnProperty(CedarModel.ui)) {
+      const uiMap = jsonObj[CedarModel.ui];
+      if (uiMap.hasOwnProperty(CedarModel.order)) {
+        return uiMap[CedarModel.order];
       }
     }
-    return names;
+    return order;
   }
 
   private static getDataNode(templateFragment: object): object {

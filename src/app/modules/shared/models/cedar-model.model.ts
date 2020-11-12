@@ -1,6 +1,7 @@
 export class CedarModel {
 
   static ui = '_ui';
+  static order = 'order';
   static inputType = 'inputType';
   static type = 'type';
   static items = 'items';
