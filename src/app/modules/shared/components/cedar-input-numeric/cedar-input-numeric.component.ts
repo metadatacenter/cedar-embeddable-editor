@@ -5,6 +5,8 @@ import {ComponentDataService} from '../../service/component-data.service';
 import {CedarUIComponent} from '../../models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 import {HandlerContext} from '../../util/handler-context';
+import {Numbers} from '../../models/numbers.model';
+import {Xsd} from '../../models/xsd.model';
 
 @Component({
   selector: 'app-cedar-input-numeric',
@@ -20,6 +22,7 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
   unitOfMeasure: string = null;
   constraintMinValue = null;
   constraintMaxValue = null;
+  patternErrorMessage = null;
   @Input() handlerContext: HandlerContext;
 
   constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
@@ -36,16 +39,59 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
     const validators: any[] = [];
 
     this.constraintMinValue = this.component.numberInfo.minValue;
-    if (this.constraintMinValue != null) {
-      validators.push(Validators.min(this.constraintMinValue));
-    }
     this.constraintMaxValue = this.component.numberInfo.maxValue;
-    if (this.constraintMaxValue != null) {
-      validators.push(Validators.max(this.constraintMaxValue));
-    }
+
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
+
+    const numberType = this.component.numberInfo.numberType;
+    const decimalPlace = this.component.numberInfo.decimalPlace;
+    let maxDecimalError = '';
+    if (numberType === Xsd.int) {
+      validators.push(Validators.pattern(Numbers.PATTERN_XSD_INT_AND_LONG));
+      this.patternErrorMessage = 'The value should be an integer.';
+      if (this.constraintMinValue == null) {
+        this.constraintMinValue = Numbers.NUMBER_INT_MIN;
+      }
+      if (this.constraintMaxValue == null) {
+        this.constraintMaxValue = Numbers.NUMBER_INT_MAX;
+      }
+    }
+    if (numberType === Xsd.long) {
+      validators.push(Validators.pattern(Numbers.PATTERN_XSD_INT_AND_LONG));
+      this.patternErrorMessage = 'The value should be a long integer.';
+      if (this.constraintMinValue == null) {
+        this.constraintMinValue = Numbers.NUMBER_LONG_MIN;
+      }
+      if (this.constraintMaxValue == null) {
+        this.constraintMaxValue = Numbers.NUMBER_LONG_MAX;
+      }
+    }
+    if (numberType === Xsd.float || numberType === Xsd.double) {
+      let pattern: string = Numbers.PATTERN_XSD_FLOAT_AND_DOUBLE;
+      let maxDig = '';
+      if (decimalPlace != null) {
+        maxDig = '' + decimalPlace;
+        maxDecimalError = ' Maximum ' + decimalPlace + ' decimals.';
+      }
+      pattern = pattern.replace(new RegExp('maxDig', 'g'), maxDig);
+      validators.push(Validators.pattern(pattern));
+    }
+    if (numberType === Xsd.float) {
+      this.patternErrorMessage = 'The value should be a float.' + maxDecimalError;
+    }
+    if (numberType === Xsd.double) {
+      this.patternErrorMessage = 'The value should be a double.' + maxDecimalError;
+    }
+
+    if (this.constraintMinValue != null) {
+      validators.push(Validators.min(this.constraintMinValue));
+    }
+    if (this.constraintMaxValue != null) {
+      validators.push(Validators.max(this.constraintMaxValue));
+    }
+
     this.inputValueControl = new FormControl(null, validators);
   }
 
@@ -89,6 +135,12 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
         s += 'max: ' + max + ';';
       }
     }
+
+    const decimalPlace = this.component.numberInfo.decimalPlace;
+    if (decimalPlace != null) {
+      s += ' max ' + decimalPlace + ' decimals;';
+    }
+
     return s;
   }
 }
