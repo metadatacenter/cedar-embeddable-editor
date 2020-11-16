@@ -1,10 +1,10 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {FieldComponent} from '../../models/component/field-component.model';
+import {FieldComponent} from '../../../shared/models/component/field-component.model';
 import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
-import {ComponentDataService} from '../../service/component-data.service';
-import {CedarUIComponent} from '../../models/ui/cedar-ui-component.model';
-import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
-import {HandlerContext} from '../../util/handler-context';
+import {ComponentDataService} from '../../../shared/service/component-data.service';
+import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
+import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
+import {HandlerContext} from '../../../shared/util/handler-context';
 import {ErrorStateMatcher} from '@angular/material/core';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {

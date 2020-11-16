@@ -14,6 +14,7 @@ import {ElementComponent} from '../models/component/element-component.model';
 import {FieldComponent} from '../models/component/field-component.model';
 import {ChoiceOption} from '../models/info/choice-option.model';
 import {CedarInputTemplate} from '../models/cedar-input-template.model';
+import {StaticFieldComponent} from '../models/static/static-field-component.model';
 
 export class TemplateRepresentationFactory {
 
@@ -47,6 +48,7 @@ export class TemplateRepresentationFactory {
     // console.log(propertyNames);
     const propertyNames: string[] = TemplateRepresentationFactory.getOrderedPropertyNames(templateJsonObj);
     for (const name of propertyNames) {
+      console.log(name);
       const templateFragment = templateJsonObj[JsonSchema.properties][name];
 
       const isMulti: boolean = TemplateRepresentationFactory.isFragmentMulti(templateFragment);
@@ -75,6 +77,9 @@ export class TemplateRepresentationFactory {
         }
         TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
         TemplateRepresentationFactory.wrap(dataNode, templateJsonObj, r, myPath);
+      } else if (fragmentAtType === CedarModel.templateStaticFieldType) {
+        r = new StaticFieldComponent();
+        TemplateRepresentationFactory.extractStaticData(dataNode, parentDataNode, name, r as StaticFieldComponent);
       }
 
       if (r !== null) {
@@ -178,5 +183,18 @@ export class TemplateRepresentationFactory {
   private static extractTemplateLabels(templateJsonObj: object, template: CedarTemplate): void {
     template.labelInfo.label = templateJsonObj[JsonSchema.schemaName];
     template.labelInfo.description = templateJsonObj[JsonSchema.schemaDescription];
+  }
+
+  private static extractStaticData(dataNode: object, parentDataNode: object, name: string, sfc: StaticFieldComponent): void {
+    sfc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
+    sfc.labelInfo.preferredLabel = dataNode[CedarModel.skosPrefLabel];
+    if (parentDataNode != null) {
+      if (parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions] !== undefined) {
+        sfc.labelInfo.description = parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions][name];
+      }
+      if (parentDataNode[CedarModel.ui][CedarModel.propertyLabels] !== undefined) {
+        sfc.labelInfo.label = parentDataNode[CedarModel.ui][CedarModel.propertyLabels][name];
+      }
+    }
   }
 }

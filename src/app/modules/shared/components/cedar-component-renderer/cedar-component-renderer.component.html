@@ -30,6 +30,15 @@
       <app-cedar-input-textfield *ngIf="nonIterableComponent.basicInfo.inputType=='textfield'"
                                  [componentToRender]="nonIterableComponent"
                                  [handlerContext]="handlerContext"></app-cedar-input-textfield>
+      <app-cedar-input-email *ngIf="nonIterableComponent.basicInfo.inputType=='email'"
+                             [componentToRender]="nonIterableComponent"
+                             [handlerContext]="handlerContext"></app-cedar-input-email>
     </mat-card-content>
   </mat-card>
+</ng-container>
+
+<ng-container *ngIf="staticComponent">
+    <app-cedar-static-section-break *ngIf="staticComponent.basicInfo.inputType=='section-break'"
+                                    [componentToRender]="staticComponent"
+                                    [handlerContext]="handlerContext"></app-cedar-static-section-break>
 </ng-container>

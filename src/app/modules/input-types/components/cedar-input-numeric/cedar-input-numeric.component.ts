@@ -1,12 +1,12 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {FieldComponent} from '../../models/component/field-component.model';
+import {FieldComponent} from '../../../shared/models/component/field-component.model';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {ComponentDataService} from '../../service/component-data.service';
-import {CedarUIComponent} from '../../models/ui/cedar-ui-component.model';
-import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
-import {HandlerContext} from '../../util/handler-context';
-import {Numbers} from '../../models/numbers.model';
-import {Xsd} from '../../models/xsd.model';
+import {ComponentDataService} from '../../../shared/service/component-data.service';
+import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
+import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
+import {HandlerContext} from '../../../shared/util/handler-context';
+import {Numbers} from '../../../shared/models/numbers.model';
+import {Xsd} from '../../../shared/models/xsd.model';
 
 @Component({
   selector: 'app-cedar-input-numeric',
@@ -50,7 +50,7 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
     let maxDecimalError = '';
     if (numberType === Xsd.int) {
       validators.push(Validators.pattern(Numbers.PATTERN_XSD_INT_AND_LONG));
-      this.patternErrorMessage = 'The value should be an integer.';
+      this.patternErrorMessage = ' The value should be an integer.';
       if (this.constraintMinValue == null) {
         this.constraintMinValue = Numbers.NUMBER_INT_MIN;
       }
@@ -60,7 +60,7 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
     }
     if (numberType === Xsd.long) {
       validators.push(Validators.pattern(Numbers.PATTERN_XSD_INT_AND_LONG));
-      this.patternErrorMessage = 'The value should be a long integer.';
+      this.patternErrorMessage = ' The value should be a long integer.';
       if (this.constraintMinValue == null) {
         this.constraintMinValue = Numbers.NUMBER_LONG_MIN;
       }
@@ -73,16 +73,16 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
       let maxDig = '';
       if (decimalPlace != null) {
         maxDig = '' + decimalPlace;
-        maxDecimalError = ' Maximum ' + decimalPlace + ' decimals.';
+        maxDecimalError = ' maximum ' + decimalPlace + ' decimals.';
       }
       pattern = pattern.replace(new RegExp('maxDig', 'g'), maxDig);
       validators.push(Validators.pattern(pattern));
     }
     if (numberType === Xsd.float) {
-      this.patternErrorMessage = 'The value should be a float.' + maxDecimalError;
+      this.patternErrorMessage = ' The value should be a float,' + maxDecimalError;
     }
     if (numberType === Xsd.double) {
-      this.patternErrorMessage = 'The value should be a double.' + maxDecimalError;
+      this.patternErrorMessage = ' The value should be a double,' + maxDecimalError;
     }
 
     if (this.constraintMinValue != null) {

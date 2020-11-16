@@ -33,5 +33,6 @@ export class CedarModel {
 
   static templateFieldType = 'https://schema.metadatacenter.org/core/TemplateField';
   static templateElementType = 'https://schema.metadatacenter.org/core/TemplateElement';
+  static templateStaticFieldType = 'https://schema.metadatacenter.org/core/StaticTemplateField';
 
 }
