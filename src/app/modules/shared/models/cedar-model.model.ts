@@ -18,6 +18,7 @@ export class CedarModel {
   static minValue = 'minValue';
   static maxValue = 'maxValue';
   static decimalPlace = 'decimalPlace';
+  static content = '_content';
 
   static multipleChoice = 'multipleChoice';
   static literals = 'literals';

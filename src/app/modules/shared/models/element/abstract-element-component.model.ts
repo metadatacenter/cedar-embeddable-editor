@@ -1,6 +1,7 @@
 import {CedarComponent} from '../component/cedar-component.model';
 import {ElementComponent} from '../component/element-component.model';
 import {LabelInfo} from '../info/label-info.model';
+import {StaticFieldComponent} from '../static/static-field-component.model';
 
 export abstract class AbstractElementComponent implements ElementComponent {
 
@@ -9,6 +10,7 @@ export abstract class AbstractElementComponent implements ElementComponent {
   path: string[];
   children: CedarComponent[] = [];
   labelInfo: LabelInfo = new LabelInfo();
+  linkedStaticFieldComponent: StaticFieldComponent = null;
 
   getChildByName(childName: string): CedarComponent {
     for (const child of this.children) {

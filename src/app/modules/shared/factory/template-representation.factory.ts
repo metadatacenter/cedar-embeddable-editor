@@ -15,6 +15,7 @@ import {FieldComponent} from '../models/component/field-component.model';
 import {ChoiceOption} from '../models/info/choice-option.model';
 import {CedarInputTemplate} from '../models/cedar-input-template.model';
 import {StaticFieldComponent} from '../models/static/static-field-component.model';
+import {ComponentTypeHandler} from '../handler/component-type.handler';
 
 export class TemplateRepresentationFactory {
 
@@ -48,7 +49,6 @@ export class TemplateRepresentationFactory {
     // console.log(propertyNames);
     const propertyNames: string[] = TemplateRepresentationFactory.getOrderedPropertyNames(templateJsonObj);
     for (const name of propertyNames) {
-      console.log(name);
       const templateFragment = templateJsonObj[JsonSchema.properties][name];
 
       const isMulti: boolean = TemplateRepresentationFactory.isFragmentMulti(templateFragment);
@@ -95,6 +95,8 @@ export class TemplateRepresentationFactory {
       }
 
     }
+
+    this.collapseImagesIntoNextFieldOrElement(component);
   }
 
   // private static getFilteredSchemaPropertyNames(jsonObj: object): string[] {
@@ -188,6 +190,7 @@ export class TemplateRepresentationFactory {
   private static extractStaticData(dataNode: object, parentDataNode: object, name: string, sfc: StaticFieldComponent): void {
     sfc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
     sfc.labelInfo.preferredLabel = dataNode[CedarModel.skosPrefLabel];
+    sfc.contentInfo.content = dataNode[CedarModel.ui][CedarModel.content];
     if (parentDataNode != null) {
       if (parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions] !== undefined) {
         sfc.labelInfo.description = parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions][name];
@@ -196,5 +199,28 @@ export class TemplateRepresentationFactory {
         sfc.labelInfo.label = parentDataNode[CedarModel.ui][CedarModel.propertyLabels][name];
       }
     }
+  }
+
+  private static collapseImagesIntoNextFieldOrElement(component: CedarComponent): void {
+    // re-iterate, inject static components (images) into the next dynamic components
+    if (ComponentTypeHandler.isContainerComponent(component)) {
+      const elementComponent = component as ElementComponent;
+      let prevChild: CedarComponent = null;
+      const newChildren: CedarComponent[] = [];
+      for (let i = 0; i < elementComponent.children.length; i++) {
+        const currentChild: CedarComponent = elementComponent.children[i];
+        if (ComponentTypeHandler.isImage(currentChild)) {
+          // Stand-alone images should not be added as child
+        } else if (ComponentTypeHandler.isImage(prevChild) && ComponentTypeHandler.isFieldOrElement(currentChild)) {
+          currentChild.linkedStaticFieldComponent = prevChild as StaticFieldComponent;
+          newChildren.push(currentChild);
+        } else {
+          newChildren.push(currentChild);
+        }
+        prevChild = currentChild;
+      }
+      elementComponent.children = newChildren;
+    }
+
   }
 }

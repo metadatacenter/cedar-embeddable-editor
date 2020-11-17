@@ -6,6 +6,11 @@
                            [handlerContext]="handlerContext"
     ></app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfIterable(iterableComponent)">
+      <ng-container *ngIf="iterableComponent.linkedStaticFieldComponent">
+        <app-cedar-static-image *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType=='image'"
+                                [componentToRender]="iterableComponent.linkedStaticFieldComponent"
+                                [handlerContext]="handlerContext"></app-cedar-static-image>
+      </ng-container>
       <ng-container *ngFor="let childComponent of iterableComponent.children">
         <app-cedar-component-renderer
           [componentToRender]="childComponent"
@@ -24,6 +29,11 @@
                            [handlerContext]="handlerContext"
     ></app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfNonIterable(nonIterableComponent)">
+      <ng-container *ngIf="nonIterableComponent.linkedStaticFieldComponent">
+        <app-cedar-static-image *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType=='image'"
+                                [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
+                                [handlerContext]="handlerContext"></app-cedar-static-image>
+      </ng-container>
       <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType=='numeric'"
                                [componentToRender]="nonIterableComponent"
                                [handlerContext]="handlerContext"></app-cedar-input-numeric>
@@ -38,7 +48,7 @@
 </ng-container>
 
 <ng-container *ngIf="staticComponent">
-    <app-cedar-static-section-break *ngIf="staticComponent.basicInfo.inputType=='section-break'"
-                                    [componentToRender]="staticComponent"
-                                    [handlerContext]="handlerContext"></app-cedar-static-section-break>
+  <app-cedar-static-section-break *ngIf="staticComponent.basicInfo.inputType=='section-break'"
+                                  [componentToRender]="staticComponent"
+                                  [handlerContext]="handlerContext"></app-cedar-static-section-break>
 </ng-container>

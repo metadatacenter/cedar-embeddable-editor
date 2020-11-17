@@ -22,6 +22,7 @@ import {MatGridListModule} from '@angular/material/grid-list';
 import {CedarInputNumericComponent} from './components/cedar-input-numeric/cedar-input-numeric.component';
 import {CedarInputTextfieldComponent} from './components/cedar-input-textfield/cedar-input-textfield.component';
 import {CedarStaticSectionBreakComponent} from './components/cedar-static-section-break/cedar-static-section-break.component';
+import {CedarStaticImageComponent} from './components/cedar-static-image/cedar-static-image.component';
 
 
 @NgModule({
@@ -50,13 +51,17 @@ import {CedarStaticSectionBreakComponent} from './components/cedar-static-sectio
     CedarInputEmailComponent,
     CedarInputNumericComponent,
     CedarInputTextfieldComponent,
-    CedarStaticSectionBreakComponent],
+    CedarStaticSectionBreakComponent,
+    CedarStaticImageComponent
+  ],
   providers: [],
   exports: [
     CedarInputEmailComponent,
     CedarInputNumericComponent,
     CedarInputTextfieldComponent,
-    CedarStaticSectionBreakComponent]
+    CedarStaticSectionBreakComponent,
+    CedarStaticImageComponent
+  ]
 })
 export class InputTypesModule {
 }
