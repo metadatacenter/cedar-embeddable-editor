@@ -10,6 +10,9 @@
         <app-cedar-static-image *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType=='image'"
                                 [componentToRender]="iterableComponent.linkedStaticFieldComponent"
                                 [handlerContext]="handlerContext"></app-cedar-static-image>
+        <app-cedar-static-youtube *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType=='youtube'"
+                                  [componentToRender]="iterableComponent.linkedStaticFieldComponent"
+                                  [handlerContext]="handlerContext"></app-cedar-static-youtube>
       </ng-container>
       <ng-container *ngFor="let childComponent of iterableComponent.children">
         <app-cedar-component-renderer
@@ -33,6 +36,9 @@
         <app-cedar-static-image *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType=='image'"
                                 [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
                                 [handlerContext]="handlerContext"></app-cedar-static-image>
+        <app-cedar-static-youtube *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType=='youtube'"
+                                  [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
+                                  [handlerContext]="handlerContext"></app-cedar-static-youtube>
       </ng-container>
       <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType=='numeric'"
                                [componentToRender]="nonIterableComponent"
