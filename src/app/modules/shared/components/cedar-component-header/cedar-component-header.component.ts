@@ -4,6 +4,7 @@ import {ComponentDataService} from '../../service/component-data.service';
 import {MultiElementComponent} from '../../models/element/multi-element-component.model';
 import {MultiFieldComponent} from '../../models/field/multi-field-component.model';
 import {MultiComponent} from '../../models/component/multi-component.model';
+import {ComponentTypeHandler} from '../../handler/component-type.handler';
 
 @Component({
   selector: 'app-cedar-component-header',
@@ -23,8 +24,7 @@ export class CedarComponentHeaderComponent implements OnInit {
 
   @Input() set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;
-    if (componentToRender instanceof MultiFieldComponent ||
-      componentToRender instanceof MultiElementComponent) {
+    if (ComponentTypeHandler.isMulti(componentToRender)) {
       this.multiComponent = componentToRender as MultiComponent;
     } else {
       this.multiComponent = null;

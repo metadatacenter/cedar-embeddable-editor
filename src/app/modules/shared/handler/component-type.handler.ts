@@ -28,4 +28,8 @@ export class ComponentTypeHandler {
   static isFieldOrElement(component: CedarComponent): boolean {
     return this.isField(component) || this.isElement(component);
   }
+
+  static isMulti(component: CedarComponent): boolean {
+    return component instanceof MultiFieldComponent || component instanceof MultiElementComponent;
+  }
 }
