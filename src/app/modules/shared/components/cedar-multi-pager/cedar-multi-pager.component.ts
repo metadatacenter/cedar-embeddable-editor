@@ -18,7 +18,7 @@ export class CedarMultiPagerComponent implements OnInit {
   @Input() handlerContext: HandlerContext;
 
   length = 0;
-  pageSize = 2;
+  pageSize = 5;
   pageIndex = 0;
   pageSizeOptions: number[] = [1, 2, 5, 10, 25];
 
@@ -79,8 +79,10 @@ export class CedarMultiPagerComponent implements OnInit {
 
   private updatePageNumbers(): void {
     this.pageNumbers = [];
-    for (let idx = this.firstIndex; idx <= this.lastIndex; idx++) {
-      this.pageNumbers.push(idx);
+    if (this.length > 0) {
+      for (let idx = this.firstIndex; idx <= this.lastIndex; idx++) {
+        this.pageNumbers.push(idx);
+      }
     }
   }
 
