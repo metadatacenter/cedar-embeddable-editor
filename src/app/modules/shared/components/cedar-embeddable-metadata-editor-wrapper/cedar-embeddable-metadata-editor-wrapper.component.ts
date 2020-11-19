@@ -14,16 +14,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
   callbackOwnerObject = null;
 
   constructor(private http: HttpClient) {
-    console.log('CedarEmbeddableMetadataEditorWrapperComponent.constructor');
-    console.log('this.templateLocationPrefix' + this.templateLocationPrefix);
-    console.log('this.showSampleTemplateLinks' + this.showSampleTemplateLinks);
     this.callbackOwnerObject = this;
   }
 
   ngOnInit(): void {
-    console.log('CedarEmbeddableMetadataEditorWrapperComponent.ngOnInit');
-    console.log('this.templateLocationPrefix' + this.templateLocationPrefix);
-    console.log('this.showSampleTemplateLinks' + this.showSampleTemplateLinks);
     this.loadTemplate('07');
   }
 

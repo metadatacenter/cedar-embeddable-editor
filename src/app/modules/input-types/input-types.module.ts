@@ -1,5 +1,4 @@
 import {NgModule} from '@angular/core';
-import {CedarInputEmailComponent} from './components/cedar-input-email/cedar-input-email.component';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {BrowserModule} from '@angular/platform-browser';
 import {HttpClientModule} from '@angular/common/http';
@@ -17,12 +16,14 @@ import {MatRippleModule} from '@angular/material/core';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatGridListModule} from '@angular/material/grid-list';
+import {CedarInputEmailComponent} from './components/cedar-input-email/cedar-input-email.component';
 import {CedarInputNumericComponent} from './components/cedar-input-numeric/cedar-input-numeric.component';
 import {CedarInputTextfieldComponent} from './components/cedar-input-textfield/cedar-input-textfield.component';
 import {CedarStaticSectionBreakComponent} from './components/cedar-static-section-break/cedar-static-section-break.component';
 import {CedarStaticImageComponent} from './components/cedar-static-image/cedar-static-image.component';
 import {CedarStaticYoutubeComponent} from './components/cedar-static-youtube/cedar-static-youtube.component';
 import {YouTubePlayerModule} from '@angular/youtube-player';
+import {CedarFooBarComponent} from './components/cedar-foo-bar/cedar-foo-bar.component';
 
 
 @NgModule({
@@ -48,18 +49,21 @@ import {YouTubePlayerModule} from '@angular/youtube-player';
     YouTubePlayerModule,
   ],
   declarations: [
-    CedarInputEmailComponent,
-    CedarInputNumericComponent,
+    CedarFooBarComponent,
     CedarInputTextfieldComponent,
+    CedarInputNumericComponent,
+    CedarInputEmailComponent,
     CedarStaticSectionBreakComponent,
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent
   ],
   providers: [],
   exports: [
-    CedarInputEmailComponent,
-    CedarInputNumericComponent,
+    // FooBar is needed because the first component gets exported without style otherwise
+    CedarFooBarComponent,
     CedarInputTextfieldComponent,
+    CedarInputNumericComponent,
+    CedarInputEmailComponent,
     CedarStaticSectionBreakComponent,
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent
