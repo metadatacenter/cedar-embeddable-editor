@@ -1,0 +1,9 @@
+<app-cedar-embeddable-metadata-editor *ngIf="templateJson"
+                                      [templateJsonObject]="templateJson"
+></app-cedar-embeddable-metadata-editor>
+<ng-container *ngIf="showSampleTemplateLinks">
+  <hr/>
+  SAMPLE TEMPLATE LIST START
+  <app-dashboard [callbackOwnerObject]="callbackOwnerObject"></app-dashboard>
+  <hr/>
+</ng-container>

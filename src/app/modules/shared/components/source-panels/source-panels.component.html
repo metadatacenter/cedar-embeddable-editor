@@ -1,6 +1,6 @@
 <mat-accordion class="source-accordion" multi>
 
-  <mat-expansion-panel expanded="true">
+  <mat-expansion-panel expanded="false">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>list_alt</mat-icon>
@@ -20,7 +20,7 @@
 
   </mat-expansion-panel>
 
-  <mat-expansion-panel>
+  <mat-expansion-panel expanded="false">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>list_alt</mat-icon>
@@ -40,7 +40,7 @@
 
   </mat-expansion-panel>
 
-  <mat-expansion-panel>
+  <mat-expansion-panel expanded="false">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>view_module</mat-icon>
@@ -60,14 +60,14 @@
 
   </mat-expansion-panel>
 
-  <mat-expansion-panel expanded="true">
+  <mat-expansion-panel expanded="false">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>device_hub</mat-icon>
         Instance JSON-LD - Instance Data - Core
       </mat-panel-title>
       <mat-panel-description>
-       &nbsp;
+        &nbsp;
         <mat-icon matRipple [cdkCopyToClipboard]="dataContext.instanceExtractData | json" (click)="stopPropagation($event)">content_copy</mat-icon>
       </mat-panel-description>
     </mat-expansion-panel-header>
@@ -80,7 +80,7 @@
 
   </mat-expansion-panel>
 
-  <mat-expansion-panel>
+  <mat-expansion-panel expanded="false">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>device_hub</mat-icon>

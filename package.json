@@ -22,8 +22,12 @@
     "@angular/platform-browser": "~10.0.3",
     "@angular/platform-browser-dynamic": "~10.0.3",
     "@angular/router": "~10.0.3",
+<<<<<<< HEAD
     "@webcomponents/custom-elements": "^1.4.3",
     "elements-zone-strategy": "^10.0.0",
+=======
+    "@angular/youtube-player": "^11.0.0",
+>>>>>>> de9600eff9f09aeae96a17b884708739349c48dd
     "lodash-es": "^4.17.15",
     "rxjs": "~6.5.5",
     "tslib": "^2.0.0",

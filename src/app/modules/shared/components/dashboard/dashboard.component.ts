@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 
 @Component({
   selector: 'app-dashboard',
@@ -7,9 +7,19 @@ import { Component, OnInit } from '@angular/core';
 })
 export class DashboardComponent implements OnInit {
 
-  constructor() { }
+  @Input() callbackOwnerObject: any = null;
+
+  constructor() {
+  }
 
   ngOnInit(): void {
   }
 
+  loadBuiltinTemplate(s: string): void {
+    if (this.callbackOwnerObject.loadSampleTemplate != null) {
+      this.callbackOwnerObject.loadSampleTemplate(s);
+    } else {
+      console.log('Load Template:' + s);
+    }
+  }
 }

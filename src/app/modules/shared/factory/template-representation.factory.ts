@@ -167,12 +167,18 @@ export class TemplateRepresentationFactory {
 
   private static extractLabels(dataNode: object, parentDataNode: object, name: string, fc: FieldComponent): void {
     fc.labelInfo.preferredLabel = dataNode[CedarModel.skosPrefLabel];
+    fc.labelInfo.description = dataNode[JsonSchema.schemaDescription];
+    fc.labelInfo.label = dataNode[JsonSchema.schemaName];
     if (parentDataNode != null) {
-      if (parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions] !== undefined) {
-        fc.labelInfo.description = parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions][name];
+      if (fc.labelInfo.description == null || fc.labelInfo.description === 'Help Text') {
+        if (parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions] !== undefined) {
+          fc.labelInfo.description = parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions][name];
+        }
       }
-      if (parentDataNode[CedarModel.ui][CedarModel.propertyLabels] !== undefined) {
-        fc.labelInfo.label = parentDataNode[CedarModel.ui][CedarModel.propertyLabels][name];
+      if (fc.labelInfo.label == null || fc.labelInfo.label === name) {
+        if (parentDataNode[CedarModel.ui][CedarModel.propertyLabels] !== undefined) {
+          fc.labelInfo.label = parentDataNode[CedarModel.ui][CedarModel.propertyLabels][name];
+        }
       }
     }
   }
@@ -191,12 +197,18 @@ export class TemplateRepresentationFactory {
     sfc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
     sfc.labelInfo.preferredLabel = dataNode[CedarModel.skosPrefLabel];
     sfc.contentInfo.content = dataNode[CedarModel.ui][CedarModel.content];
+    sfc.labelInfo.description = dataNode[JsonSchema.schemaDescription];
+    sfc.labelInfo.label = dataNode[JsonSchema.schemaName];
     if (parentDataNode != null) {
-      if (parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions] !== undefined) {
-        sfc.labelInfo.description = parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions][name];
+      if (sfc.labelInfo.description == null || sfc.labelInfo.description === 'Help Text') {
+        if (parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions] !== undefined) {
+          sfc.labelInfo.description = parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions][name];
+        }
       }
-      if (parentDataNode[CedarModel.ui][CedarModel.propertyLabels] !== undefined) {
-        sfc.labelInfo.label = parentDataNode[CedarModel.ui][CedarModel.propertyLabels][name];
+      if (sfc.labelInfo.label == null || sfc.labelInfo.label === name) {
+        if (parentDataNode[CedarModel.ui][CedarModel.propertyLabels] !== undefined) {
+          sfc.labelInfo.label = parentDataNode[CedarModel.ui][CedarModel.propertyLabels][name];
+        }
       }
     }
   }
@@ -209,9 +221,10 @@ export class TemplateRepresentationFactory {
       const newChildren: CedarComponent[] = [];
       for (let i = 0; i < elementComponent.children.length; i++) {
         const currentChild: CedarComponent = elementComponent.children[i];
-        if (ComponentTypeHandler.isImage(currentChild)) {
+        if (ComponentTypeHandler.isImage(currentChild) || ComponentTypeHandler.isYoutube(currentChild)) {
           // Stand-alone images should not be added as child
-        } else if (ComponentTypeHandler.isImage(prevChild) && ComponentTypeHandler.isFieldOrElement(currentChild)) {
+        } else if ((ComponentTypeHandler.isImage(prevChild) || ComponentTypeHandler.isYoutube(prevChild))
+          && ComponentTypeHandler.isFieldOrElement(currentChild)) {
           currentChild.linkedStaticFieldComponent = prevChild as StaticFieldComponent;
           newChildren.push(currentChild);
         } else {

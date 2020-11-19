@@ -19,19 +19,13 @@ import {MatChipsModule} from '@angular/material/chips';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {CedarEmbeddableMetadataEditorComponent} from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import {DashboardComponent} from './components/dashboard/dashboard.component';
-import {RenderTemplateComponent} from './components/render-template/render-template.component';
 import {CedarComponentRendererComponent} from './components/cedar-component-renderer/cedar-component-renderer.component';
 import {StaticFooterComponent} from './components/static-footer/static-footer.component';
 import {StaticHeaderComponent} from './components/static-header/static-header.component';
 import {SourcePanelsComponent} from './components/source-panels/source-panels.component';
 import {CedarMultiPagerComponent} from './components/cedar-multi-pager/cedar-multi-pager.component';
-import {AppRoutingModule} from '../../app-routing.module';
-import {CedarInputTextfieldComponent} from '../input-types/components/cedar-input-textfield/cedar-input-textfield.component';
-import {CedarInputNumericComponent} from '../input-types/components/cedar-input-numeric/cedar-input-numeric.component';
-import {CedarInputEmailComponent} from '../input-types/components/cedar-input-email/cedar-input-email.component';
-import {CedarInputTemplate} from './models/cedar-input-template.model';
-import {CedarStaticSectionBreakComponent} from '../input-types/components/cedar-static-section-break/cedar-static-section-break.component';
 import {InputTypesModule} from '../input-types/input-types.module';
+import {CedarEmbeddableMetadataEditorWrapperComponent} from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 
 
 @NgModule({
@@ -53,14 +47,14 @@ import {InputTypesModule} from '../input-types/input-types.module';
     MatPaginatorModule,
     MatChipsModule,
     MatGridListModule,
-    AppRoutingModule,
     InputTypesModule
   ],
-  declarations: [RdfPipe,
+  declarations: [
+    RdfPipe,
     CedarComponentHeaderComponent,
     CedarEmbeddableMetadataEditorComponent,
+    CedarEmbeddableMetadataEditorWrapperComponent,
     DashboardComponent,
-    RenderTemplateComponent,
     CedarComponentRendererComponent,
     StaticFooterComponent,
     StaticHeaderComponent,
@@ -68,7 +62,10 @@ import {InputTypesModule} from '../input-types/input-types.module';
     CedarMultiPagerComponent
   ],
   providers: [],
-  exports: [RdfPipe, CedarComponentHeaderComponent]
+  exports: [
+    RdfPipe,
+    CedarEmbeddableMetadataEditorWrapperComponent,
+  ]
 })
 export class SharedModule {
 }

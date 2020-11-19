@@ -21,6 +21,8 @@ import {CedarInputNumericComponent} from './components/cedar-input-numeric/cedar
 import {CedarInputTextfieldComponent} from './components/cedar-input-textfield/cedar-input-textfield.component';
 import {CedarStaticSectionBreakComponent} from './components/cedar-static-section-break/cedar-static-section-break.component';
 import {CedarStaticImageComponent} from './components/cedar-static-image/cedar-static-image.component';
+import {CedarStaticYoutubeComponent} from './components/cedar-static-youtube/cedar-static-youtube.component';
+import {YouTubePlayerModule} from '@angular/youtube-player';
 
 
 @NgModule({
@@ -43,13 +45,15 @@ import {CedarStaticImageComponent} from './components/cedar-static-image/cedar-s
     MatPaginatorModule,
     MatChipsModule,
     MatGridListModule,
+    YouTubePlayerModule,
   ],
   declarations: [
     CedarInputEmailComponent,
     CedarInputNumericComponent,
     CedarInputTextfieldComponent,
     CedarStaticSectionBreakComponent,
-    CedarStaticImageComponent
+    CedarStaticImageComponent,
+    CedarStaticYoutubeComponent
   ],
   providers: [],
   exports: [
@@ -57,7 +61,8 @@ import {CedarStaticImageComponent} from './components/cedar-static-image/cedar-s
     CedarInputNumericComponent,
     CedarInputTextfieldComponent,
     CedarStaticSectionBreakComponent,
-    CedarStaticImageComponent
+    CedarStaticImageComponent,
+    CedarStaticYoutubeComponent
   ]
 })
 export class InputTypesModule {

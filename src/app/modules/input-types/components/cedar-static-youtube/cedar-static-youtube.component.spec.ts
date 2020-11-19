@@ -1,19 +1,19 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
-import {CedarStaticImageComponent} from './cedar-static-image.component';
+import {CedarStaticYoutubeComponent} from './cedar-static-youtube.component';
 
-describe('CedarStaticImageComponent', () => {
-  let component: CedarStaticImageComponent;
-  let fixture: ComponentFixture<CedarStaticImageComponent>;
+describe('CedarStaticYoutubeComponent', () => {
+  let component: CedarStaticYoutubeComponent;
+  let fixture: ComponentFixture<CedarStaticYoutubeComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [CedarStaticImageComponent]
+      declarations: [CedarStaticYoutubeComponent]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(CedarStaticImageComponent);
+    fixture = TestBed.createComponent(CedarStaticYoutubeComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

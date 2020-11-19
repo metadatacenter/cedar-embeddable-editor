@@ -26,8 +26,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
 
   @Input() set templateJsonObject(value: object) {
-    console.log('CEDAR Embeddable Editor');
     if (value != null) {
+      const len = JSON.stringify(value).length;
+      console.log('CEDAR Embeddable Editor started with template of length ' + len + ' characters.');
       this.dataContext.setInputTemplate(value, this.handlerContext);
     }
   }
