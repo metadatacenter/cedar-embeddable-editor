@@ -2,9 +2,7 @@ import {NgModule} from '@angular/core';
 import {CedarInputEmailComponent} from './components/cedar-input-email/cedar-input-email.component';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {BrowserModule} from '@angular/platform-browser';
-import {AppRoutingModule} from '../../app-routing.module';
 import {HttpClientModule} from '@angular/common/http';
-import {SharedModule} from '../shared/shared.module';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatCardModule} from '@angular/material/card';
 import {ReactiveFormsModule} from '@angular/forms';
@@ -28,7 +26,6 @@ import {CedarStaticImageComponent} from './components/cedar-static-image/cedar-s
 @NgModule({
   imports: [
     BrowserModule,
-    AppRoutingModule,
     HttpClientModule,
     BrowserAnimationsModule,
     MatCardModule,
