@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FormBuilder} from '@angular/forms';
 import {ComponentDataService} from '../../../shared/service/component-data.service';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
@@ -9,7 +9,8 @@ import {StaticFieldComponent} from '../../../shared/models/static/static-field-c
 @Component({
   selector: 'app-cedar-static-youtube',
   templateUrl: './cedar-static-youtube.component.html',
-  styleUrls: ['./cedar-static-youtube.component.scss']
+  styleUrls: ['./cedar-static-youtube.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CedarStaticYoutubeComponent extends CedarUIComponent implements OnInit {
 

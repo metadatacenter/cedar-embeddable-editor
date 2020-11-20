@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FormBuilder} from '@angular/forms';
 import {ComponentDataService} from '../../../shared/service/component-data.service';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
@@ -9,7 +9,8 @@ import {StaticFieldComponent} from '../../../shared/models/static/static-field-c
 @Component({
   selector: 'app-cedar-foo-bar',
   templateUrl: './cedar-foo-bar.component.html',
-  styleUrls: ['./cedar-foo-bar.component.scss']
+  styleUrls: ['./cedar-foo-bar.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CedarFooBarComponent extends CedarUIComponent implements OnInit {
 

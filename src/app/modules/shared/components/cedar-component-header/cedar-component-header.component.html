@@ -5,7 +5,7 @@
     {{multiComponent.multiInfo.getSafeMinItems()}}
     ..
     <span *ngIf="multiComponent.multiInfo.maxItems">{{multiComponent.multiInfo.maxItems}}</span>
-    <span *ngIf="!multiComponent.multiInfo.maxItems" matTooltip="Help">∞</span>
+    <span *ngIf="!multiComponent.multiInfo.maxItems" matTooltip="Infinite">∞</span>
     )
   </div>
   <mat-icon matTooltip="{{component.labelInfo.description}}" class="icon-help">help</mat-icon>

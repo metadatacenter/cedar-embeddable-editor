@@ -1,10 +1,11 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
   templateUrl: './cedar-embeddable-metadata-editor-wrapper.component.html',
-  styleUrls: ['./cedar-embeddable-metadata-editor-wrapper.component.scss']
+  styleUrls: ['./cedar-embeddable-metadata-editor-wrapper.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
 
@@ -18,7 +19,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadTemplate('07');
+    this.loadTemplate('01');
   }
 
   loadSampleTemplate(s: string): void {

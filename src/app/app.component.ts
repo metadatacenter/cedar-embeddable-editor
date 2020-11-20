@@ -1,5 +1,4 @@
-import {Component, OnInit} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {Component, ViewEncapsulation} from '@angular/core';
 
 @Component({
   selector: 'app-component',

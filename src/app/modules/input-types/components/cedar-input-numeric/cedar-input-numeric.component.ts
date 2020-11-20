@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FieldComponent} from '../../../shared/models/component/field-component.model';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ComponentDataService} from '../../../shared/service/component-data.service';
@@ -11,7 +11,8 @@ import {Xsd} from '../../../shared/models/xsd.model';
 @Component({
   selector: 'app-cedar-input-numeric',
   templateUrl: './cedar-input-numeric.component.html',
-  styleUrls: ['./cedar-input-numeric.component.scss']
+  styleUrls: ['./cedar-input-numeric.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CedarInputNumericComponent extends CedarUIComponent implements OnInit {
 

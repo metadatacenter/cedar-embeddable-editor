@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {Component, Input, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
 import {NullTemplateComponent} from '../../models/template/null-template-component.model';
 import {MatAccordion} from '@angular/material/expansion';
 import {JsonPipe} from '@angular/common';
@@ -8,7 +8,8 @@ import {HandlerContext} from '../../util/handler-context';
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
   templateUrl: './cedar-embeddable-metadata-editor.component.html',
-  styleUrls: ['./cedar-embeddable-metadata-editor.component.scss']
+  styleUrls: ['./cedar-embeddable-metadata-editor.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 

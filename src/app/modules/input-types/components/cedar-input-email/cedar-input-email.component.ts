@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
 import {ErrorStateMatcher} from '@angular/material/core';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
@@ -16,7 +16,8 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
 @Component({
   selector: 'app-cedar-input-email',
   templateUrl: './cedar-input-email.component.html',
-  styleUrls: ['./cedar-input-email.component.scss']
+  styleUrls: ['./cedar-input-email.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CedarInputEmailComponent extends CedarUIComponent implements OnInit {
 

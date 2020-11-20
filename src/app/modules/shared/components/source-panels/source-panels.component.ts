@@ -1,10 +1,11 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {DataContext} from '../../util/data-context';
 
 @Component({
   selector: 'app-source-panels',
   templateUrl: './source-panels.component.html',
-  styleUrls: ['./source-panels.component.scss']
+  styleUrls: ['./source-panels.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class SourcePanelsComponent implements OnInit {
 

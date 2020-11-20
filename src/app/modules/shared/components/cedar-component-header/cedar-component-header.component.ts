@@ -1,15 +1,14 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {CedarComponent} from '../../models/component/cedar-component.model';
 import {ComponentDataService} from '../../service/component-data.service';
-import {MultiElementComponent} from '../../models/element/multi-element-component.model';
-import {MultiFieldComponent} from '../../models/field/multi-field-component.model';
 import {MultiComponent} from '../../models/component/multi-component.model';
 import {ComponentTypeHandler} from '../../handler/component-type.handler';
 
 @Component({
   selector: 'app-cedar-component-header',
   templateUrl: './cedar-component-header.component.html',
-  styleUrls: ['./cedar-component-header.component.scss']
+  styleUrls: ['./cedar-component-header.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CedarComponentHeaderComponent implements OnInit {
 

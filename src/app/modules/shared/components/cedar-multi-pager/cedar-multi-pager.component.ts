@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {MultiComponent} from '../../models/component/multi-component.model';
 import {PageEvent} from '@angular/material/paginator';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
@@ -8,7 +8,8 @@ import {HandlerContext} from '../../util/handler-context';
 @Component({
   selector: 'app-cedar-multi-pager',
   templateUrl: './cedar-multi-pager.component.html',
-  styleUrls: ['./cedar-multi-pager.component.scss']
+  styleUrls: ['./cedar-multi-pager.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CedarMultiPagerComponent implements OnInit {
 

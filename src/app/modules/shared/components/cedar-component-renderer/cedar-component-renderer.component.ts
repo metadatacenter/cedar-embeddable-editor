@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {CedarComponent} from '../../models/component/cedar-component.model';
 import {ElementComponent} from '../../models/component/element-component.model';
 import {SingleElementComponent} from '../../models/element/single-element-component.model';
@@ -9,13 +9,13 @@ import {MultiFieldComponent} from '../../models/field/multi-field-component.mode
 import {SingleFieldComponent} from '../../models/field/single-field-component.model';
 import {MultiInfo} from '../../models/info/multi-info.model';
 import {HandlerContext} from '../../util/handler-context';
-import {DataContext} from '../../util/data-context';
 import {StaticFieldComponent} from '../../models/static/static-field-component.model';
 
 @Component({
   selector: 'app-cedar-component-renderer',
   templateUrl: './cedar-component-renderer.component.html',
-  styleUrls: ['./cedar-component-renderer.component.scss']
+  styleUrls: ['./cedar-component-renderer.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class CedarComponentRendererComponent implements OnInit {
 
