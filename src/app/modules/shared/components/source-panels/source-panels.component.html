@@ -1,10 +1,67 @@
 <mat-accordion class="source-accordion" multi>
 
-  <mat-expansion-panel expanded="false">
+  <mat-expansion-panel *ngIf="showInstanceDataCore">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <mat-icon>device_hub</mat-icon>
+        JSON-LD - Instance - Core
+      </mat-panel-title>
+      <mat-panel-description>
+        &nbsp;
+        <mat-icon matRipple [cdkCopyToClipboard]="dataContext.instanceExtractData | json" (click)="stopPropagation($event)">content_copy</mat-icon>
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <ng-template matExpansionPanelContent>
+      <mat-card>
+        <pre>{{dataContext.instanceExtractData | json}}</pre>
+      </mat-card>
+    </ng-template>
+  </mat-expansion-panel>
+
+  <mat-expansion-panel *ngIf="showInstanceDataFull">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <mat-icon>device_hub</mat-icon>
+        JSON-LD - Instance
+      </mat-panel-title>
+      <mat-panel-description>
+        &nbsp;
+        <mat-icon matRipple [cdkCopyToClipboard]="dataContext.instanceFullData | json" (click)="stopPropagation($event)">content_copy</mat-icon>
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <ng-template matExpansionPanelContent>
+      <mat-card>
+        <pre>{{dataContext.instanceFullData | json}}</pre>
+      </mat-card>
+    </ng-template>
+  </mat-expansion-panel>
+
+  <mat-expansion-panel *ngIf="showTemplateSourceData">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <mat-icon>view_module</mat-icon>
+        JSON Schema - Template
+      </mat-panel-title>
+      <mat-panel-description>
+        &nbsp;
+        <mat-icon matRipple [cdkCopyToClipboard]="dataContext.templateInput | json" (click)="stopPropagation($event)">content_copy</mat-icon>
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <ng-template matExpansionPanelContent>
+      <mat-card>
+        <pre>{{dataContext.templateInput | json}}</pre>
+      </mat-card>
+    </ng-template>
+  </mat-expansion-panel>
+
+  <mat-expansion-panel *ngIf="showTemplateRenderingRepresentation">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>list_alt</mat-icon>
-        Template Rendering Representation - Intermediate Template Data
+        Template Rendering Data
       </mat-panel-title>
       <mat-panel-description>
         &nbsp;
@@ -17,10 +74,9 @@
         <pre>{{dataContext.templateRepresentation | json}}</pre>
       </mat-card>
     </ng-template>
-
   </mat-expansion-panel>
 
-  <mat-expansion-panel expanded="false">
+  <mat-expansion-panel *ngIf="showMultiInstanceInfo">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>list_alt</mat-icon>
@@ -37,67 +93,6 @@
         <pre>{{dataContext.multiInstanceData | json}}</pre>
       </mat-card>
     </ng-template>
-
   </mat-expansion-panel>
-
-  <mat-expansion-panel expanded="false">
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <mat-icon>view_module</mat-icon>
-        Template JSON-LD - Template Source Data
-      </mat-panel-title>
-      <mat-panel-description>
-        &nbsp;
-        <mat-icon matRipple [cdkCopyToClipboard]="dataContext.templateInput | json" (click)="stopPropagation($event)">content_copy</mat-icon>
-      </mat-panel-description>
-    </mat-expansion-panel-header>
-
-    <ng-template matExpansionPanelContent>
-      <mat-card>
-        <pre>{{dataContext.templateInput | json}}</pre>
-      </mat-card>
-    </ng-template>
-
-  </mat-expansion-panel>
-
-  <mat-expansion-panel expanded="false">
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <mat-icon>device_hub</mat-icon>
-        Instance JSON-LD - Instance Data - Core
-      </mat-panel-title>
-      <mat-panel-description>
-        &nbsp;
-        <mat-icon matRipple [cdkCopyToClipboard]="dataContext.instanceExtractData | json" (click)="stopPropagation($event)">content_copy</mat-icon>
-      </mat-panel-description>
-    </mat-expansion-panel-header>
-
-    <ng-template matExpansionPanelContent>
-      <mat-card>
-        <pre>{{dataContext.instanceExtractData | json}}</pre>
-      </mat-card>
-    </ng-template>
-
-  </mat-expansion-panel>
-
-  <mat-expansion-panel expanded="false">
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <mat-icon>device_hub</mat-icon>
-        Instance JSON-LD - Instance Data - Full
-      </mat-panel-title>
-      <mat-panel-description>
-        &nbsp;
-        <mat-icon matRipple [cdkCopyToClipboard]="dataContext.instanceFullData | json" (click)="stopPropagation($event)">content_copy</mat-icon>
-      </mat-panel-description>
-    </mat-expansion-panel-header>
-
-    <ng-template matExpansionPanelContent>
-      <mat-card>
-        <pre>{{dataContext.instanceFullData | json}}</pre>
-      </mat-card>
-    </ng-template>
-
-  </mat-expansion-panel>
-
+  
 </mat-accordion>

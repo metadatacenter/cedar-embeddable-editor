@@ -11,6 +11,12 @@ export class SourcePanelsComponent implements OnInit {
 
   @Input() dataContext: DataContext = null;
 
+  @Input() showTemplateRenderingRepresentation: boolean;
+  @Input() showMultiInstanceInfo: boolean;
+  @Input() showTemplateSourceData: boolean;
+  @Input() showInstanceDataCore: boolean;
+  @Input() showInstanceDataFull: boolean;
+
   constructor() {
   }
 

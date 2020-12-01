@@ -19,6 +19,11 @@
 
 <app-source-panels *ngIf="dataAvailableForRender()"
                    [dataContext]="dataContext"
+                   [showTemplateRenderingRepresentation]="showTemplateRenderingRepresentation"
+                   [showMultiInstanceInfo]="showMultiInstanceInfo"
+                   [showTemplateSourceData]="showTemplateSourceData"
+                   [showInstanceDataCore]="showInstanceDataCore"
+                   [showInstanceDataFull]="showInstanceDataFull"
 ></app-source-panels>
 
 <app-static-footer></app-static-footer>

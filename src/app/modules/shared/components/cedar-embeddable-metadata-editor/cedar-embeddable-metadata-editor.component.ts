@@ -13,8 +13,20 @@ import {HandlerContext} from '../../util/handler-context';
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
+  private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
+  private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
+  private static SHOW_TEMPLATE_SOURCE = 'showTemplateSourceData';
+  private static SHOW_INSTANCE_CORE = 'showInstanceDataCore';
+  private static SHOW_INSTANCE_FULL = 'showInstanceDataFull';
+
   private readonly dataContext: DataContext = null;
   private readonly handlerContext: HandlerContext = null;
+
+  showTemplateRenderingRepresentation = false;
+  showMultiInstanceInfo = false;
+  showTemplateSourceData = true;
+  showInstanceDataCore = false;
+  showInstanceDataFull = true;
 
   @ViewChild(MatAccordion) accordion: MatAccordion;
 
@@ -24,6 +36,26 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  @Input() set config(value: object) {
+    if (value != null) {
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_RENDERING)) {
+        this.showTemplateRenderingRepresentation = value[CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_RENDERING];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_MULTI_INSTANCE)) {
+        this.showMultiInstanceInfo = value[CedarEmbeddableMetadataEditorComponent.SHOW_MULTI_INSTANCE];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_SOURCE)) {
+        this.showTemplateSourceData = value[CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_SOURCE];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_CORE)) {
+        this.showInstanceDataCore = value[CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_CORE];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_FULL)) {
+        this.showInstanceDataFull = value[CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_FULL];
+      }
+    }
   }
 
   @Input() set templateJsonObject(value: object) {

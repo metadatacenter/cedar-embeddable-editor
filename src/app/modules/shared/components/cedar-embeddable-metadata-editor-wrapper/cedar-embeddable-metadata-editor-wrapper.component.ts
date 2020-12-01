@@ -9,8 +9,13 @@ import {HttpClient} from '@angular/common/http';
 })
 export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
 
-  @Input() templateLocationPrefix: string = null;
-  @Input() showSampleTemplateLinks: false;
+  static TEMPLATE_LOCATION_PREFIX = 'templateLocationPrefix';
+  static SHOW_SAMPLE_TEMPLATE_LINKS = 'showSampleTemplateLinks';
+
+  innerConfig: object = null;
+  private initialized = false;
+  private configSet = false;
+
   public templateJson: object = null;
   callbackOwnerObject = null;
 
@@ -19,7 +24,26 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadTemplate('01');
+    this.initialized = true;
+    this.doInitialize();
+  }
+
+  get staticSHOW_SAMPLE_TEMPLATE_LINKS(): string {
+    return CedarEmbeddableMetadataEditorWrapperComponent.SHOW_SAMPLE_TEMPLATE_LINKS;
+  }
+
+  @Input() set config(value: object) {
+    console.log('Cedar Embeddable Editor Config set:');
+    console.log(value);
+    this.innerConfig = value;
+    this.configSet = true;
+    this.doInitialize();
+  }
+
+  private doInitialize(): void {
+    if (this.initialized && this.configSet) {
+      this.loadTemplate('01');
+    }
   }
 
   loadSampleTemplate(s: string): void {
@@ -27,7 +51,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
   }
 
   private loadTemplate(templateNumber: string): void {
-    const url = this.templateLocationPrefix + templateNumber + '/template.json';
+    const url = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX] + templateNumber + '/template.json';
     this.http.get(url).subscribe(value => {
       this.templateJson = value;
     });

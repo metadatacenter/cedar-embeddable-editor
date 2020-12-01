@@ -1,4 +1,4 @@
-import {Component, ViewEncapsulation} from '@angular/core';
+import {Component} from '@angular/core';
 
 @Component({
   selector: 'app-component',
@@ -6,4 +6,10 @@ import {Component, ViewEncapsulation} from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+
+  ceeConfig = {
+    templateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
+    showSampleTemplateLinks: true,
+  };
+
 }
