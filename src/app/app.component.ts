@@ -10,6 +10,7 @@ export class AppComponent {
   ceeConfig = {
     templateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
     showSampleTemplateLinks: true,
+    showTemplateRenderingRepresentation: true
   };
 
 }

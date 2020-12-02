@@ -4,6 +4,7 @@ import {ValueInfo} from '../info/value-info.model';
 import {NumberInfo} from '../info/number-info.model';
 import {ChoiceInfo} from '../info/choice-info.model';
 import {LabelInfo} from '../info/label-info.model';
+import {ControlledInfo} from '../info/controlled-info.model';
 
 export interface FieldComponent extends CedarComponent {
 
@@ -12,4 +13,5 @@ export interface FieldComponent extends CedarComponent {
   numberInfo: NumberInfo;
   choiceInfo: ChoiceInfo;
   labelInfo: LabelInfo;
+  controlledInfo: ControlledInfo;
 }
