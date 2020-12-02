@@ -20,6 +20,11 @@ export class CedarModel {
   static decimalPlace = 'decimalPlace';
   static content = '_content';
 
+  static ontologies = 'ontologies';
+  static valueSets = 'ontologies';
+  static classes = 'classes';
+  static branches = 'branches';
+
   static multipleChoice = 'multipleChoice';
   static literals = 'literals';
   static label = 'label';

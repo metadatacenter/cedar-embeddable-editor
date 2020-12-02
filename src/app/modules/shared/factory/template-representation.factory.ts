@@ -16,6 +16,7 @@ import {ChoiceOption} from '../models/info/choice-option.model';
 import {CedarInputTemplate} from '../models/cedar-input-template.model';
 import {StaticFieldComponent} from '../models/static/static-field-component.model';
 import {ComponentTypeHandler} from '../handler/component-type.handler';
+import {InputType} from '../models/input-type.model';
 
 export class TemplateRepresentationFactory {
 
@@ -161,6 +162,23 @@ export class TemplateRepresentationFactory {
           option.selectedByDefault = pair[CedarModel.selectedByDefault];
           fc.choiceInfo.choices.push(option);
         }
+      }
+
+      if (vc.hasOwnProperty(CedarModel.ontologies)) {
+        fc.basicInfo.inputType = InputType.controlled;
+        fc.controlledInfo.ontologies = vc[CedarModel.ontologies];
+      }
+      if (vc.hasOwnProperty(CedarModel.valueSets)) {
+        fc.basicInfo.inputType = InputType.controlled;
+        fc.controlledInfo.valueSets = vc[CedarModel.valueSets];
+      }
+      if (vc.hasOwnProperty(CedarModel.classes)) {
+        fc.basicInfo.inputType = InputType.controlled;
+        fc.controlledInfo.classes = vc[CedarModel.classes];
+      }
+      if (vc.hasOwnProperty(CedarModel.branches)) {
+        fc.basicInfo.inputType = InputType.controlled;
+        fc.controlledInfo.branches = vc[CedarModel.branches];
       }
     }
   }
