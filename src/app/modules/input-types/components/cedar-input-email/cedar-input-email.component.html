@@ -1,0 +1,16 @@
+<form class="form-container" [formGroup]="options">
+  <mat-form-field appearance="fill" class="full-width">
+    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
+    <input matInput type="text" placeholder="Your Email Address Here"
+           [formControl]="inputValueControl"
+           [errorStateMatcher]="errorStateMatcher"
+           (input)="inputChanged($event)">
+    <button mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+      <mat-icon>close</mat-icon>
+    </button>
+    <mat-hint align="start" *ngIf="inputValueControl.getError('email')" class="mat-error">Value should be a valid email address.</mat-hint>
+    <mat-hint align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-hint>
+    <mat-hint align="end">{{getCharCountHint()}}</mat-hint>
+  </mat-form-field>
+</form>
+

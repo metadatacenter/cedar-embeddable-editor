@@ -1,0 +1,37 @@
+<div *ngIf="component && currentMultiInfo" class="pager-container">
+
+  <div class="pager-chips">
+    <mat-chip-list>
+      <mat-chip selectable="false" disabled="true" *ngIf="!hasMultiInstances()">No instances yet</mat-chip>
+      <mat-chip *ngFor="let pageNumber of pageNumbers"
+                [selected]="pageNumber == currentMultiInfo.currentIndex"
+                (click)="chipClicked(pageNumber)"
+                selectable="true"
+      >
+        {{pageNumber + 1}}
+      </mat-chip>
+    </mat-chip-list>
+  </div>
+
+  <div>
+    <button mat-icon-button [disabled]="!isEnabledAdd()" (click)="clickedAdd()">
+      <mat-icon matTooltip="Add empty after current">note_add</mat-icon>
+    </button>
+    <button mat-icon-button [disabled]="!isEnabledCopy()" (click)="clickedCopy()">
+      <mat-icon matTooltip="Add clone after current">content_copy</mat-icon>
+    </button>
+    <button mat-icon-button [disabled]="!isEnabledDelete()" (click)="clickedDelete()">
+      <mat-icon matTooltip="Delete current">delete</mat-icon>
+    </button>
+  </div>
+
+  <div class="pager-pager">
+    <mat-paginator [length]="length"
+                   [pageSize]="pageSize"
+                   [pageSizeOptions]="pageSizeOptions"
+                   [pageIndex]="pageIndex"
+                   (page)="paginatorChanged($event)">
+    </mat-paginator>
+  </div>
+
+</div>

@@ -1,0 +1,10 @@
+<app-cedar-embeddable-metadata-editor *ngIf="innerConfig && templateJson"
+                                      [config]="innerConfig"
+                                      [templateJsonObject]="templateJson"
+></app-cedar-embeddable-metadata-editor>
+<ng-container *ngIf="innerConfig && innerConfig[staticSHOW_SAMPLE_TEMPLATE_LINKS]">
+  <hr/>
+  SAMPLE TEMPLATE LIST START
+  <app-dashboard [callbackOwnerObject]="callbackOwnerObject"></app-dashboard>
+  <hr/>
+</ng-container>
