@@ -7,10 +7,10 @@
     ></app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfIterable(iterableComponent)">
       <ng-container *ngIf="iterableComponent.linkedStaticFieldComponent">
-        <app-cedar-static-image *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType=='image'"
+        <app-cedar-static-image *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.image"
                                 [componentToRender]="iterableComponent.linkedStaticFieldComponent"
                                 [handlerContext]="handlerContext"></app-cedar-static-image>
-        <app-cedar-static-youtube *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType=='youtube'"
+        <app-cedar-static-youtube *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.youtube"
                                   [componentToRender]="iterableComponent.linkedStaticFieldComponent"
                                   [handlerContext]="handlerContext"></app-cedar-static-youtube>
       </ng-container>
@@ -33,21 +33,24 @@
     ></app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfNonIterable(nonIterableComponent)">
       <ng-container *ngIf="nonIterableComponent.linkedStaticFieldComponent">
-        <app-cedar-static-image *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType=='image'"
+        <app-cedar-static-image *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.image"
                                 [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
                                 [handlerContext]="handlerContext"></app-cedar-static-image>
-        <app-cedar-static-youtube *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType=='youtube'"
+        <app-cedar-static-youtube *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.youtube"
                                   [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
                                   [handlerContext]="handlerContext"></app-cedar-static-youtube>
       </ng-container>
 
-      <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType=='numeric'"
+      <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType==inputType.numeric"
                                [componentToRender]="nonIterableComponent"
                                [handlerContext]="handlerContext"></app-cedar-input-numeric>
-      <app-cedar-input-textfield *ngIf="nonIterableComponent.basicInfo.inputType=='textfield'"
+      <app-cedar-input-text *ngIf="nonIterableComponent.basicInfo.inputType==inputType.text"
                                  [componentToRender]="nonIterableComponent"
-                                 [handlerContext]="handlerContext"></app-cedar-input-textfield>
-      <app-cedar-input-email *ngIf="nonIterableComponent.basicInfo.inputType=='email'"
+                                 [handlerContext]="handlerContext"></app-cedar-input-text>
+      <app-cedar-input-controlled *ngIf="nonIterableComponent.basicInfo.inputType==inputType.controlled"
+                                 [componentToRender]="nonIterableComponent"
+                                 [handlerContext]="handlerContext"></app-cedar-input-controlled>
+      <app-cedar-input-email *ngIf="nonIterableComponent.basicInfo.inputType==inputType.email"
                              [componentToRender]="nonIterableComponent"
                              [handlerContext]="handlerContext"></app-cedar-input-email>
     </mat-card-content>
@@ -55,7 +58,7 @@
 </ng-container>
 
 <ng-container *ngIf="staticComponent">
-  <app-cedar-static-section-break *ngIf="staticComponent.basicInfo.inputType=='section-break'"
+  <app-cedar-static-section-break *ngIf="staticComponent.basicInfo.inputType==inputType.sectionBreak"
                                   [componentToRender]="staticComponent"
                                   [handlerContext]="handlerContext"></app-cedar-static-section-break>
 </ng-container>

@@ -1,6 +1,6 @@
 <mat-accordion class="source-accordion" multi>
 
-  <mat-expansion-panel *ngIf="showInstanceDataCore">
+  <mat-expansion-panel *ngIf="showInstanceDataCore" expanded="{{expandedInstanceDataCore}}">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>device_hub</mat-icon>
@@ -19,7 +19,7 @@
     </ng-template>
   </mat-expansion-panel>
 
-  <mat-expansion-panel *ngIf="showInstanceDataFull">
+  <mat-expansion-panel *ngIf="showInstanceDataFull" expanded="{{expandedInstanceDataFull}}">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>device_hub</mat-icon>
@@ -38,7 +38,7 @@
     </ng-template>
   </mat-expansion-panel>
 
-  <mat-expansion-panel *ngIf="showTemplateSourceData">
+  <mat-expansion-panel *ngIf="showTemplateSourceData" expanded="{{expandedTemplateSourceData}}">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>view_module</mat-icon>
@@ -57,7 +57,7 @@
     </ng-template>
   </mat-expansion-panel>
 
-  <mat-expansion-panel *ngIf="showTemplateRenderingRepresentation">
+  <mat-expansion-panel *ngIf="showTemplateRenderingRepresentation" expanded="{{expandedTemplateRenderingRepresentation}}">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>list_alt</mat-icon>
@@ -76,7 +76,7 @@
     </ng-template>
   </mat-expansion-panel>
 
-  <mat-expansion-panel *ngIf="showMultiInstanceInfo">
+  <mat-expansion-panel *ngIf="showMultiInstanceInfo" expanded="{{expandedMultiInstanceInfo}}">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <mat-icon>list_alt</mat-icon>

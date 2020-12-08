@@ -1,5 +1,6 @@
 import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
+import {ControlledFieldDataService} from '../../service/controlled-field-data.service';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -9,8 +10,10 @@ import {HttpClient} from '@angular/common/http';
 })
 export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
 
-  static TEMPLATE_LOCATION_PREFIX = 'templateLocationPrefix';
+  static TEMPLATE_LOCATION_PREFIX = 'sampleTemplateLocationPrefix';
   static SHOW_SAMPLE_TEMPLATE_LINKS = 'showSampleTemplateLinks';
+  static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
+  static TERMINOLOGY_PROXY_URL = 'terminologyProxyUrl';
 
   innerConfig: object = null;
   private initialized = false;
@@ -19,7 +22,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
   public templateJson: object = null;
   callbackOwnerObject = null;
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private controlledFieldDataService: ControlledFieldDataService
+  ) {
     this.callbackOwnerObject = this;
   }
 
@@ -42,7 +48,13 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
 
   private doInitialize(): void {
     if (this.initialized && this.configSet) {
-      this.loadTemplate('01');
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
+        this.loadTemplate(this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME]);
+      }
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TERMINOLOGY_PROXY_URL)) {
+        const proxyUrl = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TERMINOLOGY_PROXY_URL];
+        this.controlledFieldDataService.setTerminologyProxyUrl(proxyUrl);
+      }
     }
   }
 
@@ -50,8 +62,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
     this.loadTemplate(s);
   }
 
-  private loadTemplate(templateNumber: string): void {
-    const url = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX] + templateNumber + '/template.json';
+  private loadTemplate(templateName: string): void {
+    const url = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX] + templateName + '/template.json';
     this.http.get(url).subscribe(value => {
       this.templateJson = value;
     });

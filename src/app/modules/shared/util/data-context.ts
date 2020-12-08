@@ -26,7 +26,7 @@ export class DataContext {
     const multiInstanceObjectService: MultiInstanceObjectHandler = handlerContext.multiInstanceObjectService;
     const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
 
-    this.instanceExtractData = dataObjectService.buildNewExtractDataObject(this.templateRepresentation);
+    this.instanceExtractData = dataObjectService.buildNewExtractDataObject(this.templateRepresentation, this.templateInput);
     this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
     this.multiInstanceData = multiInstanceObjectService.buildNew(this.templateRepresentation);
   }

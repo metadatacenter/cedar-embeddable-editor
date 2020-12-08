@@ -10,6 +10,7 @@ import {SingleFieldComponent} from '../../models/field/single-field-component.mo
 import {MultiInfo} from '../../models/info/multi-info.model';
 import {HandlerContext} from '../../util/handler-context';
 import {StaticFieldComponent} from '../../models/static/static-field-component.model';
+import {InputType} from '../../models/input-type.model';
 
 @Component({
   selector: 'app-cedar-component-renderer',
@@ -25,6 +26,7 @@ export class CedarComponentRendererComponent implements OnInit {
   staticComponent: StaticFieldComponent;
   multiInfo: MultiInfo;
   @Input() handlerContext: HandlerContext;
+  inputType: InputType = InputType;
 
   constructor() {
   }

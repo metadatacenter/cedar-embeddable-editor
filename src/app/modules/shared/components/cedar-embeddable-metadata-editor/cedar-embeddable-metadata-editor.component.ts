@@ -30,7 +30,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   @ViewChild(MatAccordion) accordion: MatAccordion;
 
-  constructor(private jsonPipe: JsonPipe) {
+  constructor(
+    private jsonPipe: JsonPipe
+  ) {
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext);
   }

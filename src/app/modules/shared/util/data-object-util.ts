@@ -1,13 +1,19 @@
 import {JsonSchema} from '../models/json-schema.model';
 import {CedarModel} from '../models/cedar-model.model';
 import {JavascriptTypes} from '../models/javascript-types.model';
+import {TemplateObjectUtil} from './template-object-util';
+import {DataObjectBuildingMode} from '../models/enum/data-object-building-mode.model';
 
 export class DataObjectUtil {
 
-  static getEmptyValueWrapper(templateJsonObj: object): object {
+  static getEmptyValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode): object {
     const obj = {};
-    obj[JsonSchema.atValue] = null;
-    this.injectAtTypeIfAvailable(obj, templateJsonObj);
+    if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj) ) {
+      obj[JsonSchema.atValue] = null;
+    }
+    if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
+      this.injectAtTypeIfAvailable(obj, templateJsonObj);
+    }
     return obj;
   }
 

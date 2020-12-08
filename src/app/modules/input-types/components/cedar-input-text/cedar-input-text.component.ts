@@ -14,12 +14,12 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
 }
 
 @Component({
-  selector: 'app-cedar-input-textfield',
-  templateUrl: './cedar-input-textfield.component.html',
-  styleUrls: ['./cedar-input-textfield.component.scss'],
+  selector: 'app-cedar-input-text',
+  templateUrl: './cedar-input-text.component.html',
+  styleUrls: ['./cedar-input-text.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CedarInputTextfieldComponent extends CedarUIComponent implements OnInit {
+export class CedarInputTextComponent extends CedarUIComponent implements OnInit {
 
   component: FieldComponent;
   options: FormGroup;

@@ -14,6 +14,7 @@ export class JsonSchema {
   static pavCreatedBy = 'pav:createdBy';
   static pavLastUpdatedOn = 'pav:lastUpdatedOn';
   static oslcModifiedBy = 'oslc:modifiedBy';
+  static rdfsLabel = 'rdfs:label';
 
   static builtInProperties: Map<string, boolean> = new Map([
     [JsonSchema.atId, true],

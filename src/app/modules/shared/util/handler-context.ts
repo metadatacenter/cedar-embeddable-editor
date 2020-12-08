@@ -49,4 +49,8 @@ export class HandlerContext {
   changeValue(component: FieldComponent, value: string): void {
     this.dataObjectDataValueHandler.changeValue(this.dataContext, component, this.multiInstanceObjectService, value);
   }
+
+  changeControlledValue(component: FieldComponent, atId: string, prefLabel: string): void {
+    this.dataObjectDataValueHandler.changeControlledValue(this.dataContext, component, this.multiInstanceObjectService, atId, prefLabel);
+  }
 }

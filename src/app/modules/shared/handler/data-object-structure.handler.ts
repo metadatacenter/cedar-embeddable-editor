@@ -10,6 +10,7 @@ import {MultiInstanceObjectHandler} from './multi-instance-object.handler';
 import {DataObjectBuilderHandler} from './data-object-builder.handler';
 import {InstanceExtractData} from '../models/instance-extract-data.model';
 import {CedarInputTemplate} from '../models/cedar-input-template.model';
+import {DataObjectBuildingMode} from '../models/enum/data-object-building-mode.model';
 
 export class DataObjectStructureHandler {
 
@@ -59,7 +60,7 @@ export class DataObjectStructureHandler {
       const shorterPath = component.path.slice(0, component.path.length - 1);
       subTemplate = DataObjectBuilderHandler.getSubTemplate(templateInput, shorterPath);
     }
-    DataObjectBuilderHandler.buildRecursively(cloneComponent, dataObject, subTemplate);
+    DataObjectBuilderHandler.buildRecursively(cloneComponent, dataObject, subTemplate, DataObjectBuildingMode.INCLUDE_CONTEXT);
     const newDataObject = dataObject[component.name][0];
     const currentNodeAny = this.getDataPathNodeRecursively(instanceObject, templateRepresentation, component.path, multiInstanceObjectService);
     const currentNodeArray = currentNodeAny as [];
