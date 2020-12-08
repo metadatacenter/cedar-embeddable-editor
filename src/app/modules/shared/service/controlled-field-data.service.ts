@@ -12,7 +12,6 @@ export class ControlledFieldDataService {
 
   private terminologyProxyUrl = null;
 
-
   constructor(
     private http: HttpClient
   ) {
@@ -23,7 +22,6 @@ export class ControlledFieldDataService {
   }
 
   getData(val: string, component: FieldComponent): Observable<IntegratedSearchResponse> {
-    const url = 'https://api-php.cee.metadatacenter.orgx/index.php';
     const postData = new IntegratedSearchRequest();
     postData.parameterObject.inputText = val;
     postData.parameterObject.valueConstraints.branches = component.controlledInfo.branches;
@@ -32,7 +30,7 @@ export class ControlledFieldDataService {
     postData.parameterObject.valueConstraints.valueSets = component.controlledInfo.valueSets;
     console.log('READ SEARCH');
     console.log(postData);
-    return this.http.post<IntegratedSearchResponse>(url, postData);
+    return this.http.post<IntegratedSearchResponse>(this.terminologyProxyUrl, postData);
   }
 
 }
