@@ -11,6 +11,7 @@ import {debounceTime, distinctUntilChanged, map, startWith, switchMap} from 'rxj
 import {IntegratedSearchResponseItem} from '../../../shared/models/rest/integrated-search/integrated-search-response-item';
 import {JsonSchema} from '../../../shared/models/json-schema.model';
 import {ControlledFieldDataService} from '../../../shared/service/controlled-field-data.service';
+import {MessageHandlerService} from '../../../shared/service/message-handler.service';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -40,7 +41,8 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
     fb: FormBuilder,
     public cds: ComponentDataService,
     activeComponentRegistry: ActiveComponentRegistryService,
-    private controlledFieldDataService: ControlledFieldDataService
+    private controlledFieldDataService: ControlledFieldDataService,
+    private messageHandlerService: MessageHandlerService
   ) {
     super();
     this.options = fb.group({
@@ -74,9 +76,16 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   filter(val: string): Observable<IntegratedSearchResponseItem[]> {
     return this.controlledFieldDataService.getData(val, this.component)
       .pipe(
-        map(response => response.collection.filter(option => {
-          return option.prefLabel.toLowerCase().indexOf(val.toLowerCase()) === 0;
-        }))
+        map(response => {
+            if (response == null) {
+              return null;
+            } else {
+              return response.collection.filter(option => {
+                return option.prefLabel.toLowerCase().indexOf(val.toLowerCase()) === 0;
+              });
+            }
+          }
+        )
       );
   }
 
@@ -91,7 +100,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
 
   setCurrentValue(currentValue: any): void {
     // TODO: Implement this
-    console.log('TODO: implement CedarInputControlledComponent.setCurrentValue');
+    this.messageHandlerService.trace('TODO: implement CedarInputControlledComponent.setCurrentValue');
   }
 
   clearValue(): void {

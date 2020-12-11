@@ -7,6 +7,7 @@
     ></app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfIterable(iterableComponent)">
       <ng-container *ngIf="iterableComponent.linkedStaticFieldComponent">
+        <!-- These are the collapsed static components before elements -->
         <app-cedar-static-image *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.image"
                                 [componentToRender]="iterableComponent.linkedStaticFieldComponent"
                                 [handlerContext]="handlerContext"></app-cedar-static-image>
@@ -33,6 +34,7 @@
     ></app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfNonIterable(nonIterableComponent)">
       <ng-container *ngIf="nonIterableComponent.linkedStaticFieldComponent">
+        <!-- These are the collapsed static components before fields-->
         <app-cedar-static-image *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.image"
                                 [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
                                 [handlerContext]="handlerContext"></app-cedar-static-image>
@@ -41,24 +43,35 @@
                                   [handlerContext]="handlerContext"></app-cedar-static-youtube>
       </ng-container>
 
+      <!-- These are the regular components -->
       <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType==inputType.numeric"
                                [componentToRender]="nonIterableComponent"
                                [handlerContext]="handlerContext"></app-cedar-input-numeric>
       <app-cedar-input-text *ngIf="nonIterableComponent.basicInfo.inputType==inputType.text"
-                                 [componentToRender]="nonIterableComponent"
-                                 [handlerContext]="handlerContext"></app-cedar-input-text>
+                            [componentToRender]="nonIterableComponent"
+                            [handlerContext]="handlerContext"></app-cedar-input-text>
       <app-cedar-input-controlled *ngIf="nonIterableComponent.basicInfo.inputType==inputType.controlled"
-                                 [componentToRender]="nonIterableComponent"
-                                 [handlerContext]="handlerContext"></app-cedar-input-controlled>
+                                  [componentToRender]="nonIterableComponent"
+                                  [handlerContext]="handlerContext"></app-cedar-input-controlled>
       <app-cedar-input-email *ngIf="nonIterableComponent.basicInfo.inputType==inputType.email"
                              [componentToRender]="nonIterableComponent"
                              [handlerContext]="handlerContext"></app-cedar-input-email>
+
     </mat-card-content>
   </mat-card>
 </ng-container>
 
 <ng-container *ngIf="staticComponent">
+  <!-- This is the normal section break -->
   <app-cedar-static-section-break *ngIf="staticComponent.basicInfo.inputType==inputType.sectionBreak"
                                   [componentToRender]="staticComponent"
                                   [handlerContext]="handlerContext"></app-cedar-static-section-break>
+  <!-- These are the non-collapsed static components -->
+  <app-cedar-static-image *ngIf="staticComponent.basicInfo.inputType==inputType.image"
+                          [componentToRender]="staticComponent"
+                          [handlerContext]="handlerContext"></app-cedar-static-image>
+  <app-cedar-static-youtube *ngIf="staticComponent.basicInfo.inputType==inputType.youtube"
+                            [componentToRender]="staticComponent"
+                            [handlerContext]="handlerContext"></app-cedar-static-youtube>
+
 </ng-container>

@@ -4,6 +4,7 @@ import {IntegratedSearchResponse} from '../models/rest/integrated-search/integra
 import {IntegratedSearchRequest} from '../models/rest/integrated-search/integrated-search-request';
 import {FieldComponent} from '../models/component/field-component.model';
 import {HttpClient} from '@angular/common/http';
+import {MessageHandlerService} from './message-handler.service';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +14,8 @@ export class ControlledFieldDataService {
   private terminologyProxyUrl = null;
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private messageHandlerService: MessageHandlerService
   ) {
   }
 
@@ -28,8 +30,7 @@ export class ControlledFieldDataService {
     postData.parameterObject.valueConstraints.classes = component.controlledInfo.classes;
     postData.parameterObject.valueConstraints.ontologies = component.controlledInfo.ontologies;
     postData.parameterObject.valueConstraints.valueSets = component.controlledInfo.valueSets;
-    console.log('READ SEARCH');
-    console.log(postData);
+    this.messageHandlerService.traceObject('Read terminology integrated search:', postData);
     return this.http.post<IntegratedSearchResponse>(this.terminologyProxyUrl, postData);
   }
 

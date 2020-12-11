@@ -9,11 +9,16 @@ export class AppComponent {
 
   ceeConfig = {
     sampleTemplateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
+    loadSampleTemplateName: '01',
     showSampleTemplateLinks: true,
-    loadSampleTemplateName: '03',
+    expandedSampleTemplateLinks: true,
+
     terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
-    showTemplateRenderingRepresentation: true,
-    showInstanceDataCore: true
+    // showTemplateRenderingRepresentation: true,
+    // showInstanceDataCore: true,
+    // showMultiInstanceInfo: true
+
+    collapseStaticComponents: true
   };
 
 }

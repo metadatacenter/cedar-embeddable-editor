@@ -21,12 +21,12 @@ import {TemplateObjectUtil} from '../util/template-object-util';
 
 export class TemplateRepresentationFactory {
 
-  static create(inputTemplate: CedarInputTemplate): TemplateComponent {
+  static create(inputTemplate: CedarInputTemplate, collapseStaticComponents: boolean): TemplateComponent {
     if (inputTemplate === null) {
       return new NullTemplateComponent();
     } else {
       const template = new CedarTemplate();
-      TemplateRepresentationFactory.wrap(inputTemplate, inputTemplate, template, []);
+      TemplateRepresentationFactory.wrap(inputTemplate, inputTemplate, template, [], collapseStaticComponents);
       TemplateRepresentationFactory.extractTemplateLabels(inputTemplate, template);
       return template;
     }
@@ -46,7 +46,7 @@ export class TemplateRepresentationFactory {
     }
   }
 
-  private static wrap(templateJsonObj: object, parentJsonObj: object, component: CedarComponent, parentPath: string[]): void {
+  private static wrap(templateJsonObj: object, parentJsonObj: object, component: CedarComponent, parentPath: string[], collapseStaticComponents: boolean): void {
     // const propertyNames: string[] = TemplateRepresentationFactory.getFilteredSchemaPropertyNames(templateJsonObj);
     // console.log(propertyNames);
     const propertyNames: string[] = TemplateRepresentationFactory.getOrderedPropertyNames(templateJsonObj);
@@ -78,7 +78,7 @@ export class TemplateRepresentationFactory {
           r = new SingleElementComponent();
         }
         TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
-        TemplateRepresentationFactory.wrap(dataNode, templateJsonObj, r, myPath);
+        TemplateRepresentationFactory.wrap(dataNode, templateJsonObj, r, myPath, collapseStaticComponents);
       } else if (fragmentAtType === CedarModel.templateStaticFieldType) {
         r = new StaticFieldComponent();
         TemplateRepresentationFactory.extractStaticData(dataNode, parentDataNode, name, r as StaticFieldComponent);
@@ -98,7 +98,9 @@ export class TemplateRepresentationFactory {
 
     }
 
-    this.collapseImagesIntoNextFieldOrElement(component);
+    if (collapseStaticComponents) {
+      this.collapseImagesIntoNextFieldOrElement(component);
+    }
   }
 
   // private static getFilteredSchemaPropertyNames(jsonObj: object): string[] {
