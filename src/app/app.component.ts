@@ -8,9 +8,17 @@ import {Component} from '@angular/core';
 export class AppComponent {
 
   ceeConfig = {
-    templateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
+    sampleTemplateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
+    loadSampleTemplateName: '01',
     showSampleTemplateLinks: true,
-    showTemplateRenderingRepresentation: true
+    expandedSampleTemplateLinks: true,
+
+    terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
+    // showTemplateRenderingRepresentation: true,
+    // showInstanceDataCore: true,
+    // showMultiInstanceInfo: true
+
+    collapseStaticComponents: true
   };
 
 }

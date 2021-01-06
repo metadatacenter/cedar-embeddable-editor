@@ -17,15 +17,16 @@ import {CedarInputTemplate} from '../models/cedar-input-template.model';
 import {StaticFieldComponent} from '../models/static/static-field-component.model';
 import {ComponentTypeHandler} from '../handler/component-type.handler';
 import {InputType} from '../models/input-type.model';
+import {TemplateObjectUtil} from '../util/template-object-util';
 
 export class TemplateRepresentationFactory {
 
-  static create(inputTemplate: CedarInputTemplate): TemplateComponent {
+  static create(inputTemplate: CedarInputTemplate, collapseStaticComponents: boolean): TemplateComponent {
     if (inputTemplate === null) {
       return new NullTemplateComponent();
     } else {
       const template = new CedarTemplate();
-      TemplateRepresentationFactory.wrap(inputTemplate, inputTemplate, template, []);
+      TemplateRepresentationFactory.wrap(inputTemplate, inputTemplate, template, [], collapseStaticComponents);
       TemplateRepresentationFactory.extractTemplateLabels(inputTemplate, template);
       return template;
     }
@@ -45,7 +46,7 @@ export class TemplateRepresentationFactory {
     }
   }
 
-  private static wrap(templateJsonObj: object, parentJsonObj: object, component: CedarComponent, parentPath: string[]): void {
+  private static wrap(templateJsonObj: object, parentJsonObj: object, component: CedarComponent, parentPath: string[], collapseStaticComponents: boolean): void {
     // const propertyNames: string[] = TemplateRepresentationFactory.getFilteredSchemaPropertyNames(templateJsonObj);
     // console.log(propertyNames);
     const propertyNames: string[] = TemplateRepresentationFactory.getOrderedPropertyNames(templateJsonObj);
@@ -77,7 +78,7 @@ export class TemplateRepresentationFactory {
           r = new SingleElementComponent();
         }
         TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
-        TemplateRepresentationFactory.wrap(dataNode, templateJsonObj, r, myPath);
+        TemplateRepresentationFactory.wrap(dataNode, templateJsonObj, r, myPath, collapseStaticComponents);
       } else if (fragmentAtType === CedarModel.templateStaticFieldType) {
         r = new StaticFieldComponent();
         TemplateRepresentationFactory.extractStaticData(dataNode, parentDataNode, name, r as StaticFieldComponent);
@@ -97,7 +98,9 @@ export class TemplateRepresentationFactory {
 
     }
 
-    this.collapseImagesIntoNextFieldOrElement(component);
+    if (collapseStaticComponents) {
+      this.collapseImagesIntoNextFieldOrElement(component);
+    }
   }
 
   // private static getFilteredSchemaPropertyNames(jsonObj: object): string[] {
@@ -141,8 +144,8 @@ export class TemplateRepresentationFactory {
   private static extractValueConstraints(dataNode: object, fc: FieldComponent): void {
     fc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
 
-    const vc: object = dataNode[CedarModel.valueConstraints];
-    if (vc != null) {
+    if (TemplateObjectUtil.hasValueConstraints(dataNode)) {
+      const vc: object = dataNode[CedarModel.valueConstraints];
       fc.valueInfo.requiredValue = vc[CedarModel.requiredValue];
       fc.valueInfo.defaultValue = vc[CedarModel.defaultValue];
       fc.valueInfo.minLength = vc[CedarModel.minLength];
@@ -155,6 +158,7 @@ export class TemplateRepresentationFactory {
       fc.numberInfo.decimalPlace = vc[CedarModel.decimalPlace];
 
       fc.choiceInfo.multipleChoice = vc[CedarModel.multipleChoice];
+
       if (vc[CedarModel.literals] !== undefined) {
         for (const pair of vc[CedarModel.literals]) {
           const option = new ChoiceOption();
@@ -164,23 +168,15 @@ export class TemplateRepresentationFactory {
         }
       }
 
-      if (vc.hasOwnProperty(CedarModel.ontologies)) {
+      if (TemplateObjectUtil.hasControlledInfo(dataNode)) {
         fc.basicInfo.inputType = InputType.controlled;
         fc.controlledInfo.ontologies = vc[CedarModel.ontologies];
-      }
-      if (vc.hasOwnProperty(CedarModel.valueSets)) {
-        fc.basicInfo.inputType = InputType.controlled;
         fc.controlledInfo.valueSets = vc[CedarModel.valueSets];
-      }
-      if (vc.hasOwnProperty(CedarModel.classes)) {
-        fc.basicInfo.inputType = InputType.controlled;
         fc.controlledInfo.classes = vc[CedarModel.classes];
-      }
-      if (vc.hasOwnProperty(CedarModel.branches)) {
-        fc.basicInfo.inputType = InputType.controlled;
         fc.controlledInfo.branches = vc[CedarModel.branches];
       }
     }
+
   }
 
   private static extractLabels(dataNode: object, parentDataNode: object, name: string, fc: FieldComponent): void {

@@ -17,8 +17,8 @@ import {MatRippleModule} from '@angular/material/core';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatGridListModule} from '@angular/material/grid-list';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {CedarEmbeddableMetadataEditorComponent} from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
-import {DashboardComponent} from './components/dashboard/dashboard.component';
 import {CedarComponentRendererComponent} from './components/cedar-component-renderer/cedar-component-renderer.component';
 import {StaticFooterComponent} from './components/static-footer/static-footer.component';
 import {StaticHeaderComponent} from './components/static-header/static-header.component';
@@ -26,7 +26,8 @@ import {SourcePanelsComponent} from './components/source-panels/source-panels.co
 import {CedarMultiPagerComponent} from './components/cedar-multi-pager/cedar-multi-pager.component';
 import {InputTypesModule} from '../input-types/input-types.module';
 import {CedarEmbeddableMetadataEditorWrapperComponent} from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
-
+import {MatListModule} from '@angular/material/list';
+import {SampleTemplatesComponent} from './components/sample-templates/sample-templates.component';
 
 @NgModule({
   imports: [
@@ -47,6 +48,8 @@ import {CedarEmbeddableMetadataEditorWrapperComponent} from './components/cedar-
     MatPaginatorModule,
     MatChipsModule,
     MatGridListModule,
+    MatProgressSpinnerModule,
+    MatListModule,
     InputTypesModule
   ],
   declarations: [
@@ -54,7 +57,8 @@ import {CedarEmbeddableMetadataEditorWrapperComponent} from './components/cedar-
     CedarComponentHeaderComponent,
     CedarEmbeddableMetadataEditorComponent,
     CedarEmbeddableMetadataEditorWrapperComponent,
-    DashboardComponent,
+    SampleTemplatesComponent,
+    SampleTemplatesComponent,
     CedarComponentRendererComponent,
     StaticFooterComponent,
     StaticHeaderComponent,

@@ -17,6 +17,12 @@ export class SourcePanelsComponent implements OnInit {
   @Input() showInstanceDataCore: boolean;
   @Input() showInstanceDataFull: boolean;
 
+  @Input() expandedInstanceDataCore = false;
+  @Input() expandedInstanceDataFull = false;
+  @Input() expandedTemplateSourceData = false;
+  @Input() expandedTemplateRenderingRepresentation = false;
+  @Input() expandedMultiInstanceInfo = false;
+
   constructor() {
   }
 

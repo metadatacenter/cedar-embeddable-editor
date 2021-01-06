@@ -24,6 +24,18 @@
                    [showTemplateSourceData]="showTemplateSourceData"
                    [showInstanceDataCore]="showInstanceDataCore"
                    [showInstanceDataFull]="showInstanceDataFull"
+
+                   [expandedTemplateRenderingRepresentation]="expandedTemplateRenderingRepresentation"
+                   [expandedMultiInstanceInfo]="expandedMultiInstanceInfo"
+                   [expandedTemplateSourceData]="expandedTemplateSourceData"
+                   [expandedInstanceDataCore]="expandedInstanceDataCore"
+                   [expandedInstanceDataFull]="expandedInstanceDataFull"
 ></app-source-panels>
+
+<app-sample-templates
+  *ngIf="dataAvailableForRender() && showSampleTemplateLinks"
+  [callbackOwnerObject]="sampleTemplateLoaderObject"
+  [expandedSampleTemplateLinks]="expandedSampleTemplateLinks"
+></app-sample-templates>
 
 <app-static-footer></app-static-footer>

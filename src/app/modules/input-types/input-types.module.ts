@@ -18,19 +18,21 @@ import {MatChipsModule} from '@angular/material/chips';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {CedarInputEmailComponent} from './components/cedar-input-email/cedar-input-email.component';
 import {CedarInputNumericComponent} from './components/cedar-input-numeric/cedar-input-numeric.component';
-import {CedarInputTextfieldComponent} from './components/cedar-input-textfield/cedar-input-textfield.component';
+import {CedarInputTextComponent} from './components/cedar-input-text/cedar-input-text.component';
 import {CedarStaticSectionBreakComponent} from './components/cedar-static-section-break/cedar-static-section-break.component';
 import {CedarStaticImageComponent} from './components/cedar-static-image/cedar-static-image.component';
 import {CedarStaticYoutubeComponent} from './components/cedar-static-youtube/cedar-static-youtube.component';
 import {YouTubePlayerModule} from '@angular/youtube-player';
 import {CedarFooBarComponent} from './components/cedar-foo-bar/cedar-foo-bar.component';
-
+import {CedarInputControlledComponent} from './components/cedar-input-controlled/cedar-input-controlled.component';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
 
 @NgModule({
   imports: [
     BrowserModule,
     HttpClientModule,
     BrowserAnimationsModule,
+    MatAutocompleteModule,
     MatCardModule,
     MatFormFieldModule,
     ReactiveFormsModule,
@@ -46,11 +48,12 @@ import {CedarFooBarComponent} from './components/cedar-foo-bar/cedar-foo-bar.com
     MatPaginatorModule,
     MatChipsModule,
     MatGridListModule,
-    YouTubePlayerModule,
+    YouTubePlayerModule
   ],
   declarations: [
     CedarFooBarComponent,
-    CedarInputTextfieldComponent,
+    CedarInputTextComponent,
+    CedarInputControlledComponent,
     CedarInputNumericComponent,
     CedarInputEmailComponent,
     CedarStaticSectionBreakComponent,
@@ -61,7 +64,8 @@ import {CedarFooBarComponent} from './components/cedar-foo-bar/cedar-foo-bar.com
   exports: [
     // FooBar is needed because the first component gets exported without style otherwise
     CedarFooBarComponent,
-    CedarInputTextfieldComponent,
+    CedarInputTextComponent,
+    CedarInputControlledComponent,
     CedarInputNumericComponent,
     CedarInputEmailComponent,
     CedarStaticSectionBreakComponent,

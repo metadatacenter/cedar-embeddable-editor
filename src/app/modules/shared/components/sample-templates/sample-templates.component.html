@@ -1,0 +1,18 @@
+<mat-expansion-panel expanded="{{expandedSampleTemplateLinks}}">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <mat-icon>subject</mat-icon>
+      Sample templates
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+
+  <ng-template matExpansionPanelContent>
+      <mat-selection-list #templates [multiple]="false" (selectionChange)="selectionChanged({option : templates.selectedOptions.selected[0]})">
+        <mat-list-option *ngFor="let template of sampleTemplates | keyvalue" [value]="template.key">
+          {{template.value}}
+        </mat-list-option>
+      </mat-selection-list>
+  </ng-template>
+</mat-expansion-panel>
+
+

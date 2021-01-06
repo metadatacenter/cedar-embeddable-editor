@@ -19,14 +19,14 @@ export class DataContext {
   public constructor() {
   }
 
-  setInputTemplate(value: object, handlerContext: HandlerContext): void {
+  setInputTemplate(value: object, handlerContext: HandlerContext, collapseStaticComponents: boolean): void {
     this.templateInput = value as CedarInputTemplate;
-    this.templateRepresentation = TemplateRepresentationFactory.create(this.templateInput);
+    this.templateRepresentation = TemplateRepresentationFactory.create(this.templateInput, collapseStaticComponents);
 
     const multiInstanceObjectService: MultiInstanceObjectHandler = handlerContext.multiInstanceObjectService;
     const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
 
-    this.instanceExtractData = dataObjectService.buildNewExtractDataObject(this.templateRepresentation);
+    this.instanceExtractData = dataObjectService.buildNewExtractDataObject(this.templateRepresentation, this.templateInput);
     this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
     this.multiInstanceData = multiInstanceObjectService.buildNew(this.templateRepresentation);
   }

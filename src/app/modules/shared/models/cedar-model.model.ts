@@ -21,7 +21,7 @@ export class CedarModel {
   static content = '_content';
 
   static ontologies = 'ontologies';
-  static valueSets = 'ontologies';
+  static valueSets = 'valueSets';
   static classes = 'classes';
   static branches = 'branches';
 

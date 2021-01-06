@@ -6,6 +6,12 @@ import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.mod
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
 import {ErrorStateMatcher} from '@angular/material/core';
+import {Observable} from 'rxjs';
+import {debounceTime, distinctUntilChanged, map, startWith, switchMap} from 'rxjs/operators';
+import {IntegratedSearchResponseItem} from '../../../shared/models/rest/integrated-search/integrated-search-response-item';
+import {JsonSchema} from '../../../shared/models/json-schema.model';
+import {ControlledFieldDataService} from '../../../shared/service/controlled-field-data.service';
+import {MessageHandlerService} from '../../../shared/service/message-handler.service';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -14,23 +20,30 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
 }
 
 @Component({
-  selector: 'app-cedar-input-textfield',
-  templateUrl: './cedar-input-textfield.component.html',
-  styleUrls: ['./cedar-input-textfield.component.scss'],
+  selector: 'app-cedar-input-controlled',
+  templateUrl: './cedar-input-controlled.component.html',
+  styleUrls: ['./cedar-input-controlled.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CedarInputTextfieldComponent extends CedarUIComponent implements OnInit {
+export class CedarInputControlledComponent extends CedarUIComponent implements OnInit {
 
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, null);
   activeComponentRegistry: ActiveComponentRegistryService;
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  constraintMinLength = null;
-  constraintMaxLength = null;
   @Input() handlerContext: HandlerContext;
+  model: IntegratedSearchResponseItem = null;
 
-  constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
+  filteredOptions: Observable<IntegratedSearchResponseItem[]>;
+
+  constructor(
+    fb: FormBuilder,
+    public cds: ComponentDataService,
+    activeComponentRegistry: ActiveComponentRegistryService,
+    private controlledFieldDataService: ControlledFieldDataService,
+    private messageHandlerService: MessageHandlerService
+  ) {
     super();
     this.options = fb.group({
       inputValue: this.inputValueControl,
@@ -41,14 +54,6 @@ export class CedarInputTextfieldComponent extends CedarUIComponent implements On
   ngOnInit(): void {
     const validators: any[] = [];
 
-    this.constraintMinLength = this.component.valueInfo.minLength;
-    if (this.constraintMinLength != null) {
-      validators.push(Validators.minLength(this.constraintMinLength));
-    }
-    this.constraintMaxLength = this.component.valueInfo.maxLength;
-    if (this.constraintMaxLength != null) {
-      validators.push(Validators.maxLength(this.constraintMaxLength));
-    }
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
@@ -56,6 +61,32 @@ export class CedarInputTextfieldComponent extends CedarUIComponent implements On
     if (this.component.valueInfo.defaultValue != null) {
       this.setValueUIAndModel(this.component.valueInfo.defaultValue);
     }
+
+    this.filteredOptions = this.inputValueControl.valueChanges
+      .pipe(
+        startWith(''),
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap(val => {
+          return this.filter(val || '');
+        })
+      );
+  }
+
+  filter(val: string): Observable<IntegratedSearchResponseItem[]> {
+    return this.controlledFieldDataService.getData(val, this.component)
+      .pipe(
+        map(response => {
+            if (response == null) {
+              return null;
+            } else {
+              return response.collection.filter(option => {
+                return option.prefLabel.toLowerCase().indexOf(val.toLowerCase()) === 0;
+              });
+            }
+          }
+        )
+      );
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -63,12 +94,13 @@ export class CedarInputTextfieldComponent extends CedarUIComponent implements On
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  inputChanged($event: Event): void {
-    this.handlerContext.changeValue(this.component, ($event.target as HTMLTextAreaElement).value);
+  onSelectionChange(option: IntegratedSearchResponseItem): void {
+    this.handlerContext.changeControlledValue(this.component, option[JsonSchema.atId], option.prefLabel);
   }
 
   setCurrentValue(currentValue: any): void {
-    this.inputValueControl.setValue(currentValue);
+    // TODO: Implement this
+    this.messageHandlerService.trace('TODO: implement CedarInputControlledComponent.setCurrentValue');
   }
 
   clearValue(): void {
@@ -80,30 +112,5 @@ export class CedarInputTextfieldComponent extends CedarUIComponent implements On
     this.handlerContext.changeValue(this.component, value);
   }
 
-  getCharCountHint(): string {
-    let len = 0;
-    if (this.inputValueControl.value != null) {
-      len = this.inputValueControl.value.length;
-    }
-    let s = '' + len;
-    let min = null;
-    let max = null;
-    if (this.component.valueInfo.minLength != null) {
-      min = this.component.valueInfo.minLength;
-    }
-    if (this.component.valueInfo.maxLength != null) {
-      max = this.component.valueInfo.maxLength;
-    }
-    if (min != null || max != null) {
-      s += ' / ';
-      if (min != null) {
-        s += min + ' ';
-      }
-      s += ' - ';
-      if (max != null) {
-        s += max;
-      }
-    }
-    return s;
-  }
+
 }
