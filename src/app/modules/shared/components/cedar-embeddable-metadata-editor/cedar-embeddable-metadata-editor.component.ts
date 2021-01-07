@@ -20,6 +20,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private static SHOW_INSTANCE_FULL = 'showInstanceDataFull';
   private static SHOW_SAMPLE_TEMPLATE_LINKS = 'showSampleTemplateLinks';
 
+  private static SHOW_HEADER = 'showHeader';
+  private static SHOW_FOOTER = 'showFooter';
+
   private static EXPANDED_TEMPLATE_RENDERING = 'expandedTemplateRenderingRepresentation';
   private static EXPANDED_MULTI_INSTANCE = 'expandedMultiInstanceInfo';
   private static EXPANDED_TEMPLATE_SOURCE = 'expandedTemplateSourceData';
@@ -40,6 +43,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   showInstanceDataCore = false;
   showInstanceDataFull = true;
   showSampleTemplateLinks = false;
+
+  showHeader = true;
+  showFooter = true;
 
   expandedTemplateRenderingRepresentation = false;
   expandedMultiInstanceInfo = false;
@@ -82,6 +88,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS)) {
         this.showSampleTemplateLinks = value[CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS];
       }
+
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER)) {
+        this.showFooter = value[CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_HEADER)) {
+        this.showHeader = value[CedarEmbeddableMetadataEditorComponent.SHOW_HEADER];
+      }
+
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_RENDERING)) {
         this.expandedTemplateRenderingRepresentation = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_RENDERING];
       }
