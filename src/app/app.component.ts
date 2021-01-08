@@ -14,6 +14,9 @@ export class AppComponent {
     expandedSampleTemplateLinks: true,
 
     terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
+    // showFooter: false,
+    // showHeader: false,
+
     // showTemplateRenderingRepresentation: true,
     // showInstanceDataCore: true,
     // showMultiInstanceInfo: true
