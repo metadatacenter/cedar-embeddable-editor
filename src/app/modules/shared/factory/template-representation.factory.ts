@@ -69,8 +69,17 @@ export class TemplateRepresentationFactory {
         } else {
           r = new SingleFieldComponent();
         }
+
+
+        // console.log(r);
+
+
         TemplateRepresentationFactory.extractValueConstraints(dataNode, r as FieldComponent);
         TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
+
+
+
+
       } else if (fragmentAtType === CedarModel.templateElementType) {
         if (isMulti) {
           r = new MultiElementComponent();
@@ -80,8 +89,21 @@ export class TemplateRepresentationFactory {
         TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
         TemplateRepresentationFactory.wrap(dataNode, templateJsonObj, r, myPath, collapseStaticComponents);
       } else if (fragmentAtType === CedarModel.templateStaticFieldType) {
+
+
         r = new StaticFieldComponent();
+
+
+        // console.log(r);
         TemplateRepresentationFactory.extractStaticData(dataNode, parentDataNode, name, r as StaticFieldComponent);
+
+        // TemplateRepresentationFactory.extractValueConstraints(dataNode, r as FieldComponent);
+
+        // r = new SingleFieldComponent();
+        // TemplateRepresentationFactory.extractValueConstraints(dataNode, r as FieldComponent);
+        // TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
+
+
       }
 
       if (r !== null) {
@@ -208,6 +230,10 @@ export class TemplateRepresentationFactory {
   }
 
   private static extractStaticData(dataNode: object, parentDataNode: object, name: string, sfc: StaticFieldComponent): void {
+
+    // console.log(sfc);
+
+
     sfc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
     sfc.labelInfo.preferredLabel = dataNode[CedarModel.skosPrefLabel];
     sfc.contentInfo.content = dataNode[CedarModel.ui][CedarModel.content];
@@ -225,6 +251,12 @@ export class TemplateRepresentationFactory {
         }
       }
     }
+
+
+    // console.log("sfc");
+    // console.log(JSON.stringify(sfc));
+
+
   }
 
   private static collapseImagesIntoNextFieldOrElement(component: CedarComponent): void {

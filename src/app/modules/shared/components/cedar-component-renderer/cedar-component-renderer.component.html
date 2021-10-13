@@ -47,15 +47,23 @@
       <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType==inputType.numeric"
                                [componentToRender]="nonIterableComponent"
                                [handlerContext]="handlerContext"></app-cedar-input-numeric>
+
       <app-cedar-input-text *ngIf="nonIterableComponent.basicInfo.inputType==inputType.text"
                             [componentToRender]="nonIterableComponent"
                             [handlerContext]="handlerContext"></app-cedar-input-text>
+
       <app-cedar-input-controlled *ngIf="nonIterableComponent.basicInfo.inputType==inputType.controlled"
                                   [componentToRender]="nonIterableComponent"
                                   [handlerContext]="handlerContext"></app-cedar-input-controlled>
       <app-cedar-input-email *ngIf="nonIterableComponent.basicInfo.inputType==inputType.email"
                              [componentToRender]="nonIterableComponent"
                              [handlerContext]="handlerContext"></app-cedar-input-email>
+      <app-cedar-input-link *ngIf="nonIterableComponent.basicInfo.inputType==inputType.link"
+                             [componentToRender]="nonIterableComponent"
+                             [handlerContext]="handlerContext"></app-cedar-input-link>
+      <app-cedar-input-phone *ngIf="nonIterableComponent.basicInfo.inputType==inputType.phoneNumber"
+                            [componentToRender]="nonIterableComponent"
+                            [handlerContext]="handlerContext"></app-cedar-input-phone>
 
     </mat-card-content>
   </mat-card>
@@ -73,5 +81,7 @@
   <app-cedar-static-youtube *ngIf="staticComponent.basicInfo.inputType==inputType.youtube"
                             [componentToRender]="staticComponent"
                             [handlerContext]="handlerContext"></app-cedar-static-youtube>
-
+  <app-cedar-input-rich-text *ngIf="staticComponent.basicInfo.inputType==inputType.richText"
+                             [componentToRender]="staticComponent"
+                             [handlerContext]="handlerContext"></app-cedar-input-rich-text>
 </ng-container>

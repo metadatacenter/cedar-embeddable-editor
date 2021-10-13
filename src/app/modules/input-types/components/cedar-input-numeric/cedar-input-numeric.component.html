@@ -11,4 +11,5 @@
     <mat-hint align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-hint>
     <mat-hint align="end">{{getMinMaxValueHint()}}</mat-hint>
   </mat-form-field>
+  <button mat-raised-button color="primary" (click)="clearValue()">Set to NULL</button>
 </form>

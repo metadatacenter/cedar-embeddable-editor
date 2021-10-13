@@ -1,7 +1,7 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field appearance="fill" class="full-width">
     <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
-    <input matInput type="text" placeholder="Your Text Here"
+    <input matInput type="text" placeholder="Your Phone Here"
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
            (input)="inputChanged($event)">
