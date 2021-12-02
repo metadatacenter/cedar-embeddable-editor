@@ -1,0 +1,9 @@
+<mat-radio-group>
+  <div *ngFor="let choice of component.choiceInfo.choices" class="col-md-2">
+    <mat-radio-button
+      [checked]="choice.selectedByDefault"
+      [value]="choice.label"
+      (change)="inputChanged($event)"
+    >{{choice.label}}</mat-radio-button>
+  </div>
+</mat-radio-group>

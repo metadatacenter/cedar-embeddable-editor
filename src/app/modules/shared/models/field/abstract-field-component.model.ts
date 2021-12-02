@@ -22,4 +22,13 @@ export abstract class AbstractFieldComponent implements FieldComponent {
 
   abstract isMulti(): boolean;
 
+
+
+
+  abstract isMultiPage(): boolean;
+
+
+
+
+
 }

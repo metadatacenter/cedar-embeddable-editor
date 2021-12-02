@@ -1,0 +1,8 @@
+<form class="form-container" [formGroup]="options">
+  <div *ngFor="let choice of component.choiceInfo.choices" class="col-md-2">
+    <mat-checkbox (input)="inputChanged($event)"
+                  [value]="choice.label"
+                  [checked]="choice.selectedByDefault"
+    >{{choice.label}}</mat-checkbox>
+  </div>
+</form>

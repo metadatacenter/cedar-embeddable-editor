@@ -1,10 +1,18 @@
 <ng-container *ngIf="iterableComponent">
   <mat-card class="child-component-card iterable-component">
     <app-cedar-component-header [componentToRender]="iterableComponent"></app-cedar-component-header>
+
+
     <app-cedar-multi-pager *ngIf="iterableComponent.isMulti()"
                            [componentToRender]="iterableComponent"
                            [handlerContext]="handlerContext"
     ></app-cedar-multi-pager>
+
+
+
+
+
+
     <mat-card-content *ngIf="shouldRenderContentOfIterable(iterableComponent)">
       <ng-container *ngIf="iterableComponent.linkedStaticFieldComponent">
         <!-- These are the collapsed static components before elements -->
@@ -28,10 +36,28 @@
 <ng-container *ngIf="nonIterableComponent">
   <mat-card class="child-component-card non-iterable-component">
     <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
-    <app-cedar-multi-pager *ngIf="nonIterableComponent.isMulti()"
+
+
+
+
+
+
+
+    <app-cedar-multi-pager *ngIf="shouldRenderContentOfPaging(nonIterableComponent)"
                            [componentToRender]="nonIterableComponent"
                            [handlerContext]="handlerContext"
     ></app-cedar-multi-pager>
+
+
+<!--    <app-cedar-multi-pager *ngIf="nonIterableComponent.isMulti()"-->
+<!--                           [componentToRender]="nonIterableComponent"-->
+<!--                           [handlerContext]="handlerContext"-->
+<!--    ></app-cedar-multi-pager>-->
+
+
+
+
+
     <mat-card-content *ngIf="shouldRenderContentOfNonIterable(nonIterableComponent)">
       <ng-container *ngIf="nonIterableComponent.linkedStaticFieldComponent">
         <!-- These are the collapsed static components before fields-->
@@ -58,6 +84,32 @@
       <app-cedar-input-email *ngIf="nonIterableComponent.basicInfo.inputType==inputType.email"
                              [componentToRender]="nonIterableComponent"
                              [handlerContext]="handlerContext"></app-cedar-input-email>
+
+
+      <app-cedar-input-checkbox *ngIf="nonIterableComponent.basicInfo.inputType==inputType.checkbox"
+                             [componentToRender]="nonIterableComponent"
+                             [handlerContext]="handlerContext"></app-cedar-input-checkbox>
+
+
+      <app-cedar-input-select *ngIf="nonIterableComponent.basicInfo.inputType==inputType.list"
+                                [componentToRender]="nonIterableComponent"
+                                [handlerContext]="handlerContext"></app-cedar-input-select>
+
+
+      <app-cedar-input-multiple-choice *ngIf="nonIterableComponent.basicInfo.inputType==inputType.radio"
+                                [componentToRender]="nonIterableComponent"
+                                [handlerContext]="handlerContext"></app-cedar-input-multiple-choice>
+
+
+      <app-cedar-input-datetime *ngIf="nonIterableComponent.basicInfo.inputType==inputType.temporal"
+                                       [componentToRender]="nonIterableComponent"
+                                       [handlerContext]="handlerContext"></app-cedar-input-datetime>
+
+
+
+
+
+
       <app-cedar-input-link *ngIf="nonIterableComponent.basicInfo.inputType==inputType.link"
                              [componentToRender]="nonIterableComponent"
                              [handlerContext]="handlerContext"></app-cedar-input-link>

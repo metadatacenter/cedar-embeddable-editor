@@ -46,9 +46,25 @@ export class HandlerContext {
     this.multiInstanceObjectService.setCurrentIndex(component, idx);
   }
 
+
+
+
+
+
+
   changeValue(component: FieldComponent, value: string): void {
     this.dataObjectDataValueHandler.changeValue(this.dataContext, component, this.multiInstanceObjectService, value);
   }
+
+
+
+
+  changeListValue(component: FieldComponent, value: string[]): void {
+    this.dataObjectDataValueHandler.changeListValue(this.dataContext, component, this.multiInstanceObjectService, value);
+  }
+
+
+
 
   changeControlledValue(component: FieldComponent, atId: string, prefLabel: string): void {
     this.dataObjectDataValueHandler.changeControlledValue(this.dataContext, component, this.multiInstanceObjectService, atId, prefLabel);

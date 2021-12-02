@@ -1,0 +1,7 @@
+<ng-multiselect-dropdown
+  [placeholder]="'Select options...'"
+  [settings]="dropdownSettings"
+  [data]="dropdownList"
+  [(ngModel)]="selectedItems"
+  (ngModelChange)="inputChanged($event)"
+></ng-multiselect-dropdown>

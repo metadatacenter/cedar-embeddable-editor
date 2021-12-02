@@ -29,28 +29,6 @@ export class DataContext {
     this.instanceExtractData = dataObjectService.buildNewExtractDataObject(this.templateRepresentation, this.templateInput);
     this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
     this.multiInstanceData = multiInstanceObjectService.buildNew(this.templateRepresentation);
-
-    // console.log('templateInput:');
-    // console.log(JSON.stringify(this.templateInput));
-
-    // console.log('templateRepresentation:');
-    // console.log(JSON.stringify(this.templateRepresentation));
-    // console.log('instanceFullData:');
-    // console.log(JSON.stringify(this.instanceFullData));
-
-    // console.log('instanceExtractData:');
-    // console.log(JSON.stringify(this.instanceExtractData));
-    // console.log('instanceFullData:');
-    // console.log(JSON.stringify(this.instanceFullData));
-
-    // console.log('multiInstanceData:');
-    // console.log(JSON.stringify(this.multiInstanceData));
-
-
-
-
-
-
   }
 
 }

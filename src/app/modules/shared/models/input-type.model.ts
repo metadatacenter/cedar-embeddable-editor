@@ -7,7 +7,10 @@ export class InputType {
   static email = 'email';
   static link = 'link';
   static phoneNumber = 'phone-number';
-
+  static list = 'list';
+  static checkbox = 'checkbox';
+  static radio = 'radio';
+  static temporal = 'temporal';
   static image = 'image';
   static youtube = 'youtube';
   static sectionBreak = 'section-break';

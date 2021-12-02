@@ -39,7 +39,7 @@ export class CedarInputPhoneComponent extends CedarUIComponent implements OnInit
   ngOnInit(): void {
     const validators: any[] = [];
 
-    const reg = '(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})[/\\w .-]*/?';
+    const reg = /^[\+0-9\s\-\(\)]+$/im;
     validators.push(Validators.pattern(reg));
 
     if (this.component.valueInfo.requiredValue) {

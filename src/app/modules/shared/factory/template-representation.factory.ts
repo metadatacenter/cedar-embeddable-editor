@@ -34,6 +34,7 @@ export class TemplateRepresentationFactory {
 
   private static isFragmentMulti(templateFragment: object): boolean {
     const fragmentType = templateFragment[CedarModel.type];
+
     if (fragmentType === JavascriptTypes.object) {
       return false;
     } else if (fragmentType === JavascriptTypes.array) {
@@ -70,16 +71,8 @@ export class TemplateRepresentationFactory {
           r = new SingleFieldComponent();
         }
 
-
-        // console.log(r);
-
-
         TemplateRepresentationFactory.extractValueConstraints(dataNode, r as FieldComponent);
         TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
-
-
-
-
       } else if (fragmentAtType === CedarModel.templateElementType) {
         if (isMulti) {
           r = new MultiElementComponent();
@@ -89,21 +82,8 @@ export class TemplateRepresentationFactory {
         TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
         TemplateRepresentationFactory.wrap(dataNode, templateJsonObj, r, myPath, collapseStaticComponents);
       } else if (fragmentAtType === CedarModel.templateStaticFieldType) {
-
-
         r = new StaticFieldComponent();
-
-
-        // console.log(r);
         TemplateRepresentationFactory.extractStaticData(dataNode, parentDataNode, name, r as StaticFieldComponent);
-
-        // TemplateRepresentationFactory.extractValueConstraints(dataNode, r as FieldComponent);
-
-        // r = new SingleFieldComponent();
-        // TemplateRepresentationFactory.extractValueConstraints(dataNode, r as FieldComponent);
-        // TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
-
-
       }
 
       if (r !== null) {
@@ -179,7 +159,15 @@ export class TemplateRepresentationFactory {
       fc.numberInfo.maxValue = vc[CedarModel.maxValue];
       fc.numberInfo.decimalPlace = vc[CedarModel.decimalPlace];
 
+
+
+
       fc.choiceInfo.multipleChoice = vc[CedarModel.multipleChoice];
+
+
+
+
+
 
       if (vc[CedarModel.literals] !== undefined) {
         for (const pair of vc[CedarModel.literals]) {
@@ -198,7 +186,6 @@ export class TemplateRepresentationFactory {
         fc.controlledInfo.branches = vc[CedarModel.branches];
       }
     }
-
   }
 
   private static extractLabels(dataNode: object, parentDataNode: object, name: string, fc: FieldComponent): void {
@@ -230,10 +217,6 @@ export class TemplateRepresentationFactory {
   }
 
   private static extractStaticData(dataNode: object, parentDataNode: object, name: string, sfc: StaticFieldComponent): void {
-
-    // console.log(sfc);
-
-
     sfc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
     sfc.labelInfo.preferredLabel = dataNode[CedarModel.skosPrefLabel];
     sfc.contentInfo.content = dataNode[CedarModel.ui][CedarModel.content];
@@ -251,12 +234,6 @@ export class TemplateRepresentationFactory {
         }
       }
     }
-
-
-    // console.log("sfc");
-    // console.log(JSON.stringify(sfc));
-
-
   }
 
   private static collapseImagesIntoNextFieldOrElement(component: CedarComponent): void {
@@ -280,6 +257,5 @@ export class TemplateRepresentationFactory {
       }
       elementComponent.children = newChildren;
     }
-
   }
 }
