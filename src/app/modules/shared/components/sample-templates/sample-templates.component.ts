@@ -54,7 +54,9 @@ export class SampleTemplatesComponent implements OnInit {
     '42': 'Template 42 - controlled field',
     '43': 'Template 43 - controlled field',
 
-    '51': 'Template 51 - MiAIRR V1.1.0'
+    '51': 'Template 51 - MiAIRR V1.1.0',
+    '52': 'Template 52 - eDNA ECT Demonstration'
+
   };
 
   constructor(
