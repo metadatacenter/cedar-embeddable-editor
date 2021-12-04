@@ -20,8 +20,14 @@ import {MatChipsModule} from '@angular/material/chips';
 import {MatGridListModule} from '@angular/material/grid-list';
 
 
-import { MatDatepickerModule } from '@angular/material/datepicker';
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MatNativeDateModule} from '@angular/material/core';
+
+
+
 import {NgxMatDatetimePickerModule, NgxMatNativeDateModule, NgxMatTimepickerModule} from '@angular-material-components/datetime-picker';
+
+
 
 
 import {CedarInputEmailComponent} from './components/cedar-input-email/cedar-input-email.component';
@@ -72,6 +78,7 @@ import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
     MatGridListModule,
 
     MatDatepickerModule,
+    MatNativeDateModule,
 
     NgxMatDatetimePickerModule,
     NgxMatTimepickerModule,
@@ -102,7 +109,12 @@ import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
     CedarStaticYoutubeComponent,
     EscapeHtmlPipe
   ],
-  providers: [],
+  providers: [
+
+    MatDatepickerModule,
+    MatNativeDateModule
+
+  ],
   exports: [
     // FooBar is needed because the first component gets exported without style otherwise
     CedarFooBarComponent,

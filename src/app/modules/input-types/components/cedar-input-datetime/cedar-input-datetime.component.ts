@@ -16,6 +16,13 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   component: FieldComponent;
   activeComponentRegistry: ActiveComponentRegistryService;
 
+  timePickerTime: Date;
+  enableMeridian = true;
+  disableMinute = true;
+  showSeconds = true;
+
+
+
   @Input() handlerContext: HandlerContext;
 
   constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
@@ -24,6 +31,8 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   }
 
   ngOnInit(): void {
+    this.timePickerTime = new Date();
+    this.timePickerTime.setHours(0,0,0,0);
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
