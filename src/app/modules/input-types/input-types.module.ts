@@ -18,6 +18,12 @@ import {MatRippleModule} from '@angular/material/core';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatGridListModule} from '@angular/material/grid-list';
+
+
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import {NgxMatDatetimePickerModule, NgxMatNativeDateModule, NgxMatTimepickerModule} from '@angular-material-components/datetime-picker';
+
+
 import {CedarInputEmailComponent} from './components/cedar-input-email/cedar-input-email.component';
 import {CedarInputCheckboxComponent} from './components/cedar-input-checkbox/cedar-input-checkbox.component';
 import {CedarInputSelectComponent} from './components/cedar-input-select/cedar-input-select.component';
@@ -38,6 +44,8 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete';
 // import {CKEditorModule} from '@ckeditor/ckeditor5-angular';
 import {NgMultiSelectDropDownModule} from 'ng-multiselect-dropdown';
 import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
+
+
 
 @NgModule({
   imports: [
@@ -62,6 +70,15 @@ import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
     MatPaginatorModule,
     MatChipsModule,
     MatGridListModule,
+
+    MatDatepickerModule,
+
+    NgxMatDatetimePickerModule,
+    NgxMatTimepickerModule,
+    NgxMatNativeDateModule,
+
+
+
     YouTubePlayerModule,
     // CKEditorModule,
     NgMultiSelectDropDownModule.forRoot(),
