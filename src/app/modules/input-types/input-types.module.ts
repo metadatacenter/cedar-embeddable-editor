@@ -35,7 +35,7 @@ import {YouTubePlayerModule} from '@angular/youtube-player';
 import {CedarFooBarComponent} from './components/cedar-foo-bar/cedar-foo-bar.component';
 import {CedarInputControlledComponent} from './components/cedar-input-controlled/cedar-input-controlled.component';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
-import {CKEditorModule} from '@ckeditor/ckeditor5-angular';
+// import {CKEditorModule} from '@ckeditor/ckeditor5-angular';
 import {NgMultiSelectDropDownModule} from 'ng-multiselect-dropdown';
 import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
 
@@ -63,7 +63,7 @@ import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
     MatChipsModule,
     MatGridListModule,
     YouTubePlayerModule,
-    CKEditorModule,
+    // CKEditorModule,
     NgMultiSelectDropDownModule.forRoot(),
     FormsModule
   ],
