@@ -28,7 +28,7 @@ import {MatNativeDateModule} from '@angular/material/core';
 import {NgxMatDatetimePickerModule, NgxMatNativeDateModule, NgxMatTimepickerModule} from '@angular-material-components/datetime-picker';
 
 
-
+import { MomentTimezonePickerModule } from 'moment-timezone-picker';
 
 import {CedarInputEmailComponent} from './components/cedar-input-email/cedar-input-email.component';
 import {CedarInputCheckboxComponent} from './components/cedar-input-checkbox/cedar-input-checkbox.component';
@@ -84,7 +84,7 @@ import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
     NgxMatTimepickerModule,
     NgxMatNativeDateModule,
 
-
+    MomentTimezonePickerModule,
 
     YouTubePlayerModule,
     // CKEditorModule,

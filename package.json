@@ -30,6 +30,7 @@
     "@webcomponents/custom-elements": "^1.4.3",
     "elements-zone-strategy": "^10.0.0",
     "lodash-es": "^4.17.15",
+    "moment-timezone-picker": "^4.0.0",
     "ng-multiselect-dropdown": "^0.3.7",
     "rxjs": "~6.5.5",
     "tslib": "^2.0.0",

@@ -1,9 +1,22 @@
+
 <mat-form-field appearance="fill">
-  <mat-label>Choose a date</mat-label>
-  <input matInput [matDatepicker]="picker">
-  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-  <mat-datepicker #picker></mat-datepicker>
+  <mat-label>Year</mat-label>
+  <input matInput [matDatepicker]="dp" [formControl]="date">
+  <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+  <mat-datepicker #dp startView="multi-year" (yearSelected)="chosenYearHandler($event, dp)"
+                  panelClass="example-month-picker">
+  </mat-datepicker>
 </mat-form-field>
+
+
+
+
+
+
+
+
+
+
 
 
 <ngx-mat-timepicker
@@ -13,3 +26,10 @@
   [showSeconds]="showSeconds"
   [showSpinners]="true">
 </ngx-mat-timepicker>
+
+<ng-moment-timezone-picker
+  [(ngModel)]="yourModel"
+  [customPlaceholderText]="'Select timezone...'"
+  [customNotFoundText]="'No timezone found'" [getUserZone]="true">
+</ng-moment-timezone-picker>
+
