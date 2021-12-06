@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {FormControl} from '@angular/forms';
-import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
+import {DateAdapter} from '@angular/material/core';
 import {MatDatepicker} from '@angular/material/datepicker';
 
 // Depending on whether rollup is used, moment needs to be imported differently.
@@ -16,20 +16,25 @@ import {DateTimeService} from '../../service/date-time/date-time.service';
 const moment = _rollupMoment || _moment;
 
 @Component({
-  selector: 'app-year-month-picker',
-  templateUrl: './year-month-picker.component.html',
-  styleUrls: ['./year-month-picker.component.scss'],
+  selector: 'app-date-picker',
+  templateUrl: './date-picker.component.html',
+  styleUrls: ['./date-picker.component.scss'],
   providers: [
     CustomDateAdapter, // so we could inject services to 'CustomDateAdapter'
     {provide: DateAdapter, useClass: CustomDateAdapter} // Parse MatDatePicker format
   ]
 })
 
-export class YearMonthPickerComponent implements OnInit {
+export class DatePickerComponent implements OnInit {
   static readonly YEAR_FORMAT = 'YYYY';
   static readonly YEAR_MONTH_FORMAT = 'MM/YYYY';
+  static readonly YEAR_MONTH_DAY_FORMAT = 'MM/DD/YYYY';
+  yearFormat = DatePickerComponent.YEAR_FORMAT;
+  yearMonthFormat = DatePickerComponent.YEAR_MONTH_FORMAT;
+  yearMonthDayFormat = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
+
   dateMonthYear = new FormControl(moment());
-  @Input() dateFormat = YearMonthPickerComponent.YEAR_FORMAT;
+  @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
 
   public constructor(private _dateTimeService: DateTimeService) {
   }
@@ -43,7 +48,7 @@ export class YearMonthPickerComponent implements OnInit {
     ctrlValue.year(normalizedYear.year());
     this.dateMonthYear.setValue(ctrlValue);
 
-    if (this.dateFormat === YearMonthPickerComponent.YEAR_FORMAT) {
+    if (this.dateFormat === DatePickerComponent.YEAR_FORMAT) {
       datepicker.close();
     }
   }
@@ -52,6 +57,9 @@ export class YearMonthPickerComponent implements OnInit {
     const ctrlValue = this.dateMonthYear.value;
     ctrlValue.month(normalizedMonth.month());
     this.dateMonthYear.setValue(ctrlValue);
-    datepicker.close();
+
+    if (this.dateFormat === DatePickerComponent.YEAR_MONTH_FORMAT) {
+      datepicker.close();
+    }
   }
 }

@@ -1,0 +1,33 @@
+<ng-container *ngIf="dateFormat === yearFormat">
+  <mat-form-field appearance="fill">
+    <mat-label>Choose Year</mat-label>
+    <input matInput [matDatepicker]="dp" [formControl]="dateMonthYear">
+    <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+    <mat-datepicker #dp
+                    (yearSelected)="chosenYearHandler($event, dp)"
+                    startView="multi-year"
+                    panelClass="year-month-picker"
+    ></mat-datepicker>
+  </mat-form-field>
+</ng-container>
+<ng-container *ngIf="dateFormat === yearMonthFormat">
+  <mat-form-field appearance="fill">
+    <mat-label>Choose Year and Month</mat-label>
+    <input matInput [matDatepicker]="dp" [formControl]="dateMonthYear">
+    <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+    <mat-datepicker #dp
+                    (yearSelected)="chosenYearHandler($event, dp)"
+                    (monthSelected)="chosenMonthHandler($event, dp)"
+                    startView="multi-year"
+                    panelClass="year-month-picker"
+    ></mat-datepicker>
+  </mat-form-field>
+</ng-container>
+<ng-container *ngIf="dateFormat === yearMonthDayFormat">
+  <mat-form-field appearance="fill">
+    <mat-label>Choose Date</mat-label>
+    <input matInput [matDatepicker]="picker">
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+</ng-container>
