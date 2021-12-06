@@ -51,6 +51,7 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {NgMultiSelectDropDownModule} from 'ng-multiselect-dropdown';
 import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
 
+import {YearPickerComponent} from '../shared/components/year-picker/year-picker.component';
 
 
 @NgModule({
@@ -107,6 +108,10 @@ import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
     CedarStaticSectionBreakComponent,
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
+
+    YearPickerComponent,
+
+
     EscapeHtmlPipe
   ],
   providers: [

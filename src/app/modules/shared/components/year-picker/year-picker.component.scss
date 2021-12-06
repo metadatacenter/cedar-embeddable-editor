@@ -1,0 +1,11 @@
+.year-picker .mat-calendar-period-button {
+  pointer-events: none;
+}
+
+.year-picker .mat-calendar-arrow {
+  display: block;
+}
+
+::ng-deep button.mat-calendar-period-button {
+  display: none;
+}

@@ -1,12 +1,10 @@
 import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {FormBuilder, FormGroup} from '@angular/forms';
+import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {ComponentDataService} from '../../../shared/service/component-data.service';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
-
-
 
 
 
@@ -16,10 +14,13 @@ import {HandlerContext} from '../../../shared/util/handler-context';
   templateUrl: './cedar-input-datetime.component.html',
   styleUrls: ['./cedar-input-datetime.component.scss'],
   encapsulation: ViewEncapsulation.None,
-
-
-
 })
+
+
+
+
+
+
 export class CedarInputDatetimeComponent extends CedarUIComponent implements OnInit {
   component: FieldComponent;
   activeComponentRegistry: ActiveComponentRegistryService;
@@ -30,6 +31,7 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   showSeconds = true;
 
 
+  showYearPicker = true;
 
 
 
@@ -44,6 +46,17 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
     this.timePickerTime = new Date();
     this.timePickerTime.setHours(0,0,0,0);
   }
+
+
+
+
+
+
+
+
+
+
+
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
