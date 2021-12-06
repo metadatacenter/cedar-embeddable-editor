@@ -5,8 +5,7 @@ import {ComponentDataService} from '../../../shared/service/component-data.servi
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
-
-
+import {YearMonthPickerComponent} from '../../../shared/components/year-month-picker/year-month-picker.component';
 
 
 @Component({
@@ -22,6 +21,11 @@ import {HandlerContext} from '../../../shared/util/handler-context';
 
 
 export class CedarInputDatetimeComponent extends CedarUIComponent implements OnInit {
+
+  readonly YEAR_FORMAT = YearMonthPickerComponent.YEAR_FORMAT;
+  readonly YEAR_MONTH_FORMAT = YearMonthPickerComponent.YEAR_MONTH_FORMAT;
+
+
   component: FieldComponent;
   activeComponentRegistry: ActiveComponentRegistryService;
 

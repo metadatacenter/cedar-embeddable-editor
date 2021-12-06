@@ -50,8 +50,7 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete';
 // import {CKEditorModule} from '@ckeditor/ckeditor5-angular';
 import {NgMultiSelectDropDownModule} from 'ng-multiselect-dropdown';
 import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
-
-import {YearPickerComponent} from '../shared/components/year-picker/year-picker.component';
+import {YearMonthPickerComponent} from '../shared/components/year-month-picker/year-month-picker.component';
 
 
 @NgModule({
@@ -109,8 +108,7 @@ import {YearPickerComponent} from '../shared/components/year-picker/year-picker.
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
 
-    YearPickerComponent,
-
+    YearMonthPickerComponent,
 
     EscapeHtmlPipe
   ],
