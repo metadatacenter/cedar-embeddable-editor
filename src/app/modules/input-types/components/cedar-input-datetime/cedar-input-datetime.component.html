@@ -1,7 +1,7 @@
 <app-date-picker *ngIf="showDatePicker()"
                  [dateFormat]="dateFormat()"
                  (dateChangedEvent)="dateInputChanged($event)"
-></app-date-picker>
+                 xmlns="http://www.w3.org/1999/html"></app-date-picker>
 <ng-container *ngIf="showTimePicker()">
   <div appearance="fill">
     <mat-label>Select Time</mat-label>
@@ -33,3 +33,7 @@
     [customNotFoundText]="'No timezone found'" [getUserZone]="true">
   </ng-moment-timezone-picker>
 </ng-container>
+<p id="alert-info">
+  DateTime is:&nbsp;&nbsp;&nbsp;{{datetimeParsed.toDateRepresentation()}}<br/>
+  Stored as:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{datetimeParsed.toStorageRepresentation()}}
+</p>
