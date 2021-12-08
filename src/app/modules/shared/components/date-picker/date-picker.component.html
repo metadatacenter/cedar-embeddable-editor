@@ -1,7 +1,10 @@
 <ng-container *ngIf="dateFormat === yearFormat">
   <mat-form-field appearance="fill">
-    <mat-label>Choose Year</mat-label>
-    <input matInput [matDatepicker]="dp" [formControl]="dateMonthYear">
+    <mat-label>Select Year</mat-label>
+    <input matInput
+           [matDatepicker]="dp"
+           [formControl]="dateMonthYear"
+    >
     <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
     <mat-datepicker #dp
                     (yearSelected)="chosenYearHandler($event, dp)"
@@ -12,8 +15,11 @@
 </ng-container>
 <ng-container *ngIf="dateFormat === yearMonthFormat">
   <mat-form-field appearance="fill">
-    <mat-label>Choose Year and Month</mat-label>
-    <input matInput [matDatepicker]="dp" [formControl]="dateMonthYear">
+    <mat-label>Select Year and Month</mat-label>
+    <input matInput
+           [matDatepicker]="dp"
+           [formControl]="dateMonthYear"
+    >
     <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
     <mat-datepicker #dp
                     (yearSelected)="chosenYearHandler($event, dp)"
@@ -25,8 +31,11 @@
 </ng-container>
 <ng-container *ngIf="dateFormat === yearMonthDayFormat">
   <mat-form-field appearance="fill">
-    <mat-label>Choose Date</mat-label>
-    <input matInput [matDatepicker]="picker">
+    <mat-label>Select Date</mat-label>
+    <input matInput
+           [matDatepicker]="picker"
+           (dateChange)="chosenDateHandler($event)"
+    >
     <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
     <mat-datepicker #picker></mat-datepicker>
   </mat-form-field>

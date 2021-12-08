@@ -1,17 +1,35 @@
-<app-date-picker *ngIf="showYearPicker" [dateFormat]="YEAR_MONTH_DAY_FORMAT"></app-date-picker>
-
-
-<ngx-mat-timepicker
-  [(ngModel)]="timePickerTime"
-  [enableMeridian]="enableMeridian"
-  [disableMinute]="disableMinute"
-  [showSeconds]="showSeconds"
-  [showSpinners]="true">
-</ngx-mat-timepicker>
-
-<ng-moment-timezone-picker
-  [(ngModel)]="yourModel"
-  [customPlaceholderText]="'Select timezone...'"
-  [customNotFoundText]="'No timezone found'" [getUserZone]="true">
-</ng-moment-timezone-picker>
-
+<app-date-picker *ngIf="showDatePicker()"
+                 [dateFormat]="dateFormat()"
+                 (dateChangedEvent)="dateInputChanged($event)"
+></app-date-picker>
+<ng-container *ngIf="showTimePicker()">
+  <div appearance="fill">
+    <mat-label>Select Time</mat-label>
+    <ngx-mat-timepicker
+      (ngModelChange)="timeInputChanged($event)"
+      (input)="timeInputChanged($event)"
+      [(ngModel)]="timePickerTime"
+      [showSpinners]="true"
+      [enableMeridian]="enableMeridian()"
+      [disableMinute]="disableMinute()"
+      [showSeconds]="showSeconds()">
+    </ngx-mat-timepicker>
+  </div>
+</ng-container>
+<ng-container *ngIf="showDecimalSeconds()">
+  <mat-form-field appearance="fill">
+    <mat-label>Select Decimal Seconds</mat-label>
+    <input matInput type="number"
+           (input)="decimalSecondsChanged($event)"
+           [(ngModel)]="decimalSeconds"
+           name="decimalSeconds" required>
+  </mat-form-field>
+</ng-container>
+<ng-container *ngIf="showTimezonePicker()">
+  <ng-moment-timezone-picker
+    (ngModelChange)="timezoneInputChanged($event)"
+    [(ngModel)]="timezone"
+    [customPlaceholderText]="'Select timezone...'"
+    [customNotFoundText]="'No timezone found'" [getUserZone]="true">
+  </ng-moment-timezone-picker>
+</ng-container>

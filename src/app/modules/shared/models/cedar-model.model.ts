@@ -14,6 +14,9 @@ export class CedarModel {
   static maxLength = 'maxLength';
   static numberType = 'numberType';
   static temporalType = 'temporalType';
+  static temporalGranularity = 'temporalGranularity';
+  static timezoneEnabled = 'timezoneEnabled';
+  static inputTimeFormat = 'inputTimeFormat';
   static unitOfMeasure = 'unitOfMeasure';
   static minValue = 'minValue';
   static maxValue = 'maxValue';

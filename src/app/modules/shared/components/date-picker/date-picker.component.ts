@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {DateAdapter} from '@angular/material/core';
 import {MatDatepicker} from '@angular/material/datepicker';
@@ -32,15 +32,29 @@ export class DatePickerComponent implements OnInit {
   yearFormat = DatePickerComponent.YEAR_FORMAT;
   yearMonthFormat = DatePickerComponent.YEAR_MONTH_FORMAT;
   yearMonthDayFormat = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
+  dateMonthYear: FormControl;
 
-  dateMonthYear = new FormControl(moment());
   @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
+  @Output() dateChangedEvent = new EventEmitter<Moment>();
+
 
   public constructor(private _dateTimeService: DateTimeService) {
   }
 
   public ngOnInit(): void {
     this._dateTimeService.format = this.dateFormat;
+    const m = moment();
+
+    switch (this.dateFormat) {
+      case this.yearMonthFormat:
+        m.set('date', 1);
+        break;
+      case this.yearFormat:
+        m.set('date', 1);
+        m.set('month', 0);
+        break;
+    }
+    this.dateMonthYear = new FormControl(m);
   }
 
   chosenYearHandler(normalizedYear: Moment, datepicker: MatDatepicker<Moment>): void {
@@ -48,8 +62,9 @@ export class DatePickerComponent implements OnInit {
     ctrlValue.year(normalizedYear.year());
     this.dateMonthYear.setValue(ctrlValue);
 
-    if (this.dateFormat === DatePickerComponent.YEAR_FORMAT) {
+    if (this.dateFormat === this.yearFormat) {
       datepicker.close();
+      this.dateChangedEvent.emit(this.dateMonthYear.value);
     }
   }
 
@@ -58,8 +73,13 @@ export class DatePickerComponent implements OnInit {
     ctrlValue.month(normalizedMonth.month());
     this.dateMonthYear.setValue(ctrlValue);
 
-    if (this.dateFormat === DatePickerComponent.YEAR_MONTH_FORMAT) {
+    if (this.dateFormat === this.yearMonthFormat) {
       datepicker.close();
     }
+    this.dateChangedEvent.emit(this.dateMonthYear.value);
+  }
+
+  chosenDateHandler(event): void {
+    this.dateChangedEvent.emit(event.value);
   }
 }

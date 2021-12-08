@@ -146,6 +146,22 @@ export class TemplateRepresentationFactory {
   private static extractValueConstraints(dataNode: object, fc: FieldComponent): void {
     fc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
 
+    if (dataNode[CedarModel.ui][CedarModel.inputType] === InputType.temporal) {
+      if (dataNode[CedarModel.ui].hasOwnProperty(CedarModel.timezoneEnabled)) {
+        fc.basicInfo.timezoneEnabled = dataNode[CedarModel.ui][CedarModel.timezoneEnabled];
+      }
+      if (dataNode[CedarModel.ui].hasOwnProperty(CedarModel.inputTimeFormat)) {
+        fc.basicInfo.inputTimeFormat = dataNode[CedarModel.ui][CedarModel.inputTimeFormat];
+      }
+      if (dataNode[CedarModel.ui].hasOwnProperty(CedarModel.temporalGranularity)) {
+        fc.basicInfo.temporalGranularity = dataNode[CedarModel.ui][CedarModel.temporalGranularity];
+      }
+    }
+
+    if (dataNode[CedarModel.ui].hasOwnProperty(CedarModel.temporalGranularity)) {
+      fc.basicInfo.temporalGranularity = dataNode[CedarModel.ui][CedarModel.temporalGranularity];
+    }
+
     if (TemplateObjectUtil.hasValueConstraints(dataNode)) {
       const vc: object = dataNode[CedarModel.valueConstraints];
       fc.valueInfo.requiredValue = vc[CedarModel.requiredValue];
@@ -153,21 +169,16 @@ export class TemplateRepresentationFactory {
       fc.valueInfo.minLength = vc[CedarModel.minLength];
       fc.valueInfo.maxLength = vc[CedarModel.maxLength];
 
+      if (vc.hasOwnProperty(CedarModel.temporalType)) {
+        fc.valueInfo.temporalType = vc[CedarModel.temporalType];
+      }
+
       fc.numberInfo.numberType = vc[CedarModel.numberType];
       fc.numberInfo.unitOfMeasure = vc[CedarModel.unitOfMeasure];
       fc.numberInfo.minValue = vc[CedarModel.minValue];
       fc.numberInfo.maxValue = vc[CedarModel.maxValue];
       fc.numberInfo.decimalPlace = vc[CedarModel.decimalPlace];
-
-
-
-
       fc.choiceInfo.multipleChoice = vc[CedarModel.multipleChoice];
-
-
-
-
-
 
       if (vc[CedarModel.literals] !== undefined) {
         for (const pair of vc[CedarModel.literals]) {
