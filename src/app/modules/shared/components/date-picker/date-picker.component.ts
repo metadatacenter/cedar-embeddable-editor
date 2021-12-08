@@ -55,6 +55,7 @@ export class DatePickerComponent implements OnInit {
         break;
     }
     this.dateMonthYear = new FormControl(m);
+    this.dateChangedEvent.emit(this.dateMonthYear.value);
   }
 
   chosenYearHandler(normalizedYear: Moment, datepicker: MatDatepicker<Moment>): void {

@@ -33,10 +33,11 @@
   <mat-form-field appearance="fill">
     <mat-label>Select Date</mat-label>
     <input matInput
-           [matDatepicker]="picker"
+           [matDatepicker]="dp"
+           [formControl]="dateMonthYear"
            (dateChange)="chosenDateHandler($event)"
     >
-    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-    <mat-datepicker #picker></mat-datepicker>
+    <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+    <mat-datepicker #dp></mat-datepicker>
   </mat-form-field>
 </ng-container>

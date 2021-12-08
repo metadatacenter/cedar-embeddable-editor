@@ -8,8 +8,6 @@ import {HandlerContext} from '../../../shared/util/handler-context';
 import {DatePickerComponent} from '../../../shared/components/date-picker/date-picker.component';
 import {Xsd} from '../../../shared/models/xsd.model';
 import {Temporal} from '../../../shared/models/temporal.model';
-
-
 import {Moment} from 'moment';
 
 
@@ -36,10 +34,16 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   component: FieldComponent;
   activeComponentRegistry: ActiveComponentRegistryService;
 
+
+
+
+
+
+
   timePickerTime: Date;
   decimalSeconds: number;
   timezone: object;
-  datetimeValue: DatetimeRepresentation;
+  datetimeParsed: DatetimeRepresentation;
 
   @Input() handlerContext: HandlerContext;
 
@@ -50,7 +54,10 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
     this.activeComponentRegistry = activeComponentRegistry;
     this.timePickerTime = new Date();
     // this.timePickerTime.setHours(0,0,0,0);
-    this.datetimeValue = new DatetimeRepresentation();
+    this.datetimeParsed = new DatetimeRepresentation();
+
+
+
   }
 
   ngOnInit(): void {
@@ -63,26 +70,53 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 
 
   dateInputChanged(event): void {
-    console.log('in cedar-input-datetime event:');
-    console.log(event);
+    this.datetimeParsed.setDate(event);
+
+
+    console.log('datetimeValue from dateInputChanged:');
+    console.log(this.datetimeParsed);
+
   }
+
+
+
+
+
+
 
   timeInputChanged(event): void {
-    console.log(this.timePickerTime.getHours());
-    console.log(this.timePickerTime.getMinutes());
-    console.log(this.timePickerTime.getSeconds());
+    this.datetimeParsed.setHours(this.timePickerTime.getHours());
+
+    if (!this.disableMinute()) {
+      this.datetimeParsed.setMinutes(this.timePickerTime.getMinutes());
+    }
+
+    if (this.showSeconds()) {
+      this.datetimeParsed.setSeconds(this.timePickerTime.getSeconds());
+    }
+
+    // console.log('datetimeValue from timeInputChanged:');
+    // console.log(this.datetimeValue);
+
   }
 
+
+
   decimalSecondsChanged(event): void {
-    console.log('dec seconds event: ' + event);
-    console.log('dec seconds ngModel: ' + this.decimalSeconds);
+    // console.log('dec seconds event: ' + event);
+    // console.log('dec seconds ngModel: ' + this.decimalSeconds);
   }
 
   timezoneInputChanged(event): void {
-    console.log('timezone event: ' + JSON.stringify(event));
-    console.log('timezone ngModel: ' + JSON.stringify(this.timezone));
-    console.log('timezone type: ' + typeof this.timezone);
+    // console.log('timezone event: ' + JSON.stringify(event));
+    // console.log('timezone ngModel: ' + JSON.stringify(this.timezone));
+    // console.log('timezone type: ' + typeof this.timezone);
   }
+
+
+
+
+
 
 
 
@@ -192,19 +226,15 @@ export class DatetimeRepresentation {
     this.timezone = '';
   }
 
-  setYear(dateIn: Moment): void {
+
+
+
+
+  setDate(dateIn: Moment): void {
     this.dateIsSet = true;
     this.year = dateIn.year().toLocaleString();
-  }
-
-  setMonth(dateIn: Moment): void {
-    this.dateIsSet = true;
-    this.month = dateIn.month().toLocaleString();
-  }
-
-  setDay(dateIn: Moment): void {
-    this.dateIsSet = true;
-    this.day = dateIn.day().toLocaleString();
+    this.month = this.stringify((dateIn.month() + 1).toLocaleString());
+    this.day = this.stringify(dateIn.date().toLocaleString());
   }
 
   setHours(hoursIn: number): void {
@@ -228,7 +258,7 @@ export class DatetimeRepresentation {
     this.timezone = timezoneIn[timezoneKey];
   }
 
-  private stringify(valIn: number): string {
+  private stringify(valIn: any): string {
     let str = valIn.toString();
     if (valIn < 10) {
       str = '0' + str;
