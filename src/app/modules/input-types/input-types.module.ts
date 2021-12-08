@@ -18,18 +18,10 @@ import {MatRippleModule} from '@angular/material/core';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatGridListModule} from '@angular/material/grid-list';
-
-
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatNativeDateModule} from '@angular/material/core';
-
-
-
 import {NgxMatDatetimePickerModule, NgxMatNativeDateModule, NgxMatTimepickerModule} from '@angular-material-components/datetime-picker';
-
-
 import { MomentTimezonePickerModule } from 'moment-timezone-picker';
-
 import {CedarInputEmailComponent} from './components/cedar-input-email/cedar-input-email.component';
 import {CedarInputCheckboxComponent} from './components/cedar-input-checkbox/cedar-input-checkbox.component';
 import {CedarInputSelectComponent} from './components/cedar-input-select/cedar-input-select.component';
@@ -76,16 +68,12 @@ import {DatePickerComponent} from '../shared/components/date-picker/date-picker.
     MatPaginatorModule,
     MatChipsModule,
     MatGridListModule,
-
     MatDatepickerModule,
     MatNativeDateModule,
-
     NgxMatDatetimePickerModule,
     NgxMatTimepickerModule,
     NgxMatNativeDateModule,
-
     MomentTimezonePickerModule,
-
     YouTubePlayerModule,
     // CKEditorModule,
     NgMultiSelectDropDownModule.forRoot(),
@@ -107,16 +95,12 @@ import {DatePickerComponent} from '../shared/components/date-picker/date-picker.
     CedarStaticSectionBreakComponent,
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
-
     DatePickerComponent,
-
     EscapeHtmlPipe
   ],
   providers: [
-
     MatDatepickerModule,
     MatNativeDateModule
-
   ],
   exports: [
     // FooBar is needed because the first component gets exported without style otherwise
