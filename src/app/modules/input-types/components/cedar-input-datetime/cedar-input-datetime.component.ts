@@ -9,6 +9,7 @@ import {DatePickerComponent} from '../../../shared/components/date-picker/date-p
 import {Xsd} from '../../../shared/models/xsd.model';
 import {Temporal} from '../../../shared/models/temporal.model';
 import moment, {Moment} from 'moment';
+// import {Moment} from 'moment';
 // import * as moment from 'moment-timezone';
 
 
@@ -41,11 +42,25 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
     this.activeComponentRegistry = activeComponentRegistry;
     this.timePickerTime = new Date();
     // this.timePickerTime.setHours(0,0,0,0);
-    this.datetimeParsed = new DatetimeRepresentation();
   }
 
   ngOnInit(): void {
+    this.datetimeParsed = new DatetimeRepresentation();
+    // console.log(moment.tz.names().map((zone: string) => this.formatTimezone(zone)));
+    this.cdr.detectChanges();
   }
+
+  // formatTimezone(zone: string): object {
+  //   const utc: string = moment.tz(zone).format('Z');
+  //   const abbr: string = moment.tz(zone).zoneAbbr();
+  //   return {
+  //     name: `${zone} (${utc})`,
+  //     nameValue: zone,
+  //     timeValue: utc,
+  //     group: zone.split('/', 1)[0],
+  //     abbr: abbr
+  //   };
+  // }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
@@ -54,7 +69,8 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 
   dateInputChanged(event): void {
     this.datetimeParsed.setDate(event);
-    this.cdr.detectChanges();
+    // this.cdr.detectChanges();
+    this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
   }
 
   timeInputChanged(event): void {
@@ -68,15 +84,18 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
     if (this.showSeconds()) {
       this.datetimeParsed.setSeconds(this.timePickerTime.getSeconds());
     }
+    this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
   }
 
   decimalSecondsChanged(event): void {
     this.datetimeParsed.setDecimalSeconds(this.decimalSeconds);
+    this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
   }
 
   timezoneInputChanged(event): void {
     if (event != null) {
       this.datetimeParsed.setTimezone(event);
+      this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
     }
   }
 

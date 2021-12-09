@@ -102,12 +102,13 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
   }
 
   inputChanged($event: Event): void {
-    const val = ($event.target as HTMLTextAreaElement).value;
-    this.handlerContext.changeValue(this.component, val);
+    let val = ($event.target as HTMLTextAreaElement).value;
 
-    if (!val) {
-      this.clearValue();
+    if (val.length === 0) {
+      val = null;
     }
+
+    this.handlerContext.changeValue(this.component, val);
   }
 
   setCurrentValue(currentValue: any): void {
