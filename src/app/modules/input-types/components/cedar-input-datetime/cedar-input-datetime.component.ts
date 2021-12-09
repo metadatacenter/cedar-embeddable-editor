@@ -59,6 +59,7 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 
   timeInputChanged(event): void {
     this.datetimeParsed.setHours(this.timePickerTime.getHours());
+    this.datetimeParsed.setAMPM(this.enableMeridian());
 
     if (!this.disableMinute()) {
       this.datetimeParsed.setMinutes(this.timePickerTime.getMinutes());
@@ -145,6 +146,7 @@ export class DatetimeRepresentation {
   minutes: string;
   seconds: string;
   decimalSeconds: string;
+  ampm: boolean;
 
   timezoneName: string;
   timezoneOffset: string;
@@ -167,6 +169,7 @@ export class DatetimeRepresentation {
     this.minutes = DEF_ZERO;
     this.seconds = DEF_ZERO;
     this.decimalSeconds = '';
+    this.ampm = true;
 
     this.timezoneName = '';
     this.timezoneOffset = '';
@@ -194,6 +197,10 @@ export class DatetimeRepresentation {
     this.seconds = this.stringify(secondsIn);
   }
 
+  setAMPM(val: boolean): void {
+    this.ampm = val;
+  }
+
   setDecimalSeconds(decSecondsIn: number): void {
     this.timeIsSet = true;
 
@@ -214,6 +221,8 @@ export class DatetimeRepresentation {
 
   toDateRepresentation(): string {
     const m = moment();
+    const formatArr = [];
+
 
     if (this.timezoneIsSet) {
       m.utcOffset(this.timezoneOffset);
@@ -221,13 +230,28 @@ export class DatetimeRepresentation {
 
     if (this.dateIsSet) {
       m.set({year: +this.year, month: +this.month - 1, date: +this.day});
+      formatArr.push('MM/DD/YYYY');
     }
 
     if (this.timeIsSet) {
       m.set({hour: +this.hours, minute: +this.minutes, second: +this.seconds});
+
+      if (this.dateIsSet) {
+        formatArr.push(' ');
+      }
+
+      if (this.ampm) {
+        formatArr.push('hh:mm:ss A');
+      } else {
+        formatArr.push('HH:mm:ss'); // 24-hour clock time
+      }
     }
 
-    return m.toLocaleString();
+    if (this.timezoneIsSet) {
+      formatArr.push('Z');
+    }
+
+    return m.format(formatArr.join(''));
   }
 
   toStorageRepresentation(): string {
