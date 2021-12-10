@@ -117,28 +117,15 @@ export class DataObjectDataValueHandler {
     }
   }
 
-
-
-
-
-
   changeValue(dataContext: DataContext, component: FieldComponent, multiInstanceObjectService: MultiInstanceObjectHandler, value: string): void {
     const path = component.path;
     const valueObject = {};
     valueObject[JsonSchema.atValue] = value;
-
-
-    // console.log(dataContext);
-
-
     this.setDataPathValueRecursively(dataContext.instanceExtractData, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
     this.setDataPathValueRecursively(dataContext.instanceFullData, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
   }
 
-
-
-
-    changeListValue(dataContext: DataContext, component: FieldComponent, multiInstanceObjectService: MultiInstanceObjectHandler, value: string[]): void {
+  changeListValue(dataContext: DataContext, component: FieldComponent, multiInstanceObjectService: MultiInstanceObjectHandler, value: string[]): void {
     const path = component.path;
     const valueObject = [];
     const valueArray = [];
@@ -157,21 +144,17 @@ export class DataObjectDataValueHandler {
     this.setDataPathValueRecursively(dataContext.instanceFullData, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
   }
 
-
-
-
-
-
-
   changeControlledValue(dataContext: DataContext, component: FieldComponent, multiInstanceObjectService: MultiInstanceObjectHandler, atId: string, prefLabel: string): void {
     const path = component.path;
     const valueObject = {};
-    valueObject[JsonSchema.atId] = atId;
-    valueObject[JsonSchema.rdfsLabel] = prefLabel;
+
+    if (atId) {
+      valueObject[JsonSchema.atId] = atId;
+      valueObject[JsonSchema.rdfsLabel] = prefLabel;
+    }
+
     this.setDataPathValueRecursively(dataContext.instanceExtractData, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
     this.setDataPathValueRecursively(dataContext.instanceFullData, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
   }
-
-
 
 }
