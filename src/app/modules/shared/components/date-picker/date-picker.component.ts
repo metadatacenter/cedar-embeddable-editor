@@ -59,6 +59,7 @@ export class DatePickerComponent implements OnInit {
   }
 
   chosenYearHandler(normalizedYear: Moment, datepicker: MatDatepicker<Moment>): void {
+    this._dateTimeService.format = this.dateFormat;
     const ctrlValue = this.dateMonthYear.value;
     ctrlValue.year(normalizedYear.year());
     this.dateMonthYear.setValue(ctrlValue);
@@ -70,6 +71,7 @@ export class DatePickerComponent implements OnInit {
   }
 
   chosenMonthHandler(normalizedMonth: Moment, datepicker: MatDatepicker<Moment>): void {
+    this._dateTimeService.format = this.dateFormat;
     const ctrlValue = this.dateMonthYear.value;
     ctrlValue.month(normalizedMonth.month());
     this.dateMonthYear.setValue(ctrlValue);
@@ -81,6 +83,7 @@ export class DatePickerComponent implements OnInit {
   }
 
   chosenDateHandler(event): void {
+    this._dateTimeService.format = this.dateFormat;
     this.dateChangedEvent.emit(event.value);
   }
 }
