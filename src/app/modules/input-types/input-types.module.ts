@@ -21,7 +21,7 @@ import {MatGridListModule} from '@angular/material/grid-list';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatNativeDateModule} from '@angular/material/core';
 import {NgxMatDatetimePickerModule, NgxMatNativeDateModule, NgxMatTimepickerModule} from '@angular-material-components/datetime-picker';
-import { MomentTimezonePickerModule } from 'moment-timezone-picker';
+import {NgSelectModule} from '@ng-select/ng-select';
 import {CedarInputEmailComponent} from './components/cedar-input-email/cedar-input-email.component';
 import {CedarInputCheckboxComponent} from './components/cedar-input-checkbox/cedar-input-checkbox.component';
 import {CedarInputSelectComponent} from './components/cedar-input-select/cedar-input-select.component';
@@ -43,6 +43,7 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {NgMultiSelectDropDownModule} from 'ng-multiselect-dropdown';
 import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
 import {DatePickerComponent} from '../shared/components/date-picker/date-picker.component';
+import {TimezonePickerComponent} from '../shared/components/timezone-picker/timezone-picker.component';
 
 
 @NgModule({
@@ -73,7 +74,7 @@ import {DatePickerComponent} from '../shared/components/date-picker/date-picker.
     NgxMatDatetimePickerModule,
     NgxMatTimepickerModule,
     NgxMatNativeDateModule,
-    MomentTimezonePickerModule,
+    NgSelectModule,
     YouTubePlayerModule,
     // CKEditorModule,
     NgMultiSelectDropDownModule.forRoot(),
@@ -96,6 +97,7 @@ import {DatePickerComponent} from '../shared/components/date-picker/date-picker.
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
     DatePickerComponent,
+    TimezonePickerComponent,
     EscapeHtmlPipe
   ],
   providers: [

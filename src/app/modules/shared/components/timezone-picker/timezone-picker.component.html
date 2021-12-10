@@ -1,0 +1,17 @@
+<div class="wrapper" [formGroup]="form">
+  <ng-select [formControlName]="'timezone'"
+             [items]="timeZones"
+             [clearable]="clearable"
+             [virtualScroll]="virtualScroll"
+             [groupBy]="'group'"
+             bindLabel="name"
+             [placeholder]="customPlaceholderText"
+             [notFoundText]="customNotFoundText"
+             [appearance]="config.appearance"
+             [appendTo]="config.appendTo"
+             [clearOnBackspace]="config.clearOnBackspace"
+             [closeOnSelect]="config.closeOnSelect"
+             [dropdownPosition]="config.dropdownPosition"
+             [hideSelected]="config.hideSelected">
+  </ng-select>
+</div>

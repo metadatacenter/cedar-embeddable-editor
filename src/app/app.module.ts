@@ -26,7 +26,7 @@ import {CedarEmbeddableMetadataEditorWrapperComponent} from './modules/shared/co
     // TODO: Uncomment this in order to make app runnable alone
 
 
-    AppComponent
+    // AppComponent
 
 
   ],
