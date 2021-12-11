@@ -1,7 +1,13 @@
-<ng-multiselect-dropdown
-  [placeholder]="'Select options...'"
-  [settings]="dropdownSettings"
-  [data]="dropdownList"
-  [(ngModel)]="selectedItems"
-  (ngModelChange)="inputChanged($event)"
-></ng-multiselect-dropdown>
+<div class="wrapper">
+  <ng-select [items]="dropdownList"
+             [(ngModel)]="selectedItems"
+             [placeholder]="'Select options...'"
+             [notFoundText]="'No items found'"
+             labelForId="{{ITEM_ID_FIELD}}"
+             [multiple]="!this.component.isMultiPage()"
+             [maxSelectedItems]="5"
+             [closeOnSelect]="true"
+             [hideSelected]="false"
+             (ngModelChange)="inputChanged($event)"
+  ></ng-select>
+</div>

@@ -21,6 +21,7 @@ import moment, {Moment} from 'moment';
 })
 
 export class CedarInputDatetimeComponent extends CedarUIComponent implements OnInit {
+
   readonly YEAR_FORMAT = DatePickerComponent.YEAR_FORMAT;
   readonly YEAR_MONTH_FORMAT = DatePickerComponent.YEAR_MONTH_FORMAT;
   readonly YEAR_MONTH_DAY_FORMAT = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
@@ -49,18 +50,6 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
     // console.log(moment.tz.names().map((zone: string) => this.formatTimezone(zone)));
     this.cdr.detectChanges();
   }
-
-  // formatTimezone(zone: string): object {
-  //   const utc: string = moment.tz(zone).format('Z');
-  //   const abbr: string = moment.tz(zone).zoneAbbr();
-  //   return {
-  //     name: `${zone} (${utc})`,
-  //     nameValue: zone,
-  //     timeValue: utc,
-  //     group: zone.split('/', 1)[0],
-  //     abbr: abbr
-  //   };
-  // }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
@@ -145,9 +134,11 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 
   setCurrentValue(currentValue: any): void {
   }
+
 }
 
 export class DatetimeRepresentation {
+
   static readonly DATE_SEPARATOR = '-';
   static readonly TIME_SEPARATOR = ':';
   static readonly DATE_TIME_SEPARATOR = 'T';
@@ -242,7 +233,6 @@ export class DatetimeRepresentation {
     const m = moment();
     const formatArr = [];
 
-
     if (this.timezoneIsSet) {
       m.utcOffset(this.timezoneOffset);
     }
@@ -314,4 +304,5 @@ export class DatetimeRepresentation {
     }
     return str;
   }
+
 }

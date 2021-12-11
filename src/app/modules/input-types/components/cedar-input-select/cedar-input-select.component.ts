@@ -5,7 +5,7 @@ import {ComponentDataService} from '../../../shared/service/component-data.servi
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
-import {IDropdownSettings} from 'ng-multiselect-dropdown';
+
 
 @Component({
   selector: 'app-cedar-input-select',
@@ -14,16 +14,16 @@ import {IDropdownSettings} from 'ng-multiselect-dropdown';
   encapsulation: ViewEncapsulation.None
 })
 export class CedarInputSelectComponent extends CedarUIComponent implements OnInit {
-  readonly ITEM_ID_FIELD = 'item_id';
-  readonly ITEM_TEXT_FIELD = 'item_text';
+  readonly ITEM_ID_FIELD = 'id';
+  readonly ITEM_TEXT_FIELD = 'label';
 
   component: FieldComponent;
   activeComponentRegistry: ActiveComponentRegistryService;
   dropdownList = [];
-  selectedItems = [];
-  dropdownSettings: IDropdownSettings = {};
+  selectedItems: any;
 
   @Input() handlerContext: HandlerContext;
+
 
   constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
     super();
@@ -32,16 +32,6 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
 
   ngOnInit(): void {
     this.populateItemsOnLoad();
-    this.dropdownSettings = {
-      singleSelection: this.component.isMultiPage(),
-      idField: this.ITEM_ID_FIELD,
-      textField: this.ITEM_TEXT_FIELD,
-      selectAllText: 'Select All',
-      unSelectAllText: 'UnSelect All',
-      itemsShowLimit: 5,
-      allowSearchFilter: true,
-      enableCheckAll: false
-    };
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -50,9 +40,13 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
   }
 
   inputChanged(event): void {
-    const values = this.selectedItems.map(a => a[this.ITEM_TEXT_FIELD]);
+    const values = [];
 
-    if (values.length === 0) {
+    if (Array.isArray(this.selectedItems) && this.selectedItems.length > 0) {
+      values.push(...this.selectedItems.map(a => a[this.ITEM_ID_FIELD]));
+    } else if (this.selectedItems && this.selectedItems.hasOwnProperty(this.ITEM_ID_FIELD)) {
+      values.push(this.selectedItems[this.ITEM_ID_FIELD]);
+    } else {
       values.push(null);
     }
 
@@ -74,9 +68,17 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
       this.dropdownList.push(entry);
 
       if (choice.selectedByDefault) {
-        this.selectedItems.push(entry);
+        if (this.component.isMultiPage()) {
+          this.selectedItems = entry;
+        } else {
+          if (this.selectedItems == null) {
+            this.selectedItems = [];
+          }
+          this.selectedItems.push(entry);
+        }
       }
     }
+    this.inputChanged(null);
   }
 
 }
