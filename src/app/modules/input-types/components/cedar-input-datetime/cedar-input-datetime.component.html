@@ -30,8 +30,10 @@
     (ngModelChange)="timezoneInputChanged($event)"
     [(ngModel)]="timezone"
     [customPlaceholderText]="'Select timezone...'"
-    [customNotFoundText]="'No timezone found'" [getUserZone]="true">
-  </app-timezone-picker>
+    [customNotFoundText]="'No timezone found'"
+    [getUserZone]="true"
+    [clearable]="false"
+  ></app-timezone-picker>
 </ng-container>
 <p id="alert-info">
   DateTime is:&nbsp;&nbsp;&nbsp;{{datetimeParsed.toDateRepresentation()}}<br/>

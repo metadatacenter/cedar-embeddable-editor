@@ -16,12 +16,10 @@ import {takeUntil} from 'rxjs/operators';
 
 
 export class TZone {
-  name: string;
-  nameValue: string;
-  timeValue: string;
-  group: string;
-  abbr: string;
+  id: string;
+  label: string;
 }
+
 
 export interface SelectConfig {
   appearance: 'underline' | 'outline';
@@ -31,6 +29,51 @@ export interface SelectConfig {
   dropdownPosition: 'auto' | 'bottom' | 'top';
   hideSelected: boolean;
 }
+
+
+const AVAILABLE_TIMEZONES = [
+  {id: '-12:00', label: '(GMT -12:00) Eniwetok, Kwajalein'},
+  {id: '-11:00', label: '(GMT -11:00) Midway Island, Samoa'},
+  {id: '-10:00', label: '(GMT -10:00) Hawaii'},
+  {id: '-09:30', label: '(GMT -9:30) Taiohae'},
+  {id: '-09:00', label: '(GMT -9:00) Alaska'},
+  {id: '-08:00', label: '(GMT -8:00) Pacific Time (US & Canada)'},
+  {id: '-07:00', label: '(GMT -7:00) Mountain Time (US & Canada)'},
+  {id: '-06:00', label: '(GMT -6:00) Central Time (US & Canada), Mexico City'},
+  {id: '-05:00', label: '(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima'},
+  {id: '-04:30', label: '(GMT -4:30) Caracas'},
+  {id: '-04:00', label: '(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz'},
+  {id: '-03:30', label: '(GMT -3:30) Newfoundland'},
+  {id: '-03:00', label: '(GMT -3:00) Brazil, Buenos Aires, Georgetown'},
+  {id: '-02:00', label: '(GMT -2:00) Mid-Atlantic'},
+  {id: '-01:00', label: '(GMT -1:00) Azores, Cape Verde Islands'},
+  {id: 'Z', label: '(GMT) Western Europe Time, London, Lisbon, Casablanca'},
+  {id: '+01:00', label: '(GMT +1:00) Brussels, Copenhagen, Madrid, Paris'},
+  {id: '+02:00', label: '(GMT +2:00) Kaliningrad, South Africa'},
+  {id: '+03:00', label: '(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburg'},
+  {id: '+03:30', label: '(GMT +3:30) Tehran'},
+  {id: '+04:00', label: '(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi'},
+  {id: '+04:30', label: '(GMT +4:30) Kabul'},
+  {id: '+05:00', label: '(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent'},
+  {id: '+05:30', label: '(GMT +5:30) Bombay, Calcutta, Madras, New Delhi'},
+  {id: '+05:45', label: '(GMT +5:45) Kathmandu, Pokhara'},
+  {id: '+06:00', label: '(GMT +6:00) Almaty, Dhaka, Colombo'},
+  {id: '+06:30', label: '(GMT +6:30) Yangon, Mandalay'},
+  {id: '+07:00', label: '(GMT +7:00) Bangkok, Hanoi, Jakarta'},
+  {id: '+08:00', label: '(GMT +8:00) Beijing, Perth, Singapore, Hong Kong'},
+  {id: '+08:45', label: '(GMT +8:45) Eucla'},
+  {id: '+09:00', label: '(GMT +9:00) Tokyo, Seoul, Osaka, Sapporo, Yakutsk'},
+  {id: '+09:30', label: '(GMT +9:30) Adelaide, Darwin'},
+  {id: '+10:00', label: '(GMT +10:00) Eastern Australia, Guam, Vladivostok'},
+  {id: '+10:30', label: '(GMT +10:30) Lord Howe Island'},
+  {id: '+11:00', label: '(GMT +11:00) Magadan, Solomon Islands, New Caledonia'},
+  {id: '+11:30', label: '(GMT +11:30) Norfolk Island'},
+  {id: '+12:00', label: '(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka'},
+  {id: '+12:45', label: '(GMT +12:45) Chatham Islands'},
+  {id: '+13:00', label: '(GMT +13:00) Apia, Nukualofa'},
+  {id: '+14:00', label: '(GMT +14:00) Line Islands, Tokelau'}
+];
+
 
 @Component({
   selector: 'app-timezone-picker',
@@ -78,7 +121,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   /**
    * Internals section.
    */
-  timeZones: Array<TZone>;
+  timeZones: Array<any>;
   form: FormGroup;
   private propagateChange: (_: any) => {};
   private destroy$ = new Subject<void>();
@@ -87,7 +130,8 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngOnInit(): void {
-    this.timeZones = momentZone.tz.names().map((zone: string) => this.formatZone(zone));
+    // this.timeZones = momentZone.tz.names().map((zone: string) => this.formatZone(zone));
+    this.timeZones = AVAILABLE_TIMEZONES;
     this.form = this.fb.group({
       timezone: []
     });
@@ -124,20 +168,13 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
    */
   formatZone(zone: string): TZone {
     const utc: string = momentZone.tz(zone).format('Z');
-    const abbr: string = momentZone.tz(zone).zoneAbbr();
-    return {
-      name: `${zone} (${utc})`,
-      nameValue: zone,
-      timeValue: utc,
-      group: zone.split('/', 1)[0],
-      abbr: abbr
-    };
+    return this.timeZones.find(z => z.id === utc);
   }
 
   /**
    * Propagate result to parent component.
    */
-  private fireChanges() {
+  private fireChanges(): void {
     if (this.propagateChange) {
       this.propagateChange(this.form.get('timezone').value);
     }
@@ -146,7 +183,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   /**
    * Clear selection.
    */
-  private clearZone() {
+  private clearZone(): void {
     this.form.get('timezone').setValue(null);
   }
 
@@ -179,15 +216,14 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
       let _zone: TZone = null;
 
       if (typeof zone === 'string' && zone.length > 0) {
-        _zone = this.timeZones.find(z => z.nameValue === zone);
+        _zone = this.timeZones.find(z => z.id === zone);
       } else if (typeof zone === 'object') {
-        _zone = this.timeZones.find(z => z.nameValue === zone.nameValue);
+        _zone = this.timeZones.find(z => z.id === zone.id);
       }
 
       if (_zone) {
         this.form.get('timezone').setValue(_zone);
       }
-
     } else {
       this.clearZone();
     }

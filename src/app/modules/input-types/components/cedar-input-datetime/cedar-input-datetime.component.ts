@@ -47,7 +47,6 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 
   ngOnInit(): void {
     this.datetimeParsed = new DatetimeRepresentation();
-    // console.log(moment.tz.names().map((zone: string) => this.formatTimezone(zone)));
     this.cdr.detectChanges();
   }
 
@@ -133,6 +132,10 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   }
 
   setCurrentValue(currentValue: any): void {
+
+    // console.log('date set current value triggered');
+    // console.log(currentValue);
+
   }
 
 }
@@ -223,8 +226,8 @@ export class DatetimeRepresentation {
 
   setTimezone(timezoneIn: object): void {
     this.timezoneIsSet = true;
-    const timezoneNameKey = 'nameValue';
-    const timezoneOffsetKey = 'timeValue';
+    const timezoneNameKey = 'label';
+    const timezoneOffsetKey = 'id';
     this.timezoneName = timezoneIn[timezoneNameKey];
     this.timezoneOffset = timezoneIn[timezoneOffsetKey];
   }
