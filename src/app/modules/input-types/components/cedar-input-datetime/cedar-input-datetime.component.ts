@@ -9,6 +9,7 @@ import {DatePickerComponent} from '../../../shared/components/date-picker/date-p
 import {Xsd} from '../../../shared/models/xsd.model';
 import {Temporal} from '../../../shared/models/temporal.model';
 import moment, {Moment} from 'moment';
+import {TimezonePickerComponent} from '../../../shared/components/timezone-picker/timezone-picker.component';
 // import {Moment} from 'moment';
 // import * as moment from 'moment-timezone';
 
@@ -132,9 +133,10 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   }
 
   setCurrentValue(currentValue: any): void {
+    if (currentValue) {
+      this.datetimeParsed = DatetimeRepresentation.fromStorageRepresentation(currentValue as string, this.enableMeridian());
+    }
 
-    // console.log('date set current value triggered');
-    // console.log(currentValue);
 
   }
 
@@ -146,6 +148,7 @@ export class DatetimeRepresentation {
   static readonly TIME_SEPARATOR = ':';
   static readonly DATE_TIME_SEPARATOR = 'T';
   static readonly TIME_DECIMAL_SECOND_SEPARATOR = '.';
+  static readonly DATE_STORED_FORMAT = 'YYYY-MM-DD';
 
   dateIsSet: boolean;
   timeIsSet: boolean;
@@ -186,6 +189,69 @@ export class DatetimeRepresentation {
 
     this.timezoneName = '';
     this.timezoneOffset = '';
+  }
+
+  static fromStorageRepresentation(storedDateStr: string, ampm: boolean): DatetimeRepresentation {
+    const that = new DatetimeRepresentation();
+    const dateStr = storedDateStr.substring(0, storedDateStr.indexOf(DatetimeRepresentation.DATE_TIME_SEPARATOR));
+    const timeStr = storedDateStr.substring(storedDateStr.indexOf(DatetimeRepresentation.DATE_TIME_SEPARATOR) + 1);
+
+    if (dateStr) {
+      that.dateIsSet = true;
+      that.setDate(moment(dateStr, DatetimeRepresentation.DATE_STORED_FORMAT));
+    }
+
+    if (timeStr) {
+      that.setAMPM(ampm);
+      const timeArr = timeStr.substring(0, 8).split(DatetimeRepresentation.TIME_SEPARATOR);
+      that.setHours(+timeArr[0]);
+      that.setMinutes(+timeArr[1]);
+      that.setSeconds(+timeArr[2]);
+
+      const decSecTimezoneStr = timeStr.substring(8);
+
+      if (decSecTimezoneStr) {
+        let decSecStr = '';
+        let timezoneStr = '';
+
+        const tzRegex = /\-|\+|Z/;
+        const ind = DatetimeRepresentation.regexIndexOf(decSecTimezoneStr, tzRegex, 0);
+
+        // yes dec seconds, no timezone
+        if (ind < 0) {
+          decSecStr = decSecTimezoneStr.substring(1);
+        }
+        // no dec seconds, yes timezone
+        else if (ind === 0) {
+          timezoneStr = decSecTimezoneStr;
+        }
+        // yes dec secons, yes timezone
+        else {
+          decSecStr = decSecTimezoneStr.substring(1, ind);
+          timezoneStr = decSecTimezoneStr.substring(ind);
+        }
+
+        if (decSecStr) {
+          that.setDecimalSeconds(+decSecStr);
+        }
+
+        if (timezoneStr) {
+          const timezone = TimezonePickerComponent.AVAILABLE_TIMEZONES.find(z => z.id === timezoneStr);
+          that.setTimezone(timezone);
+        }
+      }
+    }
+
+    console.log('date str: ' + dateStr);
+    console.log('time str: ' + timeStr);
+    console.log(JSON.stringify(that));
+
+    return that;
+  }
+
+  static regexIndexOf(text, re, i): number {
+    const indexInSuffix = text.slice(i).search(re);
+    return indexInSuffix < 0 ? indexInSuffix : indexInSuffix + i;
   }
 
   setDate(dateIn: Moment): void {
@@ -242,7 +308,7 @@ export class DatetimeRepresentation {
 
     if (this.dateIsSet) {
       m.set({year: +this.year, month: +this.month - 1, date: +this.day});
-      formatArr.push('MM/DD/YYYY');
+      formatArr.push(DatePickerComponent.YEAR_MONTH_DAY_FORMAT);
     }
 
     if (this.timeIsSet) {

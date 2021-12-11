@@ -107,11 +107,18 @@ export class CedarMultiPagerComponent implements OnInit {
   chipClicked(chipIdx: number): void {
     this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
     this.handlerContext.setCurrentIndex(this.component, chipIdx);
+
+
     this.recomputeNumbers();
     const that = this;
-    setTimeout(() => {
+
+
+    // console.log('chip clicked');
+    // console.log(that.handlerContext);
+
+    // setTimeout(() => {
       that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
-    }, 0);
+    // }, 0);
   }
 
   clickedAdd(): void {
