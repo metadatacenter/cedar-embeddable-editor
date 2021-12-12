@@ -9,7 +9,7 @@ import {DatePickerComponent} from '../../../shared/components/date-picker/date-p
 import {Xsd} from '../../../shared/models/xsd.model';
 import {Temporal} from '../../../shared/models/temporal.model';
 import moment, {Moment} from 'moment';
-import {TimezonePickerComponent} from '../../../shared/components/timezone-picker/timezone-picker.component';
+import {TimezonePickerComponent, TZone} from '../../../shared/components/timezone-picker/timezone-picker.component';
 // import {Moment} from 'moment';
 // import * as moment from 'moment-timezone';
 
@@ -32,7 +32,12 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 
   timePickerTime: Date;
   decimalSeconds: number;
-  timezone: object;
+  timezone: TZone;
+
+  // storedTimezone: TZone;
+
+
+
   datetimeParsed: DatetimeRepresentation;
 
   @Input() handlerContext: HandlerContext;
@@ -49,6 +54,9 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   ngOnInit(): void {
     this.datetimeParsed = new DatetimeRepresentation();
     this.cdr.detectChanges();
+
+    // this.storedTimezone = {id: '', label: ''};
+
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -73,6 +81,12 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
     if (this.showSeconds()) {
       this.datetimeParsed.setSeconds(this.timePickerTime.getSeconds());
     }
+
+
+
+
+
+
     this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
   }
 
@@ -134,7 +148,51 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 
   setCurrentValue(currentValue: any): void {
     if (currentValue) {
+
+
+      console.log('cur: ' + currentValue);
+
       this.datetimeParsed = DatetimeRepresentation.fromStorageRepresentation(currentValue as string, this.enableMeridian());
+
+
+      // console.log('parse: ' + JSON.stringify(this.datetimeParsed));
+
+
+
+
+      if (this.datetimeParsed.timeIsSet) {
+        // reset timepicker UI
+        this.timePickerTime = new Date();
+        this.timePickerTime.setHours(+this.datetimeParsed.hours, +this.datetimeParsed.minutes, +this.datetimeParsed.seconds);
+
+        // reset decimal seconds
+        if (this.datetimeParsed.decimalSeconds.length > 0) {
+          this.decimalSeconds = +this.datetimeParsed.decimalSeconds;
+        } else {
+          this.decimalSeconds = null;
+        }
+
+      }
+
+      if (this.datetimeParsed.timezoneIsSet) {
+
+        this.timezone = {
+          id: this.datetimeParsed.timezoneOffset,
+          label: this.datetimeParsed.timezoneName
+        };
+
+
+        
+
+      }
+
+
+      // console.log(this.datetimeParsed);
+      // console.log(this.timezone);
+
+
+    // } else {
+    //
     }
 
 
@@ -237,14 +295,33 @@ export class DatetimeRepresentation {
 
         if (timezoneStr) {
           const timezone = TimezonePickerComponent.AVAILABLE_TIMEZONES.find(z => z.id === timezoneStr);
+
+          // console.log(TimezonePickerComponent.AVAILABLE_TIMEZONES);
+          // let timezone: TZone;
+          //
+          // for (let i = 0; i < TimezonePickerComponent.AVAILABLE_TIMEZONES.length; i++) {
+          //   console.log(timezoneStr + '|' + TimezonePickerComponent.AVAILABLE_TIMEZONES[i].id);
+          //
+          //   if (timezoneStr === TimezonePickerComponent.AVAILABLE_TIMEZONES[i].id) {
+          //     console.log('found match: ' + TimezonePickerComponent.AVAILABLE_TIMEZONES[i].id);
+          //     timezone = Object.assign({}, TimezonePickerComponent.AVAILABLE_TIMEZONES[i]);
+          //     break;
+          //   }
+          //
+          //   if (i === TimezonePickerComponent.AVAILABLE_TIMEZONES.length - 1) {
+          //     console.log('found nothing');
+          //   }
+          // }
+
+
           that.setTimezone(timezone);
+
+
         }
       }
     }
 
-    console.log('date str: ' + dateStr);
-    console.log('time str: ' + timeStr);
-    console.log(JSON.stringify(that));
+    // console.log(JSON.stringify(that));
 
     return that;
   }
@@ -290,12 +367,10 @@ export class DatetimeRepresentation {
     }
   }
 
-  setTimezone(timezoneIn: object): void {
+  setTimezone(timezoneIn: TZone): void {
     this.timezoneIsSet = true;
-    const timezoneNameKey = 'label';
-    const timezoneOffsetKey = 'id';
-    this.timezoneName = timezoneIn[timezoneNameKey];
-    this.timezoneOffset = timezoneIn[timezoneOffsetKey];
+    this.timezoneOffset = timezoneIn.id;
+    this.timezoneName = timezoneIn.label;
   }
 
   toDateRepresentation(): string {

@@ -27,8 +27,8 @@
 </ng-container>
 <ng-container *ngIf="showTimezonePicker()">
   <app-timezone-picker
-    (ngModelChange)="timezoneInputChanged($event)"
     [(ngModel)]="timezone"
+    (ngModelChange)="timezoneInputChanged($event)"
     [customPlaceholderText]="'Select timezone...'"
     [customNotFoundText]="'No timezone found'"
     [getUserZone]="true"

@@ -100,8 +100,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() virtualScroll = true;
   @Input() disabled = false;
 
-  @Input()
-  set config(conf: SelectConfig) {
+  @Input() set config(conf: SelectConfig) {
     this._config = conf;
   }
 
@@ -130,8 +129,8 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngOnInit(): void {
-    // this.timeZones = momentZone.tz.names().map((zone: string) => this.formatZone(zone));
-    this.timeZones = TimezonePickerComponent.AVAILABLE_TIMEZONES;
+    // make a copy of the list to avoid modifying the original timezones array
+    this.timeZones = JSON.parse(JSON.stringify(TimezonePickerComponent.AVAILABLE_TIMEZONES));
     this.form = this.fb.group({
       timezone: []
     });
