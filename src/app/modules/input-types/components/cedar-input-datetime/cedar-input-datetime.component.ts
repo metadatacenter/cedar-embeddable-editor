@@ -33,11 +33,7 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   timePickerTime: Date;
   decimalSeconds: number;
   timezone: TZone;
-
-  // storedTimezone: TZone;
-
-
-
+  setDefaultZone = false;
   datetimeParsed: DatetimeRepresentation;
 
   @Input() handlerContext: HandlerContext;
@@ -47,16 +43,12 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
               activeComponentRegistry: ActiveComponentRegistryService, private cdr: ChangeDetectorRef) {
     super();
     this.activeComponentRegistry = activeComponentRegistry;
-    this.timePickerTime = new Date();
-    // this.timePickerTime.setHours(0,0,0,0);
+    this.timePickerTime = this.getDefaultTime();
   }
 
   ngOnInit(): void {
     this.datetimeParsed = new DatetimeRepresentation();
     this.cdr.detectChanges();
-
-    // this.storedTimezone = {id: '', label: ''};
-
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -81,12 +73,6 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
     if (this.showSeconds()) {
       this.datetimeParsed.setSeconds(this.timePickerTime.getSeconds());
     }
-
-
-
-
-
-
     this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
   }
 
@@ -148,17 +134,8 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 
   setCurrentValue(currentValue: any): void {
     if (currentValue) {
-
-
-      console.log('cur: ' + currentValue);
-
       this.datetimeParsed = DatetimeRepresentation.fromStorageRepresentation(currentValue as string, this.enableMeridian());
-
-
       // console.log('parse: ' + JSON.stringify(this.datetimeParsed));
-
-
-
 
       if (this.datetimeParsed.timeIsSet) {
         // reset timepicker UI
@@ -172,32 +149,44 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
           this.decimalSeconds = null;
         }
 
+        if (this.datetimeParsed.timezoneIsSet) {
+          this.timezone = {
+            id: this.datetimeParsed.timezoneOffset,
+            label: this.datetimeParsed.timezoneName
+          };
+        } else {
+          this.resetTimezone();
+        }
       }
-
-      if (this.datetimeParsed.timezoneIsSet) {
-
-        this.timezone = {
-          id: this.datetimeParsed.timezoneOffset,
-          label: this.datetimeParsed.timezoneName
-        };
-
-
-        
-
-      }
-
-
-      // console.log(this.datetimeParsed);
-      // console.log(this.timezone);
-
-
-    // } else {
-    //
+     }
+    // set datetime UI to default view
+    else {
+      this.resetTime();
     }
-
-
   }
 
+  private resetTime(): void {
+    this.timePickerTime = this.getDefaultTime();
+    this.decimalSeconds = null;
+    this.datetimeParsed.setDecimalSeconds(null);
+    this.resetTimezone();
+  }
+
+  private resetTimezone(): void {
+    let tz = null;
+
+    if (this.setDefaultZone) {
+      tz = TimezonePickerComponent.guessedUserZone();
+    }
+    this.timezone = tz;
+    this.datetimeParsed.setTimezone(tz);
+  }
+
+  private getDefaultTime(): Date {
+    const dt = new Date();
+    // dt.setHours(0,0,0,0);
+    return dt;
+  }
 }
 
 export class DatetimeRepresentation {
@@ -295,33 +284,10 @@ export class DatetimeRepresentation {
 
         if (timezoneStr) {
           const timezone = TimezonePickerComponent.AVAILABLE_TIMEZONES.find(z => z.id === timezoneStr);
-
-          // console.log(TimezonePickerComponent.AVAILABLE_TIMEZONES);
-          // let timezone: TZone;
-          //
-          // for (let i = 0; i < TimezonePickerComponent.AVAILABLE_TIMEZONES.length; i++) {
-          //   console.log(timezoneStr + '|' + TimezonePickerComponent.AVAILABLE_TIMEZONES[i].id);
-          //
-          //   if (timezoneStr === TimezonePickerComponent.AVAILABLE_TIMEZONES[i].id) {
-          //     console.log('found match: ' + TimezonePickerComponent.AVAILABLE_TIMEZONES[i].id);
-          //     timezone = Object.assign({}, TimezonePickerComponent.AVAILABLE_TIMEZONES[i]);
-          //     break;
-          //   }
-          //
-          //   if (i === TimezonePickerComponent.AVAILABLE_TIMEZONES.length - 1) {
-          //     console.log('found nothing');
-          //   }
-          // }
-
-
           that.setTimezone(timezone);
-
-
         }
       }
     }
-
-    // console.log(JSON.stringify(that));
 
     return that;
   }
@@ -368,9 +334,15 @@ export class DatetimeRepresentation {
   }
 
   setTimezone(timezoneIn: TZone): void {
-    this.timezoneIsSet = true;
-    this.timezoneOffset = timezoneIn.id;
-    this.timezoneName = timezoneIn.label;
+    if (timezoneIn) {
+      this.timezoneIsSet = true;
+      this.timezoneOffset = timezoneIn.id;
+      this.timezoneName = timezoneIn.label;
+    } else {
+      this.timezoneIsSet = false;
+      this.timezoneOffset = '';
+      this.timezoneName = '';
+    }
   }
 
   toDateRepresentation(): string {

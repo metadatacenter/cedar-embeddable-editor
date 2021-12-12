@@ -128,6 +128,17 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   constructor(private fb: FormBuilder) {
   }
 
+  static guessedUserZone(): TZone {
+    const guessedZone = momentZone.tz.guess(true);
+    return TimezonePickerComponent.findZone(guessedZone);
+  }
+
+  static findZone(zone: string): TZone {
+    const allZones = JSON.parse(JSON.stringify(TimezonePickerComponent.AVAILABLE_TIMEZONES));
+    const utc: string = momentZone.tz(zone).format('Z');
+    return allZones.find(z => z.id === utc);
+  }
+
   ngOnInit(): void {
     // make a copy of the list to avoid modifying the original timezones array
     this.timeZones = JSON.parse(JSON.stringify(TimezonePickerComponent.AVAILABLE_TIMEZONES));
@@ -155,20 +166,29 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   private guessUserTimezone(): void {
     setTimeout(() => {
       if (this.getUserZone) {
-        const guessedZone = momentZone.tz.guess(true);
-        this.form.get('timezone').setValue(this.formatZone(guessedZone));
+        const guessedZone = TimezonePickerComponent.guessedUserZone();
+        this.form.get('timezone').setValue(guessedZone);
       }
     });
   }
 
-  /**
-   * Make TZone object from simple string.
-   * @link ngOnInit
-   */
-  formatZone(zone: string): TZone {
-    const utc: string = momentZone.tz(zone).format('Z');
-    return this.timeZones.find(z => z.id === utc);
-  }
+
+
+
+
+  // /**
+  //  * Make TZone object from simple string.
+  //  * @link ngOnInit
+  //  */
+  // formatZone(zone: string): TZone {
+  //   const utc: string = momentZone.tz(zone).format('Z');
+  //   return this.timeZones.find(z => z.id === utc);
+  // }
+
+
+
+
+
 
   /**
    * Propagate result to parent component.

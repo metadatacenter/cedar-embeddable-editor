@@ -38,6 +38,8 @@
            (dateChange)="chosenDateHandler($event)"
     >
     <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
-    <mat-datepicker #dp></mat-datepicker>
+    <mat-datepicker #dp
+                    (opened)="chosenDateHandler($event)"
+    ></mat-datepicker>
   </mat-form-field>
 </ng-container>

@@ -84,6 +84,9 @@ export class DatePickerComponent implements OnInit {
 
   chosenDateHandler(event): void {
     this._dateTimeService.format = this.dateFormat;
-    this.dateChangedEvent.emit(event.value);
+
+    if (event) {
+      this.dateChangedEvent.emit(event.value);
+    }
   }
 }
