@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {FormBuilder} from '@angular/forms';
+import {FormBuilder, FormControl} from '@angular/forms';
 import {ComponentDataService} from '../../../shared/service/component-data.service';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
@@ -35,6 +35,7 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   timezone: TZone;
   setDefaultZone = false;
   datetimeParsed: DatetimeRepresentation;
+  dateMonthYearControl: FormControl;
 
   @Input() handlerContext: HandlerContext;
 
@@ -137,6 +138,14 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
       this.datetimeParsed = DatetimeRepresentation.fromStorageRepresentation(currentValue as string, this.enableMeridian());
       // console.log('parse: ' + JSON.stringify(this.datetimeParsed));
 
+      if (this.datetimeParsed.dateIsSet) {
+        const m = moment();
+        m.set('date', +this.datetimeParsed.day);
+        m.set('month', +this.datetimeParsed.month - 1);
+        m.set('year', +this.datetimeParsed.year);
+        this.dateMonthYearControl = new FormControl(m);
+      }
+
       if (this.datetimeParsed.timeIsSet) {
         // reset timepicker UI
         this.timePickerTime = new Date();
@@ -161,8 +170,15 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
      }
     // set datetime UI to default view
     else {
+      this.resetDate();
       this.resetTime();
     }
+  }
+
+  private resetDate(): void {
+    const defDate = this.getDefaultDate();
+    this.dateMonthYearControl = new FormControl(defDate);
+    this.datetimeParsed.setDate(defDate);
   }
 
   private resetTime(): void {
@@ -180,6 +196,11 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
     }
     this.timezone = tz;
     this.datetimeParsed.setTimezone(tz);
+  }
+
+  private getDefaultDate(): Moment {
+    const dt = moment();
+    return dt;
   }
 
   private getDefaultTime(): Date {

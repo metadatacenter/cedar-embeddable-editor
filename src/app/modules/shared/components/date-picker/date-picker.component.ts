@@ -32,8 +32,8 @@ export class DatePickerComponent implements OnInit {
   yearFormat = DatePickerComponent.YEAR_FORMAT;
   yearMonthFormat = DatePickerComponent.YEAR_MONTH_FORMAT;
   yearMonthDayFormat = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
-  dateMonthYear: FormControl;
 
+  @Input() dateMonthYear: FormControl;
   @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
   @Output() dateChangedEvent = new EventEmitter<Moment>();
 

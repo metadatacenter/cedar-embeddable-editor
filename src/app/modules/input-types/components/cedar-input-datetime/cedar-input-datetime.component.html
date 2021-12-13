@@ -1,6 +1,7 @@
 <app-date-picker *ngIf="showDatePicker()"
                  [dateFormat]="dateFormat()"
                  (dateChangedEvent)="dateInputChanged($event)"
+                 [dateMonthYear]="dateMonthYearControl"
                  xmlns="http://www.w3.org/1999/html"></app-date-picker>
 <ng-container *ngIf="showTimePicker()">
   <div appearance="fill">
