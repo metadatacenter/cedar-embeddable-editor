@@ -23,7 +23,7 @@
     <input matInput type="number"
            (input)="decimalSecondsChanged($event)"
            [(ngModel)]="decimalSeconds"
-           name="decimalSeconds" required>
+           name="decimalSeconds">
   </mat-form-field>
 </ng-container>
 <ng-container *ngIf="showTimezonePicker()">
