@@ -293,7 +293,7 @@ export class DatetimeRepresentation {
         else if (ind === 0) {
           timezoneStr = decSecTimezoneStr;
         }
-        // yes dec secons, yes timezone
+        // yes dec seconds, yes timezone
         else {
           decSecStr = decSecTimezoneStr.substring(1, ind);
           timezoneStr = decSecTimezoneStr.substring(ind);
