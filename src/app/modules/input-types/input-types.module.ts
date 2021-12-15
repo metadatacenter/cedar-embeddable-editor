@@ -25,6 +25,7 @@ import {NgSelectModule} from '@ng-select/ng-select';
 import {CedarInputEmailComponent} from './components/cedar-input-email/cedar-input-email.component';
 import {CedarInputCheckboxComponent} from './components/cedar-input-checkbox/cedar-input-checkbox.component';
 import {CedarInputSelectComponent} from './components/cedar-input-select/cedar-input-select.component';
+import {CedarInputAttributeValueComponent} from './components/cedar-input-attribute-value/cedar-input-attribute-value.component';
 import {CedarInputMultipleChoiceComponent} from './components/cedar-input-multiple-choice/cedar-input-multiple-choice.component';
 import {CedarInputDatetimeComponent} from './components/cedar-input-datetime/cedar-input-datetime.component';
 import {CedarInputLinkComponent} from './components/cedar-input-link/cedar-input-link.component';
@@ -87,6 +88,7 @@ import {TimezonePickerComponent} from '../shared/components/timezone-picker/time
     CedarInputEmailComponent,
     CedarInputCheckboxComponent,
     CedarInputSelectComponent,
+    CedarInputAttributeValueComponent,
     CedarInputMultipleChoiceComponent,
     CedarInputDatetimeComponent,
     CedarInputLinkComponent,
@@ -112,6 +114,7 @@ import {TimezonePickerComponent} from '../shared/components/timezone-picker/time
     CedarInputEmailComponent,
     CedarInputCheckboxComponent,
     CedarInputSelectComponent,
+    CedarInputAttributeValueComponent,
     CedarInputMultipleChoiceComponent,
     CedarInputDatetimeComponent,
     CedarInputLinkComponent,

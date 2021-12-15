@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FieldComponent} from '../../../shared/models/component/field-component.model';
 import {FormBuilder, FormControl} from '@angular/forms';
 import {ComponentDataService} from '../../../shared/service/component-data.service';
@@ -21,7 +21,7 @@ import {TimezonePickerComponent, TZone} from '../../../shared/components/timezon
   encapsulation: ViewEncapsulation.None,
 })
 
-export class CedarInputDatetimeComponent extends CedarUIComponent implements OnInit {
+export class CedarInputDatetimeComponent extends CedarUIComponent implements OnInit, AfterViewInit {
 
   readonly YEAR_FORMAT = DatePickerComponent.YEAR_FORMAT;
   readonly YEAR_MONTH_FORMAT = DatePickerComponent.YEAR_MONTH_FORMAT;
@@ -44,11 +44,14 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
               activeComponentRegistry: ActiveComponentRegistryService, private cdr: ChangeDetectorRef) {
     super();
     this.activeComponentRegistry = activeComponentRegistry;
+    this.datetimeParsed = new DatetimeRepresentation();
     this.timePickerTime = this.getDefaultTime();
   }
 
   ngOnInit(): void {
-    this.datetimeParsed = new DatetimeRepresentation();
+  }
+
+  ngAfterViewInit(): void {
     this.cdr.detectChanges();
   }
 
@@ -59,7 +62,6 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 
   dateInputChanged(event): void {
     this.datetimeParsed.setDate(event);
-    // this.cdr.detectChanges();
     this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
   }
 

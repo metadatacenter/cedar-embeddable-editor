@@ -142,18 +142,9 @@ export class DataObjectBuilderHandler {
 
   buildNewFullDataObject(templateRepresentation: TemplateComponent, templateJsonObj: CedarInputTemplate): InstanceFullData {
     this.templateJsonObj = templateJsonObj;
-
-
-
     this.templateRepresentation = templateRepresentation;
     this.dataObjectFull = new InstanceFullData();
     this.buildNewByIterating(this.dataObjectFull, templateJsonObj, DataObjectBuildingMode.INCLUDE_CONTEXT);
-
-
-    // console.log('json');
-    // console.log(JSON.stringify(this.dataObjectFull));
-
-
     return this.dataObjectFull;
   }
 

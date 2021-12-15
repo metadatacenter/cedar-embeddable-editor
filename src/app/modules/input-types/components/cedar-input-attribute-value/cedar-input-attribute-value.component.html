@@ -1,0 +1,22 @@
+<form class="form-container" [formGroup]="options">
+    <mat-form-field appearance="fill" class="half-width-with-margin">
+      <mat-label>Name</mat-label>
+      <input matInput type="text" placeholder="Your Text Here"
+             [formControl]="nameInputControl"
+             (input)="nameChanged($event)">
+      <button mat-button *ngIf="nameInputControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearName()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="half-width">
+      <mat-label>Value</mat-label>
+      <input matInput type="text" placeholder="Your Text Here"
+             [formControl]="valueInputControl"
+             (input)="valueChanged($event)">
+      <button mat-button *ngIf="valueInputControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+</form>
+
