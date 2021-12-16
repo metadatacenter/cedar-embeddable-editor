@@ -13,7 +13,8 @@ export class AppComponent {
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: true,
 
-    terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
+    // terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
+    terminologyProxyUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
     // showFooter: false,
     // showHeader: false,
 

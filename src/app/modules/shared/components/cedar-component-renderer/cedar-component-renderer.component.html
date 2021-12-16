@@ -28,7 +28,7 @@
 <ng-container *ngIf="nonIterableComponent">
   <mat-card class="child-component-card non-iterable-component">
     <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
-    <app-cedar-multi-pager *ngIf="nonIterableComponent.isMulti()"
+    <app-cedar-multi-pager *ngIf="shouldRenderContentOfPaging(nonIterableComponent)"
                            [componentToRender]="nonIterableComponent"
                            [handlerContext]="handlerContext"
     ></app-cedar-multi-pager>
@@ -42,7 +42,6 @@
                                   [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
                                   [handlerContext]="handlerContext"></app-cedar-static-youtube>
       </ng-container>
-
       <!-- These are the regular components -->
       <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType==inputType.numeric"
                                [componentToRender]="nonIterableComponent"
@@ -56,11 +55,30 @@
       <app-cedar-input-email *ngIf="nonIterableComponent.basicInfo.inputType==inputType.email"
                              [componentToRender]="nonIterableComponent"
                              [handlerContext]="handlerContext"></app-cedar-input-email>
-
+      <app-cedar-input-checkbox *ngIf="nonIterableComponent.basicInfo.inputType==inputType.checkbox"
+                             [componentToRender]="nonIterableComponent"
+                             [handlerContext]="handlerContext"></app-cedar-input-checkbox>
+      <app-cedar-input-select *ngIf="nonIterableComponent.basicInfo.inputType==inputType.list"
+                                [componentToRender]="nonIterableComponent"
+                                [handlerContext]="handlerContext"></app-cedar-input-select>
+      <app-cedar-input-attribute-value *ngIf="nonIterableComponent.basicInfo.inputType==inputType.attributeValue"
+                              [componentToRender]="nonIterableComponent"
+                              [handlerContext]="handlerContext"></app-cedar-input-attribute-value>
+      <app-cedar-input-multiple-choice *ngIf="nonIterableComponent.basicInfo.inputType==inputType.radio"
+                                [componentToRender]="nonIterableComponent"
+                                [handlerContext]="handlerContext"></app-cedar-input-multiple-choice>
+      <app-cedar-input-datetime *ngIf="nonIterableComponent.basicInfo.inputType==inputType.temporal"
+                                       [componentToRender]="nonIterableComponent"
+                                       [handlerContext]="handlerContext"></app-cedar-input-datetime>
+      <app-cedar-input-link *ngIf="nonIterableComponent.basicInfo.inputType==inputType.link"
+                             [componentToRender]="nonIterableComponent"
+                             [handlerContext]="handlerContext"></app-cedar-input-link>
+      <app-cedar-input-phone *ngIf="nonIterableComponent.basicInfo.inputType==inputType.phoneNumber"
+                            [componentToRender]="nonIterableComponent"
+                            [handlerContext]="handlerContext"></app-cedar-input-phone>
     </mat-card-content>
   </mat-card>
 </ng-container>
-
 <ng-container *ngIf="staticComponent">
   <!-- This is the normal section break -->
   <app-cedar-static-section-break *ngIf="staticComponent.basicInfo.inputType==inputType.sectionBreak"
@@ -73,5 +91,7 @@
   <app-cedar-static-youtube *ngIf="staticComponent.basicInfo.inputType==inputType.youtube"
                             [componentToRender]="staticComponent"
                             [handlerContext]="handlerContext"></app-cedar-static-youtube>
-
+  <app-cedar-input-rich-text *ngIf="staticComponent.basicInfo.inputType==inputType.richText"
+                             [componentToRender]="staticComponent"
+                             [handlerContext]="handlerContext"></app-cedar-input-rich-text>
 </ng-container>

@@ -11,7 +11,7 @@ import {CedarEmbeddableMetadataEditorWrapperComponent} from './modules/shared/co
 
 @NgModule({
   declarations: [
-    AppComponent,
+    AppComponent
   ],
   imports: [
     BrowserModule,
@@ -24,7 +24,13 @@ import {CedarEmbeddableMetadataEditorWrapperComponent} from './modules/shared/co
   ],
   bootstrap: [
     // TODO: Uncomment this in order to make app runnable alone
-    // AppComponent
+
+
+    AppComponent
+
+
+  ],
+  exports: [
   ],
   entryComponents: []
 })

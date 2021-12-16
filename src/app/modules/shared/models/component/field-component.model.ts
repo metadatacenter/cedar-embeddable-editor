@@ -14,4 +14,10 @@ export interface FieldComponent extends CedarComponent {
   choiceInfo: ChoiceInfo;
   labelInfo: LabelInfo;
   controlledInfo: ControlledInfo;
+
+
+  isMultiPage(): boolean;
+
+
+
 }

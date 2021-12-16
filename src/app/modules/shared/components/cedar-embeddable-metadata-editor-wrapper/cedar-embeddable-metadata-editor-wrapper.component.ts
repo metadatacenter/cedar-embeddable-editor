@@ -74,6 +74,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
     this.messageHandlerService.trace('Load template: ' + url);
     this.http.get(url).subscribe(value => {
         this.templateJson = value;
+        // console.log(JSON.stringify(value));
       },
       error => {
         this.messageHandlerService.error('Error while loading sample template from: ' + url);

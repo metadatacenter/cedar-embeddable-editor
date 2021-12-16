@@ -34,6 +34,7 @@ export class TemplateRepresentationFactory {
 
   private static isFragmentMulti(templateFragment: object): boolean {
     const fragmentType = templateFragment[CedarModel.type];
+
     if (fragmentType === JavascriptTypes.object) {
       return false;
     } else if (fragmentType === JavascriptTypes.array) {
@@ -69,6 +70,7 @@ export class TemplateRepresentationFactory {
         } else {
           r = new SingleFieldComponent();
         }
+
         TemplateRepresentationFactory.extractValueConstraints(dataNode, r as FieldComponent);
         TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
       } else if (fragmentAtType === CedarModel.templateElementType) {
@@ -144,6 +146,22 @@ export class TemplateRepresentationFactory {
   private static extractValueConstraints(dataNode: object, fc: FieldComponent): void {
     fc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
 
+    if (dataNode[CedarModel.ui][CedarModel.inputType] === InputType.temporal) {
+      if (dataNode[CedarModel.ui].hasOwnProperty(CedarModel.timezoneEnabled)) {
+        fc.basicInfo.timezoneEnabled = dataNode[CedarModel.ui][CedarModel.timezoneEnabled];
+      }
+      if (dataNode[CedarModel.ui].hasOwnProperty(CedarModel.inputTimeFormat)) {
+        fc.basicInfo.inputTimeFormat = dataNode[CedarModel.ui][CedarModel.inputTimeFormat];
+      }
+      if (dataNode[CedarModel.ui].hasOwnProperty(CedarModel.temporalGranularity)) {
+        fc.basicInfo.temporalGranularity = dataNode[CedarModel.ui][CedarModel.temporalGranularity];
+      }
+    }
+
+    if (dataNode[CedarModel.ui].hasOwnProperty(CedarModel.temporalGranularity)) {
+      fc.basicInfo.temporalGranularity = dataNode[CedarModel.ui][CedarModel.temporalGranularity];
+    }
+
     if (TemplateObjectUtil.hasValueConstraints(dataNode)) {
       const vc: object = dataNode[CedarModel.valueConstraints];
       fc.valueInfo.requiredValue = vc[CedarModel.requiredValue];
@@ -151,12 +169,15 @@ export class TemplateRepresentationFactory {
       fc.valueInfo.minLength = vc[CedarModel.minLength];
       fc.valueInfo.maxLength = vc[CedarModel.maxLength];
 
+      if (vc.hasOwnProperty(CedarModel.temporalType)) {
+        fc.valueInfo.temporalType = vc[CedarModel.temporalType];
+      }
+
       fc.numberInfo.numberType = vc[CedarModel.numberType];
       fc.numberInfo.unitOfMeasure = vc[CedarModel.unitOfMeasure];
       fc.numberInfo.minValue = vc[CedarModel.minValue];
       fc.numberInfo.maxValue = vc[CedarModel.maxValue];
       fc.numberInfo.decimalPlace = vc[CedarModel.decimalPlace];
-
       fc.choiceInfo.multipleChoice = vc[CedarModel.multipleChoice];
 
       if (vc[CedarModel.literals] !== undefined) {
@@ -176,7 +197,6 @@ export class TemplateRepresentationFactory {
         fc.controlledInfo.branches = vc[CedarModel.branches];
       }
     }
-
   }
 
   private static extractLabels(dataNode: object, parentDataNode: object, name: string, fc: FieldComponent): void {
@@ -248,6 +268,5 @@ export class TemplateRepresentationFactory {
       }
       elementComponent.children = newChildren;
     }
-
   }
 }

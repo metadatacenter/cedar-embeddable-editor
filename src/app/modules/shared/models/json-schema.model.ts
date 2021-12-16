@@ -1,5 +1,10 @@
 export class JsonSchema {
 
+  // special properties used to add attribute-value fields to the model
+  static reservedAttributeName = '__reserved__attribute_name';
+  static reservedAttributeValue = '__reserved__attribute_value';
+  static reservedDefaultAttributeName = 'Attribute Value Field';
+
   static properties = 'properties';
 
   static atContext = '@context';

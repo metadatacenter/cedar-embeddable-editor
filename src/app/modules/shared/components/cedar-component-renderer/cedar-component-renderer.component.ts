@@ -78,4 +78,20 @@ export class CedarComponentRendererComponent implements OnInit {
     return true;
   }
 
+  shouldRenderContentOfPaging(nonIterableComponent: FieldComponent): boolean {
+    if (nonIterableComponent.isMulti()) {
+      const multipleChoice = nonIterableComponent.choiceInfo.multipleChoice;
+      const inputType = nonIterableComponent.basicInfo.inputType;
+
+      if (inputType === InputType.checkbox ||
+        (typeof multipleChoice !== 'undefined' &&
+          multipleChoice === true &&
+          inputType === InputType.list)) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
 }

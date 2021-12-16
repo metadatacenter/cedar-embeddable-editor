@@ -14,6 +14,9 @@ export class CedarModel {
   static maxLength = 'maxLength';
   static numberType = 'numberType';
   static temporalType = 'temporalType';
+  static temporalGranularity = 'temporalGranularity';
+  static timezoneEnabled = 'timezoneEnabled';
+  static inputTimeFormat = 'inputTimeFormat';
   static unitOfMeasure = 'unitOfMeasure';
   static minValue = 'minValue';
   static maxValue = 'maxValue';
@@ -37,8 +40,9 @@ export class CedarModel {
   static format = 'format';
   static enum = 'enum';
 
-  static templateFieldType = 'https://schema.metadatacenter.org/core/TemplateField';
-  static templateElementType = 'https://schema.metadatacenter.org/core/TemplateElement';
-  static templateStaticFieldType = 'https://schema.metadatacenter.org/core/StaticTemplateField';
+  static baseTemplateURL = 'https://schema.metadatacenter.org';
+  static templateFieldType = CedarModel.baseTemplateURL + '/core/TemplateField';
+  static templateElementType = CedarModel.baseTemplateURL + '/core/TemplateElement';
+  static templateStaticFieldType = CedarModel.baseTemplateURL + '/core/StaticTemplateField';
 
 }

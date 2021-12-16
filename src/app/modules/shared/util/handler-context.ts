@@ -29,8 +29,15 @@ export class HandlerContext {
   }
 
   copyMultiInstance(component: MultiComponent): void {
-    this.dataObjectManipulationService.multiInstanceItemCopy(this.dataContext, component, this.multiInstanceObjectService);
-    this.multiInstanceObjectService.multiInstanceItemCopy(component);
+    const multiInfo = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
+
+    // nothing to copy from, create new
+    if (multiInfo.currentIndex < 0) {
+      this.addMultiInstance(component);
+    } else {
+      this.dataObjectManipulationService.multiInstanceItemCopy(this.dataContext, component, this.multiInstanceObjectService);
+      this.multiInstanceObjectService.multiInstanceItemCopy(component);
+    }
   }
 
   deleteMultiInstance(component: MultiComponent): void {
@@ -42,12 +49,24 @@ export class HandlerContext {
     return this.dataObjectManipulationService.getDataPathNodeRecursively(this.dataContext.instanceExtractData, this.dataContext.templateRepresentation, path, this.multiInstanceObjectService);
   }
 
+  getParentDataObjectNodeByPath(path: string[]): object {
+    return this.dataObjectManipulationService.getParentDataPathNodeRecursively(this.dataContext.instanceExtractData, this.dataContext.templateRepresentation, path, this.multiInstanceObjectService);
+  }
+
   setCurrentIndex(component: MultiComponent, idx: number): void {
     this.multiInstanceObjectService.setCurrentIndex(component, idx);
   }
 
   changeValue(component: FieldComponent, value: string): void {
     this.dataObjectDataValueHandler.changeValue(this.dataContext, component, this.multiInstanceObjectService, value);
+  }
+
+  changeListValue(component: FieldComponent, value: string[]): void {
+    this.dataObjectDataValueHandler.changeListValue(this.dataContext, component, this.multiInstanceObjectService, value);
+  }
+
+  changeAttributeValue(component: FieldComponent, key: string, value: string): void {
+    this.dataObjectDataValueHandler.changeAttributeValue(this.dataContext, component, this.multiInstanceObjectService, key, value);
   }
 
   changeControlledValue(component: FieldComponent, atId: string, prefLabel: string): void {

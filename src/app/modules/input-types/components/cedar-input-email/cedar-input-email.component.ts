@@ -56,7 +56,13 @@ export class CedarInputEmailComponent extends CedarUIComponent implements OnInit
   }
 
   inputChanged($event: Event): void {
-    this.handlerContext.changeValue(this.component, ($event.target as HTMLTextAreaElement).value);
+    let val = ($event.target as HTMLTextAreaElement).value;
+
+    if (val.length === 0) {
+      val = null;
+    }
+
+    this.handlerContext.changeValue(this.component, val);
   }
 
   setCurrentValue(currentValue: any): void {

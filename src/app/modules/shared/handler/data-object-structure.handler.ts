@@ -11,11 +11,20 @@ import {DataObjectBuilderHandler} from './data-object-builder.handler';
 import {InstanceExtractData} from '../models/instance-extract-data.model';
 import {CedarInputTemplate} from '../models/cedar-input-template.model';
 import {DataObjectBuildingMode} from '../models/enum/data-object-building-mode.model';
+import {JsonSchema} from '../models/json-schema.model';
 
 export class DataObjectStructureHandler {
 
   public getDataPathNodeRecursively(dataObject: InstanceExtractData, component: CedarComponent, path: string[], multiInstanceObjectService: MultiInstanceObjectHandler): object {
-    if (path.length === 0) {
+    return this.getNodeRecursively(0, dataObject, component, path, multiInstanceObjectService);
+  }
+
+  public getParentDataPathNodeRecursively(dataObject: InstanceExtractData, component: CedarComponent, path: string[], multiInstanceObjectService: MultiInstanceObjectHandler): object {
+    return this.getNodeRecursively(1, dataObject, component, path, multiInstanceObjectService);
+  }
+
+  private getNodeRecursively(level: number, dataObject: InstanceExtractData, component: CedarComponent, path: string[], multiInstanceObjectService: MultiInstanceObjectHandler): object {
+    if (path.length <= level) {
       return dataObject;
     } else {
       const firstPath = path[0];
@@ -37,7 +46,7 @@ export class DataObjectStructureHandler {
           dataSubObject = dataObject[currentIndex][firstPath];
         }
       }
-      return this.getDataPathNodeRecursively(dataSubObject, childComponent, remainingPath, multiInstanceObjectService);
+      return this.getNodeRecursively(level, dataSubObject, childComponent, remainingPath, multiInstanceObjectService);
     }
   }
 
