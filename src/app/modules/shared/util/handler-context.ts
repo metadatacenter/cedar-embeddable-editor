@@ -29,8 +29,15 @@ export class HandlerContext {
   }
 
   copyMultiInstance(component: MultiComponent): void {
-    this.dataObjectManipulationService.multiInstanceItemCopy(this.dataContext, component, this.multiInstanceObjectService);
-    this.multiInstanceObjectService.multiInstanceItemCopy(component);
+    const multiInfo = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
+
+    // nothing to copy from, create new
+    if (multiInfo.currentIndex < 0) {
+      this.addMultiInstance(component);
+    } else {
+      this.dataObjectManipulationService.multiInstanceItemCopy(this.dataContext, component, this.multiInstanceObjectService);
+      this.multiInstanceObjectService.multiInstanceItemCopy(component);
+    }
   }
 
   deleteMultiInstance(component: MultiComponent): void {
