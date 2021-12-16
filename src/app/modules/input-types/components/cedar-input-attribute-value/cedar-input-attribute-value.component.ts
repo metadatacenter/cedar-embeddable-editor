@@ -16,7 +16,6 @@ import {MultiFieldComponent} from '../../../shared/models/field/multi-field-comp
 })
 export class CedarInputAttributeValueComponent extends CedarUIComponent implements OnInit {
 
-  static readonly DEFAULT_ATTRIBUTE_NAME = 'Attribute Value Field';
   component: FieldComponent;
   options: FormGroup;
   nameInputControl = new FormControl(null, null);
@@ -34,7 +33,6 @@ export class CedarInputAttributeValueComponent extends CedarUIComponent implemen
   }
 
   ngOnInit(): void {
-    this.clearName();
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -43,66 +41,47 @@ export class CedarInputAttributeValueComponent extends CedarUIComponent implemen
   }
 
   nameChanged($event: Event): void {
-    const name = ($event.target as HTMLTextAreaElement).value;
+    let name: string = null;
 
-    if (name.length === 0) {
-      this.clearName();
+    if ($event) {
+      name = ($event.target as HTMLTextAreaElement).value;
+    } else {
+      name = this.nameInputControl.value;
     }
-
-    // console.log('name changed');
-    // console.log(this.options.get('nameInputValue'));
-    // console.log(this.options.get('valueInputValue'));
     const value = this.valueInputControl.value;
     this.handlerContext.changeAttributeValue(this.component, name, value);
-
-
+    this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
   }
 
   valueChanged($event: Event): void {
-    let val = ($event.target as HTMLTextAreaElement).value;
+    let value: string = null;
 
-    if (val.length === 0) {
-      val = null;
+    if ($event) {
+      value = ($event.target as HTMLTextAreaElement).value;
+    } else {
+      value = this.valueInputControl.value;
     }
 
-
-    // console.log('value changed');
-    // console.log(this.component);
-    // console.log(this.handlerContext);
-    // console.log(this.activeComponentRegistry);
+    if (value && value.length === 0) {
+      value = null;
+    }
     const name = this.nameInputControl.value;
-    const value = this.valueInputControl.value;
     this.handlerContext.changeAttributeValue(this.component, name, value);
-
-
-    // this.handlerContext.changeValue(this.component, val);
   }
 
   setCurrentValue(currentValue: any): void {
-    // this.nameInputControl.setValue(currentValue);
+    this.nameInputControl.setValue(Object.keys(currentValue)[0]);
+    this.valueInputControl.setValue(Object.values(currentValue)[0]);
   }
 
   clearName(): void {
-    const defName = this.getDefaultName();
-    this.nameInputControl.setValue(defName);
-    this.handlerContext.changeAttributeValue(this.component, defName, this.valueInputControl.value);
+    this.nameInputControl.setValue(null);
+    this.handlerContext.changeAttributeValue(this.component, null, this.valueInputControl.value);
   }
 
   clearValue(): void {
-    // this.setValueUIAndModel(null);
-  }
-
-
-  private getDefaultName(): string {
-    const multiField = this.component as MultiFieldComponent;
-    const curIndInfo = this.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(multiField);
-    return CedarInputAttributeValueComponent.DEFAULT_ATTRIBUTE_NAME + (curIndInfo.currentIndex + 1);
-  }
-
-  private setValueUIAndModel(key: string, value: string): void {
-    this.nameInputControl.setValue(key);
-    this.valueInputControl.setValue(value);
-    this.handlerContext.changeAttributeValue(this.component, key, value);
+    this.valueInputControl.setValue(null);
+    this.handlerContext.changeAttributeValue(this.component, this.nameInputControl.value, null);
   }
 
 }
