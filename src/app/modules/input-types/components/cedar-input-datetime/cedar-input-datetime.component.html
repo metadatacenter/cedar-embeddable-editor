@@ -1,1 +1,42 @@
-
+<app-date-picker *ngIf="showDatePicker()"
+                 [dateFormat]="dateFormat()"
+                 (dateChangedEvent)="dateInputChanged($event)"
+                 [dateMonthYear]="dateMonthYearControl"
+                 xmlns="http://www.w3.org/1999/html"></app-date-picker>
+<ng-container *ngIf="showTimePicker()">
+  <div appearance="fill">
+    <mat-label>Select Time</mat-label>
+    <ngx-mat-timepicker
+      (ngModelChange)="timeInputChanged($event)"
+      (input)="timeInputChanged($event)"
+      [(ngModel)]="timePickerTime"
+      [showSpinners]="true"
+      [enableMeridian]="enableMeridian()"
+      [disableMinute]="disableMinute()"
+      [showSeconds]="showSeconds()">
+    </ngx-mat-timepicker>
+  </div>
+</ng-container>
+<ng-container *ngIf="showDecimalSeconds()">
+  <mat-form-field appearance="fill">
+    <mat-label>Select Decimal Seconds</mat-label>
+    <input matInput type="number"
+           (input)="decimalSecondsChanged($event)"
+           [(ngModel)]="decimalSeconds"
+           name="decimalSeconds">
+  </mat-form-field>
+</ng-container>
+<ng-container *ngIf="showTimezonePicker()">
+  <app-timezone-picker
+    [(ngModel)]="timezone"
+    (ngModelChange)="timezoneInputChanged($event)"
+    [customPlaceholderText]="'Select timezone...'"
+    [customNotFoundText]="'No timezone found'"
+    [getUserZone]="setDefaultZone"
+    [clearable]="false"
+  ></app-timezone-picker>
+</ng-container>
+<p id="alert-info">
+  DateTime is:&nbsp;&nbsp;&nbsp;{{datetimeParsed.toDateRepresentation()}}<br/>
+  Stored as:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{datetimeParsed.toStorageRepresentation()}}
+</p>

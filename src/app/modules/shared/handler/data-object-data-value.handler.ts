@@ -10,21 +10,14 @@ import {JsonSchema} from '../models/json-schema.model';
 import {MultiFieldComponent} from '../models/field/multi-field-component.model';
 import {FieldComponent} from '../models/component/field-component.model';
 import {InstanceExtractData} from '../models/instance-extract-data.model';
+import {CedarModel} from '../models/cedar-model.model';
+import {DataObjectUtil} from '../util/data-object-util';
 
 export class DataObjectDataValueHandler {
 
   private injectValue(target: InstanceExtractData, valueObject: object): void {
     if (valueObject.hasOwnProperty(JsonSchema.atValue)) {
-
-      if (valueObject[JsonSchema.atValue] instanceof Array) {
-        (target as Array<any>).length = 0;
-        (target as Array<any>).push(...valueObject[JsonSchema.atValue]);
-      } else {
-        target[JsonSchema.atValue] = valueObject[JsonSchema.atValue];
-      }
-
-
-
+      target[JsonSchema.atValue] = valueObject[JsonSchema.atValue];
     } else {
       delete target[JsonSchema.atValue];
       target[JsonSchema.atId] = valueObject[JsonSchema.atId];
@@ -32,115 +25,108 @@ export class DataObjectDataValueHandler {
     }
   }
 
+  private injectArrayValue(target: InstanceExtractData, valueArray: object[]): void {
+    (target as Array<object>).length = 0;
+    (target as Array<object>).push(...valueArray);
+  }
 
+  private injectAttributeValue(dataObject: InstanceExtractData, parentDataObject: InstanceExtractData, component: CedarComponent, valueObject: object, currentIndex: number): void {
+    const oldName = dataObject[currentIndex];
+    let newName = valueObject[JsonSchema.reservedAttributeName];
 
+    if (!newName || this.isDuplicateAttributeName(newName, dataObject, component, currentIndex)) {
+      newName = this.getDefaultAttributeName(dataObject, component, currentIndex);
+    }
 
+    dataObject[currentIndex] = newName;
 
+    if (newName !== oldName) {
+      delete parentDataObject[oldName];
+    }
 
-  private setDataPathValueRecursively(dataObject: InstanceExtractData, component: CedarComponent, multiInstanceObjectService: MultiInstanceObjectHandler, path: string[], valueObject: object): void {
+    parentDataObject[newName] = valueObject[JsonSchema.reservedAttributeValue];
+
+    if (parentDataObject.hasOwnProperty(JsonSchema.atContext)) {
+      if (parentDataObject[JsonSchema.atContext].hasOwnProperty(component.name)) {
+        delete parentDataObject[JsonSchema.atContext][component.name];
+      }
+
+      if (newName !== oldName) {
+        delete parentDataObject[JsonSchema.atContext][oldName];
+        parentDataObject[JsonSchema.atContext][newName] = CedarModel.baseTemplateURL + '/' +
+          JsonSchema.properties + '/' + DataObjectUtil.generateGUID();
+      }
+    }
+  }
+
+  private isDuplicateAttributeName(name: string, dataObject: InstanceExtractData, component: CedarComponent, currentIndex: number): boolean {
+    const ind = (dataObject as Array<string>).indexOf(name);
+    return (ind > -1 && ind !== currentIndex) || name.toLowerCase() === component.name.toLowerCase();
+  }
+
+  private getDefaultAttributeName(dataObject: InstanceExtractData, component: CedarComponent, currentIndex: number): string {
+    let nameIndex = currentIndex + 1;
+    let defName = JsonSchema.reservedDefaultAttributeName + nameIndex;
+
+    while (this.isDuplicateAttributeName(defName, dataObject, component, currentIndex)) {
+      nameIndex++;
+      defName = JsonSchema.reservedDefaultAttributeName + nameIndex;
+    }
+
+    return defName;
+  }
+
+  private setDataPathValueRecursively(dataObject: InstanceExtractData, parentDataObject: InstanceExtractData, component: CedarComponent, multiInstanceObjectService: MultiInstanceObjectHandler, path: string[], valueObject: object): void {
     if (path.length === 0) {
-
-      // console.log(dataObject);
-      // console.log(valueObject);
-
-
       if (component instanceof SingleFieldComponent) {
-
-
-
-        // console.log('SingleFieldComponent');
-        // console.log(component);
-
-
         this.injectValue(dataObject, valueObject);
       } else {
-
-
         const multiField = component as MultiFieldComponent;
         const multiInstanceInfo: MultiInstanceObjectInfo = multiInstanceObjectService.getMultiInstanceInfoForComponent(multiField);
         const currentIndex = multiInstanceInfo.currentIndex;
 
-
-        // console.log('MultiFieldComponent');
-        // console.log(dataObject);
-        // console.log(multiInstanceInfo);
-
-
-        if (valueObject.hasOwnProperty(JsonSchema.atValue) && valueObject[JsonSchema.atValue] instanceof Array) {
-          this.injectValue(dataObject, valueObject);
+        if (valueObject.hasOwnProperty(JsonSchema.reservedAttributeName)) {
+          this.injectAttributeValue(dataObject, parentDataObject, component, valueObject, currentIndex);
+        } else if (valueObject instanceof Array) {
+          this.injectArrayValue(dataObject, valueObject);
         } else {
           this.injectValue(dataObject[currentIndex], valueObject);
         }
-
-
-
       }
     } else {
-
-
-      // console.log(component);
-
-
       const firstPath = path[0];
       const remainingPath = path.slice(1);
       let childComponent: CedarComponent = null;
       let dataSubObject = null;
+
       if (component instanceof SingleElementComponent) {
         childComponent = (component as SingleElementComponent).getChildByName(firstPath);
-
-        // console.log('SingleElementComponent');
-        // console.log(childComponent);
-
-
         dataSubObject = dataObject[firstPath];
       } else if (component instanceof CedarTemplate) {
         childComponent = (component as CedarTemplate).getChildByName(firstPath);
         dataSubObject = dataObject[firstPath];
       } else if (component instanceof MultiElementComponent) {
-
-
-
-
         const multiElement = component as MultiElementComponent;
         const multiInstanceInfo: MultiInstanceObjectInfo = multiInstanceObjectService.getMultiInstanceInfoForComponent(multiElement);
         const currentIndex = multiInstanceInfo.currentIndex;
         childComponent = multiElement.getChildByName(firstPath);
-
-
-        // console.log('MultiElementComponent');
-        // console.log(childComponent);
-
-
         dataSubObject = dataObject[currentIndex][firstPath];
       }
-      this.setDataPathValueRecursively(dataSubObject, childComponent, multiInstanceObjectService, remainingPath, valueObject);
+
+      this.setDataPathValueRecursively(dataSubObject, dataObject, childComponent, multiInstanceObjectService, remainingPath, valueObject);
     }
   }
-
-
-
-
-
 
   changeValue(dataContext: DataContext, component: FieldComponent, multiInstanceObjectService: MultiInstanceObjectHandler, value: string): void {
     const path = component.path;
     const valueObject = {};
     valueObject[JsonSchema.atValue] = value;
-
-
-    // console.log(dataContext);
-
-
-    this.setDataPathValueRecursively(dataContext.instanceExtractData, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
-    this.setDataPathValueRecursively(dataContext.instanceFullData, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
+    this.setDataPathValueRecursively(dataContext.instanceExtractData, null, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
+    this.setDataPathValueRecursively(dataContext.instanceFullData, null, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
   }
 
-
-
-
-    changeListValue(dataContext: DataContext, component: FieldComponent, multiInstanceObjectService: MultiInstanceObjectHandler, value: string[]): void {
+  changeListValue(dataContext: DataContext, component: FieldComponent, multiInstanceObjectService: MultiInstanceObjectHandler, value: string[]): void {
     const path = component.path;
-    const valueObject = [];
     const valueArray = [];
 
     if (value.length === 0) {
@@ -152,26 +138,40 @@ export class DataObjectDataValueHandler {
       obj[JsonSchema.atValue] = val;
       valueArray.push(obj);
     }
-    valueObject[JsonSchema.atValue] = valueArray;
-    this.setDataPathValueRecursively(dataContext.instanceExtractData, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
-    this.setDataPathValueRecursively(dataContext.instanceFullData, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
+
+    this.setDataPathValueRecursively(dataContext.instanceExtractData, null, dataContext.templateRepresentation, multiInstanceObjectService, path, valueArray);
+    this.setDataPathValueRecursively(dataContext.instanceFullData, null, dataContext.templateRepresentation, multiInstanceObjectService, path, valueArray);
   }
 
+  changeAttributeValue(dataContext: DataContext, component: FieldComponent,
+                       multiInstanceObjectService: MultiInstanceObjectHandler, key: string, value: string): void {
+    const path = component.path;
+    const valueObject = {};
+    const obj = {};
 
+    if (value && value.length === 0) {
+      value = null;
+    }
 
+    obj[JsonSchema.atValue] = value;
+    valueObject[JsonSchema.reservedAttributeName] = key;
+    valueObject[JsonSchema.reservedAttributeValue] = obj;
 
-
-
+    this.setDataPathValueRecursively(dataContext.instanceExtractData, null, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
+    this.setDataPathValueRecursively(dataContext.instanceFullData, null, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
+  }
 
   changeControlledValue(dataContext: DataContext, component: FieldComponent, multiInstanceObjectService: MultiInstanceObjectHandler, atId: string, prefLabel: string): void {
     const path = component.path;
     const valueObject = {};
-    valueObject[JsonSchema.atId] = atId;
-    valueObject[JsonSchema.rdfsLabel] = prefLabel;
-    this.setDataPathValueRecursively(dataContext.instanceExtractData, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
-    this.setDataPathValueRecursively(dataContext.instanceFullData, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
+
+    if (atId) {
+      valueObject[JsonSchema.atId] = atId;
+      valueObject[JsonSchema.rdfsLabel] = prefLabel;
+    }
+
+    this.setDataPathValueRecursively(dataContext.instanceExtractData, null, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
+    this.setDataPathValueRecursively(dataContext.instanceFullData, null, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
   }
-
-
 
 }

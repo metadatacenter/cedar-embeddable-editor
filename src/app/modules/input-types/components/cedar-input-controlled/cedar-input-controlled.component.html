@@ -5,11 +5,12 @@
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
            [matAutocomplete]="auto"
+           (input)="inputChanged($event)"
     >
     <mat-autocomplete #auto="matAutocomplete">
-      <mat-option *ngFor="let option of filteredOptions | async" [value]="option.prefLabel" (onSelectionChange)="onSelectionChange(option)">
-        {{option.prefLabel}}
-      </mat-option>
+      <mat-option *ngFor="let option of filteredOptions | async" [value]="option.prefLabel"
+                  (onSelectionChange)="onSelectionChange(option)"
+      >{{option.prefLabel}}</mat-option>
     </mat-autocomplete>
     <button mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
       <mat-icon>close</mat-icon>

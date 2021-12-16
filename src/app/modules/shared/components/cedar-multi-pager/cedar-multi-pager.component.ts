@@ -105,7 +105,14 @@ export class CedarMultiPagerComponent implements OnInit {
   }
 
   chipClicked(chipIdx: number): void {
-    this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
+    // this call was causing the entire dateTimeParsed object to reset
+    // after the timezone input was set
+    // see cedar-input-datetime.component.ts:
+    // this.timezone = {
+    //   id: this.datetimeParsed.timezoneOffset,
+    //   label: this.datetimeParsed.timezoneName
+    // };
+    // this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
     this.handlerContext.setCurrentIndex(this.component, chipIdx);
     this.recomputeNumbers();
     const that = this;

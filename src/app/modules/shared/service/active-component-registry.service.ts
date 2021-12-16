@@ -9,6 +9,7 @@ import {Injectable} from '@angular/core';
 import {CedarMultiPagerComponent} from '../components/cedar-multi-pager/cedar-multi-pager.component';
 import {MultiInstanceObjectInfo} from '../models/info/multi-instance-object-info.model';
 import {HandlerContext} from '../util/handler-context';
+import {InputType} from '../models/input-type.model';
 
 @Injectable({
   providedIn: 'root',
@@ -35,12 +36,30 @@ export class ActiveComponentRegistryService {
       }
     } else if (component instanceof MultiFieldComponent) {
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
+      const parentDataObject = handlerContext.getParentDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
+
       if (uiComponent != null) {
         const multiInstanceInfo: MultiInstanceObjectInfo = handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
+
         if (dataObject[multiInstanceInfo.currentIndex] != null) {
-          uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
+          if (component.basicInfo.inputType === InputType.attributeValue) {
+            let key = dataObject[multiInstanceInfo.currentIndex];
+
+            if (key instanceof Object && key.hasOwnProperty(JsonSchema.atValue) && key[JsonSchema.atValue] === null) {
+              handlerContext.changeAttributeValue(component, null, null);
+            }
+
+            key = dataObject[multiInstanceInfo.currentIndex];
+            const value = parentDataObject[key][JsonSchema.atValue];
+            const obj = {};
+            obj[key] = value;
+            uiComponent.setCurrentValue(obj);
+          } else {
+            uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
+          }
         }
+
         const uiPager = this.getMultiPagerUI(component);
         uiPager.updatePagingUI();
       }
