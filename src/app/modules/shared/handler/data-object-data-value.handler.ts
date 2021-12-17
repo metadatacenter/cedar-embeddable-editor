@@ -31,6 +31,17 @@ export class DataObjectDataValueHandler {
   }
 
   private injectAttributeValue(dataObject: InstanceExtractData, parentDataObject: InstanceExtractData, component: CedarComponent, valueObject: object, currentIndex: number): void {
+
+    // console.log('***********************************');
+    // console.log('dataObject before');
+    // console.log(JSON.parse(JSON.stringify(dataObject)));
+    // console.log('parentDataObject before');
+    // console.log(JSON.parse(JSON.stringify(parentDataObject)));
+    // console.log('valueObject');
+    // console.log(valueObject);
+    // console.log('currentIndex: ' + currentIndex);
+    // console.log('***********************************');
+
     const oldName = dataObject[currentIndex];
     let newName = valueObject[JsonSchema.reservedAttributeName];
 
@@ -38,23 +49,49 @@ export class DataObjectDataValueHandler {
       newName = this.getDefaultAttributeName(dataObject, component, currentIndex);
     }
 
+    const oldNameIndex = (dataObject as Array<string>).indexOf(oldName);
     dataObject[currentIndex] = newName;
 
-    if (newName !== oldName) {
+    // console.log('old name index: ' + oldNameIndex);
+
+    const needsDeleting = (oldName && newName !== oldName && oldNameIndex === currentIndex);
+
+    // if (oldName && newName !== oldName && oldNameIndex === currentIndex) {
+    if (needsDeleting) {
+      // console.log('deleting parent old name entry: ' + oldName);
       delete parentDataObject[oldName];
     }
 
     parentDataObject[newName] = valueObject[JsonSchema.reservedAttributeValue];
+
+    // console.log('-----------------------------------');
+    // console.log('old name: ' + oldName);
+    // console.log('new name after it was set from null: ' + newName);
+    // console.log('dataObject after');
+    // console.log(JSON.parse(JSON.stringify(dataObject)));
+    // console.log('parentDataObject after');
+    // console.log(JSON.parse(JSON.stringify(parentDataObject)));
+    // console.log('-----------------------------------');
 
     if (parentDataObject.hasOwnProperty(JsonSchema.atContext)) {
       if (parentDataObject[JsonSchema.atContext].hasOwnProperty(component.name)) {
         delete parentDataObject[JsonSchema.atContext][component.name];
       }
 
-      if (newName !== oldName) {
+      let elemId = '';
+
+      // if (oldName && newName !== oldName && oldNameIndex === currentIndex) {
+      if (needsDeleting) {
+        elemId = parentDataObject[JsonSchema.atContext][oldName];
         delete parentDataObject[JsonSchema.atContext][oldName];
-        parentDataObject[JsonSchema.atContext][newName] = CedarModel.baseTemplateURL + '/' +
-          JsonSchema.properties + '/' + DataObjectUtil.generateGUID();
+      }
+
+      if (!parentDataObject[JsonSchema.atContext].hasOwnProperty(newName)) {
+        if (!elemId || elemId.length === 0) {
+          elemId = CedarModel.baseTemplateURL + '/' +
+            JsonSchema.properties + '/' + DataObjectUtil.generateGUID();
+        }
+        parentDataObject[JsonSchema.atContext][newName] = elemId;
       }
     }
   }

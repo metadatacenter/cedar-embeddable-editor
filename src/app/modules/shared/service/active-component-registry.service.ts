@@ -46,8 +46,24 @@ export class ActiveComponentRegistryService {
           if (component.basicInfo.inputType === InputType.attributeValue) {
             let key = dataObject[multiInstanceInfo.currentIndex];
 
+            // console.log('***********************************');
+            // console.log('dataObject');
+            // console.log(dataObject);
+            // console.log('parentDataObject');
+            // console.log(parentDataObject);
+            // console.log('currentIndex');
+            // console.log(multiInstanceInfo.currentIndex);
+            // console.log('***********************************');
+
             if (key instanceof Object && key.hasOwnProperty(JsonSchema.atValue) && key[JsonSchema.atValue] === null) {
               handlerContext.changeAttributeValue(component, null, null);
+            } else if (multiInstanceInfo.currentIndex > 0) {
+              const cloneSourceKey = dataObject[multiInstanceInfo.currentIndex - 1];
+
+              if (key === cloneSourceKey) {
+                const val = parentDataObject[cloneSourceKey][JsonSchema.atValue];
+                handlerContext.changeAttributeValue(component, null, val);
+              }
             }
 
             key = dataObject[multiInstanceInfo.currentIndex];

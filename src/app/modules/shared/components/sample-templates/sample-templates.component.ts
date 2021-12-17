@@ -26,7 +26,7 @@ export class SampleTemplatesComponent implements OnInit {
     '10': 'Template 10 - checkbox with defaults',
     '11': 'Template 11 - pick from a list single select',
     '12': 'Template 12 - pick from a list multi select',
-    '13': 'Template 13 - attribute value metadata',
+    '13': 'Template 13 - attribute value metadata *************************************************************************************************************',
     '14': 'Template 14 - two levels deep',
     '15': 'Template 15 - rich text, single',
     '16': 'Template 16 - phone, single',
