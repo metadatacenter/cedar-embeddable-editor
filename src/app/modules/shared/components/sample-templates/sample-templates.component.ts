@@ -21,19 +21,24 @@ export class SampleTemplatesComponent implements OnInit {
     '05': 'Template 05 - single element',
     '06': 'Template 06 - multiple element',
     '07': 'Template 07 - email field',
-    '08': 'Template 08 - multiple choice **',
+    '08': 'Template 08 - multiple choice',
     '09': 'Template 09 - checkbox',
     '10': 'Template 10 - checkbox with defaults',
     '11': 'Template 11 - pick from a list single select',
     '12': 'Template 12 - pick from a list multi select',
-    '13': 'Template 13 - attribute value metadata **',
+    '13': 'Template 13 - attribute value metadata *************************************************************************************************************',
     '14': 'Template 14 - two levels deep',
-    '21': 'Template 21 - controlled - mixed **',
+    '15': 'Template 15 - rich text, single',
+    '16': 'Template 16 - phone, single',
+    '17': 'Template 17 - datetime',
+    '18': 'Template 18 - datetime multiple instances',
+
+    '21': 'Template 21 - controlled - mixed',
     '22': 'Template 22 - multiple min none',
     '23': 'Template 23 - multiple min 3',
     '24': 'Template 24 - multiple element, min 4',
     '26': 'Template 26 - multiple element multiple field',
-    '27': 'Template 27 - link',
+    '27': 'Template 27 - link field',
     '28': 'Template 28 - multi element with several fields',
     '29': 'Template 29 - multi element with several fields, one multi',
     '30': 'Template 30 - element with multi-field, both min none',
@@ -49,7 +54,10 @@ export class SampleTemplatesComponent implements OnInit {
     '40': 'Template 40 - youtube full custom',
     '42': 'Template 42 - controlled field',
     '43': 'Template 43 - controlled field',
-    '51': 'Template 51 - MiAIRR V1.1.0'
+
+    '51': 'Template 51 - MiAIRR V1.1.0',
+    '52': 'Template 52 - eDNA ECT Demonstration'
+
   };
 
   constructor(

@@ -4,5 +4,6 @@ export class ValueInfo {
   defaultValue: string;
   minLength: number;
   maxLength: number;
+  temporalType: string;
 
 }

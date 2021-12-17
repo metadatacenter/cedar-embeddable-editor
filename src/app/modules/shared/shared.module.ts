@@ -58,7 +58,6 @@ import {SampleTemplatesComponent} from './components/sample-templates/sample-tem
     CedarEmbeddableMetadataEditorComponent,
     CedarEmbeddableMetadataEditorWrapperComponent,
     SampleTemplatesComponent,
-    SampleTemplatesComponent,
     CedarComponentRendererComponent,
     StaticFooterComponent,
     StaticHeaderComponent,

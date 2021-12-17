@@ -10,4 +10,8 @@ export class SingleFieldComponent extends AbstractFieldComponent implements Sing
     return false;
   }
 
+  isMultiPage(): boolean {
+    return true;
+  }
+
 }
