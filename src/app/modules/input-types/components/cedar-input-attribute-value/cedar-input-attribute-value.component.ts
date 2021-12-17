@@ -1,11 +1,10 @@
 import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
+import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {ComponentDataService} from '../../../shared/service/component-data.service';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
-import {MultiFieldComponent} from '../../../shared/models/field/multi-field-component.model';
 
 
 @Component({
