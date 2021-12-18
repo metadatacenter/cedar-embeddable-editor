@@ -97,6 +97,18 @@ export class DataObjectDataValueHandler {
   }
 
   private isDuplicateAttributeName(name: string, dataObject: InstanceExtractData, component: CedarComponent, currentIndex: number): boolean {
+
+
+    // console.log('-----------------------------------');
+    // console.log('name: ' + name);
+    // console.log('dataObject');
+    // console.log(JSON.parse(JSON.stringify(dataObject)));
+    // console.log('component');
+    // console.log(JSON.parse(JSON.stringify(component)));
+    // console.log('currentIndex: ' + currentIndex);
+    // console.log('-----------------------------------');
+
+
     const ind = (dataObject as Array<string>).indexOf(name);
     return (ind > -1 && ind !== currentIndex) || name.toLowerCase() === component.name.toLowerCase();
   }
@@ -197,6 +209,30 @@ export class DataObjectDataValueHandler {
     this.setDataPathValueRecursively(dataContext.instanceExtractData, null, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
     this.setDataPathValueRecursively(dataContext.instanceFullData, null, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
   }
+
+
+
+
+
+  deleteAttributeValue(dataContext: DataContext, component: FieldComponent,
+                       multiInstanceObjectService: MultiInstanceObjectHandler, key: string): void {
+    console.log('deleting attribute value data');
+
+
+    console.log('-----------------------------------');
+    console.log('dataContext');
+    console.log(JSON.parse(JSON.stringify(dataContext)));
+    console.log('-----------------------------------');
+
+
+
+  }
+
+
+
+
+
+
 
   changeControlledValue(dataContext: DataContext, component: FieldComponent, multiInstanceObjectService: MultiInstanceObjectHandler, atId: string, prefLabel: string): void {
     const path = component.path;

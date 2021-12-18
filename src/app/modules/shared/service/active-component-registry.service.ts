@@ -92,6 +92,11 @@ export class ActiveComponentRegistryService {
     }
   }
 
+  deleteCurrentValue(component: CedarComponent): void {
+    const uiComponent: CedarUIComponent = this.getUIComponent(component);
+    uiComponent.deleteCurrentValue();
+  }
+
   registerComponent(modelComponent: CedarComponent, uiComponent: CedarUIComponent): void {
     this.modelToUI.set(modelComponent, uiComponent);
   }

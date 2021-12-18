@@ -11,7 +11,7 @@ import {DataObjectBuilderHandler} from './data-object-builder.handler';
 import {InstanceExtractData} from '../models/instance-extract-data.model';
 import {CedarInputTemplate} from '../models/cedar-input-template.model';
 import {DataObjectBuildingMode} from '../models/enum/data-object-building-mode.model';
-import {JsonSchema} from '../models/json-schema.model';
+
 
 export class DataObjectStructureHandler {
 

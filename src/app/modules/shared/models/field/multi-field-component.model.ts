@@ -12,14 +12,8 @@ export class MultiFieldComponent extends AbstractFieldComponent implements Multi
     return true;
   }
 
-
-
-
   isMultiPage(): boolean {
     return this.choiceInfo.multipleChoice !== true;
   }
-
-
-
 
 }

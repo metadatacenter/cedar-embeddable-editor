@@ -9,6 +9,7 @@ export class AppComponent {
 
   ceeConfig = {
     sampleTemplateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
+    // sampleTemplateLocationPrefix: 'https://component.staging.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
     loadSampleTemplateName: '01',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: true,

@@ -144,8 +144,13 @@ export class CedarMultiPagerComponent implements OnInit {
   clickedDelete(): void {
     this.handlerContext.deleteMultiInstance(this.component);
     this.recomputeNumbers();
+    const that = this;
+
+    setTimeout(() => {
+      that.activeComponentRegistry.deleteCurrentValue(that.component);
+    }, 0);
+
     if (this.currentMultiInfo.currentCount > 0) {
-      const that = this;
       setTimeout(() => {
         that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
       }, 0);
@@ -165,6 +170,9 @@ export class CedarMultiPagerComponent implements OnInit {
   }
 
   isEnabledCopy(): boolean {
+    if (this.currentMultiInfo.currentCount === 0) {
+      return false;
+    }
     return this.isEnabledAdd();
   }
 
