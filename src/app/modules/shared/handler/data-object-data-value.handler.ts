@@ -35,8 +35,8 @@ export class DataObjectDataValueHandler {
     const oldName = dataObject[currentIndex];
     let newName = valueObject[JsonSchema.reservedAttributeName];
 
-    if (!newName || this.isDuplicateAttributeName(newName, dataObject, parentDataObject, currentIndex)) {
-      newName = this.getDefaultAttributeName(dataObject, parentDataObject, currentIndex);
+    if (!newName || this.isDuplicateAttributeName(newName, parentDataObject)) {
+      newName = this.getDefaultAttributeName(parentDataObject, currentIndex);
     }
 
     const oldNameIndex = (dataObject as Array<string>).indexOf(oldName);
@@ -50,20 +50,6 @@ export class DataObjectDataValueHandler {
     }
 
     parentDataObject[newName] = valueObject[JsonSchema.reservedAttributeValue];
-
-
-
-    // console.log('-----------------------------------');
-    // console.log('old name: ' + JSON.stringify(oldName));
-    // console.log('new name after it was set from null: ' + newName);
-    // console.log('dataObject after');
-    // console.log(JSON.parse(JSON.stringify(dataObject)));
-    // console.log('parentDataObject after');
-    // console.log(JSON.parse(JSON.stringify(parentDataObject)));
-    // console.log('-----------------------------------');
-
-
-
 
     if (parentDataObject.hasOwnProperty(JsonSchema.atContext)) {
       if (parentDataObject[JsonSchema.atContext].hasOwnProperty(component.name)) {
@@ -133,31 +119,15 @@ export class DataObjectDataValueHandler {
     }
   }
 
-
-
-
-
-
-
-  private isDuplicateAttributeName(name: string, dataObject: InstanceExtractData, parentDataObject: InstanceExtractData, currentIndex: number): boolean {
-    // console.log('-----------------------------------');
-    // console.log('name: ' + name);
-    // console.log('dataObject');
-    // console.log(JSON.parse(JSON.stringify(dataObject)));
-    // console.log('parentDataObject');
-    // console.log(JSON.parse(JSON.stringify(parentDataObject)));
-    // console.log('currentIndex: ' + currentIndex);
-    // console.log('-----------------------------------');
-
-    const ind = (dataObject as Array<string>).indexOf(name);
-    return (ind > -1 && ind !== currentIndex); // || name.toLowerCase() === component.name.toLowerCase();
+  private isDuplicateAttributeName(name: string, parentDataObject: InstanceExtractData): boolean {
+    return parentDataObject.hasOwnProperty(name);
   }
 
-  private getDefaultAttributeName(dataObject: InstanceExtractData, parentDataObject: InstanceExtractData, currentIndex: number): string {
+  private getDefaultAttributeName(parentDataObject: InstanceExtractData, currentIndex: number): string {
     let nameIndex = currentIndex + 1;
     let defName = JsonSchema.reservedDefaultAttributeName + nameIndex;
 
-    while (this.isDuplicateAttributeName(defName, dataObject, parentDataObject, currentIndex) && nameIndex < 1000) {
+    while (this.isDuplicateAttributeName(defName, parentDataObject) && nameIndex < 1000) {
       nameIndex++;
       defName = JsonSchema.reservedDefaultAttributeName + nameIndex;
     }
