@@ -38,9 +38,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   @Input() sampleTemplateLoaderObject: any = null;
 
   showTemplateRenderingRepresentation = false;
-  showMultiInstanceInfo = false;
+  showMultiInstanceInfo = true;
   showTemplateSourceData = true;
-  showInstanceDataCore = false;
+  showInstanceDataCore = true;
   showInstanceDataFull = true;
   showSampleTemplateLinks = false;
 

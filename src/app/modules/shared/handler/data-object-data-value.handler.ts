@@ -49,9 +49,8 @@ export class DataObjectDataValueHandler {
     dataObject[currentIndex] = newName;
     const needsDeleting = (oldName && newName !== oldName && oldNameIndex === currentIndex);
 
-    // if (oldName && newName !== oldName && oldNameIndex === currentIndex) {
     if (needsDeleting) {
-      // console.log('deleting parent old name entry: ' + oldName);
+      // deleting parent old name entry
       delete parentDataObject[oldName];
     }
 
@@ -64,7 +63,6 @@ export class DataObjectDataValueHandler {
 
       let elemId = '';
 
-      // if (oldName && newName !== oldName && oldNameIndex === currentIndex) {
       if (needsDeleting) {
         elemId = parentDataObject[JsonSchema.atContext][oldName];
         delete parentDataObject[JsonSchema.atContext][oldName];
