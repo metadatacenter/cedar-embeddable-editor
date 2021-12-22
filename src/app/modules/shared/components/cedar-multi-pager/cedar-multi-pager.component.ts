@@ -4,6 +4,8 @@ import {PageEvent} from '@angular/material/paginator';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 import {MultiInstanceObjectInfo} from '../../models/info/multi-instance-object-info.model';
 import {HandlerContext} from '../../util/handler-context';
+import {ComponentTypeHandler} from '../../handler/component-type.handler';
+import {JsonSchema} from '../../models/json-schema.model';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -33,6 +35,28 @@ export class CedarMultiPagerComponent implements OnInit {
 
   ngOnInit(): void {
     this.recomputeNumbers();
+  }
+
+  getMultiInstanceDataValueInfo(): string {
+    const nodeInfo = this.handlerContext.getDataObjectNodeByPath(this.component.path);
+    const parentNodeInfo = this.handlerContext.getParentDataObjectNodeByPath(this.component.path);
+    let info = '';
+    const infoArray = [];
+
+    if (ComponentTypeHandler.isField(this.component)) {
+      // const fieldComponent = this.component as MultiFieldComponent;
+      // const type = fieldComponent.basicInfo.inputType;
+      (nodeInfo as Array<any>).forEach((fieldName) => {
+        if (typeof fieldName === 'string') {
+          infoArray.push(fieldName + '=' + parentNodeInfo[fieldName][JsonSchema.atValue]);
+        } else if (typeof fieldName === 'object') {
+          infoArray.push(fieldName[JsonSchema.atValue] || 'null');
+        }
+      });
+      info = infoArray.join(', ');
+    }
+
+    return info || '';
   }
 
   @Input() set componentToRender(componentToRender: MultiComponent) {
