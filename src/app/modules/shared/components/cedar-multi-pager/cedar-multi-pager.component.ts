@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {Component, DoCheck, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {MultiComponent} from '../../models/component/multi-component.model';
 import {PageEvent} from '@angular/material/paginator';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
@@ -13,7 +13,7 @@ import {JsonSchema} from '../../models/json-schema.model';
   styleUrls: ['./cedar-multi-pager.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CedarMultiPagerComponent implements OnInit {
+export class CedarMultiPagerComponent implements OnInit, DoCheck {
 
   component: MultiComponent;
   currentMultiInfo: MultiInstanceObjectInfo;
@@ -28,6 +28,7 @@ export class CedarMultiPagerComponent implements OnInit {
   firstIndex = 0;
   lastIndex = -1;
   pageNumbers: number[] = [];
+  multiInstanceValue: string;
 
   constructor(activeComponentRegistry: ActiveComponentRegistryService) {
     this.activeComponentRegistry = activeComponentRegistry;
@@ -35,6 +36,10 @@ export class CedarMultiPagerComponent implements OnInit {
 
   ngOnInit(): void {
     this.recomputeNumbers();
+  }
+
+  ngDoCheck(): void {
+    this.multiInstanceValue = this.getMultiInstanceDataValueInfo();
   }
 
   getMultiInstanceDataValueInfo(): string {
