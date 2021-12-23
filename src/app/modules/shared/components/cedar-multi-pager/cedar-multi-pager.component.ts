@@ -46,11 +46,11 @@ export class CedarMultiPagerComponent implements OnInit {
     if (ComponentTypeHandler.isField(this.component)) {
       // const fieldComponent = this.component as MultiFieldComponent;
       // const type = fieldComponent.basicInfo.inputType;
-      (nodeInfo as Array<any>).forEach((fieldName) => {
+      (nodeInfo as Array<any>).forEach((fieldName, index) => {
         if (typeof fieldName === 'string') {
           infoArray.push(fieldName + '=' + parentNodeInfo[fieldName][JsonSchema.atValue]);
         } else if (typeof fieldName === 'object') {
-          infoArray.push(fieldName[JsonSchema.atValue] || 'null');
+          infoArray.push((index + 1) + ': ' + (fieldName[JsonSchema.atValue] || 'null'));
         }
       });
       info = infoArray.join(', ');

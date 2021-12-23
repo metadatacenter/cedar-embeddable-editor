@@ -12,7 +12,7 @@ import {HandlerContext} from '../util/handler-context';
 import {InputType} from '../models/input-type.model';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class ActiveComponentRegistryService {
 
