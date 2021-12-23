@@ -28,7 +28,9 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   firstIndex = 0;
   lastIndex = -1;
   pageNumbers: number[] = [];
+
   multiInstanceValue: string;
+  parentNodeInfoStr: string;
 
   constructor(activeComponentRegistry: ActiveComponentRegistryService) {
     this.activeComponentRegistry = activeComponentRegistry;
@@ -43,14 +45,18 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   }
 
   getMultiInstanceDataValueInfo(): string {
-    const nodeInfo = this.handlerContext.getDataObjectNodeByPath(this.component.path);
+    if (!ComponentTypeHandler.isField(this.component)) {
+      return '';
+    }
     const parentNodeInfo = this.handlerContext.getParentDataObjectNodeByPath(this.component.path);
-    let info = '';
-    const infoArray = [];
 
-    if (ComponentTypeHandler.isField(this.component)) {
-      // const fieldComponent = this.component as MultiFieldComponent;
-      // const type = fieldComponent.basicInfo.inputType;
+    if (JSON.stringify(parentNodeInfo) === this.parentNodeInfoStr) {
+      return this.multiInstanceValue;
+    } else {
+      const nodeInfo = this.handlerContext.getDataObjectNodeByPath(this.component.path);
+      let info = '';
+      const infoArray = [];
+
       (nodeInfo as Array<any>).forEach((fieldName, index) => {
         if (typeof fieldName === 'string') {
           infoArray.push(fieldName + '=' + parentNodeInfo[fieldName][JsonSchema.atValue]);
@@ -59,15 +65,15 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
         }
       });
       info = infoArray.join(', ');
-    }
+      this.parentNodeInfoStr = JSON.stringify(parentNodeInfo);
 
-    return info || '';
+      return info || '';
+    }
   }
 
   @Input() set componentToRender(componentToRender: MultiComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerMultiPagerComponent(this.component, this);
-
   }
 
   private recomputeNumbers(): void {
