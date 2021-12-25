@@ -4,7 +4,7 @@
              [placeholder]="'Select options...'"
              [notFoundText]="'No items found'"
              labelForId="{{ITEM_ID_FIELD}}"
-             [multiple]="!this.component.isMultiPage()"
+             [multiple]="component.choiceInfo.multipleChoice"
              [maxSelectedItems]="5"
              [closeOnSelect]="true"
              [hideSelected]="false"

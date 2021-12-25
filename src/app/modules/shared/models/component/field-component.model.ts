@@ -15,9 +15,7 @@ export interface FieldComponent extends CedarComponent {
   labelInfo: LabelInfo;
   controlledInfo: ControlledInfo;
 
-
+  isMulti(): boolean;
   isMultiPage(): boolean;
-
-
 
 }

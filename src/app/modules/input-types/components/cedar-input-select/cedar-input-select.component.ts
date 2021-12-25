@@ -50,10 +50,12 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
       values.push(null);
     }
 
-    if (this.component.isMultiPage()) {
-      this.handlerContext.changeValue(this.component, values[0]);
-    } else {
+    const multi = this.component.choiceInfo.multipleChoice;
+
+    if (multi) {
       this.handlerContext.changeListValue(this.component, values);
+    } else {
+      this.handlerContext.changeValue(this.component, values[0]);
     }
   }
 
@@ -68,13 +70,15 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
       this.dropdownList.push(entry);
 
       if (choice.selectedByDefault) {
-        if (this.component.isMultiPage()) {
-          this.selectedItems = entry;
-        } else {
+        const multi = this.component.choiceInfo.multipleChoice;
+
+        if (multi) {
           if (this.selectedItems == null) {
             this.selectedItems = [];
           }
           this.selectedItems.push(entry);
+        } else {
+          this.selectedItems = entry;
         }
       }
     }

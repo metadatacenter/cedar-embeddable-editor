@@ -41,6 +41,10 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
   }
 
   setCurrentValue(currentValue: any): void {
+
+    console.log('currentValue:');
+    console.log(currentValue);
+
   }
 
   private populateValuesOnLoad(): void {

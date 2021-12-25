@@ -32,7 +32,6 @@ export class SampleTemplatesComponent implements OnInit {
     '16': 'Template 16 - phone, single',
     '17': 'Template 17 - datetime',
     '18': 'Template 18 - datetime multiple instances',
-
     '21': 'Template 21 - controlled - mixed',
     '22': 'Template 22 - multiple min none',
     '23': 'Template 23 - multiple min 3',
