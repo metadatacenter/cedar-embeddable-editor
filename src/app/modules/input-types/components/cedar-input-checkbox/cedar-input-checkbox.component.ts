@@ -18,6 +18,7 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
   activeComponentRegistry: ActiveComponentRegistryService;
   @Input() handlerContext: HandlerContext;
 
+
   constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
     super();
     this.options = fb.group({
@@ -28,6 +29,10 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
   }
 
   ngOnInit(): void {
+    for (const choice of this.component.choiceInfo.choices) {
+      const fc = new FormControl();
+      this.options.addControl(this.getFormControlName(choice.label), fc);
+    }
     this.populateValuesOnLoad();
   }
 
@@ -41,10 +46,19 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
   }
 
   setCurrentValue(currentValue: any): void {
+    const arrVal = currentValue as Array<string>;
 
-    console.log('currentValue:');
-    console.log(currentValue);
+    for (const choice of this.component.choiceInfo.choices) {
+      if (arrVal.indexOf(choice.label) >= 0) {
+        this.setInput(true, choice.label);
+      } else {
+        this.setInput(false, choice.label);
+      }
+    }
+  }
 
+  getFormControlName(val): string {
+    return val.replace(/\s+/g, '');
   }
 
   private populateValuesOnLoad(): void {
@@ -59,7 +73,10 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
     /* Selected */
     if (isChecked) {
       // Add a new control in the arrayForm
-      formArray.push(new FormControl(val));
+      if (formArray.value.indexOf(val) < 0) {
+        formArray.push(new FormControl(val));
+      }
+      this.options.get(this.getFormControlName(val)).setValue('checked');
     }
     /* unselected */
     else {
@@ -70,6 +87,7 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
         if (ctrl.value === val) {
           // Remove the unselected element from the arrayForm
           formArray.removeAt(i);
+          this.options.get(this.getFormControlName(val)).setValue(null);
           return;
         }
         i++;

@@ -42,31 +42,10 @@ export class ActiveComponentRegistryService {
       if (uiComponent != null) {
         const multiInstanceInfo: MultiInstanceObjectInfo = handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
 
-
-
-        // console.log('active-component-registry ***********************************');
-        // console.log('uiComponent');
-        // console.log(uiComponent);
-        // console.log('dataObject');
-        // console.log(JSON.parse(JSON.stringify(dataObject)));
-        // console.log('parentDataObject');
-        // console.log(JSON.parse(JSON.stringify(parentDataObject)));
-        // console.log('currentIndex');
-        // console.log(multiInstanceInfo.currentIndex);
-        // console.log('end active-component-registry *******************************');
-
-
-
-
-        // if (!component.isMultiPage()) {
-        //
-        //   console.log('I am not multipage!!!');
-        //
-        // } else
-        if (dataObject[multiInstanceInfo.currentIndex] != null) {
-
-
-
+        if (!component.isMultiPage()) {
+          const dataArr = dataObject as Array<object>;
+          uiComponent.setCurrentValue(dataArr.map(a => a[JsonSchema.atValue]));
+        } else if (dataObject[multiInstanceInfo.currentIndex] != null) {
           if (component.basicInfo.inputType === InputType.attributeValue) {
             let key = dataObject[multiInstanceInfo.currentIndex];
 
@@ -89,17 +68,12 @@ export class ActiveComponentRegistryService {
           } else {
             uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
           }
-
-
-
         }
 
-        const uiPager = this.getMultiPagerUI(component);
-
-        // console.log('uiPager');
-        // console.log(uiPager);
-
-        uiPager.updatePagingUI();
+        if (component.isMultiPage()) {
+          const uiPager = this.getMultiPagerUI(component);
+          uiPager.updatePagingUI();
+        }
       }
     } else if (component instanceof SingleElementComponent) {
       for (const childComponent of component.children) {
