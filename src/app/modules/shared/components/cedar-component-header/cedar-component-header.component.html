@@ -1,6 +1,6 @@
 <mat-card-header>
   <mat-card-title>{{cds.getRenderingLabelForComponent(component)}}</mat-card-title>
-  <div *ngIf="component.isMulti()">
+  <div *ngIf="component.isMultiPage()">
     (
     {{multiComponent.multiInfo.getSafeMinItems()}}
     ..

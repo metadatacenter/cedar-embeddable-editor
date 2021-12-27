@@ -9,4 +9,8 @@ export class NullTemplateComponent extends AbstractElementComponent implements T
     return false;
   }
 
+  isMultiPage(): boolean {
+    return false;
+  }
+
 }

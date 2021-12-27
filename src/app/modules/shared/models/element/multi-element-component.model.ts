@@ -11,4 +11,9 @@ export class MultiElementComponent extends AbstractElementComponent implements E
   isMulti(): boolean {
     return true;
   }
+
+  isMultiPage(): boolean {
+    return true;
+  }
+
 }

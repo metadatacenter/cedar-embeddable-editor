@@ -14,5 +14,7 @@ export class NullComponent implements CedarComponent {
     return false;
   }
 
-
+  isMultiPage(): boolean {
+    return false;
+  }
 }

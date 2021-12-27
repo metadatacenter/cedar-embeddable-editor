@@ -9,4 +9,8 @@ export class CedarTemplate extends AbstractElementComponent implements TemplateC
     return false;
   }
 
+  isMultiPage(): boolean {
+    return false;
+  }
+
 }
