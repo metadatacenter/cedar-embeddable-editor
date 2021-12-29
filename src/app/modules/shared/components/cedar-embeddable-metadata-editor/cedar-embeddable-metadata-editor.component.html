@@ -1,5 +1,7 @@
 <app-static-header *ngIf="dataAvailableForRender() && showHeader"></app-static-header>
 
+<app-file-uploader></app-file-uploader>
+
 <mat-card class="template-card" *ngIf="dataAvailableForRender()">
   <mat-card-header>
     <div mat-card-avatar class="header-image"></div>
@@ -7,7 +9,6 @@
     <mat-card-subtitle>{{dataContext.templateRepresentation.labelInfo.description}}</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
-
     <ng-container *ngFor="let childComponent of dataContext.templateRepresentation.children">
       <app-cedar-component-renderer
         [componentToRender]="childComponent"
