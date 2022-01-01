@@ -4,25 +4,23 @@ import {
   TestBed,
   tick,
   fakeAsync,
-} from "@angular/core/testing";
+} from '@angular/core/testing';
 
-import { MatFileUploadComponent } from "./mat-file-upload.component";
-import { MatFileUploadQueueService } from "../mat-file-upload-queue/mat-file-upload-queue.service";
-import { BehaviorSubject, of } from "rxjs";
-import { IInput } from "../mat-file-upload.type";
-import {
-  MatProgressBarModule,
-  MatCardModule,
-  MatButtonModule,
-  MatIconModule,
-} from "@angular/material";
-import { HttpClientModule } from "@angular/common/http";
-import { CommonModule } from "@angular/common";
-import { BytesPipe } from "../bytes/bytes.pipe";
+import {MatFileUploadComponent} from './mat-file-upload.component';
+import {MatFileUploadQueueService} from '../mat-file-upload-queue/mat-file-upload-queue.service';
+import {BehaviorSubject, of} from 'rxjs';
+import {IInput} from '../mat-file-upload.type';
+import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
+import {HttpClientModule} from '@angular/common/http';
+import {CommonModule} from '@angular/common';
+import {BytesPipe} from '../bytes/bytes.pipe';
 import {
   HttpClientTestingModule,
   HttpTestingController,
-} from "@angular/common/http/testing";
+} from '@angular/common/http/testing';
 
 export class StubMatFileUploadQueueService {
   inputValueSubject = new BehaviorSubject<IInput>(null);
@@ -42,7 +40,7 @@ export class StubFile {
   size = 1024;
 }
 
-describe("MatFileUploadComponent", () => {
+describe('MatFileUploadComponent', () => {
   let component: MatFileUploadComponent;
   let fixture: ComponentFixture<MatFileUploadComponent>;
   let service: StubMatFileUploadQueueService;

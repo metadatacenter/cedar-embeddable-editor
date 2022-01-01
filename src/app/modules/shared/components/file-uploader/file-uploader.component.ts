@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation} from '@angular/core';
 
 
 @Component({
@@ -9,6 +9,18 @@ import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 })
 export class FileUploaderComponent implements OnInit {
 
-  ngOnInit() {
+  @Input() fileAlias;
+  @Input() httpUrl;
+  @Output() fileUploaded = new EventEmitter<object>();
+
+  constructor() {
   }
+
+  ngOnInit(): void {
+  }
+
+  onFileUploaded(event): void {
+    this.fileUploaded.emit(event);
+  }
+
 }

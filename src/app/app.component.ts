@@ -8,6 +8,13 @@ import {Component} from '@angular/core';
 export class AppComponent {
 
   ceeConfig = {
+    templateUploadResponseSuccess: 'success',
+    templateUploadBaseUrl: 'http://localhost:8000',
+    templateUploadEndpoint: '/upload.php',
+    templateDownloadEndpoint: '/download.php',
+    templateUploadParamName: '3520cf061bba4919a8ea4b74a07af01b',
+    templateDownloadParamName: '9ff482bacac84c499655ab58efdf590a',
+
     sampleTemplateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
     // sampleTemplateLocationPrefix: 'https://component.staging.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
     loadSampleTemplateName: '01',

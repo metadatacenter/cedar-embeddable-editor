@@ -32,6 +32,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private static COLLAPSE_STATIC_COMPONENTS = 'collapseStaticComponents';
 
+  private static TEMPLATE_UPLOAD_BASE_URL = 'templateUploadBaseUrl';
+  private static TEMPLATE_UPLOAD_ENDPOINT = 'templateUploadEndpoint';
+  private static TEMPLATE_UPLOAD_PARAM_NAME = 'templateUploadParamName';
+
   private readonly dataContext: DataContext = null;
   private readonly handlerContext: HandlerContext = null;
 
@@ -55,6 +59,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   expandedSampleTemplateLinks = false;
 
   collapseStaticComponents = true;
+
+  templateUploadBaseUrl: string;
+  templateUploadEndpoint: string;
+  templateUploadParamName: string;
 
   @ViewChild(MatAccordion) accordion: MatAccordion;
 
@@ -88,14 +96,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS)) {
         this.showSampleTemplateLinks = value[CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS];
       }
-
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER)) {
         this.showFooter = value[CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER];
       }
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_HEADER)) {
         this.showHeader = value[CedarEmbeddableMetadataEditorComponent.SHOW_HEADER];
       }
-
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_RENDERING)) {
         this.expandedTemplateRenderingRepresentation = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_RENDERING];
       }
@@ -116,6 +122,15 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS)) {
         this.collapseStaticComponents = value[CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_BASE_URL)) {
+        this.templateUploadBaseUrl = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_BASE_URL];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_ENDPOINT)) {
+        this.templateUploadEndpoint = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_ENDPOINT];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_PARAM_NAME)) {
+        this.templateUploadParamName = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_PARAM_NAME];
       }
     }
   }

@@ -1,13 +1,1 @@
 <ng-content></ng-content>
-<button
-  mat-raised-button
-  [color]="uploadAllColor"
-  *ngIf="files.length > 0"
-  (click)="uploadAll()"
->{{ uploadAllLabel }}</button>
-<button
-  mat-raised-button
-  [color]="removeAllColor"
-  *ngIf="files.length > 0"
-  (click)="removeAll()"
->{{ removeAllLabel }}</button>

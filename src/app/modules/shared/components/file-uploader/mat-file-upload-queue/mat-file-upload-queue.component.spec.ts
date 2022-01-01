@@ -1,13 +1,10 @@
-import { async, ComponentFixture, TestBed } from "@angular/core/testing";
-
-import { MatFileUploadQueueComponent } from "./mat-file-upload-queue.component";
-import {
-  MatProgressBarModule,
-  MatCardModule,
-  MatButtonModule,
-  MatIconModule,
-} from "@angular/material";
-import { CommonModule } from "@angular/common";
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {MatFileUploadQueueComponent} from './mat-file-upload-queue.component';
+import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
+import {CommonModule} from '@angular/common';
 
 describe("MatFileUploadQueueComponent", () => {
   let component: MatFileUploadQueueComponent;

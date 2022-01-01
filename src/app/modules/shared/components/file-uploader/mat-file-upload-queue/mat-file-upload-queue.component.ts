@@ -1,25 +1,15 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  ContentChildren,
-  forwardRef,
-  OnDestroy,
-  OnChanges,
-  QueryList,
-  SimpleChanges,
-  Input,
-  ChangeDetectorRef,
-} from "@angular/core";
-import { Subscription, Observable, merge } from "rxjs";
-import { HttpHeaders, HttpParams } from "@angular/common/http";
-import { startWith } from "rxjs/operators";
-import { MatFileUploadQueueService } from "./mat-file-upload-queue.service";
-import { MatFileUploadComponent } from "../mat-file-upload/mat-file-upload.component";
+import {Component, ChangeDetectionStrategy, ContentChildren, forwardRef, OnDestroy, OnChanges,
+  QueryList, SimpleChanges, Input, ChangeDetectorRef} from '@angular/core';
+import {Subscription, Observable, merge} from 'rxjs';
+import {HttpHeaders, HttpParams} from '@angular/common/http';
+import {startWith} from 'rxjs/operators';
+import {MatFileUploadQueueService} from './mat-file-upload-queue.service';
+import {MatFileUploadComponent} from '../mat-file-upload/mat-file-upload.component';
 
 @Component({
-  selector: "mat-file-upload-queue",
-  templateUrl: "./mat-file-upload-queue.component.html",
-  styleUrls: ["./mat-file-upload-queue.component.scss"],
+  selector: 'mat-file-upload-queue',
+  templateUrl: './mat-file-upload-queue.component.html',
+  styleUrls: ['./mat-file-upload-queue.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [MatFileUploadQueueService],
 })
@@ -57,10 +47,8 @@ export class MatFileUploadQueueComponent implements OnChanges, OnDestroy {
     });
   }
 
-  constructor(
-    private matFileUploadQueueService: MatFileUploadQueueService,
-    private changeDetectorRef: ChangeDetectorRef
-  ) {}
+  constructor(private matFileUploadQueueService: MatFileUploadQueueService, private changeDetectorRef: ChangeDetectorRef) {
+  }
 
   /* Http request input bindings */
   @Input()
@@ -81,19 +69,19 @@ export class MatFileUploadQueueComponent implements OnChanges, OnDestroy {
       } = new HttpParams();
 
   @Input()
-  fileAlias: string = "file";
+  fileAlias: string = 'file';
 
   @Input()
-  uploadAllColor = "primary";
+  uploadAllColor = 'primary';
 
   @Input()
-  uploadAllLabel = "Upload All";
+  uploadAllLabel = 'Upload All';
 
   @Input()
-  removeAllColor = "primary";
+  removeAllColor = 'primary';
 
   @Input()
-  removeAllLabel = "Remove All";
+  removeAllLabel = 'Remove All';
 
   ngAfterViewInit() {
     // When the list changes, re-subscribe

@@ -1,7 +1,9 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
+import {HttpClient, HttpResponse} from '@angular/common/http';
 import {ControlledFieldDataService} from '../../service/controlled-field-data.service';
 import {MessageHandlerService} from '../../service/message-handler.service';
+import {MatFileUploadService} from '../file-uploader/mat-file-upload/mat-file-upload.service';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -9,12 +11,16 @@ import {MessageHandlerService} from '../../service/message-handler.service';
   styleUrls: ['./cedar-embeddable-metadata-editor-wrapper.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
+export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, OnDestroy {
 
   static TEMPLATE_LOCATION_PREFIX = 'sampleTemplateLocationPrefix';
   static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
   static TERMINOLOGY_PROXY_URL = 'terminologyProxyUrl';
   static SHOW_SPINNER_BEFORE_INIT = 'showSpinnerBeforeInit';
+  static TEMPLATE_UPLOAD_RESPONSE_SUCCESS = 'templateUploadResponseSuccess';
+  static TEMPLATE_UPLOAD_BASE_URL = 'templateUploadBaseUrl';
+  static TEMPLATE_DOWNLOAD_ENDPOINT = 'templateDownloadEndpoint';
+  static TEMPLATE_DOWNLOAD_PARAM_NAME = 'templateDownloadParamName';
 
   innerConfig: object = null;
   private initialized = false;
@@ -24,17 +30,42 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
   sampleTemplateLoaderObject = null;
   showSpinnerBeforeInit = true;
 
+  uploadFileSubscription: Subscription;
+
   constructor(
     private http: HttpClient,
     private controlledFieldDataService: ControlledFieldDataService,
-    private messageHandlerService: MessageHandlerService
+    private messageHandlerService: MessageHandlerService,
+    private matFileUploadService: MatFileUploadService
   ) {
     this.sampleTemplateLoaderObject = this;
   }
 
   ngOnInit(): void {
+    this.uploadFileSubscription = this.matFileUploadService.uploadedFile$.subscribe(fileInfo => {
+      if (fileInfo && fileInfo['event'] instanceof HttpResponse) {
+        const status = fileInfo['event']['body']['status'];
+
+        if (status === this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_RESPONSE_SUCCESS]) {
+          if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_BASE_URL) &&
+            this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT) &&
+            this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME)) {
+            const filename = fileInfo['event']['body']['filename'];
+            const templateUrl = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_BASE_URL] +
+              this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT] + '?' +
+              this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME] + '=' + filename;
+            this.loadTemplateByURL(templateUrl);
+          }
+        }
+      }
+    });
     this.initialized = true;
     this.doInitialize();
+  }
+
+  ngOnDestroy(): void {
+    // prevent memory leak when component is destroyed
+    this.uploadFileSubscription.unsubscribe();
   }
 
   @Input() set config(value: object) {
@@ -71,10 +102,13 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
 
   private loadTemplate(templateName: string): void {
     const url = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX] + templateName + '/template.json';
+    this.loadTemplateByURL(url);
+  }
+
+  private loadTemplateByURL(url: string): void {
     this.messageHandlerService.trace('Load template: ' + url);
     this.http.get(url).subscribe(value => {
         this.templateJson = value;
-        // console.log(JSON.stringify(value));
       },
       error => {
         this.messageHandlerService.error('Error while loading sample template from: ' + url);
@@ -84,4 +118,5 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit {
   editorDataReady(): boolean {
     return this.innerConfig != null && this.templateJson != null;
   }
+
 }

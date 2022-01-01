@@ -1,26 +1,14 @@
-import {
-  Component,
-  OnInit,
-  ChangeDetectionStrategy,
-  OnDestroy,
-  Input,
-  Output,
-  EventEmitter,
-} from "@angular/core";
-import { ReplaySubject, BehaviorSubject, Subscription } from "rxjs";
-import {
-  HttpHeaders,
-  HttpParams,
-  HttpClient,
-  HttpEventType,
-} from "@angular/common/http";
-import { MatFileUploadQueueService } from "../mat-file-upload-queue/mat-file-upload-queue.service";
-import { IUploadProgress } from "../mat-file-upload.type";
+import {Component, OnInit, ChangeDetectionStrategy, OnDestroy, Input, Output, EventEmitter} from '@angular/core';
+import {ReplaySubject, BehaviorSubject, Subscription} from 'rxjs';
+import {HttpHeaders, HttpParams, HttpClient, HttpEventType} from '@angular/common/http';
+import {MatFileUploadQueueService} from '../mat-file-upload-queue/mat-file-upload-queue.service';
+import {IUploadProgress} from '../mat-file-upload.type';
+import {MatFileUploadService} from './mat-file-upload.service';
 
 @Component({
-  selector: "mat-file-upload",
-  templateUrl: "./mat-file-upload.component.html",
-  styleUrls: ["./mat-file-upload.component.scss"],
+  selector: 'mat-file-upload',
+  templateUrl: './mat-file-upload.component.html',
+  styleUrls: ['./mat-file-upload.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MatFileUploadComponent implements OnInit, OnDestroy {
@@ -84,10 +72,8 @@ export class MatFileUploadComponent implements OnInit, OnDestroy {
 
   private fileUploadSubscription: any;
 
-  constructor(
-    private HttpClient: HttpClient,
-    private matFileUploadQueueService: MatFileUploadQueueService
-  ) {
+  constructor(private httpClient: HttpClient, private matFileUploadQueueService: MatFileUploadQueueService,
+              private matFileUploadService: MatFileUploadService) {
     const queueInput = this.matFileUploadQueueService.getInputValue();
     if (queueInput) {
       this.httpUrl = this.httpUrl || queueInput.httpUrl;
@@ -110,15 +96,20 @@ export class MatFileUploadComponent implements OnInit, OnDestroy {
   public upload(): void {
     this.uploadInProgressSubject.next(true);
     // How to set the alias?
-    let formData = new FormData();
+    const formData = new FormData();
     formData.set(this.fileAlias, this._file, this._file.name);
+
+
+    console.log('headers');
+    console.log(this.httpRequestHeaders);
+
     this.subs.add(
-      this.HttpClient.post(this.httpUrl, formData, {
+      this.httpClient.post(this.httpUrl, formData, {
         headers: this.httpRequestHeaders,
-        observe: "events",
+        observe: 'events',
         params: this.httpRequestParams,
         reportProgress: true,
-        responseType: "json",
+        responseType: 'json',
       }).subscribe(
         (event: any) => {
           if (event.type === HttpEventType.UploadProgress) {
@@ -130,14 +121,18 @@ export class MatFileUploadComponent implements OnInit, OnDestroy {
               total: event.total,
             });
           }
-          this.onUpload.emit({ file: this._file, event: event });
+          const value = {file: this._file, event: event};
+          this.matFileUploadService.setUploadedFile(value);
+          this.onUpload.emit(value);
         },
         (error: any) => {
           if (this.fileUploadSubscription) {
             this.fileUploadSubscription.unsubscribe();
           }
           this.uploadInProgressSubject.next(false);
-          this.onUpload.emit({ file: this._file, event: event });
+          const value = {file: this._file, event: event};
+          this.matFileUploadService.setUploadedFile(value);
+          this.onUpload.emit(value);
         },
         () => this.uploadInProgressSubject.next(false)
       )
