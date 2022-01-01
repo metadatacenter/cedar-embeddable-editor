@@ -98,11 +98,6 @@ export class MatFileUploadComponent implements OnInit, OnDestroy {
     // How to set the alias?
     const formData = new FormData();
     formData.set(this.fileAlias, this._file, this._file.name);
-
-
-    console.log('headers');
-    console.log(this.httpRequestHeaders);
-
     this.subs.add(
       this.httpClient.post(this.httpUrl, formData, {
         headers: this.httpRequestHeaders,
