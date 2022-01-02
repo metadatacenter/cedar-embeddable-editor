@@ -9,7 +9,8 @@ export class AppComponent {
 
   ceeConfig = {
     templateUploadResponseSuccess: 'success',
-    templateUploadBaseUrl: 'http://localhost:8000',
+    // templateUploadBaseUrl: 'http://localhost:8000',
+    templateUploadBaseUrl: 'https://api-php.cee.metadatacenter.orgx',
     templateUploadEndpoint: '/upload.php',
     templateDownloadEndpoint: '/download.php',
     templateUploadParamName: '3520cf061bba4919a8ea4b74a07af01b',
@@ -21,14 +22,14 @@ export class AppComponent {
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: true,
 
-    // terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
-    terminologyProxyUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
+    terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
+    // terminologyProxyUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
     // showFooter: false,
     // showHeader: false,
 
     // showTemplateRenderingRepresentation: true,
-    // showInstanceDataCore: true,
-    // showMultiInstanceInfo: true
+    showInstanceDataCore: true,
+    showMultiInstanceInfo: true,
 
     collapseStaticComponents: true
   };
