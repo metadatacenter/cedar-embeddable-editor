@@ -4,6 +4,7 @@ import {HttpHeaders, HttpParams, HttpClient, HttpEventType} from '@angular/commo
 import {MatFileUploadQueueService} from '../mat-file-upload-queue/mat-file-upload-queue.service';
 import {IUploadProgress} from '../mat-file-upload.type';
 import {MatFileUploadService} from './mat-file-upload.service';
+import {MessageHandlerService} from '../../../service/message-handler.service';
 
 @Component({
   selector: 'mat-file-upload',
@@ -73,7 +74,7 @@ export class MatFileUploadComponent implements OnInit, OnDestroy {
   private fileUploadSubscription: any;
 
   constructor(private httpClient: HttpClient, private matFileUploadQueueService: MatFileUploadQueueService,
-              private matFileUploadService: MatFileUploadService) {
+              private matFileUploadService: MatFileUploadService, private messageHandlerService: MessageHandlerService) {
     const queueInput = this.matFileUploadQueueService.getInputValue();
     if (queueInput) {
       this.httpUrl = this.httpUrl || queueInput.httpUrl;
@@ -127,6 +128,7 @@ export class MatFileUploadComponent implements OnInit, OnDestroy {
           this.uploadInProgressSubject.next(false);
           const value = {file: this._file, event: event};
           this.matFileUploadService.setUploadedFile(value);
+          this.messageHandlerService.error('Error uploading template file: ' + JSON.stringify(error));
           this.onUpload.emit(value);
         },
         () => this.uploadInProgressSubject.next(false)

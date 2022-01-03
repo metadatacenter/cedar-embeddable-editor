@@ -1,5 +1,6 @@
 <app-static-header *ngIf="dataAvailableForRender() && showHeader"></app-static-header>
-<app-file-uploader [fileAlias]="templateUploadParamName"
+<app-file-uploader *ngIf="showTemplateUpload"
+                   [fileAlias]="templateUploadParamName"
                    [httpUrl]="templateUploadBaseUrl + templateUploadEndpoint"
 ></app-file-uploader>
 <mat-card class="template-card" *ngIf="dataAvailableForRender()">

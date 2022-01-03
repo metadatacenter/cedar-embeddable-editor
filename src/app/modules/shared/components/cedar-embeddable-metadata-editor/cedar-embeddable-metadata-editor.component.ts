@@ -32,6 +32,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private static COLLAPSE_STATIC_COMPONENTS = 'collapseStaticComponents';
 
+  private static SHOW_TEMPLATE_UPLOAD = 'showTemplateUpload';
   private static TEMPLATE_UPLOAD_BASE_URL = 'templateUploadBaseUrl';
   private static TEMPLATE_UPLOAD_ENDPOINT = 'templateUploadEndpoint';
   private static TEMPLATE_UPLOAD_PARAM_NAME = 'templateUploadParamName';
@@ -60,6 +61,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   collapseStaticComponents = true;
 
+  showTemplateUpload = false;
   templateUploadBaseUrl: string;
   templateUploadEndpoint: string;
   templateUploadParamName: string;
@@ -122,6 +124,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS)) {
         this.collapseStaticComponents = value[CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_UPLOAD)) {
+        this.showTemplateUpload = value[CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_UPLOAD];
       }
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_BASE_URL)) {
         this.templateUploadBaseUrl = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_BASE_URL];

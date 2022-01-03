@@ -8,6 +8,7 @@ import {Component} from '@angular/core';
 export class AppComponent {
 
   ceeConfig = {
+    showTemplateUpload: true,
     templateUploadResponseSuccess: 'success',
     // templateUploadBaseUrl: 'http://localhost:8000',
     templateUploadBaseUrl: 'https://api-php.cee.metadatacenter.orgx',
@@ -23,6 +24,7 @@ export class AppComponent {
     expandedSampleTemplateLinks: true,
 
     terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
+    // terminologyProxyUrl: 'http://localhost:8000/index.php',
     // terminologyProxyUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
     // showFooter: false,
     // showHeader: false,
