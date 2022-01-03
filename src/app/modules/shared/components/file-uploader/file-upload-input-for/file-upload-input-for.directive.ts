@@ -11,7 +11,7 @@ import {
  * A material design file upload queue component.
  */
 @Directive({
-  selector: "input[fileUploadInputFor], div[fileUploadInputFor]",
+  selector: "input[fileUploadInputFor], div[fileUploadInputFor], mat-card[fileUploadInputFor]",
 })
 export class FileUploadInputForDirective {
   private _queue: any = null;

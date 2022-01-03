@@ -1,9 +1,8 @@
 <input type="file" #singleFile id="singleFile"
-       [fileUploadInputFor]="fileUploadQueue" accept=".json" style="display: none;"/>
-<mat-card class="template-card container" appDnd>
-  <div [fileUploadInputFor]="fileUploadQueue">
-    <h3><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA/wD/AP+gvaeTAAAB6ElEQVRoge2Yu0oDQRSGvxgTciGaYEATQ0A0VSxEQdEmoIWINlZWgi9g66VR0SbvkQewShvQwsLGSgstAoFEC0FlwSuyFnE1CVGzO5uMC/M1O7Ozc2b/PefsXEChUChk4qqtZJbzem396HDx13a7nmlsN0OX1Y7/ksxyXm/2Bf/zeI73gOMFKBSKGtRvVAKOF9AtaiC9d+7VfOEDcK2CHjPTt/h5TU6VWw2jCi5yoaf7nfO99CvYIEDzh/fR2YCOpE4cnU3NHwbYgobVqBWS2UoF9Nj2XISRPo+ouV+5un0jW7gDuCltDcbAlhyohk27Xx4gFf0aY8AoOD6JlQDZ1Ano1ExcyF/ZZkuKB04KRdtESAshu0Q0nciMMGrlxKHYeMMEJ4Vq79nFlGUb0pNY1BN1HvjrfKZZu4l1zI+IeEK6BwysekJ4MSeKL+BhdiFFtD9IdCBour80D/QPhsjMD/P8+EYs2UNyOEIg6DVtR4qAsck4a+uTzMwNEer1cXpcsmxLioCllVE8HjdudxcTMwkuzq7RHp4t2ZKeA+PTCV5f3nF3W/uW0gUEgl5nT2Si2CGgAtXtXru5/B6jbBTEQ8hFDp3Nz71qp8gZBWEBoaf7Hc0fBp1VIC5q7w+MY5XdNo+jUCgULfIBp5GcmpZYTTIAAAAASUVORK5CYII=" style="vertical-align: middle"/>&nbsp;&nbsp; Drag and drop your CEDAR template file here or &nbsp;&nbsp;<label for="singleFile">Browse for file</label></h3>
-  </div>
+       [fileUploadInputFor]="fileUploadQueue"
+       [multiple]="false" [accept]="'.json'" style="display: none;"/>
+<mat-card class="template-card container" [fileUploadInputFor]="fileUploadQueue" appDnd>
+  <h3><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA/wD/AP+gvaeTAAAB6ElEQVRoge2Yu0oDQRSGvxgTciGaYEATQ0A0VSxEQdEmoIWINlZWgi9g66VR0SbvkQewShvQwsLGSgstAoFEC0FlwSuyFnE1CVGzO5uMC/M1O7Ozc2b/PefsXEChUChk4qqtZJbzem396HDx13a7nmlsN0OX1Y7/ksxyXm/2Bf/zeI73gOMFKBSKGtRvVAKOF9AtaiC9d+7VfOEDcK2CHjPTt/h5TU6VWw2jCi5yoaf7nfO99CvYIEDzh/fR2YCOpE4cnU3NHwbYgobVqBWS2UoF9Nj2XISRPo+ouV+5un0jW7gDuCltDcbAlhyohk27Xx4gFf0aY8AoOD6JlQDZ1Ano1ExcyF/ZZkuKB04KRdtESAshu0Q0nciMMGrlxKHYeMMEJ4Vq79nFlGUb0pNY1BN1HvjrfKZZu4l1zI+IeEK6BwysekJ4MSeKL+BhdiFFtD9IdCBour80D/QPhsjMD/P8+EYs2UNyOEIg6DVtR4qAsck4a+uTzMwNEer1cXpcsmxLioCllVE8HjdudxcTMwkuzq7RHp4t2ZKeA+PTCV5f3nF3W/uW0gUEgl5nT2Si2CGgAtXtXru5/B6jbBTEQ8hFDp3Nz71qp8gZBWEBoaf7Hc0fBp1VIC5q7w+MY5XdNo+jUCgULfIBp5GcmpZYTTIAAAAASUVORK5CYII=" style="vertical-align: middle"/>&nbsp;&nbsp; Drag and drop your CEDAR template file here or &nbsp;&nbsp;<label for="singleFile">Browse for file</label></h3>
 </mat-card>
 <mat-file-upload-queue #fileUploadQueue [fileAlias]="fileAlias" [httpUrl]="httpUrl">
   <mat-file-upload [file]="file" [id]="i" *ngFor="let file of fileUploadQueue.files; let i = index"
