@@ -1,5 +1,5 @@
 <app-static-header *ngIf="dataAvailableForRender() && showHeader"></app-static-header>
-<app-file-uploader *ngIf="showTemplateUpload"
+<app-file-uploader *ngIf="dataAvailableForRender() && showTemplateUpload"
                    [fileAlias]="templateUploadParamName"
                    [httpUrl]="templateUploadBaseUrl + templateUploadEndpoint"
 ></app-file-uploader>
