@@ -210,6 +210,17 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 
   private getDefaultDate(): Moment {
     const dt = moment();
+    const format = this.dateFormat();
+
+    switch (format) {
+      case DatePickerComponent.YEAR_MONTH_FORMAT:
+        dt.set('date', 1);
+        break;
+      case DatePickerComponent.YEAR_FORMAT:
+        dt.set('date', 1);
+        dt.set('month', 0);
+        break;
+    }
     return dt;
   }
 
