@@ -50,6 +50,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     }
     const parentNodeInfo = this.handlerContext.getParentDataObjectNodeByPath(this.component.path);
 
+    // no need to process if the value has not changed
     if (JSON.stringify(parentNodeInfo) === this.parentNodeInfoStr) {
       return this.multiInstanceValue;
     } else {
@@ -61,12 +62,16 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
         if (typeof fieldName === 'string') {
           infoArray.push(fieldName + '=' + parentNodeInfo[fieldName][JsonSchema.atValue]);
         } else if (typeof fieldName === 'object') {
-          infoArray.push((index + 1) + ': ' + (fieldName[JsonSchema.atValue] || 'null'));
+          if (fieldName.hasOwnProperty(JsonSchema.atValue)) {
+            infoArray.push((index + 1) + ': ' + (fieldName[JsonSchema.atValue] || 'null'));
+          } else if (fieldName.hasOwnProperty(JsonSchema.atId)) {
+            // controlled field
+            infoArray.push((index + 1) + ': ' + (fieldName[JsonSchema.rdfsLabel] || 'null'));
+          }
         }
       });
       info = infoArray.join(', ');
       this.parentNodeInfoStr = JSON.stringify(parentNodeInfo);
-
       return info || '';
     }
   }

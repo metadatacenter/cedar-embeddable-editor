@@ -59,24 +59,12 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
     }
     this.inputValueControl = new FormControl(null, validators);
 
-
-
-
-
-
-
-
-    // if (this.component.valueInfo.defaultValue != null) {
-    //   this.setValueUIAndModel(this.component.valueInfo.defaultValue);
-    // }
-
-
-
-
-
-
-
-
+    if (this.component.valueInfo.defaultValue &&
+      typeof this.component.valueInfo.defaultValue === 'object' &&
+      (this.component.valueInfo.defaultValue as object).hasOwnProperty(JsonSchema.termUri)) {
+      this.setValueUIAndModel(this.component.valueInfo.defaultValue[JsonSchema.termUri],
+        this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel]);
+    }
 
     this.filteredOptions = this.inputValueControl.valueChanges
       .pipe(
@@ -121,13 +109,17 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   }
 
   setCurrentValue(currentValue: any): void {
-    // TODO: Implement this
-    // this.messageHandlerService.trace('TODO: implement CedarInputControlledComponent.setCurrentValue');
+    this.inputValueControl.setValue(currentValue);
   }
 
   clearValue(): void {
     this.inputValueControl.setValue(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
+  }
+
+  private setValueUIAndModel(atId: string, prefLabel: string): void {
+    this.inputValueControl.setValue(prefLabel);
+    this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
   }
 
 }
