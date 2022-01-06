@@ -31,6 +31,7 @@ export class ActiveComponentRegistryService {
     if (component instanceof SingleFieldComponent) {
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
+
       if (uiComponent != null && dataObject != null) {
         if (dataObject.hasOwnProperty(JsonSchema.atValue)) {
           uiComponent.setCurrentValue(dataObject[JsonSchema.atValue]);

@@ -78,19 +78,17 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   }
 
   filter(val: string): Observable<IntegratedSearchResponseItem[]> {
-    return this.controlledFieldDataService.getData(val, this.component)
-      .pipe(
-        map(response => {
-            if (response == null) {
-              return null;
-            } else {
-              return response.collection.filter(option => {
-                return option.prefLabel.toLowerCase().indexOf(val.toLowerCase()) === 0;
-              });
-            }
-          }
-        )
-      );
+    return this.controlledFieldDataService.getData(val, this.component).pipe(
+      map(response => {
+        if (response == null) {
+          return null;
+        } else {
+          return response.collection.filter(option => {
+            return option.prefLabel.toLowerCase().indexOf(val.toLowerCase()) === 0;
+          });
+        }
+      })
+    );
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {

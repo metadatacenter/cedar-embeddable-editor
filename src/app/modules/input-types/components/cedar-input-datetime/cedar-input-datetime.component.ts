@@ -393,7 +393,6 @@ export class DatetimeRepresentation {
     if (this.timezoneIsSet) {
       formatArr.push('Z');
     }
-
     return m.format(formatArr.join(''));
   }
 
@@ -423,7 +422,6 @@ export class DatetimeRepresentation {
     if (this.timezoneIsSet) {
       dateStr += this.timezoneOffset;
     }
-
     return dateStr;
   }
 

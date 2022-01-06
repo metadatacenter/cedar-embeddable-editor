@@ -112,7 +112,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   private pageChanged($event: PageEvent): void {
     this.pageSize = $event.pageSize;
     this.firstIndex = $event.pageIndex * $event.pageSize;
-    this.handlerContext.multiInstanceObjectService.setCurrentIndex(this.component, this.firstIndex);
+    this.handlerContext.setCurrentIndex(this.component, this.firstIndex);
     this.computeLastIndex();
     this.updatePageNumbers();
     this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
@@ -153,6 +153,11 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     //   label: this.datetimeParsed.timezoneName
     // };
     // this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
+
+    // nothing has changed, the same page number is clicked
+    if (chipIdx === this.currentMultiInfo.currentIndex) {
+      return;
+    }
     this.handlerContext.setCurrentIndex(this.component, chipIdx);
     this.recomputeNumbers();
     const that = this;
@@ -232,4 +237,5 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   hasMultiInstances(): boolean {
     return this.currentMultiInfo.currentCount > 0;
   }
+
 }
