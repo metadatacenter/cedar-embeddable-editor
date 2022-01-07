@@ -1,0 +1,9 @@
+<div class="flex-container">
+  <div class="flex-child1">
+    <div *ngIf="showSuccess" class="my-notify-success">{{successMessage}}</div>
+    <div *ngIf="showError" class="my-notify-error">{{errorMessage}}</div>
+  </div>
+  <div class="flex-child2">
+    <button mat-raised-button color="primary" (click)="saveTemplate($event)">Save JSON-LD</button>
+  </div>
+</div>

@@ -16,6 +16,9 @@
         [handlerContext]="handlerContext"
       ></app-cedar-component-renderer>
     </ng-container>
+    <app-cedar-data-saver
+      [dataContext]="dataContext"
+    ></app-cedar-data-saver>
   </mat-card-content>
 </mat-card>
 <app-source-panels *ngIf="dataAvailableForRender()"
@@ -25,7 +28,6 @@
                    [showTemplateSourceData]="showTemplateSourceData"
                    [showInstanceDataCore]="showInstanceDataCore"
                    [showInstanceDataFull]="showInstanceDataFull"
-
                    [expandedTemplateRenderingRepresentation]="expandedTemplateRenderingRepresentation"
                    [expandedMultiInstanceInfo]="expandedMultiInstanceInfo"
                    [expandedTemplateSourceData]="expandedTemplateSourceData"

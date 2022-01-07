@@ -20,6 +20,7 @@ import {MatGridListModule} from '@angular/material/grid-list';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {CedarEmbeddableMetadataEditorComponent} from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import {CedarComponentRendererComponent} from './components/cedar-component-renderer/cedar-component-renderer.component';
+import {CedarDataSaverComponent} from './components/cedar-data-saver/cedar-data-saver.component';
 import {StaticFooterComponent} from './components/static-footer/static-footer.component';
 import {StaticHeaderComponent} from './components/static-header/static-header.component';
 import {SourcePanelsComponent} from './components/source-panels/source-panels.component';
@@ -59,6 +60,7 @@ import {SampleTemplatesComponent} from './components/sample-templates/sample-tem
     CedarEmbeddableMetadataEditorWrapperComponent,
     SampleTemplatesComponent,
     CedarComponentRendererComponent,
+    CedarDataSaverComponent,
     StaticFooterComponent,
     StaticHeaderComponent,
     SourcePanelsComponent,
