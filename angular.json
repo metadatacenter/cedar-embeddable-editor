@@ -32,7 +32,7 @@
             "styles": [
               "src/styles.scss",
               "src/styles-own.scss",
-              "../node_modules/font-awesome/css/font-awesome.css"
+              "node_modules/font-awesome/css/font-awesome.css"
             ],
             "scripts": [
               "node_modules/@webcomponents/custom-elements/src/native-shim.js"
