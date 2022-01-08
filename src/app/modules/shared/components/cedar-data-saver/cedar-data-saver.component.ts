@@ -35,7 +35,6 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
 
   saveTemplate(event): void {
     this.httpPostSubscription.add(
-
       this.httpPost().subscribe(
         (data: any) => {
           if (data instanceof HttpResponse) {
@@ -67,10 +66,12 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
         },
         () => {
           // remove success message in SUCCESS_MESSAGE_TIMEOUT seconds (
-          setTimeout(() => {
-            this.showSuccess = false;
-            this.successMessage = '';
-          }, CedarDataSaverComponent.SUCCESS_MESSAGE_TIMEOUT);
+          if (this.showSuccess) {
+            setTimeout(() => {
+              this.showSuccess = false;
+              this.successMessage = '';
+            }, CedarDataSaverComponent.SUCCESS_MESSAGE_TIMEOUT);
+          }
         }
       )
     );
