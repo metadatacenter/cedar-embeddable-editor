@@ -37,6 +37,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private static TEMPLATE_UPLOAD_ENDPOINT = 'templateUploadEndpoint';
   private static TEMPLATE_UPLOAD_PARAM_NAME = 'templateUploadParamName';
 
+  private static SHOW_DATA_SAVER = 'showDataSaver';
+  private static DATA_SAVER_ENDPOINT_URL = 'dataSaverEndpointUrl';
+
   private readonly dataContext: DataContext = null;
   private readonly handlerContext: HandlerContext = null;
 
@@ -65,6 +68,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   templateUploadBaseUrl: string;
   templateUploadEndpoint: string;
   templateUploadParamName: string;
+
+  showDataSaver = false;
+  dataSaverEndpointUrl: string;
 
   @ViewChild(MatAccordion) accordion: MatAccordion;
 
@@ -136,6 +142,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_PARAM_NAME)) {
         this.templateUploadParamName = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_PARAM_NAME];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_DATA_SAVER)) {
+        this.showDataSaver = value[CedarEmbeddableMetadataEditorComponent.SHOW_DATA_SAVER];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.DATA_SAVER_ENDPOINT_URL)) {
+        this.dataSaverEndpointUrl = value[CedarEmbeddableMetadataEditorComponent.DATA_SAVER_ENDPOINT_URL];
       }
     }
   }

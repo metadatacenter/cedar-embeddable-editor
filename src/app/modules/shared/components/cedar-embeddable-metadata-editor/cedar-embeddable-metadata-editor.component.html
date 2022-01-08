@@ -16,8 +16,9 @@
         [handlerContext]="handlerContext"
       ></app-cedar-component-renderer>
     </ng-container>
-    <app-cedar-data-saver
-      [dataContext]="dataContext"
+    <app-cedar-data-saver *ngIf="showDataSaver"
+                          [endpointUrl]="dataSaverEndpointUrl"
+                          [dataContext]="dataContext"
     ></app-cedar-data-saver>
   </mat-card-content>
 </mat-card>
