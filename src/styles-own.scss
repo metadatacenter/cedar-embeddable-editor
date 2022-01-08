@@ -217,7 +217,7 @@ app-sample-templates {
   display: inline-block;
   text-decoration: inherit;
   width: 1em;
-  margin-right: .2em;
+  margin-right: .8em;
   text-align: center;
   font-variant: normal;
   text-transform: none;
@@ -232,7 +232,7 @@ app-sample-templates {
 }
 
 .notify-success:before {
-  content: '\f00c';
+  content: '\f058';
 }
 
 .notify-error:before {
@@ -241,6 +241,12 @@ app-sample-templates {
 
 .notify-warning:before {
   content: '\f071';
+}
+
+.notify-progress-icon {
+  margin-right: .8em;
+  line-height: 1em;
+  margin-left: .2em;
 }
 
 .notify-info {
@@ -269,6 +275,27 @@ app-sample-templates {
 
 .notify-progress {
   color: #383d41;
-  background-color: #e2e3e5;
+  background-color: #eeeeee;
   border-color: #d6d8db;
+}
+
+.close {
+  float: right;
+  font-size: 1.5rem;
+  line-height: 1;
+  text-shadow: 0 1px 0 #fff;
+  opacity: .5;
+  color: inherit;
+}
+
+.close:hover {
+  opacity: 1;
+}
+
+button.close {
+  cursor: pointer;
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  -webkit-appearance: none;
 }

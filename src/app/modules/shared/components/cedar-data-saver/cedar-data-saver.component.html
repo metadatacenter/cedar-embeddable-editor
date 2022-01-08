@@ -1,8 +1,16 @@
 <div class="flex-container">
-  <div class="flex-child1">
-    <div *ngIf="showProgress" class="notify-progress"><i class="fa fa-spinner fa-pulse"></i> {{progressMessage}}</div>
-    <div *ngIf="showSuccess" class="notify-success">{{successMessage}}</div>
-    <div *ngIf="showError" class="notify-error">{{errorMessage}}</div>
+  <div class="flex-child1" *ngIf="showProgress || showSuccess || showError">
+    <div *ngIf="showProgress" class="notify-progress"><i class="fa fa-spinner fa-pulse notify-progress-icon"></i>{{progressMessage}}</div>
+    <div *ngIf="showSuccess" class="notify-success">{{successMessage}}
+      <button type="button" class="close" (click)="showSuccess = false">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div *ngIf="showError" class="notify-error">{{errorMessage}}
+      <button type="button" class="close" (click)="showError = false">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
   </div>
   <div class="flex-child2">
     <button mat-raised-button color="primary" (click)="saveTemplate($event)">Save JSON-LD</button>

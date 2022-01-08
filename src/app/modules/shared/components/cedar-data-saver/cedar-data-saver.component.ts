@@ -12,12 +12,12 @@ export class CedarDataSaverComponent implements OnInit {
 
   private component: CedarComponent;
   @Input() dataContext: DataContext = null;
-  showProgress = false;
-  showSuccess = false;
-  showError = false;
+  showProgress = true;
+  showSuccess = true;
+  showError = true;
   progressMessage = 'Processing...';
-  successMessage = '';
-  errorMessage = '';
+  successMessage = 'This is great';
+  errorMessage = 'That is NOT cool';
 
 
   constructor() {
