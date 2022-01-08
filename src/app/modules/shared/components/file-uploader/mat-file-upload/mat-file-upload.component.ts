@@ -62,16 +62,15 @@ export class MatFileUploadComponent implements OnInit, OnDestroy {
   }
 
   @Input()
-  fileUploadAriaLabel = "File Upload";
+  fileUploadAriaLabel = 'File Upload';
 
   @Input()
-  cancelAriaLabel = "Cancel File Upload";
+  cancelAriaLabel = 'Cancel File Upload';
 
   /** Output  */
   @Output() removeEvent = new EventEmitter<MatFileUploadComponent>();
   @Output() onUpload = new EventEmitter();
 
-  private fileUploadSubscription: any;
 
   constructor(private httpClient: HttpClient, private matFileUploadQueueService: MatFileUploadQueueService,
               private matFileUploadService: MatFileUploadService, private messageHandlerService: MessageHandlerService) {
@@ -86,7 +85,7 @@ export class MatFileUploadComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.uploadProgressSubject.next({
       progressPercentage: 0,
       loaded: 0,
@@ -122,9 +121,6 @@ export class MatFileUploadComponent implements OnInit, OnDestroy {
           this.onUpload.emit(value);
         },
         (error: any) => {
-          if (this.fileUploadSubscription) {
-            this.fileUploadSubscription.unsubscribe();
-          }
           this.uploadInProgressSubject.next(false);
           const value = {file: this._file, event: event};
           this.matFileUploadService.setUploadedFile(value);
@@ -141,7 +137,7 @@ export class MatFileUploadComponent implements OnInit, OnDestroy {
     this.removeEvent.emit(this);
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subs.unsubscribe();
   }
 }

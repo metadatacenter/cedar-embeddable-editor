@@ -13,15 +13,16 @@
   }
 }
 
-.flex-container {
+.flex-container-file-upload {
   display: flex;
+
+  .flex-child1 {
+    width: 50px;
+    margin-right: 5px;
+  }
+
+  .flex-child2 {
+    flex: 1 100%;
+  }
 }
 
-.flex-child1 {
-  width: 50px;
-  margin-right: 5px;
-}
-
-.flex-child2 {
-  flex: 1 100%;
-}

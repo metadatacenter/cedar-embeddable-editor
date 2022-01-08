@@ -1,16 +1,18 @@
-.flex-container {
+.flex-container-data-saver {
   display: flex;
   align-items: center;
   justify-content: right;
   margin-bottom: 20px;
+
+  .flex-child1 {
+    flex: 1 100%;
+  }
+
+  .flex-child2 {
+    width: 170px;
+    text-align: right;
+    margin-right: 17px;
+  }
+
 }
 
-.flex-child1 {
-  flex: 1 100%;
-}
-
-.flex-child2 {
-  width: 170px;
-  text-align: right;
-  margin-right: 17px;
-}

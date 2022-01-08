@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import {CedarComponent} from '../../models/component/cedar-component.model';
 import {DataContext} from '../../util/data-context';
 
@@ -8,16 +8,16 @@ import {DataContext} from '../../util/data-context';
   styleUrls: ['./cedar-data-saver.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CedarDataSaverComponent implements OnInit {
+export class CedarDataSaverComponent implements OnInit, OnDestroy {
 
   private component: CedarComponent;
   @Input() dataContext: DataContext = null;
-  showProgress = true;
-  showSuccess = true;
-  showError = true;
+  showProgress = false;
+  showSuccess = false;
+  showError = false;
   progressMessage = 'Processing...';
-  successMessage = 'This is great';
-  errorMessage = 'That is NOT cool';
+  successMessage = '';
+  errorMessage = '';
 
 
   constructor() {
@@ -36,6 +36,11 @@ export class CedarDataSaverComponent implements OnInit {
 
   stopPropagation(event): void {
     event.stopPropagation();
+  }
+
+
+  ngOnDestroy(): void {
+
   }
 
 }
