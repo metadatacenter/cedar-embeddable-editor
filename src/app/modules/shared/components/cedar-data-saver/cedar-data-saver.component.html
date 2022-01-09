@@ -1,6 +1,6 @@
 <div class="flex-container-data-saver">
   <div class="flex-child1" *ngIf="showProgress || showSuccess || showError">
-    <div *ngIf="showProgress" class="notify-progress"><i class="fa fa-spinner fa-pulse notify-progress-icon"></i>{{progressMessage}}</div>
+    <div *ngIf="showProgress" class="notify-progress"><mat-spinner [diameter]="16" class="notify-progress-icon"></mat-spinner>{{progressMessage}}</div>
     <div *ngIf="showSuccess" class="notify-success">{{successMessage}}
       <button type="button" class="close" (click)="showSuccess = false">
         <span aria-hidden="true">&times;</span>

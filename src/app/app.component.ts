@@ -29,10 +29,6 @@ export class AppComponent {
     terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
     // terminologyProxyUrl: 'http://localhost:8000/index.php',
     // terminologyProxyUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
-    showFooter: true,
-    showHeader: true,
-
-    // showTemplateRenderingRepresentation: true,
     showInstanceDataCore: true,
     showMultiInstanceInfo: true,
 

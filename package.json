@@ -31,7 +31,6 @@
     "@ng-select/ng-select": "^8.1.1",
     "@webcomponents/custom-elements": "^1.4.3",
     "elements-zone-strategy": "^10.0.0",
-    "font-awesome": "^4.7.0",
     "lodash-es": "^4.17.15",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.34",

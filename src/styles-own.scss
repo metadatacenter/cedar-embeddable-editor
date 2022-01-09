@@ -202,6 +202,11 @@ app-sample-templates {
   margin: 15px 0;
 }
 
+
+
+
+
+
 .notify-info, .notify-success, .notify-error, .notify-warning, .notify-progress {
   padding: 15px;
   margin: 10px 0;
@@ -210,9 +215,11 @@ app-sample-templates {
 }
 
 .notify-info:before, .notify-success:before, .notify-error:before, .notify-warning:before, .notify-progress:before {
-  font-family: FontAwesome;
+  font-family: 'Material Icons';
   font-style: normal;
   font-weight: 400;
+  font-size: 18px;
+  vertical-align: middle;
   speak: none;
   display: inline-block;
   text-decoration: inherit;
@@ -228,25 +235,27 @@ app-sample-templates {
 }
 
 .notify-info:before {
-  content: "\f05a";
+  content: "\e88e";
 }
 
 .notify-success:before {
-  content: '\f058';
+  content: '\e86c';
 }
 
 .notify-error:before {
-  content: '\f057';
+  content: '\e000';
 }
 
 .notify-warning:before {
-  content: '\f071';
+  content: '\e002';
 }
 
 .notify-progress-icon {
   margin-right: .8em;
   line-height: 1em;
   margin-left: .2em;
+  float:left;
+  margin-top: 2px;
 }
 
 .notify-info {
@@ -282,7 +291,7 @@ app-sample-templates {
 .close {
   float: right;
   font-size: 1.5rem;
-  line-height: 1;
+  line-height: .9;
   text-shadow: 0 1px 0 #fff;
   opacity: .5;
   color: inherit;

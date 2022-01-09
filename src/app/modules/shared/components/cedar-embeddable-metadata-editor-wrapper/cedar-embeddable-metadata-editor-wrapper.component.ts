@@ -18,8 +18,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   static TERMINOLOGY_PROXY_URL = 'terminologyProxyUrl';
   static SHOW_SPINNER_BEFORE_INIT = 'showSpinnerBeforeInit';
   static TEMPLATE_UPLOAD_RESPONSE_SUCCESS = 'templateUploadResponseSuccess';
-
-  static SHOW_TEMPLATE_UPLOAD = 'showTemplateUpload';
   static TEMPLATE_UPLOAD_BASE_URL = 'templateUploadBaseUrl';
   static TEMPLATE_DOWNLOAD_ENDPOINT = 'templateDownloadEndpoint';
   static TEMPLATE_DOWNLOAD_PARAM_NAME = 'templateDownloadParamName';
@@ -44,35 +42,30 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   ngOnInit(): void {
-    if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.SHOW_TEMPLATE_UPLOAD) &&
-      this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.SHOW_TEMPLATE_UPLOAD]) {
-      this.uploadFileSubscription = this.matFileUploadService.uploadedFile$.subscribe(fileInfo => {
-        if (fileInfo && fileInfo['event'] instanceof HttpResponse) {
-          const status = fileInfo['event']['body']['status'];
+    this.uploadFileSubscription = this.matFileUploadService.uploadedFile$.subscribe(fileInfo => {
+      if (fileInfo && fileInfo['event'] instanceof HttpResponse) {
+        const status = fileInfo['event']['body']['status'];
 
-          if (status === this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_RESPONSE_SUCCESS]) {
-            if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_BASE_URL) &&
-              this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT) &&
-              this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME)) {
-              const filename = fileInfo['event']['body']['filename'];
-              const templateUrl = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_BASE_URL] +
-                this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT] + '?' +
-                this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME] + '=' + filename;
-              this.loadTemplateByURL(templateUrl);
-            }
+        if (status === this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_RESPONSE_SUCCESS]) {
+          if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_BASE_URL) &&
+            this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT) &&
+            this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME)) {
+            const filename = fileInfo['event']['body']['filename'];
+            const templateUrl = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_BASE_URL] +
+              this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT] + '?' +
+              this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME] + '=' + filename;
+            this.loadTemplateByURL(templateUrl);
           }
         }
-      });
-    }
+      }
+    });
     this.initialized = true;
     this.doInitialize();
   }
 
   ngOnDestroy(): void {
     // prevent memory leak when component is destroyed
-    if (this.uploadFileSubscription) {
-      this.uploadFileSubscription.unsubscribe();
-    }
+    this.uploadFileSubscription.unsubscribe();
   }
 
   @Input() set config(value: object) {
