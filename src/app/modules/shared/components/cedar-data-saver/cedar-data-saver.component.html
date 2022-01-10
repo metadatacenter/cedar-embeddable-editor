@@ -2,12 +2,12 @@
   <div class="flex-child1" *ngIf="showProgress || showSuccess || showError">
     <div *ngIf="showProgress" class="notify-progress"><mat-spinner [diameter]="16" class="notify-progress-icon"></mat-spinner>{{progressMessage}}</div>
     <div *ngIf="showSuccess" class="notify-success">{{successMessage}}
-      <button type="button" class="close" (click)="showSuccess = false">
+      <button type="button" class="close" (click)="clearSuccess()">
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
     <div *ngIf="showError" class="notify-error">{{errorMessage}}
-      <button type="button" class="close" (click)="showError = false">
+      <button type="button" class="close" (click)="clearError()">
         <span aria-hidden="true">&times;</span>
       </button>
     </div>

@@ -38,9 +38,9 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
       this.httpPost().subscribe(
         (data: any) => {
           if (data instanceof HttpResponse) {
-            this.showProgress = false;
+            this.clearProgress();
+            this.clearError();
             this.showSuccess = true;
-            this.showError = false;
             this.successMessage = 'JSON-LD submitted successfully';
 
 
@@ -49,14 +49,14 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
 
 
           } else {
+            this.clearSuccess();
+            this.clearError();
             this.showProgress = true;
-            this.showSuccess = false;
-            this.showError = false;
           }
         },
         (error: any) => {
-          this.showProgress = false;
-          this.showSuccess = false;
+          this.clearProgress();
+          this.clearSuccess();
           this.showError = true;
           this.errorMessage = 'JSON-LD submission failed';
 
@@ -68,8 +68,7 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
           // remove success message in SUCCESS_MESSAGE_TIMEOUT seconds (
           if (this.showSuccess) {
             setTimeout(() => {
-              this.showSuccess = false;
-              this.successMessage = '';
+              this.clearSuccess();
             }, CedarDataSaverComponent.SUCCESS_MESSAGE_TIMEOUT);
           }
         }
@@ -91,6 +90,20 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
       reportProgress: true,
       responseType: 'json',
     });
+  }
+
+  clearProgress(): void {
+    this.showProgress = false;
+  }
+
+  clearSuccess(): void {
+    this.showSuccess = false;
+    this.successMessage = '';
+  }
+
+  clearError(): void {
+    this.showError = false;
+    this.errorMessage = '';
   }
 
   stopPropagation(event): void {

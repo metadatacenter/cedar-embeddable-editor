@@ -122,7 +122,7 @@ export class MatFileUploadComponent implements OnInit, OnDestroy {
         },
         (error: any) => {
           this.uploadInProgressSubject.next(false);
-          const value = {file: this._file, event: event};
+          const value = {file: this._file, event: error};
           this.matFileUploadService.setUploadedFile(value);
           this.messageHandlerService.error('Error uploading template file: ' + JSON.stringify(error));
           this.onUpload.emit(value);
