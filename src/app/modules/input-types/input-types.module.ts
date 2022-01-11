@@ -46,8 +46,6 @@ import {TimezonePickerComponent} from '../shared/components/timezone-picker/time
 import {MatFileUploadModule} from '../shared/components/file-uploader/mat-file-upload.module';
 import {FileUploaderComponent} from '../shared/components/file-uploader/file-uploader.component';
 
-// import {CKEditorModule} from '@ckeditor/ckeditor5-angular';
-
 
 @NgModule({
   imports: [

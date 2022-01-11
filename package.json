@@ -26,8 +26,6 @@
     "@angular/platform-browser-dynamic": "~12.2.14",
     "@angular/router": "~12.2.14",
     "@angular/youtube-player": "^11.0.0",
-    "@ckeditor/ckeditor5-angular": "^2.0.2",
-    "@ckeditor/ckeditor5-build-classic": "^29.2.0",
     "@ng-select/ng-select": "^8.1.1",
     "@webcomponents/custom-elements": "^1.4.3",
     "elements-zone-strategy": "^10.0.0",

@@ -6,6 +6,7 @@ import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.mod
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
 import {ErrorStateMatcher} from '@angular/material/core';
+import {InputType} from '../../../shared/models/input-type.model';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -29,6 +30,7 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   constraintMinLength = null;
   constraintMaxLength = null;
   @Input() handlerContext: HandlerContext;
+  inputType: InputType = InputType;
 
   constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
     super();

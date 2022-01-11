@@ -46,7 +46,8 @@
       <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType==inputType.numeric"
                                [componentToRender]="nonIterableComponent"
                                [handlerContext]="handlerContext"></app-cedar-input-numeric>
-      <app-cedar-input-text *ngIf="nonIterableComponent.basicInfo.inputType==inputType.text"
+      <app-cedar-input-text *ngIf="nonIterableComponent.basicInfo.inputType==inputType.text ||
+                                    nonIterableComponent.basicInfo.inputType==inputType.textarea"
                             [componentToRender]="nonIterableComponent"
                             [handlerContext]="handlerContext"></app-cedar-input-text>
       <app-cedar-input-controlled *ngIf="nonIterableComponent.basicInfo.inputType==inputType.controlled"
