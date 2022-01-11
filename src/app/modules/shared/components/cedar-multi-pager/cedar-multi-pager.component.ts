@@ -30,7 +30,6 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   pageNumbers: number[] = [];
 
   multiInstanceValue: string;
-  parentNodeInfoStr: string;
 
   constructor(activeComponentRegistry: ActiveComponentRegistryService) {
     this.activeComponentRegistry = activeComponentRegistry;
@@ -49,31 +48,27 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
       return '';
     }
     const parentNodeInfo = this.handlerContext.getParentDataObjectNodeByPath(this.component.path);
+    const nodeInfo = this.handlerContext.getDataObjectNodeByPath(this.component.path);
+    let info = '';
+    const infoArray = [];
 
-    // no need to process if the value has not changed
-    if (JSON.stringify(parentNodeInfo) === this.parentNodeInfoStr) {
-      return this.multiInstanceValue;
-    } else {
-      const nodeInfo = this.handlerContext.getDataObjectNodeByPath(this.component.path);
-      let info = '';
-      const infoArray = [];
+    (nodeInfo as Array<any>).forEach((fieldName, index) => {
+      const numStr = '<span class="multiinfo-index' + ((index > 0) ? ' not-first' : '') +
+        ((index === this.currentMultiInfo.currentIndex) ? ' current' : '') + '">' + (index + 1) + '</span> ';
 
-      (nodeInfo as Array<any>).forEach((fieldName, index) => {
-        if (typeof fieldName === 'string') {
-          infoArray.push(fieldName + '=' + parentNodeInfo[fieldName][JsonSchema.atValue]);
-        } else if (typeof fieldName === 'object') {
-          if (fieldName.hasOwnProperty(JsonSchema.atValue)) {
-            infoArray.push((index + 1) + ': ' + (fieldName[JsonSchema.atValue] || 'null'));
-          } else if (fieldName.hasOwnProperty(JsonSchema.atId)) {
-            // controlled field
-            infoArray.push((index + 1) + ': ' + (fieldName[JsonSchema.rdfsLabel] || 'null'));
-          }
+      if (typeof fieldName === 'string') {
+        infoArray.push(numStr + fieldName + '=' + parentNodeInfo[fieldName][JsonSchema.atValue]);
+      } else if (typeof fieldName === 'object') {
+        if (fieldName.hasOwnProperty(JsonSchema.atValue)) {
+          infoArray.push(numStr + (fieldName[JsonSchema.atValue] || 'null'));
+        } else if (fieldName.hasOwnProperty(JsonSchema.atId)) {
+          // controlled field
+          infoArray.push(numStr + (fieldName[JsonSchema.rdfsLabel] || 'null'));
         }
-      });
-      info = infoArray.join(', ');
-      this.parentNodeInfoStr = JSON.stringify(parentNodeInfo);
-      return info || '';
-    }
+      }
+    });
+    info = infoArray.join('');
+    return info || '';
   }
 
   @Input() set componentToRender(componentToRender: MultiComponent) {

@@ -1,6 +1,5 @@
-<div *ngIf="component && currentMultiInfo && multiInstanceValue" class="info-box">
-  {{multiInstanceValue}}
-</div>
+<div *ngIf="component && currentMultiInfo && multiInstanceValue" class="info-box"
+     [innerHTML]="multiInstanceValue | keepHtml"></div>
 <div *ngIf="component && currentMultiInfo" class="pager-container">
   <div class="pager-chips">
     <mat-chip-list>
