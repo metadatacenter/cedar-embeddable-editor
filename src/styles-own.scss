@@ -186,24 +186,25 @@ app-sample-templates {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 30px;
 
   .mat-progress-spinner {
-    margin-right: 10px;
+    float:left;
+    margin-right: 20px;
   }
 }
 
 .info-box {
-  color: #004085;
-  background-color: #cce5ff;
+  color: #383d41;
+  background-color: #e8e8e8;
   padding: 15px;
-  border: 1px solid #b8daff;
+  border: 1px solid #d6d8db;
   border-radius: 0.25rem;
   margin: 15px 0;
 }
 
 .notify-info, .notify-success, .notify-error, .notify-warning, .notify-progress {
   padding: 15px;
-  margin: 10px 0;
   border: 1px solid transparent;
   border-radius: 0.25rem;
 }

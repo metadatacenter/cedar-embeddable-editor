@@ -41,7 +41,7 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
             this.clearProgress();
             this.clearError();
             this.showSuccess = true;
-            this.successMessage = 'JSON-LD submitted successfully';
+            this.successMessage = 'Metadata saved successfully';
 
 
             console.log('Data received from the server:');
@@ -58,7 +58,7 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
           this.clearProgress();
           this.clearSuccess();
           this.showError = true;
-          this.errorMessage = 'JSON-LD submission failed';
+          this.errorMessage = 'Metadata save failed';
 
           if (typeof error === 'object' && error.hasOwnProperty('message')) {
             this.errorMessage += ' with an error: ' + error['message'];
