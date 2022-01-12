@@ -30,7 +30,8 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   constraintMinLength = null;
   constraintMaxLength = null;
   @Input() handlerContext: HandlerContext;
-  inputType: InputType = InputType;
+  inputText = InputType.text;
+  inputTextarea = InputType.textarea;
 
   constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
     super();
