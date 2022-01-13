@@ -119,8 +119,6 @@ body {
   background-image: url('/assets/images/cedar-logo-80x80.png');
   background-repeat: no-repeat;
   background-size: cover;
-  padding: 0px;
-  margin: 0px;
   width: 70px;
   height: 70px;
 }
@@ -134,9 +132,10 @@ body {
 .pager-container {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: right;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  margin-top: 10px;
 }
 
 .pager-chips {
@@ -200,7 +199,8 @@ app-sample-templates {
   padding: 15px;
   border: 1px solid #d6d8db;
   border-radius: 0.25rem;
-  margin: 15px 0;
+  margin-top: 20px;
+  margin-bottom: 10px;
 }
 
 .notify-info, .notify-success, .notify-error, .notify-warning, .notify-progress {
@@ -227,7 +227,6 @@ app-sample-templates {
   margin-left: .2em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  margin-bottom: 1px;
 }
 
 .notify-info:before {

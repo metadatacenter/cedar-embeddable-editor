@@ -2,6 +2,7 @@ import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/c
 import {DataContext} from '../../util/data-context';
 import {HttpClient, HttpHeaders, HttpParams, HttpResponse} from '@angular/common/http';
 import {Observable, Subscription} from 'rxjs';
+import {MessageHandlerService} from '../../service/message-handler.service';
 
 @Component({
   selector: 'app-cedar-data-saver',
@@ -27,7 +28,7 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
   errorMessage = '';
 
 
-  constructor(private httpClient: HttpClient) {
+  constructor(private httpClient: HttpClient, private messageHandlerService: MessageHandlerService) {
   }
 
   ngOnInit(): void {
@@ -58,10 +59,10 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
           this.clearProgress();
           this.clearSuccess();
           this.showError = true;
-          this.errorMessage = 'Metadata save failed';
+          this.errorMessage = 'Error saving metadata';
 
           if (typeof error === 'object' && error.hasOwnProperty('message')) {
-            this.errorMessage += ' with an error: ' + error['message'];
+            this.messageHandlerService.error(error['message']);
           }
         },
         () => {
