@@ -1,9 +1,9 @@
 import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
-import {HttpClient, HttpResponse} from '@angular/common/http';
+import {HttpClient, HttpResponse, HttpStatusCode} from '@angular/common/http';
 import {ControlledFieldDataService} from '../../service/controlled-field-data.service';
 import {MessageHandlerService} from '../../service/message-handler.service';
 import {MatFileUploadService} from '../file-uploader/mat-file-upload/mat-file-upload.service';
-import {Subscription} from 'rxjs';
+import {config, Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -54,12 +54,35 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
           const templateUrl = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_BASE_URL] +
             this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT] + '?' +
             this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME] + '=' + filename;
-          this.loadTemplateByURL(templateUrl);
+          this.loadTemplateFromURL(templateUrl);
         }
       }
     });
     this.initialized = true;
     this.doInitialize();
+  }
+
+  @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
+    const that = this;
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+        if (xhr.status === HttpStatusCode.Ok) {
+          const jsonConfig = JSON.parse(xhr.responseText);
+          that.config = jsonConfig;
+
+          if (successHandler) {
+            successHandler(jsonConfig);
+          }
+        } else {
+          if (errorHandler) {
+            errorHandler(xhr);
+          }
+        }
+      }
+    };
+    xhr.open('GET', jsonURL, true);
+    xhr.send();
   }
 
   ngOnDestroy(): void {
@@ -68,7 +91,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set config(value: object) {
-    this.messageHandlerService.traceObject('Cedar Embeddable Editor Config set to:', value);
+    this.messageHandlerService.traceObject('CEDAR Embeddable Editor config set to:', value);
     if (value != null) {
       this.innerConfig = value;
       this.configSet = true;
@@ -101,10 +124,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   private loadTemplate(templateName: string): void {
     const url = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX] + templateName + '/template.json';
-    this.loadTemplateByURL(url);
+    this.loadTemplateFromURL(url);
   }
 
-  private loadTemplateByURL(url: string): void {
+  private loadTemplateFromURL(url: string): void {
     this.messageHandlerService.trace('Load template: ' + url);
     this.http.get(url).subscribe(value => {
         this.templateJson = value;

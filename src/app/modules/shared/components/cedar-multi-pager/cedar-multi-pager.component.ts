@@ -6,6 +6,9 @@ import {MultiInstanceObjectInfo} from '../../models/info/multi-instance-object-i
 import {HandlerContext} from '../../util/handler-context';
 import {ComponentTypeHandler} from '../../handler/component-type.handler';
 import {JsonSchema} from '../../models/json-schema.model';
+import {
+  CedarEmbeddableMetadataEditorWrapperComponent
+} from '../cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -14,6 +17,8 @@ import {JsonSchema} from '../../models/json-schema.model';
   encapsulation: ViewEncapsulation.None
 })
 export class CedarMultiPagerComponent implements OnInit, DoCheck {
+
+  static readonly MAX_CHARACTERS_MULTI_VALUE = 30;
 
   component: MultiComponent;
   currentMultiInfo: MultiInstanceObjectInfo;
@@ -53,27 +58,41 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     const infoArray = [];
 
     (nodeInfo as Array<any>).forEach((fieldName, index) => {
-      const numStr = '<span class="multiinfo-index' + ((index > 0) ? ' not-first' : '') +
-        ((index === this.currentMultiInfo.currentIndex) ? ' current' : '') + '">' + (index + 1) + '</span> ';
+      const numStr = '<span class="multiinfo-index' + ((index > 0) ? ' not-first-multiinfo-index' : '') +
+        ((index === this.currentMultiInfo.currentIndex) ? ' current-multiinfo-index' : '') + '">' + (index + 1) + '</span> ';
 
       if (typeof fieldName === 'string') {
-        infoArray.push(numStr + fieldName + '=' + parentNodeInfo[fieldName][JsonSchema.atValue]);
+        infoArray.push(numStr + fieldName + '=' + this.shortValue(parentNodeInfo[fieldName][JsonSchema.atValue]));
       } else if (typeof fieldName === 'object') {
         if (fieldName.hasOwnProperty(JsonSchema.atValue)) {
-          infoArray.push(numStr + (fieldName[JsonSchema.atValue] || 'null'));
+          infoArray.push(numStr + (this.shortValue(fieldName[JsonSchema.atValue]) || 'null'));
         } else if (fieldName.hasOwnProperty(JsonSchema.atId)) {
           // controlled field
-          infoArray.push(numStr + (fieldName[JsonSchema.rdfsLabel] || 'null'));
+          infoArray.push(numStr + (this.shortValue(fieldName[JsonSchema.rdfsLabel]) || 'null'));
         }
       }
     });
+
     info = infoArray.join('');
+
+    if (info) {
+      info = '<b>All Values:</b> ' + info;
+    }
     return info || '';
   }
 
   @Input() set componentToRender(componentToRender: MultiComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerMultiPagerComponent(this.component, this);
+  }
+
+  private shortValue(value: string): string {
+    let val = value;
+
+    if (value && value.length > CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE) {
+      val = value.substr(0, CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE) + '...';
+    }
+    return val;
   }
 
   private recomputeNumbers(): void {
