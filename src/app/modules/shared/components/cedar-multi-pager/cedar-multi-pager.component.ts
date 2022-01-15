@@ -94,9 +94,20 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
 
     if (value && [InputType.text, InputType.textarea].includes(inputType) &&
         value.length > CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE) {
-      val = value.substr(0, CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE) + '...';
+      val = value.substr(0, CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE);
+      let ind = CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE;
+      // make sure we cut off on a whole word rather than a fragment
+      while (!this.isEmptySpace(value[ind]) && ind < value.length) {
+        val += value[ind];
+        ind++;
+      }
+      val += '...';
     }
     return val;
+  }
+
+  private isEmptySpace(text: string): boolean {
+    return text == null || text.match(/^\s*$/) !== null;
   }
 
   private recomputeNumbers(): void {
