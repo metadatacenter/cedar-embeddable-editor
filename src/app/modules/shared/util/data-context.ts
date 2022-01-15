@@ -23,11 +23,15 @@ export class DataContext {
   instanceExtractData: InstanceExtractData = null;
   instanceFullData: InstanceFullData = null;
   multiInstanceData: MultiInstanceInfo = null;
+  savedTemplateID: string;
 
   public constructor() {
   }
 
+
   setInputTemplate(value: object, handlerContext: HandlerContext, collapseStaticComponents: boolean): void {
+
+
     this.templateInput = value as CedarInputTemplate;
     this.templateRepresentation = TemplateRepresentationFactory.create(this.templateInput, collapseStaticComponents);
 
@@ -37,11 +41,11 @@ export class DataContext {
     this.instanceExtractData = dataObjectService.buildNewExtractDataObject(this.templateRepresentation, this.templateInput);
     this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
     this.multiInstanceData = multiInstanceObjectService.buildNew(this.templateRepresentation);
+    this.savedTemplateID = null;
 
 
 
 
 
   }
-
 }

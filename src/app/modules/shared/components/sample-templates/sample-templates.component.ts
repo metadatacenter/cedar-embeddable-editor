@@ -57,7 +57,6 @@ export class SampleTemplatesComponent implements OnInit {
 
     '51': 'Template 51 - MiAIRR V1.1.0',
     '52': 'Template 52 - eDNA ECT Demonstration'
-
   };
 
   constructor(
@@ -74,7 +73,7 @@ export class SampleTemplatesComponent implements OnInit {
     window.scroll(0, 0);
   }
 
-  selectionChanged({option}: { option: MatListOption }): void {
+  selectionClicked({option}: { option: MatListOption }): void {
     this.loadBuiltinTemplate(option.value);
   }
 }

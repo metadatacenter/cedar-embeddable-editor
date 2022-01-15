@@ -17,7 +17,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
   static TERMINOLOGY_PROXY_URL = 'terminologyProxyUrl';
   static SHOW_SPINNER_BEFORE_INIT = 'showSpinnerBeforeInit';
-  static TEMPLATE_UPLOAD_RESPONSE_SUCCESS = 'templateUploadResponseSuccess';
   static TEMPLATE_UPLOAD_BASE_URL = 'templateUploadBaseUrl';
   static TEMPLATE_DOWNLOAD_ENDPOINT = 'templateDownloadEndpoint';
   static TEMPLATE_DOWNLOAD_PARAM_NAME = 'templateDownloadParamName';
@@ -44,9 +43,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   ngOnInit(): void {
     this.uploadFileSubscription = this.matFileUploadService.uploadedFile$.subscribe(fileInfo => {
       if (fileInfo && fileInfo['event'] instanceof HttpResponse) {
-        const status = fileInfo['event']['body']['status'];
+        const statusCode = fileInfo['event']['status'];
 
-        if (status === this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_RESPONSE_SUCCESS] &&
+        if (statusCode === HttpStatusCode.Created &&
           this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_BASE_URL) &&
           this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT) &&
           this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME)) {
@@ -129,12 +128,14 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   private loadTemplateFromURL(url: string): void {
     this.messageHandlerService.trace('Load template: ' + url);
-    this.http.get(url).subscribe(value => {
+    this.http.get(url).subscribe(
+      value => {
         this.templateJson = value;
       },
       error => {
         this.messageHandlerService.error('Error while loading sample template from: ' + url);
-      });
+      }
+    );
   }
 
   editorDataReady(): boolean {

@@ -1,6 +1,6 @@
 import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import {DataContext} from '../../util/data-context';
-import {HttpClient, HttpHeaders, HttpParams, HttpResponse} from '@angular/common/http';
+import {HttpClient, HttpHeaders, HttpParams, HttpRequest, HttpResponse} from '@angular/common/http';
 import {Observable, Subscription} from 'rxjs';
 import {MessageHandlerService} from '../../service/message-handler.service';
 
@@ -14,6 +14,8 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
 
   // Number of milliseconds to display the submission success message
   private static readonly SUCCESS_MESSAGE_TIMEOUT = 5000;
+  private static readonly PARAM_ID = 'id';
+  private static readonly PARAM_TITLE = 'title';
 
   @Input() dataContext: DataContext = null;
   @Input() endpointUrl: string = null;
@@ -36,7 +38,7 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
 
   saveTemplate(event): void {
     this.httpPostSubscription.add(
-      this.httpPost().subscribe(
+      this.httpRequest().subscribe(
         (data: any) => {
           if (data instanceof HttpResponse) {
             this.clearProgress();
@@ -44,9 +46,14 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
             this.showSuccess = true;
             this.successMessage = 'Metadata saved successfully';
 
+            if (data['body'][CedarDataSaverComponent.PARAM_ID]) {
+              this.dataContext.savedTemplateID = data['body'][CedarDataSaverComponent.PARAM_ID];
+            }
+
 
             console.log('Data received from the server:');
             console.log(data);
+
 
 
           } else {
@@ -78,13 +85,22 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
     this.stopPropagation(event);
   }
 
-  private httpPost(): Observable<any> {
+  private httpRequest(): Observable<any> {
     const body = this.dataContext.instanceFullData;
     const httpHeaders = new HttpHeaders({
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache'
     });
-    return this.httpClient.post(this.endpointUrl, body, {
+    let method = 'POST';
+    this.httpRequestParams = {};
+    this.httpRequestParams[CedarDataSaverComponent.PARAM_TITLE] = this.dataContext.templateRepresentation.labelInfo.label;
+
+    if (this.dataContext.savedTemplateID) {
+      method = 'PUT';
+      this.httpRequestParams[CedarDataSaverComponent.PARAM_ID] = this.dataContext.savedTemplateID;
+    }
+    return this.httpClient.request(method, this.endpointUrl, {
+      body,
       headers: httpHeaders,
       observe: 'events',
       params: this.httpRequestParams,
