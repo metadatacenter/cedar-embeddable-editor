@@ -23,10 +23,6 @@ import {TimezonePickerComponent, TZone} from '../../../shared/components/timezon
 
 export class CedarInputDatetimeComponent extends CedarUIComponent implements OnInit, AfterViewInit {
 
-  readonly YEAR_FORMAT = DatePickerComponent.YEAR_FORMAT;
-  readonly YEAR_MONTH_FORMAT = DatePickerComponent.YEAR_MONTH_FORMAT;
-  readonly YEAR_MONTH_DAY_FORMAT = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
-
   component: FieldComponent;
   activeComponentRegistry: ActiveComponentRegistryService;
 

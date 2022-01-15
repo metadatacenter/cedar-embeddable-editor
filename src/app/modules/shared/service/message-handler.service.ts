@@ -27,4 +27,9 @@ export class MessageHandlerService {
     console.error('ERROR: ' + label);
   }
 
+  errorObject(label: string, value: object): void {
+    console.error('ERROR: ' + label);
+    console.error(value);
+  }
+
 }

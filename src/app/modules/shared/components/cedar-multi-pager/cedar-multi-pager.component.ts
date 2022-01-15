@@ -9,6 +9,8 @@ import {JsonSchema} from '../../models/json-schema.model';
 import {
   CedarEmbeddableMetadataEditorWrapperComponent
 } from '../cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
+import {MultiFieldComponent} from '../../models/field/multi-field-component.model';
+import {InputType} from '../../models/input-type.model';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -56,19 +58,20 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     const nodeInfo = this.handlerContext.getDataObjectNodeByPath(this.component.path);
     let info = '';
     const infoArray = [];
+    const inputType = (this.component as MultiFieldComponent).basicInfo.inputType;
 
     (nodeInfo as Array<any>).forEach((fieldName, index) => {
       const numStr = '<span class="multiinfo-index' + ((index > 0) ? ' not-first-multiinfo-index' : '') +
         ((index === this.currentMultiInfo.currentIndex) ? ' current-multiinfo-index' : '') + '">' + (index + 1) + '</span> ';
 
       if (typeof fieldName === 'string') {
-        infoArray.push(numStr + fieldName + '=' + this.shortValue(parentNodeInfo[fieldName][JsonSchema.atValue]));
+        infoArray.push(numStr + fieldName + '=' + this.shortValue(inputType, parentNodeInfo[fieldName][JsonSchema.atValue]));
       } else if (typeof fieldName === 'object') {
         if (fieldName.hasOwnProperty(JsonSchema.atValue)) {
-          infoArray.push(numStr + (this.shortValue(fieldName[JsonSchema.atValue]) || 'null'));
+          infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.atValue]) || 'null'));
         } else if (fieldName.hasOwnProperty(JsonSchema.atId)) {
           // controlled field
-          infoArray.push(numStr + (this.shortValue(fieldName[JsonSchema.rdfsLabel]) || 'null'));
+          infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.rdfsLabel]) || 'null'));
         }
       }
     });
@@ -86,10 +89,11 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     this.activeComponentRegistry.registerMultiPagerComponent(this.component, this);
   }
 
-  private shortValue(value: string): string {
+  private shortValue(inputType: string, value: string): string {
     let val = value;
 
-    if (value && value.length > CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE) {
+    if (value && [InputType.text, InputType.textarea].includes(inputType) &&
+        value.length > CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE) {
       val = value.substr(0, CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE) + '...';
     }
     return val;

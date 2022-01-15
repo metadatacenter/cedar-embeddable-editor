@@ -63,7 +63,7 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
           this.errorMessage = 'Error saving metadata';
 
           if (typeof error === 'object' && error.hasOwnProperty('message')) {
-            this.messageHandlerService.error(error['message']);
+            this.messageHandlerService.errorObject(error['message'], error);
           }
         },
         () => {
