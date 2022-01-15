@@ -49,13 +49,7 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
             if (data['body'][CedarDataSaverComponent.PARAM_ID]) {
               this.dataContext.savedTemplateID = data['body'][CedarDataSaverComponent.PARAM_ID];
             }
-
-
-            console.log('Data received from the server:');
-            console.log(data);
-
-
-
+            this.messageHandlerService.traceObject('Data received from the server:', data);
           } else {
             this.clearSuccess();
             this.clearError();

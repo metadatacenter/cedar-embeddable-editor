@@ -91,6 +91,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   @Input() set config(value: object) {
     this.messageHandlerService.traceObject('CEDAR Embeddable Editor config set to:', value);
+
     if (value != null) {
       this.innerConfig = value;
       this.configSet = true;
@@ -127,10 +128,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private loadTemplateFromURL(url: string): void {
-    this.messageHandlerService.trace('Load template: ' + url);
     this.http.get(url).subscribe(
       value => {
         this.templateJson = value;
+        this.messageHandlerService.trace('Loaded template: ' + url + ' (' + JSON.stringify(value).length + ' characters)');
       },
       error => {
         this.messageHandlerService.error('Error while loading sample template from: ' + url);

@@ -68,7 +68,6 @@ export class SampleTemplatesComponent implements OnInit {
   }
 
   loadBuiltinTemplate(s: string): void {
-    this.messageHandlerService.trace('Load sample template: ' + s);
     this.callbackOwnerObject.loadSampleTemplate(s);
     window.scroll(0, 0);
   }
