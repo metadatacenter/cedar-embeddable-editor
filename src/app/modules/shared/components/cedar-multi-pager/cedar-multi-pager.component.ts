@@ -101,7 +101,10 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
         val += value[ind];
         ind++;
       }
-      val += '...';
+
+      if (val.trim().length < value.trim().length) {
+        val += '...';
+      }
     }
     return val;
   }
