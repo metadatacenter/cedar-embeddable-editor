@@ -32,6 +32,23 @@ export class TemplateRepresentationFactory {
     }
   }
 
+
+
+
+
+  // static pageBreakCount(template: TemplateComponent): number {
+  //   let pbCount = 0;
+  //
+  //   console.log('template component');
+  //   console.log(template);
+  //
+  //   return pbCount;
+  // }
+
+
+
+
+
   private static isFragmentMulti(templateFragment: object): boolean {
     const fragmentType = templateFragment[CedarModel.type];
 

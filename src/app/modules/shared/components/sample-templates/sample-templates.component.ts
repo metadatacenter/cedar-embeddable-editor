@@ -32,6 +32,8 @@ export class SampleTemplatesComponent implements OnInit {
     '16': 'Template 16 - phone, single',
     '17': 'Template 17 - datetime',
     '18': 'Template 18 - datetime multiple instances',
+    '19': 'Template 19 - paragraph',
+    '20': 'Template 20 - page break',
     '21': 'Template 21 - controlled - mixed',
     '22': 'Template 22 - multiple min none',
     '23': 'Template 23 - multiple min 3',
@@ -56,7 +58,6 @@ export class SampleTemplatesComponent implements OnInit {
 
     '51': 'Template 51 - MiAIRR V1.1.0',
     '52': 'Template 52 - eDNA ECT Demonstration'
-
   };
 
   constructor(
@@ -68,12 +69,11 @@ export class SampleTemplatesComponent implements OnInit {
   }
 
   loadBuiltinTemplate(s: string): void {
-    this.messageHandlerService.trace('Load sample template: ' + s);
     this.callbackOwnerObject.loadSampleTemplate(s);
     window.scroll(0, 0);
   }
 
-  selectionChanged({option}: { option: MatListOption }): void {
+  selectionClicked({option}: { option: MatListOption }): void {
     this.loadBuiltinTemplate(option.value);
   }
 }

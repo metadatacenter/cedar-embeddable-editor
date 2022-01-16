@@ -7,7 +7,7 @@
   </mat-expansion-panel-header>
 
   <ng-template matExpansionPanelContent>
-      <mat-selection-list #templates [multiple]="false" (selectionChange)="selectionChanged({option : templates.selectedOptions.selected[0]})">
+      <mat-selection-list #templates [multiple]="false" (click)="selectionClicked({option : templates.selectedOptions.selected[0]})">
         <mat-list-option *ngFor="let template of sampleTemplates | keyvalue" [value]="template.key">
           {{template.value}}
         </mat-list-option>

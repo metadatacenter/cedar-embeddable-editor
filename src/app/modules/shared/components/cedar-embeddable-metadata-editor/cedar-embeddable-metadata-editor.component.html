@@ -1,22 +1,35 @@
 <app-static-header *ngIf="dataAvailableForRender() && showHeader"></app-static-header>
-
+<app-file-uploader *ngIf="dataAvailableForRender() && showTemplateUpload"
+                   [fileAlias]="templateUploadParamName"
+                   [httpUrl]="templateUploadBaseUrl + templateUploadEndpoint"
+></app-file-uploader>
 <mat-card class="template-card" *ngIf="dataAvailableForRender()">
+
+
+
   <mat-card-header>
     <div mat-card-avatar class="header-image"></div>
     <mat-card-title>{{dataContext.templateRepresentation.labelInfo.label}}</mat-card-title>
     <mat-card-subtitle>{{dataContext.templateRepresentation.labelInfo.description}}</mat-card-subtitle>
   </mat-card-header>
-  <mat-card-content>
 
+
+
+
+
+  <mat-card-content>
     <ng-container *ngFor="let childComponent of dataContext.templateRepresentation.children">
       <app-cedar-component-renderer
         [componentToRender]="childComponent"
         [handlerContext]="handlerContext"
       ></app-cedar-component-renderer>
     </ng-container>
+    <app-cedar-data-saver *ngIf="showDataSaver"
+                          [endpointUrl]="dataSaverEndpointUrl"
+                          [dataContext]="dataContext"
+    ></app-cedar-data-saver>
   </mat-card-content>
 </mat-card>
-
 <app-source-panels *ngIf="dataAvailableForRender()"
                    [dataContext]="dataContext"
                    [showTemplateRenderingRepresentation]="showTemplateRenderingRepresentation"
@@ -24,18 +37,15 @@
                    [showTemplateSourceData]="showTemplateSourceData"
                    [showInstanceDataCore]="showInstanceDataCore"
                    [showInstanceDataFull]="showInstanceDataFull"
-
                    [expandedTemplateRenderingRepresentation]="expandedTemplateRenderingRepresentation"
                    [expandedMultiInstanceInfo]="expandedMultiInstanceInfo"
                    [expandedTemplateSourceData]="expandedTemplateSourceData"
                    [expandedInstanceDataCore]="expandedInstanceDataCore"
                    [expandedInstanceDataFull]="expandedInstanceDataFull"
 ></app-source-panels>
-
 <app-sample-templates
   *ngIf="dataAvailableForRender() && showSampleTemplateLinks"
   [callbackOwnerObject]="sampleTemplateLoaderObject"
   [expandedSampleTemplateLinks]="expandedSampleTemplateLinks"
 ></app-sample-templates>
-
 <app-static-footer *ngIf="dataAvailableForRender() && showFooter"></app-static-footer>

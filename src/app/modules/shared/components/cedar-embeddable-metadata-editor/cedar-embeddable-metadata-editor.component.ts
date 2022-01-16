@@ -32,15 +32,23 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private static COLLAPSE_STATIC_COMPONENTS = 'collapseStaticComponents';
 
+  private static SHOW_TEMPLATE_UPLOAD = 'showTemplateUpload';
+  private static TEMPLATE_UPLOAD_BASE_URL = 'templateUploadBaseUrl';
+  private static TEMPLATE_UPLOAD_ENDPOINT = 'templateUploadEndpoint';
+  private static TEMPLATE_UPLOAD_PARAM_NAME = 'templateUploadParamName';
+
+  private static SHOW_DATA_SAVER = 'showDataSaver';
+  private static DATA_SAVER_ENDPOINT_URL = 'dataSaverEndpointUrl';
+
   private readonly dataContext: DataContext = null;
   private readonly handlerContext: HandlerContext = null;
 
   @Input() sampleTemplateLoaderObject: any = null;
 
   showTemplateRenderingRepresentation = false;
-  showMultiInstanceInfo = true;
+  showMultiInstanceInfo = false;
   showTemplateSourceData = true;
-  showInstanceDataCore = true;
+  showInstanceDataCore = false;
   showInstanceDataFull = true;
   showSampleTemplateLinks = false;
 
@@ -55,6 +63,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   expandedSampleTemplateLinks = false;
 
   collapseStaticComponents = true;
+
+  showTemplateUpload = false;
+  templateUploadBaseUrl: string;
+  templateUploadEndpoint: string;
+  templateUploadParamName: string;
+
+  showDataSaver = false;
+  dataSaverEndpointUrl: string;
 
   @ViewChild(MatAccordion) accordion: MatAccordion;
 
@@ -88,14 +104,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS)) {
         this.showSampleTemplateLinks = value[CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS];
       }
-
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER)) {
         this.showFooter = value[CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER];
       }
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_HEADER)) {
         this.showHeader = value[CedarEmbeddableMetadataEditorComponent.SHOW_HEADER];
       }
-
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_RENDERING)) {
         this.expandedTemplateRenderingRepresentation = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_RENDERING];
       }
@@ -117,13 +131,30 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS)) {
         this.collapseStaticComponents = value[CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS];
       }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_UPLOAD)) {
+        this.showTemplateUpload = value[CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_UPLOAD];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_BASE_URL)) {
+        this.templateUploadBaseUrl = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_BASE_URL];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_ENDPOINT)) {
+        this.templateUploadEndpoint = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_ENDPOINT];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_PARAM_NAME)) {
+        this.templateUploadParamName = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_PARAM_NAME];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_DATA_SAVER)) {
+        this.showDataSaver = value[CedarEmbeddableMetadataEditorComponent.SHOW_DATA_SAVER];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.DATA_SAVER_ENDPOINT_URL)) {
+        this.dataSaverEndpointUrl = value[CedarEmbeddableMetadataEditorComponent.DATA_SAVER_ENDPOINT_URL];
+      }
     }
   }
 
   @Input() set templateJsonObject(value: object) {
     if (value != null) {
       const len = JSON.stringify(value).length;
-      this.messageHandlerService.trace('CEDAR Embeddable Editor started with template of length ' + len + ' characters.');
       this.dataContext.setInputTemplate(value, this.handlerContext, this.collapseStaticComponents);
     }
   }

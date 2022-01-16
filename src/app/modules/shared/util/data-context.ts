@@ -10,16 +10,28 @@ import {DataObjectBuilderHandler} from '../handler/data-object-builder.handler';
 
 export class DataContext {
 
+
+
+
+  // DataContext will contain the individual page break template sections
+  // as part of setInputTemplate, these sections must be built
+
+
+
   templateInput: CedarInputTemplate = null;
   templateRepresentation: TemplateComponent = null;
   instanceExtractData: InstanceExtractData = null;
   instanceFullData: InstanceFullData = null;
   multiInstanceData: MultiInstanceInfo = null;
+  savedTemplateID: string;
 
   public constructor() {
   }
 
+
   setInputTemplate(value: object, handlerContext: HandlerContext, collapseStaticComponents: boolean): void {
+
+
     this.templateInput = value as CedarInputTemplate;
     this.templateRepresentation = TemplateRepresentationFactory.create(this.templateInput, collapseStaticComponents);
 
@@ -29,6 +41,11 @@ export class DataContext {
     this.instanceExtractData = dataObjectService.buildNewExtractDataObject(this.templateRepresentation, this.templateInput);
     this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
     this.multiInstanceData = multiInstanceObjectService.buildNew(this.templateRepresentation);
-  }
+    this.savedTemplateID = null;
 
+
+
+
+
+  }
 }

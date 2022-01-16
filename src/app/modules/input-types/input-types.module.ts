@@ -43,7 +43,8 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
 import {DatePickerComponent} from '../shared/components/date-picker/date-picker.component';
 import {TimezonePickerComponent} from '../shared/components/timezone-picker/timezone-picker.component';
-// import {CKEditorModule} from '@ckeditor/ckeditor5-angular';
+import {MatFileUploadModule} from '../shared/components/file-uploader/mat-file-upload.module';
+import {FileUploaderComponent} from '../shared/components/file-uploader/file-uploader.component';
 
 
 @NgModule({
@@ -75,6 +76,7 @@ import {TimezonePickerComponent} from '../shared/components/timezone-picker/time
     NgxMatTimepickerModule,
     NgxMatNativeDateModule,
     NgSelectModule,
+    MatFileUploadModule,
     YouTubePlayerModule,
     FormsModule
   ],
@@ -97,6 +99,7 @@ import {TimezonePickerComponent} from '../shared/components/timezone-picker/time
     CedarStaticYoutubeComponent,
     DatePickerComponent,
     TimezonePickerComponent,
+    FileUploaderComponent,
     EscapeHtmlPipe
   ],
   providers: [
@@ -121,7 +124,8 @@ import {TimezonePickerComponent} from '../shared/components/timezone-picker/time
     CedarStaticSectionBreakComponent,
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
-    EscapeHtmlPipe
+    EscapeHtmlPipe,
+    FileUploaderComponent
   ]
 })
 export class InputTypesModule {

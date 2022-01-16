@@ -1,0 +1,28 @@
+.file-summary {
+  font-size: 0.85rem;
+}
+
+.upload-progress {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  height: 10px;
+
+  ::ng-deep .mat-progress-bar .mat-progress-bar-element {
+    transition: none;
+  }
+}
+
+.flex-container-file-upload {
+  display: flex;
+
+  .flex-child1 {
+    width: 50px;
+    margin-right: 5px;
+  }
+
+  .flex-child2 {
+    flex: 1 100%;
+  }
+}
+

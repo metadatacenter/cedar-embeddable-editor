@@ -116,13 +116,11 @@ body {
 }
 
 .cedar-logo {
-  background-image: url('/assets/images/cedar-logo-main.png');
+  background-image: url('/assets/images/cedar-logo-80x80.png');
   background-repeat: no-repeat;
   background-size: cover;
-  padding: 0px;
-  margin: 0px;
-  width: 140px;
-  height: 50px;
+  width: 70px;
+  height: 70px;
 }
 
 .template-card {
@@ -134,8 +132,10 @@ body {
 .pager-container {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: right;
   align-items: center;
+  margin-bottom: 20px;
+  margin-top: 10px;
 }
 
 .pager-chips {
@@ -143,7 +143,6 @@ body {
 }
 
 app-source-panels {
-
   .mat-expansion-panel-header-description {
     justify-content: space-between;
     align-items: center;
@@ -186,17 +185,121 @@ app-sample-templates {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 30px;
 
   .mat-progress-spinner {
-    margin-right: 10px;
+    float:left;
+    margin-right: 20px;
   }
 }
 
 .info-box {
-  background-color: #d9edf7;
+  color: #383d41;
+  background-color: rgba(0, 0, 0, 0.04);
   padding: 15px;
-  border: 1px solid #bce8f1;
-  color: #31708f;
-  margin: 15px 0;
+  border: 1px solid #d6d8db;
+  border-radius: 0.25rem;
+  margin-top: 20px;
+  margin-bottom: 10px;
 }
 
+.notify-info, .notify-success, .notify-error, .notify-warning, .notify-progress {
+  padding: 15px;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+}
+
+.notify-info:before, .notify-success:before, .notify-error:before, .notify-warning:before, .notify-progress:before {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 18px;
+  vertical-align: middle;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .8em;
+  text-align: center;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1em;
+  margin-left: .2em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.notify-info:before {
+  content: "\e88e";
+}
+
+.notify-success:before {
+  content: '\e86c';
+}
+
+.notify-error:before {
+  content: '\e000';
+}
+
+.notify-warning:before {
+  content: '\e002';
+}
+
+.notify-progress-icon {
+  margin-right: .8em;
+  line-height: 1em;
+  margin-left: .2em;
+  float:left;
+  margin-top: 2px;
+}
+
+.notify-info {
+  color: #004085;
+  background-color: #cce5ff;
+  border-color: #b8daff;
+}
+
+.notify-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.notify-error {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+
+.notify-warning {
+  color: #856404;
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+}
+
+.notify-progress {
+  color: #383d41;
+  background-color: #eeeeee;
+  border-color: #d6d8db;
+}
+
+.close {
+  float: right;
+  font-size: 1.5rem;
+  line-height: .9;
+  text-shadow: 0 1px 0 #fff;
+  opacity: .5;
+  color: inherit;
+}
+
+.close:hover {
+  opacity: 1;
+}
+
+button.close {
+  cursor: pointer;
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  -webkit-appearance: none;
+}

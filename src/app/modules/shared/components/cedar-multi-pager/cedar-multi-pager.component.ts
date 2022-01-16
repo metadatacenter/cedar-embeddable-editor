@@ -6,6 +6,11 @@ import {MultiInstanceObjectInfo} from '../../models/info/multi-instance-object-i
 import {HandlerContext} from '../../util/handler-context';
 import {ComponentTypeHandler} from '../../handler/component-type.handler';
 import {JsonSchema} from '../../models/json-schema.model';
+import {
+  CedarEmbeddableMetadataEditorWrapperComponent
+} from '../cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
+import {MultiFieldComponent} from '../../models/field/multi-field-component.model';
+import {InputType} from '../../models/input-type.model';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -14,6 +19,8 @@ import {JsonSchema} from '../../models/json-schema.model';
   encapsulation: ViewEncapsulation.None
 })
 export class CedarMultiPagerComponent implements OnInit, DoCheck {
+
+  static readonly MAX_CHARACTERS_MULTI_VALUE = 30;
 
   component: MultiComponent;
   currentMultiInfo: MultiInstanceObjectInfo;
@@ -30,7 +37,6 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   pageNumbers: number[] = [];
 
   multiInstanceValue: string;
-  parentNodeInfoStr: string;
 
   constructor(activeComponentRegistry: ActiveComponentRegistryService) {
     this.activeComponentRegistry = activeComponentRegistry;
@@ -49,31 +55,62 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
       return '';
     }
     const parentNodeInfo = this.handlerContext.getParentDataObjectNodeByPath(this.component.path);
+    const nodeInfo = this.handlerContext.getDataObjectNodeByPath(this.component.path);
+    let info = '';
+    const infoArray = [];
+    const inputType = (this.component as MultiFieldComponent).basicInfo.inputType;
 
-    if (JSON.stringify(parentNodeInfo) === this.parentNodeInfoStr) {
-      return this.multiInstanceValue;
-    } else {
-      const nodeInfo = this.handlerContext.getDataObjectNodeByPath(this.component.path);
-      let info = '';
-      const infoArray = [];
+    (nodeInfo as Array<any>).forEach((fieldName, index) => {
+      const numStr = '<span class="multiinfo-index' + ((index > 0) ? ' not-first-multiinfo-index' : '') +
+        ((index === this.currentMultiInfo.currentIndex) ? ' current-multiinfo-index' : '') + '">' + (index + 1) + '</span> ';
 
-      (nodeInfo as Array<any>).forEach((fieldName, index) => {
-        if (typeof fieldName === 'string') {
-          infoArray.push(fieldName + '=' + parentNodeInfo[fieldName][JsonSchema.atValue]);
-        } else if (typeof fieldName === 'object') {
-          infoArray.push((index + 1) + ': ' + (fieldName[JsonSchema.atValue] || 'null'));
+      if (typeof fieldName === 'string') {
+        infoArray.push(numStr + fieldName + '=' + this.shortValue(inputType, parentNodeInfo[fieldName][JsonSchema.atValue]));
+      } else if (typeof fieldName === 'object') {
+        if (fieldName.hasOwnProperty(JsonSchema.atValue)) {
+          infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.atValue]) || 'null'));
+        } else if (fieldName.hasOwnProperty(JsonSchema.atId)) {
+          // controlled field
+          infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.rdfsLabel]) || 'null'));
         }
-      });
-      info = infoArray.join(', ');
-      this.parentNodeInfoStr = JSON.stringify(parentNodeInfo);
+      }
+    });
 
-      return info || '';
+    info = infoArray.join('');
+
+    if (info) {
+      info = '<b>All Values:</b> ' + info;
     }
+    return info || '';
   }
 
   @Input() set componentToRender(componentToRender: MultiComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerMultiPagerComponent(this.component, this);
+  }
+
+  private shortValue(inputType: string, value: string): string {
+    let val = value;
+
+    if (value && [InputType.text, InputType.textarea].includes(inputType) &&
+        value.length > CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE) {
+      val = value.substr(0, CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE);
+      let ind = CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE;
+      // make sure we cut off on a whole word rather than a fragment
+      while (!this.isEmptySpace(value[ind]) && ind < value.length) {
+        val += value[ind];
+        ind++;
+      }
+
+      if (val.trim().length < value.trim().length) {
+        val += '...';
+      }
+    }
+    return val;
+  }
+
+  private isEmptySpace(text: string): boolean {
+    return text == null || text.match(/^\s*$/) !== null;
   }
 
   private recomputeNumbers(): void {
@@ -107,7 +144,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   private pageChanged($event: PageEvent): void {
     this.pageSize = $event.pageSize;
     this.firstIndex = $event.pageIndex * $event.pageSize;
-    this.handlerContext.multiInstanceObjectService.setCurrentIndex(this.component, this.firstIndex);
+    this.handlerContext.setCurrentIndex(this.component, this.firstIndex);
     this.computeLastIndex();
     this.updatePageNumbers();
     this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
@@ -148,6 +185,11 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     //   label: this.datetimeParsed.timezoneName
     // };
     // this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
+
+    // nothing has changed, the same page number is clicked
+    if (chipIdx === this.currentMultiInfo.currentIndex) {
+      return;
+    }
     this.handlerContext.setCurrentIndex(this.component, chipIdx);
     this.recomputeNumbers();
     const that = this;
@@ -227,4 +269,5 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   hasMultiInstances(): boolean {
     return this.currentMultiInfo.currentCount > 0;
   }
+
 }
