@@ -33,6 +33,7 @@ export class SampleTemplatesComponent implements OnInit {
     '17': 'Template 17 - datetime',
     '18': 'Template 18 - datetime multiple instances',
     '19': 'Template 19 - paragraph',
+    '20': 'Template 20 - page break',
     '21': 'Template 21 - controlled - mixed',
     '22': 'Template 22 - multiple min none',
     '23': 'Template 23 - multiple min 3',
