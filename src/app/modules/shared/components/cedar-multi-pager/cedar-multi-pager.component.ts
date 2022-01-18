@@ -6,9 +6,6 @@ import {MultiInstanceObjectInfo} from '../../models/info/multi-instance-object-i
 import {HandlerContext} from '../../util/handler-context';
 import {ComponentTypeHandler} from '../../handler/component-type.handler';
 import {JsonSchema} from '../../models/json-schema.model';
-import {
-  CedarEmbeddableMetadataEditorWrapperComponent
-} from '../cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import {MultiFieldComponent} from '../../models/field/multi-field-component.model';
 import {InputType} from '../../models/input-type.model';
 

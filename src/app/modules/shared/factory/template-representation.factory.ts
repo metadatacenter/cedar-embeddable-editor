@@ -28,26 +28,45 @@ export class TemplateRepresentationFactory {
       const template = new CedarTemplate();
       TemplateRepresentationFactory.wrap(inputTemplate, inputTemplate, template, [], collapseStaticComponents);
       TemplateRepresentationFactory.extractTemplateLabels(inputTemplate, template);
+      TemplateRepresentationFactory.extractPageBreakPages(template);
       return template;
     }
   }
 
+  static extractPageBreakPages(template: CedarTemplate): void {
+    const pages = [];
+    let page = [];
+    let numPBInRow = 0;
 
+    template.children.forEach((child, index) => {
+      // encountered page-break component
+      if (child instanceof StaticFieldComponent && (child as StaticFieldComponent).basicInfo.inputType === InputType.pageBreak) {
+        if (page.length) {
+          pages.push(page);
+        }
+        // if page-break is the last component, always add an empty page
+        if (index === template.children.length - 1) {
+          pages.push([new NullTemplateComponent()]);
+        } else {
+          numPBInRow++;
+        }
+        page = [];
+      } else {
+        page.push(child);
 
+        if (index === template.children.length - 1) {
+          pages.push(page);
+        }
 
-
-  // static pageBreakCount(template: TemplateComponent): number {
-  //   let pbCount = 0;
-  //
-  //   console.log('template component');
-  //   console.log(template);
-  //
-  //   return pbCount;
-  // }
-
-
-
-
+        // add empty pages corresponding to: (number of page breaks in a row - 1)
+        for (let i = 0; i < numPBInRow - 1; i++) {
+          pages.push([new NullTemplateComponent()]);
+        }
+        numPBInRow = 0;
+      }
+    });
+    template.pageBreakChildren = pages;
+  }
 
   private static isFragmentMulti(templateFragment: object): boolean {
     const fragmentType = templateFragment[CedarModel.type];

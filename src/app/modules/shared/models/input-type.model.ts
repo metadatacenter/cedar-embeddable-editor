@@ -15,6 +15,7 @@ export class InputType {
   static image = 'image';
   static youtube = 'youtube';
   static sectionBreak = 'section-break';
+  static pageBreak = 'page-break';
   static attributeValue = 'attribute-value';
 
 }

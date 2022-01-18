@@ -18,12 +18,20 @@
 
 
   <mat-card-content>
+
+
+
     <ng-container *ngFor="let childComponent of dataContext.templateRepresentation.children">
+
       <app-cedar-component-renderer
         [componentToRender]="childComponent"
         [handlerContext]="handlerContext"
       ></app-cedar-component-renderer>
+
     </ng-container>
+
+
+
     <app-cedar-data-saver *ngIf="showDataSaver"
                           [endpointUrl]="dataSaverEndpointUrl"
                           [dataContext]="dataContext"

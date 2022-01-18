@@ -20,10 +20,16 @@ export class DataContext {
 
   templateInput: CedarInputTemplate = null;
   templateRepresentation: TemplateComponent = null;
+
+
+
   instanceExtractData: InstanceExtractData = null;
   instanceFullData: InstanceFullData = null;
   multiInstanceData: MultiInstanceInfo = null;
   savedTemplateID: string;
+  currentPBIndex: number;
+
+
 
   public constructor() {
   }
@@ -44,8 +50,40 @@ export class DataContext {
     this.savedTemplateID = null;
 
 
+    this.currentPBIndex = 0;
+
+
+
+
+
+    console.log('***********************************');
+    // console.log('templateInput');
+    // console.log(this.templateInput);
+    console.log('templateRepresentation children');
+    console.log(this.templateRepresentation.children);
+
+
+    console.log('pages');
+    console.log(this.templateRepresentation.pageBreakChildren);
+
+
+    console.log('has page breaks: ' + this.templateRepresentation.hasPageBreaks());
+
+    console.log('***********************************');
+
+
 
 
 
   }
+
+
+
+
+
+
+
+
+
+
 }
