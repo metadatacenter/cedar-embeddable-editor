@@ -25,7 +25,6 @@ import {StaticFooterComponent} from './components/static-footer/static-footer.co
 import {StaticHeaderComponent} from './components/static-header/static-header.component';
 import {SourcePanelsComponent} from './components/source-panels/source-panels.component';
 import {CedarMultiPagerComponent} from './components/cedar-multi-pager/cedar-multi-pager.component';
-import {CedarPageBreakPagerComponent} from './components/cedar-page-break-pager/cedar-page-break-pager.component';
 import {InputTypesModule} from '../input-types/input-types.module';
 import {CedarEmbeddableMetadataEditorWrapperComponent} from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import {MatListModule} from '@angular/material/list';
@@ -65,8 +64,7 @@ import {SampleTemplatesComponent} from './components/sample-templates/sample-tem
     StaticFooterComponent,
     StaticHeaderComponent,
     SourcePanelsComponent,
-    CedarMultiPagerComponent,
-    CedarPageBreakPagerComponent
+    CedarMultiPagerComponent
   ],
   providers: [],
   exports: [

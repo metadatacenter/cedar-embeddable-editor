@@ -4,34 +4,23 @@
                    [httpUrl]="templateUploadBaseUrl + templateUploadEndpoint"
 ></app-file-uploader>
 <mat-card class="template-card" *ngIf="dataAvailableForRender()">
-
-
-
   <mat-card-header>
     <div mat-card-avatar class="header-image"></div>
     <mat-card-title>{{dataContext.templateRepresentation.labelInfo.label}}</mat-card-title>
     <mat-card-subtitle>{{dataContext.templateRepresentation.labelInfo.description}}</mat-card-subtitle>
+    <div *ngIf="dataContext.templateRepresentation.hasPageBreaks()" class="header-flex-child">
+      <app-cedar-static-page-break
+        [dataContext]="dataContext"
+      ></app-cedar-static-page-break>
+    </div>
   </mat-card-header>
-
-
-
-
-
   <mat-card-content>
-
-
-
-    <ng-container *ngFor="let childComponent of dataContext.templateRepresentation.children">
-
+    <ng-container *ngFor="let childComponent of dataContext.templateRepresentation.currentPage()">
       <app-cedar-component-renderer
         [componentToRender]="childComponent"
         [handlerContext]="handlerContext"
       ></app-cedar-component-renderer>
-
     </ng-container>
-
-
-
     <app-cedar-data-saver *ngIf="showDataSaver"
                           [endpointUrl]="dataSaverEndpointUrl"
                           [dataContext]="dataContext"

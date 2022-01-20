@@ -7,83 +7,34 @@ import {InstanceFullData} from '../models/instance-full-data.model';
 import {HandlerContext} from './handler-context';
 import {MultiInstanceObjectHandler} from '../handler/multi-instance-object.handler';
 import {DataObjectBuilderHandler} from '../handler/data-object-builder.handler';
+import {BehaviorSubject} from 'rxjs';
 
 export class DataContext {
 
-
-
-
-  // DataContext will contain the individual page break template sections
-  // as part of setInputTemplate, these sections must be built
-
-
-
   templateInput: CedarInputTemplate = null;
   templateRepresentation: TemplateComponent = null;
-
-
-
   instanceExtractData: InstanceExtractData = null;
   instanceFullData: InstanceFullData = null;
   multiInstanceData: MultiInstanceInfo = null;
   savedTemplateID: string;
-  currentPBIndex: number;
-
+  // to allow other components to subscribe to changes in templateRepresentation
+  private templateRepresentationSubject = new BehaviorSubject<TemplateComponent>(null);
+  templateRepresentation$ = this.templateRepresentationSubject.asObservable();
 
 
   public constructor() {
   }
 
-
   setInputTemplate(value: object, handlerContext: HandlerContext, collapseStaticComponents: boolean): void {
-
-
     this.templateInput = value as CedarInputTemplate;
     this.templateRepresentation = TemplateRepresentationFactory.create(this.templateInput, collapseStaticComponents);
-
+    this.templateRepresentationSubject.next(this.templateRepresentation);
     const multiInstanceObjectService: MultiInstanceObjectHandler = handlerContext.multiInstanceObjectService;
     const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
-
     this.instanceExtractData = dataObjectService.buildNewExtractDataObject(this.templateRepresentation, this.templateInput);
     this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
     this.multiInstanceData = multiInstanceObjectService.buildNew(this.templateRepresentation);
     this.savedTemplateID = null;
-
-
-    this.currentPBIndex = 0;
-
-
-
-
-
-    console.log('***********************************');
-    // console.log('templateInput');
-    // console.log(this.templateInput);
-    console.log('templateRepresentation children');
-    console.log(this.templateRepresentation.children);
-
-
-    console.log('pages');
-    console.log(this.templateRepresentation.pageBreakChildren);
-
-
-    console.log('has page breaks: ' + this.templateRepresentation.hasPageBreaks());
-
-    console.log('***********************************');
-
-
-
-
-
   }
-
-
-
-
-
-
-
-
-
 
 }

@@ -4,7 +4,8 @@ import {JavascriptTypes} from '../models/javascript-types.model';
 import {CedarComponent} from '../models/component/cedar-component.model';
 import {MultiElementComponent} from '../models/element/multi-element-component.model';
 import {CedarTemplate} from '../models/template/cedar-template.model';
-import {NullTemplateComponent} from '../models/template/null-template-component.model';
+import {NullTemplate} from '../models/template/null-template.model';
+import {EmptyTemplate} from '../models/template/empty-template.model';
 import {TemplateComponent} from '../models/template/template-component.model';
 import {MultiFieldComponent} from '../models/field/multi-field-component.model';
 import {SingleFieldComponent} from '../models/field/single-field-component.model';
@@ -23,7 +24,7 @@ export class TemplateRepresentationFactory {
 
   static create(inputTemplate: CedarInputTemplate, collapseStaticComponents: boolean): TemplateComponent {
     if (inputTemplate === null) {
-      return new NullTemplateComponent();
+      return new NullTemplate();
     } else {
       const template = new CedarTemplate();
       TemplateRepresentationFactory.wrap(inputTemplate, inputTemplate, template, [], collapseStaticComponents);
@@ -46,7 +47,7 @@ export class TemplateRepresentationFactory {
         }
         // if page-break is the last component, always add an empty page
         if (index === template.children.length - 1) {
-          pages.push([new NullTemplateComponent()]);
+          pages.push([new EmptyTemplate()]);
         } else {
           numPBInRow++;
         }
@@ -60,7 +61,7 @@ export class TemplateRepresentationFactory {
 
         // add empty pages corresponding to: (number of page breaks in a row - 1)
         for (let i = 0; i < numPBInRow - 1; i++) {
-          pages.push([new NullTemplateComponent()]);
+          pages.push([new EmptyTemplate()]);
         }
         numPBInRow = 0;
       }

@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
-import {NullTemplateComponent} from '../../models/template/null-template-component.model';
+import {NullTemplate} from '../../models/template/null-template.model';
 import {MatAccordion} from '@angular/material/expansion';
 import {DataContext} from '../../util/data-context';
 import {HandlerContext} from '../../util/handler-context';
@@ -162,7 +162,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   dataAvailableForRender(): boolean {
     return this.dataContext != null
       && this.dataContext.templateRepresentation != null
-      && !(this.dataContext.templateRepresentation instanceof NullTemplateComponent)
+      && !(this.dataContext.templateRepresentation instanceof NullTemplate)
       && this.dataContext.multiInstanceData != null;
   }
 

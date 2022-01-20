@@ -1,0 +1,20 @@
+<div class="pager-container page-break-paginator-container">
+  <span class="page-break-label">Page Breaks:</span>
+  <div class="pager-chips">
+    <mat-chip-list>
+      <mat-chip *ngFor="let pageNumber of templateRepresentation.allPageIndices()"
+                [selected]="pageNumber == templateRepresentation.currentPageBreakIndex"
+                (click)="templateRepresentation.page(pageNumber)"
+                selectable="true"
+      >{{pageNumber + 1}}</mat-chip>
+    </mat-chip-list>
+  </div>
+  <div class="page-break-pager">
+    <mat-paginator [length]="templateRepresentation.numPages()"
+                   [hidePageSize]="true"
+                   [pageSize]="1"
+                   [pageIndex]="templateRepresentation.currentPageBreakIndex"
+                   (page)="paginatorChanged($event)">
+    </mat-paginator>
+  </div>
+</div>
