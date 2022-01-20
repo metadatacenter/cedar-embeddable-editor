@@ -134,7 +134,6 @@ export class TemplateRepresentationFactory {
         const mr = r as MultiComponent;
         TemplateRepresentationFactory.extractMultiInfo(templateFragment, mr);
       }
-
     }
 
     if (collapseStaticComponents) {

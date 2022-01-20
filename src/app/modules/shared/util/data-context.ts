@@ -7,7 +7,7 @@ import {InstanceFullData} from '../models/instance-full-data.model';
 import {HandlerContext} from './handler-context';
 import {MultiInstanceObjectHandler} from '../handler/multi-instance-object.handler';
 import {DataObjectBuilderHandler} from '../handler/data-object-builder.handler';
-import {BehaviorSubject} from 'rxjs';
+import {PageBreakPaginatorService} from '../service/page-break-paginator.service';
 
 export class DataContext {
 
@@ -17,18 +17,16 @@ export class DataContext {
   instanceFullData: InstanceFullData = null;
   multiInstanceData: MultiInstanceInfo = null;
   savedTemplateID: string;
-  // to allow other components to subscribe to changes in templateRepresentation
-  private templateRepresentationSubject = new BehaviorSubject<TemplateComponent>(null);
-  templateRepresentation$ = this.templateRepresentationSubject.asObservable();
 
 
   public constructor() {
   }
 
-  setInputTemplate(value: object, handlerContext: HandlerContext, collapseStaticComponents: boolean): void {
+  setInputTemplate(value: object, handlerContext: HandlerContext,
+                   pageBreakPaginatorService: PageBreakPaginatorService, collapseStaticComponents: boolean): void {
     this.templateInput = value as CedarInputTemplate;
     this.templateRepresentation = TemplateRepresentationFactory.create(this.templateInput, collapseStaticComponents);
-    this.templateRepresentationSubject.next(this.templateRepresentation);
+    pageBreakPaginatorService.reset(this.templateRepresentation.pageBreakChildren);
     const multiInstanceObjectService: MultiInstanceObjectHandler = handlerContext.multiInstanceObjectService;
     const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
     this.instanceExtractData = dataObjectService.buildNewExtractDataObject(this.templateRepresentation, this.templateInput);
