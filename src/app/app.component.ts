@@ -21,7 +21,7 @@ export class AppComponent {
 
     sampleTemplateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
     // sampleTemplateLocationPrefix: 'https://component.staging.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '20',
+    loadSampleTemplateName: '01',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: true,
 
