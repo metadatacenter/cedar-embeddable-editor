@@ -1,9 +1,17 @@
 .page-break-paginator-container {
   margin-top: 0;
   margin-bottom: 0;
+
+  .pager-chips {
+    margin-right: 0;
+  }
 }
 
 .page-break-pager {
+  .mat-paginator {
+    background-color: transparent;
+  }
+
   .mat-paginator-range-label {
     display: none;
   }
