@@ -23,17 +23,17 @@
           <mat-progress-bar
             [value]="uploadProgress.progressPercentage"
           ></mat-progress-bar>
-          <button
+          <button style="margin-left: 15px;"
             mat-icon-button
             [attr.aria-label]="fileUploadAriaLabel"
             (click)="upload()"
             [disabled]="uploadInProgress$ | async"
-          ><mat-icon>file_upload</mat-icon></button>
+          ><mat-icon>upload_file</mat-icon></button>
           <button
             mat-icon-button
             [attr.aria-label]="cancelAriaLabel"
             (click)="remove()"
-          ><mat-icon>cancel</mat-icon></button>
+          ><mat-icon>close</mat-icon></button>
         </span>
         <span class="file-summary">{{uploadProgress.progressPercentage}}% ({{uploadProgress.loaded | bytes}} of {{uploadProgress.total | bytes}})</span>
       </div>
