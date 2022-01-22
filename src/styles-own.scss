@@ -306,3 +306,12 @@ button.close {
   border: 0;
   -webkit-appearance: none;
 }
+
+.ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
+  background: var(--color-primary);
+  color: var(--color-text-primary);
+}
+
+.ng-select.ng-select-multiple .ng-value-icon {
+  color: var(--color-text-primary) !important;
+}

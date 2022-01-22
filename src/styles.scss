@@ -6,6 +6,7 @@
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
+@import '~@angular/material/theming';
 @include mat.core();
 
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
@@ -31,6 +32,16 @@ $cedar-embeddable-editor-theme: mat.define-light-theme((
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
 @include mat.all-component-themes($cedar-embeddable-editor-theme);
+
+$primary: map-get($cedar-embeddable-editor-theme, primary);
+$accent: map-get($cedar-embeddable-editor-theme, accent);
+
+:root {
+  --color-primary: #{mat-color($cedar-embeddable-editor-primary, default)};
+  --color-text-primary: #{mat-color($cedar-embeddable-editor-primary, default-contrast)};
+  --color-accent: #{mat-color($cedar-embeddable-editor-accent)};
+  --color-warn: #{mat-color($cedar-embeddable-editor-warn)};
+}
 
 /* You can add global styles to this file, and also import other style files */
 @import "~@ng-select/ng-select/themes/material.theme.css";
