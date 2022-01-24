@@ -1,4 +1,4 @@
-import {Directive, ElementRef, EventEmitter, HostListener, Input, Output} from '@angular/core';
+import {Directive, ElementRef, EventEmitter, HostBinding, HostListener, Input, Output} from '@angular/core';
 
 /**
  * A material design file upload queue component.
@@ -11,6 +11,7 @@ export class FileUploadInputForDirective {
   private _queue: any = null;
   private _element: HTMLElement;
   @Output() public onFileSelected: EventEmitter<File[]> = new EventEmitter<File[]>();
+  @HostBinding('class.fileover') fileOver: boolean;
 
 
   constructor(private element: ElementRef) {
@@ -46,11 +47,21 @@ export class FileUploadInputForDirective {
     event.preventDefault();
     event.stopPropagation();
     this.element.nativeElement.value = '';
+    this.fileOver = false;
   }
 
   @HostListener('dragover', ['$event'])
   public onDropOver(event: any): any {
     event.preventDefault();
+    event.stopPropagation();
+    this.fileOver = true;
+  }
+
+  @HostListener('dragleave', ['$event'])
+  public onDragLeave(event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.fileOver = false;
   }
 
 }

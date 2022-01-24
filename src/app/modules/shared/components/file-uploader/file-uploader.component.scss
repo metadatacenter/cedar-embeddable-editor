@@ -32,20 +32,20 @@
 
 /* Shake animation */
 @keyframes shake {
-  10%, 90% {
+  10%, 50%, 90% {
     transform: translateY(-1px);
   }
 
   20%, 80% {
+    transform: translateY(0px);
+  }
+
+  30%,  70% {
     transform: translateY(1px);
   }
 
-  30%, 50%, 70% {
-    transform: translateY(-2px);
-  }
-
   40%, 60% {
-    transform: translateY(2px);
+    transform: translateY(0px);
   }
 }
 
