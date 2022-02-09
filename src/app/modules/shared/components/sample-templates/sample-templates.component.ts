@@ -5,7 +5,7 @@ import {
   CedarEmbeddableMetadataEditorWrapperComponent
 } from '../cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import {HttpClient} from '@angular/common/http';
-import {JsonSchema} from '../../models/json-schema.model';
+import {SampleTemplatesService} from './sample-templates.service';
 
 @Component({
   selector: 'app-sample-templates',
@@ -15,19 +15,24 @@ import {JsonSchema} from '../../models/json-schema.model';
 })
 export class SampleTemplatesComponent implements OnInit {
 
-  private static readonly NUM_TEMPLATES = 60;
   @Input() callbackOwnerObject: any = null;
   @Input() expandedSampleTemplateLinks: boolean;
-  sampleTemplates = new Object();
+  sampleTemplates: object;
+
 
   constructor(
     private messageHandlerService: MessageHandlerService,
-    private http: HttpClient
+    private http: HttpClient,
+    private sampleTemplateService: SampleTemplatesService
   ) {
   }
 
   ngOnInit(): void {
-    this.loadAllTemplates();
+    const templateLocationPrefix = this.callbackOwnerObject.
+      innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX];
+    const sampleTemplateScanMaxValue = this.callbackOwnerObject.
+      innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.SAMPLE_TEMPLATE_SCAN_MAX_VALUE];
+    this.sampleTemplates = this.sampleTemplateService.getSampleTemplates(templateLocationPrefix, sampleTemplateScanMaxValue);
   }
 
   isSelected(key): boolean {
@@ -38,24 +43,6 @@ export class SampleTemplatesComponent implements OnInit {
   loadBuiltinTemplate(s: string): void {
     this.callbackOwnerObject.loadSampleTemplate(s);
     window.scroll(0, 0);
-  }
-
-  loadAllTemplates(): void {
-    for (let i = 1; i <= SampleTemplatesComponent.NUM_TEMPLATES; i++) {
-      const templateName = (i < 10) ? '0' + i.toString() : i.toString();
-      const url = this.callbackOwnerObject.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX] + templateName + '/template.json';
-      this.loadTemplateFromURL(templateName, url);
-    }
-  }
-
-  private loadTemplateFromURL(templateNumber: string, url: string): void {
-    this.http.get(url).subscribe(
-      value => {
-        this.sampleTemplates[templateNumber] = 'Template ' + templateNumber + ' - ' + value[JsonSchema.schemaName];
-      },
-      error => {
-      }
-    );
   }
 
   selectionClicked({option}: { option: MatListOption }): void {

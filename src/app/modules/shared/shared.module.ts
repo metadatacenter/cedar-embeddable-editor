@@ -29,6 +29,7 @@ import {InputTypesModule} from '../input-types/input-types.module';
 import {CedarEmbeddableMetadataEditorWrapperComponent} from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import {MatListModule} from '@angular/material/list';
 import {SampleTemplatesComponent} from './components/sample-templates/sample-templates.component';
+import {SampleTemplateSelectComponent} from './components/sample-templates/sample-template-select/sample-template-select.component';
 
 @NgModule({
   imports: [
@@ -59,6 +60,7 @@ import {SampleTemplatesComponent} from './components/sample-templates/sample-tem
     CedarEmbeddableMetadataEditorComponent,
     CedarEmbeddableMetadataEditorWrapperComponent,
     SampleTemplatesComponent,
+    SampleTemplateSelectComponent,
     CedarComponentRendererComponent,
     CedarDataSaverComponent,
     StaticFooterComponent,

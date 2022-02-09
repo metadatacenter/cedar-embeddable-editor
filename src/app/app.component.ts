@@ -19,6 +19,7 @@ export class AppComponent {
     showDataSaver: true,
     dataSaverEndpointUrl: 'http://localhost:8000/datasave.php',
 
+    sampleTemplateScanMaxValue: 90,
     sampleTemplateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
     // sampleTemplateLocationPrefix: 'https://component.staging.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
     loadSampleTemplateName: '53',
