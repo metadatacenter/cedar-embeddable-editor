@@ -30,9 +30,11 @@ export class SampleTemplatesComponent implements OnInit {
   ngOnInit(): void {
     const templateLocationPrefix = this.callbackOwnerObject.
       innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX];
-    const sampleTemplateScanMaxValue = this.callbackOwnerObject.
-      innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.SAMPLE_TEMPLATE_SCAN_MAX_VALUE];
-    this.sampleTemplates = this.sampleTemplateService.getSampleTemplates(templateLocationPrefix, sampleTemplateScanMaxValue);
+    this.sampleTemplateService.getAllTemplates(templateLocationPrefix).subscribe(
+      (templates: object) => {
+        this.sampleTemplates = templates;
+      }
+    );
   }
 
   isSelected(key): boolean {

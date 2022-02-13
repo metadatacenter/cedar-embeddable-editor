@@ -1,48 +1,88 @@
 import {Injectable} from '@angular/core';
 import {JsonSchema} from '../../models/json-schema.model';
 import {HttpClient} from '@angular/common/http';
-import {BehaviorSubject} from 'rxjs';
+import {of, Observable, from, Subject, EMPTY} from 'rxjs';
+import {catchError, concatMap, map, takeUntil} from 'rxjs/operators';
+import {MessageHandlerService} from '../../service/message-handler.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SampleTemplatesService {
 
-  private sampleTemplatesSubject = new BehaviorSubject<object>(null);
-  sampleTemplates$ = this.sampleTemplatesSubject.asObservable();
+  private readonly MAX_CHECK = 500;
 
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private messageHandlerService: MessageHandlerService) {
   }
 
-  getSampleTemplates(templateLocationPrefix: string, maxNumTemplates: number): object {
-    const val = this.sampleTemplatesSubject.getValue();
-
-    if (!val) {
-      this.loadSampleTemplates(templateLocationPrefix, maxNumTemplates);
-    }
-    return this.sampleTemplatesSubject.getValue();
+  getSingleTemplate(templateUrl: string): Observable<string> {
+    return this.http.get(templateUrl)
+      .pipe(
+        map(response => {
+          if (response == null || !response[JsonSchema.schemaName]) {
+            return null;
+          }
+          return response[JsonSchema.schemaName];
+        })
+      );
   }
 
-  private loadSampleTemplates(templateLocationPrefix: string, maxNumTemplates: number): void {
-    const sampleTemplates = new Object();
+  getAllTemplates(templateLocationPrefix: string): Observable<object> {
+    const singleUrls: string[] = [];
+    const closeRequest$ = new Subject<boolean>();
+    const allTemplates = {};
 
-    for (let i = 1; i <= maxNumTemplates; i++) {
+    for (let i = 1; i <= this.MAX_CHECK; i++) {
       const templateName = (i < 10) ? '0' + i.toString() : i.toString();
-      const url = templateLocationPrefix + templateName + '/template.json';
-      this.loadTemplateFromURL(sampleTemplates, templateName, url);
+      const templateUrl = templateLocationPrefix + templateName + '/template.json';
+      singleUrls.push(templateUrl);
     }
-    this.sampleTemplatesSubject.next(sampleTemplates);
+
+    let errorIndex = 0;
+
+    from(singleUrls)
+      .pipe(
+        concatMap(singleUrl => {
+          const templateNum = this.templateNumberFromUrl(templateLocationPrefix, singleUrl);
+          return this.getSingleTemplate(singleUrl)
+            .pipe(
+              map ( templateLabel => {
+                errorIndex = 0;
+                const templateEntry = {};
+                templateEntry[templateNum] = 'Template ' + templateNum + ' - ' + templateLabel;
+                return templateEntry;
+              }),
+              catchError(error => {
+                if (error.status === 0) {
+                  errorIndex++;
+                } else {
+                  this.messageHandlerService.errorObject(error['message'], error);
+                }
+
+                if (errorIndex > 1) {
+                  closeRequest$.next(null);
+                  closeRequest$.complete();
+                }
+                return EMPTY;
+              })
+            );
+        }),
+        takeUntil(closeRequest$)
+      )
+      .subscribe(
+        resp => {
+          Object.assign(allTemplates, resp);
+        }
+      );
+    return of(allTemplates);
   }
 
-  private loadTemplateFromURL(sampleTemplates: object, templateNumber: string, url: string): void {
-    this.http.get(url).subscribe(
-      value => {
-        sampleTemplates[templateNumber] = 'Template ' + templateNumber + ' - ' + value[JsonSchema.schemaName];
-      },
-      error => {
-      }
-    );
+  private templateNumberFromUrl(templateLocationPrefix, url): string {
+    const templateNumPatternStr = '^' + templateLocationPrefix + '(\\d{2})\\/';
+    const templateNumPattern = new RegExp(templateNumPatternStr);
+    const templateNumMatch = url.match(templateNumPattern);
+    return templateNumMatch[1];
   }
 
 }

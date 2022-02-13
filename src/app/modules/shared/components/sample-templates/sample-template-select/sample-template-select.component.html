@@ -1,0 +1,11 @@
+<ng-select [items]="sampleTemplates"
+           [(ngModel)]="selectedItem"
+           [placeholder]="'Select template...'"
+           [notFoundText]="'No templates found'"
+           labelForId="{{TEMPLATE_NUMBER}}"
+           [maxSelectedItems]="1"
+           [closeOnSelect]="true"
+           [hideSelected]="false"
+           (ngModelChange)="inputChanged($event)"
+></ng-select>
+

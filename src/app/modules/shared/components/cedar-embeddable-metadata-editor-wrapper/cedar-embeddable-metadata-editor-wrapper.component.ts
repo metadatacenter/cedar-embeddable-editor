@@ -13,7 +13,6 @@ import {config, Subscription} from 'rxjs';
 })
 export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, OnDestroy {
 
-  static SAMPLE_TEMPLATE_SCAN_MAX_VALUE = 'sampleTemplateScanMaxValue';
   static TEMPLATE_LOCATION_PREFIX = 'sampleTemplateLocationPrefix';
   static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
   static TERMINOLOGY_PROXY_URL = 'terminologyProxyUrl';
