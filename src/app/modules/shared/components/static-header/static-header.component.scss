@@ -1,21 +1,8 @@
 .sample-templates-flex {
   flex: auto;
 
-  .ng-select .ng-select-container .ng-value-container .ng-placeholder {
-    color: var(--color-text-primary);
-    font-size: 80%;
-  }
-
-  .ng-select .ng-select-container:after {
-    border-bottom: thin solid var(--color-text-primary);
-  }
-
-  .ng-select .ng-arrow-wrapper .ng-arrow {
-    color: var(--color-text-primary);
-  }
-
-  .ng-select div, .ng-select input, .ng-select span {
-    color: var(--color-text-primary);
+  .mat-form-field {
+    font-size: 85%;
   }
 }
 

@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {JsonSchema} from '../../models/json-schema.model';
 import {HttpClient} from '@angular/common/http';
 import {of, Observable, from, Subject, EMPTY} from 'rxjs';
-import {catchError, concatMap, map, takeUntil} from 'rxjs/operators';
+import {catchError, concatMap, delay, map, takeUntil} from 'rxjs/operators';
 import {MessageHandlerService} from '../../service/message-handler.service';
 
 @Injectable({
@@ -11,37 +11,39 @@ import {MessageHandlerService} from '../../service/message-handler.service';
 export class SampleTemplatesService {
 
   private readonly MAX_CHECK = 500;
+  private allTemplates: Observable<object>;
 
 
   constructor(private http: HttpClient, private messageHandlerService: MessageHandlerService) {
   }
 
-  getSingleTemplate(templateUrl: string): Observable<string> {
-    return this.http.get(templateUrl)
-      .pipe(
-        map(response => {
-          if (response == null || !response[JsonSchema.schemaName]) {
-            return null;
-          }
-          return response[JsonSchema.schemaName];
-        })
-      );
+  getSampleTemplates(templateLocationPrefix: string): Observable<object> {
+    if (!this.allTemplates) {
+      this.buildAllTemplates(templateLocationPrefix);
+    }
+    return this.allTemplates;
   }
 
-  getAllTemplates(templateLocationPrefix: string): Observable<object> {
+  private buildAllTemplates(templateLocationPrefix: string): void {
+    const allTemplates = {};
+    this.getAllTemplatesSubscription(templateLocationPrefix).subscribe(
+      resp => {
+        Object.assign(allTemplates, resp);
+      });
+    this.allTemplates = of(allTemplates);
+  }
+
+  private getAllTemplatesSubscription(templateLocationPrefix: string): Observable<object> {
     const singleUrls: string[] = [];
     const closeRequest$ = new Subject<boolean>();
-    const allTemplates = {};
+    let errorIndex = 0;
 
     for (let i = 1; i <= this.MAX_CHECK; i++) {
       const templateName = (i < 10) ? '0' + i.toString() : i.toString();
       const templateUrl = templateLocationPrefix + templateName + '/template.json';
       singleUrls.push(templateUrl);
     }
-
-    let errorIndex = 0;
-
-    from(singleUrls)
+    return from(singleUrls)
       .pipe(
         concatMap(singleUrl => {
           const templateNum = this.templateNumberFromUrl(templateLocationPrefix, singleUrl);
@@ -53,6 +55,7 @@ export class SampleTemplatesService {
                 templateEntry[templateNum] = 'Template ' + templateNum + ' - ' + templateLabel;
                 return templateEntry;
               }),
+              // if encounter two consecutive error requests, finish polling
               catchError(error => {
                 if (error.status === 0) {
                   errorIndex++;
@@ -69,17 +72,23 @@ export class SampleTemplatesService {
             );
         }),
         takeUntil(closeRequest$)
-      )
-      .subscribe(
-        resp => {
-          Object.assign(allTemplates, resp);
-        }
       );
-    return of(allTemplates);
+  }
+
+  private getSingleTemplate(templateUrl: string): Observable<string> {
+    return this.http.get(templateUrl)
+      .pipe(
+        map(response => {
+          if (response == null || !response[JsonSchema.schemaName]) {
+            return null;
+          }
+          return response[JsonSchema.schemaName];
+        })
+      );
   }
 
   private templateNumberFromUrl(templateLocationPrefix, url): string {
-    const templateNumPatternStr = '^' + templateLocationPrefix + '(\\d{2})\\/';
+    const templateNumPatternStr = '^' + templateLocationPrefix + '(\\d+)\\/';
     const templateNumPattern = new RegExp(templateNumPatternStr);
     const templateNumMatch = url.match(templateNumPattern);
     return templateNumMatch[1];

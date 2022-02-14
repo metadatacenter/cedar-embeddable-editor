@@ -30,7 +30,7 @@ export class SampleTemplatesComponent implements OnInit {
   ngOnInit(): void {
     const templateLocationPrefix = this.callbackOwnerObject.
       innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX];
-    this.sampleTemplateService.getAllTemplates(templateLocationPrefix).subscribe(
+    this.sampleTemplateService.getSampleTemplates(templateLocationPrefix).subscribe(
       (templates: object) => {
         this.sampleTemplates = templates;
       }

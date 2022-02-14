@@ -31,32 +31,34 @@ import {InputTypesModule} from '../input-types/input-types.module';
 import {CedarEmbeddableMetadataEditorWrapperComponent} from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import {SampleTemplatesComponent} from './components/sample-templates/sample-templates.component';
 import {SampleTemplateSelectComponent} from './components/sample-templates/sample-template-select/sample-template-select.component';
+import {MatSelectModule} from '@angular/material/select';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatIconModule,
-    BrowserAnimationsModule,
-    MatFormFieldModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatExpansionModule,
-    MatButtonModule,
-    MatTooltipModule,
-    ClipboardModule,
-    MatToolbarModule,
-    MatRippleModule,
-    MatPaginatorModule,
-    MatChipsModule,
-    MatGridListModule,
-    MatProgressSpinnerModule,
-    MatListModule,
-    NgSelectModule,
-    InputTypesModule,
-    FormsModule
-  ],
+    imports: [
+        CommonModule,
+        MatCardModule,
+        MatIconModule,
+        BrowserAnimationsModule,
+        MatFormFieldModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatExpansionModule,
+        MatButtonModule,
+        MatTooltipModule,
+        ClipboardModule,
+        MatToolbarModule,
+        MatRippleModule,
+        MatPaginatorModule,
+        MatChipsModule,
+        MatGridListModule,
+        MatProgressSpinnerModule,
+        MatListModule,
+        NgSelectModule,
+        InputTypesModule,
+        FormsModule,
+        MatSelectModule
+    ],
   declarations: [
     RdfPipe,
     CedarComponentHeaderComponent,

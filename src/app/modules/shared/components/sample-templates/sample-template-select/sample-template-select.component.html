@@ -1,11 +1,7 @@
-<ng-select [items]="sampleTemplates"
-           [(ngModel)]="selectedItem"
-           [placeholder]="'Select template...'"
-           [notFoundText]="'No templates found'"
-           labelForId="{{TEMPLATE_NUMBER}}"
-           [maxSelectedItems]="1"
-           [closeOnSelect]="true"
-           [hideSelected]="false"
-           (ngModelChange)="inputChanged($event)"
-></ng-select>
-
+<mat-form-field class="full-width">
+  <mat-select [(value)]="selectedItem">
+    <mat-option *ngFor="let template of sampleTemplates | keyvalue"
+                [value]="template.key"
+    >{{template.value}}</mat-option>
+  </mat-select>
+</mat-form-field>

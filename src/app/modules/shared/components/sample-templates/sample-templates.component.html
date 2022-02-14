@@ -12,9 +12,8 @@
                           (click)="selectionClicked({option : templates.selectedOptions.selected[0]})">
         <mat-list-option *ngFor="let template of sampleTemplates | keyvalue"
                          [value]="template.key"
-                         [selected]="isSelected(template.key)">
-          {{template.value}}
-        </mat-list-option>
+                         [selected]="isSelected(template.key)"
+        >{{template.value}}</mat-list-option>
       </mat-selection-list>
   </ng-template>
 </mat-expansion-panel>
