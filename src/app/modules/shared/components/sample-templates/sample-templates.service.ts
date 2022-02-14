@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {JsonSchema} from '../../models/json-schema.model';
 import {HttpClient} from '@angular/common/http';
 import {of, Observable, from, Subject, EMPTY} from 'rxjs';
-import {catchError, concatMap, delay, map, takeUntil} from 'rxjs/operators';
+import {catchError, concatMap, map, takeUntil} from 'rxjs/operators';
 import {MessageHandlerService} from '../../service/message-handler.service';
 
 @Injectable({

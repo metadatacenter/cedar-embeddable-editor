@@ -1,5 +1,6 @@
 <mat-form-field class="full-width">
-  <mat-select [(value)]="selectedItem">
+  <mat-label>Select template</mat-label>
+  <mat-select [(value)]="selectedItem" (selectionChange)="inputChanged($event)">
     <mat-option *ngFor="let template of sampleTemplates | keyvalue"
                 [value]="template.key"
     >{{template.value}}</mat-option>

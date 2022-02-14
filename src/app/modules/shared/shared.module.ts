@@ -19,6 +19,7 @@ import {MatChipsModule} from '@angular/material/chips';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatListModule} from '@angular/material/list';
+import {MatSelectModule} from '@angular/material/select';
 import {NgSelectModule} from '@ng-select/ng-select';
 import {CedarEmbeddableMetadataEditorComponent} from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import {CedarComponentRendererComponent} from './components/cedar-component-renderer/cedar-component-renderer.component';
@@ -31,7 +32,6 @@ import {InputTypesModule} from '../input-types/input-types.module';
 import {CedarEmbeddableMetadataEditorWrapperComponent} from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import {SampleTemplatesComponent} from './components/sample-templates/sample-templates.component';
 import {SampleTemplateSelectComponent} from './components/sample-templates/sample-template-select/sample-template-select.component';
-import {MatSelectModule} from '@angular/material/select';
 
 @NgModule({
     imports: [
@@ -54,10 +54,10 @@ import {MatSelectModule} from '@angular/material/select';
         MatGridListModule,
         MatProgressSpinnerModule,
         MatListModule,
+        MatSelectModule,
         NgSelectModule,
         InputTypesModule,
-        FormsModule,
-        MatSelectModule
+        FormsModule
     ],
   declarations: [
     RdfPipe,

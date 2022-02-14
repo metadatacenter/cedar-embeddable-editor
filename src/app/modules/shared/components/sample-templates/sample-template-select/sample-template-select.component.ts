@@ -3,6 +3,7 @@ import {SampleTemplatesService} from '../sample-templates.service';
 import {
   CedarEmbeddableMetadataEditorWrapperComponent
 } from '../../cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
+import {MatListOption} from '@angular/material/list/public-api';
 
 @Component({
   selector: 'app-sample-template-select',
@@ -24,12 +25,6 @@ export class SampleTemplateSelectComponent implements OnInit {
     this.sampleTemplateService.getSampleTemplates(templateLocationPrefix).subscribe(
       (templates: object) => {
         this.sampleTemplates = templates;
-
-
-        console.log('this.sampleTemplates');
-        console.log(this.sampleTemplates);
-
-
       }
     );
 
@@ -38,8 +33,15 @@ export class SampleTemplateSelectComponent implements OnInit {
     }
   }
 
-  inputChanged(event): void {
+  loadBuiltinTemplate(s: string): void {
+    this.callbackOwnerObject.loadSampleTemplate(s);
+    window.scroll(0, 0);
+  }
 
+  inputChanged(event): void {
+    if (event) {
+      this.loadBuiltinTemplate(event.value);
+    }
   }
 
 }
