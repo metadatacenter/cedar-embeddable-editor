@@ -3,7 +3,7 @@ import {HttpClient, HttpResponse, HttpStatusCode} from '@angular/common/http';
 import {ControlledFieldDataService} from '../../service/controlled-field-data.service';
 import {MessageHandlerService} from '../../service/message-handler.service';
 import {MatFileUploadService} from '../file-uploader/mat-file-upload/mat-file-upload.service';
-import {config, Subscription} from 'rxjs';
+import {BehaviorSubject, Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -30,6 +30,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   showSpinnerBeforeInit = true;
 
   uploadFileSubscription: Subscription;
+  private customTemplateSubject = new BehaviorSubject<string>(null);
+  customTemplate$ = this.customTemplateSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -54,6 +56,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
             this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT] + '?' +
             this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME] + '=' + filename;
           this.loadTemplateFromURL(templateUrl);
+          this.customTemplateSubject.next(templateUrl);
         }
       }
     });

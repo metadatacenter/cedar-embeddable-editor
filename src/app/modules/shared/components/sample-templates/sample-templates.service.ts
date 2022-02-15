@@ -41,7 +41,7 @@ export class SampleTemplatesService {
 
   private getAllTemplatesSubscription(templateLocationPrefix: string): Observable<object> {
     const singleUrls: string[] = [];
-    const closeRequest$ = new Subject<boolean>();
+    const closeRequest$ = new Subject<void>();
     let errorIndex = 0;
 
     for (let i = 1; i <= this.MAX_CHECK; i++) {
@@ -70,7 +70,7 @@ export class SampleTemplatesService {
                 }
 
                 if (errorIndex > 1) {
-                  closeRequest$.next(null);
+                  closeRequest$.next();
                   closeRequest$.complete();
                 }
                 return EMPTY;

@@ -8,11 +8,12 @@
 
   <ng-template matExpansionPanelContent *ngIf="sampleTemplates">
       <mat-selection-list #templates
+                          [formControl]="templateCtrl"
                           [multiple]="false"
                           (click)="selectionClicked({option : templates.selectedOptions.selected[0]})">
         <mat-list-option *ngFor="let template of sampleTemplates"
                          [value]="template[sampleTemplateService.TEMPLATE_NUMBER]"
-                         [selected]="isSelected(template[sampleTemplateService.TEMPLATE_NUMBER])"
+                         [selected]="isSelectedByDefault(template[sampleTemplateService.TEMPLATE_NUMBER])"
         >{{template[sampleTemplateService.TEMPLATE_LABEL]}}</mat-list-option>
       </mat-selection-list>
   </ng-template>

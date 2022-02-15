@@ -4,7 +4,7 @@ import {
   CedarEmbeddableMetadataEditorWrapperComponent
 } from '../../cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import {FormControl} from '@angular/forms';
-import {ReplaySubject, Subject} from 'rxjs';
+import {ReplaySubject, Subject, Subscription} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 
 @Component({
@@ -22,13 +22,15 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   protected _onDestroy = new Subject<void>();
 
 
-  constructor(private sampleTemplateService: SampleTemplatesService) {
+  constructor(public sampleTemplateService: SampleTemplatesService) {
   }
 
   ngOnInit(): void {
     const templateLocationPrefix = this.callbackOwnerObject.
       innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX];
-    this.sampleTemplateService.getSampleTemplates(templateLocationPrefix).subscribe(
+    this.sampleTemplateService.getSampleTemplates(templateLocationPrefix)
+      .pipe(takeUntil(this._onDestroy))
+      .subscribe(
       (templates: object[]) => {
         this.sampleTemplates = templates;
         this.filteredTemplates.next(this.sampleTemplates);
@@ -40,6 +42,15 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
       this.templateCtrl.setValue(
         this.callbackOwnerObject.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME]);
     }
+
+    this.callbackOwnerObject.customTemplate$
+      .pipe(takeUntil(this._onDestroy))
+      .subscribe(
+      templateUrl => {
+        if (templateUrl) {
+          this.templateCtrl.setValue(null);
+        }
+      });
 
     // listen for search field value changes
     this.templateFilterCtrl.valueChanges
