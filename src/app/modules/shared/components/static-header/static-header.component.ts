@@ -9,6 +9,7 @@ import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 export class StaticHeaderComponent implements OnInit {
 
   @Input() callbackOwnerObject: any = null;
+  @Input() showSampleTemplateLinks: boolean = null;
 
 
   constructor() {

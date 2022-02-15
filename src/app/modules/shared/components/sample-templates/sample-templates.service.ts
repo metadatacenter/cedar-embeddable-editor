@@ -11,7 +11,9 @@ import {MessageHandlerService} from '../../service/message-handler.service';
 export class SampleTemplatesService {
 
   private readonly MAX_CHECK = 500;
-  private allTemplates: Observable<object>;
+  readonly TEMPLATE_NUMBER = 'num';
+  readonly TEMPLATE_LABEL = 'label';
+  private allTemplates: Observable<object[]>;
 
 
   constructor(private http: HttpClient, private messageHandlerService: MessageHandlerService) {
@@ -25,11 +27,15 @@ export class SampleTemplatesService {
   }
 
   private buildAllTemplates(templateLocationPrefix: string): void {
-    const allTemplates = {};
+    const allTemplates = [];
     this.getAllTemplatesSubscription(templateLocationPrefix).subscribe(
       resp => {
-        Object.assign(allTemplates, resp);
-      });
+      // Object.assign(allTemplatesObject, resp);
+      const entry = {};
+      entry[this.TEMPLATE_NUMBER] = Object.keys(resp)[0];
+      entry[this.TEMPLATE_LABEL] = Object.values(resp)[0];
+      allTemplates.push(entry);
+    });
     this.allTemplates = of(allTemplates);
   }
 

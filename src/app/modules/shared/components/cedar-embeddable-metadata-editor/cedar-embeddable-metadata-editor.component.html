@@ -1,5 +1,6 @@
 <app-static-header *ngIf="dataAvailableForRender() && showHeader"
-                   [callbackOwnerObject]="sampleTemplateLoaderObject"></app-static-header>
+                   [callbackOwnerObject]="sampleTemplateLoaderObject"
+                   [showSampleTemplateLinks]="showSampleTemplateLinks"></app-static-header>
 <app-file-uploader *ngIf="dataAvailableForRender() && showTemplateUpload"
                    [fileAlias]="templateUploadParamName"
                    [httpUrl]="templateUploadBaseUrl + templateUploadEndpoint"

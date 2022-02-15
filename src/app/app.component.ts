@@ -21,14 +21,14 @@ export class AppComponent {
 
     sampleTemplateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
     // sampleTemplateLocationPrefix: 'https://component.staging.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '53',
+    loadSampleTemplateName: '45',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: true,
     showTemplateRenderingRepresentation: true,
 
-    terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
+    // terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
     // terminologyProxyUrl: 'http://localhost:8000/index.php',
-    // terminologyProxyUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
+    terminologyProxyUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
     showInstanceDataCore: true,
     showMultiInstanceInfo: true,
 

@@ -17,7 +17,7 @@ export class SampleTemplatesComponent implements OnInit {
 
   @Input() callbackOwnerObject: any = null;
   @Input() expandedSampleTemplateLinks: boolean;
-  sampleTemplates: object;
+  sampleTemplates: object[];
 
 
   constructor(
@@ -31,7 +31,7 @@ export class SampleTemplatesComponent implements OnInit {
     const templateLocationPrefix = this.callbackOwnerObject.
       innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX];
     this.sampleTemplateService.getSampleTemplates(templateLocationPrefix).subscribe(
-      (templates: object) => {
+      (templates: object[]) => {
         this.sampleTemplates = templates;
       }
     );
