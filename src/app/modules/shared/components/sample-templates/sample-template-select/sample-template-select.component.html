@@ -6,7 +6,7 @@
       <ngx-mat-select-search
         [formControl]="templateFilterCtrl"
         placeholderLabel="Find template..."
-        noEntriesFoundLabel="'No matching template found'"
+        noEntriesFoundLabel="No matching templates found"
       ></ngx-mat-select-search>
     </mat-option>
     <mat-option *ngFor="let template of filteredTemplates | async"

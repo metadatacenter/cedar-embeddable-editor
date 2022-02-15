@@ -4,6 +4,10 @@
   .mat-form-field {
     font-size: 85%;
   }
+
+  .mat-form-field-can-float.mat-form-field-should-float .mat-form-field-label {
+    display: none;
+  }
 }
 
 

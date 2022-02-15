@@ -66,7 +66,6 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
     } else {
       search = search.toLowerCase();
     }
-    // filter the banks
     this.filteredTemplates.next(
       this.sampleTemplates.filter(
         template => template[this.sampleTemplateService.TEMPLATE_LABEL].toLowerCase().indexOf(search) > -1)
