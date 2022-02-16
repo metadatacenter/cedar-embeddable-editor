@@ -4,7 +4,7 @@ import {
   CedarEmbeddableMetadataEditorWrapperComponent
 } from '../../cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import {FormControl} from '@angular/forms';
-import {ReplaySubject, Subject, Subscription} from 'rxjs';
+import {ReplaySubject, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 
 @Component({
@@ -16,6 +16,7 @@ import {takeUntil} from 'rxjs/operators';
 export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   @Input() callbackOwnerObject: any = null;
   sampleTemplates: object[];
+  templateLocationPrefix: string;
   templateCtrl: FormControl = new FormControl();
   templateFilterCtrl: FormControl = new FormControl();
   filteredTemplates: ReplaySubject<object[]> = new ReplaySubject<object[]>(1);
@@ -26,9 +27,9 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const templateLocationPrefix = this.callbackOwnerObject.
+    this.templateLocationPrefix = this.callbackOwnerObject.
       innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX];
-    this.sampleTemplateService.getSampleTemplates(templateLocationPrefix)
+    this.sampleTemplateService.getSampleTemplates(this.templateLocationPrefix)
       .pipe(takeUntil(this._onDestroy))
       .subscribe(
       (templates: object[]) => {
@@ -37,19 +38,10 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
       }
     );
 
-    if (this.callbackOwnerObject.innerConfig.hasOwnProperty(
-        CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
-      this.templateCtrl.setValue(
-        this.callbackOwnerObject.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME]);
-    }
-
-    this.callbackOwnerObject.customTemplate$
+    this.sampleTemplateService.templateJson$
       .pipe(takeUntil(this._onDestroy))
-      .subscribe(
-      templateUrl => {
-        if (templateUrl) {
-          this.templateCtrl.setValue(null);
-        }
+      .subscribe( templateJson => {
+        this.templateCtrl.setValue(Object.keys(templateJson)[0]);
       });
 
     // listen for search field value changes
@@ -83,8 +75,8 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
     );
   }
 
-  loadBuiltinTemplate(s: string): void {
-    this.callbackOwnerObject.loadSampleTemplate(s);
+  loadBuiltinTemplate(templateNum: string): void {
+    this.sampleTemplateService.loadTemplate(this.templateLocationPrefix, templateNum);
     window.scroll(0, 0);
   }
 

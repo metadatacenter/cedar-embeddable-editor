@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {JsonSchema} from '../../models/json-schema.model';
 import {HttpClient} from '@angular/common/http';
-import {of, Observable, from, Subject, EMPTY} from 'rxjs';
+import {of, Observable, from, Subject, EMPTY, BehaviorSubject} from 'rxjs';
 import {catchError, concatMap, map, takeUntil} from 'rxjs/operators';
 import {MessageHandlerService} from '../../service/message-handler.service';
 
@@ -11,13 +11,63 @@ import {MessageHandlerService} from '../../service/message-handler.service';
 export class SampleTemplatesService {
 
   private readonly MAX_CHECK = 500;
+  readonly TEMPLATE_FILENAME = 'template.json';
+  readonly TEMPLATE_REGISTRY_FILENAME = 'registry.json';
   readonly TEMPLATE_NUMBER = 'num';
   readonly TEMPLATE_LABEL = 'label';
   private allTemplates: Observable<object[]>;
+  private templateJsonSubject = new BehaviorSubject<object>(null);
+  templateJson$ = this.templateJsonSubject.asObservable();
 
 
   constructor(private http: HttpClient, private messageHandlerService: MessageHandlerService) {
   }
+
+  loadTemplate(locationPrefix: string, templateNum: string): void {
+    const locationPrefixPatternStr = '\\/$';
+    const locationPrefixPattern = new RegExp(locationPrefixPatternStr);
+    const locationPrefixMatch = locationPrefix.match(locationPrefixPattern);
+
+    if (!locationPrefixMatch) {
+      locationPrefix += '/';
+    }
+    const templateUrl = locationPrefix + templateNum + '/' + this.TEMPLATE_FILENAME;
+    this.loadTemplateFromURL(templateUrl, templateNum);
+  }
+
+  loadTemplateFromURL(templateUrl: string, templateNum: string = null): void {
+    if (!templateNum) {
+      templateNum = this.templateNumberFromUrl(templateUrl);
+    }
+    this.http.get(templateUrl).subscribe(
+      value => {
+        const valObj = {};
+        valObj[templateNum] = value;
+        this.templateJsonSubject.next(valObj);
+        this.messageHandlerService.trace('Loaded template: ' + templateUrl + ' (' + JSON.stringify(value).length + ' characters)');
+      },
+      error => {
+        this.messageHandlerService.error('Error while loading sample template from: ' + templateUrl);
+      }
+    );
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   getSampleTemplates(templateLocationPrefix: string): Observable<object> {
     if (!this.allTemplates) {
@@ -30,7 +80,6 @@ export class SampleTemplatesService {
     const allTemplates = [];
     this.getAllTemplatesSubscription(templateLocationPrefix).subscribe(
       resp => {
-      // Object.assign(allTemplatesObject, resp);
       const entry = {};
       entry[this.TEMPLATE_NUMBER] = Object.keys(resp)[0];
       entry[this.TEMPLATE_LABEL] = Object.values(resp)[0];
@@ -46,14 +95,14 @@ export class SampleTemplatesService {
 
     for (let i = 1; i <= this.MAX_CHECK; i++) {
       const templateName = (i < 10) ? '0' + i.toString() : i.toString();
-      const templateUrl = templateLocationPrefix + templateName + '/template.json';
+      const templateUrl = templateLocationPrefix + templateName + '/' + this.TEMPLATE_FILENAME;
       singleUrls.push(templateUrl);
     }
     return from(singleUrls)
       .pipe(
         concatMap(singleUrl => {
-          const templateNum = this.templateNumberFromUrl(templateLocationPrefix, singleUrl);
-          return this.getSingleTemplate(singleUrl)
+          const templateNum = this.templateNumberFromUrl(singleUrl);
+          return this.getSingleTemplateLabel(singleUrl)
             .pipe(
               map ( templateLabel => {
                 errorIndex = 0;
@@ -81,7 +130,7 @@ export class SampleTemplatesService {
       );
   }
 
-  private getSingleTemplate(templateUrl: string): Observable<string> {
+  private getSingleTemplateLabel(templateUrl: string): Observable<string> {
     return this.http.get(templateUrl)
       .pipe(
         map(response => {
@@ -93,11 +142,15 @@ export class SampleTemplatesService {
       );
   }
 
-  private templateNumberFromUrl(templateLocationPrefix, url): string {
-    const templateNumPatternStr = '^' + templateLocationPrefix + '(\\d+)\\/';
+  private templateNumberFromUrl(url): string {
+    const templateNumPatternStr = '\\/(\\d+)\\/' + this.TEMPLATE_FILENAME;
     const templateNumPattern = new RegExp(templateNumPatternStr);
     const templateNumMatch = url.match(templateNumPattern);
-    return templateNumMatch[1];
+
+    if (templateNumMatch && templateNumMatch.length > 1) {
+      return templateNumMatch[1];
+    }
+    return '-1';
   }
 
 }

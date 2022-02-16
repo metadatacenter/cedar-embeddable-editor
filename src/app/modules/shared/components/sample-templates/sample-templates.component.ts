@@ -19,6 +19,7 @@ export class SampleTemplatesComponent implements OnInit, OnDestroy {
 
   @Input() callbackOwnerObject: any = null;
   @Input() expandedSampleTemplateLinks: boolean;
+  templateLocationPrefix: string;
   templateCtrl: FormControl = new FormControl();
   sampleTemplates: object[];
   protected _onDestroy = new Subject<void>();
@@ -31,9 +32,9 @@ export class SampleTemplatesComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const templateLocationPrefix = this.callbackOwnerObject.
+    this.templateLocationPrefix = this.callbackOwnerObject.
       innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX];
-    this.sampleTemplateService.getSampleTemplates(templateLocationPrefix)
+    this.sampleTemplateService.getSampleTemplates(this.templateLocationPrefix)
       .pipe(takeUntil(this._onDestroy))
       .subscribe(
       (templates: object[]) => {
@@ -41,23 +42,15 @@ export class SampleTemplatesComponent implements OnInit, OnDestroy {
       }
     );
 
-    this.callbackOwnerObject.customTemplate$
+    this.sampleTemplateService.templateJson$
       .pipe(takeUntil(this._onDestroy))
-      .subscribe(
-        templateUrl => {
-          if (templateUrl) {
-            this.templateCtrl.setValue(null);
-          }
-        });
+      .subscribe( templateJson => {
+        this.templateCtrl.setValue([Object.keys(templateJson)[0]]);
+      });
   }
 
-  isSelectedByDefault(key): boolean {
-    return this.callbackOwnerObject.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME) &&
-      key === this.callbackOwnerObject.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME];
-  }
-
-  loadBuiltinTemplate(s: string): void {
-    this.callbackOwnerObject.loadSampleTemplate(s);
+  loadBuiltinTemplate(templateNum: string): void {
+    this.sampleTemplateService.loadTemplate(this.templateLocationPrefix, templateNum);
     window.scroll(0, 0);
   }
 
