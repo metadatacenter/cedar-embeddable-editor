@@ -73,17 +73,6 @@ export class SampleTemplatesService {
     return this.allTemplates;
   }
 
-  private fixedLocationPrefix(locationPrefix: string): string {
-    const locationPrefixPatternStr = '\\/$';
-    const locationPrefixPattern = new RegExp(locationPrefixPatternStr);
-    const locationPrefixMatch = locationPrefix.match(locationPrefixPattern);
-
-    if (!locationPrefixMatch) {
-      locationPrefix += '/';
-    }
-    return locationPrefix;
-  }
-
   getSampleTemplatesDynamically(templateLocationPrefix: string): Observable<object> {
     if (!this.allTemplates) {
       this.buildAllTemplatesDynamically(templateLocationPrefix);
@@ -166,6 +155,17 @@ export class SampleTemplatesService {
       return templateNumMatch[1];
     }
     return '-1';
+  }
+
+  private fixedLocationPrefix(locationPrefix: string): string {
+    const locationPrefixPatternStr = '\\/$';
+    const locationPrefixPattern = new RegExp(locationPrefixPatternStr);
+    const locationPrefixMatch = locationPrefix.match(locationPrefixPattern);
+
+    if (!locationPrefixMatch) {
+      locationPrefix += '/';
+    }
+    return locationPrefix;
   }
 
 }

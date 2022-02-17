@@ -7,7 +7,7 @@ import {HttpClient} from '@angular/common/http';
 import {SampleTemplatesService} from './sample-templates.service';
 import {Subject} from 'rxjs';
 import {FormControl} from '@angular/forms';
-import {delay, takeUntil} from 'rxjs/operators';
+import {takeUntil} from 'rxjs/operators';
 
 @Component({
   selector: 'app-sample-templates',
