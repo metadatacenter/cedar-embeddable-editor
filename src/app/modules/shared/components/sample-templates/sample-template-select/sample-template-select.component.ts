@@ -29,7 +29,7 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.templateLocationPrefix = this.callbackOwnerObject.
       innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX];
-    this.sampleTemplateService.getSampleTemplates(this.templateLocationPrefix)
+    this.sampleTemplateService.getSampleTemplatesFromRegistry(this.templateLocationPrefix)
       .pipe(takeUntil(this._onDestroy))
       .subscribe(
       (templates: object[]) => {

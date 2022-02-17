@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
-import {HttpClient, HttpResponse, HttpStatusCode} from '@angular/common/http';
+import {HttpResponse, HttpStatusCode} from '@angular/common/http';
 import {ControlledFieldDataService} from '../../service/controlled-field-data.service';
 import {MessageHandlerService} from '../../service/message-handler.service';
 import {MatFileUploadService} from '../file-uploader/mat-file-upload/mat-file-upload.service';
@@ -34,7 +34,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
 
   constructor(
-    private http: HttpClient,
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
     private matFileUploadService: MatFileUploadService,

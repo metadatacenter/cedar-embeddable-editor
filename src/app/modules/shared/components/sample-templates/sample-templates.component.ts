@@ -7,7 +7,7 @@ import {HttpClient} from '@angular/common/http';
 import {SampleTemplatesService} from './sample-templates.service';
 import {Subject} from 'rxjs';
 import {FormControl} from '@angular/forms';
-import {takeUntil} from 'rxjs/operators';
+import {delay, takeUntil} from 'rxjs/operators';
 
 @Component({
   selector: 'app-sample-templates',
@@ -21,7 +21,7 @@ export class SampleTemplatesComponent implements OnInit, OnDestroy {
   @Input() expandedSampleTemplateLinks: boolean;
   templateLocationPrefix: string;
   templateCtrl: FormControl = new FormControl();
-  sampleTemplates: object[];
+  sampleTemplates: object[] = [];
   protected _onDestroy = new Subject<void>();
 
 
@@ -34,11 +34,11 @@ export class SampleTemplatesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.templateLocationPrefix = this.callbackOwnerObject.
       innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX];
-    this.sampleTemplateService.getSampleTemplates(this.templateLocationPrefix)
+    this.sampleTemplateService.getSampleTemplatesFromRegistry(this.templateLocationPrefix)
       .pipe(takeUntil(this._onDestroy))
       .subscribe(
       (templates: object[]) => {
-        this.sampleTemplates = templates;
+        this.sampleTemplates.push(...templates);
       }
     );
 

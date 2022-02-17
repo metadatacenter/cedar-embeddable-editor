@@ -24,13 +24,7 @@ export class SampleTemplatesService {
   }
 
   loadTemplate(locationPrefix: string, templateNum: string): void {
-    const locationPrefixPatternStr = '\\/$';
-    const locationPrefixPattern = new RegExp(locationPrefixPatternStr);
-    const locationPrefixMatch = locationPrefix.match(locationPrefixPattern);
-
-    if (!locationPrefixMatch) {
-      locationPrefix += '/';
-    }
+    locationPrefix = this.fixedLocationPrefix(locationPrefix);
     const templateUrl = locationPrefix + templateNum + '/' + this.TEMPLATE_FILENAME;
     this.loadTemplateFromURL(templateUrl, templateNum);
   }
@@ -52,31 +46,52 @@ export class SampleTemplatesService {
     );
   }
 
+  getSampleTemplatesFromRegistry(locationPrefix: string): Observable<object[]> {
+    if (this.allTemplates) {
+      return this.allTemplates;
+    }
+    locationPrefix = this.fixedLocationPrefix(locationPrefix);
+    const registryUrl = locationPrefix + this.TEMPLATE_REGISTRY_FILENAME;
+    this.allTemplates = this.http.get(registryUrl)
+      .pipe(
+        map(
+          (resp: object) => {
+            return Object.keys(resp).sort().map( (key, index) => {
+              const entry = {};
+              entry[this.TEMPLATE_NUMBER] = key;
+              entry[this.TEMPLATE_LABEL] = resp[key];
+              return entry;
+            });
+          }
+        ),
+        catchError(
+          error => {
+          this.messageHandlerService.errorObject(error['message'], error);
+          return EMPTY;
+        })
+      );
+    return this.allTemplates;
+  }
 
+  private fixedLocationPrefix(locationPrefix: string): string {
+    const locationPrefixPatternStr = '\\/$';
+    const locationPrefixPattern = new RegExp(locationPrefixPatternStr);
+    const locationPrefixMatch = locationPrefix.match(locationPrefixPattern);
 
+    if (!locationPrefixMatch) {
+      locationPrefix += '/';
+    }
+    return locationPrefix;
+  }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  getSampleTemplates(templateLocationPrefix: string): Observable<object> {
+  getSampleTemplatesDynamically(templateLocationPrefix: string): Observable<object> {
     if (!this.allTemplates) {
-      this.buildAllTemplates(templateLocationPrefix);
+      this.buildAllTemplatesDynamically(templateLocationPrefix);
     }
     return this.allTemplates;
   }
 
-  private buildAllTemplates(templateLocationPrefix: string): void {
+  private buildAllTemplatesDynamically(templateLocationPrefix: string): void {
     const allTemplates = [];
     this.getAllTemplatesSubscription(templateLocationPrefix).subscribe(
       resp => {
