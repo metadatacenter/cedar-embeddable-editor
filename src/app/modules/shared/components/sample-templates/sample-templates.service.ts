@@ -20,12 +20,15 @@ export class SampleTemplatesService {
   templateJson$ = this.templateJsonSubject.asObservable();
 
 
-  constructor(private http: HttpClient, private messageHandlerService: MessageHandlerService) {
+  constructor(
+    private http: HttpClient,
+    private messageHandlerService: MessageHandlerService
+  ) {
   }
 
-  loadTemplate(locationPrefix: string, templateNum: string): void {
-    locationPrefix = this.fixedLocationPrefix(locationPrefix);
-    const templateUrl = locationPrefix + templateNum + '/' + this.TEMPLATE_FILENAME;
+  loadTemplate(templateLocationPrefix: string, templateNum: string): void {
+    templateLocationPrefix = this.fixedLocationPrefix(templateLocationPrefix);
+    const templateUrl = templateLocationPrefix + templateNum + '/' + this.TEMPLATE_FILENAME;
     this.loadTemplateFromURL(templateUrl, templateNum);
   }
 
@@ -46,12 +49,12 @@ export class SampleTemplatesService {
     );
   }
 
-  getSampleTemplatesFromRegistry(locationPrefix: string): Observable<object[]> {
+  getSampleTemplatesFromRegistry(templateLocationPrefix: string): Observable<object[]> {
     if (this.allTemplates) {
       return this.allTemplates;
     }
-    locationPrefix = this.fixedLocationPrefix(locationPrefix);
-    const registryUrl = locationPrefix + this.TEMPLATE_REGISTRY_FILENAME;
+    templateLocationPrefix = this.fixedLocationPrefix(templateLocationPrefix);
+    const registryUrl = templateLocationPrefix + this.TEMPLATE_REGISTRY_FILENAME;
     this.allTemplates = this.http.get(registryUrl)
       .pipe(
         map(
@@ -75,6 +78,7 @@ export class SampleTemplatesService {
 
   getSampleTemplatesDynamically(templateLocationPrefix: string): Observable<object> {
     if (!this.allTemplates) {
+      templateLocationPrefix = this.fixedLocationPrefix(templateLocationPrefix);
       this.buildAllTemplatesDynamically(templateLocationPrefix);
     }
     return this.allTemplates;

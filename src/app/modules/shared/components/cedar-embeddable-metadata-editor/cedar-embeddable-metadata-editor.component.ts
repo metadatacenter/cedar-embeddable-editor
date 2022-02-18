@@ -1,6 +1,5 @@
-import {Component, Input, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {NullTemplate} from '../../models/template/null-template.model';
-import {MatAccordion} from '@angular/material/expansion';
 import {DataContext} from '../../util/data-context';
 import {HandlerContext} from '../../util/handler-context';
 import {PageBreakPaginatorService} from '../../service/page-break-paginator.service';
@@ -72,8 +71,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   showDataSaver = false;
   dataSaverEndpointUrl: string;
+  @Input() externalTemplateInfo: object;
 
-  @ViewChild(MatAccordion) accordion: MatAccordion;
 
   constructor() {
     this.pageBreakPaginatorService = new PageBreakPaginatorService();
@@ -82,6 +81,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.dataContext.externalTemplateInfo = this.externalTemplateInfo;
   }
 
   @Input() set config(value: object) {

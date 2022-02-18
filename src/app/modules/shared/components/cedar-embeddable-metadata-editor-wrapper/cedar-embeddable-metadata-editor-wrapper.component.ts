@@ -32,6 +32,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   showSpinnerBeforeInit = true;
   protected _onDestroy = new Subject<void>();
 
+  externalTemplateInfo: object;
+
 
   constructor(
     private controlledFieldDataService: ControlledFieldDataService,
@@ -70,6 +72,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       });
     this.initialized = true;
     this.doInitialize();
+  }
+
+  @Input() set templateInfo(templateInfo: object) {
+    this.externalTemplateInfo = templateInfo;
   }
 
   @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {

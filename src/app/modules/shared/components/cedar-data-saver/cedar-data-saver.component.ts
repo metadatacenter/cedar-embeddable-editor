@@ -80,7 +80,14 @@ export class CedarDataSaverComponent implements OnInit, OnDestroy {
   }
 
   private httpRequest(): Observable<any> {
-    const body = this.dataContext.instanceFullData;
+    const body = {
+      metadata: this.dataContext.instanceFullData,
+      info: {}
+    };
+
+    if (this.dataContext.templateInfo) {
+      Object.assign(body.info, this.dataContext.templateInfo);
+    }
     const httpHeaders = new HttpHeaders({
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache'

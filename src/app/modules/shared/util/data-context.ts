@@ -17,9 +17,13 @@ export class DataContext {
   instanceFullData: InstanceFullData = null;
   multiInstanceData: MultiInstanceInfo = null;
   savedTemplateID: string;
-
+  templateInfo: object;
 
   public constructor() {
+  }
+
+  set externalTemplateInfo(templateInfo: object) {
+    this.templateInfo = templateInfo;
   }
 
   setInputTemplate(value: object, handlerContext: HandlerContext,
