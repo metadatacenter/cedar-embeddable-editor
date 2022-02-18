@@ -1,5 +1,7 @@
-import {Component, ChangeDetectionStrategy, ContentChildren, forwardRef, OnDestroy, OnChanges,
-  QueryList, SimpleChanges, Input, ChangeDetectorRef} from '@angular/core';
+import {
+  Component, ChangeDetectionStrategy, ContentChildren, forwardRef, OnDestroy, OnChanges,
+  QueryList, SimpleChanges, Input, ChangeDetectorRef, AfterViewInit
+} from '@angular/core';
 import {Subscription, Observable, merge} from 'rxjs';
 import {HttpHeaders, HttpParams} from '@angular/common/http';
 import {startWith} from 'rxjs/operators';
@@ -13,7 +15,7 @@ import {MatFileUploadComponent} from '../mat-file-upload/mat-file-upload.compone
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [MatFileUploadQueueService],
 })
-export class MatFileUploadQueueComponent implements OnChanges, OnDestroy {
+export class MatFileUploadQueueComponent implements OnChanges, OnDestroy, AfterViewInit {
   @ContentChildren(forwardRef(() => MatFileUploadComponent))
   fileUploads: QueryList<MatFileUploadComponent>;
 
@@ -83,7 +85,7 @@ export class MatFileUploadQueueComponent implements OnChanges, OnDestroy {
   @Input()
   removeAllLabel = 'Remove All';
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     // When the list changes, re-subscribe
     this._changeSubscription = this.fileUploads.changes
       .pipe(startWith(null))
@@ -104,29 +106,34 @@ export class MatFileUploadQueueComponent implements OnChanges, OnDestroy {
     );
   }
 
-  add(file: any) {
+  add(file: any): void {
     this.files.push(file);
     this.changeDetectorRef.markForCheck();
   }
 
-  public uploadAll() {
+  public uploadAll(): void {
     this.fileUploads.forEach((fileUpload) => {
       fileUpload.upload();
     });
   }
 
-  public removeAll() {
+  public removeAll(): void {
     this.files.splice(0, this.files.length);
     this.changeDetectorRef.markForCheck();
   }
 
-  ngOnDestroy() {
-    if (this._changeSubscription) this._changeSubscription.unsubscribe();
-    if (this._fileRemoveSubscription)
+  ngOnDestroy(): void {
+    if (this._changeSubscription) {
+      this._changeSubscription.unsubscribe();
+    }
+
+    if (this._fileRemoveSubscription) {
       this._fileRemoveSubscription.unsubscribe();
+    }
 
     if (this.files) {
       this.removeAll();
     }
   }
+
 }

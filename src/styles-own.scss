@@ -1,5 +1,6 @@
 @font-face {
   font-family: 'Material Icons';
+  font-display: block;
   font-style: normal;
   font-weight: 400;
   src: url(assets/fonts/MaterialIcons-Regular.eot); /* For IE6-8 */
@@ -102,11 +103,11 @@ body {
 }
 
 .iterable-component {
-  background-color: #f0f0f8;
+  background-color: #f6f1f6;
 }
 
 .non-iterable-component {
-  background-color: #f8f0f0;
+  background-color: #f1f6f1;
 }
 
 .header-image {
@@ -140,6 +141,9 @@ body {
 
 .pager-chips {
   margin-right: 20px;
+}
+
+.pager-pager {
 }
 
 app-source-panels {
@@ -302,4 +306,13 @@ button.close {
   background-color: transparent;
   border: 0;
   -webkit-appearance: none;
+}
+
+.ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
+  background: var(--color-primary);
+  color: var(--color-text-primary);
+}
+
+.ng-select.ng-select-multiple .ng-value-icon {
+  color: var(--color-text-primary) !important;
 }

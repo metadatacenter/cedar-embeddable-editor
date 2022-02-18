@@ -13,6 +13,7 @@ import {MessageHandlerService} from '../../../service/message-handler.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MatFileUploadComponent implements OnInit, OnDestroy {
+
   private uploadProgressSubject = new ReplaySubject<IUploadProgress>();
   uploadProgress$ = this.uploadProgressSubject.asObservable();
 
@@ -140,4 +141,5 @@ export class MatFileUploadComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subs.unsubscribe();
   }
+
 }

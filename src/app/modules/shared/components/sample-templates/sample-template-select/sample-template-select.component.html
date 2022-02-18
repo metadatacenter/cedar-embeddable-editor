@@ -1,0 +1,16 @@
+<mat-form-field class="full-width">
+  <mat-select [formControl]="templateCtrl"
+              placeholder="Select template"
+              (selectionChange)="inputChanged($event)">
+    <mat-option>
+      <ngx-mat-select-search
+        [formControl]="templateFilterCtrl"
+        placeholderLabel="Find template..."
+        noEntriesFoundLabel="No matching templates found"
+      ></ngx-mat-select-search>
+    </mat-option>
+    <mat-option *ngFor="let template of filteredTemplates | async"
+                [value]="template[sampleTemplateService.TEMPLATE_NUMBER]"
+    >{{template[sampleTemplateService.TEMPLATE_LABEL]}}</mat-option>
+  </mat-select>
+</mat-form-field>

@@ -1,9 +1,8 @@
-import {Component, Input, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
-import {NullTemplateComponent} from '../../models/template/null-template-component.model';
-import {MatAccordion} from '@angular/material/expansion';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {NullTemplate} from '../../models/template/null-template.model';
 import {DataContext} from '../../util/data-context';
 import {HandlerContext} from '../../util/handler-context';
-import {MessageHandlerService} from '../../service/message-handler.service';
+import {PageBreakPaginatorService} from '../../service/page-break-paginator.service';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -42,6 +41,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private readonly dataContext: DataContext = null;
   private readonly handlerContext: HandlerContext = null;
+  private readonly pageBreakPaginatorService: PageBreakPaginatorService = null;
 
   @Input() sampleTemplateLoaderObject: any = null;
 
@@ -71,17 +71,17 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   showDataSaver = false;
   dataSaverEndpointUrl: string;
+  @Input() externalTemplateInfo: object;
 
-  @ViewChild(MatAccordion) accordion: MatAccordion;
 
-  constructor(
-    private messageHandlerService: MessageHandlerService
-  ) {
+  constructor() {
+    this.pageBreakPaginatorService = new PageBreakPaginatorService();
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext);
   }
 
   ngOnInit(): void {
+    this.dataContext.externalTemplateInfo = this.externalTemplateInfo;
   }
 
   @Input() set config(value: object) {
@@ -155,14 +155,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   @Input() set templateJsonObject(value: object) {
     if (value != null) {
       const len = JSON.stringify(value).length;
-      this.dataContext.setInputTemplate(value, this.handlerContext, this.collapseStaticComponents);
+      this.dataContext.setInputTemplate(value, this.handlerContext, this.pageBreakPaginatorService, this.collapseStaticComponents);
     }
   }
 
   dataAvailableForRender(): boolean {
     return this.dataContext != null
       && this.dataContext.templateRepresentation != null
-      && !(this.dataContext.templateRepresentation instanceof NullTemplateComponent)
+      && !(this.dataContext.templateRepresentation instanceof NullTemplate)
       && this.dataContext.multiInstanceData != null;
   }
 

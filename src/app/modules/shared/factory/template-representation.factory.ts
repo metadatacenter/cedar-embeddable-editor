@@ -4,7 +4,8 @@ import {JavascriptTypes} from '../models/javascript-types.model';
 import {CedarComponent} from '../models/component/cedar-component.model';
 import {MultiElementComponent} from '../models/element/multi-element-component.model';
 import {CedarTemplate} from '../models/template/cedar-template.model';
-import {NullTemplateComponent} from '../models/template/null-template-component.model';
+import {NullTemplate} from '../models/template/null-template.model';
+import {EmptyTemplate} from '../models/template/empty-template.model';
 import {TemplateComponent} from '../models/template/template-component.model';
 import {MultiFieldComponent} from '../models/field/multi-field-component.model';
 import {SingleFieldComponent} from '../models/field/single-field-component.model';
@@ -23,31 +24,50 @@ export class TemplateRepresentationFactory {
 
   static create(inputTemplate: CedarInputTemplate, collapseStaticComponents: boolean): TemplateComponent {
     if (inputTemplate === null) {
-      return new NullTemplateComponent();
+      return new NullTemplate();
     } else {
       const template = new CedarTemplate();
       TemplateRepresentationFactory.wrap(inputTemplate, inputTemplate, template, [], collapseStaticComponents);
       TemplateRepresentationFactory.extractTemplateLabels(inputTemplate, template);
+      TemplateRepresentationFactory.extractPageBreakPages(template);
       return template;
     }
   }
 
+  static extractPageBreakPages(template: CedarTemplate): void {
+    const pages = [];
+    let page = [];
+    let numPBInRow = 0;
 
+    template.children.forEach((child, index) => {
+      // encountered page-break component
+      if (child instanceof StaticFieldComponent && (child as StaticFieldComponent).basicInfo.inputType === InputType.pageBreak) {
+        if (page.length) {
+          pages.push(page);
+        }
+        // if page-break is the last component, always add an empty page
+        if (index === template.children.length - 1) {
+          pages.push([new EmptyTemplate()]);
+        } else {
+          numPBInRow++;
+        }
+        page = [];
+      } else {
+        page.push(child);
 
+        if (index === template.children.length - 1) {
+          pages.push(page);
+        }
 
-
-  // static pageBreakCount(template: TemplateComponent): number {
-  //   let pbCount = 0;
-  //
-  //   console.log('template component');
-  //   console.log(template);
-  //
-  //   return pbCount;
-  // }
-
-
-
-
+        // add empty pages corresponding to: (number of page breaks in a row - 1)
+        for (let i = 0; i < numPBInRow - 1; i++) {
+          pages.push([new EmptyTemplate()]);
+        }
+        numPBInRow = 0;
+      }
+    });
+    template.pageBreakChildren = pages;
+  }
 
   private static isFragmentMulti(templateFragment: object): boolean {
     const fragmentType = templateFragment[CedarModel.type];
@@ -114,7 +134,6 @@ export class TemplateRepresentationFactory {
         const mr = r as MultiComponent;
         TemplateRepresentationFactory.extractMultiInfo(templateFragment, mr);
       }
-
     }
 
     if (collapseStaticComponents) {

@@ -4,12 +4,12 @@ import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.mod
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 
 @Component({
-  selector: 'app-cedar-input-rich-text',
-  templateUrl: './cedar-input-rich-text.component.html',
-  styleUrls: ['./cedar-input-rich-text.component.scss'],
+  selector: 'app-cedar-static-rich-text',
+  templateUrl: './cedar-static-rich-text.component.html',
+  styleUrls: ['./cedar-static-rich-text.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CedarInputRichTextComponent extends CedarUIComponent implements OnInit {
+export class CedarStaticRichTextComponent extends CedarUIComponent implements OnInit {
 
   component: StaticFieldComponent;
 

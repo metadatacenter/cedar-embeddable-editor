@@ -31,9 +31,10 @@ import {CedarInputDatetimeComponent} from './components/cedar-input-datetime/ced
 import {CedarInputLinkComponent} from './components/cedar-input-link/cedar-input-link.component';
 import {CedarInputNumericComponent} from './components/cedar-input-numeric/cedar-input-numeric.component';
 import {CedarInputTextComponent} from './components/cedar-input-text/cedar-input-text.component';
-import {CedarInputRichTextComponent} from './components/cedar-input-rich-text/cedar-input-rich-text.component';
 import {CedarInputPhoneComponent} from './components/cedar-input-phone/cedar-input-phone.component';
+import {CedarStaticRichTextComponent} from './components/cedar-static-rich-text/cedar-static-rich-text.component';
 import {CedarStaticSectionBreakComponent} from './components/cedar-static-section-break/cedar-static-section-break.component';
+import {CedarStaticPageBreakComponent} from './components/cedar-static-page-break/cedar-static-page-break.component';
 import {CedarStaticImageComponent} from './components/cedar-static-image/cedar-static-image.component';
 import {CedarStaticYoutubeComponent} from './components/cedar-static-youtube/cedar-static-youtube.component';
 import {YouTubePlayerModule} from '@angular/youtube-player';
@@ -83,7 +84,6 @@ import {FileUploaderComponent} from '../shared/components/file-uploader/file-upl
   declarations: [
     CedarFooBarComponent,
     CedarInputTextComponent,
-    CedarInputRichTextComponent,
     CedarInputPhoneComponent,
     CedarInputControlledComponent,
     CedarInputNumericComponent,
@@ -94,7 +94,9 @@ import {FileUploaderComponent} from '../shared/components/file-uploader/file-upl
     CedarInputMultipleChoiceComponent,
     CedarInputDatetimeComponent,
     CedarInputLinkComponent,
+    CedarStaticRichTextComponent,
     CedarStaticSectionBreakComponent,
+    CedarStaticPageBreakComponent,
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
     DatePickerComponent,
@@ -110,7 +112,6 @@ import {FileUploaderComponent} from '../shared/components/file-uploader/file-upl
     // FooBar is needed because the first component gets exported without style otherwise
     CedarFooBarComponent,
     CedarInputTextComponent,
-    CedarInputRichTextComponent,
     CedarInputPhoneComponent,
     CedarInputControlledComponent,
     CedarInputNumericComponent,
@@ -121,7 +122,9 @@ import {FileUploaderComponent} from '../shared/components/file-uploader/file-upl
     CedarInputMultipleChoiceComponent,
     CedarInputDatetimeComponent,
     CedarInputLinkComponent,
+    CedarStaticRichTextComponent,
     CedarStaticSectionBreakComponent,
+    CedarStaticPageBreakComponent,
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
     EscapeHtmlPipe,
