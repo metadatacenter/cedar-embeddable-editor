@@ -1,6 +1,6 @@
 {
   "name": "cedar-embeddable-editor",
-  "version": "2.6.18",
+  "version": "2.6.19-SNAPSHOT",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
