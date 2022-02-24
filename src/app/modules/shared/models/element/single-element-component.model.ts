@@ -10,4 +10,7 @@ export class SingleElementComponent extends AbstractElementComponent implements 
     return false;
   }
 
+  isMultiPage(): boolean {
+    return false;
+  }
 }

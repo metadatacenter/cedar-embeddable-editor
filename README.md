@@ -1,12 +1,53 @@
-# CedarEmbeddableEditor
+# Cedar Embeddable Editor (CEE)
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.0.2.
+The CEDAR Embeddable Editor is as a web component that implements the functionality of the CEDAR Metadata Editor.
 
-## Development server
+It takes CEDAR JSON-LD templates as input, and produces CEDAR JSON-LD metadata.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+## Running as a standalone application
 
-## Code scaffolding
+To run CEE in the standalone mode (NOT as a webcomponent), proceed with the following steps:
+
+### Clone the repository
+
+1. Clone this repository onto a local directory of your choice
+
+### Enable the standalone mode
+
+1. Open the file ```cedar-embeddable-editor/src/app/app.module.ts``` in your favorite editor.
+2. Uncomment the ```AppComponent``` line (it is commented out by default):
+```typescript
+  bootstrap: [
+    // TODO: Uncomment this in order to make app runnable alone
+    AppComponent
+  ],
+```
+### Edit configuration
+
+1. Open the file ```cedar-embeddable-editor/src/app/app.component.ts``` in your favorite editor.
+2. Edit configuration parameters based on your local environment (see section Configuration for details).
+
+### Build the project and start the server
+
+1. Navigate to the CEE directory:
+```shell
+$cd <...>/<clone directory>/cedar-embeddable-editor/
+```
+2. Run these commands:
+```shell
+cedar-embeddable-editor$ npm install
+cedar-embeddable-editor$ ng serve
+```
+3. In your browser, navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+
+## Building the Webcomponent
+
+
+## Example Applications
+
+
+
+
 
 Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
 

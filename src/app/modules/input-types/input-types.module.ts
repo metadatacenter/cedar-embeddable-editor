@@ -31,9 +31,10 @@ import {CedarInputDatetimeComponent} from './components/cedar-input-datetime/ced
 import {CedarInputLinkComponent} from './components/cedar-input-link/cedar-input-link.component';
 import {CedarInputNumericComponent} from './components/cedar-input-numeric/cedar-input-numeric.component';
 import {CedarInputTextComponent} from './components/cedar-input-text/cedar-input-text.component';
-import {CedarInputRichTextComponent} from './components/cedar-input-rich-text/cedar-input-rich-text.component';
 import {CedarInputPhoneComponent} from './components/cedar-input-phone/cedar-input-phone.component';
+import {CedarStaticRichTextComponent} from './components/cedar-static-rich-text/cedar-static-rich-text.component';
 import {CedarStaticSectionBreakComponent} from './components/cedar-static-section-break/cedar-static-section-break.component';
+import {CedarStaticPageBreakComponent} from './components/cedar-static-page-break/cedar-static-page-break.component';
 import {CedarStaticImageComponent} from './components/cedar-static-image/cedar-static-image.component';
 import {CedarStaticYoutubeComponent} from './components/cedar-static-youtube/cedar-static-youtube.component';
 import {YouTubePlayerModule} from '@angular/youtube-player';
@@ -43,7 +44,8 @@ import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
 import {DatePickerComponent} from '../shared/components/date-picker/date-picker.component';
 import {TimezonePickerComponent} from '../shared/components/timezone-picker/timezone-picker.component';
-// import {CKEditorModule} from '@ckeditor/ckeditor5-angular';
+import {MatFileUploadModule} from '../shared/components/file-uploader/mat-file-upload.module';
+import {FileUploaderComponent} from '../shared/components/file-uploader/file-uploader.component';
 
 
 @NgModule({
@@ -75,13 +77,13 @@ import {TimezonePickerComponent} from '../shared/components/timezone-picker/time
     NgxMatTimepickerModule,
     NgxMatNativeDateModule,
     NgSelectModule,
+    MatFileUploadModule,
     YouTubePlayerModule,
     FormsModule
   ],
   declarations: [
     CedarFooBarComponent,
     CedarInputTextComponent,
-    CedarInputRichTextComponent,
     CedarInputPhoneComponent,
     CedarInputControlledComponent,
     CedarInputNumericComponent,
@@ -92,11 +94,14 @@ import {TimezonePickerComponent} from '../shared/components/timezone-picker/time
     CedarInputMultipleChoiceComponent,
     CedarInputDatetimeComponent,
     CedarInputLinkComponent,
+    CedarStaticRichTextComponent,
     CedarStaticSectionBreakComponent,
+    CedarStaticPageBreakComponent,
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
     DatePickerComponent,
     TimezonePickerComponent,
+    FileUploaderComponent,
     EscapeHtmlPipe
   ],
   providers: [
@@ -107,7 +112,6 @@ import {TimezonePickerComponent} from '../shared/components/timezone-picker/time
     // FooBar is needed because the first component gets exported without style otherwise
     CedarFooBarComponent,
     CedarInputTextComponent,
-    CedarInputRichTextComponent,
     CedarInputPhoneComponent,
     CedarInputControlledComponent,
     CedarInputNumericComponent,
@@ -118,10 +122,13 @@ import {TimezonePickerComponent} from '../shared/components/timezone-picker/time
     CedarInputMultipleChoiceComponent,
     CedarInputDatetimeComponent,
     CedarInputLinkComponent,
+    CedarStaticRichTextComponent,
     CedarStaticSectionBreakComponent,
+    CedarStaticPageBreakComponent,
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
-    EscapeHtmlPipe
+    EscapeHtmlPipe,
+    FileUploaderComponent
   ]
 })
 export class InputTypesModule {

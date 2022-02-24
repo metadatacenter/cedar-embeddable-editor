@@ -11,20 +11,14 @@ import {DataObjectBuilderHandler} from './data-object-builder.handler';
 import {InstanceExtractData} from '../models/instance-extract-data.model';
 import {CedarInputTemplate} from '../models/cedar-input-template.model';
 import {DataObjectBuildingMode} from '../models/enum/data-object-building-mode.model';
-import {JsonSchema} from '../models/json-schema.model';
+import {TemplateComponent} from '../models/template/template-component.model';
+
 
 export class DataObjectStructureHandler {
 
-  public getDataPathNodeRecursively(dataObject: InstanceExtractData, component: CedarComponent, path: string[], multiInstanceObjectService: MultiInstanceObjectHandler): object {
-    return this.getNodeRecursively(0, dataObject, component, path, multiInstanceObjectService);
-  }
-
-  public getParentDataPathNodeRecursively(dataObject: InstanceExtractData, component: CedarComponent, path: string[], multiInstanceObjectService: MultiInstanceObjectHandler): object {
-    return this.getNodeRecursively(1, dataObject, component, path, multiInstanceObjectService);
-  }
-
-  private getNodeRecursively(level: number, dataObject: InstanceExtractData, component: CedarComponent, path: string[], multiInstanceObjectService: MultiInstanceObjectHandler): object {
-    if (path.length <= level) {
+  public getDataPathNodeRecursively(dataObject: InstanceExtractData, component: CedarComponent, path: string[],
+                                    multiInstanceObjectService: MultiInstanceObjectHandler): object {
+    if (path.length === 0) {
       return dataObject;
     } else {
       const firstPath = path[0];
@@ -46,7 +40,39 @@ export class DataObjectStructureHandler {
           dataSubObject = dataObject[currentIndex][firstPath];
         }
       }
-      return this.getNodeRecursively(level, dataSubObject, childComponent, remainingPath, multiInstanceObjectService);
+      return this.getDataPathNodeRecursively(dataSubObject, childComponent, remainingPath, multiInstanceObjectService);
+    }
+  }
+
+  public getParentDataPathNodeRecursively(dataObject: InstanceExtractData,
+                                          parentDataObject: InstanceExtractData, component: CedarComponent,
+                                          path: string[], multiInstanceObjectService: MultiInstanceObjectHandler): object {
+    if (path.length === 0) {
+      return parentDataObject;
+    } else {
+      const firstPath = path[0];
+      const remainingPath = path.slice(1);
+      let childComponent: CedarComponent = null;
+      let dataSubObject = null;
+      let parentDataSubObject = null;
+
+      if (component instanceof SingleElementComponent) {
+        childComponent = (component as SingleElementComponent).getChildByName(firstPath);
+        dataSubObject = dataObject[firstPath];
+        parentDataSubObject = dataObject;
+      } else if (component instanceof CedarTemplate) {
+        childComponent = (component as CedarTemplate).getChildByName(firstPath);
+        dataSubObject = dataObject[firstPath];
+        parentDataSubObject = dataObject;
+      } else if (component instanceof MultiElementComponent) {
+        const multiElement = component as MultiElementComponent;
+        const multiInstanceInfo: MultiInstanceObjectInfo = multiInstanceObjectService.getMultiInstanceInfoForComponent(multiElement);
+        const currentIndex = multiInstanceInfo.currentIndex;
+        childComponent = multiElement.getChildByName(firstPath);
+        dataSubObject = dataObject[currentIndex][firstPath];
+        parentDataSubObject = dataObject[currentIndex];
+      }
+      return this.getParentDataPathNodeRecursively(dataSubObject, parentDataSubObject, childComponent, remainingPath, multiInstanceObjectService);
     }
   }
 
@@ -54,13 +80,13 @@ export class DataObjectStructureHandler {
     const multiInstanceInfo: MultiInstanceObjectInfo = multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const instanceExtractData: object = dataContext.instanceExtractData;
     const instanceFullData: object = dataContext.instanceFullData;
-    const templateRepresentation: CedarTemplate = dataContext.templateRepresentation;
+    const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
     const templateInput: CedarInputTemplate = dataContext.templateInput;
     this.performItemAdd(instanceExtractData, templateRepresentation, component, multiInstanceObjectService, multiInstanceInfo, null);
     this.performItemAdd(instanceFullData, templateRepresentation, component, multiInstanceObjectService, multiInstanceInfo, templateInput);
   }
 
-  private performItemAdd(instanceObject: InstanceExtractData, templateRepresentation: CedarTemplate, component: MultiComponent, multiInstanceObjectService: MultiInstanceObjectHandler, multiInstanceInfo: MultiInstanceObjectInfo, templateInput: CedarInputTemplate): void {
+  private performItemAdd(instanceObject: InstanceExtractData, templateRepresentation: TemplateComponent, component: MultiComponent, multiInstanceObjectService: MultiInstanceObjectHandler, multiInstanceInfo: MultiInstanceObjectInfo, templateInput: CedarInputTemplate): void {
     const dataObject = {};
     const cloneComponent = _.cloneDeep(component);
     DataObjectBuilderHandler.setCurrentCountToMinRecursively(cloneComponent, component.path);
@@ -80,12 +106,12 @@ export class DataObjectStructureHandler {
     const multiInstanceInfo: MultiInstanceObjectInfo = multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const instanceExtractData: object = dataContext.instanceExtractData;
     const instanceFullData: object = dataContext.instanceFullData;
-    const templateRepresentation: CedarTemplate = dataContext.templateRepresentation;
+    const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
     this.performItemCopy(instanceExtractData, templateRepresentation, component.path, multiInstanceObjectService, multiInstanceInfo);
     this.performItemCopy(instanceFullData, templateRepresentation, component.path, multiInstanceObjectService, multiInstanceInfo);
   }
 
-  private performItemCopy(instanceObject: InstanceExtractData, templateRepresentation: CedarTemplate, path: string[], multiInstanceObjectService: MultiInstanceObjectHandler, multiInstanceInfo: MultiInstanceObjectInfo): void {
+  private performItemCopy(instanceObject: InstanceExtractData, templateRepresentation: TemplateComponent, path: string[], multiInstanceObjectService: MultiInstanceObjectHandler, multiInstanceInfo: MultiInstanceObjectInfo): void {
     const currentNodeAny = this.getDataPathNodeRecursively(instanceObject, templateRepresentation, path, multiInstanceObjectService);
     const currentNodeArray = currentNodeAny as [];
     const sourceItem = currentNodeArray[multiInstanceInfo.currentIndex];
@@ -97,12 +123,12 @@ export class DataObjectStructureHandler {
     const multiInstanceInfo: MultiInstanceObjectInfo = multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const instanceExtractData: object = dataContext.instanceExtractData;
     const instanceFullData: object = dataContext.instanceFullData;
-    const templateRepresentation: CedarTemplate = dataContext.templateRepresentation;
+    const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
     this.performItemDelete(instanceExtractData, templateRepresentation, component.path, multiInstanceObjectService, multiInstanceInfo);
     this.performItemDelete(instanceFullData, templateRepresentation, component.path, multiInstanceObjectService, multiInstanceInfo);
   }
 
-  private performItemDelete(instanceObject: InstanceExtractData, templateRepresentation: CedarTemplate, path: string[], multiInstanceObjectService: MultiInstanceObjectHandler, multiInstanceInfo: MultiInstanceObjectInfo): void {
+  private performItemDelete(instanceObject: InstanceExtractData, templateRepresentation: TemplateComponent, path: string[], multiInstanceObjectService: MultiInstanceObjectHandler, multiInstanceInfo: MultiInstanceObjectInfo): void {
     const currentNodeAny = this.getDataPathNodeRecursively(instanceObject, templateRepresentation, path, multiInstanceObjectService);
     const currentNodeArray = currentNodeAny as [];
     currentNodeArray.splice(multiInstanceInfo.currentIndex, 1);

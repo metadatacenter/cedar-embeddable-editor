@@ -1,10 +1,16 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field appearance="fill" class="full-width">
     <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
-    <input matInput type="text" placeholder="Your Text Here"
+    <input matInput type="text" placeholder="Your Text Here" *ngIf="component.basicInfo.inputType==inputText"
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
            (input)="inputChanged($event)">
+    <textarea matInput type="text" placeholder="Your Text Here" *ngIf="component.basicInfo.inputType==inputTextarea"
+              cdkTextareaAutosize
+              cdkAutosizeMinRows="6"
+              [formControl]="inputValueControl"
+              [errorStateMatcher]="errorStateMatcher"
+              (input)="inputChanged($event)"></textarea>
     <button mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>

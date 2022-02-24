@@ -5,6 +5,7 @@ import {ComponentDataService} from '../../../shared/service/component-data.servi
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
+import {StaticFieldComponent} from '../../../shared/models/static/static-field-component.model';
 
 @Component({
   selector: 'app-cedar-static-section-break',
@@ -14,7 +15,7 @@ import {HandlerContext} from '../../../shared/util/handler-context';
 })
 export class CedarStaticSectionBreakComponent extends CedarUIComponent implements OnInit {
 
-  component: FieldComponent;
+  component: StaticFieldComponent;
   activeComponentRegistry: ActiveComponentRegistryService;
   @Input() handlerContext: HandlerContext;
 
@@ -26,7 +27,7 @@ export class CedarStaticSectionBreakComponent extends CedarUIComponent implement
   ngOnInit(): void {
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input() set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }

@@ -73,6 +73,11 @@ export class CedarInputAttributeValueComponent extends CedarUIComponent implemen
     this.valueInputControl.setValue(Object.values(currentValue)[0]);
   }
 
+  deleteCurrentValue(): void {
+    const name = this.nameInputControl.value;
+    this.handlerContext.deleteAttributeValue(this.component, name);
+  }
+
   clearName(): void {
     this.nameInputControl.setValue(null);
     this.handlerContext.changeAttributeValue(this.component, null, this.valueInputControl.value);

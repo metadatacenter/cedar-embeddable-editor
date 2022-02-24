@@ -17,4 +17,8 @@ export class StaticFieldComponent implements SingleComponent {
   isMulti(): boolean {
     return false;
   }
+
+  isMultiPage(): boolean {
+    return false;
+  }
 }

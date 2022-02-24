@@ -21,14 +21,6 @@ export abstract class AbstractFieldComponent implements FieldComponent {
   controlledInfo: ControlledInfo = new ControlledInfo();
 
   abstract isMulti(): boolean;
-
-
-
-
   abstract isMultiPage(): boolean;
-
-
-
-
 
 }

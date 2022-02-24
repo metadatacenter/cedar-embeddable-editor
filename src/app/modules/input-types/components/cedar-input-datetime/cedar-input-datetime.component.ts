@@ -18,14 +18,10 @@ import {TimezonePickerComponent, TZone} from '../../../shared/components/timezon
   selector: 'app-cedar-input-datetime',
   templateUrl: './cedar-input-datetime.component.html',
   styleUrls: ['./cedar-input-datetime.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.None
 })
 
 export class CedarInputDatetimeComponent extends CedarUIComponent implements OnInit, AfterViewInit {
-
-  readonly YEAR_FORMAT = DatePickerComponent.YEAR_FORMAT;
-  readonly YEAR_MONTH_FORMAT = DatePickerComponent.YEAR_MONTH_FORMAT;
-  readonly YEAR_MONTH_DAY_FORMAT = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
 
   component: FieldComponent;
   activeComponentRegistry: ActiveComponentRegistryService;
@@ -138,7 +134,6 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   setCurrentValue(currentValue: any): void {
     if (currentValue) {
       this.datetimeParsed = DatetimeRepresentation.fromStorageRepresentation(currentValue as string, this.enableMeridian());
-      // console.log('parse: ' + JSON.stringify(this.datetimeParsed));
 
       if (this.datetimeParsed.dateIsSet) {
         const m = moment();
@@ -169,7 +164,7 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
           this.resetTimezone();
         }
       }
-     }
+    }
     // set datetime UI to default view
     else {
       this.resetDate();
@@ -178,30 +173,50 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   }
 
   private resetDate(): void {
-    const defDate = this.getDefaultDate();
-    this.dateMonthYearControl = new FormControl(defDate);
-    this.datetimeParsed.setDate(defDate);
+    if (this.showDatePicker()) {
+      const defDate = this.getDefaultDate();
+      this.dateMonthYearControl = new FormControl(defDate);
+      this.datetimeParsed.setDate(defDate);
+      this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
+    }
   }
 
   private resetTime(): void {
-    this.timePickerTime = this.getDefaultTime();
-    this.decimalSeconds = null;
-    this.datetimeParsed.setDecimalSeconds(null);
-    this.resetTimezone();
+    if (this.showTimePicker()) {
+      this.timePickerTime = this.getDefaultTime();
+      this.decimalSeconds = null;
+      this.datetimeParsed.setDecimalSeconds(null);
+      this.resetTimezone();
+      this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
+    }
   }
 
   private resetTimezone(): void {
-    let tz = null;
+    if (this.showTimezonePicker()) {
+      let tz = null;
 
-    if (this.setDefaultZone) {
-      tz = TimezonePickerComponent.guessedUserZone();
+      if (this.setDefaultZone) {
+        tz = TimezonePickerComponent.guessedUserZone();
+      }
+      this.timezone = tz;
+      this.datetimeParsed.setTimezone(tz);
+      this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
     }
-    this.timezone = tz;
-    this.datetimeParsed.setTimezone(tz);
   }
 
   private getDefaultDate(): Moment {
     const dt = moment();
+    const format = this.dateFormat();
+
+    switch (format) {
+      case DatePickerComponent.YEAR_MONTH_FORMAT:
+        dt.set('date', 1);
+        break;
+      case DatePickerComponent.YEAR_FORMAT:
+        dt.set('date', 1);
+        dt.set('month', 0);
+        break;
+    }
     return dt;
   }
 
@@ -263,61 +278,48 @@ export class DatetimeRepresentation {
 
   static fromStorageRepresentation(storedDateStr: string, ampm: boolean): DatetimeRepresentation {
     const that = new DatetimeRepresentation();
-    const dateStr = storedDateStr.substring(0, storedDateStr.indexOf(DatetimeRepresentation.DATE_TIME_SEPARATOR));
-    const timeStr = storedDateStr.substring(storedDateStr.indexOf(DatetimeRepresentation.DATE_TIME_SEPARATOR) + 1);
+    const datePatternStr = '^\\d{4}\\' + DatetimeRepresentation.DATE_SEPARATOR + '\\d{2}\\' + DatetimeRepresentation.DATE_SEPARATOR + '\\d{2}';
+    const datePattern = new RegExp(datePatternStr);
+    const dateStr = storedDateStr.match(datePattern);
 
-    if (dateStr) {
+    if (dateStr && dateStr.length > 0) {
       that.dateIsSet = true;
-      that.setDate(moment(dateStr, DatetimeRepresentation.DATE_STORED_FORMAT));
+      that.setDate(moment(dateStr[0], DatetimeRepresentation.DATE_STORED_FORMAT));
     }
+    const timePatternStr = '(\\d{2}\\' + DatetimeRepresentation.TIME_SEPARATOR + '\\d{2}\\' + DatetimeRepresentation.TIME_SEPARATOR + '\\d{2})(\\.[\\d\\.]+)*';
+    const timePattern = new RegExp(timePatternStr);
+    const timeStr = storedDateStr.match(timePattern);
 
-    if (timeStr) {
+    if (timeStr && timeStr.length > 1) {
       that.setAMPM(ampm);
-      const timeArr = timeStr.substring(0, 8).split(DatetimeRepresentation.TIME_SEPARATOR);
+      const timeArr = timeStr[1].split(DatetimeRepresentation.TIME_SEPARATOR);
       that.setHours(+timeArr[0]);
       that.setMinutes(+timeArr[1]);
       that.setSeconds(+timeArr[2]);
 
-      const decSecTimezoneStr = timeStr.substring(8);
+      if (timeStr.length > 2 && timeStr[2]) {
+        that.setDecimalSeconds(+timeStr[2].substring(1));
+      }
+      const timezonePatternStr = 'Z|[\\-\\+]{1}\\d{2}\\' + DatetimeRepresentation.TIME_SEPARATOR + '\\d{2}$';
+      const timezonePattern = new RegExp(timezonePatternStr);
+      const timezoneStr = storedDateStr.match(timezonePattern);
 
-      if (decSecTimezoneStr) {
-        let decSecStr = '';
-        let timezoneStr = '';
-
-        const tzRegex = /\-|\+|Z/;
-        const ind = DatetimeRepresentation.regexIndexOf(decSecTimezoneStr, tzRegex, 0);
-
-        // yes dec seconds, no timezone
-        if (ind < 0) {
-          decSecStr = decSecTimezoneStr.substring(1);
-        }
-        // no dec seconds, yes timezone
-        else if (ind === 0) {
-          timezoneStr = decSecTimezoneStr;
-        }
-        // yes dec seconds, yes timezone
-        else {
-          decSecStr = decSecTimezoneStr.substring(1, ind);
-          timezoneStr = decSecTimezoneStr.substring(ind);
-        }
-
-        if (decSecStr) {
-          that.setDecimalSeconds(+decSecStr);
-        }
-
-        if (timezoneStr) {
-          const timezone = TimezonePickerComponent.AVAILABLE_TIMEZONES.find(z => z.id === timezoneStr);
-          that.setTimezone(timezone);
-        }
+      if (timezoneStr && timezoneStr.length > 0) {
+        const timezone = TimezonePickerComponent.AVAILABLE_TIMEZONES.find(z => z.id === timezoneStr[0]);
+        that.setTimezone(timezone);
       }
     }
-
     return that;
   }
 
   static regexIndexOf(text, re, i): number {
     const indexInSuffix = text.slice(i).search(re);
     return indexInSuffix < 0 ? indexInSuffix : indexInSuffix + i;
+  }
+
+  static indexOfEnd(sourceStr, matchStr): number {
+    const io = sourceStr.indexOf(matchStr);
+    return io === -1 ? -1 : io + matchStr.length;
   }
 
   setDate(dateIn: Moment): void {
@@ -398,7 +400,6 @@ export class DatetimeRepresentation {
     if (this.timezoneIsSet) {
       formatArr.push('Z');
     }
-
     return m.format(formatArr.join(''));
   }
 
@@ -428,7 +429,6 @@ export class DatetimeRepresentation {
     if (this.timezoneIsSet) {
       dateStr += this.timezoneOffset;
     }
-
     return dateStr;
   }
 

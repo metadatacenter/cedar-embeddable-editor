@@ -6,7 +6,7 @@ import {MatCardModule} from '@angular/material/card';
 import {MatIconModule} from '@angular/material/icon';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatFormFieldModule} from '@angular/material/form-field';
-import {ReactiveFormsModule} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatInputModule} from '@angular/material/input';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatButtonModule} from '@angular/material/button';
@@ -18,47 +18,58 @@ import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {MatListModule} from '@angular/material/list';
+import {MatSelectModule} from '@angular/material/select';
+import {NgxMatSelectSearchModule} from 'ngx-mat-select-search';
+import {NgSelectModule} from '@ng-select/ng-select';
 import {CedarEmbeddableMetadataEditorComponent} from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import {CedarComponentRendererComponent} from './components/cedar-component-renderer/cedar-component-renderer.component';
+import {CedarDataSaverComponent} from './components/cedar-data-saver/cedar-data-saver.component';
 import {StaticFooterComponent} from './components/static-footer/static-footer.component';
 import {StaticHeaderComponent} from './components/static-header/static-header.component';
 import {SourcePanelsComponent} from './components/source-panels/source-panels.component';
 import {CedarMultiPagerComponent} from './components/cedar-multi-pager/cedar-multi-pager.component';
 import {InputTypesModule} from '../input-types/input-types.module';
 import {CedarEmbeddableMetadataEditorWrapperComponent} from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
-import {MatListModule} from '@angular/material/list';
 import {SampleTemplatesComponent} from './components/sample-templates/sample-templates.component';
+import {SampleTemplateSelectComponent} from './components/sample-templates/sample-template-select/sample-template-select.component';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatIconModule,
-    BrowserAnimationsModule,
-    MatFormFieldModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatExpansionModule,
-    MatButtonModule,
-    MatTooltipModule,
-    ClipboardModule,
-    MatToolbarModule,
-    MatRippleModule,
-    MatPaginatorModule,
-    MatChipsModule,
-    MatGridListModule,
-    MatProgressSpinnerModule,
-    MatListModule,
-    InputTypesModule
-  ],
+    imports: [
+        CommonModule,
+        MatCardModule,
+        MatIconModule,
+        BrowserAnimationsModule,
+        MatFormFieldModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatExpansionModule,
+        MatButtonModule,
+        MatTooltipModule,
+        ClipboardModule,
+        MatToolbarModule,
+        MatRippleModule,
+        MatPaginatorModule,
+        MatChipsModule,
+        MatGridListModule,
+        MatProgressSpinnerModule,
+        MatListModule,
+        MatSelectModule,
+        NgxMatSelectSearchModule,
+        NgSelectModule,
+        InputTypesModule,
+        FormsModule
+    ],
   declarations: [
     RdfPipe,
     CedarComponentHeaderComponent,
     CedarEmbeddableMetadataEditorComponent,
     CedarEmbeddableMetadataEditorWrapperComponent,
     SampleTemplatesComponent,
+    SampleTemplateSelectComponent,
     CedarComponentRendererComponent,
+    CedarDataSaverComponent,
     StaticFooterComponent,
     StaticHeaderComponent,
     SourcePanelsComponent,

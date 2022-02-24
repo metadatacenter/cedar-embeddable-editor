@@ -24,11 +24,10 @@
     </mat-card-content>
   </mat-card>
 </ng-container>
-
 <ng-container *ngIf="nonIterableComponent">
   <mat-card class="child-component-card non-iterable-component">
     <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
-    <app-cedar-multi-pager *ngIf="shouldRenderContentOfPaging(nonIterableComponent)"
+    <app-cedar-multi-pager *ngIf="nonIterableComponent.isMultiPage()"
                            [componentToRender]="nonIterableComponent"
                            [handlerContext]="handlerContext"
     ></app-cedar-multi-pager>
@@ -46,7 +45,8 @@
       <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType==inputType.numeric"
                                [componentToRender]="nonIterableComponent"
                                [handlerContext]="handlerContext"></app-cedar-input-numeric>
-      <app-cedar-input-text *ngIf="nonIterableComponent.basicInfo.inputType==inputType.text"
+      <app-cedar-input-text *ngIf="nonIterableComponent.basicInfo.inputType==inputType.text ||
+                                    nonIterableComponent.basicInfo.inputType==inputType.textarea"
                             [componentToRender]="nonIterableComponent"
                             [handlerContext]="handlerContext"></app-cedar-input-text>
       <app-cedar-input-controlled *ngIf="nonIterableComponent.basicInfo.inputType==inputType.controlled"
@@ -91,7 +91,6 @@
   <app-cedar-static-youtube *ngIf="staticComponent.basicInfo.inputType==inputType.youtube"
                             [componentToRender]="staticComponent"
                             [handlerContext]="handlerContext"></app-cedar-static-youtube>
-  <app-cedar-input-rich-text *ngIf="staticComponent.basicInfo.inputType==inputType.richText"
-                             [componentToRender]="staticComponent"
-                             [handlerContext]="handlerContext"></app-cedar-input-rich-text>
+  <app-cedar-static-rich-text *ngIf="staticComponent.basicInfo.inputType==inputType.richText"
+                             [componentToRender]="staticComponent"></app-cedar-static-rich-text>
 </ng-container>

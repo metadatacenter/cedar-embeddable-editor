@@ -12,7 +12,7 @@ import {HandlerContext} from '../util/handler-context';
 import {InputType} from '../models/input-type.model';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class ActiveComponentRegistryService {
 
@@ -31,8 +31,14 @@ export class ActiveComponentRegistryService {
     if (component instanceof SingleFieldComponent) {
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
+
       if (uiComponent != null && dataObject != null) {
-        uiComponent.setCurrentValue(dataObject[JsonSchema.atValue]);
+        if (dataObject.hasOwnProperty(JsonSchema.atValue)) {
+          uiComponent.setCurrentValue(dataObject[JsonSchema.atValue]);
+        } else if (dataObject.hasOwnProperty(JsonSchema.atId)) {
+          // controlled field single
+          uiComponent.setCurrentValue(dataObject[JsonSchema.rdfsLabel]);
+        }
       }
     } else if (component instanceof MultiFieldComponent) {
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
@@ -42,18 +48,13 @@ export class ActiveComponentRegistryService {
       if (uiComponent != null) {
         const multiInstanceInfo: MultiInstanceObjectInfo = handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
 
-        if (dataObject[multiInstanceInfo.currentIndex] != null) {
+        // this is a multi-value but not multi-page component, such as checkbox or multiselect
+        if (!component.isMultiPage()) {
+          const dataArr = dataObject as Array<object>;
+          uiComponent.setCurrentValue(dataArr.map(a => a[JsonSchema.atValue]));
+        } else if (dataObject[multiInstanceInfo.currentIndex] != null) {
           if (component.basicInfo.inputType === InputType.attributeValue) {
             let key = dataObject[multiInstanceInfo.currentIndex];
-
-            // console.log('***********************************');
-            // console.log('dataObject');
-            // console.log(dataObject);
-            // console.log('parentDataObject');
-            // console.log(parentDataObject);
-            // console.log('currentIndex');
-            // console.log(multiInstanceInfo.currentIndex);
-            // console.log('***********************************');
 
             if (key instanceof Object && key.hasOwnProperty(JsonSchema.atValue) && key[JsonSchema.atValue] === null) {
               handlerContext.changeAttributeValue(component, null, null);
@@ -65,19 +66,25 @@ export class ActiveComponentRegistryService {
                 handlerContext.changeAttributeValue(component, null, val);
               }
             }
-
             key = dataObject[multiInstanceInfo.currentIndex];
             const value = parentDataObject[key][JsonSchema.atValue];
             const obj = {};
             obj[key] = value;
             uiComponent.setCurrentValue(obj);
           } else {
-            uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
+            if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atValue)) {
+              uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
+            } else if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atId)) {
+              // controlled field multipage
+              uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.rdfsLabel]);
+            }
           }
         }
 
-        const uiPager = this.getMultiPagerUI(component);
-        uiPager.updatePagingUI();
+        if (component.isMultiPage()) {
+          const uiPager = this.getMultiPagerUI(component);
+          uiPager.updatePagingUI();
+        }
       }
     } else if (component instanceof SingleElementComponent) {
       for (const childComponent of component.children) {
@@ -89,6 +96,14 @@ export class ActiveComponentRegistryService {
       for (const childComponent of component.children) {
         this.updateViewToModel(childComponent, handlerContext);
       }
+    }
+  }
+
+  deleteCurrentValue(component: CedarComponent): void {
+    const uiComponent: CedarUIComponent = this.getUIComponent(component);
+
+    if (uiComponent) {
+      uiComponent.deleteCurrentValue();
     }
   }
 

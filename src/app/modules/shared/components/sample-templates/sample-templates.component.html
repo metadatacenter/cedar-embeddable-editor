@@ -6,13 +6,14 @@
     </mat-panel-title>
   </mat-expansion-panel-header>
 
-  <ng-template matExpansionPanelContent>
-      <mat-selection-list #templates [multiple]="false" (selectionChange)="selectionChanged({option : templates.selectedOptions.selected[0]})">
-        <mat-list-option *ngFor="let template of sampleTemplates | keyvalue" [value]="template.key">
-          {{template.value}}
-        </mat-list-option>
+  <ng-template matExpansionPanelContent *ngIf="sampleTemplates">
+      <mat-selection-list #templates
+                          [formControl]="templateCtrl"
+                          [multiple]="false"
+                          (click)="selectionClicked({option : templates.selectedOptions.selected[0]})">
+        <mat-list-option *ngFor="let template of sampleTemplates"
+                         [value]="template[sampleTemplateService.TEMPLATE_NUMBER]"
+        >{{template[sampleTemplateService.TEMPLATE_LABEL]}}</mat-list-option>
       </mat-selection-list>
   </ng-template>
 </mat-expansion-panel>
-
-

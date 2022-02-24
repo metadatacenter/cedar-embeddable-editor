@@ -65,12 +65,38 @@ export class DataObjectUtil {
   // Generating a RFC4122 version 4 compliant GUID
   static generateGUID(): string {
     let d = Date.now();
-    const guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = (d + Math.random() * 16) % 16 | 0;
       d = Math.floor(d / 16);
       return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
     });
     return guid;
+  }
+
+  static arraysEqual(arr1, arr2): boolean {
+    // if the other array is a falsy value, return
+    if (!arr2) {
+      return false;
+    }
+
+    // compare lengths - can save a lot of time
+    if (arr1.length !== arr2.length) {
+      return false;
+    }
+
+    for (let i = 0, l = arr1.length; i < l; i++) {
+      // Check if we have nested arrays
+      if (arr1[i] instanceof Array && arr2[i] instanceof Array) {
+        // recurse into the nested arrays
+        if (!arr1[i].equals(arr2[i])) {
+          return false;
+        }
+      } else if (arr1[i] !== arr2[i]) {
+        // Warning - two different object instances will never be equal: {x:20} != {x:20}
+        return false;
+      }
+    }
+    return true;
   }
 
 }

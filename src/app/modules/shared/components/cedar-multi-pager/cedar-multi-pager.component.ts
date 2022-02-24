@@ -1,9 +1,13 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {Component, DoCheck, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {MultiComponent} from '../../models/component/multi-component.model';
 import {PageEvent} from '@angular/material/paginator';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 import {MultiInstanceObjectInfo} from '../../models/info/multi-instance-object-info.model';
 import {HandlerContext} from '../../util/handler-context';
+import {ComponentTypeHandler} from '../../handler/component-type.handler';
+import {JsonSchema} from '../../models/json-schema.model';
+import {MultiFieldComponent} from '../../models/field/multi-field-component.model';
+import {InputType} from '../../models/input-type.model';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -11,7 +15,9 @@ import {HandlerContext} from '../../util/handler-context';
   styleUrls: ['./cedar-multi-pager.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CedarMultiPagerComponent implements OnInit {
+export class CedarMultiPagerComponent implements OnInit, DoCheck {
+
+  static readonly MAX_CHARACTERS_MULTI_VALUE = 30;
 
   component: MultiComponent;
   currentMultiInfo: MultiInstanceObjectInfo;
@@ -27,6 +33,8 @@ export class CedarMultiPagerComponent implements OnInit {
   lastIndex = -1;
   pageNumbers: number[] = [];
 
+  multiInstanceValue: string;
+
   constructor(activeComponentRegistry: ActiveComponentRegistryService) {
     this.activeComponentRegistry = activeComponentRegistry;
   }
@@ -35,10 +43,71 @@ export class CedarMultiPagerComponent implements OnInit {
     this.recomputeNumbers();
   }
 
+  ngDoCheck(): void {
+    this.multiInstanceValue = this.getMultiInstanceDataValueInfo();
+  }
+
+  getMultiInstanceDataValueInfo(): string {
+    if (!ComponentTypeHandler.isField(this.component)) {
+      return '';
+    }
+    const parentNodeInfo = this.handlerContext.getParentDataObjectNodeByPath(this.component.path);
+    const nodeInfo = this.handlerContext.getDataObjectNodeByPath(this.component.path);
+    let info = '';
+    const infoArray = [];
+    const inputType = (this.component as MultiFieldComponent).basicInfo.inputType;
+
+    (nodeInfo as Array<any>).forEach((fieldName, index) => {
+      const numStr = '<span class="multiinfo-index' + ((index > 0) ? ' not-first-multiinfo-index' : '') +
+        ((index === this.currentMultiInfo.currentIndex) ? ' current-multiinfo-index' : '') + '">' + (index + 1) + '</span> ';
+
+      if (typeof fieldName === 'string') {
+        infoArray.push(numStr + fieldName + '=' + this.shortValue(inputType, parentNodeInfo[fieldName][JsonSchema.atValue]));
+      } else if (typeof fieldName === 'object') {
+        if (fieldName.hasOwnProperty(JsonSchema.atValue)) {
+          infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.atValue]) || 'null'));
+        } else if (fieldName.hasOwnProperty(JsonSchema.atId)) {
+          // controlled field
+          infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.rdfsLabel]) || 'null'));
+        }
+      }
+    });
+
+    info = infoArray.join('');
+
+    if (info) {
+      info = '<b>All Values:</b> ' + info;
+    }
+    return info || '';
+  }
+
   @Input() set componentToRender(componentToRender: MultiComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerMultiPagerComponent(this.component, this);
+  }
 
+  private shortValue(inputType: string, value: string): string {
+    let val = value;
+
+    if (value && [InputType.text, InputType.textarea].includes(inputType) &&
+        value.length > CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE) {
+      val = value.substr(0, CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE);
+      let ind = CedarMultiPagerComponent.MAX_CHARACTERS_MULTI_VALUE;
+      // make sure we cut off on a whole word rather than a fragment
+      while (!this.isEmptySpace(value[ind]) && ind < value.length) {
+        val += value[ind];
+        ind++;
+      }
+
+      if (val.trim().length < value.trim().length) {
+        val += '...';
+      }
+    }
+    return val;
+  }
+
+  private isEmptySpace(text: string): boolean {
+    return text == null || text.match(/^\s*$/) !== null;
   }
 
   private recomputeNumbers(): void {
@@ -72,7 +141,7 @@ export class CedarMultiPagerComponent implements OnInit {
   private pageChanged($event: PageEvent): void {
     this.pageSize = $event.pageSize;
     this.firstIndex = $event.pageIndex * $event.pageSize;
-    this.handlerContext.multiInstanceObjectService.setCurrentIndex(this.component, this.firstIndex);
+    this.handlerContext.setCurrentIndex(this.component, this.firstIndex);
     this.computeLastIndex();
     this.updatePageNumbers();
     this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
@@ -113,6 +182,11 @@ export class CedarMultiPagerComponent implements OnInit {
     //   label: this.datetimeParsed.timezoneName
     // };
     // this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
+
+    // nothing has changed, the same page number is clicked
+    if (chipIdx === this.currentMultiInfo.currentIndex) {
+      return;
+    }
     this.handlerContext.setCurrentIndex(this.component, chipIdx);
     this.recomputeNumbers();
     const that = this;
@@ -144,8 +218,13 @@ export class CedarMultiPagerComponent implements OnInit {
   clickedDelete(): void {
     this.handlerContext.deleteMultiInstance(this.component);
     this.recomputeNumbers();
+    const that = this;
+
+    setTimeout(() => {
+      that.activeComponentRegistry.deleteCurrentValue(that.component);
+    }, 0);
+
     if (this.currentMultiInfo.currentCount > 0) {
-      const that = this;
       setTimeout(() => {
         that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
       }, 0);
@@ -165,6 +244,9 @@ export class CedarMultiPagerComponent implements OnInit {
   }
 
   isEnabledCopy(): boolean {
+    if (this.currentMultiInfo.currentCount === 0) {
+      return false;
+    }
     return this.isEnabledAdd();
   }
 
@@ -184,4 +266,5 @@ export class CedarMultiPagerComponent implements OnInit {
   hasMultiInstances(): boolean {
     return this.currentMultiInfo.currentCount > 0;
   }
+
 }

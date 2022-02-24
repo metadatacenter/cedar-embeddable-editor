@@ -22,5 +22,5 @@ export abstract class AbstractElementComponent implements ElementComponent {
   }
 
   abstract isMulti(): boolean;
-
+  abstract isMultiPage(): boolean;
 }

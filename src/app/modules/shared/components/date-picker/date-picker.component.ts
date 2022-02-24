@@ -20,6 +20,10 @@ const moment = _rollupMoment || _moment;
   templateUrl: './date-picker.component.html',
   styleUrls: ['./date-picker.component.scss'],
   providers: [
+    // DateTimeService is added as a provider to allow it
+    // to be injected as a new instance per component, rather
+    // than a Singleton instance
+    DateTimeService,
     CustomDateAdapter, // so we could inject services to 'CustomDateAdapter'
     {provide: DateAdapter, useClass: CustomDateAdapter} // Parse MatDatePicker format
   ]
@@ -59,7 +63,6 @@ export class DatePickerComponent implements OnInit {
   }
 
   chosenYearHandler(normalizedYear: Moment, datepicker: MatDatepicker<Moment>): void {
-    this._dateTimeService.format = this.dateFormat;
     const ctrlValue = this.dateMonthYear.value;
     ctrlValue.year(normalizedYear.year());
     this.dateMonthYear.setValue(ctrlValue);
@@ -71,7 +74,6 @@ export class DatePickerComponent implements OnInit {
   }
 
   chosenMonthHandler(normalizedMonth: Moment, datepicker: MatDatepicker<Moment>): void {
-    this._dateTimeService.format = this.dateFormat;
     const ctrlValue = this.dateMonthYear.value;
     ctrlValue.month(normalizedMonth.month());
     this.dateMonthYear.setValue(ctrlValue);
@@ -83,10 +85,9 @@ export class DatePickerComponent implements OnInit {
   }
 
   chosenDateHandler(event): void {
-    this._dateTimeService.format = this.dateFormat;
-
     if (event) {
       this.dateChangedEvent.emit(event.value);
     }
   }
+
 }

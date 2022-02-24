@@ -11,5 +11,6 @@ export interface CedarComponent {
   labelInfo: LabelInfo;
 
   isMulti(): boolean;
+  isMultiPage(): boolean;
 
 }

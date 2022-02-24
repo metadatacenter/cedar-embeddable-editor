@@ -1,7 +1,5 @@
 import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {FormBuilder} from '@angular/forms';
-import {ComponentDataService} from '../../../shared/service/component-data.service';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
@@ -25,7 +23,7 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
   @Input() handlerContext: HandlerContext;
 
 
-  constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
+  constructor(activeComponentRegistry: ActiveComponentRegistryService) {
     super();
     this.activeComponentRegistry = activeComponentRegistry;
   }
@@ -50,17 +48,46 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
       values.push(null);
     }
 
-    if (this.component.isMultiPage()) {
-      this.handlerContext.changeValue(this.component, values[0]);
-    } else {
+    const multi = this.component.choiceInfo.multipleChoice;
+
+    if (multi) {
       this.handlerContext.changeListValue(this.component, values);
+    } else {
+      this.handlerContext.changeValue(this.component, values[0]);
     }
   }
 
   setCurrentValue(currentValue: any): void {
+    if (!Array.isArray(currentValue)) {
+      currentValue = [currentValue];
+    }
+    this.selectedItems = null;
+    const multi = this.component.choiceInfo.multipleChoice;
+
+    if (multi) {
+      this.selectedItems = [];
+    }
+    currentValue.forEach((val: string) => {
+      if (val) {
+        const entry = {};
+        entry[this.ITEM_ID_FIELD] = val;
+        entry[this.ITEM_TEXT_FIELD] = val;
+
+        if (multi) {
+          this.selectedItems.push(entry);
+        } else {
+          this.selectedItems = entry;
+        }
+      }
+    });
   }
 
   private populateItemsOnLoad(): void {
+    const multi = this.component.choiceInfo.multipleChoice;
+    if (multi) {
+      this.selectedItems = [];
+    }
+
     for (const choice of this.component.choiceInfo.choices) {
       const entry = {};
       entry[this.ITEM_ID_FIELD] = choice.label;
@@ -68,13 +95,10 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
       this.dropdownList.push(entry);
 
       if (choice.selectedByDefault) {
-        if (this.component.isMultiPage()) {
-          this.selectedItems = entry;
-        } else {
-          if (this.selectedItems == null) {
-            this.selectedItems = [];
-          }
+        if (multi) {
           this.selectedItems.push(entry);
+        } else {
+          this.selectedItems = entry;
         }
       }
     }

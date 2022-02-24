@@ -1,6 +1,6 @@
 {
   "name": "cedar-embeddable-editor",
-  "version": "2.6.17",
+  "version": "2.6.18",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -26,14 +26,13 @@
     "@angular/platform-browser-dynamic": "~12.2.14",
     "@angular/router": "~12.2.14",
     "@angular/youtube-player": "^11.0.0",
-    "@ckeditor/ckeditor5-angular": "^2.0.2",
-    "@ckeditor/ckeditor5-build-classic": "^29.2.0",
     "@ng-select/ng-select": "^8.1.1",
     "@webcomponents/custom-elements": "^1.4.3",
     "elements-zone-strategy": "^10.0.0",
     "lodash-es": "^4.17.15",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.34",
+    "ngx-mat-select-search": "^4.0.2",
     "rxjs": "~6.5.5",
     "tslib": "^2.0.0",
     "zone.js": "~0.11.4"

@@ -1,9 +1,8 @@
-import {Component, Input, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
-import {NullTemplateComponent} from '../../models/template/null-template-component.model';
-import {MatAccordion} from '@angular/material/expansion';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {NullTemplate} from '../../models/template/null-template.model';
 import {DataContext} from '../../util/data-context';
 import {HandlerContext} from '../../util/handler-context';
-import {MessageHandlerService} from '../../service/message-handler.service';
+import {PageBreakPaginatorService} from '../../service/page-break-paginator.service';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -32,8 +31,17 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private static COLLAPSE_STATIC_COMPONENTS = 'collapseStaticComponents';
 
+  private static SHOW_TEMPLATE_UPLOAD = 'showTemplateUpload';
+  private static TEMPLATE_UPLOAD_BASE_URL = 'templateUploadBaseUrl';
+  private static TEMPLATE_UPLOAD_ENDPOINT = 'templateUploadEndpoint';
+  private static TEMPLATE_UPLOAD_PARAM_NAME = 'templateUploadParamName';
+
+  private static SHOW_DATA_SAVER = 'showDataSaver';
+  private static DATA_SAVER_ENDPOINT_URL = 'dataSaverEndpointUrl';
+
   private readonly dataContext: DataContext = null;
   private readonly handlerContext: HandlerContext = null;
+  private readonly pageBreakPaginatorService: PageBreakPaginatorService = null;
 
   @Input() sampleTemplateLoaderObject: any = null;
 
@@ -56,16 +64,24 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   collapseStaticComponents = true;
 
-  @ViewChild(MatAccordion) accordion: MatAccordion;
+  showTemplateUpload = false;
+  templateUploadBaseUrl: string;
+  templateUploadEndpoint: string;
+  templateUploadParamName: string;
 
-  constructor(
-    private messageHandlerService: MessageHandlerService
-  ) {
+  showDataSaver = false;
+  dataSaverEndpointUrl: string;
+  @Input() externalTemplateInfo: object;
+
+
+  constructor() {
+    this.pageBreakPaginatorService = new PageBreakPaginatorService();
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext);
   }
 
   ngOnInit(): void {
+    this.dataContext.externalTemplateInfo = this.externalTemplateInfo;
   }
 
   @Input() set config(value: object) {
@@ -88,14 +104,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS)) {
         this.showSampleTemplateLinks = value[CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS];
       }
-
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER)) {
         this.showFooter = value[CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER];
       }
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_HEADER)) {
         this.showHeader = value[CedarEmbeddableMetadataEditorComponent.SHOW_HEADER];
       }
-
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_RENDERING)) {
         this.expandedTemplateRenderingRepresentation = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_RENDERING];
       }
@@ -117,21 +131,38 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS)) {
         this.collapseStaticComponents = value[CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS];
       }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_UPLOAD)) {
+        this.showTemplateUpload = value[CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_UPLOAD];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_BASE_URL)) {
+        this.templateUploadBaseUrl = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_BASE_URL];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_ENDPOINT)) {
+        this.templateUploadEndpoint = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_ENDPOINT];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_PARAM_NAME)) {
+        this.templateUploadParamName = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_PARAM_NAME];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_DATA_SAVER)) {
+        this.showDataSaver = value[CedarEmbeddableMetadataEditorComponent.SHOW_DATA_SAVER];
+      }
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.DATA_SAVER_ENDPOINT_URL)) {
+        this.dataSaverEndpointUrl = value[CedarEmbeddableMetadataEditorComponent.DATA_SAVER_ENDPOINT_URL];
+      }
     }
   }
 
   @Input() set templateJsonObject(value: object) {
     if (value != null) {
       const len = JSON.stringify(value).length;
-      this.messageHandlerService.trace('CEDAR Embeddable Editor started with template of length ' + len + ' characters.');
-      this.dataContext.setInputTemplate(value, this.handlerContext, this.collapseStaticComponents);
+      this.dataContext.setInputTemplate(value, this.handlerContext, this.pageBreakPaginatorService, this.collapseStaticComponents);
     }
   }
 
   dataAvailableForRender(): boolean {
     return this.dataContext != null
       && this.dataContext.templateRepresentation != null
-      && !(this.dataContext.templateRepresentation instanceof NullTemplateComponent)
+      && !(this.dataContext.templateRepresentation instanceof NullTemplate)
       && this.dataContext.multiInstanceData != null;
   }
 

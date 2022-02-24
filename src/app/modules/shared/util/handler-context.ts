@@ -6,6 +6,7 @@ import {FieldComponent} from '../models/component/field-component.model';
 import {DataObjectDataValueHandler} from '../handler/data-object-data-value.handler';
 import {DataObjectStructureHandler} from '../handler/data-object-structure.handler';
 
+
 export class HandlerContext {
 
   readonly dataObjectBuilderService: DataObjectBuilderHandler = null;
@@ -50,7 +51,7 @@ export class HandlerContext {
   }
 
   getParentDataObjectNodeByPath(path: string[]): object {
-    return this.dataObjectManipulationService.getParentDataPathNodeRecursively(this.dataContext.instanceExtractData, this.dataContext.templateRepresentation, path, this.multiInstanceObjectService);
+    return this.dataObjectManipulationService.getParentDataPathNodeRecursively(this.dataContext.instanceExtractData, null, this.dataContext.templateRepresentation, path, this.multiInstanceObjectService);
   }
 
   setCurrentIndex(component: MultiComponent, idx: number): void {
@@ -69,7 +70,12 @@ export class HandlerContext {
     this.dataObjectDataValueHandler.changeAttributeValue(this.dataContext, component, this.multiInstanceObjectService, key, value);
   }
 
+  deleteAttributeValue(component: FieldComponent, key: string): void {
+    this.dataObjectDataValueHandler.deleteAttributeValue(this.dataContext, component, this.multiInstanceObjectService, key);
+  }
+
   changeControlledValue(component: FieldComponent, atId: string, prefLabel: string): void {
     this.dataObjectDataValueHandler.changeControlledValue(this.dataContext, component, this.multiInstanceObjectService, atId, prefLabel);
   }
+
 }

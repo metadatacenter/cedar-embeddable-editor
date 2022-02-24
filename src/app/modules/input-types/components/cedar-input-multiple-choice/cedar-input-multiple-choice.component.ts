@@ -1,6 +1,6 @@
 import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {FormBuilder, FormGroup} from '@angular/forms';
+import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {ComponentDataService} from '../../../shared/service/component-data.service';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
@@ -15,11 +15,15 @@ import {HandlerContext} from '../../../shared/util/handler-context';
 export class CedarInputMultipleChoiceComponent extends CedarUIComponent implements OnInit {
   component: FieldComponent;
   activeComponentRegistry: ActiveComponentRegistryService;
-
+  options: FormGroup;
+  selectedChoiceInputControl = new FormControl(null, null);
   @Input() handlerContext: HandlerContext;
 
   constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
     super();
+    this.options = fb.group({
+      selectedChoiceValue: this.selectedChoiceInputControl
+    });
     this.activeComponentRegistry = activeComponentRegistry;
   }
 
@@ -37,6 +41,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
   }
 
   setCurrentValue(currentValue: any): void {
+    this.selectedChoiceInputControl.setValue(currentValue);
   }
 
   private populateItemsOnLoad(): void {

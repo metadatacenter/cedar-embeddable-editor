@@ -1,6 +1,7 @@
 import {FieldComponent} from '../component/field-component.model';
 import {SingleComponent} from '../component/single-component.model';
 import {AbstractFieldComponent} from './abstract-field-component.model';
+import {InputType} from '../input-type.model';
 
 export class SingleFieldComponent extends AbstractFieldComponent implements SingleComponent, FieldComponent {
 
@@ -11,7 +12,7 @@ export class SingleFieldComponent extends AbstractFieldComponent implements Sing
   }
 
   isMultiPage(): boolean {
-    return true;
+    return false;
   }
 
 }

@@ -1,0 +1,23 @@
+.multiinfo-index {
+  background: #777777;
+  border-radius: 50%;
+  -moz-border-radius: 50%;
+  -webkit-border-radius: 50%;
+  color: #ffffff;
+  display: inline-block;
+  font-weight: 400;
+  width: 20px;
+  line-height: 20px;
+  margin-right: 5px;
+  margin-left: 10px;
+  text-align: center;
+  opacity: 60%;
+}
+
+.not-first-multiinfo-index {
+  margin-left: 15px;
+}
+
+.current-multiinfo-index {
+  opacity: 100%;
+}

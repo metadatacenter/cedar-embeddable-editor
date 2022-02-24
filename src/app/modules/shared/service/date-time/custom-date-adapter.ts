@@ -14,7 +14,6 @@ export class CustomDateAdapter extends MomentDateAdapter {
     const format = this._dateTimeService.format;
     date.locale(locale);
     const result = date.format(format);
-
     return result;
   }
 }
