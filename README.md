@@ -65,6 +65,16 @@ cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,mai
 
 ## Example Applications
 
+There are two sample applications you can use to demonstrate how to embed and use CEE. Follow the links below to the demo application of your choice. The documentation for each demo application can be found in the README file of the corresponding application.
 
+### CEE Demo Generic
 
+This demo uses a generic HTML page with the CEE Webcomponent embedded in it. It runs standalone, with no dependency on any web framework.
 
+https://github.com/metadatacenter/cedar-cee-demo-generic
+
+### CEE Demo Angular
+
+This demo is written in Angular 2 and requires that framework to run properly.
+
+https://github.com/metadatacenter/cedar-cee-demo-angular
