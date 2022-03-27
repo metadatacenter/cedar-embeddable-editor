@@ -40,7 +40,9 @@ cedar-embeddable-editor$ ng serve
 ```
 3. In your browser, navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
-## Building the Webcomponent
+## Running as a Webcomponent
+
+This method creates a single Javascript (JS) file that encapsulates all the functionality of CEE. The JS file can be embedded in any application or HTML page. To build a CEE Webcomponent, proceed with these steps: 
 
 ### Disable the standalone mode
 
@@ -61,6 +63,136 @@ cedar-embeddable-editor$ ng build --configuration production --output-hashing=no
 2. Combine the generated files into a single file and copy the final JS to the sample application:
 ```shell
 cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,main}.js > "/dev/cedar/cedar-cee-demo-generic/assets/js/cedar-embeddable-editor.js"
+```
+
+
+## Configuration
+
+### Configuration file
+
+The CEE configuration file format and storage location depends on the application and the mode in which CEE is being used.
+
+* When running CEE in the standalone mode (developer mode), the configuration parameters are stored in and read from the file: `src/app/app.component.ts`.
+* When running CEE as a generic Webcomponent, the configuration parameters can be stored in any `.json` file that is visible to the application that embeds CEE Webcomponent. CEE Webcomponent API provides a method for loading the configuration file from its path at runtime. For example:
+```javascript
+    document.addEventListener('WebComponentsReady', function () {
+      const comp = document.querySelector('cedar-embeddable-editor');
+      comp.loadConfigFromURL('assets/data/cee-config.json');
+    });
+```
+* When using the Angular 2 sample application (https://github.com/metadatacenter/cedar-cee-demo-angular), the configuration is stored in the file: `assets/data/appConfig.json`. 
+
+
+### Metadata save endpoint
+
+CEE offers functionality to save your metadata using your own custom remote endpoint. 
+
+If you plan to enable this feature, you will need to set the following configuration:
+
+```json
+"showDataSaver": true,
+"dataSaverEndpointUrl": "http://localhost:8000/datasave.php",
+```
+Replace `dataSaverEndpointUrl` with a URL pointing to the endpoint that will handle metadata submissions.
+
+The endpoint can be implemented using any REST-enabled framework/programming language. CEE makes a POST call to the endpoint specified in the configuration file, including the metadata in JSON-LD format in the body of the request.
+
+* Request format:
+```json
+{
+  "metadata": {__contents of meatadata__},
+  "info": {__optional info object that can be passed in and out of CEE__}
+}
+```
+
+If the metadata was created successfully, the response received from the server returns `201 Created` status code.
+
+The response must include a JSON object with the following attributes:
+* **id:** identifier of the created resource in the target database.
+* **title:** title of the resource that has been created (corresponds to the value of schema:name in the metadata)
+* **links:**
+  * **self:** If the resource is publicly available, an URL identifying the location of the newly created resource. Otherwise, null.
+
+Example:
+
+```json
+{
+  "id": "010a261f12b3efc4",
+  "title": "single field",
+  "links": {
+    "self": "http://localhost:8000/metadata/010a261f12b3efc4.json"
+  }
+}
+```
+
+If there was an error,  the corresponding error code and a JSON object with the following attributes:
+* **status:** the HTTP status code applicable to this problem, expressed as a string value.
+* **title:** a short, human-readable summary of the problem that should not change from occurrence to occurrence of the problem.
+* **detail:** a human-readable explanation specific to this occurrence of the problem.
+
+Example:
+
+```json
+{
+  "status": "500",
+  "title": "Internal Error",
+  "detail": "Error connecting to database server (invalid credentials)"
+}
+```
+
+
+
+
+
+### Template upload endpoint
+
+CEDAR Embeddable Editor includes an optional feature that allows uploading a template source file and creating metadata for that template.
+
+If you plan to enable that functionality, you will need to set up two endpoints in your configuration file:
+
+```json
+"showTemplateUpload": true,
+"templateUploadBaseUrl": "http://localhost:8000",
+"templateUploadEndpoint": "/upload.php",
+"templateDownloadEndpoint": "/download.php",
+```
+Replace `templateUploadBaseUrl` with a URL pointing to the root of the server on which the endpoints reside. Configure `templateUploadEndpoint` and `templateDownloadEndpoint` to their respective paths from the `templateUploadBaseUrl`.
+
+### Required configuration parameters
+
+* **sampleTemplateLocationPrefix:** The base URL that contains the sample CEDAR templates
+* **terminologyProxyUrl:** The URL of the proxy endpoint that communicates with BioPortal
+
+```json
+{
+  "sampleTemplateLocationPrefix": "https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/",
+  "terminologyProxyUrl": "https://terminology.metadatacenter.org/bioportal/integrated-search"
+}
+```
+
+### Optional configuration parameters
+
+The are other optional configuration parameters available for controlling various aspects of the CEE user interface. Most of these are self-explanatory. The example below includes the default values in cases, where the parameter isn't explicitly declared.
+
+```json
+{
+  "showSampleTemplateLinks": true,
+  "loadSampleTemplateName": "19",
+  "expandedSampleTemplateLinks": false,
+  "showTemplateRenderingRepresentation": true,
+  "expandedTemplateRenderingRepresentation": false,
+  "showInstanceDataCore": true,
+  "expandedInstanceDataCore": true,
+  "showInstanceDataFull": false,
+  "expandedInstanceDataFull": false,
+  "showMultiInstanceInfo": false,
+  "expandedMultiInstanceInfo": false,
+  "showTemplateSourceData": true,
+  "expandedTemplateSourceData": false,
+  "showHeader": true,
+  "showFooter": true,
+  "collapseStaticComponents": true
+}
 ```
 
 ## Example Applications
