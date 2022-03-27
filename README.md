@@ -6,11 +6,15 @@ It takes CEDAR JSON-LD templates as input, and produces CEDAR JSON-LD metadata.
 
 ## Running as a standalone application
 
-To run CEE in the standalone mode (NOT as a webcomponent), proceed with the following steps:
+You can run CEE as a standalone application. This is helpful for developers to see changes to the code reflected immediately in the application. To run CEE in the standalone mode (NOT as a Webcomponent), proceed with the following steps:
 
 ### Clone the repository
 
-1. Clone this repository onto a local directory of your choice
+Clone this repository onto a local directory of your choice:
+
+```shell
+git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
+```
 
 ### Enable the standalone mode
 
@@ -84,9 +88,7 @@ The CEE configuration file format and storage location depends on the applicatio
 
 ### Metadata save endpoint
 
-CEE offers functionality to save your metadata using your own custom remote endpoint. 
-
-If you plan to enable this feature, you will need to set the following configuration:
+CEE offers the functionality to save user metadata using a custom remote endpoint. If you plan to enable this feature, you will need to set the following configuration:
 
 ```json
 "showDataSaver": true,
