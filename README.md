@@ -65,7 +65,6 @@ cedar-embeddable-editor$ ng build --configuration production --output-hashing=no
 cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,main}.js > "/dev/cedar/cedar-cee-demo-generic/assets/js/cedar-embeddable-editor.js"
 ```
 
-
 ## Configuration
 
 ### Configuration file
@@ -102,6 +101,45 @@ The endpoint can be implemented using any REST-enabled framework/programming lan
 {
   "metadata": {__contents of meatadata__},
   "info": {__optional info object that can be passed in and out of CEE__}
+}
+```
+
+CEE allows custom data to be passed to the Webcomponent, which then becomes available to your Metadata save endpoint. The custom data is passed to the Webcomponent via an API call and is propogated to the Metadata save endpoint using the `info` attribute.
+
+Example:
+
+```javascript
+function getCustomTemplateInfo() {
+    return {
+        mycustomtitle: 'ACME Template',
+        mycustomurl: 'https://doi.org/10.15468/9vuieb',
+        mycutomdataattribute1: 'Hello World',
+        mycutomdataattribute2: {name: 'John Doe', age: 35}
+    };
+}
+
+document.addEventListener('WebComponentsReady', function () {
+    const comp = document.querySelector('cedar-embeddable-editor');
+    comp.templateInfo = getCustomTemplateInfo();
+});
+```
+
+When a user pushes the **Save** (metadata) button, these custom attributes are propagated to the Metadata save endpoint.
+
+Example:
+
+```json
+{
+    "metadata": {__contents of metadata__},
+    "info": {
+        "mycustomtitle": "ACME Template",
+        "mycustomurl": "https://doi.org/10.15468/9vuieb",
+        "mycutomdataattribute1": "Hello World",
+        "mycutomdataattribute2": {
+            "name": "John Doe",
+            "age": 35
+        }
+    }
 }
 ```
 
