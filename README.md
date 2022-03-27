@@ -25,7 +25,7 @@ To run CEE in the standalone mode (NOT as a webcomponent), proceed with the foll
 ### Edit configuration
 
 1. Open the file ```cedar-embeddable-editor/src/app/app.component.ts``` in your favorite editor.
-2. Edit configuration parameters based on your local environment (see section Configuration for details).
+2. Edit configuration parameters based on your local environment (see section [Configuration](https://github.com/metadatacenter/cedar-embeddable-editor/tree/develop#configuration) for details).
 
 ### Build the project and start the server
 
