@@ -1,8 +1,9 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation} from '@angular/core';
 import {NullTemplate} from '../../models/template/null-template.model';
 import {DataContext} from '../../util/data-context';
 import {HandlerContext} from '../../util/handler-context';
 import {PageBreakPaginatorService} from '../../service/page-break-paginator.service';
+import {Moment} from 'moment';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -40,6 +41,13 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private static DATA_SAVER_ENDPOINT_URL = 'dataSaverEndpointUrl';
 
   private readonly dataContext: DataContext = null;
+
+
+  @Output() dataContextEvent = new EventEmitter<DataContext>();
+
+
+
+
   private readonly handlerContext: HandlerContext = null;
   private readonly pageBreakPaginatorService: PageBreakPaginatorService = null;
 
@@ -154,8 +162,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   @Input() set templateJsonObject(value: object) {
     if (value != null) {
-      const len = JSON.stringify(value).length;
       this.dataContext.setInputTemplate(value, this.handlerContext, this.pageBreakPaginatorService, this.collapseStaticComponents);
+      this.dataContextEvent.emit(this.dataContext);
     }
   }
 

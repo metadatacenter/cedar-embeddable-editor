@@ -6,6 +6,8 @@ import {MatFileUploadService} from '../file-uploader/mat-file-upload/mat-file-up
 import {Subject} from 'rxjs';
 import {SampleTemplatesService} from '../sample-templates/sample-templates.service';
 import {takeUntil} from 'rxjs/operators';
+import {DataContext} from '../../util/data-context';
+import {JsonSchema} from '../../models/json-schema.model';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -31,8 +33,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   sampleTemplateLoaderObject = null;
   showSpinnerBeforeInit = true;
   protected _onDestroy = new Subject<void>();
-
   externalTemplateInfo: object;
+  dataContext: DataContext = null;
 
 
   constructor(
@@ -72,6 +74,28 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       });
     this.initialized = true;
     this.doInitialize();
+  }
+
+  dataContextChanged(event): void {
+    this.dataContext = event;
+  }
+
+  @Input() get currentMetadata(): object {
+    if (this.dataContext) {
+      return JSON.parse(JSON.stringify(this.dataContext.instanceFullData));
+    }
+    return {};
+  }
+
+  @Input() set metadata(meta: object) {
+    const instanceFullData = JSON.parse(JSON.stringify(meta));
+    const instanceExtractData = JSON.parse(JSON.stringify(meta));
+    this.deleteContext(instanceExtractData);
+
+    if (this.dataContext) {
+      this.dataContext.instanceFullData = instanceFullData;
+      this.dataContext.instanceExtractData = instanceExtractData;
+    }
   }
 
   @Input() set templateInfo(templateInfo: object) {
@@ -118,6 +142,16 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   @Input() set eventHandler(value: object) {
     this.messageHandlerService.injectEventHandler(value);
+  }
+
+  private deleteContext(obj): void {
+    Object.keys(obj).forEach(key => {
+      delete obj[JsonSchema.atContext];
+
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        this.deleteContext(obj[key]);
+      }
+    });
   }
 
   private doInitialize(): void {
