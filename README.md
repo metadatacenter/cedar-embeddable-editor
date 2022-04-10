@@ -2,7 +2,7 @@
 
 The CEDAR Embeddable Editor is as a web component that implements the functionality of the CEDAR Metadata Editor.
 
-It takes CEDAR JSON-LD templates as input, and produces CEDAR JSON-LD metadata.
+It takes CEDAR JSON Schema templates as input, and produces CEDAR JSON-LD metadata.
 
 ## Running as a standalone application
 
