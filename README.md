@@ -85,7 +85,6 @@ The CEE configuration file format and storage location depends on the applicatio
 ```
 * When using the Angular 2 sample application (https://github.com/metadatacenter/cedar-cee-demo-angular), the configuration is stored in the file: `assets/data/appConfig.json`. 
 
-
 ### Metadata save endpoint
 
 CEE offers the functionality to save user metadata using a custom remote endpoint. If you plan to enable this feature, you will need to set the following configuration:
@@ -179,10 +178,6 @@ Example:
   "detail": "Error connecting to database server (invalid credentials)"
 }
 ```
-
-
-
-
 
 ### Template upload endpoint
 
