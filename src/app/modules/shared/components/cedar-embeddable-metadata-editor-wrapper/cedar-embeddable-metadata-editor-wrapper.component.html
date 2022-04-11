@@ -3,7 +3,7 @@
                                       [templateJsonObject]="templateJson"
                                       [sampleTemplateLoaderObject]="sampleTemplateLoaderObject"
                                       [externalTemplateInfo]="externalTemplateInfo"
-                                      (dataContextEvent)="dataContextChanged($event)"
+                                      (handlerContextEvent)="handlerContextChanged($event)"
 ></app-cedar-embeddable-metadata-editor>
 <div class="spinner-wrapper" *ngIf="!editorDataReady() && showSpinnerBeforeInit">
   <mat-progress-spinner

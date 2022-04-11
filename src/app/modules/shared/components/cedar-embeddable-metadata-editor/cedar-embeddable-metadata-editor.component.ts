@@ -3,7 +3,6 @@ import {NullTemplate} from '../../models/template/null-template.model';
 import {DataContext} from '../../util/data-context';
 import {HandlerContext} from '../../util/handler-context';
 import {PageBreakPaginatorService} from '../../service/page-break-paginator.service';
-import {Moment} from 'moment';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -42,13 +41,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private readonly dataContext: DataContext = null;
 
-
-  @Output() dataContextEvent = new EventEmitter<DataContext>();
-
-
-
-
   private readonly handlerContext: HandlerContext = null;
+  @Output() handlerContextEvent = new EventEmitter<HandlerContext>();
+
   private readonly pageBreakPaginatorService: PageBreakPaginatorService = null;
 
   @Input() sampleTemplateLoaderObject: any = null;
@@ -163,7 +158,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   @Input() set templateJsonObject(value: object) {
     if (value != null) {
       this.dataContext.setInputTemplate(value, this.handlerContext, this.pageBreakPaginatorService, this.collapseStaticComponents);
-      this.dataContextEvent.emit(this.dataContext);
+      this.handlerContextEvent.emit(this.handlerContext);
     }
   }
 
