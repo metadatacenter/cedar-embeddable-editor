@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
+import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import {HttpResponse, HttpStatusCode} from '@angular/common/http';
 import {ControlledFieldDataService} from '../../service/controlled-field-data.service';
 import {MessageHandlerService} from '../../service/message-handler.service';
@@ -6,8 +6,9 @@ import {MatFileUploadService} from '../file-uploader/mat-file-upload/mat-file-up
 import {Subject} from 'rxjs';
 import {SampleTemplatesService} from '../sample-templates/sample-templates.service';
 import {takeUntil} from 'rxjs/operators';
-import {DataContext} from '../../util/data-context';
 import {JsonSchema} from '../../models/json-schema.model';
+import {HandlerContext} from '../../util/handler-context';
+import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -15,7 +16,7 @@ import {JsonSchema} from '../../models/json-schema.model';
   styleUrls: ['./cedar-embeddable-metadata-editor-wrapper.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, OnDestroy {
+export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, OnDestroy, AfterViewInit {
 
   static TEMPLATE_LOCATION_PREFIX = 'sampleTemplateLocationPrefix';
   static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
@@ -34,17 +35,43 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   showSpinnerBeforeInit = true;
   protected _onDestroy = new Subject<void>();
   externalTemplateInfo: object;
-  dataContext: DataContext = null;
+  handlerContext: HandlerContext = null;
 
 
   constructor(
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
     private matFileUploadService: MatFileUploadService,
-    private sampleTemplateService: SampleTemplatesService
+    private sampleTemplateService: SampleTemplatesService,
+    private activeComponentRegistry: ActiveComponentRegistryService
   ) {
     this.sampleTemplateLoaderObject = this;
   }
+
+
+  ngAfterViewInit(): void {
+
+
+    let meta = null;
+
+    setTimeout(() => {
+      meta = this.currentMetadata;
+      console.log('Grabbed meta after 10 seconds');
+      console.log(meta);
+    }, 10000);
+
+    setTimeout(() => {
+      this.metadata = meta;
+      console.log('Set meta to original after 30 seconds');
+    }, 30000);
+
+
+  }
+
+
+
+
+
 
   ngOnInit(): void {
     this.sampleTemplateService.templateJson$
@@ -76,13 +103,13 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.doInitialize();
   }
 
-  dataContextChanged(event): void {
-    this.dataContext = event;
+  handlerContextChanged(event): void {
+    this.handlerContext = event;
   }
 
   @Input() get currentMetadata(): object {
-    if (this.dataContext) {
-      return JSON.parse(JSON.stringify(this.dataContext.instanceFullData));
+    if (this.handlerContext) {
+      return JSON.parse(JSON.stringify(this.handlerContext.dataContext.instanceFullData));
     }
     return {};
   }
@@ -92,9 +119,16 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     const instanceExtractData = JSON.parse(JSON.stringify(meta));
     this.deleteContext(instanceExtractData);
 
-    if (this.dataContext) {
-      this.dataContext.instanceFullData = instanceFullData;
-      this.dataContext.instanceExtractData = instanceExtractData;
+    if (this.handlerContext) {
+      const dataContext = this.handlerContext.dataContext;
+      dataContext.instanceFullData = instanceFullData;
+      dataContext.instanceExtractData = instanceExtractData;
+
+      if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
+        for (const childComponent of dataContext.templateRepresentation.children) {
+          this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
+        }
+      }
     }
   }
 

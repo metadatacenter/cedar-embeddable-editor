@@ -3,12 +3,13 @@ import {CedarModel} from '../models/cedar-model.model';
 export class TemplateObjectUtil {
 
   static hasControlledInfo(dataNode: object): boolean {
-    if (dataNode != null && dataNode.hasOwnProperty(CedarModel.valueConstraints)) {
+    if (TemplateObjectUtil.hasValueConstraints(dataNode)) {
       const vc: object = dataNode[CedarModel.valueConstraints];
-      return vc.hasOwnProperty(CedarModel.ontologies)
-        || vc.hasOwnProperty(CedarModel.valueSets)
-        || vc.hasOwnProperty(CedarModel.classes)
-        || vc.hasOwnProperty(CedarModel.branches);
+      const hasOntologies = vc.hasOwnProperty(CedarModel.ontologies) && vc[CedarModel.ontologies].length > 0;
+      const hasValueSets = vc.hasOwnProperty(CedarModel.valueSets) && vc[CedarModel.valueSets].length > 0;
+      const hasClasses = vc.hasOwnProperty(CedarModel.classes) && vc[CedarModel.classes].length > 0;
+      const hasBranches = vc.hasOwnProperty(CedarModel.branches) && vc[CedarModel.branches].length > 0;
+      return hasOntologies || hasValueSets || hasClasses || hasBranches;
     }
     return false;
   }
@@ -16,4 +17,5 @@ export class TemplateObjectUtil {
   static hasValueConstraints(dataNode: object): boolean {
     return dataNode != null && dataNode.hasOwnProperty(CedarModel.valueConstraints);
   }
+
 }

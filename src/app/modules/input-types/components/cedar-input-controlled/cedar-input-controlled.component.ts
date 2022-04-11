@@ -30,7 +30,6 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, null);
-  activeComponentRegistry: ActiveComponentRegistryService;
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
   model: IntegratedSearchResponseItem = null;
@@ -40,7 +39,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   constructor(
     fb: FormBuilder,
     public cds: ComponentDataService,
-    activeComponentRegistry: ActiveComponentRegistryService,
+    private activeComponentRegistry: ActiveComponentRegistryService,
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService
   ) {
@@ -48,7 +47,6 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
     this.options = fb.group({
       inputValue: this.inputValueControl,
     });
-    this.activeComponentRegistry = activeComponentRegistry;
   }
 
   ngOnInit(): void {
