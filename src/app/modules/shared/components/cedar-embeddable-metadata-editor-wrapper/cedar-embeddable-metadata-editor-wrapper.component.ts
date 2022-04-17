@@ -9,6 +9,7 @@ import {takeUntil} from 'rxjs/operators';
 import {JsonSchema} from '../../models/json-schema.model';
 import {HandlerContext} from '../../util/handler-context';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
+import {MultiInstanceObjectHandler} from '../../handler/multi-instance-object.handler';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -53,20 +54,86 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
 
     let meta = null;
+    const waitTime = 20000;
+    const saveTime = 40000;
+
+
+
+    const testTime = 15000;
+    const restoreTime = 17000;
 
     setTimeout(() => {
       meta = this.currentMetadata;
-      console.log('Grabbed meta after 10 seconds');
-      console.log(meta);
-    }, 10000);
+      console.log('Saved metadata after ' + saveTime / 1000 + ' seconds');
+    }, testTime);
 
     setTimeout(() => {
       this.metadata = meta;
-      console.log('Set meta to original after 30 seconds');
-    }, 30000);
+      console.log('Restored saved metadata after ' + restoreTime / 1000 + ' seconds');
+    }, restoreTime);
+
+
+    // let newSaveTime = waitTime;
+    // let newRestoreTime = 0;
+    //
+    // setTimeout(() => {
+    //   meta = this.currentMetadata;
+    //   console.log('Saved metadata after ' + newSaveTime / 1000 + ' seconds');
+    //   console.log(meta);
+    // }, waitTime);
+    //
+    // setTimeout(() => {
+    //   setInterval(() => {
+    //     meta = this.currentMetadata;
+    //     newSaveTime += saveTime;
+    //     console.log('Saved metadata after ' + newSaveTime / 1000 + ' seconds');
+    //     console.log(meta);
+    //   }, saveTime);
+    // }, waitTime);
+    //
+    // setInterval(() => {
+    //   newRestoreTime += saveTime;
+    //   this.metadata = meta;
+    //   console.log('Restored saved metadata after ' + newRestoreTime / 1000 + ' seconds');
+    // }, saveTime);
+
+
+
 
 
   }
+
+
+
+
+  // traverseAndFlatten(currentNode, target, flattenedKey = null): void {
+  //   for (const key in currentNode) {
+  //     if (currentNode.hasOwnProperty(key)) {
+  //       let newKey;
+  //
+  //       if (!flattenedKey) {
+  //         newKey = key;
+  //       } else {
+  //         newKey = flattenedKey + '.' + key;
+  //       }
+  //
+  //       const value = currentNode[key];
+  //
+  //       if (typeof value === 'object') {
+  //         this.traverseAndFlatten(value, target, newKey);
+  //       } else {
+  //         target[newKey] = value;
+  //       }
+  //     }
+  //   }
+  // }
+  //
+  // flatten(obj): object {
+  //   const flattenedObject = {};
+  //   this.traverseAndFlatten(obj, flattenedObject);
+  //   return flattenedObject;
+  // }
+
 
 
 
@@ -109,6 +176,15 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   @Input() get currentMetadata(): object {
     if (this.handlerContext) {
+
+      // const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
+      // console.log('templateRepresentation');
+      // console.log(multiInstanceObjectService.temp)
+
+
+
+
+
       return JSON.parse(JSON.stringify(this.handlerContext.dataContext.instanceFullData));
     }
     return {};
@@ -121,14 +197,28 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
+
+
       dataContext.instanceFullData = instanceFullData;
       dataContext.instanceExtractData = instanceExtractData;
+
+
+      const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
+      dataContext.multiInstanceData = multiInstanceObjectService.buildFromMetadata(
+          dataContext.templateRepresentation, instanceExtractData);
+
+
 
       if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
         for (const childComponent of dataContext.templateRepresentation.children) {
           this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
         }
       }
+
+
+
+
+
     }
   }
 

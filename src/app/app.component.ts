@@ -21,7 +21,9 @@ export class AppComponent {
 
     sampleTemplateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
     // sampleTemplateLocationPrefix: 'https://component.staging.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '45',
+    // loadSampleTemplateName: '02',
+    // loadSampleTemplateName: '03',
+    loadSampleTemplateName: '13',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: true,
     showTemplateRenderingRepresentation: true,
@@ -32,7 +34,7 @@ export class AppComponent {
     showInstanceDataCore: true,
     expandedInstanceDataCore: true,
     showMultiInstanceInfo: true,
-
+    expandedMultiInstanceInfo: true,
     collapseStaticComponents: true
   };
 
