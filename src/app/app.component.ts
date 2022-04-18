@@ -23,7 +23,8 @@ export class AppComponent {
     // sampleTemplateLocationPrefix: 'https://component.staging.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
     // loadSampleTemplateName: '02',
     // loadSampleTemplateName: '03',
-    loadSampleTemplateName: '13',
+    // loadSampleTemplateName: '25',
+    loadSampleTemplateName: '13', // has element single
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: true,
     showTemplateRenderingRepresentation: true,

@@ -204,6 +204,15 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
 
       const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
+
+
+
+      console.log('original multiInstanceObject');
+      console.log(JSON.stringify(multiInstanceObjectService.multiInstanceObject, null, 2));
+
+
+
+
       dataContext.multiInstanceData = multiInstanceObjectService.buildFromMetadata(
           dataContext.templateRepresentation, instanceExtractData);
 
