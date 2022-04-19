@@ -34,26 +34,41 @@ export class MultiInstanceObjectHandler {
   // private componentPathMap: Map<string, CedarComponent> = new Map<string, CedarComponent>();
 
   // private instanceCountMap: Map<string, number> = new Map<string, number>();
+
+
   // private instanceCountMap: Map<string[], number> = new Map<string[], number>();
+
+
 
   private indexRegEx = new RegExp(/@#index\[(\d+)\]#@/);
 
 
 
-  constructor() {
 
-    // const str = this.indexRegEx.source;
-    // const str1 = str.replace('(\\d+)', '04').replace(/\\/g, '');
-    // // const str1 = 'index[04]';
-    //
-    // const match = str1.match(this.indexRegEx);
-    //
-    // console.log('str ' + str);
-    // console.log('str1 ' + str1);
-    // console.log('cons match');
-    // console.log(match);
 
+  private static getNodeByPath(obj, arrPath: string[]): object {
+    let val: object;
+
+    for (let i = 0; i < arrPath.length; i++) {
+      if (val) {
+        val = val[arrPath[i]];
+      } else {
+        val = obj[arrPath[i]];
+      }
+    }
+    return val;
   }
+
+  private static getMultiInstanceInfoNodeByPath(obj, arrPath: string[]): MultiInstanceInfo {
+    return MultiInstanceObjectHandler.getNodeByPath(obj, arrPath) as MultiInstanceInfo;
+  }
+
+  private static getMultiInstanceObjectInfoNodeByPath(obj, arrPath: string[]): MultiInstanceObjectInfo {
+    return MultiInstanceObjectHandler.getNodeByPath(obj, arrPath) as MultiInstanceObjectInfo;
+  }
+
+
+
 
 
   buildNew(templateRepresentation: TemplateComponent): MultiInstanceInfo {
@@ -130,10 +145,11 @@ export class MultiInstanceObjectHandler {
 
 
         // this.instanceCountMap.set(myPath.slice(), instanceExtractData[key].length);
-        // console.log('myPath');
-        // console.log(myPath.slice());
-        // console.log('instanceExtractData[key].length');
-        // console.log(instanceExtractData[key].length);
+
+        console.log('myPath');
+        console.log(myPath.slice());
+        console.log('instanceExtractData[key].length');
+        console.log(instanceExtractData[key].length);
 
 
 
@@ -182,7 +198,7 @@ export class MultiInstanceObjectHandler {
 
           // this.instanceCountMap.set(myPath, 1);
 
-          this.setSingleMultiInstance(myPath, 1, multiInstanceObject);
+          // this.setSingleMultiInstance(myPath, 1, multiInstanceObject);
 
 
 
@@ -204,14 +220,16 @@ export class MultiInstanceObjectHandler {
 
 
 
-  private setSingleMultiInstance(path: string[], count: number,
-                                 multiInstanceObject: MultiInstanceInfo): void {
+  private setSingleMultiInstance1(path: string[], count: number,
+                                  multiInstanceObject: MultiInstanceInfo): void {
     const pathCopy = [];
 
     for (let i = 0; i < path.length; i++) {
       pathCopy.push(path[i]);
       const match = path[i].match(this.indexRegEx);
 
+
+      // this means we need to add a child
       if (match && match.length > 1) {
         pathCopy.pop();
         pathCopy.push('children');
@@ -232,27 +250,131 @@ export class MultiInstanceObjectHandler {
   }
 
 
-  // private createNestedObject = (base, namesIn, value = null) => {
-  //   // If a value is given, remove the last name and keep it for later:
-  //   const lastName = false;
-  //   const names = namesIn.slice();
-  //
-  //   if (value != null) {
-  //     names.pop();
-  //   }
-  //
-  //   // Walk the hierarchy, creating new objects where needed.
-  //   // If the lastName was removed, then the last object is not set yet:
-  //   for (let i = 0; i < names.length; i++) {
-  //     base = base[names[i]] = base[names[i]] || {};
-  //   }
-  //
-  //   // If a value was given, set it to the last name:
-  //   if (lastName) base = base[lastName] = value;
-  //
-  //   // Return the last object in the hierarchy:
-  //   return base;
-  // }
+
+
+
+  private setSingleMultiInstance(path: string[], count: number,
+                                 multiInstanceObject: MultiInstanceInfo): void {
+
+    console.log('path');
+    console.log(path);
+
+
+    const pathCopy = [];
+
+
+
+
+
+
+    for (let i = 0; i < path.length; i++) {
+      pathCopy.push(path[i]);
+      const match = path[i].match(this.indexRegEx);
+
+      if (match && match.length > 1) {
+        pathCopy.pop();
+        const pathParent = pathCopy.slice();
+        const parentObj = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, pathParent);
+
+
+        console.log('pathParent');
+        console.log(pathParent);
+        console.log('parentObj');
+        console.log(parentObj);
+
+
+        pathCopy.push('children');
+        pathCopy.push(match[1]);
+
+        const childObj = MultiInstanceObjectHandler.getMultiInstanceInfoNodeByPath(multiInstanceObject, pathCopy);
+
+
+        console.log('pathChild');
+        console.log(pathCopy);
+        console.log('childObj');
+        console.log(childObj);
+
+
+        // childObj is an object of type MultiInstanceInfo of structure
+        // {strKey1 => MultiInstanceObjectInfo, strKey2 => MultiInstanceObjectInfo}
+
+        const componentName = path[i + 1];
+
+        if (childObj) {
+          const arrayElemPath = pathCopy.slice();
+          arrayElemPath.push(componentName);
+
+          console.log('targetPath');
+          console.log(arrayElemPath);
+
+          const arrayElem = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, arrayElemPath);
+
+          console.log('arrayElem');
+          console.log(arrayElem);
+
+          if (!arrayElem) {
+            const childElem = new MultiInstanceObjectInfo();
+            childElem.componentName = componentName;
+            childObj.addChild(childElem);
+          }
+
+
+        } else {
+
+          console.log('child is null, adding...');
+          const child = new MultiInstanceInfo();
+          parentObj.addChild(child);
+          const childElem = new MultiInstanceObjectInfo();
+          childElem.componentName = componentName;
+          child.addChild(childElem);
+
+        }
+
+
+
+
+      }
+    }
+
+    console.log('path processed');
+    console.log(pathCopy);
+
+    const targetObj = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, pathCopy);
+
+    console.log('targetObj');
+    console.log(targetObj);
+    console.log('---------------------------');
+
+
+    targetObj.componentName = path[path.length - 1];
+    targetObj.currentCount = count;
+    targetObj.currentIndex = 0;
+
+
+
+
+
+
+    // const componentName = path[path.length - 1];
+    // const namePath = pathCopy.slice();
+    // namePath.push('componentName');
+    // const countPath = pathCopy.slice();
+    // countPath.push('currentCount');
+    // const indexPath = pathCopy.slice();
+    // indexPath.push('currentIndex');
+
+    // this.setObject(this.multiInstanceObject, namePath, componentName);
+    // this.setObject(this.multiInstanceObject, countPath, count);
+    // this.setObject(this.multiInstanceObject, indexPath, 0);
+  }
+
+
+
+
+
+
+
+
 
   private setObject = (obj, keysIn, val) => {
     const keys = keysIn.slice();
