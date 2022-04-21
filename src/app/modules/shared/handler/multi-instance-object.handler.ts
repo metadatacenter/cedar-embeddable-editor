@@ -77,8 +77,8 @@ export class MultiInstanceObjectHandler {
       // multi-page element or mutli-page field
       if (Array.isArray(instanceExtractData[key]) && instanceExtractData[key].length > 0) {
 
-        // console.log('myPath');
-        // console.log(myPath.slice());
+        console.log('myPath');
+        console.log(myPath.slice());
         // console.log('count');
         // console.log(instanceExtractData[key].length);
 
@@ -222,7 +222,10 @@ export class MultiInstanceObjectHandler {
 
     targetObj.componentName = path[path.length - 1];
     targetObj.currentCount = count;
-    targetObj.currentIndex = 0;
+
+    // if (!targetObj.currentIndex) {
+      targetObj.currentIndex = (count > 0) ? 0 : -1;
+    // }
   }
 
   private deleteAttributeValueFields(instanceExtractData: InstanceExtractData): void {
@@ -344,6 +347,12 @@ export class MultiInstanceObjectHandler {
   }
 
   private getDataPathNodeRecursively(multiInstanceObject: MultiInstanceInfo, component: CedarComponent, path: string[]): MultiInstanceObjectInfo {
+
+    if (!multiInstanceObject) {
+      return null;
+    }
+
+
     const firstPath = path[0];
     const remainingPath = path.slice(1);
     let childComponent: CedarComponent = null;

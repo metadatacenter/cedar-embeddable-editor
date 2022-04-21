@@ -28,6 +28,12 @@ export class ActiveComponentRegistryService {
   }
 
   updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
+
+
+    console.log('component');
+    console.log(component);
+
+
     if (component instanceof SingleFieldComponent) {
 
 
@@ -126,7 +132,11 @@ export class ActiveComponentRegistryService {
 
 
       const uiPager = this.getMultiPagerUI(component);
-      uiPager.updatePagingUI();
+
+
+      if (uiPager) {
+        uiPager.updatePagingUI();
+      }
 
 
 
