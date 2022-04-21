@@ -35,17 +35,9 @@ export class DataObjectStructureHandler {
         const multiElement = component as MultiElementComponent;
         const multiInstanceInfo: MultiInstanceObjectInfo = multiInstanceObjectService.getMultiInstanceInfoForComponent(multiElement);
 
-
-
-
         if (!multiInstanceInfo) {
           return null;
         }
-
-
-
-
-
         const currentIndex = multiInstanceInfo.currentIndex;
         childComponent = multiElement.getChildByName(firstPath);
         if (dataObject.hasOwnProperty(currentIndex)) {
@@ -81,15 +73,9 @@ export class DataObjectStructureHandler {
         const multiInstanceInfo: MultiInstanceObjectInfo = multiInstanceObjectService.getMultiInstanceInfoForComponent(multiElement);
         const currentIndex = multiInstanceInfo.currentIndex;
 
-
-
         if (currentIndex < 0) {
           return null;
         }
-
-
-
-
         childComponent = multiElement.getChildByName(firstPath);
         dataSubObject = dataObject[currentIndex][firstPath];
         parentDataSubObject = dataObject[currentIndex];
