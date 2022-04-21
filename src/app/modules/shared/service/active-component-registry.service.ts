@@ -44,39 +44,46 @@ export class ActiveComponentRegistryService {
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       const parentDataObject = handlerContext.getParentDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
+      const multiInstanceInfo: MultiInstanceObjectInfo =
+        handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
 
-      if (uiComponent != null) {
-        const multiInstanceInfo: MultiInstanceObjectInfo =
-          handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
+      // this is a multi-value but not multi-page component, such as checkbox or multiselect
+      if (!component.isMultiPage()) {
+        const dataArr = dataObject as Array<object>;
 
-        // this is a multi-value but not multi-page component, such as checkbox or multiselect
-        if (!component.isMultiPage()) {
-          const dataArr = dataObject as Array<object>;
+        if (uiComponent) {
           uiComponent.setCurrentValue(dataArr.map(a => a[JsonSchema.atValue]));
-        } else if (dataObject[multiInstanceInfo.currentIndex] != null) {
-          if (component.basicInfo.inputType === InputType.attributeValue) {
-            let key = dataObject[multiInstanceInfo.currentIndex];
+        }
+      } else if (dataObject[multiInstanceInfo.currentIndex] != null) {
+        if (component.basicInfo.inputType === InputType.attributeValue) {
+          let key = dataObject[multiInstanceInfo.currentIndex];
 
-            if (key instanceof Object && key.hasOwnProperty(JsonSchema.atValue) && key[JsonSchema.atValue] === null) {
-              handlerContext.changeAttributeValue(component, null, null);
-            } else if (multiInstanceInfo.currentIndex > 0) {
-              const cloneSourceKey = dataObject[multiInstanceInfo.currentIndex - 1];
+          if (key instanceof Object && key.hasOwnProperty(JsonSchema.atValue) && key[JsonSchema.atValue] === null) {
+            handlerContext.changeAttributeValue(component, null, null);
+          } else if (multiInstanceInfo.currentIndex > 0) {
+            const cloneSourceKey = dataObject[multiInstanceInfo.currentIndex - 1];
 
-              if (key === cloneSourceKey) {
-                const val = parentDataObject[cloneSourceKey][JsonSchema.atValue];
-                handlerContext.changeAttributeValue(component, null, val);
-              }
+            if (key === cloneSourceKey) {
+              const val = parentDataObject[cloneSourceKey][JsonSchema.atValue];
+              handlerContext.changeAttributeValue(component, null, val);
             }
-            key = dataObject[multiInstanceInfo.currentIndex];
-            const value = parentDataObject[key][JsonSchema.atValue];
-            const obj = {};
-            obj[key] = value;
+          }
+          key = dataObject[multiInstanceInfo.currentIndex];
+          const value = parentDataObject[key][JsonSchema.atValue];
+          const obj = {};
+          obj[key] = value;
+
+          if (uiComponent) {
             uiComponent.setCurrentValue(obj);
-          } else {
-            if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atValue)) {
+          }
+        } else {
+          if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atValue)) {
+            if (uiComponent) {
               uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
-            } else if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atId)) {
-              // controlled field multipage
+            }
+          } else if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atId)) {
+            // controlled field multipage
+            if (uiComponent) {
               uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.rdfsLabel]);
             }
           }
