@@ -35,7 +35,7 @@ export class DataContext {
     const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
     this.instanceExtractData = dataObjectService.buildNewExtractDataObject(this.templateRepresentation, this.templateInput);
     this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
-    this.multiInstanceData = multiInstanceObjectService.buildNew(this.templateRepresentation);
+    this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(this.templateRepresentation);
     this.savedTemplateID = null;
   }
 

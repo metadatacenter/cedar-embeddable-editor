@@ -21,11 +21,7 @@ export class AppComponent {
 
     sampleTemplateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
     // sampleTemplateLocationPrefix: 'https://component.staging.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
-    // loadSampleTemplateName: '02',
-    // loadSampleTemplateName: '03',
-    // loadSampleTemplateName: '25',
-    loadSampleTemplateName: '13', // has element single
-    // loadSampleTemplateName: '46',
+    loadSampleTemplateName: '45',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: true,
     showTemplateRenderingRepresentation: true,
@@ -34,9 +30,9 @@ export class AppComponent {
     // terminologyProxyUrl: 'http://localhost:8000/index.php',
     terminologyProxyUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
     showInstanceDataCore: true,
-    expandedInstanceDataCore: true,
+    expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,
-    expandedMultiInstanceInfo: true,
+    expandedMultiInstanceInfo: false,
     collapseStaticComponents: true
   };
 

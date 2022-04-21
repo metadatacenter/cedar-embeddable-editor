@@ -28,20 +28,7 @@ export class ActiveComponentRegistryService {
   }
 
   updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
-
-
-    console.log('component');
-    console.log(component);
-
-
     if (component instanceof SingleFieldComponent) {
-
-
-
-      // console.log('single field comp');
-
-
-
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
 
@@ -54,24 +41,13 @@ export class ActiveComponentRegistryService {
         }
       }
     } else if (component instanceof MultiFieldComponent) {
-
-
-
-      // console.log('multi field comp');
-
-
-
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       const parentDataObject = handlerContext.getParentDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
 
       if (uiComponent != null) {
-        const multiInstanceInfo: MultiInstanceObjectInfo = handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
-
-
-        // console.log('multiInstanceInfo');
-        // console.log(multiInstanceInfo);
-
+        const multiInstanceInfo: MultiInstanceObjectInfo =
+          handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
 
         // this is a multi-value but not multi-page component, such as checkbox or multiselect
         if (!component.isMultiPage()) {
@@ -106,39 +82,24 @@ export class ActiveComponentRegistryService {
           }
         }
 
-
-
-
-
         if (component.isMultiPage()) {
           const uiPager = this.getMultiPagerUI(component);
-          uiPager.updatePagingUI();
+
+          if (uiPager) {
+            uiPager.updatePagingUI();
+          }
         }
-
-
-
-
-
       }
     } else if (component instanceof SingleElementComponent) {
       for (const childComponent of component.children) {
         this.updateViewToModel(childComponent, handlerContext);
       }
     } else if (component instanceof MultiElementComponent) {
-
-
-      // console.log('multi elem comp');
-
-
-
       const uiPager = this.getMultiPagerUI(component);
-
 
       if (uiPager) {
         uiPager.updatePagingUI();
       }
-
-
 
       for (const childComponent of component.children) {
         this.updateViewToModel(childComponent, handlerContext);

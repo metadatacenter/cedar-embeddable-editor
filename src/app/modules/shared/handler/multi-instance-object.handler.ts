@@ -14,7 +14,6 @@ import {MultiInstanceObjectInfo} from '../models/info/multi-instance-object-info
 import {InstanceExtractData} from '../models/instance-extract-data.model';
 import {JavascriptTypes} from '../models/javascript-types.model';
 import {JsonSchema} from '../models/json-schema.model';
-import {CedarUIComponent} from '../models/ui/cedar-ui-component.model';
 
 @Injectable({
   providedIn: 'root',
@@ -47,14 +46,8 @@ export class MultiInstanceObjectHandler {
     return MultiInstanceObjectHandler.getNodeByPath(obj, arrPath) as MultiInstanceObjectInfo;
   }
 
-  buildNew(templateRepresentation: TemplateComponent): MultiInstanceInfo {
-    this.templateRepresentation = templateRepresentation;
-    this.multiInstanceObject = new MultiInstanceInfo();
-    this.buildRecursively(templateRepresentation, this.multiInstanceObject);
-    return this.multiInstanceObject;
-  }
-
-  buildFromMetadata(templateRepresentation: TemplateComponent, instanceExtractData: InstanceExtractData): MultiInstanceInfo {
+  buildNewOrFromMetadata(templateRepresentation: TemplateComponent,
+                         instanceExtractData: InstanceExtractData = null): MultiInstanceInfo {
     this.templateRepresentation = templateRepresentation;
     this.multiInstanceObject = new MultiInstanceInfo();
     this.buildRecursively(templateRepresentation, this.multiInstanceObject);
@@ -76,13 +69,6 @@ export class MultiInstanceObjectHandler {
 
       // multi-page element or mutli-page field
       if (Array.isArray(instanceExtractData[key]) && instanceExtractData[key].length > 0) {
-
-        console.log('myPath');
-        console.log(myPath.slice());
-        // console.log('count');
-        // console.log(instanceExtractData[key].length);
-
-
         this.setSingleMultiInstance(myPath.slice(), instanceExtractData[key].length, multiInstanceObject);
 
         // field component with values or attribute-value field
@@ -94,10 +80,8 @@ export class MultiInstanceObjectHandler {
           // attribute-value field
           (typeof instanceExtractData[key][0] === JavascriptTypes.string && instanceExtractData[key].length > 0);
 
-        if (isField) {
-          // nothing so far
-        } else {
-          // multi-page element component
+        // not a field, so it is a multi-page element component
+        if (!isField) {
           for (let i = 0; i < instanceExtractData[key].length; i++) {
             if (i > 0) {
               myPath.pop();
@@ -106,9 +90,10 @@ export class MultiInstanceObjectHandler {
             this.updateFromInstanceExtractData(instanceExtractData[key][i], myPath, multiInstanceObject);
           }
         }
-        // it's an object, can be a single-page element or a single-page field
+      // it's an object, can be a single-page element or a single-page field
       } else if (typeof instanceExtractData[key] === JavascriptTypes.object && Object.keys(instanceExtractData[key]).length > 0) {
-        // single-page field (it's never paginated, so not really required for pagination, but record it anyway)
+        // single-page field (it's never paginated, so not required for pagination,
+        // but still need to have an entry for it in multiInstanceObject)
         if (instanceExtractData[key].hasOwnProperty(JsonSchema.atValue) || instanceExtractData[key].hasOwnProperty(JsonSchema.atId)) {
           this.setSingleMultiInstance(myPath, 1, multiInstanceObject);
         } else {
@@ -119,27 +104,15 @@ export class MultiInstanceObjectHandler {
           this.updateFromInstanceExtractData(instanceExtractData[key], myPath, multiInstanceObject);
         }
       } else {
-
-
         // empty fields
-        console.log('some empty field: ' + key);
-
-
-        // still need to record the object, even if it's empty
+        // need to record the component in multiInstanceObject even if it's empty
         this.setSingleMultiInstance(myPath, 0, multiInstanceObject);
-
       }
     }
   }
 
   private setSingleMultiInstance(path: string[], count: number,
                                  multiInstanceObject: MultiInstanceInfo): void {
-
-    console.log('path');
-    console.log(path);
-    console.log('count: ' + count);
-
-
     const pathCopy = [];
 
     for (let i = 0; i < path.length; i++) {
@@ -149,27 +122,10 @@ export class MultiInstanceObjectHandler {
       if (match && match.length > 1) {
         pathCopy.pop();
         const pathParent = pathCopy.slice();
-        const parentObj = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, pathParent);
-
-
-        console.log('pathParent');
-        console.log(pathParent);
-        console.log('parentObj');
-        console.log(parentObj);
-
-
         pathCopy.push('children');
         pathCopy.push(match[1]);
 
         const childObj = MultiInstanceObjectHandler.getMultiInstanceInfoNodeByPath(multiInstanceObject, pathCopy);
-
-
-        console.log('pathChild');
-        console.log(pathCopy);
-        console.log('childObj');
-        console.log(childObj);
-
-
         const componentName = path[i + 1];
 
         // childObj is an object of type MultiInstanceInfo of structure
@@ -177,14 +133,7 @@ export class MultiInstanceObjectHandler {
         if (childObj) {
           const arrayElemPath = pathCopy.slice();
           arrayElemPath.push(componentName);
-
-          console.log('targetPath');
-          console.log(arrayElemPath);
-
           const arrayElem = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, arrayElemPath);
-
-          console.log('arrayElem');
-          console.log(arrayElem);
 
           // the child object (element of the array) does exist
           // but the element inside it does not, creating base
@@ -194,11 +143,9 @@ export class MultiInstanceObjectHandler {
             childObj.addChild(childElem);
           }
         } else {
-
           // the entire child object (element of the array) does not exist
           // need to create the object and its first base element
-          console.log('child is null, adding...');
-
+          const parentObj = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, pathParent);
           const child = new MultiInstanceInfo();
           parentObj.addChild(child);
           const childElem = new MultiInstanceObjectInfo();
@@ -207,25 +154,10 @@ export class MultiInstanceObjectHandler {
         }
       }
     }
-
-    console.log('path processed');
-    console.log(pathCopy);
-
-
     const targetObj = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, pathCopy);
-
-
-    console.log('targetObj');
-    console.log(targetObj);
-    console.log('---------------------------');
-
-
     targetObj.componentName = path[path.length - 1];
     targetObj.currentCount = count;
-
-    // if (!targetObj.currentIndex) {
-      targetObj.currentIndex = (count > 0) ? 0 : -1;
-    // }
+    targetObj.currentIndex = (count > 0) ? 0 : -1;
   }
 
   private deleteAttributeValueFields(instanceExtractData: InstanceExtractData): void {
@@ -306,7 +238,6 @@ export class MultiInstanceObjectHandler {
       this.buildRecursively(component, newMultiInstanceObject);
       multiInstanceInfo.children.splice(multiInstanceInfo.currentIndex + 1, 0, newMultiInstanceObject as never);
     }
-
     multiInstanceInfo.currentIndex++;
     multiInstanceInfo.currentCount++;
   }
@@ -320,7 +251,6 @@ export class MultiInstanceObjectHandler {
       const cloneItem = _.cloneDeep(sourceItem as any);
       multiInstanceInfo.children.splice(currentIdx + 1, 0, cloneItem as never);
     }
-
     multiInstanceInfo.currentIndex++;
     multiInstanceInfo.currentCount++;
   }
@@ -346,13 +276,11 @@ export class MultiInstanceObjectHandler {
     return this.getDataPathNodeRecursively(this.multiInstanceObject, this.templateRepresentation, path);
   }
 
-  private getDataPathNodeRecursively(multiInstanceObject: MultiInstanceInfo, component: CedarComponent, path: string[]): MultiInstanceObjectInfo {
-
+  private getDataPathNodeRecursively(multiInstanceObject: MultiInstanceInfo, component: CedarComponent,
+                                     path: string[]): MultiInstanceObjectInfo {
     if (!multiInstanceObject) {
       return null;
     }
-
-
     const firstPath = path[0];
     const remainingPath = path.slice(1);
     let childComponent: CedarComponent = null;
@@ -367,6 +295,7 @@ export class MultiInstanceObjectHandler {
       childComponent = (component as MultiElementComponent).getChildByName(firstPath);
       childMultiInfo = multiInstanceObject.getChildByName(firstPath);
     }
+
     if (remainingPath.length === 0) {
       return childMultiInfo;
     } else {
@@ -382,4 +311,5 @@ export class MultiInstanceObjectHandler {
     const multiInstanceObjectInfo: MultiInstanceObjectInfo = this.getMultiInstanceInfoForComponent(multiComponent);
     return multiInstanceObjectInfo.currentCount > 0;
   }
+
 }
