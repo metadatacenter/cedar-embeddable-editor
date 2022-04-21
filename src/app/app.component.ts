@@ -24,7 +24,8 @@ export class AppComponent {
     // loadSampleTemplateName: '02',
     // loadSampleTemplateName: '03',
     // loadSampleTemplateName: '25',
-    loadSampleTemplateName: '13', // has element single
+    // loadSampleTemplateName: '13', // has element single
+    loadSampleTemplateName: '46',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: true,
     showTemplateRenderingRepresentation: true,
