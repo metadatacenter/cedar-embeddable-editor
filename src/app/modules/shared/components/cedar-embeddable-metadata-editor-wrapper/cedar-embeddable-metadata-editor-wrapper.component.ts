@@ -64,7 +64,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
     setTimeout(() => {
       meta = this.currentMetadata;
-      console.log('Saved metadata after ' + saveTime / 1000 + ' seconds');
+      console.log('Saved metadata after ' + testTime / 1000 + ' seconds');
     }, testTime);
 
     setTimeout(() => {
@@ -219,6 +219,13 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
 
       if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
+
+
+        console.log('dataContext.templateRepresentation.children');
+        console.log(dataContext.templateRepresentation.children);
+
+
+
         for (const childComponent of dataContext.templateRepresentation.children) {
           this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
         }
