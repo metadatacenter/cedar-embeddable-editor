@@ -68,6 +68,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     }, testTime);
 
     setTimeout(() => {
+      // this.restoreMetadataFromURL(this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX] + '46/metadata.json');
       this.metadata = meta;
       console.log('Restored saved metadata after ' + restoreTime / 1000 + ' seconds');
     }, restoreTime);
@@ -102,6 +103,32 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
 
   }
+
+
+
+  private restoreMetadataFromURL(metaUrl, successHandler = null, errorHandler = null): void {
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+        if (xhr.status === 200) {
+          const jsonMeta = JSON.parse(xhr.responseText);
+          this.metadata = jsonMeta;
+
+          if (successHandler) {
+            successHandler(jsonMeta);
+          }
+        } else {
+          if (errorHandler) {
+            errorHandler(xhr);
+          }
+        }
+      }
+    };
+    xhr.open('GET', metaUrl, true);
+    xhr.send();
+  }
+
+
 
 
 
