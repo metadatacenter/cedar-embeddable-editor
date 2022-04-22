@@ -78,10 +78,10 @@ The CEE configuration file format and storage location depends on the applicatio
 * When running CEE in the standalone mode (developer mode), the configuration parameters are stored in and read from the file: `src/app/app.component.ts`.
 * When running CEE as a generic Webcomponent, the configuration parameters can be stored in any `.json` file that is visible to the application that embeds CEE Webcomponent. CEE Webcomponent API provides a method for loading the configuration file from its path at runtime. For example:
 ```javascript
-    document.addEventListener('WebComponentsReady', function () {
-      const comp = document.querySelector('cedar-embeddable-editor');
-      comp.loadConfigFromURL('assets/data/cee-config.json');
-    });
+document.addEventListener('WebComponentsReady', function () {
+  const cee = document.querySelector('cedar-embeddable-editor');
+  cee.loadConfigFromURL('assets/data/cee-config.json');
+});
 ```
 * When using the Angular 2 sample application (https://github.com/metadatacenter/cedar-cee-demo-angular), the configuration is stored in the file: `assets/data/appConfig.json`. 
 
@@ -111,17 +111,17 @@ Example:
 
 ```javascript
 function getCustomTemplateInfo() {
-    return {
-        mycustomtitle: 'ACME Template',
-        mycustomurl: 'https://doi.org/10.15468/9vuieb',
-        mycutomdataattribute1: 'Hello World',
-        mycutomdataattribute2: {name: 'John Doe', age: 35}
-    };
+  return {
+    mycustomtitle: 'ACME Template',
+    mycustomurl: 'https://doi.org/10.15468/9vuieb',
+    mycutomdataattribute1: 'Hello World',
+    mycutomdataattribute2: {name: 'John Doe', age: 35}
+  };
 }
 
 document.addEventListener('WebComponentsReady', function () {
-    const comp = document.querySelector('cedar-embeddable-editor');
-    comp.templateInfo = getCustomTemplateInfo();
+  const cee = document.querySelector('cedar-embeddable-editor');
+  cee.templateInfo = getCustomTemplateInfo();
 });
 ```
 
@@ -131,16 +131,16 @@ Example:
 
 ```json
 {
-    "metadata": {__contents of metadata__},
-    "info": {
-        "mycustomtitle": "ACME Template",
-        "mycustomurl": "https://doi.org/10.15468/9vuieb",
-        "mycutomdataattribute1": "Hello World",
-        "mycutomdataattribute2": {
-            "name": "John Doe",
-            "age": 35
-        }
+  "metadata": {__contents of metadata__},
+  "info": {
+    "mycustomtitle": "ACME Template",
+    "mycustomurl": "https://doi.org/10.15468/9vuieb",
+    "mycutomdataattribute1": "Hello World",
+    "mycutomdataattribute2": {
+      "name": "John Doe",
+      "age": 35
     }
+  }
 }
 ```
 
@@ -229,6 +229,82 @@ The are other optional configuration parameters available for controlling variou
   "collapseStaticComponents": true
 }
 ```
+
+## Metadata API
+
+CEE Webcomponent includes APIs for exporting metadata externally and importing metadata into CEE.
+
+### Metadata Export
+
+The metadata currently being edited inside CEE can be exported at anytime by making this call:
+
+```javascript
+const meta = cee.currentMetadata;
+```
+
+In the example below, the metadata is sent to an external endpoint every 15 seconds:
+
+```javascript
+document.addEventListener('WebComponentsReady', function () {
+  const cee = document.querySelector('cedar-embeddable-editor');
+  cee.loadConfigFromURL('assets/data/cee-config.json');
+  const saveTime = 15000; // 15 seconds
+
+  setInterval(() => {
+    const meta = cee.currentMetadata;
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "http://localhost:8001/metadatasave.php");
+    xhr.setRequestHeader("Accept", "application/json");
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send(JSON.stringify(meta, null, 2));
+    console.log('Saved metadata after ' + saveTime / 1000 + ' seconds');
+    console.log(meta);
+  }, saveTime);
+});
+```
+
+### Metadata Import
+
+You can import your metadata into CEE Webcomponent, provided it matches the template currently being edited. To import your metadata, execute this call:
+
+```javascript
+cee.metadata = yourCustomMetadataJson
+```
+
+In the example below, the metadata is fetched from a remote URL and imported into CEE:
+
+```javascript
+function restoreMetadataFromURL(metaUrl, cee, successHandler = null, errorHandler = null) {
+  const xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = () => {
+    if (xhr.readyState === XMLHttpRequest.DONE) {
+      if (xhr.status === 200) {
+        const jsonMeta = JSON.parse(xhr.responseText);
+        cee.metadata = jsonMeta;
+
+        if (successHandler) {
+          successHandler(jsonMeta);
+        }
+      } else {
+        if (errorHandler) {
+          errorHandler(xhr);
+        }
+      }
+    }
+  };
+  xhr.open('GET', metaUrl, true);
+  xhr.send();
+}
+
+document.addEventListener('WebComponentsReady', function () {
+  const cee = document.querySelector('cedar-embeddable-editor');
+  cee.loadConfigFromURL('assets/data/cee-config.json');
+  restoreMetadataFromURL('uploads/metadata-for-restore.json', cee);
+});
+```
+
+To reiterate, the metadata being imported **MUST** match the template currently being edited and open in your browser.
 
 ## Example Applications
 
