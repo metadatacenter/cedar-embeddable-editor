@@ -236,7 +236,7 @@ CEE Webcomponent includes APIs for exporting metadata externally and importing m
 
 ### Metadata Export
 
-The metadata currently being edited inside CEE can be exported at anytime by making this call:
+The metadata currently being edited inside CEE can be exported at anytime by making this API call:
 
 ```javascript
 const meta = cee.currentMetadata;
@@ -266,7 +266,7 @@ document.addEventListener('WebComponentsReady', function () {
 
 ### Metadata Import
 
-You can import your metadata into CEE Webcomponent, provided it matches the template currently being edited. To import your metadata, execute this call:
+You can import your metadata into CEE Webcomponent, provided it matches the template currently being edited. To import your metadata, execute this API call:
 
 ```javascript
 cee.metadata = yourCustomMetadataJson
@@ -304,7 +304,7 @@ document.addEventListener('WebComponentsReady', function () {
 });
 ```
 
-To reiterate, the metadata being imported **MUST** match the template currently being edited and open in your browser.
+To reiterate, the metadata being imported **MUST** match the template currently being edited and open in your browser window.
 
 ## Example Applications
 
