@@ -15,12 +15,14 @@ import {StaticFieldComponent} from '../../../shared/models/static/static-field-c
 export class CedarStaticImageComponent extends CedarUIComponent implements OnInit {
 
   component: StaticFieldComponent;
-  activeComponentRegistry: ActiveComponentRegistryService;
   @Input() handlerContext: HandlerContext;
 
-  constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
+  constructor(
+    fb: FormBuilder,
+    public cds: ComponentDataService,
+    private activeComponentRegistry: ActiveComponentRegistryService
+  ) {
     super();
-    this.activeComponentRegistry = activeComponentRegistry;
   }
 
   ngOnInit(): void {

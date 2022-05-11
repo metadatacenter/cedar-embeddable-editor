@@ -3,5 +3,5 @@
   <div *ngIf="component.isMultiPage()">
     ({{multiComponent.multiInfo.getSafeMinItems()}} .. <span *ngIf="multiComponent.multiInfo.maxItems">{{multiComponent.multiInfo.maxItems}}</span><span *ngIf="!multiComponent.multiInfo.maxItems" matTooltip="Infinite">∞</span>)
   </div>
-  <mat-icon matTooltip="{{component.labelInfo.description}}" class="icon-help">help</mat-icon>
+  <mat-icon matTooltip="{{component.labelInfo.description}}" class="icon-help" tabindex="0">help</mat-icon>
 </mat-card-header>

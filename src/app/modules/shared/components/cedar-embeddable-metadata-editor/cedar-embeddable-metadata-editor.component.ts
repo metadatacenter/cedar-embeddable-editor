@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation} from '@angular/core';
 import {NullTemplate} from '../../models/template/null-template.model';
 import {DataContext} from '../../util/data-context';
 import {HandlerContext} from '../../util/handler-context';
@@ -40,7 +40,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private static DATA_SAVER_ENDPOINT_URL = 'dataSaverEndpointUrl';
 
   private readonly dataContext: DataContext = null;
+
   private readonly handlerContext: HandlerContext = null;
+  @Output() handlerContextEvent = new EventEmitter<HandlerContext>();
+
   private readonly pageBreakPaginatorService: PageBreakPaginatorService = null;
 
   @Input() sampleTemplateLoaderObject: any = null;
@@ -154,8 +157,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   @Input() set templateJsonObject(value: object) {
     if (value != null) {
-      const len = JSON.stringify(value).length;
       this.dataContext.setInputTemplate(value, this.handlerContext, this.pageBreakPaginatorService, this.collapseStaticComponents);
+      this.handlerContextEvent.emit(this.handlerContext);
     }
   }
 

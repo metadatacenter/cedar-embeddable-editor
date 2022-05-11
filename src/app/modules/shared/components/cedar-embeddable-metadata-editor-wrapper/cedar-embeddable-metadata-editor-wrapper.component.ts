@@ -6,6 +6,10 @@ import {MatFileUploadService} from '../file-uploader/mat-file-upload/mat-file-up
 import {Subject} from 'rxjs';
 import {SampleTemplatesService} from '../sample-templates/sample-templates.service';
 import {takeUntil} from 'rxjs/operators';
+import {JsonSchema} from '../../models/json-schema.model';
+import {HandlerContext} from '../../util/handler-context';
+import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
+import {MultiInstanceObjectHandler} from '../../handler/multi-instance-object.handler';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -31,15 +35,16 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   sampleTemplateLoaderObject = null;
   showSpinnerBeforeInit = true;
   protected _onDestroy = new Subject<void>();
-
   externalTemplateInfo: object;
+  handlerContext: HandlerContext = null;
 
 
   constructor(
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
     private matFileUploadService: MatFileUploadService,
-    private sampleTemplateService: SampleTemplatesService
+    private sampleTemplateService: SampleTemplatesService,
+    private activeComponentRegistry: ActiveComponentRegistryService
   ) {
     this.sampleTemplateLoaderObject = this;
   }
@@ -72,6 +77,39 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       });
     this.initialized = true;
     this.doInitialize();
+  }
+
+  handlerContextChanged(event): void {
+    this.handlerContext = event;
+  }
+
+  @Input() get currentMetadata(): object {
+    if (this.handlerContext) {
+      return JSON.parse(JSON.stringify(this.handlerContext.dataContext.instanceFullData));
+    }
+    return {};
+  }
+
+  @Input() set metadata(meta: object) {
+    const instanceFullData = JSON.parse(JSON.stringify(meta));
+    const instanceExtractData = JSON.parse(JSON.stringify(meta));
+    this.deleteContext(instanceExtractData);
+
+    if (this.handlerContext) {
+      const dataContext = this.handlerContext.dataContext;
+      dataContext.instanceFullData = instanceFullData;
+      dataContext.instanceExtractData = instanceExtractData;
+      const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
+
+      dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
+          dataContext.templateRepresentation, instanceExtractData);
+
+      if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
+        for (const childComponent of dataContext.templateRepresentation.children) {
+          this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
+        }
+      }
+    }
   }
 
   @Input() set templateInfo(templateInfo: object) {
@@ -120,6 +158,16 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.messageHandlerService.injectEventHandler(value);
   }
 
+  private deleteContext(obj): void {
+    Object.keys(obj).forEach(key => {
+      delete obj[JsonSchema.atContext];
+
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        this.deleteContext(obj[key]);
+      }
+    });
+  }
+
   private doInitialize(): void {
     if (this.initialized && this.configSet) {
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
@@ -135,6 +183,29 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         this.showSpinnerBeforeInit = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.SHOW_SPINNER_BEFORE_INIT];
       }
     }
+  }
+
+  // used only for debugging of restoring metadata
+  private restoreMetadataFromURL(metaUrl, successHandler = null, errorHandler = null): void {
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+        if (xhr.status === 200) {
+          const jsonMeta = JSON.parse(xhr.responseText);
+          this.metadata = jsonMeta;
+
+          if (successHandler) {
+            successHandler(jsonMeta);
+          }
+        } else {
+          if (errorHandler) {
+            errorHandler(xhr);
+          }
+        }
+      }
+    };
+    xhr.open('GET', metaUrl, true);
+    xhr.send();
   }
 
   editorDataReady(): boolean {
