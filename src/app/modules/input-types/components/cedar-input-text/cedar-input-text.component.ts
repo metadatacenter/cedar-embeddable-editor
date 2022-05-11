@@ -25,7 +25,6 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, null);
-  activeComponentRegistry: ActiveComponentRegistryService;
   errorStateMatcher = new TextFieldErrorStateMatcher();
   constraintMinLength = null;
   constraintMaxLength = null;
@@ -33,29 +32,36 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   inputText = InputType.text;
   inputTextarea = InputType.textarea;
 
-  constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
+  constructor(
+    fb: FormBuilder,
+    public cds: ComponentDataService,
+    private activeComponentRegistry: ActiveComponentRegistryService
+  ) {
     super();
     this.options = fb.group({
       inputValue: this.inputValueControl,
     });
-    this.activeComponentRegistry = activeComponentRegistry;
   }
 
   ngOnInit(): void {
     const validators: any[] = [];
 
     this.constraintMinLength = this.component.valueInfo.minLength;
+
     if (this.constraintMinLength != null) {
       validators.push(Validators.minLength(this.constraintMinLength));
     }
     this.constraintMaxLength = this.component.valueInfo.maxLength;
+
     if (this.constraintMaxLength != null) {
       validators.push(Validators.maxLength(this.constraintMaxLength));
     }
+
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
     this.inputValueControl = new FormControl(null, validators);
+
     if (this.component.valueInfo.defaultValue != null) {
       this.setValueUIAndModel(this.component.valueInfo.defaultValue);
     }

@@ -1,7 +1,6 @@
 import {AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FieldComponent} from '../../../shared/models/component/field-component.model';
 import {FormBuilder, FormControl} from '@angular/forms';
-import {ComponentDataService} from '../../../shared/service/component-data.service';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
@@ -24,7 +23,6 @@ import {TimezonePickerComponent, TZone} from '../../../shared/components/timezon
 export class CedarInputDatetimeComponent extends CedarUIComponent implements OnInit, AfterViewInit {
 
   component: FieldComponent;
-  activeComponentRegistry: ActiveComponentRegistryService;
 
   timePickerTime: Date;
   decimalSeconds: number;
@@ -36,10 +34,12 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   @Input() handlerContext: HandlerContext;
 
 
-  constructor(fb: FormBuilder, public cds: ComponentDataService,
-              activeComponentRegistry: ActiveComponentRegistryService, private cdr: ChangeDetectorRef) {
+  constructor(
+    fb: FormBuilder,
+    private activeComponentRegistry: ActiveComponentRegistryService,
+    private cdr: ChangeDetectorRef
+  ) {
     super();
-    this.activeComponentRegistry = activeComponentRegistry;
     this.datetimeParsed = new DatetimeRepresentation();
     this.timePickerTime = this.getDefaultTime();
   }

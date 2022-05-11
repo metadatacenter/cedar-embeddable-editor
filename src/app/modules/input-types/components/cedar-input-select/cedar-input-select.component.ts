@@ -16,16 +16,14 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
   readonly ITEM_TEXT_FIELD = 'label';
 
   component: FieldComponent;
-  activeComponentRegistry: ActiveComponentRegistryService;
   dropdownList = [];
   selectedItems: any;
 
   @Input() handlerContext: HandlerContext;
 
 
-  constructor(activeComponentRegistry: ActiveComponentRegistryService) {
+  constructor(private activeComponentRegistry: ActiveComponentRegistryService) {
     super();
-    this.activeComponentRegistry = activeComponentRegistry;
   }
 
   ngOnInit(): void {

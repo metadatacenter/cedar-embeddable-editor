@@ -1,6 +1,5 @@
 import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FormBuilder} from '@angular/forms';
-import {ComponentDataService} from '../../../shared/service/component-data.service';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
@@ -15,10 +14,12 @@ import {StaticFieldComponent} from '../../../shared/models/static/static-field-c
 export class CedarFooBarComponent extends CedarUIComponent implements OnInit {
 
   component: StaticFieldComponent;
-  activeComponentRegistry: ActiveComponentRegistryService;
   @Input() handlerContext: HandlerContext;
 
-  constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
+  constructor(
+    fb: FormBuilder,
+    private activeComponentRegistry: ActiveComponentRegistryService
+  ) {
     super();
     this.activeComponentRegistry = activeComponentRegistry;
   }

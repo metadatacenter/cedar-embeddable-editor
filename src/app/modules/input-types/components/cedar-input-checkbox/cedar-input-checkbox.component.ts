@@ -1,7 +1,6 @@
 import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FieldComponent} from '../../../shared/models/component/field-component.model';
 import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
-import {ComponentDataService} from '../../../shared/service/component-data.service';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
@@ -15,17 +14,18 @@ import {HandlerContext} from '../../../shared/util/handler-context';
 export class CedarInputCheckboxComponent extends CedarUIComponent implements OnInit {
   component: FieldComponent;
   options: FormGroup;
-  activeComponentRegistry: ActiveComponentRegistryService;
   @Input() handlerContext: HandlerContext;
 
 
-  constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
+  constructor(
+    fb: FormBuilder,
+    private activeComponentRegistry: ActiveComponentRegistryService
+  ) {
     super();
     this.options = fb.group({
       // initialize checked box value holder
       checkedChoices: new FormArray([])
     });
-    this.activeComponentRegistry = activeComponentRegistry;
   }
 
   ngOnInit(): void {

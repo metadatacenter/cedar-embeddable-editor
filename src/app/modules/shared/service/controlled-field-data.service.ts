@@ -30,7 +30,7 @@ export class ControlledFieldDataService {
     postData.parameterObject.valueConstraints.classes = component.controlledInfo.classes;
     postData.parameterObject.valueConstraints.ontologies = component.controlledInfo.ontologies;
     postData.parameterObject.valueConstraints.valueSets = component.controlledInfo.valueSets;
-    this.messageHandlerService.traceObject('Read terminology integrated search:', postData);
+    // this.messageHandlerService.traceObject('Read terminology integrated search:', postData);
     return this.http.post<IntegratedSearchResponse>(this.terminologyProxyUrl, postData);
   }
 

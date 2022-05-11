@@ -30,8 +30,9 @@ export class AppComponent {
     // terminologyProxyUrl: 'http://localhost:8000/index.php',
     terminologyProxyUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
     showInstanceDataCore: true,
+    expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,
-
+    expandedMultiInstanceInfo: false,
     collapseStaticComponents: true
   };
 

@@ -1,5 +1,4 @@
 import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {FieldComponent} from '../../../shared/models/component/field-component.model';
 import {FormBuilder} from '@angular/forms';
 import {ComponentDataService} from '../../../shared/service/component-data.service';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
@@ -16,12 +15,13 @@ import {StaticFieldComponent} from '../../../shared/models/static/static-field-c
 export class CedarStaticSectionBreakComponent extends CedarUIComponent implements OnInit {
 
   component: StaticFieldComponent;
-  activeComponentRegistry: ActiveComponentRegistryService;
   @Input() handlerContext: HandlerContext;
 
-  constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
+  constructor(
+    fb: FormBuilder,
+    public cds: ComponentDataService,
+    private activeComponentRegistry: ActiveComponentRegistryService) {
     super();
-    this.activeComponentRegistry = activeComponentRegistry;
   }
 
   ngOnInit(): void {

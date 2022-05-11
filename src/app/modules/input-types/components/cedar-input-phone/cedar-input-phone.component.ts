@@ -24,16 +24,18 @@ export class CedarInputPhoneComponent extends CedarUIComponent implements OnInit
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, null);
-  activeComponentRegistry: ActiveComponentRegistryService;
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
 
-  constructor(fb: FormBuilder, public cds: ComponentDataService, activeComponentRegistry: ActiveComponentRegistryService) {
+  constructor(
+    fb: FormBuilder,
+    public cds: ComponentDataService,
+    private activeComponentRegistry: ActiveComponentRegistryService
+  ) {
     super();
     this.options = fb.group({
       inputValue: this.inputValueControl,
     });
-    this.activeComponentRegistry = activeComponentRegistry;
   }
 
   ngOnInit(): void {
