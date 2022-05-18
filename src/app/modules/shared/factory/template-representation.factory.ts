@@ -137,7 +137,7 @@ export class TemplateRepresentationFactory {
     }
 
     if (collapseStaticComponents) {
-      this.collapseImagesIntoNextFieldOrElement(component);
+      this.collapseStaticFieldsIntoNextFieldOrElement(component);
     }
   }
 
@@ -283,18 +283,23 @@ export class TemplateRepresentationFactory {
     }
   }
 
-  private static collapseImagesIntoNextFieldOrElement(component: CedarComponent): void {
+  private static collapseStaticFieldsIntoNextFieldOrElement(component: CedarComponent): void {
     // re-iterate, inject static components (images) into the next dynamic components
     if (ComponentTypeHandler.isContainerComponent(component)) {
       const elementComponent = component as ElementComponent;
       let prevChild: CedarComponent = null;
       const newChildren: CedarComponent[] = [];
+
       for (let i = 0; i < elementComponent.children.length; i++) {
         const currentChild: CedarComponent = elementComponent.children[i];
-        if (ComponentTypeHandler.isImage(currentChild) || ComponentTypeHandler.isYoutube(currentChild)) {
+
+        if (ComponentTypeHandler.isImage(currentChild) ||
+          ComponentTypeHandler.isYoutube(currentChild) ||
+          ComponentTypeHandler.isRichText(currentChild)) {
           // Stand-alone images should not be added as child
-        } else if ((ComponentTypeHandler.isImage(prevChild) || ComponentTypeHandler.isYoutube(prevChild))
-          && ComponentTypeHandler.isFieldOrElement(currentChild)) {
+        } else if ((ComponentTypeHandler.isImage(prevChild) ||
+            ComponentTypeHandler.isYoutube(prevChild) ||
+            ComponentTypeHandler.isRichText(prevChild)) && ComponentTypeHandler.isFieldOrElement(currentChild)) {
           currentChild.linkedStaticFieldComponent = prevChild as StaticFieldComponent;
           newChildren.push(currentChild);
         } else {
@@ -305,4 +310,5 @@ export class TemplateRepresentationFactory {
       elementComponent.children = newChildren;
     }
   }
+
 }

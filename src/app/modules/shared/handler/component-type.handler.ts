@@ -17,6 +17,10 @@ export class ComponentTypeHandler {
     return component instanceof StaticFieldComponent && component.basicInfo.inputType === InputType.youtube;
   }
 
+  public static isRichText(component: CedarComponent): boolean {
+    return component instanceof StaticFieldComponent && component.basicInfo.inputType === InputType.richText;
+  }
+
   public static isField(component: CedarComponent): boolean {
     return component instanceof SingleFieldComponent || component instanceof MultiFieldComponent;
   }

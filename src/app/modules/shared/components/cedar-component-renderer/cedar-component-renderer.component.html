@@ -14,6 +14,9 @@
         <app-cedar-static-youtube *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.youtube"
                                   [componentToRender]="iterableComponent.linkedStaticFieldComponent"
                                   [handlerContext]="handlerContext"></app-cedar-static-youtube>
+        <app-cedar-static-rich-text *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.richText"
+                                  [componentToRender]="iterableComponent.linkedStaticFieldComponent"
+                                  [handlerContext]="handlerContext"></app-cedar-static-rich-text>
       </ng-container>
       <ng-container *ngFor="let childComponent of iterableComponent.children">
         <app-cedar-component-renderer
@@ -26,7 +29,9 @@
 </ng-container>
 <ng-container *ngIf="nonIterableComponent">
   <mat-card class="child-component-card non-iterable-component">
-    <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
+    <app-cedar-component-header *ngIf="shouldRenderHeader()"
+                                [componentToRender]="nonIterableComponent"
+    ></app-cedar-component-header>
     <app-cedar-multi-pager *ngIf="nonIterableComponent.isMultiPage()"
                            [componentToRender]="nonIterableComponent"
                            [handlerContext]="handlerContext"
@@ -40,6 +45,9 @@
         <app-cedar-static-youtube *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.youtube"
                                   [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
                                   [handlerContext]="handlerContext"></app-cedar-static-youtube>
+        <app-cedar-static-rich-text *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.richText"
+                                    [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
+                                    [handlerContext]="handlerContext"></app-cedar-static-rich-text>
       </ng-container>
       <!-- These are the regular components -->
       <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType==inputType.numeric"
@@ -92,5 +100,6 @@
                             [componentToRender]="staticComponent"
                             [handlerContext]="handlerContext"></app-cedar-static-youtube>
   <app-cedar-static-rich-text *ngIf="staticComponent.basicInfo.inputType==inputType.richText"
-                             [componentToRender]="staticComponent"></app-cedar-static-rich-text>
+                              [componentToRender]="staticComponent"
+                              [handlerContext]="handlerContext"></app-cedar-static-rich-text>
 </ng-container>
