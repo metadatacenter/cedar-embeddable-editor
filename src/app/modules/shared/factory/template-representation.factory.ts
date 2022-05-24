@@ -290,16 +290,22 @@ export class TemplateRepresentationFactory {
       let prevChild: CedarComponent = null;
       const newChildren: CedarComponent[] = [];
 
+      // This is an exceptional case of having a static content component
+      // providing guidance/help for the template itself. It should always
+      // be the first child in the template of type image, video, or RTF
+      if (ComponentTypeHandler.isTemplate(elementComponent) &&
+          elementComponent.children.length > 0 &&
+          ComponentTypeHandler.isStaticContentComponent(elementComponent.children[0])) {
+        elementComponent.linkedStaticFieldComponent = elementComponent.children[0] as StaticFieldComponent;
+        newChildren.push(elementComponent.children[0]);
+      }
+
       for (let i = 0; i < elementComponent.children.length; i++) {
         const currentChild: CedarComponent = elementComponent.children[i];
 
-        if (ComponentTypeHandler.isImage(currentChild) ||
-          ComponentTypeHandler.isYoutube(currentChild) ||
-          ComponentTypeHandler.isRichText(currentChild)) {
+        if (ComponentTypeHandler.isStaticContentComponent(currentChild)) {
           // Stand-alone images should not be added as child
-        } else if ((ComponentTypeHandler.isImage(prevChild) ||
-            ComponentTypeHandler.isYoutube(prevChild) ||
-            ComponentTypeHandler.isRichText(prevChild)) && ComponentTypeHandler.isFieldOrElement(currentChild)) {
+        } else if (ComponentTypeHandler.isStaticContentComponent(prevChild) && ComponentTypeHandler.isFieldOrElement(currentChild)) {
           currentChild.linkedStaticFieldComponent = prevChild as StaticFieldComponent;
           newChildren.push(currentChild);
         } else {

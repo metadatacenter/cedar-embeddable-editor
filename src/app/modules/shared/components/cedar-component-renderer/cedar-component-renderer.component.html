@@ -1,6 +1,8 @@
 <ng-container *ngIf="iterableComponent">
   <mat-card class="child-component-card iterable-component">
-    <app-cedar-component-header [componentToRender]="iterableComponent"></app-cedar-component-header>
+    <app-cedar-component-header *ngIf="!iterableComponent.linkedStaticFieldComponent"
+                                [componentToRender]="iterableComponent"
+    ></app-cedar-component-header>
     <app-cedar-multi-pager *ngIf="iterableComponent.isMulti()"
                            [componentToRender]="iterableComponent"
                            [handlerContext]="handlerContext"
@@ -29,7 +31,7 @@
 </ng-container>
 <ng-container *ngIf="nonIterableComponent">
   <mat-card class="child-component-card non-iterable-component">
-    <app-cedar-component-header *ngIf="shouldRenderHeader()"
+    <app-cedar-component-header *ngIf="!nonIterableComponent.linkedStaticFieldComponent"
                                 [componentToRender]="nonIterableComponent"
     ></app-cedar-component-header>
     <app-cedar-multi-pager *ngIf="nonIterableComponent.isMultiPage()"
