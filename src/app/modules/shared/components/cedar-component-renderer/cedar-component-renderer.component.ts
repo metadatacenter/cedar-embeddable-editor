@@ -78,8 +78,4 @@ export class CedarComponentRendererComponent implements OnInit {
     return true;
   }
 
-  shouldRenderHeader(): boolean {
-    return true;
-  }
-
 }

@@ -21,6 +21,10 @@ export class ComponentTypeHandler {
     return component instanceof StaticFieldComponent && component.basicInfo.inputType === InputType.richText;
   }
 
+  public static isStaticContentComponent(component: CedarComponent): boolean {
+    return this.isImage(component) || this.isYoutube(component) || this.isRichText(component);
+  }
+
   public static isField(component: CedarComponent): boolean {
     return component instanceof SingleFieldComponent || component instanceof MultiFieldComponent;
   }
@@ -31,6 +35,10 @@ export class ComponentTypeHandler {
 
   static isContainerComponent(component: CedarComponent): boolean {
     return component instanceof CedarTemplate || component instanceof SingleElementComponent || component instanceof MultiElementComponent;
+  }
+
+  static isTemplate(component: CedarComponent): boolean {
+    return component instanceof CedarTemplate;
   }
 
   static isFieldOrElement(component: CedarComponent): boolean {
