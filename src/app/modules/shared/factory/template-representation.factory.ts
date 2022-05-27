@@ -283,33 +283,36 @@ export class TemplateRepresentationFactory {
     }
   }
 
+  // Group RTF/image/video fields into consecutive pairs. Any pair gets combined
+  // and displayed inline wherever it's located.
+  // If the RTF/image/video field is odd (not paired with another RTF/image/video),
+  // wrap this field into the next dynamic field/element
   private static collapseStaticFieldsIntoNextFieldOrElement(component: CedarComponent): void {
     // re-iterate, inject static components (images) into the next dynamic components
+    // but only if they aren't paired with other like fields
     if (ComponentTypeHandler.isContainerComponent(component)) {
       const elementComponent = component as ElementComponent;
       let prevChild: CedarComponent = null;
       const newChildren: CedarComponent[] = [];
-
-      // This is an exceptional case of having a static content component
-      // providing guidance/help for the template itself. It should always
-      // be the first child in the template of type image, video, or RTF
-      if (ComponentTypeHandler.isTemplate(elementComponent) &&
-          elementComponent.children.length > 0 &&
-          ComponentTypeHandler.isStaticContentComponent(elementComponent.children[0])) {
-        elementComponent.linkedStaticFieldComponent = elementComponent.children[0] as StaticFieldComponent;
-        newChildren.push(elementComponent.children[0]);
-      }
+      let isStaticPair = false;
 
       for (let i = 0; i < elementComponent.children.length; i++) {
         const currentChild: CedarComponent = elementComponent.children[i];
 
-        if (ComponentTypeHandler.isStaticContentComponent(currentChild)) {
-          // Stand-alone images should not be added as child
-        } else if (ComponentTypeHandler.isStaticContentComponent(prevChild) && ComponentTypeHandler.isFieldOrElement(currentChild)) {
+        if (ComponentTypeHandler.isFieldOrElement(currentChild) &&
+            ComponentTypeHandler.isStaticContentComponent(prevChild) && !isStaticPair) {
           currentChild.linkedStaticFieldComponent = prevChild as StaticFieldComponent;
+          newChildren.pop();
           newChildren.push(currentChild);
         } else {
           newChildren.push(currentChild);
+        }
+
+        if (!isStaticPair && ComponentTypeHandler.isStaticContentComponent(currentChild) &&
+          ComponentTypeHandler.isStaticContentComponent(prevChild)) {
+          isStaticPair = true;
+        } else if (isStaticPair) {
+          isStaticPair = false;
         }
         prevChild = currentChild;
       }
