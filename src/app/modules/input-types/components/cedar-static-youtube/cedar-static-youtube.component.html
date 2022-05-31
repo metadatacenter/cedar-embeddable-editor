@@ -1,8 +1,4 @@
 <mat-card class="child-component-card youtube-component">
-  <mat-card-header>
-    <mat-card-title>{{cds.getRenderingLabelForComponent(component)}}</mat-card-title>
-    <mat-icon matTooltip="{{component.labelInfo.description}}" class="icon-help">help</mat-icon>
-  </mat-card-header>
   <youtube-player [videoId]="component.contentInfo.content" [height]="videoHeight" [width]="videoWidth"></youtube-player>
   <mat-card-content>
     {{component.labelInfo.description}}

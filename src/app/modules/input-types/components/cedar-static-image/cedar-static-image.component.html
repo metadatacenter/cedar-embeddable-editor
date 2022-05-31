@@ -1,8 +1,4 @@
 <mat-card class="child-component-card image-component">
-  <mat-card-header>
-    <mat-card-title>{{cds.getRenderingLabelForComponent(component)}}</mat-card-title>
-    <mat-icon matTooltip="{{component.labelInfo.description}}" class="icon-help">help</mat-icon>
-  </mat-card-header>
   <img mat-card-image src="{{component.contentInfo.content}}" alt="{{component.labelInfo.description}}">
   <mat-card-content>
     {{component.labelInfo.description}}
