@@ -1,5 +1,5 @@
 <mat-card-header>
-  <mat-card-title>{{cds.getRenderingLabelForComponent(component)}}</mat-card-title>
+  <h1>{{cds.getRenderingLabelForComponent(component)}}</h1>
   <div *ngIf="component.isMultiPage()">
     ({{multiComponent.multiInfo.getSafeMinItems()}} .. <span *ngIf="multiComponent.multiInfo.maxItems">{{multiComponent.multiInfo.maxItems}}</span><span *ngIf="!multiComponent.multiInfo.maxItems" matTooltip="Infinite">∞</span>)
   </div>
