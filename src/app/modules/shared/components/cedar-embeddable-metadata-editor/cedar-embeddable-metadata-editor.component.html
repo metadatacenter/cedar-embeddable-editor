@@ -8,8 +8,8 @@
 <mat-card class="template-card" *ngIf="dataAvailableForRender()">
   <mat-card-header>
     <div mat-card-avatar class="header-image"></div>
-    <mat-card-title>{{dataContext.templateRepresentation.labelInfo.label}}</mat-card-title>
-    <mat-card-subtitle>{{dataContext.templateRepresentation.labelInfo.description}}</mat-card-subtitle>
+    <h1>{{dataContext.templateRepresentation.labelInfo.label}}</h1>
+    <h2>{{dataContext.templateRepresentation.labelInfo.description}}</h2>
     <div *ngIf="dataContext.templateRepresentation.hasPageBreaks()" class="header-flex-child">
       <app-cedar-static-page-break
         [dataContext]="dataContext"
