@@ -1,6 +1,9 @@
 {
   "name": "cedar-embeddable-editor",
   "version": "2.6.20",
+  "publishConfig": {
+    "registry": "https://nexus.bmir.stanford.edu/repository/npm-cedar/"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -9,7 +12,6 @@
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
-  "private": true,
   "dependencies": {
     "@angular-devkit/schematics": "^13.0.4",
     "@angular-material-components/datetime-picker": "^6.0.3",
