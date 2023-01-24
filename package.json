@@ -12,7 +12,6 @@
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
-  "private": true,
   "dependencies": {
     "@angular-devkit/schematics": "^13.0.4",
     "@angular-material-components/datetime-picker": "^6.0.3",
