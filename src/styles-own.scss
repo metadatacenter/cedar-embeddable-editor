@@ -36,11 +36,11 @@
   font-feature-settings: 'liga';
 }
 
-html, body {
+html, body.cee-body {
   height: 100%;
 }
 
-body {
+body.cee-body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }

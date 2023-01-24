@@ -2,6 +2,7 @@ import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {StaticFieldComponent} from '../../../shared/models/static/static-field-component.model';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
+import {HandlerContext} from '../../../shared/util/handler-context';
 
 @Component({
   selector: 'app-cedar-static-rich-text',
@@ -12,6 +13,7 @@ import {ActiveComponentRegistryService} from '../../../shared/service/active-com
 export class CedarStaticRichTextComponent extends CedarUIComponent implements OnInit {
 
   component: StaticFieldComponent;
+  @Input() handlerContext: HandlerContext;
 
 
   constructor(private activeComponentRegistry: ActiveComponentRegistryService) {

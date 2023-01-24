@@ -1,2 +1,2 @@
-<p [innerHTML]="component.contentInfo.content | keepHtml"></p>
+<p [innerHTML]="(component.contentInfo.content || '') | keepHtml"></p>
 
