@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
-import {MatListOption} from '@angular/material/list/public-api';
+import {MatListOption} from '@angular/material/list';
 import {
   CedarEmbeddableMetadataEditorWrapperComponent
 } from '../cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
