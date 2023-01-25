@@ -60,8 +60,8 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
     if (this.component.valueInfo.defaultValue &&
       typeof this.component.valueInfo.defaultValue === 'object' &&
       (this.component.valueInfo.defaultValue as object).hasOwnProperty(JsonSchema.termUri)) {
-      this.setValueUIAndModel(this.component.valueInfo.defaultValue[JsonSchema.termUri],
-        this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel]);
+      this.setValueUIAndModel(this.component.valueInfo.defaultValue ? this.component.valueInfo.defaultValue[JsonSchema.termUri] : null,
+        this.component.valueInfo.defaultValue ? this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] : null);
     }
 
     this.filteredOptions = this.inputValueControl.valueChanges
