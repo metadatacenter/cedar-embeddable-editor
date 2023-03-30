@@ -8,7 +8,7 @@ import {Component} from '@angular/core';
 export class AppComponent {
 
   ceeConfig = {
-    showTemplateUpload: true,
+    showTemplateUpload: false,
     templateUploadBaseUrl: 'http://localhost:8000',
     // templateUploadBaseUrl: 'https://api-php.cee.metadatacenter.orgx',
     templateUploadEndpoint: '/upload.php',
@@ -21,8 +21,8 @@ export class AppComponent {
 
     sampleTemplateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
     // sampleTemplateLocationPrefix: 'https://component.staging.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '45',
-    showSampleTemplateLinks: true,
+    loadSampleTemplateName: '53',
+    showSampleTemplateLinks: false,
     expandedSampleTemplateLinks: true,
     showTemplateRenderingRepresentation: true,
 
@@ -33,7 +33,9 @@ export class AppComponent {
     expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,
     expandedMultiInstanceInfo: false,
-    collapseStaticComponents: true
+    collapseStaticComponents: true,
+
+    showStaticText: true,
   };
 
 }

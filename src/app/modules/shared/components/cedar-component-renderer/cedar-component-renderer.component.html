@@ -39,7 +39,7 @@
                            [handlerContext]="handlerContext"
     ></app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfNonIterable(nonIterableComponent)">
-      <ng-container *ngIf="nonIterableComponent.linkedStaticFieldComponent">
+      <ng-container tabIndex="-1" *ngIf="nonIterableComponent.linkedStaticFieldComponent">
         <!-- These are the collapsed static components before fields-->
         <app-cedar-static-image *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.image"
                                 [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"

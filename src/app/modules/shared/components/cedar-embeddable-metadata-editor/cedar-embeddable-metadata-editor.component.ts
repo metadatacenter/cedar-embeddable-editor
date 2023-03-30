@@ -38,6 +38,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private static SHOW_DATA_SAVER = 'showDataSaver';
   private static DATA_SAVER_ENDPOINT_URL = 'dataSaverEndpointUrl';
+  private static SHOW_STATIC_TEXT = 'showStaticText';
 
   private readonly dataContext: DataContext = null;
 
