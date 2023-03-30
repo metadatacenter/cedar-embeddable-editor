@@ -1,6 +1,6 @@
 <div *ngIf="component && currentMultiInfo" class="pager-container">
   <div class="pager-chips">
-    <mat-chip-list>
+    <mat-chip-list tabIndex="-1">
       <mat-chip selectable="false" disabled="true" *ngIf="!hasMultiInstances()">No instances yet</mat-chip>
       <mat-chip *ngFor="let pageNumber of pageNumbers"
                 [selected]="pageNumber == currentMultiInfo.currentIndex"
@@ -10,21 +10,23 @@
     </mat-chip-list>
   </div>
   <div>
-    <button mat-icon-button [disabled]="!isEnabledAdd()" (click)="clickedAdd()">
+    <button mat-icon-button tabindex="-1" [disabled]="!isEnabledAdd()" (click)="clickedAdd()">
       <mat-icon matTooltip="Add empty after current">note_add</mat-icon>
     </button>
-    <button mat-icon-button [disabled]="!isEnabledCopy()" (click)="clickedCopy()">
+    <button mat-icon-button tabindex="-1" [disabled]="!isEnabledCopy()" (click)="clickedCopy()">
       <mat-icon matTooltip="Add clone after current">content_copy</mat-icon>
     </button>
-    <button mat-icon-button [disabled]="!isEnabledDelete()" (click)="clickedDelete()">
+    <button mat-icon-button tabindex="-1" [disabled]="!isEnabledDelete()" (click)="clickedDelete()">
       <mat-icon matTooltip="Delete current">delete</mat-icon>
     </button>
   </div>
   <div class="pager-pager">
-    <mat-paginator [length]="length"
+    <mat-paginator
+      *ngIf="getInstanceCount()>1" [length]="length"
                    [pageSize]="pageSize"
-                   [pageSizeOptions]="pageSizeOptions"
+                   [pageSizeOptions]="showPageSizeOptions ? pageSizeOptions: []"
                    [pageIndex]="pageIndex"
+                   [hidePageSize]="hidePageSize"
                    (page)="paginatorChanged($event)">
     </mat-paginator>
   </div>
