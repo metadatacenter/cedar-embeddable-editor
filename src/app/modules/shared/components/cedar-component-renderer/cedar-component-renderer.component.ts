@@ -19,18 +19,25 @@ import {InputType} from '../../models/input-type.model';
   encapsulation: ViewEncapsulation.None
 })
 export class CedarComponentRendererComponent implements OnInit {
-
   private component: CedarComponent;
   iterableComponent: ElementComponent;
   nonIterableComponent: FieldComponent;
   staticComponent: StaticFieldComponent;
   multiInfo: MultiInfo;
+  panelOpenState: boolean;
   @Input() handlerContext: HandlerContext;
   inputType: InputType = InputType;
-
+  // tslint:disable-next-line:variable-name
+  private _allExpanded = true;
+  @Input()
+  get allExpanded(): boolean { return this._allExpanded }
+  set allExpanded(allExpanded: boolean){
+    this.panelOpenState = allExpanded;
+    console.log('Panel open state', this.panelOpenState);
+    this._allExpanded = allExpanded;
+  }
   constructor() {
   }
-
   ngOnInit(): void {
   }
 
