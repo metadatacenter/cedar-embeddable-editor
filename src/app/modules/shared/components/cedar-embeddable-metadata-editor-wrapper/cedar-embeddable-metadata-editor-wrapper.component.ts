@@ -26,6 +26,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   static TEMPLATE_UPLOAD_BASE_URL = 'templateUploadBaseUrl';
   static TEMPLATE_DOWNLOAD_ENDPOINT = 'templateDownloadEndpoint';
   static TEMPLATE_DOWNLOAD_PARAM_NAME = 'templateDownloadParamName';
+  static TEMPLATE_JSON = 'templateJSON';
+  static INSTANCE_JSON = 'instanceJSON';
 
   innerConfig: object = null;
   private initialized = false;
@@ -54,6 +56,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       .pipe(takeUntil(this._onDestroy))
       .subscribe( templateJson => {
         if (templateJson) {
+          console.log('ngOnInit', templateJson);
           this.templateJson = Object.values(templateJson)[0];
         }
       });
@@ -91,6 +94,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set metadata(meta: object) {
+    console.log('YABADABADUUUUUU', meta);
     const instanceFullData = JSON.parse(JSON.stringify(meta));
     const instanceExtractData = JSON.parse(JSON.stringify(meta));
     this.deleteContext(instanceExtractData);
@@ -169,7 +173,16 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private doInitialize(): void {
+    console.log('Inner CONFIG', this.innerConfig, this.initialized, this.configSet, this.innerConfig.hasOwnProperty('templateJSON'));
     if (this.initialized && this.configSet) {
+      // if (this.innerConfig.hasOwnProperty('instanceJSON')){
+      //   this.set metadata(this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.INSTANCE_JSON]);
+      //   console.log('Walla da instance var', this.metadata);
+      // }
+      if (this.innerConfig.hasOwnProperty('templateJSON')){
+        this.templateJson = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_JSON];
+        console.log('Walla da template v', this.templateJson);
+      }
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
           this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX],
