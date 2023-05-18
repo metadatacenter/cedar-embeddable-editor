@@ -28,12 +28,11 @@ export class CedarComponentRendererComponent implements OnInit {
   @Input() handlerContext: HandlerContext;
   inputType: InputType = InputType;
   // tslint:disable-next-line:variable-name
-  private _allExpanded = true;
+  private _allExpanded = false;
   @Input()
-  get allExpanded(): boolean { return this._allExpanded }
+  get allExpanded(): boolean { return this._allExpanded; }
   set allExpanded(allExpanded: boolean){
     this.panelOpenState = allExpanded;
-    console.log('Panel open state', this.panelOpenState);
     this._allExpanded = allExpanded;
   }
   constructor() {

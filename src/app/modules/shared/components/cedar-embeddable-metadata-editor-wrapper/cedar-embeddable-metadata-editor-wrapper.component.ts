@@ -82,6 +82,14 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.doInitialize();
   }
 
+  // tslint:disable-next-line:use-lifecycle-interface
+  ngAfterViewInit(): void {
+    if (this.innerConfig.hasOwnProperty('instanceJSON')){
+      console.log('Theres instance so settin it');
+      this.metadata = (this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.INSTANCE_JSON]);
+    }
+  }
+
   handlerContextChanged(event): void {
     this.handlerContext = event;
   }
@@ -98,6 +106,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     const instanceFullData = JSON.parse(JSON.stringify(meta));
     const instanceExtractData = JSON.parse(JSON.stringify(meta));
     this.deleteContext(instanceExtractData);
+    console.log('Does it have handler context yaba', this.handlerContext);
 
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
@@ -108,8 +117,12 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
           dataContext.templateRepresentation, instanceExtractData);
 
+      console.log('Data context doldu', dataContext.multiInstanceData);
+
       if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
+        console.log('IFFFTEYIIIIMMMM');
         for (const childComponent of dataContext.templateRepresentation.children) {
+          console.log('UPDATE EDIYOOOMMMM', this.activeComponentRegistry.modelToUI.size);
           this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
         }
       }
