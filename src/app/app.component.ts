@@ -16,7 +16,7 @@ export class AppComponent {
     templateUploadParamName: '3520cf061bba4919a8ea4b74a07af01b',
     templateDownloadParamName: '9ff482bacac84c499655ab58efdf590a',
 
-    showDataSaver: true,
+    showDataSaver: false,
     dataSaverEndpointUrl: 'http://localhost:8000/datasave.php',
 
     sampleTemplateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
@@ -24,14 +24,14 @@ export class AppComponent {
     loadSampleTemplateName: '53',
     showSampleTemplateLinks: false,
     expandedSampleTemplateLinks: true,
-    showTemplateRenderingRepresentation: true,
+    showTemplateRenderingRepresentation: false,
 
     // terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
     // terminologyProxyUrl: 'http://localhost:8000/index.php',
     terminologyProxyUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
-    showInstanceDataCore: true,
-    expandedInstanceDataCore: false,
-    showMultiInstanceInfo: true,
+    showInstanceDataCore: false,
+    expandedInstanceDataCore: true,
+    showMultiInstanceInfo: false,
     expandedMultiInstanceInfo: false,
     collapseStaticComponents: true,
 
