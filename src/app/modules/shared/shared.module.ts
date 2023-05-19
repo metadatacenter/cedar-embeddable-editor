@@ -33,6 +33,9 @@ import {InputTypesModule} from '../input-types/input-types.module';
 import {CedarEmbeddableMetadataEditorWrapperComponent} from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import {SampleTemplatesComponent} from './components/sample-templates/sample-templates.component';
 import {SampleTemplateSelectComponent} from './components/sample-templates/sample-template-select/sample-template-select.component';
+import { PreferencesMenu } from './components/preferences-menu/preferences-menu.component';
+import {MatMenuModule} from "@angular/material/menu";
+import {MatSlideToggleModule} from "@angular/material/slide-toggle";
 
 @NgModule({
     imports: [
@@ -59,7 +62,9 @@ import {SampleTemplateSelectComponent} from './components/sample-templates/sampl
         NgxMatSelectSearchModule,
         NgSelectModule,
         InputTypesModule,
-        FormsModule
+        FormsModule,
+        MatMenuModule,
+        MatSlideToggleModule
     ],
   declarations: [
     RdfPipe,
@@ -73,7 +78,8 @@ import {SampleTemplateSelectComponent} from './components/sample-templates/sampl
     StaticFooterComponent,
     StaticHeaderComponent,
     SourcePanelsComponent,
-    CedarMultiPagerComponent
+    CedarMultiPagerComponent,
+    PreferencesMenu
   ],
   providers: [],
   exports: [
