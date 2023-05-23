@@ -1,8 +1,10 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation, ViewChildren} from '@angular/core';
+import {MatAccordion} from '@angular/material/expansion';
 import {NullTemplate} from '../../models/template/null-template.model';
 import {DataContext} from '../../util/data-context';
 import {HandlerContext} from '../../util/handler-context';
 import {PageBreakPaginatorService} from '../../service/page-break-paginator.service';
+
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -11,7 +13,6 @@ import {PageBreakPaginatorService} from '../../service/page-break-paginator.serv
   encapsulation: ViewEncapsulation.None
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
-
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
   private static SHOW_TEMPLATE_SOURCE = 'showTemplateSourceData';
@@ -38,6 +39,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private static SHOW_DATA_SAVER = 'showDataSaver';
   private static DATA_SAVER_ENDPOINT_URL = 'dataSaverEndpointUrl';
+  private static SHOW_STATIC_TEXT = 'showStaticText';
 
   private readonly dataContext: DataContext = null;
 
@@ -55,8 +57,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   showInstanceDataFull = true;
   showSampleTemplateLinks = false;
 
-  showHeader = true;
-  showFooter = true;
+  showHeader = false;
+  showFooter = false;
 
   expandedTemplateRenderingRepresentation = false;
   expandedMultiInstanceInfo = false;
@@ -75,7 +77,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   showDataSaver = false;
   dataSaverEndpointUrl: string;
   @Input() externalTemplateInfo: object;
-
+  allExpanded: boolean;
 
   constructor() {
     this.pageBreakPaginatorService = new PageBreakPaginatorService();
@@ -168,5 +170,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       && !(this.dataContext.templateRepresentation instanceof NullTemplate)
       && this.dataContext.multiInstanceData != null;
   }
-
+  openAll(): void{
+    this.allExpanded = true;
+  }
+  closeAll(): void{
+    this.allExpanded = false;
+  }
 }

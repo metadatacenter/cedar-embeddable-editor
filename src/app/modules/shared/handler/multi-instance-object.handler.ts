@@ -155,9 +155,11 @@ export class MultiInstanceObjectHandler {
       }
     }
     const targetObj = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, pathCopy);
-    targetObj.componentName = path[path.length - 1];
-    targetObj.currentCount = count;
-    targetObj.currentIndex = (count > 0) ? 0 : -1;
+    if (targetObj) {
+      targetObj.componentName = path[path.length - 1];
+      targetObj.currentCount = count;
+      targetObj.currentIndex = (count > 0) ? 0 : -1;
+    }
   }
 
   private deleteAttributeValueFields(instanceExtractData: InstanceExtractData): void {

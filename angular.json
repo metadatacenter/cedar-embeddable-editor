@@ -142,5 +142,8 @@
       }
     }
   },
-  "defaultProject": "cedar-embeddable-editor"
+  "defaultProject": "cedar-embeddable-editor",
+  "cli": {
+    "analytics": false
+  }
 }

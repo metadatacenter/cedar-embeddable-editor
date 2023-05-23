@@ -32,6 +32,8 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   firstIndex = 0;
   lastIndex = -1;
   pageNumbers: number[] = [];
+  showPageSizeOptions = false;
+  hidePageSize = true;
 
   multiInstanceValue: string;
 
@@ -267,4 +269,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     return this.currentMultiInfo.currentCount > 0;
   }
 
+  getInstanceCount(): number {
+    return this.currentMultiInfo.currentCount;
+  }
 }
