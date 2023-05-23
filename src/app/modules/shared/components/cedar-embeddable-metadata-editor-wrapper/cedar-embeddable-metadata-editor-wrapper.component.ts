@@ -52,12 +52,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   ngOnInit(): void {
-    console.log("ngOnInit");
     this.sampleTemplateService.templateJson$
       .pipe(takeUntil(this._onDestroy))
       .subscribe( templateJson => {
         if (templateJson) {
-          console.log('ngOnInit', templateJson);
           this.templateJson = Object.values(templateJson)[0];
         }
       });
@@ -86,7 +84,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   // tslint:disable-next-line:use-lifecycle-interface
   ngAfterViewInit(): void {
     if (this.innerConfig.hasOwnProperty('instanceJSON')){
-      console.log('Theres instance so settin it');
       this.metadata = (this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.INSTANCE_JSON]);
     }
   }
@@ -181,11 +178,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private doInitialize(): void {
-    console.log('Inner CONFIG', this.innerConfig, this.initialized, this.configSet, this.innerConfig.hasOwnProperty('templateJSON'));
     if (this.initialized && this.configSet) {
       // if (this.innerConfig.hasOwnProperty('instanceJSON')){
       //   this.set metadata(this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.INSTANCE_JSON]);
-      //   console.log('Walla da instance var', this.metadata);
       // }
       if (this.innerConfig.hasOwnProperty('templateJSON')){
         this.templateJson = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_JSON];
