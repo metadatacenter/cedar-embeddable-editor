@@ -171,11 +171,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       && this.dataContext.multiInstanceData != null;
   }
   openAll(): void{
-    console.log('Open all clicked');
     this.allExpanded = true;
   }
   closeAll(): void{
-    console.log('Close all clicked');
     this.allExpanded = false;
   }
 }
