@@ -52,6 +52,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   ngOnInit(): void {
+    console.log("ngOnInit");
     this.sampleTemplateService.templateJson$
       .pipe(takeUntil(this._onDestroy))
       .subscribe( templateJson => {
@@ -102,11 +103,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set metadata(meta: object) {
-    console.log('YABADABADUUUUUU', meta);
     const instanceFullData = JSON.parse(JSON.stringify(meta));
     const instanceExtractData = JSON.parse(JSON.stringify(meta));
     this.deleteContext(instanceExtractData);
-    console.log('Does it have handler context yaba', this.handlerContext);
 
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
@@ -117,12 +116,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
           dataContext.templateRepresentation, instanceExtractData);
 
-      console.log('Data context doldu', dataContext.multiInstanceData);
-
       if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
-        console.log('IFFFTEYIIIIMMMM');
         for (const childComponent of dataContext.templateRepresentation.children) {
-          console.log('UPDATE EDIYOOOMMMM', this.activeComponentRegistry.modelToUI.size);
           this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
         }
       }
@@ -194,7 +189,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       // }
       if (this.innerConfig.hasOwnProperty('templateJSON')){
         this.templateJson = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_JSON];
-        console.log('Walla da template v', this.templateJson);
       }
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
