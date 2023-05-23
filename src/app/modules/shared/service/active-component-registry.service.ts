@@ -20,10 +20,6 @@ export class ActiveComponentRegistryService {
   private modelToMultiPagerUI: Map<CedarComponent, CedarMultiPagerComponent> = new Map<CedarComponent, CedarMultiPagerComponent>();
 
   private getUIComponent(component: CedarComponent): CedarUIComponent {
-    console.log("COMPONENT", component);
-    console.log("MAP", this.modelToUI);
-    console.log("MAP SIZE", this.modelToUI.size);
-    console.log("DOES IT HAVE", this.modelToUI.has(component));
     return this.modelToUI.get(component);
   }
 
@@ -32,11 +28,9 @@ export class ActiveComponentRegistryService {
   }
 
   updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
-    console.log('Updating view model');
     if (component instanceof SingleFieldComponent) {
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
-      console.log('Single field', dataObject, uiComponent);
       if (uiComponent != null && dataObject != null) {
         if (dataObject.hasOwnProperty(JsonSchema.atValue)) {
           uiComponent.setCurrentValue(dataObject[JsonSchema.atValue]);
@@ -128,7 +122,6 @@ export class ActiveComponentRegistryService {
   }
 
   registerComponent(modelComponent: CedarComponent, uiComponent: CedarUIComponent): void {
-    console.log("Registering", modelComponent, uiComponent);
     this.modelToUI.set(modelComponent, uiComponent);
   }
 
