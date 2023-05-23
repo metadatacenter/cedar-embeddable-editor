@@ -16,7 +16,7 @@ import {InputType} from '../models/input-type.model';
 })
 export class ActiveComponentRegistryService {
 
-  private modelToUI: Map<CedarComponent, CedarUIComponent> = new Map<CedarComponent, CedarUIComponent>();
+  public modelToUI: Map<CedarComponent, CedarUIComponent> = new Map<CedarComponent, CedarUIComponent>();
   private modelToMultiPagerUI: Map<CedarComponent, CedarMultiPagerComponent> = new Map<CedarComponent, CedarMultiPagerComponent>();
 
   private getUIComponent(component: CedarComponent): CedarUIComponent {
@@ -31,7 +31,6 @@ export class ActiveComponentRegistryService {
     if (component instanceof SingleFieldComponent) {
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
-
       if (uiComponent != null && dataObject != null) {
         if (dataObject.hasOwnProperty(JsonSchema.atValue)) {
           uiComponent.setCurrentValue(dataObject[JsonSchema.atValue]);
