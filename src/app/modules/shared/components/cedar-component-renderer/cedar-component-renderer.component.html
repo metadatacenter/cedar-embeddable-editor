@@ -1,33 +1,41 @@
 <ng-container *ngIf="iterableComponent">
-  <mat-card class="child-component-card iterable-component">
-    <app-cedar-component-header *ngIf="!iterableComponent.linkedStaticFieldComponent"
-                                [componentToRender]="iterableComponent"
-    ></app-cedar-component-header>
-    <app-cedar-multi-pager *ngIf="iterableComponent.isMulti()"
-                           [componentToRender]="iterableComponent"
-                           [handlerContext]="handlerContext"
-    ></app-cedar-multi-pager>
-    <mat-card-content *ngIf="shouldRenderContentOfIterable(iterableComponent)">
-      <ng-container *ngIf="iterableComponent.linkedStaticFieldComponent">
-        <!-- These are the collapsed static components before elements -->
-        <app-cedar-static-image *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.image"
-                                [componentToRender]="iterableComponent.linkedStaticFieldComponent"
-                                [handlerContext]="handlerContext"></app-cedar-static-image>
-        <app-cedar-static-youtube *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.youtube"
+  <mat-accordion multi>
+    <mat-expansion-panel (opened)="panelOpenState = true"
+                         (closed)="panelOpenState = false; allExpanded = false" [expanded]="panelOpenState">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <app-cedar-component-header *ngIf="!iterableComponent.linkedStaticFieldComponent"
+                                      [componentToRender]="iterableComponent"
+          ></app-cedar-component-header>
+        </mat-panel-title>
+        <app-cedar-multi-pager *ngIf="iterableComponent.isMulti()"
+                               [componentToRender]="iterableComponent"
+                               [handlerContext]="handlerContext">
+        </app-cedar-multi-pager>
+      </mat-expansion-panel-header>
+      <mat-card-content *ngIf="shouldRenderContentOfIterable(iterableComponent)">
+        <ng-container *ngIf="iterableComponent.linkedStaticFieldComponent">
+          <!-- These are the collapsed static components before elements -->
+          <app-cedar-static-image *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.image"
                                   [componentToRender]="iterableComponent.linkedStaticFieldComponent"
-                                  [handlerContext]="handlerContext"></app-cedar-static-youtube>
-        <app-cedar-static-rich-text *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.richText"
-                                  [componentToRender]="iterableComponent.linkedStaticFieldComponent"
-                                  [handlerContext]="handlerContext"></app-cedar-static-rich-text>
-      </ng-container>
-      <ng-container *ngFor="let childComponent of iterableComponent.children">
-        <app-cedar-component-renderer
-          [componentToRender]="childComponent"
-          [handlerContext]="handlerContext"
-        ></app-cedar-component-renderer>
-      </ng-container>
-    </mat-card-content>
-  </mat-card>
+                                  [handlerContext]="handlerContext"></app-cedar-static-image>
+          <app-cedar-static-youtube *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.youtube"
+                                    [componentToRender]="iterableComponent.linkedStaticFieldComponent"
+                                    [handlerContext]="handlerContext"></app-cedar-static-youtube>
+          <app-cedar-static-rich-text *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.richText"
+                                      [componentToRender]="iterableComponent.linkedStaticFieldComponent"
+                                      [handlerContext]="handlerContext"></app-cedar-static-rich-text>
+        </ng-container>
+        <ng-container *ngFor="let childComponent of iterableComponent.children">
+          <app-cedar-component-renderer
+            [componentToRender]="childComponent"
+            [handlerContext]="handlerContext"
+            [allExpanded]="allExpanded"
+          ></app-cedar-component-renderer>
+        </ng-container>
+      </mat-card-content>
+    </mat-expansion-panel>
+  </mat-accordion>
 </ng-container>
 <ng-container *ngIf="nonIterableComponent">
   <mat-card class="child-component-card non-iterable-component">
@@ -39,7 +47,7 @@
                            [handlerContext]="handlerContext"
     ></app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfNonIterable(nonIterableComponent)">
-      <ng-container *ngIf="nonIterableComponent.linkedStaticFieldComponent">
+      <ng-container tabIndex="-1" *ngIf="nonIterableComponent.linkedStaticFieldComponent && showStaticText">
         <!-- These are the collapsed static components before fields-->
         <app-cedar-static-image *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.image"
                                 [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"

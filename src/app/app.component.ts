@@ -33,7 +33,9 @@ export class AppComponent {
     expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,
     expandedMultiInstanceInfo: false,
-    collapseStaticComponents: true
+    collapseStaticComponents: true,
+
+    showStaticText: true,
   };
 
 }

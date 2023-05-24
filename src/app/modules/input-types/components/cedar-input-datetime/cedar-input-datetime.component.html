@@ -4,7 +4,7 @@
                  [dateMonthYear]="dateMonthYearControl"
                  xmlns="http://www.w3.org/1999/html"></app-date-picker>
 <ng-container *ngIf="showTimePicker()">
-  <div appearance="fill">
+  <div>
     <mat-label>Select Time</mat-label>
     <ngx-mat-timepicker
       (ngModelChange)="timeInputChanged($event)"
@@ -18,7 +18,7 @@
   </div>
 </ng-container>
 <ng-container *ngIf="showDecimalSeconds()">
-  <mat-form-field appearance="fill">
+  <mat-form-field>
     <mat-label>Select Decimal Seconds</mat-label>
     <input matInput type="number"
            (input)="decimalSecondsChanged($event)"

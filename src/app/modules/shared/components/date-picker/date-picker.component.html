@@ -1,5 +1,5 @@
 <ng-container *ngIf="dateFormat === yearFormat">
-  <mat-form-field appearance="fill">
+  <mat-form-field>
     <mat-label>Select Year</mat-label>
     <input matInput
            [matDatepicker]="dp"
@@ -14,7 +14,7 @@
   </mat-form-field>
 </ng-container>
 <ng-container *ngIf="dateFormat === yearMonthFormat">
-  <mat-form-field appearance="fill">
+  <mat-form-field>
     <mat-label>Select Year and Month</mat-label>
     <input matInput
            [matDatepicker]="dp"
@@ -30,7 +30,7 @@
   </mat-form-field>
 </ng-container>
 <ng-container *ngIf="dateFormat === yearMonthDayFormat">
-  <mat-form-field appearance="fill">
+  <mat-form-field>
     <mat-label>Select Date</mat-label>
     <input matInput
            [matDatepicker]="dp"

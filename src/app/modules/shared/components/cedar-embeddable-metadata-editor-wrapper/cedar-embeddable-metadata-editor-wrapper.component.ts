@@ -26,6 +26,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   static TEMPLATE_UPLOAD_BASE_URL = 'templateUploadBaseUrl';
   static TEMPLATE_DOWNLOAD_ENDPOINT = 'templateDownloadEndpoint';
   static TEMPLATE_DOWNLOAD_PARAM_NAME = 'templateDownloadParamName';
+  static TEMPLATE_JSON = 'templateJSON';
+  static INSTANCE_JSON = 'instanceJSON';
 
   innerConfig: object = null;
   private initialized = false;
@@ -77,6 +79,13 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       });
     this.initialized = true;
     this.doInitialize();
+  }
+
+  // tslint:disable-next-line:use-lifecycle-interface
+  ngAfterViewInit(): void {
+    if (this.innerConfig != null && this.innerConfig.hasOwnProperty('instanceJSON')){
+      this.metadata = (this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.INSTANCE_JSON]);
+    }
   }
 
   handlerContextChanged(event): void {
@@ -170,6 +179,12 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   private doInitialize(): void {
     if (this.initialized && this.configSet) {
+      // if (this.innerConfig.hasOwnProperty('instanceJSON')){
+      //   this.set metadata(this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.INSTANCE_JSON]);
+      // }
+      if (this.innerConfig.hasOwnProperty('templateJSON')){
+        this.templateJson = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_JSON];
+      }
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
           this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX],

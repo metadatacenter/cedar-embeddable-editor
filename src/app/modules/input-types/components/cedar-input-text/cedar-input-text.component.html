@@ -1,5 +1,5 @@
 <form class="form-container" [formGroup]="options">
-  <mat-form-field appearance="fill" class="full-width">
+  <mat-form-field class="full-width">
     <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
     <input matInput type="text" placeholder="Your Text Here" *ngIf="component.basicInfo.inputType==inputText"
            [formControl]="inputValueControl"
@@ -11,7 +11,7 @@
               [formControl]="inputValueControl"
               [errorStateMatcher]="errorStateMatcher"
               (input)="inputChanged($event)"></textarea>
-    <button mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+    <button tabindex="-1" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
     <mat-hint align="start" *ngIf="inputValueControl.getError('minlength')" class="mat-error">Value should be at least {{constraintMinLength}} chars long.</mat-hint>
