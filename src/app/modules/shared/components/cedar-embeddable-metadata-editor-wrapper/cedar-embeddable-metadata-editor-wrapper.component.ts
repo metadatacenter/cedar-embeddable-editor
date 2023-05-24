@@ -83,7 +83,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   // tslint:disable-next-line:use-lifecycle-interface
   ngAfterViewInit(): void {
-    if (this.innerConfig.hasOwnProperty('instanceJSON')){
+    if (this.innerConfig != null && this.innerConfig.hasOwnProperty('instanceJSON')){
       this.metadata = (this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.INSTANCE_JSON]);
     }
   }
