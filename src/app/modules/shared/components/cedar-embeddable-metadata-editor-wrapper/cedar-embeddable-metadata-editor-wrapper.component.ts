@@ -39,6 +39,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   protected _onDestroy = new Subject<void>();
   externalTemplateInfo: object;
   handlerContext: HandlerContext = null;
+  private instanceJson = null;
 
 
   constructor(
@@ -52,6 +53,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   ngOnInit(): void {
+
     this.sampleTemplateService.templateJson$
       .pipe(takeUntil(this._onDestroy))
       .subscribe( templateJson => {
@@ -83,9 +85,11 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   // tslint:disable-next-line:use-lifecycle-interface
   ngAfterViewInit(): void {
-    if (this.innerConfig != null && this.innerConfig.hasOwnProperty('instanceJSON')){
-      this.metadata = (this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.INSTANCE_JSON]);
-    }
+    // console.log('View initialized');
+    // if (this.instanceJson){
+    //   console.log('there is instnce so setting it');
+    //   this.metadata = this.instanceJson;
+    // }
   }
 
   handlerContextChanged(event): void {
@@ -100,6 +104,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set metadata(meta: object) {
+    console.log('setting metadata', meta);
     const instanceFullData = JSON.parse(JSON.stringify(meta));
     const instanceExtractData = JSON.parse(JSON.stringify(meta));
     this.deleteContext(instanceExtractData);
@@ -123,6 +128,16 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   @Input() set templateInfo(templateInfo: object) {
     this.externalTemplateInfo = templateInfo;
+  }
+
+  @Input() set templateObject(template: object) {
+    console.log('Template object has been set with', template);
+    this.templateJson = template;
+  }
+
+  @Input() set instanceObject(instance: object) {
+    console.log('Instance object is being set with', instance);
+    this.metadata = instance;
   }
 
   @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
@@ -182,9 +197,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       // if (this.innerConfig.hasOwnProperty('instanceJSON')){
       //   this.set metadata(this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.INSTANCE_JSON]);
       // }
-      if (this.innerConfig.hasOwnProperty('templateJSON')){
-        this.templateJson = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_JSON];
-      }
+      // if (this.innerConfig.hasOwnProperty('templateJSON')){
+      //   this.templateJson = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_JSON];
+      // }
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
           this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX],
