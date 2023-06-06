@@ -1,8 +1,8 @@
 import {enableProdMode} from '@angular/core';
 import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
-
-import {AppModule} from './app/app.module';
 import {environment} from './environments/environment';
+import {AppModuleProd} from './app/app.module.prod';
+import {AppModuleDev} from './app/app.module.dev';
 
 declare global {
   interface Window {
@@ -19,5 +19,10 @@ if (environment.production) {
   enableProdMode();
 }
 
-platformBrowserDynamic().bootstrapModule(AppModule)
-  .catch(err => console.error(err));
+if (environment.production) {
+  platformBrowserDynamic().bootstrapModule(AppModuleProd)
+    .catch(err => console.error(err));
+} else {
+  platformBrowserDynamic().bootstrapModule(AppModuleDev)
+    .catch(err => console.error(err));
+}
