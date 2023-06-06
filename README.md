@@ -16,19 +16,9 @@ Clone this repository onto a local directory of your choice:
 git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
 ```
 
-### Enable the standalone mode
-
-1. Open the file ```cedar-embeddable-editor/src/app/app.module.ts``` in your favorite editor.
-2. Uncomment the ```AppComponent``` line (it is commented out by default):
-```typescript
-  bootstrap: [
-    // TODO: Uncomment this in order to make app runnable alone
-    AppComponent
-  ],
-```
 ### Edit configuration
 
-1. Open the file ```cedar-embeddable-editor/src/app/app.component.ts``` in your favorite editor.
+1. Open the file ```cedar-embeddable-editor/src/app/app.component.dev.ts``` in your favorite editor.
 2. Edit configuration parameters based on your local environment (see section [Configuration](https://github.com/metadatacenter/cedar-embeddable-editor/tree/develop#configuration) for details).
 
 ### Build the project and start the server
@@ -48,16 +38,6 @@ cedar-embeddable-editor$ ng serve
 
 This method creates a single Javascript (JS) file that encapsulates all the functionality of CEE. The JS file can be embedded in any application or HTML page. To build a CEE Webcomponent, proceed with these steps: 
 
-### Disable the standalone mode
-
-1. Open the file ```cedar-embeddable-editor/src/app/app.module.ts``` in your favorite editor.
-2. Comment out the ```AppComponent``` line:
-```typescript
-  bootstrap: [
-    // TODO: Uncomment this in order to make app runnable alone
-    // AppComponent
-  ],
-```
 ### Build and copy the Webcomponent JS file
 
 1. Run the build command:
@@ -75,7 +55,7 @@ cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,mai
 
 The CEE configuration file format and storage location depends on the application and the mode in which CEE is being used.
 
-* When running CEE in the standalone mode (developer mode), the configuration parameters are stored in and read from the file: `src/app/app.component.ts`.
+* When running CEE in the standalone mode (developer mode), the configuration parameters are stored in and read from the file: `src/app/app.component.dev.ts`.
 * When running CEE as a generic Webcomponent, the configuration parameters can be stored in any `.json` file that is visible to the application that embeds CEE Webcomponent. CEE Webcomponent API provides a method for loading the configuration file from its path at runtime. For example:
 ```javascript
 document.addEventListener('WebComponentsReady', function () {
