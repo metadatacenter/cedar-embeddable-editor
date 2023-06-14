@@ -66,8 +66,9 @@ export class CedarInputLinkComponent extends CedarUIComponent implements OnInit 
     if (val.length === 0) {
       val = null;
     }
-
+    console.log('Before change', this.handlerContext);
     this.handlerContext.changeValue(this.component, val);
+    console.log('after change', this.handlerContext);
   }
 
   setCurrentValue(currentValue: any): void {
