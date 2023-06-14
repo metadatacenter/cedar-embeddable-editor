@@ -104,7 +104,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set metadata(meta: object) {
-    console.log('setting metadata', meta);
     const instanceFullData = JSON.parse(JSON.stringify(meta));
     const instanceExtractData = JSON.parse(JSON.stringify(meta));
     this.deleteContext(instanceExtractData);
@@ -194,12 +193,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   private doInitialize(): void {
     if (this.initialized && this.configSet) {
-      // if (this.innerConfig.hasOwnProperty('instanceJSON')){
-      //   this.set metadata(this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.INSTANCE_JSON]);
-      // }
-      // if (this.innerConfig.hasOwnProperty('templateJSON')){
-      //   this.templateJson = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_JSON];
-      // }
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
           this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX],
