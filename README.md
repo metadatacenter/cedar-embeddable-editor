@@ -239,7 +239,6 @@ document.addEventListener('WebComponentsReady', function () {
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.send(JSON.stringify(meta, null, 2));
     console.log('Saved metadata after ' + saveTime / 1000 + ' seconds');
-    console.log(meta);
   }, saveTime);
 });
 ```

@@ -83,15 +83,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.doInitialize();
   }
 
-  // tslint:disable-next-line:use-lifecycle-interface
-  ngAfterViewInit(): void {
-    // console.log('View initialized');
-    // if (this.instanceJson){
-    //   console.log('there is instnce so setting it');
-    //   this.metadata = this.instanceJson;
-    // }
-  }
-
   handlerContextChanged(event): void {
     this.handlerContext = event;
   }
@@ -107,7 +98,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     const instanceFullData = JSON.parse(JSON.stringify(meta));
     const instanceExtractData = JSON.parse(JSON.stringify(meta));
     this.deleteContext(instanceExtractData);
-
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
       dataContext.instanceFullData = instanceFullData;
@@ -130,12 +120,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set templateObject(template: object) {
-    console.log('Template object has been set with', template);
     this.templateJson = template;
   }
 
   @Input() set instanceObject(instance: object) {
-    console.log('Instance object is being set with', instance);
     this.metadata = instance;
   }
 
@@ -234,5 +222,4 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   editorDataReady(): boolean {
     return this.innerConfig != null && this.templateJson != null;
   }
-
 }
