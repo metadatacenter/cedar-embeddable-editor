@@ -39,6 +39,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   protected _onDestroy = new Subject<void>();
   externalTemplateInfo: object;
   handlerContext: HandlerContext = null;
+  private instanceJson = null;
 
 
   constructor(
@@ -52,6 +53,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   ngOnInit(): void {
+
     this.sampleTemplateService.templateJson$
       .pipe(takeUntil(this._onDestroy))
       .subscribe( templateJson => {
@@ -81,13 +83,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.doInitialize();
   }
 
-  // tslint:disable-next-line:use-lifecycle-interface
-  ngAfterViewInit(): void {
-    if (this.innerConfig != null && this.innerConfig.hasOwnProperty('instanceJSON')){
-      this.metadata = (this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.INSTANCE_JSON]);
-    }
-  }
-
   handlerContextChanged(event): void {
     this.handlerContext = event;
   }
@@ -103,7 +98,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     const instanceFullData = JSON.parse(JSON.stringify(meta));
     const instanceExtractData = JSON.parse(JSON.stringify(meta));
     this.deleteContext(instanceExtractData);
-
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
       dataContext.instanceFullData = instanceFullData;
@@ -123,6 +117,14 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   @Input() set templateInfo(templateInfo: object) {
     this.externalTemplateInfo = templateInfo;
+  }
+
+  @Input() set templateObject(template: object) {
+    this.templateJson = template;
+  }
+
+  @Input() set instanceObject(instance: object) {
+    this.metadata = instance;
   }
 
   @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
@@ -179,12 +181,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   private doInitialize(): void {
     if (this.initialized && this.configSet) {
-      // if (this.innerConfig.hasOwnProperty('instanceJSON')){
-      //   this.set metadata(this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.INSTANCE_JSON]);
-      // }
-      if (this.innerConfig.hasOwnProperty('templateJSON')){
-        this.templateJson = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_JSON];
-      }
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
           this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX],
@@ -226,5 +222,4 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   editorDataReady(): boolean {
     return this.innerConfig != null && this.templateJson != null;
   }
-
 }
