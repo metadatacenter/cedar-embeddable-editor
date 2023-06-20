@@ -84,7 +84,7 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
             "browserTarget": "cedar-embeddable-editor:build",
-            "port": 4320
+            "port": 4400
           },
           "configurations": {
             "production": {
