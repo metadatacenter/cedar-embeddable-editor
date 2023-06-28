@@ -3,7 +3,15 @@ import {FieldComponent} from '../../../shared/models/component/field-component.m
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
+import {ComponentDataService} from '../../../shared/service/component-data.service';
+import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
+import {ErrorStateMatcher} from '@angular/material/core';
 
+export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+    return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+}
 
 @Component({
   selector: 'app-cedar-input-select',
@@ -18,16 +26,27 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
   component: FieldComponent;
   dropdownList = [];
   selectedItems: any;
-
+  options: FormGroup;
+  inputValueControl = new FormControl(null, null);
+  errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
 
 
-  constructor(private activeComponentRegistry: ActiveComponentRegistryService) {
+  constructor(private activeComponentRegistry: ActiveComponentRegistryService, public cds: ComponentDataService, fb: FormBuilder) {
     super();
+    this.options = fb.group({
+      inputValue: this.inputValueControl,
+    });
   }
 
   ngOnInit(): void {
     this.populateItemsOnLoad();
+    const validators: any[] = [];
+
+    if (this.component.valueInfo.requiredValue) {
+      validators.push(Validators.required);
+    }
+    this.inputValueControl = new FormControl(null, validators);
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -101,6 +120,11 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
       }
     }
     this.inputChanged(null);
+  }
+
+  clearValue(): void {
+    this.inputValueControl.setValue(null);
+    this.handlerContext.changeControlledValue(this.component, null, null);
   }
 
 }
