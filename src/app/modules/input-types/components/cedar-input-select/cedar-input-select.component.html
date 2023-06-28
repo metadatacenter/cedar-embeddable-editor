@@ -1,13 +1,31 @@
-<div class="wrapper">
-  <ng-select [items]="dropdownList"
-             [(ngModel)]="selectedItems"
-             [placeholder]="'Select options...'"
-             [notFoundText]="'No items found'"
-             labelForId="{{ITEM_ID_FIELD}}"
-             [multiple]="component.choiceInfo.multipleChoice"
-             [maxSelectedItems]="5"
-             [closeOnSelect]="true"
-             [hideSelected]="false"
-             (ngModelChange)="inputChanged($event)"
-  ></ng-select>
-</div>
+<form class="form-container" [formGroup]="options">
+  <mat-form-field class="full-width">
+    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
+    <input matInput type="text" placeholder="Your Text Here"
+           [formControl]="inputValueControl"
+           [errorStateMatcher]="errorStateMatcher"
+           [matAutocomplete]="auto"
+           (input)="inputChanged($event)"
+    >
+    <mat-autocomplete #auto="matAutocomplete">
+      <mat-option *ngFor="let option of dropdownList" [value]="option.id"
+                  (onSelectionChange)="inputChanged($event)"
+      >{{option.label}}</mat-option>
+    </mat-autocomplete>
+      <button tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <mat-hint tabindex="0" align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-hint>
+  </mat-form-field>
+<!--  <ng-select [items]="dropdownList"-->
+<!--             [(ngModel)]="selectedItems"-->
+<!--             [placeholder]="'Select options...'"-->
+<!--             [notFoundText]="'No items found'"-->
+<!--             labelForId="{{ITEM_ID_FIELD}}"-->
+<!--             [multiple]="component.choiceInfo.multipleChoice"-->
+<!--             [maxSelectedItems]="5"-->
+<!--             [closeOnSelect]="true"-->
+<!--             [hideSelected]="false"-->
+<!--             (ngModelChange)="inputChanged($event)"-->
+<!--  ></ng-select>-->
+</form>
