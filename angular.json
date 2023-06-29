@@ -36,6 +36,10 @@
             "scripts": [
               "node_modules/@webcomponents/custom-elements/src/native-shim.js"
             ],
+            "allowedCommonJsDependencies": [
+              "moment",
+              "moment-timezone"
+            ],
             "aot": false,
             "vendorChunk": true,
             "extractLicenses": false,
@@ -80,7 +84,7 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
             "browserTarget": "cedar-embeddable-editor:build",
-            "port": 4320
+            "port": 4400
           },
           "configurations": {
             "production": {
