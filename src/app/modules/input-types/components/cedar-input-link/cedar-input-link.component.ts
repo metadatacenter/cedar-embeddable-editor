@@ -66,7 +66,6 @@ export class CedarInputLinkComponent extends CedarUIComponent implements OnInit 
     if (val.length === 0) {
       val = null;
     }
-
     this.handlerContext.changeValue(this.component, val);
   }
 
