@@ -126,8 +126,6 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   }
 
   paginatorChanged($event: PageEvent): void {
-    console.log("Paginator changed");
-    event.stopPropagation();
     if ($event.pageSize !== this.pageSize) {
       this.pageSizeChanged($event);
     } else {
@@ -178,8 +176,6 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   }
 
   chipClicked(chipIdx: number): void {
-    console.log("Chipped clicked");
-    event.stopPropagation();
     // this call was causing the entire dateTimeParsed object to reset
     // after the timezone input was set
     // see cedar-input-datetime.component.ts:
