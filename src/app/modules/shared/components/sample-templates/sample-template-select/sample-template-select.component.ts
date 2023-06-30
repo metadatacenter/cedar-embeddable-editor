@@ -8,7 +8,7 @@ import {ReplaySubject, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 
 @Component({
-  selector: 'app-sample-template-select',
+  selector: 'app-sample-template-selectElement',
   templateUrl: './sample-template-select.component.html',
   styleUrls: ['./sample-template-select.component.scss'],
   encapsulation: ViewEncapsulation.None

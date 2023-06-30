@@ -1,31 +1,19 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
     <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
-    <input matInput type="text" placeholder="Your Text Here"
-           [formControl]="inputValueControl"
-           [errorStateMatcher]="errorStateMatcher"
-           [matAutocomplete]="auto"
-           (input)="inputChanged($event)"
+    <mat-select #inputSelect
+                [formControl]="inputValueControl"
+                [errorStateMatcher]="errorStateMatcher"
+                multiple="{{component.choiceInfo.multipleChoice}}"
+                (selectionChange)="inputChanged()"
     >
-    <mat-autocomplete #auto="matAutocomplete">
       <mat-option *ngFor="let option of dropdownList" [value]="option.id"
-                  (onSelectionChange)="inputChanged($event)"
-      >{{option.label}}</mat-option>
-    </mat-autocomplete>
-      <button tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+        >{{option.label}}</mat-option>
+      </mat-select>
+      <button tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue($event)">
         <mat-icon>close</mat-icon>
       </button>
-      <mat-hint tabindex="0" align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-hint>
+      <mat-hint tabindex="0" align="start" *ngIf="inputValueControl.hasError('required')" class="mat-error">The value is required.</mat-hint>
+      <mat-hint *ngIf=maxSelections!==undefined>Select up to {{maxSelections}}</mat-hint>
   </mat-form-field>
-<!--  <ng-select [items]="dropdownList"-->
-<!--             [(ngModel)]="selectedItems"-->
-<!--             [placeholder]="'Select options...'"-->
-<!--             [notFoundText]="'No items found'"-->
-<!--             labelForId="{{ITEM_ID_FIELD}}"-->
-<!--             [multiple]="component.choiceInfo.multipleChoice"-->
-<!--             [maxSelectedItems]="5"-->
-<!--             [closeOnSelect]="true"-->
-<!--             [hideSelected]="false"-->
-<!--             (ngModelChange)="inputChanged($event)"-->
-<!--  ></ng-select>-->
 </form>

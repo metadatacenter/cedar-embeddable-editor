@@ -8,13 +8,13 @@
                                       [componentToRender]="iterableComponent"
           ></app-cedar-component-header>
         </mat-panel-title>
-
-      </mat-expansion-panel-header>
-      <mat-card-content *ngIf="shouldRenderContentOfIterable(iterableComponent)">
         <app-cedar-multi-pager *ngIf="iterableComponent.isMulti()"
                                [componentToRender]="iterableComponent"
                                [handlerContext]="handlerContext">
         </app-cedar-multi-pager>
+      </mat-expansion-panel-header>
+      <mat-card-content *ngIf="shouldRenderContentOfIterable(iterableComponent)">
+
         <ng-container *ngIf="iterableComponent.linkedStaticFieldComponent">
           <!-- These are the collapsed static components before elements -->
           <app-cedar-static-image *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.image"
