@@ -6,6 +6,7 @@ import {ChoiceInfo} from '../info/choice-info.model';
 import {LabelInfo} from '../info/label-info.model';
 import {StaticFieldComponent} from '../static/static-field-component.model';
 import {ControlledInfo} from '../info/controlled-info.model';
+import {MultiInfo} from '../info/multi-info.model';
 
 export abstract class AbstractFieldComponent implements FieldComponent {
 
@@ -19,6 +20,7 @@ export abstract class AbstractFieldComponent implements FieldComponent {
   labelInfo: LabelInfo = new LabelInfo();
   linkedStaticFieldComponent: StaticFieldComponent = null;
   controlledInfo: ControlledInfo = new ControlledInfo();
+  multiInfo: MultiInfo = new MultiInfo();
 
   abstract isMulti(): boolean;
   abstract isMultiPage(): boolean;
