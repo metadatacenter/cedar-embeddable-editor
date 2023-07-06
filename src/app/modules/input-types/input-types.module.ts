@@ -20,6 +20,7 @@ import {MatChipsModule} from '@angular/material/chips';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatNativeDateModule} from '@angular/material/core';
+import {MatSelectModule} from '@angular/material/select';
 import {NgxMatDatetimePickerModule, NgxMatNativeDateModule, NgxMatTimepickerModule} from '@angular-material-components/datetime-picker';
 import {NgSelectModule} from '@ng-select/ng-select';
 import {CedarInputEmailComponent} from './components/cedar-input-email/cedar-input-email.component';
@@ -46,8 +47,6 @@ import {DatePickerComponent} from '../shared/components/date-picker/date-picker.
 import {TimezonePickerComponent} from '../shared/components/timezone-picker/timezone-picker.component';
 import {MatFileUploadModule} from '../shared/components/file-uploader/mat-file-upload.module';
 import {FileUploaderComponent} from '../shared/components/file-uploader/file-uploader.component';
-import {MatSelectModule} from "@angular/material/select";
-
 
 @NgModule({
     imports: [

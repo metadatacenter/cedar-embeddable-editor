@@ -5,7 +5,7 @@
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
            (input)="inputChanged($event)">
-    <button mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+    <button type="button" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
     <mat-hint align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-hint>
