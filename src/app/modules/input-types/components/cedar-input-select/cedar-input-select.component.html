@@ -10,7 +10,7 @@
       <mat-option *ngFor="let option of dropdownList" [value]="option.id"
         >{{option.label}}</mat-option>
       </mat-select>
-      <button tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue($event)">
+      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue($event)">
         <mat-icon>close</mat-icon>
       </button>
       <mat-hint tabindex="0" align="start" *ngIf="inputValueControl.hasError('required')" class="mat-error">The value is required.</mat-hint>
