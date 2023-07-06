@@ -6,7 +6,7 @@
              (input)="nameChanged($event)"
              (blur)="nameChanged($event)"
       >
-      <button mat-button *ngIf="nameInputControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearName()">
+      <button type="button" mat-button *ngIf="nameInputControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearName()">
         <mat-icon>close</mat-icon>
       </button>
     </mat-form-field>
@@ -16,7 +16,7 @@
       <input matInput type="text" placeholder="Attribute Value"
              [formControl]="valueInputControl"
              (input)="valueChanged($event)">
-      <button mat-button *ngIf="valueInputControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+      <button type="button" mat-button *ngIf="valueInputControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
         <mat-icon>close</mat-icon>
       </button>
     </mat-form-field>
