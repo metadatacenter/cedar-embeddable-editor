@@ -30,6 +30,7 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   setDefaultZone = false;
   datetimeParsed: DatetimeRepresentation;
   dateMonthYearControl: FormControl;
+  required: boolean;
 
   @Input() handlerContext: HandlerContext;
 
@@ -53,6 +54,7 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
+    this.required = this.component.valueInfo.requiredValue;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
