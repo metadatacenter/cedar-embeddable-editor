@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {FormControl} from '@angular/forms';
+import {FormControl, Validators} from '@angular/forms';
 import {DateAdapter} from '@angular/material/core';
 import {MatDatepicker} from '@angular/material/datepicker';
 
@@ -39,6 +39,7 @@ export class DatePickerComponent implements OnInit {
 
   @Input() dateMonthYear: FormControl;
   @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
+  @Input() required: boolean;
   @Output() dateChangedEvent = new EventEmitter<Moment>();
 
 
@@ -58,6 +59,11 @@ export class DatePickerComponent implements OnInit {
         m.set('month', 0);
         break;
     }
+
+    if (this.component.valueInfo.requiredValue) {
+      validators.push(Validators.required);
+    }
+
     this.dateMonthYear = new FormControl();
     this.dateChangedEvent.emit(this.dateMonthYear.value);
   }
