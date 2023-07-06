@@ -1,13 +1,19 @@
-<div class="wrapper">
-  <ng-select [items]="dropdownList"
-             [(ngModel)]="selectedItems"
-             [placeholder]="'Select options...'"
-             [notFoundText]="'No items found'"
-             labelForId="{{ITEM_ID_FIELD}}"
-             [multiple]="component.choiceInfo.multipleChoice"
-             [maxSelectedItems]="5"
-             [closeOnSelect]="true"
-             [hideSelected]="false"
-             (ngModelChange)="inputChanged($event)"
-  ></ng-select>
-</div>
+<form class="form-container" [formGroup]="options">
+  <mat-form-field class="full-width">
+    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
+    <mat-select #inputSelect
+                [formControl]="inputValueControl"
+                [errorStateMatcher]="errorStateMatcher"
+                multiple="{{component.choiceInfo.multipleChoice}}"
+                (selectionChange)="inputChanged()"
+    >
+      <mat-option *ngFor="let option of dropdownList" [value]="option.id"
+        >{{option.label}}</mat-option>
+      </mat-select>
+      <button tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue($event)">
+        <mat-icon>close</mat-icon>
+      </button>
+      <mat-hint tabindex="0" align="start" *ngIf="inputValueControl.hasError('required')" class="mat-error">The value is required.</mat-hint>
+      <mat-hint *ngIf=maxSelections!==undefined>Select up to {{maxSelections}}</mat-hint>
+  </mat-form-field>
+</form>

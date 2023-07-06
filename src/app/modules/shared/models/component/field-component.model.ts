@@ -5,6 +5,7 @@ import {NumberInfo} from '../info/number-info.model';
 import {ChoiceInfo} from '../info/choice-info.model';
 import {LabelInfo} from '../info/label-info.model';
 import {ControlledInfo} from '../info/controlled-info.model';
+import {MultiInfo} from '../info/multi-info.model';
 
 export interface FieldComponent extends CedarComponent {
 
@@ -14,6 +15,7 @@ export interface FieldComponent extends CedarComponent {
   choiceInfo: ChoiceInfo;
   labelInfo: LabelInfo;
   controlledInfo: ControlledInfo;
+  multiInfo: MultiInfo;
 
   isMulti(): boolean;
   isMultiPage(): boolean;
