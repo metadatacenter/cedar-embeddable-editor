@@ -323,6 +323,9 @@ export class DatetimeRepresentation {
   }
 
   setDate(dateIn: Moment): void {
+    if (!dateIn){
+      return;
+    }
     this.dateIsSet = true;
     this.year = dateIn.year().toLocaleString().replace(/,/,'');
     this.month = this.stringify((dateIn.month() + 1).toLocaleString());

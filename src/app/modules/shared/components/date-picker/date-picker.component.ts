@@ -58,7 +58,7 @@ export class DatePickerComponent implements OnInit {
         m.set('month', 0);
         break;
     }
-    this.dateMonthYear = new FormControl(m);
+    this.dateMonthYear = new FormControl();
     this.dateChangedEvent.emit(this.dateMonthYear.value);
   }
 
