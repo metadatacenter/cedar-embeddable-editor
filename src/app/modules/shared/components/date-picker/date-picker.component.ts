@@ -47,6 +47,7 @@ export class DatePickerComponent implements OnInit {
   }
 
   public ngOnInit(): void {
+    const validators: any[] = [];
     this._dateTimeService.format = this.dateFormat;
     const m = moment();
 
@@ -59,20 +60,20 @@ export class DatePickerComponent implements OnInit {
         m.set('month', 0);
         break;
     }
-
-    if (this.component.valueInfo.requiredValue) {
+    if (this.required) {
       validators.push(Validators.required);
     }
-
-    this.dateMonthYear = new FormControl();
+    this.dateMonthYear = new FormControl(null, validators);
     this.dateChangedEvent.emit(this.dateMonthYear.value);
   }
 
   chosenYearHandler(normalizedYear: Moment, datepicker: MatDatepicker<Moment>): void {
+    if (this.dateMonthYear.value == null){
+      this.dateMonthYear.setValue(moment());
+    }
     const ctrlValue = this.dateMonthYear.value;
     ctrlValue.year(normalizedYear.year());
     this.dateMonthYear.setValue(ctrlValue);
-
     if (this.dateFormat === this.yearFormat) {
       datepicker.close();
       this.dateChangedEvent.emit(this.dateMonthYear.value);
