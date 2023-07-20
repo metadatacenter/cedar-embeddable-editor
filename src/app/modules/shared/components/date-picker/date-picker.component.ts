@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {FormControl} from '@angular/forms';
+import {FormControl, Validators} from '@angular/forms';
 import {DateAdapter} from '@angular/material/core';
 import {MatDatepicker} from '@angular/material/datepicker';
 
@@ -39,6 +39,7 @@ export class DatePickerComponent implements OnInit {
 
   @Input() dateMonthYear: FormControl;
   @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
+  @Input() required: boolean;
   @Output() dateChangedEvent = new EventEmitter<Moment>();
 
 
@@ -46,6 +47,7 @@ export class DatePickerComponent implements OnInit {
   }
 
   public ngOnInit(): void {
+    const validators: any[] = [];
     this._dateTimeService.format = this.dateFormat;
     const m = moment();
 
@@ -58,15 +60,20 @@ export class DatePickerComponent implements OnInit {
         m.set('month', 0);
         break;
     }
-    this.dateMonthYear = new FormControl(m);
+    if (this.required) {
+      validators.push(Validators.required);
+    }
+    this.dateMonthYear = new FormControl(null, validators);
     this.dateChangedEvent.emit(this.dateMonthYear.value);
   }
 
   chosenYearHandler(normalizedYear: Moment, datepicker: MatDatepicker<Moment>): void {
+    if (this.dateMonthYear.value == null){
+      this.dateMonthYear.setValue(moment());
+    }
     const ctrlValue = this.dateMonthYear.value;
     ctrlValue.year(normalizedYear.year());
     this.dateMonthYear.setValue(ctrlValue);
-
     if (this.dateFormat === this.yearFormat) {
       datepicker.close();
       this.dateChangedEvent.emit(this.dateMonthYear.value);
