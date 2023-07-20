@@ -34,7 +34,6 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 
   @Input() handlerContext: HandlerContext;
 
-
   constructor(
     fb: FormBuilder,
     private activeComponentRegistry: ActiveComponentRegistryService,
