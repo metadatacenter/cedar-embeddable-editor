@@ -52,6 +52,14 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
   inputChanged(event): void {
     this.handlerContext.changeValue(this.component, event.value);
   }
+  clearValue(): void {
+    this.setValueUIAndModel(null);
+  }
+
+  private setValueUIAndModel(value: string): void {
+    this.selectedChoiceInputControl.setValue(value);
+    this.handlerContext.changeValue(this.component, value);
+  }
 
   setCurrentValue(currentValue: any): void {
     this.selectedChoiceInputControl.setValue(currentValue);
