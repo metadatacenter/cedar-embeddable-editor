@@ -80,7 +80,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
       map(response => {
         if (response == null) {
           return null;
-        } else if (response.collection) {
+        } else if (response?.collection) {
           return response.collection.filter(option => {
             return option.prefLabel?.toLowerCase().indexOf(val.toLowerCase()) === 0;
           });
