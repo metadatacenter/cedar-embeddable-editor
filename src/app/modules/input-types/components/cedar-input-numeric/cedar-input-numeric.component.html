@@ -5,10 +5,10 @@
            [formControl]="inputValueControl"
            (input)="inputChanged($event)">
     <span matSuffix>{{unitOfMeasure}}</span>
-    <mat-hint align="start" *ngIf="inputValueControl.getError('min')" class="mat-error">Value should be at least {{constraintMinValue}}.</mat-hint>
-    <mat-hint align="start" *ngIf="inputValueControl.getError('max')" class="mat-error">Value should be at most {{constraintMaxValue}}.</mat-hint>
-    <mat-hint align="start" *ngIf="inputValueControl.getError('pattern')" class="mat-error">{{patternErrorMessage}}.</mat-hint>
-    <mat-hint align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-hint>
+    <mat-error align="start" *ngIf="inputValueControl.getError('min')" class="mat-error">Value should be at least {{constraintMinValue}}.</mat-error>
+    <mat-error align="start" *ngIf="inputValueControl.getError('max')" class="mat-error">Value should be at most {{constraintMaxValue}}.</mat-error>
+    <mat-error align="start" *ngIf="inputValueControl.getError('pattern')" class="mat-error">{{patternErrorMessage}}.</mat-error>
+    <mat-error align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-error>
     <mat-hint align="end">{{getMinMaxValueHint()}}</mat-hint>
   </mat-form-field>
 </form>
