@@ -10,7 +10,7 @@
         >{{choice.label}}</mat-radio-button>
       </div>
       <button type="button" tabindex="0" mat-button *ngIf="selectedChoiceInputControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
-        <mat-icon>close</mat-icon>Clear choice
+        <mat-icon>close</mat-icon>
       </button>
     </mat-radio-group>
     <mat-error align="start" *ngIf="selectedChoiceInputControl.getError('required')" class="mat-error">The value is required.</mat-error>
