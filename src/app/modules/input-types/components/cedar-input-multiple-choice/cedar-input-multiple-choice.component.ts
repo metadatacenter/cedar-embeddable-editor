@@ -1,10 +1,17 @@
 import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
+import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
 import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
+import {ErrorStateMatcher} from '@angular/material/core';
+import {TextFieldErrorStateMatcher} from '../cedar-input-text/cedar-input-text.component';
 
+export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+    return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+}
 @Component({
   selector: 'app-cedar-input-multiple-choice',
   templateUrl: './cedar-input-multiple-choice.component.html',
@@ -15,6 +22,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
   component: FieldComponent;
   options: FormGroup;
   selectedChoiceInputControl = new FormControl(null, null);
+  errorStateMatcher = new MultipleChoiceErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
 
   constructor(
@@ -29,6 +37,11 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
 
   ngOnInit(): void {
     this.populateItemsOnLoad();
+    const validators: any[] = [];
+    if (this.component.valueInfo.requiredValue) {
+      validators.push(Validators.required);
+    }
+    this.selectedChoiceInputControl = new FormControl(null, validators);
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -38,6 +51,14 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
 
   inputChanged(event): void {
     this.handlerContext.changeValue(this.component, event.value);
+  }
+  clearValue(): void {
+    this.setValueUIAndModel(null);
+  }
+
+  private setValueUIAndModel(value: string): void {
+    this.selectedChoiceInputControl.setValue(value);
+    this.handlerContext.changeValue(this.component, value);
   }
 
   setCurrentValue(currentValue: any): void {
