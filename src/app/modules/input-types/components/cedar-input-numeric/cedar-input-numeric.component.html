@@ -1,7 +1,7 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
-    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
-    <input matInput type="number" placeholder="Your Number Here"
+<!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
+    <input matInput type="number" placeholder="Number only"
            [formControl]="inputValueControl"
            (input)="inputChanged($event)">
     <span matSuffix>{{unitOfMeasure}}</span>
