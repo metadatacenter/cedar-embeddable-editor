@@ -1,11 +1,11 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
-    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
-    <input matInput type="text" placeholder="Your Text Here" *ngIf="component.basicInfo.inputType==inputText"
+<!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
+    <input matInput type="text" *ngIf="component.basicInfo.inputType==inputText"
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
            (input)="inputChanged($event)">
-    <textarea matInput type="text" placeholder="Your Text Here" *ngIf="component.basicInfo.inputType==inputTextarea"
+    <textarea matInput type="text" *ngIf="component.basicInfo.inputType==inputTextarea"
               cdkTextareaAutosize
               cdkAutosizeMinRows="6"
               [formControl]="inputValueControl"
