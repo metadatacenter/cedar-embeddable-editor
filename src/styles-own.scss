@@ -316,3 +316,14 @@ button.close {
 .ng-select.ng-select-multiple .ng-value-icon {
   color: var(--color-text-primary) !important;
 }
+
+.mat-form-field-infix{
+  margin: 0 !important;
+  padding-top: 5px !important;
+  padding-bottom: 7px !important;
+}
+
+.mat-icon:hover {
+  color: green;
+  scale: 1.2;
+}
