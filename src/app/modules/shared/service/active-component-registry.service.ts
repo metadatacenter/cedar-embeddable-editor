@@ -34,6 +34,9 @@ export class ActiveComponentRegistryService {
       if (uiComponent != null && dataObject != null) {
         if (dataObject.hasOwnProperty(JsonSchema.atValue)) {
           uiComponent.setCurrentValue(dataObject[JsonSchema.atValue]);
+        } else if (dataObject.hasOwnProperty(JsonSchema.atId) && (component.basicInfo.inputType === InputType.link)) {
+          // url field single
+          uiComponent.setCurrentValue(dataObject[JsonSchema.atId]);
         } else if (dataObject.hasOwnProperty(JsonSchema.atId)) {
           // controlled field single
           uiComponent.setCurrentValue(dataObject[JsonSchema.rdfsLabel]);
