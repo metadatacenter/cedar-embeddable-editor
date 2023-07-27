@@ -8,7 +8,7 @@
            [matAutocomplete]="auto"
            (input)="inputChanged($event)"
     >
-    <mat-autocomplete #auto="matAutocomplete">
+    <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
       <mat-option *ngFor="let option of filteredOptions | async" [value]="option.prefLabel"
                   (onSelectionChange)="onSelectionChange(option)"
       >{{option.prefLabel}}</mat-option>
