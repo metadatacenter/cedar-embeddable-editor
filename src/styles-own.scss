@@ -1,3 +1,21 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+@include mat.strong-focus-indicators();
+
+$my-primary: mat.define-palette(mat.$teal-palette, 600);
+$my-accent: mat.define-palette(mat.$deep-orange-palette, A200, A100, A400);
+
+$my-theme: mat.define-light-theme((
+  color: (
+    primary: $my-primary,
+    accent: $my-accent,
+  )
+));
+
+@include mat.all-component-themes($my-theme);
+@include mat.strong-focus-indicators-theme($my-theme);
+
 @font-face {
   font-family: 'Material Icons';
   font-display: block;
@@ -324,6 +342,6 @@ button.close {
 }
 
 .mat-icon:hover {
-  color: green;
+  color: #0f7686;
   scale: 1.2;
 }
