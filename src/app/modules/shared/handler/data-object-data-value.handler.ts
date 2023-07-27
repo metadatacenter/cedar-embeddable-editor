@@ -12,6 +12,7 @@ import {FieldComponent} from '../models/component/field-component.model';
 import {InstanceExtractData} from '../models/instance-extract-data.model';
 import {CedarModel} from '../models/cedar-model.model';
 import {DataObjectUtil} from '../util/data-object-util';
+import {InputType} from '../models/input-type.model';
 
 export class DataObjectDataValueHandler {
 
@@ -194,7 +195,11 @@ export class DataObjectDataValueHandler {
   changeValue(dataContext: DataContext, component: FieldComponent, multiInstanceObjectService: MultiInstanceObjectHandler, value: string): void {
     const path = component.path;
     const valueObject = {};
-    valueObject[JsonSchema.atValue] = value;
+    if (component.basicInfo.inputType === InputType.link){
+      valueObject[JsonSchema.atId] = value;
+    } else {
+      valueObject[JsonSchema.atValue] = value;
+    }
     this.setDataPathValueRecursively(dataContext.instanceExtractData, null, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
     this.setDataPathValueRecursively(dataContext.instanceFullData, null, dataContext.templateRepresentation, multiInstanceObjectService, path, valueObject);
   }
