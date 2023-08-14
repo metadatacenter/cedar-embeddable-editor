@@ -1,11 +1,11 @@
-import { async, TestBed } from "@angular/core/testing";
+import { TestBed } from '@angular/core/testing';
 
-import { BehaviorSubject } from "rxjs";
-import { IInput } from "../mat-file-upload.type";
-import { CommonModule } from "@angular/common";
+import { BehaviorSubject } from 'rxjs';
+import { IInput } from '../mat-file-upload.type';
+import { CommonModule } from '@angular/common';
 
-import { FileUploadInputForDirective } from "./file-upload-input-for.directive";
-import { Component } from "@angular/core";
+import { FileUploadInputForDirective } from './file-upload-input-for.directive';
+import { Component } from '@angular/core';
 @Component({
   template: ` <div
     [fileUploadInputFor]="fileUploadQueue"
@@ -19,7 +19,7 @@ export class StubMatFileUploadQueueService {
   inputValueSubject = new BehaviorSubject<IInput>(null);
   inputValue$ = this.inputValueSubject.asObservable();
 
-  initialize(input: IInput) {
+  initialize(input: IInput): void {
     this.inputValueSubject.next(input);
   }
 
@@ -29,11 +29,11 @@ export class StubMatFileUploadQueueService {
 }
 
 export class StubFile {
-  name = "testName";
+  name = 'testName';
   size = 1024;
 }
 
-describe("FileUploadInputForDirective", () => {
+describe('FileUploadInputForDirective', () => {
   let component: FileDropComponent;
   let fixture;
 
@@ -46,8 +46,8 @@ describe("FileUploadInputForDirective", () => {
     component = fixture.componentInstance;
   }));
 
-  describe("", () => {
-    it("should create", () => {
+  describe('', () => {
+    it('should create', () => {
       expect(component).toBeTruthy();
     });
   });
