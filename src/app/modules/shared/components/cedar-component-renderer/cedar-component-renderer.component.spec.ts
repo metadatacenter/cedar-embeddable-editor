@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CedarComponentRendererComponent } from './cedar-component-renderer.component';
 
@@ -6,12 +6,12 @@ describe('CedarComponentRendererComponent', () => {
   let component: CedarComponentRendererComponent;
   let fixture: ComponentFixture<CedarComponentRendererComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [ CedarComponentRendererComponent ]
     })
     .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CedarComponentRendererComponent);

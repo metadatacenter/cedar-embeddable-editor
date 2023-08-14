@@ -19,6 +19,9 @@ import {InputType} from '../../models/input-type.model';
   encapsulation: ViewEncapsulation.None
 })
 export class CedarComponentRendererComponent implements OnInit {
+
+  protected readonly InputType = InputType;
+
   private component: CedarComponent;
   iterableComponent: ElementComponent;
   nonIterableComponent: FieldComponent;
@@ -26,7 +29,6 @@ export class CedarComponentRendererComponent implements OnInit {
   multiInfo: MultiInfo;
   panelOpenState: boolean;
   @Input() handlerContext: HandlerContext;
-  inputType: InputType = InputType;
   // tslint:disable-next-line:variable-name
   private _allExpanded = false;
   @Input()
