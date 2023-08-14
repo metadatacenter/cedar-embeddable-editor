@@ -45,8 +45,8 @@ describe('MatFileUploadComponent', () => {
   let service: StubMatFileUploadQueueService;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [
         MatProgressBarModule,
         MatCardModule,
@@ -62,7 +62,7 @@ describe('MatFileUploadComponent', () => {
     service = TestBed.get(MatFileUploadQueueService);
 
     httpTestingController = TestBed.get(HttpTestingController);
-  }));
+  });
 
   afterEach(() => {
     httpTestingController.verify();

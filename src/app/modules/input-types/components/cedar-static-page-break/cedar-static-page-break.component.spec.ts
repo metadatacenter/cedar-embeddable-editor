@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CedarStaticPageBreakComponent } from './cedar-static-page-break.component';
 
@@ -6,12 +6,12 @@ describe('CedarStaticPageBreakComponent', () => {
   let component: CedarStaticPageBreakComponent;
   let fixture: ComponentFixture<CedarStaticPageBreakComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [ CedarStaticPageBreakComponent ]
     })
     .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CedarStaticPageBreakComponent);

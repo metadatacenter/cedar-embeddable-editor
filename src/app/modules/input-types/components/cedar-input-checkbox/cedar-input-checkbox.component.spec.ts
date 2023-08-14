@@ -1,4 +1,4 @@
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {CedarInputCheckboxComponent} from './cedar-input-checkbox.component';
 
@@ -6,12 +6,12 @@ describe('CedarInputCheckboxComponent', () => {
   let component: CedarInputCheckboxComponent;
   let fixture: ComponentFixture<CedarInputCheckboxComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [CedarInputCheckboxComponent]
     })
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CedarInputCheckboxComponent);
