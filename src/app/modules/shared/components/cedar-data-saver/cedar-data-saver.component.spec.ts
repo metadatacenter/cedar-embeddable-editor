@@ -1,16 +1,16 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CedarDataSaverComponent } from './cedar-data-saver.component';
 
 describe('CedarDataSaverComponent', () => {
   let component: CedarDataSaverComponent;
   let fixture: ComponentFixture<CedarDataSaverComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async() => {
+    await TestBed.configureTestingModule({
       declarations: [ CedarDataSaverComponent ]
     })
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CedarDataSaverComponent);

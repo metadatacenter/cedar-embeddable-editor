@@ -17,13 +17,13 @@
 
         <ng-container *ngIf="iterableComponent.linkedStaticFieldComponent">
           <!-- These are the collapsed static components before elements -->
-          <app-cedar-static-image *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.image"
+          <app-cedar-static-image *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==InputType.image"
                                   [componentToRender]="iterableComponent.linkedStaticFieldComponent"
                                   [handlerContext]="handlerContext"></app-cedar-static-image>
-          <app-cedar-static-youtube *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.youtube"
+          <app-cedar-static-youtube *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==InputType.youtube"
                                     [componentToRender]="iterableComponent.linkedStaticFieldComponent"
                                     [handlerContext]="handlerContext"></app-cedar-static-youtube>
-          <app-cedar-static-rich-text *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.richText"
+          <app-cedar-static-rich-text *ngIf="iterableComponent.linkedStaticFieldComponent.basicInfo.inputType==InputType.richText"
                                       [componentToRender]="iterableComponent.linkedStaticFieldComponent"
                                       [handlerContext]="handlerContext"></app-cedar-static-rich-text>
         </ng-container>
@@ -50,49 +50,49 @@
     <mat-card-content *ngIf="shouldRenderContentOfNonIterable(nonIterableComponent)">
       <ng-container tabIndex="0" *ngIf="nonIterableComponent.linkedStaticFieldComponent && showStaticText">
         <!-- These are the collapsed static components before fields-->
-        <app-cedar-static-image *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.image"
+        <app-cedar-static-image *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==InputType.image"
                                 [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
                                 [handlerContext]="handlerContext"></app-cedar-static-image>
-        <app-cedar-static-youtube *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.youtube"
+        <app-cedar-static-youtube *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==InputType.youtube"
                                   [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
                                   [handlerContext]="handlerContext"></app-cedar-static-youtube>
-        <app-cedar-static-rich-text *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==inputType.richText"
+        <app-cedar-static-rich-text *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==InputType.richText"
                                     [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
                                     [handlerContext]="handlerContext"></app-cedar-static-rich-text>
       </ng-container>
       <!-- These are the regular components -->
-      <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType==inputType.numeric"
+      <app-cedar-input-numeric *ngIf="nonIterableComponent.basicInfo.inputType==InputType.numeric"
                                [componentToRender]="nonIterableComponent"
                                [handlerContext]="handlerContext"></app-cedar-input-numeric>
-      <app-cedar-input-text *ngIf="nonIterableComponent.basicInfo.inputType==inputType.text ||
-                                    nonIterableComponent.basicInfo.inputType==inputType.textarea"
+      <app-cedar-input-text *ngIf="nonIterableComponent.basicInfo.inputType==InputType.text ||
+                                    nonIterableComponent.basicInfo.inputType==InputType.textarea"
                             [componentToRender]="nonIterableComponent"
                             [handlerContext]="handlerContext"></app-cedar-input-text>
-      <app-cedar-input-controlled *ngIf="nonIterableComponent.basicInfo.inputType==inputType.controlled"
+      <app-cedar-input-controlled *ngIf="nonIterableComponent.basicInfo.inputType==InputType.controlled"
                                   [componentToRender]="nonIterableComponent"
                                   [handlerContext]="handlerContext"></app-cedar-input-controlled>
-      <app-cedar-input-email *ngIf="nonIterableComponent.basicInfo.inputType==inputType.email"
+      <app-cedar-input-email *ngIf="nonIterableComponent.basicInfo.inputType==InputType.email"
                              [componentToRender]="nonIterableComponent"
                              [handlerContext]="handlerContext"></app-cedar-input-email>
-      <app-cedar-input-checkbox *ngIf="nonIterableComponent.basicInfo.inputType==inputType.checkbox"
+      <app-cedar-input-checkbox *ngIf="nonIterableComponent.basicInfo.inputType==InputType.checkbox"
                              [componentToRender]="nonIterableComponent"
                              [handlerContext]="handlerContext"></app-cedar-input-checkbox>
-      <app-cedar-input-select *ngIf="nonIterableComponent.basicInfo.inputType==inputType.list"
+      <app-cedar-input-select *ngIf="nonIterableComponent.basicInfo.inputType==InputType.list"
                                 [componentToRender]="nonIterableComponent"
                                 [handlerContext]="handlerContext"></app-cedar-input-select>
-      <app-cedar-input-attribute-value *ngIf="nonIterableComponent.basicInfo.inputType==inputType.attributeValue"
+      <app-cedar-input-attribute-value *ngIf="nonIterableComponent.basicInfo.inputType==InputType.attributeValue"
                               [componentToRender]="nonIterableComponent"
                               [handlerContext]="handlerContext"></app-cedar-input-attribute-value>
-      <app-cedar-input-multiple-choice *ngIf="nonIterableComponent.basicInfo.inputType==inputType.radio"
+      <app-cedar-input-multiple-choice *ngIf="nonIterableComponent.basicInfo.inputType==InputType.radio"
                                 [componentToRender]="nonIterableComponent"
                                 [handlerContext]="handlerContext"></app-cedar-input-multiple-choice>
-      <app-cedar-input-datetime *ngIf="nonIterableComponent.basicInfo.inputType==inputType.temporal"
+      <app-cedar-input-datetime *ngIf="nonIterableComponent.basicInfo.inputType==InputType.temporal"
                                        [componentToRender]="nonIterableComponent"
                                        [handlerContext]="handlerContext"></app-cedar-input-datetime>
-      <app-cedar-input-link *ngIf="nonIterableComponent.basicInfo.inputType==inputType.link"
+      <app-cedar-input-link *ngIf="nonIterableComponent.basicInfo.inputType==InputType.link"
                              [componentToRender]="nonIterableComponent"
                              [handlerContext]="handlerContext"></app-cedar-input-link>
-      <app-cedar-input-phone *ngIf="nonIterableComponent.basicInfo.inputType==inputType.phoneNumber"
+      <app-cedar-input-phone *ngIf="nonIterableComponent.basicInfo.inputType==InputType.phoneNumber"
                             [componentToRender]="nonIterableComponent"
                             [handlerContext]="handlerContext"></app-cedar-input-phone>
     </mat-card-content>
@@ -100,17 +100,17 @@
 </ng-container>
 <ng-container *ngIf="staticComponent">
   <!-- This is the normal section break -->
-  <app-cedar-static-section-break *ngIf="staticComponent.basicInfo.inputType==inputType.sectionBreak"
+  <app-cedar-static-section-break *ngIf="staticComponent.basicInfo.inputType==InputType.sectionBreak"
                                   [componentToRender]="staticComponent"
                                   [handlerContext]="handlerContext"></app-cedar-static-section-break>
   <!-- These are the non-collapsed static components -->
-  <app-cedar-static-image *ngIf="staticComponent.basicInfo.inputType==inputType.image"
+  <app-cedar-static-image *ngIf="staticComponent.basicInfo.inputType==InputType.image"
                           [componentToRender]="staticComponent"
                           [handlerContext]="handlerContext"></app-cedar-static-image>
-  <app-cedar-static-youtube *ngIf="staticComponent.basicInfo.inputType==inputType.youtube"
+  <app-cedar-static-youtube *ngIf="staticComponent.basicInfo.inputType==InputType.youtube"
                             [componentToRender]="staticComponent"
                             [handlerContext]="handlerContext"></app-cedar-static-youtube>
-  <app-cedar-static-rich-text *ngIf="staticComponent.basicInfo.inputType==inputType.richText"
+  <app-cedar-static-rich-text *ngIf="staticComponent.basicInfo.inputType==InputType.richText"
                               [componentToRender]="staticComponent"
                               [handlerContext]="handlerContext"></app-cedar-static-rich-text>
 </ng-container>
