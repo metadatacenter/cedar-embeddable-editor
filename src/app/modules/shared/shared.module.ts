@@ -22,7 +22,9 @@ import {MatListModule} from '@angular/material/list';
 import {MatSelectModule} from '@angular/material/select';
 import {NgxMatSelectSearchModule} from 'ngx-mat-select-search';
 import {NgSelectModule} from '@ng-select/ng-select';
-import {CedarEmbeddableMetadataEditorComponent} from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
+import {
+    CedarEmbeddableMetadataEditorComponent
+} from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import {CedarComponentRendererComponent} from './components/cedar-component-renderer/cedar-component-renderer.component';
 import {CedarDataSaverComponent} from './components/cedar-data-saver/cedar-data-saver.component';
 import {StaticFooterComponent} from './components/static-footer/static-footer.component';
@@ -30,12 +32,15 @@ import {StaticHeaderComponent} from './components/static-header/static-header.co
 import {SourcePanelsComponent} from './components/source-panels/source-panels.component';
 import {CedarMultiPagerComponent} from './components/cedar-multi-pager/cedar-multi-pager.component';
 import {InputTypesModule} from '../input-types/input-types.module';
-import {CedarEmbeddableMetadataEditorWrapperComponent} from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
+import {
+    CedarEmbeddableMetadataEditorWrapperComponent
+} from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import {SampleTemplatesComponent} from './components/sample-templates/sample-templates.component';
 import {SampleTemplateSelectComponent} from './components/sample-templates/sample-template-select/sample-template-select.component';
-import { PreferencesMenu } from './components/preferences-menu/preferences-menu.component';
-import {MatMenuModule} from "@angular/material/menu";
-import {MatSlideToggleModule} from "@angular/material/slide-toggle";
+import {PreferencesMenu} from './components/preferences-menu/preferences-menu.component';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {TranslateModule} from '@ngx-translate/core';
 
 @NgModule({
     imports: [
@@ -64,28 +69,29 @@ import {MatSlideToggleModule} from "@angular/material/slide-toggle";
         InputTypesModule,
         FormsModule,
         MatMenuModule,
-        MatSlideToggleModule
+        MatSlideToggleModule,
+        TranslateModule
     ],
-  declarations: [
-    RdfPipe,
-    CedarComponentHeaderComponent,
-    CedarEmbeddableMetadataEditorComponent,
-    CedarEmbeddableMetadataEditorWrapperComponent,
-    SampleTemplatesComponent,
-    SampleTemplateSelectComponent,
-    CedarComponentRendererComponent,
-    CedarDataSaverComponent,
-    StaticFooterComponent,
-    StaticHeaderComponent,
-    SourcePanelsComponent,
-    CedarMultiPagerComponent,
-    PreferencesMenu
-  ],
-  providers: [],
-  exports: [
-    RdfPipe,
-    CedarEmbeddableMetadataEditorWrapperComponent,
-  ]
+    declarations: [
+        RdfPipe,
+        CedarComponentHeaderComponent,
+        CedarEmbeddableMetadataEditorComponent,
+        CedarEmbeddableMetadataEditorWrapperComponent,
+        SampleTemplatesComponent,
+        SampleTemplateSelectComponent,
+        CedarComponentRendererComponent,
+        CedarDataSaverComponent,
+        StaticFooterComponent,
+        StaticHeaderComponent,
+        SourcePanelsComponent,
+        CedarMultiPagerComponent,
+        PreferencesMenu
+    ],
+    providers: [],
+    exports: [
+        RdfPipe,
+        CedarEmbeddableMetadataEditorWrapperComponent,
+    ]
 })
 export class SharedModule {
 }

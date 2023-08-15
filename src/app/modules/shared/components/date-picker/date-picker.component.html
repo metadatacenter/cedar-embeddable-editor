@@ -5,7 +5,7 @@
            [matDatepicker]="dp"
            [formControl]="dateMonthYear"
     >
-    <mat-error align="start" *ngIf="dateMonthYear.getError('required')" class="mat-error">The value is required.</mat-error>
+    <mat-error align="start" *ngIf="dateMonthYear.getError('required')" class="mat-error">{{'Error.ValueRequired' | translate}}</mat-error>
     <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
     <mat-datepicker #dp
                     (yearSelected)="chosenYearHandler($event, dp)"
