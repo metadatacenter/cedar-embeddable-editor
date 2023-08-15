@@ -3,6 +3,8 @@ import {CedarComponent} from '../../models/component/cedar-component.model';
 import {ComponentDataService} from '../../service/component-data.service';
 import {MultiComponent} from '../../models/component/multi-component.model';
 import {ComponentTypeHandler} from '../../handler/component-type.handler';
+import {SingleFieldComponent} from '../../models/field/single-field-component.model';
+import {FieldComponent} from '../../models/component/field-component.model';
 
 @Component({
   selector: 'app-cedar-component-header',
@@ -14,6 +16,7 @@ export class CedarComponentHeaderComponent implements OnInit {
 
   component: CedarComponent;
   multiComponent: MultiComponent;
+  shouldRenderRequiredMark = false;
 
   constructor(public cds: ComponentDataService) {
   }
@@ -27,6 +30,12 @@ export class CedarComponentHeaderComponent implements OnInit {
       this.multiComponent = componentToRender as MultiComponent;
     } else {
       this.multiComponent = null;
+    }
+    if (this.component instanceof SingleFieldComponent){
+      const fieldComp = this.component as unknown as FieldComponent;
+      if (fieldComp.valueInfo.requiredValue){
+        this.shouldRenderRequiredMark = true;
+      }
     }
   }
 
