@@ -70,7 +70,7 @@ import {TranslateModule} from '@ngx-translate/core';
         FormsModule,
         MatMenuModule,
         MatSlideToggleModule,
-        TranslateModule
+        TranslateModule,
     ],
     declarations: [
         RdfPipe,
