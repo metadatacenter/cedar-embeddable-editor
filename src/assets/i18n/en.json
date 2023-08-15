@@ -1,0 +1,48 @@
+{
+  "App": {
+    "Title": "CEDAR Embeddable Editor",
+    "Maintained": "CEDAR is maintained by the Stanford Center for Biomedical Informatics Research.",
+    "Contact": "Contact CEDAR"
+  },
+  "Generic": {
+    "BMIR": "BMIR",
+    "SAVE": "SAVE",
+    "Infinite": "Infinite",
+    "ExpandAll": "Expand All",
+    "CollapseAll": "Collapse All",
+    "Copy": "Copy"
+  },
+  "Process": {
+    "Initializing": "CEDAR Embeddable Editor initializing..."
+  },
+  "Multi": {
+    "NoInstancesYet": "No instances yet",
+    "AddEmptyAfter": "Add empty after current",
+    "AddCloneAfter": "Add clone after current",
+    "DeleteCurrent": "Delete current"
+  },
+  "Error": {
+    "ValueRequired": "The value is required"
+  },
+  "Extra": {
+    "SampleTemplate": {
+      "Title": "Sample templates",
+      "Select": "Select template",
+      "Find": "Find template...",
+      "FindNoMatch": "No matching templates found"
+    },
+    "JsonLD": {
+      "InstanceCore": "JSON-LD - Instance - Core",
+      "Instance": "JSON-LD - Instance"
+    },
+    "JsonSchemaTemplate": "JSON Schema - Template",
+    "TemplateRendering": "Template Rendering Data",
+    "MultiInstance": "Multi-Instance Information"
+  },
+  "Uploader": {
+    "DragAndDrop": "Drag and drop your own CEDAR template here or",
+    "Browse": "Browse for file",
+    "Error": "Upload of {{fileName}} failed'  with an error: {{responseMessage}}",
+    "Success": "'Upload of {{fileName}} succeeded"
+  }
+}

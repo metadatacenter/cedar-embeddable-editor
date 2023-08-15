@@ -1,0 +1,48 @@
+{
+  "App": {
+    "Title": "CEDAR Beágyazható Szerkesztő",
+    "Maintained": "A CEDAR-t a Stanford Biomedikai Informatikai Kutatási Központ működteti.",
+    "Contact": "Kapcsolat"
+  },
+  "Generic": {
+    "BMIR": "BMIR",
+    "SAVE": "MENTÉS",
+    "Infinite": "Végtelen",
+    "ExpandAll": "Mindet Kinyit",
+    "CollapseAll": "Mindet Bezár",
+    "Copy": "Másolás"
+  },
+  "Process": {
+    "Initializing": "A CEDAR Beágyazható Szerkesztő inicializálása..."
+  },
+  "Multi": {
+    "NoInstancesYet": "Még nincsenek példányok",
+    "AddEmptyAfter": "Üres hozzáadása az aktuális után",
+    "AddCloneAfter": "Klón hozzáadása az aktuális után",
+    "DeleteCurrent": "Aktuális törlése"
+  },
+  "Error": {
+    "ValueRequired": "A mező kitöltése kötelező"
+  },
+  "Extra": {
+    "SampleTemplate": {
+      "Title": "Mintasablonok",
+      "Select": "Válassz sablont",
+      "Find": "Sablon keresése...",
+      "FindNoMatch": "Nincs egyező sablon"
+    },
+    "JsonLD": {
+      "InstanceCore": "JSON-LD - Példány - Alap",
+      "Instance": "JSON-LD - Példány"
+    },
+    "JsonSchemaTemplate": "JSON Séma - Sablon",
+    "TemplateRendering": "Sablon megjelenítési adatok",
+    "MultiInstance": "Multi-példány információ"
+  },
+  "Uploader": {
+    "DragAndDrop": "Húzza és ejtse ide a saját CEDAR sablonját, vagy",
+    "Browse": "Tallózon a fájlrendszeren",
+    "Error": "A(z) {{fileName}} feltöltése sikertelen volt a következő hibával: {{responseMessage}}",
+    "Success": "A(z) {{fileName}} feltöltése sikerült"
+  }
+}
