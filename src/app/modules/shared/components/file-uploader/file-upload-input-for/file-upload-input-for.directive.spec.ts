@@ -23,7 +23,7 @@ export class StubMatFileUploadQueueService {
     this.inputValueSubject.next(input);
   }
 
-  getInputValue() {
+  getInputValue(): IInput {
     return this.inputValueSubject.getValue();
   }
 }
@@ -37,14 +37,14 @@ describe('FileUploadInputForDirective', () => {
   let component: FileDropComponent;
   let fixture;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [CommonModule],
       declarations: [FileUploadInputForDirective, FileDropComponent],
     }).compileComponents();
     fixture = TestBed.createComponent(FileDropComponent);
     component = fixture.componentInstance;
-  }));
+  });
 
   describe('', () => {
     it('should create', () => {
