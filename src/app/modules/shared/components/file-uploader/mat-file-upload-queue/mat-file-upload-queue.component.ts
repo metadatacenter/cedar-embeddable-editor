@@ -36,15 +36,15 @@ export class MatFileUploadQueueComponent implements OnChanges, OnDestroy, AfterV
 
   ngOnChanges(changes: SimpleChanges): void {
     this.matFileUploadQueueService.initialize({
-      httpUrl: changes['httpUrl'] ? changes['httpUrl'].currentValue : undefined,
-      httpRequestHeaders: changes['httpRequestHeaders']
-        ? changes['httpRequestHeaders'].currentValue
+      httpUrl: changes.httpUrl ? changes.httpUrl.currentValue : undefined,
+      httpRequestHeaders: changes.httpRequestHeaders
+        ? changes.httpRequestHeaders.currentValue
         : undefined,
-      httpRequestParams: changes['httpRequestParams']
-        ? changes["httpRequestParams"].currentValue
+      httpRequestParams: changes.httpRequestParams
+        ? changes.httpRequestParams.currentValue
         : undefined,
-      fileAlias: changes['fileAlias']
-        ? changes['fileAlias'].currentValue
+      fileAlias: changes.fileAlias
+        ? changes.fileAlias.currentValue
         : undefined,
     });
   }

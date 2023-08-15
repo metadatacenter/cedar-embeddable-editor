@@ -47,6 +47,7 @@ import {DatePickerComponent} from '../shared/components/date-picker/date-picker.
 import {TimezonePickerComponent} from '../shared/components/timezone-picker/timezone-picker.component';
 import {MatFileUploadModule} from '../shared/components/file-uploader/mat-file-upload.module';
 import {FileUploaderComponent} from '../shared/components/file-uploader/file-uploader.component';
+import {TranslateModule} from '@ngx-translate/core';
 
 @NgModule({
     imports: [
@@ -80,7 +81,8 @@ import {FileUploaderComponent} from '../shared/components/file-uploader/file-upl
         MatFileUploadModule,
         YouTubePlayerModule,
         FormsModule,
-        MatSelectModule
+        MatSelectModule,
+        TranslateModule
     ],
   declarations: [
     CedarFooBarComponent,

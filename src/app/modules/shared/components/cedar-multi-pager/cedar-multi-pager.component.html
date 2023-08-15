@@ -1,7 +1,7 @@
 <div *ngIf="component && currentMultiInfo" class="pager-container">
   <div class="pager-chips">
     <mat-chip-list tabIndex="0" aria-label="Allows multi values.">
-      <mat-chip selectable="false" disabled="true" *ngIf="!hasMultiInstances()" aria-label="No values yet">No instances yet</mat-chip>
+      <mat-chip selectable="false" disabled="true" *ngIf="!hasMultiInstances()" aria-label="No values yet">{{'Multi.NoInstancesYet' | translate}}</mat-chip>
       <mat-chip *ngFor="let pageNumber of pageNumbers"
                 [selected]="pageNumber == currentMultiInfo.currentIndex"
                 (click)="chipClicked(pageNumber)"
@@ -11,13 +11,13 @@
   </div>
   <div>
     <button mat-icon-button tabindex="0" [disabled]="!isEnabledAdd()" (click)="clickedAdd()" aria-label="Add empty after current">
-      <mat-icon [tabIndex]="-1" matTooltip="Add empty after current">note_add</mat-icon>
+      <mat-icon [tabIndex]="-1" matTooltip="{{'Multi.AddEmptyAfter' | translate}}">note_add</mat-icon>
     </button>
     <button mat-icon-button tabindex="0" [disabled]="!isEnabledCopy()" (click)="clickedCopy()" aria-label="Add clone after current">
-      <mat-icon [tabIndex]="-1" matTooltip="Add clone after current">content_copy</mat-icon>
+      <mat-icon [tabIndex]="-1" matTooltip="{{'Multi.AddCloneAfter' | translate}}">content_copy</mat-icon>
     </button>
     <button mat-icon-button tabindex="0" [disabled]="!isEnabledDelete()" (click)="clickedDelete()" aria-label="Delete current">
-      <mat-icon [tabIndex]="-1" matTooltip="Delete current">delete</mat-icon>
+      <mat-icon [tabIndex]="-1" matTooltip="{{'Multi.DeleteCurrent' | translate}}">delete</mat-icon>
     </button>
   </div>
   <div class="pager-pager">
