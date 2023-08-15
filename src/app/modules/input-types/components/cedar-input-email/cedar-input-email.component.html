@@ -8,8 +8,8 @@
     <button type="button" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
-    <mat-error align="start" *ngIf="inputValueControl.getError('email')" class="mat-error">Value should be a valid email address.</mat-error>
-    <mat-error align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-error>
+    <mat-error align="start" *ngIf="inputValueControl.getError('email')" class="mat-error">{{'Validation.Email.Invalid' | translate}}</mat-error>
+    <mat-error align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">{{'Validation.Required' | translate}}</mat-error>
   </mat-form-field>
 </form>
 

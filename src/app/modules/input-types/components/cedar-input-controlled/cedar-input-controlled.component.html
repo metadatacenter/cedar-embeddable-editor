@@ -16,7 +16,7 @@
     <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
-    <mat-error tabindex="0" align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-error>
+    <mat-error tabindex="0" align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">{{'Validation.Required' | translate}}</mat-error>
   </mat-form-field>
 </form>
 

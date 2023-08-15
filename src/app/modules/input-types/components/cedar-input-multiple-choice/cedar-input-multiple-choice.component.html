@@ -13,6 +13,6 @@
         <mat-icon>close</mat-icon>
       </button>
     </mat-radio-group>
-    <mat-error align="start" *ngIf="selectedChoiceInputControl.getError('required')" class="mat-error">The value is required.</mat-error>
+    <mat-error align="start" *ngIf="selectedChoiceInputControl.getError('required')" class="mat-error">{{'Validation.Required' | translate}}</mat-error>
   </mat-form-field>
 </form>
