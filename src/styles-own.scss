@@ -110,6 +110,7 @@ body.cee-body {
 
 .icon-help {
   margin-left: 10px;
+  font-size: medium !important;
 }
 
 .icon-src {
@@ -344,4 +345,8 @@ button.close {
 .mat-icon:hover {
   color: #0f7686;
   scale: 1.2;
+}
+
+.mat-tooltip.tooltip {
+  font-size: 12px;
 }
