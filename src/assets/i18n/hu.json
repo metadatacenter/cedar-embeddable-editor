@@ -8,9 +8,15 @@
     "BMIR": "BMIR",
     "SAVE": "MENTÉS",
     "Infinite": "Végtelen",
-    "ExpandAll": "Mindet Kinyit",
-    "CollapseAll": "Mindet Bezár",
-    "Copy": "Másolás"
+    "ExpandAll": "Mindet kinyit",
+    "CollapseAll": "Mindet bezár",
+    "Copy": "Másolás",
+    "Page": "Oldal",
+    "Name": "Név",
+    "Value": "Érték",
+    "AttributeName": "Attribútum név",
+    "AttributeValue": "Attribútum érték",
+    "AllValues": "Minden érték"
   },
   "Process": {
     "Initializing": "A CEDAR Beágyazható Szerkesztő inicializálása..."
@@ -44,5 +50,28 @@
     "Browse": "Tallózon a fájlrendszeren",
     "Error": "A(z) {{fileName}} feltöltése sikertelen volt a következő hibával: {{responseMessage}}",
     "Success": "A(z) {{fileName}} feltöltése sikerült"
+  },
+  "Saver": {
+    "Error": "Hiba a metaadatok mentése során"
+  },
+  "Validation": {
+    "Required": "Az érték megadása kötelező.",
+    "Text": {
+      "MinLength": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
+      "MaxLength": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet."
+    },
+    "Select": {
+      "MaxSelection": "Válasszon legfeljebb {{maxSelections}} lehetőséget"
+    },
+    "Email": {
+      "Invalid": "Az érték érvényes e-mail címnek kell lennie."
+    },
+    "Link": {
+      "Invalid": "Az érték érvényes webcímnek (URL-nek) kell lennie."
+    },
+    "Numeric": {
+      "MinValue": "Az érték legalább {{constraintMinValue}} kell legyen.",
+      "MaxValue": "Az érték legfeljebb {{constraintMaxValue}} lehet."
+    }
   }
 }

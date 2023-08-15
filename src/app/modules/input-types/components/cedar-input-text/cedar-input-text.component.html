@@ -14,9 +14,9 @@
     <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
-    <mat-error *ngIf="inputValueControl.getError('minlength')">Value should be at least {{constraintMinLength}} chars long.</mat-error>
-    <mat-error *ngIf="inputValueControl.getError('maxlength')">Value should be at most {{constraintMaxLength}} chars long.</mat-error>
-    <mat-error *ngIf="inputValueControl.hasError('required')">The value is required.</mat-error>
+    <mat-error *ngIf="inputValueControl.getError('minlength')">{{'Validation.Text.MinLength' | translate: {constraintMinLength} }}</mat-error>
+    <mat-error *ngIf="inputValueControl.getError('maxlength')">{{'Validation.Text.MaxLength' | translate: {constraintMaxLength} }}</mat-error>
+    <mat-error *ngIf="inputValueControl.hasError('required')">{{'Validation.Required' | translate}}</mat-error>
     <mat-hint align="end">{{getCharCountHint()}}</mat-hint>
   </mat-form-field>
 </form>

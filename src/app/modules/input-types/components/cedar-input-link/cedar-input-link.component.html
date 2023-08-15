@@ -8,8 +8,8 @@
     <button type="button" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
-    <mat-error align="start" *ngIf="inputValueControl.getError('link')" class="mat-error">Value should be a valid URL.</mat-error>
-    <mat-error align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-error>
+    <mat-error align="start" *ngIf="inputValueControl.getError('link')" class="mat-error">{{'Validation.Link.Invalid' | translate}}</mat-error>
+    <mat-error align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">{{'Validation.Required' | translate}}</mat-error>
   </mat-form-field>
 </form>
 

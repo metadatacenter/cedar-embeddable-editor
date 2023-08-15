@@ -1,7 +1,7 @@
 <form class="form-container" [formGroup]="options">
     <mat-form-field class="half-width-with-margin">
-      <mat-label>Name</mat-label>
-      <input matInput type="text" placeholder="Attribute Name"
+      <mat-label>{{'Generic.Name' | translate}}</mat-label>
+      <input matInput type="text" placeholder="{{'Generic.AttributeName' | translate}}"
              [formControl]="nameInputControl"
              (input)="nameChanged($event)"
              (blur)="nameChanged($event)"
@@ -12,8 +12,8 @@
     </mat-form-field>
 
     <mat-form-field class="half-width">
-      <mat-label>Value</mat-label>
-      <input matInput type="text" placeholder="Attribute Value"
+      <mat-label>{{'Generic.Value' | translate}}</mat-label>
+      <input matInput type="text" placeholder="{{'Generic.AttributeValue' | translate}}"
              [formControl]="valueInputControl"
              (input)="valueChanged($event)">
       <button type="button" mat-button *ngIf="valueInputControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">

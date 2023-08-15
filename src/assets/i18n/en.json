@@ -10,7 +10,13 @@
     "Infinite": "Infinite",
     "ExpandAll": "Expand All",
     "CollapseAll": "Collapse All",
-    "Copy": "Copy"
+    "Copy": "Copy",
+    "Page": "Page",
+    "Name": "Name",
+    "Value": "Value",
+    "AttributeName": "Attribute Name",
+    "AttributeValue": "Attribute Value",
+    "AllValues": "All Values"
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."
@@ -44,5 +50,28 @@
     "Browse": "Browse for file",
     "Error": "Upload of {{fileName}} failed'  with an error: {{responseMessage}}",
     "Success": "'Upload of {{fileName}} succeeded"
+  },
+  "Saver": {
+    "Error": "Error saving metadata"
+  },
+  "Validation": {
+    "Required": "The value is required.",
+    "Text": {
+      "MinLength": "Value should be at least {{constraintMinLength}} chars long.",
+      "MaxLength": "Value should be at most {{constraintMaxLength}} chars long."
+    },
+    "Select": {
+      "MaxSelection": "Select up to {{maxSelections}}"
+    },
+    "Email": {
+      "Invalid": "Value should be a valid email address."
+    },
+    "Link": {
+      "Invalid": "Value should be a valid URL."
+    },
+    "Numeric": {
+      "MinValue": "Value should be at least {{constraintMinValue}}.",
+      "MaxValue": "Value should be at most {{constraintMaxValue}}."
+    }
   }
 }
