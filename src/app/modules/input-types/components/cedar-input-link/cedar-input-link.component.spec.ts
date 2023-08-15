@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {CedarInputLinkComponent} from './cedar-input-link.component';
 
 
@@ -6,12 +6,12 @@ describe('CedarInputLinkComponent', () => {
   let component: CedarInputLinkComponent;
   let fixture: ComponentFixture<CedarInputLinkComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [ CedarInputLinkComponent ]
     })
     .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CedarInputLinkComponent);

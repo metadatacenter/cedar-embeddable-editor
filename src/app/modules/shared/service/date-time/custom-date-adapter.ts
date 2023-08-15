@@ -5,13 +5,13 @@ import {DateTimeService} from './date-time.service';
 
 @Injectable()
 export class CustomDateAdapter extends MomentDateAdapter {
-  constructor(private _dateTimeService: DateTimeService) {
-    super(_dateTimeService.locale);
+  constructor(private dateTimeService: DateTimeService) {
+    super(dateTimeService.locale);
   }
 
   public format(date: moment.Moment, displayFormat: string): string {
-    const locale = this._dateTimeService.locale;
-    const format = this._dateTimeService.format;
+    const locale = this.dateTimeService.locale;
+    const format = this.dateTimeService.format;
     date.locale(locale);
     const result = date.format(format);
     return result;

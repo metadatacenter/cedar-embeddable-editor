@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SourcePanelsComponent } from './source-panels.component';
 
@@ -6,12 +6,12 @@ describe('SourcePanelsComponent', () => {
   let component: SourcePanelsComponent;
   let fixture: ComponentFixture<SourcePanelsComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [ SourcePanelsComponent ]
     })
     .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(SourcePanelsComponent);

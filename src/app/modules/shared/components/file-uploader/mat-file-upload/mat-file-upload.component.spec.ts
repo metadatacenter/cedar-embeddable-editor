@@ -1,5 +1,4 @@
 import {
-  async,
   ComponentFixture,
   TestBed,
   tick,
@@ -36,7 +35,7 @@ export class StubMatFileUploadQueueService {
 }
 
 export class StubFile {
-  name = "testName";
+  name = 'testName';
   size = 1024;
 }
 
@@ -46,8 +45,8 @@ describe('MatFileUploadComponent', () => {
   let service: StubMatFileUploadQueueService;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [
         MatProgressBarModule,
         MatCardModule,
@@ -63,7 +62,7 @@ describe('MatFileUploadComponent', () => {
     service = TestBed.get(MatFileUploadQueueService);
 
     httpTestingController = TestBed.get(HttpTestingController);
-  }));
+  });
 
   afterEach(() => {
     httpTestingController.verify();
@@ -74,8 +73,8 @@ describe('MatFileUploadComponent', () => {
     component = fixture.componentInstance;
   }
 
-  describe("", () => {
-    it("should create", () => {
+  describe('', () => {
+    it('should create', () => {
       initComponent();
       component.file = new StubFile();
       let result;
@@ -89,58 +88,58 @@ describe('MatFileUploadComponent', () => {
       });
     });
 
-    it("should use the Queue inputs if inputs are not set", fakeAsync(() => {
+    it('should use the Queue inputs if inputs are not set', fakeAsync(() => {
       service.inputValueSubject.next({
-        httpUrl: "http://queue.url",
-        httpRequestHeaders: { queuekey: "queuevalue" },
-        httpRequestParams: { queueParamkey: "queueParamValue" },
-        fileAlias: "queue alias",
+        httpUrl: 'http://queue.url',
+        httpRequestHeaders: { queuekey: 'queuevalue' },
+        httpRequestParams: { queueParamkey: 'queueParamValue' },
+        fileAlias: 'queue alias',
       });
       initComponent();
       component.file = new StubFile();
       tick();
       fixture.detectChanges();
-      expect(component.httpUrl).toBe("http://queue.url");
-      expect(component.httpRequestHeaders).toEqual({ queuekey: "queuevalue" });
+      expect(component.httpUrl).toBe('http://queue.url');
+      expect(component.httpRequestHeaders).toEqual({ queuekey: 'queuevalue' });
       expect(component.httpRequestParams).toEqual({
-        queueParamkey: "queueParamValue",
+        queueParamkey: 'queueParamValue',
       });
-      expect(component.fileAlias).toBe("queue alias");
+      expect(component.fileAlias).toBe('queue alias');
     }));
 
-    it("should NOT use the Queue inputs if inputs are set", () => {
+    it('should NOT use the Queue inputs if inputs are set', () => {
       service.inputValueSubject.next({
-        httpUrl: "http://queue.url",
-        httpRequestHeaders: { queuekey: "queuevalue" },
-        httpRequestParams: { queueParamkey: "queueParamValue" },
-        fileAlias: "queue alias",
+        httpUrl: 'http://queue.url',
+        httpRequestHeaders: { queuekey: 'queuevalue' },
+        httpRequestParams: { queueParamkey: 'queueParamValue' },
+        fileAlias: 'queue alias',
       });
       initComponent();
       component.file = new StubFile();
-      component.httpUrl = "http://fileupload.url";
-      component.httpRequestHeaders = { queuekey: "fileUploadqueuevalue" };
+      component.httpUrl = 'http://fileupload.url';
+      component.httpRequestHeaders = { queuekey: 'fileUploadqueuevalue' };
       component.httpRequestParams = {
-        queueParamkey: "fileUploadqueueParamValue",
+        queueParamkey: 'fileUploadqueueParamValue',
       };
-      component.fileAlias = "file upload queue alias";
+      component.fileAlias = 'file upload queue alias';
       fixture.detectChanges();
 
-      expect(component.httpUrl).toBe("http://fileupload.url");
+      expect(component.httpUrl).toBe('http://fileupload.url');
       expect(component.httpRequestHeaders).toEqual({
-        queuekey: "fileUploadqueuevalue",
+        queuekey: 'fileUploadqueuevalue',
       });
       expect(component.httpRequestParams).toEqual({
-        queueParamkey: "fileUploadqueueParamValue",
+        queueParamkey: 'fileUploadqueueParamValue',
       });
-      expect(component.fileAlias).toBe("file upload queue alias");
+      expect(component.fileAlias).toBe('file upload queue alias');
     });
 
-    it("should upload", fakeAsync(() => {
+    it('should upload', fakeAsync(() => {
       service.inputValueSubject.next({
-        httpUrl: "http://queue.url",
-        httpRequestHeaders: { queuekey: "queuevalue" },
-        httpRequestParams: { queueParamkey: "queueParamValue" },
-        fileAlias: "queue alias",
+        httpUrl: 'http://queue.url',
+        httpRequestHeaders: { queuekey: 'queuevalue' },
+        httpRequestParams: { queueParamkey: 'queueParamValue' },
+        fileAlias: 'queue alias',
       });
       initComponent();
       component.file = new Blob();
@@ -148,23 +147,23 @@ describe('MatFileUploadComponent', () => {
 
       component.upload();
       const req = httpTestingController.expectOne(
-        "http://queue.url?queueParamkey=queueParamValue"
+        'http://queue.url?queueParamkey=queueParamValue'
       );
 
-      expect(req.request.method).toEqual("POST");
-      expect(req.request.headers.get("queuekey")).toEqual("queuevalue");
-      expect(req.request.params.get("queueParamkey")).toEqual(
-        "queueParamValue"
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.headers.get('queuekey')).toEqual('queuevalue');
+      expect(req.request.params.get('queueParamkey')).toEqual(
+        'queueParamValue'
       );
       req.flush(null);
     }));
 
-    it("should send remove event on remove()", fakeAsync(() => {
+    it('should send remove event on remove()', fakeAsync(() => {
       service.inputValueSubject.next({
-        httpUrl: "http://queue.url",
-        httpRequestHeaders: { queuekey: "queuevalue" },
-        httpRequestParams: { queueParamkey: "queueParamValue" },
-        fileAlias: "queue alias",
+        httpUrl: 'http://queue.url',
+        httpRequestHeaders: { queuekey: 'queuevalue' },
+        httpRequestParams: { queueParamkey: 'queueParamValue' },
+        fileAlias: 'queue alias',
       });
       initComponent();
       component.file = new Blob();

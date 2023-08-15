@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CedarInputNumericComponent } from './cedar-input-numeric.component';
 
@@ -6,12 +6,12 @@ describe('CedarInputNumericComponent', () => {
   let component: CedarInputNumericComponent;
   let fixture: ComponentFixture<CedarInputNumericComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [ CedarInputNumericComponent ]
     })
     .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CedarInputNumericComponent);

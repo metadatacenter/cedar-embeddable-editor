@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CedarComponentHeaderComponent } from './cedar-component-header.component';
 
@@ -6,12 +6,12 @@ describe('CedarComponentHeaderComponent', () => {
   let component: CedarComponentHeaderComponent;
   let fixture: ComponentFixture<CedarComponentHeaderComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async() => {
+    await TestBed.configureTestingModule({
       declarations: [ CedarComponentHeaderComponent ]
     })
     .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CedarComponentHeaderComponent);
