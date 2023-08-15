@@ -1,7 +1,7 @@
 <div class="flex-container">
   <div *ngIf="shouldRenderRequiredMark">
     {{cds.getRenderingLabelForComponent(component)}}
-    <sup style="font-size: medium; color: red"><b>*</b></sup>
+    <sup style="font-size: medium; color: red" aria-label="required"><b>*</b></sup>
   </div>
   <div *ngIf="!shouldRenderRequiredMark">{{cds.getRenderingLabelForComponent(component)}}</div>
   <div class="flex-child" *ngIf="component.isMultiPage()">
