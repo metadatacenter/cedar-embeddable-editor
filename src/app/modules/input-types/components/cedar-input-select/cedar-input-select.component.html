@@ -6,7 +6,7 @@
                 [errorStateMatcher]="errorStateMatcher"
                 multiple="{{component.choiceInfo.multipleChoice}}"
                 (selectionChange)="inputChanged()"
-    >
+                attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
       <mat-option *ngFor="let option of dropdownList" [value]="option.id"
         >{{option.label}}</mat-option>
       </mat-select>
