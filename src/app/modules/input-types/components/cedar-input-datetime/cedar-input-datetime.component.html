@@ -24,15 +24,16 @@
     <input matInput type="number"
            (input)="decimalSecondsChanged($event)"
            [(ngModel)]="decimalSeconds"
-           name="decimalSeconds">
+           name="decimalSeconds"
+           attr.aria-label="{{'Generic.SelectDecimalSeconds' | translate}}">
   </mat-form-field>
 </ng-container>
 <ng-container *ngIf="showTimezonePicker()">
   <app-timezone-picker
     [(ngModel)]="timezone"
     (ngModelChange)="timezoneInputChanged($event)"
-    [customPlaceholderText]="'Select timezone...'"
-    [customNotFoundText]="'No timezone found'"
+    customPlaceholderText="{{'Generic.SelectTimeZone' | translate}}"
+    customNotFoundText="{{'Generic.NoTimeZoneFound' | translate}}"
     [getUserZone]="setDefaultZone"
     [clearable]="false"
   ></app-timezone-picker>
