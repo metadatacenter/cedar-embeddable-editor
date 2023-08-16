@@ -1,11 +1,12 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
 <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
-    <input matInput type="text" placeholder="Link URL Here"
+    <input matInput type="text"
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
-           (input)="inputChanged($event)">
-    <button type="button" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+           (input)="inputChanged($event)"
+           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}"
+    <button type="button" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
     <mat-error align="start" *ngIf="inputValueControl.getError('link')" class="mat-error">{{'Validation.Link.Invalid' | translate}}</mat-error>
