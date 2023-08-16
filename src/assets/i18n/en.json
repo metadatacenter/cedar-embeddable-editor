@@ -18,6 +18,12 @@
     "AttributeValue": "Attribute Value",
     "AllValues": "All Values",
     "Clear": "Clear",
+    "SelectDecimalSeconds": "Select Decimal Seconds",
+    "SelectTimeZone": "Select Time Zone",
+    "NoTimeZoneFound": "No Time Zone Found",
+    "SelectYear": "Select Year",
+    "SelectYearAndMonth": "Select Year and Month",
+    "SelectDate": "Select Date"
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."
