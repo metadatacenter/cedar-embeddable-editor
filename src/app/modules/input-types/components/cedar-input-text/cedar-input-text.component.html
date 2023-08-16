@@ -4,13 +4,15 @@
     <input matInput type="text" *ngIf="component.basicInfo.inputType==inputText"
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
-           (input)="inputChanged($event)">
+           (input)="inputChanged($event)"
+           [attr.aria-label]=cds.getRenderingLabelForComponent(component)>
     <textarea matInput type="text" *ngIf="component.basicInfo.inputType==inputTextarea"
               cdkTextareaAutosize
               cdkAutosizeMinRows="6"
               [formControl]="inputValueControl"
               [errorStateMatcher]="errorStateMatcher"
-              (input)="inputChanged($event)"></textarea>
+              (input)="inputChanged($event)"
+              [attr.aria-label]=cds.getRenderingLabelForComponent(component)></textarea>
     <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
