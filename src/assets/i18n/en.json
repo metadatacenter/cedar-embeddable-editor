@@ -16,7 +16,8 @@
     "Value": "Value",
     "AttributeName": "Attribute Name",
     "AttributeValue": "Attribute Value",
-    "AllValues": "All Values"
+    "AllValues": "All Values",
+    "Clear": "Clear",
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."
