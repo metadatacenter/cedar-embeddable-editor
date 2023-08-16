@@ -1,9 +1,10 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
 <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
-    <input matInput type="number" placeholder="Number only"
+    <input matInput type="number" placeholder="{{'Generic.NumberOnly' | translate}}"
            [formControl]="inputValueControl"
-           (input)="inputChanged($event)">
+           (input)="inputChanged($event)"
+           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
     <span matSuffix>{{unitOfMeasure}}</span>
     <mat-error align="start" *ngIf="inputValueControl.getError('min')" class="mat-error">{{'Validation.Numeric.MinValue' | translate: {constraintMinValue} }}</mat-error>
     <mat-error align="start" *ngIf="inputValueControl.getError('max')" class="mat-error">{{'Validation.Numeric.MaxValue' | translate: {constraintMaxValue} }}</mat-error>

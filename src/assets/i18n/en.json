@@ -23,7 +23,8 @@
     "NoTimeZoneFound": "No Time Zone Found",
     "SelectYear": "Select Year",
     "SelectYearAndMonth": "Select Year and Month",
-    "SelectDate": "Select Date"
+    "SelectDate": "Select Date",
+    "NumberOnly": "Number Only"
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."
