@@ -25,6 +25,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     activeComponentRegistry: ActiveComponentRegistryService;
     translateService: TranslateService;
     @Input() handlerContext: HandlerContext;
+    @Input() isAlignedUp: boolean;
 
     length = 0;
     pageSize = 5;

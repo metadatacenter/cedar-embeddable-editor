@@ -11,7 +11,8 @@
       </mat-expansion-panel-header>
       <app-cedar-multi-pager *ngIf="iterableComponent.isMulti()"
                              [componentToRender]="iterableAsMultiComponent"
-                             [handlerContext]="handlerContext">
+                             [handlerContext]="handlerContext"
+                             [isAlignedUp]=true>
       </app-cedar-multi-pager>
       <mat-card-content *ngIf="shouldRenderContentOfIterable(iterableComponent)">
         <ng-container *ngIf="iterableComponent.linkedStaticFieldComponent">
@@ -45,6 +46,7 @@
     <app-cedar-multi-pager *ngIf="nonIterableComponent.isMultiPage()"
                            [componentToRender]="nonIterableComponent"
                            [handlerContext]="handlerContext"
+                           [isAlignedUp]=false>
     ></app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfNonIterable(nonIterableComponent)">
       <ng-container tabIndex="0" *ngIf="nonIterableComponent.linkedStaticFieldComponent && showStaticText">
