@@ -6,7 +6,7 @@
              (input)="nameChanged($event)"
              (blur)="nameChanged($event)"
              attr.aria-label="{{'Generic.AttributeName' | translate}}">
-      <button type="button" mat-button *ngIf="nameInputControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearName()">
+      <button type="button" mat-button *ngIf="nameInputControl.value" matSuffix mat-icon-button aria-label="{{'Generic.Clear' | translate}}" (click)="clearName()">
         <mat-icon>close</mat-icon>
       </button>
     </mat-form-field>
@@ -17,7 +17,7 @@
              [formControl]="valueInputControl"
              (input)="valueChanged($event)"
              attr.aria-label="{{'Generic.AttributeName' | translate}}">
-      <button type="button" mat-button *ngIf="valueInputControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+      <button type="button" mat-button *ngIf="valueInputControl.value" matSuffix mat-icon-button aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
         <mat-icon>close</mat-icon>
       </button>
     </mat-form-field>

@@ -13,7 +13,7 @@
               [errorStateMatcher]="errorStateMatcher"
               (input)="inputChanged($event)"
               attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}"></textarea>
-    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
     <mat-error *ngIf="inputValueControl.getError('minlength')">{{'Validation.Text.MinLength' | translate: {constraintMinLength} }}</mat-error>
