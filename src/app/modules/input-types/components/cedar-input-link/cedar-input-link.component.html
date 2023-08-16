@@ -5,7 +5,7 @@
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
            (input)="inputChanged($event)"
-           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}"
+           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
     <button type="button" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
