@@ -10,7 +10,7 @@
       <mat-option *ngFor="let option of dropdownList" [value]="option.id"
         >{{option.label}}</mat-option>
       </mat-select>
-      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue($event)">
+      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue($event)">
         <mat-icon>close</mat-icon>
       </button>
       <mat-error tabindex="0" align="start" *ngIf="inputValueControl.hasError('required')" class="mat-error">{{'Validation.Required' | translate}}</mat-error>

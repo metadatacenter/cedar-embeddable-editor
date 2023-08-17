@@ -13,7 +13,7 @@
                   (onSelectionChange)="onSelectionChange(option)"
       >{{option.prefLabel}}</mat-option>
     </mat-autocomplete>
-    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
+    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
     <mat-error tabindex="0" align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">{{'Validation.Required' | translate}}</mat-error>
