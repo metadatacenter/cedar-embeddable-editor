@@ -10,6 +10,9 @@ import {JsonSchema} from '../../models/json-schema.model';
 import {HandlerContext} from '../../util/handler-context';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 import {MultiInstanceObjectHandler} from '../../handler/multi-instance-object.handler';
+import {environment} from "../../../../../environments/environment";
+import {LocalSettingsService} from "../../service/local-settings.service";
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -47,16 +50,28 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private messageHandlerService: MessageHandlerService,
     private matFileUploadService: MatFileUploadService,
     private sampleTemplateService: SampleTemplatesService,
-    private activeComponentRegistry: ActiveComponentRegistryService
+    private activeComponentRegistry: ActiveComponentRegistryService,
+    private localSettings: LocalSettingsService,
+    private translateService: TranslateService
   ) {
     this.sampleTemplateLoaderObject = this;
+
+    // this language will be used as a fallback when a translation isn't found in the current language
+    this.translateService.setDefaultLang(environment.fallbackLanguage);
+
+    // the lang to use, if the lang isn't available, it will use the current loader to get them
+    let currentLanguage = this.localSettings.getLanguage();
+    if (currentLanguage == null) {
+      currentLanguage = environment.defaultLanguage;
+    }
+    this.translateService.use(currentLanguage);
   }
 
   ngOnInit(): void {
 
     this.sampleTemplateService.templateJson$
       .pipe(takeUntil(this._onDestroy))
-      .subscribe( templateJson => {
+      .subscribe(templateJson => {
         if (templateJson) {
           this.templateJson = Object.values(templateJson)[0];
         }
@@ -105,7 +120,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
 
       dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
-          dataContext.templateRepresentation, instanceExtractData);
+        dataContext.templateRepresentation, instanceExtractData);
 
       if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
         for (const childComponent of dataContext.templateRepresentation.children) {
