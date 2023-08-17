@@ -4,14 +4,16 @@
     <input matInput type="text" *ngIf="component.basicInfo.inputType==inputText"
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
-           (input)="inputChanged($event)">
+           (input)="inputChanged($event)"
+           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
     <textarea matInput type="text" *ngIf="component.basicInfo.inputType==inputTextarea"
               cdkTextareaAutosize
               cdkAutosizeMinRows="6"
               [formControl]="inputValueControl"
               [errorStateMatcher]="errorStateMatcher"
-              (input)="inputChanged($event)"></textarea>
-    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+              (input)="inputChanged($event)"
+              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}"></textarea>
+    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
     <mat-error *ngIf="inputValueControl.getError('minlength')">{{'Validation.Text.MinLength' | translate: {constraintMinLength} }}</mat-error>
