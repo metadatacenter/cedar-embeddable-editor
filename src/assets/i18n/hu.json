@@ -16,7 +16,16 @@
     "Value": "Érték",
     "AttributeName": "Attribútum név",
     "AttributeValue": "Attribútum érték",
-    "AllValues": "Minden érték"
+    "AllValues": "Minden érték",
+    "Clear": "Törlés",
+    "SelectDecimalSeconds": "Tizedes másodpercek kiválasztása",
+    "SelectTimeZone": "Időzóna kiválasztása",
+    "NoTimeZoneFound": "Nem található időzóna",
+    "SelectYear": "Év kiválasztása",
+    "SelectYearAndMonth": "Év és hónap kiválasztása",
+    "SelectDate": "Dátum kiválasztása",
+    "NumberOnly": "Csak szám",
+    "CedarLogo": "CEDAR logó"
   },
   "Process": {
     "Initializing": "A CEDAR Beágyazható Szerkesztő inicializálása..."
@@ -61,7 +70,7 @@
       "MaxLength": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet."
     },
     "Select": {
-      "MaxSelection": "Válasszon legfeljebb {{maxSelections}} lehetőséget"
+      "MaxSelection": "Legfeljebb {{maxSelections}} lehetőség kiválasztása lehetséges"
     },
     "Email": {
       "Invalid": "Az érték érvényes e-mail címnek kell lennie."
