@@ -9,9 +9,9 @@
 <!--  </preferences-menu>-->
 <mat-card class="template-card" *ngIf="dataAvailableForRender()">
   <mat-card-header>
-    <div mat-card-avatar class="header-image"></div>
+    <div mat-card-avatar class="header-image" aria-label="{{'Generic.CedarLogo' | translate}}"></div>
     <h1>{{dataContext.templateRepresentation.labelInfo.label}}</h1>
-    <h2>{{dataContext.templateRepresentation.labelInfo.description}}</h2>
+    <h2 *ngIf=dataContext.templateRepresentation.labelInfo.description>{{dataContext.templateRepresentation.labelInfo.description}}</h2>
     <div *ngIf="dataContext.templateRepresentation.hasPageBreaks()" class="header-flex-child">
       <app-cedar-static-page-break
         [dataContext]="dataContext"
