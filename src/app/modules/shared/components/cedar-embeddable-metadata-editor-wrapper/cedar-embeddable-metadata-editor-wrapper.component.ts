@@ -25,8 +25,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
   static TERMINOLOGY_PROXY_URL = 'terminologyProxyUrl';
   static SHOW_SPINNER_BEFORE_INIT = 'showSpinnerBeforeInit';
-  static TEMPLATE_DOWNLOAD_ENDPOINT = 'templateDownloadEndpoint';
-  static TEMPLATE_DOWNLOAD_PARAM_NAME = 'templateDownloadParamName';
   static TEMPLATE_JSON = 'templateJSON';
   static INSTANCE_JSON = 'instanceJSON';
 
@@ -38,7 +36,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   sampleTemplateLoaderObject = null;
   showSpinnerBeforeInit = true;
   protected _onDestroy = new Subject<void>();
-  externalTemplateInfo: object;
   handlerContext: HandlerContext = null;
   private instanceJson = null;
 
@@ -107,10 +104,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         }
       }
     }
-  }
-
-  @Input() set templateInfo(templateInfo: object) {
-    this.externalTemplateInfo = templateInfo;
   }
 
   @Input() set templateObject(template: object) {

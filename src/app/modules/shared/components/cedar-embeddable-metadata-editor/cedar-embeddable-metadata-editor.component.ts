@@ -62,7 +62,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   collapseStaticComponents = true;
 
-  @Input() externalTemplateInfo: object;
   allExpanded: boolean;
 
   constructor() {
@@ -72,7 +71,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.dataContext.externalTemplateInfo = this.externalTemplateInfo;
   }
 
   @Input() set config(value: object) {
