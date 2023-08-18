@@ -31,8 +31,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private static COLLAPSE_STATIC_COMPONENTS = 'collapseStaticComponents';
 
-  private static SHOW_DATA_SAVER = 'showDataSaver';
-  private static DATA_SAVER_ENDPOINT_URL = 'dataSaverEndpointUrl';
   private static SHOW_STATIC_TEXT = 'showStaticText';
 
   private readonly dataContext: DataContext = null;
@@ -64,8 +62,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   collapseStaticComponents = true;
 
-  showDataSaver = false;
-  dataSaverEndpointUrl: string;
   @Input() externalTemplateInfo: object;
   allExpanded: boolean;
 
@@ -125,12 +121,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS)) {
         this.collapseStaticComponents = value[CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS];
-      }
-      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_DATA_SAVER)) {
-        this.showDataSaver = value[CedarEmbeddableMetadataEditorComponent.SHOW_DATA_SAVER];
-      }
-      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.DATA_SAVER_ENDPOINT_URL)) {
-        this.dataSaverEndpointUrl = value[CedarEmbeddableMetadataEditorComponent.DATA_SAVER_ENDPOINT_URL];
       }
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT)) {
         this.showStaticText = value[CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT];
