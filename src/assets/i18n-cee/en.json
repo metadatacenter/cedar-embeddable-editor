@@ -54,15 +54,6 @@
     "TemplateRendering": "Template Rendering Data",
     "MultiInstance": "Multi-Instance Information"
   },
-  "Uploader": {
-    "DragAndDrop": "Drag and drop your own CEDAR template here or",
-    "Browse": "Browse for file",
-    "Error": "Upload of {{fileName}} failed'  with an error: {{responseMessage}}",
-    "Success": "'Upload of {{fileName}} succeeded"
-  },
-  "Saver": {
-    "Error": "Error saving metadata"
-  },
   "Validation": {
     "Required": "The value is required.",
     "Text": {
