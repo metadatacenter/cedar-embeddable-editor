@@ -69,12 +69,12 @@ document.addEventListener('WebComponentsReady', function () {
 ### Required configuration parameters
 
 * **sampleTemplateLocationPrefix:** The base URL that contains the sample CEDAR templates
-* **terminologyProxyUrl:** The URL of the proxy endpoint that communicates with BioPortal
+* **terminologyIntegratedSearchUrl:** The URL of the CEDAR integrated search endpoint that communicates with BioPortal
 
 ```json
 {
   "sampleTemplateLocationPrefix": "https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/",
-  "terminologyProxyUrl": "https://terminology.metadatacenter.org/bioportal/integrated-search"
+  "terminologyIntegratedSearchUrl": "https://terminology.metadatacenter.org/bioportal/integrated-search"
 }
 ```
 
