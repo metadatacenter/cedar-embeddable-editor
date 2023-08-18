@@ -11,12 +11,7 @@ import {environment} from '../environments/environment';
 export class AppComponentProd implements OnInit {
 
   ceeConfig = {
-    showTemplateUpload: true,
-    templateUploadBaseUrl: 'http://localhost:8000',
-    // templateUploadBaseUrl: 'https://api-php.cee.metadatacenter.orgx',
-    templateUploadEndpoint: '/upload.php',
     templateDownloadEndpoint: '/download.php',
-    templateUploadParamName: '3520cf061bba4919a8ea4b74a07af01b',
     templateDownloadParamName: '9ff482bacac84c499655ab58efdf590a',
 
     showDataSaver: true,

@@ -159,20 +159,6 @@ Example:
 }
 ```
 
-### Template upload endpoint
-
-CEDAR Embeddable Editor includes an optional feature that allows uploading a template source file and creating metadata for that template.
-
-If you plan to enable that functionality, you will need to set up two endpoints in your configuration file:
-
-```json
-"showTemplateUpload": true,
-"templateUploadBaseUrl": "http://localhost:8000",
-"templateUploadEndpoint": "/upload.php",
-"templateDownloadEndpoint": "/download.php",
-```
-Replace `templateUploadBaseUrl` with a URL pointing to the root of the server on which the endpoints reside. Configure `templateUploadEndpoint` and `templateDownloadEndpoint` to their respective paths from the `templateUploadBaseUrl`.
-
 ### Required configuration parameters
 
 * **sampleTemplateLocationPrefix:** The base URL that contains the sample CEDAR templates
@@ -187,7 +173,7 @@ Replace `templateUploadBaseUrl` with a URL pointing to the root of the server on
 
 ### Optional configuration parameters
 
-The are other optional configuration parameters available for controlling various aspects of the CEE user interface. Most of these are self-explanatory. The example below includes the default values in cases, where the parameter isn't explicitly declared.
+There are other optional configuration parameters available for controlling various aspects of the CEE user interface. Most of these are self-explanatory. The example below includes the default values in cases, where the parameter isn't explicitly declared.
 
 ```json
 {
