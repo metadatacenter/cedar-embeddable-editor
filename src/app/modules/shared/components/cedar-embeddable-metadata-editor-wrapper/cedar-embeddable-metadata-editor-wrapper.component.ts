@@ -1,8 +1,7 @@
 import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
-import {HttpResponse, HttpStatusCode} from '@angular/common/http';
+import {HttpStatusCode} from '@angular/common/http';
 import {ControlledFieldDataService} from '../../service/controlled-field-data.service';
 import {MessageHandlerService} from '../../service/message-handler.service';
-import {MatFileUploadService} from '../file-uploader/mat-file-upload/mat-file-upload.service';
 import {Subject} from 'rxjs';
 import {SampleTemplatesService} from '../sample-templates/sample-templates.service';
 import {takeUntil} from 'rxjs/operators';
@@ -10,9 +9,9 @@ import {JsonSchema} from '../../models/json-schema.model';
 import {HandlerContext} from '../../util/handler-context';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 import {MultiInstanceObjectHandler} from '../../handler/multi-instance-object.handler';
-import {environment} from "../../../../../environments/environment";
-import {LocalSettingsService} from "../../service/local-settings.service";
-import {TranslateService} from "@ngx-translate/core";
+import {environment} from '../../../../../environments/environment';
+import {LocalSettingsService} from '../../service/local-settings.service';
+import {TranslateService} from '@ngx-translate/core';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -26,7 +25,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
   static TERMINOLOGY_PROXY_URL = 'terminologyProxyUrl';
   static SHOW_SPINNER_BEFORE_INIT = 'showSpinnerBeforeInit';
-  static TEMPLATE_UPLOAD_BASE_URL = 'templateUploadBaseUrl';
   static TEMPLATE_DOWNLOAD_ENDPOINT = 'templateDownloadEndpoint';
   static TEMPLATE_DOWNLOAD_PARAM_NAME = 'templateDownloadParamName';
   static TEMPLATE_JSON = 'templateJSON';
@@ -48,7 +46,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   constructor(
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
-    private matFileUploadService: MatFileUploadService,
     private sampleTemplateService: SampleTemplatesService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private localSettings: LocalSettingsService,
@@ -74,24 +71,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       .subscribe(templateJson => {
         if (templateJson) {
           this.templateJson = Object.values(templateJson)[0];
-        }
-      });
-    this.matFileUploadService.uploadedFile$
-      .pipe(takeUntil(this._onDestroy))
-      .subscribe(fileInfo => {
-        if (fileInfo && fileInfo['event'] instanceof HttpResponse) {
-          const statusCode = fileInfo['event']['status'];
-
-          if (statusCode === HttpStatusCode.Created &&
-            this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_BASE_URL) &&
-            this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT) &&
-            this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME)) {
-            const filename = fileInfo['event']['body']['filename'];
-            const templateUrl = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_BASE_URL] +
-              this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT] + '?' +
-              this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME] + '=' + filename;
-            this.sampleTemplateService.loadTemplateFromURL(templateUrl);
-          }
         }
       });
     this.initialized = true;
