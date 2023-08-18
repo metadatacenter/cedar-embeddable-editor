@@ -23,10 +23,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   static TEMPLATE_LOCATION_PREFIX = 'sampleTemplateLocationPrefix';
   static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
-  static TERMINOLOGY_PROXY_URL = 'terminologyProxyUrl';
+  static TERMINOLOGY_INTEGRATED_SEARCH_URL = 'terminologyIntegratedSearchUrl';
   static SHOW_SPINNER_BEFORE_INIT = 'showSpinnerBeforeInit';
-  static TEMPLATE_JSON = 'templateJSON';
-  static INSTANCE_JSON = 'instanceJSON';
 
   innerConfig: object = null;
   private initialized = false;
@@ -173,9 +171,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
           this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX],
           this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME]);
       }
-      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TERMINOLOGY_PROXY_URL)) {
-        const proxyUrl = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TERMINOLOGY_PROXY_URL];
-        this.controlledFieldDataService.setTerminologyProxyUrl(proxyUrl);
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
+        const integratedSearchUrl = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL];
+        this.controlledFieldDataService.setTerminologyIntegratedSearchUrl(integratedSearchUrl);
       }
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.SHOW_SPINNER_BEFORE_INIT)) {
         this.showSpinnerBeforeInit = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.SHOW_SPINNER_BEFORE_INIT];
