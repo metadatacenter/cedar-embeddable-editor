@@ -14,9 +14,6 @@ export class AppComponentDev implements OnInit {
     templateDownloadEndpoint: '/download.php',
     templateDownloadParamName: '9ff482bacac84c499655ab58efdf590a',
 
-    showDataSaver: true,
-    dataSaverEndpointUrl: 'http://localhost:8000/datasave.php',
-
     sampleTemplateLocationPrefix: 'http://localhost:4240/cedar-embeddable-editor-sample-templates/',
     // sampleTemplateLocationPrefix: 'https://component.staging.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
     loadSampleTemplateName: '45',
