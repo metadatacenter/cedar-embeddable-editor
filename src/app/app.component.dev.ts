@@ -1,7 +1,4 @@
 import {Component, OnInit} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {LocalSettingsService} from './modules/shared/service/local-settings.service';
-import {environment} from '../environments/environment';
 
 @Component({
   selector: 'app-component-dev',
@@ -11,20 +8,14 @@ import {environment} from '../environments/environment';
 export class AppComponentDev implements OnInit {
 
   ceeConfig = {
-    templateDownloadEndpoint: '/download.php',
-    templateDownloadParamName: '9ff482bacac84c499655ab58efdf590a',
-
     sampleTemplateLocationPrefix: 'http://localhost:4240/cedar-embeddable-editor-sample-templates/',
-    // sampleTemplateLocationPrefix: 'https://component.staging.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
     loadSampleTemplateName: '45',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: true,
     showTemplateRenderingRepresentation: true,
     showHeader: true,
-    showFooter: false,
+    showFooter: true,
 
-    // terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
-    // terminologyProxyUrl: 'http://localhost:8000/index.php',
     terminologyProxyUrl: 'https://terminology.metadatacenter.orgx/bioportal/integrated-search',
     showInstanceDataCore: true,
     expandedInstanceDataCore: false,
@@ -41,8 +32,7 @@ export class AppComponentDev implements OnInit {
   };
 
 
-  constructor(
-  ) {
+  constructor() {
   }
 
   ngOnInit(): void {

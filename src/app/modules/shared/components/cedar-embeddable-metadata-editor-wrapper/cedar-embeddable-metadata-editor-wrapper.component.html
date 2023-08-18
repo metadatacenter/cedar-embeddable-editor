@@ -2,7 +2,6 @@
                                       [config]="innerConfig"
                                       [templateJsonObject]="templateJson"
                                       [sampleTemplateLoaderObject]="sampleTemplateLoaderObject"
-                                      [externalTemplateInfo]="externalTemplateInfo"
                                       (handlerContextEvent)="handlerContextChanged($event)"
 ></app-cedar-embeddable-metadata-editor>
 <div class="spinner-wrapper" *ngIf="!editorDataReady() && showSpinnerBeforeInit">

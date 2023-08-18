@@ -1,7 +1,4 @@
 import {Component, OnInit} from '@angular/core';
-import {LocalSettingsService} from './modules/shared/service/local-settings.service';
-import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../environments/environment';
 
 @Component({
   selector: 'app-component-prod',
@@ -11,11 +8,7 @@ import {environment} from '../environments/environment';
 export class AppComponentProd implements OnInit {
 
   ceeConfig = {
-    templateDownloadEndpoint: '/download.php',
-    templateDownloadParamName: '9ff482bacac84c499655ab58efdf590a',
-
-    sampleTemplateLocationPrefix: 'https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/',
-    // sampleTemplateLocationPrefix: 'https://component.staging.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
+    sampleTemplateLocationPrefix: 'https://component.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
     loadSampleTemplateName: '45',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: true,
@@ -23,8 +16,6 @@ export class AppComponentProd implements OnInit {
     showHeader: false,
     showFooter: false,
 
-    // terminologyProxyUrl: 'https://api-php.cee.metadatacenter.orgx/index.php',
-    // terminologyProxyUrl: 'http://localhost:8000/index.php',
     terminologyProxyUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
     showInstanceDataCore: true,
     expandedInstanceDataCore: false,
@@ -35,15 +26,13 @@ export class AppComponentProd implements OnInit {
     showStaticText: true,
   };
 
-
   languages = {
     selected: 'en',
     options: [{value: 'en', viewValue: 'en'}, {value: 'hu', viewValue: 'hu'}]
   };
 
 
-  constructor(
-  ) {
+  constructor() {
   }
 
   ngOnInit(): void {
@@ -63,6 +52,5 @@ export class AppComponentProd implements OnInit {
   //   this.translateService.use(language);
   //   this.localSettings.setLanguage(language);
   // }
-
 
 }
