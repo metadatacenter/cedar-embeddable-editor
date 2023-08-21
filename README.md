@@ -65,129 +65,22 @@ document.addEventListener('WebComponentsReady', function () {
 ```
 * When using the Angular 2 sample application (https://github.com/metadatacenter/cedar-cee-demo-angular), the configuration is stored in the file: `assets/data/appConfig.json`. 
 
-### Metadata save endpoint
-
-CEE offers the functionality to save user metadata using a custom remote endpoint. If you plan to enable this feature, you will need to set the following configuration:
-
-```json
-"showDataSaver": true,
-"dataSaverEndpointUrl": "http://localhost:8000/datasave.php",
-```
-Replace `dataSaverEndpointUrl` with a URL pointing to the endpoint that will handle metadata submissions.
-
-The endpoint can be implemented using any REST-enabled framework/programming language. CEE makes a POST call to the endpoint specified in the configuration file, including the metadata in JSON-LD format in the body of the request.
-
-* Request format:
-```json
-{
-  "metadata": {__contents of meatadata__},
-  "info": {__optional info object that can be passed in and out of CEE__}
-}
-```
-
-CEE allows custom data to be passed to the Webcomponent, which then becomes available to your Metadata save endpoint. The custom data is passed to the Webcomponent via an API call and is propogated to the Metadata save endpoint using the `info` attribute.
-
-Example:
-
-```javascript
-function getCustomTemplateInfo() {
-  return {
-    mycustomtitle: 'ACME Template',
-    mycustomurl: 'https://doi.org/10.15468/9vuieb',
-    mycutomdataattribute1: 'Hello World',
-    mycutomdataattribute2: {name: 'John Doe', age: 35}
-  };
-}
-
-document.addEventListener('WebComponentsReady', function () {
-  const cee = document.querySelector('cedar-embeddable-editor');
-  cee.templateInfo = getCustomTemplateInfo();
-});
-```
-
-When a user pushes the **Save** (metadata) button, these custom attributes are propagated to the Metadata save endpoint.
-
-Example:
-
-```json
-{
-  "metadata": {__contents of metadata__},
-  "info": {
-    "mycustomtitle": "ACME Template",
-    "mycustomurl": "https://doi.org/10.15468/9vuieb",
-    "mycutomdataattribute1": "Hello World",
-    "mycutomdataattribute2": {
-      "name": "John Doe",
-      "age": 35
-    }
-  }
-}
-```
-
-If the metadata was created successfully, the response received from the server returns `201 Created` status code.
-
-The response must include a JSON object with the following attributes:
-* **id:** identifier of the created resource in the target database.
-* **title:** title of the resource that has been created (corresponds to the value of schema:name in the metadata)
-* **links:**
-  * **self:** If the resource is publicly available, an URL identifying the location of the newly created resource. Otherwise, null.
-
-Example:
-
-```json
-{
-  "id": "010a261f12b3efc4",
-  "title": "single field",
-  "links": {
-    "self": "http://localhost:8000/metadata/010a261f12b3efc4.json"
-  }
-}
-```
-
-If there was an error,  the corresponding error code and a JSON object with the following attributes:
-* **status:** the HTTP status code applicable to this problem, expressed as a string value.
-* **title:** a short, human-readable summary of the problem that should not change from occurrence to occurrence of the problem.
-* **detail:** a human-readable explanation specific to this occurrence of the problem.
-
-Example:
-
-```json
-{
-  "status": "500",
-  "title": "Internal Error",
-  "detail": "Error connecting to database server (invalid credentials)"
-}
-```
-
-### Template upload endpoint
-
-CEDAR Embeddable Editor includes an optional feature that allows uploading a template source file and creating metadata for that template.
-
-If you plan to enable that functionality, you will need to set up two endpoints in your configuration file:
-
-```json
-"showTemplateUpload": true,
-"templateUploadBaseUrl": "http://localhost:8000",
-"templateUploadEndpoint": "/upload.php",
-"templateDownloadEndpoint": "/download.php",
-```
-Replace `templateUploadBaseUrl` with a URL pointing to the root of the server on which the endpoints reside. Configure `templateUploadEndpoint` and `templateDownloadEndpoint` to their respective paths from the `templateUploadBaseUrl`.
 
 ### Required configuration parameters
 
 * **sampleTemplateLocationPrefix:** The base URL that contains the sample CEDAR templates
-* **terminologyProxyUrl:** The URL of the proxy endpoint that communicates with BioPortal
+* **terminologyIntegratedSearchUrl:** The URL of the CEDAR integrated search endpoint that communicates with BioPortal
 
 ```json
 {
   "sampleTemplateLocationPrefix": "https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/",
-  "terminologyProxyUrl": "https://terminology.metadatacenter.org/bioportal/integrated-search"
+  "terminologyIntegratedSearchUrl": "https://terminology.metadatacenter.org/bioportal/integrated-search"
 }
 ```
 
 ### Optional configuration parameters
 
-The are other optional configuration parameters available for controlling various aspects of the CEE user interface. Most of these are self-explanatory. The example below includes the default values in cases, where the parameter isn't explicitly declared.
+There are other optional configuration parameters available for controlling various aspects of the CEE user interface. Most of these are self-explanatory. The example below includes the default values in cases, where the parameter isn't explicitly declared.
 
 ```json
 {

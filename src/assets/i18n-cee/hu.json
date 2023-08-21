@@ -54,15 +54,6 @@
     "TemplateRendering": "Sablon megjelenítési adatok",
     "MultiInstance": "Multi-példány információ"
   },
-  "Uploader": {
-    "DragAndDrop": "Húzza és ejtse ide a saját CEDAR sablonját, vagy",
-    "Browse": "Tallózon a fájlrendszeren",
-    "Error": "A(z) {{fileName}} feltöltése sikertelen volt a következő hibával: {{responseMessage}}",
-    "Success": "A(z) {{fileName}} feltöltése sikerült"
-  },
-  "Saver": {
-    "Error": "Hiba a metaadatok mentése során"
-  },
   "Validation": {
     "Required": "Az érték megadása kötelező.",
     "Text": {
