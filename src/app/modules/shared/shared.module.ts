@@ -26,7 +26,6 @@ import {
     CedarEmbeddableMetadataEditorComponent
 } from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import {CedarComponentRendererComponent} from './components/cedar-component-renderer/cedar-component-renderer.component';
-import {CedarDataSaverComponent} from './components/cedar-data-saver/cedar-data-saver.component';
 import {StaticFooterComponent} from './components/static-footer/static-footer.component';
 import {StaticHeaderComponent} from './components/static-header/static-header.component';
 import {SourcePanelsComponent} from './components/source-panels/source-panels.component';
@@ -80,7 +79,6 @@ import {TranslateModule} from '@ngx-translate/core';
         SampleTemplatesComponent,
         SampleTemplateSelectComponent,
         CedarComponentRendererComponent,
-        CedarDataSaverComponent,
         StaticFooterComponent,
         StaticHeaderComponent,
         SourcePanelsComponent,

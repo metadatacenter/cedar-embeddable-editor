@@ -11,7 +11,7 @@ import {MessageHandlerService} from './message-handler.service';
 })
 export class ControlledFieldDataService {
 
-  private terminologyProxyUrl = null;
+  private terminologyIntegratedSearchUrl = null;
 
   constructor(
     private http: HttpClient,
@@ -19,8 +19,8 @@ export class ControlledFieldDataService {
   ) {
   }
 
-  setTerminologyProxyUrl(terminologyProxyUrl: string): void {
-    this.terminologyProxyUrl = terminologyProxyUrl;
+  setTerminologyIntegratedSearchUrl(terminologyIntegratedSearchUrl: string): void {
+    this.terminologyIntegratedSearchUrl = terminologyIntegratedSearchUrl;
   }
 
   getData(val: string, component: FieldComponent): Observable<IntegratedSearchResponse> {
@@ -31,7 +31,7 @@ export class ControlledFieldDataService {
     postData.parameterObject.valueConstraints.ontologies = component.controlledInfo.ontologies;
     postData.parameterObject.valueConstraints.valueSets = component.controlledInfo.valueSets;
     // this.messageHandlerService.traceObject('Read terminology integrated search:', postData);
-    return this.http.post<IntegratedSearchResponse>(this.terminologyProxyUrl, postData);
+    return this.http.post<IntegratedSearchResponse>(this.terminologyIntegratedSearchUrl, postData);
   }
 
 }
