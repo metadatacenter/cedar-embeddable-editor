@@ -30,12 +30,12 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   private initialized = false;
   private configSet = false;
 
-  public templateJson: object = null;
+  private templateJson: object = null;
   sampleTemplateLoaderObject = null;
   showSpinnerBeforeInit = true;
-  protected _onDestroy = new Subject<void>();
+  protected onDestroySubject = new Subject<void>();
   handlerContext: HandlerContext = null;
-  private instanceJson = null;
+  private metadata: object = null;
 
 
   constructor(
@@ -62,7 +62,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   ngOnInit(): void {
 
     this.sampleTemplateService.templateJson$
-      .pipe(takeUntil(this._onDestroy))
+      .pipe(takeUntil(this.onDestroySubject))
       .subscribe(templateJson => {
         if (templateJson) {
           this.templateJson = Object.values(templateJson)[0];
@@ -73,19 +73,22 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   handlerContextChanged(event): void {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent handlerContextChanged');
     this.handlerContext = event;
   }
 
   @Input() get currentMetadata(): object {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent get currentMetadata');
     if (this.handlerContext) {
       return JSON.parse(JSON.stringify(this.handlerContext.dataContext.instanceFullData));
     }
     return {};
   }
 
-  @Input() set metadata(meta: object) {
-    const instanceFullData = JSON.parse(JSON.stringify(meta));
-    const instanceExtractData = JSON.parse(JSON.stringify(meta));
+  private initDataFromInstance(): void {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent initDataFromInstance');
+    const instanceFullData = JSON.parse(JSON.stringify(this.metadata));
+    const instanceExtractData = JSON.parse(JSON.stringify(this.metadata));
     this.deleteContext(instanceExtractData);
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
@@ -105,14 +108,18 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set templateObject(template: object) {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent set templateObject');
     this.templateJson = template;
   }
 
   @Input() set instanceObject(instance: object) {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent set instanceObject');
     this.metadata = instance;
+    this.initDataFromInstance();
   }
 
   @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent loadConfigFromURL');
     const that = this;
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => {
@@ -136,11 +143,12 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   ngOnDestroy(): void {
-    this._onDestroy.next();
-    this._onDestroy.complete();
+    this.onDestroySubject.next();
+    this.onDestroySubject.complete();
   }
 
   @Input() set config(value: object) {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent set config');
     this.messageHandlerService.traceObject('CEDAR Embeddable Editor config set to:', value);
 
     if (value != null) {
@@ -151,6 +159,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set eventHandler(value: object) {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent set eventHandler');
     this.messageHandlerService.injectEventHandler(value);
   }
 
@@ -165,6 +174,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private doInitialize(): void {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent doInitialize');
     if (this.initialized && this.configSet) {
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
@@ -179,29 +189,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         this.showSpinnerBeforeInit = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.SHOW_SPINNER_BEFORE_INIT];
       }
     }
-  }
-
-  // used only for debugging of restoring metadata
-  private restoreMetadataFromURL(metaUrl, successHandler = null, errorHandler = null): void {
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status === 200) {
-          const jsonMeta = JSON.parse(xhr.responseText);
-          this.metadata = jsonMeta;
-
-          if (successHandler) {
-            successHandler(jsonMeta);
-          }
-        } else {
-          if (errorHandler) {
-            errorHandler(xhr);
-          }
-        }
-      }
-    };
-    xhr.open('GET', metaUrl, true);
-    xhr.send();
   }
 
   editorDataReady(): boolean {
