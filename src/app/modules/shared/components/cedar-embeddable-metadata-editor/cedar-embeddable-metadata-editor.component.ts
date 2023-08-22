@@ -133,13 +133,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     }
   }
 
-  @Input() set metadataJsonObject(value: object) {
-    if (value != null) {
-      this.dataContext.setInputTemplate(value, this.handlerContext, this.pageBreakPaginatorService, this.collapseStaticComponents);
-      this.handlerContextEvent.emit(this.handlerContext);
-    }
-  }
-
   dataAvailableForRender(): boolean {
     return this.dataContext != null
       && this.dataContext.templateRepresentation != null
