@@ -80,10 +80,12 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   handlerContextChanged(event): void {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent handlerContextChanged');
     this.handlerContext = event;
   }
 
   @Input() get currentMetadata(): object {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent get currentMetadata');
     if (this.handlerContext) {
       return JSON.parse(JSON.stringify(this.handlerContext.dataContext.instanceFullData));
     }
@@ -91,6 +93,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private initDataFromInstance(): void {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent initDataFromInstance');
     const instanceFullData = JSON.parse(JSON.stringify(this.metadata));
     const instanceExtractData = JSON.parse(JSON.stringify(this.metadata));
     this.deleteContext(instanceExtractData);
@@ -123,6 +126,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent loadConfigFromURL');
     const that = this;
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => {
@@ -151,6 +155,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set config(value: object) {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent set config');
     this.messageHandlerService.traceObject('CEDAR Embeddable Editor config set to:', value);
 
     if (value != null) {
@@ -161,6 +166,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set eventHandler(value: object) {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent set eventHandler');
     this.messageHandlerService.injectEventHandler(value);
   }
 
@@ -175,6 +181,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private doInitialize(): void {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent doInitialize');
     if (this.initialized && this.configSet) {
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
