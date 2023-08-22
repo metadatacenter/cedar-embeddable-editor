@@ -30,13 +30,12 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   private initialized = false;
   private configSet = false;
 
-  public templateJson: object = null;
-  public metadata: object = null;
+  private templateJson: object = null;
   sampleTemplateLoaderObject = null;
   showSpinnerBeforeInit = true;
-  protected _onDestroy = new Subject<void>();
+  protected onDestroySubject = new Subject<void>();
   handlerContext: HandlerContext = null;
-  private instanceJson = null;
+  private metadata: object = null;
 
 
   constructor(
@@ -63,18 +62,16 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   ngOnInit(): void {
 
     this.sampleTemplateService.templateJson$
-      .pipe(takeUntil(this._onDestroy))
+      .pipe(takeUntil(this.onDestroySubject))
       .subscribe(templateJson => {
         if (templateJson) {
-          console.log('CedarEmbeddableMetadataEditorWrapper.templateJson$.subscribe');
           this.templateJson = Object.values(templateJson)[0];
         }
       });
     this.sampleTemplateService.metadataJson$
-      .pipe(takeUntil(this._onDestroy))
+      .pipe(takeUntil(this.onDestroySubject))
       .subscribe(metadataJson => {
         if (metadataJson) {
-          console.log('CedarEmbeddableMetadataEditorWrapper.metadataJson$.subscribe');
           this.instanceObject = Object.values(metadataJson)[0];
         }
       });
@@ -93,15 +90,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     return {};
   }
 
-  @Input() set templateObject(template: object) {
-    this.templateJson = template;
-  }
-
-  @Input() set instanceObject(instance: object) {
-    this.metadata = instance;
-
-    const instanceFullData = JSON.parse(JSON.stringify(instance));
-    const instanceExtractData = JSON.parse(JSON.stringify(instance));
+  private initDataFromInstance(): void {
+    const instanceFullData = JSON.parse(JSON.stringify(this.metadata));
+    const instanceExtractData = JSON.parse(JSON.stringify(this.metadata));
     this.deleteContext(instanceExtractData);
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
@@ -118,6 +109,17 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         }
       }
     }
+  }
+
+  @Input() set templateObject(template: object) {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent set templateObject');
+    this.templateJson = template;
+  }
+
+  @Input() set instanceObject(instance: object) {
+    console.log('CedarEmbeddableMetadataEditorWrapperComponent set instanceObject');
+    this.metadata = instance;
+    this.initDataFromInstance();
   }
 
   @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
@@ -144,8 +146,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   ngOnDestroy(): void {
-    this._onDestroy.next();
-    this._onDestroy.complete();
+    this.onDestroySubject.next();
+    this.onDestroySubject.complete();
   }
 
   @Input() set config(value: object) {
@@ -187,29 +189,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         this.showSpinnerBeforeInit = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.SHOW_SPINNER_BEFORE_INIT];
       }
     }
-  }
-
-  // used only for debugging of restoring metadata
-  private restoreMetadataFromURL(metaUrl, successHandler = null, errorHandler = null): void {
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status === 200) {
-          const jsonMeta = JSON.parse(xhr.responseText);
-          this.instanceObject = jsonMeta;
-
-          if (successHandler) {
-            successHandler(jsonMeta);
-          }
-        } else {
-          if (errorHandler) {
-            errorHandler(xhr);
-          }
-        }
-      }
-    };
-    xhr.open('GET', metaUrl, true);
-    xhr.send();
   }
 
   editorDataReady(): boolean {
