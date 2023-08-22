@@ -34,7 +34,8 @@ export class DataObjectBuilderHandler {
     return this.getSubTemplate(subTemplate, remainingPath);
   }
 
-  public static buildRecursively(component: CedarComponent, dataObject: InstanceExtractData, templateJsonObj: CedarInputTemplate, buildingMode: DataObjectBuildingMode): void {
+  public static buildRecursively(component: CedarComponent, dataObject: InstanceExtractData, templateJsonObj: CedarInputTemplate,
+                                 buildingMode: DataObjectBuildingMode): void {
     let ret = null;
     if (templateJsonObj != null) {
       DataObjectBuilderHandler.addContext(component, dataObject, templateJsonObj, buildingMode);
@@ -115,7 +116,8 @@ export class DataObjectBuilderHandler {
     }
   }
 
-  private static addContext(component: CedarComponent, dataObject: InstanceExtractData, templateJsonObj: CedarInputTemplate, buildingMode: DataObjectBuildingMode): void {
+  private static addContext(component: CedarComponent, dataObject: InstanceExtractData, templateJsonObj: CedarInputTemplate,
+                            buildingMode: DataObjectBuildingMode): void {
     if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
       const props = templateJsonObj[JsonSchema.properties];
       const propsContext = props[JsonSchema.atContext];
@@ -148,7 +150,8 @@ export class DataObjectBuilderHandler {
     return this.dataObjectFull;
   }
 
-  private buildNewByIterating(dataObject: InstanceExtractData, templateJsonObj: CedarInputTemplate, buildingMode: DataObjectBuildingMode): void {
+  private buildNewByIterating(dataObject: InstanceExtractData, templateJsonObj: CedarInputTemplate,
+                              buildingMode: DataObjectBuildingMode): void {
     if (this.templateRepresentation != null && this.templateRepresentation.children != null) {
       for (const childComponent of this.templateRepresentation.children) {
         DataObjectBuilderHandler.buildRecursively(childComponent, dataObject, templateJsonObj, buildingMode);
