@@ -41,6 +41,7 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
     this.sampleTemplateService.templateJson$
       .pipe(takeUntil(this._onDestroy))
       .subscribe( templateJson => {
+        console.log('SampleTemplateSelect.templateJson$.subscribe');
         this.templateCtrl.setValue(Object.keys(templateJson)[0]);
       });
 

@@ -31,6 +31,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   private configSet = false;
 
   public templateJson: object = null;
+  public metadata: object = null;
   sampleTemplateLoaderObject = null;
   showSpinnerBeforeInit = true;
   protected _onDestroy = new Subject<void>();
@@ -65,7 +66,16 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       .pipe(takeUntil(this._onDestroy))
       .subscribe(templateJson => {
         if (templateJson) {
+          console.log('CedarEmbeddableMetadataEditorWrapper.templateJson$.subscribe');
           this.templateJson = Object.values(templateJson)[0];
+        }
+      });
+    this.sampleTemplateService.metadataJson$
+      .pipe(takeUntil(this._onDestroy))
+      .subscribe(metadataJson => {
+        if (metadataJson) {
+          console.log('CedarEmbeddableMetadataEditorWrapper.metadataJson$.subscribe');
+          this.instanceObject = Object.values(metadataJson)[0];
         }
       });
     this.initialized = true;
@@ -83,9 +93,15 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     return {};
   }
 
-  @Input() set metadata(meta: object) {
-    const instanceFullData = JSON.parse(JSON.stringify(meta));
-    const instanceExtractData = JSON.parse(JSON.stringify(meta));
+  @Input() set templateObject(template: object) {
+    this.templateJson = template;
+  }
+
+  @Input() set instanceObject(instance: object) {
+    this.metadata = instance;
+
+    const instanceFullData = JSON.parse(JSON.stringify(instance));
+    const instanceExtractData = JSON.parse(JSON.stringify(instance));
     this.deleteContext(instanceExtractData);
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
@@ -102,14 +118,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         }
       }
     }
-  }
-
-  @Input() set templateObject(template: object) {
-    this.templateJson = template;
-  }
-
-  @Input() set instanceObject(instance: object) {
-    this.metadata = instance;
   }
 
   @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
@@ -188,7 +196,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       if (xhr.readyState === XMLHttpRequest.DONE) {
         if (xhr.status === 200) {
           const jsonMeta = JSON.parse(xhr.responseText);
-          this.metadata = jsonMeta;
+          this.instanceObject = jsonMeta;
 
           if (successHandler) {
             successHandler(jsonMeta);
