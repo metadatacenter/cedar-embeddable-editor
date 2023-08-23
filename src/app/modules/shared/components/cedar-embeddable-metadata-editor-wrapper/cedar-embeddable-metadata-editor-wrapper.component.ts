@@ -36,6 +36,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   protected onDestroySubject = new Subject<void>();
   handlerContext: HandlerContext = null;
   private metadata: object = null;
+  private loadedTemplateJson: object = null;
+  private loadedMetadata: object = null;
 
 
   constructor(
@@ -65,31 +67,31 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       .pipe(takeUntil(this.onDestroySubject))
       .subscribe(templateJson => {
         if (templateJson) {
-          this.templateJson = Object.values(templateJson)[0];
+          this.loadedTemplateJson = Object.values(templateJson)[0];
+        } else {
+          this.loadedTemplateJson = null;
         }
+        this.triggerUpdateOnInjectedSampledata();
       });
     this.sampleTemplateService.metadataJson$
       .pipe(takeUntil(this.onDestroySubject))
       .subscribe(metadataJson => {
         if (metadataJson) {
-          this.instanceObject = Object.values(metadataJson)[0];
+          this.loadedMetadata = Object.values(metadataJson)[0];
+        } else {
+          this.loadedMetadata = null;
         }
+        this.triggerUpdateOnInjectedSampledata();
       });
     this.initialized = true;
     this.doInitialize();
   }
 
   handlerContextChanged(event): void {
-    console.log('CedarEmbeddableMetadataEditorWrapperComponent handlerContextChanged');
     this.handlerContext = event;
-
-    console.log(this.handlerContext.dataContext.instanceExtractData);
-    console.log(JSON.stringify(this.handlerContext.dataContext.instanceExtractData));
-
   }
 
   @Input() get currentMetadata(): object {
-    console.log('CedarEmbeddableMetadataEditorWrapperComponent get currentMetadata');
     if (this.handlerContext) {
       return JSON.parse(JSON.stringify(this.handlerContext.dataContext.instanceFullData));
     }
@@ -97,12 +99,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private initDataFromInstance(): void {
-    console.log('CedarEmbeddableMetadataEditorWrapperComponent initDataFromInstance');
     const instanceFullData = JSON.parse(JSON.stringify(this.metadata));
     const instanceExtractData = JSON.parse(JSON.stringify(this.metadata));
     this.deleteContext(instanceExtractData);
-    console.log(instanceExtractData);
-    console.log(JSON.stringify(instanceExtractData));
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
       dataContext.instanceFullData = instanceFullData;
@@ -121,18 +120,15 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set templateObject(template: object) {
-    console.log('CedarEmbeddableMetadataEditorWrapperComponent set templateObject');
     this.templateJson = template;
   }
 
   @Input() set instanceObject(instance: object) {
-    console.log('CedarEmbeddableMetadataEditorWrapperComponent set instanceObject');
     this.metadata = instance;
     this.initDataFromInstance();
   }
 
   @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
-    console.log('CedarEmbeddableMetadataEditorWrapperComponent loadConfigFromURL');
     const that = this;
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => {
@@ -161,7 +157,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set config(value: object) {
-    console.log('CedarEmbeddableMetadataEditorWrapperComponent set config');
     this.messageHandlerService.traceObject('CEDAR Embeddable Editor config set to:', value);
 
     if (value != null) {
@@ -172,7 +167,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set eventHandler(value: object) {
-    console.log('CedarEmbeddableMetadataEditorWrapperComponent set eventHandler');
     this.messageHandlerService.injectEventHandler(value);
   }
 
@@ -187,7 +181,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private doInitialize(): void {
-    console.log('CedarEmbeddableMetadataEditorWrapperComponent doInitialize');
     if (this.initialized && this.configSet) {
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
@@ -206,5 +199,18 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   editorDataReady(): boolean {
     return this.innerConfig != null && this.templateJson != null;
+  }
+
+  private triggerUpdateOnInjectedSampledata(): void {
+    if (this.loadedTemplateJson != null) {
+      this.templateObject = this.loadedTemplateJson;
+    }
+    if (this.loadedMetadata !== null) {
+      setTimeout(() => {
+        if (this.loadedMetadata !== null) {
+          this.instanceObject = this.loadedMetadata;
+        }
+      }, 0);
+    }
   }
 }
