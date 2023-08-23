@@ -60,12 +60,7 @@ export class MultiInstanceObjectHandler {
 
   private updateFromInstanceExtractData(instanceExtractDataIn: InstanceExtractData,
                                         parentPath: string[], multiInstanceObject: MultiInstanceInfo): void {
-    console.log('UPDATE from instance data:');
-    console.log(instanceExtractDataIn);
-    console.log(parentPath);
-    console.log(multiInstanceObject);
     const instanceExtractData = JSON.parse(JSON.stringify(instanceExtractDataIn));
-    console.log(instanceExtractData);
     //this.deleteAttributeValueFields(instanceExtractData, 0);
 
     for (const key in instanceExtractData) {
@@ -168,8 +163,8 @@ export class MultiInstanceObjectHandler {
   }
 
   private deleteAttributeValueFields(instanceExtractData: InstanceExtractData, depth: number): void {
-    console.log('deleteAttributeValueFields.depth' + depth);
-    console.log(instanceExtractData);
+    // console.log('deleteAttributeValueFields.depth' + depth);
+    // console.log(instanceExtractData);
     for (const key in instanceExtractData) {
       if (Array.isArray(instanceExtractData[key]) && instanceExtractData[key].length > 0) {
         if (typeof instanceExtractData[key][0] === JavascriptTypes.string) {
