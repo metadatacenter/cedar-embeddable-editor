@@ -40,15 +40,15 @@
 </ng-container>
 <ng-container *ngIf="nonIterableComponent">
   <mat-card class="child-component-card non-iterable-component">
+    <app-cedar-component-header *ngIf="!nonIterableComponent.linkedStaticFieldComponent"
+                                [componentToRender]="nonIterableComponent"
+    ></app-cedar-component-header>
+    <app-cedar-multi-pager *ngIf="nonIterableComponent.isMultiPage()"
+                           [componentToRender]="nonIterableComponent"
+                           [handlerContext]="handlerContext"
+                           [isAlignedUp]=false>
+      ></app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfNonIterable(nonIterableComponent)">
-      <app-cedar-component-header *ngIf="!nonIterableComponent.linkedStaticFieldComponent"
-                                  [componentToRender]="nonIterableComponent"
-      ></app-cedar-component-header>
-      <app-cedar-multi-pager *ngIf="nonIterableComponent.isMultiPage()"
-                             [componentToRender]="nonIterableComponent"
-                             [handlerContext]="handlerContext"
-                             [isAlignedUp]=false>
-        ></app-cedar-multi-pager>
       <ng-container tabIndex="0" *ngIf="nonIterableComponent.linkedStaticFieldComponent && showStaticText">
         <!-- These are the collapsed static components before fields-->
         <app-cedar-static-image *ngIf="nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType==InputType.image"
