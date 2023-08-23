@@ -127,8 +127,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
 
   @Input() set templateJsonObject(value: object) {
+    console.log('CedarEmbeddableMetadataEditorComponent set templateJsonObject');
     if (value != null) {
       this.dataContext.setInputTemplate(value, this.handlerContext, this.pageBreakPaginatorService, this.collapseStaticComponents);
+      console.log('CedarEmbeddableMetadataEditorComponent set templateJsonObject => handlerContextEvent.emit');
+      console.log(this.handlerContext);
       this.handlerContextEvent.emit(this.handlerContext);
     }
   }

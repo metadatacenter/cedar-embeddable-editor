@@ -82,6 +82,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   handlerContextChanged(event): void {
     console.log('CedarEmbeddableMetadataEditorWrapperComponent handlerContextChanged');
     this.handlerContext = event;
+
+    console.log(this.handlerContext.dataContext.instanceExtractData);
+    console.log(JSON.stringify(this.handlerContext.dataContext.instanceExtractData));
+
   }
 
   @Input() get currentMetadata(): object {
@@ -97,6 +101,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     const instanceFullData = JSON.parse(JSON.stringify(this.metadata));
     const instanceExtractData = JSON.parse(JSON.stringify(this.metadata));
     this.deleteContext(instanceExtractData);
+    console.log(instanceExtractData);
+    console.log(JSON.stringify(instanceExtractData));
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
       dataContext.instanceFullData = instanceFullData;
