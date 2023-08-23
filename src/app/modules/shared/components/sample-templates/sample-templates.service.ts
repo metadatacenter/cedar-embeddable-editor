@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {JsonSchema} from '../../models/json-schema.model';
 import {HttpClient} from '@angular/common/http';
-import {of, Observable, from, Subject, EMPTY, BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, EMPTY, from, Observable, of, Subject} from 'rxjs';
 import {catchError, concatMap, map, takeUntil} from 'rxjs/operators';
 import {MessageHandlerService} from '../../service/message-handler.service';
 
@@ -59,7 +59,7 @@ export class SampleTemplatesService {
       .pipe(
         map(
           (resp: object) => {
-            return Object.keys(resp).sort().map( (key, index) => {
+            return Object.keys(resp).sort().map((key, index) => {
               const entry = {};
               entry[this.TEMPLATE_NUMBER] = key;
               entry[this.TEMPLATE_LABEL] = resp[key];
@@ -69,9 +69,9 @@ export class SampleTemplatesService {
         ),
         catchError(
           error => {
-          this.messageHandlerService.errorObject(error['message'], error);
-          return EMPTY;
-        })
+            this.messageHandlerService.errorObject(error['message'], error);
+            return EMPTY;
+          })
       );
     return this.allTemplates;
   }
@@ -88,11 +88,11 @@ export class SampleTemplatesService {
     const allTemplates = [];
     this.getAllTemplatesSubscription(templateLocationPrefix).subscribe(
       resp => {
-      const entry = {};
-      entry[this.TEMPLATE_NUMBER] = Object.keys(resp)[0];
-      entry[this.TEMPLATE_LABEL] = Object.values(resp)[0];
-      allTemplates.push(entry);
-    });
+        const entry = {};
+        entry[this.TEMPLATE_NUMBER] = Object.keys(resp)[0];
+        entry[this.TEMPLATE_LABEL] = Object.values(resp)[0];
+        allTemplates.push(entry);
+      });
     this.allTemplates = of(allTemplates);
   }
 
@@ -112,7 +112,7 @@ export class SampleTemplatesService {
           const templateNum = this.templateNumberFromUrl(singleUrl);
           return this.getSingleTemplateLabel(singleUrl)
             .pipe(
-              map ( templateLabel => {
+              map(templateLabel => {
                 errorIndex = 0;
                 const templateEntry = {};
                 templateEntry[templateNum] = 'Template ' + templateNum + ' - ' + templateLabel;

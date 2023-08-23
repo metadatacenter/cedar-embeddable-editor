@@ -63,7 +63,7 @@ export class MultiInstanceObjectHandler {
     const instanceExtractData = JSON.parse(JSON.stringify(instanceExtractDataIn));
     // this.deleteAttributeValueFields(instanceExtractData);
 
-    for(const key in instanceExtractData) {
+    for (const key in instanceExtractData) {
       const myPath: string[] = parentPath.slice();
       myPath.push(key);
 
@@ -90,7 +90,7 @@ export class MultiInstanceObjectHandler {
             this.updateFromInstanceExtractData(instanceExtractData[key][i], myPath, multiInstanceObject);
           }
         }
-      // it's an object, can be a single-page element or a single-page field
+        // it's an object, can be a single-page element or a single-page field
       } else if (typeof instanceExtractData[key] === JavascriptTypes.object && Object.keys(instanceExtractData[key]).length > 0) {
         // single-page field (it's never paginated, so not required for pagination,
         // but still need to have an entry for it in multiInstanceObject)
