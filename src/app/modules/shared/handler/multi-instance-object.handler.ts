@@ -61,7 +61,7 @@ export class MultiInstanceObjectHandler {
   private updateFromInstanceExtractData(instanceExtractDataIn: InstanceExtractData,
                                         parentPath: string[], multiInstanceObject: MultiInstanceInfo): void {
     const instanceExtractData = JSON.parse(JSON.stringify(instanceExtractDataIn));
-    // this.deleteAttributeValueFields(instanceExtractData);
+    //this.deleteAttributeValueFields(instanceExtractData, 0);
 
     for (const key in instanceExtractData) {
       const myPath: string[] = parentPath.slice();
@@ -162,7 +162,9 @@ export class MultiInstanceObjectHandler {
     }
   }
 
-  private deleteAttributeValueFields(instanceExtractData: InstanceExtractData): void {
+  private deleteAttributeValueFields(instanceExtractData: InstanceExtractData, depth: number): void {
+    // console.log('deleteAttributeValueFields.depth' + depth);
+    // console.log(instanceExtractData);
     for (const key in instanceExtractData) {
       if (Array.isArray(instanceExtractData[key]) && instanceExtractData[key].length > 0) {
         if (typeof instanceExtractData[key][0] === JavascriptTypes.string) {
@@ -173,14 +175,14 @@ export class MultiInstanceObjectHandler {
           if (!instanceExtractData[key][0].hasOwnProperty(JsonSchema.atValue) &&
             !instanceExtractData[key][0].hasOwnProperty(JsonSchema.atId)) {
             for (let i = 0; i < instanceExtractData[key].length; i++) {
-              this.deleteAttributeValueFields(instanceExtractData[key][i]);
+              this.deleteAttributeValueFields(instanceExtractData[key][i], depth + 1);
             }
           }
         }
       } else {
         if (!instanceExtractData[key].hasOwnProperty(JsonSchema.atValue) &&
           !instanceExtractData[key].hasOwnProperty(JsonSchema.atId)) {
-          this.deleteAttributeValueFields(instanceExtractData[key]);
+          this.deleteAttributeValueFields(instanceExtractData[key], depth + 1);
         }
       }
     }
