@@ -173,6 +173,14 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   private deleteContext(obj): void {
     Object.keys(obj).forEach(key => {
       delete obj[JsonSchema.atContext];
+      delete obj[JsonSchema.atId];
+      delete obj[JsonSchema.oslcModifiedBy];
+      delete obj[JsonSchema.pavCreatedOn];
+      delete obj[JsonSchema.pavLastUpdatedOn];
+      delete obj[JsonSchema.pavCreatedBy];
+      delete obj[JsonSchema.schemaIsBasedOn];
+      delete obj[JsonSchema.schemaName];
+      delete obj[JsonSchema.schemaDescription];
 
       if (typeof obj[key] === 'object' && obj[key] !== null) {
         this.deleteContext(obj[key]);
