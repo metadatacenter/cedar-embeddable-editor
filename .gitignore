@@ -2,6 +2,7 @@
 
 # compiled output
 /dist
+/dist-npm/cedar-embeddable-editor/cedar-embeddable-editor.js
 /tmp
 /out-tsc
 # Only exists if Bazel was run
