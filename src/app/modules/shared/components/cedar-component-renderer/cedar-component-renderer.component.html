@@ -32,6 +32,7 @@
             [componentToRender]="childComponent"
             [handlerContext]="handlerContext"
             [allExpanded]="allExpanded"
+            [showStaticText]="showStaticText"
           ></app-cedar-component-renderer>
         </ng-container>
       </mat-card-content>
@@ -40,8 +41,7 @@
 </ng-container>
 <ng-container *ngIf="nonIterableComponent">
   <mat-card class="child-component-card non-iterable-component">
-    <app-cedar-component-header *ngIf="!nonIterableComponent.linkedStaticFieldComponent"
-                                [componentToRender]="nonIterableComponent"
+    <app-cedar-component-header [componentToRender]="nonIterableComponent"
     ></app-cedar-component-header>
     <app-cedar-multi-pager *ngIf="nonIterableComponent.isMultiPage()"
                            [componentToRender]="nonIterableComponent"

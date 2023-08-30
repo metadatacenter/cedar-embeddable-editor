@@ -21,9 +21,9 @@ export class AppComponentDev implements OnInit {
     expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,
     expandedMultiInstanceInfo: false,
-    collapseStaticComponents: true,
 
-    showStaticText: true,
+    // collapseStaticComponents: false,
+    // showStaticText: true,
   };
 
   languages = {

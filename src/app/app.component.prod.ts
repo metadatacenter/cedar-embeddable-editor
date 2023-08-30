@@ -9,7 +9,7 @@ export class AppComponentProd implements OnInit {
 
   ceeConfig = {
     sampleTemplateLocationPrefix: 'https://component.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '45',
+    loadSampleTemplateName: '01',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: true,
     showTemplateRenderingRepresentation: true,
@@ -21,9 +21,9 @@ export class AppComponentProd implements OnInit {
     expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,
     expandedMultiInstanceInfo: false,
-    collapseStaticComponents: true,
 
-    showStaticText: true,
+    // collapseStaticComponents: false,
+    // showStaticText: true,
   };
 
   languages = {

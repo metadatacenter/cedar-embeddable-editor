@@ -12,6 +12,8 @@ import {PageBreakPaginatorService} from '../../service/page-break-paginator.serv
   encapsulation: ViewEncapsulation.None
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
+  private static INNER_VERSION = '2023-08-30 12:29';
+
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
   private static SHOW_TEMPLATE_SOURCE = 'showTemplateSourceData';
@@ -48,7 +50,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   showInstanceDataCore = false;
   showInstanceDataFull = true;
   showSampleTemplateLinks = false;
-  showStaticText = false;
+  showStaticText = true;
 
   showHeader = false;
   showFooter = false;
@@ -60,7 +62,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   expandedInstanceDataFull = false;
   expandedSampleTemplateLinks = false;
 
-  collapseStaticComponents = true;
+  collapseStaticComponents = false;
 
   allExpanded: boolean;
 
