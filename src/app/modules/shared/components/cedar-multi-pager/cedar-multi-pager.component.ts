@@ -201,7 +201,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
         const that = this;
         setTimeout(() => {
             that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
-        }, 0);
+        });
     }
 
     clickedAdd(): void {
@@ -212,7 +212,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
         // We need to wait for it to be available
         setTimeout(() => {
             that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
-        }, 0);
+        });
     }
 
     clickedCopy(): void {
@@ -221,7 +221,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
         const that = this;
         setTimeout(() => {
             that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
-        }, 0);
+        });
     }
 
     clickedDelete(): void {
@@ -231,12 +231,12 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
 
         setTimeout(() => {
             that.activeComponentRegistry.deleteCurrentValue(that.component);
-        }, 0);
+        });
 
         if (this.currentMultiInfo.currentCount > 0) {
             setTimeout(() => {
                 that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
-            }, 0);
+            });
         }
     }
 
