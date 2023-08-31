@@ -61,7 +61,7 @@ export class MultiInstanceObjectHandler {
   private updateFromInstanceExtractData(instanceExtractDataIn: InstanceExtractData,
                                         parentPath: string[], multiInstanceObject: MultiInstanceInfo): void {
     const instanceExtractData = JSON.parse(JSON.stringify(instanceExtractDataIn));
-    //this.deleteAttributeValueFields(instanceExtractData, 0);
+    // this.deleteAttributeValueFields(instanceExtractData, 0);
 
     for (const key in instanceExtractData) {
       const myPath: string[] = parentPath.slice();

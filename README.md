@@ -27,12 +27,12 @@ git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
 ```shell
 $cd <...>/<clone directory>/cedar-embeddable-editor/
 ```
-2. Run these commands:
+1. Run these commands:
 ```shell
 cedar-embeddable-editor$ npm install
 cedar-embeddable-editor$ ng serve
 ```
-3. In your browser, navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+1. In your browser, navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
 ## Running as a Webcomponent
 
@@ -44,7 +44,7 @@ This method creates a single Javascript (JS) file that encapsulates all the func
 ```shell
 cedar-embeddable-editor$ ng build --configuration production --output-hashing=none
 ```
-2. Combine the generated files into a single file and copy the final JS to the sample application:
+1. Combine the generated files into a single file and copy the final JS to the sample application:
 ```shell
 cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,main}.js > "/dev/cedar/cedar-cee-demo-generic/assets/js/cedar-embeddable-editor.js"
 ```

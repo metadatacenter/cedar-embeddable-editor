@@ -18,6 +18,9 @@ export class DataObjectStructureHandler {
 
   public getDataPathNodeRecursively(dataObject: InstanceExtractData, component: CedarComponent, path: string[],
                                     multiInstanceObjectService: MultiInstanceObjectHandler): object {
+    // console.log('getDataPathNodeRecursively');
+    // console.log(path);
+    // console.log(dataObject);
     if (path.length === 0) {
       return dataObject;
     } else {

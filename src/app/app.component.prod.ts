@@ -7,24 +7,24 @@ import {Component, OnInit} from '@angular/core';
 })
 export class AppComponentProd implements OnInit {
 
-  ceeConfig = {
-    sampleTemplateLocationPrefix: 'https://component.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '01',
-    showSampleTemplateLinks: true,
-    expandedSampleTemplateLinks: true,
-    showTemplateRenderingRepresentation: true,
-    showHeader: false,
-    showFooter: false,
-
-    terminologyIntegratedSearchUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
-    showInstanceDataCore: true,
-    expandedInstanceDataCore: false,
-    showMultiInstanceInfo: true,
-    expandedMultiInstanceInfo: false,
-
-    // collapseStaticComponents: false,
-    // showStaticText: true,
-  };
+  // ceeConfig = {
+  //   sampleTemplateLocationPrefix: 'https://component.metadatacenter.org/cedar-embeddable-editor-sample-templates/',
+  //   loadSampleTemplateName: '01',
+  //   showSampleTemplateLinks: true,
+  //   expandedSampleTemplateLinks: true,
+  //   showTemplateRenderingRepresentation: true,
+  //   showHeader: false,
+  //   showFooter: false,
+  //
+  //   terminologyIntegratedSearchUrl: 'https://terminology.metadatacenter.org/bioportal/integrated-search',
+  //   showInstanceDataCore: true,
+  //   expandedInstanceDataCore: false,
+  //   showMultiInstanceInfo: true,
+  //   expandedMultiInstanceInfo: false,
+  //
+  //   // collapseStaticComponents: false,
+  //   // showStaticText: true,
+  // };
 
   languages = {
     selected: 'en',
