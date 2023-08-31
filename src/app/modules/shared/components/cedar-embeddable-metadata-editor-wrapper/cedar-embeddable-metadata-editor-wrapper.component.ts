@@ -218,7 +218,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         if (this.loadedMetadata !== null) {
           this.instanceObject = this.loadedMetadata;
         }
-      }, 0);
+      }, 2000);
     }
   }
 }

@@ -47,11 +47,13 @@ export class HandlerContext {
   }
 
   getDataObjectNodeByPath(path: string[]): object {
-    return this.dataObjectManipulationService.getDataPathNodeRecursively(this.dataContext.instanceExtractData, this.dataContext.templateRepresentation, path, this.multiInstanceObjectService);
+    return this.dataObjectManipulationService.getDataPathNodeRecursively(this.dataContext.instanceExtractData,
+      this.dataContext.templateRepresentation, path, this.multiInstanceObjectService);
   }
 
   getParentDataObjectNodeByPath(path: string[]): object {
-    return this.dataObjectManipulationService.getParentDataPathNodeRecursively(this.dataContext.instanceExtractData, null, this.dataContext.templateRepresentation, path, this.multiInstanceObjectService);
+    return this.dataObjectManipulationService.getParentDataPathNodeRecursively(this.dataContext.instanceExtractData,
+      null, this.dataContext.templateRepresentation, path, this.multiInstanceObjectService);
   }
 
   setCurrentIndex(component: MultiComponent, idx: number): void {

@@ -70,6 +70,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     this.pageBreakPaginatorService = new PageBreakPaginatorService();
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext);
+    console.log('CEE:' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
 
   ngOnInit(): void {
