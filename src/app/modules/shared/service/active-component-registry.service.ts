@@ -47,7 +47,7 @@ export class ActiveComponentRegistryService {
       const parentDataObject = handlerContext.getParentDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIComponent = this.getUIComponent(component);
       const multiInstanceInfo: MultiInstanceObjectInfo =
-        handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
+          handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
 
       // this is a multi-value but not multi-page component, such as checkbox or multiselect
       if (!component.isMultiPage()) {
@@ -97,6 +97,12 @@ export class ActiveComponentRegistryService {
           if (uiPager) {
             uiPager.updatePagingUI();
           }
+        }
+      } else {
+        // Empty multi-field
+        const uiPager = this.getMultiPagerUI(component);
+        if (uiPager) {
+          uiPager.updatePagingUI();
         }
       }
     } else if (component instanceof SingleElementComponent) {
