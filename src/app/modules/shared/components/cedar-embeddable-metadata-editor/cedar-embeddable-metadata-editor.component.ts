@@ -12,7 +12,7 @@ import {PageBreakPaginatorService} from '../../service/page-break-paginator.serv
   encapsulation: ViewEncapsulation.None
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
-  private static INNER_VERSION = '2023-08-30 12:29';
+  private static INNER_VERSION = '2023-08-31 10:40';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';

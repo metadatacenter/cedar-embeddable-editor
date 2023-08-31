@@ -112,9 +112,11 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         dataContext.templateRepresentation, instanceExtractData);
 
       if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
-        for (const childComponent of dataContext.templateRepresentation.children) {
-          this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
-        }
+        setTimeout(() => {
+          for (const childComponent of dataContext.templateRepresentation.children) {
+            this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
+          }
+        });
       }
     }
   }
@@ -171,21 +173,27 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private deleteContext(obj): void {
-    Object.keys(obj).forEach(key => {
-      delete obj[JsonSchema.atContext];
-      delete obj[JsonSchema.atId];
-      delete obj[JsonSchema.oslcModifiedBy];
-      delete obj[JsonSchema.pavCreatedOn];
-      delete obj[JsonSchema.pavLastUpdatedOn];
-      delete obj[JsonSchema.pavCreatedBy];
-      delete obj[JsonSchema.schemaIsBasedOn];
-      delete obj[JsonSchema.schemaName];
-      delete obj[JsonSchema.schemaDescription];
-
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
-        this.deleteContext(obj[key]);
-      }
-    });
+    // detect if this node is a controlled value (it has an @id and an rdfs:label
+    // in this case leave intact
+    const keyCount = Object.keys(obj).length;
+    if (keyCount === 2 && obj.hasOwnProperty(JsonSchema.atId) && obj.hasOwnProperty(JsonSchema.rdfsLabel)) {
+      // do nothing
+    } else {
+      Object.keys(obj).forEach(key => {
+        delete obj[JsonSchema.atContext];
+        delete obj[JsonSchema.atId];
+        delete obj[JsonSchema.oslcModifiedBy];
+        delete obj[JsonSchema.pavCreatedOn];
+        delete obj[JsonSchema.pavLastUpdatedOn];
+        delete obj[JsonSchema.pavCreatedBy];
+        delete obj[JsonSchema.schemaIsBasedOn];
+        delete obj[JsonSchema.schemaName];
+        delete obj[JsonSchema.schemaDescription];
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+          this.deleteContext(obj[key]);
+        }
+      });
+    }
   }
 
   private doInitialize(): void {

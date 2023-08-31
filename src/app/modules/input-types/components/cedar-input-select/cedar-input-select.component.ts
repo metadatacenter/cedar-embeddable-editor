@@ -103,7 +103,7 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
     setTimeout(() => {
       this.inputValueControl.setValue(this.selectedItems);
       this.inputChanged();
-    }, 0);
+    });
   }
 
   clearValue($event): void {
