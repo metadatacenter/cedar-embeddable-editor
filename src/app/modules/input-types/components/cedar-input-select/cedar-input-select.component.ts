@@ -12,7 +12,6 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
-
 @Component({
   selector: 'app-cedar-input-select',
   templateUrl: './cedar-input-select.component.html',
@@ -87,20 +86,24 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
       this.selectedItems = [];
     }
     for (const choice of this.component.choiceInfo.choices) {
-      const entry = {};
-      entry[this.ITEM_ID_FIELD] = choice.label;
-      entry[this.ITEM_TEXT_FIELD] = choice.label;
+      const entry: { [key: string]: any } = {
+        [this.ITEM_ID_FIELD]: choice.label,
+        [this.ITEM_TEXT_FIELD]: choice.label,
+      };
       this.dropdownList.push(entry);
 
       if (choice.selectedByDefault) {
         if (multi) {
-          this.selectedItems.push(entry);
+          this.selectedItems.push(choice.label);
         } else {
-          this.selectedItems = entry;
+          this.selectedItems = choice.label;
         }
       }
     }
-    this.inputChanged();
+    setTimeout(() => {
+      this.inputValueControl.setValue(this.selectedItems);
+      this.inputChanged();
+    }, 0);
   }
 
   clearValue($event): void {
