@@ -75,6 +75,9 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
             } else if (typeof fieldName === 'object') {
                 if (fieldName.hasOwnProperty(JsonSchema.atValue)) {
                     infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.atValue]) || 'null'));
+                } else if (fieldName.hasOwnProperty(JsonSchema.atId) && inputType === InputType.link) {
+                    // link field
+                    infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.atId]) || 'null'));
                 } else if (fieldName.hasOwnProperty(JsonSchema.atId)) {
                     // controlled field
                     infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.rdfsLabel]) || 'null'));
