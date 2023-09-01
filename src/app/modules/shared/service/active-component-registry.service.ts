@@ -56,43 +56,45 @@ export class ActiveComponentRegistryService {
         if (uiComponent) {
           uiComponent.setCurrentValue(dataArr.map(a => a[JsonSchema.atValue]));
         }
-      } else if (dataObject[multiInstanceInfo.currentIndex] != null) {
-        if (component.basicInfo.inputType === InputType.attributeValue) {
-          let key = dataObject[multiInstanceInfo.currentIndex];
+      } else if (dataObject != null) {
+        if (dataObject[multiInstanceInfo.currentIndex] != null) {
+          if (component.basicInfo.inputType === InputType.attributeValue) {
+            let key = dataObject[multiInstanceInfo.currentIndex];
 
-          if (key instanceof Object && key.hasOwnProperty(JsonSchema.atValue) && key[JsonSchema.atValue] === null) {
-            handlerContext.changeAttributeValue(component, null, null);
-          } else if (multiInstanceInfo.currentIndex > 0) {
-            const cloneSourceKey = dataObject[multiInstanceInfo.currentIndex - 1];
+            if (key instanceof Object && key.hasOwnProperty(JsonSchema.atValue) && key[JsonSchema.atValue] === null) {
+              handlerContext.changeAttributeValue(component, null, null);
+            } else if (multiInstanceInfo.currentIndex > 0) {
+              const cloneSourceKey = dataObject[multiInstanceInfo.currentIndex - 1];
 
-            if (key === cloneSourceKey) {
-              const val = parentDataObject[cloneSourceKey][JsonSchema.atValue];
-              handlerContext.changeAttributeValue(component, null, val);
+              if (key === cloneSourceKey) {
+                const val = parentDataObject[cloneSourceKey][JsonSchema.atValue];
+                handlerContext.changeAttributeValue(component, null, val);
+              }
             }
-          }
-          key = dataObject[multiInstanceInfo.currentIndex];
-          const value = parentDataObject[key][JsonSchema.atValue];
-          const obj = {};
-          obj[key] = value;
+            key = dataObject[multiInstanceInfo.currentIndex];
+            const value = parentDataObject[key][JsonSchema.atValue];
+            const obj = {};
+            obj[key] = value;
 
-          if (uiComponent) {
-            uiComponent.setCurrentValue(obj);
-          }
-        } else {
-          if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atValue)) {
             if (uiComponent) {
-              uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
+              uiComponent.setCurrentValue(obj);
             }
-          } else if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atId) &&
-              (component.basicInfo.inputType === InputType.link)) {
-            // url field single
-            if (uiComponent) {
-              uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atId]);
-            }
-          } else if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atId)) {
-            // controlled field multipage
-            if (uiComponent) {
-              uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.rdfsLabel]);
+          } else {
+            if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atValue)) {
+              if (uiComponent) {
+                uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
+              }
+            } else if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atId) &&
+                (component.basicInfo.inputType === InputType.link)) {
+              // url field single
+              if (uiComponent) {
+                uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atId]);
+              }
+            } else if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atId)) {
+              // controlled field multipage
+              if (uiComponent) {
+                uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.rdfsLabel]);
+              }
             }
           }
         }
