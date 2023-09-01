@@ -30,7 +30,7 @@ export class CedarStaticPageBreakComponent implements OnInit {
   }
 
   paginatorChanged(event): void {
-    this.pageBreakPaginatorService.page(event.pageIndex);
+    this.pageBreakPaginatorService.setPageNumberAndGet(event.pageIndex);
   }
 
 }

@@ -49,7 +49,7 @@ export class ActiveComponentRegistryService {
       const multiInstanceInfo: MultiInstanceObjectInfo =
           handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
 
-      // this is a multi-value but not multi-page component, such as checkbox or multiselect
+      // this is a multi-value but not multipage component, such as checkbox or multiselect
       if (!component.isMultiPage()) {
         const dataArr = dataObject as Array<object>;
 
@@ -80,7 +80,6 @@ export class ActiveComponentRegistryService {
           }
         } else {
           if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atValue)) {
-            console.log('******* 7');
             if (uiComponent) {
               uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
             }

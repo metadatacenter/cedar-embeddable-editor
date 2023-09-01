@@ -3,6 +3,7 @@ import {NullTemplate} from '../../models/template/null-template.model';
 import {DataContext} from '../../util/data-context';
 import {HandlerContext} from '../../util/handler-context';
 import {PageBreakPaginatorService} from '../../service/page-break-paginator.service';
+import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 
 
 @Component({
@@ -35,12 +36,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private static SHOW_STATIC_TEXT = 'showStaticText';
 
-  private readonly dataContext: DataContext = null;
+  readonly dataContext: DataContext = null;
 
-  private readonly handlerContext: HandlerContext = null;
+  readonly handlerContext: HandlerContext = null;
   @Output() handlerContextEvent = new EventEmitter<HandlerContext>();
 
-  private readonly pageBreakPaginatorService: PageBreakPaginatorService = null;
+  readonly pageBreakPaginatorService: PageBreakPaginatorService = null;
 
   @Input() sampleTemplateLoaderObject: any = null;
 
@@ -66,10 +67,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   allExpanded: boolean;
 
-  constructor() {
-    this.pageBreakPaginatorService = new PageBreakPaginatorService();
+  constructor(
+      private activeComponentRegistry: ActiveComponentRegistryService
+  ) {
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext);
+    this.pageBreakPaginatorService = new PageBreakPaginatorService(this.activeComponentRegistry, this.handlerContext);
     console.log('CEE:' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
 
