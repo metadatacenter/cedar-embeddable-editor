@@ -30,7 +30,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   private initialized = false;
   private configSet = false;
 
-  private templateJson: object = null;
+  templateJson: object = null;
   sampleTemplateLoaderObject = null;
   showSpinnerBeforeInit = true;
   protected onDestroySubject = new Subject<void>();

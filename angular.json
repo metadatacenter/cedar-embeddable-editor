@@ -17,9 +17,6 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "allowedCommonJsDependencies": [
-              "moment-timezone"
-            ],
             "outputPath": "dist/cedar-embeddable-editor",
             "index": "src/index.html",
             "main": "src/main.ts",

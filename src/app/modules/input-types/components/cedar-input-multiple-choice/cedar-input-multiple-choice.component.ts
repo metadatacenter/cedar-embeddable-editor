@@ -5,13 +5,13 @@ import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.mod
 import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
 import {HandlerContext} from '../../../shared/util/handler-context';
 import {ErrorStateMatcher} from '@angular/material/core';
-import {TextFieldErrorStateMatcher} from '../cedar-input-text/cedar-input-text.component';
 
 export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
+
 @Component({
   selector: 'app-cedar-input-multiple-choice',
   templateUrl: './cedar-input-multiple-choice.component.html',
@@ -26,8 +26,8 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
   @Input() handlerContext: HandlerContext;
 
   constructor(
-    fb: FormBuilder,
-    private activeComponentRegistry: ActiveComponentRegistryService
+      fb: FormBuilder,
+      private activeComponentRegistry: ActiveComponentRegistryService
   ) {
     super();
     this.options = fb.group({
@@ -52,6 +52,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
   inputChanged(event): void {
     this.handlerContext.changeValue(this.component, event.value);
   }
+
   clearValue(): void {
     this.setValueUIAndModel(null);
   }
