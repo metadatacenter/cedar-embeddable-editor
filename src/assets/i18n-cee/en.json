@@ -25,7 +25,8 @@
     "SelectYearAndMonth": "Select Year and Month",
     "SelectDate": "Select Date",
     "NumberOnly": "Number Only",
-    "CedarLogo": "Cedar Logo"
+    "CedarLogo": "Cedar Logo",
+    "DecimalSeconds": "decimal seconds"
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."
