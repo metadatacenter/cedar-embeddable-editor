@@ -18,7 +18,7 @@
   <mat-card-content>
     <button mat-button (click)="openAll()">{{'Generic.ExpandAll' | translate}}</button>
     <button mat-button (click)="closeAll()">{{'Generic.CollapseAll' | translate}}</button>
-    <ng-container *ngFor="let childComponent of pageBreakPaginatorService.currentPage()">
+    <ng-container *ngFor="let childComponent of pageBreakPaginatorService.getCurrentPage()">
       <app-cedar-component-renderer
         [componentToRender]="childComponent"
         [handlerContext]="handlerContext"
