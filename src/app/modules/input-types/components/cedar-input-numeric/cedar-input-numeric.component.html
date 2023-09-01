@@ -6,10 +6,10 @@
            (input)="inputChanged($event)"
            attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
     <span matSuffix>{{unitOfMeasure}}</span>
-    <mat-error align="start" *ngIf="inputValueControl.getError('min')" class="mat-error">{{'Validation.Numeric.MinValue' | translate: {constraintMinValue} }}</mat-error>
-    <mat-error align="start" *ngIf="inputValueControl.getError('max')" class="mat-error">{{'Validation.Numeric.MaxValue' | translate: {constraintMaxValue} }}</mat-error>
-    <mat-error align="start" *ngIf="inputValueControl.getError('pattern')" class="mat-error">{{patternErrorMessage}}.</mat-error>
-    <mat-error align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">{{'Validation.Required' | translate}}</mat-error>
-    <mat-hint align="end">{{getMinMaxValueHint()}}</mat-hint>
+    <mat-error *ngIf="inputValueControl.getError('min')" class="mat-error align-start">{{'Validation.Numeric.MinValue' | translate: {constraintMinValue} }}</mat-error>
+    <mat-error *ngIf="inputValueControl.getError('max')" class="mat-error align-start">{{'Validation.Numeric.MaxValue' | translate: {constraintMaxValue} }}</mat-error>
+    <mat-error *ngIf="inputValueControl.getError('pattern')" class="mat-error align-start">{{patternErrorMessage}}.</mat-error>
+    <mat-error *ngIf="inputValueControl.getError('required')" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
+    <mat-hint class="align-end">{{getMinMaxValueHint()}}</mat-hint>
   </mat-form-field>
 </form>

@@ -55,6 +55,7 @@ import {EscapeHtmlPipe} from '../shared/pipe/keep-html.pipe';
 import {DatePickerComponent} from '../shared/components/date-picker/date-picker.component';
 import {TimezonePickerComponent} from '../shared/components/timezone-picker/timezone-picker.component';
 import {TranslateModule} from '@ngx-translate/core';
+import {NgOptimizedImage} from '@angular/common';
 
 @NgModule({
   imports: [
@@ -88,7 +89,8 @@ import {TranslateModule} from '@ngx-translate/core';
     YouTubePlayerModule,
     FormsModule,
     MatSelectModule,
-    TranslateModule
+    TranslateModule,
+    NgOptimizedImage
   ],
   declarations: [
     CedarFooBarComponent,
