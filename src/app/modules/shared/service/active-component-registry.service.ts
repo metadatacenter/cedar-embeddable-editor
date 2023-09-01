@@ -80,8 +80,15 @@ export class ActiveComponentRegistryService {
           }
         } else {
           if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atValue)) {
+            console.log('******* 7');
             if (uiComponent) {
               uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atValue]);
+            }
+          } else if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atId) &&
+              (component.basicInfo.inputType === InputType.link)) {
+            // url field single
+            if (uiComponent) {
+              uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atId]);
             }
           } else if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atId)) {
             // controlled field multipage

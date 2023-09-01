@@ -41,12 +41,12 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
 
   constructor(
-    private controlledFieldDataService: ControlledFieldDataService,
-    private messageHandlerService: MessageHandlerService,
-    private sampleTemplateService: SampleTemplatesService,
-    private activeComponentRegistry: ActiveComponentRegistryService,
-    private localSettings: LocalSettingsService,
-    private translateService: TranslateService
+      private controlledFieldDataService: ControlledFieldDataService,
+      private messageHandlerService: MessageHandlerService,
+      private sampleTemplateService: SampleTemplatesService,
+      private activeComponentRegistry: ActiveComponentRegistryService,
+      private localSettings: LocalSettingsService,
+      private translateService: TranslateService
   ) {
     this.sampleTemplateLoaderObject = this;
 
@@ -64,25 +64,25 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   ngOnInit(): void {
 
     this.sampleTemplateService.templateJson$
-      .pipe(takeUntil(this.onDestroySubject))
-      .subscribe(templateJson => {
-        if (templateJson) {
-          this.loadedTemplateJson = Object.values(templateJson)[0];
-        } else {
-          this.loadedTemplateJson = null;
-        }
-        this.triggerUpdateOnInjectedSampledata();
-      });
+        .pipe(takeUntil(this.onDestroySubject))
+        .subscribe(templateJson => {
+          if (templateJson) {
+            this.loadedTemplateJson = Object.values(templateJson)[0];
+          } else {
+            this.loadedTemplateJson = null;
+          }
+          this.triggerUpdateOnInjectedSampledata();
+        });
     this.sampleTemplateService.metadataJson$
-      .pipe(takeUntil(this.onDestroySubject))
-      .subscribe(metadataJson => {
-        if (metadataJson) {
-          this.loadedMetadata = Object.values(metadataJson)[0];
-        } else {
-          this.loadedMetadata = null;
-        }
-        this.triggerUpdateOnInjectedSampledata();
-      });
+        .pipe(takeUntil(this.onDestroySubject))
+        .subscribe(metadataJson => {
+          if (metadataJson) {
+            this.loadedMetadata = Object.values(metadataJson)[0];
+          } else {
+            this.loadedMetadata = null;
+          }
+          this.triggerUpdateOnInjectedSampledata();
+        });
     this.initialized = true;
     this.doInitialize();
   }
@@ -109,7 +109,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
 
       dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
-        dataContext.templateRepresentation, instanceExtractData);
+          dataContext.templateRepresentation, instanceExtractData);
 
       if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
         setTimeout(() => {
@@ -173,11 +173,11 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private deleteContext(obj): void {
-    // detect if this node is a controlled value (it has an @id and an rdfs:label
-    // in this case leave intact
     const keyCount = Object.keys(obj).length;
     if (keyCount === 2 && obj.hasOwnProperty(JsonSchema.atId) && obj.hasOwnProperty(JsonSchema.rdfsLabel)) {
-      // do nothing
+      // do nothing, it is a controlled term
+    } else if (keyCount === 1 && obj.hasOwnProperty(JsonSchema.atId)) {
+      // do nothing, it is a link
     } else {
       Object.keys(obj).forEach(key => {
         delete obj[JsonSchema.atContext];
@@ -200,8 +200,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     if (this.initialized && this.configSet) {
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
-          this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX],
-          this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME]);
+            this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX],
+            this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME]);
       }
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
         const integratedSearchUrl = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL];
