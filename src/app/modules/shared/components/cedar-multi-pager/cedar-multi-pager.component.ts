@@ -81,6 +81,9 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
                 } else if (fieldName.hasOwnProperty(JsonSchema.atId)) {
                     // controlled field
                     infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.rdfsLabel]) || 'null'));
+                } else {
+                    // empty controlled field
+                    infoArray.push(numStr + 'null');
                 }
             }
         });
@@ -194,7 +197,6 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
         //   label: this.datetimeParsed.timezoneName
         // };
         // this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
-
         // nothing has changed, the same page number is clicked
         if (chipIdx === this.currentMultiInfo.currentIndex) {
             return;

@@ -90,7 +90,8 @@ export class ActiveComponentRegistryService {
               if (uiComponent) {
                 uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atId]);
               }
-            } else if (dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atId)) {
+            } else if (Object.keys(dataObject[multiInstanceInfo.currentIndex]).length === 0
+                || dataObject[multiInstanceInfo.currentIndex].hasOwnProperty(JsonSchema.atId)) {
               // controlled field multipage
               if (uiComponent) {
                 uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.rdfsLabel]);
