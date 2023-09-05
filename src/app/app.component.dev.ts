@@ -31,7 +31,6 @@ export class AppComponentDev implements OnInit {
     options: [{value: 'en', viewValue: 'en'}, {value: 'hu', viewValue: 'hu'}]
   };
 
-
   constructor() {
   }
 
