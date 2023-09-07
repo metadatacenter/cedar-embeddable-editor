@@ -3,6 +3,16 @@
   <span *ngIf="shouldRenderRequiredMark">
     <sup style="font-size: medium; color: red" aria-label="required"><b>*</b></sup>
   </span>
+  <span class="flex-child" *ngIf="component.isMultiPage()">
+    &nbsp;({{multiComponent.multiInfo.getSafeMinItems()}}
+     ..
+    <span *ngIf="multiComponent.multiInfo.maxItems">
+      {{multiComponent.multiInfo.maxItems}}
+    </span>
+    <span *ngIf="!multiComponent.multiInfo.maxItems" matTooltip="{{'Generic.Infinite' | translate}}">
+      ∞
+    </span>)
+  </span>
   <mat-icon *ngIf="component.labelInfo.description"
             matTooltip="{{component.labelInfo.description}}"
             matTooltipClass="tooltip"
@@ -12,15 +22,5 @@
             class="icon-help icon-questionmark"
             role="tooltip"
             inline="false">help</mat-icon>
-  <div class="flex-child" *ngIf="component.isMultiPage()">
-    &nbsp;({{multiComponent.multiInfo.getSafeMinItems()}}
-     ..
-    <span *ngIf="multiComponent.multiInfo.maxItems">
-      {{multiComponent.multiInfo.maxItems}}
-    </span>
-    <span *ngIf="!multiComponent.multiInfo.maxItems" matTooltip="{{'Generic.Infinite' | translate}}">
-      ∞
-    </span>)
-  </div>
   <span id="Description of {{cds.getRenderingLabelForComponent(component)}}" class="cdk-visually-hidden">{{component.labelInfo.description}}</span>
 </div>
