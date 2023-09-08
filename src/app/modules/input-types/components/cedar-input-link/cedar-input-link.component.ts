@@ -86,7 +86,6 @@ export class CedarInputLinkComponent extends CedarUIComponent implements OnInit 
     if (this.inputValueControl.value != null) {
       len = this.inputValueControl.value.length;
     }
-    const s = '' + len;
-    return s;
+    return '' + len;
   }
 }
