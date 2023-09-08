@@ -79,7 +79,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   ngAfterViewInit(): void {
     this.trigger.panelClosingActions
       .subscribe(e => {
-        if (!e){
+        if (!e && this.selectedData){
           this.setCurrentValue(this.selectedData.prefLabel);
         }
       });
@@ -125,6 +125,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   }
 
   clearValue(): void {
+    this.selectedData = null;
     this.inputValueControl.setValue(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
