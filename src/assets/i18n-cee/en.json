@@ -26,7 +26,8 @@
     "SelectDate": "Select Date",
     "NumberOnly": "Number Only",
     "CedarLogo": "Cedar Logo",
-    "DecimalSeconds": "decimal seconds"
+    "DecimalSeconds": "decimal seconds",
+    "Filter": "Start typing to filer"
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."
