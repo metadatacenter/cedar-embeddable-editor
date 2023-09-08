@@ -7,6 +7,11 @@ import {Component, OnInit} from '@angular/core';
 })
 export class AppComponentProd implements OnInit {
 
+  ceeConfig = {
+    // Do not remove this even if unused
+    // The prod build needs it
+  };
+
   constructor() {
   }
 
