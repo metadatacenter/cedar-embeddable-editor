@@ -22,7 +22,7 @@ export class AppComponentDev implements OnInit {
     showMultiInstanceInfo: true,
     expandedMultiInstanceInfo: false,
 
-    defaultLanguage: 'en',
+    defaultLanguage: 'hu',
     fallbackLanguage: 'en',
 
     // collapseStaticComponents: false,
