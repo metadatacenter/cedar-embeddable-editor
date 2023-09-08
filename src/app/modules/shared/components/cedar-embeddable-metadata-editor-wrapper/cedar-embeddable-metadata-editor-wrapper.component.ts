@@ -9,9 +9,8 @@ import {JsonSchema} from '../../models/json-schema.model';
 import {HandlerContext} from '../../util/handler-context';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 import {MultiInstanceObjectHandler} from '../../handler/multi-instance-object.handler';
-import {environment} from '../../../../../environments/environment';
-import {LocalSettingsService} from '../../service/local-settings.service';
 import {TranslateService} from '@ngx-translate/core';
+import {CedarEmbeddableMetadataEditorComponent} from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -20,11 +19,6 @@ import {TranslateService} from '@ngx-translate/core';
   encapsulation: ViewEncapsulation.None
 })
 export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, OnDestroy {
-
-  static TEMPLATE_LOCATION_PREFIX = 'sampleTemplateLocationPrefix';
-  static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
-  static TERMINOLOGY_INTEGRATED_SEARCH_URL = 'terminologyIntegratedSearchUrl';
-  static SHOW_SPINNER_BEFORE_INIT = 'showSpinnerBeforeInit';
 
   innerConfig: object = null;
   private initialized = false;
@@ -41,48 +35,42 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
 
   constructor(
-      private controlledFieldDataService: ControlledFieldDataService,
-      private messageHandlerService: MessageHandlerService,
-      private sampleTemplateService: SampleTemplatesService,
-      private activeComponentRegistry: ActiveComponentRegistryService,
-      private localSettings: LocalSettingsService,
-      private translateService: TranslateService
+    private controlledFieldDataService: ControlledFieldDataService,
+    private messageHandlerService: MessageHandlerService,
+    private sampleTemplateService: SampleTemplatesService,
+    private activeComponentRegistry: ActiveComponentRegistryService,
+    private translateService: TranslateService
   ) {
     this.sampleTemplateLoaderObject = this;
 
-    // this language will be used as a fallback when a translation isn't found in the current language
-    this.translateService.setDefaultLang(environment.fallbackLanguage);
-
-    // the lang to use, if the lang isn't available, it will use the current loader to get them
-    let currentLanguage = this.localSettings.getLanguage();
-    if (currentLanguage == null) {
-      currentLanguage = environment.defaultLanguage;
-    }
-    this.translateService.use(currentLanguage);
+    const fallbackLanguage = 'en';
+    const defaultLanguage = 'en';
+    this.translateService.setDefaultLang(fallbackLanguage);
+    this.translateService.use(defaultLanguage);
   }
 
   ngOnInit(): void {
 
     this.sampleTemplateService.templateJson$
-        .pipe(takeUntil(this.onDestroySubject))
-        .subscribe(templateJson => {
-          if (templateJson) {
-            this.loadedTemplateJson = Object.values(templateJson)[0];
-          } else {
-            this.loadedTemplateJson = null;
-          }
-          this.triggerUpdateOnInjectedSampledata();
-        });
+      .pipe(takeUntil(this.onDestroySubject))
+      .subscribe(templateJson => {
+        if (templateJson) {
+          this.loadedTemplateJson = Object.values(templateJson)[0];
+        } else {
+          this.loadedTemplateJson = null;
+        }
+        this.triggerUpdateOnInjectedSampledata();
+      });
     this.sampleTemplateService.metadataJson$
-        .pipe(takeUntil(this.onDestroySubject))
-        .subscribe(metadataJson => {
-          if (metadataJson) {
-            this.loadedMetadata = Object.values(metadataJson)[0];
-          } else {
-            this.loadedMetadata = null;
-          }
-          this.triggerUpdateOnInjectedSampledata();
-        });
+      .pipe(takeUntil(this.onDestroySubject))
+      .subscribe(metadataJson => {
+        if (metadataJson) {
+          this.loadedMetadata = Object.values(metadataJson)[0];
+        } else {
+          this.loadedMetadata = null;
+        }
+        this.triggerUpdateOnInjectedSampledata();
+      });
     this.initialized = true;
     this.doInitialize();
   }
@@ -109,7 +97,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
 
       dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
-          dataContext.templateRepresentation, instanceExtractData);
+        dataContext.templateRepresentation, instanceExtractData);
 
       if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
         setTimeout(() => {
@@ -198,17 +186,26 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   private doInitialize(): void {
     if (this.initialized && this.configSet) {
-      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
-            this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX],
-            this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME]);
+          this.innerConfig[CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX],
+          this.innerConfig[CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME]);
       }
-      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
-        const integratedSearchUrl = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL];
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
+        const integratedSearchUrl = this.innerConfig[CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL];
         this.controlledFieldDataService.setTerminologyIntegratedSearchUrl(integratedSearchUrl);
       }
-      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.SHOW_SPINNER_BEFORE_INIT)) {
-        this.showSpinnerBeforeInit = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.SHOW_SPINNER_BEFORE_INIT];
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT)) {
+        this.showSpinnerBeforeInit = this.innerConfig[CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT];
+      }
+
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE)) {
+        const fallbackLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE];
+        this.translateService.setDefaultLang(fallbackLanguage);
+      }
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE)) {
+        const defaultLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE];
+        this.translateService.use(defaultLanguage);
       }
     }
   }
@@ -226,7 +223,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         if (this.loadedMetadata !== null) {
           this.instanceObject = this.loadedMetadata;
         }
-      }, 2000);
+      });
     }
   }
 }

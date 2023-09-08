@@ -9,9 +9,6 @@ import {Xsd} from '../../../shared/models/xsd.model';
 import {Temporal} from '../../../shared/models/temporal.model';
 import moment, {Moment} from 'moment';
 import {TimezonePickerComponent, TZone} from '../../../shared/components/timezone-picker/timezone-picker.component';
-// import {Moment} from 'moment';
-// import * as moment from 'moment-timezone';
-
 
 @Component({
   selector: 'app-cedar-input-datetime',
@@ -324,11 +321,11 @@ export class DatetimeRepresentation {
   }
 
   setDate(dateIn: Moment): void {
-    if (!dateIn){
+    if (!dateIn) {
       return;
     }
     this.dateIsSet = true;
-    this.year = dateIn.year().toLocaleString().replace(/,/,'');
+    this.year = dateIn.year().toLocaleString().replace(/,/, '');
     this.month = this.stringify((dateIn.month() + 1).toLocaleString());
     this.day = this.stringify(dateIn.date().toLocaleString());
   }

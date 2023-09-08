@@ -22,6 +22,9 @@ export class AppComponentDev implements OnInit {
     showMultiInstanceInfo: true,
     expandedMultiInstanceInfo: false,
 
+    defaultLanguage: 'hu',
+    fallbackLanguage: 'en',
+
     // collapseStaticComponents: false,
     // showStaticText: true,
   };
@@ -36,20 +39,5 @@ export class AppComponentDev implements OnInit {
 
   ngOnInit(): void {
   }
-
-  // getCurrentLanguageCode() {
-  //   return this.translateService.currentLang;
-  // }
-  //
-  // switchLanguage($event: any, language: string) {
-  //   $event.preventDefault();
-  //   this.translateService.use(language);
-  //   this.localSettings.setLanguage(language);
-  // }
-  //
-  // setLanguage(language: string) {
-  //   this.translateService.use(language);
-  //   this.localSettings.setLanguage(language);
-  // }
 
 }
