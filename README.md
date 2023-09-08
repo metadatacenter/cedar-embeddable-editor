@@ -6,7 +6,9 @@ It takes CEDAR JSON Schema templates as input, and produces CEDAR JSON-LD metada
 
 ## Running as a standalone application
 
-You can run CEE as a standalone application. This is helpful for developers to see changes to the code reflected immediately in the application. To run CEE in the standalone mode (NOT as a Webcomponent), proceed with the following steps:
+You can run CEE as a standalone application. This is helpful for developers to see changes to the code reflected immediately in the application. To run CEE in the standalone mode (NOT as a Webcomponent), you will need the editor itself and the sample templates that the editor uses. These are stored in a [separate repo](https://github.com/metadatacenter/cedar-component-distribution).
+
+Proceed with the following steps:
 
 ### Clone the repository
 
@@ -14,6 +16,7 @@ Clone this repository onto a local directory of your choice:
 
 ```shell
 git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
+git clone https://github.com/metadatacenter/cedar-component-distribution.git
 ```
 
 ### Edit configuration
@@ -25,29 +28,45 @@ git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
 
 1. Navigate to the CEE directory:
 ```shell
-$cd <...>/<clone directory>/cedar-embeddable-editor/
+$ cd <...>/<clone directory>/cedar-embeddable-editor/
 ```
 1. Run these commands:
 ```shell
 cedar-embeddable-editor$ npm install
 cedar-embeddable-editor$ ng serve
 ```
-1. In your browser, navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+
+1. In a different shell navigate to the component distribution directory:
+```shell
+$ cd <...>/<clone directory>/cedar-component-distribution/
+```
+
+1. Run these commands:
+```shell
+cedar-embeddable-editor$ npm install
+cedar-embeddable-editor$ ng serve
+```
+
+1. In your browser, navigate to `http://localhost:4400/`. The app will automatically reload if you change any of the source files.
 
 ## Running as a Webcomponent
 
-This method creates a single Javascript (JS) file that encapsulates all the functionality of CEE. The JS file can be embedded in any application or HTML page. To build a CEE Webcomponent, proceed with these steps: 
+This method creates a single Javascript (JS) file that encapsulates all the functionality of CEE. The JS file can be embedded in any application or HTML page. To build a CEE Webcomponent, proceed with these steps:
 
 ### Build and copy the Webcomponent JS file
 
 1. Run the build command:
 ```shell
-cedar-embeddable-editor$ ng build --configuration production --output-hashing=none
+cedar-embeddable-editor$ ng build --configuration=production
 ```
 1. Combine the generated files into a single file and copy the final JS to the sample application:
 ```shell
-cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,main}.js > "/dev/cedar/cedar-cee-demo-generic/assets/js/cedar-embeddable-editor.js"
+cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,main}.js > cedar-embeddable-editor.js
 ```
+
+## Running as an `npm` package
+
+Please import the latest version of the editor into your project from: [https://www.npmjs.com/package/cedar-embeddable-editor](https://www.npmjs.com/package/cedar-embeddable-editor)
 
 ## Configuration
 
@@ -63,18 +82,27 @@ document.addEventListener('WebComponentsReady', function () {
   cee.loadConfigFromURL('assets/data/cee-config.json');
 });
 ```
-* When using the Angular 2 sample application (https://github.com/metadatacenter/cedar-cee-demo-angular), the configuration is stored in the file: `assets/data/appConfig.json`. 
+* The configuration can also be passed into the editor as a json map. In Angular this looks as follows:
+```html
+<cedar-embeddable-editor
+  [config]="conf"
+  [templateObject]="template"
+  [instanceObject]="instance"
+></cedar-embeddable-editor>
+```
 
 
 ### Required configuration parameters
 
-* **sampleTemplateLocationPrefix:** The base URL that contains the sample CEDAR templates
-* **terminologyIntegratedSearchUrl:** The URL of the CEDAR integrated search endpoint that communicates with BioPortal
+* **showSampleTemplateLinks:** Wether the sample links are shown or not.
+  * For production this should be false, the template should be injected into the component by the embedding application
+* **terminologyIntegratedSearchUrl:** The URL of the CEDAR integrated search endpoint that communicates with BioPortal.
+  * The value `https://terminology.metadatacenter.org/bioportal/integrated-search` should work for the majority of applications.
 
 ```json
 {
-  "sampleTemplateLocationPrefix": "https://component.metadatacenter.orgx/cedar-embeddable-editor-sample-templates/",
-  "terminologyIntegratedSearchUrl": "https://terminology.metadatacenter.org/bioportal/integrated-search"
+  "showSampleTemplateLinks": false,
+  "terminologyIntegratedSearchUrl": 'https://terminology.metadatacenter.org/bioportal/integrated-search',
 }
 ```
 
@@ -84,22 +112,30 @@ There are other optional configuration parameters available for controlling vari
 
 ```json
 {
-  "showSampleTemplateLinks": true,
-  "loadSampleTemplateName": "19",
-  "expandedSampleTemplateLinks": false,
+  "sampleTemplateLocationPrefix": "http://localhost:4240/cedar-embeddable-editor-sample-templates/",
+  "loadSampleTemplateName": "01",
+  "expandedSampleTemplateLinks": true,
+
   "showTemplateRenderingRepresentation": true,
-  "expandedTemplateRenderingRepresentation": false,
   "showInstanceDataCore": true,
-  "expandedInstanceDataCore": true,
+  "expandedInstanceDataCore": false,
+  "showMultiInstanceInfo": true,
+  "expandedMultiInstanceInfo": false,
+
+  "expandedTemplateRenderingRepresentation": false,
   "showInstanceDataFull": false,
   "expandedInstanceDataFull": false,
-  "showMultiInstanceInfo": false,
-  "expandedMultiInstanceInfo": false,
   "showTemplateSourceData": true,
   "expandedTemplateSourceData": false,
+
   "showHeader": true,
   "showFooter": true,
-  "collapseStaticComponents": true
+
+  "defaultLanguage": "en",
+  "fallbackLanguage": "en",
+
+  "collapseStaticComponents": false,
+  "showStaticText": true
 }
 ```
 
@@ -136,15 +172,23 @@ document.addEventListener('WebComponentsReady', function () {
 });
 ```
 
-### Metadata Import
+### Template Injection
 
-You can import your metadata into CEE Webcomponent, provided it matches the template currently being edited. To import your metadata, execute this API call:
+You can inject your template into CEE:
 
 ```javascript
-cee.metadata = yourCustomMetadataJson
+cee.templateObject = yourCustomTemplateJson;
 ```
 
-In the example below, the metadata is fetched from a remote URL and imported into CEE:
+### Metadata Injection
+
+You can inject your metadata into CEE, provided it matches the template currently being edited:
+
+```javascript
+cee.instanceObject = yourCustomMetadataJson
+```
+
+In the example below, the metadata is fetched from a remote URL and injected into CEE:
 
 ```javascript
 function restoreMetadataFromURL(metaUrl, cee, successHandler = null, errorHandler = null) {
@@ -153,7 +197,7 @@ function restoreMetadataFromURL(metaUrl, cee, successHandler = null, errorHandle
     if (xhr.readyState === XMLHttpRequest.DONE) {
       if (xhr.status === 200) {
         const jsonMeta = JSON.parse(xhr.responseText);
-        cee.metadata = jsonMeta;
+        cee.instanceObject = jsonMeta;
 
         if (successHandler) {
           successHandler(jsonMeta);
@@ -176,20 +220,15 @@ document.addEventListener('WebComponentsReady', function () {
 });
 ```
 
-To reiterate, the metadata being imported **MUST** match the template currently being edited and open in your browser window.
+To reiterate, the metadata being injected **MUST** match the template currently being edited and open in your browser window.
 
 ## Example Applications
 
-There are two sample applications you can use to demonstrate how to embed and use CEE. Follow the links below to the demo application of your choice. The documentation for each demo application can be found in the README file of the corresponding application.
-
-### CEE Demo Generic
-
-This demo uses a generic HTML page with the CEE Webcomponent embedded in it. It runs standalone, with no dependency on any web framework.
-
-https://github.com/metadatacenter/cedar-cee-demo-generic
+There is a sample applications you can use to demonstrate how to embed and use CEE.
+Follow the links below to the demo application of your choice. The documentation for each demo application can be found in the README file of the corresponding application.
 
 ### CEE Demo Angular
 
 This demo is written in Angular 2 and requires that framework to run properly.
 
-https://github.com/metadatacenter/cedar-cee-demo-angular
+https://github.com/metadatacenter/cedar-cee-demo/tree/main/cedar-cee-demo-angular-src
