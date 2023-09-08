@@ -8,7 +8,7 @@ export class DataObjectUtil {
 
   static getEmptyValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode): object {
     const obj = {};
-    if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj) ) {
+    if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
       obj[JsonSchema.atValue] = null;
     }
     if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
@@ -65,12 +65,11 @@ export class DataObjectUtil {
   // Generating a RFC4122 version 4 compliant GUID
   static generateGUID(): string {
     let d = Date.now();
-    const guid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = (d + Math.random() * 16) % 16 | 0;
       d = Math.floor(d / 16);
       return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
     });
-    return guid;
   }
 
   static arraysEqual(arr1, arr2): boolean {

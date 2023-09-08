@@ -84,7 +84,8 @@ export class TemplateRepresentationFactory {
     }
   }
 
-  private static wrap(templateJsonObj: object, parentJsonObj: object, component: CedarComponent, parentPath: string[], collapseStaticComponents: boolean): void {
+  private static wrap(templateJsonObj: object, parentJsonObj: object, component: CedarComponent, parentPath: string[],
+                      collapseStaticComponents: boolean): void {
     // const propertyNames: string[] = TemplateRepresentationFactory.getFilteredSchemaPropertyNames(templateJsonObj);
     // console.log(propertyNames);
     const propertyNames: string[] = TemplateRepresentationFactory.getOrderedPropertyNames(templateJsonObj);
@@ -300,7 +301,7 @@ export class TemplateRepresentationFactory {
         const currentChild: CedarComponent = elementComponent.children[i];
 
         if (ComponentTypeHandler.isFieldOrElement(currentChild) &&
-            ComponentTypeHandler.isStaticContentComponent(prevChild) && !isStaticPair) {
+          ComponentTypeHandler.isStaticContentComponent(prevChild) && !isStaticPair) {
           currentChild.linkedStaticFieldComponent = prevChild as StaticFieldComponent;
           newChildren.pop();
           newChildren.push(currentChild);

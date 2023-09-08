@@ -36,6 +36,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private static SHOW_STATIC_TEXT = 'showStaticText';
 
+  static TEMPLATE_LOCATION_PREFIX = 'sampleTemplateLocationPrefix';
+  static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
+  static TERMINOLOGY_INTEGRATED_SEARCH_URL = 'terminologyIntegratedSearchUrl';
+  static SHOW_SPINNER_BEFORE_INIT = 'showSpinnerBeforeInit';
+
+  static FALLBACK_LANGUAGE = 'fallbackLanguage';
+  static DEFAULT_LANGUAGE = 'defaultLanguage';
+
   readonly dataContext: DataContext = null;
 
   readonly handlerContext: HandlerContext = null;
