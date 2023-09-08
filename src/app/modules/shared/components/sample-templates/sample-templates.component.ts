@@ -1,13 +1,11 @@
 import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import {MatListOption} from '@angular/material/list';
-import {
-  CedarEmbeddableMetadataEditorWrapperComponent
-} from '../cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import {HttpClient} from '@angular/common/http';
 import {SampleTemplatesService} from './sample-templates.service';
 import {Subject} from 'rxjs';
 import {FormControl} from '@angular/forms';
 import {takeUntil} from 'rxjs/operators';
+import {CedarEmbeddableMetadataEditorComponent} from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 
 @Component({
   selector: 'app-sample-templates',
@@ -32,19 +30,18 @@ export class SampleTemplatesComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.templateLocationPrefix = this.callbackOwnerObject.
-      innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX];
+    this.templateLocationPrefix = this.callbackOwnerObject.innerConfig[CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX];
     this.sampleTemplateService.getSampleTemplatesFromRegistry(this.templateLocationPrefix)
       .pipe(takeUntil(this._onDestroy))
       .subscribe(
-      (templates: object[]) => {
-        this.sampleTemplates.push(...templates);
-      }
-    );
+        (templates: object[]) => {
+          this.sampleTemplates.push(...templates);
+        }
+      );
 
     this.sampleTemplateService.templateJson$
       .pipe(takeUntil(this._onDestroy))
-      .subscribe( templateJson => {
+      .subscribe(templateJson => {
         this.templateCtrl.setValue([Object.keys(templateJson)[0]]);
       });
   }

@@ -117,7 +117,7 @@ export class SampleTemplatesService {
         ),
         catchError(
           error => {
-            this.messageHandlerService.errorObject(error['message'], error);
+            this.messageHandlerService.errorObject(error.message, error);
             return EMPTY;
           })
       );
