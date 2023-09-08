@@ -27,7 +27,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
 })
 export class CedarInputControlledComponent extends CedarUIComponent implements OnInit, AfterViewInit {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger: MatAutocompleteTrigger;
-  selectedData = new FormControl();
+  selectedData: IntegratedSearchResponseItem;
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, null);
@@ -79,8 +79,8 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   ngAfterViewInit(): void {
     this.trigger.panelClosingActions
       .subscribe(e => {
-        if (!e){
-          this.clearValue();
+        if (!e && this.selectedData){
+          this.setCurrentValue(this.selectedData.prefLabel);
         }
       });
   }
@@ -111,6 +111,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
 
   onSelectionChange(option: IntegratedSearchResponseItem): void {
     this.handlerContext.changeControlledValue(this.component, option[JsonSchema.atId], option.prefLabel);
+    this.selectedData = option;
   }
 
   inputChanged(event): void {
@@ -124,6 +125,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   }
 
   clearValue(): void {
+    this.selectedData = null;
     this.inputValueControl.setValue(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
