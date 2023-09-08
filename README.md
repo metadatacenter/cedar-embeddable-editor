@@ -6,7 +6,9 @@ It takes CEDAR JSON Schema templates as input, and produces CEDAR JSON-LD metada
 
 ## Running as a standalone application
 
-You can run CEE as a standalone application. This is helpful for developers to see changes to the code reflected immediately in the application. To run CEE in the standalone mode (NOT as a Webcomponent), proceed with the following steps:
+You can run CEE as a standalone application. This is helpful for developers to see changes to the code reflected immediately in the application. To run CEE in the standalone mode (NOT as a Webcomponent), you will need the editor itself and the sample templates that the editor uses. These are stored in a [separate repo](https://github.com/metadatacenter/cedar-component-distribution).
+
+Proceed with the following steps:
 
 ### Clone the repository
 
@@ -14,6 +16,7 @@ Clone this repository onto a local directory of your choice:
 
 ```shell
 git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
+git clone https://github.com/metadatacenter/cedar-component-distribution.git
 ```
 
 ### Edit configuration
@@ -25,28 +28,40 @@ git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
 
 1. Navigate to the CEE directory:
 ```shell
-$cd <...>/<clone directory>/cedar-embeddable-editor/
+$ cd <...>/<clone directory>/cedar-embeddable-editor/
 ```
 1. Run these commands:
 ```shell
 cedar-embeddable-editor$ npm install
 cedar-embeddable-editor$ ng serve
 ```
-1. In your browser, navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+
+1. In a different shell navigate to the component distribution directory:
+```shell
+$ cd <...>/<clone directory>/cedar-component-distribution/
+```
+
+1. Run these commands:
+```shell
+cedar-embeddable-editor$ npm install
+cedar-embeddable-editor$ ng serve
+```
+
+1. In your browser, navigate to `http://localhost:4400/`. The app will automatically reload if you change any of the source files.
 
 ## Running as a Webcomponent
 
-This method creates a single Javascript (JS) file that encapsulates all the functionality of CEE. The JS file can be embedded in any application or HTML page. To build a CEE Webcomponent, proceed with these steps: 
+This method creates a single Javascript (JS) file that encapsulates all the functionality of CEE. The JS file can be embedded in any application or HTML page. To build a CEE Webcomponent, proceed with these steps:
 
 ### Build and copy the Webcomponent JS file
 
 1. Run the build command:
 ```shell
-cedar-embeddable-editor$ ng build --configuration production --output-hashing=none
+cedar-embeddable-editor$ ng build --configuration=production
 ```
 1. Combine the generated files into a single file and copy the final JS to the sample application:
 ```shell
-cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,main}.js > "/dev/cedar/cedar-cee-demo-generic/assets/js/cedar-embeddable-editor.js"
+cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,main}.js > cedar-embeddable-editor.js
 ```
 
 ## Configuration
@@ -63,7 +78,7 @@ document.addEventListener('WebComponentsReady', function () {
   cee.loadConfigFromURL('assets/data/cee-config.json');
 });
 ```
-* When using the Angular 2 sample application (https://github.com/metadatacenter/cedar-cee-demo-angular), the configuration is stored in the file: `assets/data/appConfig.json`. 
+* When using the Angular 2 sample application (https://github.com/metadatacenter/cedar-cee-demo-angular), the configuration is stored in the file: `assets/data/appConfig.json`.
 
 
 ### Required configuration parameters
