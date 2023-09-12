@@ -4,5 +4,6 @@ export class BasicInfo {
   temporalGranularity: string;
   timezoneEnabled: boolean;
   inputTimeFormat: string;
+  continuePreviousLine: boolean;
 
 }

@@ -22,6 +22,7 @@ export class CedarModel {
   static maxValue = 'maxValue';
   static decimalPlace = 'decimalPlace';
   static content = '_content';
+  static continuePreviousLine = 'continuePreviousLine';
 
   static ontologies = 'ontologies';
   static valueSets = 'valueSets';

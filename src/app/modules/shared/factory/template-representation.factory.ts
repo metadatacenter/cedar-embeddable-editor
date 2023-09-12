@@ -89,6 +89,7 @@ export class TemplateRepresentationFactory {
     // const propertyNames: string[] = TemplateRepresentationFactory.getFilteredSchemaPropertyNames(templateJsonObj);
     // console.log(propertyNames);
     const propertyNames: string[] = TemplateRepresentationFactory.getOrderedPropertyNames(templateJsonObj);
+    let prevFieldComponent: FieldComponent = null;
     for (const name of propertyNames) {
       const templateFragment = templateJsonObj[JsonSchema.properties][name];
 
@@ -108,9 +109,10 @@ export class TemplateRepresentationFactory {
         } else {
           r = new SingleFieldComponent();
         }
-
         TemplateRepresentationFactory.extractValueConstraints(dataNode, r as FieldComponent);
         TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
+        TemplateRepresentationFactory.extractSameLineConstraints(dataNode, r as FieldComponent, prevFieldComponent);
+        prevFieldComponent = r as FieldComponent;
       } else if (fragmentAtType === CedarModel.templateElementType) {
         if (isMulti) {
           r = new MultiElementComponent();
@@ -318,6 +320,17 @@ export class TemplateRepresentationFactory {
         prevChild = currentChild;
       }
       elementComponent.children = newChildren;
+    }
+  }
+  private static extractSameLineConstraints(dataNode: object, fc: FieldComponent, pfc: FieldComponent): void{
+    if (!pfc || !pfc?.basicInfo?.continuePreviousLine){
+      fc.basicInfo.continuePreviousLine = dataNode[CedarModel.ui][CedarModel.continuePreviousLine] || false;
+      if(fc.basicInfo.continuePreviousLine) {
+        pfc.basicInfo.continuePreviousLine = true;
+      }
+    }
+    else {
+      fc.basicInfo.continuePreviousLine = false;
     }
   }
 
