@@ -79,9 +79,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   ngAfterViewInit(): void {
     this.trigger.panelClosingActions
       .subscribe(e => {
-        if (!e && this.selectedData){
-          this.setCurrentValue(this.selectedData.prefLabel);
-        }
+        this.setCurrentValue(this.selectedData?.prefLabel);
       });
   }
 
@@ -111,7 +109,9 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
 
   onSelectionChange(option: IntegratedSearchResponseItem): void {
     this.handlerContext.changeControlledValue(this.component, option[JsonSchema.atId], option.prefLabel);
-    this.selectedData = option;
+    if (option){
+      this.selectedData = option;
+    }
   }
 
   inputChanged(event): void {
