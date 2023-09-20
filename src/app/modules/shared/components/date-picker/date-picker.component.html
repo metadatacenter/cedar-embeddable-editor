@@ -2,6 +2,7 @@
   <mat-form-field>
 <!--    <mat-label>Select Year</mat-label>-->
     <input matInput
+           readonly
            [matDatepicker]="dp"
            [formControl]="dateMonthYear"
            attr.aria-label="{{'Generic.SelectYear' | translate}}">
@@ -18,6 +19,7 @@
   <mat-form-field>
 <!--    <mat-label>Select Year and Month</mat-label>-->
     <input matInput
+           readonly
            [matDatepicker]="dp"
            [formControl]="dateMonthYear"
            attr.aria-label="{{'Generic.SelectYearAndMonth' | translate}}">
@@ -34,6 +36,7 @@
   <mat-form-field>
 <!--    <mat-label>Select Date</mat-label>-->
     <input matInput
+           readonly
            [matDatepicker]="dp"
            [formControl]="dateMonthYear"
            (dateChange)="chosenDateHandler($event)"
