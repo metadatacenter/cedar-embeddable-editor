@@ -7,9 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Changelog
+- Code of conduct
+
 ### Fixed
 
 - Controlled term field UI update on invalid data
+- Model update when date is entered from input (see 'Changed' below)
+
+### Changed
+
+- Date can only be selected with date picker (no keyboard input)
 
 
 ## [1.0.0] - 2023-09-08
