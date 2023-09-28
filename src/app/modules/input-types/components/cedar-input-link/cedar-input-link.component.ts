@@ -49,7 +49,6 @@ export class CedarInputLinkComponent extends CedarUIComponent implements OnInit 
     }
 
     this.inputValueControl = new FormControl(null, validators);
-
     if (this.component.valueInfo.defaultValue != null) {
       this.setValueUIAndModel(this.component.valueInfo.defaultValue);
     }
@@ -87,7 +86,6 @@ export class CedarInputLinkComponent extends CedarUIComponent implements OnInit 
     if (this.inputValueControl.value != null) {
       len = this.inputValueControl.value.length;
     }
-    const s = '' + len;
-    return s;
+    return '' + len;
   }
 }

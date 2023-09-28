@@ -1,11 +1,12 @@
 <ng-container *ngIf="dateFormat === yearFormat">
   <mat-form-field>
-    <mat-label>Select Year</mat-label>
+<!--    <mat-label>Select Year</mat-label>-->
     <input matInput
+           readonly
            [matDatepicker]="dp"
            [formControl]="dateMonthYear"
-    >
-    <mat-hint align="start" *ngIf="dateMonthYear.getError('required')" class="mat-error">The value is required.</mat-hint>
+           attr.aria-label="{{'Generic.SelectYear' | translate}}">
+    <mat-error *ngIf="dateMonthYear.getError('required')" class="mat-error align-start">{{'Error.ValueRequired' | translate}}</mat-error>
     <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
     <mat-datepicker #dp
                     (yearSelected)="chosenYearHandler($event, dp)"
@@ -16,11 +17,12 @@
 </ng-container>
 <ng-container *ngIf="dateFormat === yearMonthFormat">
   <mat-form-field>
-    <mat-label>Select Year and Month</mat-label>
+<!--    <mat-label>Select Year and Month</mat-label>-->
     <input matInput
+           readonly
            [matDatepicker]="dp"
            [formControl]="dateMonthYear"
-    >
+           attr.aria-label="{{'Generic.SelectYearAndMonth' | translate}}">
     <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
     <mat-datepicker #dp
                     (yearSelected)="chosenYearHandler($event, dp)"
@@ -32,12 +34,13 @@
 </ng-container>
 <ng-container *ngIf="dateFormat === yearMonthDayFormat">
   <mat-form-field>
-    <mat-label>Select Date</mat-label>
+<!--    <mat-label>Select Date</mat-label>-->
     <input matInput
+           readonly
            [matDatepicker]="dp"
            [formControl]="dateMonthYear"
            (dateChange)="chosenDateHandler($event)"
-    >
+           attr.aria-label="{{'Generic.SelectDate' | translate}}">
     <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
     <mat-datepicker #dp
                     (opened)="chosenDateHandler($event)"

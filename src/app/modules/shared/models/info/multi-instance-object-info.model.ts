@@ -15,6 +15,10 @@ export class MultiInstanceObjectInfo {
   }
 
   public addChild(child: MultiInstanceInfo): void {
+    // console.log('MultiInstanceObjectInfo.addChild');
+    // console.log(this);
+    // console.log(this.children);
+    // console.log(child);
     this.children.push(child);
   }
 

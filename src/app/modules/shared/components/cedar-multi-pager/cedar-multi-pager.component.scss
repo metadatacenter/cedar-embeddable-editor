@@ -22,15 +22,20 @@
   opacity: 100%;
 }
 
-.mat-icon-button{
-  width: 24px;
-  height: 24px;
-}
-
 .mat-icon {
   font-size: 18px;
 }
 
 .small-chip {
   height:24px;
+}
+
+.aligned-up {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: right;
+  align-items: center;
+  margin-right: 10px;
+  margin-bottom: 15px;
+  margin-top: -50px;
 }

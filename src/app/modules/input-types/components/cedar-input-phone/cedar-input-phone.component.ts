@@ -28,9 +28,9 @@ export class CedarInputPhoneComponent extends CedarUIComponent implements OnInit
   @Input() handlerContext: HandlerContext;
 
   constructor(
-    fb: FormBuilder,
-    public cds: ComponentDataService,
-    private activeComponentRegistry: ActiveComponentRegistryService
+      fb: FormBuilder,
+      public cds: ComponentDataService,
+      private activeComponentRegistry: ActiveComponentRegistryService
   ) {
     super();
     this.options = fb.group({
@@ -88,7 +88,6 @@ export class CedarInputPhoneComponent extends CedarUIComponent implements OnInit
     if (this.inputValueControl.value != null) {
       len = this.inputValueControl.value.length;
     }
-    const s = '' + len;
-    return s;
+    return '' + len;
   }
 }

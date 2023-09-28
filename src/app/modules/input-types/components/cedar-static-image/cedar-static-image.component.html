@@ -1,6 +1,8 @@
 <mat-card class="child-component-card image-component">
-  <img mat-card-image src="{{component.contentInfo.content}}" alt="{{component.labelInfo.description}}">
+  <div role="img" attr.aria-label="{{component.labelInfo.description}}">
+    <img mat-card-image src="{{component.contentInfo.content}}" alt="{{component.labelInfo.description}}" />
+  </div>
   <mat-card-content>
-    {{component.labelInfo.description}}
+    <p>{{component.labelInfo.description}}</p>
   </mat-card-content>
 </mat-card>

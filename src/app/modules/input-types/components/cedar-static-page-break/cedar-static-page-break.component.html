@@ -1,10 +1,10 @@
 <div class="pager-container page-break-paginator-container">
-  <span class="page-break-label">Page:</span>
+  <span class="page-break-label">{{'Generic.Page' | translate}}:</span>
   <div class="pager-chips">
     <mat-chip-list>
       <mat-chip *ngFor="let pageNumber of pageBreakPaginatorService.allPageIndices()"
                 [selected]="pageNumber == pageBreakPaginatorService.currentPageBreakIndex"
-                (click)="pageBreakPaginatorService.page(pageNumber)"
+                (click)="pageBreakPaginatorService.setPageNumberAndGet(pageNumber)"
                 selectable="true"
       >{{pageNumber + 1}}</mat-chip>
     </mat-chip-list>

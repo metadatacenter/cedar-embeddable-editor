@@ -1,9 +1,9 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation, ViewChildren} from '@angular/core';
-import {MatAccordion} from '@angular/material/expansion';
+import {Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation} from '@angular/core';
 import {NullTemplate} from '../../models/template/null-template.model';
 import {DataContext} from '../../util/data-context';
 import {HandlerContext} from '../../util/handler-context';
 import {PageBreakPaginatorService} from '../../service/page-break-paginator.service';
+import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 
 
 @Component({
@@ -13,6 +13,8 @@ import {PageBreakPaginatorService} from '../../service/page-break-paginator.serv
   encapsulation: ViewEncapsulation.None
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
+  private static INNER_VERSION = '2023-09-97 10:40';
+
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
   private static SHOW_TEMPLATE_SOURCE = 'showTemplateSourceData';
@@ -32,21 +34,22 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private static COLLAPSE_STATIC_COMPONENTS = 'collapseStaticComponents';
 
-  private static SHOW_TEMPLATE_UPLOAD = 'showTemplateUpload';
-  private static TEMPLATE_UPLOAD_BASE_URL = 'templateUploadBaseUrl';
-  private static TEMPLATE_UPLOAD_ENDPOINT = 'templateUploadEndpoint';
-  private static TEMPLATE_UPLOAD_PARAM_NAME = 'templateUploadParamName';
-
-  private static SHOW_DATA_SAVER = 'showDataSaver';
-  private static DATA_SAVER_ENDPOINT_URL = 'dataSaverEndpointUrl';
   private static SHOW_STATIC_TEXT = 'showStaticText';
 
-  private readonly dataContext: DataContext = null;
+  static TEMPLATE_LOCATION_PREFIX = 'sampleTemplateLocationPrefix';
+  static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
+  static TERMINOLOGY_INTEGRATED_SEARCH_URL = 'terminologyIntegratedSearchUrl';
+  static SHOW_SPINNER_BEFORE_INIT = 'showSpinnerBeforeInit';
 
-  private readonly handlerContext: HandlerContext = null;
+  static FALLBACK_LANGUAGE = 'fallbackLanguage';
+  static DEFAULT_LANGUAGE = 'defaultLanguage';
+
+  readonly dataContext: DataContext = null;
+
+  readonly handlerContext: HandlerContext = null;
   @Output() handlerContextEvent = new EventEmitter<HandlerContext>();
 
-  private readonly pageBreakPaginatorService: PageBreakPaginatorService = null;
+  readonly pageBreakPaginatorService: PageBreakPaginatorService = null;
 
   @Input() sampleTemplateLoaderObject: any = null;
 
@@ -56,6 +59,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   showInstanceDataCore = false;
   showInstanceDataFull = true;
   showSampleTemplateLinks = false;
+  showStaticText = true;
 
   showHeader = false;
   showFooter = false;
@@ -67,26 +71,20 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   expandedInstanceDataFull = false;
   expandedSampleTemplateLinks = false;
 
-  collapseStaticComponents = true;
+  collapseStaticComponents = false;
 
-  showTemplateUpload = false;
-  templateUploadBaseUrl: string;
-  templateUploadEndpoint: string;
-  templateUploadParamName: string;
-
-  showDataSaver = false;
-  dataSaverEndpointUrl: string;
-  @Input() externalTemplateInfo: object;
   allExpanded: boolean;
 
-  constructor() {
-    this.pageBreakPaginatorService = new PageBreakPaginatorService();
+  constructor(
+      private activeComponentRegistry: ActiveComponentRegistryService
+  ) {
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext);
+    this.pageBreakPaginatorService = new PageBreakPaginatorService(this.activeComponentRegistry, this.handlerContext);
+    console.log('CEE:' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
 
   ngOnInit(): void {
-    this.dataContext.externalTemplateInfo = this.externalTemplateInfo;
   }
 
   @Input() set config(value: object) {
@@ -136,23 +134,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS)) {
         this.collapseStaticComponents = value[CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS];
       }
-      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_UPLOAD)) {
-        this.showTemplateUpload = value[CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_UPLOAD];
-      }
-      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_BASE_URL)) {
-        this.templateUploadBaseUrl = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_BASE_URL];
-      }
-      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_ENDPOINT)) {
-        this.templateUploadEndpoint = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_ENDPOINT];
-      }
-      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_PARAM_NAME)) {
-        this.templateUploadParamName = value[CedarEmbeddableMetadataEditorComponent.TEMPLATE_UPLOAD_PARAM_NAME];
-      }
-      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_DATA_SAVER)) {
-        this.showDataSaver = value[CedarEmbeddableMetadataEditorComponent.SHOW_DATA_SAVER];
-      }
-      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.DATA_SAVER_ENDPOINT_URL)) {
-        this.dataSaverEndpointUrl = value[CedarEmbeddableMetadataEditorComponent.DATA_SAVER_ENDPOINT_URL];
+      if (value.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT)) {
+        this.showStaticText = value[CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT];
       }
     }
   }
@@ -170,10 +153,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       && !(this.dataContext.templateRepresentation instanceof NullTemplate)
       && this.dataContext.multiInstanceData != null;
   }
-  openAll(): void{
+
+  openAll(): void {
     this.allExpanded = true;
   }
-  closeAll(): void{
+
+  closeAll(): void {
     this.allExpanded = false;
   }
 }

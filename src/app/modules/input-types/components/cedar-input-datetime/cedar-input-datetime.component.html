@@ -6,7 +6,7 @@
                  xmlns="http://www.w3.org/1999/html"></app-date-picker>
 <ng-container *ngIf="showTimePicker()">
   <div>
-    <mat-label>Select Time</mat-label>
+<!--    <mat-label>Select Time</mat-label>-->
     <ngx-mat-timepicker
       (ngModelChange)="timeInputChanged($event)"
       (input)="timeInputChanged($event)"
@@ -20,24 +20,27 @@
 </ng-container>
 <ng-container *ngIf="showDecimalSeconds()">
   <mat-form-field>
-    <mat-label>Select Decimal Seconds</mat-label>
+<!--    <mat-label>Select Decimal Seconds</mat-label>-->
     <input matInput type="number"
            (input)="decimalSecondsChanged($event)"
            [(ngModel)]="decimalSeconds"
-           name="decimalSeconds">
+           name="decimalSeconds"
+           placeholder="{{'Generic.DecimalSeconds' | translate}}"
+           matTooltip="{{'Generic.DecimalSeconds' | translate}}"
+           attr.aria-label="{{'Generic.SelectDecimalSeconds' | translate}}">
   </mat-form-field>
 </ng-container>
 <ng-container *ngIf="showTimezonePicker()">
   <app-timezone-picker
     [(ngModel)]="timezone"
     (ngModelChange)="timezoneInputChanged($event)"
-    [customPlaceholderText]="'Select timezone...'"
-    [customNotFoundText]="'No timezone found'"
+    customPlaceholderText="{{'Generic.SelectTimeZone' | translate}}"
+    customNotFoundText="{{'Generic.NoTimeZoneFound' | translate}}"
     [getUserZone]="setDefaultZone"
     [clearable]="false"
   ></app-timezone-picker>
 </ng-container>
-<p class="info-box">
-  DateTime is:&nbsp;&nbsp;&nbsp;{{datetimeParsed.toDateRepresentation()}}<br/>
-  Stored as:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{datetimeParsed.toStorageRepresentation()}}
-</p>
+<!--<p class="info-box">-->
+<!--  DateTime is:&nbsp;&nbsp;&nbsp;{{datetimeParsed.toDateRepresentation()}}<br/>-->
+<!--  Stored as:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{datetimeParsed.toStorageRepresentation()}}-->
+<!--</p>-->

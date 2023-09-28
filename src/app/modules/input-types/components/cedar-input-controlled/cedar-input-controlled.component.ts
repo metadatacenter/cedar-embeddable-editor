@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {AfterViewInit, Component, Input, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
 import {FieldComponent} from '../../../shared/models/component/field-component.model';
 import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
 import {ComponentDataService} from '../../../shared/service/component-data.service';
@@ -12,7 +12,7 @@ import {IntegratedSearchResponseItem} from '../../../shared/models/rest/integrat
 import {JsonSchema} from '../../../shared/models/json-schema.model';
 import {ControlledFieldDataService} from '../../../shared/service/controlled-field-data.service';
 import {MessageHandlerService} from '../../../shared/service/message-handler.service';
-
+import {MatAutocompleteTrigger} from '@angular/material/autocomplete';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -25,8 +25,9 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   styleUrls: ['./cedar-input-controlled.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CedarInputControlledComponent extends CedarUIComponent implements OnInit {
-
+export class CedarInputControlledComponent extends CedarUIComponent implements OnInit, AfterViewInit {
+  @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger: MatAutocompleteTrigger;
+  selectedData: IntegratedSearchResponseItem;
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, null);
@@ -75,6 +76,13 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
       );
   }
 
+  ngAfterViewInit(): void {
+    this.trigger.panelClosingActions
+      .subscribe(e => {
+        this.setCurrentValue(this.selectedData?.prefLabel);
+      });
+  }
+
   filter(val: string): Observable<IntegratedSearchResponseItem[]> {
     return this.controlledFieldDataService.getData(val, this.component).pipe(
       map(response => {
@@ -101,6 +109,9 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
 
   onSelectionChange(option: IntegratedSearchResponseItem): void {
     this.handlerContext.changeControlledValue(this.component, option[JsonSchema.atId], option.prefLabel);
+    if (option){
+      this.selectedData = option;
+    }
   }
 
   inputChanged(event): void {
@@ -114,6 +125,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   }
 
   clearValue(): void {
+    this.selectedData = null;
     this.inputValueControl.setValue(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
@@ -122,5 +134,4 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
     this.inputValueControl.setValue(prefLabel);
     this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
   }
-
 }

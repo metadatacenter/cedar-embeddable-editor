@@ -17,9 +17,6 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "allowedCommonJsDependencies": [
-              "moment-timezone"
-            ],
             "outputPath": "dist/cedar-embeddable-editor",
             "index": "src/index.html",
             "main": "src/main.ts",
@@ -27,7 +24,8 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets/fonts",
+              "src/assets/i18n-cee"
             ],
             "styles": [
               "src/styles.scss",
@@ -67,13 +65,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "3mb",
-                  "maximumError": "5mb"
+                  "maximumWarning": "2.5mb",
+                  "maximumError": "3mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "500kb",
-                  "maximumError": "3mb"
+                  "maximumWarning": "160kb",
+                  "maximumError": "180kb"
                 }
               ]
             }
@@ -107,7 +105,8 @@
             "karmaConfig": "karma.conf.js",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets/fonts",
+              "src/assets/i18n-cee"
             ],
             "styles": [
               "src/styles.scss",
