@@ -61,24 +61,24 @@ export class MultiInstanceObjectHandler {
   private updateFromInstanceExtractData(instanceExtractDataIn: InstanceExtractData,
                                         parentPath: string[], multiInstanceObject: MultiInstanceInfo): void {
     const instanceExtractData = JSON.parse(JSON.stringify(instanceExtractDataIn));
-    // this.deleteAttributeValueFields(instanceExtractData);
+    // this.deleteAttributeValueFields(instanceExtractData, 0);
 
-    for(const key in instanceExtractData) {
+    for (const key in instanceExtractData) {
       const myPath: string[] = parentPath.slice();
       myPath.push(key);
 
-      // multi-page element or mutli-page field
+      // multi-page element or multi-page field
       if (Array.isArray(instanceExtractData[key]) && instanceExtractData[key].length > 0) {
         this.setSingleMultiInstance(myPath.slice(), instanceExtractData[key].length, multiInstanceObject);
 
         // field component with values or attribute-value field
         const isField =
-          // field component with values (text or controlled)
-          (typeof instanceExtractData[key][0] === JavascriptTypes.object &&
-            (instanceExtractData[key][0].hasOwnProperty(JsonSchema.atValue) ||
-              instanceExtractData[key][0].hasOwnProperty(JsonSchema.atId))) ||
-          // attribute-value field
-          (typeof instanceExtractData[key][0] === JavascriptTypes.string && instanceExtractData[key].length > 0);
+            // field component with values (text or controlled)
+            (typeof instanceExtractData[key][0] === JavascriptTypes.object &&
+                (instanceExtractData[key][0].hasOwnProperty(JsonSchema.atValue) ||
+                    instanceExtractData[key][0].hasOwnProperty(JsonSchema.atId))) ||
+            // attribute-value field
+            (typeof instanceExtractData[key][0] === JavascriptTypes.string && instanceExtractData[key].length > 0);
 
         // not a field, so it is a multi-page element component
         if (!isField) {
@@ -90,7 +90,7 @@ export class MultiInstanceObjectHandler {
             this.updateFromInstanceExtractData(instanceExtractData[key][i], myPath, multiInstanceObject);
           }
         }
-      // it's an object, can be a single-page element or a single-page field
+        // it's an object, can be a single-page element or a single-page field
       } else if (typeof instanceExtractData[key] === JavascriptTypes.object && Object.keys(instanceExtractData[key]).length > 0) {
         // single-page field (it's never paginated, so not required for pagination,
         // but still need to have an entry for it in multiInstanceObject)
@@ -104,9 +104,13 @@ export class MultiInstanceObjectHandler {
           this.updateFromInstanceExtractData(instanceExtractData[key], myPath, multiInstanceObject);
         }
       } else {
-        // empty fields
-        // need to record the component in multiInstanceObject even if it's empty
-        this.setSingleMultiInstance(myPath, 0, multiInstanceObject);
+        if (key === JsonSchema.atId || key === JsonSchema.rdfsLabel) {
+          // DO NOTHING, we came too deep into a controlled term
+        } else {
+          // empty fields
+          // need to record the component in multiInstanceObject even if it's empty
+          this.setSingleMultiInstance(myPath, 0, multiInstanceObject);
+        }
       }
     }
   }
@@ -162,7 +166,9 @@ export class MultiInstanceObjectHandler {
     }
   }
 
-  private deleteAttributeValueFields(instanceExtractData: InstanceExtractData): void {
+  private deleteAttributeValueFields(instanceExtractData: InstanceExtractData, depth: number): void {
+    // console.log('deleteAttributeValueFields.depth' + depth);
+    // console.log(instanceExtractData);
     for (const key in instanceExtractData) {
       if (Array.isArray(instanceExtractData[key]) && instanceExtractData[key].length > 0) {
         if (typeof instanceExtractData[key][0] === JavascriptTypes.string) {
@@ -171,16 +177,16 @@ export class MultiInstanceObjectHandler {
           }
         } else {
           if (!instanceExtractData[key][0].hasOwnProperty(JsonSchema.atValue) &&
-            !instanceExtractData[key][0].hasOwnProperty(JsonSchema.atId)) {
+              !instanceExtractData[key][0].hasOwnProperty(JsonSchema.atId)) {
             for (let i = 0; i < instanceExtractData[key].length; i++) {
-              this.deleteAttributeValueFields(instanceExtractData[key][i]);
+              this.deleteAttributeValueFields(instanceExtractData[key][i], depth + 1);
             }
           }
         }
       } else {
         if (!instanceExtractData[key].hasOwnProperty(JsonSchema.atValue) &&
-          !instanceExtractData[key].hasOwnProperty(JsonSchema.atId)) {
-          this.deleteAttributeValueFields(instanceExtractData[key]);
+            !instanceExtractData[key].hasOwnProperty(JsonSchema.atId)) {
+          this.deleteAttributeValueFields(instanceExtractData[key], depth + 1);
         }
       }
     }
@@ -188,7 +194,7 @@ export class MultiInstanceObjectHandler {
 
   private buildRecursively(cedarComponent: CedarComponent, multiInstanceObject: MultiInstanceInfo): void {
     if (!(cedarComponent instanceof MultiElementComponent || cedarComponent instanceof SingleElementComponent
-      || cedarComponent instanceof CedarTemplate)) {
+        || cedarComponent instanceof CedarTemplate)) {
       return;
     }
     const elementComponent = cedarComponent as ElementComponent;

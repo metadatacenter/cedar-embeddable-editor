@@ -1,16 +1,16 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
-    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
-    <input matInput type="text" placeholder="Your Email Address Here"
+<!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
+    <input matInput type="text" placeholder="example@domain.com"
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
-           (input)="inputChanged($event)">
-    <button type="button" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+           (input)="inputChanged($event)"
+           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
+    <button type="button" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
-    <mat-hint align="start" *ngIf="inputValueControl.getError('email')" class="mat-error">Value should be a valid email address.</mat-hint>
-    <mat-hint align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-hint>
-    <mat-hint align="end">{{getCharCountHint()}}</mat-hint>
+    <mat-error *ngIf="inputValueControl.getError('email')" class="mat-error align-start">{{'Validation.Email.Invalid' | translate}}</mat-error>
+    <mat-error *ngIf="inputValueControl.getError('required')" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
   </mat-form-field>
 </form>
 

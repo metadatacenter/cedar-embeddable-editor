@@ -1,8 +1,7 @@
 import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
-import {HttpResponse, HttpStatusCode} from '@angular/common/http';
+import {HttpStatusCode} from '@angular/common/http';
 import {ControlledFieldDataService} from '../../service/controlled-field-data.service';
 import {MessageHandlerService} from '../../service/message-handler.service';
-import {MatFileUploadService} from '../file-uploader/mat-file-upload/mat-file-upload.service';
 import {Subject} from 'rxjs';
 import {SampleTemplatesService} from '../sample-templates/sample-templates.service';
 import {takeUntil} from 'rxjs/operators';
@@ -10,6 +9,8 @@ import {JsonSchema} from '../../models/json-schema.model';
 import {HandlerContext} from '../../util/handler-context';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
 import {MultiInstanceObjectHandler} from '../../handler/multi-instance-object.handler';
+import {TranslateService} from '@ngx-translate/core';
+import {CedarEmbeddableMetadataEditorComponent} from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -19,65 +20,56 @@ import {MultiInstanceObjectHandler} from '../../handler/multi-instance-object.ha
 })
 export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, OnDestroy {
 
-  static TEMPLATE_LOCATION_PREFIX = 'sampleTemplateLocationPrefix';
-  static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
-  static TERMINOLOGY_PROXY_URL = 'terminologyProxyUrl';
-  static SHOW_SPINNER_BEFORE_INIT = 'showSpinnerBeforeInit';
-  static TEMPLATE_UPLOAD_BASE_URL = 'templateUploadBaseUrl';
-  static TEMPLATE_DOWNLOAD_ENDPOINT = 'templateDownloadEndpoint';
-  static TEMPLATE_DOWNLOAD_PARAM_NAME = 'templateDownloadParamName';
-  static TEMPLATE_JSON = 'templateJSON';
-  static INSTANCE_JSON = 'instanceJSON';
-
   innerConfig: object = null;
   private initialized = false;
   private configSet = false;
 
-  public templateJson: object = null;
+  templateJson: object = null;
   sampleTemplateLoaderObject = null;
   showSpinnerBeforeInit = true;
-  protected _onDestroy = new Subject<void>();
-  externalTemplateInfo: object;
+  protected onDestroySubject = new Subject<void>();
   handlerContext: HandlerContext = null;
-  private instanceJson = null;
+  private metadata: object = null;
+  private loadedTemplateJson: object = null;
+  private loadedMetadata: object = null;
 
 
   constructor(
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
-    private matFileUploadService: MatFileUploadService,
     private sampleTemplateService: SampleTemplatesService,
-    private activeComponentRegistry: ActiveComponentRegistryService
+    private activeComponentRegistry: ActiveComponentRegistryService,
+    private translateService: TranslateService
   ) {
     this.sampleTemplateLoaderObject = this;
+
+    const fallbackLanguage = 'en';
+    const defaultLanguage = 'en';
+    this.translateService.setDefaultLang(fallbackLanguage);
+    this.translateService.use(defaultLanguage);
   }
 
   ngOnInit(): void {
 
     this.sampleTemplateService.templateJson$
-      .pipe(takeUntil(this._onDestroy))
-      .subscribe( templateJson => {
+      .pipe(takeUntil(this.onDestroySubject))
+      .subscribe(templateJson => {
         if (templateJson) {
-          this.templateJson = Object.values(templateJson)[0];
+          this.loadedTemplateJson = Object.values(templateJson)[0];
+        } else {
+          this.loadedTemplateJson = null;
         }
+        this.triggerUpdateOnInjectedSampledata();
       });
-    this.matFileUploadService.uploadedFile$
-      .pipe(takeUntil(this._onDestroy))
-      .subscribe(fileInfo => {
-        if (fileInfo && fileInfo['event'] instanceof HttpResponse) {
-          const statusCode = fileInfo['event']['status'];
-
-          if (statusCode === HttpStatusCode.Created &&
-            this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_BASE_URL) &&
-            this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT) &&
-            this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME)) {
-            const filename = fileInfo['event']['body']['filename'];
-            const templateUrl = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_UPLOAD_BASE_URL] +
-              this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_ENDPOINT] + '?' +
-              this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_DOWNLOAD_PARAM_NAME] + '=' + filename;
-            this.sampleTemplateService.loadTemplateFromURL(templateUrl);
-          }
+    this.sampleTemplateService.metadataJson$
+      .pipe(takeUntil(this.onDestroySubject))
+      .subscribe(metadataJson => {
+        if (metadataJson) {
+          this.loadedMetadata = Object.values(metadataJson)[0];
+        } else {
+          this.loadedMetadata = null;
         }
+        this.triggerUpdateOnInjectedSampledata();
       });
     this.initialized = true;
     this.doInitialize();
@@ -94,9 +86,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     return {};
   }
 
-  @Input() set metadata(meta: object) {
-    const instanceFullData = JSON.parse(JSON.stringify(meta));
-    const instanceExtractData = JSON.parse(JSON.stringify(meta));
+  private initDataFromInstance(): void {
+    const instanceFullData = JSON.parse(JSON.stringify(this.metadata));
+    const instanceExtractData = JSON.parse(JSON.stringify(this.metadata));
     this.deleteContext(instanceExtractData);
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
@@ -105,18 +97,16 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
 
       dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
-          dataContext.templateRepresentation, instanceExtractData);
+        dataContext.templateRepresentation, instanceExtractData);
 
       if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
-        for (const childComponent of dataContext.templateRepresentation.children) {
-          this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
-        }
+        setTimeout(() => {
+          for (const childComponent of dataContext.templateRepresentation.children) {
+            this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
+          }
+        });
       }
     }
-  }
-
-  @Input() set templateInfo(templateInfo: object) {
-    this.externalTemplateInfo = templateInfo;
   }
 
   @Input() set templateObject(template: object) {
@@ -125,6 +115,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   @Input() set instanceObject(instance: object) {
     this.metadata = instance;
+    this.initDataFromInstance();
   }
 
   @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
@@ -151,8 +142,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   ngOnDestroy(): void {
-    this._onDestroy.next();
-    this._onDestroy.complete();
+    this.onDestroySubject.next();
+    this.onDestroySubject.complete();
   }
 
   @Input() set config(value: object) {
@@ -170,56 +161,69 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private deleteContext(obj): void {
-    Object.keys(obj).forEach(key => {
-      delete obj[JsonSchema.atContext];
-
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
-        this.deleteContext(obj[key]);
-      }
-    });
+    const keyCount = Object.keys(obj).length;
+    if (keyCount === 2 && obj.hasOwnProperty(JsonSchema.atId) && obj.hasOwnProperty(JsonSchema.rdfsLabel)) {
+      // do nothing, it is a controlled term
+    } else if (keyCount === 1 && obj.hasOwnProperty(JsonSchema.atId)) {
+      // do nothing, it is a link
+    } else {
+      Object.keys(obj).forEach(key => {
+        delete obj[JsonSchema.atContext];
+        delete obj[JsonSchema.atId];
+        delete obj[JsonSchema.oslcModifiedBy];
+        delete obj[JsonSchema.pavCreatedOn];
+        delete obj[JsonSchema.pavLastUpdatedOn];
+        delete obj[JsonSchema.pavCreatedBy];
+        delete obj[JsonSchema.schemaIsBasedOn];
+        delete obj[JsonSchema.schemaName];
+        delete obj[JsonSchema.schemaDescription];
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+          this.deleteContext(obj[key]);
+        }
+      });
+    }
   }
 
   private doInitialize(): void {
     if (this.initialized && this.configSet) {
-      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
-          this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TEMPLATE_LOCATION_PREFIX],
-          this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.LOAD_SAMPLE_TEMPLATE_NAME]);
+          this.innerConfig[CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX],
+          this.innerConfig[CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME]);
       }
-      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.TERMINOLOGY_PROXY_URL)) {
-        const proxyUrl = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.TERMINOLOGY_PROXY_URL];
-        this.controlledFieldDataService.setTerminologyProxyUrl(proxyUrl);
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
+        const integratedSearchUrl = this.innerConfig[CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL];
+        this.controlledFieldDataService.setTerminologyIntegratedSearchUrl(integratedSearchUrl);
       }
-      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorWrapperComponent.SHOW_SPINNER_BEFORE_INIT)) {
-        this.showSpinnerBeforeInit = this.innerConfig[CedarEmbeddableMetadataEditorWrapperComponent.SHOW_SPINNER_BEFORE_INIT];
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT)) {
+        this.showSpinnerBeforeInit = this.innerConfig[CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT];
+      }
+
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE)) {
+        const fallbackLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE];
+        this.translateService.setDefaultLang(fallbackLanguage);
+      }
+      if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE)) {
+        const defaultLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE];
+        this.translateService.use(defaultLanguage);
       }
     }
   }
 
-  // used only for debugging of restoring metadata
-  private restoreMetadataFromURL(metaUrl, successHandler = null, errorHandler = null): void {
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status === 200) {
-          const jsonMeta = JSON.parse(xhr.responseText);
-          this.metadata = jsonMeta;
-
-          if (successHandler) {
-            successHandler(jsonMeta);
-          }
-        } else {
-          if (errorHandler) {
-            errorHandler(xhr);
-          }
-        }
-      }
-    };
-    xhr.open('GET', metaUrl, true);
-    xhr.send();
-  }
-
   editorDataReady(): boolean {
     return this.innerConfig != null && this.templateJson != null;
+  }
+
+  private triggerUpdateOnInjectedSampledata(): void {
+    if (this.loadedTemplateJson != null) {
+      this.templateObject = this.loadedTemplateJson;
+    }
+    if (this.loadedMetadata !== null) {
+      setTimeout(() => {
+        if (this.loadedMetadata !== null) {
+          this.instanceObject = this.loadedMetadata;
+        }
+      });
+    }
   }
 }

@@ -1,19 +1,19 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
-    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
+<!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
     <mat-select #inputSelect
                 [formControl]="inputValueControl"
                 [errorStateMatcher]="errorStateMatcher"
                 multiple="{{component.choiceInfo.multipleChoice}}"
                 (selectionChange)="inputChanged()"
-    >
+                [aria-label]=cds.getRenderingLabelForComponent(component)>
       <mat-option *ngFor="let option of dropdownList" [value]="option.id"
         >{{option.label}}</mat-option>
       </mat-select>
-      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue($event)">
+      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue($event)">
         <mat-icon>close</mat-icon>
       </button>
-      <mat-hint tabindex="0" align="start" *ngIf="inputValueControl.hasError('required')" class="mat-error">The value is required.</mat-hint>
-      <mat-hint *ngIf=maxSelections!==undefined>Select up to {{maxSelections}}</mat-hint>
+      <mat-error tabindex="0" *ngIf="inputValueControl.hasError('required')" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
+      <mat-hint *ngIf=maxSelections!==undefined>{{'Validation.Select.MaxSelection' | translate: {maxSelections} }}</mat-hint>
   </mat-form-field>
 </form>

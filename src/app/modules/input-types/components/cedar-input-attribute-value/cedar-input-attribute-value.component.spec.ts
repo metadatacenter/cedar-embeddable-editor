@@ -1,4 +1,4 @@
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {CedarInputAttributeValueComponent} from './cedar-input-attribute-value.component';
 
@@ -6,12 +6,12 @@ describe('CedarInputAttributeValueComponent', () => {
   let component: CedarInputAttributeValueComponent;
   let fixture: ComponentFixture<CedarInputAttributeValueComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [CedarInputAttributeValueComponent]
     })
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CedarInputAttributeValueComponent);

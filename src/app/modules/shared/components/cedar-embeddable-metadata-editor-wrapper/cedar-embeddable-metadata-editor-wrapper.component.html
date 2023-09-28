@@ -2,7 +2,6 @@
                                       [config]="innerConfig"
                                       [templateJsonObject]="templateJson"
                                       [sampleTemplateLoaderObject]="sampleTemplateLoaderObject"
-                                      [externalTemplateInfo]="externalTemplateInfo"
                                       (handlerContextEvent)="handlerContextChanged($event)"
 ></app-cedar-embeddable-metadata-editor>
 <div class="spinner-wrapper" *ngIf="!editorDataReady() && showSpinnerBeforeInit">
@@ -10,6 +9,6 @@
     diameter="24"
     mode="indeterminate">
   </mat-progress-spinner>
-  <h1>CEDAR Embeddable Editor initializing...</h1>
+  <h1>{{'Process.Initializing' | translate}}</h1>
 </div>
 

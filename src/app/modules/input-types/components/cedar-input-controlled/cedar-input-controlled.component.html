@@ -1,21 +1,23 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
-    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
-    <input matInput type="text" placeholder="Your Text Here"
+<!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
+    <input matInput type="text"
+           placeholder="{{'Generic.Filter' | translate}}"
+           #autoCompleteInput="matAutocompleteTrigger"
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
            [matAutocomplete]="auto"
            (input)="inputChanged($event)"
-    >
-    <mat-autocomplete #auto="matAutocomplete">
+           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
+    <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
       <mat-option *ngFor="let option of filteredOptions | async" [value]="option.prefLabel"
                   (onSelectionChange)="onSelectionChange(option)"
       >{{option.prefLabel}}</mat-option>
     </mat-autocomplete>
-    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
-    <mat-hint tabindex="0" align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-hint>
+    <mat-error tabindex="0" *ngIf="inputValueControl.getError('required')" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
   </mat-form-field>
 </form>
 

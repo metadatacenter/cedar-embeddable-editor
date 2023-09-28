@@ -1,17 +1,13 @@
 <app-static-header *ngIf="dataAvailableForRender() && showHeader"
                    [callbackOwnerObject]="sampleTemplateLoaderObject"
                    [showSampleTemplateLinks]="showSampleTemplateLinks"></app-static-header>
-<app-file-uploader *ngIf="dataAvailableForRender() && showTemplateUpload"
-                   [fileAlias]="templateUploadParamName"
-                   [httpUrl]="templateUploadBaseUrl + templateUploadEndpoint"
-></app-file-uploader>
 <!--<preferences-menu>-->
 <!--  </preferences-menu>-->
 <mat-card class="template-card" *ngIf="dataAvailableForRender()">
   <mat-card-header>
-    <div mat-card-avatar class="header-image"></div>
+    <div mat-card-avatar class="header-image" ></div>
     <h1>{{dataContext.templateRepresentation.labelInfo.label}}</h1>
-    <h2>{{dataContext.templateRepresentation.labelInfo.description}}</h2>
+    <h2 *ngIf=dataContext.templateRepresentation.labelInfo.description>&nbsp;{{dataContext.templateRepresentation.labelInfo.description}}</h2>
     <div *ngIf="dataContext.templateRepresentation.hasPageBreaks()" class="header-flex-child">
       <app-cedar-static-page-break
         [dataContext]="dataContext"
@@ -20,19 +16,16 @@
     </div>
   </mat-card-header>
   <mat-card-content>
-    <button mat-button (click)="openAll()">Expand All</button>
-    <button mat-button (click)="closeAll()">Collapse All</button>
-    <ng-container *ngFor="let childComponent of pageBreakPaginatorService.currentPage()">
+    <button mat-button (click)="openAll()">{{'Generic.ExpandAll' | translate}}</button>
+    <button mat-button (click)="closeAll()">{{'Generic.CollapseAll' | translate}}</button>
+    <ng-container *ngFor="let childComponent of pageBreakPaginatorService.getCurrentPage()">
       <app-cedar-component-renderer
         [componentToRender]="childComponent"
         [handlerContext]="handlerContext"
         [allExpanded]="allExpanded"
+        [showStaticText]="showStaticText"
       ></app-cedar-component-renderer>
     </ng-container>
-    <app-cedar-data-saver *ngIf="showDataSaver"
-                          [endpointUrl]="dataSaverEndpointUrl"
-                          [dataContext]="dataContext"
-    ></app-cedar-data-saver>
   </mat-card-content>
 </mat-card>
 <app-source-panels *ngIf="dataAvailableForRender()"

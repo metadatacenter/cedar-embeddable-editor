@@ -1,0 +1,26 @@
+{
+  "name": "cedar-embeddable-editor",
+  "version": "1.0.0",
+  "scripts": {},
+  "devDependencies": {},
+  "description": "Cedar embeddable editor web component",
+  "main": "cedar-embeddable-editor.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/metadatacenter/cedar-embeddable-editor.git"
+  },
+  "keywords": [
+    "Metadata",
+    "Cedar",
+    "Embeddable",
+    "editor",
+    "Web",
+    "component"
+  ],
+  "author": "Metadatacenter",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/metadatacenter/cedar-embeddable-editor/issues"
+  },
+  "homepage": "https://github.com/metadatacenter/cedar-embeddable-editor#readme"
+}

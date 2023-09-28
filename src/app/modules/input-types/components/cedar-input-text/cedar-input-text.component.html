@@ -1,22 +1,24 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
-    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>
-    <input matInput type="text" placeholder="Your Text Here" *ngIf="component.basicInfo.inputType==inputText"
+<!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
+    <input matInput type="text" *ngIf="component.basicInfo.inputType==inputText"
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
-           (input)="inputChanged($event)">
-    <textarea matInput type="text" placeholder="Your Text Here" *ngIf="component.basicInfo.inputType==inputTextarea"
+           (input)="inputChanged($event)"
+           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
+    <textarea matInput type="text" *ngIf="component.basicInfo.inputType==inputTextarea"
               cdkTextareaAutosize
               cdkAutosizeMinRows="6"
               [formControl]="inputValueControl"
               [errorStateMatcher]="errorStateMatcher"
-              (input)="inputChanged($event)"></textarea>
-    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearValue()">
+              (input)="inputChanged($event)"
+              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}"></textarea>
+    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
-    <mat-hint align="start" *ngIf="inputValueControl.getError('minlength')" class="mat-error">Value should be at least {{constraintMinLength}} chars long.</mat-hint>
-    <mat-hint align="start" *ngIf="inputValueControl.getError('maxlength')" class="mat-error">Value should be at most {{constraintMaxLength}} chars long.</mat-hint>
-    <mat-hint align="start" *ngIf="inputValueControl.getError('required')" class="mat-error">The value is required.</mat-hint>
+    <mat-error *ngIf="inputValueControl.getError('minlength')">{{'Validation.Text.MinLength' | translate: {constraintMinLength} }}</mat-error>
+    <mat-error *ngIf="inputValueControl.getError('maxlength')">{{'Validation.Text.MaxLength' | translate: {constraintMaxLength} }}</mat-error>
+    <mat-error *ngIf="inputValueControl.hasError('required')">{{'Validation.Required' | translate}}</mat-error>
     <mat-hint align="end">{{getCharCountHint()}}</mat-hint>
   </mat-form-field>
 </form>

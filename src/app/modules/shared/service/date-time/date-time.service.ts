@@ -4,27 +4,27 @@ import {Injectable} from '@angular/core';
   providedIn: 'root'
 })
 export class DateTimeService {
-  private _format: string;
-  private _locale: string;
+  private formatString: string;
+  private localeString: string;
 
   public constructor() {
-    this._format = "LL";
-    this._locale = "en-US";
+    this.formatString = 'LL';
+    this.localeString = 'en-US';
   }
 
   public get format(): string {
-    return this._format;
+    return this.formatString;
   }
 
   public set format(value: string) {
-    this._format = value;
+    this.formatString = value;
   }
 
   public get locale(): string {
-    return this._locale;
+    return this.localeString;
   }
 
   public set locale(value: string) {
-    this._locale = value;
+    this.localeString = value;
   }
 }
