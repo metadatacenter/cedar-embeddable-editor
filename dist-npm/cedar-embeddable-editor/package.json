@@ -1,6 +1,6 @@
 {
   "name": "cedar-embeddable-editor",
-  "version": "0.9.5",
+  "version": "1.0.0",
   "scripts": {},
   "devDependencies": {},
   "description": "Cedar embeddable editor web component",
