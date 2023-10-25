@@ -11,7 +11,7 @@
     <div *ngIf="dataContext.templateRepresentation.hasPageBreaks()" class="header-flex-child">
       <app-cedar-static-page-break
         [dataContext]="dataContext"
-        [pageBreakPaginatorService] = "pageBreakPaginatorService"
+        [pageBreakPaginatorService]="pageBreakPaginatorService"
       ></app-cedar-static-page-break>
     </div>
   </mat-card-header>
