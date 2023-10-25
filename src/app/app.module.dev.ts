@@ -11,8 +11,8 @@ import {
 } from './modules/shared/components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
-import * as fallbackMapEN from '../../src/assets/i18n-cee/en.json';
-import * as fallbackMapHU from '../../src/assets/i18n-cee/hu.json';
+import * as fallbackMapEN from '../assets/i18n-cee/en.json';
+import * as fallbackMapHU from '../assets/i18n-cee/hu.json';
 import {Observable} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 
