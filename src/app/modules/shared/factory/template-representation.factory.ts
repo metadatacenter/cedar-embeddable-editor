@@ -78,8 +78,8 @@ export class TemplateRepresentationFactory {
       return true;
     } else {
       throw new Error(
-        'Invalid node value of ' + CedarModel.type + '. Value found:"' + fragmentType + '". ' +
-        'Expected "' + JavascriptTypes.object + '" or "' + JavascriptTypes.array + '"!'
+          'Invalid node value of ' + CedarModel.type + '. Value found:"' + fragmentType + '". ' +
+          'Expected "' + JavascriptTypes.object + '" or "' + JavascriptTypes.array + '"!'
       );
     }
   }
@@ -301,7 +301,7 @@ export class TemplateRepresentationFactory {
         const currentChild: CedarComponent = elementComponent.children[i];
 
         if (ComponentTypeHandler.isFieldOrElement(currentChild) &&
-          ComponentTypeHandler.isStaticContentComponent(prevChild) && !isStaticPair) {
+            ComponentTypeHandler.isStaticContentComponent(prevChild) && !isStaticPair) {
           currentChild.linkedStaticFieldComponent = prevChild as StaticFieldComponent;
           newChildren.pop();
           newChildren.push(currentChild);
@@ -310,7 +310,7 @@ export class TemplateRepresentationFactory {
         }
 
         if (!isStaticPair && ComponentTypeHandler.isStaticContentComponent(currentChild) &&
-          ComponentTypeHandler.isStaticContentComponent(prevChild)) {
+            ComponentTypeHandler.isStaticContentComponent(prevChild)) {
           isStaticPair = true;
         } else if (isStaticPair) {
           isStaticPair = false;
