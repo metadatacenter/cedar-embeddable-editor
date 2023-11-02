@@ -77,10 +77,25 @@ export class DataObjectBuilderHandler {
           for (let idx = 0; idx < multiField.multiInfo.minItems; idx++) {
             dataObject[targetName].push(DataObjectUtil.getEmptyValueWrapper(subTemplate, buildingMode));
           }
+          const multi = component.choiceInfo.multipleChoice;
+          const values = [];
+          for (const choice of component.choiceInfo.choices) {
+            if (choice.selectedByDefault) {
+              values.push(choice.label);
+            }
+          }
+          dataObject[targetName] = DataObjectUtil.getMultiValueWrapper(subTemplate, buildingMode, values);
         }
       } else {
         const subTemplate = DataObjectUtil.getSafeSubTemplate(templateJsonObj, targetName);
         dataObject[targetName] = DataObjectUtil.getEmptyValueWrapper(subTemplate, buildingMode);
+        let value = null;
+        for (const choice of component.choiceInfo.choices) {
+          if (choice.selectedByDefault) {
+            value = choice.label;
+          }
+        }
+        dataObject[targetName] = DataObjectUtil.getSingleValueWrapper(subTemplate, buildingMode, value);
       }
       ret = dataObject[targetName];
     }
