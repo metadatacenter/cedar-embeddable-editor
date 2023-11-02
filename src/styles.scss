@@ -106,10 +106,10 @@ $primary: map-get($cedar-embeddable-editor-theme, primary);
 $accent: map-get($cedar-embeddable-editor-theme, accent);
 
 :root {
-  --color-primary: #{mat-color($cedar-embeddable-editor-primary, default)};
-  --color-text-primary: #{mat-color($cedar-embeddable-editor-primary, default-contrast)};
-  --color-accent: #{mat-color($cedar-embeddable-editor-accent)};
-  --color-warn: #{mat-color($cedar-embeddable-editor-warn)};
+  --color-primary: #{mat.get-color-from-palette($cedar-embeddable-editor-primary, default)};
+  --color-text-primary: #{mat.get-color-from-palette($cedar-embeddable-editor-primary, default-contrast)};
+  --color-accent: #{mat.get-color-from-palette($cedar-embeddable-editor-accent)};
+  --color-warn: #{mat.get-color-from-palette($cedar-embeddable-editor-warn)};
 }
 
 /* You can add global styles to this file, and also import other style files */
