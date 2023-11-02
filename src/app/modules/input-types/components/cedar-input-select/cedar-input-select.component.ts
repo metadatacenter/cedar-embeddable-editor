@@ -91,19 +91,7 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
         [this.ITEM_TEXT_FIELD]: choice.label,
       };
       this.dropdownList.push(entry);
-
-      if (choice.selectedByDefault) {
-        if (multi) {
-          this.selectedItems.push(choice.label);
-        } else {
-          this.selectedItems = choice.label;
-        }
-      }
     }
-    setTimeout(() => {
-      this.inputValueControl.setValue(this.selectedItems);
-      this.inputChanged();
-    });
   }
 
   clearValue($event): void {

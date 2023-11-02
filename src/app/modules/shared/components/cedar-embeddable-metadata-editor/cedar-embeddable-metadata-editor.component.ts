@@ -1,9 +1,11 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation} from '@angular/core';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
 import {NullTemplate} from '../../models/template/null-template.model';
 import {DataContext} from '../../util/data-context';
 import {HandlerContext} from '../../util/handler-context';
 import {PageBreakPaginatorService} from '../../service/page-break-paginator.service';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
+import {DataObjectUtil} from '../../util/data-object-util';
+import {MultiInstanceObjectHandler} from '../../handler/multi-instance-object.handler';
 
 
 @Component({
@@ -44,12 +46,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static FALLBACK_LANGUAGE = 'fallbackLanguage';
   static DEFAULT_LANGUAGE = 'defaultLanguage';
 
-  readonly dataContext: DataContext = null;
+  dataContext: DataContext = null;
+  handlerContext: HandlerContext = null;
 
-  readonly handlerContext: HandlerContext = null;
-  @Output() handlerContextEvent = new EventEmitter<HandlerContext>();
-
-  readonly pageBreakPaginatorService: PageBreakPaginatorService = null;
+  pageBreakPaginatorService: PageBreakPaginatorService = null;
 
   @Input() sampleTemplateLoaderObject: any = null;
 
@@ -78,13 +78,19 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   constructor(
       private activeComponentRegistry: ActiveComponentRegistryService
   ) {
-    this.dataContext = new DataContext();
-    this.handlerContext = new HandlerContext(this.dataContext);
-    this.pageBreakPaginatorService = new PageBreakPaginatorService(this.activeComponentRegistry, this.handlerContext);
     console.log('CEE:' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
 
   ngOnInit(): void {
+  }
+
+  @Input() set dataContextObject(dataContext: DataContext) {
+    this.dataContext = dataContext;
+  }
+
+  @Input() set handlerContextObject(handlerContext: HandlerContext) {
+    this.handlerContext = handlerContext;
+    this.pageBreakPaginatorService = new PageBreakPaginatorService(this.activeComponentRegistry, this.handlerContext);
   }
 
   @Input() set config(value: object) {
@@ -143,15 +149,15 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   @Input() set templateJsonObject(value: object) {
     if (value != null) {
       this.dataContext.setInputTemplate(value, this.handlerContext, this.pageBreakPaginatorService, this.collapseStaticComponents);
-      this.handlerContextEvent.emit(this.handlerContext);
+      this.initDataFromInstance(this.dataContext.instanceFullData);
     }
   }
 
   dataAvailableForRender(): boolean {
     return this.dataContext != null
-      && this.dataContext.templateRepresentation != null
-      && !(this.dataContext.templateRepresentation instanceof NullTemplate)
-      && this.dataContext.multiInstanceData != null;
+        && this.dataContext.templateRepresentation != null
+        && !(this.dataContext.templateRepresentation instanceof NullTemplate)
+        && this.dataContext.multiInstanceData != null;
   }
 
   openAll(): void {
@@ -160,5 +166,28 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   closeAll(): void {
     this.allExpanded = false;
+  }
+
+  public initDataFromInstance(instance: object): void {
+    if (this.handlerContext) {
+      const instanceFullData = JSON.parse(JSON.stringify(instance));
+      const instanceExtractData = JSON.parse(JSON.stringify(instance));
+      DataObjectUtil.deleteContext(instanceExtractData);
+      const dataContext = this.handlerContext.dataContext;
+      dataContext.instanceFullData = instanceFullData;
+      dataContext.instanceExtractData = instanceExtractData;
+      const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
+
+      dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
+          dataContext.templateRepresentation, instanceExtractData);
+
+      if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
+        setTimeout(() => {
+          for (const childComponent of dataContext.templateRepresentation.children) {
+            this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
+          }
+        });
+      }
+    }
   }
 }
