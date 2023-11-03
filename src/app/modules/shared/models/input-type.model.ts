@@ -1,5 +1,4 @@
 export class InputType {
-
   static numeric = 'numeric';
   static text = 'textfield';
   static textarea = 'textarea';
@@ -17,5 +16,4 @@ export class InputType {
   static sectionBreak = 'section-break';
   static pageBreak = 'page-break';
   static attributeValue = 'attribute-value';
-
 }

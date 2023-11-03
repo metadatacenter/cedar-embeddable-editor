@@ -1,5 +1,4 @@
 export class Temporal {
-
   static year = 'year';
   static month = 'month';
   static day = 'day';

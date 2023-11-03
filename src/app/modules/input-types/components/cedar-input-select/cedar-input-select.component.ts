@@ -1,11 +1,11 @@
-import {Component, Input, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
-import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
-import {ErrorStateMatcher} from '@angular/material/core';
-import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
-import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
-import {HandlerContext} from '../../../shared/util/handler-context';
-import {ComponentDataService} from '../../../shared/service/component-data.service';
+import { Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { ErrorStateMatcher } from '@angular/material/core';
+import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { HandlerContext } from '../../../shared/util/handler-context';
+import { ComponentDataService } from '../../../shared/service/component-data.service';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -16,7 +16,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   selector: 'app-cedar-input-select',
   templateUrl: './cedar-input-select.component.html',
   styleUrls: ['./cedar-input-select.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class CedarInputSelectComponent extends CedarUIComponent implements OnInit {
   @ViewChild('inputSelect') selectElement;
@@ -33,7 +33,11 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
   maxSelections: number;
   @Input() handlerContext: HandlerContext;
 
-  constructor(private activeComponentRegistry: ActiveComponentRegistryService, public cds: ComponentDataService, fb: FormBuilder) {
+  constructor(
+    private activeComponentRegistry: ActiveComponentRegistryService,
+    public cds: ComponentDataService,
+    fb: FormBuilder,
+  ) {
     super();
     this.options = fb.group({
       inputValue: this.inputValueControl,
@@ -66,7 +70,7 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
         this.inputValueControl.setValue(this.selections);
       }
       // close dropdown if max selections reached
-      if (this.selectElement && this.maxSelections !== undefined && (values && values.length === this.maxSelections)) {
+      if (this.selectElement && this.maxSelections !== undefined && values && values.length === this.maxSelections) {
         this.selectElement.close();
       }
       this.changeValue(this.selections);

@@ -1,23 +1,22 @@
-import {TemplateComponent} from '../models/template/template-component.model';
-import {CedarComponent} from '../models/component/cedar-component.model';
-import {SingleElementComponent} from '../models/element/single-element-component.model';
-import {MultiElementComponent} from '../models/element/multi-element-component.model';
-import {CedarTemplate} from '../models/template/cedar-template.model';
-import {ElementComponent} from '../models/component/element-component.model';
-import {SingleFieldComponent} from '../models/field/single-field-component.model';
-import {MultiFieldComponent} from '../models/field/multi-field-component.model';
-import {FieldComponent} from '../models/component/field-component.model';
-import {JsonSchema} from '../models/json-schema.model';
+import { TemplateComponent } from '../models/template/template-component.model';
+import { CedarComponent } from '../models/component/cedar-component.model';
+import { SingleElementComponent } from '../models/element/single-element-component.model';
+import { MultiElementComponent } from '../models/element/multi-element-component.model';
+import { CedarTemplate } from '../models/template/cedar-template.model';
+import { ElementComponent } from '../models/component/element-component.model';
+import { SingleFieldComponent } from '../models/field/single-field-component.model';
+import { MultiFieldComponent } from '../models/field/multi-field-component.model';
+import { FieldComponent } from '../models/component/field-component.model';
+import { JsonSchema } from '../models/json-schema.model';
 import * as _ from 'lodash-es';
-import {InstanceExtractData} from '../models/instance-extract-data.model';
-import {InstanceFullData} from '../models/instance-full-data.model';
-import {DataObjectUtil} from '../util/data-object-util';
-import {MultiInstanceObjectHandler} from './multi-instance-object.handler';
-import {CedarInputTemplate} from '../models/cedar-input-template.model';
-import {DataObjectBuildingMode} from '../models/enum/data-object-building-mode.model';
+import { InstanceExtractData } from '../models/instance-extract-data.model';
+import { InstanceFullData } from '../models/instance-full-data.model';
+import { DataObjectUtil } from '../util/data-object-util';
+import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
+import { CedarInputTemplate } from '../models/cedar-input-template.model';
+import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 
 export class DataObjectBuilderHandler {
-
   private dataObject: object;
   private dataObjectFull: object;
   private templateJsonObj: object;
@@ -34,13 +33,21 @@ export class DataObjectBuilderHandler {
     return this.getSubTemplate(subTemplate, remainingPath);
   }
 
-  public static buildRecursively(component: CedarComponent, dataObject: InstanceExtractData, templateJsonObj: CedarInputTemplate,
-                                 buildingMode: DataObjectBuildingMode): void {
+  public static buildRecursively(
+    component: CedarComponent,
+    dataObject: InstanceExtractData,
+    templateJsonObj: CedarInputTemplate,
+    buildingMode: DataObjectBuildingMode,
+  ): void {
     let ret = null;
     if (templateJsonObj != null) {
       DataObjectBuilderHandler.addContext(component, dataObject, templateJsonObj, buildingMode);
     }
-    if (component instanceof SingleElementComponent || component instanceof MultiElementComponent || component instanceof CedarTemplate) {
+    if (
+      component instanceof SingleElementComponent ||
+      component instanceof MultiElementComponent ||
+      component instanceof CedarTemplate
+    ) {
       const iterableComponent: ElementComponent = component as ElementComponent;
       const targetName = iterableComponent.name;
       if (component instanceof MultiElementComponent) {
@@ -131,8 +138,12 @@ export class DataObjectBuilderHandler {
     }
   }
 
-  private static addContext(component: CedarComponent, dataObject: InstanceExtractData, templateJsonObj: CedarInputTemplate,
-                            buildingMode: DataObjectBuildingMode): void {
+  private static addContext(
+    component: CedarComponent,
+    dataObject: InstanceExtractData,
+    templateJsonObj: CedarInputTemplate,
+    buildingMode: DataObjectBuildingMode,
+  ): void {
     if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
       const props = templateJsonObj[JsonSchema.properties];
       const propsContext = props[JsonSchema.atContext];
@@ -149,7 +160,10 @@ export class DataObjectBuilderHandler {
     this.multiInstanceObjectService = multiInstanceObjectService;
   }
 
-  buildNewExtractDataObject(templateRepresentation: TemplateComponent, templateJsonObj: CedarInputTemplate): InstanceExtractData {
+  buildNewExtractDataObject(
+    templateRepresentation: TemplateComponent,
+    templateJsonObj: CedarInputTemplate,
+  ): InstanceExtractData {
     this.templateJsonObj = templateJsonObj;
     this.templateRepresentation = templateRepresentation;
     this.dataObject = new InstanceExtractData();
@@ -157,7 +171,10 @@ export class DataObjectBuilderHandler {
     return this.dataObject;
   }
 
-  buildNewFullDataObject(templateRepresentation: TemplateComponent, templateJsonObj: CedarInputTemplate): InstanceFullData {
+  buildNewFullDataObject(
+    templateRepresentation: TemplateComponent,
+    templateJsonObj: CedarInputTemplate,
+  ): InstanceFullData {
     this.templateJsonObj = templateJsonObj;
     this.templateRepresentation = templateRepresentation;
     this.dataObjectFull = new InstanceFullData();
@@ -165,13 +182,15 @@ export class DataObjectBuilderHandler {
     return this.dataObjectFull;
   }
 
-  private buildNewByIterating(dataObject: InstanceExtractData, templateJsonObj: CedarInputTemplate,
-                              buildingMode: DataObjectBuildingMode): void {
+  private buildNewByIterating(
+    dataObject: InstanceExtractData,
+    templateJsonObj: CedarInputTemplate,
+    buildingMode: DataObjectBuildingMode,
+  ): void {
     if (this.templateRepresentation != null && this.templateRepresentation.children != null) {
       for (const childComponent of this.templateRepresentation.children) {
         DataObjectBuilderHandler.buildRecursively(childComponent, dataObject, templateJsonObj, buildingMode);
       }
     }
   }
-
 }

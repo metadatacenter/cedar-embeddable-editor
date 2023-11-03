@@ -1,7 +1,6 @@
-import {MultiInstanceInfo} from './multi-instance-info.model';
+import { MultiInstanceInfo } from './multi-instance-info.model';
 
 export class MultiInstanceObjectInfo {
-
   componentName: string;
   currentCount: number;
   currentIndex: number;

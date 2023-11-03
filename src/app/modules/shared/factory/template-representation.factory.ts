@@ -1,27 +1,26 @@
-import {JsonSchema} from '../models/json-schema.model';
-import {CedarModel} from '../models/cedar-model.model';
-import {JavascriptTypes} from '../models/javascript-types.model';
-import {CedarComponent} from '../models/component/cedar-component.model';
-import {MultiElementComponent} from '../models/element/multi-element-component.model';
-import {CedarTemplate} from '../models/template/cedar-template.model';
-import {NullTemplate} from '../models/template/null-template.model';
-import {EmptyTemplate} from '../models/template/empty-template.model';
-import {TemplateComponent} from '../models/template/template-component.model';
-import {MultiFieldComponent} from '../models/field/multi-field-component.model';
-import {SingleFieldComponent} from '../models/field/single-field-component.model';
-import {SingleElementComponent} from '../models/element/single-element-component.model';
-import {MultiComponent} from '../models/component/multi-component.model';
-import {ElementComponent} from '../models/component/element-component.model';
-import {FieldComponent} from '../models/component/field-component.model';
-import {ChoiceOption} from '../models/info/choice-option.model';
-import {CedarInputTemplate} from '../models/cedar-input-template.model';
-import {StaticFieldComponent} from '../models/static/static-field-component.model';
-import {ComponentTypeHandler} from '../handler/component-type.handler';
-import {InputType} from '../models/input-type.model';
-import {TemplateObjectUtil} from '../util/template-object-util';
+import { JsonSchema } from '../models/json-schema.model';
+import { CedarModel } from '../models/cedar-model.model';
+import { JavascriptTypes } from '../models/javascript-types.model';
+import { CedarComponent } from '../models/component/cedar-component.model';
+import { MultiElementComponent } from '../models/element/multi-element-component.model';
+import { CedarTemplate } from '../models/template/cedar-template.model';
+import { NullTemplate } from '../models/template/null-template.model';
+import { EmptyTemplate } from '../models/template/empty-template.model';
+import { TemplateComponent } from '../models/template/template-component.model';
+import { MultiFieldComponent } from '../models/field/multi-field-component.model';
+import { SingleFieldComponent } from '../models/field/single-field-component.model';
+import { SingleElementComponent } from '../models/element/single-element-component.model';
+import { MultiComponent } from '../models/component/multi-component.model';
+import { ElementComponent } from '../models/component/element-component.model';
+import { FieldComponent } from '../models/component/field-component.model';
+import { ChoiceOption } from '../models/info/choice-option.model';
+import { CedarInputTemplate } from '../models/cedar-input-template.model';
+import { StaticFieldComponent } from '../models/static/static-field-component.model';
+import { ComponentTypeHandler } from '../handler/component-type.handler';
+import { InputType } from '../models/input-type.model';
+import { TemplateObjectUtil } from '../util/template-object-util';
 
 export class TemplateRepresentationFactory {
-
   static create(inputTemplate: CedarInputTemplate, collapseStaticComponents: boolean): TemplateComponent {
     if (inputTemplate === null) {
       return new NullTemplate();
@@ -41,7 +40,10 @@ export class TemplateRepresentationFactory {
 
     template.children.forEach((child, index) => {
       // encountered page-break component
-      if (child instanceof StaticFieldComponent && (child as StaticFieldComponent).basicInfo.inputType === InputType.pageBreak) {
+      if (
+        child instanceof StaticFieldComponent &&
+        (child as StaticFieldComponent).basicInfo.inputType === InputType.pageBreak
+      ) {
         if (page.length) {
           pages.push(page);
         }
@@ -78,14 +80,27 @@ export class TemplateRepresentationFactory {
       return true;
     } else {
       throw new Error(
-          'Invalid node value of ' + CedarModel.type + '. Value found:"' + fragmentType + '". ' +
-          'Expected "' + JavascriptTypes.object + '" or "' + JavascriptTypes.array + '"!'
+        'Invalid node value of ' +
+          CedarModel.type +
+          '. Value found:"' +
+          fragmentType +
+          '". ' +
+          'Expected "' +
+          JavascriptTypes.object +
+          '" or "' +
+          JavascriptTypes.array +
+          '"!',
       );
     }
   }
 
-  private static wrap(templateJsonObj: object, parentJsonObj: object, component: CedarComponent, parentPath: string[],
-                      collapseStaticComponents: boolean): void {
+  private static wrap(
+    templateJsonObj: object,
+    parentJsonObj: object,
+    component: CedarComponent,
+    parentPath: string[],
+    collapseStaticComponents: boolean,
+  ): void {
     // const propertyNames: string[] = TemplateRepresentationFactory.getFilteredSchemaPropertyNames(templateJsonObj);
     // console.log(propertyNames);
     const propertyNames: string[] = TemplateRepresentationFactory.getOrderedPropertyNames(templateJsonObj);
@@ -159,9 +174,9 @@ export class TemplateRepresentationFactory {
 
   private static getOrderedPropertyNames(jsonObj: object): string[] {
     const order: string[] = [];
-    if (jsonObj.hasOwnProperty(CedarModel.ui)) {
+    if (Object.hasOwn(jsonObj, CedarModel.ui)) {
       const uiMap = jsonObj[CedarModel.ui];
-      if (uiMap.hasOwnProperty(CedarModel.order)) {
+      if (Object.hasOwn(uiMap, CedarModel.order)) {
         return uiMap[CedarModel.order];
       }
     }
@@ -184,18 +199,18 @@ export class TemplateRepresentationFactory {
     fc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
 
     if (dataNode[CedarModel.ui][CedarModel.inputType] === InputType.temporal) {
-      if (dataNode[CedarModel.ui].hasOwnProperty(CedarModel.timezoneEnabled)) {
+      if (Object.hasOwn(dataNode[CedarModel.ui], CedarModel.timezoneEnabled)) {
         fc.basicInfo.timezoneEnabled = dataNode[CedarModel.ui][CedarModel.timezoneEnabled];
       }
-      if (dataNode[CedarModel.ui].hasOwnProperty(CedarModel.inputTimeFormat)) {
+      if (Object.hasOwn(dataNode[CedarModel.ui], CedarModel.inputTimeFormat)) {
         fc.basicInfo.inputTimeFormat = dataNode[CedarModel.ui][CedarModel.inputTimeFormat];
       }
-      if (dataNode[CedarModel.ui].hasOwnProperty(CedarModel.temporalGranularity)) {
+      if (Object.hasOwn(dataNode[CedarModel.ui], CedarModel.temporalGranularity)) {
         fc.basicInfo.temporalGranularity = dataNode[CedarModel.ui][CedarModel.temporalGranularity];
       }
     }
 
-    if (dataNode[CedarModel.ui].hasOwnProperty(CedarModel.temporalGranularity)) {
+    if (Object.hasOwn(dataNode[CedarModel.ui], CedarModel.temporalGranularity)) {
       fc.basicInfo.temporalGranularity = dataNode[CedarModel.ui][CedarModel.temporalGranularity];
     }
 
@@ -206,7 +221,7 @@ export class TemplateRepresentationFactory {
       fc.valueInfo.minLength = vc[CedarModel.minLength];
       fc.valueInfo.maxLength = vc[CedarModel.maxLength];
 
-      if (vc.hasOwnProperty(CedarModel.temporalType)) {
+      if (Object.hasOwn(vc, CedarModel.temporalType)) {
         fc.valueInfo.temporalType = vc[CedarModel.temporalType];
       }
 
@@ -264,7 +279,12 @@ export class TemplateRepresentationFactory {
     template.labelInfo.description = templateJsonObj[JsonSchema.schemaDescription];
   }
 
-  private static extractStaticData(dataNode: object, parentDataNode: object, name: string, sfc: StaticFieldComponent): void {
+  private static extractStaticData(
+    dataNode: object,
+    parentDataNode: object,
+    name: string,
+    sfc: StaticFieldComponent,
+  ): void {
     sfc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
     sfc.labelInfo.preferredLabel = dataNode[CedarModel.skosPrefLabel];
     sfc.contentInfo.content = dataNode[CedarModel.ui][CedarModel.content];
@@ -300,8 +320,11 @@ export class TemplateRepresentationFactory {
       for (let i = 0; i < elementComponent.children.length; i++) {
         const currentChild: CedarComponent = elementComponent.children[i];
 
-        if (ComponentTypeHandler.isFieldOrElement(currentChild) &&
-            ComponentTypeHandler.isStaticContentComponent(prevChild) && !isStaticPair) {
+        if (
+          ComponentTypeHandler.isFieldOrElement(currentChild) &&
+          ComponentTypeHandler.isStaticContentComponent(prevChild) &&
+          !isStaticPair
+        ) {
           currentChild.linkedStaticFieldComponent = prevChild as StaticFieldComponent;
           newChildren.pop();
           newChildren.push(currentChild);
@@ -309,8 +332,11 @@ export class TemplateRepresentationFactory {
           newChildren.push(currentChild);
         }
 
-        if (!isStaticPair && ComponentTypeHandler.isStaticContentComponent(currentChild) &&
-            ComponentTypeHandler.isStaticContentComponent(prevChild)) {
+        if (
+          !isStaticPair &&
+          ComponentTypeHandler.isStaticContentComponent(currentChild) &&
+          ComponentTypeHandler.isStaticContentComponent(prevChild)
+        ) {
           isStaticPair = true;
         } else if (isStaticPair) {
           isStaticPair = false;
@@ -320,5 +346,4 @@ export class TemplateRepresentationFactory {
       elementComponent.children = newChildren;
     }
   }
-
 }

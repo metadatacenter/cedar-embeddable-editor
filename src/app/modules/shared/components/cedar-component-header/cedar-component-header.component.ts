@@ -1,28 +1,25 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {CedarComponent} from '../../models/component/cedar-component.model';
-import {ComponentDataService} from '../../service/component-data.service';
-import {MultiComponent} from '../../models/component/multi-component.model';
-import {ComponentTypeHandler} from '../../handler/component-type.handler';
-import {SingleFieldComponent} from '../../models/field/single-field-component.model';
-import {FieldComponent} from '../../models/component/field-component.model';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { CedarComponent } from '../../models/component/cedar-component.model';
+import { ComponentDataService } from '../../service/component-data.service';
+import { MultiComponent } from '../../models/component/multi-component.model';
+import { ComponentTypeHandler } from '../../handler/component-type.handler';
+import { SingleFieldComponent } from '../../models/field/single-field-component.model';
+import { FieldComponent } from '../../models/component/field-component.model';
 
 @Component({
   selector: 'app-cedar-component-header',
   templateUrl: './cedar-component-header.component.html',
   styleUrls: ['./cedar-component-header.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class CedarComponentHeaderComponent implements OnInit {
-
   component: CedarComponent;
   multiComponent: MultiComponent;
   shouldRenderRequiredMark = false;
 
-  constructor(public cds: ComponentDataService) {
-  }
+  constructor(public cds: ComponentDataService) {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   @Input() set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;
@@ -31,12 +28,11 @@ export class CedarComponentHeaderComponent implements OnInit {
     } else {
       this.multiComponent = null;
     }
-    if (this.component instanceof SingleFieldComponent){
+    if (this.component instanceof SingleFieldComponent) {
       const fieldComp = this.component as unknown as FieldComponent;
-      if (fieldComp.valueInfo.requiredValue){
+      if (fieldComp.valueInfo.requiredValue) {
         this.shouldRenderRequiredMark = true;
       }
     }
   }
-
 }

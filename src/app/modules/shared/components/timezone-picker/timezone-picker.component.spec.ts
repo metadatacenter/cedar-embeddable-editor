@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import {TimezonePickerComponent} from './timezone-picker.component';
+import { TimezonePickerComponent } from './timezone-picker.component';
 
 describe('TimezonePickerComponent', () => {
   let component: TimezonePickerComponent;
@@ -8,9 +8,8 @@ describe('TimezonePickerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TimezonePickerComponent]
-    })
-      .compileComponents();
+      declarations: [TimezonePickerComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

@@ -1,10 +1,9 @@
-import {CedarComponent} from '../component/cedar-component.model';
-import {ElementComponent} from '../component/element-component.model';
-import {LabelInfo} from '../info/label-info.model';
-import {StaticFieldComponent} from '../static/static-field-component.model';
+import { CedarComponent } from '../component/cedar-component.model';
+import { ElementComponent } from '../component/element-component.model';
+import { LabelInfo } from '../info/label-info.model';
+import { StaticFieldComponent } from '../static/static-field-component.model';
 
 export abstract class AbstractElementComponent implements ElementComponent {
-
   className = 'AbstractElementComponent';
   name: string;
   path: string[];

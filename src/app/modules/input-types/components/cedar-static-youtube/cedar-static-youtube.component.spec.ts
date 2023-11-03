@@ -1,5 +1,5 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {CedarStaticYoutubeComponent} from './cedar-static-youtube.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CedarStaticYoutubeComponent } from './cedar-static-youtube.component';
 
 describe('CedarStaticYoutubeComponent', () => {
   let component: CedarStaticYoutubeComponent;
@@ -7,9 +7,8 @@ describe('CedarStaticYoutubeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CedarStaticYoutubeComponent]
-    })
-      .compileComponents();
+      declarations: [CedarStaticYoutubeComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

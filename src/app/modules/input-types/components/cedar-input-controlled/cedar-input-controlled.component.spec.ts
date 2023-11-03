@@ -1,5 +1,5 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {CedarInputControlledComponent} from './cedar-input-controlled.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CedarInputControlledComponent } from './cedar-input-controlled.component';
 
 describe('CedarInputControlledComponent', () => {
   let component: CedarInputControlledComponent;
@@ -7,9 +7,8 @@ describe('CedarInputControlledComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CedarInputControlledComponent]
-    })
-      .compileComponents();
+      declarations: [CedarInputControlledComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

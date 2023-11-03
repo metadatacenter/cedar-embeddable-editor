@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import {CedarInputEmailComponent} from './cedar-input-email.component';
-
+import { CedarInputEmailComponent } from './cedar-input-email.component';
 
 describe('CedarInputEmailComponent', () => {
   let component: CedarInputEmailComponent;
@@ -8,9 +7,8 @@ describe('CedarInputEmailComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CedarInputEmailComponent ]
-    })
-    .compileComponents();
+      declarations: [CedarInputEmailComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

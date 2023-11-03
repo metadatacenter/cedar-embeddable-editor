@@ -1,7 +1,6 @@
-import {IntegratedSearchResponseItem} from './integrated-search-response-item';
+import { IntegratedSearchResponseItem } from './integrated-search-response-item';
 
 export class IntegratedSearchResponse {
-
   page: number;
   pageCount: number;
   pageSize: number;
@@ -9,5 +8,4 @@ export class IntegratedSearchResponse {
   prevPage: object;
   nextPage: object;
   collection: Array<IntegratedSearchResponseItem>;
-
 }

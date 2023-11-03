@@ -1,24 +1,22 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {FormBuilder, FormControl} from '@angular/forms';
-import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
-import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
-import {HandlerContext} from '../../../shared/util/handler-context';
-import {DatePickerComponent} from '../../../shared/components/date-picker/date-picker.component';
-import {Xsd} from '../../../shared/models/xsd.model';
-import {Temporal} from '../../../shared/models/temporal.model';
-import moment, {Moment} from 'moment';
-import {TimezonePickerComponent, TZone} from '../../../shared/components/timezone-picker/timezone-picker.component';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { FormBuilder, FormControl } from '@angular/forms';
+import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { HandlerContext } from '../../../shared/util/handler-context';
+import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { Xsd } from '../../../shared/models/xsd.model';
+import { Temporal } from '../../../shared/models/temporal.model';
+import moment, { Moment } from 'moment';
+import { TimezonePickerComponent, TZone } from '../../../shared/components/timezone-picker/timezone-picker.component';
 
 @Component({
   selector: 'app-cedar-input-datetime',
   templateUrl: './cedar-input-datetime.component.html',
   styleUrls: ['./cedar-input-datetime.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
-
 export class CedarInputDatetimeComponent extends CedarUIComponent implements OnInit, AfterViewInit {
-
   component: FieldComponent;
 
   timePickerTime: Date;
@@ -34,15 +32,14 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   constructor(
     fb: FormBuilder,
     private activeComponentRegistry: ActiveComponentRegistryService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {
     super();
     this.datetimeParsed = new DatetimeRepresentation();
     this.timePickerTime = this.getDefaultTime();
   }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     this.cdr.detectChanges();
@@ -110,11 +107,11 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   }
 
   enableMeridian(): boolean {
-    return (this.component.basicInfo.inputTimeFormat === Temporal.inputType12h);
+    return this.component.basicInfo.inputTimeFormat === Temporal.inputType12h;
   }
 
   disableMinute(): boolean {
-    return (this.component.basicInfo.temporalGranularity === Temporal.hour);
+    return this.component.basicInfo.temporalGranularity === Temporal.hour;
   }
 
   showSeconds(): boolean {
@@ -122,16 +119,19 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   }
 
   showDecimalSeconds(): boolean {
-    return (this.component.basicInfo.temporalGranularity === Temporal.decimalSecond);
+    return this.component.basicInfo.temporalGranularity === Temporal.decimalSecond;
   }
 
   showTimezonePicker(): boolean {
-    return (this.component.basicInfo.timezoneEnabled === true);
+    return this.component.basicInfo.timezoneEnabled === true;
   }
 
   setCurrentValue(currentValue: any): void {
     if (currentValue) {
-      this.datetimeParsed = DatetimeRepresentation.fromStorageRepresentation(currentValue as string, this.enableMeridian());
+      this.datetimeParsed = DatetimeRepresentation.fromStorageRepresentation(
+        currentValue as string,
+        this.enableMeridian(),
+      );
 
       if (this.datetimeParsed.dateIsSet) {
         const m = moment();
@@ -144,7 +144,11 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
       if (this.datetimeParsed.timeIsSet) {
         // reset timepicker UI
         this.timePickerTime = new Date();
-        this.timePickerTime.setHours(+this.datetimeParsed.hours, +this.datetimeParsed.minutes, +this.datetimeParsed.seconds);
+        this.timePickerTime.setHours(
+          +this.datetimeParsed.hours,
+          +this.datetimeParsed.minutes,
+          +this.datetimeParsed.seconds,
+        );
 
         // reset decimal seconds
         if (this.datetimeParsed.decimalSeconds.length > 0) {
@@ -156,7 +160,7 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
         if (this.datetimeParsed.timezoneIsSet) {
           this.timezone = {
             id: this.datetimeParsed.timezoneOffset,
-            label: this.datetimeParsed.timezoneName
+            label: this.datetimeParsed.timezoneName,
           };
         } else {
           this.resetTimezone();
@@ -226,7 +230,6 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
 }
 
 export class DatetimeRepresentation {
-
   static readonly DATE_SEPARATOR = '-';
   static readonly TIME_SEPARATOR = ':';
   static readonly DATE_TIME_SEPARATOR = 'T';
@@ -249,7 +252,6 @@ export class DatetimeRepresentation {
 
   timezoneName: string;
   timezoneOffset: string;
-
 
   constructor() {
     // set default values
@@ -276,7 +278,12 @@ export class DatetimeRepresentation {
 
   static fromStorageRepresentation(storedDateStr: string, ampm: boolean): DatetimeRepresentation {
     const that = new DatetimeRepresentation();
-    const datePatternStr = '^\\d{4}\\' + DatetimeRepresentation.DATE_SEPARATOR + '\\d{2}\\' + DatetimeRepresentation.DATE_SEPARATOR + '\\d{2}';
+    const datePatternStr =
+      '^\\d{4}\\' +
+      DatetimeRepresentation.DATE_SEPARATOR +
+      '\\d{2}\\' +
+      DatetimeRepresentation.DATE_SEPARATOR +
+      '\\d{2}';
     const datePattern = new RegExp(datePatternStr);
     const dateStr = storedDateStr.match(datePattern);
 
@@ -284,7 +291,12 @@ export class DatetimeRepresentation {
       that.dateIsSet = true;
       that.setDate(moment(dateStr[0], DatetimeRepresentation.DATE_STORED_FORMAT));
     }
-    const timePatternStr = '(\\d{2}\\' + DatetimeRepresentation.TIME_SEPARATOR + '\\d{2}\\' + DatetimeRepresentation.TIME_SEPARATOR + '\\d{2})(\\.[\\d\\.]+)*';
+    const timePatternStr =
+      '(\\d{2}\\' +
+      DatetimeRepresentation.TIME_SEPARATOR +
+      '\\d{2}\\' +
+      DatetimeRepresentation.TIME_SEPARATOR +
+      '\\d{2})(\\.[\\d\\.]+)*';
     const timePattern = new RegExp(timePatternStr);
     const timeStr = storedDateStr.match(timePattern);
 
@@ -303,7 +315,7 @@ export class DatetimeRepresentation {
       const timezoneStr = storedDateStr.match(timezonePattern);
 
       if (timezoneStr && timezoneStr.length > 0) {
-        const timezone = TimezonePickerComponent.AVAILABLE_TIMEZONES.find(z => z.id === timezoneStr[0]);
+        const timezone = TimezonePickerComponent.AVAILABLE_TIMEZONES.find((z) => z.id === timezoneStr[0]);
         that.setTimezone(timezone);
       }
     }
@@ -380,12 +392,12 @@ export class DatetimeRepresentation {
     }
 
     if (this.dateIsSet) {
-      m.set({year: +this.year, month: +this.month - 1, date: +this.day});
+      m.set({ year: +this.year, month: +this.month - 1, date: +this.day });
       formatArr.push(DatePickerComponent.YEAR_MONTH_DAY_FORMAT);
     }
 
     if (this.timeIsSet) {
-      m.set({hour: +this.hours, minute: +this.minutes, second: +this.seconds});
+      m.set({ hour: +this.hours, minute: +this.minutes, second: +this.seconds });
 
       if (this.dateIsSet) {
         formatArr.push(' ');
@@ -408,8 +420,11 @@ export class DatetimeRepresentation {
     let dateStr = '';
 
     if (this.dateIsSet) {
-      dateStr += this.year + DatetimeRepresentation.DATE_SEPARATOR +
-        this.month + DatetimeRepresentation.DATE_SEPARATOR +
+      dateStr +=
+        this.year +
+        DatetimeRepresentation.DATE_SEPARATOR +
+        this.month +
+        DatetimeRepresentation.DATE_SEPARATOR +
         this.day;
     }
 
@@ -417,13 +432,15 @@ export class DatetimeRepresentation {
       if (this.dateIsSet) {
         dateStr += DatetimeRepresentation.DATE_TIME_SEPARATOR;
       }
-      dateStr += this.hours + DatetimeRepresentation.TIME_SEPARATOR +
-        this.minutes + DatetimeRepresentation.TIME_SEPARATOR +
+      dateStr +=
+        this.hours +
+        DatetimeRepresentation.TIME_SEPARATOR +
+        this.minutes +
+        DatetimeRepresentation.TIME_SEPARATOR +
         this.seconds;
 
       if (this.decimalSeconds.length > 0) {
-        dateStr += DatetimeRepresentation.TIME_DECIMAL_SECOND_SEPARATOR +
-          this.decimalSeconds;
+        dateStr += DatetimeRepresentation.TIME_DECIMAL_SECOND_SEPARATOR + this.decimalSeconds;
       }
     }
 
@@ -444,5 +461,4 @@ export class DatetimeRepresentation {
     }
     return str;
   }
-
 }
