@@ -1,10 +1,10 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
-import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
-import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
-import {HandlerContext} from '../../../shared/util/handler-context';
-import {ErrorStateMatcher} from '@angular/material/core';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { HandlerContext } from '../../../shared/util/handler-context';
+import { ErrorStateMatcher } from '@angular/material/core';
 
 export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -16,7 +16,7 @@ export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
   selector: 'app-cedar-input-multiple-choice',
   templateUrl: './cedar-input-multiple-choice.component.html',
   styleUrls: ['./cedar-input-multiple-choice.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class CedarInputMultipleChoiceComponent extends CedarUIComponent implements OnInit {
   component: FieldComponent;
@@ -26,12 +26,12 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
   @Input() handlerContext: HandlerContext;
 
   constructor(
-      fb: FormBuilder,
-      private activeComponentRegistry: ActiveComponentRegistryService
+    fb: FormBuilder,
+    private activeComponentRegistry: ActiveComponentRegistryService,
   ) {
     super();
     this.options = fb.group({
-      selectedChoiceValue: this.selectedChoiceInputControl
+      selectedChoiceValue: this.selectedChoiceInputControl,
     });
   }
 
@@ -75,5 +75,4 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
     }
     this.handlerContext.changeValue(this.component, null);
   }
-
 }

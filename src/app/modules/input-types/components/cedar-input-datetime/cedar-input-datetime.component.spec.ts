@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import {CedarInputDatetimeComponent} from './cedar-input-datetime.component';
+import { CedarInputDatetimeComponent } from './cedar-input-datetime.component';
 
 describe('CedarInputDatetimeComponent', () => {
   let component: CedarInputDatetimeComponent;
@@ -8,9 +8,8 @@ describe('CedarInputDatetimeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CedarInputDatetimeComponent]
-    })
-      .compileComponents();
+      declarations: [CedarInputDatetimeComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

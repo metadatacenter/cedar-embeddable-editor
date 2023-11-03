@@ -1,10 +1,8 @@
-import {Pipe, PipeTransform} from '@angular/core';
+import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({name: 'rdf'})
+@Pipe({ name: 'rdf' })
 export class RdfPipe implements PipeTransform {
-
   transform(value: object): string {
     return value.toString();
   }
-
 }

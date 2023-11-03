@@ -1,3 +1,1 @@
-export class InstanceExtractData extends Object {
-
-}
+export class InstanceExtractData extends Object {}

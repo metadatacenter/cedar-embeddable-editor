@@ -1,27 +1,24 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {StaticFieldComponent} from '../../../shared/models/static/static-field-component.model';
-import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
-import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
-import {HandlerContext} from '../../../shared/util/handler-context';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
+import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { HandlerContext } from '../../../shared/util/handler-context';
 
 @Component({
   selector: 'app-cedar-static-rich-text',
   templateUrl: './cedar-static-rich-text.component.html',
   styleUrls: ['./cedar-static-rich-text.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class CedarStaticRichTextComponent extends CedarUIComponent implements OnInit {
-
   component: StaticFieldComponent;
   @Input() handlerContext: HandlerContext;
-
 
   constructor(private activeComponentRegistry: ActiveComponentRegistryService) {
     super();
   }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   @Input() set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
@@ -31,5 +28,4 @@ export class CedarStaticRichTextComponent extends CedarUIComponent implements On
   setCurrentValue(currentValue: any): void {
     // not applicable to rich text component
   }
-
 }

@@ -1,5 +1,4 @@
 export class JsonSchema {
-
   // special properties used to add attribute-value fields to the model
   static reservedAttributeName = '__reserved__attribute_name';
   static reservedAttributeValue = '__reserved__attribute_value';
@@ -33,7 +32,6 @@ export class JsonSchema {
     [JsonSchema.pavCreatedOn, true],
     [JsonSchema.pavCreatedBy, true],
     [JsonSchema.pavLastUpdatedOn, true],
-    [JsonSchema.oslcModifiedBy, true]
+    [JsonSchema.oslcModifiedBy, true],
   ]);
-
 }

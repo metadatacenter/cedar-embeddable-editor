@@ -8,9 +8,8 @@ describe('CedarMultiPagerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CedarMultiPagerComponent ]
-    })
-    .compileComponents();
+      declarations: [CedarMultiPagerComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {
