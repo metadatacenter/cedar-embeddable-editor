@@ -1,16 +1,15 @@
-import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
-import {HttpStatusCode} from '@angular/common/http';
+import {Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
 import {ControlledFieldDataService} from '../../service/controlled-field-data.service';
 import {MessageHandlerService} from '../../service/message-handler.service';
 import {Subject} from 'rxjs';
 import {SampleTemplatesService} from '../sample-templates/sample-templates.service';
 import {takeUntil} from 'rxjs/operators';
-import {JsonSchema} from '../../models/json-schema.model';
 import {HandlerContext} from '../../util/handler-context';
 import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
-import {MultiInstanceObjectHandler} from '../../handler/multi-instance-object.handler';
 import {TranslateService} from '@ngx-translate/core';
 import {CedarEmbeddableMetadataEditorComponent} from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
+import {DataContext} from '../../util/data-context';
+import {HttpStatusCode} from '@angular/common/http';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -28,18 +27,21 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   sampleTemplateLoaderObject = null;
   showSpinnerBeforeInit = true;
   protected onDestroySubject = new Subject<void>();
-  handlerContext: HandlerContext = null;
-  private metadata: object = null;
   private loadedTemplateJson: object = null;
   private loadedMetadata: object = null;
 
+  readonly dataContext: DataContext = null;
+  readonly handlerContext: HandlerContext = null;
+
+  @ViewChild(CedarEmbeddableMetadataEditorComponent) editorComponent: CedarEmbeddableMetadataEditorComponent;
+
 
   constructor(
-    private controlledFieldDataService: ControlledFieldDataService,
-    private messageHandlerService: MessageHandlerService,
-    private sampleTemplateService: SampleTemplatesService,
-    private activeComponentRegistry: ActiveComponentRegistryService,
-    private translateService: TranslateService
+      private controlledFieldDataService: ControlledFieldDataService,
+      private messageHandlerService: MessageHandlerService,
+      private sampleTemplateService: SampleTemplatesService,
+      private activeComponentRegistry: ActiveComponentRegistryService,
+      private translateService: TranslateService
   ) {
     this.sampleTemplateLoaderObject = this;
 
@@ -47,36 +49,36 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     const defaultLanguage = 'en';
     this.translateService.setDefaultLang(fallbackLanguage);
     this.translateService.use(defaultLanguage);
+
+    this.dataContext = new DataContext();
+    this.handlerContext = new HandlerContext(this.dataContext);
+
   }
 
   ngOnInit(): void {
 
     this.sampleTemplateService.templateJson$
-      .pipe(takeUntil(this.onDestroySubject))
-      .subscribe(templateJson => {
-        if (templateJson) {
-          this.loadedTemplateJson = Object.values(templateJson)[0];
-        } else {
-          this.loadedTemplateJson = null;
-        }
-        this.triggerUpdateOnInjectedSampledata();
-      });
+        .pipe(takeUntil(this.onDestroySubject))
+        .subscribe(templateJson => {
+          if (templateJson) {
+            this.loadedTemplateJson = Object.values(templateJson)[0];
+          } else {
+            this.loadedTemplateJson = null;
+          }
+          this.triggerUpdateOnInjectedSampleData();
+        });
     this.sampleTemplateService.metadataJson$
-      .pipe(takeUntil(this.onDestroySubject))
-      .subscribe(metadataJson => {
-        if (metadataJson) {
-          this.loadedMetadata = Object.values(metadataJson)[0];
-        } else {
-          this.loadedMetadata = null;
-        }
-        this.triggerUpdateOnInjectedSampledata();
-      });
+        .pipe(takeUntil(this.onDestroySubject))
+        .subscribe(metadataJson => {
+          if (metadataJson) {
+            this.loadedMetadata = Object.values(metadataJson)[0];
+          } else {
+            this.loadedMetadata = null;
+          }
+          this.triggerUpdateOnInjectedSampleData();
+        });
     this.initialized = true;
     this.doInitialize();
-  }
-
-  handlerContextChanged(event): void {
-    this.handlerContext = event;
   }
 
   @Input() get currentMetadata(): object {
@@ -86,38 +88,15 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     return {};
   }
 
-  private initDataFromInstance(): void {
-    const instanceFullData = JSON.parse(JSON.stringify(this.metadata));
-    const instanceExtractData = JSON.parse(JSON.stringify(this.metadata));
-    this.deleteContext(instanceExtractData);
-    if (this.handlerContext) {
-      const dataContext = this.handlerContext.dataContext;
-      dataContext.instanceFullData = instanceFullData;
-      dataContext.instanceExtractData = instanceExtractData;
-      const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
-
-      dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
-        dataContext.templateRepresentation, instanceExtractData);
-
-      if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
-        setTimeout(() => {
-          for (const childComponent of dataContext.templateRepresentation.children) {
-            this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
-          }
-        });
-      }
-    }
-  }
-
   @Input() set templateObject(template: object) {
     this.templateJson = template;
   }
 
   @Input() set instanceObject(instance: object) {
-    this.metadata = instance;
-    this.initDataFromInstance();
+    this.editorComponent.initDataFromInstance(instance);
   }
 
+  // TODO: revisit if this method is needed. The CEE should be agnostic of the environment, should expect the config to be injected
   @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
     const that = this;
     const xhr = new XMLHttpRequest();
@@ -160,36 +139,13 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.messageHandlerService.injectEventHandler(value);
   }
 
-  private deleteContext(obj): void {
-    const keyCount = Object.keys(obj).length;
-    if (keyCount === 2 && obj.hasOwnProperty(JsonSchema.atId) && obj.hasOwnProperty(JsonSchema.rdfsLabel)) {
-      // do nothing, it is a controlled term
-    } else if (keyCount === 1 && obj.hasOwnProperty(JsonSchema.atId)) {
-      // do nothing, it is a link
-    } else {
-      Object.keys(obj).forEach(key => {
-        delete obj[JsonSchema.atContext];
-        delete obj[JsonSchema.atId];
-        delete obj[JsonSchema.oslcModifiedBy];
-        delete obj[JsonSchema.pavCreatedOn];
-        delete obj[JsonSchema.pavLastUpdatedOn];
-        delete obj[JsonSchema.pavCreatedBy];
-        delete obj[JsonSchema.schemaIsBasedOn];
-        delete obj[JsonSchema.schemaName];
-        delete obj[JsonSchema.schemaDescription];
-        if (typeof obj[key] === 'object' && obj[key] !== null) {
-          this.deleteContext(obj[key]);
-        }
-      });
-    }
-  }
 
   private doInitialize(): void {
     if (this.initialized && this.configSet) {
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
-          this.innerConfig[CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX],
-          this.innerConfig[CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME]);
+            this.innerConfig[CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX],
+            this.innerConfig[CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME]);
       }
       if (this.innerConfig.hasOwnProperty(CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
         const integratedSearchUrl = this.innerConfig[CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL];
@@ -214,7 +170,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     return this.innerConfig != null && this.templateJson != null;
   }
 
-  private triggerUpdateOnInjectedSampledata(): void {
+  private triggerUpdateOnInjectedSampleData(): void {
     if (this.loadedTemplateJson != null) {
       this.templateObject = this.loadedTemplateJson;
     }

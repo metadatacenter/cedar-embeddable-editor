@@ -26,7 +26,8 @@
     "SelectDate": "Dátum kiválasztása",
     "NumberOnly": "Csak szám",
     "CedarLogo": "CEDAR logó",
-    "DecimalSeconds": "tizedmásodpercek"
+    "DecimalSeconds": "tizedmásodpercek",
+    "Szűrés": "Kezdjen el írni a szűréshez"
   },
   "Process": {
     "Initializing": "A CEDAR Beágyazható Szerkesztő inicializálása..."
