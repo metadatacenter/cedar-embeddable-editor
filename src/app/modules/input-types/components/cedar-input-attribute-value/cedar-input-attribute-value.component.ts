@@ -1,19 +1,17 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
-import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
-import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
-import {HandlerContext} from '../../../shared/util/handler-context';
-
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { HandlerContext } from '../../../shared/util/handler-context';
 
 @Component({
   selector: 'app-cedar-input-attribute-value',
   templateUrl: './cedar-input-attribute-value.component.html',
   styleUrls: ['./cedar-input-attribute-value.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class CedarInputAttributeValueComponent extends CedarUIComponent implements OnInit {
-
   component: FieldComponent;
   options: FormGroup;
   nameInputControl = new FormControl(null, null);
@@ -22,7 +20,7 @@ export class CedarInputAttributeValueComponent extends CedarUIComponent implemen
 
   constructor(
     fb: FormBuilder,
-    private activeComponentRegistry: ActiveComponentRegistryService
+    private activeComponentRegistry: ActiveComponentRegistryService,
   ) {
     super();
     this.options = fb.group({
@@ -31,8 +29,7 @@ export class CedarInputAttributeValueComponent extends CedarUIComponent implemen
     });
   }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
@@ -87,5 +84,4 @@ export class CedarInputAttributeValueComponent extends CedarUIComponent implemen
     this.valueInputControl.setValue(null);
     this.handlerContext.changeAttributeValue(this.component, this.nameInputControl.value, null);
   }
-
 }

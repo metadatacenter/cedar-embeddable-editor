@@ -8,9 +8,8 @@ describe('SourcePanelsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SourcePanelsComponent ]
-    })
-    .compileComponents();
+      declarations: [SourcePanelsComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

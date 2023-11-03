@@ -1,8 +1,7 @@
-import {LabelInfo} from '../info/label-info.model';
-import {StaticFieldComponent} from '../static/static-field-component.model';
+import { LabelInfo } from '../info/label-info.model';
+import { StaticFieldComponent } from '../static/static-field-component.model';
 
 export interface CedarComponent {
-
   className: string;
   name: string;
   path: string[];
@@ -12,5 +11,4 @@ export interface CedarComponent {
 
   isMulti(): boolean;
   isMultiPage(): boolean;
-
 }

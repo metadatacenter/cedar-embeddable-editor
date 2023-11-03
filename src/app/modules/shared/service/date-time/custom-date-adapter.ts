@@ -1,7 +1,7 @@
-import {Injectable} from '@angular/core';
-import {MomentDateAdapter} from '@angular/material-moment-adapter';
+import { Injectable } from '@angular/core';
+import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import * as moment from 'moment';
-import {DateTimeService} from './date-time.service';
+import { DateTimeService } from './date-time.service';
 
 @Injectable()
 export class CustomDateAdapter extends MomentDateAdapter {

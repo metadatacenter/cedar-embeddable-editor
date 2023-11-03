@@ -7,19 +7,17 @@ import {
   OnDestroy,
   OnInit,
   SimpleChanges,
-  ViewEncapsulation
+  ViewEncapsulation,
 } from '@angular/core';
 import * as momentZone from 'moment-timezone';
-import {ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {Subject} from 'rxjs';
-import {takeUntil} from 'rxjs/operators';
-
+import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 export class TZone {
   id: string;
   label: string;
 }
-
 
 export interface SelectConfig {
   appearance: 'underline' | 'outline';
@@ -30,7 +28,6 @@ export interface SelectConfig {
   hideSelected: boolean;
 }
 
-
 @Component({
   selector: 'app-timezone-picker',
   templateUrl: './timezone-picker.component.html',
@@ -39,56 +36,54 @@ export interface SelectConfig {
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => TimezonePickerComponent),
-      multi: true
-    }
+      multi: true,
+    },
   ],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges, ControlValueAccessor {
-
   static readonly AVAILABLE_TIMEZONES = [
-    {id: '-12:00', label: '(GMT -12:00) Eniwetok, Kwajalein'},
-    {id: '-11:00', label: '(GMT -11:00) Midway Island, Samoa'},
-    {id: '-10:00', label: '(GMT -10:00) Hawaii'},
-    {id: '-09:30', label: '(GMT -9:30) Taiohae'},
-    {id: '-09:00', label: '(GMT -9:00) Alaska'},
-    {id: '-08:00', label: '(GMT -8:00) Pacific Time (US & Canada)'},
-    {id: '-07:00', label: '(GMT -7:00) Mountain Time (US & Canada)'},
-    {id: '-06:00', label: '(GMT -6:00) Central Time (US & Canada), Mexico City'},
-    {id: '-05:00', label: '(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima'},
-    {id: '-04:30', label: '(GMT -4:30) Caracas'},
-    {id: '-04:00', label: '(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz'},
-    {id: '-03:30', label: '(GMT -3:30) Newfoundland'},
-    {id: '-03:00', label: '(GMT -3:00) Brazil, Buenos Aires, Georgetown'},
-    {id: '-02:00', label: '(GMT -2:00) Mid-Atlantic'},
-    {id: '-01:00', label: '(GMT -1:00) Azores, Cape Verde Islands'},
-    {id: 'Z', label: '(GMT) Western Europe Time, London, Lisbon, Casablanca'},
-    {id: '+01:00', label: '(GMT +1:00) Brussels, Copenhagen, Madrid, Paris'},
-    {id: '+02:00', label: '(GMT +2:00) Kaliningrad, South Africa'},
-    {id: '+03:00', label: '(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburg'},
-    {id: '+03:30', label: '(GMT +3:30) Tehran'},
-    {id: '+04:00', label: '(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi'},
-    {id: '+04:30', label: '(GMT +4:30) Kabul'},
-    {id: '+05:00', label: '(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent'},
-    {id: '+05:30', label: '(GMT +5:30) Bombay, Calcutta, Madras, New Delhi'},
-    {id: '+05:45', label: '(GMT +5:45) Kathmandu, Pokhara'},
-    {id: '+06:00', label: '(GMT +6:00) Almaty, Dhaka, Colombo'},
-    {id: '+06:30', label: '(GMT +6:30) Yangon, Mandalay'},
-    {id: '+07:00', label: '(GMT +7:00) Bangkok, Hanoi, Jakarta'},
-    {id: '+08:00', label: '(GMT +8:00) Beijing, Perth, Singapore, Hong Kong'},
-    {id: '+08:45', label: '(GMT +8:45) Eucla'},
-    {id: '+09:00', label: '(GMT +9:00) Tokyo, Seoul, Osaka, Sapporo, Yakutsk'},
-    {id: '+09:30', label: '(GMT +9:30) Adelaide, Darwin'},
-    {id: '+10:00', label: '(GMT +10:00) Eastern Australia, Guam, Vladivostok'},
-    {id: '+10:30', label: '(GMT +10:30) Lord Howe Island'},
-    {id: '+11:00', label: '(GMT +11:00) Magadan, Solomon Islands, New Caledonia'},
-    {id: '+11:30', label: '(GMT +11:30) Norfolk Island'},
-    {id: '+12:00', label: '(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka'},
-    {id: '+12:45', label: '(GMT +12:45) Chatham Islands'},
-    {id: '+13:00', label: '(GMT +13:00) Apia, Nukualofa'},
-    {id: '+14:00', label: '(GMT +14:00) Line Islands, Tokelau'}
+    { id: '-12:00', label: '(GMT -12:00) Eniwetok, Kwajalein' },
+    { id: '-11:00', label: '(GMT -11:00) Midway Island, Samoa' },
+    { id: '-10:00', label: '(GMT -10:00) Hawaii' },
+    { id: '-09:30', label: '(GMT -9:30) Taiohae' },
+    { id: '-09:00', label: '(GMT -9:00) Alaska' },
+    { id: '-08:00', label: '(GMT -8:00) Pacific Time (US & Canada)' },
+    { id: '-07:00', label: '(GMT -7:00) Mountain Time (US & Canada)' },
+    { id: '-06:00', label: '(GMT -6:00) Central Time (US & Canada), Mexico City' },
+    { id: '-05:00', label: '(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima' },
+    { id: '-04:30', label: '(GMT -4:30) Caracas' },
+    { id: '-04:00', label: '(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz' },
+    { id: '-03:30', label: '(GMT -3:30) Newfoundland' },
+    { id: '-03:00', label: '(GMT -3:00) Brazil, Buenos Aires, Georgetown' },
+    { id: '-02:00', label: '(GMT -2:00) Mid-Atlantic' },
+    { id: '-01:00', label: '(GMT -1:00) Azores, Cape Verde Islands' },
+    { id: 'Z', label: '(GMT) Western Europe Time, London, Lisbon, Casablanca' },
+    { id: '+01:00', label: '(GMT +1:00) Brussels, Copenhagen, Madrid, Paris' },
+    { id: '+02:00', label: '(GMT +2:00) Kaliningrad, South Africa' },
+    { id: '+03:00', label: '(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburg' },
+    { id: '+03:30', label: '(GMT +3:30) Tehran' },
+    { id: '+04:00', label: '(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi' },
+    { id: '+04:30', label: '(GMT +4:30) Kabul' },
+    { id: '+05:00', label: '(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent' },
+    { id: '+05:30', label: '(GMT +5:30) Bombay, Calcutta, Madras, New Delhi' },
+    { id: '+05:45', label: '(GMT +5:45) Kathmandu, Pokhara' },
+    { id: '+06:00', label: '(GMT +6:00) Almaty, Dhaka, Colombo' },
+    { id: '+06:30', label: '(GMT +6:30) Yangon, Mandalay' },
+    { id: '+07:00', label: '(GMT +7:00) Bangkok, Hanoi, Jakarta' },
+    { id: '+08:00', label: '(GMT +8:00) Beijing, Perth, Singapore, Hong Kong' },
+    { id: '+08:45', label: '(GMT +8:45) Eucla' },
+    { id: '+09:00', label: '(GMT +9:00) Tokyo, Seoul, Osaka, Sapporo, Yakutsk' },
+    { id: '+09:30', label: '(GMT +9:30) Adelaide, Darwin' },
+    { id: '+10:00', label: '(GMT +10:00) Eastern Australia, Guam, Vladivostok' },
+    { id: '+10:30', label: '(GMT +10:30) Lord Howe Island' },
+    { id: '+11:00', label: '(GMT +11:00) Magadan, Solomon Islands, New Caledonia' },
+    { id: '+11:30', label: '(GMT +11:30) Norfolk Island' },
+    { id: '+12:00', label: '(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka' },
+    { id: '+12:45', label: '(GMT +12:45) Chatham Islands' },
+    { id: '+13:00', label: '(GMT +13:00) Apia, Nukualofa' },
+    { id: '+14:00', label: '(GMT +14:00) Line Islands, Tokelau' },
   ];
-
 
   /**
    * Setup section.
@@ -110,7 +105,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     appearance: 'underline',
     clearOnBackspace: true,
     closeOnSelect: true,
-    appendTo: null
+    appendTo: null,
   };
 
   get config(): SelectConfig {
@@ -125,8 +120,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   private propagateChange: (_: any) => {};
   private destroy$ = new Subject<void>();
 
-  constructor(private fb: FormBuilder) {
-  }
+  constructor(private fb: FormBuilder) {}
 
   static guessedUserZone(): TZone {
     const guessedZone = momentZone.tz.guess(true);
@@ -136,21 +130,22 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   static findZone(zone: string): TZone {
     const allZones = JSON.parse(JSON.stringify(TimezonePickerComponent.AVAILABLE_TIMEZONES));
     const utc: string = momentZone.tz(zone).format('Z');
-    return allZones.find(z => z.id === utc);
+    return allZones.find((z) => z.id === utc);
   }
 
   ngOnInit(): void {
     // make a copy of the list to avoid modifying the original timezones array
     this.timeZones = JSON.parse(JSON.stringify(TimezonePickerComponent.AVAILABLE_TIMEZONES));
     this.form = this.fb.group({
-      timezone: []
+      timezone: [],
     });
 
     /**
      * Value change subscription.
      */
-    this.form.get('timezone').valueChanges
-      .pipe(takeUntil(this.destroy$))
+    this.form
+      .get('timezone')
+      .valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe(() => this.fireChanges());
   }
 
@@ -172,10 +167,6 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
-
-
-
-
   // /**
   //  * Make TZone object from simple string.
   //  * @link ngOnInit
@@ -184,11 +175,6 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   //   const utc: string = momentZone.tz(zone).format('Z');
   //   return this.timeZones.find(z => z.id === utc);
   // }
-
-
-
-
-
 
   /**
    * Propagate result to parent component.
@@ -224,8 +210,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
-  }
+  registerOnTouched(fn: any): void {}
 
   /**
    * Handle parent model value changes.
@@ -235,9 +220,9 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
       let _zone: TZone = null;
 
       if (typeof zone === 'string' && zone.length > 0) {
-        _zone = this.timeZones.find(z => z.id === zone);
+        _zone = this.timeZones.find((z) => z.id === zone);
       } else if (typeof zone === 'object') {
-        _zone = this.timeZones.find(z => z.id === zone.id);
+        _zone = this.timeZones.find((z) => z.id === zone.id);
       }
 
       if (_zone) {
@@ -247,5 +232,4 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
       this.clearZone();
     }
   }
-
 }

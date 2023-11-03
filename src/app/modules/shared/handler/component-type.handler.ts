@@ -1,14 +1,13 @@
-import {CedarComponent} from '../models/component/cedar-component.model';
-import {SingleFieldComponent} from '../models/field/single-field-component.model';
-import {MultiFieldComponent} from '../models/field/multi-field-component.model';
-import {StaticFieldComponent} from '../models/static/static-field-component.model';
-import {InputType} from '../models/input-type.model';
-import {CedarTemplate} from '../models/template/cedar-template.model';
-import {SingleElementComponent} from '../models/element/single-element-component.model';
-import {MultiElementComponent} from '../models/element/multi-element-component.model';
+import { CedarComponent } from '../models/component/cedar-component.model';
+import { SingleFieldComponent } from '../models/field/single-field-component.model';
+import { MultiFieldComponent } from '../models/field/multi-field-component.model';
+import { StaticFieldComponent } from '../models/static/static-field-component.model';
+import { InputType } from '../models/input-type.model';
+import { CedarTemplate } from '../models/template/cedar-template.model';
+import { SingleElementComponent } from '../models/element/single-element-component.model';
+import { MultiElementComponent } from '../models/element/multi-element-component.model';
 
 export class ComponentTypeHandler {
-
   public static isImage(component: CedarComponent): boolean {
     return component instanceof StaticFieldComponent && component.basicInfo.inputType === InputType.image;
   }
@@ -34,7 +33,11 @@ export class ComponentTypeHandler {
   }
 
   static isContainerComponent(component: CedarComponent): boolean {
-    return component instanceof CedarTemplate || component instanceof SingleElementComponent || component instanceof MultiElementComponent;
+    return (
+      component instanceof CedarTemplate ||
+      component instanceof SingleElementComponent ||
+      component instanceof MultiElementComponent
+    );
   }
 
   static isTemplate(component: CedarComponent): boolean {

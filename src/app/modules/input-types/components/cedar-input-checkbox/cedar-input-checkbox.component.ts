@@ -1,30 +1,29 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
-import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
-import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
-import {HandlerContext} from '../../../shared/util/handler-context';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { HandlerContext } from '../../../shared/util/handler-context';
 
 @Component({
   selector: 'app-cedar-input-checkbox',
   templateUrl: './cedar-input-checkbox.component.html',
   styleUrls: ['./cedar-input-checkbox.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class CedarInputCheckboxComponent extends CedarUIComponent implements OnInit {
   component: FieldComponent;
   options: FormGroup;
   @Input() handlerContext: HandlerContext;
 
-
   constructor(
     fb: FormBuilder,
-    private activeComponentRegistry: ActiveComponentRegistryService
+    private activeComponentRegistry: ActiveComponentRegistryService,
   ) {
     super();
     this.options = fb.group({
       // initialize checked box value holder
-      checkedChoices: new FormArray([])
+      checkedChoices: new FormArray([]),
     });
   }
 
@@ -77,9 +76,8 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
         formArray.push(new FormControl(val));
       }
       this.options.get(this.getFormControlName(val)).setValue('checked');
-    }
-    /* unselected */
-    else {
+    } else {
+      /* unselected */
       // find the unselected element
       let i = 0;
 
@@ -95,10 +93,9 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
     }
 
     // Keep the values in the original sort order
-    const sortingArr = this.component.choiceInfo.choices.map(a => a.label);
+    const sortingArr = this.component.choiceInfo.choices.map((a) => a.label);
     formArray.value.sort((a, b) => sortingArr.indexOf(a) - sortingArr.indexOf(b));
 
     this.handlerContext.changeListValue(this.component, formArray.value);
   }
-
 }

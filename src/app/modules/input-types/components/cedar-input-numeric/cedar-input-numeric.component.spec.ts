@@ -8,9 +8,8 @@ describe('CedarInputNumericComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CedarInputNumericComponent ]
-    })
-    .compileComponents();
+      declarations: [CedarInputNumericComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

@@ -1,29 +1,27 @@
-import {TemplateComponent} from '../models/template/template-component.model';
-import {ElementComponent} from '../models/component/element-component.model';
-import {MultiComponent} from '../models/component/multi-component.model';
-import {Injectable} from '@angular/core';
-import {MultiFieldComponent} from '../models/field/multi-field-component.model';
-import {SingleFieldComponent} from '../models/field/single-field-component.model';
-import {MultiElementComponent} from '../models/element/multi-element-component.model';
-import {SingleElementComponent} from '../models/element/single-element-component.model';
-import {CedarComponent} from '../models/component/cedar-component.model';
-import {CedarTemplate} from '../models/template/cedar-template.model';
+import { TemplateComponent } from '../models/template/template-component.model';
+import { ElementComponent } from '../models/component/element-component.model';
+import { MultiComponent } from '../models/component/multi-component.model';
+import { Injectable } from '@angular/core';
+import { MultiFieldComponent } from '../models/field/multi-field-component.model';
+import { SingleFieldComponent } from '../models/field/single-field-component.model';
+import { MultiElementComponent } from '../models/element/multi-element-component.model';
+import { SingleElementComponent } from '../models/element/single-element-component.model';
+import { CedarComponent } from '../models/component/cedar-component.model';
+import { CedarTemplate } from '../models/template/cedar-template.model';
 import * as _ from 'lodash-es';
-import {MultiInstanceInfo} from '../models/info/multi-instance-info.model';
-import {MultiInstanceObjectInfo} from '../models/info/multi-instance-object-info.model';
-import {InstanceExtractData} from '../models/instance-extract-data.model';
-import {JavascriptTypes} from '../models/javascript-types.model';
-import {JsonSchema} from '../models/json-schema.model';
+import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
+import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
+import { InstanceExtractData } from '../models/instance-extract-data.model';
+import { JavascriptTypes } from '../models/javascript-types.model';
+import { JsonSchema } from '../models/json-schema.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MultiInstanceObjectHandler {
-
   public multiInstanceObject: MultiInstanceInfo;
   private templateRepresentation: TemplateComponent;
   private indexRegEx = new RegExp(/@#index\[(\d+)\]#@/);
-
 
   private static getNodeByPath(obj, arrPath: string[]): object {
     let val: object;
@@ -46,8 +44,10 @@ export class MultiInstanceObjectHandler {
     return MultiInstanceObjectHandler.getNodeByPath(obj, arrPath) as MultiInstanceObjectInfo;
   }
 
-  buildNewOrFromMetadata(templateRepresentation: TemplateComponent,
-                         instanceExtractData: InstanceExtractData = null): MultiInstanceInfo {
+  buildNewOrFromMetadata(
+    templateRepresentation: TemplateComponent,
+    instanceExtractData: InstanceExtractData = null,
+  ): MultiInstanceInfo {
     this.templateRepresentation = templateRepresentation;
     this.multiInstanceObject = new MultiInstanceInfo();
     this.buildRecursively(templateRepresentation, this.multiInstanceObject);
@@ -58,8 +58,11 @@ export class MultiInstanceObjectHandler {
     return this.multiInstanceObject;
   }
 
-  private updateFromInstanceExtractData(instanceExtractDataIn: InstanceExtractData,
-                                        parentPath: string[], multiInstanceObject: MultiInstanceInfo): void {
+  private updateFromInstanceExtractData(
+    instanceExtractDataIn: InstanceExtractData,
+    parentPath: string[],
+    multiInstanceObject: MultiInstanceInfo,
+  ): void {
     const instanceExtractData = JSON.parse(JSON.stringify(instanceExtractDataIn));
     // this.deleteAttributeValueFields(instanceExtractData, 0);
 
@@ -73,12 +76,12 @@ export class MultiInstanceObjectHandler {
 
         // field component with values or attribute-value field
         const isField =
-            // field component with values (text or controlled)
-            (typeof instanceExtractData[key][0] === JavascriptTypes.object &&
-                (instanceExtractData[key][0].hasOwnProperty(JsonSchema.atValue) ||
-                    instanceExtractData[key][0].hasOwnProperty(JsonSchema.atId))) ||
-            // attribute-value field
-            (typeof instanceExtractData[key][0] === JavascriptTypes.string && instanceExtractData[key].length > 0);
+          // field component with values (text or controlled)
+          (typeof instanceExtractData[key][0] === JavascriptTypes.object &&
+            (Object.hasOwn(instanceExtractData[key][0], JsonSchema.atValue) ||
+              Object.hasOwn(instanceExtractData[key][0], JsonSchema.atId))) ||
+          // attribute-value field
+          (typeof instanceExtractData[key][0] === JavascriptTypes.string && instanceExtractData[key].length > 0);
 
         // not a field, so it is a multi-page element component
         if (!isField) {
@@ -91,10 +94,16 @@ export class MultiInstanceObjectHandler {
           }
         }
         // it's an object, can be a single-page element or a single-page field
-      } else if (typeof instanceExtractData[key] === JavascriptTypes.object && Object.keys(instanceExtractData[key]).length > 0) {
+      } else if (
+        typeof instanceExtractData[key] === JavascriptTypes.object &&
+        Object.keys(instanceExtractData[key]).length > 0
+      ) {
         // single-page field (it's never paginated, so not required for pagination,
         // but still need to have an entry for it in multiInstanceObject)
-        if (instanceExtractData[key].hasOwnProperty(JsonSchema.atValue) || instanceExtractData[key].hasOwnProperty(JsonSchema.atId)) {
+        if (
+          Object.hasOwn(instanceExtractData[key], JsonSchema.atValue) ||
+          Object.hasOwn(instanceExtractData[key], JsonSchema.atId)
+        ) {
           this.setSingleMultiInstance(myPath, 1, multiInstanceObject);
         } else {
           // single-page element component
@@ -115,8 +124,7 @@ export class MultiInstanceObjectHandler {
     }
   }
 
-  private setSingleMultiInstance(path: string[], count: number,
-                                 multiInstanceObject: MultiInstanceInfo): void {
+  private setSingleMultiInstance(path: string[], count: number, multiInstanceObject: MultiInstanceInfo): void {
     const pathCopy = [];
 
     for (let i = 0; i < path.length; i++) {
@@ -137,7 +145,10 @@ export class MultiInstanceObjectHandler {
         if (childObj) {
           const arrayElemPath = pathCopy.slice();
           arrayElemPath.push(componentName);
-          const arrayElem = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, arrayElemPath);
+          const arrayElem = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(
+            multiInstanceObject,
+            arrayElemPath,
+          );
 
           // the child object (element of the array) does exist
           // but the element inside it does not, creating base
@@ -149,7 +160,10 @@ export class MultiInstanceObjectHandler {
         } else {
           // the entire child object (element of the array) does not exist
           // need to create the object and its first base element
-          const parentObj = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, pathParent);
+          const parentObj = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(
+            multiInstanceObject,
+            pathParent,
+          );
           const child = new MultiInstanceInfo();
           parentObj.addChild(child);
           const childElem = new MultiInstanceObjectInfo();
@@ -162,7 +176,7 @@ export class MultiInstanceObjectHandler {
     if (targetObj) {
       targetObj.componentName = path[path.length - 1];
       targetObj.currentCount = count;
-      targetObj.currentIndex = (count > 0) ? 0 : -1;
+      targetObj.currentIndex = count > 0 ? 0 : -1;
     }
   }
 
@@ -176,16 +190,20 @@ export class MultiInstanceObjectHandler {
             delete instanceExtractData[instanceExtractData[key][i]];
           }
         } else {
-          if (!instanceExtractData[key][0].hasOwnProperty(JsonSchema.atValue) &&
-              !instanceExtractData[key][0].hasOwnProperty(JsonSchema.atId)) {
+          if (
+            !Object.hasOwn(instanceExtractData[key][0], JsonSchema.atValue) &&
+            !Object.hasOwn(instanceExtractData[key][0], JsonSchema.atId)
+          ) {
             for (let i = 0; i < instanceExtractData[key].length; i++) {
               this.deleteAttributeValueFields(instanceExtractData[key][i], depth + 1);
             }
           }
         }
       } else {
-        if (!instanceExtractData[key].hasOwnProperty(JsonSchema.atValue) &&
-            !instanceExtractData[key].hasOwnProperty(JsonSchema.atId)) {
+        if (
+          !Object.hasOwn(instanceExtractData[key], JsonSchema.atValue) &&
+          !Object.hasOwn(instanceExtractData[key], JsonSchema.atId)
+        ) {
           this.deleteAttributeValueFields(instanceExtractData[key], depth + 1);
         }
       }
@@ -193,8 +211,13 @@ export class MultiInstanceObjectHandler {
   }
 
   private buildRecursively(cedarComponent: CedarComponent, multiInstanceObject: MultiInstanceInfo): void {
-    if (!(cedarComponent instanceof MultiElementComponent || cedarComponent instanceof SingleElementComponent
-        || cedarComponent instanceof CedarTemplate)) {
+    if (
+      !(
+        cedarComponent instanceof MultiElementComponent ||
+        cedarComponent instanceof SingleElementComponent ||
+        cedarComponent instanceof CedarTemplate
+      )
+    ) {
       return;
     }
     const elementComponent = cedarComponent as ElementComponent;
@@ -284,8 +307,11 @@ export class MultiInstanceObjectHandler {
     return this.getDataPathNodeRecursively(this.multiInstanceObject, this.templateRepresentation, path);
   }
 
-  private getDataPathNodeRecursively(multiInstanceObject: MultiInstanceInfo, component: CedarComponent,
-                                     path: string[]): MultiInstanceObjectInfo {
+  private getDataPathNodeRecursively(
+    multiInstanceObject: MultiInstanceInfo,
+    component: CedarComponent,
+    path: string[],
+  ): MultiInstanceObjectInfo {
     if (!multiInstanceObject) {
       return null;
     }
@@ -319,5 +345,4 @@ export class MultiInstanceObjectHandler {
     const multiInstanceObjectInfo: MultiInstanceObjectInfo = this.getMultiInstanceInfoForComponent(multiComponent);
     return multiInstanceObjectInfo.currentCount > 0;
   }
-
 }

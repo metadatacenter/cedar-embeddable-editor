@@ -1,12 +1,12 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
-import {ComponentDataService} from '../../../shared/service/component-data.service';
-import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
-import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
-import {HandlerContext} from '../../../shared/util/handler-context';
-import {ErrorStateMatcher} from '@angular/material/core';
-import {InputType} from '../../../shared/models/input-type.model';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { ComponentDataService } from '../../../shared/service/component-data.service';
+import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { HandlerContext } from '../../../shared/util/handler-context';
+import { ErrorStateMatcher } from '@angular/material/core';
+import { InputType } from '../../../shared/models/input-type.model';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -18,10 +18,9 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   selector: 'app-cedar-input-text',
   templateUrl: './cedar-input-text.component.html',
   styleUrls: ['./cedar-input-text.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class CedarInputTextComponent extends CedarUIComponent implements OnInit {
-
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, null);
@@ -35,7 +34,7 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   constructor(
     fb: FormBuilder,
     public cds: ComponentDataService,
-    private activeComponentRegistry: ActiveComponentRegistryService
+    private activeComponentRegistry: ActiveComponentRegistryService,
   ) {
     super();
     this.options = fb.group({
@@ -119,5 +118,4 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
     }
     return s;
   }
-
 }
