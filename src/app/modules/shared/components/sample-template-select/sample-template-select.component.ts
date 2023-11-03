@@ -1,9 +1,9 @@
 import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
-import {SampleTemplatesService} from '../sample-templates.service';
+import {SampleTemplatesService} from '../sample-templates/sample-templates.service';
 import {FormControl} from '@angular/forms';
 import {ReplaySubject, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
-import {CedarEmbeddableMetadataEditorComponent} from '../../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
+import {CedarEmbeddableMetadataEditorComponent} from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 
 @Component({
   selector: 'app-sample-template-select',

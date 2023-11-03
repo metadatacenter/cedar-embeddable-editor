@@ -17,6 +17,32 @@ export class DataObjectUtil {
     return obj;
   }
 
+  static getSingleValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode, value: string): object {
+    const obj = {};
+    if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
+      obj[JsonSchema.atValue] = value;
+    }
+    if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
+      this.injectAtTypeIfAvailable(obj, templateJsonObj);
+    }
+    return obj;
+  }
+
+  static getMultiValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode, values: string[]): object {
+    const obj = [];
+    if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
+      for (const value of values) {
+        const subObj = {};
+        subObj[JsonSchema.atValue] = value;
+        obj.push(subObj);
+      }
+    }
+    if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
+      this.injectAtTypeIfAvailable(obj, templateJsonObj);
+    }
+    return obj;
+  }
+
   static getEmptyObject(): object {
     return {};
   }
@@ -96,6 +122,30 @@ export class DataObjectUtil {
       }
     }
     return true;
+  }
+
+  static deleteContext(obj): void {
+    const keyCount = Object.keys(obj).length;
+    if (keyCount === 2 && obj.hasOwnProperty(JsonSchema.atId) && obj.hasOwnProperty(JsonSchema.rdfsLabel)) {
+      // do nothing, it is a controlled term
+    } else if (keyCount === 1 && obj.hasOwnProperty(JsonSchema.atId)) {
+      // do nothing, it is a link
+    } else {
+      Object.keys(obj).forEach(key => {
+        delete obj[JsonSchema.atContext];
+        delete obj[JsonSchema.atId];
+        delete obj[JsonSchema.oslcModifiedBy];
+        delete obj[JsonSchema.pavCreatedOn];
+        delete obj[JsonSchema.pavLastUpdatedOn];
+        delete obj[JsonSchema.pavCreatedBy];
+        delete obj[JsonSchema.schemaIsBasedOn];
+        delete obj[JsonSchema.schemaName];
+        delete obj[JsonSchema.schemaDescription];
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+          DataObjectUtil.deleteContext(obj[key]);
+        }
+      });
+    }
   }
 
 }
