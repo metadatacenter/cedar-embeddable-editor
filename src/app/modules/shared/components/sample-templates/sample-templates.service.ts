@@ -23,23 +23,38 @@ export class SampleTemplatesService {
   private loadedTemplate = null;
   private loadedMetadata = null;
   private attemptedFileCount = 0;
+  private targetAttemptedFileCount = 0;
   private templateNum = '';
+  private templateLocationPrefix = '';
+  private doLoadMetadata = true;
 
   constructor(
     private http: HttpClient,
     private messageHandlerService: MessageHandlerService,
   ) {}
 
-  loadTemplate(templateLocationPrefix: string, templateNum: string): void {
-    templateLocationPrefix = this.fixedLocationPrefix(templateLocationPrefix);
-    this.attemptedFileCount = 0;
+  loadTemplate(tLocationPrefix: string, templateNum: string): void {
+    this.templateLocationPrefix = this.fixedLocationPrefix(tLocationPrefix);
     this.templateNum = templateNum;
+    this.loadTemplateAndMetadata();
+  }
+
+  reloadTemplateWithMetadata(doLoadMetadata: boolean) {
+    this.doLoadMetadata = doLoadMetadata;
+    this.loadTemplateAndMetadata();
+  }
+
+  private loadTemplateAndMetadata() {
+    this.attemptedFileCount = 0;
+    this.targetAttemptedFileCount = this.doLoadMetadata ? 2 : 1;
     this.loadedTemplate = null;
     this.loadedMetadata = null;
-    const templateUrl = templateLocationPrefix + templateNum + '/' + this.TEMPLATE_FILENAME;
-    this.loadTemplateFromURL(templateUrl, templateNum);
-    const metadataUrl = templateLocationPrefix + templateNum + '/' + this.METADATA_FILENAME;
-    this.loadMetadataFromURL(metadataUrl, templateNum);
+    const templateUrl = this.templateLocationPrefix + this.templateNum + '/' + this.TEMPLATE_FILENAME;
+    this.loadTemplateFromURL(templateUrl, this.templateNum);
+    if (this.doLoadMetadata) {
+      const metadataUrl = this.templateLocationPrefix + this.templateNum + '/' + this.METADATA_FILENAME;
+      this.loadMetadataFromURL(metadataUrl, this.templateNum);
+    }
   }
 
   loadTemplateFromURL(templateUrl: string, templateNum: string = null): void {
@@ -87,7 +102,7 @@ export class SampleTemplatesService {
   }
 
   handleLoadedDataFiles(): void {
-    if (this.attemptedFileCount === 2) {
+    if (this.attemptedFileCount === this.targetAttemptedFileCount) {
       const templateObj = {};
       templateObj[this.templateNum] = this.loadedTemplate;
       this.templateJsonSubject.next(templateObj);

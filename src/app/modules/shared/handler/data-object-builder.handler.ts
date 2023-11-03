@@ -39,6 +39,7 @@ export class DataObjectBuilderHandler {
     templateJsonObj: CedarInputTemplate,
     buildingMode: DataObjectBuildingMode,
   ): void {
+    console.log('buildRecursively');
     let ret = null;
     if (templateJsonObj != null) {
       DataObjectBuilderHandler.addContext(component, dataObject, templateJsonObj, buildingMode);
@@ -82,27 +83,31 @@ export class DataObjectBuilderHandler {
         if (multiField.multiInfo.minItems > 0) {
           const subTemplate = DataObjectUtil.getSafeSubTemplate(templateJsonObj, targetName);
           for (let idx = 0; idx < multiField.multiInfo.minItems; idx++) {
+            console.log(idx);
             dataObject[targetName].push(DataObjectUtil.getEmptyValueWrapper(subTemplate, buildingMode));
           }
-          const multi = component.choiceInfo.multipleChoice;
-          const values = [];
-          for (const choice of component.choiceInfo.choices) {
-            if (choice.selectedByDefault) {
-              values.push(choice.label);
+          if (component?.choiceInfo?.choices?.length > 0) {
+            const values = [];
+            for (const choice of component.choiceInfo.choices) {
+              if (choice.selectedByDefault) {
+                values.push(choice.label);
+              }
             }
+            dataObject[targetName] = DataObjectUtil.getMultiValueWrapper(subTemplate, buildingMode, values);
           }
-          dataObject[targetName] = DataObjectUtil.getMultiValueWrapper(subTemplate, buildingMode, values);
         }
       } else {
         const subTemplate = DataObjectUtil.getSafeSubTemplate(templateJsonObj, targetName);
         dataObject[targetName] = DataObjectUtil.getEmptyValueWrapper(subTemplate, buildingMode);
-        let value = null;
-        for (const choice of component.choiceInfo.choices) {
-          if (choice.selectedByDefault) {
-            value = choice.label;
+        if (component?.choiceInfo?.choices?.length > 0) {
+          let value = null;
+          for (const choice of component.choiceInfo.choices) {
+            if (choice.selectedByDefault) {
+              value = choice.label;
+            }
           }
+          dataObject[targetName] = DataObjectUtil.getSingleValueWrapper(subTemplate, buildingMode, value);
         }
-        dataObject[targetName] = DataObjectUtil.getSingleValueWrapper(subTemplate, buildingMode, value);
       }
       ret = dataObject[targetName];
     }
@@ -110,6 +115,7 @@ export class DataObjectBuilderHandler {
   }
 
   public static setCurrentCountToMinRecursively(component: CedarComponent, path: string[]): void {
+    console.log('path');
     if (path.length === 0) {
       return;
     }
@@ -187,6 +193,7 @@ export class DataObjectBuilderHandler {
     templateJsonObj: CedarInputTemplate,
     buildingMode: DataObjectBuildingMode,
   ): void {
+    console.log('buildNewByIterating');
     if (this.templateRepresentation != null && this.templateRepresentation.children != null) {
       for (const childComponent of this.templateRepresentation.children) {
         DataObjectBuilderHandler.buildRecursively(childComponent, dataObject, templateJsonObj, buildingMode);
