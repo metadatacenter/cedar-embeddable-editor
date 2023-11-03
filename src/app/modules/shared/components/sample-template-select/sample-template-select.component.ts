@@ -18,6 +18,7 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   templateCtrl: FormControl = new FormControl();
   templateFilterCtrl: FormControl = new FormControl();
   filteredTemplates: ReplaySubject<object[]> = new ReplaySubject<object[]>(1);
+  loadMetadata = true;
   protected _onDestroy = new Subject<void>();
 
   constructor(public sampleTemplateService: SampleTemplatesService) {}
@@ -76,5 +77,9 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
     if (event) {
       this.loadBuiltinTemplate(event.value);
     }
+  }
+
+  loadMetadataChanged(checked: boolean) {
+    this.sampleTemplateService.reloadTemplateWithMetadata(checked);
   }
 }

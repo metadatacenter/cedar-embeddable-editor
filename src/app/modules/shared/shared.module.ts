@@ -36,6 +36,7 @@ import { PreferencesMenu } from './components/preferences-menu/preferences-menu.
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TranslateModule } from '@ngx-translate/core';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @NgModule({
   imports: [
@@ -66,6 +67,7 @@ import { TranslateModule } from '@ngx-translate/core';
     MatMenuModule,
     MatSlideToggleModule,
     TranslateModule,
+    MatCheckboxModule,
   ],
   declarations: [
     RdfPipe,
