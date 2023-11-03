@@ -1,5 +1,4 @@
 export class CedarModel {
-
   static ui = '_ui';
   static order = 'order';
   static inputType = 'inputType';
@@ -44,5 +43,4 @@ export class CedarModel {
   static templateFieldType = CedarModel.baseTemplateURL + '/core/TemplateField';
   static templateElementType = CedarModel.baseTemplateURL + '/core/TemplateElement';
   static templateStaticFieldType = CedarModel.baseTemplateURL + '/core/StaticTemplateField';
-
 }

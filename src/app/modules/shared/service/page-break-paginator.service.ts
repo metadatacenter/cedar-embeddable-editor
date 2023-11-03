@@ -1,18 +1,15 @@
-import {CedarComponent} from '../models/component/cedar-component.model';
-import {ActiveComponentRegistryService} from './active-component-registry.service';
-import {HandlerContext} from '../util/handler-context';
+import { CedarComponent } from '../models/component/cedar-component.model';
+import { ActiveComponentRegistryService } from './active-component-registry.service';
+import { HandlerContext } from '../util/handler-context';
 
 export class PageBreakPaginatorService {
-
   currentPageBreakIndex: number;
   pageBreakChildren: Array<CedarComponent[]>;
 
-
   constructor(
-      private activeComponentRegistry: ActiveComponentRegistryService,
-      private handlerContext: HandlerContext
-  ) {
-  }
+    private activeComponentRegistry: ActiveComponentRegistryService,
+    private handlerContext: HandlerContext,
+  ) {}
 
   reset(pbChildren: Array<CedarComponent[]>): void {
     this.pageBreakChildren = pbChildren;

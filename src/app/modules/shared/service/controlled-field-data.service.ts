@@ -1,23 +1,21 @@
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
-import {IntegratedSearchResponse} from '../models/rest/integrated-search/integrated-search-response';
-import {IntegratedSearchRequest} from '../models/rest/integrated-search/integrated-search-request';
-import {FieldComponent} from '../models/component/field-component.model';
-import {HttpClient} from '@angular/common/http';
-import {MessageHandlerService} from './message-handler.service';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { IntegratedSearchResponse } from '../models/rest/integrated-search/integrated-search-response';
+import { IntegratedSearchRequest } from '../models/rest/integrated-search/integrated-search-request';
+import { FieldComponent } from '../models/component/field-component.model';
+import { HttpClient } from '@angular/common/http';
+import { MessageHandlerService } from './message-handler.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ControlledFieldDataService {
-
   private terminologyIntegratedSearchUrl = null;
 
   constructor(
     private http: HttpClient,
-    private messageHandlerService: MessageHandlerService
-  ) {
-  }
+    private messageHandlerService: MessageHandlerService,
+  ) {}
 
   setTerminologyIntegratedSearchUrl(terminologyIntegratedSearchUrl: string): void {
     this.terminologyIntegratedSearchUrl = terminologyIntegratedSearchUrl;
@@ -33,5 +31,4 @@ export class ControlledFieldDataService {
     // this.messageHandlerService.traceObject('Read terminology integrated search:', postData);
     return this.http.post<IntegratedSearchResponse>(this.terminologyIntegratedSearchUrl, postData);
   }
-
 }

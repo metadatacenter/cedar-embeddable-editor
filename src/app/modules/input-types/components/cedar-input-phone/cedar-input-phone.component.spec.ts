@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import {CedarInputPhoneComponent} from './cedar-input-phone.component';
+import { CedarInputPhoneComponent } from './cedar-input-phone.component';
 
 describe('CedarInputPhoneComponent', () => {
   let component: CedarInputPhoneComponent;
@@ -8,9 +8,8 @@ describe('CedarInputPhoneComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CedarInputPhoneComponent]
-    })
-      .compileComponents();
+      declarations: [CedarInputPhoneComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

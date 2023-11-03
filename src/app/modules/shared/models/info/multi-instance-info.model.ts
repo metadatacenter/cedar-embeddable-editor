@@ -1,7 +1,6 @@
-import {MultiInstanceObjectInfo} from './multi-instance-object-info.model';
+import { MultiInstanceObjectInfo } from './multi-instance-object-info.model';
 
 export class MultiInstanceInfo extends Object {
-
   constructor() {
     super();
   }
@@ -11,7 +10,7 @@ export class MultiInstanceInfo extends Object {
   }
 
   getChildByName(componentName: string): MultiInstanceObjectInfo {
-    if (this.hasOwnProperty(componentName)) {
+    if (Object.hasOwn(this, componentName)) {
       return this[componentName];
     } else {
       return null;

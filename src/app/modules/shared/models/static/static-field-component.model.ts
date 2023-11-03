@@ -1,10 +1,9 @@
-import {SingleComponent} from '../component/single-component.model';
-import {LabelInfo} from '../info/label-info.model';
-import {BasicInfo} from '../info/basic-info.model';
-import {ContentInfo} from '../info/content-info.model';
+import { SingleComponent } from '../component/single-component.model';
+import { LabelInfo } from '../info/label-info.model';
+import { BasicInfo } from '../info/basic-info.model';
+import { ContentInfo } from '../info/content-info.model';
 
 export class StaticFieldComponent implements SingleComponent {
-
   className = 'StaticFieldComponent';
 
   name: string;

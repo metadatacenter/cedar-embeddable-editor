@@ -8,9 +8,8 @@ describe('CedarEmbeddableMetadataEditorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CedarEmbeddableMetadataEditorComponent ]
-    })
-    .compileComponents();
+      declarations: [CedarEmbeddableMetadataEditorComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

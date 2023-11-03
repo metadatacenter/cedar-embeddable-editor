@@ -1,15 +1,15 @@
-import {Component, Input, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
-import {SampleTemplatesService} from '../sample-templates/sample-templates.service';
-import {FormControl} from '@angular/forms';
-import {ReplaySubject, Subject} from 'rxjs';
-import {takeUntil} from 'rxjs/operators';
-import {CedarEmbeddableMetadataEditorComponent} from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
+import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
+import { FormControl } from '@angular/forms';
+import { ReplaySubject, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 
 @Component({
   selector: 'app-sample-template-select',
   templateUrl: './sample-template-select.component.html',
   styleUrls: ['./sample-template-select.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   @Input() callbackOwnerObject: any = null;
@@ -20,33 +20,27 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   filteredTemplates: ReplaySubject<object[]> = new ReplaySubject<object[]>(1);
   protected _onDestroy = new Subject<void>();
 
-
-  constructor(public sampleTemplateService: SampleTemplatesService) {
-  }
+  constructor(public sampleTemplateService: SampleTemplatesService) {}
 
   ngOnInit(): void {
-    this.templateLocationPrefix = this.callbackOwnerObject.innerConfig[CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX];
-    this.sampleTemplateService.getSampleTemplatesFromRegistry(this.templateLocationPrefix)
+    this.templateLocationPrefix =
+      this.callbackOwnerObject.innerConfig[CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX];
+    this.sampleTemplateService
+      .getSampleTemplatesFromRegistry(this.templateLocationPrefix)
       .pipe(takeUntil(this._onDestroy))
-      .subscribe(
-        (templates: object[]) => {
-          this.sampleTemplates = templates;
-          this.filteredTemplates.next(this.sampleTemplates);
-        }
-      );
-
-    this.sampleTemplateService.templateJson$
-      .pipe(takeUntil(this._onDestroy))
-      .subscribe(templateJson => {
-        this.templateCtrl.setValue(Object.keys(templateJson)[0]);
+      .subscribe((templates: object[]) => {
+        this.sampleTemplates = templates;
+        this.filteredTemplates.next(this.sampleTemplates);
       });
+
+    this.sampleTemplateService.templateJson$.pipe(takeUntil(this._onDestroy)).subscribe((templateJson) => {
+      this.templateCtrl.setValue(Object.keys(templateJson)[0]);
+    });
 
     // listen for search field value changes
-    this.templateFilterCtrl.valueChanges
-      .pipe(takeUntil(this._onDestroy))
-      .subscribe(() => {
-        this.filterTemplates();
-      });
+    this.templateFilterCtrl.valueChanges.pipe(takeUntil(this._onDestroy)).subscribe(() => {
+      this.filterTemplates();
+    });
   }
 
   ngOnDestroy(): void {
@@ -68,7 +62,8 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
     }
     this.filteredTemplates.next(
       this.sampleTemplates.filter(
-        template => template[this.sampleTemplateService.TEMPLATE_LABEL].toLowerCase().indexOf(search) > -1)
+        (template) => template[this.sampleTemplateService.TEMPLATE_LABEL].toLowerCase().indexOf(search) > -1,
+      ),
     );
   }
 
@@ -82,5 +77,4 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
       this.loadBuiltinTemplate(event.value);
     }
   }
-
 }

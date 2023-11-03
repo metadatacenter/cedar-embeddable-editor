@@ -1,7 +1,7 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {FormControl, Validators} from '@angular/forms';
-import {DateAdapter} from '@angular/material/core';
-import {MatDatepicker} from '@angular/material/datepicker';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { FormControl, Validators } from '@angular/forms';
+import { DateAdapter } from '@angular/material/core';
+import { MatDatepicker } from '@angular/material/datepicker';
 
 // Depending on whether rollup is used, moment needs to be imported differently.
 // Since Moment.js doesn't have a default export, we normally need to import using the `* as`
@@ -9,9 +9,9 @@ import {MatDatepicker} from '@angular/material/datepicker';
 // the `default as` syntax.
 import * as _moment from 'moment';
 // tslint:disable-next-line:no-duplicate-imports
-import {default as _rollupMoment, Moment} from 'moment';
-import {CustomDateAdapter} from '../../service/date-time/custom-date-adapter';
-import {DateTimeService} from '../../service/date-time/date-time.service';
+import { default as _rollupMoment, Moment } from 'moment';
+import { CustomDateAdapter } from '../../service/date-time/custom-date-adapter';
+import { DateTimeService } from '../../service/date-time/date-time.service';
 
 const moment = _rollupMoment || _moment;
 
@@ -25,10 +25,9 @@ const moment = _rollupMoment || _moment;
     // than a Singleton instance
     DateTimeService,
     CustomDateAdapter, // so we could inject services to 'CustomDateAdapter'
-    {provide: DateAdapter, useClass: CustomDateAdapter} // Parse MatDatePicker format
-  ]
+    { provide: DateAdapter, useClass: CustomDateAdapter }, // Parse MatDatePicker format
+  ],
 })
-
 export class DatePickerComponent implements OnInit {
   static readonly YEAR_FORMAT = 'YYYY';
   static readonly YEAR_MONTH_FORMAT = 'MM/YYYY';
@@ -42,9 +41,7 @@ export class DatePickerComponent implements OnInit {
   @Input() required: boolean;
   @Output() dateChangedEvent = new EventEmitter<Moment>();
 
-
-  public constructor(private _dateTimeService: DateTimeService) {
-  }
+  public constructor(private _dateTimeService: DateTimeService) {}
 
   public ngOnInit(): void {
     const validators: any[] = [];
@@ -68,7 +65,7 @@ export class DatePickerComponent implements OnInit {
   }
 
   chosenYearHandler(normalizedYear: Moment, datepicker: MatDatepicker<Moment>): void {
-    if (this.dateMonthYear.value == null){
+    if (this.dateMonthYear.value == null) {
       this.dateMonthYear.setValue(moment());
     }
     const ctrlValue = this.dateMonthYear.value;
@@ -96,5 +93,4 @@ export class DatePickerComponent implements OnInit {
       this.dateChangedEvent.emit(event.value);
     }
   }
-
 }

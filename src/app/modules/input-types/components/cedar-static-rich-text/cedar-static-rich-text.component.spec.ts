@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import {CedarStaticRichTextComponent} from './cedar-static-rich-text.component';
+import { CedarStaticRichTextComponent } from './cedar-static-rich-text.component';
 
 describe('CedarStaticRichTextComponent', () => {
   let component: CedarStaticRichTextComponent;
@@ -8,9 +8,8 @@ describe('CedarStaticRichTextComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CedarStaticRichTextComponent]
-    })
-      .compileComponents();
+      declarations: [CedarStaticRichTextComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

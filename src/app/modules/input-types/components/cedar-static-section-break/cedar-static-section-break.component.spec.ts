@@ -1,5 +1,5 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {CedarStaticSectionBreakComponent} from './cedar-static-section-break.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CedarStaticSectionBreakComponent } from './cedar-static-section-break.component';
 
 describe('CedarStaticSectionBreakComponent', () => {
   let component: CedarStaticSectionBreakComponent;
@@ -7,9 +7,8 @@ describe('CedarStaticSectionBreakComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CedarStaticSectionBreakComponent]
-    })
-      .compileComponents();
+      declarations: [CedarStaticSectionBreakComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {
