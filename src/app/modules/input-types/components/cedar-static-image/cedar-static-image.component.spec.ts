@@ -1,5 +1,5 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {CedarStaticImageComponent} from './cedar-static-image.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CedarStaticImageComponent } from './cedar-static-image.component';
 
 describe('CedarStaticImageComponent', () => {
   let component: CedarStaticImageComponent;
@@ -7,9 +7,8 @@ describe('CedarStaticImageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CedarStaticImageComponent]
-    })
-      .compileComponents();
+      declarations: [CedarStaticImageComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

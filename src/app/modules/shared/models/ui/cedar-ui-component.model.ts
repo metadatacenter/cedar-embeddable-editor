@@ -1,10 +1,9 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 @Component({
-  template: ''
+  template: '',
 })
 export abstract class CedarUIComponent implements OnInit {
-
   abstract ngOnInit(): void;
   abstract setCurrentValue(currentValue: any): void;
 
@@ -13,5 +12,4 @@ export abstract class CedarUIComponent implements OnInit {
     // used for executing component-specific operations
     // for deleting an instance
   }
-
 }

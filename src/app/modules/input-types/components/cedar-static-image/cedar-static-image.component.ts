@@ -1,32 +1,30 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {FormBuilder} from '@angular/forms';
-import {ComponentDataService} from '../../../shared/service/component-data.service';
-import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
-import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
-import {HandlerContext} from '../../../shared/util/handler-context';
-import {StaticFieldComponent} from '../../../shared/models/static/static-field-component.model';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { FormBuilder } from '@angular/forms';
+import { ComponentDataService } from '../../../shared/service/component-data.service';
+import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { HandlerContext } from '../../../shared/util/handler-context';
+import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
 
 @Component({
   selector: 'app-cedar-static-image',
   templateUrl: './cedar-static-image.component.html',
   styleUrls: ['./cedar-static-image.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class CedarStaticImageComponent extends CedarUIComponent implements OnInit {
-
   component: StaticFieldComponent;
   @Input() handlerContext: HandlerContext;
 
   constructor(
     fb: FormBuilder,
     public cds: ComponentDataService,
-    private activeComponentRegistry: ActiveComponentRegistryService
+    private activeComponentRegistry: ActiveComponentRegistryService,
   ) {
     super();
   }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   @Input() set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
@@ -36,5 +34,4 @@ export class CedarStaticImageComponent extends CedarUIComponent implements OnIni
   setCurrentValue(currentValue: any): void {
     // DO NOTHING
   }
-
 }

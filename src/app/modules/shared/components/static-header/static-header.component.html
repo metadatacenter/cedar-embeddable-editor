@@ -1,8 +1,7 @@
-<mat-toolbar color="primary" style="height:75px;">
+<mat-toolbar color="primary">
   <span class="cedar-logo"></span>
-  <span style="margin-left:5px;">{{'App.Title' | translate}}</span>
-  <span class="toolbar-spacer"></span>
-  <span class="sample-templates-flex" *ngIf="showSampleTemplateLinks">
+  <span class="app-title">{{'App.Title' | translate}}</span>
+  <span class="sample-templates-select" *ngIf="showSampleTemplateLinks">
     <app-sample-template-select
       [callbackOwnerObject]="callbackOwnerObject"
     ></app-sample-template-select>

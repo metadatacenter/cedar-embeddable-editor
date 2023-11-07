@@ -49,7 +49,7 @@ cedar-embeddable-editor$ ng serve
 
 1. In your browser, navigate to `http://localhost:4400/`. The app will automatically reload if you change any of the source files.
 
-## Running as a Webcomponent
+## Building the Webcomponent
 
 This method creates a single Javascript (JS) file that encapsulates all the functionality of CEE. The JS file can be embedded in any application or HTML page. To build a CEE Webcomponent, proceed with these steps:
 

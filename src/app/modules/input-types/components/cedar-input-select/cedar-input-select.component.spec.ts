@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import {CedarInputSelectComponent} from './cedar-input-select.component';
+import { CedarInputSelectComponent } from './cedar-input-select.component';
 
 describe('CedarInputSelectComponent', () => {
   let component: CedarInputSelectComponent;
@@ -8,9 +8,8 @@ describe('CedarInputSelectComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CedarInputSelectComponent]
-    })
-      .compileComponents();
+      declarations: [CedarInputSelectComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

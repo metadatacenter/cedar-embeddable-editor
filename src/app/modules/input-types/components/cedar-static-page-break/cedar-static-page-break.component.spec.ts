@@ -8,9 +8,8 @@ describe('CedarStaticPageBreakComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CedarStaticPageBreakComponent ]
-    })
-    .compileComponents();
+      declarations: [CedarStaticPageBreakComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

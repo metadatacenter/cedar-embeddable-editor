@@ -8,9 +8,8 @@ describe('CedarComponentRendererComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CedarComponentRendererComponent ]
-    })
-    .compileComponents();
+      declarations: [CedarComponentRendererComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

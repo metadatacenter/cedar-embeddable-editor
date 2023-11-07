@@ -1,16 +1,22 @@
-<mat-form-field class="full-width">
-  <mat-select [formControl]="templateCtrl"
-              placeholder="{{'Extra.SampleTemplate.Select' | translate}}"
-              (selectionChange)="inputChanged($event)">
-    <mat-option>
-      <ngx-mat-select-search
-        [formControl]="templateFilterCtrl"
-        placeholderLabel="{{'Extra.SampleTemplate.Find' | translate}}"
-        noEntriesFoundLabel="{{'Extra.SampleTemplate.FindNoMatch' | translate}}"
-      ></ngx-mat-select-search>
-    </mat-option>
-    <mat-option *ngFor="let template of filteredTemplates | async"
-                [value]="template[sampleTemplateService.TEMPLATE_NUMBER]"
-    >{{template[sampleTemplateService.TEMPLATE_LABEL]}}</mat-option>
-  </mat-select>
-</mat-form-field>
+<div class="flex-container">
+  <mat-checkbox class="flex-item-checkbox"
+                [checked]="loadMetadata"
+                (change)="loadMetadataChanged($event.checked)"><div>Load metadata</div>
+  </mat-checkbox>
+  <mat-form-field class="flex-item-select">
+    <mat-select [formControl]="templateCtrl"
+                placeholder="{{'Extra.SampleTemplate.Select' | translate}}"
+                (selectionChange)="inputChanged($event)">
+      <mat-option>
+        <ngx-mat-select-search
+          [formControl]="templateFilterCtrl"
+          placeholderLabel="{{'Extra.SampleTemplate.Find' | translate}}"
+          noEntriesFoundLabel="{{'Extra.SampleTemplate.FindNoMatch' | translate}}"
+        ></ngx-mat-select-search>
+      </mat-option>
+      <mat-option *ngFor="let template of filteredTemplates | async"
+                  [value]="template[sampleTemplateService.TEMPLATE_NUMBER]"
+      >{{template[sampleTemplateService.TEMPLATE_LABEL]}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>

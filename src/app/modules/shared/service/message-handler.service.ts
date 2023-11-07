@@ -1,14 +1,12 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MessageHandlerService {
-
   private eventHandler = null;
 
-  constructor() {
-  }
+  constructor() {}
 
   injectEventHandler(value: object): void {
     this.eventHandler = value;
@@ -31,5 +29,4 @@ export class MessageHandlerService {
     console.error('ERROR: ' + label);
     console.error(value);
   }
-
 }

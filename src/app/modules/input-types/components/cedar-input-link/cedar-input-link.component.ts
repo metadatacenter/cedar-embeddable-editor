@@ -1,11 +1,11 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
-import {ErrorStateMatcher} from '@angular/material/core';
-import {CedarUIComponent} from '../../../shared/models/ui/cedar-ui-component.model';
-import {FieldComponent} from '../../../shared/models/component/field-component.model';
-import {ActiveComponentRegistryService} from '../../../shared/service/active-component-registry.service';
-import {HandlerContext} from '../../../shared/util/handler-context';
-import {ComponentDataService} from '../../../shared/service/component-data.service';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { ErrorStateMatcher } from '@angular/material/core';
+import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { HandlerContext } from '../../../shared/util/handler-context';
+import { ComponentDataService } from '../../../shared/service/component-data.service';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -17,10 +17,9 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   selector: 'app-cedar-input-link',
   templateUrl: './cedar-input-link.component.html',
   styleUrls: ['./cedar-input-link.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class CedarInputLinkComponent extends CedarUIComponent implements OnInit {
-
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, null);
@@ -30,7 +29,7 @@ export class CedarInputLinkComponent extends CedarUIComponent implements OnInit 
   constructor(
     fb: FormBuilder,
     public cds: ComponentDataService,
-    private activeComponentRegistry: ActiveComponentRegistryService
+    private activeComponentRegistry: ActiveComponentRegistryService,
   ) {
     super();
     this.options = fb.group({

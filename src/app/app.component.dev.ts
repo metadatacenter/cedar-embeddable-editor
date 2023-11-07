@@ -1,17 +1,16 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-component-dev',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponentDev implements OnInit {
-
   ceeConfig = {
     sampleTemplateLocationPrefix: 'http://localhost:4240/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '21',
+    loadSampleTemplateName: '02',
     showSampleTemplateLinks: true,
-    expandedSampleTemplateLinks: true,
+    expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
     showHeader: true,
     showFooter: true,
@@ -31,13 +30,13 @@ export class AppComponentDev implements OnInit {
 
   languages = {
     selected: 'en',
-    options: [{value: 'en', viewValue: 'en'}, {value: 'hu', viewValue: 'hu'}]
+    options: [
+      { value: 'en', viewValue: 'en' },
+      { value: 'hu', viewValue: 'hu' },
+    ],
   };
 
-  constructor() {
-  }
+  constructor() {}
 
-  ngOnInit(): void {
-  }
-
+  ngOnInit(): void {}
 }
