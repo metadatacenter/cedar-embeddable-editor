@@ -1,11 +1,10 @@
-import {JsonSchema} from '../models/json-schema.model';
-import {CedarModel} from '../models/cedar-model.model';
-import {JavascriptTypes} from '../models/javascript-types.model';
-import {TemplateObjectUtil} from './template-object-util';
-import {DataObjectBuildingMode} from '../models/enum/data-object-building-mode.model';
+import { JsonSchema } from '../models/json-schema.model';
+import { CedarModel } from '../models/cedar-model.model';
+import { JavascriptTypes } from '../models/javascript-types.model';
+import { TemplateObjectUtil } from './template-object-util';
+import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 
 export class DataObjectUtil {
-
   static getEmptyValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode): object {
     const obj = {};
     if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
@@ -53,11 +52,11 @@ export class DataObjectUtil {
 
   private static injectAtTypeIfAvailable(obj: object, templateJsonObj: object): void {
     if (templateJsonObj != null) {
-      if (templateJsonObj.hasOwnProperty(CedarModel.valueConstraints)) {
+      if (Object.hasOwn(templateJsonObj, CedarModel.valueConstraints)) {
         const vc = templateJsonObj[CedarModel.valueConstraints];
-        if (vc.hasOwnProperty(CedarModel.numberType)) {
+        if (Object.hasOwn(vc, CedarModel.numberType)) {
           obj[JsonSchema.atType] = vc[CedarModel.numberType];
-        } else if (vc.hasOwnProperty(CedarModel.temporalType)) {
+        } else if (Object.hasOwn(vc, CedarModel.temporalType)) {
           obj[JsonSchema.atType] = vc[CedarModel.temporalType];
         }
       }
@@ -68,10 +67,13 @@ export class DataObjectUtil {
     let ret = null;
     if (propsContextProp[CedarModel.type] === 'string' && propsContextProp[CedarModel.format] === 'uri') {
       ret = propsContextProp[CedarModel.enum][0];
-    } else if (propsContextProp[CedarModel.type] === 'object' && propsContextProp.hasOwnProperty(JsonSchema.properties)) {
+    } else if (
+      propsContextProp[CedarModel.type] === 'object' &&
+      Object.hasOwn(propsContextProp, JsonSchema.properties)
+    ) {
       ret = {};
       ret[JsonSchema.atType] = propsContextProp[JsonSchema.properties][JsonSchema.atType][CedarModel.enum][0];
-    } else if (propsContextProp.hasOwnProperty(CedarModel.enum)) {
+    } else if (Object.hasOwn(propsContextProp, CedarModel.enum)) {
       ret = propsContextProp[CedarModel.enum][0];
     }
     return ret;
@@ -94,7 +96,7 @@ export class DataObjectUtil {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = (d + Math.random() * 16) % 16 | 0;
       d = Math.floor(d / 16);
-      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
     });
   }
 
@@ -126,12 +128,12 @@ export class DataObjectUtil {
 
   static deleteContext(obj): void {
     const keyCount = Object.keys(obj).length;
-    if (keyCount === 2 && obj.hasOwnProperty(JsonSchema.atId) && obj.hasOwnProperty(JsonSchema.rdfsLabel)) {
+    if (keyCount === 2 && Object.hasOwn(obj, JsonSchema.atId) && Object.hasOwn(obj, JsonSchema.rdfsLabel)) {
       // do nothing, it is a controlled term
-    } else if (keyCount === 1 && obj.hasOwnProperty(JsonSchema.atId)) {
+    } else if (keyCount === 1 && Object.hasOwn(obj, JsonSchema.atId)) {
       // do nothing, it is a link
     } else {
-      Object.keys(obj).forEach(key => {
+      Object.keys(obj).forEach((key) => {
         delete obj[JsonSchema.atContext];
         delete obj[JsonSchema.atId];
         delete obj[JsonSchema.oslcModifiedBy];
@@ -147,5 +149,4 @@ export class DataObjectUtil {
       });
     }
   }
-
 }

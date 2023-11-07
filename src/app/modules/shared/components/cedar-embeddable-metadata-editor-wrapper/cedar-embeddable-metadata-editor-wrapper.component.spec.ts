@@ -1,6 +1,5 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {CedarEmbeddableMetadataEditorWrapperComponent} from './cedar-embeddable-metadata-editor-wrapper.component';
-
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper.component';
 
 describe('CedarEmbeddableMetadataEditorWrapperComponent', () => {
   let component: CedarEmbeddableMetadataEditorWrapperComponent;
@@ -8,9 +7,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CedarEmbeddableMetadataEditorWrapperComponent]
-    })
-      .compileComponents();
+      declarations: [CedarEmbeddableMetadataEditorWrapperComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {

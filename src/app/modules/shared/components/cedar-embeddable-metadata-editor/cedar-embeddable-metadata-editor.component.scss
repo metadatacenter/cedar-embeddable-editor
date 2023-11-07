@@ -1,3 +1,5 @@
+@import '../../../../../styles-common.scss';
+
 .mat-card {
   padding: 5px;
   margin-bottom: 5px;
@@ -10,4 +12,10 @@
 .mat-card-header {
   margin-bottom: 5px;
   vertical-align: middle;
+}
+
+.header-image {
+  background-image: url($cedar-logo-80x80);
+  background-size: cover;
+  background-color: #0B3938;
 }

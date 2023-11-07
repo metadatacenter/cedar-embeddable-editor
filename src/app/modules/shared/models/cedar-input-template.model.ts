@@ -1,3 +1,1 @@
-export class CedarInputTemplate extends Object {
-
-}
+export class CedarInputTemplate extends Object {}

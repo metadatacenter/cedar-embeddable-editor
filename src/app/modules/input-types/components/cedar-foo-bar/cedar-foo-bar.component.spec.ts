@@ -1,5 +1,5 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {CedarFooBarComponent} from './cedar-foo-bar.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CedarFooBarComponent } from './cedar-foo-bar.component';
 
 describe('CedarFooBarComponent', () => {
   let component: CedarFooBarComponent;
@@ -7,9 +7,8 @@ describe('CedarFooBarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CedarFooBarComponent]
-    })
-      .compileComponents();
+      declarations: [CedarFooBarComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {
