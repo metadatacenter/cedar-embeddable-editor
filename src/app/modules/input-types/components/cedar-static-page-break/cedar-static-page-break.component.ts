@@ -1,6 +1,6 @@
 import { Component, Injectable, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { DataContext } from '../../../shared/util/data-context';
-import { MatPaginatorIntl } from '@angular/material/paginator';
+import { MatLegacyPaginatorIntl as MatPaginatorIntl } from '@angular/material/legacy-paginator';
 import { PageBreakPaginatorService } from '../../../shared/service/page-break-paginator.service';
 
 @Injectable()

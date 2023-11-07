@@ -1,6 +1,6 @@
 import { Component, DoCheck, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { MultiComponent } from '../../models/component/multi-component.model';
-import { PageEvent } from '@angular/material/paginator';
+import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { MultiInstanceObjectInfo } from '../../models/info/multi-instance-object-info.model';
 import { HandlerContext } from '../../util/handler-context';
