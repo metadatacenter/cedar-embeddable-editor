@@ -10,14 +10,14 @@ export class AppComponentDev implements OnInit {
     sampleTemplateLocationPrefix: 'http://localhost:4240/cedar-embeddable-editor-sample-templates/',
     loadSampleTemplateName: '02',
     showSampleTemplateLinks: true,
-    expandedSampleTemplateLinks: true,
+    expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
     showHeader: true,
     showFooter: true,
 
     terminologyIntegratedSearchUrl: 'https://terminology.metadatacenter.orgx/bioportal/integrated-search',
     showInstanceDataCore: true,
-    expandedInstanceDataCore: true,
+    expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,
     expandedMultiInstanceInfo: false,
 
