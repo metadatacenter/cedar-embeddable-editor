@@ -11,12 +11,12 @@ export class FallbackTranslateLoader implements TranslateLoader {
   ) {}
 
   getTranslation(lang: string): Observable<any> {
-    console.log('GET translation:' + lang);
+    console.log('Loading language map:' + lang);
     const httpLoader = new TranslateHttpLoader(this.http, '/assets/i18n-cee/');
 
     return httpLoader.getTranslation(lang).pipe(
       catchError((err) => {
-        console.log('Translation file not found, using built-in version', err);
+        console.log('External language map not found, using built-in version.');
         if (Object.hasOwn(this.fallback, lang)) {
           return Promise.resolve(this.fallback[lang]);
         } else {
