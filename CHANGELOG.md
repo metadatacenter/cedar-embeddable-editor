@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Dev mode config changed to compact initial view (hidden sample template links, hidden core metadata)
+- Dependency version updates
 
 ## [1.0.2] - 2023-11-03
 
