@@ -7,11 +7,13 @@ import { SharedModule } from './modules/shared/shared.module';
 import { JsonPipe } from '@angular/common';
 import { InputTypesModule } from './modules/input-types/input-types.module';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './modules/shared/components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { FallbackTranslateLoader } from './modules/shared/util/fallback-translate-loader';
+import * as fallbackMapEN from '../assets/i18n-cee/en.json';
+import * as fallbackMapHU from '../assets/i18n-cee/hu.json';
 
-export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
-  return new TranslateHttpLoader(http, '/assets/i18n-cee/');
+export function FallbackTranslateLoaderFactory(http: HttpClient, fallback: any): TranslateLoader {
+  return new FallbackTranslateLoader(http, fallback);
 }
 
 @NgModule({
@@ -24,7 +26,11 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
+        useFactory: (http: HttpClient) =>
+          FallbackTranslateLoaderFactory(http, {
+            en: fallbackMapEN,
+            hu: fallbackMapHU,
+          }),
         deps: [HttpClient],
       },
     }),

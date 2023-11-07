@@ -7,35 +7,10 @@ import { SharedModule } from './modules/shared/shared.module';
 import { JsonPipe } from '@angular/common';
 import { InputTypesModule } from './modules/input-types/input-types.module';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './modules/shared/components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import * as fallbackMapEN from '../assets/i18n-cee/en.json';
 import * as fallbackMapHU from '../assets/i18n-cee/hu.json';
-import { Observable } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-
-export class FallbackTranslateLoader implements TranslateLoader {
-  constructor(
-    private http: HttpClient,
-    private fallback: object,
-  ) {}
-
-  getTranslation(lang: string): Observable<any> {
-    console.log('GET translation:' + lang);
-    const httpLoader = new TranslateHttpLoader(this.http, '/assets/i18n-cee/');
-
-    return httpLoader.getTranslation(lang).pipe(
-      catchError((err) => {
-        console.log('Translation file not found, using built-in version', err);
-        if (Object.hasOwn(this.fallback, lang)) {
-          return Promise.resolve(this.fallback[lang]);
-        } else {
-          return Promise.resolve(null);
-        }
-      }),
-    );
-  }
-}
+import { FallbackTranslateLoader } from './modules/shared/util/fallback-translate-loader';
 
 export function FallbackTranslateLoaderFactory(http: HttpClient, fallback: any): TranslateLoader {
   return new FallbackTranslateLoader(http, fallback);

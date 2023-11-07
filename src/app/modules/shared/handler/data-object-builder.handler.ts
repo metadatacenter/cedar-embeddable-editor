@@ -39,7 +39,6 @@ export class DataObjectBuilderHandler {
     templateJsonObj: CedarInputTemplate,
     buildingMode: DataObjectBuildingMode,
   ): void {
-    console.log('buildRecursively');
     let ret = null;
     if (templateJsonObj != null) {
       DataObjectBuilderHandler.addContext(component, dataObject, templateJsonObj, buildingMode);
@@ -83,7 +82,6 @@ export class DataObjectBuilderHandler {
         if (multiField.multiInfo.minItems > 0) {
           const subTemplate = DataObjectUtil.getSafeSubTemplate(templateJsonObj, targetName);
           for (let idx = 0; idx < multiField.multiInfo.minItems; idx++) {
-            console.log(idx);
             dataObject[targetName].push(DataObjectUtil.getEmptyValueWrapper(subTemplate, buildingMode));
           }
           if (component?.choiceInfo?.choices?.length > 0) {
@@ -115,7 +113,6 @@ export class DataObjectBuilderHandler {
   }
 
   public static setCurrentCountToMinRecursively(component: CedarComponent, path: string[]): void {
-    console.log('path');
     if (path.length === 0) {
       return;
     }
@@ -193,7 +190,6 @@ export class DataObjectBuilderHandler {
     templateJsonObj: CedarInputTemplate,
     buildingMode: DataObjectBuildingMode,
   ): void {
-    console.log('buildNewByIterating');
     if (this.templateRepresentation != null && this.templateRepresentation.children != null) {
       for (const childComponent of this.templateRepresentation.children) {
         DataObjectBuilderHandler.buildRecursively(childComponent, dataObject, templateJsonObj, buildingMode);
