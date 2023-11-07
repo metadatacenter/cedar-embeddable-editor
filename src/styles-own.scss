@@ -101,12 +101,14 @@ body.cee-body {
   margin-left: auto;
   margin-right: auto;
   margin-bottom: 20px;
+
   div {
-    padding-top:15px;
+    padding-top: 15px;
+
     img {
-      margin-left:auto;
-      margin-right:auto;
-      max-width:100%;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 100%;
     }
   }
 }
@@ -210,7 +212,7 @@ app-sample-templates {
   margin-top: 30px;
 
   .mat-progress-spinner {
-    float:left;
+    float: left;
     margin-right: 20px;
   }
 }
@@ -271,7 +273,7 @@ app-sample-templates {
   margin-right: .8em;
   line-height: 1em;
   margin-left: .2em;
-  float:left;
+  float: left;
   margin-top: 2px;
 }
 
@@ -335,7 +337,7 @@ button.close {
   color: var(--color-text-primary) !important;
 }
 
-.mat-form-field-infix{
+.mat-form-field-infix {
   margin: 0 !important;
   padding-top: 5px !important;
   padding-bottom: 7px !important;

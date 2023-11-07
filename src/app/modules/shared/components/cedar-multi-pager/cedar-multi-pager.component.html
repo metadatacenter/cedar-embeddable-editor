@@ -1,13 +1,13 @@
 <div *ngIf="component && currentMultiInfo" [ngClass]="isAlignedUp? 'aligned-up' : 'pager-container'">
   <div class="pager-chips">
-    <mat-chip-list tabIndex="0" aria-label="Allows multi values.">
-      <mat-chip selectable="false" disabled="true" *ngIf="!hasMultiInstances()" aria-label="No values yet">{{'Multi.NoInstancesYet' | translate}}</mat-chip>
-      <mat-chip *ngFor="let pageNumber of pageNumbers"
+    <mat-chip-listbox tabIndex="0" aria-label="Allows multi values.">
+      <mat-chip-option selectable="false" disabled="true" *ngIf="!hasMultiInstances()" aria-label="No values yet">{{'Multi.NoInstancesYet' | translate}}</mat-chip-option>
+      <mat-chip-option *ngFor="let pageNumber of pageNumbers"
                 [selected]="pageNumber == currentMultiInfo.currentIndex"
                 (click)="chipClicked(pageNumber)"
                 selectable="true"
-      >{{pageNumber + 1}}</mat-chip>
-    </mat-chip-list>
+      >{{pageNumber + 1}}</mat-chip-option>
+    </mat-chip-listbox>
   </div>
   <div>
     <button mat-icon-button tabindex="0" [disabled]="!isEnabledAdd()" (click)="clickedAdd()" aria-label="Add empty after current">

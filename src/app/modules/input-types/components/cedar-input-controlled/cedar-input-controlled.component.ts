@@ -12,7 +12,7 @@ import { IntegratedSearchResponseItem } from '../../../shared/models/rest/integr
 import { JsonSchema } from '../../../shared/models/json-schema.model';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
-import { MatLegacyAutocompleteTrigger as MatAutocompleteTrigger } from '@angular/material/legacy-autocomplete';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
