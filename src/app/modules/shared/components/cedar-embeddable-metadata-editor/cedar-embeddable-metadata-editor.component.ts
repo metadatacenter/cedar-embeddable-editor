@@ -1,11 +1,12 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
-import { NullTemplate } from '../../models/template/null-template.model';
-import { DataContext } from '../../util/data-context';
-import { HandlerContext } from '../../util/handler-context';
-import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
-import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
-import { DataObjectUtil } from '../../util/data-object-util';
-import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
+import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
+import {NullTemplate} from '../../models/template/null-template.model';
+import {DataContext} from '../../util/data-context';
+import {HandlerContext} from '../../util/handler-context';
+import {PageBreakPaginatorService} from '../../service/page-break-paginator.service';
+import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
+import {DataObjectUtil} from '../../util/data-object-util';
+import {MultiInstanceObjectHandler} from '../../handler/multi-instance-object.handler';
+import {MessageHandlerService} from "../../service/message-handler.service";
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -14,7 +15,7 @@ import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.
   encapsulation: ViewEncapsulation.None,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
-  private static INNER_VERSION = '2023-10-20 17:00';
+  private static INNER_VERSION = '2023-11-08 17:15';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
@@ -74,11 +75,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   allExpanded: boolean;
 
-  constructor(private activeComponentRegistry: ActiveComponentRegistryService) {
-    console.log('CEE:' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
+  constructor(
+    private activeComponentRegistry: ActiveComponentRegistryService,
+    private messageHandlerService: MessageHandlerService,) {
+    this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+  }
 
   @Input() set dataContextObject(dataContext: DataContext) {
     this.dataContext = dataContext;

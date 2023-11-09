@@ -1,15 +1,15 @@
-import { Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
-import { MessageHandlerService } from '../../service/message-handler.service';
-import { Subject } from 'rxjs';
-import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
-import { takeUntil } from 'rxjs/operators';
-import { HandlerContext } from '../../util/handler-context';
-import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
-import { TranslateService } from '@ngx-translate/core';
-import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
-import { DataContext } from '../../util/data-context';
-import { HttpStatusCode } from '@angular/common/http';
+import {Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
+import {ControlledFieldDataService} from '../../service/controlled-field-data.service';
+import {MessageHandlerService} from '../../service/message-handler.service';
+import {Subject} from 'rxjs';
+import {SampleTemplatesService} from '../sample-templates/sample-templates.service';
+import {takeUntil} from 'rxjs/operators';
+import {HandlerContext} from '../../util/handler-context';
+import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
+import {TranslateService} from '@ngx-translate/core';
+import {CedarEmbeddableMetadataEditorComponent} from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
+import {DataContext} from '../../util/data-context';
+import {HttpStatusCode} from '@angular/common/http';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -118,7 +118,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set config(value: object) {
-    this.messageHandlerService.traceObject('CEDAR Embeddable Editor config set to:', value);
+    this.messageHandlerService.trace('CEDAR Embeddable Editor config set to:' + JSON.stringify(value));
 
     if (value != null) {
       this.innerConfig = value;

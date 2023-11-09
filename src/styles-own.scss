@@ -1,7 +1,107 @@
 @use '@angular/material' as mat;
+@use '@angular/material/theming';
 
 @include mat.core();
-@include mat.strong-focus-indicators();
+
+// Palette generated using http://mcg.mbitson.com/
+// Also helpful: https://www.colorhexa.com/, https://www.colorbook.io/
+/* For use in src/lib/core/theming/_palette.scss */
+$md-cedarpalette: (
+  50 : #e2eff0,
+  100 : #b7d6db,
+  200 : #87bbc3,
+  300 : #579faa,
+  400 : #338b98,
+  500 : #0f7686,
+  600 : #0d6e7e,
+  700 : #0b6373,
+  800 : #085969,
+  900 : #044656,
+  A100 : #88e4ff,
+  A200 : #55d8ff,
+  A400 : #22ccff,
+  A700 : #08c7ff,
+  contrast: (
+    50 : #000000,
+    100 : #000000,
+    200 : #000000,
+    300 : #000000,
+    400 : #ffffff,
+    500 : #ffffff,
+    600 : #ffffff,
+    700 : #ffffff,
+    800 : #ffffff,
+    900 : #ffffff,
+    A100 : #000000,
+    A200 : #000000,
+    A400 : #000000,
+    A700 : #000000,
+  )
+);
+
+$md-cedaraccent: (
+  50 : #f0e4e2,
+  100 : #dbbcb7,
+  200 : #c38f87,
+  300 : #aa6257,
+  400 : #984133,
+  500 : #861f0f,
+  600 : #7e1b0d,
+  700 : #73170b,
+  800 : #691208,
+  900 : #560a04,
+  A100 : #ff8d88,
+  A200 : #ff5c55,
+  A400 : #ff2b22,
+  A700 : #ff1308,
+  contrast: (
+    50 : #000000,
+    100 : #000000,
+    200 : #000000,
+    300 : #ffffff,
+    400 : #ffffff,
+    500 : #ffffff,
+    600 : #ffffff,
+    700 : #ffffff,
+    800 : #ffffff,
+    900 : #ffffff,
+    A100 : #000000,
+    A200 : #000000,
+    A400 : #ffffff,
+    A700 : #ffffff,
+  )
+);
+
+// Define the palettes for your theme using the Material Design palettes available in palette.scss
+// (imported above). For each palette, you can optionally specify a default, lighter, and darker
+// hue. Available color palettes: https://material.io/design/color/
+$cedar-embeddable-editor-primary: mat.define-palette($md-cedarpalette);
+$cedar-embeddable-editor-accent: mat.define-palette($md-cedaraccent, A200, A100, A400);
+
+// The warn palette is optional (defaults to red).
+$cedar-embeddable-editor-warn: mat.define-palette(mat.$red-palette);
+
+// Create the theme object. A theme consists of configurations for individual
+// theming systems such as "color" or "typography".
+$cedar-embeddable-editor-theme: mat.define-light-theme((
+  color: (
+    primary: $cedar-embeddable-editor-primary,
+    accent: $cedar-embeddable-editor-accent,
+    warn: $cedar-embeddable-editor-warn,
+  )
+));
+
+$primary: map-get($cedar-embeddable-editor-theme, primary);
+$accent: map-get($cedar-embeddable-editor-theme, accent);
+
+:root {
+  --color-primary: #{mat.get-color-from-palette($cedar-embeddable-editor-primary, default)};
+  --color-text-primary: #{mat.get-color-from-palette($cedar-embeddable-editor-primary, default-contrast)};
+  --color-accent: #{mat.get-color-from-palette($cedar-embeddable-editor-accent)};
+  --color-warn: #{mat.get-color-from-palette($cedar-embeddable-editor-warn)};
+}
+
+@import "@ng-select/ng-select/themes/material.theme.css";
 
 $my-primary: mat.define-palette(mat.$teal-palette, 600);
 $my-accent: mat.define-palette(mat.$deep-orange-palette, A200, A100, A400);
@@ -21,12 +121,12 @@ $my-theme: mat.define-light-theme((
   font-display: block;
   font-style: normal;
   font-weight: 400;
-  src: url(assets/fonts/MaterialIcons-Regular.eot); /* For IE6-8 */
+  src: url('/assets/fonts/MaterialIcons-Regular.eot'); /* For IE6-8 */
   src: local('Material Icons'),
   local('MaterialIcons-Regular'),
-  url(assets/fonts/MaterialIcons-Regular.woff2) format('woff2'),
-  url(assets/fonts/MaterialIcons-Regular.woff) format('woff'),
-  url(assets/fonts/MaterialIcons-Regular.ttf) format('truetype');
+  url('/assets/fonts/MaterialIcons-Regular.woff2') format('woff2'),
+  url('/assets/fonts/MaterialIcons-Regular.woff') format('woff'),
+  url('/assets/fonts/MaterialIcons-Regular.ttf') format('truetype');
 }
 
 .material-icons {
@@ -92,12 +192,14 @@ body.cee-body {
   margin-left: auto;
   margin-right: auto;
   margin-bottom: 20px;
+
   div {
-    padding-top:15px;
+    padding-top: 15px;
+
     img {
-      margin-left:auto;
-      margin-right:auto;
-      max-width:100%;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 100%;
     }
   }
 }
@@ -201,7 +303,7 @@ app-sample-templates {
   margin-top: 30px;
 
   .mat-progress-spinner {
-    float:left;
+    float: left;
     margin-right: 20px;
   }
 }
@@ -262,7 +364,7 @@ app-sample-templates {
   margin-right: .8em;
   line-height: 1em;
   margin-left: .2em;
-  float:left;
+  float: left;
   margin-top: 2px;
 }
 
@@ -326,7 +428,7 @@ button.close {
   color: var(--color-text-primary) !important;
 }
 
-.mat-form-field-infix{
+.mat-form-field-infix {
   margin: 0 !important;
   padding-top: 5px !important;
   padding-bottom: 7px !important;
