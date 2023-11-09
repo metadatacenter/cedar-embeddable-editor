@@ -28,7 +28,6 @@
               "src/assets/i18n-cee"
             ],
             "styles": [
-              "src/styles.scss",
               "src/styles-own.scss"
             ],
             "scripts": [
@@ -109,7 +108,6 @@
               "src/assets/i18n-cee"
             ],
             "styles": [
-              "src/styles.scss",
               "src/styles-own.scss"
             ],
             "scripts": [
