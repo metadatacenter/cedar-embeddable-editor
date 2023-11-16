@@ -19,10 +19,8 @@ export class DataObjectStructureHandler {
     component: CedarComponent,
     path: string[],
     multiInstanceObjectService: MultiInstanceObjectHandler,
+    depth = 0
   ): object {
-    // console.log('getDataPathNodeRecursively');
-    // console.log(path);
-    // console.log(dataObject);
     if (path.length === 0) {
       return dataObject;
     } else {
@@ -32,10 +30,14 @@ export class DataObjectStructureHandler {
       let dataSubObject = null;
       if (component instanceof SingleElementComponent) {
         childComponent = (component as SingleElementComponent).getChildByName(firstPath);
-        dataSubObject = dataObject[firstPath];
+        if (dataObject !== null && dataObject !== undefined) {
+          dataSubObject = dataObject[firstPath];
+        }
       } else if (component instanceof CedarTemplate) {
         childComponent = (component as CedarTemplate).getChildByName(firstPath);
-        dataSubObject = dataObject[firstPath];
+        if (dataObject !== null && dataObject !== undefined) {
+          dataSubObject = dataObject[firstPath];
+        }
       } else if (component instanceof MultiElementComponent) {
         const multiElement = component as MultiElementComponent;
         const multiInstanceInfo: MultiInstanceObjectInfo =
@@ -46,11 +48,13 @@ export class DataObjectStructureHandler {
         }
         const currentIndex = multiInstanceInfo.currentIndex;
         childComponent = multiElement.getChildByName(firstPath);
-        if (Object.hasOwn(dataObject, currentIndex)) {
-          dataSubObject = dataObject[currentIndex][firstPath];
+        if (dataObject !== null && dataObject !== undefined) {
+          if (Object.hasOwn(dataObject, currentIndex)) {
+            dataSubObject = dataObject[currentIndex][firstPath];
+          }
         }
       }
-      return this.getDataPathNodeRecursively(dataSubObject, childComponent, remainingPath, multiInstanceObjectService);
+      return this.getDataPathNodeRecursively(dataSubObject, childComponent, remainingPath, multiInstanceObjectService, depth + 1);
     }
   }
 
