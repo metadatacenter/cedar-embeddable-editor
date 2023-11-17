@@ -1,4 +1,5 @@
 import { CedarModel } from '../models/cedar-model.model';
+import { InputType } from '../models/input-type.model';
 
 export class TemplateObjectUtil {
   static hasControlledInfo(dataNode: object): boolean {
@@ -15,5 +16,18 @@ export class TemplateObjectUtil {
 
   static hasValueConstraints(dataNode: object): boolean {
     return dataNode != null && Object.hasOwn(dataNode, CedarModel.valueConstraints);
+  }
+
+  static isLInk(dataNode: object): boolean {
+    if (Object.hasOwn(dataNode, CedarModel.ui)) {
+      const ui = dataNode[CedarModel.ui];
+      if (Object.hasOwn(ui, CedarModel.inputType)) {
+        const inputType = ui[CedarModel.inputType];
+        if (inputType === InputType.link) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
