@@ -19,7 +19,7 @@ export class DataObjectStructureHandler {
     component: CedarComponent,
     path: string[],
     multiInstanceObjectService: MultiInstanceObjectHandler,
-    depth = 0
+    depth = 0,
   ): object {
     if (path.length === 0) {
       return dataObject;
@@ -54,7 +54,13 @@ export class DataObjectStructureHandler {
           }
         }
       }
-      return this.getDataPathNodeRecursively(dataSubObject, childComponent, remainingPath, multiInstanceObjectService, depth + 1);
+      return this.getDataPathNodeRecursively(
+        dataSubObject,
+        childComponent,
+        remainingPath,
+        multiInstanceObjectService,
+        depth + 1,
+      );
     }
   }
 
