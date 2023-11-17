@@ -1,6 +1,6 @@
 {
   "name": "cedar-embeddable-editor",
-  "version": "1.0.5-SNAPSHOT",
+  "version": "1.0.5",
   "publishConfig": {
     "registry": "https://nexus.bmir.stanford.edu/repository/npm-cedar/"
   },
@@ -51,6 +51,7 @@
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "eslint": "^8.53.0",
+    "prettier": "^3.1.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
     "jasmine-core": "~2.99.1",

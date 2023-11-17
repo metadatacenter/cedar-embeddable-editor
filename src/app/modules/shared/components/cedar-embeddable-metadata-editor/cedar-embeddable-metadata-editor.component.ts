@@ -1,12 +1,12 @@
-import {Component, Input, OnInit, ViewEncapsulation} from '@angular/core';
-import {NullTemplate} from '../../models/template/null-template.model';
-import {DataContext} from '../../util/data-context';
-import {HandlerContext} from '../../util/handler-context';
-import {PageBreakPaginatorService} from '../../service/page-break-paginator.service';
-import {ActiveComponentRegistryService} from '../../service/active-component-registry.service';
-import {DataObjectUtil} from '../../util/data-object-util';
-import {MultiInstanceObjectHandler} from '../../handler/multi-instance-object.handler';
-import {MessageHandlerService} from "../../service/message-handler.service";
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { NullTemplate } from '../../models/template/null-template.model';
+import { DataContext } from '../../util/data-context';
+import { HandlerContext } from '../../util/handler-context';
+import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
+import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
+import { DataObjectUtil } from '../../util/data-object-util';
+import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
+import { MessageHandlerService } from '../../service/message-handler.service';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -77,12 +77,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,
-    private messageHandlerService: MessageHandlerService,) {
+    private messageHandlerService: MessageHandlerService,
+  ) {
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   @Input() set dataContextObject(dataContext: DataContext) {
     this.dataContext = dataContext;
