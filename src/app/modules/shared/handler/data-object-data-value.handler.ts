@@ -242,7 +242,9 @@ export class DataObjectDataValueHandler {
     const path = component.path;
     const valueObject = {};
     if (component.basicInfo.inputType === InputType.link) {
-      valueObject[JsonSchema.atId] = value;
+      if (value !== null) {
+        valueObject[JsonSchema.atId] = value;
+      }
     } else {
       valueObject[JsonSchema.atValue] = value;
     }

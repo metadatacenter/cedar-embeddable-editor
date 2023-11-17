@@ -7,7 +7,9 @@ import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode
 export class DataObjectUtil {
   static getEmptyValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode): object {
     const obj = {};
-    if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
+    if (TemplateObjectUtil.isLInk(templateJsonObj)) {
+      // do nothing, leave object empty
+    } else if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
       obj[JsonSchema.atValue] = null;
     }
     if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
