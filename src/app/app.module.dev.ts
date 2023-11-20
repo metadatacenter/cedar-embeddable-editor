@@ -10,11 +10,8 @@ import { CedarEmbeddableMetadataEditorWrapperComponent } from './modules/shared/
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import * as fallbackMapEN from '../assets/i18n-cee/en.json';
 import * as fallbackMapHU from '../assets/i18n-cee/hu.json';
-import { FallbackTranslateLoader } from './modules/shared/util/fallback-translate-loader';
-
-export function FallbackTranslateLoaderFactory(http: HttpClient, fallback: any): TranslateLoader {
-  return new FallbackTranslateLoader(http, fallback);
-}
+import { MessageHandlerService } from './modules/shared/service/message-handler.service';
+import { FallbackTranslateLoaderFactory } from './modules/shared/util/fallback-translate-loader-factory';
 
 @NgModule({
   declarations: [AppComponentDev],
@@ -26,12 +23,12 @@ export function FallbackTranslateLoaderFactory(http: HttpClient, fallback: any):
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: (http: HttpClient) =>
-          FallbackTranslateLoaderFactory(http, {
+        useFactory: (http: HttpClient, messageHandlerService: MessageHandlerService) =>
+          FallbackTranslateLoaderFactory(http, messageHandlerService, {
             en: fallbackMapEN,
             hu: fallbackMapHU,
           }),
-        deps: [HttpClient],
+        deps: [HttpClient, MessageHandlerService],
       },
     }),
   ],
