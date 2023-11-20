@@ -85,7 +85,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set instanceObject(instance: object) {
-    this.editorComponent.initDataFromInstance(instance);
+    if (instance !== null) {
+      this.editorComponent.initDataFromInstance(instance);
+    }
   }
 
   // TODO: revisit if this method is needed. The CEE should be agnostic of the environment, should expect the config to be injected
