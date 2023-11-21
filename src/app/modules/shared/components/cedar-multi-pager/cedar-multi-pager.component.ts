@@ -9,6 +9,7 @@ import { JsonSchema } from '../../models/json-schema.model';
 import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
 import { InputType } from '../../models/input-type.model';
 import { TranslateService } from '@ngx-translate/core';
+import { MessageHandlerService } from '../../service/message-handler.service';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -23,6 +24,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   currentMultiInfo: MultiInstanceObjectInfo;
   activeComponentRegistry: ActiveComponentRegistryService;
   translateService: TranslateService;
+  messageHandlerService: MessageHandlerService;
   @Input() handlerContext: HandlerContext;
   @Input() isAlignedUp: boolean;
 
@@ -39,9 +41,14 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
 
   multiInstanceValue: string;
 
-  constructor(activeComponentRegistry: ActiveComponentRegistryService, translateService: TranslateService) {
+  constructor(
+    activeComponentRegistry: ActiveComponentRegistryService,
+    translateService: TranslateService,
+    messageHandlerService: MessageHandlerService,
+  ) {
     this.activeComponentRegistry = activeComponentRegistry;
     this.translateService = translateService;
+    this.messageHandlerService = messageHandlerService;
   }
 
   ngOnInit(): void {
@@ -61,35 +68,39 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     let info = '';
     const infoArray = [];
     const inputType = (this.component as MultiFieldComponent).basicInfo.inputType;
+    if (nodeInfo !== null && nodeInfo !== undefined) {
+      (nodeInfo as Array<any>).forEach((fieldName, index) => {
+        const numStr =
+          '<span class="multiinfo-index' +
+          (index > 0 ? ' not-first-multiinfo-index' : '') +
+          (index === this.currentMultiInfo.currentIndex ? ' current-multiinfo-index' : '') +
+          '">' +
+          (index + 1) +
+          '</span> ';
 
-    (nodeInfo as Array<any>).forEach((fieldName, index) => {
-      const numStr =
-        '<span class="multiinfo-index' +
-        (index > 0 ? ' not-first-multiinfo-index' : '') +
-        (index === this.currentMultiInfo.currentIndex ? ' current-multiinfo-index' : '') +
-        '">' +
-        (index + 1) +
-        '</span> ';
-
-      if (typeof fieldName === 'string') {
-        infoArray.push(
-          numStr + fieldName + '=' + this.shortValue(inputType, parentNodeInfo[fieldName][JsonSchema.atValue]),
-        );
-      } else if (typeof fieldName === 'object') {
-        if (Object.hasOwn(fieldName, JsonSchema.atValue)) {
-          infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.atValue]) || 'null'));
-        } else if (Object.hasOwn(fieldName, JsonSchema.atId) && inputType === InputType.link) {
-          // link field
-          infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.atId]) || 'null'));
-        } else if (Object.hasOwn(fieldName, JsonSchema.atId)) {
-          // controlled field
-          infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.rdfsLabel]) || 'null'));
-        } else {
-          // empty controlled field
-          infoArray.push(numStr + 'null');
+        if (typeof fieldName === 'string') {
+          infoArray.push(
+            numStr + fieldName + '=' + this.shortValue(inputType, parentNodeInfo[fieldName][JsonSchema.atValue]),
+          );
+        } else if (typeof fieldName === 'object') {
+          if (Object.hasOwn(fieldName, JsonSchema.atValue)) {
+            infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.atValue]) || 'null'));
+          } else if (Object.hasOwn(fieldName, JsonSchema.atId) && inputType === InputType.link) {
+            // link field
+            infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.atId]) || 'null'));
+          } else if (Object.hasOwn(fieldName, JsonSchema.atId)) {
+            // controlled field
+            infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.rdfsLabel]) || 'null'));
+          } else {
+            // empty controlled field
+            infoArray.push(numStr + 'null');
+          }
         }
-      }
-    });
+      });
+    } else {
+      this.messageHandlerService.error('Missing data in instance:' + this.component.path);
+      return '';
+    }
 
     info = infoArray.join('');
 

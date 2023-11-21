@@ -12,6 +12,8 @@ import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { TemplateComponent } from '../models/template/template-component.model';
+import { DataObjectUtil } from '../util/data-object-util';
+import { MessageHandlerService } from '../service/message-handler.service';
 
 export class DataObjectStructureHandler {
   public getDataPathNodeRecursively(
@@ -115,6 +117,7 @@ export class DataObjectStructureHandler {
     dataContext: DataContext,
     component: MultiComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
+    messageHandlerService: MessageHandlerService,
   ): void {
     const multiInstanceInfo: MultiInstanceObjectInfo =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
@@ -130,7 +133,9 @@ export class DataObjectStructureHandler {
       multiInstanceObjectService,
       multiInstanceInfo,
       templateInput,
+      messageHandlerService,
     );
+    DataObjectUtil.deleteContext(instanceExtractData);
     this.performItemAdd(
       instanceFullData,
       templateRepresentation,
@@ -138,6 +143,7 @@ export class DataObjectStructureHandler {
       multiInstanceObjectService,
       multiInstanceInfo,
       templateInput,
+      messageHandlerService,
     );
   }
 
@@ -148,6 +154,7 @@ export class DataObjectStructureHandler {
     multiInstanceObjectService: MultiInstanceObjectHandler,
     multiInstanceInfo: MultiInstanceObjectInfo,
     templateInput: CedarInputTemplate,
+    messageHandlerService: MessageHandlerService,
   ): void {
     const dataObject = {};
     const cloneComponent = _.cloneDeep(component);
@@ -171,7 +178,11 @@ export class DataObjectStructureHandler {
       multiInstanceObjectService,
     );
     const currentNodeArray = currentNodeAny as [];
-    currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, newDataObject as never);
+    if (currentNodeArray) {
+      currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, newDataObject as never);
+    } else {
+      messageHandlerService.error('missing data in instance:' + component.path);
+    }
   }
 
   multiInstanceItemCopy(

@@ -13,20 +13,31 @@ import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { CedarModel } from '../models/cedar-model.model';
 import { DataObjectUtil } from '../util/data-object-util';
 import { InputType } from '../models/input-type.model';
+import { MessageHandlerService } from '../service/message-handler.service';
 
 export class DataObjectDataValueHandler {
+  private messageHandlerService: MessageHandlerService;
+
+  constructor(messageHandlerService: MessageHandlerService) {
+    this.messageHandlerService = messageHandlerService;
+  }
+
   readonly DATA_SUBOBJECT_KEY = 'dataSubObject';
   readonly CHILD_COMPONENT_KEY = 'childComponent';
   readonly PARENT_DATA_SUBOBJECT_KEY = 'parentDataSubObject';
   readonly REMAINING_PATH_KEY = 'remainingPath';
 
-  private injectValue(target: InstanceExtractData, valueObject: object): void {
-    if (Object.hasOwn(valueObject, JsonSchema.atValue)) {
-      target[JsonSchema.atValue] = valueObject[JsonSchema.atValue];
+  private injectValue(target: InstanceExtractData, valueObject: object, fullPath: string[]): void {
+    if (target === null || target === undefined) {
+      this.messageHandlerService.error('Unable to set missing data target:' + fullPath);
     } else {
-      delete target[JsonSchema.atValue];
-      target[JsonSchema.atId] = valueObject[JsonSchema.atId];
-      target[JsonSchema.rdfsLabel] = valueObject[JsonSchema.rdfsLabel];
+      if (Object.hasOwn(valueObject, JsonSchema.atValue)) {
+        target[JsonSchema.atValue] = valueObject[JsonSchema.atValue];
+      } else {
+        delete target[JsonSchema.atValue];
+        target[JsonSchema.atId] = valueObject[JsonSchema.atId];
+        target[JsonSchema.rdfsLabel] = valueObject[JsonSchema.rdfsLabel];
+      }
     }
   }
 
@@ -88,10 +99,11 @@ export class DataObjectDataValueHandler {
     multiInstanceObjectService: MultiInstanceObjectHandler,
     path: string[],
     valueObject: object,
+    fullPath: string[],
   ): void {
     if (path.length === 0) {
       if (component instanceof SingleFieldComponent) {
-        this.injectValue(dataObject, valueObject);
+        this.injectValue(dataObject, valueObject, fullPath);
       } else {
         const multiField = component as MultiFieldComponent;
         const multiInstanceInfo: MultiInstanceObjectInfo =
@@ -103,7 +115,7 @@ export class DataObjectDataValueHandler {
         } else if (valueObject instanceof Array) {
           this.injectArrayValue(dataObject, valueObject);
         } else {
-          this.injectValue(dataObject[currentIndex], valueObject);
+          this.injectValue(dataObject[currentIndex], valueObject, fullPath);
         }
       }
     } else {
@@ -119,6 +131,7 @@ export class DataObjectDataValueHandler {
         multiInstanceObjectService,
         downstreamObjects[remainingPathKey],
         valueObject,
+        fullPath,
       );
     }
   }
@@ -255,6 +268,7 @@ export class DataObjectDataValueHandler {
       multiInstanceObjectService,
       path,
       valueObject,
+      path,
     );
     this.setDataPathValueRecursively(
       dataContext.instanceFullData,
@@ -263,6 +277,7 @@ export class DataObjectDataValueHandler {
       multiInstanceObjectService,
       path,
       valueObject,
+      path,
     );
   }
 
@@ -292,6 +307,7 @@ export class DataObjectDataValueHandler {
       multiInstanceObjectService,
       path,
       valueArray,
+      path,
     );
     this.setDataPathValueRecursively(
       dataContext.instanceFullData,
@@ -300,6 +316,7 @@ export class DataObjectDataValueHandler {
       multiInstanceObjectService,
       path,
       valueArray,
+      path,
     );
   }
 
@@ -329,6 +346,7 @@ export class DataObjectDataValueHandler {
       multiInstanceObjectService,
       path,
       valueObject,
+      path,
     );
     this.setDataPathValueRecursively(
       dataContext.instanceFullData,
@@ -337,6 +355,7 @@ export class DataObjectDataValueHandler {
       multiInstanceObjectService,
       path,
       valueObject,
+      path,
     );
   }
 
@@ -394,6 +413,7 @@ export class DataObjectDataValueHandler {
       multiInstanceObjectService,
       path,
       valueObject,
+      path,
     );
     this.setDataPathValueRecursively(
       dataContext.instanceFullData,
@@ -402,6 +422,7 @@ export class DataObjectDataValueHandler {
       multiInstanceObjectService,
       path,
       valueObject,
+      path,
     );
   }
 }

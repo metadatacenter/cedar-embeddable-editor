@@ -96,6 +96,7 @@ export class MultiInstanceObjectHandler {
         // it's an object, can be a single-page element or a single-page field
       } else if (
         typeof instanceExtractData[key] === JavascriptTypes.object &&
+        instanceExtractData[key] !== null &&
         Object.keys(instanceExtractData[key]).length > 0
       ) {
         // single-page field (it's never paginated, so not required for pagination,

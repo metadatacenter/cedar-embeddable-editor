@@ -5,6 +5,7 @@ import { DataObjectBuilderHandler } from '../handler/data-object-builder.handler
 import { FieldComponent } from '../models/component/field-component.model';
 import { DataObjectDataValueHandler } from '../handler/data-object-data-value.handler';
 import { DataObjectStructureHandler } from '../handler/data-object-structure.handler';
+import { MessageHandlerService } from '../service/message-handler.service';
 
 export class HandlerContext {
   readonly dataObjectBuilderService: DataObjectBuilderHandler = null;
@@ -12,14 +13,16 @@ export class HandlerContext {
   readonly dataObjectManipulationService: DataObjectStructureHandler = null;
   readonly dataObjectDataValueHandler: DataObjectDataValueHandler = null;
   readonly dataContext: DataContext = null;
+  readonly messageHandlerService: MessageHandlerService = null;
 
-  public constructor(dataContext: DataContext) {
+  public constructor(dataContext: DataContext, messageHandlerService: MessageHandlerService) {
     this.dataObjectBuilderService = new DataObjectBuilderHandler();
     this.multiInstanceObjectService = new MultiInstanceObjectHandler();
     this.dataObjectBuilderService.injectMultiInstanceService(this.multiInstanceObjectService);
     this.dataObjectManipulationService = new DataObjectStructureHandler();
-    this.dataObjectDataValueHandler = new DataObjectDataValueHandler();
+    this.dataObjectDataValueHandler = new DataObjectDataValueHandler(messageHandlerService);
     this.dataContext = dataContext;
+    this.messageHandlerService = messageHandlerService;
   }
 
   addMultiInstance(component: MultiComponent): void {
@@ -27,6 +30,7 @@ export class HandlerContext {
       this.dataContext,
       component,
       this.multiInstanceObjectService,
+      this.messageHandlerService,
     );
     this.multiInstanceObjectService.multiInstanceItemAdd(component);
   }

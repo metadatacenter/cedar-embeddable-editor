@@ -40,6 +40,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private sampleTemplateService: SampleTemplatesService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private translateService: TranslateService,
+    private messagingService: MessageHandlerService,
   ) {
     this.sampleTemplateLoaderObject = this;
 
@@ -49,7 +50,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.translateService.use(defaultLanguage);
 
     this.dataContext = new DataContext();
-    this.handlerContext = new HandlerContext(this.dataContext);
+    this.handlerContext = new HandlerContext(this.dataContext, this.messagingService);
   }
 
   ngOnInit(): void {
