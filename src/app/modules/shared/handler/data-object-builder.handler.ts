@@ -42,6 +42,7 @@ export class DataObjectBuilderHandler {
     let ret = null;
     if (templateJsonObj != null) {
       DataObjectBuilderHandler.addContext(component, dataObject, templateJsonObj, buildingMode);
+      DataObjectBuilderHandler.addAtId(dataObject);
     }
     if (
       component instanceof SingleElementComponent ||
@@ -158,6 +159,10 @@ export class DataObjectBuilderHandler {
       dataObject[JsonSchema.atContext] = p;
       dataObject[JsonSchema.atId] = "null";
     }
+  }private static addAtId(
+    dataObject: InstanceExtractData,
+  ): void {
+      dataObject[JsonSchema.atId] = "null";
   }
 
   injectMultiInstanceService(multiInstanceObjectService: MultiInstanceObjectHandler): void {
