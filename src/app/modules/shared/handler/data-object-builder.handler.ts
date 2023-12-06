@@ -156,7 +156,7 @@ export class DataObjectBuilderHandler {
         p[key] = DataObjectUtil.convertTemplateContextNode(propsContextProps[key]);
       }
       dataObject[JsonSchema.atContext] = p;
-      dataObject[JsonSchema.atId] = null;
+      dataObject[JsonSchema.atId] = "null";
     }
   }
 
