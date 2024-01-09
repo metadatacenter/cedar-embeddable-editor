@@ -15,6 +15,9 @@ import { DataObjectUtil } from '../util/data-object-util';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
+import {
+  CedarEmbeddableMetadataEditorComponent
+} from "../components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component";
 
 export class DataObjectBuilderHandler {
   private dataObject: object;
@@ -42,6 +45,8 @@ export class DataObjectBuilderHandler {
     let ret = null;
     if (templateJsonObj != null) {
       DataObjectBuilderHandler.addContext(component, dataObject, templateJsonObj, buildingMode);
+      // A UUID need to be assigned inorder to model to validate. This UUIDs should be overwritten by backend later.
+      // This a temporary fix until the model validates @id:null and the older artifacts are patched.
       DataObjectBuilderHandler.addAtId(dataObject);
     }
     if (
@@ -157,12 +162,17 @@ export class DataObjectBuilderHandler {
         p[key] = DataObjectUtil.convertTemplateContextNode(propsContextProps[key]);
       }
       dataObject[JsonSchema.atContext] = p;
-      dataObject[JsonSchema.atId] = "null";
     }
-  }private static addAtId(
+  }
+  private static addAtId(
     dataObject: InstanceExtractData,
   ): void {
-      dataObject[JsonSchema.atId] = "null";
+    if(!dataObject[JsonSchema.atId]){
+      const _uuid = DataObjectUtil.generateGUID();
+      const _iri = DataObjectUtil.getIriPrefix() + "/template-element-instances/" + _uuid;
+      console.log("IRI is", _iri);
+      dataObject[JsonSchema.atId] = _iri;
+    }
   }
 
   injectMultiInstanceService(multiInstanceObjectService: MultiInstanceObjectHandler): void {

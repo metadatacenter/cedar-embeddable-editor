@@ -3,6 +3,9 @@ import { CedarModel } from '../models/cedar-model.model';
 import { JavascriptTypes } from '../models/javascript-types.model';
 import { TemplateObjectUtil } from './template-object-util';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
+import {
+  CedarEmbeddableMetadataEditorComponent
+} from "../components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component";
 
 export class DataObjectUtil {
   static getEmptyValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode): object {
@@ -150,5 +153,9 @@ export class DataObjectUtil {
         }
       });
     }
+  }
+
+  static getIriPrefix(): string {
+    return CedarEmbeddableMetadataEditorComponent.iriPrefix;
   }
 }
