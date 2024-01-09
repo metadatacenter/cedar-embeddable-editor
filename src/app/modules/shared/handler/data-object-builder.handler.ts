@@ -170,7 +170,6 @@ export class DataObjectBuilderHandler {
     if(!dataObject[JsonSchema.atId]){
       const _uuid = DataObjectUtil.generateGUID();
       const _iri = DataObjectUtil.getIriPrefix() + "/template-element-instances/" + _uuid;
-      console.log("IRI is", _iri);
       dataObject[JsonSchema.atId] = _iri;
     }
   }
