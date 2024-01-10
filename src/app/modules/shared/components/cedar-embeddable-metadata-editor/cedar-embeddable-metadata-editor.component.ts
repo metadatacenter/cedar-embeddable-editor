@@ -46,6 +46,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static FALLBACK_LANGUAGE = 'fallbackLanguage';
   static DEFAULT_LANGUAGE = 'defaultLanguage';
 
+  private static IRI_PREFIX = 'iriPrefix';
+
   dataContext: DataContext = null;
   handlerContext: HandlerContext = null;
 
@@ -72,6 +74,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   expandedSampleTemplateLinks = false;
 
   collapseStaticComponents = false;
+
+  static iriPrefix = "https://repo.metadatacenter.org/";
 
   allExpanded: boolean;
 
@@ -144,6 +148,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT)) {
         this.showStaticText = value[CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT];
+      }
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.IRI_PREFIX)) {
+        CedarEmbeddableMetadataEditorComponent.iriPrefix = value[CedarEmbeddableMetadataEditorComponent.IRI_PREFIX];
       }
     }
   }

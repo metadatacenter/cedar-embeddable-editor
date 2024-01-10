@@ -24,6 +24,8 @@ export class AppComponentDev implements OnInit {
     defaultLanguage: 'en',
     fallbackLanguage: 'en',
 
+    iriPrefix: 'https://repo.metadatacenter.orgx/',
+
     // collapseStaticComponents: false,
     // showStaticText: true,
   };
