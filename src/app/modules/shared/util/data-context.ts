@@ -8,6 +8,7 @@ import { HandlerContext } from './handler-context';
 import { MultiInstanceObjectHandler } from '../handler/multi-instance-object.handler';
 import { DataObjectBuilderHandler } from '../handler/data-object-builder.handler';
 import { PageBreakPaginatorService } from '../service/page-break-paginator.service';
+import { DataQualityReport } from '../models/data-quality-report.model';
 
 export class DataContext {
   templateInput: CedarInputTemplate = null;
@@ -15,6 +16,7 @@ export class DataContext {
   instanceExtractData: InstanceExtractData = null;
   instanceFullData: InstanceFullData = null;
   multiInstanceData: MultiInstanceInfo = null;
+  dataQualityReport: DataQualityReport = null;
   savedTemplateID: string;
 
   public constructor() {}
@@ -37,5 +39,6 @@ export class DataContext {
     this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
     this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(this.templateRepresentation);
     this.savedTemplateID = null;
+    this.dataQualityReport = handlerContext.dataQualityReportBuilderService.buildReport(this);
   }
 }
