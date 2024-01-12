@@ -6,12 +6,14 @@ import { FieldComponent } from '../models/component/field-component.model';
 import { DataObjectDataValueHandler } from '../handler/data-object-data-value.handler';
 import { DataObjectStructureHandler } from '../handler/data-object-structure.handler';
 import { MessageHandlerService } from '../service/message-handler.service';
+import { DataQualityReportBuilderHandler } from '../handler/data-quality-report-builder.handler';
 
 export class HandlerContext {
   readonly dataObjectBuilderService: DataObjectBuilderHandler = null;
   readonly multiInstanceObjectService: MultiInstanceObjectHandler = null;
   readonly dataObjectManipulationService: DataObjectStructureHandler = null;
   readonly dataObjectDataValueHandler: DataObjectDataValueHandler = null;
+  readonly dataQualityReportBuilderService: DataQualityReportBuilderHandler;
   readonly dataContext: DataContext = null;
   readonly messageHandlerService: MessageHandlerService = null;
 
@@ -21,6 +23,7 @@ export class HandlerContext {
     this.dataObjectBuilderService.injectMultiInstanceService(this.multiInstanceObjectService);
     this.dataObjectManipulationService = new DataObjectStructureHandler();
     this.dataObjectDataValueHandler = new DataObjectDataValueHandler(messageHandlerService);
+    this.dataQualityReportBuilderService = new DataQualityReportBuilderHandler();
     this.dataContext = dataContext;
     this.messageHandlerService = messageHandlerService;
   }

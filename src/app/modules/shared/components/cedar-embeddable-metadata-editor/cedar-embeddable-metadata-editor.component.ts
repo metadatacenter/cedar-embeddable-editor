@@ -60,6 +60,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   showTemplateSourceData = true;
   showInstanceDataCore = false;
   showInstanceDataFull = true;
+  showDataQualityReport = true;
   showSampleTemplateLinks = false;
   showStaticText = true;
 
@@ -71,11 +72,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   expandedTemplateSourceData = false;
   expandedInstanceDataCore = false;
   expandedInstanceDataFull = false;
+  expandedDataQualityReport = true;
   expandedSampleTemplateLinks = false;
 
   collapseStaticComponents = false;
 
-  static iriPrefix = "https://repo.metadatacenter.org/";
+  static iriPrefix = 'https://repo.metadatacenter.org/';
 
   allExpanded: boolean;
 

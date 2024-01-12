@@ -54,7 +54,8 @@
     },
     "JsonSchemaTemplate": "JSON Schema - Template",
     "TemplateRendering": "Template Rendering Data",
-    "MultiInstance": "Multi-Instance Information"
+    "MultiInstance": "Multi-Instance Information",
+    "DataQualityReport": "Data Quality Report"
   },
   "Validation": {
     "Required": "The value is required.",

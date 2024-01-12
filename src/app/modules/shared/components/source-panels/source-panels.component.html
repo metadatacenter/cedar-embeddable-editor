@@ -1,5 +1,24 @@
 <mat-accordion class="source-accordion" multi>
 
+  <mat-expansion-panel *ngIf="showDataQualityReport" expanded="{{expandedDataQualityReport}}">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <mat-icon>list_alt</mat-icon>
+        {{'Extra.DataQualityReport' | translate}}
+      </mat-panel-title>
+      <mat-panel-description>
+        &nbsp;
+        <mat-icon matRipple [cdkCopyToClipboard]="dataContext.dataQualityReport | json" (click)="stopPropagation($event)" matTooltip="{{'Generic.Copy' | translate}}">content_copy</mat-icon>
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <ng-template matExpansionPanelContent>
+      <mat-card>
+        <pre>{{dataContext.dataQualityReport | json}}</pre>
+      </mat-card>
+    </ng-template>
+  </mat-expansion-panel>
+
   <mat-expansion-panel *ngIf="showInstanceDataCore" expanded="{{expandedInstanceDataCore}}">
     <mat-expansion-panel-header>
       <mat-panel-title>
