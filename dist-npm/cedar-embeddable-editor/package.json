@@ -1,6 +1,6 @@
 {
   "name": "cedar-embeddable-editor",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "scripts": {},
   "description": "Cedar embeddable editor web component",
   "main": "cedar-embeddable-editor.js",
