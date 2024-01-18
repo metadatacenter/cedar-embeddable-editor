@@ -1,5 +1,9 @@
 @use '@angular/material' as mat;
 @use '@angular/material/theming';
+@import "./styles-Material-Icons.scss";
+@import "./styles-Roboto-300";
+@import "./styles-Roboto-400";
+@import "./styles-Roboto-500";
 
 @include mat.core();
 
@@ -115,19 +119,6 @@ $my-theme: mat.define-light-theme((
 
 @include mat.all-component-themes($my-theme);
 @include mat.strong-focus-indicators-theme($my-theme);
-
-@font-face {
-  font-family: 'Material Icons';
-  font-display: block;
-  font-style: normal;
-  font-weight: 400;
-  src: url('/assets/fonts/MaterialIcons-Regular.eot'); /* For IE6-8 */
-  src: local('Material Icons'),
-  local('MaterialIcons-Regular'),
-  url('/assets/fonts/MaterialIcons-Regular.woff2') format('woff2'),
-  url('/assets/fonts/MaterialIcons-Regular.woff') format('woff'),
-  url('/assets/fonts/MaterialIcons-Regular.ttf') format('truetype');
-}
 
 .material-icons {
   font-family: 'Material Icons';
