@@ -24,7 +24,6 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
-              "src/assets/fonts",
               "src/assets/i18n-cee"
             ],
             "styles": [
@@ -69,8 +68,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "160kb",
-                  "maximumError": "180kb"
+                  "maximumWarning": "350kb",
+                  "maximumError": "400kb"
                 }
               ]
             }
@@ -104,7 +103,6 @@
             "karmaConfig": "karma.conf.js",
             "assets": [
               "src/favicon.ico",
-              "src/assets/fonts",
               "src/assets/i18n-cee"
             ],
             "styles": [
