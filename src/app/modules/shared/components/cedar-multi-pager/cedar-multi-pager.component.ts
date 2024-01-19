@@ -78,7 +78,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
           (index + 1) +
           '</span> ';
 
-        if (typeof fieldName === 'string') {
+        if (typeof fieldName === 'string'&& fieldName !== '') {
           infoArray.push(
             numStr + fieldName + '=' + this.shortValue(inputType, parentNodeInfo[fieldName][JsonSchema.atValue]),
           );
@@ -191,12 +191,12 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   }
 
   private computeFirstIndex(): void {
-    this.pageIndex = Math.floor(this.currentMultiInfo.currentIndex / this.pageSize);
+    this.pageIndex = Math.floor(this.currentMultiInfo?.currentIndex / this.pageSize);
     this.firstIndex = this.pageIndex * this.pageSize;
   }
 
   private computeLastIndex(): void {
-    this.length = this.currentMultiInfo.currentCount;
+    this.length = this.currentMultiInfo?.currentCount;
     if (this.length > 0) {
       this.lastIndex = this.firstIndex + this.pageSize - 1;
       if (this.lastIndex > this.length - 1) {

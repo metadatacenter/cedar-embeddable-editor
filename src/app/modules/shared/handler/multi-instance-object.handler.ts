@@ -344,6 +344,6 @@ export class MultiInstanceObjectHandler {
 
   hasMultiInstances(multiComponent: MultiComponent): boolean {
     const multiInstanceObjectInfo: MultiInstanceObjectInfo = this.getMultiInstanceInfoForComponent(multiComponent);
-    return multiInstanceObjectInfo.currentCount > 0;
+    return multiInstanceObjectInfo?.currentCount > 0;
   }
 }
