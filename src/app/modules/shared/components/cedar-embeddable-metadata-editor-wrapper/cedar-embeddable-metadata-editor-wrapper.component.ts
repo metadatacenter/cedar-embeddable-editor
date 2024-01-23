@@ -159,6 +159,11 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         const defaultLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE];
         this.translateService.use(defaultLanguage);
       }
+      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE)) {
+        const defaultLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE];
+        this.translateService.use(defaultLanguage);
+      }
+
     }
   }
 

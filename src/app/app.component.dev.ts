@@ -8,7 +8,7 @@ import { Component, OnInit } from '@angular/core';
 export class AppComponentDev implements OnInit {
   ceeConfig = {
     sampleTemplateLocationPrefix: 'http://localhost:4240/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '71',
+    loadSampleTemplateName: '73',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
@@ -18,15 +18,14 @@ export class AppComponentDev implements OnInit {
     terminologyIntegratedSearchUrl: 'https://terminology.metadatacenter.orgx/bioportal/integrated-search',
     showInstanceDataCore: true,
     expandedInstanceDataCore: false,
-    showMultiInstanceInfo: true,
+    showMultiInstanceInfo: false,
     expandedMultiInstanceInfo: false,
-
     defaultLanguage: 'en',
     fallbackLanguage: 'en',
 
     iriPrefix: 'https://repo.metadatacenter.orgx/',
 
-    // collapseStaticComponents: false,
+    collapseStaticComponents: true,
     // showStaticText: true,
   };
 
