@@ -18,7 +18,7 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   templateCtrl: FormControl = new FormControl();
   templateFilterCtrl: FormControl = new FormControl();
   filteredTemplates: ReplaySubject<object[]> = new ReplaySubject<object[]>(1);
-  loadMetadata = true;
+  loadMetadata = false;
   protected _onDestroy = new Subject<void>();
 
   constructor(public sampleTemplateService: SampleTemplatesService) {}

@@ -31,6 +31,7 @@ export class CedarComponentRendererComponent implements OnInit {
   panelOpenState: boolean;
   @Input() handlerContext: HandlerContext;
   @Input() showStaticText: boolean;
+  @Input() showInstanceDataFull: boolean;
   // tslint:disable-next-line:variable-name
   private _allExpanded = false;
   @Input()
