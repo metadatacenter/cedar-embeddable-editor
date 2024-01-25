@@ -15,7 +15,7 @@ import { MessageHandlerService } from '../../service/message-handler.service';
   encapsulation: ViewEncapsulation.None,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
-  private static INNER_VERSION = '2023-11-20 16:35';
+  private static INNER_VERSION = '2024-01-19 09:45';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
@@ -35,6 +35,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private static EXPANDED_SAMPLE_TEMPLATE_LINKS = 'expandedSampleTemplateLinks';
 
   private static COLLAPSE_STATIC_COMPONENTS = 'collapseStaticComponents';
+  private static SHOW_ALL_MULTI_INSTANCE_VALUES = 'showAllMultiInstanceValues'
 
   private static SHOW_STATIC_TEXT = 'showStaticText';
 
@@ -76,6 +77,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   expandedSampleTemplateLinks = false;
 
   collapseStaticComponents = false;
+  showAllMultiInstanceValues = true;
 
   static iriPrefix = 'https://repo.metadatacenter.org/';
 
@@ -153,6 +155,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.IRI_PREFIX)) {
         CedarEmbeddableMetadataEditorComponent.iriPrefix = value[CedarEmbeddableMetadataEditorComponent.IRI_PREFIX];
+      }
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_ALL_MULTI_INSTANCE_VALUES)) {
+        this.showAllMultiInstanceValues = value[CedarEmbeddableMetadataEditorComponent.SHOW_ALL_MULTI_INSTANCE_VALUES];
       }
     }
   }

@@ -12,6 +12,7 @@ export class AppComponentDev implements OnInit {
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
+    showAllMultiInstanceValues: false,
     showHeader: true,
     showFooter: true,
 
@@ -20,13 +21,12 @@ export class AppComponentDev implements OnInit {
     expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,
     expandedMultiInstanceInfo: false,
-
     defaultLanguage: 'en',
     fallbackLanguage: 'en',
 
     iriPrefix: 'https://repo.metadatacenter.orgx/',
 
-    // collapseStaticComponents: false,
+    collapseStaticComponents: true,
     // showStaticText: true,
   };
 
