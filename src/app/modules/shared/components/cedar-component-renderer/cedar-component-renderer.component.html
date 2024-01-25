@@ -12,7 +12,8 @@
       <app-cedar-multi-pager *ngIf="iterableComponent.isMulti()"
                              [componentToRender]="iterableAsMultiComponent"
                              [handlerContext]="handlerContext"
-                             [isAlignedUp]=true>
+                             [isAlignedUp]=true
+                             [showAllMultiInstanceValues]="showAllMultiInstanceValues">
       </app-cedar-multi-pager>
       <mat-card-content *ngIf="shouldRenderContentOfIterable(iterableComponent)">
         <ng-container *ngIf="iterableComponent.linkedStaticFieldComponent">
@@ -33,6 +34,7 @@
             [handlerContext]="handlerContext"
             [allExpanded]="allExpanded"
             [showStaticText]="showStaticText"
+            [showAllMultiInstanceValues]="showAllMultiInstanceValues"
           ></app-cedar-component-renderer>
         </ng-container>
       </mat-card-content>
@@ -46,8 +48,9 @@
     <app-cedar-multi-pager *ngIf="nonIterableComponent.isMultiPage()"
                            [componentToRender]="nonIterableComponent"
                            [handlerContext]="handlerContext"
-                           [isAlignedUp]=false>
-      ></app-cedar-multi-pager>
+                           [isAlignedUp]=false
+                           [showAllMultiInstanceValues]="showAllMultiInstanceValues">
+      </app-cedar-multi-pager>
     <mat-card-content *ngIf="shouldRenderContentOfNonIterable(nonIterableComponent)">
       <ng-container tabIndex="0" *ngIf="nonIterableComponent.linkedStaticFieldComponent && showStaticText">
         <!-- These are the collapsed static components before fields-->

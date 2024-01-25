@@ -72,7 +72,11 @@ export class ActiveComponentRegistryService {
                 const val = parentDataObject[cloneSourceKey][JsonSchema.atValue];
                 handlerContext.changeAttributeValue(component, null, val);
               }
+            } else if (typeof key === 'string' && key === '') {
+              // if it is an empty string, we silently accept it
+              return;
             }
+            // This next line is actually needed, current index can change
             key = dataObject[multiInstanceInfo.currentIndex];
             const value = parentDataObject[key][JsonSchema.atValue];
             const obj = {};

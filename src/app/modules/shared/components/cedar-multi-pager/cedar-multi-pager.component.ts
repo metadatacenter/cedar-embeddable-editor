@@ -27,6 +27,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   messageHandlerService: MessageHandlerService;
   @Input() handlerContext: HandlerContext;
   @Input() isAlignedUp: boolean;
+  @Input() showAllMultiInstanceValues: boolean;
 
   length = 0;
   pageSize = 5;
@@ -78,11 +79,13 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
           (index + 1) +
           '</span> ';
 
-        if (typeof fieldName === 'string') {
+        if (typeof fieldName === 'string' && fieldName !== '') {
+          // attribute-value type input
           infoArray.push(
             numStr + fieldName + '=' + this.shortValue(inputType, parentNodeInfo[fieldName][JsonSchema.atValue]),
           );
         } else if (typeof fieldName === 'object') {
+          // all other type inputs
           if (Object.hasOwn(fieldName, JsonSchema.atValue)) {
             infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.atValue]) || 'null'));
           } else if (Object.hasOwn(fieldName, JsonSchema.atId) && inputType === InputType.link) {
