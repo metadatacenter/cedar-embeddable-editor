@@ -27,6 +27,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   messageHandlerService: MessageHandlerService;
   @Input() handlerContext: HandlerContext;
   @Input() isAlignedUp: boolean;
+  @Input() showAllMultiInstanceValues: boolean;
 
   length = 0;
   pageSize = 5;
