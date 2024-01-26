@@ -12,7 +12,7 @@ export class AppComponentDev implements OnInit {
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
-    showAllMultiInstanceValues: false,
+    showAllMultiInstanceValues: true,
     showHeader: true,
     showFooter: true,
 
