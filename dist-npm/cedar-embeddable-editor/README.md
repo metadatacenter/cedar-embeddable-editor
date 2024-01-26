@@ -117,16 +117,22 @@ There are other optional configuration parameters available for controlling vari
   "expandedSampleTemplateLinks": true,
 
   "showTemplateRenderingRepresentation": true,
+  "expandedTemplateRenderingRepresentation": false,
+
   "showInstanceDataCore": true,
   "expandedInstanceDataCore": false,
+
   "showMultiInstanceInfo": true,
   "expandedMultiInstanceInfo": false,
 
-  "expandedTemplateRenderingRepresentation": false,
   "showInstanceDataFull": false,
   "expandedInstanceDataFull": false,
+
   "showTemplateSourceData": true,
   "expandedTemplateSourceData": false,
+
+  "showDataQualityReport": false,
+  "expandedDataQualityReport": false,
 
   "showHeader": true,
   "showFooter": true,
@@ -135,8 +141,7 @@ There are other optional configuration parameters available for controlling vari
   "fallbackLanguage": "en",
 
   "collapseStaticComponents": false,
-  "showStaticText": true,
-  "showAllMultiInstanceValues": true
+  "showStaticText": true
 }
 ```
 
@@ -222,6 +227,23 @@ document.addEventListener('WebComponentsReady', function () {
 ```
 
 To reiterate, the metadata being injected **MUST** match the template currently being edited and open in your browser window.
+
+### Data Quality Report
+
+The dataQualityReport summarizes basic metrics on the instance data.
+
+```javascript
+const report = cee.dataQualityReport;
+```
+
+At the moment these three fields are available, with more to come:
+
+```
+requiredFieldValueCount: int
+nonNullRequiredFieldValueCount: int
+isValid: boolean
+```
+
 
 ## Example Applications
 

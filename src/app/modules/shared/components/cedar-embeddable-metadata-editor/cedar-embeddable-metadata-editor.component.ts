@@ -15,13 +15,14 @@ import { MessageHandlerService } from '../../service/message-handler.service';
   encapsulation: ViewEncapsulation.None,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
-  private static INNER_VERSION = '2024-01-26 13:15';
+  private static INNER_VERSION = '2024-01-26 13:35';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
   private static SHOW_TEMPLATE_SOURCE = 'showTemplateSourceData';
   private static SHOW_INSTANCE_CORE = 'showInstanceDataCore';
   private static SHOW_INSTANCE_FULL = 'showInstanceDataFull';
+  private static SHOW_DATA_QUALITY_REPORT = 'showDataQualityReport';
   private static SHOW_SAMPLE_TEMPLATE_LINKS = 'showSampleTemplateLinks';
 
   private static SHOW_HEADER = 'showHeader';
@@ -32,6 +33,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private static EXPANDED_TEMPLATE_SOURCE = 'expandedTemplateSourceData';
   private static EXPANDED_INSTANCE_CORE = 'expandedInstanceDataCore';
   private static EXPANDED_INSTANCE_FULL = 'expandedInstanceDataFull';
+  private static EXPANDED_DATA_QUALITY_REPORT = 'expandedDataQualityReport';
   private static EXPANDED_SAMPLE_TEMPLATE_LINKS = 'expandedSampleTemplateLinks';
 
   private static COLLAPSE_STATIC_COMPONENTS = 'collapseStaticComponents';
@@ -61,7 +63,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   showTemplateSourceData = true;
   showInstanceDataCore = false;
   showInstanceDataFull = true;
-  showDataQualityReport = true;
+  showDataQualityReport = false;
   showSampleTemplateLinks = false;
   showStaticText = true;
 
@@ -73,7 +75,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   expandedTemplateSourceData = false;
   expandedInstanceDataCore = false;
   expandedInstanceDataFull = false;
-  expandedDataQualityReport = true;
+  expandedDataQualityReport = false;
   expandedSampleTemplateLinks = false;
 
   collapseStaticComponents = false;
@@ -119,6 +121,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_FULL)) {
         this.showInstanceDataFull = value[CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_FULL];
       }
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_DATA_QUALITY_REPORT)) {
+        this.showDataQualityReport = value[CedarEmbeddableMetadataEditorComponent.SHOW_DATA_QUALITY_REPORT];
+      }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS)) {
         this.showSampleTemplateLinks = value[CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS];
       }
@@ -143,6 +148,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_FULL)) {
         this.expandedInstanceDataFull = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_FULL];
+      }
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXPANDED_DATA_QUALITY_REPORT)) {
+        this.expandedDataQualityReport = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_DATA_QUALITY_REPORT];
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXPANDED_SAMPLE_TEMPLATE_LINKS)) {
         this.expandedSampleTemplateLinks = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_SAMPLE_TEMPLATE_LINKS];
