@@ -135,7 +135,8 @@ There are other optional configuration parameters available for controlling vari
   "fallbackLanguage": "en",
 
   "collapseStaticComponents": false,
-  "showStaticText": true
+  "showStaticText": true,
+  "showAllMultiInstanceValues": true
 }
 ```
 
