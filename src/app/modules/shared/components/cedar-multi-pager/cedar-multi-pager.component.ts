@@ -10,6 +10,7 @@ import { MultiFieldComponent } from '../../models/field/multi-field-component.mo
 import { InputType } from '../../models/input-type.model';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageHandlerService } from '../../service/message-handler.service';
+import { InstanceExtractData } from '../../models/instance-extract-data.model';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -64,8 +65,8 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     if (!ComponentTypeHandler.isField(this.component)) {
       return '';
     }
-    const parentNodeInfo = this.handlerContext.getParentDataObjectNodeByPath(this.component.path);
-    const nodeInfo = this.handlerContext.getDataObjectNodeByPath(this.component.path);
+    const parentNodeInfo: InstanceExtractData = this.handlerContext.getParentDataObjectNodeByPath(this.component.path);
+    const nodeInfo: InstanceExtractData = this.handlerContext.getDataObjectNodeByPath(this.component.path);
     let info = '';
     const infoArray = [];
     const inputType = (this.component as MultiFieldComponent).basicInfo.inputType;
@@ -225,44 +226,40 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     }
     this.handlerContext.setCurrentIndex(this.component, chipIdx);
     this.recomputeNumbers();
-    const that = this;
     setTimeout(() => {
-      that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
+      this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
     });
   }
 
   clickedAdd(): void {
     this.handlerContext.addMultiInstance(this.component);
     this.recomputeNumbers();
-    const that = this;
     // The component will be null if the count was 0 before
     // We need to wait for it to be available
     setTimeout(() => {
-      that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
+      this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
     });
   }
 
   clickedCopy(): void {
     this.handlerContext.copyMultiInstance(this.component);
     this.recomputeNumbers();
-    const that = this;
     setTimeout(() => {
-      that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
+      this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
     });
   }
 
   clickedDelete(): void {
     this.handlerContext.deleteMultiInstance(this.component);
     this.recomputeNumbers();
-    const that = this;
 
     setTimeout(() => {
-      that.activeComponentRegistry.deleteCurrentValue(that.component);
+      this.activeComponentRegistry.deleteCurrentValue(this.component);
     });
 
     if (this.currentMultiInfo.currentCount > 0) {
       setTimeout(() => {
-        that.activeComponentRegistry.updateViewToModel(that.component, that.handlerContext);
+        this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
       });
     }
   }

@@ -54,7 +54,8 @@
     },
     "JsonSchemaTemplate": "JSON Séma - Sablon",
     "TemplateRendering": "Sablon megjelenítési adatok",
-    "MultiInstance": "Multi-példány információ"
+    "MultiInstance": "Multi-példány információ",
+    "DataQualityReport": "Adatminőségi riport"
   },
   "Validation": {
     "Required": "Az érték megadása kötelező.",

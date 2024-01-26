@@ -15,12 +15,14 @@ export class SourcePanelsComponent implements OnInit {
   @Input() showTemplateSourceData: boolean;
   @Input() showInstanceDataCore: boolean;
   @Input() showInstanceDataFull: boolean;
+  @Input() showDataQualityReport: boolean;
 
   @Input() expandedInstanceDataCore = false;
   @Input() expandedInstanceDataFull = false;
   @Input() expandedTemplateSourceData = false;
   @Input() expandedTemplateRenderingRepresentation = false;
   @Input() expandedMultiInstanceInfo = false;
+  @Input() expandedDataQualityReport: boolean;
 
   constructor() {}
 
