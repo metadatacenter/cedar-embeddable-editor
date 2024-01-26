@@ -1,6 +1,8 @@
 import { MultiInstanceObjectInfo } from './multi-instance-object-info.model';
 
 export class MultiInstanceInfo extends Object {
+  //private clazz: string = 'MultiInstanceInfo';
+
   constructor() {
     super();
   }

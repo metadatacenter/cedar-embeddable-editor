@@ -15,9 +15,6 @@ import { DataObjectUtil } from '../util/data-object-util';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
-import {
-  CedarEmbeddableMetadataEditorComponent
-} from "../components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component";
 
 export class DataObjectBuilderHandler {
   private dataObject: object;
@@ -122,7 +119,7 @@ export class DataObjectBuilderHandler {
     if (path.length === 0) {
       return;
     }
-    const firstPath = path[0];
+    // const firstPath = path[0];
     const remainingPath = path.slice(1);
     if (component instanceof SingleElementComponent) {
       const singleElement: SingleElementComponent = component as SingleElementComponent;
@@ -147,7 +144,7 @@ export class DataObjectBuilderHandler {
     }
   }
 
-  private static addContext(
+  public static addContext(
     component: CedarComponent,
     dataObject: InstanceExtractData,
     templateJsonObj: CedarInputTemplate,
@@ -164,12 +161,13 @@ export class DataObjectBuilderHandler {
       dataObject[JsonSchema.atContext] = p;
     }
   }
-  private static addAtId(
+
+  public static addAtId(
     dataObject: InstanceExtractData,
   ): void {
-    if(!dataObject[JsonSchema.atId]){
+    if (!dataObject[JsonSchema.atId]) {
       const _uuid = DataObjectUtil.generateGUID();
-      const _iri = DataObjectUtil.getIriPrefix() + "/template-element-instances/" + _uuid;
+      const _iri = DataObjectUtil.getIriPrefix() + '/template-element-instances/' + _uuid;
       dataObject[JsonSchema.atId] = _iri;
     }
   }

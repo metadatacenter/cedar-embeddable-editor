@@ -15,7 +15,7 @@ import { MessageHandlerService } from '../../service/message-handler.service';
   encapsulation: ViewEncapsulation.None,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
-  private static INNER_VERSION = '2024-01-19 09:45';
+  private static INNER_VERSION = '2024-01-26 13:15';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
@@ -35,7 +35,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private static EXPANDED_SAMPLE_TEMPLATE_LINKS = 'expandedSampleTemplateLinks';
 
   private static COLLAPSE_STATIC_COMPONENTS = 'collapseStaticComponents';
-  private static SHOW_ALL_MULTI_INSTANCE_VALUES = 'showAllMultiInstanceValues'
+  private static SHOW_ALL_MULTI_INSTANCE_VALUES = 'showAllMultiInstanceValues';
 
   private static SHOW_STATIC_TEXT = 'showStaticText';
 
@@ -61,6 +61,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   showTemplateSourceData = true;
   showInstanceDataCore = false;
   showInstanceDataFull = true;
+  showDataQualityReport = true;
   showSampleTemplateLinks = false;
   showStaticText = true;
 
@@ -72,12 +73,13 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   expandedTemplateSourceData = false;
   expandedInstanceDataCore = false;
   expandedInstanceDataFull = false;
+  expandedDataQualityReport = true;
   expandedSampleTemplateLinks = false;
 
   collapseStaticComponents = false;
   showAllMultiInstanceValues = true;
 
-  static iriPrefix = "https://repo.metadatacenter.org/";
+  static iriPrefix = 'https://repo.metadatacenter.org/';
 
   allExpanded: boolean;
 
@@ -203,6 +205,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         dataContext.templateRepresentation,
         instanceExtractData,
       );
+
+      this.handlerContext.buildQualityReport();
 
       if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
         setTimeout(() => {

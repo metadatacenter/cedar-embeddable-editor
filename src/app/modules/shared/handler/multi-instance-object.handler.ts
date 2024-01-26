@@ -182,8 +182,6 @@ export class MultiInstanceObjectHandler {
   }
 
   private deleteAttributeValueFields(instanceExtractData: InstanceExtractData, depth: number): void {
-    // console.log('deleteAttributeValueFields.depth' + depth);
-    // console.log(instanceExtractData);
     for (const key in instanceExtractData) {
       if (Array.isArray(instanceExtractData[key]) && instanceExtractData[key].length > 0) {
         if (typeof instanceExtractData[key][0] === JavascriptTypes.string) {
@@ -232,11 +230,11 @@ export class MultiInstanceObjectHandler {
       if (child instanceof MultiFieldComponent) {
         count = (child as MultiComponent).multiInfo.minItems;
         currentIndex = count > 0 ? 0 : -1;
-        delete multiInfo.children;
+        /// delete multiInfo.children;
       } else if (child instanceof SingleFieldComponent) {
         count = 1;
         currentIndex = -1;
-        delete multiInfo.children;
+        /// delete multiInfo.children;
       } else if (child instanceof MultiElementComponent) {
         count = (child as MultiComponent).multiInfo.minItems;
         currentIndex = count > 0 ? 0 : -1;

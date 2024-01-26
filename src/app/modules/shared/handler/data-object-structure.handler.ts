@@ -22,7 +22,7 @@ export class DataObjectStructureHandler {
     path: string[],
     multiInstanceObjectService: MultiInstanceObjectHandler,
     depth = 0,
-  ): object {
+  ): InstanceExtractData {
     if (path.length === 0) {
       return dataObject;
     } else {
@@ -72,7 +72,7 @@ export class DataObjectStructureHandler {
     component: CedarComponent,
     path: string[],
     multiInstanceObjectService: MultiInstanceObjectHandler,
-  ): object {
+  ): InstanceExtractData {
     if (path.length === 0) {
       return parentDataObject;
     } else {
