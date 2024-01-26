@@ -7,6 +7,7 @@ import { DataObjectDataValueHandler } from '../handler/data-object-data-value.ha
 import { DataObjectStructureHandler } from '../handler/data-object-structure.handler';
 import { MessageHandlerService } from '../service/message-handler.service';
 import { DataQualityReportBuilderHandler } from '../handler/data-quality-report-builder.handler';
+import { InstanceExtractData } from '../models/instance-extract-data.model';
 
 export class HandlerContext {
   readonly dataObjectBuilderService: DataObjectBuilderHandler = null;
@@ -36,6 +37,7 @@ export class HandlerContext {
       this.messageHandlerService,
     );
     this.multiInstanceObjectService.multiInstanceItemAdd(component);
+    this.buildQualityReport();
   }
 
   copyMultiInstance(component: MultiComponent): void {
@@ -52,6 +54,7 @@ export class HandlerContext {
       );
       this.multiInstanceObjectService.multiInstanceItemCopy(component);
     }
+    this.buildQualityReport();
   }
 
   deleteMultiInstance(component: MultiComponent): void {
@@ -61,9 +64,10 @@ export class HandlerContext {
       this.multiInstanceObjectService,
     );
     this.multiInstanceObjectService.multiInstanceItemDelete(component);
+    this.buildQualityReport();
   }
 
-  getDataObjectNodeByPath(path: string[]): object {
+  getDataObjectNodeByPath(path: string[]): InstanceExtractData {
     return this.dataObjectManipulationService.getDataPathNodeRecursively(
       this.dataContext.instanceExtractData,
       this.dataContext.templateRepresentation,
@@ -72,7 +76,7 @@ export class HandlerContext {
     );
   }
 
-  getParentDataObjectNodeByPath(path: string[]): object {
+  getParentDataObjectNodeByPath(path: string[]): InstanceExtractData {
     return this.dataObjectManipulationService.getParentDataPathNodeRecursively(
       this.dataContext.instanceExtractData,
       null,
@@ -88,6 +92,7 @@ export class HandlerContext {
 
   changeValue(component: FieldComponent, value: string): void {
     this.dataObjectDataValueHandler.changeValue(this.dataContext, component, this.multiInstanceObjectService, value);
+    this.buildQualityReport();
   }
 
   changeListValue(component: FieldComponent, value: string[]): void {
@@ -97,6 +102,7 @@ export class HandlerContext {
       this.multiInstanceObjectService,
       value,
     );
+    this.buildQualityReport();
   }
 
   changeAttributeValue(component: FieldComponent, key: string, value: string): void {
@@ -107,6 +113,7 @@ export class HandlerContext {
       key,
       value,
     );
+    this.buildQualityReport();
   }
 
   deleteAttributeValue(component: FieldComponent, key: string): void {
@@ -116,6 +123,7 @@ export class HandlerContext {
       this.multiInstanceObjectService,
       key,
     );
+    this.buildQualityReport();
   }
 
   changeControlledValue(component: FieldComponent, atId: string, prefLabel: string): void {
@@ -126,5 +134,10 @@ export class HandlerContext {
       atId,
       prefLabel,
     );
+    this.buildQualityReport();
+  }
+
+  buildQualityReport() {
+    this.dataContext.dataQualityReport = this.dataQualityReportBuilderService.buildReport(this.dataContext, this);
   }
 }

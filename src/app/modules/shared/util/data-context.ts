@@ -39,6 +39,6 @@ export class DataContext {
     this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
     this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(this.templateRepresentation);
     this.savedTemplateID = null;
-    this.dataQualityReport = handlerContext.dataQualityReportBuilderService.buildReport(this);
+    handlerContext.buildQualityReport();
   }
 }
