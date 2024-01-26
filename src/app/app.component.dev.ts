@@ -13,6 +13,7 @@ export class AppComponentDev implements OnInit {
     expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
     showAllMultiInstanceValues: true,
+    showDataQualityReport: true,
     showHeader: true,
     showFooter: true,
 
@@ -21,6 +22,7 @@ export class AppComponentDev implements OnInit {
     expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,
     expandedMultiInstanceInfo: false,
+    expandedDataQualityReport: false,
     defaultLanguage: 'en',
     fallbackLanguage: 'en',
 

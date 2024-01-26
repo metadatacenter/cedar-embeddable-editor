@@ -91,6 +91,13 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     }
   }
 
+  @Input() get dataQualityReport(): object {
+    if (this.handlerContext) {
+      return JSON.parse(JSON.stringify(this.handlerContext.dataContext.dataQualityReport));
+    }
+    return {};
+  }
+
   // TODO: revisit if this method is needed. The CEE should be agnostic of the environment, should expect the config to be injected
   @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
     const that = this;
