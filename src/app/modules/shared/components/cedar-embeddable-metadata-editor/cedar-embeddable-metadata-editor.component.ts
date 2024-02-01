@@ -49,6 +49,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static FALLBACK_LANGUAGE = 'fallbackLanguage';
   static DEFAULT_LANGUAGE = 'defaultLanguage';
 
+  static READ_ONLY_MODE = 'readOnlyMode';
+
   private static IRI_PREFIX = 'iriPrefix';
 
   dataContext: DataContext = null;
@@ -80,6 +82,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   collapseStaticComponents = false;
   showAllMultiInstanceValues = true;
+  readOnlyMode = false;
 
   static iriPrefix = 'https://repo.metadatacenter.org/';
 

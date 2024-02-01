@@ -23,6 +23,7 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
   constraintMaxValue = null;
   patternErrorMessage = null;
   @Input() handlerContext: HandlerContext;
+  readOnlyMode;
 
   constructor(
     fb: FormBuilder,
@@ -103,6 +104,9 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
 
     if (this.constraintMaxValue != null) {
       validators.push(Validators.max(this.constraintMaxValue));
+    }
+    if(this.handlerContext && this.handlerContext.readOnlyMode){
+      this.readOnlyMode = this.handlerContext.readOnlyMode;
     }
     this.inputValueControl = new FormControl(null, validators);
   }

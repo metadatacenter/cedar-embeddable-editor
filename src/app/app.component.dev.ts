@@ -12,7 +12,7 @@ export class AppComponentDev implements OnInit {
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
-    showAllMultiInstanceValues: true,
+    showAllMultiInstanceValues: false,
     showDataQualityReport: true,
     showHeader: true,
     showFooter: true,
@@ -30,6 +30,7 @@ export class AppComponentDev implements OnInit {
 
     collapseStaticComponents: true,
     // showStaticText: true,
+    readOnlyMode: true,
   };
 
   languages = {

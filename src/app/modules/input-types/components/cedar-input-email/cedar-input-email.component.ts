@@ -25,6 +25,7 @@ export class CedarInputEmailComponent extends CedarUIComponent implements OnInit
   inputValueControl = new FormControl(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
+  readOnlyMode;
 
   constructor(
     fb: FormBuilder,
@@ -48,6 +49,9 @@ export class CedarInputEmailComponent extends CedarUIComponent implements OnInit
     this.inputValueControl = new FormControl(null, validators);
     if (this.component.valueInfo.defaultValue != null) {
       this.setValueUIAndModel(this.component.valueInfo.defaultValue);
+    }
+    if(this.handlerContext && this.handlerContext.readOnlyMode){
+      this.readOnlyMode = this.handlerContext.readOnlyMode;
     }
   }
 

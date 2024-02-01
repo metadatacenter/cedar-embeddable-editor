@@ -24,6 +24,8 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
   selectedChoiceInputControl = new FormControl(null, null);
   errorStateMatcher = new MultipleChoiceErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
+  readOnlyMode;
+  selected;
 
   constructor(
     fb: FormBuilder,
@@ -42,6 +44,10 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
       validators.push(Validators.required);
     }
     this.selectedChoiceInputControl = new FormControl(null, validators);
+
+    if(this.handlerContext && this.handlerContext.readOnlyMode){
+      this.readOnlyMode = this.handlerContext.readOnlyMode;
+    }
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -50,6 +56,10 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
   }
 
   inputChanged(event): void {
+    if(this.readOnlyMode){
+      console.log("Changed", this.selectedChoiceInputControl);
+      return;
+    }
     this.handlerContext.changeValue(this.component, event.value);
   }
 
@@ -70,6 +80,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
     for (const choice of this.component.choiceInfo.choices) {
       if (choice.selectedByDefault) {
         this.handlerContext.changeValue(this.component, choice.label);
+        this.selected = choice.label;
         return;
       }
     }
