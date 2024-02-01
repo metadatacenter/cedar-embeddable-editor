@@ -32,6 +32,7 @@ export class CedarComponentRendererComponent implements OnInit {
   @Input() handlerContext: HandlerContext;
   @Input() showStaticText: boolean;
   @Input() showAllMultiInstanceValues: boolean;
+  @Input() readOnlyMode: boolean;
   // tslint:disable-next-line:variable-name
   private _allExpanded = false;
   @Input()

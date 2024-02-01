@@ -166,6 +166,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         const defaultLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE];
         this.translateService.use(defaultLanguage);
       }
+      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
+        const mode = this.innerConfig[CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE];
+        this.handlerContext.setReadOnlyMode(mode);
+      }
     }
   }
 
