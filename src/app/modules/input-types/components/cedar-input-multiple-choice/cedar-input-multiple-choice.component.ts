@@ -57,7 +57,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
 
   inputChanged(event): void {
     if(this.readOnlyMode){
-      console.log("Changed", this.selectedChoiceInputControl);
+      this.selectedChoiceInputControl.setValue(this.selected);
       return;
     }
     this.handlerContext.changeValue(this.component, event.value);
@@ -74,6 +74,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
 
   setCurrentValue(currentValue: any): void {
     this.selectedChoiceInputControl.setValue(currentValue);
+    this.selected = currentValue;
   }
 
   private populateItemsOnLoad(): void {
