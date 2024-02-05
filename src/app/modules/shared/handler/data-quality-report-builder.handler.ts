@@ -151,6 +151,9 @@ export class DataQualityReportBuilderHandler {
   }
 
   private static extractPlainValue(dataObject: object, component: SingleFieldComponent | MultiFieldComponent) {
+    if (dataObject == undefined || dataObject == null) {
+      return null;
+    }
     if (Object.hasOwn(dataObject, JsonSchema.atValue)) {
       return dataObject[JsonSchema.atValue];
     } else if (Object.hasOwn(dataObject, JsonSchema.atId) && component.basicInfo.inputType === InputType.link) {
