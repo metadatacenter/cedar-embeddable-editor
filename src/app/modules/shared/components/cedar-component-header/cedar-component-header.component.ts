@@ -25,6 +25,10 @@ export class CedarComponentHeaderComponent implements OnInit {
     this.component = componentToRender;
     if (ComponentTypeHandler.isMulti(componentToRender)) {
       this.multiComponent = componentToRender as MultiComponent;
+      const _multiToFieldComp = this.multiComponent as FieldComponent;
+      if(_multiToFieldComp.valueInfo.requiredValue){
+        this.shouldRenderRequiredMark = true;
+      }
     } else {
       this.multiComponent = null;
     }
