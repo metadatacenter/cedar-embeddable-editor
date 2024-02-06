@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.15] - 2024-02-05
+
+### Added
+- Added naive throttling prevention to the `/integrated-search` calls (random delay < 2000 ms)
+
+### Fixed
+- Fixed null reference in Data Quality Report builder
+
+## [1.0.14] - 2024-01-26
+
+### Added
+
+- Data Quality Report feature.
+
 ## [1.0.13] - 2024-01-25
 
 ### Added
