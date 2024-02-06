@@ -148,18 +148,26 @@ export class DataQualityReportBuilderHandler {
   }
 
   private static extractPlainValue(dataObject: object, component: SingleFieldComponent | MultiFieldComponent) {
-    if (dataObject == undefined) {
+    if (dataObject == undefined || dataObject == null) {
       return null;
     }
     if (Object.hasOwn(dataObject, JsonSchema.atValue)) {
-      return dataObject[JsonSchema.atValue];
+      return this.emptyToNull(dataObject[JsonSchema.atValue]);
     } else if (Object.hasOwn(dataObject, JsonSchema.atId) && component.basicInfo.inputType === InputType.link) {
       // url field single
-      return dataObject[JsonSchema.atId];
+      return this.emptyToNull(dataObject[JsonSchema.atId]);
     } else if (Object.hasOwn(dataObject, JsonSchema.atId)) {
       // controlled field single
-      return dataObject[JsonSchema.rdfsLabel];
+      return this.emptyToNull(dataObject[JsonSchema.rdfsLabel]);
     }
     return null;
+  }
+
+  private static emptyToNull(value: any) {
+    if (value === '') {
+      return null;
+    } else {
+      return value;
+    }
   }
 }
