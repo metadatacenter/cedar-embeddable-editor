@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed null reference in Data Quality Report builder
+- Fixed required symbol for multi instance fields
 
 ## [1.0.14] - 2024-01-26
 
