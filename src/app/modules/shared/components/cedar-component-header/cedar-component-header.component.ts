@@ -5,6 +5,7 @@ import { MultiComponent } from '../../models/component/multi-component.model';
 import { ComponentTypeHandler } from '../../handler/component-type.handler';
 import { SingleFieldComponent } from '../../models/field/single-field-component.model';
 import { FieldComponent } from '../../models/component/field-component.model';
+import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
 
 @Component({
   selector: 'app-cedar-component-header',
@@ -25,9 +26,11 @@ export class CedarComponentHeaderComponent implements OnInit {
     this.component = componentToRender;
     if (ComponentTypeHandler.isMulti(componentToRender)) {
       this.multiComponent = componentToRender as MultiComponent;
-      const _multiToFieldComp = this.multiComponent as FieldComponent;
-      if(_multiToFieldComp.valueInfo.requiredValue){
-        this.shouldRenderRequiredMark = true;
+      if (this.multiComponent instanceof MultiFieldComponent) {
+        const _multiToFieldComp = this.multiComponent as MultiFieldComponent;
+        if (_multiToFieldComp.valueInfo.requiredValue) {
+          this.shouldRenderRequiredMark = true;
+        }
       }
     } else {
       this.multiComponent = null;
