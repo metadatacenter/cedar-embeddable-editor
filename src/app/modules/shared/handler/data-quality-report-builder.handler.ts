@@ -106,16 +106,13 @@ export class DataQualityReportBuilderHandler {
       }
       const dataValueObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       if (component instanceof MultiFieldComponent) {
-        const multiField: MultiFieldComponent = component as MultiFieldComponent;
         valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyList();
-        if (multiField.multiInfo.minItems > 0) {
-          const multiCount = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount;
-          for (let idx = 0; idx < multiCount; idx++) {
-            const value = DataQualityReportBuilderHandler.extractPlainValue(dataValueObject[idx], component);
-            valueTree[targetName]['values'].push(
-              DataQualityReportBuilderHandler.getEmptyValueWrapper(value, isRequired, report),
-            );
-          }
+        const multiCount = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount;
+        for (let idx = 0; idx < multiCount; idx++) {
+          const value = DataQualityReportBuilderHandler.extractPlainValue(dataValueObject[idx], component);
+          valueTree[targetName]['values'].push(
+            DataQualityReportBuilderHandler.getEmptyValueWrapper(value, isRequired, report),
+          );
         }
       } else {
         const value = DataQualityReportBuilderHandler.extractPlainValue(dataValueObject, component);
@@ -151,7 +148,7 @@ export class DataQualityReportBuilderHandler {
   }
 
   private static extractPlainValue(dataObject: object, component: SingleFieldComponent | MultiFieldComponent) {
-    if (dataObject == undefined || dataObject == null) {
+    if (dataObject == undefined) {
       return null;
     }
     if (Object.hasOwn(dataObject, JsonSchema.atValue)) {
@@ -163,5 +160,6 @@ export class DataQualityReportBuilderHandler {
       // controlled field single
       return dataObject[JsonSchema.rdfsLabel];
     }
+    return null;
   }
 }
