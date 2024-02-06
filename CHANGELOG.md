@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added naive throttling prevention to the `/integrated-search` calls (random delay < 2000 ms)
+- Added validation error message for links
 
 ### Fixed
 - Fixed null reference in Data Quality Report builder
