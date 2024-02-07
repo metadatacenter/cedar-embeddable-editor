@@ -14,6 +14,7 @@ import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode
 import { TemplateComponent } from '../models/template/template-component.model';
 import { DataObjectUtil } from '../util/data-object-util';
 import { MessageHandlerService } from '../service/message-handler.service';
+import { JsonSchema } from '../models/json-schema.model';
 
 export class DataObjectStructureHandler {
   public getDataPathNodeRecursively(
@@ -226,7 +227,11 @@ export class DataObjectStructureHandler {
     );
     const currentNodeArray = currentNodeAny as [];
     const sourceItem = currentNodeArray[multiInstanceInfo.currentIndex];
-    const cloneItem = _.cloneDeep(sourceItem as any);
+    const cloneItem = _.cloneDeep(sourceItem);
+    if (Object.hasOwn(cloneItem, JsonSchema.atId)) {
+      delete cloneItem[JsonSchema.atId];
+      DataObjectBuilderHandler.addRandomAtId(cloneItem);
+    }
     currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, cloneItem as never);
   }
 
