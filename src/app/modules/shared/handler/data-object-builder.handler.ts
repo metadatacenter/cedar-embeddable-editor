@@ -70,9 +70,7 @@ export class DataObjectBuilderHandler {
           }
         }
         if (component instanceof MultiElementComponent) {
-          console.log('PATH of multi:', component.path);
-          console.log(dataObject[targetName]);
-          dataObject[targetName].forEach((child, index) => {
+          dataObject[targetName].forEach((child) => {
             DataObjectBuilderHandler.addRandomAtId(child);
           });
         }
