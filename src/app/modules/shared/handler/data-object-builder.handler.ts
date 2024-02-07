@@ -44,8 +44,8 @@ export class DataObjectBuilderHandler {
       DataObjectBuilderHandler.addContext(component, dataObject, templateJsonObj, buildingMode);
       // A UUID need to be assigned inorder to model to validate. This UUIDs should be overwritten by backend later.
       // This a temporary fix until the model validates @id:null and the older artifacts are patched.
-      DataObjectBuilderHandler.addAtId(dataObject);
     }
+
     if (
       component instanceof SingleElementComponent ||
       component instanceof MultiElementComponent ||
@@ -53,7 +53,9 @@ export class DataObjectBuilderHandler {
     ) {
       const iterableComponent: ElementComponent = component as ElementComponent;
       const targetName = iterableComponent.name;
+
       if (component instanceof MultiElementComponent) {
+        // MultiElement
         const multiElement: MultiElementComponent = component as MultiElementComponent;
         dataObject[targetName] = DataObjectUtil.getEmptyList();
         if (multiElement.multiInfo.minItems > 0) {
@@ -67,19 +69,33 @@ export class DataObjectBuilderHandler {
             dataObject[targetName].push(clone);
           }
         }
+        if (component instanceof MultiElementComponent) {
+          console.log('PATH of multi:', component.path);
+          console.log(dataObject[targetName]);
+          dataObject[targetName].forEach((child, index) => {
+            DataObjectBuilderHandler.addRandomAtId(child);
+          });
+        }
       } else {
+        // Single Element || Template
         dataObject[targetName] = DataObjectUtil.getEmptyObject();
         const subTemplate = DataObjectUtil.getSafeSubTemplate(templateJsonObj, targetName);
         for (const childComponent of iterableComponent.children) {
           DataObjectBuilderHandler.buildRecursively(childComponent, dataObject[targetName], subTemplate, buildingMode);
         }
+        if (component instanceof SingleElementComponent) {
+          console.log('PATH of singe:', component.path);
+          DataObjectBuilderHandler.addRandomAtId(dataObject[targetName]);
+        }
       }
+
       ret = dataObject[targetName];
     }
     if (component instanceof SingleFieldComponent || component instanceof MultiFieldComponent) {
       const nonIterableComponent = component as FieldComponent;
       const targetName = nonIterableComponent.name;
       if (component instanceof MultiFieldComponent) {
+        // MultiFieldComponent
         const multiField: MultiFieldComponent = component as MultiFieldComponent;
         dataObject[targetName] = DataObjectUtil.getEmptyList();
         if (multiField.multiInfo.minItems > 0) {
@@ -98,6 +114,7 @@ export class DataObjectBuilderHandler {
           }
         }
       } else {
+        // SingleFieldComponent
         const subTemplate = DataObjectUtil.getSafeSubTemplate(templateJsonObj, targetName);
         dataObject[targetName] = DataObjectUtil.getEmptyValueWrapper(subTemplate, buildingMode);
         if (component?.choiceInfo?.choices?.length > 0) {
@@ -162,13 +179,11 @@ export class DataObjectBuilderHandler {
     }
   }
 
-  public static addAtId(
-    dataObject: InstanceExtractData,
-  ): void {
-    if (!dataObject[JsonSchema.atId]) {
-      const _uuid = DataObjectUtil.generateGUID();
-      const _iri = DataObjectUtil.getIriPrefix() + '/template-element-instances/' + _uuid;
-      dataObject[JsonSchema.atId] = _iri;
+  public static addRandomAtId(dataObject: InstanceExtractData): void {
+    if (!Object.hasOwn(dataObject, JsonSchema.atId)) {
+      const uuid = DataObjectUtil.generateGUID();
+      const iri = DataObjectUtil.getIriPrefix() + 'template-element-instances/' + uuid;
+      dataObject[JsonSchema.atId] = iri;
     }
   }
 
