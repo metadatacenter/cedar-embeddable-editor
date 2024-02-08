@@ -16,6 +16,10 @@ export class MessageHandlerService {
     console.log('CEE TRACE: ' + label);
   }
 
+  traceGroup(group: string, label: string): void {
+    console.log('CEE TRACE: ' + group + ' : ' + label);
+  }
+
   traceObject(label: string, value: object): void {
     console.log('CEE TRACE: ' + label);
     console.log(value);

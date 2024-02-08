@@ -33,6 +33,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   readonly dataContext: DataContext = null;
   readonly handlerContext: HandlerContext = null;
 
+  private defaultLanguage = GlobalSettingsContextService.DEFAULT_LANGUAGE;
+  private fallbackLanguage = GlobalSettingsContextService.DEFAULT_LANGUAGE;
+
   @ViewChild(CedarEmbeddableMetadataEditorComponent) editorComponent: CedarEmbeddableMetadataEditorComponent;
 
   constructor(
@@ -160,13 +163,24 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         this.globalSettingsContextService.languageMapPathPrefix = languageMapPathPrefix;
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE)) {
-        const fallbackLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE];
-        this.translateService.setDefaultLang(fallbackLanguage);
+        this.fallbackLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE];
+      } else {
+        this.messagingService.traceGroup(
+          'language',
+          '"fallbackLanguage" not set, using default: "' + this.fallbackLanguage + '"',
+        );
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE)) {
-        const defaultLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE];
-        this.translateService.use(defaultLanguage);
+        this.defaultLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE];
+      } else {
+        this.messagingService.traceGroup(
+          'language',
+          '"defaultLanguage" not set, using default: "' + this.defaultLanguage + '"',
+        );
       }
+
+      this.translateService.setDefaultLang(this.fallbackLanguage);
+      this.translateService.use(this.defaultLanguage);
     }
   }
 
