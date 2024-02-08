@@ -17,6 +17,7 @@ However, there was a new feature introduced in 1.0.14 - the data quality report.
 ### Changed
 - Better language map related logging
 - If no external or internal language map can be found based on the config, still use the built-in `en` map
+- Allow uppercase in domain names of Link components
 
 ## [1.0.16] - 2024-02-07
 
