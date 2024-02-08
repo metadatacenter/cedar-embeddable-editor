@@ -82,7 +82,6 @@ export class DataObjectBuilderHandler {
           DataObjectBuilderHandler.buildRecursively(childComponent, dataObject[targetName], subTemplate, buildingMode);
         }
         if (component instanceof SingleElementComponent) {
-          console.log('PATH of singe:', component.path);
           DataObjectBuilderHandler.addRandomAtId(dataObject[targetName]);
         }
       }
@@ -179,10 +178,13 @@ export class DataObjectBuilderHandler {
 
   public static addRandomAtId(dataObject: InstanceExtractData): void {
     if (!Object.hasOwn(dataObject, JsonSchema.atId)) {
-      const uuid = DataObjectUtil.generateGUID();
-      const iri = DataObjectUtil.getIriPrefix() + 'template-element-instances/' + uuid;
+      const iri = DataObjectBuilderHandler.getTemplateElementInstanceIRIPrefix() + DataObjectUtil.generateGUID();
       dataObject[JsonSchema.atId] = iri;
     }
+  }
+
+  public static getTemplateElementInstanceIRIPrefix(): string {
+    return DataObjectUtil.getIriPrefix() + 'template-element-instances/';
   }
 
   injectMultiInstanceService(multiInstanceObjectService: MultiInstanceObjectHandler): void {

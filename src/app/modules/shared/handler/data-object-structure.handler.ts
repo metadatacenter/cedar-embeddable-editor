@@ -228,10 +228,8 @@ export class DataObjectStructureHandler {
     const currentNodeArray = currentNodeAny as [];
     const sourceItem = currentNodeArray[multiInstanceInfo.currentIndex];
     const cloneItem = _.cloneDeep(sourceItem);
-    if (Object.hasOwn(cloneItem, JsonSchema.atId)) {
-      delete cloneItem[JsonSchema.atId];
-      DataObjectBuilderHandler.addRandomAtId(cloneItem);
-    }
+    // TODO: Refactor this
+    this.cleanUpAtIdsRecursively(cloneItem);
     currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, cloneItem as never);
   }
 
@@ -276,5 +274,25 @@ export class DataObjectStructureHandler {
     );
     const currentNodeArray = currentNodeAny as [];
     currentNodeArray.splice(multiInstanceInfo.currentIndex, 1);
+  }
+
+  // TODO: refactor this. This is a naive approach.
+  // Implement this as a recursive iterator taking into account the component, the multi-info, the template, and the data object
+  private cleanUpAtIdsRecursively(item: object) {
+    if (Object.hasOwn(item, JsonSchema.atId)) {
+      const atIdValue = item[JsonSchema.atId];
+      if (atIdValue.startsWith(DataObjectBuilderHandler.getTemplateElementInstanceIRIPrefix())) {
+        delete item[JsonSchema.atId];
+        DataObjectBuilderHandler.addRandomAtId(item);
+      }
+    }
+    if (item instanceof Object) {
+      for (const key in item) {
+        const child = item[key];
+        if (child instanceof Object) {
+          this.cleanUpAtIdsRecursively(child);
+        }
+      }
+    }
   }
 }
