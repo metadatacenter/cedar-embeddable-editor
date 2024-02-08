@@ -24,6 +24,7 @@ export class AppComponentDev implements OnInit {
     showMultiInstanceInfo: true,
     expandedMultiInstanceInfo: false,
     expandedDataQualityReport: false,
+    languageMapPathPrefix: '/assets/i18n-cee/',
     defaultLanguage: 'en',
     fallbackLanguage: 'en',
 
