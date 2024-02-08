@@ -10,6 +10,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { DataContext } from '../../util/data-context';
 import { HttpStatusCode } from '@angular/common/http';
+import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -41,13 +42,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private activeComponentRegistry: ActiveComponentRegistryService,
     private translateService: TranslateService,
     private messagingService: MessageHandlerService,
+    private globalSettingsContextService: GlobalSettingsContextService,
   ) {
     this.sampleTemplateLoaderObject = this;
-
-    const fallbackLanguage = 'en';
-    const defaultLanguage = 'en';
-    this.translateService.setDefaultLang(fallbackLanguage);
-    this.translateService.use(defaultLanguage);
 
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext, this.messagingService);
@@ -158,6 +155,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         this.showSpinnerBeforeInit = this.innerConfig[CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT];
       }
 
+      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX)) {
+        const languageMapPathPrefix = this.innerConfig[CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX];
+        this.globalSettingsContextService.languageMapPathPrefix = languageMapPathPrefix;
+      }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE)) {
         const fallbackLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE];
         this.translateService.setDefaultLang(fallbackLanguage);
