@@ -106,16 +106,13 @@ export class DataQualityReportBuilderHandler {
       }
       const dataValueObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       if (component instanceof MultiFieldComponent) {
-        const multiField: MultiFieldComponent = component as MultiFieldComponent;
         valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyList();
-        if (multiField.multiInfo.minItems > 0) {
-          const multiCount = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount;
-          for (let idx = 0; idx < multiCount; idx++) {
-            const value = DataQualityReportBuilderHandler.extractPlainValue(dataValueObject[idx], component);
-            valueTree[targetName]['values'].push(
-              DataQualityReportBuilderHandler.getEmptyValueWrapper(value, isRequired, report),
-            );
-          }
+        const multiCount = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount;
+        for (let idx = 0; idx < multiCount; idx++) {
+          const value = DataQualityReportBuilderHandler.extractPlainValue(dataValueObject[idx], component);
+          valueTree[targetName]['values'].push(
+            DataQualityReportBuilderHandler.getEmptyValueWrapper(value, isRequired, report),
+          );
         }
       } else {
         const value = DataQualityReportBuilderHandler.extractPlainValue(dataValueObject, component);
@@ -151,14 +148,26 @@ export class DataQualityReportBuilderHandler {
   }
 
   private static extractPlainValue(dataObject: object, component: SingleFieldComponent | MultiFieldComponent) {
+    if (dataObject == undefined || dataObject == null) {
+      return null;
+    }
     if (Object.hasOwn(dataObject, JsonSchema.atValue)) {
-      return dataObject[JsonSchema.atValue];
+      return this.emptyToNull(dataObject[JsonSchema.atValue]);
     } else if (Object.hasOwn(dataObject, JsonSchema.atId) && component.basicInfo.inputType === InputType.link) {
       // url field single
-      return dataObject[JsonSchema.atId];
+      return this.emptyToNull(dataObject[JsonSchema.atId]);
     } else if (Object.hasOwn(dataObject, JsonSchema.atId)) {
       // controlled field single
-      return dataObject[JsonSchema.rdfsLabel];
+      return this.emptyToNull(dataObject[JsonSchema.rdfsLabel]);
+    }
+    return null;
+  }
+
+  private static emptyToNull(value: any) {
+    if (value === '') {
+      return null;
+    } else {
+      return value;
     }
   }
 }

@@ -18,11 +18,13 @@ export class AppComponentDev implements OnInit {
     showFooter: true,
 
     terminologyIntegratedSearchUrl: 'https://terminology.metadatacenter.orgx/bioportal/integrated-search',
+    expandedInstanceDataFull: false,
     showInstanceDataCore: true,
     expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,
     expandedMultiInstanceInfo: false,
     expandedDataQualityReport: false,
+    languageMapPathPrefix: '/assets/i18n-cee/',
     defaultLanguage: 'en',
     fallbackLanguage: 'en',
 

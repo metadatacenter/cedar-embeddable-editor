@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.17] - 2024-02-08
+
+### Fixed
+- Load built-in `en` language map, if nothing is specified in the config
+
+### Changed
+- Better language map related logging
+- If no external or internal language map can be found based on the config, still use the built-in `en` map
+
+## [1.0.16] - 2024-02-07
+
+### Added
+- Language map loading configuration option `languageMapPathPrefix` + docs
+
+### Fixed
+- Data Quality Report in case of mandatory fields with 0..n cardinality
+- Fixed bug regarding required value of multi-instance fields
+
+## [1.0.15] - 2024-02-05
+
+### Added
+- Added naive throttling prevention to the `/integrated-search` calls (random delay < 2000 ms)
+- Added validation error message for links
+
+### Fixed
+- Fixed null reference in Data Quality Report builder
+- Fixed required symbol for multi instance fields
+
+## [1.0.14] - 2024-01-26
+
+### Added
+
+- Data Quality Report feature.
+
 ## [1.0.13] - 2024-01-25
 
 ### Added
