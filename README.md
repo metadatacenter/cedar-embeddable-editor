@@ -137,6 +137,7 @@ There are other optional configuration parameters available for controlling vari
   "showHeader": true,
   "showFooter": true,
 
+  "languageMapPathPrefix": null,
   "defaultLanguage": "en",
   "fallbackLanguage": "en",
 
@@ -243,6 +244,44 @@ requiredFieldValueCount: int
 nonNullRequiredFieldValueCount: int
 isValid: boolean
 ```
+
+### Language Maps / Translations
+
+The application currently has two built-in language maps: `en` and `hu`. If you do not specify any language-related config option, the default `English` map will be used.
+
+If you wish to change the language to another built-in one (currently the only other language is `Hungarian`), specify the config like below:
+
+```json
+{
+  "defaultLanguage": "hu",
+  "fallbackLanguage": "en"
+}
+```
+
+You can use external language maps as well. In order to do this, specify a relative path to a folder containing the language file. The file should be named `x.json`, and should have the identical structure of the language map found in the source of the application:
+
+https://github.com/metadatacenter/cedar-embeddable-editor/blob/main/src/assets/i18n-cee/en.json
+
+In order to use an external language file, specify the config as follows:
+
+```json
+{
+  "languageMapPathPrefix": "/assets/i18n-cee/",
+  "defaultLanguage": "de",
+  "fallbackLanguage": "en"
+}
+```
+
+In the example above we want to use a `German` language file, which is located in the specified directory. Starting the path with `/` makes the path absolute. 
+
+In our case the `/assets/i18n-cee/de.json` will be loaded if present.
+
+If the file is missing, the `/assets/i18n-cee/en.json` will be used.
+
+If that file is also missing, the built-in `de` map would be the next. As this does not exist at this moment, the last option, the built-in `en` map will be used.
+
+Information about the loading process is logged onto the console with the `CEE TRACE` prefix. 
+
 
 
 ## Example Applications

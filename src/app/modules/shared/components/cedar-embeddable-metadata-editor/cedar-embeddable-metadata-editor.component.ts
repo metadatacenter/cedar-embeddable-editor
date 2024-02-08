@@ -48,6 +48,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   static FALLBACK_LANGUAGE = 'fallbackLanguage';
   static DEFAULT_LANGUAGE = 'defaultLanguage';
+  static LANGUAGE_MAP_PATH_PREFIX = 'languageMapPathPrefix';
 
   private static IRI_PREFIX = 'iriPrefix';
 
