@@ -12,6 +12,7 @@ import * as fallbackMapEN from '../assets/i18n-cee/en.json';
 import * as fallbackMapHU from '../assets/i18n-cee/hu.json';
 import { MessageHandlerService } from './modules/shared/service/message-handler.service';
 import { FallbackTranslateLoaderFactory } from './modules/shared/util/fallback-translate-loader-factory';
+import { GlobalSettingsContextService } from './modules/shared/service/global-settings-context.service';
 
 @NgModule({
   declarations: [AppComponentDev],
@@ -23,12 +24,16 @@ import { FallbackTranslateLoaderFactory } from './modules/shared/util/fallback-t
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: (http: HttpClient, messageHandlerService: MessageHandlerService) =>
-          FallbackTranslateLoaderFactory(http, messageHandlerService, {
+        useFactory: (
+          http: HttpClient,
+          messageHandlerService: MessageHandlerService,
+          globalSettingsContextService: GlobalSettingsContextService,
+        ) =>
+          FallbackTranslateLoaderFactory(http, messageHandlerService, globalSettingsContextService, {
             en: fallbackMapEN,
             hu: fallbackMapHU,
           }),
-        deps: [HttpClient, MessageHandlerService],
+        deps: [HttpClient, MessageHandlerService, GlobalSettingsContextService],
       },
     }),
   ],

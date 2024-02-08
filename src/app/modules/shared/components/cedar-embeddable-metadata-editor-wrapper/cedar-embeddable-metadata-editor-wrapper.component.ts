@@ -10,6 +10,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { DataContext } from '../../util/data-context';
 import { HttpStatusCode } from '@angular/common/http';
+import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -32,6 +33,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   readonly dataContext: DataContext = null;
   readonly handlerContext: HandlerContext = null;
 
+  private defaultLanguage = GlobalSettingsContextService.DEFAULT_LANGUAGE;
+  private fallbackLanguage = GlobalSettingsContextService.DEFAULT_LANGUAGE;
+
   @ViewChild(CedarEmbeddableMetadataEditorComponent) editorComponent: CedarEmbeddableMetadataEditorComponent;
 
   constructor(
@@ -41,13 +45,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private activeComponentRegistry: ActiveComponentRegistryService,
     private translateService: TranslateService,
     private messagingService: MessageHandlerService,
+    private globalSettingsContextService: GlobalSettingsContextService,
   ) {
     this.sampleTemplateLoaderObject = this;
-
-    const fallbackLanguage = 'en';
-    const defaultLanguage = 'en';
-    this.translateService.setDefaultLang(fallbackLanguage);
-    this.translateService.use(defaultLanguage);
 
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext, this.messagingService);
@@ -158,18 +158,32 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         this.showSpinnerBeforeInit = this.innerConfig[CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT];
       }
 
+      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX)) {
+        const languageMapPathPrefix = this.innerConfig[CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX];
+        this.globalSettingsContextService.languageMapPathPrefix = languageMapPathPrefix;
+      }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE)) {
-        const fallbackLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE];
-        this.translateService.setDefaultLang(fallbackLanguage);
+        this.fallbackLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE];
+      } else {
+        this.messagingService.traceGroup(
+          'language',
+          '"fallbackLanguage" not set, using default: "' + this.fallbackLanguage + '"',
+        );
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE)) {
-        const defaultLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE];
-        this.translateService.use(defaultLanguage);
+        this.defaultLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE];
+      } else {
+        this.messagingService.traceGroup(
+          'language',
+          '"defaultLanguage" not set, using default: "' + this.defaultLanguage + '"',
+        );
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
         const mode = this.innerConfig[CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE];
         this.handlerContext.setReadOnlyMode(mode);
       }
+      this.translateService.setDefaultLang(this.fallbackLanguage);
+      this.translateService.use(this.defaultLanguage);
     }
   }
 
