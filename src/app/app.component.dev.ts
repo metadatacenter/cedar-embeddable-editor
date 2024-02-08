@@ -18,6 +18,7 @@ export class AppComponentDev implements OnInit {
     showFooter: true,
 
     terminologyIntegratedSearchUrl: 'https://terminology.metadatacenter.orgx/bioportal/integrated-search',
+    expandedInstanceDataFull: false,
     showInstanceDataCore: true,
     expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,
