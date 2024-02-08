@@ -42,8 +42,6 @@ export class DataObjectBuilderHandler {
     let ret = null;
     if (templateJsonObj != null) {
       DataObjectBuilderHandler.addContext(component, dataObject, templateJsonObj, buildingMode);
-      // A UUID need to be assigned inorder to model to validate. This UUIDs should be overwritten by backend later.
-      // This a temporary fix until the model validates @id:null and the older artifacts are patched.
     }
 
     if (
