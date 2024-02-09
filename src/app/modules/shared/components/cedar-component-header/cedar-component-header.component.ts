@@ -17,6 +17,7 @@ export class CedarComponentHeaderComponent implements OnInit {
   component: CedarComponent;
   multiComponent: MultiComponent;
   shouldRenderRequiredMark = false;
+  @Input() readOnlyMode;
 
   constructor(public cds: ComponentDataService) {}
 

@@ -29,6 +29,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   @Input() handlerContext: HandlerContext;
   @Input() isAlignedUp: boolean;
   @Input() showAllMultiInstanceValues: boolean;
+  readOnlyMode;
 
   length = 0;
   pageSize = 5;
@@ -54,6 +55,9 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   }
 
   ngOnInit(): void {
+    if (this.handlerContext && this.handlerContext.readOnlyMode) {
+      this.readOnlyMode = this.handlerContext.readOnlyMode;
+    }
     this.recomputeNumbers();
   }
 
