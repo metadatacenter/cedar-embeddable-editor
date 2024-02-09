@@ -9,7 +9,7 @@
       >{{pageNumber + 1}}</mat-chip>
     </mat-chip-list>
   </div>
-  <div>
+  <div *ngIf="!readOnlyMode">
     <button mat-icon-button tabindex="0" [disabled]="!isEnabledAdd()" (click)="clickedAdd()" aria-label="Add empty after current">
       <mat-icon [tabIndex]="-1" matTooltip="{{'Multi.AddEmptyAfter' | translate}}">note_add</mat-icon>
     </button>

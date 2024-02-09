@@ -1,19 +1,29 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
 <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
-    <mat-select #inputSelect
+    <ng-container *ngIf="readOnlyMode">
+      <input matInput type="text"
+             [formControl]="inputValueControl"
+             [errorStateMatcher]="errorStateMatcher"
+             readonly
+             attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
+    </ng-container>
+    <mat-select *ngIf="!readOnlyMode"
+                #inputSelect
                 [formControl]="inputValueControl"
                 [errorStateMatcher]="errorStateMatcher"
                 multiple="{{component.choiceInfo.multipleChoice}}"
                 (selectionChange)="inputChanged()"
-                [aria-label]=cds.getRenderingLabelForComponent(component)>
+                [aria-label]=cds.getRenderingLabelForComponent(component)
+                readonly=true>
       <mat-option *ngFor="let option of dropdownList" [value]="option.id"
         >{{option.label}}</mat-option>
-      </mat-select>
-      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue($event)">
-        <mat-icon>close</mat-icon>
-      </button>
-      <mat-error tabindex="0" *ngIf="inputValueControl.hasError('required')" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
-      <mat-hint *ngIf=maxSelections!==undefined>{{'Validation.Select.MaxSelection' | translate: {maxSelections} }}</mat-hint>
+    </mat-select>
+    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue($event)">
+       <mat-icon>close</mat-icon>
+    </button>
+    <mat-error tabindex="0" *ngIf="inputValueControl.hasError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
+    <mat-hint *ngIf="maxSelections!==undefined && !readOnlyMode">{{'Validation.Select.MaxSelection' | translate: {maxSelections} }}</mat-hint>
   </mat-form-field>
 </form>
+

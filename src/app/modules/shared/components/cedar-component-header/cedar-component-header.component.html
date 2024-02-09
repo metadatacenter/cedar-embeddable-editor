@@ -3,7 +3,7 @@
   <span *ngIf="shouldRenderRequiredMark">
     <sup style="font-size: medium; color: red" aria-label="required"><b>*</b></sup>
   </span>
-  <span class="flex-child" *ngIf="component.isMultiPage()">
+  <span class="flex-child" *ngIf="component.isMultiPage() && !readOnlyMode">
     &nbsp;({{multiComponent.multiInfo.getSafeMinItems()}}
      ..
     <span *ngIf="multiComponent.multiInfo.maxItems">
