@@ -11,6 +11,9 @@ This version contains only fixes and non-breaking changes related to the languag
 
 However, there was a new feature introduced in 1.0.14 - the data quality report. Because of this, we are changing the minor version number.
 
+### Added
+- `CustomEvent` with `type`:`'change'` is emitted when a multi instance operation is performed (add, copy, delete)
+
 ### Fixed
 - Load built-in `en` language map if nothing is specified in the config
 

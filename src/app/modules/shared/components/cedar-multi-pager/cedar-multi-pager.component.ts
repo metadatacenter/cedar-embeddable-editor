@@ -1,4 +1,4 @@
-import { Component, DoCheck, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, DoCheck, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { MultiComponent } from '../../models/component/multi-component.model';
 import { PageEvent } from '@angular/material/paginator';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
@@ -231,30 +231,33 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     });
   }
 
-  clickedAdd(): void {
+  clickedAdd(event: MouseEvent): void {
     this.handlerContext.addMultiInstance(this.component);
     this.recomputeNumbers();
     // The component will be null if the count was 0 before
     // We need to wait for it to be available
     setTimeout(() => {
       this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
+      this.emitEvent(event, 'multiInstanceAdded');
     });
   }
 
-  clickedCopy(): void {
+  clickedCopy(event: MouseEvent): void {
     this.handlerContext.copyMultiInstance(this.component);
     this.recomputeNumbers();
     setTimeout(() => {
       this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
+      this.emitEvent(event, 'multiInstanceCopied');
     });
   }
 
-  clickedDelete(): void {
+  clickedDelete(event: MouseEvent): void {
     this.handlerContext.deleteMultiInstance(this.component);
     this.recomputeNumbers();
 
     setTimeout(() => {
       this.activeComponentRegistry.deleteCurrentValue(this.component);
+      this.emitEvent(event, 'multiInstanceDeleted');
     });
 
     if (this.currentMultiInfo.currentCount > 0) {
@@ -302,5 +305,14 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
 
   getInstanceCount(): number {
     return this.currentMultiInfo.currentCount;
+  }
+
+  private emitEvent(event: MouseEvent, message: string) {
+    const myEvent = new CustomEvent('change', {
+      detail: { message: message },
+      bubbles: true,
+      cancelable: true,
+    });
+    event.target.dispatchEvent(myEvent);
   }
 }
