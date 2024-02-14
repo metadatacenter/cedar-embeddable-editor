@@ -1,6 +1,6 @@
-<div *ngIf="component && currentMultiInfo" [ngClass]="isAlignedUp? 'aligned-up' : 'pager-container'">
+<div *ngIf="component && currentMultiInfo" [ngClass]="shouldAlignUp() ? 'aligned-up' : 'pager-container'">
   <div class="pager-chips">
-    <mat-chip-list tabIndex="0" aria-label="Allows multi values.">
+    <mat-chip-list *ngIf="getInstanceCount()>1" tabIndex="0" aria-label="Allows multi values.">
       <mat-chip selectable="false" disabled="true" *ngIf="!hasMultiInstances()" aria-label="No values yet">{{'Multi.NoInstancesYet' | translate}}</mat-chip>
       <mat-chip *ngFor="let pageNumber of pageNumbers"
                 [selected]="pageNumber == currentMultiInfo.currentIndex"

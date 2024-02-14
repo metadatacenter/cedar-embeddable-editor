@@ -28,6 +28,7 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   required: boolean;
 
   @Input() handlerContext: HandlerContext;
+  readOnlyMode;
 
   constructor(
     fb: FormBuilder,
@@ -39,7 +40,11 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
     this.timePickerTime = this.getDefaultTime();
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (this.handlerContext && this.handlerContext.readOnlyMode) {
+      this.readOnlyMode = this.handlerContext.readOnlyMode;
+    }
+  }
 
   ngAfterViewInit(): void {
     this.cdr.detectChanges();

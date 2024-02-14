@@ -15,6 +15,8 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
   component: FieldComponent;
   options: FormGroup;
   @Input() handlerContext: HandlerContext;
+  checkedChoices: string[];
+  readOnlyMode;
 
   constructor(
     fb: FormBuilder,
@@ -32,6 +34,10 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
       const fc = new FormControl();
       this.options.addControl(this.getFormControlName(choice.label), fc);
     }
+
+    if (this.handlerContext && this.handlerContext.readOnlyMode) {
+      this.readOnlyMode = this.handlerContext.readOnlyMode;
+    }
     this.populateValuesOnLoad();
   }
 
@@ -41,11 +47,21 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
   }
 
   inputChanged(event): void {
+    // If readOnly -> revert the change
+    if (this.readOnlyMode) {
+      const name = event.target.value;
+      const val = this.options.get(this.getFormControlName(name)).value;
+      this.options.get(this.getFormControlName(name)).setValue(!val);
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     this.setInput(event.target.checked, event.target.value);
   }
 
   setCurrentValue(currentValue: any): void {
     const arrVal = currentValue as Array<string>;
+    this.checkedChoices = arrVal;
 
     for (const choice of this.component.choiceInfo.choices) {
       if (arrVal.indexOf(choice.label) >= 0) {
@@ -96,6 +112,7 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
     const sortingArr = this.component.choiceInfo.choices.map((a) => a.label);
     formArray.value.sort((a, b) => sortingArr.indexOf(a) - sortingArr.indexOf(b));
 
+    this.checkedChoices = formArray.value;
     this.handlerContext.changeListValue(this.component, formArray.value);
   }
 }

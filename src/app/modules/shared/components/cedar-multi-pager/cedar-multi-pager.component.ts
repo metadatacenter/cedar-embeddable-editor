@@ -254,6 +254,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   }
 
   clickedDelete(): void {
+    console.log('Clicked');
     this.handlerContext.deleteMultiInstance(this.component);
     this.recomputeNumbers();
 
@@ -306,5 +307,13 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
 
   getInstanceCount(): number {
     return this.currentMultiInfo.currentCount;
+  }
+  shouldAlignUp(): boolean {
+    if (this.isAlignedUp) {
+      if (this.readOnlyMode && this.getInstanceCount() === 1) {
+        this.isAlignedUp = false;
+      }
+    }
+    return this.isAlignedUp;
   }
 }
