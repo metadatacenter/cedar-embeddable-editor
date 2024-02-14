@@ -4,7 +4,6 @@
     <ng-container *ngIf="readOnlyMode">
       <input matInput type="text"
              [formControl]="inputValueControl"
-             [errorStateMatcher]="errorStateMatcher"
              readonly
              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
     </ng-container>
