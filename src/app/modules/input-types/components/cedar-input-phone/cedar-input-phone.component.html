@@ -5,11 +5,12 @@
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
            (input)="inputChanged($event)"
+           [readonly]="readOnlyMode"
            attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
-    <button type="button" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
+    <button type="button" mat-button *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
-    <mat-error *ngIf="inputValueControl.getError('required')" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
+    <mat-error *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
   </mat-form-field>
 </form>
 

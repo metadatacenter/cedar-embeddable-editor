@@ -13,8 +13,6 @@
         <mat-icon>close</mat-icon>
       </button>
     </mat-radio-group>
-    <ng-container *ngIf="!readOnlyMode">
-      <mat-error *ngIf="selectedChoiceInputControl.getError('required')" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
-    </ng-container>
+    <mat-error *ngIf="selectedChoiceInputControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
   </mat-form-field>
 </form>

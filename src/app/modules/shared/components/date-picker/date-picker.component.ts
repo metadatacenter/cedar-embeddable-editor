@@ -40,6 +40,7 @@ export class DatePickerComponent implements OnInit {
   @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
   @Input() required: boolean;
   @Output() dateChangedEvent = new EventEmitter<Moment>();
+  @Input() readOnlyMode;
 
   public constructor(private _dateTimeService: DateTimeService) {}
 

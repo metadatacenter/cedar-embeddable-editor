@@ -45,7 +45,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
     }
     this.selectedChoiceInputControl = new FormControl(null, validators);
 
-    if(this.handlerContext && this.handlerContext.readOnlyMode){
+    if (this.handlerContext && this.handlerContext.readOnlyMode) {
       this.readOnlyMode = this.handlerContext.readOnlyMode;
     }
   }
@@ -56,7 +56,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
   }
 
   inputChanged(event): void {
-    if(this.readOnlyMode){
+    if (this.readOnlyMode) {
       this.selectedChoiceInputControl.setValue(this.selected);
       return;
     }
