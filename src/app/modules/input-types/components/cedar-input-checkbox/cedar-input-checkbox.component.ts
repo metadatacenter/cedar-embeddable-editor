@@ -15,7 +15,6 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
   component: FieldComponent;
   options: FormGroup;
   @Input() handlerContext: HandlerContext;
-  checkedChoices: string[];
   readOnlyMode;
 
   constructor(
@@ -61,7 +60,6 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
 
   setCurrentValue(currentValue: any): void {
     const arrVal = currentValue as Array<string>;
-    this.checkedChoices = arrVal;
 
     for (const choice of this.component.choiceInfo.choices) {
       if (arrVal.indexOf(choice.label) >= 0) {
@@ -111,8 +109,6 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
     // Keep the values in the original sort order
     const sortingArr = this.component.choiceInfo.choices.map((a) => a.label);
     formArray.value.sort((a, b) => sortingArr.indexOf(a) - sortingArr.indexOf(b));
-
-    this.checkedChoices = formArray.value;
     this.handlerContext.changeListValue(this.component, formArray.value);
   }
 }

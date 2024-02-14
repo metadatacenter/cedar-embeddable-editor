@@ -307,14 +307,4 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   getInstanceCount(): number {
     return this.currentMultiInfo.currentCount;
   }
-  shouldAlignUp(): boolean {
-    console.log('Outer align', this.isAlignedUp, this.getInstanceCount());
-    if (this.isAlignedUp) {
-      if (this.readOnlyMode && this.getInstanceCount() === 1) {
-        this.isAlignedUp = false;
-      }
-    }
-    console.log('Set aligned status', this.isAlignedUp);
-    return this.isAlignedUp;
-  }
 }
