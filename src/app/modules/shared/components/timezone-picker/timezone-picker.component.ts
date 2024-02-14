@@ -95,7 +95,6 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() virtualScroll = true;
   @Input() disabled = false;
   readOnlyTimezoneControl = new FormControl(null, null);
-  rdTZ;
   @Input() readOnlyMode;
 
   @Input() set config(conf: SelectConfig) {
@@ -123,11 +122,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   private propagateChange: (_: any) => {};
   private destroy$ = new Subject<void>();
 
-  constructor(private fb: FormBuilder) {
-    this.rdTZ = fb.group({
-      inputValue: this.readOnlyTimezoneControl,
-    });
-  }
+  constructor(private fb: FormBuilder) {}
 
   static guessedUserZone(): TZone {
     const guessedZone = momentZone.tz.guess(true);
