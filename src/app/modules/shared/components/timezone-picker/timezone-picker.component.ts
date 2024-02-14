@@ -161,7 +161,6 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private guessUserTimezone(): void {
-    // const fc: FormControl = this.form.get('timezone');
     setTimeout(() => {
       if (this.getUserZone) {
         const guessedZone = TimezonePickerComponent.guessedUserZone();
