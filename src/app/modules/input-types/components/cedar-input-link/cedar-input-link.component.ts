@@ -41,7 +41,7 @@ export class CedarInputLinkComponent extends CedarUIComponent implements OnInit 
   ngOnInit(): void {
     const validators: any[] = [];
 
-    const reg = '(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})[/\\w .-]*/?';
+    const reg = /(https?:\/\/)([\da-z.-]+)\.([a-z.]{2,6})[/\w .-]*\/?/i;
     validators.push(Validators.pattern(reg));
 
     if (this.component.valueInfo.requiredValue) {
