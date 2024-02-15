@@ -282,7 +282,28 @@ If that file is also missing, the built-in `de` map would be the next. As this d
 
 Information about the loading process is logged onto the console with the `CEE TRACE` prefix. 
 
+### Listening for changes
 
+If you need to listen to data changes inside the embeddable editor, you can use the existing `change` DOM events. We added custom events in case of a multi-instance add, copy and delete operations, so you can listen to all the events on the instance.
+
+An example in Angular is:
+
+- `component.html`:
+```html
+<cedar-embeddable-editor
+  [config]="conf"
+  [templateObject]="template"
+  [instanceObject]="instance"
+  (change)="logChange($event)"
+></cedar-embeddable-editor>
+```
+
+- `component.ts`:
+```typescript
+  logChange(event) {
+    console.log('CHANGE', event);
+  }
+```
 
 ## Example Applications
 
