@@ -8,6 +8,9 @@
                                       [componentToRender]="iterableComponent"
                                       [readOnlyMode]="readOnlyMode"
           ></app-cedar-component-header>
+          <app-cedar-component-linked-static-field-header *ngIf="iterableComponent.linkedStaticFieldComponent"
+                                      [componentToRender]="iterableComponent.linkedStaticFieldComponent"
+          ></app-cedar-component-linked-static-field-header>
         </mat-panel-title>
       </mat-expansion-panel-header>
       <app-cedar-multi-pager *ngIf="iterableComponent.isMulti()"
