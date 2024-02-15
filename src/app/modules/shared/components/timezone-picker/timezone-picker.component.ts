@@ -10,7 +10,7 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import * as momentZone from 'moment-timezone';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -94,6 +94,8 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() clearable = false;
   @Input() virtualScroll = true;
   @Input() disabled = false;
+  readOnlyTimezoneControl = new FormControl(null, null);
+  @Input() readOnlyMode;
 
   @Input() set config(conf: SelectConfig) {
     this._config = conf;
@@ -181,7 +183,12 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
    */
   private fireChanges(): void {
     if (this.propagateChange) {
-      this.propagateChange(this.form.get('timezone').value);
+      const { value } = this.form.get('timezone');
+      if (this.readOnlyMode) {
+        this.readOnlyTimezoneControl.setValue(value?.label);
+      } else {
+        this.propagateChange(value);
+      }
     }
   }
 

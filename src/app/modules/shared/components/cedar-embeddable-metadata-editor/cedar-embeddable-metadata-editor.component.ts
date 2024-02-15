@@ -49,6 +49,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static FALLBACK_LANGUAGE = 'fallbackLanguage';
   static DEFAULT_LANGUAGE = 'defaultLanguage';
   static LANGUAGE_MAP_PATH_PREFIX = 'languageMapPathPrefix';
+  static SHOW_TEMPLATE_DESCRIPTION: string = 'showTemplateDescription';
+
+  static READ_ONLY_MODE = 'readOnlyMode';
 
   private static IRI_PREFIX = 'iriPrefix';
 
@@ -81,6 +84,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   collapseStaticComponents = false;
   showAllMultiInstanceValues = true;
+  showTemplateDescription: boolean = false;
+  readOnlyMode = false;
 
   static iriPrefix = 'https://repo.metadatacenter.org/';
 
@@ -168,6 +173,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_ALL_MULTI_INSTANCE_VALUES)) {
         this.showAllMultiInstanceValues = value[CedarEmbeddableMetadataEditorComponent.SHOW_ALL_MULTI_INSTANCE_VALUES];
       }
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_DESCRIPTION)) {
+        this.showTemplateDescription = value[CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_DESCRIPTION];
+      }
     }
   }
 
@@ -225,5 +233,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         });
       }
     }
+  }
+  launchMetadataCenter() {
+    window.open('https://metadatacenter.org/', '_blank');
   }
 }

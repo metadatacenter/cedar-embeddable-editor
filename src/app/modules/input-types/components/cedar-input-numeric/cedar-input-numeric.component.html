@@ -4,12 +4,13 @@
     <input matInput type="number" placeholder="{{'Generic.NumberOnly' | translate}}"
            [formControl]="inputValueControl"
            (input)="inputChanged($event)"
+           [readonly]="readOnlyMode"
            attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
     <span matSuffix>{{unitOfMeasure}}</span>
-    <mat-error *ngIf="inputValueControl.getError('min')" class="mat-error align-start">{{'Validation.Numeric.MinValue' | translate: {constraintMinValue} }}</mat-error>
-    <mat-error *ngIf="inputValueControl.getError('max')" class="mat-error align-start">{{'Validation.Numeric.MaxValue' | translate: {constraintMaxValue} }}</mat-error>
-    <mat-error *ngIf="inputValueControl.getError('pattern')" class="mat-error align-start">{{patternErrorMessage}}.</mat-error>
-    <mat-error *ngIf="inputValueControl.getError('required')" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
-    <mat-hint class="align-end">{{getMinMaxValueHint()}}</mat-hint>
+    <mat-error *ngIf="inputValueControl.getError('min') && !readOnlyMode" class="mat-error align-start">{{'Validation.Numeric.MinValue' | translate: {constraintMinValue} }}</mat-error>
+    <mat-error *ngIf="inputValueControl.getError('max') && !readOnlyMode" class="mat-error align-start">{{'Validation.Numeric.MaxValue' | translate: {constraintMaxValue} }}</mat-error>
+    <mat-error *ngIf="inputValueControl.getError('pattern') && !readOnlyMode" class="mat-error align-start">{{patternErrorMessage}}.</mat-error>
+    <mat-error *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
+    <mat-hint *ngIf="!readOnlyMode" class="align-end">{{getMinMaxValueHint()}}</mat-hint>
   </mat-form-field>
 </form>

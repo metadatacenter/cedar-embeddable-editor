@@ -245,6 +245,15 @@ body.cee-body {
   margin-top: -20px;
 }
 
+.pager-container-ro {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: right;
+  align-items: center;
+  margin-right: 10px;
+  margin-top: 10px;
+}
+
 .pager-chips {
   margin-right: 20px;
 }

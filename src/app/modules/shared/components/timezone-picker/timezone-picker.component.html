@@ -1,16 +1,24 @@
 <div class="wrapper" [formGroup]="form">
-  <ng-select [formControlName]="'timezone'"
-             [items]="timeZones"
-             [clearable]="clearable"
-             [virtualScroll]="virtualScroll"
-             bindLabel="label"
-             [placeholder]="customPlaceholderText"
-             [notFoundText]="customNotFoundText"
-             [appearance]="config.appearance"
-             [appendTo]="config.appendTo"
-             [clearOnBackspace]="config.clearOnBackspace"
-             [closeOnSelect]="config.closeOnSelect"
-             [dropdownPosition]="config.dropdownPosition"
-             [hideSelected]="config.hideSelected">
-  </ng-select>
+  <ng-container *ngIf="readOnlyMode">
+    <input matInput type="text"
+           [formControl]="readOnlyTimezoneControl"
+           readonly>
+<!--           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">-->
+  </ng-container>
+  <ng-container *ngIf="!readOnlyMode">
+    <ng-select [formControlName]="'timezone'"
+               [items]="timeZones"
+               [clearable]="clearable"
+               [virtualScroll]="virtualScroll"
+               bindLabel="label"
+               [placeholder]="customPlaceholderText"
+               [notFoundText]="customNotFoundText"
+               [appearance]="config.appearance"
+               [appendTo]="config.appendTo"
+               [clearOnBackspace]="config.clearOnBackspace"
+               [closeOnSelect]="config.closeOnSelect"
+               [dropdownPosition]="config.dropdownPosition"
+               [hideSelected]="config.hideSelected">
+    </ng-select>
+  </ng-container>
 </div>

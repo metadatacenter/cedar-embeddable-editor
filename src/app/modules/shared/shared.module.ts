@@ -37,6 +37,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { CedarComponentLinkedStaticFieldHeaderComponent } from './components/cedar-component-linked-static-field-header/cedar-component-linked-static-field-header.component';
 
 @NgModule({
   imports: [
@@ -72,6 +73,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
   declarations: [
     RdfPipe,
     CedarComponentHeaderComponent,
+    CedarComponentLinkedStaticFieldHeaderComponent,
     CedarEmbeddableMetadataEditorComponent,
     CedarEmbeddableMetadataEditorWrapperComponent,
     SampleTemplatesComponent,
