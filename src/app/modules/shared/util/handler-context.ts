@@ -18,6 +18,8 @@ export class HandlerContext {
   readonly dataContext: DataContext = null;
   readonly messageHandlerService: MessageHandlerService = null;
 
+  readOnlyMode: boolean = false;
+
   public constructor(dataContext: DataContext, messageHandlerService: MessageHandlerService) {
     this.dataObjectBuilderService = new DataObjectBuilderHandler();
     this.multiInstanceObjectService = new MultiInstanceObjectHandler();
@@ -139,5 +141,9 @@ export class HandlerContext {
 
   buildQualityReport() {
     this.dataContext.dataQualityReport = this.dataQualityReportBuilderService.buildReport(this.dataContext, this);
+  }
+
+  setReadOnlyMode(mode) {
+    this.readOnlyMode = mode;
   }
 }

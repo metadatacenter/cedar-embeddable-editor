@@ -34,6 +34,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
   model: IntegratedSearchResponseItem = null;
+  readOnlyMode;
 
   filteredOptions: Observable<IntegratedSearchResponseItem[]>;
 
@@ -67,6 +68,10 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
         this.component.valueInfo.defaultValue ? this.component.valueInfo.defaultValue[JsonSchema.termUri] : null,
         this.component.valueInfo.defaultValue ? this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] : null,
       );
+    }
+
+    if (this.handlerContext && this.handlerContext.readOnlyMode) {
+      this.readOnlyMode = this.handlerContext.readOnlyMode;
     }
 
     this.filteredOptions = this.inputValueControl.valueChanges.pipe(

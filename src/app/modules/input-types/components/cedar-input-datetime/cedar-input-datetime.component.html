@@ -3,9 +3,15 @@
                  (dateChangedEvent)="dateInputChanged($event)"
                  [dateMonthYear]="dateMonthYearControl"
                  [required]="required"
+                 [readOnlyMode]="readOnlyMode"
                  xmlns="http://www.w3.org/1999/html"></app-date-picker>
 <ng-container *ngIf="showTimePicker()">
-  <div>
+  <div *ngIf="readOnlyMode">
+    <input matInput type="text"
+           [(ngModel)]="timePickerTime"
+           readonly>
+  </div>
+  <div *ngIf="!readOnlyMode">
 <!--    <mat-label>Select Time</mat-label>-->
     <ngx-mat-timepicker
       (ngModelChange)="timeInputChanged($event)"
@@ -27,7 +33,8 @@
            name="decimalSeconds"
            placeholder="{{'Generic.DecimalSeconds' | translate}}"
            matTooltip="{{'Generic.DecimalSeconds' | translate}}"
-           attr.aria-label="{{'Generic.SelectDecimalSeconds' | translate}}">
+           attr.aria-label="{{'Generic.SelectDecimalSeconds' | translate}}"
+          [readonly]="readOnlyMode">
   </mat-form-field>
 </ng-container>
 <ng-container *ngIf="showTimezonePicker()">
@@ -38,6 +45,7 @@
     customNotFoundText="{{'Generic.NoTimeZoneFound' | translate}}"
     [getUserZone]="setDefaultZone"
     [clearable]="false"
+    [readOnlyMode]="readOnlyMode"
   ></app-timezone-picker>
 </ng-container>
 <!--<p class="info-box">-->
