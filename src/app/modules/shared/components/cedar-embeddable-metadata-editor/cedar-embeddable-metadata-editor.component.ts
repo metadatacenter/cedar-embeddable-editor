@@ -234,4 +234,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
     }
   }
+  launchMetadataCenter() {
+    window.open('https://metadatacenter.org/', '_blank');
+  }
 }
