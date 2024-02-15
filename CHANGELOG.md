@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2024-02-14
+
+### Added
+- Viewer mode
+- Configuration option to display template description
+
+### Changed
+- Name of liked static fields are rendered
+- Better accessibility support
+
 ## [1.1.0] - 2024-02-08
 
 This version contains only fixes and non-breaking changes related to the language map handling for the UI.
