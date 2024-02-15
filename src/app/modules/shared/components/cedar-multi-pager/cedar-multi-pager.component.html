@@ -1,4 +1,5 @@
-<div *ngIf="component && currentMultiInfo" [ngClass]="isAlignedUp && !(getInstanceCount()===1 && readOnlyMode )? 'aligned-up' : 'pager-container'">
+<div *ngIf="component && currentMultiInfo" [ngClass]="(isAlignedUp && readOnlyMode && getInstanceCount()>1 ||
+  (isAlignedUp && !readOnlyMode)) ? 'aligned-up' : readOnlyMode ? 'page-container-ro' : 'pager-container' ">
   <div class="pager-chips">
     <mat-chip-list *ngIf="getInstanceCount()>1" tabIndex="0" aria-label="Allows multi values.">
       <mat-chip selectable="false" disabled="true" *ngIf="!hasMultiInstances()" aria-label="No values yet">{{'Multi.NoInstancesYet' | translate}}</mat-chip>
