@@ -17,6 +17,7 @@ export class CedarInputAttributeValueComponent extends CedarUIComponent implemen
   nameInputControl = new FormControl(null, null);
   valueInputControl = new FormControl(null, null);
   @Input() handlerContext: HandlerContext;
+  readOnlyMode;
 
   constructor(
     fb: FormBuilder,
@@ -29,7 +30,11 @@ export class CedarInputAttributeValueComponent extends CedarUIComponent implemen
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (this.handlerContext && this.handlerContext.readOnlyMode) {
+      this.readOnlyMode = this.handlerContext.readOnlyMode;
+    }
+  }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;

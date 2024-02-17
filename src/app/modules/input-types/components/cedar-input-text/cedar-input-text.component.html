@@ -5,6 +5,7 @@
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
            (input)="inputChanged($event)"
+           [readonly]="readOnlyMode"
            attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
     <textarea matInput type="text" *ngIf="component.basicInfo.inputType==inputTextarea"
               cdkTextareaAutosize
@@ -12,14 +13,15 @@
               [formControl]="inputValueControl"
               [errorStateMatcher]="errorStateMatcher"
               (input)="inputChanged($event)"
-              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}"></textarea>
-    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
+              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}"
+              [readonly]="readOnlyMode"></textarea>
+    <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
       <mat-icon>close</mat-icon>
     </button>
-    <mat-error *ngIf="inputValueControl.getError('minlength')">{{'Validation.Text.MinLength' | translate: {constraintMinLength} }}</mat-error>
-    <mat-error *ngIf="inputValueControl.getError('maxlength')">{{'Validation.Text.MaxLength' | translate: {constraintMaxLength} }}</mat-error>
-    <mat-error *ngIf="inputValueControl.hasError('required')">{{'Validation.Required' | translate}}</mat-error>
-    <mat-hint align="end">{{getCharCountHint()}}</mat-hint>
+    <mat-error *ngIf="inputValueControl.getError('minlength') && !readOnlyMode">{{'Validation.Text.MinLength' | translate: {constraintMinLength} }}</mat-error>
+    <mat-error *ngIf="inputValueControl.getError('maxlength') && !readOnlyMode">{{'Validation.Text.MaxLength' | translate: {constraintMaxLength} }}</mat-error>
+    <mat-error *ngIf="inputValueControl.hasError('required') && !readOnlyMode">{{'Validation.Required' | translate}}</mat-error>
+    <mat-hint *ngIf="inputValueControl.hasValidator(constraintMaxLength) && !readOnlyMode" align="end">{{getCharCountHint()}}</mat-hint>
   </mat-form-field>
 </form>
 

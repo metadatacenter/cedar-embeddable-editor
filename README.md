@@ -115,6 +115,7 @@ There are other optional configuration parameters available for controlling vari
   "sampleTemplateLocationPrefix": "http://localhost:4240/cedar-embeddable-editor-sample-templates/",
   "loadSampleTemplateName": "01",
   "expandedSampleTemplateLinks": true,
+  "showTemplateDescription": false,
 
   "showTemplateRenderingRepresentation": true,
   "expandedTemplateRenderingRepresentation": false,
@@ -142,7 +143,9 @@ There are other optional configuration parameters available for controlling vari
   "fallbackLanguage": "en",
 
   "collapseStaticComponents": false,
-  "showStaticText": true
+  "showStaticText": true,
+  
+  "readOnlyMode": false
 }
 ```
 
@@ -305,6 +308,14 @@ An example in Angular is:
   }
 ```
 
+### Viewer Mode
+
+CEE can be used as a viewer to display metadata instances. This can be achieved by the following configuration setting:
+
+```json
+"readOnlyMode": true
+```
+When used in this mode, users won't be able to manipulate the metadata instance but can only read it.
 ## Example Applications
 
 There is a sample applications you can use to demonstrate how to embed and use CEE.

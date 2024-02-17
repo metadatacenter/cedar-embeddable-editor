@@ -30,6 +30,7 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   @Input() handlerContext: HandlerContext;
   inputText = InputType.text;
   inputTextarea = InputType.textarea;
+  readOnlyMode;
 
   constructor(
     fb: FormBuilder,
@@ -65,6 +66,9 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
       if (this.inputValueControl.getRawValue() == '') {
         this.setValueUIAndModel(this.component.valueInfo.defaultValue);
       }
+    }
+    if (this.handlerContext && this.handlerContext.readOnlyMode) {
+      this.readOnlyMode = this.handlerContext.readOnlyMode;
     }
   }
 

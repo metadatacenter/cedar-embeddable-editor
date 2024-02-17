@@ -1,6 +1,7 @@
-<div *ngIf="component && currentMultiInfo" [ngClass]="isAlignedUp? 'aligned-up' : 'pager-container'">
+<div *ngIf="component && currentMultiInfo" [ngClass]="(isAlignedUp && readOnlyMode && getInstanceCount()>1 ||
+  (isAlignedUp && !readOnlyMode)) ? 'aligned-up' : readOnlyMode ? 'page-container-ro' : 'pager-container' ">
   <div class="pager-chips">
-    <mat-chip-list tabIndex="0" aria-label="Allows multi values.">
+    <mat-chip-list *ngIf="getInstanceCount()>1" tabIndex="0" aria-label="Allows multi values.">
       <mat-chip selectable="false" disabled="true" *ngIf="!hasMultiInstances()" aria-label="No values yet">{{'Multi.NoInstancesYet' | translate}}</mat-chip>
       <mat-chip *ngFor="let pageNumber of pageNumbers"
                 [selected]="pageNumber == currentMultiInfo.currentIndex"
@@ -9,7 +10,7 @@
       >{{pageNumber + 1}}</mat-chip>
     </mat-chip-list>
   </div>
-  <div>
+  <div *ngIf="!readOnlyMode">
     <button mat-icon-button tabindex="0" [disabled]="!isEnabledAdd()" (click)="clickedAdd($event)" aria-label="Add empty after current">
       <mat-icon [tabIndex]="-1" matTooltip="{{'Multi.AddEmptyAfter' | translate}}">note_add</mat-icon>
     </button>

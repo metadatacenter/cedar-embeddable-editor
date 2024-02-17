@@ -32,6 +32,7 @@ export class CedarComponentRendererComponent implements OnInit {
   @Input() handlerContext: HandlerContext;
   @Input() showStaticText: boolean;
   @Input() showAllMultiInstanceValues: boolean;
+  readOnlyMode;
   // tslint:disable-next-line:variable-name
   private _allExpanded = false;
   @Input()
@@ -46,7 +47,11 @@ export class CedarComponentRendererComponent implements OnInit {
 
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (this.handlerContext && this.handlerContext.readOnlyMode) {
+      this.readOnlyMode = this.handlerContext.readOnlyMode;
+    }
+  }
 
   @Input() set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;

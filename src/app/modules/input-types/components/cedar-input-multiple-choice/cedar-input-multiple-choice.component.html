@@ -9,10 +9,10 @@
           (change)="inputChanged($event)"
         >{{choice.label}}</mat-radio-button>
       </div>
-      <button type="button" tabindex="0" mat-button *ngIf="selectedChoiceInputControl.value" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
+      <button type="button" tabindex="0" mat-button *ngIf="selectedChoiceInputControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
         <mat-icon>close</mat-icon>
       </button>
     </mat-radio-group>
-    <mat-error *ngIf="selectedChoiceInputControl.getError('required')" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
+    <mat-error *ngIf="selectedChoiceInputControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
   </mat-form-field>
 </form>
