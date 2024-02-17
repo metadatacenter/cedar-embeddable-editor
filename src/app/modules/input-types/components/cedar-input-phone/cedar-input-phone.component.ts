@@ -50,7 +50,9 @@ export class CedarInputPhoneComponent extends CedarUIComponent implements OnInit
     this.inputValueControl = new FormControl(null, validators);
 
     if (this.component.valueInfo.defaultValue != null) {
-      this.setValueUIAndModel(this.component.valueInfo.defaultValue);
+      if (this.inputValueControl.getRawValue() == '') {
+        this.setValueUIAndModel(this.component.valueInfo.defaultValue);
+      }
     }
   }
 

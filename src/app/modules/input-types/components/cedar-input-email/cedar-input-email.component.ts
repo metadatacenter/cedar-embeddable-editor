@@ -46,8 +46,11 @@ export class CedarInputEmailComponent extends CedarUIComponent implements OnInit
       validators.push(Validators.required);
     }
     this.inputValueControl = new FormControl(null, validators);
+
     if (this.component.valueInfo.defaultValue != null) {
-      this.setValueUIAndModel(this.component.valueInfo.defaultValue);
+      if (this.inputValueControl.getRawValue() == '') {
+        this.setValueUIAndModel(this.component.valueInfo.defaultValue);
+      }
     }
   }
 

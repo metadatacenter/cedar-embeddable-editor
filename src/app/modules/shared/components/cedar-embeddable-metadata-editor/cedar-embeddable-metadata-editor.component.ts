@@ -84,6 +84,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   static iriPrefix = 'https://repo.metadatacenter.org/';
 
+  private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
+
   allExpanded: boolean;
 
   constructor(
@@ -179,7 +181,21 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         this.pageBreakPaginatorService,
         this.collapseStaticComponents,
       );
-      this.initDataFromInstance(this.dataContext.instanceFullData);
+      setTimeout(() => {
+        this.initDataFromInstance(this.dataContext.instanceFullData)
+          .then(() => {})
+          .catch(() => {});
+      });
+    }
+  }
+
+  @Input() set instanceJsonObject(value: object) {
+    if (value != null) {
+      setTimeout(() => {
+        this.initDataFromInstance(value)
+          .then(() => {})
+          .catch(() => {});
+      });
     }
   }
 
@@ -200,30 +216,37 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     this.allExpanded = false;
   }
 
-  public initDataFromInstance(instance: object): void {
-    if (this.handlerContext) {
-      const instanceFullData = JSON.parse(JSON.stringify(instance));
-      const instanceExtractData = JSON.parse(JSON.stringify(instance));
-      DataObjectUtil.deleteContext(instanceExtractData);
-      const dataContext = this.handlerContext.dataContext;
-      dataContext.instanceFullData = instanceFullData;
-      dataContext.instanceExtractData = instanceExtractData;
-      const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
+  private async initDataFromInstance(instance: object): Promise<void> {
+    this.initDataFromInstanceQueue = this.initDataFromInstanceQueue.finally(async () => {
+      if (this.handlerContext) {
+        const instanceFullData = JSON.parse(JSON.stringify(instance));
+        const instanceExtractData = JSON.parse(JSON.stringify(instance));
+        DataObjectUtil.deleteContext(instanceExtractData);
+        const dataContext = this.handlerContext.dataContext;
+        dataContext.instanceFullData = instanceFullData;
+        dataContext.instanceExtractData = instanceExtractData;
+        const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
 
-      dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
-        dataContext.templateRepresentation,
-        instanceExtractData,
-      );
+        dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
+          dataContext.templateRepresentation,
+          instanceExtractData,
+        );
 
-      this.handlerContext.buildQualityReport();
+        this.handlerContext.buildQualityReport();
 
-      if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
-        setTimeout(() => {
-          for (const childComponent of dataContext.templateRepresentation.children) {
-            this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
-          }
-        });
+        if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
+          await new Promise<void>((resolve) => {
+            setTimeout(() => {
+              for (const childComponent of dataContext.templateRepresentation.children) {
+                this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
+              }
+              resolve();
+            });
+          });
+        }
       }
-    }
+    });
+
+    return this.initDataFromInstanceQueue;
   }
 }

@@ -24,6 +24,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   private configSet = false;
 
   templateJson: object = null;
+  instanceJson: object = null;
   sampleTemplateLoaderObject = null;
   showSpinnerBeforeInit = true;
   protected onDestroySubject = new Subject<void>();
@@ -86,9 +87,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   @Input() set instanceObject(instance: object) {
-    if (instance !== null) {
-      this.editorComponent.initDataFromInstance(instance);
-    }
+    this.instanceJson = instance;
   }
 
   @Input() get dataQualityReport(): object {
