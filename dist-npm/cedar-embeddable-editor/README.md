@@ -115,6 +115,7 @@ There are other optional configuration parameters available for controlling vari
   "sampleTemplateLocationPrefix": "http://localhost:4240/cedar-embeddable-editor-sample-templates/",
   "loadSampleTemplateName": "01",
   "expandedSampleTemplateLinks": true,
+  "showTemplateDescription": false,
 
   "showTemplateRenderingRepresentation": true,
   "expandedTemplateRenderingRepresentation": false,
@@ -142,7 +143,9 @@ There are other optional configuration parameters available for controlling vari
   "fallbackLanguage": "en",
 
   "collapseStaticComponents": false,
-  "showStaticText": true
+  "showStaticText": true,
+
+  "readOnlyMode": false
 }
 ```
 
@@ -272,7 +275,7 @@ In order to use an external language file, specify the config as follows:
 }
 ```
 
-In the example above we want to use a `German` language file, which is located in the specified directory. Starting the path with `/` makes the path absolute. 
+In the example above we want to use a `German` language file, which is located in the specified directory. Starting the path with `/` makes the path absolute.
 
 In our case the `/assets/i18n-cee/de.json` will be loaded if present.
 
@@ -280,7 +283,7 @@ If the file is missing, the `/assets/i18n-cee/en.json` will be used.
 
 If that file is also missing, the built-in `de` map would be the next. As this does not exist at this moment, the last option, the built-in `en` map will be used.
 
-Information about the loading process is logged onto the console with the `CEE TRACE` prefix. 
+Information about the loading process is logged onto the console with the `CEE TRACE` prefix.
 
 ### Listening for changes
 
@@ -305,6 +308,14 @@ An example in Angular is:
   }
 ```
 
+### Viewer Mode
+
+CEE can be used as a viewer to display metadata instances. This can be achieved by the following configuration setting:
+
+```json
+"readOnlyMode": true
+```
+When used in this mode, users won't be able to manipulate the metadata instance but can only read it.
 ## Example Applications
 
 There is a sample applications you can use to demonstrate how to embed and use CEE.

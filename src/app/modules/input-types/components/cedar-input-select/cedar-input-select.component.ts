@@ -32,6 +32,7 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
   selections: string[];
   maxSelections: number;
   @Input() handlerContext: HandlerContext;
+  readOnlyMode;
 
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,
@@ -52,6 +53,10 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
       validators.push(Validators.required);
     }
     this.inputValueControl = new FormControl(null, validators);
+
+    if (this.handlerContext && this.handlerContext.readOnlyMode) {
+      this.readOnlyMode = this.handlerContext.readOnlyMode;
+    }
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
