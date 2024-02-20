@@ -164,7 +164,7 @@ export class DataQualityReportBuilderHandler {
   }
 
   private static emptyToNull(value: any) {
-    if (value === '') {
+    if (value === '' || value === undefined) {
       return null;
     } else {
       return value;
