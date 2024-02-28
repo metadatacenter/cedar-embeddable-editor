@@ -74,14 +74,16 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
       this.readOnlyMode = this.handlerContext.readOnlyMode;
     }
 
-    this.filteredOptions = this.inputValueControl.valueChanges.pipe(
-      startWith(''),
-      debounceTime(400),
-      distinctUntilChanged(),
-      switchMap((val) => {
-        return this.filter(val || '');
-      }),
-    );
+    if (!this.readOnlyMode) {
+      this.filteredOptions = this.inputValueControl.valueChanges.pipe(
+        startWith(''),
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap((val) => {
+          return this.filter(val || '');
+        }),
+      );
+    }
   }
 
   ngAfterViewInit(): void {
