@@ -1,5 +1,5 @@
 <form class="form-container" [formGroup]="options">
-  <mat-form-field class="full-width">
+  <mat-form-field *ngIf="!isRichText" class="full-width">
 <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
     <input matInput type="text" *ngIf="component.basicInfo.inputType==inputText"
            [formControl]="inputValueControl"
@@ -23,5 +23,6 @@
     <mat-error *ngIf="inputValueControl.hasError('required') && !readOnlyMode">{{'Validation.Required' | translate}}</mat-error>
     <mat-hint *ngIf="inputValueControl.hasValidator(constraintMaxLength) && !readOnlyMode" align="end">{{getCharCountHint()}}</mat-hint>
   </mat-form-field>
+  <p *ngIf="isRichText" [innerHTML]="(inputValueControl.value || '') | keepHtml"></p>
 </form>
 
