@@ -31,6 +31,7 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   inputText = InputType.text;
   inputTextarea = InputType.textarea;
   readOnlyMode;
+  isRichText = false;
 
   constructor(
     fb: FormBuilder,
@@ -69,6 +70,9 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
     }
     if (this.handlerContext && this.handlerContext.readOnlyMode) {
       this.readOnlyMode = this.handlerContext.readOnlyMode;
+      if (this.readOnlyMode) {
+        this.checkHTMLContent();
+      }
     }
   }
 
@@ -77,6 +81,12 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
+  checkHTMLContent() {
+    const label = this.cds.getRenderingLabelForComponent(this.component);
+    if (label && label.toUpperCase().indexOf('HTML') !== -1) {
+      this.isRichText = true;
+    }
+  }
   inputChanged($event: Event): void {
     let val = ($event.target as HTMLTextAreaElement).value;
     if (val.length === 0) {
