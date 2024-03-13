@@ -28,7 +28,11 @@ export class DataContext {
     collapseStaticComponents: boolean,
   ): void {
     this.templateInput = value as CedarInputTemplate;
-    this.templateRepresentation = TemplateRepresentationFactory.create(this.templateInput, collapseStaticComponents);
+    this.templateRepresentation = TemplateRepresentationFactory.create(
+      this.templateInput,
+      collapseStaticComponents,
+      handlerContext,
+    );
     pageBreakPaginatorService.reset(this.templateRepresentation.pageBreakChildren);
     const multiInstanceObjectService: MultiInstanceObjectHandler = handlerContext.multiInstanceObjectService;
     const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
@@ -39,6 +43,6 @@ export class DataContext {
     this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
     this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(this.templateRepresentation);
     this.savedTemplateID = null;
-    handlerContext.buildQualityReport();
+    // handlerContext.buildQualityReport();
   }
 }

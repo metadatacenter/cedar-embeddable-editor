@@ -86,6 +86,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   showAllMultiInstanceValues = true;
   showTemplateDescription: boolean = false;
   readOnlyMode = false;
+  xyz;
+  comps;
 
   static iriPrefix = 'https://repo.metadatacenter.org/';
 
@@ -182,29 +184,53 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
 
   @Input() set templateJsonObject(value: object) {
+    this.xyz = value;
+    // if (value != null) {
+    //   setTimeout(() => {
+    // this.dataContext.setInputTemplate(
+    //   value,
+    //   this.handlerContext,
+    //   this.pageBreakPaginatorService,
+    //   this.collapseStaticComponents,
+    // );
+    //   });
+    //   setTimeout(() => {
+    //     this.initDataFromInstance(this.dataContext.instanceFullData)
+    //       .then(() => {})
+    //       .catch(() => {});
+    //   });
+    // }
+  }
+
+  @Input() set instanceJsonObject(value: object) {
+    console.log('In instance object json', value);
     if (value != null) {
+      const instanceFullData = JSON.parse(JSON.stringify(value));
+      const instanceExtractData = JSON.parse(JSON.stringify(value));
+      DataObjectUtil.deleteContext(instanceExtractData);
+      const dataContext = this.handlerContext.dataContext;
+      dataContext.instanceFullData = instanceFullData;
+      dataContext.instanceExtractData = instanceExtractData;
+      console.log('Handler context', this.handlerContext);
+      console.log('Template object', this.xyz);
       this.dataContext.setInputTemplate(
-        value,
+        this.xyz,
         this.handlerContext,
         this.pageBreakPaginatorService,
         this.collapseStaticComponents,
       );
-      setTimeout(() => {
-        this.initDataFromInstance(this.dataContext.instanceFullData)
-          .then(() => {})
-          .catch(() => {});
-      });
     }
-  }
-
-  @Input() set instanceJsonObject(value: object) {
-    if (value != null) {
-      setTimeout(() => {
-        this.initDataFromInstance(value)
-          .then(() => {})
-          .catch(() => {});
-      });
-    }
+    setTimeout(() => {
+      this.pageBreakPaginatorService.reset(this.handlerContext.dataContext.templateRepresentation.pageBreakChildren);
+      this.comps = this.pageBreakPaginatorService.getCurrentPage();
+      console.log('COOOOMMMMPPSSS', this.comps);
+    });
+    setTimeout(() => {
+      console.log('Set time out');
+      this.initDataFromInstance(this.dataContext.instanceFullData)
+        .then(() => {})
+        .catch(() => {});
+    });
   }
 
   dataAvailableForRender(): boolean {

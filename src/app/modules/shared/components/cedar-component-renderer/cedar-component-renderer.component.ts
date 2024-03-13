@@ -54,6 +54,7 @@ export class CedarComponentRendererComponent implements OnInit {
   }
 
   @Input() set componentToRender(componentToRender: CedarComponent) {
+    console.log('Component to render', componentToRender);
     this.component = componentToRender;
     this.iterableComponent = null;
     this.nonIterableComponent = null;
@@ -85,9 +86,10 @@ export class CedarComponentRendererComponent implements OnInit {
   shouldRenderContentOfIterable(iterableComponent: ElementComponent): boolean {
     if (iterableComponent.isMulti()) {
       const multiElement: MultiElementComponent = iterableComponent as MultiElementComponent;
-      if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiElement)) {
-        return false;
-      }
+      // if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiElement)) {
+      //   console.log('Returning false for', iterableComponent);
+      //   return false;
+      // }
     }
     return true;
   }
@@ -95,9 +97,10 @@ export class CedarComponentRendererComponent implements OnInit {
   shouldRenderContentOfNonIterable(nonIterableComponent: FieldComponent): boolean {
     if (nonIterableComponent.isMulti()) {
       const multiField: MultiFieldComponent = nonIterableComponent as MultiFieldComponent;
-      if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiField)) {
-        return false;
-      }
+      // if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiField)) {
+      //   console.log('Returning false for', nonIterableComponent);
+      //   return false;
+      // }
     }
     return true;
   }
