@@ -162,17 +162,19 @@ export class TemplateRepresentationFactory {
       if (r !== null) {
         const wrapperElement: ElementComponent = component as ElementComponent;
         const val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
-        // if (r instanceof SingleFieldComponent) {
-        //   if (val) {
-        //     wrapperElement.children.push(r);
-        //     r.name = name;
-        //     r.path = myPath;
-        //   }
-        // } else {
-        wrapperElement.children.push(r);
-        r.name = name;
-        r.path = myPath;
-        // }
+        if (r instanceof SingleFieldComponent) {
+          const def = r as SingleFieldComponent;
+          const defaultValue = def.valueInfo.defaultValue;
+          if (val) {
+            wrapperElement.children.push(r);
+            r.name = name;
+            r.path = myPath;
+          }
+        } else {
+          wrapperElement.children.push(r);
+          r.name = name;
+          r.path = myPath;
+        }
       }
 
       if (isMulti) {
@@ -185,6 +187,7 @@ export class TemplateRepresentationFactory {
       this.collapseStaticFieldsIntoNextFieldOrElement(component);
     }
   }
+  // private static getDefaultValueByPath(path: string[], templateRep: CedarTemplate) {}
 
   private static getValueByPath(path: string[], json) {
     if (path.length === 0) {

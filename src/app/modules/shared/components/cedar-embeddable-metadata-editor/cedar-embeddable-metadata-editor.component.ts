@@ -211,26 +211,25 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       const dataContext = this.handlerContext.dataContext;
       dataContext.instanceFullData = instanceFullData;
       dataContext.instanceExtractData = instanceExtractData;
+      console.log('Instance', value);
+      console.log('Extract data', instanceExtractData);
       console.log('Handler context', this.handlerContext);
       console.log('Template object', this.xyz);
-      this.dataContext.setInputTemplate(
-        this.xyz,
-        this.handlerContext,
-        this.pageBreakPaginatorService,
-        this.collapseStaticComponents,
-      );
+      // this.dataContext.setInputTemplate(
+      //   this.xyz,
+      //   this.handlerContext,
+      //   this.pageBreakPaginatorService,
+      //   this.collapseStaticComponents,
+      // );
     }
-    setTimeout(() => {
-      this.pageBreakPaginatorService.reset(this.handlerContext.dataContext.templateRepresentation.pageBreakChildren);
-      this.comps = this.pageBreakPaginatorService.getCurrentPage();
-      console.log('COOOOMMMMPPSSS', this.comps);
-    });
-    setTimeout(() => {
-      console.log('Set time out');
-      this.initDataFromInstance(this.dataContext.instanceFullData)
-        .then(() => {})
-        .catch(() => {});
-    });
+    // setTimeout(() => {
+    //   this.pageBreakPaginatorService.reset(this.handlerContext.dataContext.templateRepresentation.pageBreakChildren);
+    //   this.comps = this.pageBreakPaginatorService.getCurrentPage();
+    //   console.log('COOOOMMMMPPSSS', this.comps);
+    // });
+    // this.initDataFromInstance(this.dataContext.instanceFullData)
+    //   .then(() => {})
+    //   .catch(() => {});
   }
 
   dataAvailableForRender(): boolean {
@@ -253,17 +252,18 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private async initDataFromInstance(instance: object): Promise<void> {
     this.initDataFromInstanceQueue = this.initDataFromInstanceQueue.finally(async () => {
       if (this.handlerContext) {
-        const instanceFullData = JSON.parse(JSON.stringify(instance));
-        const instanceExtractData = JSON.parse(JSON.stringify(instance));
-        DataObjectUtil.deleteContext(instanceExtractData);
+        // const instanceFullData = JSON.parse(JSON.stringify(instance));
+        // const instanceExtractData = JSON.parse(JSON.stringify(instance));
+        // DataObjectUtil.deleteContext(instanceExtractData);
         const dataContext = this.handlerContext.dataContext;
-        dataContext.instanceFullData = instanceFullData;
-        dataContext.instanceExtractData = instanceExtractData;
+        // dataContext.instanceFullData = instanceFullData;
+        // dataContext.instanceExtractData = instanceExtractData;
         const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
+        console.log('In init data template rep', dataContext.templateRepresentation);
 
         dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
           dataContext.templateRepresentation,
-          instanceExtractData,
+          dataContext.instanceExtractData,
         );
 
         this.handlerContext.buildQualityReport();
