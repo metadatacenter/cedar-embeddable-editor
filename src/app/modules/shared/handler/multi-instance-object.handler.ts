@@ -127,7 +127,7 @@ export class MultiInstanceObjectHandler {
 
   private setSingleMultiInstance(path: string[], count: number, multiInstanceObject: MultiInstanceInfo): void {
     const pathCopy = [];
-
+    // try {
     for (let i = 0; i < path.length; i++) {
       pathCopy.push(path[i]);
       const match = path[i].match(this.indexRegEx);
@@ -165,14 +165,19 @@ export class MultiInstanceObjectHandler {
             multiInstanceObject,
             pathParent,
           );
-          const child = new MultiInstanceInfo();
-          parentObj.addChild(child);
-          const childElem = new MultiInstanceObjectInfo();
-          childElem.componentName = componentName;
-          child.addChild(childElem);
+          if (parentObj) {
+            const child = new MultiInstanceInfo();
+            parentObj.addChild(child);
+            const childElem = new MultiInstanceObjectInfo();
+            childElem.componentName = componentName;
+            child.addChild(childElem);
+          }
         }
       }
     }
+    // } catch (e) {
+    //   console.error('Caught', e);
+    // }
     const targetObj = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, pathCopy);
     if (targetObj) {
       targetObj.componentName = path[path.length - 1];
@@ -236,6 +241,7 @@ export class MultiInstanceObjectHandler {
         currentIndex = -1;
         /// delete multiInfo.children;
       } else if (child instanceof MultiElementComponent) {
+        console.log('Multi Element', child.name, child);
         count = (child as MultiComponent).multiInfo.minItems;
         currentIndex = count > 0 ? 0 : -1;
         for (let i = 0; i < count; i++) {

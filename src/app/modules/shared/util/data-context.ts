@@ -9,6 +9,8 @@ import { MultiInstanceObjectHandler } from '../handler/multi-instance-object.han
 import { DataObjectBuilderHandler } from '../handler/data-object-builder.handler';
 import { PageBreakPaginatorService } from '../service/page-break-paginator.service';
 import { DataQualityReport } from '../models/data-quality-report.model';
+import { CedarTemplate } from '../models/template/cedar-template.model';
+import { ElementComponent } from '../models/component/element-component.model';
 
 export class DataContext {
   templateInput: CedarInputTemplate = null;
@@ -35,13 +37,16 @@ export class DataContext {
     );
     pageBreakPaginatorService.reset(this.templateRepresentation.pageBreakChildren);
     const multiInstanceObjectService: MultiInstanceObjectHandler = handlerContext.multiInstanceObjectService;
-    const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
-    this.instanceExtractData = dataObjectService.buildNewExtractDataObject(
+    // const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
+    // this.instanceExtractData = dataObjectService.buildNewExtractDataObject(
+    //   this.templateRepresentation,
+    //   this.templateInput,
+    // );
+    // this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
+    this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
       this.templateRepresentation,
-      this.templateInput,
+      handlerContext.dataContext.instanceExtractData,
     );
-    this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
-    this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(this.templateRepresentation);
     this.savedTemplateID = null;
     // handlerContext.buildQualityReport();
   }

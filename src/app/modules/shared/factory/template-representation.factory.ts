@@ -39,12 +39,23 @@ export class TemplateRepresentationFactory {
         collapseStaticComponents,
         handlerContext,
       );
+      // this.removeEmpty(template);
       TemplateRepresentationFactory.extractTemplateLabels(inputTemplate, template);
       TemplateRepresentationFactory.extractPageBreakPages(template);
       return template;
     }
   }
-
+  static removeEmpty(template: CedarTemplate) {
+    const children = template.children;
+    for (let i = 0; i < children.length; i) {
+      const ch = children[i] as ElementComponent;
+      if (!ch.children.length) {
+        children.splice(i, 1);
+      } else {
+        i++;
+      }
+    }
+  }
   static extractPageBreakPages(template: CedarTemplate): void {
     const pages = [];
     let page = [];
@@ -161,14 +172,22 @@ export class TemplateRepresentationFactory {
 
       if (r !== null) {
         const wrapperElement: ElementComponent = component as ElementComponent;
-        const val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
-        if (r instanceof SingleFieldComponent) {
-          const def = r as SingleFieldComponent;
-          const defaultValue = def.valueInfo.defaultValue;
-          if (val) {
+        if (r instanceof SingleFieldComponent || r instanceof MultiFieldComponent) {
+          const val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
+          // const def = r as SingleFieldComponent;
+          // const defaultValue = def.valueInfo.defaultValue;
+          console.log('Wrapper element', wrapperElement);
+          if (val || wrapperElement instanceof MultiElementComponent) {
             wrapperElement.children.push(r);
             r.name = name;
             r.path = myPath;
+          }
+        } else if (r instanceof MultiElementComponent || r instanceof SingleElementComponent) {
+          if (r.children.length) {
+            wrapperElement.children.push(r);
+            r.name = name;
+            r.path = myPath;
+            // console.log(r.name, 'has children');
           }
         } else {
           wrapperElement.children.push(r);
