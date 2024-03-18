@@ -83,22 +83,22 @@ export class CedarComponentRendererComponent implements OnInit {
   }
 
   shouldRenderContentOfIterable(iterableComponent: ElementComponent): boolean {
-    // if (iterableComponent.isMulti()) {
-    //   const multiElement: MultiElementComponent = iterableComponent as MultiElementComponent;
-    //   if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiElement)) {
-    //     return false;
-    //   }
-    // }
+    if (iterableComponent.isMulti()) {
+      const multiElement: MultiElementComponent = iterableComponent as MultiElementComponent;
+      if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiElement)) {
+        return false;
+      }
+    }
     return true;
   }
 
   shouldRenderContentOfNonIterable(nonIterableComponent: FieldComponent): boolean {
-    // if (nonIterableComponent.isMulti()) {
-    //   const multiField: MultiFieldComponent = nonIterableComponent as MultiFieldComponent;
-    //   if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiField)) {
-    //     return false;
-    //   }
-    // }
+    if (nonIterableComponent.isMulti()) {
+      const multiField: MultiFieldComponent = nonIterableComponent as MultiFieldComponent;
+      if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiField)) {
+        return false;
+      }
+    }
     return true;
   }
 }

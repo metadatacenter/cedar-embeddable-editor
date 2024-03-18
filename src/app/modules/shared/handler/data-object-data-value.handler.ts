@@ -14,7 +14,6 @@ import { CedarModel } from '../models/cedar-model.model';
 import { DataObjectUtil } from '../util/data-object-util';
 import { InputType } from '../models/input-type.model';
 import { MessageHandlerService } from '../service/message-handler.service';
-import { at } from 'lodash-es';
 
 export class DataObjectDataValueHandler {
   private messageHandlerService: MessageHandlerService;
@@ -175,10 +174,6 @@ export class DataObjectDataValueHandler {
     multiInstanceObjectService: MultiInstanceObjectHandler,
     path: string[],
   ): object {
-    console.log('Data object', dataObject);
-    console.log('Component', component);
-    console.log('multi', multiInstanceObjectService);
-    console.log('Path', path);
     const obj = {};
     const firstPath = path[0];
     const remainingPath = path.slice(1);
@@ -200,7 +195,6 @@ export class DataObjectDataValueHandler {
         multiInstanceObjectService.getMultiInstanceInfoForComponent(multiElement);
       const currentIndex = multiInstanceInfo.currentIndex;
       childComponent = multiElement.getChildByName(firstPath);
-      console.log('DataObject', dataObject);
       dataSubObject = dataObject[currentIndex][firstPath];
       parentDataSubObject = dataObject[currentIndex];
     }
@@ -411,7 +405,7 @@ export class DataObjectDataValueHandler {
       valueObject[JsonSchema.atId] = atId;
       valueObject[JsonSchema.rdfsLabel] = prefLabel;
     }
-    console.log('Datacontext', dataContext);
+
     this.setDataPathValueRecursively(
       dataContext.instanceExtractData,
       null,

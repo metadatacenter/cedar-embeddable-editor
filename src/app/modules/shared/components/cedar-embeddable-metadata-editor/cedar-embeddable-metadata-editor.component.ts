@@ -203,7 +203,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
 
   @Input() set instanceJsonObject(value: object) {
-    console.log('In instance object json', value);
     if (value != null) {
       const instanceFullData = JSON.parse(JSON.stringify(value));
       const instanceExtractData = JSON.parse(JSON.stringify(value));
@@ -211,25 +210,20 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       const dataContext = this.handlerContext.dataContext;
       dataContext.instanceFullData = instanceFullData;
       dataContext.instanceExtractData = instanceExtractData;
-      console.log('Instance', value);
-      console.log('Extract data', instanceExtractData);
-      console.log('Handler context', this.handlerContext);
-      console.log('Template object', this.xyz);
-      // this.dataContext.setInputTemplate(
-      //   this.xyz,
-      //   this.handlerContext,
-      //   this.pageBreakPaginatorService,
-      //   this.collapseStaticComponents,
-      // );
+      this.dataContext.setInputTemplate(
+        this.xyz,
+        this.handlerContext,
+        this.pageBreakPaginatorService,
+        this.collapseStaticComponents,
+      );
     }
-    // setTimeout(() => {
-    //   this.pageBreakPaginatorService.reset(this.handlerContext.dataContext.templateRepresentation.pageBreakChildren);
-    //   this.comps = this.pageBreakPaginatorService.getCurrentPage();
-    //   console.log('COOOOMMMMPPSSS', this.comps);
-    // });
-    // this.initDataFromInstance(this.dataContext.instanceFullData)
-    //   .then(() => {})
-    //   .catch(() => {});
+    setTimeout(() => {
+      // this.pageBreakPaginatorService.reset(this.handlerContext.dataContext.templateRepresentation.pageBreakChildren);
+      this.initDataFromInstance(this.dataContext.instanceFullData)
+        .then(() => {})
+        .catch(() => {});
+      this.comps = this.pageBreakPaginatorService.getCurrentPage();
+    });
   }
 
   dataAvailableForRender(): boolean {
@@ -259,12 +253,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         // dataContext.instanceFullData = instanceFullData;
         // dataContext.instanceExtractData = instanceExtractData;
         const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
-        console.log('In init data template rep', dataContext.templateRepresentation);
 
-        dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
-          dataContext.templateRepresentation,
-          dataContext.instanceExtractData,
-        );
+        console.log('Data Context', dataContext);
+        // dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
+        //   dataContext.templateRepresentation,
+        //   dataContext.instanceExtractData,
+        // );
 
         this.handlerContext.buildQualityReport();
 
