@@ -19,20 +19,32 @@ import { StaticFieldComponent } from '../models/static/static-field-component.mo
 import { ComponentTypeHandler } from '../handler/component-type.handler';
 import { InputType } from '../models/input-type.model';
 import { TemplateObjectUtil } from '../util/template-object-util';
+import { HandlerContext } from '../util/handler-context';
 
 export class TemplateRepresentationFactory {
-  static create(inputTemplate: CedarInputTemplate, collapseStaticComponents: boolean): TemplateComponent {
+  static create(
+    inputTemplate: CedarInputTemplate,
+    collapseStaticComponents: boolean,
+    handlerContext: HandlerContext,
+  ): TemplateComponent {
     if (inputTemplate === null) {
       return new NullTemplate();
     } else {
       const template = new CedarTemplate();
-      TemplateRepresentationFactory.wrap(inputTemplate, inputTemplate, template, [], collapseStaticComponents);
+      TemplateRepresentationFactory.wrap(
+        inputTemplate,
+        inputTemplate,
+        template,
+        [],
+        collapseStaticComponents,
+        handlerContext,
+      );
+      // this.removeEmpty(template);
       TemplateRepresentationFactory.extractTemplateLabels(inputTemplate, template);
       TemplateRepresentationFactory.extractPageBreakPages(template);
       return template;
     }
   }
-
   static extractPageBreakPages(template: CedarTemplate): void {
     const pages = [];
     let page = [];
@@ -100,6 +112,7 @@ export class TemplateRepresentationFactory {
     component: CedarComponent,
     parentPath: string[],
     collapseStaticComponents: boolean,
+    handlerContext: HandlerContext,
   ): void {
     // const propertyNames: string[] = TemplateRepresentationFactory.getFilteredSchemaPropertyNames(templateJsonObj);
     // console.log(propertyNames);
@@ -133,7 +146,14 @@ export class TemplateRepresentationFactory {
           r = new SingleElementComponent();
         }
         TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
-        TemplateRepresentationFactory.wrap(dataNode, templateJsonObj, r, myPath, collapseStaticComponents);
+        TemplateRepresentationFactory.wrap(
+          dataNode,
+          templateJsonObj,
+          r,
+          myPath,
+          collapseStaticComponents,
+          handlerContext,
+        );
       } else if (fragmentAtType === CedarModel.templateStaticFieldType) {
         r = new StaticFieldComponent();
         TemplateRepresentationFactory.extractStaticData(dataNode, parentDataNode, name, r as StaticFieldComponent);
@@ -144,8 +164,15 @@ export class TemplateRepresentationFactory {
         wrapperElement.children.push(r);
         r.name = name;
         r.path = myPath;
+        if (handlerContext.hideEmptyFields && handlerContext.dataContext.instanceExtractData) {
+          if (r instanceof SingleFieldComponent || r instanceof MultiFieldComponent) {
+            const val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
+            val ? (r.hidden = false) : (r.hidden = true);
+          } else if (r instanceof MultiElementComponent || r instanceof SingleElementComponent) {
+            this.hasNonEmptyChild(r, handlerContext) ? (r.hidden = false) : (r.hidden = true);
+          }
+        }
       }
-
       if (isMulti) {
         const mr = r as MultiComponent;
         TemplateRepresentationFactory.extractMultiInfo(templateFragment, mr);
@@ -156,7 +183,43 @@ export class TemplateRepresentationFactory {
       this.collapseStaticFieldsIntoNextFieldOrElement(component);
     }
   }
+  private static hasNonEmptyChild(component: ElementComponent, handlerContext): boolean {
+    let hasNonEmptyChild = false;
+    const instanceExtractData = handlerContext.dataContext.instanceExtractData;
+    for (const child of component.children) {
+      if (this.getValueByPath(child.path, instanceExtractData)) {
+        hasNonEmptyChild = true;
+        break;
+      }
+    }
+    return hasNonEmptyChild;
+  }
 
+  private static getValueByPath(path: string[], json) {
+    if (!json) {
+      return null;
+    }
+    if (path.length === 0) {
+      if (Object.prototype.hasOwnProperty.call(json, '@value')) {
+        return json['@value'];
+      } else if (Object.prototype.hasOwnProperty.call(json, '@id')) {
+        return json['@id'];
+      } else return null;
+    }
+    const currentKey = path[0];
+    const remainingPath = path.slice(1);
+    if (Object.prototype.hasOwnProperty.call(json, currentKey)) {
+      const value = json[currentKey];
+      if (value instanceof Array) {
+        if (!value.length) {
+          return null;
+        }
+        return this.getValueByPath(remainingPath, value[0]);
+      } else {
+        return this.getValueByPath(remainingPath, value);
+      }
+    }
+  }
   // private static getFilteredSchemaPropertyNames(jsonObj: object): string[] {
   //   const names: string[] = [];
   //   if (jsonObj.hasOwnProperty(JsonSchema.properties)) {

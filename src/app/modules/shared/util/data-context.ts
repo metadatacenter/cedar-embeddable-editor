@@ -9,6 +9,8 @@ import { MultiInstanceObjectHandler } from '../handler/multi-instance-object.han
 import { DataObjectBuilderHandler } from '../handler/data-object-builder.handler';
 import { PageBreakPaginatorService } from '../service/page-break-paginator.service';
 import { DataQualityReport } from '../models/data-quality-report.model';
+import { CedarTemplate } from '../models/template/cedar-template.model';
+import { ElementComponent } from '../models/component/element-component.model';
 
 export class DataContext {
   templateInput: CedarInputTemplate = null;
@@ -28,17 +30,31 @@ export class DataContext {
     collapseStaticComponents: boolean,
   ): void {
     this.templateInput = value as CedarInputTemplate;
-    this.templateRepresentation = TemplateRepresentationFactory.create(this.templateInput, collapseStaticComponents);
+    this.templateRepresentation = TemplateRepresentationFactory.create(
+      this.templateInput,
+      collapseStaticComponents,
+      handlerContext,
+    );
     pageBreakPaginatorService.reset(this.templateRepresentation.pageBreakChildren);
     const multiInstanceObjectService: MultiInstanceObjectHandler = handlerContext.multiInstanceObjectService;
-    const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
-    this.instanceExtractData = dataObjectService.buildNewExtractDataObject(
-      this.templateRepresentation,
-      this.templateInput,
-    );
-    this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
-    this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(this.templateRepresentation);
+    //If instance was passed these are extracted from instance. No need to do it from template
+    if (this.instanceExtractData === null || this.instanceFullData === null) {
+      const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
+      this.instanceExtractData = dataObjectService.buildNewExtractDataObject(
+        this.templateRepresentation,
+        this.templateInput,
+      );
+      this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
+      this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(this.templateRepresentation);
+    } else {
+      this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
+        this.templateRepresentation,
+        handlerContext.dataContext.instanceExtractData,
+      );
+    }
     this.savedTemplateID = null;
-    handlerContext.buildQualityReport();
+    if (!handlerContext.readOnlyMode) {
+      handlerContext.buildQualityReport();
+    }
   }
 }

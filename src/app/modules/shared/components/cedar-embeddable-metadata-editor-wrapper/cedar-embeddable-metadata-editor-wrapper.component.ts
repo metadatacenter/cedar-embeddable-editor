@@ -25,6 +25,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   templateJson: object = null;
   instanceJson: object = null;
+  templateAndInstanceJson: object = null;
   sampleTemplateLoaderObject = null;
   showSpinnerBeforeInit = true;
   protected onDestroySubject = new Subject<void>();
@@ -88,6 +89,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   @Input() set instanceObject(instance: object) {
     this.instanceJson = instance;
+  }
+
+  @Input() set templateAndInstanceObject(templateAndInstance: object) {
+    this.templateAndInstanceJson = templateAndInstance;
   }
 
   @Input() get dataQualityReport(): object {
@@ -179,7 +184,16 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
         const mode = this.innerConfig[CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE];
-        this.handlerContext.setReadOnlyMode(mode);
+        if (mode) {
+          this.handlerContext.enableReadOnlyMode();
+        }
+      }
+      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS)) {
+        // Hiding empty fields is only allowed in ReadOnly Mode
+        const hideEmptyFields: boolean = this.innerConfig[CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS];
+        if (this.handlerContext.readOnlyMode && hideEmptyFields) {
+          this.handlerContext.enableEmptyFieldHiding();
+        }
       }
       this.translateService.setDefaultLang(this.fallbackLanguage);
       this.translateService.use(this.defaultLanguage);
@@ -191,7 +205,13 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private triggerUpdateOnInjectedSampleData(): void {
+    if (this.loadedTemplateJson != null && this.loadedMetadata != null) {
+      this.templateAndInstanceObject = { templateObject: this.loadedTemplateJson, instanceObject: this.loadedMetadata };
+      return;
+    }
     if (this.loadedTemplateJson != null) {
+      this.handlerContext.dataContext.instanceExtractData = null;
+      this.handlerContext.dataContext.instanceFullData = null;
       this.templateObject = this.loadedTemplateJson;
     }
     if (this.loadedMetadata !== null) {

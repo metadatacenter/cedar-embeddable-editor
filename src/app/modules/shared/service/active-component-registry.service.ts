@@ -29,6 +29,49 @@ export class ActiveComponentRegistryService {
     return this.modelToMultiPagerUI.get(component);
   }
 
+  setVisibility(component: CedarComponent, handlerContext): void {
+    const fieldComponents = this.getFieldComponents(component);
+    for (const fieldComponent of fieldComponents) {
+      const dataObject = handlerContext.getDataObjectNodeByPath(fieldComponent.path);
+      if (dataObject != null) {
+        if (Object.hasOwn(dataObject, JsonSchema.atValue)) {
+          if (dataObject[JsonSchema.atValue] === '' || dataObject[JsonSchema.atValue] === null) {
+            fieldComponent.hidden = true;
+          } else {
+            fieldComponent.hidden = false;
+          }
+        } else if (
+          Object.hasOwn(dataObject, JsonSchema.atId) &&
+          fieldComponent.basicInfo.inputType === InputType.link
+        ) {
+          // url field single
+          if (dataObject[JsonSchema.atId] != '' || dataObject[JsonSchema.atId] != null) {
+            fieldComponent.hidden = false;
+          } else {
+            fieldComponent.hidden = true;
+          }
+        } else if (Object.hasOwn(dataObject, JsonSchema.atId)) {
+          // controlled field single
+          if (dataObject[JsonSchema.rdfsLabel] != '' || dataObject[JsonSchema.rdfsLabel] != null) {
+            fieldComponent.hidden = false;
+          } else {
+            fieldComponent.hidden = true;
+          }
+        }
+      }
+    }
+  }
+  getFieldComponents(component): SingleFieldComponent[] {
+    const fieldComponents = [] as SingleFieldComponent[];
+    if (component instanceof MultiElementComponent) {
+      for (const child of component.children) {
+        if (child instanceof SingleFieldComponent) {
+          fieldComponents.push(child);
+        }
+      }
+    }
+    return fieldComponents;
+  }
   updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
     if (component instanceof SingleFieldComponent) {
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
