@@ -20,6 +20,7 @@ export abstract class AbstractFieldComponent implements FieldComponent {
   linkedStaticFieldComponent: StaticFieldComponent = null;
   controlledInfo: ControlledInfo = new ControlledInfo();
   multiInfo: MultiInfo = new MultiInfo();
+  hidden: boolean;
 
   abstract isMulti(): boolean;
   abstract isMultiPage(): boolean;

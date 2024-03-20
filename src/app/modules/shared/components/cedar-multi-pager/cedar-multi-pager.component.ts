@@ -11,6 +11,7 @@ import { InputType } from '../../models/input-type.model';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { InstanceExtractData } from '../../models/instance-extract-data.model';
+import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -29,6 +30,7 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   @Input() handlerContext: HandlerContext;
   @Input() isAlignedUp: boolean;
   @Input() showAllMultiInstanceValues: boolean;
+  @Input() pageBreakPaginatorService: PageBreakPaginatorService;
   readOnlyMode;
 
   length = 0;
@@ -229,6 +231,9 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
       return;
     }
     this.handlerContext.setCurrentIndex(this.component, chipIdx);
+    if (this.handlerContext.hideEmptyFields) {
+      this.activeComponentRegistry.setVisibility(this.component, this.handlerContext);
+    }
     this.recomputeNumbers();
     setTimeout(() => {
       this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);

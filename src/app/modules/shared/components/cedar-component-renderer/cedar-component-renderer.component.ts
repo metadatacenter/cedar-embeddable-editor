@@ -12,6 +12,7 @@ import { HandlerContext } from '../../util/handler-context';
 import { StaticFieldComponent } from '../../models/static/static-field-component.model';
 import { InputType } from '../../models/input-type.model';
 import { MultiComponent } from '../../models/component/multi-component.model';
+import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 
 @Component({
   selector: 'app-cedar-component-renderer',
@@ -32,6 +33,7 @@ export class CedarComponentRendererComponent implements OnInit {
   @Input() handlerContext: HandlerContext;
   @Input() showStaticText: boolean;
   @Input() showAllMultiInstanceValues: boolean;
+  @Input() pageBreakPaginatorService: PageBreakPaginatorService;
   readOnlyMode;
   // tslint:disable-next-line:variable-name
   private _allExpanded = false;
@@ -63,15 +65,21 @@ export class CedarComponentRendererComponent implements OnInit {
       componentToRender instanceof MultiElementComponent ||
       componentToRender instanceof CedarTemplate
     ) {
-      this.iterableComponent = componentToRender as ElementComponent;
-      if (componentToRender instanceof MultiElementComponent) {
-        this.multiInfo = (componentToRender as MultiElementComponent).multiInfo;
+      const elementComponent = componentToRender as ElementComponent;
+      if (!elementComponent.hidden) {
+        this.iterableComponent = componentToRender as ElementComponent;
+        if (componentToRender instanceof MultiElementComponent) {
+          this.multiInfo = (componentToRender as MultiElementComponent).multiInfo;
+        }
       }
     }
     if (componentToRender instanceof SingleFieldComponent || componentToRender instanceof MultiFieldComponent) {
-      this.nonIterableComponent = componentToRender as FieldComponent;
-      if (componentToRender instanceof MultiFieldComponent) {
-        this.multiInfo = (componentToRender as MultiFieldComponent).multiInfo;
+      const fieldComponent = componentToRender as FieldComponent;
+      if (!fieldComponent.hidden) {
+        this.nonIterableComponent = componentToRender as FieldComponent;
+        if (componentToRender instanceof MultiFieldComponent) {
+          this.multiInfo = (componentToRender as MultiFieldComponent).multiInfo;
+        }
       }
     }
     if (componentToRender instanceof StaticFieldComponent) {
