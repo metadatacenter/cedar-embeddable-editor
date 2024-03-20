@@ -8,7 +8,7 @@ import { Component, OnInit } from '@angular/core';
 export class AppComponentDev implements OnInit {
   ceeConfig = {
     sampleTemplateLocationPrefix: 'http://localhost:4240/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '86',
+    loadSampleTemplateName: '1',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
@@ -33,8 +33,8 @@ export class AppComponentDev implements OnInit {
 
     collapseStaticComponents: true,
     // showStaticText: true,
-    readOnlyMode: true,
-    hideEmptyFields: true,
+    readOnlyMode: false,
+    hideEmptyFields: false,
   };
 
   languages = {

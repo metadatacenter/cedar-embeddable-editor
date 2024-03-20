@@ -190,7 +190,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS)) {
         // Hiding empty fields is only allowed in ReadOnly Mode
-        const hideEmptyFields = CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS;
+        const hideEmptyFields: boolean = this.innerConfig[CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS];
         if (this.handlerContext.readOnlyMode && hideEmptyFields) {
           this.handlerContext.enableEmptyFieldHiding();
         }

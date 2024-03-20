@@ -208,19 +208,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       const dataContext = this.handlerContext.dataContext;
       dataContext.instanceFullData = instanceFullData;
       dataContext.instanceExtractData = instanceExtractData;
-      this.dataContext.setInputTemplate(
-        this.xyz,
-        this.handlerContext,
-        this.pageBreakPaginatorService,
-        this.collapseStaticComponents,
-      );
     }
     setTimeout(() => {
-      // this.pageBreakPaginatorService.reset(this.handlerContext.dataContext.templateRepresentation.pageBreakChildren);
       this.initDataFromInstance(this.dataContext.instanceFullData)
         .then(() => {})
         .catch(() => {});
-      // this.comps = this.pageBreakPaginatorService.getCurrentPage();
     });
   }
 
