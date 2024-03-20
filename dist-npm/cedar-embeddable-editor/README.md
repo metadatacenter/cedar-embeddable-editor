@@ -232,6 +232,18 @@ document.addEventListener('WebComponentsReady', function () {
 
 To reiterate, the metadata being injected **MUST** match the template currently being edited and open in your browser window.
 
+### Injecting Template And Metadata Together
+
+You can inject your template and metadata together into CEE:
+
+```javascript
+const templateAndInstance = {templateObject: object, instanceObject: object};
+cee.templateAndInstanceObject = templateAndInstance;
+```
+
+Injecting template and metadata together brings performance benefits as well as allows configuring hiding empty fields.
+Object being injected must strictly have two objects one named 'templateObject' and the other 'instanceObject'.
+
 ### Data Quality Report
 
 The dataQualityReport summarizes basic metrics on the instance data.
@@ -304,8 +316,8 @@ An example in Angular is:
 - `component.ts`:
 ```typescript
   logChange(event) {
-    console.log('CHANGE', event);
-  }
+  console.log('CHANGE', event);
+}
 ```
 
 ### Viewer Mode
