@@ -19,6 +19,7 @@ export class HandlerContext {
   readonly messageHandlerService: MessageHandlerService = null;
 
   readOnlyMode: boolean = false;
+  hideEmptyFields: boolean = false;
 
   public constructor(dataContext: DataContext, messageHandlerService: MessageHandlerService) {
     this.dataObjectBuilderService = new DataObjectBuilderHandler();
@@ -142,8 +143,10 @@ export class HandlerContext {
   buildQualityReport() {
     this.dataContext.dataQualityReport = this.dataQualityReportBuilderService.buildReport(this.dataContext, this);
   }
-
-  setReadOnlyMode(mode) {
-    this.readOnlyMode = mode;
+  enableReadOnlyMode() {
+    this.readOnlyMode = true;
+  }
+  enableEmptyFieldHiding() {
+    this.hideEmptyFields = true;
   }
 }

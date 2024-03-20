@@ -241,7 +241,6 @@ export class MultiInstanceObjectHandler {
         currentIndex = -1;
         /// delete multiInfo.children;
       } else if (child instanceof MultiElementComponent) {
-        console.log('Multi Element', child.name, child);
         count = (child as MultiComponent).multiInfo.minItems;
         currentIndex = count > 0 ? 0 : -1;
         for (let i = 0; i < count; i++) {
