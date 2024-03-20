@@ -65,8 +65,8 @@ export class CedarComponentRendererComponent implements OnInit {
       componentToRender instanceof MultiElementComponent ||
       componentToRender instanceof CedarTemplate
     ) {
-      const temp = componentToRender as ElementComponent;
-      if (!temp.hidden) {
+      const elementComponent = componentToRender as ElementComponent;
+      if (!elementComponent.hidden) {
         this.iterableComponent = componentToRender as ElementComponent;
         if (componentToRender instanceof MultiElementComponent) {
           this.multiInfo = (componentToRender as MultiElementComponent).multiInfo;
@@ -74,8 +74,8 @@ export class CedarComponentRendererComponent implements OnInit {
       }
     }
     if (componentToRender instanceof SingleFieldComponent || componentToRender instanceof MultiFieldComponent) {
-      const temp = componentToRender as FieldComponent;
-      if (!temp.hidden) {
+      const fieldComponent = componentToRender as FieldComponent;
+      if (!fieldComponent.hidden) {
         this.nonIterableComponent = componentToRender as FieldComponent;
         if (componentToRender instanceof MultiFieldComponent) {
           this.multiInfo = (componentToRender as MultiFieldComponent).multiInfo;

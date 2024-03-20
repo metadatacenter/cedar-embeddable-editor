@@ -45,17 +45,6 @@ export class TemplateRepresentationFactory {
       return template;
     }
   }
-  static removeEmpty(template: CedarTemplate) {
-    const children = template.children;
-    for (let i = 0; i < children.length; i) {
-      const ch = children[i] as ElementComponent;
-      if (!ch.children.length) {
-        children.splice(i, 1);
-      } else {
-        i++;
-      }
-    }
-  }
   static extractPageBreakPages(template: CedarTemplate): void {
     const pages = [];
     let page = [];

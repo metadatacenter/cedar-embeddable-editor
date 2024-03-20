@@ -229,7 +229,4 @@ export class SampleTemplatesService {
     }
     return locationPrefix;
   }
-  getDoLoadMetadata(): boolean {
-    return this.doLoadMetadata;
-  }
 }
