@@ -186,6 +186,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   @Input() set templateJsonObject(value: object) {
     if (value != null) {
+      if (this.handlerContext.hideEmptyFields) {
+        this.messageHandlerService.trace('HideEmptyFields can not be used and set to false');
+        this.handlerContext.hideEmptyFields = false;
+      }
       this.dataContext.setInputTemplate(
         value,
         this.handlerContext,
@@ -201,19 +205,31 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
 
   @Input() set instanceJsonObject(value: object) {
+    console.log('Set Instance object');
     if (value != null) {
-      const instanceFullData = JSON.parse(JSON.stringify(value));
-      const instanceExtractData = JSON.parse(JSON.stringify(value));
-      DataObjectUtil.deleteContext(instanceExtractData);
-      const dataContext = this.handlerContext.dataContext;
-      dataContext.instanceFullData = instanceFullData;
-      dataContext.instanceExtractData = instanceExtractData;
+      if (this.handlerContext.hideEmptyFields) {
+        this.messageHandlerService.trace('HideEmptyFields can not be used and set to false');
+        this.handlerContext.hideEmptyFields = false;
+      }
+      setTimeout(() => {
+        this.initDataFromInstance(this.dataContext.instanceFullData)
+          .then(() => {})
+          .catch(() => {});
+      });
     }
-    setTimeout(() => {
-      this.initDataFromInstance(this.dataContext.instanceFullData)
-        .then(() => {})
-        .catch(() => {});
-    });
+    // if (value != null) {
+    //   const instanceFullData = JSON.parse(JSON.stringify(value));
+    //   const instanceExtractData = JSON.parse(JSON.stringify(value));
+    //   DataObjectUtil.deleteContext(instanceExtractData);
+    //   const dataContext = this.handlerContext.dataContext;
+    //   dataContext.instanceFullData = instanceFullData;
+    //   dataContext.instanceExtractData = instanceExtractData;
+    // }
+    // setTimeout(() => {
+    //   this.initDataFromInstance(this.dataContext.instanceFullData)
+    //     .then(() => {})
+    //     .catch(() => {});
+    // });
   }
 
   @Input() set templateAndInstanceObject(templateAndInstance: object) {
@@ -237,10 +253,29 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       this.collapseStaticComponents,
     );
     setTimeout(() => {
-      this.initDataWithInstance(this.dataContext.instanceFullData)
+      this.initDataWithDataContext()
         .then(() => {})
         .catch(() => {});
     });
+  }
+  private async initDataWithDataContext(): Promise<void> {
+    if (this.handlerContext) {
+      const dataContext = this.handlerContext.dataContext;
+      this.handlerContext.buildQualityReport();
+      return this.renderInstance(dataContext);
+    }
+  }
+  private async initDataFromInstance(instance: object): Promise<void> {
+    if (this.handlerContext) {
+      this.setDataContextWithInstance(instance);
+      const dataContext = this.handlerContext.dataContext;
+      const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
+      dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
+        dataContext.templateRepresentation,
+        dataContext.instanceExtractData,
+      );
+      return this.renderInstance(dataContext);
+    }
   }
   setDataContextWithInstance(instanceObject): void {
     const instanceFullData = JSON.parse(JSON.stringify(instanceObject));
@@ -249,6 +284,21 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     const dataContext = this.handlerContext.dataContext;
     dataContext.instanceFullData = instanceFullData;
     dataContext.instanceExtractData = instanceExtractData;
+  }
+  private async renderInstance(dataContext): Promise<void> {
+    this.initDataFromInstanceQueue = this.initDataFromInstanceQueue.finally(async () => {
+      if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
+        await new Promise<void>((resolve) => {
+          setTimeout(() => {
+            for (const childComponent of dataContext.templateRepresentation.children) {
+              this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
+            }
+            resolve();
+          });
+        });
+      }
+    });
+    return this.initDataFromInstanceQueue;
   }
 
   dataAvailableForRender(): boolean {
@@ -266,45 +316,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   closeAll(): void {
     this.allExpanded = false;
-  }
-  private async renderInstance(dataContext): Promise<void> {
-    this.initDataFromInstanceQueue = this.initDataFromInstanceQueue.finally(async () => {
-      if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
-        await new Promise<void>((resolve) => {
-          setTimeout(() => {
-            for (const childComponent of dataContext.templateRepresentation.children) {
-              this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
-            }
-            resolve();
-          });
-        });
-      }
-    });
-    return this.initDataFromInstanceQueue;
-  }
-  private async initDataWithInstance(instance: object): Promise<void> {
-    if (this.handlerContext) {
-      const dataContext = this.handlerContext.dataContext;
-      this.handlerContext.buildQualityReport();
-      return this.renderInstance(dataContext);
-    }
-  }
-  private async initDataFromInstance(instance: object): Promise<void> {
-    if (this.handlerContext) {
-      const instanceFullData = JSON.parse(JSON.stringify(instance));
-      const instanceExtractData = JSON.parse(JSON.stringify(instance));
-      DataObjectUtil.deleteContext(instanceExtractData);
-      const dataContext = this.handlerContext.dataContext;
-      dataContext.instanceFullData = instanceFullData;
-      dataContext.instanceExtractData = instanceExtractData;
-
-      const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
-      dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
-        dataContext.templateRepresentation,
-        dataContext.instanceExtractData,
-      );
-      return this.renderInstance(dataContext);
-    }
   }
   launchMetadataCenter() {
     window.open('https://metadatacenter.org/', '_blank');

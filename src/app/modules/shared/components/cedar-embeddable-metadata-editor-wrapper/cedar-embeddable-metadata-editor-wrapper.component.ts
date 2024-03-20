@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
-import { Subject, Subscriber, Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
 import { takeUntil } from 'rxjs/operators';
 import { HandlerContext } from '../../util/handler-context';
@@ -62,7 +62,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       } else {
         this.loadedTemplateJson = null;
       }
-      // this.triggerUpdateOnInjectedSampleData();
+      this.triggerUpdateOnInjectedSampleData();
     });
     this.sampleTemplateService.metadataJson$.pipe(takeUntil(this.onDestroySubject)).subscribe((metadataJson) => {
       if (metadataJson) {
@@ -201,24 +201,20 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   editorDataReady(): boolean {
-    // return this.innerConfig != null && this.templateJson != null;
-    return this.innerConfig != null;
+    return this.innerConfig != null && this.templateJson != null;
   }
 
   private triggerUpdateOnInjectedSampleData(): void {
     if (this.loadedTemplateJson != null && this.loadedMetadata != null) {
-      console.log('Both non null');
       this.templateAndInstanceObject = { templateObject: this.loadedTemplateJson, instanceObject: this.loadedMetadata };
       return;
     }
     if (this.loadedTemplateJson != null) {
-      console.log('Template non null');
       this.handlerContext.dataContext.instanceExtractData = null;
       this.handlerContext.dataContext.instanceFullData = null;
       this.templateObject = this.loadedTemplateJson;
     }
     if (this.loadedMetadata !== null) {
-      console.log('Metadata non null');
       setTimeout(() => {
         if (this.loadedMetadata !== null) {
           this.instanceObject = this.loadedMetadata;
