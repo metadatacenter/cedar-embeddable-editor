@@ -10,6 +10,7 @@ export abstract class AbstractElementComponent implements ElementComponent {
   children: CedarComponent[] = [];
   labelInfo: LabelInfo = new LabelInfo();
   linkedStaticFieldComponent: StaticFieldComponent = null;
+  hidden: boolean;
 
   getChildByName(childName: string): CedarComponent {
     for (const child of this.children) {

@@ -15,7 +15,7 @@ import { MessageHandlerService } from '../../service/message-handler.service';
   encapsulation: ViewEncapsulation.None,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
-  private static INNER_VERSION = '2024-02-14 21:28:00';
+  private static INNER_VERSION = '2024-03-19 21:59:00';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
@@ -52,6 +52,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static SHOW_TEMPLATE_DESCRIPTION: string = 'showTemplateDescription';
 
   static READ_ONLY_MODE = 'readOnlyMode';
+  static HIDE_EMPTY_FIELDS: string = 'hideEmptyFields';
 
   private static IRI_PREFIX = 'iriPrefix';
 
@@ -184,22 +185,19 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
 
   @Input() set templateJsonObject(value: object) {
-    this.xyz = value;
-    // if (value != null) {
-    //   setTimeout(() => {
-    // this.dataContext.setInputTemplate(
-    //   value,
-    //   this.handlerContext,
-    //   this.pageBreakPaginatorService,
-    //   this.collapseStaticComponents,
-    // );
-    //   });
-    //   setTimeout(() => {
-    //     this.initDataFromInstance(this.dataContext.instanceFullData)
-    //       .then(() => {})
-    //       .catch(() => {});
-    //   });
-    // }
+    if (value != null) {
+      this.dataContext.setInputTemplate(
+        value,
+        this.handlerContext,
+        this.pageBreakPaginatorService,
+        this.collapseStaticComponents,
+      );
+      setTimeout(() => {
+        this.initDataFromInstance(this.dataContext.instanceFullData)
+          .then(() => {})
+          .catch(() => {});
+      });
+    }
   }
 
   @Input() set instanceJsonObject(value: object) {
@@ -222,8 +220,43 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       this.initDataFromInstance(this.dataContext.instanceFullData)
         .then(() => {})
         .catch(() => {});
-      this.comps = this.pageBreakPaginatorService.getCurrentPage();
+      // this.comps = this.pageBreakPaginatorService.getCurrentPage();
     });
+  }
+
+  @Input() set templateAndInstanceObject(templateAndInstance: object) {
+    if (templateAndInstance === null) {
+      return;
+    }
+    // @ts-ignore
+    const { templateObject, instanceObject } = templateAndInstance;
+    if (!templateObject) {
+      this.messageHandlerService.error('Template Object is missing.');
+      return;
+    } else if (!instanceObject) {
+      this.messageHandlerService.error('Instance Object is missing.');
+      return;
+    }
+    this.setDataContextWithInstance(instanceObject);
+    this.dataContext.setInputTemplate(
+      templateObject,
+      this.handlerContext,
+      this.pageBreakPaginatorService,
+      this.collapseStaticComponents,
+    );
+    setTimeout(() => {
+      this.initDataWithInstance(this.dataContext.instanceFullData)
+        .then(() => {})
+        .catch(() => {});
+    });
+  }
+  setDataContextWithInstance(instanceObject): void {
+    const instanceFullData = JSON.parse(JSON.stringify(instanceObject));
+    const instanceExtractData = JSON.parse(JSON.stringify(instanceObject));
+    DataObjectUtil.deleteContext(instanceExtractData);
+    const dataContext = this.handlerContext.dataContext;
+    dataContext.instanceFullData = instanceFullData;
+    dataContext.instanceExtractData = instanceExtractData;
   }
 
   dataAvailableForRender(): boolean {
@@ -242,40 +275,44 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   closeAll(): void {
     this.allExpanded = false;
   }
-
-  private async initDataFromInstance(instance: object): Promise<void> {
+  private async renderInstance(dataContext): Promise<void> {
     this.initDataFromInstanceQueue = this.initDataFromInstanceQueue.finally(async () => {
-      if (this.handlerContext) {
-        // const instanceFullData = JSON.parse(JSON.stringify(instance));
-        // const instanceExtractData = JSON.parse(JSON.stringify(instance));
-        // DataObjectUtil.deleteContext(instanceExtractData);
-        const dataContext = this.handlerContext.dataContext;
-        // dataContext.instanceFullData = instanceFullData;
-        // dataContext.instanceExtractData = instanceExtractData;
-        const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
-
-        console.log('Data Context', dataContext);
-        // dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
-        //   dataContext.templateRepresentation,
-        //   dataContext.instanceExtractData,
-        // );
-
-        this.handlerContext.buildQualityReport();
-
-        if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
-          await new Promise<void>((resolve) => {
-            setTimeout(() => {
-              for (const childComponent of dataContext.templateRepresentation.children) {
-                this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
-              }
-              resolve();
-            });
+      if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
+        await new Promise<void>((resolve) => {
+          setTimeout(() => {
+            for (const childComponent of dataContext.templateRepresentation.children) {
+              this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
+            }
+            resolve();
           });
-        }
+        });
       }
     });
-
     return this.initDataFromInstanceQueue;
+  }
+  private async initDataWithInstance(instance: object): Promise<void> {
+    if (this.handlerContext) {
+      const dataContext = this.handlerContext.dataContext;
+      this.handlerContext.buildQualityReport();
+      return this.renderInstance(dataContext);
+    }
+  }
+  private async initDataFromInstance(instance: object): Promise<void> {
+    if (this.handlerContext) {
+      const instanceFullData = JSON.parse(JSON.stringify(instance));
+      const instanceExtractData = JSON.parse(JSON.stringify(instance));
+      DataObjectUtil.deleteContext(instanceExtractData);
+      const dataContext = this.handlerContext.dataContext;
+      dataContext.instanceFullData = instanceFullData;
+      dataContext.instanceExtractData = instanceExtractData;
+
+      const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
+      dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
+        dataContext.templateRepresentation,
+        dataContext.instanceExtractData,
+      );
+      return this.renderInstance(dataContext);
+    }
   }
   launchMetadataCenter() {
     window.open('https://metadatacenter.org/', '_blank');

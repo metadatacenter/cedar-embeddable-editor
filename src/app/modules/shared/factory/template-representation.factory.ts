@@ -172,30 +172,18 @@ export class TemplateRepresentationFactory {
 
       if (r !== null) {
         const wrapperElement: ElementComponent = component as ElementComponent;
-        if (r instanceof SingleFieldComponent || r instanceof MultiFieldComponent) {
-          const val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
-          // const def = r as SingleFieldComponent;
-          // const defaultValue = def.valueInfo.defaultValue;
-          console.log('Wrapper element', wrapperElement);
-          if (val || wrapperElement instanceof MultiElementComponent) {
-            wrapperElement.children.push(r);
-            r.name = name;
-            r.path = myPath;
+        wrapperElement.children.push(r);
+        r.name = name;
+        r.path = myPath;
+        if (handlerContext.hideEmptyFields && handlerContext.dataContext.instanceExtractData) {
+          if (r instanceof SingleFieldComponent || r instanceof MultiFieldComponent) {
+            const val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
+            val ? (r.hidden = false) : (r.hidden = true);
+          } else if (r instanceof MultiElementComponent || r instanceof SingleElementComponent) {
+            this.hasNonEmptyChild(r, handlerContext) ? (r.hidden = false) : (r.hidden = true);
           }
-        } else if (r instanceof MultiElementComponent || r instanceof SingleElementComponent) {
-          if (r.children.length) {
-            wrapperElement.children.push(r);
-            r.name = name;
-            r.path = myPath;
-            // console.log(r.name, 'has children');
-          }
-        } else {
-          wrapperElement.children.push(r);
-          r.name = name;
-          r.path = myPath;
         }
       }
-
       if (isMulti) {
         const mr = r as MultiComponent;
         TemplateRepresentationFactory.extractMultiInfo(templateFragment, mr);
@@ -206,9 +194,22 @@ export class TemplateRepresentationFactory {
       this.collapseStaticFieldsIntoNextFieldOrElement(component);
     }
   }
-  // private static getDefaultValueByPath(path: string[], templateRep: CedarTemplate) {}
+  private static hasNonEmptyChild(component: ElementComponent, handlerContext): boolean {
+    let hasNonEmptyChild = false;
+    const instanceExtractData = handlerContext.dataContext.instanceExtractData;
+    for (const child of component.children) {
+      if (this.getValueByPath(child.path, instanceExtractData)) {
+        hasNonEmptyChild = true;
+        break;
+      }
+    }
+    return hasNonEmptyChild;
+  }
 
   private static getValueByPath(path: string[], json) {
+    if (!json) {
+      return null;
+    }
     if (path.length === 0) {
       if (Object.prototype.hasOwnProperty.call(json, '@value')) {
         return json['@value'];
