@@ -51,7 +51,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static LANGUAGE_MAP_PATH_PREFIX = 'languageMapPathPrefix';
   static SHOW_TEMPLATE_DESCRIPTION: string = 'showTemplateDescription';
 
-  static READ_ONLY_MODE = 'readOnlyMode';
+  static READ_ONLY_MODE: string = 'readOnlyMode';
   static HIDE_EMPTY_FIELDS: string = 'hideEmptyFields';
 
   private static IRI_PREFIX = 'iriPrefix';
@@ -87,8 +87,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   showAllMultiInstanceValues = true;
   showTemplateDescription: boolean = false;
   readOnlyMode = false;
-  xyz;
-  comps;
 
   static iriPrefix = 'https://repo.metadatacenter.org/';
 

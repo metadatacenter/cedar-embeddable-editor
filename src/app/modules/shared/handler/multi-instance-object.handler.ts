@@ -127,7 +127,6 @@ export class MultiInstanceObjectHandler {
 
   private setSingleMultiInstance(path: string[], count: number, multiInstanceObject: MultiInstanceInfo): void {
     const pathCopy = [];
-    // try {
     for (let i = 0; i < path.length; i++) {
       pathCopy.push(path[i]);
       const match = path[i].match(this.indexRegEx);
@@ -175,9 +174,7 @@ export class MultiInstanceObjectHandler {
         }
       }
     }
-    // } catch (e) {
-    //   console.error('Caught', e);
-    // }
+
     const targetObj = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, pathCopy);
     if (targetObj) {
       targetObj.componentName = path[path.length - 1];
