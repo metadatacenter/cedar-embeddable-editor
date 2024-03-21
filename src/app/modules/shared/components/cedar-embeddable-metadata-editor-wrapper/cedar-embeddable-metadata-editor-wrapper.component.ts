@@ -201,7 +201,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   editorDataReady(): boolean {
-    return this.innerConfig != null && this.templateJson != null;
+    return this.innerConfig != null && (this.templateJson != null || this.templateAndInstanceJson != null);
   }
 
   private triggerUpdateOnInjectedSampleData(): void {
