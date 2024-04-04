@@ -34,7 +34,7 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   isRichText: boolean = false;
   isOrcid: boolean = false;
   isRor: boolean = false;
-  originalVal = null;
+  originalValue = null;
 
   constructor(
     fb: FormBuilder,
@@ -98,16 +98,16 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   }
 
   setCurrentValue(currentValue: any): void {
-    if (this.checkOrcid(currentValue)) {
-      this.isOrcid = true;
-      this.originalVal = currentValue as string;
-      currentValue = currentValue.split('/').pop();
-      console.log('Component', this.component);
-      console.log('Handler context', this.handlerContext);
-    } else if (this.checkRor(currentValue)) {
-      this.isRor = true;
-      this.originalVal = currentValue as string;
-      currentValue = currentValue.split('/').pop();
+    if (this.readOnlyMode) {
+      if (this.checkOrcid(currentValue)) {
+        this.isOrcid = true;
+        this.originalValue = currentValue as string;
+        currentValue = currentValue.split('/').pop();
+      } else if (this.checkRor(currentValue)) {
+        this.isRor = true;
+        this.originalValue = currentValue as string;
+        currentValue = currentValue.split('/').pop();
+      }
     }
     this.inputValueControl.setValue(currentValue);
   }
@@ -156,5 +156,10 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
     }
     return s;
   }
+
+  goToLink() {
+    window.open(this.originalValue, '_blank');
+  }
+
   protected readonly window = window;
 }

@@ -33,7 +33,7 @@ export class AppComponentDev implements OnInit {
 
     collapseStaticComponents: true,
     // showStaticText: true,
-    readOnlyMode: true,
+    readOnlyMode: false,
     hideEmptyFields: false,
   };
 

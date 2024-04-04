@@ -168,8 +168,6 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
     } else return value;
   }
 
-  // getBioPortalDisplayValue(controlledInfo: ControlledInfo): string {}
-
   clearValue(): void {
     this.selectedData = null;
     this.inputValueControl.setValue(null);
