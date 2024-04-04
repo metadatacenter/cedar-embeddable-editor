@@ -1,12 +1,16 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field *ngIf="!isRichText" class="full-width">
 <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
-    <input matInput type="text" *ngIf="component.basicInfo.inputType==inputText"
-           [formControl]="inputValueControl"
-           [errorStateMatcher]="errorStateMatcher"
-           (input)="inputChanged($event)"
-           [readonly]="readOnlyMode"
-           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
+    <a href={{originalVal}} target="_blank">
+      <input matInput type="text" *ngIf="component.basicInfo.inputType==inputText"
+             [formControl]="inputValueControl"
+             [errorStateMatcher]="errorStateMatcher"
+             (input)="inputChanged($event)"
+             [readonly]="readOnlyMode"
+             attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
+      <button *ngIf="isOrcid" matPrefix class="orcid-icon"></button>
+      <button *ngIf="isRor" matPrefix class="ror-icon"></button>
+    </a>
     <textarea matInput type="text" *ngIf="component.basicInfo.inputType==inputTextarea"
               cdkTextareaAutosize
               cdkAutosizeMinRows="6"
