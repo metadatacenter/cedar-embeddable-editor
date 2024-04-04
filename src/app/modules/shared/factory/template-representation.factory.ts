@@ -161,15 +161,17 @@ export class TemplateRepresentationFactory {
 
       if (r !== null) {
         const wrapperElement: ElementComponent = component as ElementComponent;
-        wrapperElement.children.push(r);
-        r.name = name;
-        r.path = myPath;
-        if (handlerContext.hideEmptyFields && handlerContext.dataContext.instanceExtractData) {
-          if (r instanceof SingleFieldComponent || r instanceof MultiFieldComponent) {
-            const val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
-            val ? (r.hidden = false) : (r.hidden = true);
-          } else if (r instanceof MultiElementComponent || r instanceof SingleElementComponent) {
-            this.hasNonEmptyChild(r, handlerContext) ? (r.hidden = false) : (r.hidden = true);
+        if (!dataNode['_ui'].hidden) {
+          wrapperElement.children.push(r);
+          r.name = name;
+          r.path = myPath;
+          if (handlerContext.hideEmptyFields && handlerContext.dataContext.instanceExtractData) {
+            if (r instanceof SingleFieldComponent || r instanceof MultiFieldComponent) {
+              const val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
+              val ? (r.hidden = false) : (r.hidden = true);
+            } else if (r instanceof MultiElementComponent || r instanceof SingleElementComponent) {
+              this.hasNonEmptyChild(r, handlerContext) ? (r.hidden = false) : (r.hidden = true);
+            }
           }
         }
       }
