@@ -205,21 +205,22 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private triggerUpdateOnInjectedSampleData(): void {
-    if (this.loadedTemplateJson != null && this.loadedMetadata != null) {
-      this.templateAndInstanceObject = { templateObject: this.loadedTemplateJson, instanceObject: this.loadedMetadata };
-      return;
-    }
-    if (this.loadedTemplateJson != null) {
-      this.handlerContext.dataContext.instanceExtractData = null;
-      this.handlerContext.dataContext.instanceFullData = null;
-      this.templateObject = this.loadedTemplateJson;
-    }
-    if (this.loadedMetadata !== null) {
-      setTimeout(() => {
-        if (this.loadedMetadata !== null) {
-          this.instanceObject = this.loadedMetadata;
-        }
-      });
-    }
+    setTimeout(() => {
+      if (this.loadedTemplateJson != null && this.loadedMetadata != null) {
+        this.templateAndInstanceObject = {
+          templateObject: this.loadedTemplateJson,
+          instanceObject: this.loadedMetadata,
+        };
+        return;
+      }
+      if (this.loadedTemplateJson != null) {
+        this.handlerContext.dataContext.instanceExtractData = null;
+        this.handlerContext.dataContext.instanceFullData = null;
+        this.templateObject = this.loadedTemplateJson;
+      }
+      if (this.loadedMetadata !== null) {
+        this.instanceObject = this.loadedMetadata;
+      }
+    });
   }
 }

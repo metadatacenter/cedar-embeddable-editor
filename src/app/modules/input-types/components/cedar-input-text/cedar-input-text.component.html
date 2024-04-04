@@ -1,12 +1,19 @@
 <form class="form-container" [formGroup]="options">
-  <mat-form-field *ngIf="!isRichText" class="full-width">
+  <div *ngIf="(isOrcid || isRor)" class="mat-form-field-wrapper mat-form-field-flex mat-form-field-outline fake-input">
+    <a *ngIf="inputValueControl.getRawValue()" href={{originalValue}} target="_blank">
+      <button *ngIf="isOrcid" matPrefix class="orcid-icon" (click)="goToLink()"></button>
+      <button *ngIf="isRor" matPrefix class="ror-icon" (click)="goToLink()"></button>
+      <span class="text-class">{{inputValueControl.getRawValue()}}</span>
+    </a>
+  </div>
+  <mat-form-field *ngIf="(!isOrcid && !isRor && !isRichText)" class="full-width">
 <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
-    <input matInput type="text" *ngIf="component.basicInfo.inputType==inputText"
-           [formControl]="inputValueControl"
-           [errorStateMatcher]="errorStateMatcher"
-           (input)="inputChanged($event)"
-           [readonly]="readOnlyMode"
-           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
+      <input matInput type="text" *ngIf="component.basicInfo.inputType==inputText"
+             [formControl]="inputValueControl"
+             [errorStateMatcher]="errorStateMatcher"
+             (input)="inputChanged($event)"
+             [readonly]="readOnlyMode"
+             attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
     <textarea matInput type="text" *ngIf="component.basicInfo.inputType==inputTextarea"
               cdkTextareaAutosize
               cdkAutosizeMinRows="6"
