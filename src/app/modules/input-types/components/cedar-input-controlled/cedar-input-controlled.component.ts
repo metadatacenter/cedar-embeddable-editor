@@ -13,6 +13,7 @@ import { JsonSchema } from '../../../shared/models/json-schema.model';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { ControlledInfo } from '../../../shared/models/info/controlled-info.model';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -35,6 +36,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   @Input() handlerContext: HandlerContext;
   model: IntegratedSearchResponseItem = null;
   readOnlyMode;
+  bioPortalTermLink: string = null;
 
   filteredOptions: Observable<IntegratedSearchResponseItem[]>;
 
@@ -87,9 +89,11 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   }
 
   ngAfterViewInit(): void {
-    this.trigger.panelClosingActions.subscribe((e) => {
-      this.setCurrentValue(this.selectedData?.prefLabel);
-    });
+    if (!this.readOnlyMode) {
+      this.trigger.panelClosingActions.subscribe((e) => {
+        this.setCurrentValue(this.selectedData?.prefLabel);
+      });
+    }
   }
 
   filter(val: string): Observable<IntegratedSearchResponseItem[]> {
@@ -130,8 +134,41 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   }
 
   setCurrentValue(currentValue: any): void {
-    this.inputValueControl.setValue(currentValue);
+    if (this.readOnlyMode) {
+      const displayTerm = this.getBioPortalTermDisplayValue(currentValue);
+      this.inputValueControl.setValue(displayTerm);
+    } else {
+      this.inputValueControl.setValue(currentValue);
+    }
   }
+
+  getBioPortalTermDisplayValue(value: any): string {
+    const controlledInfo = this.component.controlledInfo;
+    const rdfsLabel = value[JsonSchema.rdfsLabel];
+    const atId = value[JsonSchema.atId];
+    const midPart = '?p=classes&conceptid=';
+    const urlEncodedAtId = encodeURIComponent(atId);
+
+    const branch = controlledInfo.branches[0];
+    const _class = controlledInfo.classes[0];
+    const ontology = controlledInfo.ontologies[0];
+
+    const bioPortalPrefix = 'https://bioportal.bioontology.org/ontologies/';
+
+    if (branch) {
+      this.bioPortalTermLink = branch['source'] + midPart + urlEncodedAtId;
+    } else if (_class) {
+      this.bioPortalTermLink = bioPortalPrefix + _class['source'] + midPart + urlEncodedAtId;
+    } else if (ontology) {
+      this.bioPortalTermLink = bioPortalPrefix + ontology['acronym'] + midPart + urlEncodedAtId;
+    }
+
+    if (rdfsLabel && atId) {
+      return rdfsLabel + ' - [' + atId + ']';
+    } else return value;
+  }
+
+  // getBioPortalDisplayValue(controlledInfo: ControlledInfo): string {}
 
   clearValue(): void {
     this.selectedData = null;
@@ -142,5 +179,9 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   private setValueUIAndModel(atId: string, prefLabel: string): void {
     this.inputValueControl.setValue(prefLabel);
     this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
+  }
+
+  goToBioPortalTerm() {
+    window.open(this.bioPortalTermLink, '_blank');
   }
 }

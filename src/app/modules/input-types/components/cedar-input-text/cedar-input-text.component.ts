@@ -31,7 +31,10 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   inputText = InputType.text;
   inputTextarea = InputType.textarea;
   readOnlyMode;
-  isRichText = false;
+  isRichText: boolean = false;
+  isOrcid: boolean = false;
+  isRor: boolean = false;
+  originalVal = null;
 
   constructor(
     fb: FormBuilder,
@@ -46,7 +49,6 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
 
   ngOnInit(): void {
     const validators: any[] = [];
-
     this.constraintMinLength = this.component.valueInfo.minLength;
 
     if (this.constraintMinLength != null) {
@@ -96,9 +98,29 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   }
 
   setCurrentValue(currentValue: any): void {
+    if (this.checkOrcid(currentValue)) {
+      this.isOrcid = true;
+      this.originalVal = currentValue as string;
+      currentValue = currentValue.split('/').pop();
+      console.log('Component', this.component);
+      console.log('Handler context', this.handlerContext);
+    } else if (this.checkRor(currentValue)) {
+      this.isRor = true;
+      this.originalVal = currentValue as string;
+      currentValue = currentValue.split('/').pop();
+    }
     this.inputValueControl.setValue(currentValue);
   }
 
+  checkOrcid(value): boolean {
+    const orcidReg = new RegExp('^https://orcid.org/');
+    return orcidReg.test(value);
+  }
+
+  checkRor(value): boolean {
+    const orcidReg = new RegExp('^https://ror.org/');
+    return orcidReg.test(value);
+  }
   clearValue(): void {
     this.setValueUIAndModel(null);
   }
@@ -134,4 +156,5 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
     }
     return s;
   }
+  protected readonly window = window;
 }

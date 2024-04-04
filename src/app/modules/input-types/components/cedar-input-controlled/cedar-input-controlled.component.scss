@@ -1,0 +1,35 @@
+@import '../../../../../styles-common.scss';
+.fake-input {
+  padding: 4px;
+  width: 100%;
+  border-style: solid;
+  border-color: rgba(141,144,149,0.16);
+  border-radius: 5px;
+  text-decoration: none;
+  margin-top: 3px;
+  margin-bottom: 20px;
+}
+
+.fake-input:hover {
+  border-color: black;
+}
+
+.bio-portal-icon {
+  background-image: url($bio-portal-icon);
+  background-repeat: no-repeat;
+  background-size: 60px 20px;
+  display: inline-flex;
+  height: 20px;
+  width: 60px;
+  border: none;
+  cursor: pointer;
+  margin-right: 5px;
+  margin-top: 5px;
+  //margin-bottom: 5px;
+}
+
+.text-class {
+  padding: 5px;
+  vertical-align: super;
+  color: black;
+}

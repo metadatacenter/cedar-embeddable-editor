@@ -1,0 +1,22 @@
+@import '../../../../../styles-common.scss';
+.orcid-icon {
+  background-image: url($orcid-icon-16x16);
+  background-repeat: no-repeat;
+  background-size: cover;
+  width: 20px;
+  height: 20px;
+  border: none;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.ror-icon {
+  background-image: url($ror-icon);
+  background-repeat: no-repeat;
+  background-size: cover;
+  width: 28px;
+  height: 20px;
+  border: none;
+  cursor: pointer;
+  margin-right: 5px;
+}

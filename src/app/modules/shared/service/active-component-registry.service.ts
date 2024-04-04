@@ -84,7 +84,14 @@ export class ActiveComponentRegistryService {
           uiComponent.setCurrentValue(dataObject[JsonSchema.atId]);
         } else if (Object.hasOwn(dataObject, JsonSchema.atId)) {
           // controlled field single
-          uiComponent.setCurrentValue(dataObject[JsonSchema.rdfsLabel]);
+          if (handlerContext.readOnlyMode) {
+            const valueObject = {};
+            valueObject[JsonSchema.rdfsLabel] = dataObject[JsonSchema.rdfsLabel];
+            valueObject[JsonSchema.atId] = dataObject[JsonSchema.atId];
+            uiComponent.setCurrentValue(valueObject);
+          } else {
+            uiComponent.setCurrentValue(dataObject[JsonSchema.rdfsLabel]);
+          }
         }
       }
     } else if (component instanceof MultiFieldComponent) {
