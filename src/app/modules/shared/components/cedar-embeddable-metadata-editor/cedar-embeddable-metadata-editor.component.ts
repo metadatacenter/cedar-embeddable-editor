@@ -203,7 +203,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
 
   @Input() set instanceJsonObject(value: object) {
-    console.log('Set Instance object');
     if (value != null) {
       if (this.handlerContext.hideEmptyFields) {
         this.messageHandlerService.trace('HideEmptyFields can not be used and set to false');
