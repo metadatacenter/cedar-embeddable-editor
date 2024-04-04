@@ -1,7 +1,6 @@
 <form class="form-container" [formGroup]="options">
-  <div *ngIf="readOnlyMode" class="mat-form-field-wrapper mat-form-field-flex mat-form-field-outline fake-input">
+  <div *ngIf="readOnlyMode && inputValueControl.getRawValue()" class="mat-form-field-wrapper mat-form-field-flex mat-form-field-outline fake-input">
     <a href={{bioPortalTermLink}} target="_blank">
-<!--      <span matPrefix class="bio-portal-icon"></span>-->
       <button matPrefix class="bio-portal-icon" (click)="goToBioPortalTerm()"></button>
       <span class="text-class">{{inputValueControl.getRawValue()}}</span>
     </a>
