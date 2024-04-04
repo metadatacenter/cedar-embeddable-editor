@@ -189,7 +189,9 @@ export class TemplateRepresentationFactory {
     let hasNonEmptyChild = false;
     const instanceExtractData = handlerContext.dataContext.instanceExtractData;
     for (const child of component.children) {
-      if (this.getValueByPath(child.path, instanceExtractData)) {
+      if (child instanceof MultiElementComponent || child instanceof SingleElementComponent) {
+        hasNonEmptyChild = this.hasNonEmptyChild(child, handlerContext);
+      } else if (this.getValueByPath(child.path, instanceExtractData)) {
         hasNonEmptyChild = true;
         break;
       }
