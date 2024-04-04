@@ -13,7 +13,6 @@ import { JsonSchema } from '../../../shared/models/json-schema.model';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { ControlledInfo } from '../../../shared/models/info/controlled-info.model';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
