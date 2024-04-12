@@ -15,7 +15,7 @@ import { MessageHandlerService } from '../../service/message-handler.service';
   encapsulation: ViewEncapsulation.None,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
-  private static INNER_VERSION = '2024-02-14 21:28:00';
+  private static INNER_VERSION = '2024-04-12 11:45:00';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
