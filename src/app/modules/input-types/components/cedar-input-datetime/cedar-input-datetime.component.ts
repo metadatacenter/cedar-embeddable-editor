@@ -174,6 +174,7 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
     }
     // set datetime UI to default view
     else {
+      // Following 2 lines puts the today's date in the date picker and time, which should not be the default behaviour
       // this.resetDate();
       // this.resetTime();
     }
