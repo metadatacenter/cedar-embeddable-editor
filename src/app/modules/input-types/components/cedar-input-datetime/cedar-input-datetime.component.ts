@@ -174,8 +174,8 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
     }
     // set datetime UI to default view
     else {
-      this.resetDate();
-      this.resetTime();
+      // this.resetDate();
+      // this.resetTime();
     }
   }
 
