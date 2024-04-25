@@ -92,7 +92,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
 
-  allExpanded: boolean;
+  allExpanded = true;
 
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,
