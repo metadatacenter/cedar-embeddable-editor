@@ -214,25 +214,13 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
           .catch(() => {});
       });
     }
-    // if (value != null) {
-    //   const instanceFullData = JSON.parse(JSON.stringify(value));
-    //   const instanceExtractData = JSON.parse(JSON.stringify(value));
-    //   DataObjectUtil.deleteContext(instanceExtractData);
-    //   const dataContext = this.handlerContext.dataContext;
-    //   dataContext.instanceFullData = instanceFullData;
-    //   dataContext.instanceExtractData = instanceExtractData;
-    // }
-    // setTimeout(() => {
-    //   this.initDataFromInstance(this.dataContext.instanceFullData)
-    //     .then(() => {})
-    //     .catch(() => {});
-    // });
   }
 
   @Input() set templateAndInstanceObject(templateAndInstance: object) {
     if (templateAndInstance === null) {
       return;
     }
+    // TODO: an interface for templateAndInstance object
     // @ts-ignore
     const { templateObject, instanceObject } = templateAndInstance;
     if (!templateObject) {

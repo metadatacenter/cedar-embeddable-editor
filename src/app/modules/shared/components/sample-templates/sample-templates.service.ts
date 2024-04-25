@@ -106,10 +106,12 @@ export class SampleTemplatesService {
       const templateObj = {};
       templateObj[this.templateNum] = this.loadedTemplate;
       this.templateJsonSubject.next(templateObj);
+      // this.templateJsonSubject.complete();
 
       const metadataObj = {};
       metadataObj[this.templateNum] = this.loadedMetadata;
       this.metadataJsonSubject.next(metadataObj);
+      // this.metadataJsonSubject.complete();
     }
   }
 
