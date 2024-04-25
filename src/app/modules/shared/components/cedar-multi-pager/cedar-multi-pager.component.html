@@ -9,6 +9,9 @@
                 selectable="true"
       >{{pageNumber + 1}}</mat-chip>
     </mat-chip-list>
+    <mat-chip-list *ngIf="getInstanceCount()<1" tabIndex="0">
+      <mat-chip selectable="false" disabled="true" aria-label="No values yet">{{'Multi.NoInstancesYet' | translate}}</mat-chip>
+    </mat-chip-list>
   </div>
   <div *ngIf="!readOnlyMode">
     <button mat-icon-button tabindex="0" [disabled]="!isEnabledAdd()" (click)="clickedAdd($event)" aria-label="Add empty after current">
