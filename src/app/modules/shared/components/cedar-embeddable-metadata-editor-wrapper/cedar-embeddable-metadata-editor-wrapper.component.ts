@@ -3,7 +3,7 @@ import { ControlledFieldDataService } from '../../service/controlled-field-data.
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { Subject } from 'rxjs';
 import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
-import { takeUntil } from 'rxjs/operators';
+import { map, withLatestFrom } from 'rxjs/operators';
 import { HandlerContext } from '../../util/handler-context';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -56,21 +56,34 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   ngOnInit(): void {
-    this.sampleTemplateService.templateJson$.pipe(takeUntil(this.onDestroySubject)).subscribe((templateJson) => {
-      if (templateJson) {
-        this.loadedTemplateJson = Object.values(templateJson)[0];
-      } else {
-        this.loadedTemplateJson = null;
+    const { templateJson$, metadataJson$ } = this.sampleTemplateService;
+
+    const metadataAndTemplate = metadataJson$.pipe(
+      withLatestFrom(templateJson$),
+      map(([metadataJson, templateJson]) => {
+        return { metadataJson, templateJson };
+      }),
+    );
+
+    metadataAndTemplate.subscribe((values) => {
+      let { templateJson, metadataJson } = values;
+      if (templateJson && metadataJson) {
+        templateJson = Object.values(templateJson)[0];
+        metadataJson = Object.values(metadataJson)[0];
+        if (templateJson && metadataJson) {
+          this.loadedTemplateJson = templateJson;
+          this.loadedMetadata = metadataJson;
+        } else if (templateJson) {
+          this.loadedTemplateJson = templateJson;
+          this.loadedMetadata = null;
+        } else if (metadataJson) {
+          this.loadedMetadata = metadataJson;
+        } else {
+          this.templateJson = null;
+          this.loadedMetadata = null;
+        }
+        this.triggerUpdateOnInjectedSampleData();
       }
-      this.triggerUpdateOnInjectedSampleData();
-    });
-    this.sampleTemplateService.metadataJson$.pipe(takeUntil(this.onDestroySubject)).subscribe((metadataJson) => {
-      if (metadataJson) {
-        this.loadedMetadata = Object.values(metadataJson)[0];
-      } else {
-        this.loadedMetadata = null;
-      }
-      this.triggerUpdateOnInjectedSampleData();
     });
     this.initialized = true;
     this.doInitialize();
@@ -205,22 +218,20 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private triggerUpdateOnInjectedSampleData(): void {
-    setTimeout(() => {
-      if (this.loadedTemplateJson != null && this.loadedMetadata != null) {
-        this.templateAndInstanceObject = {
-          templateObject: this.loadedTemplateJson,
-          instanceObject: this.loadedMetadata,
-        };
-        return;
-      }
-      if (this.loadedTemplateJson != null) {
-        this.handlerContext.dataContext.instanceExtractData = null;
-        this.handlerContext.dataContext.instanceFullData = null;
-        this.templateObject = this.loadedTemplateJson;
-      }
-      if (this.loadedMetadata !== null) {
-        this.instanceObject = this.loadedMetadata;
-      }
-    });
+    if (this.loadedTemplateJson != null && this.loadedMetadata != null) {
+      this.templateAndInstanceObject = {
+        templateObject: this.loadedTemplateJson,
+        instanceObject: this.loadedMetadata,
+      };
+      return;
+    }
+    if (this.loadedTemplateJson != null) {
+      this.handlerContext.dataContext.instanceExtractData = null;
+      this.handlerContext.dataContext.instanceFullData = null;
+      this.templateObject = this.loadedTemplateJson;
+    }
+    if (this.loadedMetadata !== null) {
+      this.instanceObject = this.loadedMetadata;
+    }
   }
 }
