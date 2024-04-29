@@ -36,8 +36,8 @@ export class AppComponentDev implements OnInit {
 
     collapseStaticComponents: true,
     // showStaticText: true,
-    readOnlyMode: true,
-    hideEmptyFields: true,
+    readOnlyMode: false,
+    hideEmptyFields: false,
   };
 
   languages = {
