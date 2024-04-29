@@ -30,6 +30,9 @@ export class AppComponentDev implements OnInit {
     fallbackLanguage: 'en',
 
     iriPrefix: 'https://repo.metadatacenter.orgx/',
+    bioPortalPrefix: 'https://bioportal.bioontology.org/ontologies/',
+    orcidPrefix: 'https://orcid.org/',
+    rorPrefix: 'https://ror.org/',
 
     collapseStaticComponents: true,
     // showStaticText: true,
