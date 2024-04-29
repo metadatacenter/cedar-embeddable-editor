@@ -1,4 +1,5 @@
 <div class="flex-container">
+  <ng-container class="component-title">
   {{cds.getRenderingLabelForComponent(component)}}
   <span *ngIf="shouldRenderRequiredMark">
     <sup style="font-size: medium; color: red" aria-label="required"><b>*</b></sup>
@@ -22,5 +23,6 @@
             class="icon-help icon-questionmark"
             role="tooltip"
             inline="false">help</mat-icon>
+  </ng-container>
   <span id="Description of {{cds.getRenderingLabelForComponent(component)}}" class="cdk-visually-hidden">{{component.labelInfo.description}}</span>
 </div>
