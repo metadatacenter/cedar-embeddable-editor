@@ -234,6 +234,7 @@ body.cee-body {
   max-width: 90%;
   background-color: #f8f8f8;
   margin: 0 auto;
+  border: none !important;
 }
 
 .pager-container {
@@ -452,4 +453,43 @@ button.close {
 }
 .cdk-overlay-container {
   z-index: 9999 !important;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  color: black;
+}
+
+.mat-accordion {
+}
+
+.mat-expansion-panel {
+  border: 1px solid #777777;
+  box-shadow: none !important;
+}
+.mat-card{
+  //border: 1px solid #777777;
+  box-shadow: none !important;
+  margin-bottom: 0;
+}
+.tooltip {
+  background-color: black;
+}
+.template-header {
+  display: flex;
+}
+.expand-buttons {
+  margin-left: auto;
+  margin-right: 20px;
+  padding-top: 6px;
+  vertical-align: center;
+}
+.mat-form-field-wrapper {
+  padding: 0;
+}
+.component-title {
+  color: #0B3938 !important;
+}
+.template-label {
+  padding-left: 10px;
+  padding-top: 6px;
 }
