@@ -55,6 +55,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static HIDE_EMPTY_FIELDS: string = 'hideEmptyFields';
 
   private static IRI_PREFIX = 'iriPrefix';
+  private static BIO_PORTAL_PREFIX = 'bioPortalPrefix';
+  private static ORCID_PREFIX = 'orcidPrefix';
+  private static ROR_PREFIX = 'rorPrefix';
 
   dataContext: DataContext = null;
   handlerContext: HandlerContext = null;
@@ -89,6 +92,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   readOnlyMode = false;
 
   static iriPrefix = 'https://repo.metadatacenter.org/';
+  static bioPortalPrefix = 'https://bioportal.bioontology.org/ontologies/';
+  static orcidPrefix = 'https://orcid.org/';
+  static rorPrefix = 'https://ror.org/';
 
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
 
@@ -178,6 +184,16 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_DESCRIPTION)) {
         this.showTemplateDescription = value[CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_DESCRIPTION];
+      }
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.BIO_PORTAL_PREFIX)) {
+        CedarEmbeddableMetadataEditorComponent.bioPortalPrefix =
+          value[CedarEmbeddableMetadataEditorComponent.BIO_PORTAL_PREFIX];
+      }
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ORCID_PREFIX)) {
+        CedarEmbeddableMetadataEditorComponent.orcidPrefix = value[CedarEmbeddableMetadataEditorComponent.ORCID_PREFIX];
+      }
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_PREFIX)) {
+        CedarEmbeddableMetadataEditorComponent.rorPrefix = value[CedarEmbeddableMetadataEditorComponent.ROR_PREFIX];
       }
     }
   }

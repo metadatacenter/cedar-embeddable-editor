@@ -13,6 +13,7 @@ import { JsonSchema } from '../../../shared/models/json-schema.model';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { CedarEmbeddableMetadataEditorComponent } from '../../../shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -151,8 +152,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
     const branch = controlledInfo.branches[0];
     const _class = controlledInfo.classes[0];
     const ontology = controlledInfo.ontologies[0];
-
-    const bioPortalPrefix = 'https://bioportal.bioontology.org/ontologies/';
+    const bioPortalPrefix = CedarEmbeddableMetadataEditorComponent.bioPortalPrefix;
 
     if (branch) {
       this.bioPortalTermLink = branch['source'] + midPart + urlEncodedAtId;
@@ -163,7 +163,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
     }
 
     if (rdfsLabel && atId) {
-      return rdfsLabel + ' - [' + atId + ']';
+      return rdfsLabel + ' - (' + atId + ')';
     } else return value;
   }
 
