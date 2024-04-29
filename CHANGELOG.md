@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.3]
+
+### Changed
+- Removed outer border of fields for a cleaner look
+- Representation of BioPortal, ORCID and ROR iris
+- Added icons for expand and collapse all. These buttons are also repositioned to top right corner.
+
+### Fixed
+- Some internal errors that appear in the stand-alone mode
+- Some border color to comply with accessibility requirements
+
 ## [1.3.2]
 
 ### Added
