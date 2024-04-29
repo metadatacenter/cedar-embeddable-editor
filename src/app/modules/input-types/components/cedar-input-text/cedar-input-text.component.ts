@@ -7,6 +7,7 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { InputType } from '../../../shared/models/input-type.model';
+import { CedarEmbeddableMetadataEditorComponent } from '../../../shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -113,12 +114,14 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   }
 
   checkOrcid(value): boolean {
-    const orcidReg = new RegExp('^https://orcid.org/');
+    const pattern = CedarEmbeddableMetadataEditorComponent.orcidPrefix;
+    const orcidReg = new RegExp(`^${pattern}`);
     return orcidReg.test(value);
   }
 
   checkRor(value): boolean {
-    const orcidReg = new RegExp('^https://ror.org/');
+    const pattern = CedarEmbeddableMetadataEditorComponent.rorPrefix;
+    const orcidReg = new RegExp(`^${pattern}`);
     return orcidReg.test(value);
   }
   clearValue(): void {
