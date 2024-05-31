@@ -144,7 +144,7 @@ There are other optional configuration parameters available for controlling vari
 
   "collapseStaticComponents": false,
   "showStaticText": true,
-
+  
   "readOnlyMode": false
 }
 ```
@@ -316,8 +316,8 @@ An example in Angular is:
 - `component.ts`:
 ```typescript
   logChange(event) {
-  console.log('CHANGE', event);
-}
+    console.log('CHANGE', event);
+  }
 ```
 
 ### Viewer Mode
