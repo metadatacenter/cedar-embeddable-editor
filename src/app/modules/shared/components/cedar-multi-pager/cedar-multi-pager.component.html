@@ -26,7 +26,7 @@
   </div>
   <div class="pager-pager">
     <mat-paginator
-      *ngIf="getInstanceCount()>1" [length]="length"
+      *ngIf="getInstanceCount()>pageSize" [length]="length"
                    [pageSize]="pageSize"
                    [pageSizeOptions]="showPageSizeOptions ? pageSizeOptions: []"
                    [pageIndex]="pageIndex"
