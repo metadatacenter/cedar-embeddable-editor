@@ -225,7 +225,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         this.handlerContext.hideEmptyFields = false;
       }
       setTimeout(() => {
-        this.initDataFromInstance(this.dataContext.instanceFullData)
+        this.initDataFromInstance(value)
           .then(() => {})
           .catch(() => {});
       });
