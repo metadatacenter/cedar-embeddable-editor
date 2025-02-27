@@ -1,0 +1,18 @@
+.organization { margin: 2rem auto; max-width: 800px; }
+.organization-header { border-bottom: 1px solid #ccc; margin-bottom: 1rem; }
+.organization-header h1 { margin: 0; }
+.organization-details section { margin-bottom: 1.5rem; }
+.organization-details h2 { margin-bottom: 0.5rem; }
+.organization-details ul { list-style: none; padding: 0; }
+.organization-details li { margin-bottom: 0.3rem; }
+.organization-details p { text-transform: capitalize; }
+.ror-log {
+  width: 24px;
+  height: 24px;
+}
+.organization-id a {
+  color: #1F7F67;
+  font-family: AH-Bold, AH-Regular, Helvetica, Arial, sans-serif;
+  font-size: 32px;
+  font-weight: bold;
+}

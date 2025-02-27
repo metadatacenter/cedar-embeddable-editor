@@ -1,0 +1,56 @@
+
+  /* Base styles similar to ORCID record summary */
+:host {
+  display: block;
+  margin: 0;
+  padding: 0;
+  background-color: #f7f7f7;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #333;
+}
+
+.record-summary {
+  background-color: #fff;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px 30px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.record-summary h1 {
+  margin: 0 0 10px;
+  font-size: 28px;
+  color: #0055a5;
+}
+
+.biography {
+  font-size: 16px;
+  font-style: italic;
+  margin-bottom: 15px;
+}
+
+.section {
+  margin-bottom: 15px;
+}
+
+.section .label {
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.employment-item {
+  border-bottom: 1px solid #eee;
+  padding: 10px 0;
+  margin-bottom: 10px;
+}
+
+.employment-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.employment-item div {
+  margin: 2px 0;
+}

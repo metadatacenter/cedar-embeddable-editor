@@ -6,6 +6,8 @@ export class InputType {
   static controlled = 'controlled';
   static email = 'email';
   static link = 'link';
+  static orcid = 'ext-orcid';
+  static ror = 'ext-ror';
   static phoneNumber = 'phone-number';
   static list = 'list';
   static checkbox = 'checkbox';

@@ -1,0 +1,32 @@
+<form class="form-container" [formGroup]="options">
+  <ng-container *ngIf="!showDetails">
+    <mat-form-field class="full-width">
+      <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
+      <input matInput type="text"
+             placeholder="{{'Generic.Filter' | translate}}"
+             #autoCompleteInput="matAutocompleteTrigger"
+             [formControl]="inputValueControl"
+             [errorStateMatcher]="errorStateMatcher"
+             [matAutocomplete]="auto"
+             (input)="inputChanged($event)"
+             [readonly]="readOnlyMode"
+             attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
+      <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
+        <mat-option *ngFor="let option of filteredOptions | async" [value]="option.rdfsLabel"
+                    (onSelectionChange)="onSelectionChange(option)"
+        >{{option.rdfsLabel}} - {{option.id}}</mat-option>
+      </mat-autocomplete>
+      <button type="button" tabindex="0" mat-button *ngIf="selectedData" matSuffix mat-icon-button attr.aria-label="{{'Generic.Details' | translate}}" (click)="setShowDetails(true)">
+        <mat-icon>info</mat-icon>
+      </button>
+      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
+    </mat-form-field>
+  </ng-container>
+  <ng-container *ngIf="showDetails===true">
+    <app-orcid-details *ngIf="showDetails" [researcher]="researcher" [close]="setShowDetails"> </app-orcid-details>
+  </ng-container>
+</form>
+

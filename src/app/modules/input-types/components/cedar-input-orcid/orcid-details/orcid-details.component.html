@@ -1,0 +1,44 @@
+<button (click)="closeClicked()">Close</button>
+<div class="record-summary">
+  <h1>{{ researcher.fullName || 'Researcher Name' }}</h1>
+  <div class="biography">
+    {{ researcher.biography }}
+  </div>
+
+  <div class="section emails">
+    <span class="label">Emails:</span>
+    <span>{{ researcher.emails.join(', ') }}</span>
+  </div>
+
+  <div class="section keywords">
+    <span class="label">Keywords:</span>
+    <span>{{ researcher.keywords.join(', ') }}</span>
+  </div>
+
+  <div class="section country">
+    <span class="label">Country:</span>
+    <span>{{ researcher.country }}</span>
+  </div>
+
+  <div class="section employment">
+    <span class="label">Employment:</span>
+    <div *ngFor="let emp of researcher.employments" class="employment-item">
+      <div>
+        <span class="label">Role:</span> {{ emp.roleTitle }}
+      </div>
+      <div>
+        <span class="label">Dates:</span>
+        {{ emp.startDate }}<span *ngIf="emp.endDate"> to {{ emp.endDate }}</span>
+      </div>
+      <div>
+        <span class="label">Organization:</span> {{ emp.organizationName }}
+      </div>
+      <div>
+        <span class="label">Location:</span>
+        {{
+          [emp.organizationCity, emp.organizationRegion, emp.organizationCountry].join(', ')
+        }}
+      </div>
+    </div>
+  </div>
+</div>

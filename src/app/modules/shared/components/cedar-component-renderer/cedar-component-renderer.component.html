@@ -103,6 +103,12 @@
       <app-cedar-input-link *ngIf="nonIterableComponent.basicInfo.inputType==InputType.link"
                              [componentToRender]="nonIterableComponent"
                              [handlerContext]="handlerContext"></app-cedar-input-link>
+      <app-cedar-input-orcid *ngIf="nonIterableComponent.basicInfo.inputType==InputType.orcid"
+                            [componentToRender]="nonIterableComponent"
+                            [handlerContext]="handlerContext"></app-cedar-input-orcid>
+      <app-cedar-input-ror *ngIf="nonIterableComponent.basicInfo.inputType==InputType.ror"
+                            [componentToRender]="nonIterableComponent"
+                            [handlerContext]="handlerContext"></app-cedar-input-ror>
       <app-cedar-input-phone *ngIf="nonIterableComponent.basicInfo.inputType==InputType.phoneNumber"
                             [componentToRender]="nonIterableComponent"
                             [handlerContext]="handlerContext"></app-cedar-input-phone>
