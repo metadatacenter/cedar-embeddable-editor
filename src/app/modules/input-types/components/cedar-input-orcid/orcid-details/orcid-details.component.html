@@ -1,26 +1,31 @@
-<button (click)="closeClicked()">Close</button>
+<button (click)="closeClicked()">X</button>
 <div class="record-summary">
   <h1>{{ researcher.fullName || 'Researcher Name' }}</h1>
+
   <div class="biography">
-    {{ researcher.biography }}
+    {{ researcher.biography.content }}
   </div>
 
-  <div class="section emails">
+  <div class="section emails" *ngIf="researcher.emails && researcher.emails.length">
     <span class="label">Emails:</span>
     <span>{{ researcher.emails.join(', ') }}</span>
   </div>
 
-  <div class="section keywords">
+  <div class="section keywords" *ngIf="researcher.keywords && researcher.keywords.length">
     <span class="label">Keywords:</span>
-    <span>{{ researcher.keywords.join(', ') }}</span>
+    <span>
+      <ng-container *ngFor="let keyword of researcher.keywords; let last = last">
+        {{ keyword.content }}<span *ngIf="!last">, </span>
+      </ng-container>
+    </span>
   </div>
 
   <div class="section country">
     <span class="label">Country:</span>
-    <span>{{ researcher.country }}</span>
+    <span>{{ researcher.country.value }}</span>
   </div>
 
-  <div class="section employment">
+  <div class="section employment" *ngIf="researcher.employments && researcher.employments.length">
     <span class="label">Employment:</span>
     <div *ngFor="let emp of researcher.employments" class="employment-item">
       <div>

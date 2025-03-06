@@ -101,7 +101,7 @@ export class CedarInputRorComponent extends CedarUIComponent implements OnInit {
             const details = RorDetailResponse.fromJSON(response);
             return [
               {
-                id: response.requestedID,
+                id: response.requestedId,
                 rdfsLabel: response.name,
                 details: details, // Attach the details here.
               },

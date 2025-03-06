@@ -1,18 +1,106 @@
-.organization { margin: 2rem auto; max-width: 800px; }
-.organization-header { border-bottom: 1px solid #ccc; margin-bottom: 1rem; }
-.organization-header h1 { margin: 0; }
-.organization-details section { margin-bottom: 1.5rem; }
-.organization-details h2 { margin-bottom: 0.5rem; }
-.organization-details ul { list-style: none; padding: 0; }
-.organization-details li { margin-bottom: 0.3rem; }
-.organization-details p { text-transform: capitalize; }
-.ror-log {
+/* Full width component with relative positioning for close button */
+.organization {
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+  position: relative;
+}
+
+/* Close button in top-right */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Organization header styling */
+.organization-header {
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 1rem;
+}
+.organization-header h1 {
+  margin: 0;
+}
+
+/* Organization name: larger and bold */
+.organization-name {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+/* Section headers: make organization groups bold */
+.organization-details h2 {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+/* Reduce white space between sections */
+.organization-details section {
+  margin-bottom: 0.5rem;
+}
+.organization-details ul {
+  list-style: none;
+  padding: 0;
+}
+.organization-details li {
+  margin-bottom: 0.3rem;
+}
+.organization-details p {
+  text-transform: capitalize;
+}
+
+/* Logo styling */
+.ror-logo {
   width: 24px;
   height: 24px;
 }
-.organization-id a {
+
+/* Link styling for organization id and general links */
+.organization-id a,
+.organization-details a {
   color: #1F7F67;
+  text-decoration: none;
   font-family: AH-Bold, AH-Regular, Helvetica, Arial, sans-serif;
   font-size: 32px;
   font-weight: bold;
+}
+
+/* Override font-size for links in the "Links" section only */
+.links a {
+  font-size: 16px;
+}
+
+/* Override font-size for links in the "Relationships" section */
+.relationships a {
+  font-size: 16px;
+}
+
+/* Two-column layout for organization details */
+.columns {
+  display: flex;
+  gap: 1rem;
+}
+.column {
+  flex: 1;
+}
+
+/* Capitalize Links header */
+.links h2 {
+  text-transform: capitalize;
+}
+
+/* Relationship group headers: ensure bold and reduced space */
+.relationships h3 {
+  text-transform: capitalize;
+  margin-bottom: 0.2rem; /* Reduced space between header and list */
+  font-weight: bold;
+}
+
+.relationships ul {
+  margin-top: 0; /* Remove extra space above list items */
 }

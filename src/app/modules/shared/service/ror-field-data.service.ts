@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable, timer } from 'rxjs';
-import { RorSearchResponse } from '../models/rest/ror-search/ror-search-response';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { MessageHandlerService } from './message-handler.service';
 import { map, switchMap } from 'rxjs/operators';
+import { RorSearchResponse } from '../models/rest/ror-search/ror-search-response';
 import { RorSearchResponseItem } from '../models/rest/ror-search/ror-search-response-item';
 
 @Injectable({
@@ -13,10 +12,7 @@ export class RorFieldDataService {
   private rorSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name';
   private rorDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror';
 
-  constructor(
-    private http: HttpClient,
-    private messageHandlerService: MessageHandlerService,
-  ) {}
+  constructor(private http: HttpClient) {}
 
   // setRorSearchUrl(rorSearchUrl: string): void {
   setRorSearchUrl(): void {

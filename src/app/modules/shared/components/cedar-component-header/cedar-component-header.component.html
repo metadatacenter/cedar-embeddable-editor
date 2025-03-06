@@ -1,6 +1,9 @@
 <div class="flex-container">
   <ng-container class="component-title">
+    <i class="ai ai-ror"></i>
+    &nbsp;
   {{cds.getRenderingLabelForComponent(component)}}
+
   <span *ngIf="shouldRenderRequiredMark">
     <sup style="font-size: medium; color: red" aria-label="required"><b>*</b></sup>
   </span>
@@ -14,7 +17,7 @@
       ∞
     </span>)
   </span>
-  <mat-icon *ngIf="component.labelInfo.description"
+  <mat-icon *ngIf="component.labelInfo.description && component.labelInfo.description !== 'Help Text'"
             matTooltip="{{component.labelInfo.description}}"
             matTooltipClass="tooltip"
             matTooltipPosition="right"

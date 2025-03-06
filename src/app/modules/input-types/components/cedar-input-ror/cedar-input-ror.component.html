@@ -14,7 +14,7 @@
       <mat-autocomplete #auto="matAutocomplete" (closed)="onClose()" autoActiveFirstOption>
         <mat-option *ngFor="let option of filteredOptions | async" [value]="option.rdfsLabel"
                     (onSelectionChange)="onSelectionChange(option)"
-        >{{option.rdfsLabel}}</mat-option>
+        >{{option.rdfsLabel}} - {{option.id}}</mat-option>
       </mat-autocomplete>
       <button type="button" tabindex="0" mat-button *ngIf="selectedData" matSuffix mat-icon-button attr.aria-label="{{'Generic.Details' | translate}}" (click)="setShowDetails(true)">
         <mat-icon>info</mat-icon>

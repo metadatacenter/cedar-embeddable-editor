@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { Researcher } from '../../../../shared/models/rest/orcid-detail/orcid-detail-person';
+import { ResearcherDetails } from '../../../../shared/models/rest/orcid-detail/orcid-detail-person';
 
 @Component({
   selector: 'app-orcid-details',
@@ -7,12 +7,14 @@ import { Researcher } from '../../../../shared/models/rest/orcid-detail/orcid-de
   styleUrls: ['./orcid-details.component.scss'],
 })
 export class OrcidDetailsComponent implements OnInit {
-  @Input() researcher: Researcher;
+  @Input() researcher: ResearcherDetails;
   @Input() close: (value: boolean) => void;
 
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    console.log('Researcher is', JSON.stringify(this.researcher));
+  }
 
   closeClicked() {
     this.close(false);
