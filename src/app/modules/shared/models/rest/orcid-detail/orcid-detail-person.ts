@@ -1,6 +1,7 @@
 import { Employment } from './orcid-detail-employment';
 
-export class Researcher {
+export class ResearcherDetails {
+  found: boolean;
   fullName: string;
   creditName: string;
   biography: string;
@@ -34,7 +35,7 @@ export class Researcher {
   }
 
   // Static factory method to create a Researcher from the full JSON response.
-  static fromJson(json: any): Researcher {
+  static fromJson(json: any): ResearcherDetails {
     const raw = json.rawResponse;
     const person = raw.person || {};
 
@@ -87,6 +88,6 @@ export class Researcher {
       country = employments[0].organizationCountry;
     }
 
-    return new Researcher(fullName, creditName, biography, emails, employments, keywords, country);
+    return new ResearcherDetails(fullName, creditName, biography, emails, employments, keywords, country);
   }
 }

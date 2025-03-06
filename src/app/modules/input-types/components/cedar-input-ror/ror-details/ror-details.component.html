@@ -1,10 +1,10 @@
-<button (click)="closeClicked()">Close</button>
+<button class="close-button" (click)="closeClicked()">&times;</button>
 <section class="organization">
   <!-- Organization Header -->
   <header class="organization-header">
     <p class="organization-id">
       <img class="ror-logo" src="/assets/images/ror-logo.png" alt="ror logo" />
-      <a href="{{rorDetail.id}}" target="_blank" rel="noopener noreferrer">
+      <a href="{{ rorDetail.id }}" target="_blank" rel="noopener noreferrer">
         {{ rorDetail.id }}
       </a>
     </p>
@@ -13,45 +13,52 @@
   <!-- Organization Details -->
   <div class="organization-details">
     <h1 class="organization-name">{{ rorDetail.name }}</h1>
-    <!-- Organization Types -->
-    <section *ngIf="rorDetail.rawResponse.types.length" class="types">
-      <h2>Organization Type</h2>
-      <p >{{rorDetail.rawResponse.types.join(', ')}}</p>
-    </section>
+    <div class="columns">
+      <div class="column left">
+        <!-- Organization Types -->
+        <section *ngIf="rorDetail.rawResponse.types.length" class="types">
+          <h2>Organization Type</h2>
+          <p>{{ rorDetail.rawResponse.types.join(', ') }}</p>
+        </section>
 
-    <!-- Links -->
-    <section class="links">
-      <h2>Links</h2>
-      <ul>
-        <li *ngFor="let link of rorDetail.rawResponse.links">
-          <a href="{{link.value}}" target="_blank" rel="noopener noreferrer">
-            {{link.type}}
-          </a>
-        </li>
-      </ul>
-    </section>
-
-    <!-- Location -->
-    <section class="locations">
-      <h2>Location</h2>
-      <p *ngFor="let location of rorDetail.rawResponse.locations">
-        <strong>{{location.geonames_details.name}}</strong>, {{location.geonames_details.country_name}} ({{location.geonames_details.country_subdivision_name}})<br />
-      </p>
-    </section>
-
-    <!-- Relationships -->
-    <section *ngIf="rorDetail.rawResponse.relationships" class="relationships">
-      <h2>RELATIONSHIPS</h2>
-      <div *ngFor="let group of groupedRelationships | keyvalue">
-        <h3>{{ group.key }} Organiztaions</h3>
-        <ul>
-          <li *ngFor="let relation of group.value">
-            <a [href]="relation.id" target="_blank" rel="noopener noreferrer">
-              {{ relation.label }}
-            </a>
-          </li>
-        </ul>
+        <!-- Relationships -->
+        <section *ngIf="rorDetail.rawResponse.relationships" class="relationships">
+          <h2>Relationships</h2>
+          <div *ngFor="let group of groupedRelationships | keyvalue">
+            <h3>{{ group.key | titlecase }} Organizations</h3>
+            <ul>
+              <li *ngFor="let relation of group.value">
+                <a [href]="relation.id" target="_blank" rel="noopener noreferrer">
+                  {{ relation.label }}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </section>
       </div>
-    </section>
+      <div class="column right">
+        <!-- Links -->
+        <section class="links">
+          <h2>Links</h2>
+          <ul>
+            <li *ngFor="let link of rorDetail.rawResponse.links">
+              <a href="{{ link.value }}" target="_blank" rel="noopener noreferrer">
+                {{ link.type }}
+              </a>
+            </li>
+          </ul>
+        </section>
+
+        <!-- Location -->
+        <section class="locations">
+          <h2>Location</h2>
+          <p *ngFor="let location of rorDetail.rawResponse.locations">
+            <strong>{{ location.geonames_details.name }}</strong>,
+            {{ location.geonames_details.country_name }}
+            ({{ location.geonames_details.country_subdivision_name }})<br />
+          </p>
+        </section>
+      </div>
+    </div>
   </div>
 </section>
