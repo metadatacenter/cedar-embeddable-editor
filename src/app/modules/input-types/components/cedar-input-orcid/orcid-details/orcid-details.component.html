@@ -15,7 +15,7 @@
     <span class="label">Keywords:</span>
     <span>
       <ng-container *ngFor="let keyword of researcher.keywords; let last = last">
-        {{ keyword.content }}<span *ngIf="!last">, </span>
+        {{ keyword.value }}<span *ngIf="!last">, </span>
       </ng-container>
     </span>
   </div>

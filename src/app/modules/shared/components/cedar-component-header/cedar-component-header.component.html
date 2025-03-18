@@ -1,6 +1,7 @@
 <div class="flex-container">
   <ng-container class="component-title">
-    <i class="ai ai-ror"></i>
+    <i *ngIf="isRor" class="ai ai-ror"></i>
+    <i *ngIf="isOrcid" class="ai ai-orcid"></i>
     &nbsp;
   {{cds.getRenderingLabelForComponent(component)}}
 
