@@ -71,9 +71,7 @@ export class ResearcherDetails {
       if (group.summaries && Array.isArray(group.summaries)) {
         for (const summary of group.summaries) {
           const empSummary = summary['employment-summary'];
-          console.log('empSummary', empSummary);
           const emp = Employment.fromJson(empSummary);
-          console.log('emp', emp);
           if (emp) {
             employments.push(emp);
           }

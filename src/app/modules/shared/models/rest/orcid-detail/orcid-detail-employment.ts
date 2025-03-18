@@ -43,7 +43,6 @@ export class Employment {
 
   // Create an Employment instance from the employment-summary JSON.
   static fromJson(json: any): Employment | null {
-    console.log('fromJson', json);
     if (!json) return null;
 
     // Extract role title.

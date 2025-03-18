@@ -4,6 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, switchMap } from 'rxjs/operators';
 import { RorSearchResponse } from '../models/rest/ror-search/ror-search-response';
 import { RorSearchResponseItem } from '../models/rest/ror-search/ror-search-response-item';
+import { RorDetailResponse } from '../models/rest/ror-detail/ror-detail-response';
 
 @Injectable({
   providedIn: 'root',
@@ -43,8 +44,8 @@ export class RorFieldDataService {
     );
   }
 
-  getDetails(id: string): Observable<any> {
+  getDetails(id: string): Observable<RorDetailResponse> {
     const encodedId = encodeURIComponent(id);
-    return this.http.get<any>(`${this.rorDetailsUrl}/${encodedId}`, {});
+    return this.http.get<RorDetailResponse>(`${this.rorDetailsUrl}/${encodedId}`, {});
   }
 }

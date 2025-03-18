@@ -28,7 +28,6 @@ export class OrcidFieldDataService {
       switchMap(() =>
         this.http.get<OrcidSearchResponse>(this.orcidSearchUrl, { params }).pipe(
           map((response) => {
-            console.log('Orcid response', response);
             const results: OrcidSearchResponseItem[] = Object.keys(response.results).map((key) => ({
               id: key,
               rdfsLabel: response.results[key],
@@ -45,11 +44,7 @@ export class OrcidFieldDataService {
   }
 
   getDetails(id: string): Observable<any> {
-    console.log('id', id);
-    console.log('id', id);
     const encodedId = encodeURIComponent(id);
-    const result = this.http.get<any>(`${this.orcidDetailsUrl}/${encodedId}`, {});
-    console.log('Details Orcid', result.subscribe());
-    return result;
+    return this.http.get<any>(`${this.orcidDetailsUrl}/${encodedId}`, {});
   }
 }

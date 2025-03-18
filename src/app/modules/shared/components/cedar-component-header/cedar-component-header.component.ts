@@ -6,6 +6,7 @@ import { ComponentTypeHandler } from '../../handler/component-type.handler';
 import { SingleFieldComponent } from '../../models/field/single-field-component.model';
 import { FieldComponent } from '../../models/component/field-component.model';
 import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
+import { InputType } from '../../models/input-type.model';
 
 @Component({
   selector: 'app-cedar-component-header',
@@ -17,6 +18,8 @@ export class CedarComponentHeaderComponent implements OnInit {
   component: CedarComponent;
   multiComponent: MultiComponent;
   shouldRenderRequiredMark = false;
+  isOrcid = false;
+  isRor = false;
   @Input() readOnlyMode;
 
   constructor(public cds: ComponentDataService) {}
@@ -38,6 +41,11 @@ export class CedarComponentHeaderComponent implements OnInit {
     }
     if (this.component instanceof SingleFieldComponent) {
       const fieldComp = this.component as unknown as FieldComponent;
+      if (fieldComp.basicInfo.inputType === InputType.orcid) {
+        this.isOrcid = true;
+      } else if (fieldComp.basicInfo.inputType === InputType.ror) {
+        this.isRor = true;
+      }
       if (fieldComp.valueInfo.requiredValue) {
         this.shouldRenderRequiredMark = true;
       }

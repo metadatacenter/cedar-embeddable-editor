@@ -12,9 +12,7 @@ export class OrcidDetailsComponent implements OnInit {
 
   constructor() {}
 
-  ngOnInit(): void {
-    console.log('Researcher is', JSON.stringify(this.researcher));
-  }
+  ngOnInit(): void {}
 
   closeClicked() {
     this.close(false);
