@@ -12,7 +12,10 @@
              [readonly]="readOnlyMode"
              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
       <mat-autocomplete #auto="matAutocomplete" (closed)="onClose()" autoActiveFirstOption>
-        <mat-option *ngFor="let option of filteredOptions | async" [value]="option.rdfsLabel"
+        <div *ngIf="loadingOptions" class="spinner-container">
+          <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+        </div>
+        <mat-option *ngFor="let option of filteredOptions | async" [value]="option.rdfsLabel + '-' + option.id"
                     (onSelectionChange)="onSelectionChange(option)"
         >{{option.rdfsLabel}} - {{option.id}}</mat-option>
       </mat-autocomplete>
@@ -23,6 +26,9 @@
         <mat-icon>close</mat-icon>
       </button>
       <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
+      <mat-error tabindex="0" *ngIf="inputValueControl.getError('invalidRor') && !readOnlyMode" class="mat-error align-start">
+        Entered value is not a valid ROR.
+      </mat-error>
     </mat-form-field>
   </ng-container>
   <ng-container *ngIf="showDetails===true">
