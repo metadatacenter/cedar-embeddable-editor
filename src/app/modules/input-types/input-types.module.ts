@@ -54,6 +54,7 @@ import { TimezonePickerComponent } from '../shared/components/timezone-picker/ti
 import { TranslateModule } from '@ngx-translate/core';
 import { NgOptimizedImage } from '@angular/common';
 import { OrcidDetailsComponent } from './components/cedar-input-orcid/orcid-details/orcid-details.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   imports: [
@@ -89,6 +90,7 @@ import { OrcidDetailsComponent } from './components/cedar-input-orcid/orcid-deta
     MatSelectModule,
     TranslateModule,
     NgOptimizedImage,
+    MatProgressSpinnerModule,
   ],
   declarations: [
     CedarFooBarComponent,
