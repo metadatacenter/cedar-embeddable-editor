@@ -21,7 +21,7 @@ export class OrcidFieldDataService {
   }
 
   getData(val: string): Observable<OrcidSearchResponse> {
-    const params = new HttpParams().set('q', encodeURI(val));
+    const params = new HttpParams().set('q', val);
     // Random delay to prevent throttling
     const randomDelay = Math.floor(Math.random() * 500);
     return timer(randomDelay).pipe(
@@ -30,7 +30,8 @@ export class OrcidFieldDataService {
           map((response) => {
             const results: OrcidSearchResponseItem[] = Object.keys(response.results).map((key) => ({
               id: key,
-              rdfsLabel: response.results[key],
+              rdfsLabel: response.results[key].name,
+              _details: response.results[key].details,
             }));
             // Return the response matching the OrcidSearchResponse interface
             return {

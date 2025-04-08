@@ -108,6 +108,14 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
             }),
           );
         }),
+        tap(() => {
+          setTimeout(() => {
+            const panelElement = document.querySelector('.mat-autocomplete-panel') as HTMLElement;
+            if (panelElement) {
+              panelElement.scrollTop = 0;
+            }
+          }, 0);
+        }),
       );
     }
   }
@@ -167,14 +175,8 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
           if (!response || response.found === false) {
             return [];
           }
-          if (response.results && Array.isArray(response.results)) {
-            return response.results.filter(
-              (option: OrcidSearchResponseItem) => option.rdfsLabel?.toLowerCase().includes(val.toLowerCase()),
-            );
-          } else {
-            this.messageHandlerService.errorObject(val, response);
-            return [];
-          }
+          // The API already returns a filtered list, so we simply return the results array.
+          return response.results;
         }),
         catchError((error) => {
           console.error('Error in getData:', error);
