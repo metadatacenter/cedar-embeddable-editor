@@ -28,7 +28,8 @@
     "CedarLogo": "Cedar Logo",
     "DecimalSeconds": "decimal seconds",
     "Filter": "Start typing to filter",
-    "Details": "Details"
+    "Details": "Show Details",
+    "HideDetails": "Hide Details"
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."

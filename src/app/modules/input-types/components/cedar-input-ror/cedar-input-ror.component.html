@@ -19,10 +19,10 @@
                     (onSelectionChange)="onSelectionChange(option)"
         >{{option.rdfsLabel}} - {{option.id}}</mat-option>
       </mat-autocomplete>
-      <button type="button" tabindex="0" mat-button *ngIf="selectedData" matSuffix mat-icon-button attr.aria-label="{{'Generic.Details' | translate}}" (click)="setShowDetails(true)">
+      <button type="button" tabindex="0" mat-button *ngIf="selectedData" matSuffix mat-icon-button attr.aria-label="{{'Generic.Details' | translate}}"  matTooltip="{{'Generic.Details' | translate}}" (click)="setShowDetails(true)">
         <mat-icon>info</mat-icon>
       </button>
-      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
+      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}"  matTooltip="{{'Generic.Clear' | translate}}" (click)="clearValue()">
         <mat-icon>close</mat-icon>
       </button>
       <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
