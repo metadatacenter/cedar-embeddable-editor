@@ -31,9 +31,8 @@ export class RorFieldDataService {
           map((response) => {
             const results: RorSearchResponseItem[] = Object.keys(response.results).map((key) => ({
               id: key,
-              rdfsLabel: response.results[key],
+              rdfsLabel: response.results[key].name,
             }));
-            // Return the response matching the OrcidSearchResponse interface
             return {
               found: response.found,
               results: results,

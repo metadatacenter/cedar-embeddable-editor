@@ -33,7 +33,6 @@ export class OrcidFieldDataService {
               rdfsLabel: response.results[key].name,
               _details: response.results[key].details,
             }));
-            // Return the response matching the OrcidSearchResponse interface
             return {
               found: response.found,
               results: results,
