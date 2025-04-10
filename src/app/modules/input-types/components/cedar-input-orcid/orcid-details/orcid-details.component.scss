@@ -1,0 +1,150 @@
+.orcid-details {
+  border: 1px solid;
+  border-radius: 8px;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+.record-summary {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #333;
+  background: #fff;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 800px;
+  position: relative;
+}
+.close-button {
+  position: absolute;
+  top: 55px;
+  right: 45px;
+  background: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1000;
+}
+.record-summary h1 {
+  font-size: 2em;
+  font-weight: bold;
+  color: #005A9C;
+  margin-bottom: 0.5em;
+}
+.record-summary .biography {
+  white-space: pre-wrap;
+  margin-bottom: 1em;
+  line-height: 1.5;
+}
+.record-summary .section {
+  margin-bottom: 1em;
+}
+.record-summary .section .label {
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+.employment-item {
+  margin-bottom: 0.5em;
+}
+.employment-content {
+  margin-left: 20px;
+}
+.banner {
+  text-align: left;
+  padding: 20px;
+  background-color: #003449;
+  color: white;
+  margin-bottom: 20px;
+}
+.credit-name {
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 32px;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+.other-names {
+  font-family: Noto Sans, sans-serif;
+  font-size: 16px;
+  letter-spacing: normal;
+  margin: 5px 0;
+}
+.orcid-info {
+  display: flex;
+  align-items: center;
+  margin: 10px 0 5px 0;
+}
+.orcid-logo {
+  width: 40px;
+  height: auto;
+}
+.orcid-id {
+  font-family: Noto Sans, sans-serif;
+  font-size: 18px;
+  font-style: normal;
+  letter-spacing: normal;
+  margin-left: 10px;
+  text-decoration: none;
+  color: inherit;
+  vertical-align: middle;
+}
+.two-column-layout {
+  display: flex;
+  gap: 20px;
+}
+.left-column {
+  width: 25%;
+}
+.right-column {
+  width: 75%;
+}
+.box {
+  border: 1px solid #ccc;
+  padding: 15px;
+  margin-bottom: 20px;
+  background-color: #f9f9f9;
+}
+.box-title {
+  background-color: #eaeaea;
+  padding: 5px;
+  font-weight: bold;
+  margin: 0 0 10px;
+}
+.employment-header {
+  background-color: #447405;
+  color: white;
+  padding: 5px;
+  font-weight: bold;
+  margin: 0 0 10px;
+}
+.employment-org-header {
+  background-color: #eee;
+  color: black;
+  padding: 5px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.employment-item div {
+  margin-bottom: 5px;
+}
+.label {
+  font-weight: bold;
+}
+.biography-box p {
+  text-align: justify;
+}
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+.divider {
+  width: 100%;
+  height: 2px;
+  background: #085c77;
+}
+.external-link-icon {
+  font-size: 24px;
+  font-weight: bold;
+  margin-left: 15px;
+  color: white;
+  vertical-align: middle;
+ }
