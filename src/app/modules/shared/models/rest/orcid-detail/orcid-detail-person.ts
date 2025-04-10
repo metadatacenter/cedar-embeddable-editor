@@ -30,7 +30,6 @@ export class ResearcherDetails {
     this.otherNames = otherNames;
     this.biography = biography;
     this.emails = emails;
-    // Compute email domains from the email addresses.
     this.emailDomains = emails.map((email) => {
       const parts = email.split('@');
       return parts.length > 1 ? parts[1] : '';
@@ -39,8 +38,6 @@ export class ResearcherDetails {
     this.keywords = keywords;
     this.country = country;
   }
-
-  // Static factory method to create a Researcher from the full JSON response.
   static fromJson(json: any): ResearcherDetails {
     const raw = json.rawResponse;
     const person = raw.person || {};
@@ -86,7 +83,6 @@ export class ResearcherDetails {
       }
     }
 
-    // 3. Employment info:
     const empGroups = raw['activities-summary']?.employments?.['affiliation-group'] || [];
     const employments: Employment[] = [];
     for (const group of empGroups) {
@@ -100,10 +96,8 @@ export class ResearcherDetails {
         }
       }
     }
-    // Sort the employment records in descending order (most recent start date first)
     employments.sort((a, b) => (b.startDate > a.startDate ? 1 : -1));
 
-    // Fallback: if country was not found from addresses, use the first employment's organization country.
     if (!country && employments.length > 0 && employments[0].organizationCountry) {
       country = employments[0].organizationCountry;
     }
