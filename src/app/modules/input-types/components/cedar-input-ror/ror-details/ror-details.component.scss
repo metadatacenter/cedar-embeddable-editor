@@ -1,7 +1,7 @@
 .ror-details {
   border: 1px solid;
   border-radius: 8px;
-  padding: 15px;
+  padding: 35px;
   margin: 0 auto;
   box-sizing: border-box;
 }
@@ -14,7 +14,8 @@
 }
 .close-button {
   position: absolute;
-  right: 15px;
+  top: 55px;
+  right: 45px;
   background: transparent;
   border: none;
   font-size: 24px;
@@ -85,4 +86,10 @@
 }
 .relationships ul {
   margin-top: 0;
+}
+.external-link-icon {
+  font-size: 24px;
+  font-weight: bold;
+  margin-left: 15px;
+  vertical-align: middle;
 }

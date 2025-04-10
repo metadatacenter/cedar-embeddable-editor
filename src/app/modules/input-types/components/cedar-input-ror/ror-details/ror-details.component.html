@@ -2,29 +2,22 @@
   <button type="button" class="close-button" mat-button matSuffix mat-icon-button attr.aria-label="{{'Generic.HideDetails' | translate}}" matTooltip="{{'Generic.HideDetails' | translate}}" (click)="closeClicked()">
     <mat-icon>close</mat-icon>
   </button>
-  <section class="organization">
-    <!-- Organization Header -->
     <header class="organization-header">
       <p class="organization-id">
-        <img class="ror-logo" src="/assets/images/ror-logo.png" alt="ror logo" />
+        <img class="ror-logo" src="assets/images/ror-logo.png" alt="ror logo" />
         <a href="{{ rorDetail.id }}" target="_blank" rel="noopener noreferrer">
-          {{ rorDetail.id }}
+          {{ rorDetail.id }} <mat-icon class="external-link-icon" matTooltip="{{'Generic.OpenRorProfile' | translate}}">open_in_new</mat-icon>
         </a>
       </p>
     </header>
-
-    <!-- Organization Details -->
     <div class="organization-details">
       <h1 class="organization-name">{{ rorDetail.name }}</h1>
       <div class="columns">
         <div class="column left">
-          <!-- Organization Types -->
           <section *ngIf="rorDetail.rawResponse.types.length" class="types">
             <h2>Organization Type</h2>
             <p>{{ rorDetail.rawResponse.types.join(', ') }}</p>
           </section>
-
-          <!-- Relationships -->
           <section *ngIf="rorDetail.rawResponse.relationships" class="relationships">
             <h2>Relationships</h2>
             <div *ngFor="let group of groupedRelationships | keyvalue">
@@ -40,7 +33,6 @@
           </section>
         </div>
         <div class="column right">
-          <!-- Links -->
           <section class="links">
             <h2>Links</h2>
             <ul>
@@ -51,8 +43,6 @@
               </li>
             </ul>
           </section>
-
-          <!-- Location -->
           <section class="locations">
             <h2>Location</h2>
             <p *ngFor="let location of rorDetail.rawResponse.locations">
@@ -64,5 +54,4 @@
         </div>
       </div>
     </div>
-  </section>
 </section>
