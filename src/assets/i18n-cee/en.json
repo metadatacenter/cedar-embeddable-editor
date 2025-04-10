@@ -29,7 +29,8 @@
     "DecimalSeconds": "decimal seconds",
     "Filter": "Start typing to filter",
     "Details": "Show Details",
-    "HideDetails": "Hide Details"
+    "HideDetails": "Hide Details",
+    "OpenOrcidProfile": "Open ORCID Profile"
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."

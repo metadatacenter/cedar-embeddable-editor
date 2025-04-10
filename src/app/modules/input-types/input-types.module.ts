@@ -55,6 +55,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { NgOptimizedImage } from '@angular/common';
 import { OrcidDetailsComponent } from './components/cedar-input-orcid/orcid-details/orcid-details.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDividerModule } from '@angular/material/divider';
 
 @NgModule({
   imports: [
@@ -91,6 +92,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     TranslateModule,
     NgOptimizedImage,
     MatProgressSpinnerModule,
+    MatDividerModule,
   ],
   declarations: [
     CedarFooBarComponent,
