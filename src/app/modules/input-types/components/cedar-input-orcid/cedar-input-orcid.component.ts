@@ -159,7 +159,7 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
           const details = ResearcherDetails.fromJson(response);
           return [
             {
-              id: response.requestedId,
+              id: response.id,
               rdfsLabel: response.name,
               details: details,
             },
@@ -176,7 +176,6 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
           if (!response || response.found === false) {
             return [];
           }
-          // The API already returns a filtered list, so we simply return the results array.
           return response.results;
         }),
         catchError((error) => {
