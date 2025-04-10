@@ -17,4 +17,9 @@ export class OrcidDetailsComponent implements OnInit {
   closeClicked() {
     this.close(false);
   }
+  getFormattedOrganization(emp): string {
+    return [emp.organizationCity, emp.organizationRegion, emp.organizationCountry]
+      .filter((value) => value && value.trim() !== '')
+      .join(', ');
+  }
 }

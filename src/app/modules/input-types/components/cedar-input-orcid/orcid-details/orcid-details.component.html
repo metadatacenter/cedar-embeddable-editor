@@ -1,49 +1,53 @@
-<button (click)="closeClicked()">X</button>
-<div class="record-summary">
-  <h1>{{ researcher.fullName || 'Researcher Name' }}</h1>
-
-  <div class="biography">
-    {{ researcher.biography.content }}
+<div *ngIf="!researcher" class="spinner-container">
+  <mat-spinner></mat-spinner>
+</div>
+<section class="orcid-details" *ngIf="researcher">
+  <button type="button" class="close-button" mat-button matSuffix mat-icon-button attr.aria-label="{{'Generic.HideDetails' | translate}}" matTooltip="{{'Generic.HideDetails' | translate}}" (click)="closeClicked()">
+    <mat-icon>close</mat-icon>
+  </button>
+  <div class="banner">
+    <h1 class="credit-name">{{ researcher.creditName || researcher.fullName }}</h1>
+    <h2 class="other-names">{{ researcher.otherNames.join('; ') }}</h2>
+    <mat-divider role="separator" class="mat-divider divider mat-divider-horizontal" aria-orientation="horizontal"></mat-divider>
+    <div class="orcid-info">
+      <img ngSrc="assets/images/orcid-logo.svg" alt="ORCID Logo" width="40" height="40" class="orcid-logo">
+      <a [href]=researcher.id target="_blank" class="orcid-id">{{ researcher.id }} <mat-icon class="external-link-icon" matTooltip="{{'Generic.OpenOrcidProfile' | translate}}">open_in_new</mat-icon></a>
+    </div>
   </div>
-
-  <div class="section emails" *ngIf="researcher.emails && researcher.emails.length">
-    <span class="label">Emails:</span>
-    <span>{{ researcher.emails.join(', ') }}</span>
-  </div>
-
-  <div class="section keywords" *ngIf="researcher.keywords && researcher.keywords.length">
-    <span class="label">Keywords:</span>
-    <span>
-      <ng-container *ngFor="let keyword of researcher.keywords; let last = last">
-        {{ keyword.value }}<span *ngIf="!last">, </span>
-      </ng-container>
-    </span>
-  </div>
-
-  <div class="section country">
-    <span class="label">Country:</span>
-    <span>{{ researcher.country.value }}</span>
-  </div>
-
-  <div class="section employment" *ngIf="researcher.employments && researcher.employments.length">
-    <span class="label">Employment:</span>
-    <div *ngFor="let emp of researcher.employments" class="employment-item">
-      <div>
-        <span class="label">Role:</span> {{ emp.roleTitle }}
+  <div class="two-column-layout">
+    <div class="left-column">
+      <div class="box keywords-box" *ngIf="researcher.keywords && researcher.keywords.length">
+        <h3 class="box-title">Keywords</h3>
+        <p>
+          <ng-container *ngFor="let keyword of researcher.keywords; let last = last">
+            {{ keyword }}<span *ngIf="!last">, </span>
+          </ng-container>
+        </p>
       </div>
-      <div>
-        <span class="label">Dates:</span>
-        {{ emp.startDate }}<span *ngIf="emp.endDate"> to {{ emp.endDate }}</span>
+      <div class="box countries-box">
+        <h3 class="box-title">Countries</h3>
+        <p>{{ researcher.country || 'Not Available' }}</p>
       </div>
-      <div>
-        <span class="label">Organization:</span> {{ emp.organizationName }}
+    </div>
+    <div class="right-column">
+      <div class="box biography-box" *ngIf="researcher.biography">
+        <h3 class="box-title">Biography</h3>
+        <p>{{ researcher.biography }}</p>
       </div>
-      <div>
-        <span class="label">Location:</span>
-        {{
-          [emp.organizationCity, emp.organizationRegion, emp.organizationCountry].join(', ')
-        }}
+      <div class="box employment-box" *ngIf="researcher.employments && researcher.employments.length">
+        <h3 class="box-title employment-header">Employment ({{ researcher.employments.length }})</h3>
+        <div class="employment-item" *ngFor="let emp of researcher.employments">
+          <div class="employment-org-header">{{ emp.organizationName }} : {{ getFormattedOrganization(emp) }}</div>
+          <div class="employment-content">
+          <div>
+            <span class="label">Role:</span> {{ emp.roleTitle }}
+          </div>
+          <div *ngIf="emp.startDate">
+            <span class="label">Dates:</span> {{ emp.startDate }}<span> to {{ emp.endDate || 'to present' }}</span>
+          </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</section>

@@ -52,6 +52,7 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
   readOnlyMode = false;
 
   loadingOptions = false;
+  loadingDetails = false;
 
   filteredOptions: Observable<OrcidSearchResponseItem[]>;
   private researcherDetailsCache = new Map<string, ResearcherDetails>();
@@ -232,6 +233,7 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
       this.researcherDetails = this.researcherDetailsCache.get(selectedId);
       return;
     }
+    this.loadingDetails = true;
     this.orcidFieldDataService
       .getDetails(selectedId)
       .pipe(
@@ -244,6 +246,7 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
         if (response && response.found) {
           this.researcherDetails = ResearcherDetails.fromJson(response);
           this.researcherDetailsCache.set(selectedId, this.researcherDetails);
+          this.loadingDetails = false;
         }
       });
   }

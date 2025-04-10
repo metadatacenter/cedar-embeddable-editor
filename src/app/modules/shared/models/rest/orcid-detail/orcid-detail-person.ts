@@ -1,9 +1,11 @@
 import { Employment } from './orcid-detail-employment';
 
 export class ResearcherDetails {
+  id: string;
   found: boolean;
   fullName: string;
   creditName: string;
+  otherNames: string[];
   biography: string;
   emails: string[];
   emailDomains: string[];
@@ -12,16 +14,20 @@ export class ResearcherDetails {
   country: string;
 
   constructor(
+    id: string,
     fullName: string,
     creditName: string,
+    otherNames: string[],
     biography: string,
     emails: string[],
     employments: Employment[],
     keywords: string[],
     country: string,
   ) {
+    this.id = id;
     this.fullName = fullName;
     this.creditName = creditName;
+    this.otherNames = otherNames;
     this.biography = biography;
     this.emails = emails;
     // Compute email domains from the email addresses.
@@ -39,10 +45,26 @@ export class ResearcherDetails {
     const raw = json.rawResponse;
     const person = raw.person || {};
 
-    const fullName = person.name['given-names'].value + ' ' + person.name['family-name'].value || '';
-    const creditName: string = person.creditName || '';
+    const id = json.id;
 
-    const biography: string = person.biography || '';
+    const fullName = person.name['given-names'].value + ' ' + person.name['family-name'].value || '';
+    const creditName: string = person.name['credit-name']?.value || '';
+
+    const _otherNames = person['other-names'];
+    let otherNames: string[] =
+      _otherNames && Array.isArray(_otherNames['other-name'])
+        ? _otherNames['other-name']
+            .sort(function (a, b) {
+              return a['display-index'] - b['display-index'];
+            })
+            .map((otherName) => otherName.content)
+        : [];
+
+    if (fullName !== '' && creditName !== '') {
+      otherNames = [fullName, ...otherNames];
+    }
+
+    const biography: string = person.biography?.content || '';
 
     const emails: string[] =
       person.emails && Array.isArray(person.emails.email)
@@ -50,15 +72,15 @@ export class ResearcherDetails {
         : [];
 
     const keywords: string[] =
-      person.keywords && Array.isArray(person.keywords.keyword)
-        ? person.keywords.keyword.map((k: any) => k.value || k).filter((val: string) => !!val)
+      person.keywords && person.keywords.keyword && Array.isArray(person.keywords.keyword)
+        ? person.keywords.keyword.map((k: any) => k.content.split(',') || k)
         : [];
 
     let country: string = '';
     if (person.addresses && Array.isArray(person.addresses.address) && person.addresses.address.length > 0) {
       for (const addr of person.addresses.address) {
         if (addr.country) {
-          country = addr.country;
+          country = addr.country.value;
           break;
         }
       }
@@ -86,6 +108,16 @@ export class ResearcherDetails {
       country = employments[0].organizationCountry;
     }
 
-    return new ResearcherDetails(fullName, creditName, biography, emails, employments, keywords, country);
+    return new ResearcherDetails(
+      id,
+      fullName,
+      creditName,
+      otherNames,
+      biography,
+      emails,
+      employments,
+      keywords,
+      country,
+    );
   }
 }
