@@ -45,6 +45,6 @@ export class OrcidFieldDataService {
 
   getDetails(id: string): Observable<any> {
     const encodedId = encodeURIComponent(id);
-    return this.http.get<any>(`${this.orcidDetailsUrl}/${encodedId}`, {});
+    return this.http.get<OrcidSearchResponseItem>(`${this.orcidDetailsUrl}/${encodedId}`, {});
   }
 }

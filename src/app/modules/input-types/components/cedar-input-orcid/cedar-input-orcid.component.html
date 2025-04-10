@@ -17,7 +17,7 @@
         </div>
         <mat-option *ngFor="let option of filteredOptions | async" [value]="option.rdfsLabel + ' - '  + option.id"
                     (onSelectionChange)="onSelectionChange(option)"
-        >{{option.rdfsLabel}} - {{option.id}}</mat-option>
+        >{{option.rdfsLabel}} - {{option.id}}<span *ngIf="option._details && option._details.trim() !== ''"> - {{ option._details }}</span></mat-option>
       </mat-autocomplete>
       <button type="button" tabindex="0" mat-button *ngIf="selectedData" matSuffix mat-icon-button attr.aria-label="{{'Generic.Details' | translate}}"  matTooltip="{{'Generic.Details' | translate}}" (click)="setShowDetails(true)" [disabled]="loadingDetails">
         <mat-spinner [diameter]="20" *ngIf="loadingDetails"></mat-spinner><mat-icon *ngIf="!loadingDetails">info</mat-icon>
