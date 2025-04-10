@@ -1,0 +1,95 @@
+.ror-details {
+  border: 1px solid;
+  border-radius: 8px;
+  padding: 35px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.organization {
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+  position: relative;
+}
+.close-button {
+  position: absolute;
+  top: 55px;
+  right: 45px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1000;
+}
+.organization-header {
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 1rem;
+}
+.organization-header h1 {
+  margin: 0;
+}
+.organization-name {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+.organization-details h2 {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+.organization-details section {
+  margin-bottom: 0.5rem;
+}
+.organization-details ul {
+  list-style: none;
+  padding: 0;
+}
+.organization-details li {
+  margin-bottom: 0.3rem;
+}
+.organization-details p {
+  text-transform: capitalize;
+}
+.ror-logo {
+  width: 24px;
+  height: 24px;
+}
+.organization-id a,
+.organization-details a {
+  color: #1F7F67;
+  text-decoration: none;
+  font-family: AH-Bold, AH-Regular, Helvetica, Arial, sans-serif;
+  font-size: 32px;
+  font-weight: bold;
+}
+.links a {
+  font-size: 16px;
+}
+.relationships a {
+  font-size: 16px;
+}
+.columns {
+  display: flex;
+  gap: 1rem;
+}
+.column {
+  flex: 1;
+}
+.links h2 {
+  text-transform: capitalize;
+}
+.relationships h3 {
+  text-transform: capitalize;
+  margin-bottom: 0.2rem;
+  font-weight: bold;
+}
+.relationships ul {
+  margin-top: 0;
+}
+.external-link-icon {
+  font-size: 24px;
+  font-weight: bold;
+  margin-left: 15px;
+  vertical-align: middle;
+}

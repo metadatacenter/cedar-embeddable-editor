@@ -41,6 +41,9 @@ import { CedarStaticSectionBreakComponent } from './components/cedar-static-sect
 import { CedarStaticPageBreakComponent } from './components/cedar-static-page-break/cedar-static-page-break.component';
 import { CedarStaticImageComponent } from './components/cedar-static-image/cedar-static-image.component';
 import { CedarStaticYoutubeComponent } from './components/cedar-static-youtube/cedar-static-youtube.component';
+import { CedarInputOrcidComponent } from './components/cedar-input-orcid/cedar-input-orcid.component';
+import { CedarInputRorComponent } from './components/cedar-input-ror/cedar-input-ror.component';
+import { RorDetailsComponent } from './components/cedar-input-ror/ror-details/ror-details.component';
 import { YouTubePlayerModule } from '@angular/youtube-player';
 import { CedarFooBarComponent } from './components/cedar-foo-bar/cedar-foo-bar.component';
 import { CedarInputControlledComponent } from './components/cedar-input-controlled/cedar-input-controlled.component';
@@ -50,6 +53,9 @@ import { DatePickerComponent } from '../shared/components/date-picker/date-picke
 import { TimezonePickerComponent } from '../shared/components/timezone-picker/timezone-picker.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { NgOptimizedImage } from '@angular/common';
+import { OrcidDetailsComponent } from './components/cedar-input-orcid/orcid-details/orcid-details.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDividerModule } from '@angular/material/divider';
 
 @NgModule({
   imports: [
@@ -85,6 +91,8 @@ import { NgOptimizedImage } from '@angular/common';
     MatSelectModule,
     TranslateModule,
     NgOptimizedImage,
+    MatProgressSpinnerModule,
+    MatDividerModule,
   ],
   declarations: [
     CedarFooBarComponent,
@@ -99,6 +107,9 @@ import { NgOptimizedImage } from '@angular/common';
     CedarInputMultipleChoiceComponent,
     CedarInputDatetimeComponent,
     CedarInputLinkComponent,
+    CedarInputOrcidComponent,
+    CedarInputRorComponent,
+    RorDetailsComponent,
     CedarStaticRichTextComponent,
     CedarStaticSectionBreakComponent,
     CedarStaticPageBreakComponent,
@@ -107,6 +118,7 @@ import { NgOptimizedImage } from '@angular/common';
     DatePickerComponent,
     TimezonePickerComponent,
     EscapeHtmlPipe,
+    OrcidDetailsComponent,
   ],
   providers: [
     MatDatepickerModule,
@@ -133,6 +145,9 @@ import { NgOptimizedImage } from '@angular/common';
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
     EscapeHtmlPipe,
+    CedarInputOrcidComponent,
+    CedarInputRorComponent,
+    RorDetailsComponent,
   ],
 })
 export class InputTypesModule {}

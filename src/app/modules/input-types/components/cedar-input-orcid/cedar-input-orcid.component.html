@@ -1,0 +1,38 @@
+<form class="form-container" [formGroup]="options">
+  <ng-container *ngIf="!showDetails">
+    <mat-form-field class="full-width">
+      <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
+      <input matInput type="text"
+             placeholder="{{'Generic.Filter' | translate}}"
+             #autoCompleteInput="matAutocompleteTrigger"
+             [formControl]="inputValueControl"
+             [errorStateMatcher]="errorStateMatcher"
+             [matAutocomplete]="auto"
+             (input)="inputChanged($event)"
+             [readonly]="readOnlyMode"
+             attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
+      <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
+        <div *ngIf="loadingOptions" class="spinner-container">
+          <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+        </div>
+        <mat-option *ngFor="let option of filteredOptions | async" [value]="option.rdfsLabel + ' - '  + option.id"
+                    (onSelectionChange)="onSelectionChange(option)"
+        >{{option.rdfsLabel}} - {{option.id}}<span *ngIf="option._details && option._details.trim() !== ''"> - {{ option._details }}</span></mat-option>
+      </mat-autocomplete>
+      <button type="button" tabindex="0" mat-button *ngIf="selectedData" matSuffix mat-icon-button attr.aria-label="{{'Generic.Details' | translate}}"  matTooltip="{{'Generic.Details' | translate}}" (click)="setShowDetails(true)" [disabled]="loadingDetails">
+        <mat-spinner [diameter]="20" *ngIf="loadingDetails"></mat-spinner><mat-icon *ngIf="!loadingDetails">info</mat-icon>
+      </button>
+      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}"  matTooltip="{{'Generic.Clear' | translate}}" (click)="clearValue()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
+      <mat-error tabindex="0" *ngIf="inputValueControl.getError('invalidOrcid') && !readOnlyMode" class="mat-error align-start">
+        Entered value is not a valid ORCID.
+      </mat-error>
+    </mat-form-field>
+  </ng-container>
+  <ng-container *ngIf="showDetails===true">
+    <app-orcid-details *ngIf="showDetails" [researcher]="researcherDetails" [close]="setShowDetails"> </app-orcid-details>
+  </ng-container>
+</form>
+

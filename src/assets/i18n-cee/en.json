@@ -27,7 +27,11 @@
     "NumberOnly": "Number Only",
     "CedarLogo": "Cedar Logo",
     "DecimalSeconds": "decimal seconds",
-    "Filter": "Start typing to filter"
+    "Filter": "Start typing to filter",
+    "Details": "Show Details",
+    "HideDetails": "Hide Details",
+    "OpenOrcidProfile": "Open ORCID Profile",
+    "OpenRorProfile": "Open ROR Profile"
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."
