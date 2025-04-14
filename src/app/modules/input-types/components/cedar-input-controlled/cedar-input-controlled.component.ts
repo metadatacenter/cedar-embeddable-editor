@@ -103,7 +103,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
           return null;
         } else if (response.collection) {
           return response.collection.filter((option) => {
-            return option.prefLabel.toLowerCase().indexOf(val.toLowerCase()) >= 0;
+            return option.prefLabel?.toLowerCase().indexOf(val.toLowerCase()) >= 0;
           });
         } else {
           if (!val) {
