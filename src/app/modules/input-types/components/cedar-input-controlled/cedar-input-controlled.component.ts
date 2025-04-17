@@ -6,7 +6,7 @@ import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
 import { IntegratedSearchResponseItem } from '../../../shared/models/rest/integrated-search/integrated-search-response-item';
 import { JsonSchema } from '../../../shared/models/json-schema.model';
@@ -91,25 +91,30 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
       this.trigger.panelClosingActions.subscribe((e) => {
-        this.setCurrentValue(this.selectedData?.prefLabel);
+        this.setCurrentValue(this.selectedData.prefLabel);
       });
     }
   }
 
   filter(val: string): Observable<IntegratedSearchResponseItem[]> {
+    if (!val) {
+      return of([]);
+    }
     return this.controlledFieldDataService.getData(val, this.component).pipe(
       map((response) => {
         if (response == null) {
-          return null;
-        } else if (response.collection) {
+          return [];
+        } else if (response.collection && Array.isArray(response.collection)) {
           return response.collection.filter((option) => {
-            return option.prefLabel?.toLowerCase().indexOf(val.toLowerCase()) >= 0;
+            if (!option || !option.prefLabel) {
+              return false;
+            }
+            return option.prefLabel.toLowerCase().indexOf(val.toLowerCase()) >= 0;
           });
         } else {
-          if (!val) {
-            val = 'empty string';
-          }
-          this.messageHandlerService.errorObject(val, response);
+          const errorVal = val || 'empty string';
+          this.messageHandlerService.errorObject(errorVal, response);
+          return [];
         }
       }),
     );

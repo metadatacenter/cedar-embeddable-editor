@@ -473,6 +473,9 @@ button.close {
 }
 .template-header {
   display: flex;
+  background-color: white !important;
+  padding-top: 10px !important;
+  min-height: fit-content !important;
 }
 .expand-buttons {
   margin-left: auto;
