@@ -63,7 +63,7 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
     }
     this.filteredTemplates.next(
       this.sampleTemplates.filter(
-        (template) => template[this.sampleTemplateService.TEMPLATE_LABEL].toLowerCase().indexOf(search) > -1,
+        (template) => template[this.sampleTemplateService.TEMPLATE_LABEL]?.toLowerCase().indexOf(search) > -1,
       ),
     );
   }
