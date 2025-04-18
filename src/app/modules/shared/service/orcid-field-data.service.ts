@@ -13,11 +13,11 @@ export class OrcidFieldDataService {
   private orcidDetailsUrl;
 
   constructor(private http: HttpClient) {}
-  setOrcidSearchUrl(orcidIntegratedExtAuthUrl: string): void {
-    this.orcidSearchUrl = orcidIntegratedExtAuthUrl;
+  setOrcidSearchUrl(orcidSearchUrl: string): void {
+    this.orcidSearchUrl = orcidSearchUrl;
   }
-  setOrcidDetailsUrl(orcidIntegratedDetailsUrl: string): void {
-    this.orcidDetailsUrl = orcidIntegratedDetailsUrl;
+  setOrcidDetailsUrl(orcidDetailsUrl: string): void {
+    this.orcidDetailsUrl = orcidDetailsUrl;
   }
   getData(val: string): Observable<OrcidSearchResponse> {
     const params = new HttpParams().set('q', val);

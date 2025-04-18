@@ -14,8 +14,8 @@ export class RorFieldDataService {
   private rorDetailsUrl;
 
   constructor(private http: HttpClient) {}
-  setRorSearchUrl(rorExtAuthUrl: string): void {
-    this.rorSearchUrl = rorExtAuthUrl;
+  setRorSearchUrl(rorSearchUrl: string): void {
+    this.rorSearchUrl = rorSearchUrl;
   }
   setRorDetailsUrl(rorDetailsUrl: string): void {
     this.rorDetailsUrl = rorDetailsUrl;
