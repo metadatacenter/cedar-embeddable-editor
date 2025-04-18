@@ -38,6 +38,11 @@ export class AppComponentDev implements OnInit {
     // showStaticText: true,
     readOnlyMode: false,
     hideEmptyFields: false,
+
+    orcidIntegratedExtAuthUrl: 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name',
+    orcidIntegratedDetailsUrl: 'https://bridge.metadatacenter.orgx/ext-auth/orcid',
+    rorIntegratedExtAuthUrl: 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name',
+    rorIntegratedDetailsUrl: 'https://bridge.metadatacenter.orgx/ext-auth/ror',
   };
 
   languages = {
