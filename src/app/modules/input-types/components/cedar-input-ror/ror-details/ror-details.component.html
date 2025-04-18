@@ -3,12 +3,12 @@
     <mat-icon>close</mat-icon>
   </button>
     <header class="organization-header">
-      <p class="organization-id">
-        <img class="ror-logo" src="assets/images/ror-logo.png" alt="ror logo" />
+      <div class="organization-id">
+        <div class="ror-logo" role="img" aria-label="ROR logo"></div>
         <a href="{{ rorDetail.id }}" target="_blank" rel="noopener noreferrer">
           {{ rorDetail.id }} <mat-icon class="external-link-icon" matTooltip="{{'Generic.OpenRorProfile' | translate}}">open_in_new</mat-icon>
         </a>
-      </p>
+      </div>
     </header>
     <div class="organization-details">
       <h1 class="organization-name">{{ rorDetail.name }}</h1>

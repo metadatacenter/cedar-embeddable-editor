@@ -10,7 +10,8 @@
     <h2 class="other-names">{{ researcher.otherNames.join('; ') }}</h2>
     <mat-divider role="separator" class="mat-divider divider mat-divider-horizontal" aria-orientation="horizontal"></mat-divider>
     <div class="orcid-info">
-      <img ngSrc="assets/images/orcid-logo.svg" alt="ORCID Logo" width="40" height="40" class="orcid-logo">
+      <div class="orcid-logo" role="img" aria-label="ORCID logo"></div>
+<!--      <img ngSrc="assets/images/orcid-logo.svg" alt="ORCID Logo" width="40" height="40" class="orcid-logo">-->
       <a [href]=researcher.id target="_blank" class="orcid-id">{{ researcher.id }} <mat-icon class="external-link-icon" matTooltip="{{'Generic.OpenOrcidProfile' | translate}}">open_in_new</mat-icon></a>
     </div>
   </div>
