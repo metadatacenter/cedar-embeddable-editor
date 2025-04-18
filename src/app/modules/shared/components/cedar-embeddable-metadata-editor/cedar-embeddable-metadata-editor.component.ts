@@ -61,10 +61,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private static ORCID_PREFIX = 'orcidPrefix';
   private static ROR_PREFIX = 'rorPrefix';
 
-  static ROR_INTEGRATED_EXT_AUTH_URL = 'rorIntegratedExtAuthUrl';
-  static ORCID_INTEGRATED_EXT_AUTH_URL = 'orcidIntegratedExtAuthUrl';
-  static ROR_INTEGRATED_DETAILS_URL = 'rorIntegratedDetailsUrl';
-  static ORCID_INTEGRATED_DETAILS_URL = 'orcidIntegratedDetailsUrl';
+  static ROR_INTEGRATED_EXT_AUTH_URL = 'rorSearchUrl';
+  static ROR_INTEGRATED_DETAILS_URL = 'rorDetailsUrl';
+  static ORCID_INTEGRATED_EXT_AUTH_URL = 'orcidSearchUrl';
+  static ORCID_INTEGRATED_DETAILS_URL = 'orcidDetailsUrl';
 
   dataContext: DataContext = null;
   handlerContext: HandlerContext = null;
@@ -102,10 +102,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static bioPortalPrefix = 'https://bioportal.bioontology.org/ontologies/';
   static orcidPrefix = 'https://orcid.org/';
   static rorPrefix = 'https://ror.org/';
-  rorIntegratedExtAuthUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name';
-  orcidIntegratedExtAuthUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name';
-  rorIntegratedDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid';
-  orcidIntegratedDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid';
+  orcidSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name';
+  rorSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name';
+  orcidDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid';
+  rorDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror';
 
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
 
@@ -210,24 +210,24 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_EXT_AUTH_URL)) {
-        this.rorIntegratedExtAuthUrl = value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_EXT_AUTH_URL];
+        this.rorSearchUrl = value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_EXT_AUTH_URL];
       }
-      this.rorFieldDataService.setRorSearchUrl(this.rorIntegratedExtAuthUrl);
+      this.rorFieldDataService.setRorSearchUrl(this.rorSearchUrl);
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_EXT_AUTH_URL)) {
-        this.orcidIntegratedExtAuthUrl = value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_EXT_AUTH_URL];
+        this.orcidSearchUrl = value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_EXT_AUTH_URL];
       }
-      this.orcidFieldDataService.setOrcidSearchUrl(this.orcidIntegratedExtAuthUrl);
+      this.orcidFieldDataService.setOrcidSearchUrl(this.orcidSearchUrl);
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL)) {
-        this.rorIntegratedDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL];
+        this.rorDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL];
       }
-      this.rorFieldDataService.setRorDetailsUrl(this.rorIntegratedDetailsUrl);
+      this.rorFieldDataService.setRorDetailsUrl(this.rorDetailsUrl);
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_DETAILS_URL)) {
-        this.orcidIntegratedDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_DETAILS_URL];
+        this.orcidDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_DETAILS_URL];
       }
-      this.orcidFieldDataService.setOrcidDetailsUrl(this.orcidIntegratedDetailsUrl);
+      this.orcidFieldDataService.setOrcidDetailsUrl(this.orcidDetailsUrl);
     }
   }
 
