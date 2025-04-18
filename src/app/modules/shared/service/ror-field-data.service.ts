@@ -10,15 +10,15 @@ import { RorDetailResponse } from '../models/rest/ror-detail/ror-detail-response
   providedIn: 'root',
 })
 export class RorFieldDataService {
-  private rorSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name';
-  private rorDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror';
+  private rorSearchUrl;
+  private rorDetailsUrl;
 
   constructor(private http: HttpClient) {}
-
-  // setRorSearchUrl(rorSearchUrl: string): void {
-  setRorSearchUrl(): void {
-    // this.terminologyIntegratedSearchUrl = terminologyIntegratedSearchUrl;
-    this.rorSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name';
+  setRorSearchUrl(rorExtAuthUrl: string): void {
+    this.rorSearchUrl = rorExtAuthUrl;
+  }
+  setRorDetailsUrl(rorDetailsUrl: string): void {
+    this.rorDetailsUrl = rorDetailsUrl;
   }
 
   getData(val: string): Observable<RorSearchResponse> {

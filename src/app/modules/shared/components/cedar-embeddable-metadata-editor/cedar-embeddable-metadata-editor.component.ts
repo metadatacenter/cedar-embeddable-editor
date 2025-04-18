@@ -7,6 +7,8 @@ import { ActiveComponentRegistryService } from '../../service/active-component-r
 import { DataObjectUtil } from '../../util/data-object-util';
 import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
 import { MessageHandlerService } from '../../service/message-handler.service';
+import { RorFieldDataService } from '../../service/ror-field-data.service';
+import { OrcidFieldDataService } from '../../service/orcid-field-data.service';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -59,6 +61,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private static ORCID_PREFIX = 'orcidPrefix';
   private static ROR_PREFIX = 'rorPrefix';
 
+  static ROR_INTEGRATED_EXT_AUTH_URL = 'rorIntegratedExtAuthUrl';
+  static ORCID_INTEGRATED_EXT_AUTH_URL = 'orcidIntegratedExtAuthUrl';
+  static ROR_INTEGRATED_DETAILS_URL = 'rorIntegratedDetailsUrl';
+  static ORCID_INTEGRATED_DETAILS_URL = 'orcidIntegratedDetailsUrl';
+
   dataContext: DataContext = null;
   handlerContext: HandlerContext = null;
 
@@ -95,6 +102,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static bioPortalPrefix = 'https://bioportal.bioontology.org/ontologies/';
   static orcidPrefix = 'https://orcid.org/';
   static rorPrefix = 'https://ror.org/';
+  rorIntegratedExtAuthUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name';
+  orcidIntegratedExtAuthUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name';
+  rorIntegratedDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid';
+  orcidIntegratedDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid';
 
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
 
@@ -103,6 +114,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,
     private messageHandlerService: MessageHandlerService,
+    private rorFieldDataService: RorFieldDataService,
+    private orcidFieldDataService: OrcidFieldDataService,
   ) {
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
@@ -195,6 +208,26 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_PREFIX)) {
         CedarEmbeddableMetadataEditorComponent.rorPrefix = value[CedarEmbeddableMetadataEditorComponent.ROR_PREFIX];
       }
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_EXT_AUTH_URL)) {
+        this.rorIntegratedExtAuthUrl = value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_EXT_AUTH_URL];
+      }
+      this.rorFieldDataService.setRorSearchUrl(this.rorIntegratedExtAuthUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_EXT_AUTH_URL)) {
+        this.orcidIntegratedExtAuthUrl = value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_EXT_AUTH_URL];
+      }
+      this.orcidFieldDataService.setOrcidSearchUrl(this.orcidIntegratedExtAuthUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL)) {
+        this.rorIntegratedDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL];
+      }
+      this.rorFieldDataService.setRorDetailsUrl(this.rorIntegratedDetailsUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_DETAILS_URL)) {
+        this.orcidIntegratedDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_DETAILS_URL];
+      }
+      this.orcidFieldDataService.setOrcidDetailsUrl(this.orcidIntegratedDetailsUrl);
     }
   }
 

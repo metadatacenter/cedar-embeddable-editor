@@ -9,17 +9,16 @@ import { OrcidSearchResponseItem } from '../models/rest/orcid-search/orcid-searc
   providedIn: 'root',
 })
 export class OrcidFieldDataService {
-  private orcidSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name';
-  private orcidDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid';
+  private orcidSearchUrl;
+  private orcidDetailsUrl;
 
   constructor(private http: HttpClient) {}
-
-  // setRorSearchUrl(rorSearchUrl: string): void {
-  setOrcidSearchUrl(): void {
-    // this.terminologyIntegratedSearchUrl = terminologyIntegratedSearchUrl;
-    this.orcidSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name';
+  setOrcidSearchUrl(orcidIntegratedExtAuthUrl: string): void {
+    this.orcidSearchUrl = orcidIntegratedExtAuthUrl;
   }
-
+  setOrcidDetailsUrl(orcidIntegratedDetailsUrl: string): void {
+    this.orcidDetailsUrl = orcidIntegratedDetailsUrl;
+  }
   getData(val: string): Observable<OrcidSearchResponse> {
     const params = new HttpParams().set('q', val);
     // Random delay to prevent throttling
