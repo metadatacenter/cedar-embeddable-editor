@@ -3,7 +3,7 @@
     <mat-form-field class="full-width">
       <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
       <input matInput type="text"
-             placeholder="{{'Generic.Filter' | translate}}"
+             placeholder="{{'Generic.FilterOrcid' | translate}}"
              #autoCompleteInput="matAutocompleteTrigger"
              [formControl]="inputValueControl"
              [errorStateMatcher]="errorStateMatcher"
@@ -11,7 +11,7 @@
              (input)="inputChanged($event)"
              [readonly]="readOnlyMode"
              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
-      <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
+      <mat-autocomplete #auto="matAutocomplete">
         <div *ngIf="loadingOptions" class="spinner-container">
           <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
         </div>
