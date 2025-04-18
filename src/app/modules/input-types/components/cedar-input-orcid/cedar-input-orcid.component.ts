@@ -1,6 +1,14 @@
 import { AfterViewInit, Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormGroupDirective,
+  NgForm,
+  Validators,
+} from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -25,7 +33,7 @@ import { OrcidSearchResponseItem } from '../../../shared/models/rest/orcid-searc
 import { ResearcherDetails } from '../../../shared/models/rest/orcid-detail/orcid-detail-person';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: FormControl | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
@@ -123,7 +131,7 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
   ngAfterViewInit(): void {
     if (!this.readOnlyMode && this.trigger) {
       this.trigger.panelClosingActions.subscribe(() => {
-        if (!this.selectedData) {
+        if (!this.selectedData && this.inputValueControl.getRawValue()) {
           this.clearValue();
           this.inputValueControl.setErrors({ invalidOrcid: true });
         } else {
