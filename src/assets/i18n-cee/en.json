@@ -31,7 +31,9 @@
     "Details": "Show Details",
     "HideDetails": "Hide Details",
     "OpenOrcidProfile": "Open ORCID Profile",
-    "OpenRorProfile": "Open ROR Profile"
+    "OpenRorProfile": "Open ROR Profile",
+    "FilterOrcid": "Start typing researcher name or ORCID",
+    "FilterRor": "Start typing institution name or ROR"
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."
