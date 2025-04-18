@@ -26,8 +26,8 @@
         <mat-icon>close</mat-icon>
       </button>
       <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
-      <mat-error tabindex="0" *ngIf="inputValueControl.getError('invalidOrcid') && !readOnlyMode" class="mat-error align-start">
-        Entered value is not a valid ORCID.
+      <mat-error tabindex="-1" *ngIf="inputValueControl.getError('invalidOrcid') && !readOnlyMode" class="mat-error align-start">
+        Entered value is not a valid ORCID and has been cleared.
       </mat-error>
     </mat-form-field>
   </ng-container>
