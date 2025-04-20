@@ -107,23 +107,23 @@ export class CedarInputRorComponent extends CedarUIComponent implements OnInit {
           );
         }),
       );
-      if (this.trigger) {
-        this.trigger.panelClosingActions.subscribe((event) => {
-          if (!event) {
-            if (!this.selectedData) {
-              this.clearValue();
-              this.inputValueControl.setErrors({ invalidRor: true });
-            } else {
-              this.setCurrentValue(this.getCompoundValue(this.selectedData));
-              if (this.inputValueControl.errors && this.inputValueControl.errors.invalidRor) {
-                const errors = { ...this.inputValueControl.errors };
-                delete errors.invalidRor;
-                this.inputValueControl.setErrors(Object.keys(errors).length > 0 ? errors : null);
-              }
-            }
+    }
+  }
+  ngAfterViewInit(): void {
+    if (this.trigger) {
+      this.trigger.panelClosingActions.subscribe(() => {
+        if (!this.selectedData) {
+          this.clearValue();
+          this.inputValueControl.setErrors({ invalidRor: true });
+        } else {
+          this.setCurrentValue(this.getCompoundValue(this.selectedData));
+          if (this.inputValueControl.errors && this.inputValueControl.errors.invalidRor) {
+            const errors = { ...this.inputValueControl.errors };
+            delete errors.invalidRor;
+            this.inputValueControl.setErrors(Object.keys(errors).length > 0 ? errors : null);
           }
-        });
-      }
+        }
+      });
     }
   }
 
