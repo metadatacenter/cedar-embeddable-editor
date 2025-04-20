@@ -9,6 +9,7 @@ import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { RorFieldDataService } from '../../service/ror-field-data.service';
 import { OrcidFieldDataService } from '../../service/orcid-field-data.service';
+import packageJson from 'package.json';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -110,6 +111,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
 
   allExpanded = true;
+  ceeVersion: string;
 
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,
@@ -117,6 +119,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     private rorFieldDataService: RorFieldDataService,
     private orcidFieldDataService: OrcidFieldDataService,
   ) {
+    this.ceeVersion = packageJson.version;
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
 
