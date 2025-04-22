@@ -1,8 +1,10 @@
 <app-static-header *ngIf="dataAvailableForRender() && showHeader"
                    [callbackOwnerObject]="sampleTemplateLoaderObject"
                    [showSampleTemplateLinks]="showSampleTemplateLinks"></app-static-header>
-<!--<preferences-menu>-->
-<!--  </preferences-menu>-->
+<preferences-menu
+  [handlerContext]="handlerContext"
+  (readOnlyModeChange)="onReadOnlyModeChanged($event)">
+</preferences-menu>
 <mat-card class="template-card" *ngIf="dataAvailableForRender()">
 <!--  <mat-card-header>-->
   <div class="template-header">

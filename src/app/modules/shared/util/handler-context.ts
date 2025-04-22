@@ -8,6 +8,7 @@ import { DataObjectStructureHandler } from '../handler/data-object-structure.han
 import { MessageHandlerService } from '../service/message-handler.service';
 import { DataQualityReportBuilderHandler } from '../handler/data-quality-report-builder.handler';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
+// import { RdfBuilderService } from '../service/rdf-builder.service';
 
 export class HandlerContext {
   readonly dataObjectBuilderService: DataObjectBuilderHandler = null;
@@ -17,6 +18,7 @@ export class HandlerContext {
   readonly dataQualityReportBuilderService: DataQualityReportBuilderHandler;
   readonly dataContext: DataContext = null;
   readonly messageHandlerService: MessageHandlerService = null;
+  // readonly rdfService: RdfBuilderService = null;
 
   readOnlyMode: boolean = false;
   hideEmptyFields: boolean = false;
@@ -30,6 +32,7 @@ export class HandlerContext {
     this.dataQualityReportBuilderService = new DataQualityReportBuilderHandler();
     this.dataContext = dataContext;
     this.messageHandlerService = messageHandlerService;
+    // this.rdfService = new RdfBuilderService();
   }
 
   addMultiInstance(component: MultiComponent): void {
@@ -96,6 +99,7 @@ export class HandlerContext {
   changeValue(component: FieldComponent, value: string): void {
     this.dataObjectDataValueHandler.changeValue(this.dataContext, component, this.multiInstanceObjectService, value);
     this.buildQualityReport();
+    // this.rdfService.toRdf(this.dataContext.instanceFullData);
   }
 
   changeListValue(component: FieldComponent, value: string[]): void {
@@ -142,6 +146,11 @@ export class HandlerContext {
 
   buildQualityReport() {
     this.dataContext.dataQualityReport = this.dataQualityReportBuilderService.buildReport(this.dataContext, this);
+    // this.rdfService.toRdf(this.dataContext.instanceFullData).then((rdf) => {
+    //   console.log('RDF', rdf);
+    //   console.log('Instance extract data', this.dataContext.instanceExtractData);
+    //   this.dataContext.rdf = rdf;
+    // });
   }
   enableReadOnlyMode() {
     this.readOnlyMode = true;

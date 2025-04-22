@@ -346,15 +346,18 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       this.dataContext.multiInstanceData != null
     );
   }
-
   openAll(): void {
     this.allExpanded = true;
   }
-
   closeAll(): void {
     this.allExpanded = false;
   }
   launchMetadataCenter() {
     window.open('https://metadatacenter.org/', '_blank');
+  }
+
+  onReadOnlyModeChanged(readOnly: boolean) {
+    console.log('Emitted', readOnly);
+    this.handlerContext = { ...this.handlerContext, readOnlyMode: readOnly } as HandlerContext;
   }
 }
