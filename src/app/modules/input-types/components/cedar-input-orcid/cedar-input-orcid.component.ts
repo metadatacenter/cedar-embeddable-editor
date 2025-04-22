@@ -53,11 +53,16 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
   options: FormGroup;
   inputValueControl = new FormControl(null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  @Input() handlerContext: HandlerContext;
+  handlerContext: HandlerContext;
+  @Input() set _handlerContext(value: HandlerContext) {
+    this.handlerContext = value;
+    this.readOnlyMode = value.readOnlyMode;
+  }
+  @Input() readOnlyMode: boolean;
   model: OrcidSearchResponseItem = null;
   researcherDetails: ResearcherDetails = null;
   showDetails = false;
-  readOnlyMode = false;
+  // readOnlyMode = false;
 
   loadingOptions = false;
   loadingDetails = false;
@@ -96,7 +101,7 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
       this.updateValue(defaultAtId, defaultLabel);
     }
 
-    this.readOnlyMode = this.handlerContext?.readOnlyMode || false;
+    // this.readOnlyMode = this.handlerContext?.readOnlyMode || false;
 
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(

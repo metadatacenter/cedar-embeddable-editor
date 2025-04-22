@@ -6,7 +6,7 @@
         <mat-panel-title>
           <app-cedar-component-header *ngIf="!iterableComponent.linkedStaticFieldComponent"
                                       [componentToRender]="iterableComponent"
-                                      [readOnlyMode]="readOnlyMode"
+                                      [readOnlyMode]="handlerContext.readOnlyMode"
           ></app-cedar-component-header>
           <app-cedar-component-linked-static-field-header *ngIf="iterableComponent.linkedStaticFieldComponent"
                                       [componentToRender]="iterableComponent.linkedStaticFieldComponent"
@@ -36,7 +36,7 @@
         <ng-container *ngFor="let childComponent of iterableComponent.children">
           <app-cedar-component-renderer *ngIf="!childComponent.hidden"
                                         [componentToRender]="childComponent"
-                                        [handlerContext]="handlerContext"
+                                        [_handlerContext]="handlerContext"
                                         [allExpanded]="allExpanded"
                                         [showStaticText]="showStaticText"
                                         [showAllMultiInstanceValues]="showAllMultiInstanceValues"
@@ -49,7 +49,7 @@
 </ng-container>
 <ng-container *ngIf="nonIterableComponent">
   <mat-card class="child-component-card non-iterable-component">
-    <app-cedar-component-header [componentToRender]="nonIterableComponent" [readOnlyMode]="readOnlyMode"
+    <app-cedar-component-header [componentToRender]="nonIterableComponent" [readOnlyMode]="handlerContext.readOnlyMode"
     ></app-cedar-component-header>
     <app-cedar-multi-pager *ngIf="nonIterableComponent.isMultiPage()"
                            [componentToRender]="nonIterableComponent"
@@ -105,7 +105,7 @@
                              [handlerContext]="handlerContext"></app-cedar-input-link>
       <app-cedar-input-orcid *ngIf="nonIterableComponent.basicInfo.inputType==InputType.orcid"
                             [componentToRender]="nonIterableComponent"
-                            [handlerContext]="handlerContext"></app-cedar-input-orcid>
+                            [_handlerContext]="handlerContext"></app-cedar-input-orcid>
       <app-cedar-input-ror *ngIf="nonIterableComponent.basicInfo.inputType==InputType.ror"
                             [componentToRender]="nonIterableComponent"
                             [handlerContext]="handlerContext"></app-cedar-input-ror>

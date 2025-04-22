@@ -54,7 +54,6 @@ export class CedarComponentRendererComponent implements OnInit {
       this.readOnlyMode = this.handlerContext.readOnlyMode;
     }
   }
-
   @Input() set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;
     this.iterableComponent = null;
