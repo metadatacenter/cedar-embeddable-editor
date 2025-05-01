@@ -87,6 +87,13 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
       this.isRichText = true;
     }
   }
+  protected override onReadOnlyModeChange(mode: boolean): void {
+    if (mode) {
+      this.checkHTMLContent();
+    } else {
+      this.isRichText = false;
+    }
+  }
   inputChanged($event: Event): void {
     let val = ($event.target as HTMLTextAreaElement).value;
     if (val.length === 0) {

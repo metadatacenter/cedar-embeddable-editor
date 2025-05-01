@@ -144,7 +144,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
 
   getBioPortalTermDisplayValue(value: any): string {
     const controlledInfo = this.component.controlledInfo;
-    const rdfsLabel = value[JsonSchema.rdfsLabel];
+    const rdfsLabel = value[JsonSchema?.rdfsLabel];
     const atId = value[JsonSchema.atId];
     const midPart = '?p=classes&conceptid=';
     const urlEncodedAtId = encodeURIComponent(atId);

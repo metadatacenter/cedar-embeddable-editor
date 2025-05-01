@@ -9,12 +9,13 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
 
   readOnlyMode = false;
 
-  private readOnlyModeSubscription: Subscription;
+  protected readOnlyModeSubscription: Subscription;
 
   protected constructor() {}
   ngOnInit() {
     this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
       this.readOnlyMode = mode;
+      this.onReadOnlyModeChange(mode);
     });
   }
   ngOnDestroy(): void {
@@ -25,4 +26,5 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
     // used for executing component-specific operations
     // for deleting an instance
   }
+  protected onReadOnlyModeChange(_mode: boolean): void {}
 }
