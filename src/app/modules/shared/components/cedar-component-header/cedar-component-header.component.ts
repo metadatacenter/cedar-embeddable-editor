@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ComponentDataService } from '../../service/component-data.service';
 import { MultiComponent } from '../../models/component/multi-component.model';
@@ -7,6 +7,8 @@ import { SingleFieldComponent } from '../../models/field/single-field-component.
 import { FieldComponent } from '../../models/component/field-component.model';
 import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
 import { InputType } from '../../models/input-type.model';
+import { Subscription } from 'rxjs';
+import { UserPreferencesService } from '../../service/user-preferences.service';
 
 @Component({
   selector: 'app-cedar-component-header',
@@ -14,17 +16,31 @@ import { InputType } from '../../models/input-type.model';
   styleUrls: ['./cedar-component-header.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarComponentHeaderComponent implements OnInit {
+export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
   component: CedarComponent;
   multiComponent: MultiComponent;
   shouldRenderRequiredMark = false;
   isOrcid = false;
   isRor = false;
-  @Input() readOnlyMode;
+  readOnlyMode: boolean;
+  readOnlyModeSubscription: Subscription;
+  userPreferencesService: UserPreferencesService;
 
-  constructor(public cds: ComponentDataService) {}
+  constructor(
+    public cds: ComponentDataService,
+    userPreferencesService: UserPreferencesService,
+  ) {
+    this.userPreferencesService = userPreferencesService;
+  }
+  ngOnInit() {
+    this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
+      this.readOnlyMode = mode;
+    });
+  }
 
-  ngOnInit(): void {}
+  ngOnDestroy(): void {
+    this.readOnlyModeSubscription.unsubscribe();
+  }
 
   @Input() set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;

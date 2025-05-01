@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ElementComponent } from '../../models/component/element-component.model';
 import { SingleElementComponent } from '../../models/element/single-element-component.model';
@@ -20,7 +20,7 @@ import { PageBreakPaginatorService } from '../../service/page-break-paginator.se
   styleUrls: ['./cedar-component-renderer.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarComponentRendererComponent implements OnInit {
+export class CedarComponentRendererComponent {
   protected readonly InputType = InputType;
 
   private component: CedarComponent;
@@ -34,7 +34,6 @@ export class CedarComponentRendererComponent implements OnInit {
   @Input() showStaticText: boolean;
   @Input() showAllMultiInstanceValues: boolean;
   @Input() pageBreakPaginatorService: PageBreakPaginatorService;
-  readOnlyMode;
   // tslint:disable-next-line:variable-name
   private _allExpanded = false;
   @Input()
@@ -46,14 +45,9 @@ export class CedarComponentRendererComponent implements OnInit {
     this.panelOpenState = allExpanded;
     this._allExpanded = allExpanded;
   }
-
   constructor() {}
+  ngOnInit() {}
 
-  ngOnInit(): void {
-    if (this.handlerContext && this.handlerContext.readOnlyMode) {
-      this.readOnlyMode = this.handlerContext.readOnlyMode;
-    }
-  }
   @Input() set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;
     this.iterableComponent = null;

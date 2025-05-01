@@ -2,7 +2,7 @@ import { Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
@@ -36,7 +36,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   styleUrls: ['./cedar-input-ror.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputRorComponent extends CedarUIComponent implements OnInit {
+export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger })
   trigger: MatAutocompleteTrigger;
   selectedData: RorSearchResponseItem;
@@ -48,7 +48,6 @@ export class CedarInputRorComponent extends CedarUIComponent implements OnInit {
   model: RorSearchResponseItem = null;
   rorDetails: RorDetailResponse = null;
   showDetails: boolean = false;
-  readOnlyMode: boolean = false;
   filteredOptions: Observable<RorSearchResponseItem[]>;
   loadingOptions = false;
   private rorDetailsCache = new Map<string, RorDetailResponse>();
@@ -71,6 +70,7 @@ export class CedarInputRorComponent extends CedarUIComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    super.ngOnInit();
     const validators: any[] = [];
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
@@ -81,7 +81,6 @@ export class CedarInputRorComponent extends CedarUIComponent implements OnInit {
       const defaultLabel = this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] || null;
       this.updateValue(defaultAtId, defaultLabel);
     }
-    this.readOnlyMode = this.handlerContext?.readOnlyMode || false;
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
         startWith(''),

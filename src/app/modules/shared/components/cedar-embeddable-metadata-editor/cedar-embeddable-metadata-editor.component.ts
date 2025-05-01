@@ -97,7 +97,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   collapseStaticComponents = false;
   showAllMultiInstanceValues = true;
   showTemplateDescription: boolean = false;
-  readOnlyMode = false;
 
   static iriPrefix = 'https://repo.metadatacenter.org/';
   static bioPortalPrefix = 'https://bioportal.bioontology.org/ontologies/';
@@ -354,10 +353,5 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
   launchMetadataCenter() {
     window.open('https://metadatacenter.org/', '_blank');
-  }
-
-  onReadOnlyModeChanged(readOnly: boolean) {
-    console.log('Emitted', readOnly);
-    this.handlerContext = { ...this.handlerContext, readOnlyMode: readOnly } as HandlerContext;
   }
 }

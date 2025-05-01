@@ -2,7 +2,7 @@ import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
@@ -21,7 +21,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   styleUrls: ['./cedar-input-text.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputTextComponent extends CedarUIComponent implements OnInit {
+export class CedarInputTextComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, null);
@@ -31,7 +31,6 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   @Input() handlerContext: HandlerContext;
   inputText = InputType.text;
   inputTextarea = InputType.textarea;
-  readOnlyMode;
   isRichText: boolean = false;
   isOrcid: boolean = false;
   isRor: boolean = false;
@@ -49,6 +48,7 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
   }
 
   ngOnInit(): void {
+    super.ngOnInit();
     const validators: any[] = [];
     this.constraintMinLength = this.component.valueInfo.minLength;
 
@@ -71,11 +71,8 @@ export class CedarInputTextComponent extends CedarUIComponent implements OnInit 
         this.setValueUIAndModel(this.component.valueInfo.defaultValue);
       }
     }
-    if (this.handlerContext && this.handlerContext.readOnlyMode) {
-      this.readOnlyMode = this.handlerContext.readOnlyMode;
-      if (this.readOnlyMode) {
-        this.checkHTMLContent();
-      }
+    if (this.readOnlyMode) {
+      this.checkHTMLContent();
     }
   }
 
