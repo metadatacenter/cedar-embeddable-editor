@@ -1,16 +1,16 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import {
-  AbstractControl,
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  FormGroupDirective,
-  NgForm,
-  Validators,
-} from '@angular/forms';
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
+import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
@@ -27,7 +27,6 @@ import {
 } from 'rxjs/operators';
 import { JsonSchema } from '../../../shared/models/json-schema.model';
 import { OrcidFieldDataService } from '../../../shared/service/orcid-field-data.service';
-import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { OrcidSearchResponseItem } from '../../../shared/models/rest/orcid-search/orcid-search-response-item';
 import { ResearcherDetails } from '../../../shared/models/rest/orcid-detail/orcid-detail-person';
@@ -43,8 +42,9 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   templateUrl: './cedar-input-orcid.component.html',
   styleUrls: ['./cedar-input-orcid.component.scss'],
   encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit, AfterViewInit {
+export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit, AfterViewInit {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger })
   trigger: MatAutocompleteTrigger;
 
@@ -53,16 +53,10 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
   options: FormGroup;
   inputValueControl = new FormControl(null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  handlerContext: HandlerContext;
-  @Input() set _handlerContext(value: HandlerContext) {
-    this.handlerContext = value;
-    this.readOnlyMode = value.readOnlyMode;
-  }
-  @Input() readOnlyMode: boolean;
+  @Input() handlerContext: HandlerContext;
   model: OrcidSearchResponseItem = null;
   researcherDetails: ResearcherDetails = null;
   showDetails = false;
-  // readOnlyMode = false;
 
   loadingOptions = false;
   loadingDetails = false;
@@ -75,7 +69,6 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private orcidFieldDataService: OrcidFieldDataService,
-    private messageHandlerService: MessageHandlerService,
   ) {
     super();
     this.options = fb.group({
@@ -89,7 +82,9 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
   }
 
   ngOnInit(): void {
+    super.ngOnInit();
     const validators = [];
+
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }
@@ -100,8 +95,6 @@ export class CedarInputOrcidComponent extends CedarUIComponent implements OnInit
       const defaultLabel = this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] || null;
       this.updateValue(defaultAtId, defaultLabel);
     }
-
-    // this.readOnlyMode = this.handlerContext?.readOnlyMode || false;
 
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(

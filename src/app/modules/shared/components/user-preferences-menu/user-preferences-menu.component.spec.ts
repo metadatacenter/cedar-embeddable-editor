@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PreferencesMenu } from './preferences-menu.component';
+import { UserPreferencesMenu } from './user-preferences-menu.component';
 
 describe('PreferencesMenuComponent', () => {
-  let component: PreferencesMenu;
-  let fixture: ComponentFixture<PreferencesMenu>;
+  let component: UserPreferencesMenu;
+  let fixture: ComponentFixture<UserPreferencesMenu>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [PreferencesMenu],
+      declarations: [UserPreferencesMenu],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(PreferencesMenu);
+    fixture = TestBed.createComponent(UserPreferencesMenu);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
@@ -19,13 +19,12 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   styleUrls: ['./cedar-input-phone.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputPhoneComponent extends CedarUIComponent implements OnInit {
+export class CedarInputPhoneComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
-  readOnlyMode;
 
   constructor(
     fb: FormBuilder,
@@ -39,6 +38,7 @@ export class CedarInputPhoneComponent extends CedarUIComponent implements OnInit
   }
 
   ngOnInit(): void {
+    super.ngOnInit();
     const validators: any[] = [];
 
     const reg = /^[\+0-9\s\-\(\)]+$/im;
@@ -54,9 +54,6 @@ export class CedarInputPhoneComponent extends CedarUIComponent implements OnInit
       if (this.inputValueControl.getRawValue() == '') {
         this.setValueUIAndModel(this.component.valueInfo.defaultValue);
       }
-    }
-    if (this.handlerContext && this.handlerContext.readOnlyMode) {
-      this.readOnlyMode = this.handlerContext.readOnlyMode;
     }
   }
 

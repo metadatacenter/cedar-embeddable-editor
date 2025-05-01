@@ -2,7 +2,7 @@ import { AfterViewInit, Component, Input, OnInit, ViewChild, ViewEncapsulation }
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
@@ -26,7 +26,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   styleUrls: ['./cedar-input-controlled.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputControlledComponent extends CedarUIComponent implements OnInit, AfterViewInit {
+export class CedarInputControlledComponent extends CedarUIDirective implements OnInit, AfterViewInit {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger: MatAutocompleteTrigger;
   selectedData: IntegratedSearchResponseItem;
   component: FieldComponent;
@@ -35,7 +35,6 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
   model: IntegratedSearchResponseItem = null;
-  readOnlyMode;
   bioPortalTermLink: string = null;
 
   filteredOptions: Observable<IntegratedSearchResponseItem[]>;
@@ -54,6 +53,7 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
   }
 
   ngOnInit(): void {
+    super.ngOnInit();
     const validators: any[] = [];
 
     if (this.component.valueInfo.requiredValue) {
@@ -71,11 +71,6 @@ export class CedarInputControlledComponent extends CedarUIComponent implements O
         this.component.valueInfo.defaultValue ? this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] : null,
       );
     }
-
-    if (this.handlerContext && this.handlerContext.readOnlyMode) {
-      this.readOnlyMode = this.handlerContext.readOnlyMode;
-    }
-
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
         startWith(''),

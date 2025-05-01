@@ -1,22 +1,23 @@
-// preferences-menu.component.ts
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { MatMenuTrigger } from '@angular/material/menu';
-import { HandlerContext } from '../../util/handler-context';
+import { UserPreferencesService } from '../../service/user-preferences.service';
 
 @Component({
-  selector: 'preferences-menu',
-  templateUrl: './preferences-menu.component.html',
-  styleUrls: ['./preferences-menu.component.scss'],
+  selector: 'user-preferences-menu',
+  templateUrl: './user-preferences-menu.component.html',
+  styleUrls: ['./user-preferences-menu.component.scss'],
 })
-export class PreferencesMenu {
-  @Input() handlerContext!: HandlerContext;
-  @Output() readOnlyModeChange = new EventEmitter<boolean>();
+export class UserPreferencesMenu {
   @ViewChild(MatMenuTrigger, { static: true }) menuTrigger!: MatMenuTrigger;
+  constructor(private userPreferencesService: UserPreferencesService) {
+    this.userPreferencesService = userPreferencesService;
+  }
+  readOnlyMode$ = false;
 
+  toggleReadOnly(checked: boolean): void {
+    this.userPreferencesService.setReadOnlyMode(checked);
+  }
   close(): void {
     this.menuTrigger.closeMenu();
-  }
-  toggleReadOnly(checked: boolean): void {
-    this.readOnlyModeChange.emit(checked);
   }
 }

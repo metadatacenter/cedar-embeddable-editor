@@ -50,7 +50,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private globalSettingsContextService: GlobalSettingsContextService,
   ) {
     this.sampleTemplateLoaderObject = this;
-
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext, this.messagingService);
   }

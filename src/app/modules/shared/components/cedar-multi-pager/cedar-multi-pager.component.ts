@@ -1,4 +1,4 @@
-import { Component, DoCheck, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { Component, DoCheck, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { MultiComponent } from '../../models/component/multi-component.model';
 import { PageEvent } from '@angular/material/paginator';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
@@ -12,6 +12,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { InstanceExtractData } from '../../models/instance-extract-data.model';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
+import { UserPreferencesService } from '../../service/user-preferences.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -19,7 +21,7 @@ import { PageBreakPaginatorService } from '../../service/page-break-paginator.se
   styleUrls: ['./cedar-multi-pager.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarMultiPagerComponent implements OnInit, DoCheck {
+export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   static readonly MAX_CHARACTERS_MULTI_VALUE = 30;
 
   component: MultiComponent;
@@ -32,6 +34,8 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
   @Input() showAllMultiInstanceValues: boolean;
   @Input() pageBreakPaginatorService: PageBreakPaginatorService;
   readOnlyMode;
+  readOnlModeSubscription: Subscription;
+  userPreferencesService: UserPreferencesService;
 
   length = 0;
   pageSize = 5;
@@ -50,17 +54,23 @@ export class CedarMultiPagerComponent implements OnInit, DoCheck {
     activeComponentRegistry: ActiveComponentRegistryService,
     translateService: TranslateService,
     messageHandlerService: MessageHandlerService,
+    userPreferencesService: UserPreferencesService,
   ) {
     this.activeComponentRegistry = activeComponentRegistry;
     this.translateService = translateService;
     this.messageHandlerService = messageHandlerService;
+    this.userPreferencesService = userPreferencesService;
   }
 
   ngOnInit(): void {
-    if (this.handlerContext && this.handlerContext.readOnlyMode) {
-      this.readOnlyMode = this.handlerContext.readOnlyMode;
-    }
+    this.readOnlModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((value) => {
+      this.readOnlyMode = value;
+    });
     this.recomputeNumbers();
+  }
+
+  ngOnDestroy(): void {
+    this.readOnlModeSubscription.unsubscribe();
   }
 
   ngDoCheck(): void {

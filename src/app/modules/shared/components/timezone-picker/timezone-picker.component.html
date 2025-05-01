@@ -6,7 +6,7 @@
 <!--           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">-->
   </ng-container>
   <ng-container *ngIf="!readOnlyMode">
-    <ng-select [formControlName]="'timezone'"
+    <ng-select formControlName="timezone"
                [items]="timeZones"
                [clearable]="clearable"
                [virtualScroll]="virtualScroll"

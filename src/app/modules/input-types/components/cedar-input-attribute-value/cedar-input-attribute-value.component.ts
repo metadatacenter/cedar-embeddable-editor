@@ -1,7 +1,7 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 
@@ -11,13 +11,12 @@ import { HandlerContext } from '../../../shared/util/handler-context';
   styleUrls: ['./cedar-input-attribute-value.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputAttributeValueComponent extends CedarUIComponent implements OnInit {
+export class CedarInputAttributeValueComponent extends CedarUIDirective {
   component: FieldComponent;
   options: FormGroup;
   nameInputControl = new FormControl(null, null);
   valueInputControl = new FormControl(null, null);
   @Input() handlerContext: HandlerContext;
-  readOnlyMode;
 
   constructor(
     fb: FormBuilder,
@@ -29,13 +28,6 @@ export class CedarInputAttributeValueComponent extends CedarUIComponent implemen
       valueInputValue: this.valueInputControl,
     });
   }
-
-  ngOnInit(): void {
-    if (this.handlerContext && this.handlerContext.readOnlyMode) {
-      this.readOnlyMode = this.handlerContext.readOnlyMode;
-    }
-  }
-
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);

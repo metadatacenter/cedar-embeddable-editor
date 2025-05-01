@@ -11,9 +11,7 @@ export class RorDetailsComponent implements OnInit {
 
   @Input() rorDetail: RorDetailResponse;
   @Input() close: (value: boolean) => void;
-
   constructor() {}
-
   ngOnInit(): void {
     if (this.rorDetail?.rawResponse?.relationships) {
       this.groupedRelationships = this.groupBy(this.rorDetail.rawResponse.relationships, 'type');
