@@ -83,8 +83,14 @@ export class ActiveComponentRegistryService {
           // url field single
           uiComponent.setCurrentValue(dataObject[JsonSchema.atId]);
         } else if (Object.hasOwn(dataObject, JsonSchema.atId)) {
+          if (component.basicInfo.inputType === InputType.orcid || component.basicInfo.inputType === InputType.ror) {
+            const valueObject = {};
+            valueObject[JsonSchema.rdfsLabel] = dataObject[JsonSchema.rdfsLabel];
+            valueObject[JsonSchema.atId] = dataObject[JsonSchema.atId];
+            uiComponent.setCurrentValue(valueObject);
+          }
           // controlled field single
-          if (handlerContext.readOnlyMode) {
+          else if (handlerContext.readOnlyMode) {
             const valueObject = {};
             valueObject[JsonSchema.rdfsLabel] = dataObject[JsonSchema.rdfsLabel];
             valueObject[JsonSchema.atId] = dataObject[JsonSchema.atId];

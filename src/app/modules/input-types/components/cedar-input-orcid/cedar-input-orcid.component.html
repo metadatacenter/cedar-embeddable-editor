@@ -15,12 +15,12 @@
         <div *ngIf="loadingOptions" class="spinner-container">
           <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
         </div>
-        <mat-option *ngFor="let option of filteredOptions | async" [value]="option.rdfsLabel + ' - '  + option.id"
+        <mat-option *ngFor="let option of filteredOptions | async" [value]="option[JsonSchema.rdfsLabel] + ' - '  + option[JsonSchema.atId]"
                     (onSelectionChange)="onSelectionChange(option)"
-        >{{option.rdfsLabel}} - {{option.id}}<span *ngIf="option._details && option._details.trim() !== ''"> - {{ option._details }}</span></mat-option>
+        >{{option[JsonSchema.rdfsLabel]}} - {{option[JsonSchema.atId]}}<span *ngIf="option._details && option._details.trim() !== ''"> - {{ option._details }}</span></mat-option>
       </mat-autocomplete>
       <button type="button" tabindex="0" mat-button *ngIf="selectedData" matSuffix mat-icon-button attr.aria-label="{{'Generic.Details' | translate}}"  matTooltip="{{'Generic.Details' | translate}}" (click)="setShowDetails(true)" [disabled]="loadingDetails">
-        <mat-spinner [diameter]="20" *ngIf="loadingDetails"></mat-spinner><mat-icon *ngIf="!loadingDetails">info</mat-icon>
+        <mat-spinner [diameter]="20" *ngIf="loadingDetails"></mat-spinner><mat-icon *ngIf="!loadingDetails && researcherDetails">info</mat-icon>
       </button>
       <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}"  matTooltip="{{'Generic.Clear' | translate}}" (click)="clearValue()">
         <mat-icon>close</mat-icon>

@@ -4,6 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, switchMap } from 'rxjs/operators';
 import { OrcidSearchResponse } from '../models/rest/orcid-search/orcid-search-response';
 import { OrcidSearchResponseItem } from '../models/rest/orcid-search/orcid-search-response-item';
+import { JsonSchema } from '../models/json-schema.model';
 
 @Injectable({
   providedIn: 'root',
@@ -28,8 +29,8 @@ export class OrcidFieldDataService {
         this.http.get<OrcidSearchResponse>(this.orcidSearchUrl, { params }).pipe(
           map((response) => {
             const results: OrcidSearchResponseItem[] = Object.keys(response.results).map((key) => ({
-              id: key,
-              rdfsLabel: response.results[key].name,
+              [JsonSchema.atId]: key,
+              [JsonSchema.rdfsLabel]: response.results[key].name,
               _details: response.results[key].details,
             }));
             return {
