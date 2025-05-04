@@ -217,7 +217,6 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
   private getDetails(): void {
-    console.log('In get details');
     if (!this.selectedData || !this.selectedData[JsonSchema.atId]) {
       console.warn('No valid selected data to retrieve details.');
       return;
@@ -233,12 +232,10 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
       .getDetails(selectedId)
       .pipe(
         finalize(() => {
-          console.log('Finalizing');
           this.loadingDetails = false;
           this.cdr.markForCheck();
         }),
         catchError((error) => {
-          console.error('Error retrieving details:', error);
           return of(null as any);
         }),
       )
