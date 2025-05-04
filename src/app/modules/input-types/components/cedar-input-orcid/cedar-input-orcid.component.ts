@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Input,
   OnInit,
@@ -60,6 +61,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private orcidFieldDataService: OrcidFieldDataService,
+    private cdr: ChangeDetectorRef,
   ) {
     super();
     this.options = fb.group({
@@ -173,7 +175,6 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
       );
     }
   }
-
   private updateValue(atId: string, prefLabel: string): void {
     if (!prefLabel) {
       return;
@@ -181,7 +182,6 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     this.inputValueControl.setValue(prefLabel, { emitEvent: false });
     this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
   }
-
   onSelectionChange(option: OrcidSearchResponseItem): void {
     if (!option) {
       return;
@@ -228,12 +228,14 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
       return;
     }
     this.loadingDetails = true;
+    this.cdr.markForCheck();
     this.orcidFieldDataService
       .getDetails(selectedId)
       .pipe(
         finalize(() => {
           console.log('Finalizing');
           this.loadingDetails = false;
+          this.cdr.markForCheck();
         }),
         catchError((error) => {
           console.error('Error retrieving details:', error);
@@ -242,9 +244,9 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
       )
       .subscribe((response: ResearcherDetails) => {
         if (response && response.found) {
-          console.log('In if');
           this.researcherDetails = ResearcherDetails.fromJson(response);
           this.researcherDetailsCache.set(selectedId, this.researcherDetails);
+          this.cdr.markForCheck();
         }
       });
   }
