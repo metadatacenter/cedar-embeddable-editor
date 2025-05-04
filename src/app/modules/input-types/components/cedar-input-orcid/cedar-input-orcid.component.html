@@ -12,9 +12,13 @@
              [readonly]="readOnlyMode"
              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
       <mat-autocomplete #auto="matAutocomplete">
-        <div *ngIf="loadingOptions" class="spinner-container">
+        <mat-option *ngIf="loadingOptions" disabled class="spinner-option">
           <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
-        </div>
+        </mat-option>
+        <mat-option
+          *ngIf="!loadingOptions && hasSearched && inputValueControl.value?.trim().length > 0 && (filteredOptions | async)?.length === 0" disabled>
+          No results found
+        </mat-option>
         <mat-option *ngFor="let option of filteredOptions | async" [value]="option[JsonSchema.rdfsLabel] + ' - '  + option[JsonSchema.atId]"
                     (onSelectionChange)="onSelectionChange(option)"
         >{{option[JsonSchema.rdfsLabel]}} - {{option[JsonSchema.atId]}}<span *ngIf="option._details && option._details.trim() !== ''"> - {{ option._details }}</span></mat-option>

@@ -8,27 +8,25 @@ import {
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ComponentDataService } from '../../../shared/service/component-data.service';
-import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
-import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
-import { HandlerContext } from '../../../shared/util/handler-context';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, switchMap, tap, catchError, finalize } from 'rxjs/operators';
-import { JsonSchema } from '../../../shared/models/json-schema.model';
+import { debounceTime, distinctUntilChanged, switchMap, tap, finalize, catchError, map } from 'rxjs/operators';
+import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
+import { ComponentDataService } from '../../../shared/service/component-data.service';
+import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { HandlerContext } from '../../../shared/util/handler-context';
 import { OrcidFieldDataService } from '../../../shared/service/orcid-field-data.service';
-import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { JsonSchema } from '../../../shared/models/json-schema.model';
 import { OrcidSearchResponseItem } from '../../../shared/models/rest/orcid-search/orcid-search-response-item';
 import { ResearcherDetails } from '../../../shared/models/rest/orcid-detail/orcid-detail-person';
-
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
-
 @Component({
   selector: 'app-cedar-input-orcid',
   templateUrl: './cedar-input-orcid.component.html',
@@ -37,25 +35,25 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit, AfterViewInit {
-  @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger })
-  trigger: MatAutocompleteTrigger;
-
-  selectedData: OrcidSearchResponseItem;
   component: FieldComponent;
+  @ViewChild('autoCompleteInput', { read: MatAutocompleteTrigger })
+  trigger: MatAutocompleteTrigger;
+  @Input() handlerContext: HandlerContext;
+  @Input() set componentToRender(component: FieldComponent) {
+    this.component = component;
+    this.activeComponentRegistry.registerComponent(component, this);
+  }
   options: FormGroup;
   inputValueControl = new FormControl(null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  @Input() handlerContext: HandlerContext;
-  model: OrcidSearchResponseItem = null;
-  researcherDetails: ResearcherDetails = null;
+  selectedData: OrcidSearchResponseItem;
+  researcherDetails: ResearcherDetails;
   showDetails = false;
-
   loadingOptions = false;
+  hasSearched = false;
   loadingDetails = false;
-
   filteredOptions: Observable<OrcidSearchResponseItem[]>;
   private researcherDetailsCache = new Map<string, ResearcherDetails>();
-
   constructor(
     fb: FormBuilder,
     public cds: ComponentDataService,
@@ -64,191 +62,165 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     private cdr: ChangeDetectorRef,
   ) {
     super();
-    this.options = fb.group({
-      inputValue: this.inputValueControl,
-    });
+    this.options = fb.group({ inputValue: this.inputValueControl });
   }
-
-  @Input() set componentToRender(componentToRender: FieldComponent) {
-    this.component = componentToRender;
-    this.activeComponentRegistry.registerComponent(this.component, this);
-  }
-
   ngOnInit(): void {
     super.ngOnInit();
-    const validators = [];
-
-    if (this.component?.valueInfo?.requiredValue) {
-      validators.push(Validators.required);
-    }
+    const validators = this.component?.valueInfo?.requiredValue ? [Validators.required] : [];
     this.inputValueControl = new FormControl(null, validators);
-
-    if (this.component?.valueInfo?.defaultValue) {
-      const defaultAtId = this.component.valueInfo.defaultValue[JsonSchema.atId] || null;
-      const defaultLabel = this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] || null;
-      this.updateValue(defaultAtId, defaultLabel);
+    const defaultValue = this.component?.valueInfo?.defaultValue;
+    if (defaultValue) {
+      const id = defaultValue[JsonSchema.atId] || '';
+      const label = defaultValue[JsonSchema.rdfsLabel] || '';
+      this.setDefaultValue(id, label);
     }
-
     if (!this.readOnlyMode) {
-      this.filteredOptions = this.inputValueControl.valueChanges.pipe(
-        debounceTime(500),
-        distinctUntilChanged(),
-        tap(() => (this.loadingOptions = true)),
-
-        switchMap((val: string) => {
-          if (this.selectedData && val === this.getCompoundValue(this.selectedData)) {
-            this.loadingOptions = false;
-            return of([this.selectedData]);
-          }
-          return this.filter(val || '').pipe(finalize(() => (this.loadingOptions = false)));
-        }),
-        tap(() => {
-          setTimeout(() => {
-            const panel = document.querySelector('.mat-autocomplete-panel') as HTMLElement;
-            if (panel) panel.scrollTop = 0;
-          });
-        }),
-      );
+      this.setupAutocomplete();
     }
   }
   ngAfterViewInit(): void {
-    if (!this.readOnlyMode && this.trigger) {
-      this.trigger.panelClosingActions.subscribe(() => {
-        if (!this.selectedData && this.inputValueControl.getRawValue()) {
-          this.clearValue();
-          this.inputValueControl.setErrors({ invalidOrcid: true });
-        } else {
-          this.setCurrentValue(this.selectedData);
-          if (this.inputValueControl.errors && this.inputValueControl.errors.invalidOrcid) {
-            const errors = { ...this.inputValueControl.errors };
-            delete errors.invalidOrcid;
-            this.inputValueControl.setErrors(Object.keys(errors).length > 0 ? errors : null);
-          }
-        }
-      });
+    if (this.trigger) {
+      this.trigger.panelClosingActions.subscribe(() => this.onPanelClose());
     }
-  }
-  private getCompoundValue(option: OrcidSearchResponseItem): string {
-    if (!option) {
-      return '';
-    }
-    const label = option[JsonSchema.rdfsLabel] ? option[JsonSchema.rdfsLabel].trim() : '';
-    const id = option[JsonSchema.atId] ? option[JsonSchema.atId].trim() : '';
-    return `${label} - ${id}`;
-  }
-
-  private filter(val: string): Observable<OrcidSearchResponseItem[]> {
-    if (!val) {
-      return of([]);
-    }
-    if (/^(http|0|orcid\.org)/i.test(val)) {
-      return this.orcidFieldDataService.getDetails(val).pipe(
-        map((response) => {
-          if (!response || response.found === false) {
-            return [];
-          }
-          const details = ResearcherDetails.fromJson(response);
-          const item: OrcidSearchResponseItem = {
-            [JsonSchema.atId]: response.id,
-            [JsonSchema.rdfsLabel]: response.name,
-            researcherDetails: details,
-          };
-          return [item];
-        }),
-        catchError((error) => {
-          console.error('Error in getDetails:', error);
-          return of([]);
-        }),
-      );
-    } else {
-      return this.orcidFieldDataService.getData(val).pipe(
-        map((response) => {
-          if (!response || response.found === false) {
-            return [];
-          }
-          return response.results;
-        }),
-        catchError((error) => {
-          console.error('Error in getData:', error);
-          return of([]);
-        }),
-      );
-    }
-  }
-  private updateValue(atId: string, prefLabel: string): void {
-    if (!prefLabel) {
-      return;
-    }
-    this.inputValueControl.setValue(prefLabel, { emitEvent: false });
-    this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
-  }
-  onSelectionChange(option: OrcidSearchResponseItem): void {
-    if (!option) {
-      return;
-    }
-    const id = option[JsonSchema.atId];
-    const rdfsLabel = option[JsonSchema.rdfsLabel];
-    this.selectedData = option;
-    if (option.researcherDetails) {
-      this.researcherDetails = option.researcherDetails;
-    } else {
-      this.getDetails();
-    }
-    this.handlerContext.changeControlledValue(this.component, id, rdfsLabel);
-    this.setCurrentValue(option);
   }
   inputChanged(event: Event): void {
-    const target = event.target as HTMLTextAreaElement;
-    if (!target?.value?.trim()) {
+    const val = (event.target as HTMLInputElement).value.trim();
+    if (!val) {
       this.clearValue();
+      return;
+    }
+    if (!this.trigger.panelOpen) this.trigger.openPanel();
+    this.loadingOptions = true;
+    this.hasSearched = false;
+    this.cdr.markForCheck();
+  }
+  onSelectionChange(option: OrcidSearchResponseItem): void {
+    if (!option) return;
+    this.selectedData = option;
+    this.researcherDetails = option.researcherDetails;
+    const id = option[JsonSchema.atId];
+    const label = option[JsonSchema.rdfsLabel];
+    this.handlerContext.changeControlledValue(this.component, id, label);
+    this.setCurrentValue(option);
+    this.getDetails();
+  }
+  setShowDetails = (visible: boolean): void => {
+    this.showDetails = visible;
+  };
+  private setupAutocomplete(): void {
+    this.filteredOptions = this.inputValueControl.valueChanges.pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
+      switchMap((val) => this.getOptions(val)),
+      tap(() => this.scrollPanelTop()),
+    );
+  }
+  private getOptions(val: string): Observable<OrcidSearchResponseItem[]> {
+    const display = this.getCompoundValue(this.selectedData);
+    if (this.selectedData && val === display) {
+      this.loadingOptions = false;
+      this.hasSearched = true;
+      this.cdr.markForCheck();
+      return of([this.selectedData]);
+    }
+    return this.filter(val || '').pipe(
+      finalize(() => {
+        this.loadingOptions = false;
+        this.hasSearched = true;
+        this.cdr.markForCheck();
+      }),
+    );
+  }
+  private onPanelClose(): void {
+    const raw = this.inputValueControl.getRawValue();
+    if (!this.selectedData && raw) {
+      this.clearValue();
+      this.inputValueControl.setErrors({ invalidOrcid: true });
+    } else {
+      this.setCurrentValue(this.selectedData);
     }
   }
-  setCurrentValue(item: OrcidSearchResponseItem): void {
+  private setDefaultValue(id: string, label: string): void {
+    const item: OrcidSearchResponseItem = {
+      [JsonSchema.atId]: id,
+      [JsonSchema.rdfsLabel]: label,
+    } as any;
+    this.selectedData = item;
+    this.setCurrentValue(item);
+  }
+  public setCurrentValue(item: OrcidSearchResponseItem): void {
     const display = this.getCompoundValue(item);
     if (this.inputValueControl.value !== display) {
       this.inputValueControl.setValue(display, { emitEvent: false });
       this.selectedData = item;
     }
-    this.getDetails();
   }
-  clearValue(): void {
+  private clearValue(): void {
     this.selectedData = null;
-    this.inputValueControl.setValue(null, { emitEvent: false });
+    this.inputValueControl.setValue('', { emitEvent: true });
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
+  private getCompoundValue(item: OrcidSearchResponseItem): string {
+    const label = (item?.[JsonSchema.rdfsLabel] || '').trim();
+    const id = (item?.[JsonSchema.atId] || '').trim();
+    return label && id ? `${label} - ${id}` : label;
+  }
+  private filter(val: string): Observable<OrcidSearchResponseItem[]> {
+    if (!val) return of([]);
+    return /^(?:http|0|orcid\.org)/i.test(val) ? this.fetchDetails(val) : this.fetchSearch(val);
+  }
+  private fetchDetails(val: string) {
+    return this.orcidFieldDataService.getDetails(val).pipe(
+      catchError(() => of(null as any)),
+      map((resp) => {
+        if (!resp?.found) return [];
+        const details = ResearcherDetails.fromJson(resp);
+        return [
+          {
+            [JsonSchema.atId]: resp.id,
+            [JsonSchema.rdfsLabel]: resp.name,
+            researcherDetails: details,
+          } as OrcidSearchResponseItem,
+        ];
+      }),
+    );
+  }
+  private fetchSearch(val: string) {
+    return this.orcidFieldDataService.getData(val).pipe(
+      map((resp) => (resp?.found ? resp.results : [])),
+      catchError(() => of([])),
+    );
+  }
   private getDetails(): void {
-    if (!this.selectedData || !this.selectedData[JsonSchema.atId]) {
-      console.warn('No valid selected data to retrieve details.');
-      return;
-    }
-    const selectedId = this.selectedData[JsonSchema.atId];
-    if (this.researcherDetailsCache.has(selectedId)) {
-      this.researcherDetails = this.researcherDetailsCache.get(selectedId);
+    const id = this.selectedData?.[JsonSchema.atId];
+    if (!id) return;
+    if (this.researcherDetailsCache.has(id)) {
+      this.researcherDetails = this.researcherDetailsCache.get(id)!;
       return;
     }
     this.loadingDetails = true;
     this.cdr.markForCheck();
     this.orcidFieldDataService
-      .getDetails(selectedId)
+      .getDetails(id)
       .pipe(
+        catchError(() => of(null as any)),
         finalize(() => {
           this.loadingDetails = false;
           this.cdr.markForCheck();
         }),
-        catchError((error) => {
-          return of(null as any);
-        }),
       )
-      .subscribe((response: ResearcherDetails) => {
-        if (response && response.found) {
-          this.researcherDetails = ResearcherDetails.fromJson(response);
-          this.researcherDetailsCache.set(selectedId, this.researcherDetails);
+      .subscribe((resp) => {
+        if (resp?.found) {
+          const details = ResearcherDetails.fromJson(resp);
+          this.researcherDetails = details;
+          this.researcherDetailsCache.set(id, details);
           this.cdr.markForCheck();
         }
       });
   }
-  setShowDetails = (setValue: boolean): void => {
-    this.showDetails = setValue;
-  };
+  private scrollPanelTop(): void {
+    const panel = document.querySelector('.mat-autocomplete-panel') as HTMLElement;
+    if (panel) panel.scrollTop = 0;
+  }
   protected readonly JsonSchema = JsonSchema;
 }
