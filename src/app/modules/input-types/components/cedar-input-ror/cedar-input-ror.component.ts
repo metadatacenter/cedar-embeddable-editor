@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -25,7 +25,7 @@ import { RorSearchResponseItem } from '../../../shared/models/rest/ror-search/ro
 import { RorDetailResponse } from '../../../shared/models/rest/ror-detail/ror-detail-response';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: FormControl | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
@@ -115,7 +115,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
           this.clearValue();
           this.inputValueControl.setErrors({ invalidRor: true });
         } else {
-          this.setCurrentValue(this.getCompoundValue(this.selectedData));
+          this.setCurrentValue(this.selectedData);
           if (this.inputValueControl.errors && this.inputValueControl.errors.invalidRor) {
             const errors = { ...this.inputValueControl.errors };
             delete errors.invalidRor;
@@ -128,8 +128,8 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
 
   private getCompoundValue(option: RorSearchResponseItem): string {
     if (!option) return '';
-    const label = option.rdfsLabel ? option.rdfsLabel.trim() : '';
-    const id = option.id ? option.id.trim() : '';
+    const label = option[JsonSchema.rdfsLabel] ? option[JsonSchema.rdfsLabel].trim() : '';
+    const id = option[JsonSchema.atId] ? option[JsonSchema.atId].trim() : '';
     return `${label} - ${id}`;
   }
 
@@ -159,7 +159,8 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
             return [];
           } else if (response.results) {
             return response.results.filter(
-              (option: RorSearchResponseItem) => option.rdfsLabel?.toLowerCase().includes(val.toLowerCase()),
+              (option: RorSearchResponseItem) =>
+                option[JsonSchema.rdfsLabel]?.toLowerCase().includes(val.toLowerCase()),
             );
           } else {
             this.messageHandlerService.errorObject(val, response);
@@ -178,16 +179,16 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
     if (!option) {
       return;
     }
-    this.selectedData = option;
     if (option.details) {
       this.rorDetails = option.details;
     } else {
       this.getDetails();
     }
-    const { id, rdfsLabel } = option;
+    const id = option[JsonSchema.atId];
+    const rdfsLabel = option[JsonSchema.rdfsLabel];
     this.handlerContext.changeControlledValue(this.component, id, rdfsLabel);
     this.ignoreNextFilter = true;
-    this.setCurrentValue(this.getCompoundValue(option));
+    this.setCurrentValue(option);
   }
 
   inputChanged(event: Event): void {
@@ -197,8 +198,13 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
     }
   }
 
-  setCurrentValue(currentValue: string): void {
-    this.inputValueControl.setValue(currentValue, { emitEvent: false });
+  setCurrentValue(institute: RorSearchResponseItem): void {
+    const displayValue = this.getCompoundValue(institute);
+    if (this.inputValueControl.value !== displayValue) {
+      this.inputValueControl.setValue(displayValue, { emitEvent: false });
+      this.selectedData = institute;
+      this.getDetails();
+    }
   }
 
   private updateValue(atId: string, prefLabel: string): void {
@@ -216,11 +222,11 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
   }
 
   private getDetails(): void {
-    if (!this.selectedData || !this.selectedData.id) {
+    if (!this.selectedData || !this.selectedData[JsonSchema.atId]) {
       console.warn('No valid selected data to retrieve details.');
       return;
     }
-    const selectedId = this.selectedData.id;
+    const selectedId = this.selectedData[JsonSchema.atId];
     if (this.rorDetailsCache.has(selectedId)) {
       this.rorDetails = this.rorDetailsCache.get(selectedId);
       return;
@@ -251,11 +257,20 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
   };
 
   onClose(): void {
-    if (!this.readOnlyMode) {
-      const compoundValue = this.selectedData ? this.getCompoundValue(this.selectedData) : '';
-      if (!this.selectedData || this.inputValueControl.value !== compoundValue) {
-        this.setCurrentValue(compoundValue);
-      }
+    const raw = this.inputValueControl.getRawValue();
+    if (!this.selectedData && raw) {
+      this.clearValue();
+      this.inputValueControl.setErrors({ invalidOrcid: true });
+    } else {
+      this.setCurrentValue(this.selectedData);
     }
+    // if (!this.readOnlyMode) {
+    //   const compoundValue = this.selectedData ? this.getCompoundValue(this.selectedData) : '';
+    //   if (!this.selectedData || this.inputValueControl.value !== compoundValue) {
+    //     this.setCurrentValue(compoundValue);
+    //   }
+    // }
   }
+
+  protected readonly JsonSchema = JsonSchema;
 }

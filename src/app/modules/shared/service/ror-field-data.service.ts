@@ -5,6 +5,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { RorSearchResponse } from '../models/rest/ror-search/ror-search-response';
 import { RorSearchResponseItem } from '../models/rest/ror-search/ror-search-response-item';
 import { RorDetailResponse } from '../models/rest/ror-detail/ror-detail-response';
+import { JsonSchema } from '../models/json-schema.model';
 
 @Injectable({
   providedIn: 'root',
@@ -30,8 +31,8 @@ export class RorFieldDataService {
         this.http.get<RorSearchResponse>(this.rorSearchUrl, { params }).pipe(
           map((response) => {
             const results: RorSearchResponseItem[] = Object.keys(response.results).map((key) => ({
-              id: key,
-              rdfsLabel: response.results[key].name,
+              [JsonSchema.atId]: key,
+              [JsonSchema.rdfsLabel]: response.results[key].name,
             }));
             return {
               found: response.found,
