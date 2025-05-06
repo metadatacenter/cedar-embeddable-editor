@@ -15,9 +15,9 @@
         <div *ngIf="loadingOptions" class="spinner-container">
           <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
         </div>
-        <mat-option *ngFor="let option of filteredOptions | async" [value]="option.rdfsLabel + '-' + option.id"
+        <mat-option *ngFor="let option of filteredOptions | async" [value]="option[JsonSchema.rdfsLabel] + '-' + option[JsonSchema.atId]"
                     (onSelectionChange)="onSelectionChange(option)"
-        >{{option.rdfsLabel}} - {{option.id}}</mat-option>
+        >{{option[JsonSchema.rdfsLabel]}} - {{option[JsonSchema.atId]}}</mat-option>
       </mat-autocomplete>
       <button type="button" tabindex="0" mat-button *ngIf="selectedData" matSuffix mat-icon-button attr.aria-label="{{'Generic.Details' | translate}}"  matTooltip="{{'Generic.Details' | translate}}" (click)="setShowDetails(true)">
         <mat-icon>info</mat-icon>
