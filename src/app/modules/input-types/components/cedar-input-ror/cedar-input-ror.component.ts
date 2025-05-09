@@ -145,7 +145,6 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
       return of([]);
     }
     if (/^(http|0|ror\.org)/i.test(val)) {
-      console.log('In if');
       return this.rorFieldDataService.getDetails(val).pipe(
         map((response) => {
           if (!response || response.found === false) {
