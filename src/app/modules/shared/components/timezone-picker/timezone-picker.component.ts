@@ -11,8 +11,9 @@ import {
 } from '@angular/core';
 import * as momentZone from 'moment-timezone';
 import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { UserPreferencesService } from '../../service/user-preferences.service';
 
 export class TZone {
   id: string;
@@ -95,7 +96,9 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() virtualScroll = true;
   @Input() disabled = false;
   readOnlyTimezoneControl = new FormControl(null, null);
-  @Input() readOnlyMode;
+  private userPreferencesService: UserPreferencesService;
+  private readOnlyModeSubscription: Subscription;
+  readOnlyMode: boolean;
 
   @Input() set config(conf: SelectConfig) {
     this._config = conf;
@@ -122,7 +125,12 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   private propagateChange: (_: any) => {};
   private destroy$ = new Subject<void>();
 
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    userPreferenceService: UserPreferencesService,
+  ) {
+    this.userPreferencesService = userPreferenceService;
+  }
 
   static guessedUserZone(): TZone {
     const guessedZone = momentZone.tz.guess(true);
@@ -136,6 +144,9 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngOnInit(): void {
+    this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
+      this.readOnlyMode = mode;
+    });
     // make a copy of the list to avoid modifying the original timezones array
     this.timeZones = JSON.parse(JSON.stringify(TimezonePickerComponent.AVAILABLE_TIMEZONES));
     this.form = this.fb.group({
@@ -152,6 +163,12 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   ngAfterViewInit(): void {
+    this.form
+      .get('timezone')
+      .valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.fireChanges();
+      });
     this.guessUserTimezone();
   }
 
@@ -184,11 +201,8 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   private fireChanges(): void {
     if (this.propagateChange) {
       const { value } = this.form.get('timezone');
-      if (this.readOnlyMode) {
-        this.readOnlyTimezoneControl.setValue(value?.label);
-      } else {
-        this.propagateChange(value);
-      }
+      this.readOnlyTimezoneControl.setValue(value?.label);
+      this.propagateChange(value);
     }
   }
 

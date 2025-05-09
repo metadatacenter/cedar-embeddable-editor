@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ResearcherDetails } from '../../../../shared/models/rest/orcid-detail/orcid-detail-person';
 
 @Component({
@@ -6,14 +6,11 @@ import { ResearcherDetails } from '../../../../shared/models/rest/orcid-detail/o
   templateUrl: './orcid-details.component.html',
   styleUrls: ['./orcid-details.component.scss'],
 })
-export class OrcidDetailsComponent implements OnInit {
+export class OrcidDetailsComponent {
   @Input() researcher: ResearcherDetails;
   @Input() close: (value: boolean) => void;
 
   constructor() {}
-
-  ngOnInit(): void {}
-
   closeClicked() {
     this.close(false);
   }

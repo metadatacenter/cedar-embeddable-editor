@@ -50,7 +50,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private globalSettingsContextService: GlobalSettingsContextService,
   ) {
     this.sampleTemplateLoaderObject = this;
-
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext, this.messagingService);
   }
@@ -174,7 +173,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT)) {
         this.showSpinnerBeforeInit = this.innerConfig[CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT];
       }
-
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX)) {
         const languageMapPathPrefix = this.innerConfig[CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX];
         this.globalSettingsContextService.languageMapPathPrefix = languageMapPathPrefix;

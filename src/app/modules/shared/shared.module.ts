@@ -32,7 +32,7 @@ import { InputTypesModule } from '../input-types/input-types.module';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import { SampleTemplatesComponent } from './components/sample-templates/sample-templates.component';
 import { SampleTemplateSelectComponent } from './components/sample-template-select/sample-template-select.component';
-import { PreferencesMenu } from './components/preferences-menu/preferences-menu.component';
+import { UserPreferencesMenu } from './components/user-preferences-menu/user-preferences-menu.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TranslateModule } from '@ngx-translate/core';
@@ -83,7 +83,7 @@ import { CedarComponentLinkedStaticFieldHeaderComponent } from './components/ced
     StaticHeaderComponent,
     SourcePanelsComponent,
     CedarMultiPagerComponent,
-    PreferencesMenu,
+    UserPreferencesMenu,
   ],
   providers: [],
   exports: [RdfPipe, CedarEmbeddableMetadataEditorWrapperComponent],

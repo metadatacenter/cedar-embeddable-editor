@@ -7,6 +7,9 @@ import { ActiveComponentRegistryService } from '../../service/active-component-r
 import { DataObjectUtil } from '../../util/data-object-util';
 import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
 import { MessageHandlerService } from '../../service/message-handler.service';
+import { RorFieldDataService } from '../../service/ror-field-data.service';
+import { OrcidFieldDataService } from '../../service/orcid-field-data.service';
+import packageJson from 'package.json';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -59,6 +62,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private static ORCID_PREFIX = 'orcidPrefix';
   private static ROR_PREFIX = 'rorPrefix';
 
+  static ROR_INTEGRATED_EXT_AUTH_URL = 'rorSearchUrl';
+  static ROR_INTEGRATED_DETAILS_URL = 'rorDetailsUrl';
+  static ORCID_INTEGRATED_EXT_AUTH_URL = 'orcidSearchUrl';
+  static ORCID_INTEGRATED_DETAILS_URL = 'orcidDetailsUrl';
+
   dataContext: DataContext = null;
   handlerContext: HandlerContext = null;
 
@@ -89,21 +97,28 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   collapseStaticComponents = false;
   showAllMultiInstanceValues = true;
   showTemplateDescription: boolean = false;
-  readOnlyMode = false;
 
   static iriPrefix = 'https://repo.metadatacenter.org/';
   static bioPortalPrefix = 'https://bioportal.bioontology.org/ontologies/';
   static orcidPrefix = 'https://orcid.org/';
   static rorPrefix = 'https://ror.org/';
+  orcidSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name';
+  rorSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name';
+  orcidDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid';
+  rorDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror';
 
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
 
   allExpanded = true;
+  ceeVersion: string;
 
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,
     private messageHandlerService: MessageHandlerService,
+    private rorFieldDataService: RorFieldDataService,
+    private orcidFieldDataService: OrcidFieldDataService,
   ) {
+    this.ceeVersion = packageJson.version;
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
 
@@ -195,6 +210,26 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_PREFIX)) {
         CedarEmbeddableMetadataEditorComponent.rorPrefix = value[CedarEmbeddableMetadataEditorComponent.ROR_PREFIX];
       }
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_EXT_AUTH_URL)) {
+        this.rorSearchUrl = value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_EXT_AUTH_URL];
+      }
+      this.rorFieldDataService.setRorSearchUrl(this.rorSearchUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_EXT_AUTH_URL)) {
+        this.orcidSearchUrl = value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_EXT_AUTH_URL];
+      }
+      this.orcidFieldDataService.setOrcidSearchUrl(this.orcidSearchUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL)) {
+        this.rorDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL];
+      }
+      this.rorFieldDataService.setRorDetailsUrl(this.rorDetailsUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_DETAILS_URL)) {
+        this.orcidDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_DETAILS_URL];
+      }
+      this.orcidFieldDataService.setOrcidDetailsUrl(this.orcidDetailsUrl);
     }
   }
 
@@ -310,11 +345,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       this.dataContext.multiInstanceData != null
     );
   }
-
   openAll(): void {
     this.allExpanded = true;
   }
-
   closeAll(): void {
     this.allExpanded = false;
   }

@@ -1,0 +1,36 @@
+.preferences-trigger {
+  position: fixed;
+  right: 24px;
+  z-index: 1000;
+}
+.preferences-menu {
+  width: 256px;
+  display: flex;
+  align-items: center;
+  //justify-content: space-between;
+  padding: 4px 12px 0;
+}
+.preferences-menu .menu-header {
+  display: flex;
+  //align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px 0;
+  //margin-left: 8px;
+}
+.menu-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-left: 16px;
+}
+.preferences-menu .menu-body button.mat-menu-item {
+  display: flex;
+  //align-items: center;
+  justify-content: space-between;
+  padding-left: 12px;
+}
+mat-slide-toggle {
+  margin-right: 5px;
+}
+.close-icon {
+  margin-left: auto;
+}

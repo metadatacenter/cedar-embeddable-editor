@@ -1,7 +1,7 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl } from '@angular/forms';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
@@ -16,7 +16,7 @@ import { TimezonePickerComponent, TZone } from '../../../shared/components/timez
   styleUrls: ['./cedar-input-datetime.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputDatetimeComponent extends CedarUIComponent implements OnInit, AfterViewInit {
+export class CedarInputDatetimeComponent extends CedarUIDirective implements AfterViewInit {
   component: FieldComponent;
 
   timePickerTime: Date;
@@ -28,7 +28,6 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
   required: boolean;
 
   @Input() handlerContext: HandlerContext;
-  readOnlyMode;
 
   constructor(
     fb: FormBuilder,
@@ -38,12 +37,6 @@ export class CedarInputDatetimeComponent extends CedarUIComponent implements OnI
     super();
     this.datetimeParsed = new DatetimeRepresentation();
     this.timePickerTime = this.getDefaultTime();
-  }
-
-  ngOnInit(): void {
-    if (this.handlerContext && this.handlerContext.readOnlyMode) {
-      this.readOnlyMode = this.handlerContext.readOnlyMode;
-    }
   }
 
   ngAfterViewInit(): void {

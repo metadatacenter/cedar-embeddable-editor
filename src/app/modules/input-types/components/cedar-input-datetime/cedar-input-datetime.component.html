@@ -3,7 +3,6 @@
                  (dateChangedEvent)="dateInputChanged($event)"
                  [dateMonthYear]="dateMonthYearControl"
                  [required]="required"
-                 [readOnlyMode]="readOnlyMode"
                  xmlns="http://www.w3.org/1999/html"></app-date-picker>
 <ng-container *ngIf="showTimePicker()">
   <div *ngIf="readOnlyMode">
@@ -45,7 +44,6 @@
     customNotFoundText="{{'Generic.NoTimeZoneFound' | translate}}"
     [getUserZone]="setDefaultZone"
     [clearable]="false"
-    [readOnlyMode]="readOnlyMode"
   ></app-timezone-picker>
 </ng-container>
 <!--<p class="info-box">-->

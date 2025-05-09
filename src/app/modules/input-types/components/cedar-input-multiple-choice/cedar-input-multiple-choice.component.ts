@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
@@ -18,13 +18,12 @@ export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
   styleUrls: ['./cedar-input-multiple-choice.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputMultipleChoiceComponent extends CedarUIComponent implements OnInit {
+export class CedarInputMultipleChoiceComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;
   options: FormGroup;
   selectedChoiceInputControl = new FormControl(null, null);
   errorStateMatcher = new MultipleChoiceErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
-  readOnlyMode;
   selected;
 
   constructor(
@@ -38,16 +37,13 @@ export class CedarInputMultipleChoiceComponent extends CedarUIComponent implemen
   }
 
   ngOnInit(): void {
+    super.ngOnInit();
     this.populateItemsOnLoad();
     const validators: any[] = [];
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
     this.selectedChoiceInputControl = new FormControl(null, validators);
-
-    if (this.handlerContext && this.handlerContext.readOnlyMode) {
-      this.readOnlyMode = this.handlerContext.readOnlyMode;
-    }
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {

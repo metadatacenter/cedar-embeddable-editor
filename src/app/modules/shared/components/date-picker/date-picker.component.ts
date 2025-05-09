@@ -12,6 +12,8 @@ import * as _moment from 'moment';
 import { default as _rollupMoment, Moment } from 'moment';
 import { CustomDateAdapter } from '../../service/date-time/custom-date-adapter';
 import { DateTimeService } from '../../service/date-time/date-time.service';
+import { UserPreferencesService } from '../../service/user-preferences.service';
+import { Subscription } from 'rxjs';
 
 const moment = _rollupMoment || _moment;
 
@@ -40,11 +42,21 @@ export class DatePickerComponent implements OnInit {
   @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
   @Input() required: boolean;
   @Output() dateChangedEvent = new EventEmitter<Moment>();
-  @Input() readOnlyMode;
+  private userPreferencesService: UserPreferencesService;
+  private readOnlyModeSubscription: Subscription;
+  readOnlyMode: boolean;
 
-  public constructor(private _dateTimeService: DateTimeService) {}
+  public constructor(
+    private _dateTimeService: DateTimeService,
+    userPreferenceService: UserPreferencesService,
+  ) {
+    this.userPreferencesService = userPreferenceService;
+  }
 
   public ngOnInit(): void {
+    this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
+      this.readOnlyMode = mode;
+    });
     const validators: any[] = [];
     this._dateTimeService.format = this.dateFormat;
     const m = moment();

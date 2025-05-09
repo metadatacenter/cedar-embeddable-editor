@@ -2,7 +2,7 @@ import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { Numbers } from '../../../shared/models/numbers.model';
@@ -14,7 +14,7 @@ import { Xsd } from '../../../shared/models/xsd.model';
   styleUrls: ['./cedar-input-numeric.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputNumericComponent extends CedarUIComponent implements OnInit {
+export class CedarInputNumericComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, Validators.min(10));
@@ -23,7 +23,6 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
   constraintMaxValue = null;
   patternErrorMessage = null;
   @Input() handlerContext: HandlerContext;
-  readOnlyMode;
 
   constructor(
     fb: FormBuilder,
@@ -37,6 +36,7 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
   }
 
   ngOnInit(): void {
+    super.ngOnInit();
     this.unitOfMeasure = this.component.numberInfo.unitOfMeasure;
 
     const validators: any[] = [];
@@ -104,9 +104,6 @@ export class CedarInputNumericComponent extends CedarUIComponent implements OnIn
 
     if (this.constraintMaxValue != null) {
       validators.push(Validators.max(this.constraintMaxValue));
-    }
-    if(this.handlerContext && this.handlerContext.readOnlyMode){
-      this.readOnlyMode = this.handlerContext.readOnlyMode;
     }
     this.inputValueControl = new FormControl(null, validators);
   }

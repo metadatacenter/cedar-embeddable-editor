@@ -3,21 +3,26 @@
     <mat-form-field class="full-width">
       <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
       <input matInput type="text"
-             placeholder="{{'Generic.Filter' | translate}}"
+             placeholder="{{'Generic.FilterRor' | translate}}"
              #autoCompleteInput="matAutocompleteTrigger"
              [formControl]="inputValueControl"
+             (blur)="onInputBlur()"
              [errorStateMatcher]="errorStateMatcher"
              [matAutocomplete]="auto"
              (input)="inputChanged($event)"
              [readonly]="readOnlyMode"
              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
-      <mat-autocomplete #auto="matAutocomplete" (closed)="onClose()" autoActiveFirstOption>
-        <div *ngIf="loadingOptions" class="spinner-container">
-          <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
-        </div>
-        <mat-option *ngFor="let option of filteredOptions | async" [value]="option.rdfsLabel + '-' + option.id"
-                    (onSelectionChange)="onSelectionChange(option)"
-        >{{option.rdfsLabel}} - {{option.id}}</mat-option>
+      <mat-autocomplete #auto="matAutocomplete">
+          <mat-option *ngIf="loadingOptions" disabled class="spinner-container">
+            <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+          </mat-option>
+          <mat-option *ngIf="!loadingOptions && hasSearched && inputValueControl.value?.trim().length > 0 && (filteredOptions | async)?.length === 0" disabled>
+            No results found
+          </mat-option>
+          <mat-option *ngFor="let option of filteredOptions | async" [value]="option[JsonSchema.rdfsLabel] + ' - ' + option[JsonSchema.atId]"
+                      (onSelectionChange)="onSelectionChange(option)"
+                      (mousedown)="selectionInProgress = true"
+          >{{ getCompoundValue(option)}}</mat-option>
       </mat-autocomplete>
       <button type="button" tabindex="0" mat-button *ngIf="selectedData" matSuffix mat-icon-button attr.aria-label="{{'Generic.Details' | translate}}"  matTooltip="{{'Generic.Details' | translate}}" (click)="setShowDetails(true)">
         <mat-icon>info</mat-icon>
@@ -27,12 +32,14 @@
       </button>
       <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
       <mat-error tabindex="0" *ngIf="inputValueControl.getError('invalidRor') && !readOnlyMode" class="mat-error align-start">
-        Entered value is not a valid ROR.
+        {{'Validation.RorInvalid' | translate}}
       </mat-error>
+      <mat-hint *ngIf="justReverted">
+        {{'Validation.RorReverted' | translate}}
+      </mat-hint>
     </mat-form-field>
   </ng-container>
   <ng-container *ngIf="showDetails===true">
-      <app-ror-details *ngIf="showDetails" [rorDetail]="rorDetails" [close]="setShowDetails"> </app-ror-details>
+    <app-ror-details *ngIf="showDetails" [rorDetail]="rorDetails" [close]="setShowDetails"> </app-ror-details>
   </ng-container>
 </form>
-
