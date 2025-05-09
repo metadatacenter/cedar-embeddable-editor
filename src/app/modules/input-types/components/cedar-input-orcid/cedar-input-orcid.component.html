@@ -22,6 +22,7 @@
         </mat-option>
         <mat-option *ngFor="let option of filteredOptions | async" [value]="option[JsonSchema.rdfsLabel] + ' - '  + option[JsonSchema.atId]"
                     (onSelectionChange)="onSelectionChange(option)"
+                    (mousedown)="selectionInProgress = true"
         >{{option[JsonSchema.rdfsLabel]}} - {{option[JsonSchema.atId]}}<span *ngIf="option._details && option._details.trim() !== ''"> - {{ option._details }}</span></mat-option>
       </mat-autocomplete>
       <button type="button" tabindex="0" mat-button *ngIf="selectedData" matSuffix mat-icon-button attr.aria-label="{{'Generic.Details' | translate}}"  matTooltip="{{'Generic.Details' | translate}}" (click)="setShowDetails(true)" [disabled]="loadingDetails">
