@@ -56,6 +56,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
   filteredOptions: Observable<OrcidSearchResponseItem[]>;
   private researcherDetailsCache = new Map<string, ResearcherDetails>();
   justReverted: boolean;
+  selectionInProgress = false;
 
   constructor(
     fb: FormBuilder,
@@ -139,6 +140,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
             [JsonSchema.rdfsLabel]: response.name,
             researcherDetails: details,
           };
+          this.researcherDetailsCache.set(response.id, details);
           return [item];
         }),
         catchError((error) => {
@@ -169,18 +171,14 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
   }
   onSelectionChange(option: OrcidSearchResponseItem): void {
-    if (!option) {
-      return;
-    }
+    if (!option) return;
+    this.selectionInProgress = false;
+    this.selectedData = option;
+
     const id = option[JsonSchema.atId];
     const rdfsLabel = option[JsonSchema.rdfsLabel];
-    this.selectedData = option;
-    if (option.researcherDetails) {
-      this.researcherDetails = option.researcherDetails;
-    } else {
-      this.getDetails();
-    }
     this.handlerContext.changeControlledValue(this.component, id, rdfsLabel);
+
     this.setCurrentValue(option);
   }
   inputChanged(event: Event): void {
@@ -197,6 +195,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     }
   }
   onInputBlur(): void {
+    if (this.selectionInProgress) return;
     this.loadingOptions = false;
     this.cdr.markForCheck();
 
