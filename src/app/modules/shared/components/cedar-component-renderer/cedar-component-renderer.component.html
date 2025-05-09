@@ -6,7 +6,6 @@
         <mat-panel-title>
           <app-cedar-component-header *ngIf="!iterableComponent.linkedStaticFieldComponent"
                                       [componentToRender]="iterableComponent"
-                                      [readOnlyMode]="readOnlyMode"
           ></app-cedar-component-header>
           <app-cedar-component-linked-static-field-header *ngIf="iterableComponent.linkedStaticFieldComponent"
                                       [componentToRender]="iterableComponent.linkedStaticFieldComponent"
@@ -49,8 +48,7 @@
 </ng-container>
 <ng-container *ngIf="nonIterableComponent">
   <mat-card class="child-component-card non-iterable-component">
-    <app-cedar-component-header [componentToRender]="nonIterableComponent" [readOnlyMode]="readOnlyMode"
-    ></app-cedar-component-header>
+    <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
     <app-cedar-multi-pager *ngIf="nonIterableComponent.isMultiPage()"
                            [componentToRender]="nonIterableComponent"
                            [handlerContext]="handlerContext"

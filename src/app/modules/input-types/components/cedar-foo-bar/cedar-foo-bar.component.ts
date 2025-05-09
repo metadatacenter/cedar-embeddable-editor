@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
@@ -11,7 +11,7 @@ import { StaticFieldComponent } from '../../../shared/models/static/static-field
   styleUrls: ['./cedar-foo-bar.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarFooBarComponent extends CedarUIComponent implements OnInit {
+export class CedarFooBarComponent extends CedarUIDirective implements OnInit {
   component: StaticFieldComponent;
   @Input() handlerContext: HandlerContext;
 

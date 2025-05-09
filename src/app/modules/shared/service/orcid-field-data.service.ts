@@ -4,22 +4,22 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, switchMap } from 'rxjs/operators';
 import { OrcidSearchResponse } from '../models/rest/orcid-search/orcid-search-response';
 import { OrcidSearchResponseItem } from '../models/rest/orcid-search/orcid-search-response-item';
+import { JsonSchema } from '../models/json-schema.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class OrcidFieldDataService {
-  private orcidSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name';
-  private orcidDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid';
+  private orcidSearchUrl;
+  private orcidDetailsUrl;
 
   constructor(private http: HttpClient) {}
-
-  // setRorSearchUrl(rorSearchUrl: string): void {
-  setOrcidSearchUrl(): void {
-    // this.terminologyIntegratedSearchUrl = terminologyIntegratedSearchUrl;
-    this.orcidSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name';
+  setOrcidSearchUrl(orcidSearchUrl: string): void {
+    this.orcidSearchUrl = orcidSearchUrl;
   }
-
+  setOrcidDetailsUrl(orcidDetailsUrl: string): void {
+    this.orcidDetailsUrl = orcidDetailsUrl;
+  }
   getData(val: string): Observable<OrcidSearchResponse> {
     const params = new HttpParams().set('q', val);
     // Random delay to prevent throttling
@@ -29,8 +29,8 @@ export class OrcidFieldDataService {
         this.http.get<OrcidSearchResponse>(this.orcidSearchUrl, { params }).pipe(
           map((response) => {
             const results: OrcidSearchResponseItem[] = Object.keys(response.results).map((key) => ({
-              id: key,
-              rdfsLabel: response.results[key].name,
+              [JsonSchema.atId]: key,
+              [JsonSchema.rdfsLabel]: response.results[key].name,
               _details: response.results[key].details,
             }));
             return {

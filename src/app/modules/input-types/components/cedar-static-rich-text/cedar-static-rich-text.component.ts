@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 
@@ -10,15 +10,13 @@ import { HandlerContext } from '../../../shared/util/handler-context';
   styleUrls: ['./cedar-static-rich-text.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarStaticRichTextComponent extends CedarUIComponent implements OnInit {
+export class CedarStaticRichTextComponent extends CedarUIDirective {
   component: StaticFieldComponent;
   @Input() handlerContext: HandlerContext;
 
   constructor(private activeComponentRegistry: ActiveComponentRegistryService) {
     super();
   }
-
-  ngOnInit(): void {}
 
   @Input() set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;

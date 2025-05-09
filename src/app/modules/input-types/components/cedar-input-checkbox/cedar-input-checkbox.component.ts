@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 
@@ -11,11 +11,10 @@ import { HandlerContext } from '../../../shared/util/handler-context';
   styleUrls: ['./cedar-input-checkbox.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputCheckboxComponent extends CedarUIComponent implements OnInit {
+export class CedarInputCheckboxComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;
   options: FormGroup;
   @Input() handlerContext: HandlerContext;
-  readOnlyMode;
 
   constructor(
     fb: FormBuilder,
@@ -29,13 +28,10 @@ export class CedarInputCheckboxComponent extends CedarUIComponent implements OnI
   }
 
   ngOnInit(): void {
+    super.ngOnInit();
     for (const choice of this.component.choiceInfo.choices) {
       const fc = new FormControl();
       this.options.addControl(this.getFormControlName(choice.label), fc);
-    }
-
-    if (this.handlerContext && this.handlerContext.readOnlyMode) {
-      this.readOnlyMode = this.handlerContext.readOnlyMode;
     }
     this.populateValuesOnLoad();
   }

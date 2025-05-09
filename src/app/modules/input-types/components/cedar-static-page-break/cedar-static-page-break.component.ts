@@ -1,4 +1,4 @@
-import { Component, Injectable, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Injectable, Input, ViewEncapsulation } from '@angular/core';
 import { DataContext } from '../../../shared/util/data-context';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { PageBreakPaginatorService } from '../../../shared/service/page-break-paginator.service';
@@ -17,13 +17,11 @@ export class CustomMatPaginatorIntl extends MatPaginatorIntl {
   encapsulation: ViewEncapsulation.None,
   providers: [{ provide: MatPaginatorIntl, useClass: CustomMatPaginatorIntl }],
 })
-export class CedarStaticPageBreakComponent implements OnInit {
+export class CedarStaticPageBreakComponent {
   @Input() dataContext: DataContext;
   @Input() pageBreakPaginatorService: PageBreakPaginatorService;
 
   constructor() {}
-
-  ngOnInit(): void {}
 
   paginatorChanged(event): void {
     this.pageBreakPaginatorService.setPageNumberAndGet(event.pageIndex);

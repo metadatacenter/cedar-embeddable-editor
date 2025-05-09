@@ -1,4 +1,4 @@
-import { CedarUIComponent } from '../models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../models/ui/cedar-ui-component.model';
 import { CedarComponent } from '../models/component/cedar-component.model';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
 import { JsonSchema } from '../models/json-schema.model';
@@ -15,13 +15,13 @@ import { InputType } from '../models/input-type.model';
   providedIn: 'root',
 })
 export class ActiveComponentRegistryService {
-  public modelToUI: Map<CedarComponent, CedarUIComponent> = new Map<CedarComponent, CedarUIComponent>();
+  public modelToUI: Map<CedarComponent, CedarUIDirective> = new Map<CedarComponent, CedarUIDirective>();
   private modelToMultiPagerUI: Map<CedarComponent, CedarMultiPagerComponent> = new Map<
     CedarComponent,
     CedarMultiPagerComponent
   >();
 
-  private getUIComponent(component: CedarComponent): CedarUIComponent {
+  private getUIComponent(component: CedarComponent): CedarUIDirective {
     return this.modelToUI.get(component);
   }
 
@@ -75,7 +75,7 @@ export class ActiveComponentRegistryService {
   updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
     if (component instanceof SingleFieldComponent) {
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
-      const uiComponent: CedarUIComponent = this.getUIComponent(component);
+      const uiComponent: CedarUIDirective = this.getUIComponent(component);
       if (uiComponent != null && dataObject != null) {
         if (Object.hasOwn(dataObject, JsonSchema.atValue)) {
           uiComponent.setCurrentValue(dataObject[JsonSchema.atValue]);
@@ -83,8 +83,14 @@ export class ActiveComponentRegistryService {
           // url field single
           uiComponent.setCurrentValue(dataObject[JsonSchema.atId]);
         } else if (Object.hasOwn(dataObject, JsonSchema.atId)) {
+          if (component.basicInfo.inputType === InputType.orcid || component.basicInfo.inputType === InputType.ror) {
+            const valueObject = {};
+            valueObject[JsonSchema.rdfsLabel] = dataObject[JsonSchema.rdfsLabel];
+            valueObject[JsonSchema.atId] = dataObject[JsonSchema.atId];
+            uiComponent.setCurrentValue(valueObject);
+          }
           // controlled field single
-          if (handlerContext.readOnlyMode) {
+          else if (handlerContext.readOnlyMode) {
             const valueObject = {};
             valueObject[JsonSchema.rdfsLabel] = dataObject[JsonSchema.rdfsLabel];
             valueObject[JsonSchema.atId] = dataObject[JsonSchema.atId];
@@ -97,7 +103,7 @@ export class ActiveComponentRegistryService {
     } else if (component instanceof MultiFieldComponent) {
       const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
       const parentDataObject = handlerContext.getParentDataObjectNodeByPath(component.path);
-      const uiComponent: CedarUIComponent = this.getUIComponent(component);
+      const uiComponent: CedarUIDirective = this.getUIComponent(component);
       const multiInstanceInfo: MultiInstanceObjectInfo =
         handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
 
@@ -192,14 +198,14 @@ export class ActiveComponentRegistryService {
   }
 
   deleteCurrentValue(component: CedarComponent): void {
-    const uiComponent: CedarUIComponent = this.getUIComponent(component);
+    const uiComponent: CedarUIDirective = this.getUIComponent(component);
 
     if (uiComponent) {
       uiComponent.deleteCurrentValue();
     }
   }
 
-  registerComponent(modelComponent: CedarComponent, uiComponent: CedarUIComponent): void {
+  registerComponent(modelComponent: CedarComponent, uiComponent: CedarUIDirective): void {
     this.modelToUI.set(modelComponent, uiComponent);
   }
 

@@ -1,12 +1,14 @@
 <app-static-header *ngIf="dataAvailableForRender() && showHeader"
                    [callbackOwnerObject]="sampleTemplateLoaderObject"
                    [showSampleTemplateLinks]="showSampleTemplateLinks"></app-static-header>
-<!--<preferences-menu>-->
-<!--  </preferences-menu>-->
+<user-preferences-menu></user-preferences-menu>
 <mat-card class="template-card" *ngIf="dataAvailableForRender()">
 <!--  <mat-card-header>-->
   <div class="template-header">
-    <div mat-card-avatar class="header-image" (click)="launchMetadataCenter()" role="link" aria-label="Cedar logo - https://metadatacenter.org"></div>
+    <div class="logo-block">
+      <div mat-card-avatar class="header-image" (click)="launchMetadataCenter()" role="link" aria-label="Cedar logo - https://metadatacenter.org"></div>
+      <span class="cee-version">{{ceeVersion}}</span>
+    </div>
     <h1 class="template-label">{{dataContext.templateRepresentation.labelInfo.label}}</h1>
     <h2 *ngIf="dataContext.templateRepresentation.labelInfo.description && showTemplateDescription">&nbsp;{{dataContext.templateRepresentation.labelInfo.description}}</h2>
     <div *ngIf="dataContext.templateRepresentation.hasPageBreaks()" class="header-flex-child">

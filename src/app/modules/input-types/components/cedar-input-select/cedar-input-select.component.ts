@@ -2,7 +2,7 @@ import { Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular
 import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { CedarUIComponent } from '../../../shared/models/ui/cedar-ui-component.model';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
@@ -18,7 +18,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   styleUrls: ['./cedar-input-select.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputSelectComponent extends CedarUIComponent implements OnInit {
+export class CedarInputSelectComponent extends CedarUIDirective implements OnInit {
   @ViewChild('inputSelect') selectElement;
   readonly ITEM_ID_FIELD = 'id';
   readonly ITEM_TEXT_FIELD = 'label';
@@ -32,7 +32,6 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
   selections: string[];
   maxSelections: number;
   @Input() handlerContext: HandlerContext;
-  readOnlyMode;
 
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,
@@ -46,6 +45,7 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
   }
 
   ngOnInit(): void {
+    super.ngOnInit();
     this.populateItemsOnLoad();
     const validators: any[] = [];
 
@@ -53,10 +53,6 @@ export class CedarInputSelectComponent extends CedarUIComponent implements OnIni
       validators.push(Validators.required);
     }
     this.inputValueControl = new FormControl(null, validators);
-
-    if (this.handlerContext && this.handlerContext.readOnlyMode) {
-      this.readOnlyMode = this.handlerContext.readOnlyMode;
-    }
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
