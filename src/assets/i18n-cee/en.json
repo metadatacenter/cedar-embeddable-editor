@@ -81,6 +81,10 @@
     "Numeric": {
       "MinValue": "Value should be at least {{constraintMinValue}}.",
       "MaxValue": "Value should be at most {{constraintMaxValue}}."
-    }
+    },
+    "OrcidInvalid":"Entered value is not a valid ORCID and has been cleared.",
+    "OrcidReverted": "Invalid ORCID, edit was discarded; restored last valid ORCID.",
+    "RorInvalid":"Entered value is not a valid ROR and has been cleared.",
+    "RorReverted": "Invalid ROR, edit was discarded; restored last valid ROR."
   }
 }

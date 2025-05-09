@@ -24,7 +24,6 @@ export class RorFieldDataService {
 
   getData(val: string): Observable<RorSearchResponse> {
     const params = new HttpParams().set('q', val);
-    // Random delay to prevent throttling
     const randomDelay = Math.floor(Math.random() * 500);
     return timer(randomDelay).pipe(
       switchMap(() =>
