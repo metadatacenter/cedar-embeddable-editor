@@ -34,16 +34,16 @@
         (change)="toggleReadOnly($event.checked)">
       </mat-slide-toggle>
     </button>
-    <button
-      mat-menu-item
-      [disabled]="!readOnlyMode$"
-      (click)="$event.stopPropagation()">
-      <span>Hide Empty Fields</span>
-      <mat-slide-toggle
-        [checked]="readOnlyMode$ | async"
-        (click)="$event.stopPropagation()">
-<!--        (change)="handlerContext.setHideEmptyFields($event.checked)">-->
-      </mat-slide-toggle>
-    </button>
+<!--    <button-->
+<!--      mat-menu-item-->
+<!--      [disabled]="!readOnlyMode$"-->
+<!--      (click)="$event.stopPropagation()">-->
+<!--      <span>Hide Empty Fields</span>-->
+<!--      <mat-slide-toggle-->
+<!--        [checked]="readOnlyMode$ | async"-->
+<!--        (click)="$event.stopPropagation()">-->
+<!--&lt;!&ndash;        (change)="handlerContext.setHideEmptyFields($event.checked)">&ndash;&gt;-->
+<!--      </mat-slide-toggle>-->
+<!--    </button>-->
   </div>
 </mat-menu>
