@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -14,14 +14,12 @@ import { MessageHandlerService } from '../../../shared/service/message-handler.s
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { RorSearchResponseItem } from '../../../shared/models/rest/ror-search/ror-search-response-item';
 import { RorDetailResponse } from '../../../shared/models/rest/ror-detail/ror-detail-response';
-import { ResearcherDetails } from '../../../shared/models/rest/orcid-detail/orcid-detail-person';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
-
 @Component({
   selector: 'app-cedar-input-ror',
   templateUrl: './cedar-input-ror.component.html',
@@ -31,12 +29,18 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
 export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger })
   trigger: MatAutocompleteTrigger;
+
+  @Input() handlerContext: HandlerContext;
+  @Input() set componentToRender(componentToRender: FieldComponent) {
+    this.component = componentToRender;
+    this.activeComponentRegistry.registerComponent(this.component, this);
+  }
+
   selectedData: RorSearchResponseItem;
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  @Input() handlerContext: HandlerContext;
   model: RorSearchResponseItem = null;
   rorDetails: RorDetailResponse = null;
   showDetails: boolean = false;
@@ -57,11 +61,6 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
   ) {
     super();
     this.options = fb.group({ inputValue: this.inputValueControl });
-  }
-
-  @Input() set componentToRender(componentToRender: FieldComponent) {
-    this.component = componentToRender;
-    this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
   ngOnInit(): void {
@@ -108,6 +107,30 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
       );
     }
   }
+  inputChanged(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    if (!val?.trim()) {
+      this.clearValue();
+    } else {
+      if (this.trigger && !this.trigger.panelOpen) {
+        this.trigger.openPanel();
+      }
+      this.loadingOptions = true;
+      this.hasSearched = false;
+      this.cdr.markForCheck();
+    }
+  }
+  onSelectionChange(option: RorSearchResponseItem): void {
+    if (!option) return;
+    this.selectionInProgress = false;
+    this.selectedData = option;
+
+    const id = option[JsonSchema.atId];
+    const rdfsLabel = option[JsonSchema.rdfsLabel];
+    this.handlerContext.changeControlledValue(this.component, id, rdfsLabel);
+
+    this.setCurrentValue(option);
+  }
   onInputBlur() {
     if (this.selectionInProgress) return;
     this.loadingOptions = false;
@@ -133,7 +156,31 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
     }
     this.setCurrentValue(this.selectedData);
   }
-
+  setCurrentValue(value: RorSearchResponseItem): void {
+    if (value) {
+      const display = this.getCompoundValue(value);
+      if (this.inputValueControl.value !== display) {
+        this.inputValueControl.setValue(display, { emitEvent: false });
+        this.selectedData = value;
+      }
+      this.getDetails();
+      this.hasSearched = false;
+    }
+  }
+  clearValue(markError: boolean = false): void {
+    this.selectedData = null;
+    this.inputValueControl.setValue('', { emitEvent: true });
+    if (markError) {
+      this.inputValueControl.setErrors({ invalidRor: true });
+      this.inputValueControl.markAsTouched();
+    } else {
+      this.inputValueControl.setErrors(null);
+    }
+    this.handlerContext.changeControlledValue(this.component, null, null);
+  }
+  setShowDetails = (setValue: boolean): void => {
+    this.showDetails = setValue;
+  };
   getCompoundValue(option: RorSearchResponseItem): string {
     if (!option) return '';
     const label = option[JsonSchema.rdfsLabel] ? option[JsonSchema.rdfsLabel].trim() : '';
@@ -184,59 +231,12 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
       );
     }
   }
-  onSelectionChange(option: RorSearchResponseItem): void {
-    if (!option) return;
-    this.selectionInProgress = false;
-    this.selectedData = option;
-
-    const id = option[JsonSchema.atId];
-    const rdfsLabel = option[JsonSchema.rdfsLabel];
-    this.handlerContext.changeControlledValue(this.component, id, rdfsLabel);
-
-    this.setCurrentValue(option);
-  }
-
-  inputChanged(event: Event): void {
-    const val = (event.target as HTMLInputElement).value;
-    if (!val?.trim()) {
-      this.clearValue();
-    } else {
-      if (this.trigger && !this.trigger.panelOpen) {
-        this.trigger.openPanel();
-      }
-      this.loadingOptions = true;
-      this.hasSearched = false;
-      this.cdr.markForCheck();
-    }
-  }
-  setCurrentValue(value: RorSearchResponseItem): void {
-    if (value) {
-      const display = this.getCompoundValue(value);
-      if (this.inputValueControl.value !== display) {
-        this.inputValueControl.setValue(display, { emitEvent: false });
-        this.selectedData = value;
-      }
-      this.getDetails();
-      this.hasSearched = false;
-    }
-  }
   private updateValue(atId: string, prefLabel: string): void {
     if (!prefLabel) {
       return;
     }
     this.inputValueControl.setValue(prefLabel, { emitEvent: false });
     this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
-  }
-  clearValue(markError: boolean = false): void {
-    this.selectedData = null;
-    this.inputValueControl.setValue('', { emitEvent: true });
-    if (markError) {
-      this.inputValueControl.setErrors({ invalidRor: true });
-      this.inputValueControl.markAsTouched();
-    } else {
-      this.inputValueControl.setErrors(null);
-    }
-    this.handlerContext.changeControlledValue(this.component, null, null);
   }
   private getDetails(): void {
     if (!this.selectedData || !this.selectedData[JsonSchema.atId]) {
@@ -263,9 +263,6 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
         }
       });
   }
-  setShowDetails = (setValue: boolean): void => {
-    this.showDetails = setValue;
-  };
   private showRevertHint(): void {
     this.justReverted = true;
     this.cdr.markForCheck();
