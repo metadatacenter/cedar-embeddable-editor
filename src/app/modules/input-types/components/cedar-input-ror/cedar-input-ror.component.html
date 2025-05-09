@@ -13,7 +13,6 @@
              [readonly]="readOnlyMode"
              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
       <mat-autocomplete #auto="matAutocomplete">
-<!--        <ng-container *ngIf="filteredOptions | async as options">-->
           <mat-option *ngIf="loadingOptions" disabled class="spinner-container">
             <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
           </mat-option>
@@ -24,7 +23,6 @@
                       (onSelectionChange)="onSelectionChange(option)"
                       (mousedown)="selectionInProgress = true"
           >{{ getCompoundValue(option)}}</mat-option>
-<!--        </ng-container>-->
       </mat-autocomplete>
       <button type="button" tabindex="0" mat-button *ngIf="selectedData" matSuffix mat-icon-button attr.aria-label="{{'Generic.Details' | translate}}"  matTooltip="{{'Generic.Details' | translate}}" (click)="setShowDetails(true)">
         <mat-icon>info</mat-icon>

@@ -145,12 +145,16 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
       return of([]);
     }
     if (/^(http|0|ror\.org)/i.test(val)) {
+      console.log('In if');
       return this.rorFieldDataService.getDetails(val).pipe(
         map((response) => {
           if (!response || response.found === false) {
             return [];
           } else {
             const details = RorDetailResponse.fromJSON(response);
+            if (!this.rorDetailsCache.has(response[JsonSchema.atId])) {
+              this.rorDetailsCache.set(response[JsonSchema.atId], details);
+            }
             return [{ [JsonSchema.atId]: response.id, [JsonSchema.rdfsLabel]: response.name, details: details }];
           }
         }),
