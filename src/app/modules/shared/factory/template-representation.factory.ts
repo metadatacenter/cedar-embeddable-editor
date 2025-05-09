@@ -167,8 +167,15 @@ export class TemplateRepresentationFactory {
           r.path = myPath;
           if (handlerContext.hideEmptyFields && handlerContext.dataContext.instanceExtractData) {
             if (r instanceof SingleFieldComponent || r instanceof MultiFieldComponent) {
-              const val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
-              val ? (r.hidden = false) : (r.hidden = true);
+              let val;
+              if (r.basicInfo.inputType === InputType.attributeValue) {
+                val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
+                if (val) {
+                  const newPath = [...myPath.slice(0, -1), val];
+                  val = this.getValueByPath(newPath, handlerContext.dataContext.instanceExtractData);
+                }
+              } else val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
+              r.hidden = !val || Object.keys(val).length === 0;
             } else if (r instanceof MultiElementComponent || r instanceof SingleElementComponent) {
               this.hasNonEmptyChild(r, handlerContext) ? (r.hidden = false) : (r.hidden = true);
             }
@@ -208,7 +215,7 @@ export class TemplateRepresentationFactory {
         return json['@value'];
       } else if (Object.prototype.hasOwnProperty.call(json, '@id')) {
         return json['@id'];
-      } else return null;
+      } else return json;
     }
     const currentKey = path[0];
     const remainingPath = path.slice(1);
