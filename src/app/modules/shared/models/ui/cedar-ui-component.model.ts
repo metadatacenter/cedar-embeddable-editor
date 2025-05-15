@@ -1,10 +1,11 @@
-import { Directive, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Directive, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 
 @Directive()
 export abstract class CedarUIDirective implements OnInit, OnDestroy {
   protected readonly userPreferencesService = inject(UserPreferencesService);
+  protected readonly cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
   abstract setCurrentValue(currentValue: any): void;
 
   readOnlyMode = false;
@@ -26,5 +27,7 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
     // used for executing component-specific operations
     // for deleting an instance
   }
-  protected onReadOnlyModeChange(_mode: boolean): void {}
+  protected onReadOnlyModeChange(_mode: boolean): void {
+    this.cdr.markForCheck();
+  }
 }

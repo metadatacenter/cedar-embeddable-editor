@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Input, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
@@ -32,7 +32,6 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   constructor(
     fb: FormBuilder,
     private activeComponentRegistry: ActiveComponentRegistryService,
-    private cdr: ChangeDetectorRef,
   ) {
     super();
     this.datetimeParsed = new DatetimeRepresentation();
