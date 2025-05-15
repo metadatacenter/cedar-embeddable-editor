@@ -1,12 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Input,
-  OnInit,
-  ViewChild,
-  ViewEncapsulation,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
@@ -63,7 +55,6 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private orcidFieldDataService: OrcidFieldDataService,
-    private cdr: ChangeDetectorRef,
   ) {
     super();
     this.options = fb.group({
