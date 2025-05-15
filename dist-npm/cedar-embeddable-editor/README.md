@@ -287,7 +287,7 @@ In order to use an external language file, specify the config as follows:
 }
 ```
 
-In the example above we want to use a `German` language file, which is located in the specified directory. Starting the path with `/` makes the path absolute.
+In the example above we want to use a `German` language file, which is located in the specified directory. Starting the path with `/` makes the path absolute. 
 
 In our case the `/assets/i18n-cee/de.json` will be loaded if present.
 
@@ -295,7 +295,7 @@ If the file is missing, the `/assets/i18n-cee/en.json` will be used.
 
 If that file is also missing, the built-in `de` map would be the next. As this does not exist at this moment, the last option, the built-in `en` map will be used.
 
-Information about the loading process is logged onto the console with the `CEE TRACE` prefix.
+Information about the loading process is logged onto the console with the `CEE TRACE` prefix. 
 
 ### Listening for changes
 
