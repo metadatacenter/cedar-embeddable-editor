@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
@@ -57,7 +57,6 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
     private activeComponentRegistry: ActiveComponentRegistryService,
     private rorFieldDataService: RorFieldDataService,
     private messageHandlerService: MessageHandlerService,
-    private cdr: ChangeDetectorRef,
   ) {
     super();
     this.options = fb.group({ inputValue: this.inputValueControl });
