@@ -62,10 +62,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private static ORCID_PREFIX = 'orcidPrefix';
   private static ROR_PREFIX = 'rorPrefix';
 
-  static ROR_INTEGRATED_EXT_AUTH_URL = 'rorSearchUrl';
-  static ROR_INTEGRATED_DETAILS_URL = 'rorDetailsUrl';
-  static ORCID_INTEGRATED_EXT_AUTH_URL = 'orcidSearchUrl';
-  static ORCID_INTEGRATED_DETAILS_URL = 'orcidDetailsUrl';
+  static ROR_INTEGRATED_EXT_AUTH_URL = 'rorIntegratedExtAuthUrl';
+  static ROR_INTEGRATED_DETAILS_URL = 'rorIntegratedDetailsUrl';
+  static ORCID_INTEGRATED_EXT_AUTH_URL = 'orcidIntegratedExtAuthUrl';
+  static ORCID_INTEGRATED_DETAILS_URL = 'orcidIntegratedDetailsUrl';
 
   dataContext: DataContext = null;
   handlerContext: HandlerContext = null;
