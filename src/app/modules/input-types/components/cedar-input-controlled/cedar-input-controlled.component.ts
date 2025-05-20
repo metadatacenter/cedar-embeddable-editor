@@ -92,9 +92,9 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   }
 
   filter(val: string): Observable<IntegratedSearchResponseItem[]> {
-    if (!val) {
-      return of([]);
-    }
+    // if (!val) {
+    //   return of([]);
+    // }
     return this.controlledFieldDataService.getData(val, this.component).pipe(
       map((response) => {
         if (response == null) {
@@ -130,6 +130,15 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   inputChanged(event): void {
     if (!(event.target as HTMLTextAreaElement).value) {
       this.clearValue();
+    }
+  }
+
+  inputFocused(): void {
+    if (!this.readOnlyMode) {
+      const currentValue = this.inputValueControl.value || '';
+      console.log('inputFocused=>filter', currentValue);
+      this.filteredOptions = this.filter(currentValue);
+      setTimeout(() => this.trigger.openPanel(), 0);
     }
   }
 

@@ -13,6 +13,7 @@
            [formControl]="inputValueControl"
            [errorStateMatcher]="errorStateMatcher"
            [matAutocomplete]="auto"
+           (focus)="inputFocused()"
            (input)="inputChanged($event)"
            [readonly]="readOnlyMode"
            attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
