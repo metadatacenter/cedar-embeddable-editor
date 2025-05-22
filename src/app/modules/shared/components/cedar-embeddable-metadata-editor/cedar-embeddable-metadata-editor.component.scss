@@ -29,3 +29,30 @@
   color: #666;
   margin-top: 2px;
 }
+.template-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+}
+.logo-block {
+  display: flex;
+  align-items: center;
+  margin-right: 1rem;
+}
+.cee-version {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: #666;
+}
+.header-flex-child {
+  display: flex;
+  align-items: center;
+  flex: auto;
+}
+.expand-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;                
+}
