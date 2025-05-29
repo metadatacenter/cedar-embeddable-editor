@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 
@@ -8,13 +8,23 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
   styleUrls: ['./user-preferences-menu.component.scss'],
 })
 export class UserPreferencesMenu {
-  @ViewChild(MatMenuTrigger, { static: true }) menuTrigger!: MatMenuTrigger;
+  @ViewChild(MatMenuTrigger, { static: false }) menuTrigger!: MatMenuTrigger;
   constructor(private userPreferencesService: UserPreferencesService) {
     this.userPreferencesService = userPreferencesService;
   }
   readOnlyMode$ = false;
+  visible: boolean = true;
 
+  @Input() set readOnlyMode(isReadOnly: boolean) {
+    if (isReadOnly) {
+      this.enableReadOnlyMode();
+    }
+  }
+  @Input() set isVisible(visible: boolean) {
+    this.visible = visible;
+  }
   toggleReadOnly(checked: boolean): void {
+    this.readOnlyMode$ = checked;
     this.userPreferencesService.setReadOnlyMode(checked);
   }
   enableReadOnlyMode() {
@@ -22,6 +32,6 @@ export class UserPreferencesMenu {
     this.userPreferencesService.setReadOnlyMode(true);
   }
   close(): void {
-    this.menuTrigger.closeMenu();
+    this.menuTrigger?.closeMenu();
   }
 }
