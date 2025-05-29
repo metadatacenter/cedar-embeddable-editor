@@ -36,8 +36,8 @@ export class AppComponentDev implements OnInit {
 
     collapseStaticComponents: true,
     // showStaticText: true,
-    readOnlyMode: false,
-    hideEmptyFields: false,
+    readOnlyMode: true,
+    hideEmptyFields: true,
     showPreferencesMenu: true,
 
     orcidIntegratedExtAuthUrl: 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name',
