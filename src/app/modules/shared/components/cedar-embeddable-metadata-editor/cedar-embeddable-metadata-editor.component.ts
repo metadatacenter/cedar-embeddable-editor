@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { NullTemplate } from '../../models/template/null-template.model';
 import { DataContext } from '../../util/data-context';
 import { HandlerContext } from '../../util/handler-context';
@@ -9,7 +9,6 @@ import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { RorFieldDataService } from '../../service/ror-field-data.service';
 import { OrcidFieldDataService } from '../../service/orcid-field-data.service';
-import { UserPreferencesMenu } from '../user-preferences-menu/user-preferences-menu.component';
 import packageJson from 'package.json';
 
 @Component({
@@ -19,7 +18,6 @@ import packageJson from 'package.json';
   encapsulation: ViewEncapsulation.None,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
-  @ViewChild(UserPreferencesMenu, { static: true }) UserPreferencesMenu;
   private static INNER_VERSION = '2025-05-15 02:40:00';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
@@ -58,6 +56,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   static READ_ONLY_MODE: string = 'readOnlyMode';
   static HIDE_EMPTY_FIELDS: string = 'hideEmptyFields';
+  static SHOW_PREFERENCES_MENU: string = 'showPreferencesMenu';
 
   private static IRI_PREFIX = 'iriPrefix';
   private static BIO_PORTAL_PREFIX = 'bioPortalPrefix';
@@ -100,6 +99,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   showAllMultiInstanceValues = true;
   showTemplateDescription: boolean = false;
   readOnlyMode: boolean = false;
+  showPreferencesMenu: boolean = true;
 
   static iriPrefix = 'https://repo.metadatacenter.org/';
   static bioPortalPrefix = 'https://bioportal.bioontology.org/ontologies/';
@@ -236,9 +236,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
         this.readOnlyMode = value[CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE];
-        if (this.readOnlyMode) {
-          this.UserPreferencesMenu.enableReadOnlyMode();
-        }
+      }
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_PREFERENCES_MENU)) {
+        this.showPreferencesMenu = value[CedarEmbeddableMetadataEditorComponent.SHOW_PREFERENCES_MENU];
       }
     }
   }
