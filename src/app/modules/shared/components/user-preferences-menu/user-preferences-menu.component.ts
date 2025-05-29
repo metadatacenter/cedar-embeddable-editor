@@ -17,6 +17,10 @@ export class UserPreferencesMenu {
   toggleReadOnly(checked: boolean): void {
     this.userPreferencesService.setReadOnlyMode(checked);
   }
+  enableReadOnlyMode() {
+    this.readOnlyMode$ = true;
+    this.userPreferencesService.setReadOnlyMode(true);
+  }
   close(): void {
     this.menuTrigger.closeMenu();
   }
