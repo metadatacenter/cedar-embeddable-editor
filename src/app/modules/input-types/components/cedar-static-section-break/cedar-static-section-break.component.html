@@ -1,2 +1,5 @@
-<h1 class="section-break-header">{{cds.getRenderingLabelForComponent(component)}}<mat-icon matTooltip="{{component.labelInfo.description}}" class="icon-help">help</mat-icon></h1>
+<h1 class="section-break-header">
+  {{cds.getRenderingLabelForComponent(component)}}
+  <mat-icon *ngIf="hasHelpText" matTooltip="{{component.labelInfo.description}}" class="icon-help">help</mat-icon>
+</h1>
 
