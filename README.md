@@ -145,10 +145,12 @@ There are other optional configuration parameters available for controlling vari
   "collapseStaticComponents": false,
   "showStaticText": true,
   
-  "readOnlyMode": false
+  "readOnlyMode": false,
+  "hideEmptyFields": false,
+  "showPreferencesMenu": true
 }
 ```
-
+Enabling of hiding empty fields is only possible in read-only mode.
 ## Metadata API
 
 CEE Webcomponent includes APIs for exporting metadata externally and importing metadata into CEE.

@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.5.0] - - 2025-05-30
+
+### Added
+- Configuration option to control visibility of the preferences-menu.
+
+### Fixed
+- Issue where the preferences menu could override the initial read-only mode configuration.
+- Hide the section-break help icon when no help text is available.
+
+### Changed
+- Text input values now detect HTML context using a DOM parser.
 ## [1.4.0]
 
 ### Added
