@@ -5,7 +5,6 @@ import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
-import { values } from 'lodash-es';
 
 @Component({
   selector: 'app-cedar-static-section-break',
