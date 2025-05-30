@@ -8,6 +8,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { InputType } from '../../../shared/models/input-type.model';
 import { CedarEmbeddableMetadataEditorComponent } from '../../../shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
+import { HtmlDetectService } from '../../../shared/service/html-detect.service';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -40,6 +41,7 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
+    private htmlDetectService: HtmlDetectService,
   ) {
     super();
     this.options = fb.group({
@@ -71,9 +73,6 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
         this.setValueUIAndModel(this.component.valueInfo.defaultValue);
       }
     }
-    if (this.readOnlyMode) {
-      this.checkHTMLContent();
-    }
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -81,15 +80,14 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  checkHTMLContent() {
-    const label = this.cds.getRenderingLabelForComponent(this.component);
-    if (label && label.toUpperCase().indexOf('HTML') !== -1) {
+  checkHTMLContent(value) {
+    if (this.htmlDetectService.isHtmlString(value)) {
       this.isRichText = true;
     }
   }
   protected override onReadOnlyModeChange(mode: boolean): void {
     if (mode) {
-      this.checkHTMLContent();
+      this.checkHTMLContent(this.inputValueControl.value);
     } else {
       this.isRichText = false;
     }
@@ -104,6 +102,7 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
 
   setCurrentValue(currentValue: any): void {
     if (this.readOnlyMode) {
+      this.checkHTMLContent(currentValue);
       if (this.checkOrcid(currentValue)) {
         this.isOrcid = true;
         this.originalValue = currentValue as string;
