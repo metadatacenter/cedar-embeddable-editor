@@ -56,6 +56,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
 
   static READ_ONLY_MODE: string = 'readOnlyMode';
   static HIDE_EMPTY_FIELDS: string = 'hideEmptyFields';
+  static SHOW_PREFERENCES_MENU: string = 'showPreferencesMenu';
 
   private static IRI_PREFIX = 'iriPrefix';
   private static BIO_PORTAL_PREFIX = 'bioPortalPrefix';
@@ -97,6 +98,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   collapseStaticComponents = false;
   showAllMultiInstanceValues = true;
   showTemplateDescription: boolean = false;
+  readOnlyMode: boolean = false;
+  showPreferencesMenu: boolean = true;
 
   static iriPrefix = 'https://repo.metadatacenter.org/';
   static bioPortalPrefix = 'https://bioportal.bioontology.org/ontologies/';
@@ -230,6 +233,13 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         this.orcidDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_DETAILS_URL];
       }
       this.orcidFieldDataService.setOrcidDetailsUrl(this.orcidDetailsUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
+        this.readOnlyMode = value[CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE];
+      }
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_PREFERENCES_MENU)) {
+        this.showPreferencesMenu = value[CedarEmbeddableMetadataEditorComponent.SHOW_PREFERENCES_MENU];
+      }
     }
   }
 

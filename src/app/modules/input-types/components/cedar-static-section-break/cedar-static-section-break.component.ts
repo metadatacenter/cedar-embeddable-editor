@@ -13,8 +13,9 @@ import { StaticFieldComponent } from '../../../shared/models/static/static-field
   encapsulation: ViewEncapsulation.None,
 })
 export class CedarStaticSectionBreakComponent extends CedarUIDirective {
-  component: StaticFieldComponent;
   @Input() handlerContext: HandlerContext;
+  component: StaticFieldComponent;
+  hasHelpText: boolean = false;
 
   constructor(
     fb: FormBuilder,
@@ -27,6 +28,10 @@ export class CedarStaticSectionBreakComponent extends CedarUIDirective {
   @Input() set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
+    const helpText = componentToRender.labelInfo.description;
+    if (helpText && helpText.trim().length > 0) {
+      this.hasHelpText = true;
+    }
   }
 
   setCurrentValue(currentValue: any): void {
