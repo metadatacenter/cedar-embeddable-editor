@@ -13,8 +13,8 @@ import { JsonSchema } from '../../../shared/models/json-schema.model';
 import { PfasFieldDataService } from '../../../shared/service/pfas-field-data.service';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { PfasSearchResponseItem } from '../../../shared/models/rest/pfas-search/pfas-search-response-item';
-import { PfasDetailResponse } from '../../../shared/models/rest/pfas-detail/pfas-detail-response';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
+import { PfasDetailResponse } from '../../../shared/models/rest/pfas-detail/pfas-detail-response';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -33,15 +33,13 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
   trigger: MatAutocompleteTrigger;
 
   @Input() handlerContext: HandlerContext;
-
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  // --- state & form controls ---
-  private pfasDetailsCache = new Map<string, PfasDetailResponse>();
-
+  private pfasDetailsCache = new Map<string, PfasSearchResponseItem>();
+  justReverted: boolean;
   selectedData: PfasSearchResponseItem;
   component: FieldComponent;
   options: FormGroup;
@@ -52,7 +50,6 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
   hasSearched = false;
   selectionInProgress = false;
 
-  /** Name of the Material icon to use for the “view details” link */
   public linkIconName = 'open_in_new';
 
   constructor(
@@ -67,23 +64,17 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
 
   ngOnInit(): void {
     super.ngOnInit();
-
-    // 1) Build the form control with “required” if needed
     const validators: any[] = [];
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }
     this.inputValueControl = new FormControl(null, validators);
     this.options = this.fb.group({ inputValue: this.inputValueControl });
-
-    // 2) Apply any defaultValue
     if (this.component?.valueInfo?.defaultValue) {
       const defaultAtId = this.component.valueInfo.defaultValue[JsonSchema.atId] || null;
       const defaultLabel = this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] || null;
       this.updateValue(defaultAtId, defaultLabel);
     }
-
-    // 3) Wire up autocomplete (only in edit mode)
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
         debounceTime(500),
@@ -164,7 +155,7 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
       this.inputValueControl.setValue(display, { emitEvent: false });
       this.selectedData = value;
     }
-    this.getDetails(); // caches, but only calls service once per PFAS
+    this.getDetails();
     this.hasSearched = false;
   }
 
@@ -179,25 +170,18 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
     }
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
-
-  /** Expose the PFAS registry URL for our link */
   get detailsUrl(): string | null {
     return this.selectedData?.[JsonSchema.atId] || null;
   }
-
-  private getCompoundValue(opt: PfasSearchResponseItem): string {
+  getCompoundValue(opt: PfasSearchResponseItem): string {
     const label = opt?.[JsonSchema.rdfsLabel]?.trim() || '';
     const id = opt?.[JsonSchema.atId]?.trim() || '';
     return label || id ? `${label} - ${id}` : '';
   }
-
   private filter(val: string): Observable<PfasSearchResponseItem[]> {
-    // if the user typed exactly the currently selected option, just return it
     if (this.getCompoundValue(this.selectedData) === val) {
       return of([this.selectedData]);
     }
-
-    // if it looks like a URI or DTXSID, fetch details
     if (/^(http|DTXSID|comptox\.epa\.gov)/i.test(val)) {
       return this.pfasFieldDataService.getDetails(val).pipe(
         map((resp) => {
@@ -211,8 +195,6 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
         }),
       );
     }
-
-    // otherwise do a search
     return this.pfasFieldDataService.getData(val).pipe(
       map((resp) => {
         if (!resp || resp.found === false) return [];
@@ -230,14 +212,11 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
       }),
     );
   }
-
   private updateValue(atId: string, prefLabel: string): void {
     if (!prefLabel) return;
     this.inputValueControl.setValue(prefLabel, { emitEvent: false });
     this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
   }
-
-  /** Cache details so we only ever call getDetails() once per PFAS */
   private getDetails(): void {
     const id = this.selectedData?.[JsonSchema.atId];
     if (!id || this.pfasDetailsCache.has(id)) return;
@@ -258,8 +237,10 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
   }
 
   private showRevertHint(): void {
+    this.justReverted = true;
     this.cdr.markForCheck();
     setTimeout(() => {
+      this.justReverted = false;
       this.cdr.markForCheck();
     }, 5000);
   }
