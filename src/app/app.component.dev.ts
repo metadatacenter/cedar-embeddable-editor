@@ -40,12 +40,14 @@ export class AppComponentDev implements OnInit {
     hideEmptyFields: false,
     showPreferencesMenu: true,
 
-    orcidIntegratedExtAuthUrl: 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name',
-    orcidIntegratedDetailsUrl: 'https://bridge.metadatacenter.orgx/ext-auth/orcid',
-    rorIntegratedExtAuthUrl: 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name',
-    rorIntegratedDetailsUrl: 'https://bridge.metadatacenter.orgx/ext-auth/ror',
-    pfasIntegratedExtAuthUrl: 'https://bridge.metadatacenter.orgx/ext-auth/comp-tox/search-by-name',
-    pfasIntegratedDetailsUrl: 'https://bridge.metadatacenter.orgx/ext-auth/comp-tox',
+    extAuthBaseUrl: 'https://bridge.metadatacenter.orgx/ext-auth/',
+
+    orcidIntegratedExtAuthUrl: 'orcid/search-by-name',
+    orcidIntegratedDetailsUrl: 'orcid',
+    rorIntegratedExtAuthUrl: 'ror/search-by-name',
+    rorIntegratedDetailsUrl: 'ror',
+    pfasIntegratedExtAuthUrl: 'comp-tox/search-by-name',
+    pfasIntegratedDetailsUrl: 'comp-tox',
   };
 
   languages = {
