@@ -64,6 +64,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   private static ORCID_PREFIX = 'orcidPrefix';
   private static ROR_PREFIX = 'rorPrefix';
 
+  static EXT_AUTH_BASE_URL = 'extAuthBaseUrl';
   static ROR_INTEGRATED_EXT_AUTH_URL = 'rorIntegratedExtAuthUrl';
   static ROR_INTEGRATED_DETAILS_URL = 'rorIntegratedDetailsUrl';
   static ORCID_INTEGRATED_EXT_AUTH_URL = 'orcidIntegratedExtAuthUrl';
@@ -108,12 +109,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static bioPortalPrefix = 'https://bioportal.bioontology.org/ontologies/';
   static orcidPrefix = 'https://orcid.org/';
   static rorPrefix = 'https://ror.org/';
-  orcidSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name';
-  rorSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name';
-  pfasSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/comp-tox/search-by-name';
-  orcidDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid';
-  rorDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror';
-  pfasDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/comp-tox';
+
+  extAuthBaseUrl: string = 'https://bridge.metadatacenter.orgx/ext-auth/';
+  orcidDetailsUrl: string = 'orcid';
+  orcidSearchUrl: string = 'orcid/search-by-name';
+  rorDetailsUrl: string = 'ror';
+  rorSearchUrl: string = 'ror/search-by-name';
+  pfasDetailsUrl: string = 'comp-tox';
+  pfasSearchUrl: string = 'comp-tox/search-by-name';
 
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
 
@@ -220,33 +223,55 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         CedarEmbeddableMetadataEditorComponent.rorPrefix = value[CedarEmbeddableMetadataEditorComponent.ROR_PREFIX];
       }
 
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXT_AUTH_BASE_URL)) {
+        this.extAuthBaseUrl = value[CedarEmbeddableMetadataEditorComponent.EXT_AUTH_BASE_URL];
+      }
+
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_EXT_AUTH_URL)) {
-        this.rorSearchUrl = value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_EXT_AUTH_URL];
+        this.rorSearchUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_EXT_AUTH_URL];
+      } else {
+        this.rorSearchUrl = this.extAuthBaseUrl + this.rorSearchUrl;
       }
       this.rorFieldDataService.setRorSearchUrl(this.rorSearchUrl);
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_EXT_AUTH_URL)) {
-        this.orcidSearchUrl = value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_EXT_AUTH_URL];
+        this.orcidSearchUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_EXT_AUTH_URL];
+      } else {
+        this.orcidSearchUrl = this.extAuthBaseUrl + this.orcidSearchUrl;
       }
       this.orcidFieldDataService.setOrcidSearchUrl(this.orcidSearchUrl);
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.PFAS_INTEGRATED_EXT_AUTH_URL)) {
-        this.pfasSearchUrl = value[CedarEmbeddableMetadataEditorComponent.PFAS_INTEGRATED_EXT_AUTH_URL];
+        this.pfasSearchUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.PFAS_INTEGRATED_EXT_AUTH_URL];
+      } else {
+        this.pfasSearchUrl = this.extAuthBaseUrl + this.pfasSearchUrl;
       }
       this.pfasFieldDataService.setPfasSearchUrl(this.pfasSearchUrl);
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL)) {
-        this.rorDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL];
+        this.rorDetailsUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL];
+      } else {
+        this.rorDetailsUrl = this.extAuthBaseUrl + this.rorDetailsUrl;
       }
       this.rorFieldDataService.setRorDetailsUrl(this.rorDetailsUrl);
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_DETAILS_URL)) {
-        this.orcidDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_DETAILS_URL];
+        this.orcidDetailsUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_DETAILS_URL];
+      } else {
+        this.orcidDetailsUrl = this.extAuthBaseUrl + this.orcidDetailsUrl;
       }
       this.orcidFieldDataService.setOrcidDetailsUrl(this.orcidDetailsUrl);
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.PFAS_INTEGRATED_DETAILS_URL)) {
-        this.pfasDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.PFAS_INTEGRATED_DETAILS_URL];
+        this.pfasDetailsUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.PFAS_INTEGRATED_DETAILS_URL];
+      } else {
+        this.pfasDetailsUrl = this.extAuthBaseUrl + this.pfasDetailsUrl;
       }
       this.pfasFieldDataService.setPfasDetailsUrl(this.pfasDetailsUrl);
 
@@ -320,6 +345,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         .catch(() => {});
     });
   }
+
   private async initDataWithDataContext(): Promise<void> {
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
@@ -327,6 +353,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       return this.renderInstance(dataContext);
     }
   }
+
   private async initDataFromInstance(instance: object): Promise<void> {
     if (this.handlerContext) {
       this.setDataContextWithInstance(instance);
@@ -339,6 +366,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       return this.renderInstance(dataContext);
     }
   }
+
   setDataContextWithInstance(instanceObject): void {
     const instanceFullData = JSON.parse(JSON.stringify(instanceObject));
     const instanceExtractData = JSON.parse(JSON.stringify(instanceObject));
@@ -347,6 +375,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     dataContext.instanceFullData = instanceFullData;
     dataContext.instanceExtractData = instanceExtractData;
   }
+
   private async renderInstance(dataContext): Promise<void> {
     this.initDataFromInstanceQueue = this.initDataFromInstanceQueue.finally(async () => {
       if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
@@ -371,12 +400,15 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       this.dataContext.multiInstanceData != null
     );
   }
+
   openAll(): void {
     this.allExpanded = true;
   }
+
   closeAll(): void {
     this.allExpanded = false;
   }
+
   launchMetadataCenter() {
     window.open('https://metadatacenter.org/', '_blank');
   }
