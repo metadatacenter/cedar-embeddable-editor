@@ -1,6 +1,6 @@
-import { RorSearchResponseItem } from './ror-search-response-item';
+import { PfasSearchResponseItem } from './pfas-search-response-item';
 
-export interface RorSearchResponse {
+export interface PfasSearchResponse {
   found: boolean;
-  results: Array<RorSearchResponseItem>;
+  results: Array<PfasSearchResponseItem>;
 }
