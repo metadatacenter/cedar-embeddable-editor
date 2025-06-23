@@ -8,7 +8,7 @@ import { Component, OnInit } from '@angular/core';
 export class AppComponentDev implements OnInit {
   ceeConfig = {
     sampleTemplateLocationPrefix: 'http://localhost:4240/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '88',
+    loadSampleTemplateName: '91',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
@@ -44,6 +44,8 @@ export class AppComponentDev implements OnInit {
     orcidIntegratedDetailsUrl: 'https://bridge.metadatacenter.orgx/ext-auth/orcid',
     rorIntegratedExtAuthUrl: 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name',
     rorIntegratedDetailsUrl: 'https://bridge.metadatacenter.orgx/ext-auth/ror',
+    pfasIntegratedExtAuthUrl: 'https://bridge.metadatacenter.orgx/ext-auth/comp-tox/search-by-name',
+    pfasIntegratedDetailsUrl: 'https://bridge.metadatacenter.orgx/ext-auth/comp-tox',
   };
 
   languages = {

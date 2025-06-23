@@ -8,6 +8,7 @@ export class InputType {
   static link = 'link';
   static orcid = 'ext-orcid';
   static ror = 'ext-ror';
+  static pfas = 'ext-pfas';
   static phoneNumber = 'phone-number';
   static list = 'list';
   static checkbox = 'checkbox';

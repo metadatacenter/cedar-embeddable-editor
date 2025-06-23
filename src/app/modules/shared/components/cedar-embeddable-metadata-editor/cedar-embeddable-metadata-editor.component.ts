@@ -9,6 +9,7 @@ import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { RorFieldDataService } from '../../service/ror-field-data.service';
 import { OrcidFieldDataService } from '../../service/orcid-field-data.service';
+import { PfasFieldDataService } from '../../service/pfas-field-data.service';
 import packageJson from 'package.json';
 
 @Component({
@@ -67,6 +68,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static ROR_INTEGRATED_DETAILS_URL = 'rorIntegratedDetailsUrl';
   static ORCID_INTEGRATED_EXT_AUTH_URL = 'orcidIntegratedExtAuthUrl';
   static ORCID_INTEGRATED_DETAILS_URL = 'orcidIntegratedDetailsUrl';
+  static PFAS_INTEGRATED_EXT_AUTH_URL = 'pfasIntegratedExtAuthUrl';
+  static PFAS_INTEGRATED_DETAILS_URL = 'pfasIntegratedDetailsUrl';
 
   dataContext: DataContext = null;
   handlerContext: HandlerContext = null;
@@ -107,8 +110,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static rorPrefix = 'https://ror.org/';
   orcidSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name';
   rorSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name';
+  pfasSearchUrl = 'https://bridge.metadatacenter.orgx/ext-auth/comp-tox/search-by-name';
   orcidDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/orcid';
   rorDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/ror';
+  pfasDetailsUrl = 'https://bridge.metadatacenter.orgx/ext-auth/comp-tox';
 
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
 
@@ -120,6 +125,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     private messageHandlerService: MessageHandlerService,
     private rorFieldDataService: RorFieldDataService,
     private orcidFieldDataService: OrcidFieldDataService,
+    private pfasFieldDataService: PfasFieldDataService,
   ) {
     this.ceeVersion = packageJson.version;
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
@@ -224,6 +230,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       this.orcidFieldDataService.setOrcidSearchUrl(this.orcidSearchUrl);
 
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.PFAS_INTEGRATED_EXT_AUTH_URL)) {
+        this.pfasSearchUrl = value[CedarEmbeddableMetadataEditorComponent.PFAS_INTEGRATED_EXT_AUTH_URL];
+      }
+      this.pfasFieldDataService.setPfasSearchUrl(this.pfasSearchUrl);
+
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL)) {
         this.rorDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL];
       }
@@ -233,6 +244,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         this.orcidDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.ORCID_INTEGRATED_DETAILS_URL];
       }
       this.orcidFieldDataService.setOrcidDetailsUrl(this.orcidDetailsUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.PFAS_INTEGRATED_DETAILS_URL)) {
+        this.pfasDetailsUrl = value[CedarEmbeddableMetadataEditorComponent.PFAS_INTEGRATED_DETAILS_URL];
+      }
+      this.pfasFieldDataService.setPfasDetailsUrl(this.pfasDetailsUrl);
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
         this.readOnlyMode = value[CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE];
