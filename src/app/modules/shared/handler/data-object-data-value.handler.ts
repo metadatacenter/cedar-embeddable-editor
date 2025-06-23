@@ -257,7 +257,8 @@ export class DataObjectDataValueHandler {
     if (
       component.basicInfo.inputType === InputType.link ||
       component.basicInfo.inputType === InputType.orcid ||
-      component.basicInfo.inputType === InputType.ror
+      component.basicInfo.inputType === InputType.ror ||
+      component.basicInfo.inputType === InputType.pfas
     ) {
       if (value !== null) {
         valueObject[JsonSchema.atId] = value;
