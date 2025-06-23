@@ -22,6 +22,7 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
   shouldRenderRequiredMark = false;
   isOrcid = false;
   isRor = false;
+  isPfas = false;
   readOnlyMode: boolean;
   readOnlyModeSubscription: Subscription;
   userPreferencesService: UserPreferencesService;
@@ -61,6 +62,8 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
         this.isOrcid = true;
       } else if (fieldComp.basicInfo.inputType === InputType.ror) {
         this.isRor = true;
+      } else if (fieldComp.basicInfo.inputType === InputType.pfas) {
+        this.isPfas = true;
       }
       if (fieldComp.valueInfo.requiredValue) {
         this.shouldRenderRequiredMark = true;

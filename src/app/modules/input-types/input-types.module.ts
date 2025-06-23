@@ -56,6 +56,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { OrcidDetailsComponent } from './components/cedar-input-orcid/orcid-details/orcid-details.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
+import { CedarInputPfasComponent } from './components/cedar-input-pfas/cedar-input-pfas.component';
 
 @NgModule({
   imports: [
@@ -119,6 +120,7 @@ import { MatDividerModule } from '@angular/material/divider';
     TimezonePickerComponent,
     EscapeHtmlPipe,
     OrcidDetailsComponent,
+    CedarInputPfasComponent,
   ],
   providers: [
     MatDatepickerModule,
@@ -147,6 +149,7 @@ import { MatDividerModule } from '@angular/material/divider';
     EscapeHtmlPipe,
     CedarInputOrcidComponent,
     CedarInputRorComponent,
+    CedarInputPfasComponent,
     RorDetailsComponent,
   ],
 })
