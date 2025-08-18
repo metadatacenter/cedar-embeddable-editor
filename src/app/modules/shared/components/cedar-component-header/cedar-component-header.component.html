@@ -1,11 +1,9 @@
 <div class="flex-container">
   <ng-container class="component-title">
-    <i *ngIf="isRor" class="ai ai-ror"></i>
-    <i *ngIf="isOrcid" class="ai ai-orcid"></i>
-    <i *ngIf="isPfas" class="ai ai-pfas"></i>
-    &nbsp;
+    <i *ngIf="isRor" class="ror-icon"></i>
+    <i *ngIf="isOrcid" class="orcid-icon"></i>
+    <i *ngIf="isPfas" class="pfas-icon"></i>
   {{cds.getRenderingLabelForComponent(component)}}
-
   <span *ngIf="shouldRenderRequiredMark">
     <sup style="font-size: medium; color: red" aria-label="required"><b>*</b></sup>
   </span>
