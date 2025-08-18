@@ -30,6 +30,9 @@
             "styles": [
               "src/styles-own.scss"
             ],
+            "stylePreprocessorOptions": {
+              "includePaths": ["src"]
+            },
             "scripts": [
               "node_modules/@webcomponents/custom-elements/src/native-shim.js"
             ],
