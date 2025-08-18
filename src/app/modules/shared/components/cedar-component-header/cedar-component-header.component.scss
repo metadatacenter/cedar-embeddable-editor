@@ -1,4 +1,3 @@
-/* Optional but recommended: vertically center the row that holds the icon + text */
 .flex-container {
   display: flex;
   align-items: center;
@@ -24,15 +23,15 @@ $ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/m
 .orcid-icon,
 .pfas-icon {
   position: relative;
-  display: inline-block;       /* participate in baseline layout but with control */
-  vertical-align: middle;      /* align to text middle */
-  line-height: 0;              /* remove extra baseline space */
-  width: 1.9em;                /* consistent sizing across icons */
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 0;
+  width: 1.9em;
   height: 1.9em;
   margin-right: 5px;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: contain;    /* avoids cropping (was 'cover' in some cases) */
+  background-size: contain;
   border: none;
   cursor: pointer;
 }
@@ -52,7 +51,6 @@ $ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/m
   background-image: var(--cee-ror-icon, url(#{$ror-icon-official}));
 }
 
-/* PFAS — your inline SVG badge */
 .pfas-icon {
   background-image: url("data:image/svg+xml;utf8,\
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 240'>\
@@ -76,7 +74,3 @@ $ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/m
     </svg>");
 }
 
-/* (If you still need this legacy selector for some icon font) */
-.ai.ai-pfas:before {
-  content: "";
-}
