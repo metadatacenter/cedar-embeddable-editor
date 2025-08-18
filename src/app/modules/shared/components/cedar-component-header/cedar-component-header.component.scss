@@ -1,14 +1,59 @@
-.mat-icon.icon-questionmark {
-  height:16px;
+/* Optional but recommended: vertically center the row that holds the icon + text */
+.flex-container {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
 }
-.ai.ai-pfas {
+
+/* Keep the Material help icon aligned with text */
+.mat-icon.icon-questionmark {
+  height: 16px;
+  width: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* --- Icon assets --- */
+$ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/main/ror-icon-rgb.svg";
+
+/* Normalize all three custom <i> icons so they align with text */
+.ror-icon,
+.orcid-icon,
+.pfas-icon {
   position: relative;
-  display: inline-block;
-  width: 1.9em;
+  display: inline-block;       /* participate in baseline layout but with control */
+  vertical-align: middle;      /* align to text middle */
+  line-height: 0;              /* remove extra baseline space */
+  width: 1.9em;                /* consistent sizing across icons */
   height: 1.9em;
+  margin-right: 5px;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: contain;
+  background-size: contain;    /* avoids cropping (was 'cover' in some cases) */
+  border: none;
+  cursor: pointer;
+}
+
+/* ORCID — inline SVG (host can override via CSS var if desired) */
+.orcid-icon {
+  background-image: var(--cee-orcid-icon, url("data:image/svg+xml;utf8,\
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' aria-hidden='true' focusable='false'>\
+      <circle cx='128' cy='128' r='120' fill='%23A6CE39'/>\
+      <text x='50%' y='170' text-anchor='middle' font-family='Arial, sans-serif' \
+            font-weight='bold' font-size='120' fill='%23ffffff'>iD</text>\
+    </svg>"));
+}
+
+/* ROR — official icon (host can override path via CSS var) */
+.ror-icon {
+  background-image: var(--cee-ror-icon, url(#{$ror-icon-official}));
+}
+
+/* PFAS — your inline SVG badge */
+.pfas-icon {
   background-image: url("data:image/svg+xml;utf8,\
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 240'>\
       <!-- central node -->\
@@ -30,7 +75,8 @@
       </text>\
     </svg>");
 }
+
+/* (If you still need this legacy selector for some icon font) */
 .ai.ai-pfas:before {
   content: "";
 }
-
