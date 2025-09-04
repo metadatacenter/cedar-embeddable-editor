@@ -167,6 +167,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
     }
   }
   clearValue(markError: boolean = false): void {
+    console.log('Clear called');
     this.selectedData = null;
     this.inputValueControl.setValue('', { emitEvent: true });
     if (markError) {
