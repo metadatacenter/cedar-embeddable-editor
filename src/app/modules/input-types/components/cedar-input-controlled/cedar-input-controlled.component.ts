@@ -6,7 +6,7 @@ import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
 import { IntegratedSearchResponseItem } from '../../../shared/models/rest/integrated-search/integrated-search-response-item';
 import { JsonSchema } from '../../../shared/models/json-schema.model';
@@ -19,7 +19,6 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
-
 @Component({
   selector: 'app-cedar-input-controlled',
   templateUrl: './cedar-input-controlled.component.html',
@@ -36,7 +35,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   @Input() handlerContext: HandlerContext;
   model: IntegratedSearchResponseItem = null;
   bioPortalTermLink: string = null;
-
   filteredOptions: Observable<IntegratedSearchResponseItem[]>;
 
   constructor(
@@ -77,6 +75,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
         debounceTime(400),
         distinctUntilChanged(),
         switchMap((val) => {
+          console.log('val', val);
           return this.filter(val || '');
         }),
       );
@@ -95,6 +94,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     // if (!val) {
     //   return of([]);
     // }
+    console.log('VAL', val);
     return this.controlledFieldDataService.getData(val, this.component).pipe(
       map((response) => {
         if (response == null) {
@@ -136,7 +136,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   inputFocused(): void {
     if (!this.readOnlyMode) {
       const currentValue = this.inputValueControl.value || '';
-      console.log('inputFocused=>filter', currentValue);
       this.filteredOptions = this.filter(currentValue);
       setTimeout(() => this.trigger.openPanel(), 0);
     }

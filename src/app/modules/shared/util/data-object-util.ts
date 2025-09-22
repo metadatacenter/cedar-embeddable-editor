@@ -8,7 +8,7 @@ import { CedarEmbeddableMetadataEditorComponent } from '../components/cedar-embe
 export class DataObjectUtil {
   static getEmptyValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode): object {
     const obj = {};
-    if (TemplateObjectUtil.isLInk(templateJsonObj)) {
+    if (TemplateObjectUtil.isLInk(templateJsonObj) || TemplateObjectUtil.isExternalAuthorityField(templateJsonObj)) {
       // do nothing, leave object empty
     } else if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
       obj[JsonSchema.atValue] = null;
