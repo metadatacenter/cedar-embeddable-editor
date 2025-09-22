@@ -1,9 +1,20 @@
-import { Component, Input, OnInit, ViewChild, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { Observable, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap, finalize, catchError } from 'rxjs/operators';
+import { Observable, of, Subject } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  switchMap,
+  tap,
+  finalize,
+  catchError,
+  startWith,
+  takeUntil,
+  shareReplay,
+} from 'rxjs/operators';
 
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
@@ -15,30 +26,27 @@ import { MessageHandlerService } from '../../../shared/service/message-handler.s
 import { PfasSearchResponseItem } from '../../../shared/models/rest/pfas-search/pfas-search-response-item';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { PfasDetailResponse } from '../../../shared/models/rest/pfas-detail/pfas-detail-response';
-
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
-
 @Component({
   selector: 'app-cedar-input-pfas',
   templateUrl: './cedar-input-pfas.component.html',
   styleUrls: ['./cedar-input-pfas.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputPfasComponent extends CedarUIDirective implements OnInit {
-  @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger })
-  trigger: MatAutocompleteTrigger;
-
+export class CedarInputPfasComponent extends CedarUIDirective implements OnInit, OnDestroy {
+  @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger: MatAutocompleteTrigger;
   @Input() handlerContext: HandlerContext;
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
+    this.resetForNewInstance();
   }
-
   private pfasDetailsCache = new Map<string, PfasSearchResponseItem>();
+  private destroy$ = new Subject<void>();
   justReverted: boolean;
   selectedData: PfasSearchResponseItem;
   component: FieldComponent;
@@ -60,6 +68,9 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
     private messageHandlerService: MessageHandlerService,
   ) {
     super();
+    this.options = fb.group({
+      inputValue: this.inputValueControl,
+    });
   }
 
   ngOnInit(): void {
@@ -69,6 +80,7 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
       validators.push(Validators.required);
     }
     this.inputValueControl = new FormControl(null, validators);
+
     this.options = this.fb.group({ inputValue: this.inputValueControl });
     if (this.component?.valueInfo?.defaultValue) {
       const defaultAtId = this.component.valueInfo.defaultValue[JsonSchema.atId] || null;
@@ -77,38 +89,63 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
     }
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
+        startWith(this.inputValueControl.value ?? ''),
         debounceTime(500),
-        distinctUntilChanged(),
-        filter((val) => val?.trim().length > 0),
-        tap(() => {
+        map((v) => (v ?? '').trim()),
+        // distinctUntilChanged(),
+        switchMap((v) => {
+          if (!v) {
+            this.loadingOptions = false;
+            this.hasSearched = false;
+            this.cdr.markForCheck();
+            return of([]);
+          }
+          const isIdQuery = this.isIdOrIri(v);
           this.loadingOptions = true;
           this.hasSearched = false;
-        }),
-        switchMap((val) =>
-          this.filter(val).pipe(
+          this.cdr.markForCheck();
+          return this.filter(v).pipe(
+            tap((list) => {
+              // Auto-pick when: typed an ID/IRI AND exactly one match returned
+              if (isIdQuery && list?.length === 1) {
+                const only = list[0];
+                const alreadySame =
+                  this.selectedData && this.getCompoundValue(this.selectedData) === this.getCompoundValue(only);
+                if (!alreadySame) {
+                  this.selectionInProgress = true; // suppress blur revert during programmatic select
+                  this.onSelectionChange(only); // will set display value without emitting
+                }
+              }
+            }),
             finalize(() => {
               this.loadingOptions = false;
               this.hasSearched = true;
               this.cdr.markForCheck();
             }),
-          ),
-        ),
+          );
+        }),
+        takeUntil(this.destroy$),
+        // shareReplay(1),
       );
     }
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   inputChanged(event: Event): void {
-    const val = (event.target as HTMLInputElement).value;
-    if (!val?.trim()) {
+    const val = (event.target as HTMLInputElement).value?.trim() ?? '';
+    if (!val) {
       this.clearValue();
-    } else {
-      if (this.trigger && !this.trigger.panelOpen) {
-        this.trigger.openPanel();
-      }
-      this.loadingOptions = true;
-      this.hasSearched = false;
-      this.cdr.markForCheck();
+      this.trigger?.closePanel(); // ← close on empty
+      return;
     }
+    if (this.trigger && !this.trigger.panelOpen) this.trigger.openPanel();
+    this.loadingOptions = true;
+    this.hasSearched = false;
+    this.cdr.markForCheck();
   }
 
   onSelectionChange(option: PfasSearchResponseItem): void {
@@ -145,18 +182,11 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
       this.clearValue(true);
       return;
     }
-
-    this.setCurrentValue(this.selectedData);
   }
   setCurrentValue(value: PfasSearchResponseItem): void {
-    if (!value) return;
+    this.selectedData = value;
     const display = this.getCompoundValue(value);
-    if (this.inputValueControl.value !== display) {
-      this.inputValueControl.setValue(display, { emitEvent: false });
-      this.selectedData = value;
-    }
-    this.getDetails();
-    this.hasSearched = false;
+    this.inputValueControl.setValue(display, { emitEvent: false });
   }
 
   clearValue(markError: boolean = false): void {
@@ -179,10 +209,10 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
     return label || id ? `${label} - ${id}` : '';
   }
   private filter(val: string): Observable<PfasSearchResponseItem[]> {
-    if (this.getCompoundValue(this.selectedData) === val) {
+    if (this.selectedData && this.getCompoundValue(this.selectedData) === val) {
       return of([this.selectedData]);
     }
-    if (/^(http|DTXSID|comptox\.epa\.gov)/i.test(val)) {
+    if (this.isIdOrIri(val)) {
       return this.pfasFieldDataService.getDetails(val).pipe(
         map((resp) => {
           if (!resp || resp.found === false) return [];
@@ -243,6 +273,30 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit 
       this.justReverted = false;
       this.cdr.markForCheck();
     }, 5000);
+  }
+
+  private isIdOrIri(q: string): boolean {
+    const s = (q ?? '').trim();
+    return /^(https?:\/\/|http:\/\/|DTXSID|comptox\.epa\.gov)/i.test(s);
+  }
+
+  private resetForNewInstance(): void {
+    // clear selection & caches
+    this.selectedData = null;
+    this.pfasDetailsCache.clear();
+    this.selectionInProgress = false;
+    this.loadingOptions = false;
+    this.hasSearched = false;
+
+    // reset the control and emit [], which clears the panel's options
+    if (this.inputValueControl) {
+      this.inputValueControl.reset('', { emitEvent: true });
+    }
+
+    // close any stray panel from a prior instance
+    this.trigger?.closePanel();
+
+    this.cdr?.markForCheck();
   }
 
   protected readonly JsonSchema = JsonSchema;

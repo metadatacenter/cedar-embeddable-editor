@@ -251,7 +251,6 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   clickedAdd(event: MouseEvent): void {
-    console.log('Component', this.component);
     this.handlerContext.addMultiInstance(this.component);
     this.recomputeNumbers();
     // The component will be null if the count was 0 before
@@ -259,7 +258,6 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
     setTimeout(() => {
       this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
       this.emitEvent(event, 'multiInstanceAdded');
-      console.log('This', this);
     });
   }
 

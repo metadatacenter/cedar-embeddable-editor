@@ -1,5 +1,6 @@
 import { CedarModel } from '../models/cedar-model.model';
 import { InputType } from '../models/input-type.model';
+import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 
 export class TemplateObjectUtil {
   static hasControlledInfo(dataNode: object): boolean {
@@ -17,17 +18,25 @@ export class TemplateObjectUtil {
   static hasValueConstraints(dataNode: object): boolean {
     return dataNode != null && Object.hasOwn(dataNode, CedarModel.valueConstraints);
   }
+  static hasOwn(obj: unknown, key: PropertyKey): boolean {
+    return !!obj && typeof obj === 'object' && Object.prototype.hasOwnProperty.call(obj, key);
+  }
+  static getInputType(dataNode: unknown): InputType | undefined {
+    if (!this.hasOwn(dataNode, CedarModel.ui)) return;
+    const ui = (dataNode as any)[CedarModel.ui];
+    if (!this.hasOwn(ui, CedarModel.inputType)) return;
+    return (ui as any)[CedarModel.inputType] as InputType | undefined;
+  }
 
   static isLInk(dataNode: object): boolean {
-    if (Object.hasOwn(dataNode, CedarModel.ui)) {
-      const ui = dataNode[CedarModel.ui];
-      if (Object.hasOwn(ui, CedarModel.inputType)) {
-        const inputType = ui[CedarModel.inputType];
-        if (inputType === InputType.link) {
-          return true;
-        }
-      }
-    }
-    return false;
+    const inputType = this.getInputType(dataNode);
+    return inputType === InputType.link;
+  }
+  static isExternalAuthorityField(
+    dataNode: unknown,
+    allowList: ReadonlySet<InputType> = EXTERNAL_AUTHORITY_INPUT_TYPES,
+  ): boolean {
+    const inputType = this.getInputType(dataNode);
+    return !!inputType && allowList.has(inputType);
   }
 }
