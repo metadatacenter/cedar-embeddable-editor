@@ -6,9 +6,10 @@
              placeholder="{{'Generic.FilterPfas' | translate}}"
              #autoCompleteInput="matAutocompleteTrigger"
              [formControl]="inputValueControl"
-             (blur)="onInputBlur()"
              [errorStateMatcher]="errorStateMatcher"
              [matAutocomplete]="auto"
+             [matAutocompleteDisabled]="isEmpty"
+             (focus)="inputFocused()"
              (input)="inputChanged($event)"
              [readonly]="readOnlyMode"
              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
@@ -16,12 +17,11 @@
         <mat-option *ngIf="loadingOptions" disabled class="spinner-container">
           <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
         </mat-option>
-        <mat-option *ngIf="!loadingOptions && hasSearched && inputValueControl.value?.trim().length > 0 && (filteredOptions | async)?.length === 0" disabled>
+        <mat-option *ngIf="inputValueControl.value?.trim().length > 0 && (filteredOptions | async)?.length === 0" disabled>
           No results found
         </mat-option>
         <mat-option *ngFor="let option of filteredOptions | async" [value]="option[JsonSchema.rdfsLabel] + ' - ' + option[JsonSchema.atId]"
                     (onSelectionChange)="onSelectionChange(option)"
-                    (mousedown)="selectionInProgress = true"
         >{{ getCompoundValue(option)}}</mat-option>
       </mat-autocomplete>
       <a *ngIf="selectedData"

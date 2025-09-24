@@ -1,28 +1,15 @@
-import { Component, Input, OnInit, ViewChild, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { Observable, of, Subject } from 'rxjs';
-import {
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  switchMap,
-  tap,
-  finalize,
-  catchError,
-  startWith,
-  takeUntil,
-  shareReplay,
-} from 'rxjs/operators';
-
+import { Observable, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, switchMap, catchError, startWith, finalize } from 'rxjs/operators';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { JsonSchema } from '../../../shared/models/json-schema.model';
 import { PfasFieldDataService } from '../../../shared/service/pfas-field-data.service';
-import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { PfasSearchResponseItem } from '../../../shared/models/rest/pfas-search/pfas-search-response-item';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { PfasDetailResponse } from '../../../shared/models/rest/pfas-detail/pfas-detail-response';
@@ -37,26 +24,21 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   styleUrls: ['./cedar-input-pfas.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputPfasComponent extends CedarUIDirective implements OnInit, OnDestroy {
+export class CedarInputPfasComponent extends CedarUIDirective implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger: MatAutocompleteTrigger;
   @Input() handlerContext: HandlerContext;
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
-    this.resetForNewInstance();
   }
-  private pfasDetailsCache = new Map<string, PfasSearchResponseItem>();
-  private destroy$ = new Subject<void>();
   justReverted: boolean;
   selectedData: PfasSearchResponseItem;
   component: FieldComponent;
   options: FormGroup;
-  inputValueControl: FormControl;
+  inputValueControl!: FormControl;
   errorStateMatcher = new TextFieldErrorStateMatcher();
   filteredOptions: Observable<PfasSearchResponseItem[]>;
   loadingOptions = false;
-  hasSearched = false;
-  selectionInProgress = false;
 
   public linkIconName = 'open_in_new';
 
@@ -65,12 +47,8 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private pfasFieldDataService: PfasFieldDataService,
-    private messageHandlerService: MessageHandlerService,
   ) {
     super();
-    this.options = fb.group({
-      inputValue: this.inputValueControl,
-    });
   }
 
   ngOnInit(): void {
@@ -80,125 +58,86 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
       validators.push(Validators.required);
     }
     this.inputValueControl = new FormControl(null, validators);
+    this.options = this.fb.group({
+      inputValue: this.inputValueControl,
+    });
 
-    this.options = this.fb.group({ inputValue: this.inputValueControl });
-    if (this.component?.valueInfo?.defaultValue) {
+    if (
+      this.component.valueInfo.defaultValue &&
+      typeof this.component.valueInfo.defaultValue === 'object' &&
+      Object.hasOwn(this.component.valueInfo.defaultValue as object, JsonSchema.atId) &&
+      Object.hasOwn(this.component.valueInfo.defaultValue as object, JsonSchema.rdfsLabel)
+    ) {
+      // @ts-ignore
       const defaultAtId = this.component.valueInfo.defaultValue[JsonSchema.atId] || null;
+      // @ts-ignore
       const defaultLabel = this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] || null;
-      this.updateValue(defaultAtId, defaultLabel);
+      this.setValueUIAndModel(defaultAtId, defaultLabel);
     }
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
-        startWith(this.inputValueControl.value ?? ''),
-        debounceTime(500),
-        map((v) => (v ?? '').trim()),
-        // distinctUntilChanged(),
-        switchMap((v) => {
-          if (!v) {
+        startWith(''),
+        debounceTime(400),
+        map((v: any) => (typeof v === 'string' ? v : v?.[JsonSchema.rdfsLabel] ?? '')),
+        map((v: string) => v.trim()),
+        distinctUntilChanged(),
+        switchMap((q: string) => {
+          if (!q) {
             this.loadingOptions = false;
-            this.hasSearched = false;
-            this.cdr.markForCheck();
-            return of([]);
+            return of<PfasSearchResponseItem[]>([]);
           }
-          const isIdQuery = this.isIdOrIri(v);
           this.loadingOptions = true;
-          this.hasSearched = false;
-          this.cdr.markForCheck();
-          return this.filter(v).pipe(
-            tap((list) => {
-              // Auto-pick when: typed an ID/IRI AND exactly one match returned
-              if (isIdQuery && list?.length === 1) {
-                const only = list[0];
-                const alreadySame =
-                  this.selectedData && this.getCompoundValue(this.selectedData) === this.getCompoundValue(only);
-                if (!alreadySame) {
-                  this.selectionInProgress = true; // suppress blur revert during programmatic select
-                  this.onSelectionChange(only); // will set display value without emitting
-                }
-              }
-            }),
+          return this.filter(q).pipe(
+            catchError(() => of<PfasSearchResponseItem[]>([])),
             finalize(() => {
               this.loadingOptions = false;
-              this.hasSearched = true;
-              this.cdr.markForCheck();
             }),
           );
         }),
-        takeUntil(this.destroy$),
-        // shareReplay(1),
       );
     }
   }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  inputChanged(event: Event): void {
-    const val = (event.target as HTMLInputElement).value?.trim() ?? '';
-    if (!val) {
-      this.clearValue();
-      this.trigger?.closePanel(); // ← close on empty
-      return;
+  ngAfterViewInit(): void {
+    if (!this.readOnlyMode) {
+      this.trigger.panelClosingActions.subscribe((event) => {
+        const selectionMode = !!event && !!(event as any).source;
+        if (selectionMode) return;
+        this.setCurrentValue(this.selectedData);
+      });
     }
-    if (this.trigger && !this.trigger.panelOpen) this.trigger.openPanel();
-    this.loadingOptions = true;
-    this.hasSearched = false;
-    this.cdr.markForCheck();
   }
-
   onSelectionChange(option: PfasSearchResponseItem): void {
     if (!option) return;
-    this.selectionInProgress = false;
     this.selectedData = option;
     const id = option[JsonSchema.atId];
     const label = option[JsonSchema.rdfsLabel];
     this.handlerContext.changeControlledValue(this.component, id, label);
-    this.setCurrentValue(option);
   }
-
-  onInputBlur(): void {
-    if (this.selectionInProgress) return;
-    this.loadingOptions = false;
-    this.cdr.markForCheck();
-
-    const raw = this.inputValueControl.getRawValue()?.trim();
-    const current = this.getCompoundValue(this.selectedData);
-
-    if (raw && raw !== current) {
-      if (this.selectedData) {
-        this.inputValueControl.setValue(current, { emitEvent: false });
-        this.showRevertHint();
-        this.hasSearched = false;
-      } else {
-        this.clearValue(true);
-      }
-      return;
+  inputChanged(event): void {
+    if (!(event.target as HTMLTextAreaElement).value) {
+      this.clearValue();
     }
-
-    if (!this.selectedData && raw) {
-      this.showRevertHint();
-      this.clearValue(true);
-      return;
+  }
+  inputFocused(): void {
+    if (!this.readOnlyMode) {
+      const currentValue = this.inputValueControl.value ?? '';
+      this.inputValueControl.setValue(currentValue, { emitEvent: true });
     }
   }
   setCurrentValue(value: PfasSearchResponseItem): void {
     this.selectedData = value;
     const display = this.getCompoundValue(value);
-    this.inputValueControl.setValue(display, { emitEvent: false });
+    this.inputValueControl.setValue(display, { emitEvent: true });
   }
 
-  clearValue(markError: boolean = false): void {
+  clearValue(): void {
     this.selectedData = null;
-    this.inputValueControl.setValue('', { emitEvent: true });
-    if (markError) {
-      this.inputValueControl.setErrors({ invalidPfas: true });
-      this.inputValueControl.markAsTouched();
-    } else {
-      this.inputValueControl.setErrors(null);
-    }
+    this.inputValueControl.setValue(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
+  }
+  private setValueUIAndModel(atId: string, prefLabel: string): void {
+    this.inputValueControl.setValue(prefLabel);
+    this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
   }
   get detailsUrl(): string | null {
     return this.selectedData?.[JsonSchema.atId] || null;
@@ -208,7 +147,7 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
     const id = opt?.[JsonSchema.atId]?.trim() || '';
     return label || id ? `${label} - ${id}` : '';
   }
-  private filter(val: string): Observable<PfasSearchResponseItem[]> {
+  filter(val: string): Observable<PfasSearchResponseItem[]> {
     if (this.selectedData && this.getCompoundValue(this.selectedData) === val) {
       return of([this.selectedData]);
     }
@@ -226,15 +165,16 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
       );
     }
     return this.pfasFieldDataService.getData(val).pipe(
-      map((resp) => {
-        if (!resp || resp.found === false) return [];
-        if (resp.results) {
-          return resp.results.filter(
-            (o: PfasSearchResponseItem) => o[JsonSchema.rdfsLabel]?.toLowerCase().includes(val.toLowerCase()),
-          );
-        }
-        this.messageHandlerService.errorObject(val, resp);
-        return [];
+      map((resp: any) => {
+        const results: PfasSearchResponseItem[] = Array.isArray(resp)
+          ? resp
+          : Array.isArray(resp?.results)
+            ? resp.results
+            : [];
+
+        if (!results.length) return [];
+        const v = (val || '').toLowerCase();
+        return v ? results.filter((o) => (o?.[JsonSchema.rdfsLabel] ?? '').toLowerCase().includes(v)) : results; // if empty query, show what backend returns
       }),
       catchError((err) => {
         console.error('Error in getData:', err);
@@ -242,62 +182,14 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
       }),
     );
   }
-  private updateValue(atId: string, prefLabel: string): void {
-    if (!prefLabel) return;
-    this.inputValueControl.setValue(prefLabel, { emitEvent: false });
-    this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
-  }
-  private getDetails(): void {
-    const id = this.selectedData?.[JsonSchema.atId];
-    if (!id || this.pfasDetailsCache.has(id)) return;
-
-    this.pfasFieldDataService
-      .getDetails(id)
-      .pipe(
-        catchError((err) => {
-          console.error('Error retrieving PFAS details:', err);
-          return of(null);
-        }),
-      )
-      .subscribe((resp) => {
-        if (resp?.found) {
-          this.pfasDetailsCache.set(id, PfasDetailResponse.fromJSON(resp));
-        }
-      });
-  }
-
-  private showRevertHint(): void {
-    this.justReverted = true;
-    this.cdr.markForCheck();
-    setTimeout(() => {
-      this.justReverted = false;
-      this.cdr.markForCheck();
-    }, 5000);
-  }
-
   private isIdOrIri(q: string): boolean {
     const s = (q ?? '').trim();
     return /^(https?:\/\/|http:\/\/|DTXSID|comptox\.epa\.gov)/i.test(s);
   }
-
-  private resetForNewInstance(): void {
-    // clear selection & caches
-    this.selectedData = null;
-    this.pfasDetailsCache.clear();
-    this.selectionInProgress = false;
-    this.loadingOptions = false;
-    this.hasSearched = false;
-
-    // reset the control and emit [], which clears the panel's options
-    if (this.inputValueControl) {
-      this.inputValueControl.reset('', { emitEvent: true });
-    }
-
-    // close any stray panel from a prior instance
-    this.trigger?.closePanel();
-
-    this.cdr?.markForCheck();
+  get isEmpty(): boolean {
+    const raw = this.inputValueControl.value;
+    const q = (typeof raw === 'string' ? raw : raw?.[JsonSchema.rdfsLabel] ?? '').trim();
+    return !q;
   }
-
   protected readonly JsonSchema = JsonSchema;
 }

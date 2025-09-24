@@ -49,7 +49,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       inputValue: this.inputValueControl,
     });
   }
-
   ngOnInit(): void {
     super.ngOnInit();
     const validators: any[] = [];
@@ -75,13 +74,11 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
         debounceTime(400),
         distinctUntilChanged(),
         switchMap((val) => {
-          console.log('val', val);
           return this.filter(val || '');
         }),
       );
     }
   }
-
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
       this.trigger.panelClosingActions.subscribe((e) => {
@@ -89,12 +86,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       });
     }
   }
-
   filter(val: string): Observable<IntegratedSearchResponseItem[]> {
-    // if (!val) {
-    //   return of([]);
-    // }
-    console.log('VAL', val);
     return this.controlledFieldDataService.getData(val, this.component).pipe(
       map((response) => {
         if (response == null) {
@@ -126,13 +118,11 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       this.selectedData = option;
     }
   }
-
   inputChanged(event): void {
     if (!(event.target as HTMLTextAreaElement).value) {
       this.clearValue();
     }
   }
-
   inputFocused(): void {
     if (!this.readOnlyMode) {
       const currentValue = this.inputValueControl.value || '';
@@ -140,7 +130,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       setTimeout(() => this.trigger.openPanel(), 0);
     }
   }
-
   setCurrentValue(currentValue: any): void {
     if (this.readOnlyMode) {
       const displayTerm = this.getBioPortalTermDisplayValue(currentValue);
@@ -149,7 +138,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       this.inputValueControl.setValue(currentValue);
     }
   }
-
   getBioPortalTermDisplayValue(value: any): string {
     const controlledInfo = this.component.controlledInfo;
     const rdfsLabel = value[JsonSchema?.rdfsLabel];
@@ -174,18 +162,15 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       return rdfsLabel + ' - (' + atId + ')';
     } else return value;
   }
-
   clearValue(): void {
     this.selectedData = null;
     this.inputValueControl.setValue(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
-
   private setValueUIAndModel(atId: string, prefLabel: string): void {
     this.inputValueControl.setValue(prefLabel);
     this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
   }
-
   goToBioPortalTerm() {
     window.open(this.bioPortalTermLink, '_blank');
   }
