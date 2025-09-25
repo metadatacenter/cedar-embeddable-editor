@@ -6,7 +6,6 @@
              placeholder="{{'Generic.FilterRor' | translate}}"
              #autoCompleteInput="matAutocompleteTrigger"
              [formControl]="inputValueControl"
-             (blur)="onInputBlur()"
              [errorStateMatcher]="errorStateMatcher"
              [matAutocomplete]="auto"
              (input)="inputChanged($event)"

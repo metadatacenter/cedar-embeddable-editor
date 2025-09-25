@@ -14,14 +14,37 @@
     </mat-chip-list>
   </div>
   <div *ngIf="!readOnlyMode">
-    <button mat-icon-button tabindex="0" [disabled]="!isEnabledAdd()" (click)="clickedAdd($event)" aria-label="Add empty after current">
-      <mat-icon [tabIndex]="-1" matTooltip="{{'Multi.AddEmptyAfter' | translate}}">note_add</mat-icon>
+    <button
+      mat-icon-button
+      type="button"
+      [disabled]="!isEnabledAdd()"
+      [matTooltip]="'Multi.AddEmptyAfter' | translate"
+      [attr.aria-label]="'Multi.AddEmptyAfter' | translate"
+      (click)="clickedAdd($event)"
+    >
+      <mat-icon>note_add</mat-icon>
     </button>
-    <button mat-icon-button tabindex="0" [disabled]="!isEnabledCopy()" (click)="clickedCopy($event)" aria-label="Add clone after current">
-      <mat-icon [tabIndex]="-1" matTooltip="{{'Multi.AddCloneAfter' | translate}}">content_copy</mat-icon>
+
+    <button
+      mat-icon-button
+      type="button"
+      [disabled]="!isEnabledCopy()"
+      [matTooltip]="'Multi.AddCloneAfter' | translate"
+      [attr.aria-label]="'Multi.AddCloneAfter' | translate"
+      (click)="clickedCopy($event)"
+    >
+      <mat-icon>content_copy</mat-icon>
     </button>
-    <button mat-icon-button tabindex="0" [disabled]="!isEnabledDelete()" (click)="clickedDelete($event)" aria-label="Delete current">
-      <mat-icon [tabIndex]="-1" matTooltip="{{'Multi.DeleteCurrent' | translate}}">delete</mat-icon>
+
+    <button
+      mat-icon-button
+      type="button"
+      [disabled]="!isEnabledDelete()"
+      [matTooltip]="'Multi.DeleteCurrent' | translate"
+      [attr.aria-label]="'Multi.DeleteCurrent' | translate"
+      (click)="clickedDelete($event)"
+    >
+      <mat-icon>delete</mat-icon>
     </button>
   </div>
   <div class="pager-pager">

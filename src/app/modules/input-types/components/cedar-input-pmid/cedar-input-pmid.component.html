@@ -3,7 +3,7 @@
     <mat-form-field class="full-width">
       <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
       <input matInput type="text"
-             placeholder="{{'Generic.FilterPfas' | translate}}"
+             placeholder="{{'Generic.FilterPmid' | translate}}"
              #autoCompleteInput="matAutocompleteTrigger"
              [formControl]="inputValueControl"
              [errorStateMatcher]="errorStateMatcher"
@@ -28,7 +28,7 @@
          matSuffix mat-icon-button
          [href]="detailsUrl"
          target="_blank" rel="noopener"
-         aria-label="View PFAS page"
+         aria-label="View PubMed page"
          matTooltip="{{'Generic.Details' | translate}}">
         <mat-icon>{{ linkIconName }}</mat-icon>
       </a>
@@ -36,11 +36,11 @@
         <mat-icon>close</mat-icon>
       </button>
       <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
-      <mat-error tabindex="0" *ngIf="inputValueControl.getError('invalidPfas') && !readOnlyMode" class="mat-error align-start">
+      <mat-error tabindex="0" *ngIf="inputValueControl.getError('invalidPmid') && !readOnlyMode" class="mat-error align-start">
         {{'Validation.PfasInvalid' | translate}}
       </mat-error>
       <mat-hint *ngIf="justReverted">
-        {{'Validation.PfasReverted' | translate}}
+        {{'Validation.PmidReverted' | translate}}
       </mat-hint>
     </mat-form-field>
   </ng-container>

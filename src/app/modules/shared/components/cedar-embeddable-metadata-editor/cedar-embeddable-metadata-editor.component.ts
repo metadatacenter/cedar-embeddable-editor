@@ -10,6 +10,8 @@ import { MessageHandlerService } from '../../service/message-handler.service';
 import { RorFieldDataService } from '../../service/ror-field-data.service';
 import { OrcidFieldDataService } from '../../service/orcid-field-data.service';
 import { PfasFieldDataService } from '../../service/pfas-field-data.service';
+import { PmidFieldDataService } from '../../service/pmid-field-data.service';
+import { RridFieldDataService } from '../../service/rrid-field-data.service';
 import packageJson from 'package.json';
 
 @Component({
@@ -71,6 +73,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static ORCID_INTEGRATED_DETAILS_URL = 'orcidIntegratedDetailsUrl';
   static PFAS_INTEGRATED_EXT_AUTH_URL = 'pfasIntegratedExtAuthUrl';
   static PFAS_INTEGRATED_DETAILS_URL = 'pfasIntegratedDetailsUrl';
+  static PMID_INTEGRATED_EXT_AUTH_URL = 'pmidIntegratedExtAuthUrl';
+  static PMID_INTEGRATED_DETAILS_URL = 'pmidIntegratedDetailsUrl';
+  static RRID_INTEGRATED_EXT_AUTH_URL = 'rridIntegratedExtAuthUrl';
+  static RRID_INTEGRATED_DETAILS_URL = 'rridIntegratedDetailsUrl';
 
   dataContext: DataContext = null;
   handlerContext: HandlerContext = null;
@@ -117,6 +123,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   rorSearchUrl: string = 'ror/search-by-name';
   pfasDetailsUrl: string = 'comp-tox';
   pfasSearchUrl: string = 'comp-tox/search-by-name';
+  pmidDetailsUrl: string = 'pmid';
+  pmidSearchUrl: string = 'pmid/search-by-name';
+  rridDetailsUrl: string = 'rrid';
+  rridSearchUrl: string = 'rrid/search-by-name';
 
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
 
@@ -129,6 +139,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     private rorFieldDataService: RorFieldDataService,
     private orcidFieldDataService: OrcidFieldDataService,
     private pfasFieldDataService: PfasFieldDataService,
+    private pmidFieldDataService: PmidFieldDataService,
+    private rridFieldDataService: RridFieldDataService,
   ) {
     this.ceeVersion = packageJson.version;
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
@@ -251,6 +263,22 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       this.pfasFieldDataService.setPfasSearchUrl(this.pfasSearchUrl);
 
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.PMID_INTEGRATED_EXT_AUTH_URL)) {
+        this.pmidSearchUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.PMID_INTEGRATED_EXT_AUTH_URL];
+      } else {
+        this.pmidSearchUrl = this.extAuthBaseUrl + this.pmidSearchUrl;
+      }
+      this.pmidFieldDataService.setPmidSearchUrl(this.pmidSearchUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.RRID_INTEGRATED_EXT_AUTH_URL)) {
+        this.rridSearchUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.RRID_INTEGRATED_EXT_AUTH_URL];
+      } else {
+        this.rridSearchUrl = this.extAuthBaseUrl + this.rridSearchUrl;
+      }
+      this.rridFieldDataService.setRridSearchUrl(this.rridSearchUrl);
+
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL)) {
         this.rorDetailsUrl =
           this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL];
@@ -274,6 +302,22 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         this.pfasDetailsUrl = this.extAuthBaseUrl + this.pfasDetailsUrl;
       }
       this.pfasFieldDataService.setPfasDetailsUrl(this.pfasDetailsUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.PMID_INTEGRATED_DETAILS_URL)) {
+        this.pmidDetailsUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.PMID_INTEGRATED_DETAILS_URL];
+      } else {
+        this.pmidDetailsUrl = this.extAuthBaseUrl + this.pmidDetailsUrl;
+      }
+      this.pmidFieldDataService.setPmidDetailsUrl(this.pmidDetailsUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.RRID_INTEGRATED_DETAILS_URL)) {
+        this.rridDetailsUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.RRID_INTEGRATED_DETAILS_URL];
+      } else {
+        this.rridDetailsUrl = this.extAuthBaseUrl + this.rridDetailsUrl;
+      }
+      this.rridFieldDataService.setRridDetailsUrl(this.rridDetailsUrl);
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
         this.readOnlyMode = value[CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE];

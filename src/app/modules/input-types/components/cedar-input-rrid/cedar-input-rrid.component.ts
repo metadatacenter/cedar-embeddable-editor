@@ -3,28 +3,37 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Observable, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, switchMap, catchError, startWith, finalize } from 'rxjs/operators';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  switchMap,
+  catchError,
+  startWith,
+  finalize,
+  tap,
+} from 'rxjs/operators';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { JsonSchema } from '../../../shared/models/json-schema.model';
-import { PfasFieldDataService } from '../../../shared/service/pfas-field-data.service';
-import { PfasSearchResponseItem } from '../../../shared/models/rest/pfas-search/pfas-search-response-item';
+import { RridFieldDataService } from '../../../shared/service/rrid-field-data.service';
+import { RridSearchResponseItem } from '../../../shared/models/rest/rrid-search/rrid-search-response-item';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
-import { PfasDetailResponse } from '../../../shared/models/rest/pfas-detail/pfas-detail-response';
+import { RridDetailResponse } from '../../../shared/models/rest/rrid-detail/rrid-detail-response';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
 @Component({
-  selector: 'app-cedar-input-pfas',
-  templateUrl: './cedar-input-pfas.component.html',
-  styleUrls: ['./cedar-input-pfas.component.scss'],
+  selector: 'app-cedar-input-rrid',
+  templateUrl: './cedar-input-rrid.component.html',
+  styleUrls: ['./cedar-input-rrid.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputPfasComponent extends CedarUIDirective implements OnInit, AfterViewInit, OnDestroy {
+export class CedarInputRridComponent extends CedarUIDirective implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger: MatAutocompleteTrigger;
   @Input() handlerContext: HandlerContext;
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -32,12 +41,12 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
   justReverted: boolean;
-  selectedData: PfasSearchResponseItem;
+  selectedData: RridSearchResponseItem;
   component: FieldComponent;
   options: FormGroup;
   inputValueControl!: FormControl;
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  filteredOptions: Observable<PfasSearchResponseItem[]>;
+  filteredOptions: Observable<RridSearchResponseItem[]>;
   loadingOptions = false;
 
   public linkIconName = 'open_in_new';
@@ -46,7 +55,7 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
     private fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
-    private pfasFieldDataService: PfasFieldDataService,
+    private rridFieldDataService: RridFieldDataService,
   ) {
     super();
   }
@@ -81,14 +90,19 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
         map((v: any) => (typeof v === 'string' ? v : v?.[JsonSchema.rdfsLabel] ?? '')),
         map((v: string) => v.trim()),
         distinctUntilChanged(),
+        // tap((q) => {
+        //   if (q && this.trigger) {
+        //     Promise.resolve().then(() => this.trigger.openPanel());
+        //   }
+        // }),
         switchMap((q: string) => {
           if (!q) {
             this.loadingOptions = false;
-            return of<PfasSearchResponseItem[]>([]);
+            return of<RridSearchResponseItem[]>([]);
           }
           this.loadingOptions = true;
           return this.filter(q).pipe(
-            catchError(() => of<PfasSearchResponseItem[]>([])),
+            catchError(() => of<RridSearchResponseItem[]>([])),
             finalize(() => {
               this.loadingOptions = false;
             }),
@@ -106,7 +120,7 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
       });
     }
   }
-  onSelectionChange(option: PfasSearchResponseItem): void {
+  onSelectionChange(option: RridSearchResponseItem): void {
     if (!option) return;
     this.selectedData = option;
     const id = option[JsonSchema.atId];
@@ -119,12 +133,11 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
     }
   }
   inputFocused(): void {
-    if (!this.readOnlyMode) {
-      const currentValue = this.inputValueControl.value ?? '';
-      this.inputValueControl.setValue(currentValue, { emitEvent: true });
-    }
+    if (this.readOnlyMode) return;
+    const currentValue = this.inputValueControl.value ?? '';
+    this.inputValueControl.setValue(currentValue, { emitEvent: true });
   }
-  setCurrentValue(value: PfasSearchResponseItem): void {
+  setCurrentValue(value: RridSearchResponseItem): void {
     this.selectedData = value;
     const display = this.getCompoundValue(value);
     this.inputValueControl.setValue(display, { emitEvent: true });
@@ -142,20 +155,20 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
   get detailsUrl(): string | null {
     return this.selectedData?.[JsonSchema.atId] || null;
   }
-  getCompoundValue(opt: PfasSearchResponseItem): string {
+  getCompoundValue(opt: RridSearchResponseItem): string {
     const label = opt?.[JsonSchema.rdfsLabel]?.trim() || '';
     const id = opt?.[JsonSchema.atId]?.trim() || '';
     return label || id ? `${label} - ${id}` : '';
   }
-  filter(val: string): Observable<PfasSearchResponseItem[]> {
+  filter(val: string): Observable<RridSearchResponseItem[]> {
     if (this.selectedData && this.getCompoundValue(this.selectedData) === val) {
       return of([this.selectedData]);
     }
     if (this.isIdOrIri(val)) {
-      return this.pfasFieldDataService.getDetails(val).pipe(
+      return this.rridFieldDataService.getDetails(val).pipe(
         map((resp) => {
           if (!resp || resp.found === false) return [];
-          const details = PfasDetailResponse.fromJSON(resp);
+          const details = RridDetailResponse.fromJSON(resp);
           return [{ [JsonSchema.atId]: resp.id, [JsonSchema.rdfsLabel]: resp.name, details }];
         }),
         catchError((err) => {
@@ -164,9 +177,9 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
         }),
       );
     }
-    return this.pfasFieldDataService.getData(val).pipe(
+    return this.rridFieldDataService.getData(val).pipe(
       map((resp: any) => {
-        const results: PfasSearchResponseItem[] = Array.isArray(resp)
+        const results: RridSearchResponseItem[] = Array.isArray(resp)
           ? resp
           : Array.isArray(resp?.results)
             ? resp.results
@@ -184,7 +197,7 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
   }
   private isIdOrIri(q: string): boolean {
     const s = (q ?? '').trim();
-    return /^(https?:\/\/|http:\/\/|DTXSID|comptox\.epa\.gov)/i.test(s);
+    return /^(?:(?:https?:\/\/)?identifiers\.org\/RRID:\d+\b|RRID:\d+\b|\d+\b)/i.test(s);
   }
   get isEmpty(): boolean {
     const raw = this.inputValueControl.value;

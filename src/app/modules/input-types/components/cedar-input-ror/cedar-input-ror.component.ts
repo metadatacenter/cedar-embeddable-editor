@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
@@ -26,7 +26,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   styleUrls: ['./cedar-input-ror.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
+export class CedarInputRorComponent extends CedarUIDirective implements OnInit, AfterViewInit {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger })
   trigger: MatAutocompleteTrigger;
 
@@ -106,6 +106,15 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
       );
     }
   }
+  ngAfterViewInit(): void {
+    if (!this.readOnlyMode) {
+      this.trigger.panelClosingActions.subscribe((event) => {
+        const selectionMode = !!event && !!(event as any).source;
+        if (selectionMode) return;
+        this.setCurrentValue(this.selectedData);
+      });
+    }
+  }
   inputChanged(event: Event): void {
     const val = (event.target as HTMLInputElement).value;
     if (!val?.trim()) {
@@ -123,48 +132,16 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit {
     if (!option) return;
     this.selectionInProgress = false;
     this.selectedData = option;
-
     const id = option[JsonSchema.atId];
     const rdfsLabel = option[JsonSchema.rdfsLabel];
     this.handlerContext.changeControlledValue(this.component, id, rdfsLabel);
-
-    this.setCurrentValue(option);
-  }
-  onInputBlur() {
-    if (this.selectionInProgress) return;
-    this.loadingOptions = false;
-    this.cdr.markForCheck();
-
-    const raw = this.inputValueControl.getRawValue()?.trim();
-    const current = this.getCompoundValue(this.selectedData);
-    if (this.loadingOptions) return;
-    if (raw && raw !== current) {
-      if (this.selectedData) {
-        this.inputValueControl.setValue(current, { emitEvent: false });
-        this.showRevertHint();
-        this.hasSearched = false;
-      } else {
-        this.clearValue(true);
-      }
-      return;
-    }
-    if (!this.selectedData && raw) {
-      this.showRevertHint();
-      this.clearValue(true);
-      return;
-    }
-    this.setCurrentValue(this.selectedData);
   }
   setCurrentValue(value: RorSearchResponseItem): void {
-    if (value) {
-      const display = this.getCompoundValue(value);
-      if (this.inputValueControl.value !== display) {
-        this.inputValueControl.setValue(display, { emitEvent: false });
-        this.selectedData = value;
-      }
-      this.getDetails();
-      this.hasSearched = false;
-    }
+    this.selectedData = value;
+    const display = this.getCompoundValue(value);
+    this.inputValueControl.setValue(display, { emitEvent: true });
+    this.getDetails();
+    this.hasSearched = false;
   }
   clearValue(markError: boolean = false): void {
     this.selectedData = null;

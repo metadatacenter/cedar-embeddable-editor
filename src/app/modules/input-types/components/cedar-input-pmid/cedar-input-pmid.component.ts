@@ -1,30 +1,26 @@
-import { Component, Input, OnInit, ViewChild, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ErrorStateMatcher } from '@angular/material/core';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { Observable, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, switchMap, catchError, startWith, finalize } from 'rxjs/operators';
-import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { ComponentDataService } from '../../../shared/service/component-data.service';
-import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { JsonSchema } from '../../../shared/models/json-schema.model';
-import { PfasFieldDataService } from '../../../shared/service/pfas-field-data.service';
-import { PfasSearchResponseItem } from '../../../shared/models/rest/pfas-search/pfas-search-response-item';
-import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
-import { PfasDetailResponse } from '../../../shared/models/rest/pfas-detail/pfas-detail-response';
-export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null): boolean {
-    return !!(control && control.invalid && (control.dirty || control.touched));
-  }
-}
+import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { PmidSearchResponseItem } from '../../../shared/models/rest/pmid-search/pmid-search-response-item';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Observable, of } from 'rxjs';
+import { ComponentDataService } from '../../../shared/service/component-data.service';
+import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { PmidFieldDataService } from '../../../shared/service/pmid-field-data.service';
+import { catchError, debounceTime, distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
+import { PmidDetailResponse } from '../../../shared/models/rest/pmid-detail/pmid-detail-response';
+import { TextFieldErrorStateMatcher } from '../cedar-input-pfas/cedar-input-pfas.component';
+
 @Component({
-  selector: 'app-cedar-input-pfas',
-  templateUrl: './cedar-input-pfas.component.html',
-  styleUrls: ['./cedar-input-pfas.component.scss'],
+  selector: 'app-cedar-input-pmid',
+  templateUrl: './cedar-input-pmid.component.html',
+  styleUrls: ['./cedar-input-pmid.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarInputPfasComponent extends CedarUIDirective implements OnInit, AfterViewInit, OnDestroy {
+export class CedarInputPmidComponent extends CedarUIDirective implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger: MatAutocompleteTrigger;
   @Input() handlerContext: HandlerContext;
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -32,12 +28,12 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
   justReverted: boolean;
-  selectedData: PfasSearchResponseItem;
+  selectedData: PmidSearchResponseItem;
   component: FieldComponent;
   options: FormGroup;
   inputValueControl!: FormControl;
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  filteredOptions: Observable<PfasSearchResponseItem[]>;
+  filteredOptions: Observable<PmidSearchResponseItem[]>;
   loadingOptions = false;
 
   public linkIconName = 'open_in_new';
@@ -46,7 +42,7 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
     private fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
-    private pfasFieldDataService: PfasFieldDataService,
+    private pmidFieldDataService: PmidFieldDataService,
   ) {
     super();
   }
@@ -84,11 +80,11 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
         switchMap((q: string) => {
           if (!q) {
             this.loadingOptions = false;
-            return of<PfasSearchResponseItem[]>([]);
+            return of<PmidSearchResponseItem[]>([]);
           }
           this.loadingOptions = true;
           return this.filter(q).pipe(
-            catchError(() => of<PfasSearchResponseItem[]>([])),
+            catchError(() => of<PmidSearchResponseItem[]>([])),
             finalize(() => {
               this.loadingOptions = false;
             }),
@@ -106,7 +102,7 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
       });
     }
   }
-  onSelectionChange(option: PfasSearchResponseItem): void {
+  onSelectionChange(option: PmidSearchResponseItem): void {
     if (!option) return;
     this.selectedData = option;
     const id = option[JsonSchema.atId];
@@ -124,7 +120,7 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
       this.inputValueControl.setValue(currentValue, { emitEvent: true });
     }
   }
-  setCurrentValue(value: PfasSearchResponseItem): void {
+  setCurrentValue(value: PmidSearchResponseItem): void {
     this.selectedData = value;
     const display = this.getCompoundValue(value);
     this.inputValueControl.setValue(display, { emitEvent: true });
@@ -142,20 +138,20 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
   get detailsUrl(): string | null {
     return this.selectedData?.[JsonSchema.atId] || null;
   }
-  getCompoundValue(opt: PfasSearchResponseItem): string {
+  getCompoundValue(opt: PmidSearchResponseItem): string {
     const label = opt?.[JsonSchema.rdfsLabel]?.trim() || '';
     const id = opt?.[JsonSchema.atId]?.trim() || '';
     return label || id ? `${label} - ${id}` : '';
   }
-  filter(val: string): Observable<PfasSearchResponseItem[]> {
+  filter(val: string): Observable<PmidSearchResponseItem[]> {
     if (this.selectedData && this.getCompoundValue(this.selectedData) === val) {
       return of([this.selectedData]);
     }
     if (this.isIdOrIri(val)) {
-      return this.pfasFieldDataService.getDetails(val).pipe(
+      return this.pmidFieldDataService.getDetails(val).pipe(
         map((resp) => {
           if (!resp || resp.found === false) return [];
-          const details = PfasDetailResponse.fromJSON(resp);
+          const details = PmidDetailResponse.fromJSON(resp);
           return [{ [JsonSchema.atId]: resp.id, [JsonSchema.rdfsLabel]: resp.name, details }];
         }),
         catchError((err) => {
@@ -164,9 +160,9 @@ export class CedarInputPfasComponent extends CedarUIDirective implements OnInit,
         }),
       );
     }
-    return this.pfasFieldDataService.getData(val).pipe(
+    return this.pmidFieldDataService.getData(val).pipe(
       map((resp: any) => {
-        const results: PfasSearchResponseItem[] = Array.isArray(resp)
+        const results: PmidSearchResponseItem[] = Array.isArray(resp)
           ? resp
           : Array.isArray(resp?.results)
             ? resp.results

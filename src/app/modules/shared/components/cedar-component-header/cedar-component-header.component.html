@@ -1,22 +1,27 @@
 <div class="flex-container">
-  <ng-container class="component-title">
-    <i *ngIf="isRor" class="ror-icon"></i>
-    <i *ngIf="isOrcid" class="orcid-icon"></i>
-    <i *ngIf="isPfas" class="pfas-icon"></i>
-  {{cds.getRenderingLabelForComponent(component)}}
-  <span *ngIf="shouldRenderRequiredMark">
-    <sup style="font-size: medium; color: red" aria-label="required"><b>*</b></sup>
-  </span>
-  <span class="flex-child" *ngIf="component.isMultiPage() && !readOnlyMode">
-    &nbsp;({{multiComponent.multiInfo.getSafeMinItems()}}
-     ..
-    <span *ngIf="multiComponent.multiInfo.maxItems">
-      {{multiComponent.multiInfo.maxItems}}
+  <i *ngIf="isRor" class="ror-icon"></i>
+  <i *ngIf="isOrcid" class="orcid-icon"></i>
+  <i *ngIf="isPfas" class="pfas-icon"></i>
+  <i *ngIf="isPmid" class="pmid-icon"></i>
+  <i *ngIf="isRrid" class="rrid-icon"></i>
+
+  <span class="title">
+    {{ cds.getRenderingLabelForComponent(component) }}
+    <span *ngIf="shouldRenderRequiredMark">
+      <sup style="font-size: medium; color: red" aria-label="required"><b>*</b></sup>
     </span>
-    <span *ngIf="!multiComponent.multiInfo.maxItems" matTooltip="{{'Generic.Infinite' | translate}}">
-      ∞
-    </span>)
+    <span class="flex-child" *ngIf="component.isMultiPage() && !readOnlyMode">
+      &nbsp;({{multiComponent.multiInfo.getSafeMinItems()}}
+      ..
+      <span *ngIf="multiComponent.multiInfo.maxItems">
+        {{multiComponent.multiInfo.maxItems}}
+      </span>
+      <span *ngIf="!multiComponent.multiInfo.maxItems" matTooltip="{{'Generic.Infinite' | translate}}">
+        ∞
+      </span>)
+    </span>
   </span>
+
   <mat-icon *ngIf="component.labelInfo.description && component.labelInfo.description !== 'Help Text'"
             matTooltip="{{component.labelInfo.description}}"
             matTooltipClass="tooltip"
@@ -26,6 +31,7 @@
             class="icon-help icon-questionmark"
             role="tooltip"
             inline="false">help</mat-icon>
-  </ng-container>
-  <span id="Description of {{cds.getRenderingLabelForComponent(component)}}" class="cdk-visually-hidden">{{component.labelInfo.description}}</span>
+
+  <span id="Description of {{cds.getRenderingLabelForComponent(component)}}"
+        class="cdk-visually-hidden">{{component.labelInfo.description}}</span>
 </div>
