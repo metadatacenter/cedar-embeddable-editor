@@ -57,6 +57,8 @@ import { OrcidDetailsComponent } from './components/cedar-input-orcid/orcid-deta
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { CedarInputPfasComponent } from './components/cedar-input-pfas/cedar-input-pfas.component';
+import { CedarInputRridComponent } from './components/cedar-input-rrid/cedar-input-rrid.component';
+import { CedarInputPmidComponent } from './components/cedar-input-pmid/cedar-input-pmid.component';
 
 @NgModule({
   imports: [
@@ -121,6 +123,8 @@ import { CedarInputPfasComponent } from './components/cedar-input-pfas/cedar-inp
     EscapeHtmlPipe,
     OrcidDetailsComponent,
     CedarInputPfasComponent,
+    CedarInputRridComponent,
+    CedarInputPmidComponent,
   ],
   providers: [
     MatDatepickerModule,
@@ -151,6 +155,8 @@ import { CedarInputPfasComponent } from './components/cedar-input-pfas/cedar-inp
     CedarInputRorComponent,
     CedarInputPfasComponent,
     RorDetailsComponent,
+    CedarInputPmidComponent,
+    CedarInputRridComponent,
   ],
 })
 export class InputTypesModule {}

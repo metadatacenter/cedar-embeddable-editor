@@ -6,7 +6,7 @@ import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
 import { IntegratedSearchResponseItem } from '../../../shared/models/rest/integrated-search/integrated-search-response-item';
 import { JsonSchema } from '../../../shared/models/json-schema.model';
@@ -19,7 +19,6 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
-
 @Component({
   selector: 'app-cedar-input-controlled',
   templateUrl: './cedar-input-controlled.component.html',
@@ -36,7 +35,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   @Input() handlerContext: HandlerContext;
   model: IntegratedSearchResponseItem = null;
   bioPortalTermLink: string = null;
-
   filteredOptions: Observable<IntegratedSearchResponseItem[]>;
 
   constructor(
@@ -51,7 +49,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       inputValue: this.inputValueControl,
     });
   }
-
   ngOnInit(): void {
     super.ngOnInit();
     const validators: any[] = [];
@@ -82,7 +79,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       );
     }
   }
-
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
       this.trigger.panelClosingActions.subscribe((e) => {
@@ -90,11 +86,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       });
     }
   }
-
   filter(val: string): Observable<IntegratedSearchResponseItem[]> {
-    // if (!val) {
-    //   return of([]);
-    // }
     return this.controlledFieldDataService.getData(val, this.component).pipe(
       map((response) => {
         if (response == null) {
@@ -126,22 +118,18 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       this.selectedData = option;
     }
   }
-
   inputChanged(event): void {
     if (!(event.target as HTMLTextAreaElement).value) {
       this.clearValue();
     }
   }
-
   inputFocused(): void {
     if (!this.readOnlyMode) {
       const currentValue = this.inputValueControl.value || '';
-      console.log('inputFocused=>filter', currentValue);
       this.filteredOptions = this.filter(currentValue);
       setTimeout(() => this.trigger.openPanel(), 0);
     }
   }
-
   setCurrentValue(currentValue: any): void {
     if (this.readOnlyMode) {
       const displayTerm = this.getBioPortalTermDisplayValue(currentValue);
@@ -150,7 +138,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       this.inputValueControl.setValue(currentValue);
     }
   }
-
   getBioPortalTermDisplayValue(value: any): string {
     const controlledInfo = this.component.controlledInfo;
     const rdfsLabel = value[JsonSchema?.rdfsLabel];
@@ -175,18 +162,15 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       return rdfsLabel + ' - (' + atId + ')';
     } else return value;
   }
-
   clearValue(): void {
     this.selectedData = null;
     this.inputValueControl.setValue(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
-
   private setValueUIAndModel(atId: string, prefLabel: string): void {
     this.inputValueControl.setValue(prefLabel);
     this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
   }
-
   goToBioPortalTerm() {
     window.open(this.bioPortalTermLink, '_blank');
   }

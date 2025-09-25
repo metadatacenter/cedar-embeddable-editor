@@ -8,11 +8,11 @@ import { Component, OnInit } from '@angular/core';
 export class AppComponentDev implements OnInit {
   ceeConfig = {
     sampleTemplateLocationPrefix: 'http://localhost:4240/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '91',
+    loadSampleTemplateName: '93',
     showSampleTemplateLinks: true,
     expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
-    showAllMultiInstanceValues: false,
+    showAllMultiInstanceValues: true,
     showDataQualityReport: true,
     showHeader: true,
     showFooter: true,
@@ -48,6 +48,10 @@ export class AppComponentDev implements OnInit {
     rorIntegratedDetailsUrl: 'ror',
     pfasIntegratedExtAuthUrl: 'comp-tox/search-by-name',
     pfasIntegratedDetailsUrl: 'comp-tox',
+    pmidIntegratedExtAuthUrl: 'pmid/search-by-name',
+    pmidIntegratedDetailsUrl: 'pmid',
+    rridIntegratedExtAuthUrl: 'rrid/search-by-name',
+    rridIntegratedDetailsUrl: 'rrid',
   };
 
   languages = {

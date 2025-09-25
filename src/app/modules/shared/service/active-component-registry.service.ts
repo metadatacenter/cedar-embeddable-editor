@@ -86,7 +86,9 @@ export class ActiveComponentRegistryService {
           if (
             component.basicInfo.inputType === InputType.orcid ||
             component.basicInfo.inputType === InputType.ror ||
-            component.basicInfo.inputType === InputType.pfas
+            component.basicInfo.inputType === InputType.pfas ||
+            component.basicInfo.inputType === InputType.pmid ||
+            component.basicInfo.inputType === InputType.rrid
           ) {
             const valueObject = {};
             valueObject[JsonSchema.rdfsLabel] = dataObject[JsonSchema.rdfsLabel];
@@ -152,11 +154,29 @@ export class ActiveComponentRegistryService {
               }
             } else if (
               Object.hasOwn(dataObject[multiInstanceInfo.currentIndex], JsonSchema.atId) &&
-              component.basicInfo.inputType === InputType.link
+              (component.basicInfo.inputType === InputType.link ||
+                component.basicInfo.inputType === InputType.orcid ||
+                component.basicInfo.inputType === InputType.ror ||
+                component.basicInfo.inputType === InputType.pfas ||
+                component.basicInfo.inputType === InputType.pmid ||
+                component.basicInfo.inputType === InputType.rrid)
             ) {
-              // url field single
+              //link or ext authority field
               if (uiComponent) {
-                uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atId]);
+                if (
+                  component.basicInfo.inputType === InputType.orcid ||
+                  component.basicInfo.inputType === InputType.ror ||
+                  component.basicInfo.inputType === InputType.pfas ||
+                  component.basicInfo.inputType === InputType.pmid ||
+                  component.basicInfo.inputType === InputType.rrid
+                ) {
+                  const valueObject = {};
+                  valueObject[JsonSchema.rdfsLabel] = dataObject[multiInstanceInfo.currentIndex][JsonSchema.rdfsLabel];
+                  valueObject[JsonSchema.atId] = dataObject[multiInstanceInfo.currentIndex][JsonSchema.atId];
+                  uiComponent.setCurrentValue(valueObject);
+                } else if (component.basicInfo.inputType === InputType.link) {
+                  uiComponent.setCurrentValue(dataObject[multiInstanceInfo.currentIndex][JsonSchema.atId]);
+                }
               }
             } else if (
               Object.keys(dataObject[multiInstanceInfo.currentIndex]).length === 0 ||
