@@ -9,7 +9,7 @@ export class InputType {
   static orcid = 'ext-orcid';
   static ror = 'ext-ror';
   static pfas = 'ext-pfas';
-  static pmid = 'ext-pmid';
+  static pmid = 'ext-pubmed';
   static rrid = 'ext-rrid';
   static phoneNumber = 'phone-number';
   static list = 'list';
