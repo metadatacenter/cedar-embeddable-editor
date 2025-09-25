@@ -110,6 +110,12 @@
       <app-cedar-input-pfas *ngIf="nonIterableComponent.basicInfo.inputType==InputType.pfas"
                            [componentToRender]="nonIterableComponent"
                            [handlerContext]="handlerContext"></app-cedar-input-pfas>
+      <app-cedar-input-pmid *ngIf="nonIterableComponent.basicInfo.inputType==InputType.pmid"
+                            [componentToRender]="nonIterableComponent"
+                            [handlerContext]="handlerContext"></app-cedar-input-pmid>
+      <app-cedar-input-rrid *ngIf="nonIterableComponent.basicInfo.inputType==InputType.rrid"
+                            [componentToRender]="nonIterableComponent"
+                            [handlerContext]="handlerContext"></app-cedar-input-rrid>
       <app-cedar-input-phone *ngIf="nonIterableComponent.basicInfo.inputType==InputType.phoneNumber"
                             [componentToRender]="nonIterableComponent"
                             [handlerContext]="handlerContext"></app-cedar-input-phone>

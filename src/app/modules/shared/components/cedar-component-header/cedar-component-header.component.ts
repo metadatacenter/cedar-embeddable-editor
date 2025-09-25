@@ -23,6 +23,8 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
   isOrcid = false;
   isRor = false;
   isPfas = false;
+  isPmid = false;
+  isRrid = false;
   readOnlyMode: boolean;
   readOnlyModeSubscription: Subscription;
   userPreferencesService: UserPreferencesService;
@@ -56,7 +58,7 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
     } else {
       this.multiComponent = null;
     }
-    if (this.component instanceof SingleFieldComponent) {
+    if (this.component instanceof SingleFieldComponent || this.component instanceof MultiFieldComponent) {
       const fieldComp = this.component as unknown as FieldComponent;
       if (fieldComp.basicInfo.inputType === InputType.orcid) {
         this.isOrcid = true;
@@ -64,6 +66,10 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
         this.isRor = true;
       } else if (fieldComp.basicInfo.inputType === InputType.pfas) {
         this.isPfas = true;
+      } else if (fieldComp.basicInfo.inputType === InputType.pmid) {
+        this.isPmid = true;
+      } else if (fieldComp.basicInfo.inputType === InputType.rrid) {
+        this.isRrid = true;
       }
       if (fieldComp.valueInfo.requiredValue) {
         this.shouldRenderRequiredMark = true;
