@@ -34,7 +34,9 @@
     "OpenRorProfile": "Open ROR Profile",
     "FilterOrcid": "Start typing researcher name or ORCID",
     "FilterRor": "Start typing institution name or ROR",
-    "FilterPfas": "Start typing chemical name or PFAS ID"
+    "FilterPfas": "Start typing chemical name or PFAS ID",
+    "FilterPmid": "Start typing publication name or PubMed ID",
+    "FilterRrid": "Start typing research resource name or RRID"
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."
@@ -88,6 +90,10 @@
     "RorInvalid":"Entered value is not a valid ROR and has been cleared.",
     "RorReverted": "Invalid ROR, edit was discarded; restored last valid ROR.",
     "PfasInvalid":"Entered value is not a valid PFAS Id and has been cleared.",
-    "PfasReverted": "Invalid PFAS, edit was discarded; restored last valid PFAS Id."
+    "PfasReverted": "Invalid PFAS, edit was discarded; restored last valid PFAS Id.",
+    "PmidInvalid":"Entered value is not a valid PubMed Id and has been cleared.",
+    "PmidReverted": "Invalid PubMed Id, edit was discarded; restored last valid PubMed Id.",
+    "RridInvalid":"Entered value is not a valid RRID and has been cleared.",
+    "RridReverted": "Invalid RRID, edit was discarded; restored last valid RRID Id."
   }
 }

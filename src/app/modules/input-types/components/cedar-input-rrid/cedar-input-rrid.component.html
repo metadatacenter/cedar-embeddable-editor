@@ -1,0 +1,47 @@
+<form class="form-container" [formGroup]="options">
+  <ng-container>
+    <mat-form-field class="full-width">
+      <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
+      <input matInput type="text"
+             placeholder="{{'Generic.FilterRrid' | translate}}"
+             #autoCompleteInput="matAutocompleteTrigger"
+             [formControl]="inputValueControl"
+             [errorStateMatcher]="errorStateMatcher"
+             [matAutocomplete]="auto"
+             [matAutocompleteDisabled]="isEmpty"
+             (focus)="inputFocused()"
+             (input)="inputChanged($event)"
+             [readonly]="readOnlyMode"
+             attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
+      <mat-autocomplete #auto="matAutocomplete">
+        <mat-option *ngIf="loadingOptions" disabled class="spinner-container">
+          <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+        </mat-option>
+        <mat-option *ngIf="inputValueControl.value?.trim().length > 0 && (filteredOptions | async)?.length === 0" disabled>
+          No results found
+        </mat-option>
+        <mat-option *ngFor="let option of filteredOptions | async" [value]="option[JsonSchema.rdfsLabel] + ' - ' + option[JsonSchema.atId]"
+                    (onSelectionChange)="onSelectionChange(option)"
+        >{{ getCompoundValue(option)}}</mat-option>
+      </mat-autocomplete>
+      <a *ngIf="selectedData"
+         matSuffix mat-icon-button
+         [href]="detailsUrl"
+         target="_blank" rel="noopener"
+         aria-label="View RRID page"
+         matTooltip="{{'Generic.Details' | translate}}">
+        <mat-icon>{{ linkIconName }}</mat-icon>
+      </a>
+      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}"  matTooltip="{{'Generic.Clear' | translate}}" (click)="clearValue()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
+      <mat-error tabindex="0" *ngIf="inputValueControl.getError('invalidRrid') && !readOnlyMode" class="mat-error align-start">
+        {{'Validation.RridInvalid' | translate}}
+      </mat-error>
+      <mat-hint *ngIf="justReverted">
+        {{'Validation.RridReverted' | translate}}
+      </mat-hint>
+    </mat-form-field>
+  </ng-container>
+</form>
