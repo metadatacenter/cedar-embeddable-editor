@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - ORCID, ROR and PFAS icons are inlined.
 
+### Fixed
+- Multi instance problem with external authority fields.
+
 ## [1.5.0] - - 2025-05-30
 
 ### Added
