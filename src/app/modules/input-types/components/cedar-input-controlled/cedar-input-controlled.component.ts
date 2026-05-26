@@ -7,7 +7,7 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
 import { IntegratedSearchResponseItem } from '../../../shared/models/rest/integrated-search/integrated-search-response-item';
 import { JsonSchema } from '../../../shared/models/json-schema.model';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
@@ -36,6 +36,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   model: IntegratedSearchResponseItem = null;
   bioPortalTermLink: string = null;
   filteredOptions: Observable<IntegratedSearchResponseItem[]>;
+  loading = false;
 
   constructor(
     fb: FormBuilder,
@@ -73,8 +74,11 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
         startWith(''),
         debounceTime(400),
         distinctUntilChanged(),
+        tap(() => this.loading = true),
         switchMap((val) => {
-          return this.filter(val || '');
+          return this.filter(val || '').pipe(
+            finalize(() => this.loading = false),
+          );
         }),
       );
     }
@@ -123,13 +127,13 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       this.clearValue();
     }
   }
-  inputFocused(): void {
-    if (!this.readOnlyMode) {
-      const currentValue = this.inputValueControl.value || '';
-      this.filteredOptions = this.filter(currentValue);
-      setTimeout(() => this.trigger.openPanel(), 0);
-    }
-  }
+  // inputFocused(): void {
+  //   if (!this.readOnlyMode) {
+  //     const currentValue = this.inputValueControl.value || '';
+  //     this.filteredOptions = this.filter(currentValue);
+  //     setTimeout(() => this.trigger.openPanel(), 0);
+  //   }
+  // }
   setCurrentValue(currentValue: any): void {
     if (this.readOnlyMode) {
       const displayTerm = this.getBioPortalTermDisplayValue(currentValue);
