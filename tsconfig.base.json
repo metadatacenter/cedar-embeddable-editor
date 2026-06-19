@@ -15,6 +15,8 @@
     "lib": [
       "es2022",
       "dom"
-    ]
+    ],
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true
   }
 }
