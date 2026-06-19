@@ -96,7 +96,7 @@ export class CedarComponentRendererComponent {
   shouldRenderContentOfNonIterable(nonIterableComponent: FieldComponent): boolean {
     if (nonIterableComponent.isMulti()) {
       const multiField: MultiFieldComponent = nonIterableComponent as MultiFieldComponent;
-      if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiField)) {
+      if (multiField.isMultiPage() && !this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiField)) {
         return false;
       }
     }

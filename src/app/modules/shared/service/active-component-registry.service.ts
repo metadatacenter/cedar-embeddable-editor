@@ -117,7 +117,7 @@ export class ActiveComponentRegistryService {
       if (!component.isMultiPage()) {
         const dataArr = dataObject as Array<object>;
 
-        if (uiComponent) {
+        if (uiComponent && dataArr) {
           uiComponent.setCurrentValue(dataArr.map((a) => a[JsonSchema.atValue]));
         }
       } else if (dataObject != null) {
