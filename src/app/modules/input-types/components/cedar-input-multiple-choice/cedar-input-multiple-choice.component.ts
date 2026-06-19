@@ -1,4 +1,3 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
@@ -38,12 +37,13 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
 
   ngOnInit(): void {
     super.ngOnInit();
-    this.populateItemsOnLoad();
     const validators: any[] = [];
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
-    this.selectedChoiceInputControl = new FormControl(null, validators);
+    this.selectedChoiceInputControl.setValidators(validators);
+    this.selectedChoiceInputControl.updateValueAndValidity();
+    this.populateItemsOnLoad();
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -74,10 +74,17 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
   }
 
   private populateItemsOnLoad(): void {
+    const dataObject = this.handlerContext.getDataObjectNodeByPath(this.component.path);
+    if (dataObject && dataObject['@value'] !== undefined && dataObject['@value'] !== null) {
+      this.selected = dataObject['@value'];
+      this.selectedChoiceInputControl.setValue(dataObject['@value']);
+      return;
+    }
     for (const choice of this.component.choiceInfo.choices) {
       if (choice.selectedByDefault) {
         this.handlerContext.changeValue(this.component, choice.label);
         this.selected = choice.label;
+        this.selectedChoiceInputControl.setValue(choice.label);
         return;
       }
     }
