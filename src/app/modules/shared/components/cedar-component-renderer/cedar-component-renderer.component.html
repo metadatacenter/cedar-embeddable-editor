@@ -116,6 +116,12 @@
       <app-cedar-input-rrid *ngIf="nonIterableComponent.basicInfo.inputType==InputType.rrid"
                             [componentToRender]="nonIterableComponent"
                             [handlerContext]="handlerContext"></app-cedar-input-rrid>
+      <app-cedar-input-nih-grant *ngIf="nonIterableComponent.basicInfo.inputType==InputType.nihGrant"
+                            [componentToRender]="nonIterableComponent"
+                            [handlerContext]="handlerContext"></app-cedar-input-nih-grant>
+      <app-cedar-input-doi *ngIf="nonIterableComponent.basicInfo.inputType==InputType.doi"
+                            [componentToRender]="nonIterableComponent"
+                            [handlerContext]="handlerContext"></app-cedar-input-doi>
       <app-cedar-input-phone *ngIf="nonIterableComponent.basicInfo.inputType==InputType.phoneNumber"
                             [componentToRender]="nonIterableComponent"
                             [handlerContext]="handlerContext"></app-cedar-input-phone>

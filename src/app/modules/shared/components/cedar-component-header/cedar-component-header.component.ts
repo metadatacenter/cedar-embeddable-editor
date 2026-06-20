@@ -25,6 +25,8 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
   isPfas = false;
   isPmid = false;
   isRrid = false;
+  isNihGrant = false;
+  isDoi = false;
   readOnlyMode: boolean;
   readOnlyModeSubscription: Subscription;
   userPreferencesService: UserPreferencesService;
@@ -70,6 +72,10 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
         this.isPmid = true;
       } else if (fieldComp.basicInfo.inputType === InputType.rrid) {
         this.isRrid = true;
+      } else if (fieldComp.basicInfo.inputType === InputType.nihGrant) {
+        this.isNihGrant = true;
+      } else if (fieldComp.basicInfo.inputType === InputType.doi) {
+        this.isDoi = true;
       }
       if (fieldComp.valueInfo.requiredValue) {
         this.shouldRenderRequiredMark = true;

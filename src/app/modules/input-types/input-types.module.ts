@@ -59,6 +59,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { CedarInputPfasComponent } from './components/cedar-input-pfas/cedar-input-pfas.component';
 import { CedarInputRridComponent } from './components/cedar-input-rrid/cedar-input-rrid.component';
 import { CedarInputPmidComponent } from './components/cedar-input-pmid/cedar-input-pmid.component';
+import { CedarInputNihGrantComponent } from './components/cedar-input-nih-grant/cedar-input-nih-grant.component';
+import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input-doi.component';
 
 @NgModule({
   imports: [
@@ -125,6 +127,8 @@ import { CedarInputPmidComponent } from './components/cedar-input-pmid/cedar-inp
     CedarInputPfasComponent,
     CedarInputRridComponent,
     CedarInputPmidComponent,
+    CedarInputNihGrantComponent,
+    CedarInputDoiComponent,
   ],
   providers: [
     MatDatepickerModule,
@@ -157,6 +161,8 @@ import { CedarInputPmidComponent } from './components/cedar-input-pmid/cedar-inp
     RorDetailsComponent,
     CedarInputPmidComponent,
     CedarInputRridComponent,
+    CedarInputNihGrantComponent,
+    CedarInputDoiComponent,
   ],
 })
 export class InputTypesModule {}

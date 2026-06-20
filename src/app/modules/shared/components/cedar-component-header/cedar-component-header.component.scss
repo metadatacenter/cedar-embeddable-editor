@@ -21,7 +21,9 @@ $ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/m
 /* Normalize all three custom <i> icons so they align with text */
 .ror-icon,
 .orcid-icon,
-.pfas-icon {
+.pfas-icon,
+.nih-grant-icon,
+.doi-icon {
   position: relative;
   display: inline-block;
   vertical-align: middle;
@@ -74,6 +76,24 @@ $ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/m
     </svg>");
 }
 
+.nih-grant-icon {
+  background-image: var(--cee-nih-grant-icon, url("data:image/svg+xml;utf8,\
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' aria-hidden='true' focusable='false'>\
+      <rect width='256' height='256' rx='40' fill='%23003366'/>\
+      <text x='50%' y='165' text-anchor='middle' font-family='Arial, sans-serif' \
+            font-weight='bold' font-size='100' fill='%23ffffff'>NIH</text>\
+    </svg>"));
+}
+
+.doi-icon {
+  background-image: var(--cee-doi-icon, url("data:image/svg+xml;utf8,\
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' aria-hidden='true' focusable='false'>\
+      <rect width='256' height='256' rx='40' fill='%234A90E2'/>\
+      <text x='50%' y='165' text-anchor='middle' font-family='Arial, sans-serif' \
+            font-weight='bold' font-size='110' fill='%23ffffff'>DOI</text>\
+    </svg>"));
+}
+
 .pmid-icon {
   display: inline-block;
   width: 20px;
@@ -99,6 +119,8 @@ $ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/m
 .pfas-icon,
 .pmid-icon,
 .rrid-icon,
+.nih-grant-icon,
+.doi-icon,
 .mat-icon.icon-questionmark {
   flex: 0 0 auto;
 }

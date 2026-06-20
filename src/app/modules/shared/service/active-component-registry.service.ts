@@ -88,7 +88,9 @@ export class ActiveComponentRegistryService {
             component.basicInfo.inputType === InputType.ror ||
             component.basicInfo.inputType === InputType.pfas ||
             component.basicInfo.inputType === InputType.pmid ||
-            component.basicInfo.inputType === InputType.rrid
+            component.basicInfo.inputType === InputType.rrid ||
+            component.basicInfo.inputType === InputType.nihGrant ||
+            component.basicInfo.inputType === InputType.doi
           ) {
             const valueObject = {};
             valueObject[JsonSchema.rdfsLabel] = dataObject[JsonSchema.rdfsLabel];
@@ -159,7 +161,9 @@ export class ActiveComponentRegistryService {
                 component.basicInfo.inputType === InputType.ror ||
                 component.basicInfo.inputType === InputType.pfas ||
                 component.basicInfo.inputType === InputType.pmid ||
-                component.basicInfo.inputType === InputType.rrid)
+                component.basicInfo.inputType === InputType.rrid ||
+                component.basicInfo.inputType === InputType.nihGrant ||
+                component.basicInfo.inputType === InputType.doi)
             ) {
               //link or ext authority field
               if (uiComponent) {
@@ -168,7 +172,9 @@ export class ActiveComponentRegistryService {
                   component.basicInfo.inputType === InputType.ror ||
                   component.basicInfo.inputType === InputType.pfas ||
                   component.basicInfo.inputType === InputType.pmid ||
-                  component.basicInfo.inputType === InputType.rrid
+                  component.basicInfo.inputType === InputType.rrid ||
+                  component.basicInfo.inputType === InputType.nihGrant ||
+                  component.basicInfo.inputType === InputType.doi
                 ) {
                   const valueObject = {};
                   valueObject[JsonSchema.rdfsLabel] = dataObject[multiInstanceInfo.currentIndex][JsonSchema.rdfsLabel];
