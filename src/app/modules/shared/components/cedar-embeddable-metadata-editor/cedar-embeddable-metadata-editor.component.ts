@@ -23,7 +23,7 @@ import packageJson from 'package.json';
   encapsulation: ViewEncapsulation.None,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
-  private static INNER_VERSION = '2025-05-30 09:30:00';
+  private static INNER_VERSION = '2026-06-20 07:3700';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
@@ -158,7 +158,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   @Input() set dataContextObject(dataContext: DataContext) {
     this.dataContext = dataContext;
@@ -386,8 +386,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       );
       setTimeout(() => {
         this.initDataFromInstance(this.dataContext.instanceFullData)
-          .then(() => {})
-          .catch(() => {});
+          .then(() => { })
+          .catch(() => { });
       });
     }
   }
@@ -400,8 +400,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       setTimeout(() => {
         this.initDataFromInstance(value)
-          .then(() => {})
-          .catch(() => {});
+          .then(() => { })
+          .catch(() => { });
       });
     }
   }
@@ -429,8 +429,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     );
     setTimeout(() => {
       this.initDataWithDataContext()
-        .then(() => {})
-        .catch(() => {});
+        .then(() => { })
+        .catch(() => { });
     });
   }
 
