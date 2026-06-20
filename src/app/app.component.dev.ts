@@ -52,6 +52,10 @@ export class AppComponentDev implements OnInit {
     pmidIntegratedDetailsUrl: 'pmid',
     rridIntegratedExtAuthUrl: 'rrid/search-by-name',
     rridIntegratedDetailsUrl: 'rrid',
+    nihGrantIntegratedExtAuthUrl: 'nih-grant/search-by-name',
+    nihGrantIntegratedDetailsUrl: 'nih-grant',
+    doiIntegratedExtAuthUrl: 'doi/search-by-name',
+    doiIntegratedDetailsUrl: 'doi',
   };
 
   languages = {

@@ -36,7 +36,9 @@
     "FilterRor": "Start typing institution name or ROR",
     "FilterPfas": "Start typing chemical name or PFAS ID",
     "FilterPmid": "Start typing publication name or PubMed ID",
-    "FilterRrid": "Start typing research resource name or RRID"
+    "FilterRrid": "Start typing research resource name or RRID",
+    "FilterNihGrant": "Start typing grant details or NIH Grant ID",
+    "FilterDoi": "Start typing publication name or DOI"
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."
@@ -94,6 +96,10 @@
     "PmidInvalid":"Entered value is not a valid PubMed Id and has been cleared.",
     "PmidReverted": "Invalid PubMed Id, edit was discarded; restored last valid PubMed Id.",
     "RridInvalid":"Entered value is not a valid RRID and has been cleared.",
-    "RridReverted": "Invalid RRID, edit was discarded; restored last valid RRID Id."
+    "RridReverted": "Invalid RRID, edit was discarded; restored last valid RRID Id.",
+    "NihGrantInvalid": "Entered value is not a valid NIH Grant ID and has been cleared.",
+    "NihGrantReverted": "Invalid NIH Grant ID, edit was discarded; restored last valid NIH Grant ID.",
+    "DoiInvalid": "Entered value is not a valid DOI and has been cleared.",
+    "DoiReverted": "Invalid DOI, edit was discarded; restored last valid DOI."
   }
 }

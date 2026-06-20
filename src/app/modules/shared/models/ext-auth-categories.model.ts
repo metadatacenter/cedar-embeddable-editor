@@ -4,4 +4,6 @@ export const EXTERNAL_AUTHORITY_INPUT_TYPES: ReadonlySet<InputType> = new Set<In
   InputType.orcid,
   InputType.ror,
   InputType.pfas,
+  InputType.nihGrant,
+  InputType.doi,
 ]);

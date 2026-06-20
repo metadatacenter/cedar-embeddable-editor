@@ -12,6 +12,8 @@ import { OrcidFieldDataService } from '../../service/orcid-field-data.service';
 import { PfasFieldDataService } from '../../service/pfas-field-data.service';
 import { PmidFieldDataService } from '../../service/pmid-field-data.service';
 import { RridFieldDataService } from '../../service/rrid-field-data.service';
+import { NihGrantFieldDataService } from '../../service/nih-grant-field-data.service';
+import { DoiFieldDataService } from '../../service/doi-field-data.service';
 import packageJson from 'package.json';
 
 @Component({
@@ -77,6 +79,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static PMID_INTEGRATED_DETAILS_URL = 'pmidIntegratedDetailsUrl';
   static RRID_INTEGRATED_EXT_AUTH_URL = 'rridIntegratedExtAuthUrl';
   static RRID_INTEGRATED_DETAILS_URL = 'rridIntegratedDetailsUrl';
+  static NIH_GRANT_INTEGRATED_EXT_AUTH_URL = 'nihGrantIntegratedExtAuthUrl';
+  static NIH_GRANT_INTEGRATED_DETAILS_URL = 'nihGrantIntegratedDetailsUrl';
+  static DOI_INTEGRATED_EXT_AUTH_URL = 'doiIntegratedExtAuthUrl';
+  static DOI_INTEGRATED_DETAILS_URL = 'doiIntegratedDetailsUrl';
 
   dataContext: DataContext = null;
   handlerContext: HandlerContext = null;
@@ -127,6 +133,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   pmidSearchUrl: string = 'pmid/search-by-name';
   rridDetailsUrl: string = 'rrid';
   rridSearchUrl: string = 'rrid/search-by-name';
+  nihGrantDetailsUrl: string = 'nih-grant';
+  nihGrantSearchUrl: string = 'nih-grant/search-by-name';
+  doiDetailsUrl: string = 'doi';
+  doiSearchUrl: string = 'doi/search-by-name';
 
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
 
@@ -141,6 +151,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     private pfasFieldDataService: PfasFieldDataService,
     private pmidFieldDataService: PmidFieldDataService,
     private rridFieldDataService: RridFieldDataService,
+    private nihGrantFieldDataService: NihGrantFieldDataService,
+    private doiFieldDataService: DoiFieldDataService,
   ) {
     this.ceeVersion = packageJson.version;
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
@@ -279,6 +291,22 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       this.rridFieldDataService.setRridSearchUrl(this.rridSearchUrl);
 
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.NIH_GRANT_INTEGRATED_EXT_AUTH_URL)) {
+        this.nihGrantSearchUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.NIH_GRANT_INTEGRATED_EXT_AUTH_URL];
+      } else {
+        this.nihGrantSearchUrl = this.extAuthBaseUrl + this.nihGrantSearchUrl;
+      }
+      this.nihGrantFieldDataService.setNihGrantSearchUrl(this.nihGrantSearchUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.DOI_INTEGRATED_EXT_AUTH_URL)) {
+        this.doiSearchUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.DOI_INTEGRATED_EXT_AUTH_URL];
+      } else {
+        this.doiSearchUrl = this.extAuthBaseUrl + this.doiSearchUrl;
+      }
+      this.doiFieldDataService.setDoiSearchUrl(this.doiSearchUrl);
+
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL)) {
         this.rorDetailsUrl =
           this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.ROR_INTEGRATED_DETAILS_URL];
@@ -318,6 +346,22 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         this.rridDetailsUrl = this.extAuthBaseUrl + this.rridDetailsUrl;
       }
       this.rridFieldDataService.setRridDetailsUrl(this.rridDetailsUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.NIH_GRANT_INTEGRATED_DETAILS_URL)) {
+        this.nihGrantDetailsUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.NIH_GRANT_INTEGRATED_DETAILS_URL];
+      } else {
+        this.nihGrantDetailsUrl = this.extAuthBaseUrl + this.nihGrantDetailsUrl;
+      }
+      this.nihGrantFieldDataService.setNihGrantDetailsUrl(this.nihGrantDetailsUrl);
+
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.DOI_INTEGRATED_DETAILS_URL)) {
+        this.doiDetailsUrl =
+          this.extAuthBaseUrl + value[CedarEmbeddableMetadataEditorComponent.DOI_INTEGRATED_DETAILS_URL];
+      } else {
+        this.doiDetailsUrl = this.extAuthBaseUrl + this.doiDetailsUrl;
+      }
+      this.doiFieldDataService.setDoiDetailsUrl(this.doiDetailsUrl);
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
         this.readOnlyMode = value[CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE];
