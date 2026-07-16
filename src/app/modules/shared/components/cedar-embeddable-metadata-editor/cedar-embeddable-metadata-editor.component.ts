@@ -23,7 +23,7 @@ import packageJson from 'package.json';
   encapsulation: ViewEncapsulation.None,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit {
-  private static INNER_VERSION = '2026-06-20 07:3700';
+  private static INNER_VERSION = '2026-07-16 11:2600';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';

@@ -4,6 +4,7 @@ import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
+import { JsonSchema } from '../../../shared/models/json-schema.model';
 
 @Component({
   selector: 'app-cedar-input-checkbox',
@@ -71,6 +72,20 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
   }
 
   private populateValuesOnLoad(): void {
+    // If the instance already holds values for this field, populate the checkboxes from
+    // them rather than writing defaults. Writing defaults here would call changeListValue()
+    // with an empty list, overwriting the loaded instance data with [{'@value': null}]
+    // before the deferred updateViewToModel() has a chance to apply the real values.
+    const dataObject = this.handlerContext.getDataObjectNodeByPath(this.component.path);
+    if (Array.isArray(dataObject)) {
+      const loadedValues = dataObject
+        .map((d) => (d ? d[JsonSchema.atValue] : null))
+        .filter((v) => v !== null && v !== undefined);
+      if (loadedValues.length > 0) {
+        this.setCurrentValue(loadedValues);
+        return;
+      }
+    }
     for (const choice of this.component.choiceInfo.choices) {
       this.setInput(choice.selectedByDefault, choice.label);
     }

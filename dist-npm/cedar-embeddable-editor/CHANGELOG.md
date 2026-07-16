@@ -5,22 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.6.0] - - 2026-06-22
+## [1.5.1] - - 2026-07-16
 
 ### Added
 
-- PubMed and RRID fields
-- NIH Grant and DOI external authority fields
-- Route NIH Grant searches starting with a number directly to the details endpoint
-
 ### Changed
-
-- ORCID, ROR and PFAS icons are inlined.
 
 ### Fixed
 
-- Multi instance problem with external authority fields.
-- Updated NIH Grant external authority lookup endpoint to use correct 'nih-grant' path instead of 'nih-grant-id'
+- Checkbox selection race condition
 
 ## [1.5.0] - - 2025-05-30
 
