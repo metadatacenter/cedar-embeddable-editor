@@ -21,7 +21,7 @@ git clone https://github.com/metadatacenter/cedar-component-distribution.git
 
 ### Edit configuration
 
-1. Open the file ```cedar-embeddable-editor/src/app/app.component.dev.ts``` in your favorite editor.
+1. Open the file ```app/app.component.dev.ts``` in your favorite editor.
 2. Edit configuration parameters based on your local environment (see section [Configuration](https://github.com/metadatacenter/cedar-embeddable-editor/tree/develop#configuration) for details).
 
 ### Build the project and start the server

@@ -5,15 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.1] - - 2026-07-16
+## [1.5.2] - 2026-07-28
 
 ### Added
 
+- PubMed ID (PMID) and RRID external authority fields, registered as external-authority input types.
+- Expose the loaded CEE version as `window.cedarEmbeddableEditorVersion`, so host applications (e.g. the CEDAR template editor) can display which CEE bundle is actually running.
+
+## [1.5.1] - 2026-07-16
+
+### Added
+
+- PFAS external authority field (config, icons, and embedding build).
+- DOI and NIH-grant external authority fields.
+- External-field logos inlined as base64, removing external image dependencies (build budget raised to accommodate).
+
 ### Changed
+
+- Improved Angular packaging and build; CSS updates and code cleanup.
 
 ### Fixed
 
-- Checkbox selection race condition
+- Multi-instance handling for external-authority fields (PFAS, ROR, and others).
+- Multiple-choice component: restored missing imports, and corrected initialization, multi-page rendering, and data-value handling.
+- Controlled-term result filtering.
+- Data-availability rendering.
+- Checkbox selection race condition.
 
 ## [1.5.0] - - 2025-05-30
 
