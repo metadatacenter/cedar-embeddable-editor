@@ -34,11 +34,23 @@ const instanceWith = (template: object, writes: Array<[string[], string]>) => {
 describe('read-only mode', () => {
   const template = () => buildTemplate({ name: 'ro', children: [{ kind: TEXT, name: 'a', required: true }] });
 
-  it('does not build a quality report at template load', () => {
-    // setInputTemplate guards buildQualityReport behind `!readOnlyMode`
-    // (data-context.ts:56). Nothing to validate when nothing can be edited.
+  /**
+   * The report used to be skipped in read-only mode, on the reasoning that
+   * nothing can be edited so validity is uninteresting. But read-only plus
+   * `hideEmptyFields` is the viewer configuration, and it was the one path
+   * where an instance reached the screen with no validation at any layer —
+   * read-only also suppresses the widgets' own errors.
+   */
+  it('builds a quality report in read-only mode', () => {
     const driver = new CeeDriver(template(), { readOnlyMode: true });
-    expect(driver.dataContext.dataQualityReport).toBeNull();
+    expect(driver.dataContext.dataQualityReport).not.toBeNull();
+  });
+
+  it('validates an injected instance in a viewer', () => {
+    const bad = { '@context': {}, '@id': 'https://example.org/i/1', _a: { '@value': 'fine' } };
+    const viewer = new CeeDriver(template(), { readOnlyMode: true, hideEmptyFields: true, instance: bad });
+    expect(viewer.dataContext.dataQualityReport).not.toBeNull();
+    expect(viewer.qualityReport.isValid).toBe(true);
   });
 
   it('builds one in edit mode', () => {

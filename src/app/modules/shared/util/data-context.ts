@@ -53,8 +53,12 @@ export class DataContext {
       );
     }
     this.savedTemplateID = null;
-    if (!handlerContext.readOnlyMode) {
-      handlerContext.buildQualityReport();
-    }
+    // Built in read-only mode too. The guard used to skip it on the reasoning
+    // that nothing can be edited, so validity was uninteresting — but read-only
+    // plus hideEmptyFields is the viewer configuration, and a viewer showing an
+    // injected instance is exactly where knowing it is malformed matters. It
+    // was also the one path where an instance reached the screen with no
+    // validation at any layer, since read-only suppresses the widgets' errors.
+    handlerContext.buildQualityReport();
   }
 }

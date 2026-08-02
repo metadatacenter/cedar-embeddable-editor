@@ -35,7 +35,56 @@ export class HandlerContext {
     // this.rdfService = new RdfBuilderService();
   }
 
-  addMultiInstance(component: MultiComponent): void {
+  /**
+   * Cardinality bounds are a model invariant, enforced here rather than only by
+   * the pager disabling its buttons.
+   *
+   * Value writes stay permissive on purpose — reaching `10` in a field with
+   * `minValue: 10` means passing through `1`, so intermediate states must be
+   * allowed and the report judges the result. Structural operations have no
+   * such transient: there is no legitimate moment at which an element holds
+   * more instances than `maxItems` allows.
+   *
+   * Refusal is a no-op plus a trace, not an exception. The pager already
+   * disables the control at the bound, so a call arriving here is a caller bug
+   * rather than a user action, and throwing would take the editor down over
+   * something recoverable.
+   */
+  private withinAddBound(component: MultiComponent): boolean {
+    const maxItems = component.multiInfo?.maxItems;
+    if (maxItems == null) {
+      return true;
+    }
+    const currentCount = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentCount ?? 0;
+    if (currentCount < maxItems) {
+      return true;
+    }
+    this.messageHandlerService.trace(
+      `refused to add past maxItems (${maxItems}) for ${component.path?.join('/') ?? component.name}`,
+    );
+    return false;
+  }
+
+  private withinDeleteBound(component: MultiComponent): boolean {
+    const minItems = component.multiInfo?.minItems;
+    const currentCount = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentCount ?? 0;
+    if (currentCount === 0) {
+      return false;
+    }
+    if (minItems == null || currentCount > minItems) {
+      return true;
+    }
+    this.messageHandlerService.trace(
+      `refused to delete below minItems (${minItems}) for ${component.path?.join('/') ?? component.name}`,
+    );
+    return false;
+  }
+
+  /** @returns whether an instance was added. */
+  addMultiInstance(component: MultiComponent): boolean {
+    if (!this.withinAddBound(component)) {
+      return false;
+    }
     this.dataObjectManipulationService.multiInstanceItemAdd(
       this.dataContext,
       component,
@@ -44,26 +93,35 @@ export class HandlerContext {
     );
     this.multiInstanceObjectService.multiInstanceItemAdd(component);
     this.buildQualityReport();
+    return true;
   }
 
-  copyMultiInstance(component: MultiComponent): void {
+  /** @returns whether an instance was added. */
+  copyMultiInstance(component: MultiComponent): boolean {
     const multiInfo = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
 
     // nothing to copy from, create new
     if (multiInfo.currentIndex < 0) {
-      this.addMultiInstance(component);
-    } else {
-      this.dataObjectManipulationService.multiInstanceItemCopy(
-        this.dataContext,
-        component,
-        this.multiInstanceObjectService,
-      );
-      this.multiInstanceObjectService.multiInstanceItemCopy(component);
+      return this.addMultiInstance(component);
     }
+    if (!this.withinAddBound(component)) {
+      return false;
+    }
+    this.dataObjectManipulationService.multiInstanceItemCopy(
+      this.dataContext,
+      component,
+      this.multiInstanceObjectService,
+    );
+    this.multiInstanceObjectService.multiInstanceItemCopy(component);
     this.buildQualityReport();
+    return true;
   }
 
-  deleteMultiInstance(component: MultiComponent): void {
+  /** @returns whether an instance was removed. */
+  deleteMultiInstance(component: MultiComponent): boolean {
+    if (!this.withinDeleteBound(component)) {
+      return false;
+    }
     this.dataObjectManipulationService.multiInstanceItemDelete(
       this.dataContext,
       component,
@@ -71,6 +129,7 @@ export class HandlerContext {
     );
     this.multiInstanceObjectService.multiInstanceItemDelete(component);
     this.buildQualityReport();
+    return true;
   }
 
   getDataObjectNodeByPath(path: string[]): InstanceExtractData {

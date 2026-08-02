@@ -43,11 +43,12 @@ const codesFor = (kind: FieldKind, value: string): string[] => {
   return driver.qualityReport.problems.map((p: any) => p.code);
 };
 
-const numeric = (configure: (b: any) => any) =>
-  kindOf('numeric', () => CedarBuilders.numericFieldBuilder(), configure);
+const numeric = (configure: (b: any) => any) => kindOf('numeric', () => CedarBuilders.numericFieldBuilder(), configure);
 const temporal = (type: any, granularity: any, timezone = false) =>
-  kindOf('temporal', () => CedarBuilders.temporalFieldBuilder(), (b) =>
-    b.withTemporalType(type).withTemporalGranularity(granularity).withTimezoneEnabled(timezone),
+  kindOf(
+    'temporal',
+    () => CedarBuilders.temporalFieldBuilder(),
+    (b) => b.withTemporalType(type).withTemporalGranularity(granularity).withTimezoneEnabled(timezone),
   );
 const text = (configure?: (b: any) => any) => kindOf('textfield', () => CedarBuilders.textFieldBuilder(), configure);
 
@@ -62,12 +63,7 @@ describe('numeric constraints', () => {
       '999',
       'maxValue',
     ],
-    [
-      'minValue 5, given 1',
-      () => numeric((b) => b.withNumberType(NumberType.INT).withMinValue(5)),
-      '1',
-      'minValue',
-    ],
+    ['minValue 5, given 1', () => numeric((b) => b.withNumberType(NumberType.INT).withMinValue(5)), '1', 'minValue'],
     [
       'decimalPlaces 2, given 1.23456',
       () => numeric((b) => b.withNumberType(NumberType.DOUBLE).withDecimalPlaces(2)),
@@ -88,7 +84,12 @@ describe('numeric constraints', () => {
     ['xsd:decimal given text', NumberType.DECIMAL, 'abc'],
     ['xsd:byte given text', NumberType.BYTE, 'abc'],
   ])('%s is now caught', (_label, type, value) => {
-    expect(codesFor(numeric((b) => b.withNumberType(type)), value).length).toBeGreaterThan(0);
+    expect(
+      codesFor(
+        numeric((b) => b.withNumberType(type)),
+        value,
+      ).length,
+    ).toBeGreaterThan(0);
   });
 
   it.each([
@@ -99,7 +100,12 @@ describe('numeric constraints', () => {
     ['double', NumberType.DOUBLE, '1.5'],
     ['decimal', NumberType.DECIMAL, '0.25'],
   ])('accepts a valid %s', (_label, type, value) => {
-    expect(codesFor(numeric((b) => b.withNumberType(type)), value)).toEqual([]);
+    expect(
+      codesFor(
+        numeric((b) => b.withNumberType(type)),
+        value,
+      ),
+    ).toEqual([]);
   });
 
   it('accepts a value at the exact bound', () => {
@@ -111,14 +117,39 @@ describe('numeric constraints', () => {
 
 describe('temporal constraints', () => {
   it.each([
-    ['granularity=year given a full datetime', () => temporal(TemporalType.DATETIME, TemporalGranularity.YEAR), '2026-08-02T10:30:00', 'temporalGranularity'],
-    ['granularity=second with no seconds', () => temporal(TemporalType.DATETIME, TemporalGranularity.SECOND), '2026-08-02T10:30', 'temporalGranularity'],
+    [
+      'granularity=year given a full datetime',
+      () => temporal(TemporalType.DATETIME, TemporalGranularity.YEAR),
+      '2026-08-02T10:30:00',
+      'temporalGranularity',
+    ],
+    [
+      'granularity=second with no seconds',
+      () => temporal(TemporalType.DATETIME, TemporalGranularity.SECOND),
+      '2026-08-02T10:30',
+      'temporalGranularity',
+    ],
     ['xsd:date given a time', () => temporal(TemporalType.DATE, TemporalGranularity.DAY), '10:30:00', 'temporalType'],
-    ['xsd:time given a date', () => temporal(TemporalType.TIME, TemporalGranularity.MINUTE), '2026-08-02', 'temporalType'],
-    ['a garbage string', () => temporal(TemporalType.DATETIME, TemporalGranularity.DAY), 'not a date at all', 'temporalType'],
+    [
+      'xsd:time given a date',
+      () => temporal(TemporalType.TIME, TemporalGranularity.MINUTE),
+      '2026-08-02',
+      'temporalType',
+    ],
+    [
+      'a garbage string',
+      () => temporal(TemporalType.DATETIME, TemporalGranularity.DAY),
+      'not a date at all',
+      'temporalType',
+    ],
     ['month 13, day 40', () => temporal(TemporalType.DATE, TemporalGranularity.DAY), '2026-13-40', 'temporalCalendar'],
     ['hour 99', () => temporal(TemporalType.TIME, TemporalGranularity.MINUTE), '99:30', 'temporalCalendar'],
-    ['an offset when timezone is disabled', () => temporal(TemporalType.DATETIME, TemporalGranularity.MINUTE, false), '2026-08-02T10:30-08:00', 'timezone'],
+    [
+      'an offset when timezone is disabled',
+      () => temporal(TemporalType.DATETIME, TemporalGranularity.MINUTE, false),
+      '2026-08-02T10:30-08:00',
+      'timezone',
+    ],
   ])('%s → %s', (_label, make, value, code) => {
     expect(codesFor(make(), value)).toContain(code);
   });
@@ -127,7 +158,11 @@ describe('temporal constraints', () => {
     ['a valid date', () => temporal(TemporalType.DATE, TemporalGranularity.DAY), '2026-08-02'],
     ['a valid time', () => temporal(TemporalType.TIME, TemporalGranularity.MINUTE), '10:30'],
     ['a valid dateTime', () => temporal(TemporalType.DATETIME, TemporalGranularity.SECOND), '2026-08-02T10:30:00'],
-    ['an offset when timezone is enabled', () => temporal(TemporalType.DATETIME, TemporalGranularity.SECOND, true), '2026-08-02T10:30:00-08:00'],
+    [
+      'an offset when timezone is enabled',
+      () => temporal(TemporalType.DATETIME, TemporalGranularity.SECOND, true),
+      '2026-08-02T10:30:00-08:00',
+    ],
     ['29 February in a leap year', () => temporal(TemporalType.DATE, TemporalGranularity.DAY), '2024-02-29'],
   ])('accepts %s', (_label, make, value) => {
     expect(codesFor(make(), value)).toEqual([]);
@@ -145,8 +180,18 @@ describe('text and format constraints', () => {
     ['regex mismatch', () => text((b) => b.withRegex('^[A-Z]{3}$')), 'zzz', 'regex'],
     ['a malformed email', () => kindOf('email', () => CedarBuilders.emailFieldBuilder()), 'not-an-email', 'email'],
     ['a non-URI link', () => kindOf('link', () => CedarBuilders.linkFieldBuilder()), 'totally not a uri', 'link'],
-    ['a nonsense phone number', () => kindOf('phone-number', () => CedarBuilders.phoneNumberFieldBuilder()), '!!!', 'phoneNumber'],
-    ['a non-IRI ORCID', () => kindOf('ext-orcid', () => CedarBuilders.extOrcidFieldBuilder()), 'banana', 'iriMalformed'],
+    [
+      'a nonsense phone number',
+      () => kindOf('phone-number', () => CedarBuilders.phoneNumberFieldBuilder()),
+      '!!!',
+      'phoneNumber',
+    ],
+    [
+      'a non-IRI ORCID',
+      () => kindOf('ext-orcid', () => CedarBuilders.extOrcidFieldBuilder()),
+      'banana',
+      'iriMalformed',
+    ],
     ['a non-IRI DOI', () => kindOf('ext-doi', () => CedarBuilders.extDoiFieldBuilder()), 'nope', 'iriMalformed'],
   ])('%s → %s', (_label, make, value, code) => {
     expect(codesFor(make(), value)).toContain(code);
@@ -156,7 +201,11 @@ describe('text and format constraints', () => {
     ['a matching regex', () => text((b) => b.withRegex('^[A-Z]{3}$')), 'ZZZ'],
     ['a valid email', () => kindOf('email', () => CedarBuilders.emailFieldBuilder()), 'someone@example.org'],
     ['a valid link', () => kindOf('link', () => CedarBuilders.linkFieldBuilder()), 'https://example.org/x'],
-    ['a valid ORCID IRI', () => kindOf('ext-orcid', () => CedarBuilders.extOrcidFieldBuilder()), 'https://orcid.org/0000-0002-1825-0097'],
+    [
+      'a valid ORCID IRI',
+      () => kindOf('ext-orcid', () => CedarBuilders.extOrcidFieldBuilder()),
+      'https://orcid.org/0000-0002-1825-0097',
+    ],
     ['length exactly at the bounds', () => text((b) => b.withMinLength(3).withMaxLength(3)), 'abc'],
   ])('accepts %s', (_label, make, value) => {
     expect(codesFor(make(), value)).toEqual([]);
@@ -165,14 +214,21 @@ describe('text and format constraints', () => {
   it('ignores an unparseable regex rather than failing every value', () => {
     // A broken pattern is the template's problem; it must not make every
     // instance invalid.
-    expect(codesFor(text((b) => b.withRegex('[unclosed')), 'anything')).toEqual([]);
+    expect(
+      codesFor(
+        text((b) => b.withRegex('[unclosed')),
+        'anything',
+      ),
+    ).toEqual([]);
   });
 });
 
 describe('choice membership', () => {
   const radio = (labels: string[]) =>
-    kindOf('radio', () => CedarBuilders.radioFieldBuilder(), (b) =>
-      labels.reduce((acc, l) => acc.addRadioOption(l, false), b),
+    kindOf(
+      'radio',
+      () => CedarBuilders.radioFieldBuilder(),
+      (b) => labels.reduce((acc, l) => acc.addRadioOption(l, false), b),
     );
 
   it('reports a value outside the declared literals', () => {
@@ -188,26 +244,54 @@ describe('cardinality', () => {
   const bounded = () =>
     buildTemplate({
       name: 'card',
-      elements: [
-        { name: 'el', cardinality: 'multi', minItems: 2, maxItems: 3, children: [{ kind: TEXT, name: 'f' }] },
-      ],
+      elements: [{ name: 'el', cardinality: 'multi', minItems: 2, maxItems: 3, children: [{ kind: TEXT, name: 'f' }] }],
     });
 
-  it('reports too few instances', () => {
+  /**
+   * The handlers now refuse to cross a bound, so these violations can only
+   * arrive in an injected instance — which is exactly the case the report's
+   * cardinality check exists for.
+   */
+  it('refuses to delete below minItems', () => {
     const driver = new CeeDriver(bounded());
     const el = driver.findOrThrow(['_el']);
-    driver.handlerContext.deleteMultiInstance(el);
-    driver.handlerContext.deleteMultiInstance(el);
-
-    expect(driver.qualityReport.problems.map((p: any) => p.code)).toContain('minItems');
-    expect(driver.qualityReport.isValid).toBe(false);
+    expect(driver.handlerContext.deleteMultiInstance(el)).toBe(false);
+    expect(driver.extract._el).toHaveLength(2);
   });
 
-  it('reports too many instances', () => {
+  it('refuses to add past maxItems', () => {
     const driver = new CeeDriver(bounded());
     const el = driver.findOrThrow(['_el']);
-    for (let i = 0; i < 5; i++) driver.handlerContext.addMultiInstance(el);
+    expect(driver.handlerContext.addMultiInstance(el)).toBe(true);
+    expect(driver.handlerContext.addMultiInstance(el)).toBe(false);
+    expect(driver.extract._el).toHaveLength(3);
+  });
 
+  it('refuses to copy past maxItems', () => {
+    const driver = new CeeDriver(bounded());
+    const el = driver.findOrThrow(['_el']);
+    expect(driver.handlerContext.copyMultiInstance(el)).toBe(true);
+    expect(driver.handlerContext.copyMultiInstance(el)).toBe(false);
+    expect(driver.extract._el).toHaveLength(3);
+  });
+
+  it('reports too few instances in an injected instance', () => {
+    const template = bounded();
+    const seed = new CeeDriver(template);
+    const instance: any = seed.metadata;
+    instance._el = [instance._el[0]];
+
+    const driver = new CeeDriver(template, { instance });
+    expect(driver.qualityReport.problems.map((p: any) => p.code)).toContain('minItems');
+  });
+
+  it('reports too many instances in an injected instance', () => {
+    const template = bounded();
+    const seed = new CeeDriver(template);
+    const instance: any = seed.metadata;
+    instance._el = [...instance._el, ...instance._el, ...instance._el];
+
+    const driver = new CeeDriver(template, { instance });
     expect(driver.qualityReport.problems.map((p: any) => p.code)).toContain('maxItems');
   });
 
