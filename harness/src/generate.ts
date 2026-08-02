@@ -95,23 +95,53 @@ const deploy = (artifact: any, spec: ChildSpec) => {
   return { propName, deployment: db.build() };
 };
 
-/** Build a template element containing the given children. */
-const buildElement = (name: string, children: ChildSpec[]) => {
+export interface ElementSpec {
+  name: string;
+  cardinality?: Cardinality;
+  minItems?: number;
+  maxItems?: number;
+  children: ChildSpec[];
+  /** Nested elements. Recursion here is what produces multi-inside-multi. */
+  elements?: ElementSpec[];
+}
+
+/**
+ * Build a template element containing the given children and sub-elements.
+ *
+ * Nesting matters because path resolution consults `currentIndex` at *every*
+ * multi ancestor (`DataObjectStructureHandler.getDataPathNodeRecursively`). A
+ * field two multi-elements deep is resolved through two independent cursors,
+ * and nothing in the single-level fixtures exercises that.
+ */
+const buildElement = (spec: ElementSpec) => {
   let eb = CedarBuilders.templateElementBuilder()
-    .withAtId(`https://repo.metadatacenter.org/template-elements/${id(name)}`)
-    .withTitle(`${name} title`)
-    .withDescription(`${name} description`)
-    .withSchemaName(name)
+    .withAtId(`https://repo.metadatacenter.org/template-elements/${id(spec.name)}`)
+    .withTitle(`${spec.name} title`)
+    .withDescription(`${spec.name} description`)
+    .withSchemaName(spec.name)
     .withCreatedOn(FIXED_DATE)
     .withCreatedBy(USER)
     .withLastUpdatedOn(FIXED_DATE)
     .withModifiedBy(USER);
 
-  for (const spec of children) {
-    const field = buildField(spec.kind, spec.name);
-    const { deployment } = deploy(field, spec);
+  for (const child of spec.children) {
+    const field = buildField(child.kind, child.name);
+    const { deployment } = deploy(field, child);
     eb = eb.addChild(field, deployment);
   }
+
+  for (const sub of spec.elements ?? []) {
+    const element = buildElement(sub);
+    const { deployment } = deploy(element, {
+      kind: null as unknown as FieldKind,
+      name: sub.name,
+      cardinality: sub.cardinality,
+      minItems: sub.minItems,
+      maxItems: sub.maxItems,
+    });
+    eb = eb.addChild(element, deployment);
+  }
+
   return eb.build();
 };
 
@@ -120,13 +150,7 @@ export interface TemplateSpec {
   /** Children placed directly on the template. */
   children?: ChildSpec[];
   /** Elements placed on the template, each with their own children. */
-  elements?: Array<{
-    name: string;
-    cardinality?: Cardinality;
-    minItems?: number;
-    maxItems?: number;
-    children: ChildSpec[];
-  }>;
+  elements?: ElementSpec[];
 }
 
 /** Assemble a full CEDAR template as a plain JSON object CEE can consume. */
@@ -149,7 +173,7 @@ export const buildTemplate = (spec: TemplateSpec): object => {
   }
 
   for (const el of spec.elements ?? []) {
-    const element = buildElement(el.name, el.children);
+    const element = buildElement(el);
     const { deployment } = deploy(element, {
       kind: null as unknown as FieldKind,
       name: el.name,
@@ -210,7 +234,7 @@ export const sweep = (kinds: FieldKind[], cardinalities: readonly Cardinality[],
             elements: [
               {
                 name: elName,
-                cardinality: elMulti ? 'multi' : 'single',
+                cardinality: elMulti ? 'multi' : ('single' as Cardinality),
                 minItems: elMulti ? 2 : undefined,
                 children: [child],
               },

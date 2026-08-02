@@ -4,8 +4,9 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 279 tests, all passing** on Node 20.20.2 / Vitest 1.6.
+> **Status: 422 tests, all passing** on Node 20.20.2 / Vitest 1.6.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
+> Two CEE defects found and characterized — see [What it found](#what-it-found).
 
 ## Why this exists
 
@@ -52,12 +53,35 @@ change.
 |---|---|
 | `src/axes.ts` | The branch-space enumeration, and the honest list of what isn't covered |
 | `src/generate.ts` | Deterministic template generation via `CedarBuilders` |
+| `src/controlled.ts` | Controlled-term constraint construction and subset enumeration |
 | `src/driver.ts` | Headless CEE — reproduces the wrapper's startup path without Angular |
 | `stubs/angular-core.ts` | No-op decorators, so the harness never loads Angular |
 | `stubs/editor-component.ts` | Breaks the `DataObjectUtil` → editor-component circular import |
 | `test/coverage.spec.ts` | Drift detection: does the generator still cover every `InputType`? |
 | `test/roundtrip.spec.ts` | The oracle, swept across the cross-product |
+| `test/controlled-terms.spec.ts` | All 15 constraint-kind subsets × cardinality × nesting × reload |
+| `test/cardinality.spec.ts` | minItems, required values, two-level multi nesting |
+| `test/value-constraints.spec.ts` | Text/numeric/temporal constraints, choice literals, defaults |
 | `test/edge-cases.spec.ts` | Page breaks, static collapse, hidden fields, multi-instance, reload |
+
+## Dimensions covered
+
+| Dimension | Extent |
+|---|---|
+| Input type | 19 of CEE's 24 (see [gap](#known-coverage-gap)) |
+| Cardinality | single / multi, `minItems` ∈ {0, 1, 2, 3, 5} |
+| Nesting | root, in element, in multi element, multi-in-multi (two cursors) |
+| Required | every non-static kind, single and inside multi elements |
+| Controlled terms | all 15 non-empty subsets of {ontologies, classes, branches, valueSets}, plus multiplicity |
+| Value constraints | min/maxLength, default, numberType × 5, min/maxValue, decimalPlaces, unitOfMeasure, temporalType × 3, granularity × 7, timezone |
+| Choice literals | list (single + multiple), radio, checkbox; `selectedByDefault` and its instance pre-seeding |
+| Instance lifecycle | build → write → save → reload, across the controlled-term matrix |
+| Static content | image, youtube, richtext, section break, page break; collapsing on/off |
+
+Constraint frequencies were taken from the HuBMAP corpus shipped with
+`cedar-artifact-library` (`src/test/resources/templates-yaml/`) so the emphasis
+matches real templates: `values` 601, `regex` 150, `minValue` 127, `default` 96,
+`selected` 37, `granularity` 28.
 
 ## Running it
 
@@ -87,6 +111,43 @@ it go red. Two mutations were applied to CEE source and both were caught:
 | `multiInstanceItemAdd`: second `performItemAdd` writes to the extract tree instead of the full tree | `loading an existing instance > recovers multi-instance counts` |
 
 Both were reverted; CEE source is unmodified by this harness.
+
+## What it found
+
+Two defects, both characterized in
+`test/cardinality.spec.ts` → "known defects (characterized, not endorsed)".
+The tests assert what CEE *does*, so fixing either is a deliberate, visible change.
+
+**1. A filled required ORCID/ROR field never satisfies its requirement.**
+
+`changeValue` stores these as `{'@id': <iri>}` with no `@value`.
+`DataQualityReportBuilderHandler.extractPlainValue` returns the IRI only when
+`component.basicInfo.inputType === InputType.link`; any other IRI-valued type
+falls through to the controlled-term branch and reads `rdfs:label`, which is
+undefined. `emptyToNull` turns that into null, the field counts as empty, and
+`isValid` never becomes true.
+
+On `develop` this affects **seven** input types, not two — the check is a single
+equality against `link`, while `ext-orcid`, `ext-ror`, `ext-pfas`, `ext-pubmed`,
+`ext-rrid`, `ext-nih-grant-id` and `ext-doi` all store a bare `@id`. Fix is to
+test set membership instead
+(`data-quality-report-builder.handler.ts:155`).
+
+**2. Filling one page of a multi element marks every page satisfied.**
+
+`buildRecursively` walks a multi element's children once into a dummy object —
+incrementing the required-value counters as it goes — then `_.cloneDeep`s that
+dummy `currentCount` times (`data-quality-report-builder.handler.ts:65-80`). The
+clones never touch the counters, and the single evaluation reads whichever page
+`currentIndex` points at. So a required field filled on page 0 makes the report
+valid while pages 1..n are still empty: the instance is reported complete when
+it is not.
+
+Related, and worth knowing rather than fixing: writing to a link / ORCID / ROR
+field leaves `rdfs:label: undefined` on the node. `JSON.stringify` drops
+undefined-valued keys, so the emitted JSON looks clean while
+`'rdfs:label' in node` is still true — a key-presence check silently yields
+undefined for every IRI-valued field.
 
 ## Getting it to run: four things that bit
 
