@@ -110,8 +110,9 @@ describe('required values', () => {
    * (data-quality-report-builder.handler.ts:65-80). The clones never touch the
    * counters.
    *
-   * Pinned as-is rather than asserted as "should scale", because changing it is
-   * a product decision. See the known-defects block for the consequence.
+   * That is the "at least one instance must carry a value" semantic, now made
+   * deliberate: see "required values are page-independent" below, which pins
+   * that the *which* instance no longer matters either.
    */
   it('counts a required field in a multi element once, regardless of instance count', () => {
     const driver = new CeeDriver(
@@ -209,42 +210,181 @@ describe('quality report value extraction', () => {
 });
 
 /**
- * Behaviour that looks wrong, pinned so a fix is a deliberate, visible change.
+ * REGRESSION: validity does not depend on which page is on screen.
  *
- * A characterization test: it asserts what CEE *does*, not what it arguably
- * should do. If someone fixes this, the test fails and they update it on
- * purpose — which is the point.
+ * `buildRecursively` evaluates a multi element's children once against
+ * whichever instance `currentIndex` points at, then clones the result. Asking
+ * `getDataObjectNodeByPath` whether a required field is filled therefore
+ * answered only for the visible page: the same instance reported valid or
+ * invalid depending on where the user had paged to.
+ *
+ * The report now decides satisfaction with `findAnyValue`, a cursor-free walk
+ * of the extract instance that branches into every array entry. Semantics are
+ * **at least one**: a requirement on a field inside a repeated element is met
+ * when any instance carries a value.
+ *
+ * The value *tree* still shows the displayed page — that is a snapshot of what
+ * is on screen, and it is only the counters that should be page-independent.
  */
-describe('known defects (characterized, not endorsed)', () => {
-  /**
-   * DEFECT: filling one page of a multi element marks every page satisfied.
-   *
-   * Follows from the clone-the-dummy strategy above: the children are evaluated
-   * once against whichever page `currentIndex` points at, so a required field
-   * filled on page 0 makes the report valid while pages 1..n are still empty.
-   * The instance is reported as complete when it is not.
-   */
-  it('reports valid after filling only the first page of a multi element', () => {
-    const driver = new CeeDriver(
-      buildTemplate({
-        name: 'defect_pages',
-        elements: [
-          { name: 'el', cardinality: 'multi', minItems: 3, children: [{ kind: TEXT, name: 'f', required: true }] },
-        ],
-      }),
-    );
-    const el = driver.findOrThrow(['_el']);
-    driver.handlerContext.setCurrentIndex(el, 0);
-    driver.setValue(['_el', '_f'], TEXT, 'only page zero');
+describe('required values are page-independent', () => {
+  const threeInstances = () =>
+    buildTemplate({
+      name: 'pages',
+      elements: [
+        { name: 'el', cardinality: 'multi', minItems: 3, children: [{ kind: TEXT, name: 'f', required: true }] },
+      ],
+    });
 
+  /** Fill exactly one page, then read validity from each page in turn. */
+  const validityFromEachPage = (filledPage: number) => {
+    const driver = new CeeDriver(threeInstances());
+    const el = driver.findOrThrow(['_el']);
+
+    driver.handlerContext.setCurrentIndex(el, filledPage);
+    driver.setValue(['_el', '_f'], TEXT, `filled on page ${filledPage}`);
+
+    return [0, 1, 2].map((page) => {
+      driver.handlerContext.setCurrentIndex(el, page);
+      driver.handlerContext.buildQualityReport();
+      return driver.qualityReport.isValid;
+    });
+  };
+
+  it.each([0, 1, 2])('a value on page %i satisfies the requirement from every page', (filledPage) => {
+    expect(validityFromEachPage(filledPage)).toEqual([true, true, true]);
+  });
+
+  it('is invalid from every page when no instance carries a value', () => {
+    const driver = new CeeDriver(threeInstances());
+    const el = driver.findOrThrow(['_el']);
+
+    for (const page of [0, 1, 2]) {
+      driver.handlerContext.setCurrentIndex(el, page);
+      driver.handlerContext.buildQualityReport();
+      expect(driver.qualityReport.isValid, `page ${page}`).toBe(false);
+    }
+  });
+
+  it('becomes invalid again when the only value is cleared', () => {
+    const driver = new CeeDriver(threeInstances());
+    const el = driver.findOrThrow(['_el']);
+
+    driver.handlerContext.setCurrentIndex(el, 1);
+    driver.setValue(['_el', '_f'], TEXT, 'temporary');
     expect(driver.qualityReport.isValid).toBe(true);
 
-    // Pages 1 and 2 are demonstrably empty.
-    for (const page of [1, 2]) {
-      driver.handlerContext.setCurrentIndex(el, page);
-      const node: any = driver.handlerContext.getDataObjectNodeByPath(['_el', '_f']);
-      expect(node['@value'] ?? null, `page ${page} should be empty`).toBeNull();
+    driver.setValue(['_el', '_f'], TEXT, '');
+    expect(driver.qualityReport.isValid).toBe(false);
+  });
+
+  /**
+   * The value tree is a view of the current page and must stay that way — the
+   * fix separates "what is displayed" from "what satisfies the requirement",
+   * and conflating them again would show a value from another instance.
+   */
+  it('still reports the displayed page in the value tree', () => {
+    const driver = new CeeDriver(threeInstances());
+    const el = driver.findOrThrow(['_el']);
+
+    driver.handlerContext.setCurrentIndex(el, 2);
+    driver.setValue(['_el', '_f'], TEXT, 'only page two');
+
+    driver.handlerContext.setCurrentIndex(el, 0);
+    driver.handlerContext.buildQualityReport();
+
+    const node: any = driver.handlerContext.getDataObjectNodeByPath(['_el', '_f']);
+    expect(node['@value'] ?? null, 'page 0 is genuinely empty').toBeNull();
+    expect(driver.qualityReport.isValid, 'but the instance as a whole satisfies it').toBe(true);
+  });
+
+  /**
+   * Partial instances, which CEE itself never builds but a host page can inject.
+   *
+   * `findAnyValue` guards against null and missing nodes. That guard is
+   * unreachable from an instance CEE constructed — it always writes
+   * `{'@value': null}` rather than a bare null — so without these cases the
+   * guard is untested, and a mutation making it return a value survives
+   * silently.
+   */
+  it.each([
+    ['an entry holds a null field', [{ _f: null }]],
+    ['an entry omits the field', [{}]],
+    ['the array is absent', undefined],
+  ])('is invalid when %s', (_label, elValue) => {
+    const instance: any = { '@context': {}, '@id': 'https://example.org/i/1' };
+    if (elValue !== undefined) {
+      instance._el = elValue;
     }
+
+    const driver = new CeeDriver(threeInstances(), { instance });
+    driver.handlerContext.buildQualityReport();
+
+    expect(driver.qualityReport.requiredFieldValueCount).toBeGreaterThan(0);
+    expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(0);
+    expect(driver.qualityReport.isValid).toBe(false);
+  });
+
+  /**
+   * CHARACTERIZATION, not an endorsement: an element with zero instances
+   * contributes zero requirements, so a template whose only required field
+   * lives inside it reports vacuously valid.
+   *
+   * `buildRecursively` guards the multi-element branch with `multiCount > 0`,
+   * and `computeValidity` is `required <= nonNull`, so 0 <= 0 passes. Note the
+   * asymmetry with the case above: an *absent* `_el` key falls back to the
+   * template's `minItems`, giving three instances and a real requirement,
+   * while an explicit `_el: null` yields zero instances and none.
+   *
+   * Whether an empty repeated element should satisfy or violate a requirement
+   * is a product question, distinct from the page-independence fix above, and
+   * predates it. Pinned so that deciding it is a visible change.
+   */
+  it('reports vacuously valid when the element has no instances at all', () => {
+    const driver = new CeeDriver(threeInstances(), {
+      instance: { '@context': {}, '@id': 'https://example.org/i/1', _el: null },
+    });
+    driver.handlerContext.buildQualityReport();
+
+    expect(driver.qualityReport.requiredFieldValueCount).toBe(0);
+    expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(0);
+    expect(driver.qualityReport.isValid).toBe(true);
+  });
+
+  it('holds for a deeply nested required field', () => {
+    const deep = buildTemplate({
+      name: 'pages_deep',
+      elements: [
+        {
+          name: 'outer',
+          cardinality: 'multi',
+          minItems: 2,
+          children: [],
+          elements: [
+            {
+              name: 'inner',
+              cardinality: 'multi',
+              minItems: 2,
+              children: [{ kind: TEXT, name: 'f', required: true }],
+            },
+          ],
+        },
+      ],
+    });
+    const driver = new CeeDriver(deep);
+    const outer = driver.findOrThrow(['_outer']);
+    const inner = driver.findOrThrow(['_outer', '_inner']);
+
+    // Fill the last coordinate only.
+    driver.handlerContext.setCurrentIndex(outer, 1);
+    driver.handlerContext.setCurrentIndex(inner, 1);
+    driver.setValue(['_outer', '_inner', '_f'], TEXT, 'deep value');
+
+    // Read from the first coordinate.
+    driver.handlerContext.setCurrentIndex(outer, 0);
+    driver.handlerContext.setCurrentIndex(inner, 0);
+    driver.handlerContext.buildQualityReport();
+
+    expect(driver.qualityReport.isValid).toBe(true);
   });
 });
 

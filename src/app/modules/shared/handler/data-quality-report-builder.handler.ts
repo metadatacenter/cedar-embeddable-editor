@@ -106,34 +106,99 @@ export class DataQualityReportBuilderHandler {
         isRequired = true;
       }
       const dataValueObject: object = handlerContext.getDataObjectNodeByPath(component.path);
+      // Whether a requirement is satisfied is asked of the whole instance, not
+      // of the page currently on screen. See findAnyValue.
+      const satisfiedBy = isRequired
+        ? DataQualityReportBuilderHandler.findAnyValue(
+            component.path,
+            handlerContext.dataContext.instanceExtractData,
+            component,
+          )
+        : null;
       if (component instanceof MultiFieldComponent) {
         valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyList();
         const multiCount = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount;
         for (let idx = 0; idx < multiCount; idx++) {
           const value = DataQualityReportBuilderHandler.extractPlainValue(dataValueObject[idx], component);
           valueTree[targetName]['values'].push(
-            DataQualityReportBuilderHandler.getEmptyValueWrapper(value, isRequired, report),
+            DataQualityReportBuilderHandler.getEmptyValueWrapper(value, isRequired, report, satisfiedBy),
           );
         }
       } else {
         const value = DataQualityReportBuilderHandler.extractPlainValue(dataValueObject, component);
-        valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyValueWrapper(value, isRequired, report);
+        valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyValueWrapper(
+          value,
+          isRequired,
+          report,
+          satisfiedBy,
+        );
       }
       ret = valueTree[targetName];
     }
     return ret;
   }
 
-  private static getEmptyValueWrapper(value: object, isRequired: boolean, report: DataQualityReport) {
+  /**
+   * @param value          what this slot holds — goes into the value tree, so it
+   *                       stays the value of the page being displayed.
+   * @param satisfiedBy    what decides whether the requirement is met. Separate
+   *                       from `value` because a required field inside a
+   *                       multi-instance element is satisfied by *any* instance
+   *                       holding a value, not only the one on screen.
+   */
+  private static getEmptyValueWrapper(
+    value: object,
+    isRequired: boolean,
+    report: DataQualityReport,
+    satisfiedBy: object = value,
+  ) {
     const v = { value: value };
     if (isRequired) {
       v['required'] = true;
       report.requiredFieldValueCount++;
-      if (value !== null) {
+      if (satisfiedBy !== null) {
         report.nonNullRequiredFieldValueCount++;
       }
     }
     return v;
+  }
+
+  /**
+   * The first value held at `path` by any instance, or null.
+   *
+   * Deliberately cursor-free. `handlerContext.getDataObjectNodeByPath` resolves
+   * through each multi ancestor's `currentIndex`, so asking it whether a
+   * required field is filled answers only for the page currently on screen —
+   * the same instance reported valid or invalid depending on where the user had
+   * paged to. This walks the extract instance directly and branches into every
+   * array entry instead, so the answer depends on the data alone.
+   *
+   * Semantics: a requirement on a field inside a repeated element is met when
+   * at least one instance carries a value. Requiring every instance to carry
+   * one would need per-instance evaluation, which is a different and larger
+   * change; see the roadmap.
+   */
+  private static findAnyValue(path: string[], node: any, component: SingleFieldComponent | MultiFieldComponent): any {
+    if (node === null || node === undefined) {
+      return null;
+    }
+    if (Array.isArray(node)) {
+      for (const entry of node) {
+        const found = DataQualityReportBuilderHandler.findAnyValue(path, entry, component);
+        if (found !== null) {
+          return found;
+        }
+      }
+      return null;
+    }
+    if (path.length === 0) {
+      return DataQualityReportBuilderHandler.extractPlainValue(node, component);
+    }
+    const [head, ...rest] = path;
+    if (!Object.hasOwn(node, head)) {
+      return null;
+    }
+    return DataQualityReportBuilderHandler.findAnyValue(rest, node[head], component);
   }
 
   private static getSingleValueWrapper() {

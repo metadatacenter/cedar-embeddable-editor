@@ -4,9 +4,9 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 558 tests, all passing** on Node 20.20.2 / Vitest 1.6.
+> **Status: 568 tests, all passing** on Node 20.20.2 / Vitest 1.6.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
-> Three CEE defects found — two fixed, one characterized. See [What it found](#what-it-found).
+> Three CEE defects found, all three fixed. See [What it found](#what-it-found).
 
 ## Why this exists
 
@@ -105,18 +105,28 @@ switch Node versions too.
 ## Does it have teeth?
 
 A suite that is green the day it is written is worth nothing until you have seen
-it go red. Two mutations were applied to CEE source and both were caught:
+it go red. Every fix below was mutation-tested, and the mutations were reverted.
 
-| Mutation | Caught by |
+| Mutation | Tests failed |
 |---|---|
-| `computeValidity`: `<=` → `<` in `data-quality-report.model.ts` | `data quality report > counts required fields and flips to valid` |
-| `multiInstanceItemAdd`: second `performItemAdd` writes to the extract tree instead of the full tree | `loading an existing instance > recovers multi-instance counts` |
+| `computeValidity`: `<=` → `<` | 1 |
+| `multiInstanceItemAdd`: second write targets the extract tree, not the full tree | 1 |
+| `extractPlainValue`: drop `EXTERNAL_AUTHORITY_INPUT_TYPES`, compare to `link` only | 14 |
+| `hasNonEmptyChild`: invert to last-child-wins | 5 |
+| `hasNonEmptyChild`: always report non-empty | 3 |
+| `findAnyValue`: revert to cursor-based satisfaction | 7 |
+| `findAnyValue`: null guard returns a value | 1 |
 
-Both were reverted; CEE source is unmodified by this harness.
+The last one is the interesting entry. It **survived** the first time: the
+null-node guard is unreachable from an instance CEE built, because CEE always
+writes `{'@value': null}` rather than a bare null, so nothing exercised it.
+Adding partial-instance cases — the kind a host page can inject — closed it.
+Worth recording as the general lesson: a mutation that survives is usually
+pointing at an untested branch, not at a redundant one.
 
 ## What it found
 
-Three defects. Two are fixed; the third is a product decision and stays pinned.
+Three defects, all fixed.
 
 **1. A filled required IRI-valued field never satisfied its requirement. — FIXED**
 
@@ -142,21 +152,33 @@ Now a regression test, per type, in `test/cardinality.spec.ts` → "quality
 report value extraction", with a companion asserting controlled terms are still
 read from their label rather than their IRI.
 
-**2. Filling one page of a multi element marks every page satisfied. — open**
+**2. Validity depended on which page was on screen. — FIXED**
 
-`buildRecursively` walks a multi element's children once into a dummy object —
-incrementing the required-value counters — then `_.cloneDeep`s that dummy
-`currentCount` times (`data-quality-report-builder.handler.ts:65-80`). The
-clones never touch the counters, and the single evaluation reads whichever page
-`currentIndex` points at. Fill page 0 of three and the report calls the
-instance complete.
+`buildRecursively` evaluated a multi element's children once against whichever
+instance `currentIndex` pointed at, then cloned the result. Asking
+`getDataObjectNodeByPath` whether a required field was filled therefore
+answered only for the visible page. With three authors and the name filled on
+page 2, the same instance reported:
 
-Deliberately not fixed. Evaluating each instance needs path resolution to
-resolve *as if* `currentIndex` were N, and that state is shared and mutable —
-so the fix collides with the impure-path-resolution debt rather than being
-local. It also embeds a question only the product can answer: is a required
-field inside an N-instance element one requirement or N? Pinned in "known
-defects (characterized, not endorsed)".
+| viewing | `isValid` |
+|---|---|
+| page 0 | false |
+| page 1 | false |
+| page 2 | true |
+
+Settling the semantic made the fix small. Under **at least one instance must
+carry a value** — which the counting side already implemented, since
+`requiredFieldValueCount` was 1 rather than 3 — no per-instance evaluation is
+needed, and therefore no cursor override and no collision with the shared
+mutable `currentIndex`. The report now decides satisfaction with `findAnyValue`,
+a cursor-free walk of the extract instance that branches into every array
+entry. The value *tree* still shows the displayed page; only the counters are
+page-independent, and a test pins that separation.
+
+Still open as a product question, and pinned rather than assumed: whether an
+element with **zero** instances should satisfy or violate a requirement. Today
+it contributes no requirements and so reports vacuously valid. That predates
+this fix and is untouched by it.
 
 **3. Element visibility depended on the order of its element children. — FIXED**
 
