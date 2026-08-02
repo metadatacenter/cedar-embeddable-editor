@@ -149,6 +149,12 @@ export class CeeDriver {
         this.handlerContext.changeControlledValue(component, `https://example.org/terms/${encodeURIComponent(value)}`, value);
         return;
       case 'attribute':
+        // An attribute-value field starts with no occurrences — minItems is 0
+        // for this type whatever the template says — so the widget that would
+        // let a user type a name does not exist until one is added. Writing
+        // without adding puts the value on the parent but leaves the name off
+        // the field's own array, a half-written state the UI cannot reach.
+        this.addAttributeSlot(component);
         this.handlerContext.changeAttributeValue(component, 'attrKey', value);
         return;
       case 'value':
@@ -158,6 +164,20 @@ export class CeeDriver {
           this.handlerContext.changeValue(component, value);
         }
         return;
+    }
+  }
+
+  /**
+   * Give an attribute-value field somewhere to put the next attribute.
+   *
+   * The pager's "+" does this in the UI. Idempotent in spirit: it only adds
+   * when the cursor is not already on a slot, so callers can arm before every
+   * write without piling up empty occurrences.
+   */
+  addAttributeSlot(component: any): void {
+    const info = this.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
+    if (!info || info.currentIndex < 0) {
+      this.handlerContext.addMultiInstance(component);
     }
   }
 

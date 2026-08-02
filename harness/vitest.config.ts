@@ -50,6 +50,11 @@ const ceeStubs = (): Plugin => ({
     if (source === 'lodash-es') {
       return path.resolve(here, 'node_modules/lodash-es/lodash.js');
     }
+    // Same reason: `root` is the repo, so vitest looks for its own coverage
+    // provider beside CEE's package.json rather than beside the harness's.
+    if (source === '@vitest/coverage-v8') {
+      return path.resolve(here, 'node_modules/@vitest/coverage-v8/dist/index.js');
+    }
     return null;
   },
 });

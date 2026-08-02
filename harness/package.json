@@ -7,7 +7,8 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.include='src/app/modules/shared/**' --coverage.reporter=text"
   },
   "dependencies": {
     "cedar-model-typescript-library": "file:../../cedar-model-typescript-library/dist",
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^20.11.0",
+    "@vitest/coverage-v8": "^1.6.1",
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"
   }

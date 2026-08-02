@@ -64,7 +64,6 @@ export class MultiInstanceObjectHandler {
     multiInstanceObject: MultiInstanceInfo,
   ): void {
     const instanceExtractData = JSON.parse(JSON.stringify(instanceExtractDataIn));
-    // this.deleteAttributeValueFields(instanceExtractData, 0);
 
     for (const key in instanceExtractData) {
       const myPath: string[] = parentPath.slice();
@@ -180,34 +179,6 @@ export class MultiInstanceObjectHandler {
       targetObj.componentName = path[path.length - 1];
       targetObj.currentCount = count;
       targetObj.currentIndex = count > 0 ? 0 : -1;
-    }
-  }
-
-  private deleteAttributeValueFields(instanceExtractData: InstanceExtractData, depth: number): void {
-    for (const key in instanceExtractData) {
-      if (Array.isArray(instanceExtractData[key]) && instanceExtractData[key].length > 0) {
-        if (typeof instanceExtractData[key][0] === JavascriptTypes.string) {
-          for (let i = 0; i < instanceExtractData[key].length; i++) {
-            delete instanceExtractData[instanceExtractData[key][i]];
-          }
-        } else {
-          if (
-            !Object.hasOwn(instanceExtractData[key][0], JsonSchema.atValue) &&
-            !Object.hasOwn(instanceExtractData[key][0], JsonSchema.atId)
-          ) {
-            for (let i = 0; i < instanceExtractData[key].length; i++) {
-              this.deleteAttributeValueFields(instanceExtractData[key][i], depth + 1);
-            }
-          }
-        }
-      } else {
-        if (
-          !Object.hasOwn(instanceExtractData[key], JsonSchema.atValue) &&
-          !Object.hasOwn(instanceExtractData[key], JsonSchema.atId)
-        ) {
-          this.deleteAttributeValueFields(instanceExtractData[key], depth + 1);
-        }
-      }
     }
   }
 

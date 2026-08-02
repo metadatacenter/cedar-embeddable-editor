@@ -314,10 +314,6 @@ export class DataQualityReportBuilderHandler {
     return DataQualityReportBuilderHandler.findAnyValue(rest, node[head], component);
   }
 
-  private static getSingleValueWrapper() {
-    return {};
-  }
-
   private static getEmptyList() {
     return { values: [] };
   }

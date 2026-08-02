@@ -40,10 +40,6 @@ export class ComponentTypeHandler {
     );
   }
 
-  static isTemplate(component: CedarComponent): boolean {
-    return component instanceof CedarTemplate;
-  }
-
   static isFieldOrElement(component: CedarComponent): boolean {
     return this.isField(component) || this.isElement(component);
   }
