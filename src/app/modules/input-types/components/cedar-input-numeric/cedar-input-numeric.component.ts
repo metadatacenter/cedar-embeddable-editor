@@ -7,6 +7,7 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { Numbers } from '../../../shared/models/numbers.model';
 import { Xsd } from '../../../shared/models/xsd.model';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 @Component({
   selector: 'app-cedar-input-numeric',
@@ -48,63 +49,26 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
       validators.push(Validators.required);
     }
 
+    // Type patterns, the type's own range, min/max and decimalPlace all come
+    // from FieldValueValidator now, so the widget and the data quality report
+    // cannot disagree about what a valid number is. The displayed bounds below
+    // are still resolved here because the template shows them as hints.
     const numberType = this.component.numberInfo.numberType;
-    const decimalPlace = this.component.numberInfo.decimalPlace;
-    let maxDecimalError = '';
-
-    if (numberType === Xsd.int) {
-      validators.push(Validators.pattern(Numbers.PATTERN_XSD_INT_AND_LONG));
-      this.patternErrorMessage = ' The value should be an integer.';
-
-      if (this.constraintMinValue == null) {
-        this.constraintMinValue = Numbers.NUMBER_INT_MIN;
-      }
-
-      if (this.constraintMaxValue == null) {
-        this.constraintMaxValue = Numbers.NUMBER_INT_MAX;
+    if (this.constraintMinValue == null || this.constraintMaxValue == null) {
+      const implicitBounds = {
+        [Xsd.int]: [Numbers.NUMBER_INT_MIN, Numbers.NUMBER_INT_MAX],
+        [Xsd.long]: [Numbers.NUMBER_LONG_MIN, Numbers.NUMBER_LONG_MAX],
+        [Xsd.byte]: [Numbers.NUMBER_BYTE_MIN, Numbers.NUMBER_BYTE_MAX],
+        [Xsd.short]: [Numbers.NUMBER_SHORT_MIN, Numbers.NUMBER_SHORT_MAX],
+      }[numberType];
+      if (implicitBounds) {
+        this.constraintMinValue = this.constraintMinValue ?? implicitBounds[0];
+        this.constraintMaxValue = this.constraintMaxValue ?? implicitBounds[1];
       }
     }
+    this.patternErrorMessage = CedarValidators.describeNumberType(this.component);
 
-    if (numberType === Xsd.long) {
-      validators.push(Validators.pattern(Numbers.PATTERN_XSD_INT_AND_LONG));
-      this.patternErrorMessage = ' The value should be a long integer.';
-
-      if (this.constraintMinValue == null) {
-        this.constraintMinValue = Numbers.NUMBER_LONG_MIN;
-      }
-
-      if (this.constraintMaxValue == null) {
-        this.constraintMaxValue = Numbers.NUMBER_LONG_MAX;
-      }
-    }
-
-    if (numberType === Xsd.float || numberType === Xsd.double) {
-      let pattern: string = Numbers.PATTERN_XSD_FLOAT_AND_DOUBLE;
-      let maxDig = '';
-
-      if (decimalPlace != null) {
-        maxDig = '' + decimalPlace;
-        maxDecimalError = ' maximum ' + decimalPlace + ' decimals.';
-      }
-      pattern = pattern.replace(new RegExp('maxDig', 'g'), maxDig);
-      validators.push(Validators.pattern(pattern));
-    }
-
-    if (numberType === Xsd.float) {
-      this.patternErrorMessage = ' The value should be a float,' + maxDecimalError;
-    }
-
-    if (numberType === Xsd.double) {
-      this.patternErrorMessage = ' The value should be a double,' + maxDecimalError;
-    }
-
-    if (this.constraintMinValue != null) {
-      validators.push(Validators.min(this.constraintMinValue));
-    }
-
-    if (this.constraintMaxValue != null) {
-      validators.push(Validators.max(this.constraintMaxValue));
-    }
+    validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl(null, validators);
   }
 

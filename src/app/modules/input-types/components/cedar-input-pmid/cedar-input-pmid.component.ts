@@ -13,6 +13,7 @@ import { PmidFieldDataService } from '../../../shared/service/pmid-field-data.se
 import { catchError, debounceTime, distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
 import { PmidDetailResponse } from '../../../shared/models/rest/pmid-detail/pmid-detail-response';
 import { TextFieldErrorStateMatcher } from '../cedar-input-pfas/cedar-input-pfas.component';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 @Component({
   selector: 'app-cedar-input-pmid',
@@ -53,6 +54,7 @@ export class CedarInputPmidComponent extends CedarUIDirective implements OnInit,
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }
+    validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl(null, validators);
     this.options = this.fb.group({
       inputValue: this.inputValueControl,

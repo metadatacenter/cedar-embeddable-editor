@@ -21,6 +21,7 @@ import { NihGrantFieldDataService } from '../../../shared/service/nih-grant-fiel
 import { NihGrantSearchResponseItem } from '../../../shared/models/rest/nih-grant-search/nih-grant-search-response-item';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { NihGrantDetailResponse } from '../../../shared/models/rest/nih-grant-detail/nih-grant-detail-response';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -67,6 +68,7 @@ export class CedarInputNihGrantComponent extends CedarUIDirective implements OnI
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }
+    validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl(null, validators);
     this.options = this.fb.group({
       inputValue: this.inputValueControl,

@@ -6,6 +6,7 @@ import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -52,6 +53,7 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
+    validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl(null, validators);
   }
 

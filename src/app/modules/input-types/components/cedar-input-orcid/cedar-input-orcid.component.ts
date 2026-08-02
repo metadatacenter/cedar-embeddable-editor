@@ -13,6 +13,7 @@ import { OrcidFieldDataService } from '../../../shared/service/orcid-field-data.
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { OrcidSearchResponseItem } from '../../../shared/models/rest/orcid-search/orcid-search-response-item';
 import { ResearcherDetails } from '../../../shared/models/rest/orcid-detail/orcid-detail-person';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -73,6 +74,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }
+    validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl(null, validators);
     if (this.component?.valueInfo?.defaultValue) {
       const defaultAtId = this.component.valueInfo.defaultValue[JsonSchema.atId] || null;

@@ -5,6 +5,7 @@ import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { JsonSchema } from '../../../shared/models/json-schema.model';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 @Component({
   selector: 'app-cedar-input-checkbox',
@@ -33,6 +34,13 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     for (const choice of this.component.choiceInfo.choices) {
       const fc = new FormControl();
       this.options.addControl(this.getFormControlName(choice.label), fc);
+    }
+    if (this.component.valueInfo.requiredValue) {
+      // The checkbox group installed no validators at all, so a required
+      // checkbox field could never report itself unsatisfied — the data quality
+      // report caught it while the widget stayed silent.
+      this.options.setValidators(CedarValidators.atLeastOneChecked());
+      this.options.updateValueAndValidity({ emitEvent: false });
     }
     this.populateValuesOnLoad();
   }

@@ -1,6 +1,7 @@
-import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, HostListener, Input, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl } from '@angular/forms';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
@@ -25,6 +26,38 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   setDefaultZone = false;
   datetimeParsed: DatetimeRepresentation;
   dateMonthYearControl: FormControl;
+  /**
+   * Carries the stored representation so it can be validated.
+   *
+   * A value entered through this widget is well-formed by construction —
+   * `toStorageRepresentation` concatenates the parts. A value arriving from a
+   * host page's injected instance is not, and until now nothing checked it:
+   * temporal was the only field type with no validators at all, despite having
+   * the most declared structure to check against.
+   */
+  valueControl: FormControl = new FormControl(null);
+  /**
+   * Whether the user has actually edited this field.
+   *
+   * Needed because the component writes a value several times while
+   * initialising — the date default is applied before the time, so the stored
+   * representation is briefly date-only, which does not satisfy an
+   * `xsd:dateTime`. Reporting that would put an error on a form nobody has
+   * touched.
+   *
+   * Driven by real DOM events rather than by the change handlers: assigning
+   * `timePickerTime` fires the timepicker's `ngModelChange` exactly as a user
+   * edit does, and `setCurrentValue` can arrive on a later tick, so neither the
+   * handlers nor a post-init reset can tell the two apart. A programmatic
+   * assignment dispatches no `input` or `change` event; a user action does.
+   */
+  userEdited = false;
+
+  @HostListener('input')
+  @HostListener('change')
+  onUserEdit(): void {
+    this.userEdited = true;
+  }
   required: boolean;
 
   @Input() handlerContext: HandlerContext;
@@ -44,13 +77,18 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
+    const validators = [CedarValidators.forComponent(componentToRender)];
+    if (componentToRender.valueInfo.requiredValue) {
+      validators.push(Validators.required);
+    }
+    this.valueControl.setValidators(validators);
     this.required = this.component.valueInfo.requiredValue;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
   dateInputChanged(event): void {
     this.datetimeParsed.setDate(event);
-    this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
+    this.writeValue();
   }
 
   timeInputChanged(event): void {
@@ -64,18 +102,18 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     if (this.showSeconds()) {
       this.datetimeParsed.setSeconds(this.timePickerTime.getSeconds());
     }
-    this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
+    this.writeValue();
   }
 
   decimalSecondsChanged(event): void {
     this.datetimeParsed.setDecimalSeconds(this.decimalSeconds);
-    this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
+    this.writeValue();
   }
 
   timezoneInputChanged(event): void {
     if (event != null) {
       this.datetimeParsed.setTimezone(event);
-      this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
+      this.writeValue();
     }
   }
 
@@ -123,7 +161,25 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     return this.component.basicInfo.timezoneEnabled === true;
   }
 
+  /** Re-run validation against the current stored representation. */
+  private revalidate(stored: string): void {
+    this.valueControl.setValue(stored, { emitEvent: false });
+    this.valueControl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  /** Message for whichever constraint the current value violates. */
+  validationMessage(): string {
+    return CedarValidators.firstMessage(this.valueControl) ?? 'The value is required.';
+  }
+
+  private writeValue(): void {
+    const stored = this.datetimeParsed.toStorageRepresentation();
+    this.revalidate(stored);
+    this.handlerContext.changeValue(this.component, stored);
+  }
+
   setCurrentValue(currentValue: any): void {
+    this.revalidate(currentValue as string);
     if (currentValue) {
       this.datetimeParsed = DatetimeRepresentation.fromStorageRepresentation(
         currentValue as string,
@@ -177,7 +233,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
       const defDate = this.getDefaultDate();
       this.dateMonthYearControl = new FormControl(defDate);
       this.datetimeParsed.setDate(defDate);
-      this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
+      this.writeValue();
     }
   }
 
@@ -187,7 +243,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
       this.decimalSeconds = null;
       this.datetimeParsed.setDecimalSeconds(null);
       this.resetTimezone();
-      this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
+      this.writeValue();
     }
   }
 
@@ -200,7 +256,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
       }
       this.timezone = tz;
       this.datetimeParsed.setTimezone(tz);
-      this.handlerContext.changeValue(this.component, this.datetimeParsed.toStorageRepresentation());
+      this.writeValue();
     }
   }
 

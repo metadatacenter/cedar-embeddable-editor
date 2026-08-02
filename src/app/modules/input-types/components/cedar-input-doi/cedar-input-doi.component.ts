@@ -21,6 +21,7 @@ import { DoiFieldDataService } from '../../../shared/service/doi-field-data.serv
 import { DoiSearchResponseItem } from '../../../shared/models/rest/doi-search/doi-search-response-item';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { DoiDetailResponse } from '../../../shared/models/rest/doi-detail/doi-detail-response';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -67,6 +68,7 @@ export class CedarInputDoiComponent extends CedarUIDirective implements OnInit, 
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }
+    validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl(null, validators);
     this.options = this.fb.group({
       inputValue: this.inputValueControl,

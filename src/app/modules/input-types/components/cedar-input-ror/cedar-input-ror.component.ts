@@ -14,6 +14,7 @@ import { MessageHandlerService } from '../../../shared/service/message-handler.s
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { RorSearchResponseItem } from '../../../shared/models/rest/ror-search/ror-search-response-item';
 import { RorDetailResponse } from '../../../shared/models/rest/ror-detail/ror-detail-response';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -68,6 +69,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }
+    validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl(null, validators);
     if (this.component?.valueInfo?.defaultValue) {
       const defaultAtId = this.component.valueInfo.defaultValue[JsonSchema.atId] || null;

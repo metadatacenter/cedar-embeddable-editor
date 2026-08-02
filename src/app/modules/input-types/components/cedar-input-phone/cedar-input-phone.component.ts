@@ -6,6 +6,7 @@ import { FieldComponent } from '../../../shared/models/component/field-component
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -41,13 +42,12 @@ export class CedarInputPhoneComponent extends CedarUIDirective implements OnInit
     super.ngOnInit();
     const validators: any[] = [];
 
-    const reg = /^[\+0-9\s\-\(\)]+$/im;
-    validators.push(Validators.pattern(reg));
 
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
 
+    validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl(null, validators);
 
     if (this.component.valueInfo.defaultValue != null) {

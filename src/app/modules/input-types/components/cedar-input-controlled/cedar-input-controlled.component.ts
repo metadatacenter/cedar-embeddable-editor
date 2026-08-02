@@ -14,6 +14,7 @@ import { ControlledFieldDataService } from '../../../shared/service/controlled-f
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { CedarEmbeddableMetadataEditorComponent } from '../../../shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -57,6 +58,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
+    validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl(null, validators);
 
     if (

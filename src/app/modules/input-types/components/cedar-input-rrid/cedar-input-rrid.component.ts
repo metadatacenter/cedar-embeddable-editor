@@ -22,6 +22,7 @@ import { RridFieldDataService } from '../../../shared/service/rrid-field-data.se
 import { RridSearchResponseItem } from '../../../shared/models/rest/rrid-search/rrid-search-response-item';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { RridDetailResponse } from '../../../shared/models/rest/rrid-detail/rrid-detail-response';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -66,6 +67,7 @@ export class CedarInputRridComponent extends CedarUIDirective implements OnInit,
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }
+    validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl(null, validators);
     this.options = this.fb.group({
       inputValue: this.inputValueControl,

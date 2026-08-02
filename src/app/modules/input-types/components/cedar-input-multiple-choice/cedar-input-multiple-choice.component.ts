@@ -5,6 +5,7 @@ import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -42,6 +43,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
+    validators.push(CedarValidators.forComponent(this.component));
     this.selectedChoiceInputControl.setValidators(validators);
     this.selectedChoiceInputControl.updateValueAndValidity();
     this.populateItemsOnLoad();

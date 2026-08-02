@@ -104,8 +104,20 @@ export class FieldValueValidator {
   }
 
   private static readonly EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  /**
+   * Link and phone patterns are taken verbatim from the widgets that owned
+   * them, so moving the check here changes nothing about which values are
+   * accepted. Both are looser than they look — the link one is unanchored,
+   * matching how Angular applies a `RegExp` (only string patterns get wrapped
+   * in `^...$`), so a URI embedded in surrounding text passes. Preserved rather
+   * than tightened: that is a product call, not a refactor.
+   */
+  private static readonly LINK = /(https?:\/\/)([\da-z.-]+)\.([a-z.]{2,6})[/\w .-]*\/?/i;
+  private static readonly PHONE = /^[+0-9\s\-()]+$/im;
+
+  /** Used only for external-authority fields, which store a bare IRI. */
   private static readonly IRI = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\s]+$|^urn:[^\s]+$|^doi:[^\s]+$/;
-  private static readonly PHONE = /^[+]?[0-9 ()./-]{3,}$/;
 
   private static checkFormat(
     component: FieldComponent,
@@ -118,7 +130,7 @@ export class FieldValueValidator {
     if (inputType === InputType.email && !this.EMAIL.test(text)) {
       out.push(this.problem(component, path, ValidationCode.email, 'Not a valid email address.', text));
     }
-    if (inputType === InputType.link && !this.IRI.test(text)) {
+    if (inputType === InputType.link && !this.LINK.test(text)) {
       out.push(this.problem(component, path, ValidationCode.link, 'Not a valid URI.', text));
     }
     if (inputType === InputType.phoneNumber && !this.PHONE.test(text)) {

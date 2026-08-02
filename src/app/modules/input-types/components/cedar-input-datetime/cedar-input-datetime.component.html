@@ -50,3 +50,14 @@
 <!--  DateTime is:&nbsp;&nbsp;&nbsp;{{datetimeParsed.toDateRepresentation()}}<br/>-->
 <!--  Stored as:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{datetimeParsed.toStorageRepresentation()}}-->
 <!--</p>-->
+
+<!--
+  Temporal validation had no home before: the component installed no validators
+  and the template had no mat-error, so an injected value of any shape rendered
+  silently. One message, carrying the validator's own text, rather than a
+  hand-written string per constraint — that duplication is what let messages
+  drift from the checks elsewhere.
+-->
+<mat-error *ngIf="valueControl.invalid && userEdited && !readOnlyMode" class="mat-error align-start">
+  {{ validationMessage() }}
+</mat-error>

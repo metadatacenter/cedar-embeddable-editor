@@ -9,6 +9,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { InputType } from '../../../shared/models/input-type.model';
 import { CedarEmbeddableMetadataEditorComponent } from '../../../shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { HtmlDetectService } from '../../../shared/service/html-detect.service';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -54,18 +55,13 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     const validators: any[] = [];
     this.constraintMinLength = this.component.valueInfo.minLength;
 
-    if (this.constraintMinLength != null) {
-      validators.push(Validators.minLength(this.constraintMinLength));
-    }
     this.constraintMaxLength = this.component.valueInfo.maxLength;
 
-    if (this.constraintMaxLength != null) {
-      validators.push(Validators.maxLength(this.constraintMaxLength));
-    }
 
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
+    validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl(null, validators);
 
     if (this.component.valueInfo.defaultValue != null) {

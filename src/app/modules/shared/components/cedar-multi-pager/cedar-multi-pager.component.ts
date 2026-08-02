@@ -306,7 +306,10 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   isEnabledAdd(): boolean {
-    if (this.component.multiInfo.minItems != null) {
+    // Guards on maxItems, which is what the comparison uses. It previously
+    // guarded on minItems, so a field declaring an upper bound without a lower
+    // one never disabled the add button and the bound went unenforced.
+    if (this.component.multiInfo.maxItems != null) {
       if (this.currentMultiInfo.currentCount >= this.component.multiInfo.maxItems) {
         return false;
       }
