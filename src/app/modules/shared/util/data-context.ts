@@ -2,6 +2,7 @@ import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { TemplateComponent } from '../models/template/template-component.model';
 import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { TemplateRepresentationFactory } from '../factory/template-representation.factory';
+import { TemplateParser } from '../factory/template-parser';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { InstanceFullData } from '../models/instance-full-data.model';
 import { HandlerContext } from './handler-context';
@@ -28,12 +29,17 @@ export class DataContext {
     handlerContext: HandlerContext,
     pageBreakPaginatorService: PageBreakPaginatorService,
     collapseStaticComponents: boolean,
+    // Which parser turns the template's JSON into the component tree. Left
+    // unset in production; the parity suite passes both in turn to check they
+    // agree. See `factory/template-parser.ts`.
+    templateParser?: TemplateParser,
   ): void {
     this.templateInput = value as CedarInputTemplate;
     this.templateRepresentation = TemplateRepresentationFactory.create(
       this.templateInput,
       collapseStaticComponents,
       handlerContext,
+      templateParser,
     );
     pageBreakPaginatorService.reset(this.templateRepresentation.pageBreakChildren);
     const multiInstanceObjectService: MultiInstanceObjectHandler = handlerContext.multiInstanceObjectService;

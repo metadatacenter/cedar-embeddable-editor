@@ -1,6 +1,3 @@
-import { JsonSchema } from '../models/json-schema.model';
-import { CedarModel } from '../models/cedar-model.model';
-import { JavascriptTypes } from '../models/javascript-types.model';
 import { CedarComponent } from '../models/component/cedar-component.model';
 import { MultiElementComponent } from '../models/element/multi-element-component.model';
 import { CedarTemplate } from '../models/template/cedar-template.model';
@@ -10,41 +7,49 @@ import { TemplateComponent } from '../models/template/template-component.model';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
 import { SingleElementComponent } from '../models/element/single-element-component.model';
-import { MultiComponent } from '../models/component/multi-component.model';
 import { ElementComponent } from '../models/component/element-component.model';
-import { FieldComponent } from '../models/component/field-component.model';
-import { ChoiceOption } from '../models/info/choice-option.model';
 import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { StaticFieldComponent } from '../models/static/static-field-component.model';
 import { ComponentTypeHandler } from '../handler/component-type.handler';
 import { InputType } from '../models/input-type.model';
-import { TemplateObjectUtil } from '../util/template-object-util';
 import { HandlerContext } from '../util/handler-context';
+import { TemplateParser } from './template-parser';
+import { JsonWalkTemplateParser } from './json-walk-template-parser';
 
+/**
+ * Builds the component tree CEE renders.
+ *
+ * Two stages, and the split is load-bearing. A `TemplateParser` turns the
+ * template's JSON into the tree; everything below that depends on the
+ * surrounding runtime rather than on the template — which fields are empty in
+ * the loaded instance, whether the host asked for static-field collapsing,
+ * where the page breaks fall — and is applied here, identically, whichever
+ * parser ran. That is what lets the parser be swapped without the rendered
+ * form moving.
+ */
 export class TemplateRepresentationFactory {
+  private static readonly defaultParser: TemplateParser = new JsonWalkTemplateParser();
+
   static create(
     inputTemplate: CedarInputTemplate,
     collapseStaticComponents: boolean,
     handlerContext: HandlerContext,
+    parser: TemplateParser = TemplateRepresentationFactory.defaultParser,
   ): TemplateComponent {
     if (inputTemplate === null) {
       return new NullTemplate();
     } else {
       const template = new CedarTemplate();
-      TemplateRepresentationFactory.wrap(
-        inputTemplate,
-        inputTemplate,
-        template,
-        [],
-        collapseStaticComponents,
-        handlerContext,
-      );
-      // this.removeEmpty(template);
-      TemplateRepresentationFactory.extractTemplateLabels(inputTemplate, template);
+      parser.parse(inputTemplate, template, handlerContext);
+      TemplateRepresentationFactory.applyEmptyFieldHiding(template, handlerContext);
+      if (collapseStaticComponents) {
+        TemplateRepresentationFactory.collapseStaticFields(template);
+      }
       TemplateRepresentationFactory.extractPageBreakPages(template);
       return template;
     }
   }
+
   static extractPageBreakPages(template: CedarTemplate): void {
     const pages = [];
     let page = [];
@@ -83,128 +88,45 @@ export class TemplateRepresentationFactory {
     template.pageBreakChildren = pages;
   }
 
-  private static isFragmentMulti(templateFragment: object): boolean {
-    const fragmentType = templateFragment[CedarModel.type];
-
-    if (fragmentType === JavascriptTypes.object) {
-      return false;
-    } else if (fragmentType === JavascriptTypes.array) {
-      return true;
-    } else {
-      throw new Error(
-        'Invalid node value of ' +
-          CedarModel.type +
-          '. Value found:"' +
-          fragmentType +
-          '". ' +
-          'Expected "' +
-          JavascriptTypes.object +
-          '" or "' +
-          JavascriptTypes.array +
-          '"!',
-      );
+  /**
+   * Under `hideEmptyFields`, mark anything the loaded instance has no value for.
+   *
+   * Distinct from `_ui.hidden`, which the parser honours by leaving the child
+   * out of the tree altogether: this is about the data, not the template, so a
+   * component still exists and merely renders as hidden.
+   */
+  private static applyEmptyFieldHiding(container: ElementComponent, handlerContext: HandlerContext): void {
+    if (!handlerContext.hideEmptyFields || !handlerContext.dataContext.instanceExtractData) {
+      return;
     }
-  }
-
-  private static wrap(
-    templateJsonObj: object,
-    parentJsonObj: object,
-    component: CedarComponent,
-    parentPath: string[],
-    collapseStaticComponents: boolean,
-    handlerContext: HandlerContext,
-  ): void {
-    // const propertyNames: string[] = TemplateRepresentationFactory.getFilteredSchemaPropertyNames(templateJsonObj);
-    // console.log(propertyNames);
-    const propertyNames: string[] = TemplateRepresentationFactory.getOrderedPropertyNames(templateJsonObj);
-    for (const name of propertyNames) {
-      const templateFragment = templateJsonObj[JsonSchema.properties][name];
-
-      if (templateFragment == null) {
-        // `_ui.order` can name a child that `properties` does not define. That
-        // happens in real templates — `template-003` in cedar-test-artifacts is
-        // one, and the model library reads it without complaint — so skipping
-        // the orphan is the right response. Passing it on made
-        // `isFragmentMulti` dereference `.type` on undefined and take the whole
-        // editor down over a template it could otherwise have rendered.
-        handlerContext.messageHandlerService.error(
-          `Template lists "${name}" in _ui.order but has no such property. Skipping it.`,
-        );
-        continue;
-      }
-
-      const isMulti: boolean = TemplateRepresentationFactory.isFragmentMulti(templateFragment);
-
-      const parentDataNode: object = TemplateRepresentationFactory.getDataNode(parentJsonObj);
-      const dataNode: object = TemplateRepresentationFactory.getDataNode(templateFragment);
-      const fragmentAtType = dataNode[JsonSchema.atType];
-      let r: CedarComponent = null;
-
-      const myPath: string[] = parentPath.slice();
-      myPath.push(name);
-
-      if (fragmentAtType === CedarModel.templateFieldType) {
-        if (isMulti) {
-          r = new MultiFieldComponent();
-        } else {
-          r = new SingleFieldComponent();
-        }
-
-        TemplateRepresentationFactory.extractValueConstraints(dataNode, r as FieldComponent);
-        TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
-      } else if (fragmentAtType === CedarModel.templateElementType) {
-        if (isMulti) {
-          r = new MultiElementComponent();
-        } else {
-          r = new SingleElementComponent();
-        }
-        TemplateRepresentationFactory.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
-        TemplateRepresentationFactory.wrap(
-          dataNode,
-          templateJsonObj,
-          r,
-          myPath,
-          collapseStaticComponents,
-          handlerContext,
-        );
-      } else if (fragmentAtType === CedarModel.templateStaticFieldType) {
-        r = new StaticFieldComponent();
-        TemplateRepresentationFactory.extractStaticData(dataNode, parentDataNode, name, r as StaticFieldComponent);
-      }
-
-      if (r !== null) {
-        const wrapperElement: ElementComponent = component as ElementComponent;
-        if (!dataNode['_ui'].hidden) {
-          wrapperElement.children.push(r);
-          r.name = name;
-          r.path = myPath;
-          if (handlerContext.hideEmptyFields && handlerContext.dataContext.instanceExtractData) {
-            if (r instanceof SingleFieldComponent || r instanceof MultiFieldComponent) {
-              let val;
-              if (r.basicInfo.inputType === InputType.attributeValue) {
-                val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
-                if (val) {
-                  const newPath = [...myPath.slice(0, -1), val];
-                  val = this.getValueByPath(newPath, handlerContext.dataContext.instanceExtractData);
-                }
-              } else val = this.getValueByPath(myPath, handlerContext.dataContext.instanceExtractData);
-              r.hidden = !val || Object.keys(val).length === 0;
-            } else if (r instanceof MultiElementComponent || r instanceof SingleElementComponent) {
-              this.hasNonEmptyChild(r, handlerContext) ? (r.hidden = false) : (r.hidden = true);
-            }
+    for (const child of container.children) {
+      if (child instanceof SingleFieldComponent || child instanceof MultiFieldComponent) {
+        let val;
+        if (child.basicInfo.inputType === InputType.attributeValue) {
+          val = this.getValueByPath(child.path, handlerContext.dataContext.instanceExtractData);
+          if (val) {
+            const newPath = [...child.path.slice(0, -1), val];
+            val = this.getValueByPath(newPath, handlerContext.dataContext.instanceExtractData);
           }
-        }
+        } else val = this.getValueByPath(child.path, handlerContext.dataContext.instanceExtractData);
+        child.hidden = !val || Object.keys(val).length === 0;
+      } else if (child instanceof MultiElementComponent || child instanceof SingleElementComponent) {
+        this.applyEmptyFieldHiding(child, handlerContext);
+        child.hidden = !this.hasNonEmptyChild(child, handlerContext);
       }
-      if (isMulti) {
-        const mr = r as MultiComponent;
-        TemplateRepresentationFactory.extractMultiInfo(templateFragment, mr);
-      }
-    }
-
-    if (collapseStaticComponents) {
-      this.collapseStaticFieldsIntoNextFieldOrElement(component);
     }
   }
+
+  /** Apply static-field collapsing to every container, innermost first. */
+  private static collapseStaticFields(container: ElementComponent): void {
+    for (const child of container.children) {
+      if (ComponentTypeHandler.isContainerComponent(child)) {
+        this.collapseStaticFields(child as ElementComponent);
+      }
+    }
+    this.collapseStaticFieldsIntoNextFieldOrElement(container);
+  }
+
   /**
    * True when any descendant of this element holds a value.
    *
@@ -250,153 +172,6 @@ export class TemplateRepresentationFactory {
         return this.getValueByPath(remainingPath, value[0]);
       } else {
         return this.getValueByPath(remainingPath, value);
-      }
-    }
-  }
-  // private static getFilteredSchemaPropertyNames(jsonObj: object): string[] {
-  //   const names: string[] = [];
-  //   if (jsonObj.hasOwnProperty(JsonSchema.properties)) {
-  //     const prMap = jsonObj[JsonSchema.properties];
-  //     if (prMap instanceof Object) {
-  //       for (const name of Object.keys(prMap)) {
-  //         if (!JsonSchema.builtInProperties.has(name)) {
-  //           names.push(name);
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return names;
-  // }
-
-  private static getOrderedPropertyNames(jsonObj: object): string[] {
-    const order: string[] = [];
-    if (Object.hasOwn(jsonObj, CedarModel.ui)) {
-      const uiMap = jsonObj[CedarModel.ui];
-      if (Object.hasOwn(uiMap, CedarModel.order)) {
-        return uiMap[CedarModel.order];
-      }
-    }
-    return order;
-  }
-
-  private static getDataNode(templateFragment: object): object {
-    if (templateFragment == null) {
-      return null;
-    }
-    const isMulti: boolean = TemplateRepresentationFactory.isFragmentMulti(templateFragment);
-    if (isMulti) {
-      return templateFragment[CedarModel.items];
-    } else {
-      return templateFragment;
-    }
-  }
-
-  private static extractValueConstraints(dataNode: object, fc: FieldComponent): void {
-    fc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
-
-    if (dataNode[CedarModel.ui][CedarModel.inputType] === InputType.temporal) {
-      if (Object.hasOwn(dataNode[CedarModel.ui], CedarModel.timezoneEnabled)) {
-        fc.basicInfo.timezoneEnabled = dataNode[CedarModel.ui][CedarModel.timezoneEnabled];
-      }
-      if (Object.hasOwn(dataNode[CedarModel.ui], CedarModel.inputTimeFormat)) {
-        fc.basicInfo.inputTimeFormat = dataNode[CedarModel.ui][CedarModel.inputTimeFormat];
-      }
-      if (Object.hasOwn(dataNode[CedarModel.ui], CedarModel.temporalGranularity)) {
-        fc.basicInfo.temporalGranularity = dataNode[CedarModel.ui][CedarModel.temporalGranularity];
-      }
-    }
-
-    if (Object.hasOwn(dataNode[CedarModel.ui], CedarModel.temporalGranularity)) {
-      fc.basicInfo.temporalGranularity = dataNode[CedarModel.ui][CedarModel.temporalGranularity];
-    }
-
-    if (TemplateObjectUtil.hasValueConstraints(dataNode)) {
-      const vc: object = dataNode[CedarModel.valueConstraints];
-      fc.valueInfo.requiredValue = vc[CedarModel.requiredValue];
-      fc.valueInfo.defaultValue = vc[CedarModel.defaultValue];
-      fc.valueInfo.minLength = vc[CedarModel.minLength];
-      fc.valueInfo.maxLength = vc[CedarModel.maxLength];
-      fc.valueInfo.regex = vc[CedarModel.regex];
-
-      if (Object.hasOwn(vc, CedarModel.temporalType)) {
-        fc.valueInfo.temporalType = vc[CedarModel.temporalType];
-      }
-
-      fc.numberInfo.numberType = vc[CedarModel.numberType];
-      fc.numberInfo.unitOfMeasure = vc[CedarModel.unitOfMeasure];
-      fc.numberInfo.minValue = vc[CedarModel.minValue];
-      fc.numberInfo.maxValue = vc[CedarModel.maxValue];
-      fc.numberInfo.decimalPlace = vc[CedarModel.decimalPlace];
-      fc.choiceInfo.multipleChoice = vc[CedarModel.multipleChoice];
-
-      if (vc[CedarModel.literals] !== undefined) {
-        for (const pair of vc[CedarModel.literals]) {
-          const option = new ChoiceOption();
-          option.label = pair[CedarModel.label];
-          option.selectedByDefault = pair[CedarModel.selectedByDefault];
-          fc.choiceInfo.choices.push(option);
-        }
-      }
-
-      if (TemplateObjectUtil.hasControlledInfo(dataNode)) {
-        fc.basicInfo.inputType = InputType.controlled;
-        fc.controlledInfo.ontologies = vc[CedarModel.ontologies];
-        fc.controlledInfo.valueSets = vc[CedarModel.valueSets];
-        fc.controlledInfo.classes = vc[CedarModel.classes];
-        fc.controlledInfo.branches = vc[CedarModel.branches];
-      }
-    }
-  }
-
-  private static extractLabels(dataNode: object, parentDataNode: object, name: string, fc: FieldComponent): void {
-    fc.labelInfo.preferredLabel = dataNode[CedarModel.skosPrefLabel];
-    fc.labelInfo.description = dataNode[JsonSchema.schemaDescription];
-    fc.labelInfo.label = dataNode[JsonSchema.schemaName];
-    if (parentDataNode != null) {
-      if (fc.labelInfo.description == null || fc.labelInfo.description === 'Help Text') {
-        if (parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions] !== undefined) {
-          fc.labelInfo.description = parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions][name];
-        }
-      }
-      if (fc.labelInfo.label == null || fc.labelInfo.label === name) {
-        if (parentDataNode[CedarModel.ui][CedarModel.propertyLabels] !== undefined) {
-          fc.labelInfo.label = parentDataNode[CedarModel.ui][CedarModel.propertyLabels][name];
-        }
-      }
-    }
-  }
-
-  private static extractMultiInfo(templateFragment: object, mr: MultiComponent): void {
-    mr.multiInfo.minItems = templateFragment[CedarModel.minItems];
-    mr.multiInfo.maxItems = templateFragment[CedarModel.maxItems];
-  }
-
-  private static extractTemplateLabels(templateJsonObj: object, template: CedarTemplate): void {
-    template.labelInfo.label = templateJsonObj[JsonSchema.schemaName];
-    template.labelInfo.description = templateJsonObj[JsonSchema.schemaDescription];
-  }
-
-  private static extractStaticData(
-    dataNode: object,
-    parentDataNode: object,
-    name: string,
-    sfc: StaticFieldComponent,
-  ): void {
-    sfc.basicInfo.inputType = dataNode[CedarModel.ui][CedarModel.inputType];
-    sfc.labelInfo.preferredLabel = dataNode[CedarModel.skosPrefLabel];
-    sfc.contentInfo.content = dataNode[CedarModel.ui][CedarModel.content];
-    sfc.labelInfo.description = dataNode[JsonSchema.schemaDescription];
-    sfc.labelInfo.label = dataNode[JsonSchema.schemaName];
-    if (parentDataNode != null) {
-      if (sfc.labelInfo.description == null || sfc.labelInfo.description === 'Help Text') {
-        if (parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions] !== undefined) {
-          sfc.labelInfo.description = parentDataNode[CedarModel.ui][CedarModel.propertyDescriptions][name];
-        }
-      }
-      if (sfc.labelInfo.label == null || sfc.labelInfo.label === name) {
-        if (parentDataNode[CedarModel.ui][CedarModel.propertyLabels] !== undefined) {
-          sfc.labelInfo.label = parentDataNode[CedarModel.ui][CedarModel.propertyLabels][name];
-        }
       }
     }
   }

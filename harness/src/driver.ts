@@ -15,6 +15,7 @@ import { DataContext } from '@cee/util/data-context';
 import { HandlerContext } from '@cee/util/handler-context';
 import { MessageHandlerService } from '@cee/service/message-handler.service';
 import { PageBreakPaginatorService } from '@cee/service/page-break-paginator.service';
+import type { TemplateParser } from '@cee/factory/template-parser';
 import type { FieldKind } from './axes';
 
 /**
@@ -53,6 +54,13 @@ export interface DriverOptions {
   hideEmptyFields?: boolean;
   /** Pre-load an existing instance, as the host page's `instanceObject` would. */
   instance?: object;
+  /**
+   * Which parser turns the template JSON into the component tree.
+   *
+   * Unset means CEE's default, which is what production uses. The parity suite
+   * passes each implementation explicitly and compares the results.
+   */
+  templateParser?: TemplateParser;
 }
 
 export class CeeDriver {
@@ -91,6 +99,7 @@ export class CeeDriver {
       this.handlerContext,
       this.paginator,
       opts.collapseStaticComponents ?? false,
+      opts.templateParser,
     );
   }
 
