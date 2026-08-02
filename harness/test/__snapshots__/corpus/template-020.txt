@@ -1,1 +1,1 @@
-MultiSelect type=list multi min=0 choices=4
+MultiSelect type=list multi min=0 choices=4 choice=multi

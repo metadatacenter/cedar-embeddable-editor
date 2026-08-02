@@ -16,6 +16,7 @@ import { HandlerContext } from '@cee/util/handler-context';
 import { MessageHandlerService } from '@cee/service/message-handler.service';
 import { PageBreakPaginatorService } from '@cee/service/page-break-paginator.service';
 import type { TemplateParser } from '@cee/factory/template-parser';
+import { ModelLibraryTemplateParser } from '@cee/factory/model-library-template-parser';
 import type { FieldKind } from './axes';
 
 /**
@@ -57,11 +58,32 @@ export interface DriverOptions {
   /**
    * Which parser turns the template JSON into the component tree.
    *
-   * Unset means CEE's default, which is what production uses. The parity suite
-   * passes each implementation explicitly and compares the results.
+   * Unset means whatever `CEE_TEMPLATE_PARSER` selects — see `defaultParser`.
+   * The parity suite passes each implementation explicitly and compares the
+   * results; everything else lets the environment decide, which is how the
+   * whole suite gets run twice.
    */
   templateParser?: TemplateParser;
 }
+
+/**
+ * The parser every suite uses unless it names one.
+ *
+ * Set `CEE_TEMPLATE_PARSER=model-library` and the entire harness runs against
+ * the library-backed parser instead of CEE's hand-written JSON walk. That is
+ * the real check on the swap: not a tree diff over a handful of templates, but
+ * every assertion in the suite — instance construction, path resolution, value
+ * writes, cardinality, the quality report, the corpus snapshots — holding with
+ * either parser underneath.
+ *
+ * An env var rather than a config file because it has to be trivial to run
+ * both ways in one command, and because a spec that names a parser explicitly
+ * must still win over it.
+ */
+const PARSER_ENV = process.env.CEE_TEMPLATE_PARSER ?? 'json-walk';
+export const defaultParser: TemplateParser | undefined =
+  PARSER_ENV === 'model-library' ? new ModelLibraryTemplateParser() : undefined;
+export const defaultParserName = PARSER_ENV;
 
 export class CeeDriver {
   readonly dataContext: DataContext;
@@ -99,7 +121,7 @@ export class CeeDriver {
       this.handlerContext,
       this.paginator,
       opts.collapseStaticComponents ?? false,
-      opts.templateParser,
+      opts.templateParser ?? defaultParser,
     );
   }
 

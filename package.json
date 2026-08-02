@@ -32,6 +32,7 @@
     "@ngx-translate/core": "^11.0.1",
     "@ngx-translate/http-loader": "^4.0.0",
     "@webcomponents/custom-elements": "^1.4.3",
+    "cedar-model-typescript-library": "file:../cedar-model-typescript-library/dist",
     "lodash-es": "^4.17.21",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
@@ -51,7 +52,6 @@
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "eslint": "^8.53.0",
-    "prettier": "^3.1.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
     "jasmine-core": "~2.99.1",
@@ -61,6 +61,7 @@
     "karma-coverage-istanbul-reporter": "~3.0.3",
     "karma-jasmine": "~3.3.1",
     "karma-jasmine-html-reporter": "^0.2.2",
+    "prettier": "^3.1.0",
     "ts-node": "~8.10.2",
     "typescript": "~4.8.4"
   }

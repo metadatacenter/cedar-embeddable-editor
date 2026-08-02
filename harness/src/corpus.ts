@@ -104,6 +104,12 @@ export const describeTree = (node: any, depth = 0): string[] => {
     if (child.valueInfo?.temporalType) bits.push(`temporal=${child.valueInfo.temporalType}`);
     if (child.basicInfo?.temporalGranularity) bits.push(`gran=${child.basicInfo.temporalGranularity}`);
     if (child.choiceInfo?.choices?.length) bits.push(`choices=${child.choiceInfo.choices.length}`);
+    // `multipleChoice` reaches the screen for list fields and nowhere else —
+    // `cedar-component-renderer` routes only `InputType.list` to the select
+    // widget, which binds it to `multiple`. Recorded here because it decides
+    // whether the user can pick one option or several, and without it a change
+    // that flipped every select in the corpus would leave no trace.
+    if (inputType === 'list') bits.push(child.choiceInfo?.multipleChoice ? 'choice=multi' : 'choice=single');
     for (const kind of ['ontologies', 'classes', 'branches', 'valueSets']) {
       const n = child.controlledInfo?.[kind]?.length;
       if (n) bits.push(`${kind}=${n}`);

@@ -27,7 +27,7 @@ import {
   hubmapAvailable,
   hubmapTemplates,
 } from '../src/corpus';
-import { CeeDriver } from '../src/driver';
+import { CeeDriver, defaultParserName } from '../src/driver';
 
 const templates = corpusAvailable() ? corpusTemplates() : [];
 const instances = corpusAvailable() ? corpusInstances() : [];
@@ -42,6 +42,66 @@ const instances = corpusAvailable() ? corpusInstances() : [];
  */
 const KNOWN_MALFORMED: Record<string, string> = {
   '003': 'TextfieldOrder',
+};
+
+/**
+ * The only place the two template parsers disagree, across all 94 templates.
+ *
+ * CEE's hand-written JSON walk copies `_valueConstraints.multipleChoice`
+ * verbatim. The model library normalises it against the property's cardinality:
+ * a list whose answer may select several options serialises as an array, so the
+ * two are the same fact stated twice and the schema is the half that governs
+ * the instance. Both the Java artifact library and the TypeScript one write it
+ * back normalised, so the walk's answer is the one that disagrees with what
+ * either library would produce for the same template.
+ *
+ * Four rendered list fields state the two inconsistently, and three of the four
+ * are the incoherent direction: a single-valued property rendering a
+ * multi-select, where picking a second option produces a value the instance has
+ * no room for.
+ *
+ * Listed rather than skipped. The snapshots stay as the walk produces them, and
+ * under the library parser the expected tree is adjusted by exactly these
+ * lines — so the suite still proves nothing else moved.
+ */
+const LIST_CHOICE_UNDER_MODEL_LIBRARY: Record<string, Record<string, 'multi' | 'single'>> = {
+  '029': { 'Other Language': 'multi' },
+  'RADx2.0CLIGeneratedTemplate': { 'Other Languages': 'single' },
+  RADxCLIGeneratedTemplate: { 'Other Languages': 'single' },
+  SimpleTemplate: { 'Pick from a List - Multi Select': 'single' },
+};
+
+/**
+ * Fold the listed differences back out, so the snapshot stays the walk's tree.
+ *
+ * A no-op unless the library parser is the one running. When it is, each listed
+ * line is checked to actually carry the value recorded above — a difference
+ * that stopped happening, or happened in the other direction, fails here rather
+ * than passing quietly — and is then flipped to the walk's value so the rest of
+ * the tree is still compared against the checked-in snapshot.
+ */
+const forCurrentParser = (id: string, tree: string): string => {
+  if (defaultParserName !== 'model-library') {
+    return tree;
+  }
+  const overrides = LIST_CHOICE_UNDER_MODEL_LIBRARY[id];
+  if (!overrides) {
+    return tree;
+  }
+  return tree
+    .split('\n')
+    .map((line) => {
+      for (const [field, choice] of Object.entries(overrides)) {
+        if (line.trim().startsWith(`${field} type=list `)) {
+          expect(line, `${id}/${field}: expected the model library to normalise this list to ${choice}`).toContain(
+            `choice=${choice}`,
+          );
+          return line.replace(`choice=${choice}`, `choice=${choice === 'multi' ? 'single' : 'multi'}`);
+        }
+      }
+      return line;
+    })
+    .join('\n');
 };
 
 describe.skipIf(!corpusAvailable())('real corpus templates', () => {
@@ -77,7 +137,7 @@ describe.skipIf(!corpusAvailable())('real corpus templates', () => {
     // `_ui.hidden` field — and a blank snapshot cannot be told apart from one
     // that failed to write.
     const tree = describeTree(driver.representation).join('\n') || '(no rendered children)';
-    expect(tree).toMatchFileSnapshot(`./__snapshots__/corpus/template-${id}.txt`);
+    expect(forCurrentParser(id, tree)).toMatchFileSnapshot(`./__snapshots__/corpus/template-${id}.txt`);
   });
 
   it.each(templates.map((t) => [t.id, t] as const))('template-%s builds an instance skeleton', (_id, artifact) => {
@@ -185,7 +245,7 @@ describe.skipIf(!hubmapAvailable())('HuBMAP production templates', () => {
   it.each(hubmap.map((t) => [t.id, t] as const))('%s has a stable component tree', (id, artifact) => {
     const driver = new CeeDriver(artifact.json);
     const tree = describeTree(driver.representation).join('\n') || '(no rendered children)';
-    expect(tree).toMatchFileSnapshot(`./__snapshots__/hubmap/${id}.txt`);
+    expect(forCurrentParser(id, tree)).toMatchFileSnapshot(`./__snapshots__/hubmap/${id}.txt`);
   });
 
   it.each(hubmap.map((t) => [t.id, t] as const))('%s builds an instance and a report', (_id, artifact) => {

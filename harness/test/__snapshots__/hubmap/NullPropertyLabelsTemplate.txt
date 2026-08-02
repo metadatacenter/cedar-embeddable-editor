@@ -3,4 +3,4 @@ data multi min=0
   fileName type=textfield single required
   name type=textfield single required
   description type=textfield single
-  type type=list single choices=14
+  type type=list single choices=14 choice=single

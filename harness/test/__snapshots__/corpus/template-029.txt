@@ -1,6 +1,6 @@
 Data File Title multi min=1
   Title type=textfield single required
-  Language type=list single choices=246
+  Language type=list single choices=246 choice=single
 Data File Identity single
   Identifier type=textfield single
   Identifier Type type=controlled single branches=1
@@ -10,14 +10,14 @@ Data File Content single
 Data File Version single
   Version type=textfield single
 Data File Language single
-  Primary Language type=list single choices=246
-  Other Language type=list multi min=1 choices=246
+  Primary Language type=list single choices=246 choice=single
+  Other Language type=list multi min=1 choices=246 choice=single
 Data File Subjects multi min=1
   Subject Identifier type=controlled single ontologies=1
   Keyword type=textfield single
 Data File Description multi min=1
   Description type=textarea single
-  Description Language type=list single choices=246
+  Description Language type=list single choices=246 choice=single
 Data File Dictionary single
   Data Dictionary File Name type=textfield single
 Data File Creator multi min=1

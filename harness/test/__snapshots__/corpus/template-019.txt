@@ -1,1 +1,1 @@
-Pick from type=list single required choices=3
+Pick from type=list single required choices=3 choice=single

@@ -261,20 +261,17 @@ describe('choice literals', () => {
    * seeds a multi field's value wrappers from `selectedByDefault`, so the
    * instance is non-empty before any user interaction.
    *
-   * Reaching it needs `minItems` injected by hand. The seeding is gated on
-   * `multiField.multiInfo.minItems > 0` (data-object-builder.handler.ts:96),
-   * but checkbox and multiple-choice-list fields deploy through
-   * `ChildDeploymentInfoAlwaysMultipleBuilder`, which exposes no
-   * `withMinItems` — they are multiple by nature, so the model library never
-   * emits the property. CEE still reads it, and templates authored in the
-   * CEDAR Template Editor do carry it, so the path is live in production even
-   * though the builder cannot express it.
+   * Reaching it needs `minItems > 0` (data-object-builder.handler.ts:96), and
+   * for a checkbox that means marking the field required. Checkbox and
+   * multiple-choice-list fields are multiple by nature, so their deployment
+   * builder has no `withMinItems`; what a template carries for them is derived
+   * from `requiredValue` — one when required, zero otherwise — and both this
+   * library and the Java one write it that way. Injecting `minItems` into the
+   * JSON by hand reaches the same code, but only under CEE's own JSON walk:
+   * the model library ignores a declared bound on an always-multiple child in
+   * favour of the derivation. Required is the realistic route and it works
+   * whichever parser is underneath.
    */
-  const withMinItems = (template: any, prop: string, minItems: number) => {
-    template.properties[prop].minItems = minItems;
-    return template;
-  };
-
   it('pre-seeds the instance from a default-selected literal on a multi field', () => {
     const kind = kindOf(
       'seed',
@@ -282,7 +279,7 @@ describe('choice literals', () => {
       () => CedarBuilders.checkboxFieldBuilder(),
       (b) => b.addCheckboxOption('Alpha', false).addCheckboxOption('Beta', true),
     );
-    const template = withMinItems(buildTemplate({ name: 'vc_seed', children: [{ kind, name: 'f' }] }), '_f', 1);
+    const template = buildTemplate({ name: 'vc_seed', children: [{ kind, name: 'f', required: true }] });
     const driver = new CeeDriver(template);
 
     const seeded = driver.extract._f;
@@ -298,19 +295,19 @@ describe('choice literals', () => {
       () => CedarBuilders.checkboxFieldBuilder(),
       (b) => b.addCheckboxOption('Alpha', false).addCheckboxOption('Beta', false),
     );
-    const template = withMinItems(buildTemplate({ name: 'vc_noseed', children: [{ kind, name: 'f' }] }), '_f', 1);
+    const template = buildTemplate({ name: 'vc_noseed', children: [{ kind, name: 'f', required: true }] });
     const driver = new CeeDriver(template);
 
     expect(JSON.stringify(driver.extract._f)).not.toContain('Beta');
   });
 
   /**
-   * Without `minItems`, the seeding never runs at all — which is the state
-   * every model-library-built checkbox template is in. Pinned because it is
-   * the difference between "CEE ignores selectedByDefault" (false) and "the
-   * template never asked for a slot to put it in" (true).
+   * A checkbox that is not required has `minItems` zero, so the seeding never
+   * runs — no slot exists to seed. Pinned because it is the difference between
+   * "CEE ignores selectedByDefault" (false) and "the template never asked for
+   * a slot to put it in" (true).
    */
-  it('does not seed when minItems is absent, even with a default-selected literal', () => {
+  it('does not seed an optional field, even with a default-selected literal', () => {
     const kind = kindOf(
       'nominitems',
       'checkbox',
