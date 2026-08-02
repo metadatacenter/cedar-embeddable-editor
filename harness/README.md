@@ -4,9 +4,9 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 532 tests, all passing** on Node 20.20.2 / Vitest 1.6.
+> **Status: 540 tests, all passing** on Node 20.20.2 / Vitest 1.6.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
-> Two CEE defects found and characterized — see [What it found](#what-it-found).
+> Two CEE defects found — one fixed, one characterized. See [What it found](#what-it-found).
 
 ## Why this exists
 
@@ -114,40 +114,52 @@ Both were reverted; CEE source is unmodified by this harness.
 
 ## What it found
 
-Two defects, both characterized in
-`test/cardinality.spec.ts` → "known defects (characterized, not endorsed)".
-The tests assert what CEE *does*, so fixing either is a deliberate, visible change.
+Two defects. One is fixed; the other is a product decision and stays pinned.
 
-**1. A filled required ORCID/ROR field never satisfies its requirement.**
+**1. A filled required IRI-valued field never satisfied its requirement. — FIXED**
 
-`changeValue` stores these as `{'@id': <iri>}` with no `@value`.
-`DataQualityReportBuilderHandler.extractPlainValue` returns the IRI only when
-`component.basicInfo.inputType === InputType.link`; any other IRI-valued type
-falls through to the controlled-term branch and reads `rdfs:label`, which is
-undefined. `emptyToNull` turns that into null, the field counts as empty, and
-`isValid` never becomes true.
+`changeValue` stores links and external authority fields as `{'@id': <iri>}`
+with no `@value`. `extractPlainValue` returned the IRI only for
+`InputType.link`; every other IRI-valued type fell through to the
+controlled-term branch, read an absent `rdfs:label`, and counted as empty. A
+form with a required ORCID could never report valid.
 
-On `develop` this affects **seven** input types, not two — the check is a single
-equality against `link`, while `ext-orcid`, `ext-ror`, `ext-pfas`, `ext-pubmed`,
-`ext-rrid`, `ext-nih-grant-id` and `ext-doi` all store a bare `@id`. Fix is to
-test set membership instead
-(`data-quality-report-builder.handler.ts:155`).
+It affected **seven** input types: `ext-orcid`, `ext-ror`, `ext-pfas`,
+`ext-pubmed`, `ext-rrid`, `ext-nih-grant-id`, `ext-doi`. That number was first
+predicted by reading the code when only two were buildable; each of the other
+five failed on arrival as the model library gained its builder, so the count
+was demonstrated rather than inferred.
 
-**2. Filling one page of a multi element marks every page satisfied.**
+The fix has `extractPlainValue` consult `EXTERNAL_AUTHORITY_INPUT_TYPES` — the
+set `DataObjectUtil.getEmptyValueWrapper` already used to decide these fields
+get no `@value` in the first place. The report and the instance builder now
+agree about which fields carry an IRI instead of each holding its own opinion,
+and a future `ext-*` type added to that set is covered automatically.
+
+Now a regression test, per type, in `test/cardinality.spec.ts` → "quality
+report value extraction", with a companion asserting controlled terms are still
+read from their label rather than their IRI.
+
+**2. Filling one page of a multi element marks every page satisfied. — open**
 
 `buildRecursively` walks a multi element's children once into a dummy object —
-incrementing the required-value counters as it goes — then `_.cloneDeep`s that
-dummy `currentCount` times (`data-quality-report-builder.handler.ts:65-80`). The
+incrementing the required-value counters — then `_.cloneDeep`s that dummy
+`currentCount` times (`data-quality-report-builder.handler.ts:65-80`). The
 clones never touch the counters, and the single evaluation reads whichever page
-`currentIndex` points at. So a required field filled on page 0 makes the report
-valid while pages 1..n are still empty: the instance is reported complete when
-it is not.
+`currentIndex` points at. Fill page 0 of three and the report calls the
+instance complete.
 
-Related, and worth knowing rather than fixing: writing to a link / ORCID / ROR
-field leaves `rdfs:label: undefined` on the node. `JSON.stringify` drops
+Deliberately not fixed. Evaluating each instance needs path resolution to
+resolve *as if* `currentIndex` were N, and that state is shared and mutable —
+so the fix collides with the impure-path-resolution debt rather than being
+local. It also embeds a question only the product can answer: is a required
+field inside an N-instance element one requirement or N? Pinned in "known
+defects (characterized, not endorsed)".
+
+Related, and worth knowing rather than fixing: writing to an IRI-valued field
+leaves `rdfs:label: undefined` on the node. `JSON.stringify` drops
 undefined-valued keys, so the emitted JSON looks clean while
-`'rdfs:label' in node` is still true — a key-presence check silently yields
-undefined for every IRI-valued field.
+`'rdfs:label' in node` is still true.
 
 ## Getting it to run: four things that bit
 

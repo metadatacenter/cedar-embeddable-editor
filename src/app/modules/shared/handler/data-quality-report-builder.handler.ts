@@ -15,6 +15,7 @@ import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-in
 import { HandlerContext } from '../util/handler-context';
 import { JsonSchema } from '../models/json-schema.model';
 import { InputType } from '../models/input-type.model';
+import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 
 export class DataQualityReportBuilderHandler {
   private dataObjectFull: object;
@@ -153,14 +154,33 @@ export class DataQualityReportBuilderHandler {
     }
     if (Object.hasOwn(dataObject, JsonSchema.atValue)) {
       return this.emptyToNull(dataObject[JsonSchema.atValue]);
-    } else if (Object.hasOwn(dataObject, JsonSchema.atId) && component.basicInfo.inputType === InputType.link) {
-      // url field single
+    } else if (Object.hasOwn(dataObject, JsonSchema.atId) && this.isIriValued(component)) {
+      // url field, or an external authority field: the IRI is the value
       return this.emptyToNull(dataObject[JsonSchema.atId]);
     } else if (Object.hasOwn(dataObject, JsonSchema.atId)) {
       // controlled field single
       return this.emptyToNull(dataObject[JsonSchema.rdfsLabel]);
     }
     return null;
+  }
+
+  /**
+   * True when the field stores its value as a bare `@id` rather than `@value`.
+   *
+   * Links and external authority fields (ORCID, ROR, PFAS, PubMed, RRID, NIH
+   * Grant, DOI) are written by `changeValue` as `{'@id': <iri>}` with no
+   * `@value`. `DataObjectUtil.getEmptyValueWrapper` already makes the same
+   * distinction using the same set, so this keeps the quality report in
+   * agreement with the instance builder about which fields carry an IRI.
+   *
+   * Without it, every non-link IRI-valued field falls through to the
+   * controlled-term branch below and is read from `rdfs:label`, which these
+   * fields do not have — so a filled required field reports as empty and the
+   * instance can never become valid.
+   */
+  private static isIriValued(component: SingleFieldComponent | MultiFieldComponent): boolean {
+    const inputType = component.basicInfo.inputType;
+    return inputType === InputType.link || EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType);
   }
 
   private static emptyToNull(value: any) {

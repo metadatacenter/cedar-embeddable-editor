@@ -71,26 +71,6 @@ describe('required values', () => {
    */
   const requirable = FIELD_KINDS.filter((k) => !k.isStatic && k.key !== 'attrValue');
 
-  /**
-   * Fields whose value is written as a bare `@id` with no `@value`.
-   * `DataQualityReportBuilderHandler.extractPlainValue` only recognises the IRI
-   * for `InputType.link`; see the known-defects block below.
-   *
-   * `ext-pfas` joined this list the moment it became buildable — which is the
-   * useful part. The defect was originally identified by reading the code and
-   * predicted to affect seven input types; adding a third one and watching it
-   * fail on arrival is the prediction being confirmed rather than assumed.
-   */
-  const IRI_VALUED_NON_LINK = [
-    'ext-orcid',
-    'ext-ror',
-    'ext-pfas',
-    'ext-pubmed',
-    'ext-rrid',
-    'ext-nih-grant-id',
-    'ext-doi',
-  ];
-
   it.each(requirable.map((k) => [k.key, k] as const))('%s counts once when required and single', (_key, k) => {
     const driver = new CeeDriver(
       buildTemplate({ name: `req_${k.key}`, children: [{ kind: k, name: 'f', required: true }] }),
@@ -99,17 +79,14 @@ describe('required values', () => {
     expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(0);
   });
 
-  it.each(requirable.filter((k) => !IRI_VALUED_NON_LINK.includes(k.inputType)).map((k) => [k.key, k] as const))(
-    '%s satisfies its requirement once filled',
-    (_key, k) => {
-      const driver = new CeeDriver(
-        buildTemplate({ name: `reqf_${k.key}`, children: [{ kind: k, name: 'f', required: true }] }),
-      );
-      driver.setValue(['_f'], k);
-      expect(driver.qualityReport.nonNullRequiredFieldValueCount, `${k.key} did not register as filled`).toBe(1);
-      expect(driver.qualityReport.isValid).toBe(true);
-    },
-  );
+  it.each(requirable.map((k) => [k.key, k] as const))('%s satisfies its requirement once filled', (_key, k) => {
+    const driver = new CeeDriver(
+      buildTemplate({ name: `reqf_${k.key}`, children: [{ kind: k, name: 'f', required: true }] }),
+    );
+    driver.setValue(['_f'], k);
+    expect(driver.qualityReport.nonNullRequiredFieldValueCount, `${k.key} did not register as filled`).toBe(1);
+    expect(driver.qualityReport.isValid).toBe(true);
+  });
 
   it('does not count optional fields toward the requirement', () => {
     const driver = new CeeDriver(
@@ -154,29 +131,34 @@ describe('required values', () => {
 });
 
 /**
- * Behaviours that look wrong, pinned so a fix is a deliberate, visible change.
+ * How the quality report reads a stored value back out.
  *
- * Each of these is a characterization test: it asserts what CEE *does*, not
- * what it arguably should do. If someone fixes one, the test fails and they
- * update it on purpose — which is the point.
+ * `extractPlainValue` is the single place that turns an instance node into the
+ * scalar the report reasons about, and it has three branches: `@value`, a bare
+ * `@id`, and an `@id` paired with `rdfs:label`. Getting the branch wrong does
+ * not error — it silently yields null and the field reads as empty.
  */
-describe('known defects (characterized, not endorsed)', () => {
+describe('quality report value extraction', () => {
   /**
-   * DEFECT: a filled required ORCID/ROR field never satisfies its requirement.
+   * REGRESSION: a filled required IRI-valued field satisfies its requirement.
    *
-   * `changeValue` stores these as `{'@id': <iri>}` with no `@value`.
-   * `extractPlainValue` returns the IRI only when
-   * `component.basicInfo.inputType === InputType.link`; for any other
-   * IRI-valued type it falls through to the controlled-term branch and reads
-   * `rdfs:label`, which is undefined here. `emptyToNull` turns that into null,
-   * so the report counts the field as empty and `isValid` never becomes true.
+   * This was a defect, characterized here across all seven affected types
+   * before being fixed. `changeValue` stores these as `{'@id': <iri>}` with no
+   * `@value`, and `extractPlainValue` used to return the IRI only for
+   * `InputType.link` — so every other IRI-valued type fell through to the
+   * controlled-term branch, read an absent `rdfs:label`, and counted as empty.
+   * A form with a required ORCID could never report valid.
    *
-   * On `develop` this now affects seven input types, not two: the check is a
-   * single `=== InputType.link`, while ext-orcid, ext-ror, ext-pfas,
-   * ext-pubmed, ext-rrid, ext-nih-grant-id and ext-doi all store a bare `@id`.
+   * The fix has `extractPlainValue` consult `EXTERNAL_AUTHORITY_INPUT_TYPES`,
+   * the set `DataObjectUtil.getEmptyValueWrapper` already used to decide these
+   * fields get no `@value` in the first place — so the quality report and the
+   * instance builder now agree about which fields carry an IRI, rather than
+   * each having its own idea.
    *
-   * Fix would be to test membership of the IRI-valued set rather than equality
-   * with `link` (data-quality-report-builder.handler.ts:155).
+   * Kept as an explicit table rather than folded into the generic
+   * "satisfies its requirement once filled" sweep: this is the specific
+   * regression, and it should fail loudly and by name if the set is ever
+   * bypassed again.
    */
   it.each([
     ['ext-orcid', 'orcid'],
@@ -186,25 +168,54 @@ describe('known defects (characterized, not endorsed)', () => {
     ['ext-rrid', 'rrid'],
     ['ext-nih-grant-id', 'nihGrant'],
     ['ext-doi', 'doi'],
-  ])('%s: a filled required field still reports as empty', (inputType, key) => {
+  ])('%s: a filled required field is seen by the quality report', (inputType, key) => {
     const k = FIELD_KINDS.find((x) => x.key === key)!;
     expect(k.inputType).toBe(inputType);
 
     const driver = new CeeDriver(
-      buildTemplate({ name: `defect_${key}`, children: [{ kind: k, name: 'f', required: true }] }),
+      buildTemplate({ name: `iri_${key}`, children: [{ kind: k, name: 'f', required: true }] }),
     );
-    driver.setValue(['_f'], k);
 
-    // The value really is stored...
-    const node: any = driver.handlerContext.getDataObjectNodeByPath(['_f']);
-    expect(node['@id']).toBe(k.sample);
-
-    // ...but the quality report cannot see it.
+    // Empty to begin with.
     expect(driver.qualityReport.requiredFieldValueCount).toBe(1);
     expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(0);
     expect(driver.qualityReport.isValid).toBe(false);
+
+    driver.setValue(['_f'], k);
+
+    // The IRI is stored as @id, with no @value...
+    const node: any = driver.handlerContext.getDataObjectNodeByPath(['_f']);
+    expect(node['@id']).toBe(k.sample);
+    expect(node['@value']).toBeUndefined();
+
+    // ...and the report now reads it.
+    expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(1);
+    expect(driver.qualityReport.isValid).toBe(true);
   });
 
+  it('still reads a controlled term from its label, not its IRI', () => {
+    // The other side of the same branch: controlled terms carry both @id and
+    // rdfs:label, and the label is the value. Widening the IRI test must not
+    // have swallowed this case.
+    const controlled = FIELD_KINDS.find((k) => k.inputType === 'controlled')!;
+    const driver = new CeeDriver(
+      buildTemplate({ name: 'iri_controlled', children: [{ kind: controlled, name: 'f', required: true }] }),
+    );
+    driver.setValue(['_f'], controlled);
+
+    expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(1);
+    expect(driver.qualityReport.isValid).toBe(true);
+  });
+});
+
+/**
+ * Behaviour that looks wrong, pinned so a fix is a deliberate, visible change.
+ *
+ * A characterization test: it asserts what CEE *does*, not what it arguably
+ * should do. If someone fixes this, the test fails and they update it on
+ * purpose — which is the point.
+ */
+describe('known defects (characterized, not endorsed)', () => {
   /**
    * DEFECT: filling one page of a multi element marks every page satisfied.
    *
