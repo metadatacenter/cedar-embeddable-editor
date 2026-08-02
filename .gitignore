@@ -47,3 +47,9 @@ testem.log
 Thumbs.db
 
 .angular/*
+
+# Sibling CEDAR repos some setups clone inside this one. They are separate
+# checkouts with their own remotes, not part of this repository.
+/cedar-component-demo
+/cedar-development
+/cedar-component-distribution

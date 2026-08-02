@@ -29,14 +29,13 @@ sense that the cost of the jump grows every release.
 stopping is not a resting place — 16 is itself EOL, so that path buys a second
 migration later.
 
-The blast radius is small: three module imports in
+The **usage** is small: three module imports in
 `src/app/modules/input-types/input-types.module.ts` and exactly one element,
 `<ngx-mat-timepicker>`, in
 `src/app/modules/input-types/components/cedar-input-datetime/cedar-input-datetime.component.html`.
 
-`@ng-matero/extensions` (v22, actively tracks Angular, ships `mtx-datetimepicker`)
-is the successor. **Deciding this is the first task**, because it determines
-whether the plan is a two-hop migration or an eight-hop one.
+The **replacement** is not. See Phase 2 — `@ng-matero/extensions`, the obvious
+candidate, cannot express what CEE needs.
 
 ### Dependency audit
 
@@ -73,12 +72,67 @@ static content with page breaks; two viewports. Stable across repeated runs
 Baselines were captured on Angular 14 **before** any upgrade work, which is the
 only moment they are worth capturing.
 
-### Phase 2 — Dependency de-risking ⬅ next
+### Phase 2 — Dependency de-risking ⬅ next, blocked on a decision
 
-1. Replace the datetime picker with `@ng-matero/extensions` (contained: one
-   element, one component, three module imports)
-2. Plan the ngx-translate v11 → v18 rewrite — `forRoot`/loader wiring changed
-   shape; `FallbackTranslateLoader` and its factory will need rework
+#### The time picker: `@ng-matero/extensions` is not a drop-in
+
+An earlier draft of this roadmap called the swap "contained". That was wrong —
+it confused *usage count* with *replacement effort*. Investigated against
+`@ng-matero/extensions@14.8.5` (which does exist for Angular 14, tagged
+`v14-lts`, peering `>=14.0.0`):
+
+| | `ngx-mat-timepicker` (current) | `@ng-matero/extensions` |
+|---|---|---|
+| Form factor | inline, always-visible spinners | popup attached to an input, plus a toggle |
+| Time UI | hh:mm:ss spinner column | clock face |
+| 12/24 hour | `enableMeridian` | `twelvehour` ✅ |
+| Hour-only precision | `disableMinute` | no equivalent |
+| **Seconds** | `showSeconds` | **not supported at all** |
+
+The seconds gap is disqualifying, not cosmetic. Grepping the whole
+`mtxDatetimepicker` bundle and its `.d.ts` files for `second` returns only
+`secondary` (colour and overlay positioning). CEDAR's temporal granularity runs
+`year → month → day → hour → minute → second → decimalSecond`, and CEE supports
+the bottom two today —
+`cedar-input-datetime.component.ts:114` (`showSeconds`) and `:118`
+(`showDecimalSeconds`). Adopting mtx would be a **functional regression against
+the CEDAR model**, not a UX change.
+
+Note also that CEE does not use a *datetime* picker at all. The date half is
+CEE's own `app-date-picker`; only the time half comes from the dependency.
+
+#### Options
+
+**A. Ride `ngx-mat-timepicker` to Angular 16, then swap.** It supports 14, 15
+and 16, so it does not block the first two hops. Defers the problem — and
+defers it into the middle of a migration, which is the worst time to be making
+a UI decision.
+
+**B. Build an in-house `app-time-picker`. ← recommended.** CEE already owns
+`app-date-picker` and `app-timezone-picker`; a time picker would follow the same
+pattern and sit beside them. It is the only option that both removes the
+dependency permanently and expresses CEDAR's granularity model exactly, because
+we would be writing it against that model rather than adapting to someone
+else's. Scope is bounded: hour/minute/second number inputs plus a meridian
+toggle, driven by the four predicates already in
+`cedar-input-datetime.component.ts`. The parsing and storage representation
+(`datetimeParsed`) already exist and do not change. Both test suites are now in
+place to verify it — `harness/` for the value semantics, `visual/` for the
+rendering.
+
+**C. Adopt mtx and accept the regression.** Loses second and decimal-second
+precision. Only viable if no CEDAR template in practice uses those
+granularities — which should be measured, not assumed, before anyone considers
+it.
+
+**This decision gates Phase 3.** Option B is the recommendation; it needs a
+sign-off because it is new UI code rather than a dependency bump.
+
+#### Also in this phase
+
+Plan the ngx-translate v11 → v18 rewrite. `forRoot`/loader wiring changed shape
+across eight majors; `FallbackTranslateLoader` and its factory will need rework.
+Eight files import from `@ngx-translate/*`.
 
 ### Phase 3 — Angular upgrade, one major at a time
 
