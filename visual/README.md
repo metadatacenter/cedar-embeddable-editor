@@ -2,8 +2,8 @@
 
 Playwright screenshot regression for the **built web component**.
 
-> **Status: 16 tests, all passing**, verified stable across three consecutive
-> runs (~5s each) on Chromium / macOS arm64.
+> **Status: 36 tests, all passing**, verified stable across three consecutive
+> runs (~11s each) on Chromium / macOS arm64.
 
 ## Why this exists, and why it is separate from `harness/`
 
@@ -29,7 +29,7 @@ here to catch.
 
 ## Fixtures
 
-Five templates, each exercising a distinct layout mechanism, generated
+Seven templates, each exercising a distinct layout mechanism, generated
 deterministically by `generate-fixtures.mjs` from the CEDAR Model TypeScript
 Library:
 
@@ -40,12 +40,43 @@ Library:
 | `03-nested-multi` | multi-instance elements nested two deep, chip pagers |
 | `04-controlled-terms` | controlled-term autocomplete, ORCID, ROR |
 | `05-static-paged` | section break, rich text, page breaks |
+| `06-validation` | `mat-error` and the form-field subscript, in five error states |
+| `07-timezone` | the timezone picker — CEE's only `ng-select` |
 
 Hand-picked rather than exhaustive. Screenshot diffs are for catching rendering
-regressions, and five templates covering distinct layout mechanisms catch that
-as well as five hundred — while staying reviewable when a diff actually fires.
+regressions, and a handful of templates covering distinct layout mechanisms
+catch that as well as five hundred — while staying reviewable when a diff
+actually fires. Breadth of *states* is worth more here than breadth of
+fixtures; see below.
 
 Two viewports: `desktop` (1280×900) and `narrow` (480×900).
+
+## Beyond the default state
+
+The fixture screenshots capture an empty form in the base configuration. An
+audit of the baselines against CEE's templates found **13 Material element
+types rendering in no screenshot at all** — led by `mat-error` (30 template
+occurrences) and `mat-option` (26). Both exist only in states a default-state
+screenshot never reaches: a touched control, and an open overlay.
+
+That gap sat squarely on the migration risk. MDC restructured the
+`mat-form-field` subscript wrapper — where errors and hints live — and changed
+overlay positioning.
+
+Now covered:
+
+| State | How it is reached |
+|---|---|
+| Validation errors | focus + blur each required field; Material's default ErrorStateMatcher shows `mat-error` only once a control is touched |
+| Invalid email, min-length | fill an invalid value, then blur |
+| Open select panel | click `mat-select` — renders `mat-option` in the CDK overlay |
+| Filled fields | type into text, textarea, numeric, email and link |
+| Chrome on | `?c=chrome` — header, footer, preferences menu, and with them `mat-toolbar` and `mat-slide-toggle` |
+| Read-only mode | `?c=readonly`, over two fixtures |
+
+Not covered, deliberately: the lookup spinners inside `mat-option`. They only
+appear mid-request against a live terminology server, and the baseline must not
+depend on the network.
 
 ## Running
 
@@ -80,19 +111,26 @@ the new rendering is correct.
 
 ## Determinism
 
-Screenshot suites are only useful if red means something. Three things keep this
+Screenshot suites are only useful if red means something. Four things keep this
 one stable:
 
-1. **`document.fonts.ready`.** The bundle embeds Roboto at three weights plus
+1. **A pinned clock.** CEE seeds a temporal field's date and time from
+   `new Date()` at init, so any fixture with one renders the current wall
+   clock. `page.clock.setFixedTime` pins it. This was caught by reading a
+   captured baseline and noticing the timepicker showed the real time — the
+   stability runs had passed only because they completed within the same
+   minute. A baseline that rots on a timer looks exactly like a real
+   regression, which is the worst kind of false alarm.
+2. **`document.fonts.ready`.** The bundle embeds Roboto at three weights plus
    Material Icons. They load asynchronously and re-measure every text run when
    they land — shifting layout *after* the DOM stops mutating. Without waiting,
    the suite is intermittently off by a few pixels. This was observed, not
    theorised: before the fix, runs took 34s–1.3m with sporadic failures; after,
    5.4s and clean.
-2. **A DOM-settled poll, then a re-settle after fonts.** The host page sets
+3. **A DOM-settled poll, then a re-settle after fonts.** The host page sets
    `window.__ceeReady` only once both have quiesced; tests wait on that flag
    rather than a fixed timeout.
-3. **No network.** `terminologyIntegratedSearchUrl` points at an unreachable
+4. **No network.** `terminologyIntegratedSearchUrl` points at an unreachable
    port on purpose. The baseline must never depend on a live terminology
    server, and autocomplete panels are not screenshotted.
 

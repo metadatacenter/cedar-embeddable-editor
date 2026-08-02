@@ -48,7 +48,16 @@
         await customElements.whenDefined('cedar-embeddable-editor');
         const cee = document.querySelector('cedar-embeddable-editor');
 
-        cee.config = {
+        /**
+         * Config presets, selected with ?c=<name>.
+         *
+         * `base` strips the surrounding chrome so a diff reflects the form
+         * itself. That is the right default, but it also means the header,
+         * footer and preferences menu — and with them mat-toolbar and
+         * mat-slide-toggle — render in no baseline at all. The `chrome` preset
+         * exists to cover them rather than leave that silently untested.
+         */
+        const base = {
           showSampleTemplateLinks: false,
           showHeader: false,
           showFooter: false,
@@ -62,9 +71,24 @@
           defaultLanguage: 'en',
           fallbackLanguage: 'en',
           // Deliberately unreachable: the visual baseline must never depend on
-          // a live terminology server. Autocomplete panels are not screenshotted.
+          // a live terminology server. Lookup spinners are not screenshotted
+          // for the same reason — they only appear mid-request.
           terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
         };
+
+        const PRESETS = {
+          base,
+          chrome: { ...base, showHeader: true, showFooter: true, showPreferencesMenu: true },
+          readonly: { ...base, readOnlyMode: true },
+        };
+
+        const preset = params.get('c') || 'base';
+        if (!PRESETS[preset]) {
+          window.__ceeError = `unknown config preset: ${preset}`;
+          return;
+        }
+
+        cee.config = PRESETS[preset];
         cee.templateObject = template;
 
         // The editor renders asynchronously; consider the DOM settled once two

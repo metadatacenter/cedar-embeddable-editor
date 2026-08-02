@@ -229,3 +229,46 @@ const write = (name, template) => {
   tb = tb.addChild(b2, deploy(b2, 'second'));
   write('05-static-paged', tb.build());
 }
+
+// 6. Validation states — the mat-form-field subscript area.
+//    `mat-error` is the single most-used Material element in CEE (30 template
+//    occurrences) and appeared in no baseline: errors only render once a
+//    control is touched, which no default-state screenshot reaches. Material
+//    15's MDC rewrite substantially restructures the form-field subscript
+//    wrapper, so this is prime regression territory.
+{
+  const kinds = [
+    ['required_text', () => CedarBuilders.textFieldBuilder(), undefined, true],
+    ['short_text', () => CedarBuilders.textFieldBuilder(), (b) => b.withMinLength(8), true],
+    ['an_email', () => CedarBuilders.emailFieldBuilder(), undefined, true],
+    ['a_link', () => CedarBuilders.linkFieldBuilder(), undefined, true],
+    ['a_phone', () => CedarBuilders.phoneNumberFieldBuilder(), undefined, true],
+  ];
+  let tb = common(CedarBuilders.templateBuilder(), 'ValidationStates', 'templates').withSchemaDescription(
+    'Fields that can show validation errors',
+  );
+  for (const [name, make, configure, required] of kinds) {
+    const f = field(name, make, configure);
+    tb = tb.addChild(f, deploy(f, name, { required }));
+  }
+  write('06-validation', tb.build());
+}
+
+// 7. Timezone picker — the only `ng-select` in the application, reachable only
+//    when a temporal field sets timezoneEnabled.
+{
+  const dt = field(
+    'sampled_at',
+    () => CedarBuilders.temporalFieldBuilder(),
+    (b) =>
+      b
+        .withTemporalType(TemporalType.DATETIME)
+        .withTemporalGranularity(TemporalGranularity.MINUTE)
+        .withTimezoneEnabled(true),
+  );
+  let tb = common(CedarBuilders.templateBuilder(), 'TimezonePicker', 'templates').withSchemaDescription(
+    'Temporal field with the timezone picker enabled',
+  );
+  tb = tb.addChild(dt, deploy(dt, 'sampled_at'));
+  write('07-timezone', tb.build());
+}
