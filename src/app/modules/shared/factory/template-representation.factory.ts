@@ -120,6 +120,19 @@ export class TemplateRepresentationFactory {
     for (const name of propertyNames) {
       const templateFragment = templateJsonObj[JsonSchema.properties][name];
 
+      if (templateFragment == null) {
+        // `_ui.order` can name a child that `properties` does not define. That
+        // happens in real templates — `template-003` in cedar-test-artifacts is
+        // one, and the model library reads it without complaint — so skipping
+        // the orphan is the right response. Passing it on made
+        // `isFragmentMulti` dereference `.type` on undefined and take the whole
+        // editor down over a template it could otherwise have rendered.
+        handlerContext.messageHandlerService.error(
+          `Template lists "${name}" in _ui.order but has no such property. Skipping it.`,
+        );
+        continue;
+      }
+
       const isMulti: boolean = TemplateRepresentationFactory.isFragmentMulti(templateFragment);
 
       const parentDataNode: object = TemplateRepresentationFactory.getDataNode(parentJsonObj);
