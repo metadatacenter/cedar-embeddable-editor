@@ -35,8 +35,11 @@ const drive = (kind: FieldKind, name = 'f') =>
 
 describe('text constraints', () => {
   it('carries minLength and maxLength onto valueInfo', () => {
-    const kind = kindOf('textlen', 'textfield', () => CedarBuilders.textFieldBuilder(), (b) =>
-      b.withMinLength(3).withMaxLength(42),
+    const kind = kindOf(
+      'textlen',
+      'textfield',
+      () => CedarBuilders.textFieldBuilder(),
+      (b) => b.withMinLength(3).withMaxLength(42),
     );
     const info = drive(kind).findOrThrow(['_f']).valueInfo;
     expect(info.minLength).toBe(3);
@@ -44,25 +47,47 @@ describe('text constraints', () => {
   });
 
   it('carries a default value onto valueInfo', () => {
-    const kind = kindOf('textdef', 'textfield', () => CedarBuilders.textFieldBuilder(), (b) =>
-      b.withDefaultValue('preset'),
+    const kind = kindOf(
+      'textdef',
+      'textfield',
+      () => CedarBuilders.textFieldBuilder(),
+      (b) => b.withDefaultValue('preset'),
     );
     expect(drive(kind).findOrThrow(['_f']).valueInfo.defaultValue).toBe('preset');
   });
 
   /**
-   * `regex` is the second most common constraint in the corpus (150 uses) and
-   * CEE has no `ValueInfo` slot for it — `extractValueConstraints` never reads
-   * it. Pinned so that if a regex field is ever added, this test says where to
-   * start. Not a defect: CEE simply does not do client-side regex validation.
+   * `regex` is the second most common constraint in the HuBMAP corpus (150
+   * uses) and was read by nothing: `ValueInfo` had no slot for it and no
+   * validator applied it. Both are now in place.
    */
-  it('does not surface regex — CEE has no slot for it', () => {
-    const kind = kindOf('textre', 'textfield', () => CedarBuilders.textFieldBuilder(), (b) =>
-      b.withRegex('^[A-Z]{3}$'),
+  it('surfaces regex on valueInfo', () => {
+    const kind = kindOf(
+      'textre',
+      'textfield',
+      () => CedarBuilders.textFieldBuilder(),
+      (b) => b.withRegex('^[A-Z]{3}$'),
     );
     const component = drive(kind).findOrThrow(['_f']);
     expect(component.basicInfo.inputType).toBe('textfield');
-    expect((component.valueInfo as any).regex).toBeUndefined();
+    expect(component.valueInfo.regex).toBe('^[A-Z]{3}$');
+  });
+
+  it('reports a value that violates the regex, and accepts one that matches', () => {
+    const kind = kindOf(
+      'textre2',
+      'textfield',
+      () => CedarBuilders.textFieldBuilder(),
+      (b) => b.withRegex('^[A-Z]{3}$'),
+    );
+    const bad = drive(kind);
+    bad.setValue(['_f'], kind, 'zzz');
+    expect(bad.qualityReport.isValid).toBe(false);
+    expect(bad.qualityReport.problems.map((p: any) => p.code)).toContain('regex');
+
+    const good = drive(kind);
+    good.setValue(['_f'], kind, 'ZZZ');
+    expect(good.qualityReport.isValid).toBe(true);
   });
 });
 
@@ -76,16 +101,28 @@ describe('numeric constraints', () => {
   ] as const;
 
   it.each(numberTypes.map(([n, t]) => [n, t] as const))('numberType %s reaches numberInfo', (name, type) => {
-    const kind = kindOf(`num_${name}`, 'numeric', () => CedarBuilders.numericFieldBuilder(), (b) =>
-      b.withNumberType(type),
+    const kind = kindOf(
+      `num_${name}`,
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => b.withNumberType(type),
     );
     const info = drive(kind).findOrThrow(['_f']).numberInfo;
     expect(info.numberType, `numberType missing for ${name}`).toBeTruthy();
   });
 
   it('carries minValue, maxValue, decimalPlaces and unitOfMeasure', () => {
-    const kind = kindOf('num_full', 'numeric', () => CedarBuilders.numericFieldBuilder(), (b) =>
-      b.withNumberType(NumberType.DOUBLE).withMinValue(0).withMaxValue(100).withDecimalPlaces(2).withUnitOfMeasure('mm'),
+    const kind = kindOf(
+      'num_full',
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) =>
+        b
+          .withNumberType(NumberType.DOUBLE)
+          .withMinValue(0)
+          .withMaxValue(100)
+          .withDecimalPlaces(2)
+          .withUnitOfMeasure('mm'),
     );
     const info = drive(kind).findOrThrow(['_f']).numberInfo;
     expect(info.minValue).toBe(0);
@@ -99,8 +136,11 @@ describe('numeric constraints', () => {
    * check would silently drop. It appears 127 times in the corpus.
    */
   it('preserves a zero minValue rather than treating it as absent', () => {
-    const kind = kindOf('num_zero', 'numeric', () => CedarBuilders.numericFieldBuilder(), (b) =>
-      b.withNumberType(NumberType.INT).withMinValue(0),
+    const kind = kindOf(
+      'num_zero',
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => b.withNumberType(NumberType.INT).withMinValue(0),
     );
     expect(drive(kind).findOrThrow(['_f']).numberInfo.minValue).toBe(0);
   });
@@ -118,8 +158,11 @@ describe('temporal constraints', () => {
   ] as const;
 
   it.each(granularities.map(([n, g]) => [n, g] as const))('granularity %s reaches basicInfo', (name, granularity) => {
-    const kind = kindOf(`tg_${name}`, 'temporal', () => CedarBuilders.temporalFieldBuilder(), (b) =>
-      b.withTemporalType(TemporalType.DATETIME).withTemporalGranularity(granularity),
+    const kind = kindOf(
+      `tg_${name}`,
+      'temporal',
+      () => CedarBuilders.temporalFieldBuilder(),
+      (b) => b.withTemporalType(TemporalType.DATETIME).withTemporalGranularity(granularity),
     );
     const component = drive(kind).findOrThrow(['_f']);
     expect(component.basicInfo.inputType).toBe('temporal');
@@ -131,15 +174,25 @@ describe('temporal constraints', () => {
     ['TIME', TemporalType.TIME],
     ['DATETIME', TemporalType.DATETIME],
   ] as const)('temporalType %s reaches valueInfo', (name, type) => {
-    const kind = kindOf(`tt_${name}`, 'temporal', () => CedarBuilders.temporalFieldBuilder(), (b) =>
-      b.withTemporalType(type).withTemporalGranularity(TemporalGranularity.DAY),
+    const kind = kindOf(
+      `tt_${name}`,
+      'temporal',
+      () => CedarBuilders.temporalFieldBuilder(),
+      (b) => b.withTemporalType(type).withTemporalGranularity(TemporalGranularity.DAY),
     );
     expect(drive(kind).findOrThrow(['_f']).valueInfo.temporalType, `temporalType missing for ${name}`).toBeTruthy();
   });
 
   it('carries timezoneEnabled', () => {
-    const kind = kindOf('tz', 'temporal', () => CedarBuilders.temporalFieldBuilder(), (b) =>
-      b.withTemporalType(TemporalType.DATETIME).withTemporalGranularity(TemporalGranularity.MINUTE).withTimezoneEnabled(true),
+    const kind = kindOf(
+      'tz',
+      'temporal',
+      () => CedarBuilders.temporalFieldBuilder(),
+      (b) =>
+        b
+          .withTemporalType(TemporalType.DATETIME)
+          .withTemporalGranularity(TemporalGranularity.MINUTE)
+          .withTimezoneEnabled(true),
     );
     expect(drive(kind).findOrThrow(['_f']).basicInfo.timezoneEnabled).toBe(true);
   });
@@ -223,8 +276,11 @@ describe('choice literals', () => {
   };
 
   it('pre-seeds the instance from a default-selected literal on a multi field', () => {
-    const kind = kindOf('seed', 'checkbox', () => CedarBuilders.checkboxFieldBuilder(), (b) =>
-      b.addCheckboxOption('Alpha', false).addCheckboxOption('Beta', true),
+    const kind = kindOf(
+      'seed',
+      'checkbox',
+      () => CedarBuilders.checkboxFieldBuilder(),
+      (b) => b.addCheckboxOption('Alpha', false).addCheckboxOption('Beta', true),
     );
     const template = withMinItems(buildTemplate({ name: 'vc_seed', children: [{ kind, name: 'f' }] }), '_f', 1);
     const driver = new CeeDriver(template);
@@ -236,8 +292,11 @@ describe('choice literals', () => {
   });
 
   it('leaves the instance unseeded when no literal is default-selected', () => {
-    const kind = kindOf('noseed', 'checkbox', () => CedarBuilders.checkboxFieldBuilder(), (b) =>
-      b.addCheckboxOption('Alpha', false).addCheckboxOption('Beta', false),
+    const kind = kindOf(
+      'noseed',
+      'checkbox',
+      () => CedarBuilders.checkboxFieldBuilder(),
+      (b) => b.addCheckboxOption('Alpha', false).addCheckboxOption('Beta', false),
     );
     const template = withMinItems(buildTemplate({ name: 'vc_noseed', children: [{ kind, name: 'f' }] }), '_f', 1);
     const driver = new CeeDriver(template);
@@ -252,8 +311,11 @@ describe('choice literals', () => {
    * template never asked for a slot to put it in" (true).
    */
   it('does not seed when minItems is absent, even with a default-selected literal', () => {
-    const kind = kindOf('nominitems', 'checkbox', () => CedarBuilders.checkboxFieldBuilder(), (b) =>
-      b.addCheckboxOption('Beta', true),
+    const kind = kindOf(
+      'nominitems',
+      'checkbox',
+      () => CedarBuilders.checkboxFieldBuilder(),
+      (b) => b.addCheckboxOption('Beta', true),
     );
     const driver = new CeeDriver(buildTemplate({ name: 'vc_nomin', children: [{ kind, name: 'f' }] }));
     expect(driver.extract._f).toEqual([]);
@@ -267,8 +329,11 @@ describe('constraints survive a save/reload cycle', () => {
    * that dropped them would leave the widget rendering without its bounds.
    */
   it('numeric bounds are re-derived after reload', () => {
-    const kind = kindOf('rl_num', 'numeric', () => CedarBuilders.numericFieldBuilder(), (b) =>
-      b.withNumberType(NumberType.INT).withMinValue(1).withMaxValue(9),
+    const kind = kindOf(
+      'rl_num',
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => b.withNumberType(NumberType.INT).withMinValue(1).withMaxValue(9),
     );
     const template = buildTemplate({ name: 'vc_rl_num', children: [{ kind, name: 'f' }] });
 
@@ -283,8 +348,11 @@ describe('constraints survive a save/reload cycle', () => {
   });
 
   it('choice literals are re-derived after reload', () => {
-    const kind = kindOf('rl_ch', 'radio', () => CedarBuilders.radioFieldBuilder(), (b) =>
-      b.addRadioOption('Alpha', false).addRadioOption('Beta', true),
+    const kind = kindOf(
+      'rl_ch',
+      'radio',
+      () => CedarBuilders.radioFieldBuilder(),
+      (b) => b.addRadioOption('Alpha', false).addRadioOption('Beta', true),
     );
     const template = buildTemplate({ name: 'vc_rl_ch', children: [{ kind, name: 'f' }] });
 

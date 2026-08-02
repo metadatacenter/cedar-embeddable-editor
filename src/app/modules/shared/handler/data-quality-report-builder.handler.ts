@@ -16,6 +16,8 @@ import { HandlerContext } from '../util/handler-context';
 import { JsonSchema } from '../models/json-schema.model';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
+import { FieldValueValidator } from '../validation/field-value-validator';
+import { ValidationCode, ValidationProblem } from '../validation/validation-problem.model';
 
 export class DataQualityReportBuilderHandler {
   private dataObjectFull: object;
@@ -62,6 +64,7 @@ export class DataQualityReportBuilderHandler {
         //const multiElement: MultiElementComponent = component as MultiElementComponent;
         valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyList();
         const multiCount = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount;
+        DataQualityReportBuilderHandler.collectCardinalityProblems(component as any, multiCount, report);
         if (multiCount > 0) {
           const dummyTargetObject: object = DataQualityReportBuilderHandler.getEmptyObject();
           const currentIndex = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentIndex;
@@ -115,7 +118,18 @@ export class DataQualityReportBuilderHandler {
             component,
           )
         : null;
+      DataQualityReportBuilderHandler.collectFieldProblems(
+        nonIterableComponent,
+        dataValueObject,
+        handlerContext.dataContext.instanceExtractData,
+        report,
+      );
       if (component instanceof MultiFieldComponent) {
+        DataQualityReportBuilderHandler.collectCardinalityProblems(
+          nonIterableComponent,
+          (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount,
+          report,
+        );
         valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyList();
         const multiCount = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount;
         for (let idx = 0; idx < multiCount; idx++) {
@@ -146,6 +160,105 @@ export class DataQualityReportBuilderHandler {
    *                       multi-instance element is satisfied by *any* instance
    *                       holding a value, not only the one on screen.
    */
+
+  /**
+   * Constraint problems for one field, across every instance that holds a value.
+   *
+   * Walks the whole extract instance rather than the displayed page, for the
+   * same reason `findAnyValue` does: which page is on screen must not change
+   * whether the instance is reported as sound.
+   */
+  private static collectFieldProblems(
+    component: FieldComponent,
+    displayedNode: object,
+    instanceExtractData: object,
+    report: DataQualityReport,
+  ): void {
+    const nodes = DataQualityReportBuilderHandler.collectNodes(component.path, instanceExtractData);
+    // Fall back to the displayed node when the path resolves to nothing, so a
+    // field is still checked if the instance shape is unexpected.
+    const targets = nodes.length > 0 ? nodes : displayedNode == null ? [] : [displayedNode];
+
+    const seen = new Set<string>();
+    for (const node of targets) {
+      for (const p of FieldValueValidator.validateControlledNode(component, node, component.path)) {
+        DataQualityReportBuilderHandler.addProblem(report, p, seen);
+      }
+      const value = DataQualityReportBuilderHandler.extractPlainValue(node, component);
+      for (const p of FieldValueValidator.validate(component, value, component.path)) {
+        DataQualityReportBuilderHandler.addProblem(report, p, seen);
+      }
+    }
+  }
+
+  /** `minItems` / `maxItems`, which nothing enforced outside the pager's buttons. */
+  private static collectCardinalityProblems(component: any, currentCount: number, report: DataQualityReport): void {
+    const multiInfo = component?.multiInfo;
+    if (multiInfo == null) {
+      return;
+    }
+    const path = component.path ?? [];
+    const name = path.length > 0 ? path[path.length - 1] : component.name;
+    const inputType = component.basicInfo?.inputType ?? 'element';
+
+    if (multiInfo.minItems != null && currentCount < multiInfo.minItems) {
+      report.problems.push(
+        new ValidationProblem(
+          path,
+          name,
+          inputType,
+          ValidationCode.minItems,
+          `Has ${currentCount} of a minimum ${multiInfo.minItems}.`,
+          currentCount,
+        ),
+      );
+    }
+    if (multiInfo.maxItems != null && currentCount > multiInfo.maxItems) {
+      report.problems.push(
+        new ValidationProblem(
+          path,
+          name,
+          inputType,
+          ValidationCode.maxItems,
+          `Has ${currentCount} of a maximum ${multiInfo.maxItems}.`,
+          currentCount,
+        ),
+      );
+    }
+  }
+
+  /** Deduplicate: the same violation on several instances is reported once per distinct code. */
+  private static addProblem(report: DataQualityReport, problem: ValidationProblem, seen: Set<string>): void {
+    const key = `${problem.path.join('/')}|${problem.code}|${String(problem.value)}`;
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    report.problems.push(problem);
+  }
+
+  /** Every node at `path`, branching into every array entry. Cursor-free, like findAnyValue. */
+  private static collectNodes(path: string[], node: any, acc: object[] = []): object[] {
+    if (node === null || node === undefined) {
+      return acc;
+    }
+    if (Array.isArray(node)) {
+      for (const entry of node) {
+        DataQualityReportBuilderHandler.collectNodes(path, entry, acc);
+      }
+      return acc;
+    }
+    if (path.length === 0) {
+      acc.push(node);
+      return acc;
+    }
+    const [head, ...rest] = path;
+    if (!Object.hasOwn(node, head)) {
+      return acc;
+    }
+    return DataQualityReportBuilderHandler.collectNodes(rest, node[head], acc);
+  }
+
   private static getEmptyValueWrapper(
     value: object,
     isRequired: boolean,

@@ -303,6 +303,7 @@ export class TemplateRepresentationFactory {
       fc.valueInfo.defaultValue = vc[CedarModel.defaultValue];
       fc.valueInfo.minLength = vc[CedarModel.minLength];
       fc.valueInfo.maxLength = vc[CedarModel.maxLength];
+      fc.valueInfo.regex = vc[CedarModel.regex];
 
       if (Object.hasOwn(vc, CedarModel.temporalType)) {
         fc.valueInfo.temporalType = vc[CedarModel.temporalType];

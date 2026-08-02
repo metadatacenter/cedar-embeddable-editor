@@ -254,13 +254,48 @@ The dataQualityReport summarizes basic metrics on the instance data.
 const report = cee.dataQualityReport;
 ```
 
-At the moment these three fields are available, with more to come:
+The report answers two questions: is anything required missing, and is anything
+present invalid.
 
 ```
 requiredFieldValueCount: int
 nonNullRequiredFieldValueCount: int
+problems: ValidationProblem[]
 isValid: boolean
 ```
+
+`isValid` is true when nothing required is missing **and** `problems` is empty.
+
+Each problem names the field and what is wrong with it:
+
+```javascript
+{
+  path: ['_author', '_email'],   // component path from the template root
+  field: '_email',
+  inputType: 'email',
+  code: 'email',                 // stable, matchable without parsing the message
+  message: 'Not a valid email address.',
+  value: 'not-an-email'
+}
+```
+
+Constraints checked: `requiredValue`; `minLength`, `maxLength` and `regex`;
+email, link, phone and external-authority IRI format; numeric type — including
+`xsd:decimal`, `xsd:byte` and `xsd:short` — with the type's own range,
+`minValue`, `maxValue` and `decimalPlace`; temporal shape against
+`temporalType`, `granularity` and `timezoneEnabled`, plus calendar validity;
+membership of a value in its declared choice literals; `minItems` and
+`maxItems`; and the structure of a controlled-term value.
+
+Controlled-term **membership** — whether a term belongs to the declared
+ontologies, value sets, classes or branches — is not checked. It requires the
+terminology server, and a local synchronous report should not depend on the
+network. Structural checks on controlled values (`@id` and `rdfs:label` present
+as a pair, `@id` well-formed) are performed.
+
+An absent value produces no constraint problems; that is the required check's
+business, so an empty form reports what is missing rather than also reporting
+every blank as malformed.
 
 ### Language Maps / Translations
 

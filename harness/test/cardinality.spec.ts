@@ -325,28 +325,47 @@ describe('required values are page-independent', () => {
   });
 
   /**
-   * CHARACTERIZATION, not an endorsement: an element with zero instances
-   * contributes zero requirements, so a template whose only required field
-   * lives inside it reports vacuously valid.
+   * An element with zero instances used to report vacuously valid: the
+   * multi-element branch is guarded by `multiCount > 0`, so no requirement was
+   * counted, and `0 <= 0` passed. Whether that should be valid was left as an
+   * open product question.
    *
-   * `buildRecursively` guards the multi-element branch with `multiCount > 0`,
-   * and `computeValidity` is `required <= nonNull`, so 0 <= 0 passes. Note the
-   * asymmetry with the case above: an *absent* `_el` key falls back to the
-   * template's `minItems`, giving three instances and a real requirement,
-   * while an explicit `_el: null` yields zero instances and none.
-   *
-   * Whether an empty repeated element should satisfy or violate a requirement
-   * is a product question, distinct from the page-independence fix above, and
-   * predates it. Pinned so that deciding it is a visible change.
+   * Cardinality checking answers it without needing the question settled
+   * separately. `minItems: 3` with zero instances is a `minItems` violation,
+   * which is the more precise complaint anyway — the problem is not that a
+   * required field is unfilled, it is that the element is not there.
    */
-  it('reports vacuously valid when the element has no instances at all', () => {
+  it('reports a minItems violation when the element has no instances', () => {
     const driver = new CeeDriver(threeInstances(), {
       instance: { '@context': {}, '@id': 'https://example.org/i/1', _el: null },
     });
     driver.handlerContext.buildQualityReport();
 
+    // Still no *required-value* requirement, since no instance exists to hold one.
     expect(driver.qualityReport.requiredFieldValueCount).toBe(0);
     expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(0);
+    // But the cardinality floor is violated, so the instance is not valid.
+    expect(driver.qualityReport.problems.map((p: any) => p.code)).toContain('minItems');
+    expect(driver.qualityReport.isValid).toBe(false);
+  });
+
+  it('is still vacuously valid when no minItems is declared', () => {
+    // Without a floor there is nothing to violate, so an absent element really
+    // is acceptable — the distinction is the template's to make. `minItems`
+    // has to be stripped from the emitted JSON because the fixture generator
+    // always writes one for a multi child.
+    const noFloor: any = buildTemplate({
+      name: 'no_floor',
+      elements: [{ name: 'el', cardinality: 'multi', children: [{ kind: TEXT, name: 'f', required: true }] }],
+    });
+    delete noFloor.properties._el.minItems;
+
+    const driver = new CeeDriver(noFloor, {
+      instance: { '@context': {}, '@id': 'https://example.org/i/2', _el: null },
+    });
+    driver.handlerContext.buildQualityReport();
+
+    expect(driver.qualityReport.problems).toEqual([]);
     expect(driver.qualityReport.isValid).toBe(true);
   });
 

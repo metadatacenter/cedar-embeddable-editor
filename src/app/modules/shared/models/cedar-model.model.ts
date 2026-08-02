@@ -20,6 +20,7 @@ export class CedarModel {
   static minValue = 'minValue';
   static maxValue = 'maxValue';
   static decimalPlace = 'decimalPlace';
+  static regex = 'regex';
   static content = '_content';
 
   static ontologies = 'ontologies';
