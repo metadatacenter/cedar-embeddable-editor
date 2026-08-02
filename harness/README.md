@@ -4,9 +4,9 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 540 tests, all passing** on Node 20.20.2 / Vitest 1.6.
+> **Status: 555 tests, all passing** on Node 20.20.2 / Vitest 1.6.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
-> Two CEE defects found — one fixed, one characterized. See [What it found](#what-it-found).
+> Three CEE defects found — one fixed, two characterized. See [What it found](#what-it-found).
 
 ## Why this exists
 
@@ -63,6 +63,7 @@ change.
 | `test/cardinality.spec.ts` | minItems, required values, two-level multi nesting |
 | `test/value-constraints.spec.ts` | Text/numeric/temporal constraints, choice literals, defaults |
 | `test/edge-cases.spec.ts` | Page breaks, static collapse, hidden fields, multi-instance, reload |
+| `test/read-only.spec.ts` | Read-only mode, `hideEmptyFields`, element visibility |
 
 ## Dimensions covered
 
@@ -77,6 +78,7 @@ change.
 | Choice literals | list (single + multiple), radio, checkbox; `selectedByDefault` and its instance pre-seeding |
 | Instance lifecycle | build → write → save → reload, across the controlled-term matrix |
 | Static content | image, youtube, richtext, section break, page break; collapsing on/off |
+| Operating modes | edit vs read-only; `hideEmptyFields` over fields, elements and nesting |
 
 Constraint frequencies were taken from the HuBMAP corpus shipped with
 `cedar-artifact-library` (`src/test/resources/templates-yaml/`) so the emphasis
@@ -114,7 +116,7 @@ Both were reverted; CEE source is unmodified by this harness.
 
 ## What it found
 
-Two defects. One is fixed; the other is a product decision and stays pinned.
+Three defects. One is fixed; two stay pinned.
 
 **1. A filled required IRI-valued field never satisfied its requirement. — FIXED**
 
@@ -155,6 +157,19 @@ so the fix collides with the impure-path-resolution debt rather than being
 local. It also embeds a question only the product can answer: is a required
 field inside an N-instance element one requirement or N? Pinned in "known
 defects (characterized, not endorsed)".
+
+**3. Element visibility depends on the order of its element children. — open**
+
+In read-only mode with `hideEmptyFields`, `hasNonEmptyChild` loops a
+component's children and, for element children, assigns the recursive result
+without breaking — so the last element child wins and overwrites any earlier
+`true`. An element containing data is reported empty whenever a later sibling
+element happens to be empty, and a populated section silently disappears from
+the viewer. The field branch of the same loop *does* break, so this is an
+inconsistency inside one function rather than a design choice.
+
+Demonstrated by rendering identical data in both sibling orders and getting
+opposite visibility. One-line fix, but it changes what a viewer displays.
 
 Related, and worth knowing rather than fixing: writing to an IRI-valued field
 leaves `rdfs:label: undefined` on the node. `JSON.stringify` drops
