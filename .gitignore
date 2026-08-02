@@ -48,8 +48,10 @@ Thumbs.db
 
 .angular/*
 
-# Sibling CEDAR repos some setups clone inside this one. They are separate
-# checkouts with their own remotes, not part of this repository.
+# Other CEDAR repos belong beside this one under $CEDAR_HOME (~/CEDAR), never
+# inside it — docs across the repos cross-link as ../../<repo>/..., which only
+# resolves from that layout. These entries are a guard so a stray clone in here
+# can't be committed as an embedded repository.
 /cedar-component-demo
 /cedar-development
 /cedar-component-distribution

@@ -49,7 +49,8 @@ Two viewports: `desktop` (1280×900) and `narrow` (480×900).
 
 ## Running
 
-Needs Node 20 — the app itself needs 18. See `cedar-development/ops/CEE-RUNBOOK.md`.
+Needs Node 20 — the app itself needs 18. See
+[CEE-RUNBOOK.md](../../cedar-development/ops/CEE-RUNBOOK.md).
 
 First time:
 
