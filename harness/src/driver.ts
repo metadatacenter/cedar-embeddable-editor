@@ -16,7 +16,7 @@ import { HandlerContext } from '@cee/util/handler-context';
 import { MessageHandlerService } from '@cee/service/message-handler.service';
 import { PageBreakPaginatorService } from '@cee/service/page-break-paginator.service';
 import type { TemplateParser } from '@cee/factory/template-parser';
-import { ModelLibraryTemplateParser } from '@cee/factory/model-library-template-parser';
+import { JsonWalkTemplateParser } from '@cee/factory/json-walk-template-parser';
 import type { FieldKind } from './axes';
 
 /**
@@ -69,20 +69,21 @@ export interface DriverOptions {
 /**
  * The parser every suite uses unless it names one.
  *
- * Set `CEE_TEMPLATE_PARSER=model-library` and the entire harness runs against
- * the library-backed parser instead of CEE's hand-written JSON walk. That is
- * the real check on the swap: not a tree diff over a handful of templates, but
- * every assertion in the suite — instance construction, path resolution, value
- * writes, cardinality, the quality report, the corpus snapshots — holding with
- * either parser underneath.
+ * Defaults to CEE's own default, which is the model library. Set
+ * `CEE_TEMPLATE_PARSER=json-walk` and the entire harness runs against the
+ * hand-written JSON walk instead. That is the real check on the swap: not a
+ * tree diff over a handful of templates, but every assertion in the suite —
+ * instance construction, path resolution, value writes, cardinality, the
+ * quality report, the corpus snapshots — holding with either parser
+ * underneath.
  *
  * An env var rather than a config file because it has to be trivial to run
  * both ways in one command, and because a spec that names a parser explicitly
  * must still win over it.
  */
-const PARSER_ENV = process.env.CEE_TEMPLATE_PARSER ?? 'json-walk';
+const PARSER_ENV = process.env.CEE_TEMPLATE_PARSER ?? 'model-library';
 export const defaultParser: TemplateParser | undefined =
-  PARSER_ENV === 'model-library' ? new ModelLibraryTemplateParser() : undefined;
+  PARSER_ENV === 'json-walk' ? new JsonWalkTemplateParser() : undefined;
 export const defaultParserName = PARSER_ENV;
 
 export class CeeDriver {

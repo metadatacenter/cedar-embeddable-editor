@@ -9,7 +9,7 @@ Data File Identity single
   SHA256 digest type=textfield single
 Data File Language single
   Primary Language type=list single choices=246 choice=single
-  Other Languages type=list single choices=246 choice=multi
+  Other Languages type=list single choices=246 choice=single
 Data File Subjects multi min=0
   Subject Identifier type=controlled single ontologies=1
   Keyword type=textfield single

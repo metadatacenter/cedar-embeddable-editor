@@ -5,7 +5,7 @@ SHA256 digest type=textfield single
 Description type=textarea single
 Identifier type=textfield single
 Primary Language type=list single choices=2 choice=single
-Other Languages type=list single choices=2 choice=multi
+Other Languages type=list single choices=2 choice=single
 Subjects type=controlled multi min=0 ontologies=1
 Keywords type=textfield multi min=0
 Data Dictionary File Name type=textfield single required

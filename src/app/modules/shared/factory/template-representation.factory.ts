@@ -14,7 +14,7 @@ import { ComponentTypeHandler } from '../handler/component-type.handler';
 import { InputType } from '../models/input-type.model';
 import { HandlerContext } from '../util/handler-context';
 import { TemplateParser } from './template-parser';
-import { JsonWalkTemplateParser } from './json-walk-template-parser';
+import { ModelLibraryTemplateParser } from './model-library-template-parser';
 
 /**
  * Builds the component tree CEE renders.
@@ -28,7 +28,7 @@ import { JsonWalkTemplateParser } from './json-walk-template-parser';
  * form moving.
  */
 export class TemplateRepresentationFactory {
-  private static readonly defaultParser: TemplateParser = new JsonWalkTemplateParser();
+  private static readonly defaultParser: TemplateParser = new ModelLibraryTemplateParser();
 
   static create(
     inputTemplate: CedarInputTemplate,

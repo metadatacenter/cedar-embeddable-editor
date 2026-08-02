@@ -60,9 +60,9 @@ const KNOWN_MALFORMED: Record<string, string> = {
  * multi-select, where picking a second option produces a value the instance has
  * no room for.
  *
- * Listed rather than skipped. The snapshots stay as the walk produces them, and
- * under the library parser the expected tree is adjusted by exactly these
- * lines — so the suite still proves nothing else moved.
+ * Listed rather than skipped. The snapshots record what CEE actually renders —
+ * the library's answer — and running under the walk adjusts the tree by exactly
+ * these lines, so the suite still proves nothing else moved.
  */
 const LIST_CHOICE_UNDER_MODEL_LIBRARY: Record<string, Record<string, 'multi' | 'single'>> = {
   '029': { 'Other Language': 'multi' },
@@ -72,16 +72,16 @@ const LIST_CHOICE_UNDER_MODEL_LIBRARY: Record<string, Record<string, 'multi' | '
 };
 
 /**
- * Fold the listed differences back out, so the snapshot stays the walk's tree.
+ * Fold the listed differences back in, so the snapshot stays what CEE renders.
  *
- * A no-op unless the library parser is the one running. When it is, each listed
- * line is checked to actually carry the value recorded above — a difference
- * that stopped happening, or happened in the other direction, fails here rather
- * than passing quietly — and is then flipped to the walk's value so the rest of
- * the tree is still compared against the checked-in snapshot.
+ * A no-op unless the old JSON walk is the one running. When it is, each listed
+ * line is checked to actually carry the walk's value — a difference that
+ * stopped happening, or happened in the other direction, fails here rather than
+ * passing quietly — and is then flipped to the library's, so the rest of the
+ * tree is still compared against the checked-in snapshot.
  */
 const forCurrentParser = (id: string, tree: string): string => {
-  if (defaultParserName !== 'model-library') {
+  if (defaultParserName !== 'json-walk') {
     return tree;
   }
   const overrides = LIST_CHOICE_UNDER_MODEL_LIBRARY[id];
@@ -93,10 +93,11 @@ const forCurrentParser = (id: string, tree: string): string => {
     .map((line) => {
       for (const [field, choice] of Object.entries(overrides)) {
         if (line.trim().startsWith(`${field} type=list `)) {
-          expect(line, `${id}/${field}: expected the model library to normalise this list to ${choice}`).toContain(
-            `choice=${choice}`,
+          const fromWalk = choice === 'multi' ? 'single' : 'multi';
+          expect(line, `${id}/${field}: expected the JSON walk to read this list as ${fromWalk}`).toContain(
+            `choice=${fromWalk}`,
           );
-          return line.replace(`choice=${choice}`, `choice=${choice === 'multi' ? 'single' : 'multi'}`);
+          return line.replace(`choice=${fromWalk}`, `choice=${choice}`);
         }
       }
       return line;
