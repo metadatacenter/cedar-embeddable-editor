@@ -49,7 +49,9 @@ describe('input type coverage', () => {
     const total = allInputTypes().length;
     const covered = new Set(FIELD_KINDS.map((k) => k.inputType)).size;
     // Informational, but pinned: this should only ever move up.
-    expect(covered / total).toBeGreaterThanOrEqual(19 / 24);
+    // 19/24 when the harness was written; 20/24 since ext-pfas was wired into
+    // the model library's builder facade.
+    expect(covered / total).toBeGreaterThanOrEqual(20 / 24);
   });
 });
 

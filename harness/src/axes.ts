@@ -82,6 +82,7 @@ export const FIELD_KINDS: FieldKind[] = [
   f('link', 'link', () => CedarBuilders.linkFieldBuilder(), 'https://example.org/thing'),
   f('orcid', 'ext-orcid', () => CedarBuilders.extOrcidFieldBuilder(), 'https://orcid.org/0000-0002-1825-0097'),
   f('ror', 'ext-ror', () => CedarBuilders.extRorFieldBuilder(), 'https://ror.org/00f54p054'),
+  f('pfas', 'ext-pfas', () => CedarBuilders.extPfasFieldBuilder(), 'https://comptox.epa.gov/dashboard/chemical/details/DTXSID3031860'),
   f('radio', 'radio', () => CedarBuilders.radioFieldBuilder(), 'Option A'),
   f('checkbox', 'checkbox', () => CedarBuilders.checkboxFieldBuilder(), 'Option A'),
   f('listSingle', 'list', () => CedarBuilders.singleChoiceListFieldBuilder(), 'Option A'),
@@ -99,17 +100,21 @@ export const FIELD_KINDS: FieldKind[] = [
 /**
  * CEE input types with no builder in the model library's facade.
  *
- * All five landed on CEE `develop` with their lookup services (PFAS, PubMed,
- * RRID, NIH Grant, DOI) but have no counterpart in `CedarBuilders`. `ext-pfas`
- * is closest — builder files exist under
- * `model/cedar/field/dynamic/ext-pfas/` but are not exported from the facade.
+ * These four landed on CEE `develop` with their lookup services (PubMed, RRID,
+ * NIH Grant, DOI) but have no counterpart in the model library at all — no
+ * directory under `model/cedar/field/dynamic/`, so nothing to expose.
  *
- * They are all shaped like ExtOrcid/ExtRor, so closing this gap is mechanical.
+ * `ext-pfas` used to be on this list. Its eight files already existed and were
+ * registered in the readers, the writers and `index.ts`; only the
+ * `CedarBuilders` facade method was missing, so it could be read and written
+ * but never authored. That is now fixed upstream and it is covered above.
+ *
+ * The remaining four are shaped like ExtOrcid/ExtRor, so closing the gap is
+ * mechanical but not small: eight files each plus six registration points.
  * Until then, this list is asserted against CEE's `InputType` so the harness
- * reports the gap honestly instead of quietly testing 19 of 24 types.
+ * reports the gap honestly instead of quietly testing 20 of 24 types.
  */
 export const UNCOVERED_INPUT_TYPES: readonly string[] = [
-  'ext-pfas',
   'ext-pubmed',
   'ext-rrid',
   'ext-nih-grant-id',

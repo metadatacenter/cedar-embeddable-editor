@@ -75,8 +75,13 @@ describe('required values', () => {
    * Fields whose value is written as a bare `@id` with no `@value`.
    * `DataQualityReportBuilderHandler.extractPlainValue` only recognises the IRI
    * for `InputType.link`; see the known-defects block below.
+   *
+   * `ext-pfas` joined this list the moment it became buildable — which is the
+   * useful part. The defect was originally identified by reading the code and
+   * predicted to affect seven input types; adding a third one and watching it
+   * fail on arrival is the prediction being confirmed rather than assumed.
    */
-  const IRI_VALUED_NON_LINK = ['ext-orcid', 'ext-ror'];
+  const IRI_VALUED_NON_LINK = ['ext-orcid', 'ext-ror', 'ext-pfas'];
 
   it.each(requirable.map((k) => [k.key, k] as const))('%s counts once when required and single', (_key, k) => {
     const driver = new CeeDriver(
@@ -168,6 +173,7 @@ describe('known defects (characterized, not endorsed)', () => {
   it.each([
     ['ext-orcid', 'orcid'],
     ['ext-ror', 'ror'],
+    ['ext-pfas', 'pfas'],
   ])('%s: a filled required field still reports as empty', (inputType, key) => {
     const k = FIELD_KINDS.find((x) => x.key === key)!;
     expect(k.inputType).toBe(inputType);
