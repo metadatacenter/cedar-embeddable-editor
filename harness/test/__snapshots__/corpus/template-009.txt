@@ -1,0 +1,5 @@
+Page break field type=page-break single
+Section break type=section-break single
+Image field type=image single
+Rich text type=richtext single
+Video name type=youtube single

@@ -28,8 +28,21 @@ the Material migration, and it needs to exist before the 14 → 15 hop.
 
 ## Approach
 
-Generative, not corpus-based. A pile of real templates has unknown coverage; an
-enumeration of the decision space has coverage you can point at.
+Generative **and** corpus-based, for different reasons.
+
+A pile of real templates has unknown coverage; an enumeration of the decision
+space has coverage you can point at. So most of this suite generates its own
+templates. But generating them with the CEDAR Model TypeScript Library means CEE
+is only ever fed input that library produced, and `test/corpus.spec.ts` closes
+that: 37 fixtures from `cedar-test-artifacts` and 57 HuBMAP production templates
+from `cedar-artifact-library`, all authored by people or by the CEDAR Template
+Editor.
+
+The first run of that suite found CEE crashing on `template-003`. It also
+matters prospectively — if CEE ever parses templates *with* the model library,
+the generated suites will have that library on both sides of every comparison
+and will agree with themselves regardless. The corpus snapshots are what would
+catch a change in behaviour across that refactor.
 [`src/axes.ts`](src/axes.ts) enumerates the axes
 `TemplateRepresentationFactory.wrap()` actually branches on — input type,
 cardinality, nesting position, required, hidden, static collapsing, page-break
@@ -64,6 +77,7 @@ change.
 | `test/value-constraints.spec.ts` | Text/numeric/temporal constraints, choice literals, defaults |
 | `test/edge-cases.spec.ts` | Page breaks, static collapse, hidden fields, multi-instance, reload |
 | `test/read-only.spec.ts` | Read-only mode, `hideEmptyFields`, element visibility |
+| `test/corpus.spec.ts` | 37 corpus + 57 HuBMAP production templates, with tree snapshots |
 
 ## Dimensions covered
 

@@ -1,0 +1,1 @@
+Text Field 1 type=textfield single minLen=10 maxLen=100

@@ -1,0 +1,92 @@
+Monitoring Scheme Identification single
+  Monitoring scheme nameRT type=richtext single
+  Monitoring scheme name type=textfield single required
+  Program nameRT type=richtext single
+  Program name type=textfield single
+  Online locatorRT type=richtext single
+  Online locator type=link single
+  KeywordsRT type=richtext single
+  keyword type=controlled multi required min=3 ontologies=1
+  DescriptionRT type=richtext single
+  Description type=textfield single required maxLen=2500
+Contact Information single
+  Responsible organizationRT type=richtext single
+  Responsible organization type=link single required
+  Organization type single
+    Organization type type=controlled multi min=1 classes=1 branches=1
+    Please, provide organization type if not found in the drop-down list type=textfield single
+  citedResponsibleParty type=textfield single required
+  Responsible Person Role type=controlled single required ontologies=1
+  electronicMailAddress type=email single required
+  orcid type=link single
+Funding single
+  Funding source single
+    Funding source type=controlled single branches=2
+    Please, provide funding source if not found in the drop-down list type=textfield single
+  Funding agencyRT type=richtext single
+  Funding agency type=link single
+  Funding single
+Intellectual Rights single
+  Data availability type=controlled single required branches=1
+  License single
+    License type=controlled single branches=2
+    Please, provide the license if not found in the drop-down list type=textfield single
+  Willingness to share data type=controlled single branches=1
+Monitoring Scheme Information single
+  Motivation to launch monitoring scheme single
+    Motivation to launch monitoring scheme type=controlled multi min=1 branches=1
+    Please, provide your motivation if not found in the drop-down list type=textfield single
+  Scope of monitoring single
+    Scope of monitoring type=controlled single branches=2
+    Please, provide the scope of monitoring if not found in the drop-down list type=textfield single
+  Type of data collected single
+    Type of data collected type=controlled single branches=1
+    Please, provide type of data collected if not found in the drop-down list type=textfield single
+  Biodiversity threats and pressures addressed1 single
+    Biodiversity threats and pressures addressed type=controlled multi min=1 branches=2
+    Please, provide threat or pressure addressed if not found in the drop-down list type=textfield single
+  Traning / expert knowledge required to take part in data collection type=controlled single branches=1
+  Number of professionals involvedRT type=richtext single
+  Number of professionals involved type=numeric single num=xsd:decimal
+  Number of volunteers involved RT type=richtext single
+  Number of volunteers involved type=numeric single num=xsd:decimal
+  Workforce per yearRT type=richtext single
+  Workforce per year type=textfield single
+  Annual running costsRT type=richtext single
+  Annual running costs type=textfield single
+Spatial Coverage single
+  Geographical scopeRT type=richtext single
+  Geographical scope type=controlled multi min=1 classes=1
+  Country type=controlled single classes=1
+  Biogeographic region type=controlled single branches=1
+  AltitudeRT type=richtext single
+  Altitude type=numeric single num=xsd:decimal
+  Sampling sites located in protected areas type=controlled single branches=1
+  Total areaRT type=richtext single
+  Total area type=textfield single
+  Habitat type type=textfield single
+  Habitat classification authority type=controlled single branches=1
+Temporal Coverage single
+  Start year type=numeric single num=xsd:decimal
+  End yearRT type=richtext single
+  End year type=numeric single num=xsd:decimal
+Taxonomic Coverage single
+  Taxonomic group type=textfield single
+  Species of community interest type=textfield single
+  Indicator-keystone-umbrella-typical species type=textfield single
+Methods & Sampling Information single
+  Experimental design type=controlled single branches=1
+  Site selection1 single
+    Site selection type=controlled single branches=2
+    Please, describe how sites are selected if not found in the drop-down list type=textfield single
+  Number of sampling sites type=numeric single num=xsd:decimal
+  Sample size type=numeric single num=xsd:decimal
+  Detection probabilityRT type=richtext single
+  Detection probability type=controlled single branches=1
+  Sampling duration1 type=richtext single
+  Sampling duration type=textfield single
+  Frequency of monitoring type=textfield single
+  Changes in monitoring procedure during monitoring scheme lifetime1 single
+    Changes in monitoring procedure during monitoring scheme lifetime type=controlled single branches=1
+    If yes, please describe changes type=textfield single
+  Field methods type=textfield single

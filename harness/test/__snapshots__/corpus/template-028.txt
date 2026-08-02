@@ -1,0 +1,13 @@
+Read & Understood Catalog single
+  Read & Understood - RT type=richtext single
+  Read & Understood type=checkbox multi required min=1 choices=1
+catalogTitleRT type=richtext single
+catalogTitle type=textfield single required
+catalogDescriptionRT type=richtext single
+catalogDescription type=textfield single required
+publisherRT type=richtext single
+publisher type=link single required
+licenseRT type=richtext single
+license type=controlled single branches=1
+datasetMetadataInstanceIDRT type=richtext single
+datasetMetadataInstanceIdentifier type=link multi required min=1

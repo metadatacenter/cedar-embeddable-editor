@@ -1,0 +1,1 @@
+Complex number type=numeric single required num=xsd:decimal

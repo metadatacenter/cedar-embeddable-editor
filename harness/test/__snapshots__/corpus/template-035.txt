@@ -1,0 +1,20 @@
+Titulo type=textfield single required
+Conforme type=link single
+Licenca type=link single required
+Versao type=textfield single required
+Publicado type=temporal single temporal=xsd:dateTime gran=second
+Modificado type=temporal single temporal=xsd:dateTime gran=second
+[VODAN-BR] Acesso single
+  Descricao type=textfield single
+  Parte de type=link single required
+  Direitos de acesso type=link single required
+[VODAN-BR] Autorizacao single
+  Modo type=link single required
+  Agente type=link single required
+Descricao type=textfield single
+Rotulo type=textfield single
+URL de acesso type=link single required
+URL de download type=link single required
+Tipo de midia type=textfield single required
+Formato type=textfield single
+Tamanho do arquivo em bytes type=numeric single num=xsd:decimal

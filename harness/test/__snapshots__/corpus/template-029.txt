@@ -1,0 +1,131 @@
+Data File Title multi min=1
+  Title type=textfield single required
+  Language type=list single choices=246
+Data File Identity single
+  Identifier type=textfield single
+  Identifier Type type=controlled single branches=1
+  File Name  type=textfield single
+  SHA256 digest type=textfield single
+Data File Content single
+Data File Version single
+  Version type=textfield single
+Data File Language single
+  Primary Language type=list single choices=246
+  Other Language type=list multi min=1 choices=246
+Data File Subjects multi min=1
+  Subject Identifier type=controlled single ontologies=1
+  Keyword type=textfield single
+Data File Description multi min=1
+  Description type=textarea single
+  Description Language type=list single choices=246
+Data File Dictionary single
+  Data Dictionary File Name type=textfield single
+Data File Creator multi min=1
+  Creator Type type=controlled single branches=1
+  Creator Name type=textfield single
+  Creator Given Name type=textfield single
+  Creator Family Name type=textfield single
+  Creator Identifier type=textfield single
+  Creator Identifier Scheme type=controlled single branches=1
+  Creator Email type=email single
+  Creator Affiliation type=textfield single
+  Creator Affiliation Identifier type=textfield single
+  Creator Affiliation Identifier Scheme type=controlled single branches=1
+  Creator Role type=controlled single branches=1
+Data File Related Resource multi min=1
+  Related Resource Identifier type=textfield single
+  Related Resource Identifier Type type=controlled single branches=1
+  Related Resource File Name type=textfield single
+  Resource Type Category type=controlled single branches=1
+  Relation of Resource to Data File type=textfield single
+Data File Contributor multi min=1
+  Contributor Type type=controlled single branches=1
+  Contributor Name type=textfield single
+  Contributor Given Name type=textfield single
+  Contributor Family Name type=textfield single
+  Contributor Identifier type=textfield single
+  Contributor Identifier Scheme type=controlled single branches=1
+  Contributor Affiliation type=textfield single
+  Contributor Affiliation Identifier type=textfield single
+  Contributor Affiliation Identifier Scheme type=controlled single branches=1
+  Contributor Email type=email single
+  Contributor Role type=controlled single branches=1
+Data File Rights multi min=1
+  License Name type=controlled single branches=1
+  License Text type=textfield single
+Data File Date multi min=1
+  Event Type type=controlled single branches=1
+  Date type=temporal single temporal=xsd:date gran=day
+Data File Parent Study multi min=1
+  PHS Identifier type=textfield single required
+  Study Identifier type=textfield single
+  Study Identifier Scheme type=controlled single branches=1
+  Study Name type=textfield single
+  Study Start Date type=temporal single temporal=xsd:date gran=day
+  Study End Date type=temporal single temporal=xsd:date gran=day
+Data File Funding Source multi min=1
+  Award Title type=textfield single
+  Award Page URL type=link single
+  Award Local Identifier type=textfield single
+  Funder Name type=textfield single
+  Funder Identifier type=textfield single
+  Funder Identifier Scheme type=controlled single branches=1
+Data File Distribution multi min=1
+  Distribution Publisher type=textfield single
+  Distribution Publisher Identifier type=textfield single
+  Distribution Publisher Identifier Scheme type=controlled single branches=1
+  Distribution Identifier type=textfield single
+  Distribution Identifier Type type=controlled single branches=1
+  Distribution Format type=textfield single
+  Distribution Media Type type=controlled single branches=1
+  Distribution Size type=textfield single
+  Distribution Access Protocol type=textfield single
+  Distribution Access Configuration type=textfield single
+  Distribution Query Statement type=textfield single
+  Data File Publication Date single
+    Data File Publication Date type=temporal single temporal=xsd:date gran=day
+Data Characteristics Summary single
+  Data Characteristics Table in HTML type=textarea single
+  Data Characteristics Table in CSV type=textarea single
+  Data Characteristics Table in TSV type=textfield single
+  Data Characteristics Table in Key-Value Pairs type=attribute-value multi min=0
+Data Source multi min=1
+  Data Source Name type=textfield single
+  Data Source Identifier type=textfield single
+  Data Source Identifier Scheme type=controlled single branches=1
+Data Stream multi min=1
+  Data Stream Name type=textfield single
+  Data Stream Identifier type=textfield single
+  Data Stream Identifier Scheme type=controlled single branches=1
+  Data Stream Variable Name type=textfield multi min=1
+  Data Stream Data Source Identifier type=textfield single
+Data File Creation Process multi min=1
+  Process Name type=textfield single
+  Process IRI type=textfield single
+  Process Version type=textfield single
+  Process Execution Identifier type=textfield single
+Data File Temporal Coverage multi min=1
+  Temporal Extent Minimum Value type=temporal single temporal=xsd:date gran=day
+  Temporal Extent Maximum Value type=temporal single temporal=xsd:date gran=day
+  Temporal Resolution type=textfield single
+  Duration type=textfield single
+Data File Spatial Coverage multi min=1
+  Bounding Box multi min=1
+    Maximum Latitude type=textfield single
+    Minimum Latitude type=textfield single
+    Minimum Longitude type=textfield single
+    Maximum Longitude type=textfield single
+  Bounding Shape multi min=1
+    Point Number type=numeric single num=xsd:int
+    Latitude type=numeric single num=xsd:float
+    Longitude type=numeric single num=xsd:float
+  Data File Geopolitical Coverage multi min=1
+    Geopolitical region  type=textfield multi min=1
+Data File Elevation Coverage multi min=1
+  Vertical Extent Minimum Value type=numeric single num=xsd:float
+  Vertical Extent Maximum Value type=numeric single num=xsd:float
+  Vertical Extent Datum type=textfield single
+  Vertical Extent Datum IRI type=link single
+Auxiliary Metadata single
+  Data File Descriptive Key-Value Pair type=attribute-value multi min=0
+  Additional Commentary type=textarea multi min=1

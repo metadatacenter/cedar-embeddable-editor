@@ -1,0 +1,11 @@
+channel_id type=textfield single required
+hgnc_symbol type=textfield single required
+antibody_rrid type=textfield single required
+uniprot_accession_number type=textfield single required
+lot_number type=textfield single
+dilution_factor type=numeric single num=xsd:int
+antibody_concentration_value type=numeric single num=xsd:decimal
+antibody_concentration_unit type=controlled single branches=1
+conjugated_cat_number type=textfield single
+conjugated_tag type=textfield single
+metadata_schema_id type=textfield single required

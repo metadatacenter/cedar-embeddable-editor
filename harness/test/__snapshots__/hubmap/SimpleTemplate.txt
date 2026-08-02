@@ -1,0 +1,39 @@
+Text Field type=textfield single
+Text Field - Default Value type=textfield single
+Text Field - Min/Max String Lengths type=textfield single minLen=3 maxLen=10
+Datetime Field - Datetime (hh:mm:ss) type=temporal single temporal=xsd:dateTime gran=second
+Datetime Field - Datetime (hh:mm:ss, seconds) type=temporal single temporal=xsd:dateTime gran=decimalSecond
+Datetime Field - Date (hh:mm) type=temporal single temporal=xsd:dateTime gran=minute
+Datetime Field - Datetime (hh) type=temporal single temporal=xsd:dateTime gran=hour
+Datetime Field - Date (YYYY-MM-DD) type=temporal single temporal=xsd:date gran=day
+Datetime Field - Date (YYYY-MM) type=temporal single temporal=xsd:date gran=month
+Datetime Field - Date (YYYY) type=temporal single temporal=xsd:date gran=year
+Datetime Field - Time (hh:mm:ss, seconds) type=temporal single temporal=xsd:time gran=decimalSecond
+Datetime Field - Time (hh:mm:ss) type=temporal single temporal=xsd:time gran=second
+Datetime Field - Time (hh:mm) type=temporal single temporal=xsd:time gran=minute
+Datetime Field - Time (hh) type=temporal single temporal=xsd:time gran=hour
+Email type=email single
+Numeric - Basic type=numeric single num=xsd:decimal
+Numeric - With Unit type=numeric single num=xsd:decimal
+Numeric - Long type=numeric single num=xsd:long
+Numeric - Integer type=numeric single num=xsd:int
+Numeric - Double Precision Real type=numeric single num=xsd:double
+Numeric - Single Precision Real type=numeric single num=xsd:float
+Numeric - Min and Max type=numeric single num=xsd:decimal
+Numeric - Decimal Places type=numeric single num=xsd:decimal
+Link type=link single
+Paragraph type=textarea single
+Multiple Choice type=radio single choices=2
+Checkbox type=checkbox multi min=0 choices=2
+Pick from a List - Single Select type=list single choices=3
+Pick from a List - Multi Select type=list single choices=3
+Phone type=phone-number single
+Rich Text type=richtext single
+My Image type=image single
+Untitled type=youtube single
+Ontology Value Field type=controlled single ontologies=1
+Ontology Branch Value Field type=controlled single branches=1
+Classes Value Field type=controlled single classes=3
+My A-V Field type=attribute-value multi min=0
+My Page Break type=page-break single
+My Section Break type=section-break single

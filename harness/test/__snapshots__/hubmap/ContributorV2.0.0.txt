@@ -1,0 +1,11 @@
+first_name type=textfield single required
+last_name type=textfield single required
+middle_name_or_initial type=textfield single
+display_name type=textfield single required
+affiliation type=textfield single required
+orcid type=textfield single required
+email type=email single
+is_contact type=radio single required choices=2
+is_principal_investigator type=radio single required choices=2
+is_operator type=radio single required choices=2
+metadata_schema_id type=textfield single required

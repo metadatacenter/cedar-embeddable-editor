@@ -1,0 +1,116 @@
+prefix type=textfield single required
+creator multi min=1
+  creatorName type=textfield single required
+  nameType type=controlled single classes=2
+  givenName type=textfield single
+  familyName type=textfield single
+  Affiliation multi min=0
+    affiliationIdentifier type=textfield single
+    affiliationIdentifierScheme type=textfield single
+    affiliationIdentifierSchemeURI type=link single
+  nameIdentifier multi min=0
+    nameIdentifier type=textfield single
+    nameIdentifierScheme type=textfield single
+    nameIdentifierSchemeURI type=link single
+title multi min=1
+  titleName type=textfield single required
+  titleType type=controlled single branches=1
+publisher type=textfield single required
+publicationYear type=temporal single required temporal=xsd:date gran=year
+subject multi min=0
+  subjectName type=textfield single
+  subjectScheme type=textfield single
+  subjectSchemeURI type=link single
+  valueURI type=link single
+  classificationCode type=textfield single
+contributor multi min=0
+  contributorName type=textfield single
+  nameType type=controlled single classes=2
+  givenName type=textfield single
+  familyName type=textfield single
+  contributorType type=controlled single branches=1
+  Affiliation multi min=0
+    affiliationIdentifier type=textfield single
+    affiliationIdentifierScheme type=textfield single
+    affiliationIdentifierSchemeURI type=link single
+  nameIdentifier multi min=0
+    nameIdentifier type=textfield single
+    nameIdentifierScheme type=textfield single
+    nameIdentifierSchemeURI type=link single
+dateElement multi min=0
+  date type=temporal single temporal=xsd:date gran=day
+  dateType type=controlled single branches=1
+  dateInformation type=textfield single
+language type=controlled single ontologies=1
+alternateIdentifierElement multi min=0
+  alternateIdentifier type=textfield single
+  alternateIdentifierType type=textfield single
+relatedIdentifierElement multi min=0
+  RelatedIdentifier type=textfield single
+  relatedIdentifierType type=controlled single branches=1
+  relationType type=controlled single branches=1
+  relatedMetadataScheme type=textfield single
+  schemeURI type=link single
+  schemeType type=textfield single
+  resourceTypeGeneral type=controlled single branches=1
+size type=textfield multi min=0
+format type=textfield multi min=0
+version type=textfield single
+rightsElement multi min=0
+  Rights type=textfield single
+  rightsURI type=link single
+  rightsIdentifier type=textfield single
+  rightsIdentifierScheme type=textfield single
+  schemeURI type=link single
+descriptionElement multi min=0
+  Description type=textfield single
+  descriptionType type=controlled single branches=1
+geoLocation multi min=0
+  geoLocationPlace type=textfield single
+  Geo Location Point single
+    pointLongitude type=numeric single num=xsd:decimal
+    pointLatitude type=numeric single num=xsd:decimal
+  Geo Location Box single
+    westBoundLongitude type=numeric single num=xsd:decimal
+    eastBoundLongitude type=numeric single num=xsd:decimal
+    southBoundLatitude type=numeric single num=xsd:decimal
+    northBoundLatitude type=numeric single num=xsd:decimal
+fundingReference multi min=0
+  funderName type=textfield single
+  funderIdentifier type=textfield single
+  funderIdentifierType type=controlled single classes=4
+  schemeURI type=link single
+  awardNumber type=textfield single
+  awardURI type=link single
+  awardTitle type=textfield single
+relatedItem multi min=0
+  relatedItemType type=controlled single branches=1
+  relationType type=controlled single branches=1
+  relatedIdentifier type=textfield single
+  relatedIdentifierType type=controlled single branches=1
+  relatedMetadataScheme type=textfield single
+  schemeURI type=link single
+  schemeType type=textfield single
+  Creator multi min=0
+    creatorName type=textfield single
+    nameType type=controlled single classes=2
+    givenName type=textfield single
+    familyName type=textfield single
+  Title multi min=0
+    titleName type=textfield single
+    titleType type=controlled single branches=1
+  number type=textfield single
+  numberType type=controlled single classes=4
+  volume type=textfield single
+  issue type=textfield single
+  firstPage type=textfield single
+  lastPage type=textfield single
+  PublicationYear type=temporal single temporal=xsd:date gran=year
+  Publisher type=textfield single
+  edition type=textfield single
+  Contributor multi min=0
+    contributorType type=controlled single branches=1
+    contributorName type=textfield single
+    nameType type=controlled single classes=2
+    givenName type=textfield single
+    familyName type=textfield single

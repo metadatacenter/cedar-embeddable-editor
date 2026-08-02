@@ -1,0 +1,46 @@
+parent_sample_id type=textfield single required
+lab_id type=textfield single
+preparation_protocol_doi type=link single required
+dataset_type type=controlled single required branches=1
+analyte_class type=controlled single required branches=1
+is_targeted type=radio single required choices=2
+acquisition_instrument_vendor type=controlled single required branches=1
+acquisition_instrument_model type=controlled single required branches=1
+source_storage_duration_value type=numeric single required num=xsd:decimal
+source_storage_duration_unit type=controlled single required branches=1
+time_since_acquisition_instrument_calibration_value type=numeric single num=xsd:decimal
+time_since_acquisition_instrument_calibration_unit type=controlled single branches=1
+contributors_path type=textfield single required
+data_path type=textfield single required
+barcode_offset type=radio single required choices=9
+barcode_read type=controlled single required branches=1
+barcode_size type=radio single required choices=7
+umi_offset type=radio single required choices=3
+umi_read type=controlled single required branches=1
+umi_size type=radio single required choices=5
+assay_input_entity type=controlled single required branches=1
+number_of_input_cells_or_nuclei type=numeric single num=xsd:int
+amount_of_input_analyte_value type=numeric single num=xsd:decimal
+amount_of_input_analyte_unit type=controlled single branches=1
+library_adapter_sequence type=textfield single required
+library_average_fragment_size type=numeric single required num=xsd:int
+library_input_amount_value type=numeric single num=xsd:decimal
+library_input_amount_unit type=controlled single branches=1
+library_output_amount_value type=numeric single num=xsd:decimal
+library_output_amount_unit type=controlled single branches=1
+library_concentration_value type=numeric single required num=xsd:decimal
+library_concentration_unit type=controlled single required branches=1
+library_layout type=controlled single required branches=1
+library_preparation_kit type=controlled single required branches=1
+sample_indexing_kit type=controlled single required branches=1
+sample_indexing_set type=textfield single
+is_technical_replicate type=radio single required choices=2
+expected_entity_capture_count type=numeric single num=xsd:int
+sequencing_reagent_kit type=controlled single required branches=1
+sequencing_read_format type=textfield single required
+sequencing_batch_id type=textfield single
+capture_batch_id type=textfield single
+preparation_instrument_vendor type=controlled single branches=1
+preparation_instrument_model type=controlled single branches=1
+preparation_instrument_kit type=controlled single branches=1
+metadata_schema_id type=textfield single required

@@ -1,0 +1,3 @@
+Simple date type=temporal single temporal=xsd:date gran=day
+Simple time type=temporal single temporal=xsd:time gran=second
+Complex datetime type=temporal multi required min=1 temporal=xsd:dateTime gran=decimalSecond

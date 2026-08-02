@@ -1,0 +1,7 @@
+hardware single
+  instrumentName type=textfield single
+  instrumentType type=textfield single
+Hardware Component type=section-break single
+hardware1 single
+  instrumentName type=textfield single
+  instrumentType type=textfield single
