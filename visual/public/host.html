@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CEE visual baseline host</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      /* Neutral, fixed chrome so the diff only ever reflects CEE's own output. */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        font-family: Roboto, system-ui, sans-serif;
+      }
+      #frame {
+        width: 100%;
+      }
+      /* Suppress the caret, which blinks and would make screenshots flaky. */
+      * {
+        caret-color: transparent !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="frame"><cedar-embeddable-editor></cedar-embeddable-editor></div>
+
+    <script src="./cedar-embeddable-editor.js"></script>
+    <script>
+      /**
+       * Load the fixture named by ?t=<name> into the web component.
+       *
+       * Sets window.__ceeReady once the editor has rendered, which the
+       * Playwright tests wait on. Waiting for a DOM signal rather than a fixed
+       * timeout is what keeps the screenshots stable.
+       */
+      (async () => {
+        const params = new URLSearchParams(location.search);
+        const name = params.get('t');
+        if (!name) {
+          window.__ceeError = 'no ?t= fixture named';
+          return;
+        }
+
+        const template = await (await fetch(`./fixtures/${name}.json`)).json();
+
+        // Wait for Angular Elements to define the custom element.
+        await customElements.whenDefined('cedar-embeddable-editor');
+        const cee = document.querySelector('cedar-embeddable-editor');
+
+        cee.config = {
+          showSampleTemplateLinks: false,
+          showHeader: false,
+          showFooter: false,
+          showTemplateRenderingRepresentation: false,
+          showInstanceDataCore: false,
+          showTemplateSourceData: false,
+          showDataQualityReport: false,
+          showMultiInstanceInfo: false,
+          showPreferencesMenu: false,
+          collapseStaticComponents: true,
+          defaultLanguage: 'en',
+          fallbackLanguage: 'en',
+          // Deliberately unreachable: the visual baseline must never depend on
+          // a live terminology server. Autocomplete panels are not screenshotted.
+          terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
+        };
+        cee.templateObject = template;
+
+        // The editor renders asynchronously; consider the DOM settled once two
+        // consecutive samples show no further mutation.
+        const domSettled = () =>
+          new Promise((resolve) => {
+            let last = -1;
+            const tick = () => {
+              const now = document.body.innerHTML.length;
+              if (now === last && now > 0) return resolve();
+              last = now;
+              requestAnimationFrame(() => setTimeout(tick, 50));
+            };
+            tick();
+          });
+
+        await domSettled();
+
+        /**
+         * Wait for fonts before declaring ready.
+         *
+         * The bundle embeds Roboto at three weights plus Material Icons. Those
+         * load asynchronously, and when they land every text run re-measures —
+         * shifting layout *after* the DOM has stopped mutating. Without this
+         * the suite is intermittently off by a few pixels, which is the worst
+         * possible outcome for a screenshot baseline: it trains people to
+         * ignore red.
+         */
+        if (document.fonts && document.fonts.ready) {
+          await document.fonts.ready;
+          // Re-settle: font swap can reflow and re-render.
+          await domSettled();
+        }
+
+        window.__ceeReady = true;
+      })().catch((e) => {
+        window.__ceeError = String(e && e.message ? e.message : e);
+      });
+    </script>
+  </body>
+</html>
