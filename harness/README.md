@@ -4,9 +4,9 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 555 tests, all passing** on Node 20.20.2 / Vitest 1.6.
+> **Status: 558 tests, all passing** on Node 20.20.2 / Vitest 1.6.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
-> Three CEE defects found — one fixed, two characterized. See [What it found](#what-it-found).
+> Three CEE defects found — two fixed, one characterized. See [What it found](#what-it-found).
 
 ## Why this exists
 
@@ -116,7 +116,7 @@ Both were reverted; CEE source is unmodified by this harness.
 
 ## What it found
 
-Three defects. One is fixed; two stay pinned.
+Three defects. Two are fixed; the third is a product decision and stays pinned.
 
 **1. A filled required IRI-valued field never satisfied its requirement. — FIXED**
 
@@ -158,18 +158,26 @@ local. It also embeds a question only the product can answer: is a required
 field inside an N-instance element one requirement or N? Pinned in "known
 defects (characterized, not endorsed)".
 
-**3. Element visibility depends on the order of its element children. — open**
+**3. Element visibility depended on the order of its element children. — FIXED**
 
-In read-only mode with `hideEmptyFields`, `hasNonEmptyChild` loops a
-component's children and, for element children, assigns the recursive result
-without breaking — so the last element child wins and overwrites any earlier
-`true`. An element containing data is reported empty whenever a later sibling
-element happens to be empty, and a populated section silently disappears from
-the viewer. The field branch of the same loop *does* break, so this is an
-inconsistency inside one function rather than a design choice.
+In read-only mode with `hideEmptyFields`, `hasNonEmptyChild` looped a
+component's children and, for element children, assigned the recursive result
+without stopping — so the last element child decided the outcome and overwrote
+any earlier `true`. An element holding data was reported empty whenever a later
+sibling element happened to be empty, and the section silently disappeared from
+the viewer. Nothing errored; the data was simply not shown. The field branch of
+the same loop *did* stop, so this was an inconsistency inside one function
+rather than a design choice.
 
-Demonstrated by rendering identical data in both sibling orders and getting
-opposite visibility. One-line fix, but it changes what a viewer displays.
+Found by asking what read-only mode actually covered, and demonstrated by
+rendering identical data in both sibling orders and getting opposite
+visibility.
+
+Both branches now return on the first non-empty child. The change only adds an
+early exit on `true`, which makes it strictly monotonic toward visible — it
+cannot hide anything that previously rendered. Regression tests cover both
+orderings, a populated sibling between two empty ones, and the case that guards
+the other direction: an all-empty subtree must still be hidden.
 
 Related, and worth knowing rather than fixing: writing to an IRI-valued field
 leaves `rdfs:label: undefined` on the node. `JSON.stringify` drops

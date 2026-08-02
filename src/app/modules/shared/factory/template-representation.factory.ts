@@ -192,18 +192,27 @@ export class TemplateRepresentationFactory {
       this.collapseStaticFieldsIntoNextFieldOrElement(component);
     }
   }
+  /**
+   * True when any descendant of this element holds a value.
+   *
+   * Both branches stop at the first non-empty child. The element branch used to
+   * assign its recursive result without stopping, so the last element child
+   * decided the outcome and overwrote any earlier `true` — an element holding
+   * data was reported empty whenever a later sibling element happened to be
+   * empty, and under `hideEmptyFields` that section vanished from the viewer.
+   */
   private static hasNonEmptyChild(component: ElementComponent, handlerContext): boolean {
-    let hasNonEmptyChild = false;
     const instanceExtractData = handlerContext.dataContext.instanceExtractData;
     for (const child of component.children) {
       if (child instanceof MultiElementComponent || child instanceof SingleElementComponent) {
-        hasNonEmptyChild = this.hasNonEmptyChild(child, handlerContext);
+        if (this.hasNonEmptyChild(child, handlerContext)) {
+          return true;
+        }
       } else if (this.getValueByPath(child.path, instanceExtractData)) {
-        hasNonEmptyChild = true;
-        break;
+        return true;
       }
     }
-    return hasNonEmptyChild;
+    return false;
   }
 
   private static getValueByPath(path: string[], json) {

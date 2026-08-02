@@ -32,8 +32,7 @@ const instanceWith = (template: object, writes: Array<[string[], string]>) => {
 };
 
 describe('read-only mode', () => {
-  const template = () =>
-    buildTemplate({ name: 'ro', children: [{ kind: TEXT, name: 'a', required: true }] });
+  const template = () => buildTemplate({ name: 'ro', children: [{ kind: TEXT, name: 'a', required: true }] });
 
   it('does not build a quality report at template load', () => {
     // setInputTemplate guards buildQualityReport behind `!readOnlyMode`
@@ -164,36 +163,22 @@ describe('hideEmptyFields', () => {
 });
 
 /**
- * Behaviour that looks wrong, pinned so a fix is a deliberate, visible change.
+ * REGRESSION: element visibility must not depend on sibling order.
+ *
+ * `hasNonEmptyChild` decides whether an element is hidden under
+ * `hideEmptyFields`. Its element branch used to assign the recursive result
+ * without stopping, so the last element child decided the outcome and
+ * overwrote any earlier `true`. An element holding data was reported empty
+ * whenever a later sibling element happened to be empty — and the section
+ * silently disappeared from a read-only viewer. Nothing errored; the data was
+ * simply not shown.
+ *
+ * Both branches now return on the first non-empty child. That is strictly
+ * monotonic toward visible: the change only adds an early exit on `true`, so
+ * it can never hide something that previously rendered.
  */
-describe('known defects (characterized, not endorsed)', () => {
-  /**
-   * DEFECT: element visibility depends on the order of its element children.
-   *
-   * `hasNonEmptyChild` (template-representation.factory.ts) loops a component's
-   * children with two branches. The field branch is right:
-   *
-   *     } else if (this.getValueByPath(child.path, instanceExtractData)) {
-   *       hasNonEmptyChild = true;
-   *       break;
-   *
-   * The element branch assigns without breaking:
-   *
-   *     if (child instanceof MultiElementComponent || child instanceof SingleElementComponent) {
-   *       hasNonEmptyChild = this.hasNonEmptyChild(child, handlerContext);
-   *
-   * so each element child overwrites the previous verdict and the **last one
-   * wins**. An element that genuinely contains data is reported empty whenever
-   * a later sibling element happens to be empty.
-   *
-   * The consequence is user-facing and silent: in read-only mode with
-   * `hideEmptyFields`, a populated section disappears from the viewer. Nothing
-   * errors — the data is simply not shown.
-   *
-   * Fix is one line — `if (this.hasNonEmptyChild(child, handlerContext)) { hasNonEmptyChild = true; break; }`
-   * — but it changes what a viewer displays, so it is a deliberate change, not
-   * a silent one.
-   */
+describe('element visibility is independent of sibling order', () => {
+  /** An outer element with two element children; `dataIn` picks which holds the value. */
   const twoChildElements = (dataIn: 'first' | 'second') =>
     buildTemplate({
       name: `order_${dataIn}`,
@@ -219,15 +204,73 @@ describe('known defects (characterized, not endorsed)', () => {
     return driver.findOrThrow(['_outer']).hidden;
   };
 
-  it('hides a populated element when the empty sibling comes last', () => {
-    expect(hiddenWithDataIn('first')).toBe(true);
+  it.each(['first', 'second'] as const)('stays visible with the data in the %s sibling', (dataIn) => {
+    expect(hiddenWithDataIn(dataIn)).toBe(false);
   });
 
-  it('shows the same content when the populated sibling comes last', () => {
-    expect(hiddenWithDataIn('second')).toBe(false);
+  it('gives the same answer for both orderings', () => {
+    expect(hiddenWithDataIn('first')).toBe(hiddenWithDataIn('second'));
   });
 
-  it('is purely an ordering artefact — identical data, opposite outcomes', () => {
-    expect(hiddenWithDataIn('first')).not.toBe(hiddenWithDataIn('second'));
+  /**
+   * Three element children with the value in the middle: the old shape would
+   * have let the trailing empty sibling win regardless of how many populated
+   * ones preceded it.
+   */
+  it('stays visible with a populated sibling between two empty ones', () => {
+    const t = buildTemplate({
+      name: 'order_middle',
+      elements: [
+        {
+          name: 'outer',
+          children: [],
+          elements: [
+            { name: 'a', children: [{ kind: TEXT, name: 'f' }] },
+            { name: 'b', children: [{ kind: TEXT, name: 'f' }] },
+            { name: 'c', children: [{ kind: TEXT, name: 'f' }] },
+          ],
+        },
+      ],
+    });
+    const instance = instanceWith(t, [[['_outer', '_b', '_f'], 'middle value']]);
+    const driver = new CeeDriver(t, { readOnlyMode: true, hideEmptyFields: true, instance });
+
+    expect(driver.findOrThrow(['_outer']).hidden).toBe(false);
+    // The genuinely empty siblings are still hidden — the fix reveals the
+    // parent, not everything under it.
+    expect(driver.findOrThrow(['_outer', '_a']).hidden).toBe(true);
+    expect(driver.findOrThrow(['_outer', '_b']).hidden).toBe(false);
+    expect(driver.findOrThrow(['_outer', '_c']).hidden).toBe(true);
+  });
+
+  it('still hides an outer element when every descendant is empty', () => {
+    // The fix must not make everything visible: with no data anywhere, the
+    // whole subtree stays hidden.
+    const t = twoChildElements('first');
+    const instance = instanceWith(t, []);
+    const driver = new CeeDriver(t, { readOnlyMode: true, hideEmptyFields: true, instance });
+
+    expect(driver.findOrThrow(['_outer']).hidden).toBe(true);
+    expect(driver.findOrThrow(['_outer', '_a']).hidden).toBe(true);
+    expect(driver.findOrThrow(['_outer', '_b']).hidden).toBe(true);
+  });
+
+  it('is unaffected by a field sibling sitting after a populated element', () => {
+    // Mixed children: the field branch could never cause this bug (its `else
+    // if` only ever sets true), but the combination was untested.
+    const t = buildTemplate({
+      name: 'order_mixed',
+      elements: [
+        {
+          name: 'outer',
+          children: [{ kind: TEXT, name: 'trailing' }],
+          elements: [{ name: 'a', children: [{ kind: TEXT, name: 'f' }] }],
+        },
+      ],
+    });
+    const instance = instanceWith(t, [[['_outer', '_a', '_f'], 'nested value']]);
+    const driver = new CeeDriver(t, { readOnlyMode: true, hideEmptyFields: true, instance });
+
+    expect(driver.findOrThrow(['_outer']).hidden).toBe(false);
   });
 });
