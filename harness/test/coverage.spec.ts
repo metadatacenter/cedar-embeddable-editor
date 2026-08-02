@@ -48,10 +48,11 @@ describe('input type coverage', () => {
   it('reports the current coverage ratio', () => {
     const total = allInputTypes().length;
     const covered = new Set(FIELD_KINDS.map((k) => k.inputType)).size;
-    // Informational, but pinned: this should only ever move up.
-    // 19/24 when the harness was written; 20/24 since ext-pfas was wired into
-    // the model library's builder facade.
-    expect(covered / total).toBeGreaterThanOrEqual(20 / 24);
+    // Pinned at complete. Started at 19/24; the five missing builders were
+    // added upstream. This may only ever be 1 — a drop means CEE gained an
+    // input type the model library cannot build.
+    expect(covered).toBe(total);
+    expect(covered / total).toBe(1);
   });
 });
 

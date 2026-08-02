@@ -4,7 +4,7 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 422 tests, all passing** on Node 20.20.2 / Vitest 1.6.
+> **Status: 532 tests, all passing** on Node 20.20.2 / Vitest 1.6.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
 > Two CEE defects found and characterized — see [What it found](#what-it-found).
 
@@ -68,7 +68,7 @@ change.
 
 | Dimension | Extent |
 |---|---|
-| Input type | 19 of CEE's 24 (see [gap](#known-coverage-gap)) |
+| Input type | all 24 of CEE's input types |
 | Cardinality | single / multi, `minItems` ∈ {0, 1, 2, 3, 5} |
 | Nesting | root, in element, in multi element, multi-in-multi (two cursors) |
 | Required | every non-static kind, single and inside multi elements |
@@ -171,23 +171,19 @@ rebuilt.
    they live in `../src`, and node resolution from there walks up to a repo root
    with no `node_modules`.
 
-## Known coverage gap
+## Coverage is complete — and that is a moving target
 
-CEE `develop` declares 24 input types. The model library's `CedarBuilders`
-facade exposes builders for 19 of them. Uncovered:
+All 24 of CEE's input types can be generated. It started at 19.
 
-```
-ext-pfas   ext-pubmed   ext-rrid   ext-nih-grant-id   ext-doi
-```
+The five missing ones were `ext-pfas`, `ext-pubmed`, `ext-rrid`,
+`ext-nih-grant-id` and `ext-doi` — types CEE could render but the CEDAR Model
+TypeScript Library could not build, so the sweep silently skipped them. They
+have since been added upstream and are covered here.
 
-All five landed on CEE `develop` with their lookup services but have no
-counterpart in the library's facade. `ext-pfas` is closest — builder files exist
-under `model/cedar/field/dynamic/ext-pfas/` but are not exported. All five are
-shaped like `ExtOrcid`/`ExtRor`, so closing the gap is mechanical.
-
-`test/coverage.spec.ts` asserts this list against CEE's `InputType`, so the gap
-is reported rather than silently tolerated, and the suite fails if a sixth type
-appears without acknowledgement.
+`test/coverage.spec.ts` now pins the ratio at 1 and keeps `UNCOVERED_INPUT_TYPES`
+(empty) with its assertions intact. Their job is to fail the moment CEE grows a
+25th input type without a matching builder, which is exactly how the first five
+were found.
 
 ## A note on the stubs
 

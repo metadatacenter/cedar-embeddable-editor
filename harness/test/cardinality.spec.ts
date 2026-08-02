@@ -81,7 +81,15 @@ describe('required values', () => {
    * predicted to affect seven input types; adding a third one and watching it
    * fail on arrival is the prediction being confirmed rather than assumed.
    */
-  const IRI_VALUED_NON_LINK = ['ext-orcid', 'ext-ror', 'ext-pfas'];
+  const IRI_VALUED_NON_LINK = [
+    'ext-orcid',
+    'ext-ror',
+    'ext-pfas',
+    'ext-pubmed',
+    'ext-rrid',
+    'ext-nih-grant-id',
+    'ext-doi',
+  ];
 
   it.each(requirable.map((k) => [k.key, k] as const))('%s counts once when required and single', (_key, k) => {
     const driver = new CeeDriver(
@@ -174,6 +182,10 @@ describe('known defects (characterized, not endorsed)', () => {
     ['ext-orcid', 'orcid'],
     ['ext-ror', 'ror'],
     ['ext-pfas', 'pfas'],
+    ['ext-pubmed', 'pubmed'],
+    ['ext-rrid', 'rrid'],
+    ['ext-nih-grant-id', 'nihGrant'],
+    ['ext-doi', 'doi'],
   ])('%s: a filled required field still reports as empty', (inputType, key) => {
     const k = FIELD_KINDS.find((x) => x.key === key)!;
     expect(k.inputType).toBe(inputType);

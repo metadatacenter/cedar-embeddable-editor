@@ -9,8 +9,8 @@
  *
  * When CEE grows a new input type, `test/coverage.spec.ts` fails until this
  * list and the library's builder facade both catch up. That failure is the
- * feature — it is exactly the drift that produced the five uncovered types
- * currently listed in UNCOVERED_INPUT_TYPES.
+ * feature: it is what surfaced the five input types CEE could render but the
+ * model library could not build, all since added upstream.
  */
 import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
 
@@ -83,6 +83,10 @@ export const FIELD_KINDS: FieldKind[] = [
   f('orcid', 'ext-orcid', () => CedarBuilders.extOrcidFieldBuilder(), 'https://orcid.org/0000-0002-1825-0097'),
   f('ror', 'ext-ror', () => CedarBuilders.extRorFieldBuilder(), 'https://ror.org/00f54p054'),
   f('pfas', 'ext-pfas', () => CedarBuilders.extPfasFieldBuilder(), 'https://comptox.epa.gov/dashboard/chemical/details/DTXSID3031860'),
+  f('pubmed', 'ext-pubmed', () => CedarBuilders.extPubmedFieldBuilder(), 'https://pubmed.ncbi.nlm.nih.gov/28715478'),
+  f('rrid', 'ext-rrid', () => CedarBuilders.extRridFieldBuilder(), 'https://scicrunch.org/resolver/RRID:AB_2298772'),
+  f('nihGrant', 'ext-nih-grant-id', () => CedarBuilders.extNihGrantIdFieldBuilder(), 'https://reporter.nih.gov/project-details/10361054'),
+  f('doi', 'ext-doi', () => CedarBuilders.extDoiFieldBuilder(), 'https://doi.org/10.1038/s41597-019-0056-z'),
   f('radio', 'radio', () => CedarBuilders.radioFieldBuilder(), 'Option A'),
   f('checkbox', 'checkbox', () => CedarBuilders.checkboxFieldBuilder(), 'Option A'),
   f('listSingle', 'list', () => CedarBuilders.singleChoiceListFieldBuilder(), 'Option A'),
@@ -100,26 +104,20 @@ export const FIELD_KINDS: FieldKind[] = [
 /**
  * CEE input types with no builder in the model library's facade.
  *
- * These four landed on CEE `develop` with their lookup services (PubMed, RRID,
- * NIH Grant, DOI) but have no counterpart in the model library at all — no
- * directory under `model/cedar/field/dynamic/`, so nothing to expose.
+ * Empty — coverage is complete. Every one of CEE's 24 input types can now be
+ * generated, so the sweep is exhaustive over the type axis rather than
+ * exhaustive-over-what-happened-to-be-buildable.
  *
- * `ext-pfas` used to be on this list. Its eight files already existed and were
- * registered in the readers, the writers and `index.ts`; only the
- * `CedarBuilders` facade method was missing, so it could be read and written
- * but never authored. That is now fixed upstream and it is covered above.
+ * It started at five: `ext-pfas`, whose eight files existed and were already
+ * registered everywhere except the `CedarBuilders` facade, and `ext-pubmed`,
+ * `ext-rrid`, `ext-nih-grant-id` and `ext-doi`, which had no presence in the
+ * model library at all. All five were added upstream.
  *
- * The remaining four are shaped like ExtOrcid/ExtRor, so closing the gap is
- * mechanical but not small: eight files each plus six registration points.
- * Until then, this list is asserted against CEE's `InputType` so the harness
- * reports the gap honestly instead of quietly testing 20 of 24 types.
+ * Keep the list and its assertions. Their job now is to fail the moment CEE
+ * grows a 25th input type without a matching builder — which is exactly how
+ * the original five were found.
  */
-export const UNCOVERED_INPUT_TYPES: readonly string[] = [
-  'ext-pubmed',
-  'ext-rrid',
-  'ext-nih-grant-id',
-  'ext-doi',
-] as const;
+export const UNCOVERED_INPUT_TYPES: readonly string[] = [] as const;
 
 /** Cardinality axis — `type: 'object'` vs `type: 'array'` in the template. */
 export const CARDINALITIES = ['single', 'multi'] as const;
