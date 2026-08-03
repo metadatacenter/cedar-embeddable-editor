@@ -848,42 +848,55 @@ test.describe('the time picker', () => {
  * returned what it returned. Asserting through what a user would see instead means
  * a test cannot pass while the feature is broken in a way the mocks did not model.
  *
- * **Only one of the two ports is verified.** The render-decision test below kills a
- * mutant that makes the content always render; `cedar-component-renderer.component.spec.ts`
- * is deleted on that evidence. The choice tests kill nothing yet — see their comment —
- * so `cedar-input-multiple-choice.component.spec.ts` stays for now. Mutation testing
- * is the difference between a port and a hope.
+ * Both ports are mutation-verified, and neither was on the first attempt. The
+ * render-decision test kills a mutant that makes the content always render. The two
+ * choice tests killed nothing until the mechanism behind them was traced — every
+ * single-line mutant was masked by a redundant second path — and the mutants that do
+ * kill them are named in their comment. Mutation testing is the difference between a
+ * port and a hope; on both counts here it changed what got deleted and when.
  */
 test.describe('ported from the deleted component specs', () => {
   /**
-   * The behaviour `cedar-input-multiple-choice.component.spec.ts` was aiming at —
-   * but read the mutation results before treating these as a replacement for it.
+   * Where a choice field's value comes from, traced — because these two tests
+   * initially killed no mutant, and the reason turned out to be worth writing down.
    *
    * What matters to a user: a template default fills an empty choice field, and a
-   * value the document already holds is **not** overwritten by that default.
-   * Getting the second one wrong is data loss that looks like a working form,
-   * because the field still shows *a* value, just not theirs. Both directions are
-   * asserted, since checking only the override would pass if defaults had stopped
-   * working altogether, making the override vacuous.
+   * value the document already holds is **not** overwritten by that default. Getting
+   * the second wrong is data loss that looks like a working form, because the field
+   * still shows *a* value, just not theirs.
    *
-   * **These two tests are insensitive to `populateItemsOnLoad`, which is what that
-   * spec actually asserted against.** Three mutants, each rebuilt and run:
+   * The actual sequence, from instrumenting the paths and reading the console:
    *
-   *   - disabling its `@value` guard, so the default should overwrite: both pass
-   *   - stopping it applying the default at all: both pass
-   *   - disabling the data layer's `selectedByDefault` seeding: `default fills
-   *     empty` still passes
+   *  1. `DataObjectBuilderHandler` seeds `selectedByDefault` into the instance. The
+   *     default is applied by the **data layer**, before any widget exists.
+   *  2. The widget's `populateItemsOnLoad` then reads the data object, finds the
+   *     seeded value already there, takes its "existing `@value`" branch and sets the
+   *     control. Its own default-applying loop is never reached in this path.
+   *  3. An injected instance arrives **after** the widget has initialised —
+   *     `populateItemsOnLoad` runs once and sees the seeded default, never the
+   *     injected value. What puts the injected value on screen is
+   *     `ActiveComponentRegistryService.updateViewToModel`, which pushes the model
+   *     into the widget through `setCurrentValue`.
    *
-   * So the rendered outcome survives all three, and the mechanism that really
-   * produces it has not been identified. Two things follow. This suite does not yet
-   * replace that spec's coverage, so the spec stays until someone works out where
-   * the value actually comes from — see the roadmap. And `populateItemsOnLoad` looks
-   * like it may have no observable effect, which would make the original spec an
-   * assertion about a mocked collaborator rather than about behaviour; worth
-   * establishing before anyone relies on that method.
+   * So every mechanism here is doubly covered, and that is why single mutants all
+   * survived. Disabling `populateItemsOnLoad`'s guard is an *equivalent* mutant: it
+   * falls through to the default loop, which applies the same value the guard would
+   * have set, because the data layer had already seeded it. Disabling that loop is
+   * masked by the seeding; disabling the seeding is masked by the loop.
    *
-   * These tests are still worth having: they pin the user-visible contract from the
-   * real `instanceObject` entry point, which nothing did before.
+   * **The mutants that do kill these tests**, both confirmed by rebuilding and
+   * running — quote them to anyone who suspects these assertions of being decorative:
+   *
+   *   - `default fills empty`: disable the seeding in `DataObjectBuilderHandler`
+   *     **and** the default loop in `populateItemsOnLoad`. Either alone is masked.
+   *   - `injected value is not overwritten`: disable the literal push in
+   *     `ActiveComponentRegistryService.updateViewToModel`.
+   *
+   * Which is what retired `cedar-input-multiple-choice.component.spec.ts`. It
+   * asserted that `populateItemsOnLoad` did not call a `jasmine.createSpyObj` mock
+   * with the default — a claim about a method whose every branch is redundant with
+   * something else. These assert the outcome instead, through the real
+   * `instanceObject` entry point.
    */
   test('a template default fills an empty choice field', async ({ page }) => {
     await open(page, '11-choice-default');
