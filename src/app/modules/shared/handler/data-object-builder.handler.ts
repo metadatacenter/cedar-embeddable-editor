@@ -163,6 +163,31 @@ export class DataObjectBuilderHandler {
     dataObject[JsonSchema.atContext] = { ...container.contextEntries };
   }
 
+  /**
+   * Name the template this instance is an instance of.
+   *
+   * Only on the copy that carries the envelope — the extract copy CEE works
+   * against has no `@id`, no `@context` and no provenance either, and
+   * `DataObjectUtil.deleteContext` strips this along with them.
+   *
+   * Omitted rather than written as null when the template has no IRI of its
+   * own, which is the case for a template that has never been saved. The
+   * library's writers make the same distinction.
+   */
+  public static addIsBasedOn(
+    templateRepresentation: TemplateComponent,
+    dataObject: InstanceExtractData,
+    buildingMode: DataObjectBuildingMode,
+  ): void {
+    if (buildingMode !== DataObjectBuildingMode.INCLUDE_CONTEXT) {
+      return;
+    }
+    const isBasedOn = (templateRepresentation as CedarTemplate)?.isBasedOn;
+    if (isBasedOn) {
+      dataObject[JsonSchema.schemaIsBasedOn] = isBasedOn;
+    }
+  }
+
   public static addRandomAtId(dataObject: InstanceExtractData): void {
     if (!Object.hasOwn(dataObject, JsonSchema.atId)) {
       const iri = DataObjectBuilderHandler.getTemplateElementInstanceIRIPrefix() + DataObjectUtil.generateGUID();
@@ -204,8 +229,10 @@ export class DataObjectBuilderHandler {
     if (this.templateRepresentation == null || this.templateRepresentation.children == null) {
       return;
     }
-    // The template's own `@context` sits on the instance root.
+    // The template's own `@context` sits on the instance root, and so does the
+    // IRI of the template the instance is an instance of.
     DataObjectBuilderHandler.addContext(this.templateRepresentation, dataObject, buildingMode);
+    DataObjectBuilderHandler.addIsBasedOn(this.templateRepresentation, dataObject, buildingMode);
     for (const childComponent of this.templateRepresentation.children) {
       DataObjectBuilderHandler.buildRecursively(childComponent, dataObject, buildingMode);
     }

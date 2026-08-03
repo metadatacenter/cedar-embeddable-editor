@@ -118,6 +118,71 @@ describe('the JSON a host page receives', () => {
   });
 });
 
+describe('the instance says which template it is an instance of', () => {
+  /**
+   * `schema:isBasedOn` is the only link from an instance back to the thing that
+   * defines it. Without it nothing downstream can validate the instance, render
+   * it, or find its template again — the Java artifact library treats it as
+   * mandatory, a non-optional URI checked when the artifact is constructed.
+   *
+   * CEE was not writing it at all. The TypeScript library models it and both its
+   * writers emit it; CEE simply never put the template's IRI on the instance, so
+   * every instance CEE produced was orphaned.
+   */
+  const withTemplateId = (atId: string | null) => {
+    const template = buildTemplate({ name: 'io_based', children: [{ kind: VALUED[0], name: 'f' }] }) as Record<
+      string,
+      unknown
+    >;
+    if (atId === null) {
+      delete template['@id'];
+    } else {
+      template['@id'] = atId;
+    }
+    return new CeeDriver(template);
+  };
+
+  it('names the template it came from', () => {
+    const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
+    const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
+    expect(emitted['schema:isBasedOn']).toBe('https://repo.metadatacenter.org/templates/abc');
+  });
+
+  it('reads it from whichever serialisation the template arrived in', () => {
+    const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
+    expect((driver.dataContext.instanceFullData as Record<string, unknown>)['schema:isBasedOn']).toBe(
+      'https://repo.metadatacenter.org/templates/abc',
+    );
+  });
+
+  /**
+   * A template that has never been saved has no IRI to name. Omitted rather
+   * than written as null — the library's writers make the same distinction, and
+   * a null here would assert that the instance is based on nothing.
+   */
+  it('omits it when the template has no IRI of its own', () => {
+    const driver = withTemplateId(null);
+    const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
+    expect(Object.hasOwn(emitted, 'schema:isBasedOn')).toBe(false);
+  });
+
+  /**
+   * Not on the working copy CEE edits against — that has no envelope at all,
+   * and `deleteContext` strips this along with `@id` and the provenance.
+   */
+  it('is not on the extract copy', () => {
+    const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
+    expect((driver.extract as Record<string, unknown>)['schema:isBasedOn']).toBeUndefined();
+  });
+
+  it('survives into the YAML', () => {
+    const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
+    expect(InstanceSerializer.toYaml(driver.dataContext.instanceFullData)).toContain(
+      'https://repo.metadatacenter.org/templates/abc',
+    );
+  });
+});
+
 describe.skipIf(!corpusAvailable())('real instances survive the trip', () => {
   /**
    * The generated cases cover one field at a time. These are whole templates,

@@ -100,6 +100,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
 
     template.labelInfo.label = parsed.schema_name;
     template.labelInfo.description = parsed.schema_description;
+    template.isBasedOn = parsed.at_id.getValue();
   }
 
   /**
