@@ -1,0 +1,14 @@
+{
+  "@context": {},
+  "@id": "https://example.org/instances/choice-default-1",
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/ce32d45b-0000-4000-8000-ce32d45b0000",
+  "schema:name": "ChoiceDefault instance",
+  "schema:description": "Access already set to Private",
+  "pav:createdOn": "2026-01-01T00:00:00-08:00",
+  "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "_access": {
+    "@value": "Private"
+  }
+}

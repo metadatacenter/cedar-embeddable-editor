@@ -88,6 +88,19 @@ const write = (name, template) => {
   console.log(`wrote fixtures/${name}.json`);
 };
 
+/**
+ * For a document that is not a template.
+ *
+ * `write` above runs the template writer, which is right for every template here
+ * and wrong for an instance — it tries to read the document as a template and
+ * fails. Instances are written verbatim.
+ */
+const writeRaw = (name, document) => {
+  mkdirSync(OUT, { recursive: true });
+  writeFileSync(join(OUT, `${name}.json`), JSON.stringify(document, null, 2));
+  console.log(`wrote fixtures/${name}.json`);
+};
+
 // 1. Every simple input type on one page — the widest single-screen surface.
 {
   const kinds = [
@@ -400,4 +413,67 @@ const write = (name, template) => {
    */
   tb = tb.addChild(av, deploy(av, 'attribute', { multi: true, minItems: 1, maxItems: 4 }));
   write('10-attribute-values', tb.build());
+}
+
+// 11. A default-selected choice, plus an instance that already has a different
+//     value — ported from `cedar-input-multiple-choice.component.spec.ts`.
+//
+//     The guard is `populateItemsOnLoad`: if the data object already holds a
+//     non-null `@value` it uses that and returns, leaving the template's
+//     `selectedByDefault` unapplied. Getting that backwards would silently
+//     overwrite a value someone had saved with a template default, which is data
+//     loss that looks like a working form — the field shows *a* value, just not
+//     theirs.
+//
+//     Only testable with an instance to inject, which is why `host.html` learned
+//     `?i=`. The template default is `Limited`; the instance says `Private`.
+{
+  const choice = field('access', () => CedarBuilders.radioFieldBuilder(), (b) =>
+    b.addRadioOption('Private', false).addRadioOption('Limited', true).addRadioOption('Public', false),
+  );
+  let tb = common(CedarBuilders.templateBuilder(), 'ChoiceDefault', 'templates').withSchemaDescription(
+    'A default-selected choice, to be overridden by an injected instance',
+  );
+  tb = tb.addChild(choice, deploy(choice, 'access'));
+  const template = tb.build();
+  write('11-choice-default', template);
+
+  const templateId = `https://repo.metadatacenter.org/templates/${id('ChoiceDefault')}`;
+  writeRaw('11-choice-default-instance', {
+    '@context': {},
+    '@id': 'https://example.org/instances/choice-default-1',
+    'schema:isBasedOn': templateId,
+    'schema:name': 'ChoiceDefault instance',
+    'schema:description': 'Access already set to Private',
+    'pav:createdOn': FIXED_DATE,
+    'pav:createdBy': USER,
+    'pav:lastUpdatedOn': FIXED_DATE,
+    'oslc:modifiedBy': USER,
+    _access: { '@value': 'Private' },
+  });
+}
+
+// 12. The three branches of `shouldRenderContentOfNonIterable` — ported from
+//     `cedar-component-renderer.component.spec.ts`.
+//
+//     `isMultiPage()` is `!(checkbox || list)`, so a list field is multi but not
+//     paged and always shows its content, while a paged field with no instances
+//     shows none — there is no occurrence to show, and the pager says so instead.
+//     The spec drove the method directly with mocks; here the same three cases are
+//     three fields on one page, and the assertion is whether `mat-card-content`
+//     exists inside each one's card.
+{
+  const list = field('list_no_values', () => CedarBuilders.multipleChoiceListFieldBuilder(), (b) =>
+    b.addListOption('North', false).addListOption('South', false),
+  );
+  const pagedEmpty = field('paged_no_instances', () => CedarBuilders.textFieldBuilder());
+  const pagedFilled = field('paged_one_instance', () => CedarBuilders.textFieldBuilder());
+
+  let tb = common(CedarBuilders.templateBuilder(), 'RenderDecision', 'templates').withSchemaDescription(
+    'Whether a multi field renders its content, across the three deciding cases',
+  );
+  tb = tb.addChild(list, deploy(list, 'list_no_values'));
+  tb = tb.addChild(pagedEmpty, deploy(pagedEmpty, 'paged_no_instances', { multi: true, minItems: 0, maxItems: 3 }));
+  tb = tb.addChild(pagedFilled, deploy(pagedFilled, 'paged_one_instance', { multi: true, minItems: 1, maxItems: 3 }));
+  write('12-render-decision', tb.build());
 }

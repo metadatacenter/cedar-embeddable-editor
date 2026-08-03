@@ -65,6 +65,18 @@
 
         const template = await (await fetch(`./fixtures/${name}.json`)).json();
 
+        /**
+         * An optional instance to inject, named by ?i=<name>.
+         *
+         * Without this the suite could only ever see a template rendered empty,
+         * which misses every behaviour that depends on a document already having
+         * values — and the first of those is whether a template default is allowed
+         * to overwrite one. `instanceObject` is the same web-component input a host
+         * page uses, so this exercises the real entry point rather than a test seam.
+         */
+        const instanceName = params.get('i');
+        const instance = instanceName ? await (await fetch(`./fixtures/${instanceName}.json`)).json() : null;
+
         // Wait for Angular Elements to define the custom element.
         await customElements.whenDefined('cedar-embeddable-editor');
         const cee = document.querySelector('cedar-embeddable-editor');
@@ -110,6 +122,11 @@
         }
 
         cee.config = PRESETS[preset];
+        // Instance before template: setting the template is what triggers the
+        // load, so the instance has to already be there to be picked up.
+        if (instance) {
+          cee.instanceObject = instance;
+        }
         cee.templateObject = template;
 
         // The editor renders asynchronously; consider the DOM settled once two

@@ -28,6 +28,7 @@ const FIXTURES = [
   ['08-authority', 'every external authority widget'],
   ['09-temporal', 'temporal fields at every granularity'],
   ['10-attribute-values', 'attribute-value fields, whose names come from the user'],
+  ['12-render-decision', 'whether a multi field renders its content, in all three cases'],
 ] as const;
 
 /**
@@ -65,10 +66,25 @@ const BUNDLE_VERSION = String(
     .mtimeMs,
 );
 
-/** Load a fixture, optionally under a config preset, and wait for it to settle. */
-const open = async (page: import('@playwright/test').Page, fixture: string, preset?: string) => {
+/**
+ * Load a fixture, optionally under a config preset and with an instance injected,
+ * and wait for it to settle.
+ *
+ * `instance` names a second fixture to hand to the web component's `instanceObject`
+ * input — the same one a host page uses. Without it the suite can only see a
+ * template rendered empty, which misses every behaviour that depends on a document
+ * already holding values.
+ */
+const open = async (
+  page: import('@playwright/test').Page,
+  fixture: string,
+  preset?: string,
+  instance?: string,
+) => {
   await page.clock.setFixedTime(FROZEN);
-  await page.goto(`/host.html?t=${fixture}${preset ? `&c=${preset}` : ''}&b=${BUNDLE_VERSION}`);
+  await page.goto(
+    `/host.html?t=${fixture}${preset ? `&c=${preset}` : ''}${instance ? `&i=${instance}` : ''}&b=${BUNDLE_VERSION}`,
+  );
   await page.waitForFunction(() => (window as any).__ceeReady === true || (window as any).__ceeError, null, {
     timeout: 20_000,
   });
@@ -816,5 +832,103 @@ test.describe('the time picker', () => {
     await open(page, '09-temporal', 'readonly');
     expect(await page.locator('input[aria-label="Hour"]').count()).toBe(0);
     expect(await page.locator('.cee-time-picker-readonly').count()).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * Two behaviours ported here from Angular component specs, which are now deleted.
+ *
+ * Of forty legacy specs, thirty-eight asserted `expect(component).toBeTruthy()` and
+ * went. Two looked like real coverage. The domain harness deliberately loads no
+ * Angular, so a component method guarded by a template `*ngIf` is beyond it by
+ * construction — which is what both of these were — so they came here.
+ *
+ * Browser tests rather than harness reproductions, because both original specs
+ * drove their methods directly with `jasmine.createSpyObj`, asserting that a method
+ * returned what it returned. Asserting through what a user would see instead means
+ * a test cannot pass while the feature is broken in a way the mocks did not model.
+ *
+ * **Only one of the two ports is verified.** The render-decision test below kills a
+ * mutant that makes the content always render; `cedar-component-renderer.component.spec.ts`
+ * is deleted on that evidence. The choice tests kill nothing yet — see their comment —
+ * so `cedar-input-multiple-choice.component.spec.ts` stays for now. Mutation testing
+ * is the difference between a port and a hope.
+ */
+test.describe('ported from the deleted component specs', () => {
+  /**
+   * The behaviour `cedar-input-multiple-choice.component.spec.ts` was aiming at —
+   * but read the mutation results before treating these as a replacement for it.
+   *
+   * What matters to a user: a template default fills an empty choice field, and a
+   * value the document already holds is **not** overwritten by that default.
+   * Getting the second one wrong is data loss that looks like a working form,
+   * because the field still shows *a* value, just not theirs. Both directions are
+   * asserted, since checking only the override would pass if defaults had stopped
+   * working altogether, making the override vacuous.
+   *
+   * **These two tests are insensitive to `populateItemsOnLoad`, which is what that
+   * spec actually asserted against.** Three mutants, each rebuilt and run:
+   *
+   *   - disabling its `@value` guard, so the default should overwrite: both pass
+   *   - stopping it applying the default at all: both pass
+   *   - disabling the data layer's `selectedByDefault` seeding: `default fills
+   *     empty` still passes
+   *
+   * So the rendered outcome survives all three, and the mechanism that really
+   * produces it has not been identified. Two things follow. This suite does not yet
+   * replace that spec's coverage, so the spec stays until someone works out where
+   * the value actually comes from — see the roadmap. And `populateItemsOnLoad` looks
+   * like it may have no observable effect, which would make the original spec an
+   * assertion about a mocked collaborator rather than about behaviour; worth
+   * establishing before anyone relies on that method.
+   *
+   * These tests are still worth having: they pin the user-visible contract from the
+   * real `instanceObject` entry point, which nothing did before.
+   */
+  test('a template default fills an empty choice field', async ({ page }) => {
+    await open(page, '11-choice-default');
+
+    const checked = page.locator('mat-radio-button.mat-radio-checked');
+    await expect(checked).toHaveCount(1);
+    await expect(checked).toContainText('Limited');
+  });
+
+  test('an injected value is not overwritten by the template default', async ({ page }) => {
+    await open(page, '11-choice-default', undefined, '11-choice-default-instance');
+
+    const checked = page.locator('mat-radio-button.mat-radio-checked');
+    await expect(checked, 'exactly one option selected').toHaveCount(1);
+    await expect(checked, "the instance says Private; the template's default is Limited").toContainText('Private');
+  });
+
+  /**
+   * From `cedar-component-renderer.component.spec.ts`, whose three cases covered
+   * every branch of `shouldRenderContentOfNonIterable`.
+   *
+   * `isMultiPage()` is `!(checkbox || list)`. So a list field is multiple but not
+   * paged and always shows its content, while a paged field with no instances shows
+   * none — there is no occurrence to show, and its pager says so instead. The
+   * fixture puts all three cases on one page in this order, and the observable
+   * consequence is whether a `mat-card-content` exists inside each field's card.
+   */
+  test('a multi field renders its content only when it has something to show', async ({ page }) => {
+    await open(page, '12-render-decision');
+
+    const cards = page.locator('mat-card.non-iterable-component');
+    await expect(cards, 'fixture should render three fields').toHaveCount(3);
+
+    const expected = [
+      ['list_no_values', 1, 'a list field is multi but not paged, so it always shows its content'],
+      ['paged_no_instances', 0, 'paged with no instances: nothing to show, so no content area'],
+      ['paged_one_instance', 1, 'paged with one instance: content shown'],
+    ] as const;
+
+    for (const [name, count, why] of expected) {
+      const card = cards.nth(expected.findIndex((e) => e[0] === name));
+      await expect(card.locator('app-cedar-component-header'), `card order changed: expected ${name}`).toContainText(
+        name,
+      );
+      await expect(card.locator('mat-card-content'), `${name}: ${why}`).toHaveCount(count);
+    }
   });
 });
