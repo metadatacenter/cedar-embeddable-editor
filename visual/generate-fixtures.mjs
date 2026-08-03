@@ -28,6 +28,7 @@ const {
   NumberType,
   TemporalGranularity,
   TemporalType,
+  TimeFormat,
 } = cedar;
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -300,4 +301,42 @@ const write = (name, template) => {
     tb = tb.addChild(f, deploy(f, name));
   }
   write('08-authority', tb.build());
+}
+
+// 9. Temporal fields at every granularity CEDAR defines, and both time formats.
+//
+//    The reason this exists: CEE's time picker is its own, written because the
+//    obvious third-party replacement supports no seconds — and second-precision
+//    is the second most used granularity across both artifact corpora, after
+//    `day`. Before this fixture the only temporal field under test was
+//    minute-granularity, so the seconds boxes and the 12-hour face, which are the
+//    entire reason for owning the component, were rendered by nothing.
+{
+  const temporal = (name, type, granularity, timeFormat) =>
+    field(name, () => CedarBuilders.temporalFieldBuilder(), (b) => {
+      let out = b.withTemporalType(type).withTemporalGranularity(granularity);
+      if (timeFormat) {
+        out = opt(out, 'withInputTimeFormat', timeFormat);
+      }
+      return out;
+    });
+
+  const fields = [
+    temporal('year_only', TemporalType.DATE, TemporalGranularity.YEAR),
+    temporal('day_only', TemporalType.DATE, TemporalGranularity.DAY),
+    temporal('hour_only', TemporalType.TIME, TemporalGranularity.HOUR),
+    temporal('to_the_minute', TemporalType.TIME, TemporalGranularity.MINUTE),
+    temporal('to_the_second', TemporalType.TIME, TemporalGranularity.SECOND),
+    temporal('decimal_seconds', TemporalType.DATETIME, TemporalGranularity.DECIMAL_SECOND),
+    temporal('twelve_hour', TemporalType.TIME, TemporalGranularity.MINUTE, TimeFormat.H12),
+    temporal('twelve_hour_seconds', TemporalType.TIME, TemporalGranularity.SECOND, TimeFormat.H12),
+  ];
+
+  let tb = common(CedarBuilders.templateBuilder(), 'TemporalGranularity', 'templates').withSchemaDescription(
+    'Temporal fields at every granularity, in both time formats',
+  );
+  for (const f of fields) {
+    tb = tb.addChild(f, deploy(f, f.schema_name ?? 'x'));
+  }
+  write('09-temporal', tb.build());
 }

@@ -5,23 +5,22 @@
                  [required]="required"
                  xmlns="http://www.w3.org/1999/html"></app-date-picker>
 <ng-container *ngIf="showTimePicker()">
-  <div *ngIf="readOnlyMode">
-    <input matInput type="text"
-           [(ngModel)]="timePickerTime"
-           readonly>
-  </div>
-  <div *ngIf="!readOnlyMode">
-<!--    <mat-label>Select Time</mat-label>-->
-    <ngx-mat-timepicker
-      (ngModelChange)="timeInputChanged($event)"
-      (input)="timeInputChanged($event)"
-      [(ngModel)]="timePickerTime"
-      [showSpinners]="true"
-      [enableMeridian]="enableMeridian()"
-      [disableMinute]="disableMinute()"
-      [showSeconds]="showSeconds()">
-    </ngx-mat-timepicker>
-  </div>
+  <!--
+    CEE's own picker. Replaced `ngx-mat-timepicker`, whose package peers Angular
+    16 and nothing later — one element, and it capped the framework upgrade.
+
+    Same contract: a two-way bound 24-hour `Date`, and the three flags come from
+    the same predicates below. The read-only branch that used to sit here is gone;
+    the picker renders its own value as text, which is one place rather than two
+    deciding what a read-only time looks like.
+  -->
+  <app-time-picker
+    [(ngModel)]="timePickerTime"
+    (ngModelChange)="timeInputChanged($event)"
+    [enableMeridian]="enableMeridian()"
+    [disableMinute]="disableMinute()"
+    [showSeconds]="showSeconds()">
+  </app-time-picker>
 </ng-container>
 <ng-container *ngIf="showDecimalSeconds()">
   <mat-form-field>

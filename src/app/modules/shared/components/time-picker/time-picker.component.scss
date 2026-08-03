@@ -1,0 +1,80 @@
+/*
+ * Laid out as a row of narrow boxes with a stepper above and below each, which
+ * is the shape `ngx-mat-timepicker` had — the field is recognisable to anyone
+ * who used CEE before this replaced it.
+ */
+.cee-time-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cee-time-picker-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cee-time-box {
+  width: 4em;
+
+  /* Text rather than number inputs, so an hour can read `01`. The spinner
+     buttons do the stepping, and they wrap where a native stepper clamps. */
+  input {
+    text-align: center;
+  }
+}
+
+.cee-time-step {
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+
+  .mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+  }
+}
+
+/*
+ * The colon, between two digit boxes and level with the digits.
+ *
+ * One stepper's height down, then a line box the height of a form field's input
+ * row — so the colon centres where the digits do. Both are in `em`, so they track
+ * the font rather than a pixel measurement.
+ *
+ * This is the one place here with a number chosen to match Material's own
+ * geometry, and Material changes that in the 14 → 15 MDC migration. So it is
+ * *tested*: `visual/tests/render.spec.ts` asserts the colon's centre sits within
+ * a couple of pixels of a digit's, and will fail loudly rather than drift.
+ *
+ * Two cleverer attempts came first and both went wrong, which is why the simple
+ * version is here. A chrome-less `mat-form-field` holding the colon collapsed its
+ * input to zero width — correctly positioned and completely invisible. A
+ * `matSuffix` aligned perfectly but rendered the colon *inside* the preceding
+ * box, which is not where a clock puts it.
+ */
+.cee-time-separator {
+  align-self: flex-start;
+  margin-top: 24px;
+  height: 3.4em;
+  line-height: 3.4em;
+  padding: 0 2px;
+}
+
+.cee-time-meridian {
+  min-width: 3.5em;
+  /* One stepper's height down, which puts it on the digit row. A button has no
+     subscript space, so unlike the separator this needs no trickery. */
+  align-self: flex-start;
+  margin-top: 24px;
+}
+
+.cee-time-picker-readonly {
+  input {
+    border: none;
+    background: transparent;
+  }
+}

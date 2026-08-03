@@ -26,6 +26,7 @@ const FIXTURES = [
   ['06-validation', 'fields that can show validation errors'],
   ['07-timezone', 'temporal field with the timezone picker'],
   ['08-authority', 'every external authority widget'],
+  ['09-temporal', 'temporal fields at every granularity'],
 ] as const;
 
 /**
@@ -401,5 +402,244 @@ test.describe('the served bundle', () => {
     expect(requested, 'the bundle should be fetched exactly once').toHaveLength(1);
     expect(requested[0], 'the URL carries the bundle version').toContain(`?b=${BUNDLE_VERSION}`);
     expect(BUNDLE_VERSION, 'the version is the real mtime, not a fallback').toMatch(/^\d+/);
+  });
+});
+
+/**
+ * CEE's own time picker.
+ *
+ * Written because `@angular-material-components/datetime-picker` peers Angular 16
+ * and capped the upgrade, and because the obvious replacement supports no seconds
+ * at all — while second-precision is the second most used granularity across both
+ * artifact corpora, after `day`.
+ *
+ * Tested here rather than in the domain harness because it is a widget: what
+ * matters is which boxes a granularity puts on screen and what a click on a
+ * stepper stores. The arithmetic underneath has its own unit tests in
+ * `harness/test/clock-time.spec.ts`.
+ *
+ * `09-temporal` is the fixture; before it existed the only temporal field under
+ * test was minute-granularity, so the seconds boxes and the 12-hour face — the
+ * entire reason for owning this — were rendered by nothing.
+ */
+test.describe('the time picker', () => {
+  /**
+   * Which picker belongs to which field, in document order.
+   *
+   * `year_only` and `day_only` are `xsd:date`, so they have no time half at all —
+   * the six pickers are the six fields that do.
+   */
+  const PICKERS = ['hour_only', 'to_the_minute', 'to_the_second', 'decimal_seconds', 'twelve_hour', 'twelve_hour_seconds'];
+  const pickerFor = (page: import('@playwright/test').Page, field: string) =>
+    page.locator('.cee-time-picker').nth(PICKERS.indexOf(field));
+
+  /** The instance CEE would hand a host page. */
+  const storedValue = async (page: import('@playwright/test').Page, field: string): Promise<unknown> =>
+    page.evaluate((name) => {
+      const cee = document.querySelector('cedar-embeddable-editor') as unknown as Record<string, never>;
+      const instance = cee['currentMetadata'] as Record<string, { '@value'?: unknown }>;
+      return instance?.[name]?.['@value'];
+    }, field);
+
+  /**
+   * Which boxes each granularity offers, asserted per field.
+   *
+   * This is the model-fidelity claim, and the reason CEE owns this component: a
+   * field never shows precision it cannot store, and never hides precision it
+   * can. `@ng-matero/extensions` would have failed the last two rows outright.
+   */
+  test.describe('shows exactly the units its granularity allows', () => {
+    const cases: Array<[string, number, number]> = [
+      // field, minute boxes, second boxes — every time field has exactly one hour
+      ['hour_only', 0, 0],
+      ['to_the_minute', 1, 0],
+      ['to_the_second', 1, 1],
+      ['decimal_seconds', 1, 1],
+      ['twelve_hour', 1, 0],
+      ['twelve_hour_seconds', 1, 1],
+    ];
+
+    for (const [field, minutes, seconds] of cases) {
+      test(field, async ({ page }) => {
+        await open(page, '09-temporal');
+        const picker = pickerFor(page, field);
+
+        await expect(picker.locator('input[aria-label="Hour"]'), 'hour').toHaveCount(1);
+        await expect(picker.locator('input[aria-label="Minute"]'), 'minute').toHaveCount(minutes);
+        await expect(picker.locator('input[aria-label="Second"]'), 'second').toHaveCount(seconds);
+      });
+    }
+
+    test('a date-only field has no time picker at all', async ({ page }) => {
+      await open(page, '09-temporal');
+      await expect(page.locator('.cee-time-picker')).toHaveCount(PICKERS.length);
+    });
+  });
+
+  test('the 12-hour fields show a meridian control and the others do not', async ({ page }) => {
+    await open(page, '09-temporal');
+    await expect(page.locator('.cee-time-meridian'), 'only the two 12h fields').toHaveCount(2);
+    await expect(pickerFor(page, 'twelve_hour').locator('.cee-time-meridian')).toHaveText(/AM|PM/);
+    await expect(pickerFor(page, 'to_the_minute').locator('.cee-time-meridian')).toHaveCount(0);
+  });
+
+  test('typing an hour stores it', async ({ page }) => {
+    await open(page, '09-temporal');
+    const hour = pickerFor(page, 'to_the_minute').locator('input[aria-label="Hour"]');
+    await hour.fill('14');
+    await page.waitForTimeout(300);
+
+    expect(String(await storedValue(page, '_to_the_minute'))).toContain('14:');
+  });
+
+  /**
+   * Wrapping rather than clamping. The browser's native stepper clamps at max,
+   * which is why the buttons exist.
+   */
+  test('stepping past the end of an hour wraps to the start', async ({ page }) => {
+    await open(page, '09-temporal');
+    const picker = pickerFor(page, 'to_the_minute');
+    const hour = picker.locator('input[aria-label="Hour"]');
+    await hour.fill('23');
+    await page.waitForTimeout(200);
+
+    // The increment button sits above its box.
+    await picker.locator('button[aria-label="Increment hour"]').click();
+    await page.waitForTimeout(300);
+
+    // Zero-padded, as a clock reads and as the dependency this replaced did.
+    await expect(hour).toHaveValue('00');
+    expect(String(await storedValue(page, '_to_the_minute'))).toContain('00:');
+  });
+
+  test('stepping below zero wraps to the end', async ({ page }) => {
+    await open(page, '09-temporal');
+    const picker = pickerFor(page, 'to_the_minute');
+    const minute = picker.locator('input[aria-label="Minute"]');
+    await minute.fill('0');
+    await page.waitForTimeout(200);
+    await picker.locator('button[aria-label="Decrement minute"]').click();
+    await page.waitForTimeout(300);
+
+    await expect(minute).toHaveValue('59');
+  });
+
+  test('seconds reach the stored value', async ({ page }) => {
+    await open(page, '09-temporal');
+    const second = pickerFor(page, 'to_the_second').locator('input[aria-label="Second"]');
+    await second.fill('42');
+    await page.waitForTimeout(300);
+
+    expect(String(await storedValue(page, '_to_the_second'))).toContain(':42');
+  });
+
+  /**
+   * The invariant worth guarding above all others: CEDAR stores a 24-hour clock
+   * whatever the field displays. A 12-hour field showing 2 PM must store 14.
+   */
+  test('a 12-hour field stores 24-hour time', async ({ page }) => {
+    await open(page, '09-temporal');
+    const picker = pickerFor(page, 'twelve_hour');
+    const hour = picker.locator('input[aria-label="Hour"]');
+    const meridian = picker.locator('.cee-time-meridian');
+
+    await hour.fill('2');
+    await page.waitForTimeout(200);
+    if ((await meridian.textContent())?.trim() === 'AM') {
+      await meridian.click();
+      await page.waitForTimeout(200);
+    }
+    await expect(meridian).toHaveText('PM');
+    await page.waitForTimeout(300);
+
+    const stored = String(await storedValue(page, '_twelve_hour'));
+    expect(stored, `2 PM must store as 14, got ${stored}`).toContain('14:');
+  });
+
+  test('a 12-hour field stores midnight as 00, not 12', async ({ page }) => {
+    await open(page, '09-temporal');
+    const picker = pickerFor(page, 'twelve_hour');
+    const hour = picker.locator('input[aria-label="Hour"]');
+    const meridian = picker.locator('.cee-time-meridian');
+
+    await hour.fill('12');
+    await page.waitForTimeout(200);
+    if ((await meridian.textContent())?.trim() === 'PM') {
+      await meridian.click();
+      await page.waitForTimeout(200);
+    }
+    await expect(meridian).toHaveText('AM');
+    await page.waitForTimeout(300);
+
+    expect(String(await storedValue(page, '_twelve_hour'))).toContain('00:');
+  });
+
+  /**
+   * Noon, which is the case a 12-hour clock actually gets wrong.
+   *
+   * Added because mutation-testing the conversion exposed the gap: breaking
+   * `12 PM → 12` failed the unit tests and passed all fifteen browser tests,
+   * because the cases here were 2 PM and 12 AM and neither exercises it. 2 PM
+   * survives most plausible off-by-twelve bugs; noon survives none of them.
+   */
+  test('a 12-hour field stores noon as 12', async ({ page }) => {
+    await open(page, '09-temporal');
+    const picker = pickerFor(page, 'twelve_hour');
+    const hour = picker.locator('input[aria-label="Hour"]');
+    const meridian = picker.locator('.cee-time-meridian');
+
+    await hour.fill('12');
+    await page.waitForTimeout(200);
+    if ((await meridian.textContent())?.trim() === 'AM') {
+      await meridian.click();
+      await page.waitForTimeout(200);
+    }
+    await expect(meridian).toHaveText('PM');
+    await page.waitForTimeout(300);
+
+    const stored = String(await storedValue(page, '_twelve_hour'));
+    expect(stored, `noon must store as 12, got ${stored}`).toContain('12:');
+  });
+
+  /**
+   * The colons line up with the digits.
+   *
+   * Guarded rather than eyeballed because the CSS that achieves it is matched to
+   * Material's own geometry — `mat-form-field` reserves space beneath its input,
+   * so the digits' centre is well above the control's — and the 14 → 15 MDC
+   * migration changes that. A screenshot baseline would catch it too, but only as
+   * "these pixels differ"; this says what is wrong.
+   *
+   * Two cleverer approaches failed first: a chrome-less form field holding the
+   * colon collapsed its input to zero width, correctly positioned and entirely
+   * invisible; a `matSuffix` aligned perfectly but put the colon inside the
+   * preceding box.
+   */
+  test('the colons sit level with the digits', async ({ page }) => {
+    await open(page, '09-temporal');
+
+    const offsets = await page.evaluate(() => {
+      const picker = document.querySelectorAll('.cee-time-picker')[2]; // to_the_second
+      const digit = picker.querySelector('input[aria-label="Hour"]')!.getBoundingClientRect();
+      const digitCentre = digit.top + digit.height / 2;
+      return Array.from(picker.querySelectorAll('.cee-time-separator')).map((sep) => {
+        const box = sep.getBoundingClientRect();
+        return { off: box.top + box.height / 2 - digitCentre, width: box.width };
+      });
+    });
+
+    expect(offsets, 'two colons on a to-the-second field').toHaveLength(2);
+    for (const { off, width } of offsets) {
+      expect(Math.abs(off), `colon is ${off.toFixed(1)}px off the digit centre`).toBeLessThan(3);
+      // A zero-width colon is positioned perfectly and invisible, which is
+      // exactly the failure one of the earlier attempts produced.
+      expect(width, 'the colon has to actually be visible').toBeGreaterThan(2);
+    }
+  });
+
+  test('read-only mode shows the time as text, not as boxes', async ({ page }) => {
+    await open(page, '09-temporal', 'readonly');
+    expect(await page.locator('input[aria-label="Hour"]').count()).toBe(0);
+    expect(await page.locator('.cee-time-picker-readonly').count()).toBeGreaterThan(0);
   });
 });

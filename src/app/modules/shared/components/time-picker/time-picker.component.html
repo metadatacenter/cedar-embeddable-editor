@@ -1,0 +1,89 @@
+<!--
+  CEE's time picker: one box per unit the field's granularity asks for.
+
+  Which boxes appear comes straight from the CEDAR model — `disableMinute` when
+  granularity stops at the hour, `showSeconds` for second and decimalSecond — so
+  a field never offers precision it cannot store, and never hides precision it
+  can.
+
+  Spinner buttons rather than relying on the browser's number stepper: the
+  stepper clamps at min/max, and clock fields should wrap. Stepping past 59
+  minutes means 0.
+-->
+<div class="cee-time-picker" *ngIf="!readOnlyMode">
+  <div class="cee-time-picker-field">
+    <button type="button" mat-icon-button class="cee-time-step"
+            (click)="step('hour', 1)"
+            attr.aria-label="{{'Generic.IncrementHour' | translate}}">
+      <mat-icon>keyboard_arrow_up</mat-icon>
+    </button>
+    <mat-form-field class="cee-time-box">
+      <input matInput type="text" inputmode="numeric" maxlength="2"
+             [value]="hourText"
+             (input)="hourChanged($any($event.target).value)"
+             attr.aria-label="{{'Generic.Hour' | translate}}">
+    </mat-form-field>
+    <button type="button" mat-icon-button class="cee-time-step"
+            (click)="step('hour', -1)"
+            attr.aria-label="{{'Generic.DecrementHour' | translate}}">
+      <mat-icon>keyboard_arrow_down</mat-icon>
+    </button>
+  </div>
+
+  <ng-container *ngIf="!disableMinute">
+    <span class="cee-time-separator">:</span>
+    <div class="cee-time-picker-field">
+      <button type="button" mat-icon-button class="cee-time-step"
+              (click)="step('minute', 1)"
+              attr.aria-label="{{'Generic.IncrementMinute' | translate}}">
+        <mat-icon>keyboard_arrow_up</mat-icon>
+      </button>
+      <mat-form-field class="cee-time-box">
+        <input matInput type="text" inputmode="numeric" maxlength="2"
+               [value]="minuteText"
+               (input)="minuteChanged($any($event.target).value)"
+               attr.aria-label="{{'Generic.Minute' | translate}}">
+      </mat-form-field>
+      <button type="button" mat-icon-button class="cee-time-step"
+              (click)="step('minute', -1)"
+              attr.aria-label="{{'Generic.DecrementMinute' | translate}}">
+        <mat-icon>keyboard_arrow_down</mat-icon>
+      </button>
+    </div>
+
+    <ng-container *ngIf="showSeconds">
+      <span class="cee-time-separator">:</span>
+      <div class="cee-time-picker-field">
+        <button type="button" mat-icon-button class="cee-time-step"
+                (click)="step('second', 1)"
+                attr.aria-label="{{'Generic.IncrementSecond' | translate}}">
+          <mat-icon>keyboard_arrow_up</mat-icon>
+        </button>
+        <mat-form-field class="cee-time-box">
+          <input matInput type="text" inputmode="numeric" maxlength="2"
+                 [value]="secondText"
+                 (input)="secondChanged($any($event.target).value)"
+                 attr.aria-label="{{'Generic.Second' | translate}}">
+        </mat-form-field>
+        <button type="button" mat-icon-button class="cee-time-step"
+                (click)="step('second', -1)"
+                attr.aria-label="{{'Generic.DecrementSecond' | translate}}">
+          <mat-icon>keyboard_arrow_down</mat-icon>
+        </button>
+      </div>
+    </ng-container>
+  </ng-container>
+
+  <button *ngIf="enableMeridian"
+          type="button" mat-button class="cee-time-meridian"
+          (click)="toggleMeridian()"
+          attr.aria-label="{{'Generic.ToggleMeridian' | translate}}">
+    {{ meridian }}
+  </button>
+</div>
+
+<!-- Read-only: the same value as text, not disabled boxes. -->
+<div class="cee-time-picker-readonly" *ngIf="readOnlyMode">
+  <input matInput type="text" [value]="displayValue" readonly
+         attr.aria-label="{{'Generic.Time' | translate}}">
+</div>

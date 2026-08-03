@@ -20,11 +20,6 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatSelectModule } from '@angular/material/select';
-import {
-  NgxMatDatetimePickerModule,
-  NgxMatNativeDateModule,
-  NgxMatTimepickerModule,
-} from '@angular-material-components/datetime-picker';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { CedarInputEmailComponent } from './components/cedar-input-email/cedar-input-email.component';
 import { CedarInputCheckboxComponent } from './components/cedar-input-checkbox/cedar-input-checkbox.component';
@@ -51,6 +46,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { EscapeHtmlPipe } from '../shared/pipe/keep-html.pipe';
 import { DatePickerComponent } from '../shared/components/date-picker/date-picker.component';
 import { TimezonePickerComponent } from '../shared/components/timezone-picker/timezone-picker.component';
+import { TimePickerComponent } from '../shared/components/time-picker/time-picker.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { NgOptimizedImage } from '@angular/common';
 import { OrcidDetailsComponent } from './components/cedar-input-orcid/orcid-details/orcid-details.component';
@@ -87,9 +83,6 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     MatGridListModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    NgxMatDatetimePickerModule,
-    NgxMatTimepickerModule,
-    NgxMatNativeDateModule,
     NgSelectModule,
     YouTubePlayerModule,
     FormsModule,
@@ -121,6 +114,7 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
     DatePickerComponent,
+    TimePickerComponent,
     TimezonePickerComponent,
     EscapeHtmlPipe,
     OrcidDetailsComponent,

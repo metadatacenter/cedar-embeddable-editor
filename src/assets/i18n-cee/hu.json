@@ -27,7 +27,18 @@
     "NumberOnly": "Csak szám",
     "CedarLogo": "CEDAR logó",
     "DecimalSeconds": "tizedmásodpercek",
-    "Szűrés": "Kezdjen el írni a szűréshez"
+    "Szűrés": "Kezdjen el írni a szűréshez",
+    "Time": "Idő",
+    "Hour": "Óra",
+    "Minute": "Perc",
+    "Second": "Másodperc",
+    "IncrementHour": "Óra növelése",
+    "DecrementHour": "Óra csökkentése",
+    "IncrementMinute": "Perc növelése",
+    "DecrementMinute": "Perc csökkentése",
+    "IncrementSecond": "Másodperc növelése",
+    "DecrementSecond": "Másodperc csökkentése",
+    "ToggleMeridian": "Váltás AM és PM között"
   },
   "Process": {
     "Initializing": "A CEDAR Beágyazható Szerkesztő inicializálása..."
