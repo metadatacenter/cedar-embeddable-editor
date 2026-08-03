@@ -29,25 +29,18 @@ import { CeeDriver } from '../src/driver';
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
 
 /**
- * The envelope a CEDAR instance carries and CEE never filled in.
+ * The envelope keys the *writer* supplies, as against the ones CEE fills in.
  *
- * All 21 corpus instances have every one of these, so an instance without them
- * is an incomplete artifact rather than a tidy one — and one of the 21 has them
- * all null, so null is what an unfilled envelope looks like. CEE cannot know
- * most of them: `@id` and the provenance fields are assigned when the instance
- * is saved, not while it is being edited.
+ * A template's `required` list names nine keys its instances must carry. CEE
+ * sets three of them, because it knows them: `schema:isBasedOn` from the
+ * template's IRI, and `schema:name` and `schema:description`, whose schemas are
+ * `string` — `minLength: 1` in the first case — so null would not validate.
  *
- * Listed because emitting them is a change to what every host page receives.
+ * These five it cannot know. `@id` and the provenance fields are assigned when
+ * the instance is saved, and their schemas are `["string", "null"]`, so null is
+ * both honest and valid. The writer emits them so the document is complete.
  */
-const ENVELOPE_KEYS = [
-  '@id',
-  'schema:name',
-  'schema:description',
-  'pav:createdOn',
-  'pav:createdBy',
-  'pav:lastUpdatedOn',
-  'oslc:modifiedBy',
-];
+const ENVELOPE_KEYS = ['@id', 'pav:createdOn', 'pav:createdBy', 'pav:lastUpdatedOn', 'oslc:modifiedBy'];
 
 /** A one-field form with a value in it. */
 const filled = (kindIndex: number, cardinality: 'single' | 'multi') => {
@@ -92,15 +85,12 @@ describe('the JSON a host page receives', () => {
   });
 
   /**
-   * BEHAVIOUR CHANGE, and the only one: the emitted instance now carries the
-   * envelope. CEE omitted it entirely, which made the instance an incomplete
-   * CEDAR artifact — every corpus instance has all seven keys.
-   *
-   * They come out null, because CEE genuinely does not know them: an instance's
-   * `@id` and its provenance are assigned when it is saved. Null is what the
-   * corpus shows an unfilled envelope looking like.
+   * The writer completes the envelope with the keys CEE cannot fill in, and
+   * adds nothing else. Whether the result actually validates as a CEDAR
+   * instance is checked in `model-conformance.spec.ts`, against the template's
+   * own schema; this only pins what the emission step contributes.
    */
-  it('adds the envelope CEE used to omit, and nothing else', () => {
+  it('adds the envelope keys CEE cannot know, and nothing else', () => {
     const driver = filled(0, 'single');
     const working = driver.dataContext.instanceFullData as Record<string, unknown>;
     const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;

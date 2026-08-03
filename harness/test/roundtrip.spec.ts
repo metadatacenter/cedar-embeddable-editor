@@ -107,6 +107,20 @@ describe('emitted instances are structurally sound', () => {
   });
 });
 
+/**
+ * The envelope: present on the full tree the host page receives, absent from the
+ * extract copy CEE edits against. Not data, so not part of the comparison —
+ * `DataObjectUtil.deleteContext` is what keeps it off the extract side.
+ */
+const ENVELOPE_ONLY_ON_THE_FULL_TREE = new Set([
+  '@context',
+  '@id',
+  '@type',
+  'schema:isBasedOn',
+  'schema:name',
+  'schema:description',
+]);
+
 describe('the two instance trees stay in agreement', () => {
   /**
    * CEE maintains `instanceExtractData` and `instanceFullData` as separate
@@ -127,7 +141,7 @@ describe('the two instance trees stay in agreement', () => {
           // Envelope, not data: only the full tree carries it. `schema:isBasedOn`
           // names the template the instance came from and belongs with the
           // rest of the envelope the extract copy does without.
-          if (k === '@context' || k === '@id' || k === '@type' || k === 'schema:isBasedOn') continue;
+          if (ENVELOPE_ONLY_ON_THE_FULL_TREE.has(k)) continue;
           out[k] = stripContext(v);
         }
         return out;

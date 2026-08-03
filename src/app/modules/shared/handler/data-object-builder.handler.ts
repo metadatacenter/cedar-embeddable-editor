@@ -164,27 +164,44 @@ export class DataObjectBuilderHandler {
   }
 
   /**
-   * Name the template this instance is an instance of.
+   * Fill in the envelope every CEDAR instance carries.
    *
-   * Only on the copy that carries the envelope — the extract copy CEE works
-   * against has no `@id`, no `@context` and no provenance either, and
-   * `DataObjectUtil.deleteContext` strips this along with them.
+   * A template is a JSON Schema for its own instances, and its `required` list
+   * names all nine envelope keys — `@context`, `@id`, `schema:isBasedOn`,
+   * `schema:name`, `schema:description` and the four provenance fields. An
+   * instance missing any of them does not validate against the template it came
+   * from, which is the check `cedar-model-validation-library` performs.
    *
-   * Omitted rather than written as null when the template has no IRI of its
-   * own, which is the case for a template that has never been saved. The
-   * library's writers make the same distinction.
+   * Which of them CEE can fill in differs. `@id` and the provenance fields are
+   * assigned when the instance is saved and their schemas are
+   * `["string", "null"]`, so leaving them null is correct and the library's
+   * writer emits them. `schema:name` is `string` with `minLength: 1` and
+   * `schema:description` is `string`, so null fails both — the convention in
+   * every corpus instance is the template's name followed by "metadata", and an
+   * empty description.
+   *
+   * Only on the copy that carries the envelope; the extract copy CEE works
+   * against has none of this, and `DataObjectUtil.deleteContext` strips it.
    */
-  public static addIsBasedOn(
+  public static addEnvelope(
     templateRepresentation: TemplateComponent,
     dataObject: InstanceExtractData,
     buildingMode: DataObjectBuildingMode,
   ): void {
-    if (buildingMode !== DataObjectBuildingMode.INCLUDE_CONTEXT) {
+    if (buildingMode !== DataObjectBuildingMode.INCLUDE_CONTEXT || dataObject == null) {
       return;
     }
-    const isBasedOn = (templateRepresentation as CedarTemplate)?.isBasedOn;
-    if (isBasedOn) {
-      dataObject[JsonSchema.schemaIsBasedOn] = isBasedOn;
+    const template = templateRepresentation as CedarTemplate;
+
+    if (template?.isBasedOn) {
+      dataObject[JsonSchema.schemaIsBasedOn] = template.isBasedOn;
+    }
+    if (dataObject[JsonSchema.schemaName] == null) {
+      const templateName = template?.labelInfo?.label;
+      dataObject[JsonSchema.schemaName] = templateName ? `${templateName} metadata` : 'metadata';
+    }
+    if (dataObject[JsonSchema.schemaDescription] == null) {
+      dataObject[JsonSchema.schemaDescription] = '';
     }
   }
 
@@ -232,7 +249,7 @@ export class DataObjectBuilderHandler {
     // The template's own `@context` sits on the instance root, and so does the
     // IRI of the template the instance is an instance of.
     DataObjectBuilderHandler.addContext(this.templateRepresentation, dataObject, buildingMode);
-    DataObjectBuilderHandler.addIsBasedOn(this.templateRepresentation, dataObject, buildingMode);
+    DataObjectBuilderHandler.addEnvelope(this.templateRepresentation, dataObject, buildingMode);
     for (const childComponent of this.templateRepresentation.children) {
       DataObjectBuilderHandler.buildRecursively(childComponent, dataObject, buildingMode);
     }

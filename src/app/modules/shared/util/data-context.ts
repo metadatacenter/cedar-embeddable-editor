@@ -70,10 +70,10 @@ export class DataContext {
       );
     }
     // Whether the instance was just built or handed to us by the host page, it
-    // has to name the template it is an instance of. An injected instance skips
-    // the builder entirely, so doing this only there left every loaded document
-    // orphaned — which is not a state a CEDAR instance is ever allowed to be in.
-    DataObjectBuilderHandler.addIsBasedOn(
+    // has to carry the envelope the template's own JSON Schema requires. An
+    // injected instance skips the builder entirely, so doing this only there
+    // left every loaded document failing validation against its own template.
+    DataObjectBuilderHandler.addEnvelope(
       this.templateRepresentation,
       this.instanceFullData,
       DataObjectBuildingMode.INCLUDE_CONTEXT,
