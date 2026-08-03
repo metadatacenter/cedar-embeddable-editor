@@ -14,30 +14,35 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   /**
-   * One retry, so an intermittent failure is reported as flaky rather than as a
-   * regression — Playwright counts and prints those separately, so nothing is
-   * hidden, and `trace: 'retain-on-failure'` still captures the first attempt.
+   * No retry locally: a flake here is a failure, and should look like one.
    *
-   * Earned: two runs out of roughly a dozen failed a single screenshot
-   * immediately after a fresh bundle and passed on every re-run.
+   * There was one. Two runs out of roughly a dozen failed a single screenshot
+   * immediately after a fresh bundle and passed on every re-run, so a retry was
+   * added to tell that apart from a real regression while the cause was unknown.
    *
-   * **A likely cause has since been addressed, but not proven.** The dev server
-   * sends no `Cache-Control`, and HTTP then lets a browser reuse a cached
-   * response heuristically — without revalidating — so a run straight after a
-   * re-bundle could render the *previous* build: a handful of screenshots differ
-   * and pass next time. That fits the symptom, including why it only ever
-   * happened right after building. `host.html` now loads the bundle at a URL
-   * keyed to its mtime, and a test asserts that the versioned URL is what gets
-   * fetched.
+   * The cause was very likely this: the dev server sends no `Cache-Control`, and
+   * HTTP then lets a browser reuse a cached response *heuristically*, without
+   * revalidating — so a run straight after a re-bundle could render the previous
+   * build. `host.html` now loads the bundle at a URL keyed to its mtime, and a
+   * test asserts the versioned URL is what actually gets fetched.
    *
-   * What is not claimed: that this was the cause. 20 consecutive runs with
-   * `--retries=0` did not reproduce the failure either before or after the
-   * change, so the change is a fix for a mechanism that fits rather than one
-   * that was caught. `npm run flake-hunt` repeats the suite (RUNS=n) so the next
-   * occurrence can be chased instead of waited for. Drop the retry once a
-   * stretch of runs long enough to mean something has been clean.
+   * The evidence for dropping the retry, rather than a feeling that it is fixed:
+   *
+   * - 40 consecutive runs at `--retries=0` on one bundle — clean.
+   * - 15 consecutive runs at `--retries=0`, each preceded by a fresh
+   *   `npm run bundle`, which is the condition the failures actually appeared
+   *   under — clean.
+   *
+   * At the observed rate of roughly two in twelve, 55 clean runs has a
+   * probability around 2e-5. `npm run flake-hunt` (RUNS=n) repeats the suite if
+   * this needs re-establishing.
+   *
+   * CI keeps one retry, for a different reason: shared runners contribute their
+   * own timeouts and network failures, which are not this flake and not CEE's
+   * bug. Playwright counts and prints retried tests separately, so nothing is
+   * hidden either way.
    */
-  retries: process.env.CI ? 2 : 1,
+  retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : [['list'], ['html', { open: 'never' }]],
 
   use: {
