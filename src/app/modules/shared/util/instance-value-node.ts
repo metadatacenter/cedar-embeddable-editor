@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  InstanceDataAtomType,
   InstanceDataControlledAtom,
   InstanceDataLinkAtom,
   InstanceDataStringAtom,
@@ -34,6 +35,65 @@ export class InstanceValueNode {
   static isValue(node: unknown): boolean {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return JsonTemplateInstanceReader.isValueNode(node as any);
+  }
+
+  /**
+   * This node as the library's typed atom.
+   *
+   * For consumers that need more than the plain value — the widgets want the
+   * IRI and the label separately, and want to know which they are looking at.
+   * An element, or anything that is not a value, comes back as an empty node.
+   */
+  static atom(node: unknown): InstanceDataAtomType {
+    return JsonTemplateInstanceReader.readValueNode(node as any);
+  }
+
+  /**
+   * The IRI this node carries, if it carries one.
+   *
+   * Both a link and a controlled term do; only a controlled term also has a
+   * label. A field's own type decides which of the two to show, so both are
+   * offered rather than one chosen here.
+   */
+  static iri(node: unknown): string | null | undefined {
+    const atom = InstanceValueNode.atom(node);
+    if (atom instanceof InstanceDataLinkAtom || atom instanceof InstanceDataControlledAtom) {
+      return atom.id;
+    }
+    return undefined;
+  }
+
+  /** The label this node carries, if it carries one. */
+  static label(node: unknown): string | null | undefined {
+    const atom = InstanceValueNode.atom(node);
+    return atom instanceof InstanceDataControlledAtom ? atom.label : undefined;
+  }
+
+  /**
+   * The literal this node holds, exactly as stored.
+   *
+   * `undefined` means the node is not a literal at all, which is not the same
+   * as a literal of `''` or `null` — both of which are values a field can
+   * legitimately hold and which a widget has to be shown.
+   */
+  static literal(node: unknown): unknown {
+    const atom = InstanceValueNode.atom(node);
+    if (atom instanceof InstanceDataStringAtom || atom instanceof InstanceDataTypedAtom) {
+      return atom.value;
+    }
+    return undefined;
+  }
+
+  /** True when this node holds a literal, however empty. */
+  static isLiteral(node: unknown): boolean {
+    const atom = InstanceValueNode.atom(node);
+    return atom instanceof InstanceDataStringAtom || atom instanceof InstanceDataTypedAtom;
+  }
+
+  /** True when this node carries an IRI — a link or a controlled term. */
+  static isIriBearing(node: unknown): boolean {
+    const atom = InstanceValueNode.atom(node);
+    return atom instanceof InstanceDataLinkAtom || atom instanceof InstanceDataControlledAtom;
   }
 
   /**
