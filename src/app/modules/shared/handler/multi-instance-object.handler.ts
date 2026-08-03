@@ -24,6 +24,19 @@ export class MultiInstanceObjectHandler {
 
   public multiInstanceObject: MultiInstanceInfo;
   private templateRepresentation: TemplateComponent;
+
+  /**
+   * Resolves a component path in the live instance, through the current cursors.
+   *
+   * Installed by `HandlerContext`, which owns both the instance and the path
+   * resolver. It is how `currentCount` stops being a number this handler
+   * maintains and becomes a fact about the document — see
+   * `MultiInstanceObjectInfo`.
+   *
+   * There is no cycle to worry about: resolving a path reads each multi
+   * ancestor's `currentIndex`, never its count.
+   */
+  private resolveInstanceNode: ((path: string[]) => unknown) | null = null;
   private indexRegEx = new RegExp(/@#index\[(\d+)\]#@/);
 
   private static getNodeByPath(obj, arrPath: string[]): object {
@@ -45,6 +58,19 @@ export class MultiInstanceObjectHandler {
 
   private static getMultiInstanceObjectInfoNodeByPath(obj, arrPath: string[]): MultiInstanceObjectInfo {
     return MultiInstanceObjectHandler.getNodeByPath(obj, arrPath) as MultiInstanceObjectInfo;
+  }
+
+  setInstanceResolver(resolve: (path: string[]) => unknown): void {
+    this.resolveInstanceNode = resolve;
+  }
+
+  /** How many occurrences the instance actually holds at this path. */
+  private countInInstance(path: string[]): number {
+    if (!this.resolveInstanceNode) {
+      return 0;
+    }
+    const node = this.resolveInstanceNode(path);
+    return Array.isArray(node) ? node.length : 0;
   }
 
   buildNewOrFromMetadata(
@@ -140,6 +166,13 @@ export class MultiInstanceObjectHandler {
       const name = child.name;
       const multiInfo = new MultiInstanceObjectInfo();
       multiInfo.componentName = name;
+      // The count comes from the instance from here on. Only multi components
+      // have an array to count; a single field or element is always one, and
+      // stays a stored number.
+      if (child instanceof MultiFieldComponent || child instanceof MultiElementComponent) {
+        const childPath = child.path;
+        multiInfo.countSupplier = () => this.countInInstance(childPath);
+      }
       multiInstanceObject.addChild(multiInfo);
       let count = 0;
       let currentIndex = -1;
@@ -184,8 +217,9 @@ export class MultiInstanceObjectHandler {
       this.buildRecursively(component, newMultiInstanceObject);
       multiInstanceInfo.children.splice(multiInstanceInfo.currentIndex + 1, 0, newMultiInstanceObject as never);
     }
+    // No `currentCount++`: the instance was spliced before this ran, and the
+    // count is read from it.
     multiInstanceInfo.currentIndex++;
-    multiInstanceInfo.currentCount++;
   }
 
   multiInstanceItemCopy(component: MultiComponent): void {
@@ -198,7 +232,6 @@ export class MultiInstanceObjectHandler {
       multiInstanceInfo.children.splice(currentIdx + 1, 0, cloneItem as never);
     }
     multiInstanceInfo.currentIndex++;
-    multiInstanceInfo.currentCount++;
   }
 
   multiInstanceItemDelete(component: MultiComponent): void {
@@ -208,7 +241,8 @@ export class MultiInstanceObjectHandler {
       const currentIdx = multiInstanceInfo.currentIndex;
       multiInstanceInfo.children.splice(currentIdx, 1);
     }
-    multiInstanceInfo.currentCount--;
+    // The cursor may now point past the end. `currentCount` already reflects the
+    // splice, because it reads the instance and the instance was spliced first.
     if (multiInstanceInfo.currentIndex > multiInstanceInfo.currentCount - 1) {
       multiInstanceInfo.currentIndex = multiInstanceInfo.currentCount - 1;
     }

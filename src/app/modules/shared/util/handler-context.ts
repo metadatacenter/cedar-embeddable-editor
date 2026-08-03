@@ -33,6 +33,10 @@ export class HandlerContext {
     this.dataQualityReportBuilderService = new DataQualityReportBuilderHandler();
     this.dataContext = dataContext;
     this.messageHandlerService = messageHandlerService;
+    // How many occurrences a multi component has is a fact about the instance,
+    // not a number to be maintained beside it. This is what lets
+    // `MultiInstanceObjectInfo.currentCount` read the document — see that class.
+    this.multiInstanceObjectService.setInstanceResolver((path) => this.getDataObjectNodeByPath(path));
     // this.rdfService = new RdfBuilderService();
   }
 

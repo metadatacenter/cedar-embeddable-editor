@@ -316,8 +316,35 @@ describe('required values are page-independent', () => {
   it.each([
     ['an entry holds a null field', [{ _f: null }]],
     ['an entry omits the field', [{}]],
-    ['the array is absent', undefined],
   ])('is invalid when %s', (_label, elValue) => {
+    const instance: any = { '@context': {}, '@id': 'https://example.org/i/1', _el: elValue };
+
+    const driver = new CeeDriver(threeInstances(), { instance });
+    driver.handlerContext.buildQualityReport();
+
+    expect(driver.qualityReport.requiredFieldValueCount).toBeGreaterThan(0);
+    expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(0);
+    expect(driver.qualityReport.isValid).toBe(false);
+  });
+
+  /**
+   * BEHAVIOUR CHANGE, and a consistency fix.
+   *
+   * An element that is *absent* and one whose array is *empty* say the same thing
+   * — there are no occurrences — and used to be reported differently. `absent`
+   * counted three unfilled required fields, because the count came from the
+   * template's `minItems` rather than from the document; `empty` counted none.
+   *
+   * `currentCount` now reads the instance, so both say none, and both are invalid
+   * for the reason that is actually true: a `minItems` violation. Which is the
+   * more precise complaint — the problem is not that a required field is
+   * unfilled, it is that the element is not there — and it is the same reasoning
+   * the test below already applied to the zero-instances case.
+   */
+  it.each([
+    ['the array is absent', undefined],
+    ['the array is empty', []],
+  ])('reports a minItems violation, not phantom required fields, when %s', (_label, elValue) => {
     const instance: any = { '@context': {}, '@id': 'https://example.org/i/1' };
     if (elValue !== undefined) {
       instance._el = elValue;
@@ -326,9 +353,31 @@ describe('required values are page-independent', () => {
     const driver = new CeeDriver(threeInstances(), { instance });
     driver.handlerContext.buildQualityReport();
 
-    expect(driver.qualityReport.requiredFieldValueCount).toBeGreaterThan(0);
-    expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(0);
-    expect(driver.qualityReport.isValid).toBe(false);
+    expect(driver.qualityReport.isValid, 'still invalid').toBe(false);
+    expect(driver.qualityReport.problems.map((p: any) => p.code)).toContain('minItems');
+    expect(
+      driver.qualityReport.requiredFieldValueCount,
+      'no occurrences means no required fields to count',
+    ).toBe(0);
+  });
+
+  it('an absent element and an empty one are reported identically', () => {
+    const report = (elValue: unknown) => {
+      const instance: any = { '@context': {}, '@id': 'https://example.org/i/1' };
+      if (elValue !== undefined) {
+        instance._el = elValue;
+      }
+      const driver = new CeeDriver(threeInstances(), { instance });
+      driver.handlerContext.buildQualityReport();
+      const r = driver.qualityReport;
+      return {
+        valid: r.isValid,
+        required: r.requiredFieldValueCount,
+        codes: r.problems.map((p: any) => p.code).sort(),
+      };
+    };
+
+    expect(report(undefined)).toEqual(report([]));
   });
 
   /**
