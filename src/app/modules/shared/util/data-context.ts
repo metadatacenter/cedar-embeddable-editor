@@ -26,6 +26,33 @@ export class DataContext {
 
   public constructor() {}
 
+  /**
+   * Apply one mutation to both instance trees.
+   *
+   * CEE keeps the instance twice: `instanceFullData` is the artifact, envelope
+   * and all, and `instanceExtractData` is the same content with the envelope left
+   * off at every depth. The widgets read and write the extract; the host page
+   * gets the full one. Both have to change together, and every mutation used to
+   * do that by making the same call twice with a different first argument —
+   * eleven pairs of them across two handlers.
+   *
+   * Two things were wrong with that. Forgetting the second call was a one-line
+   * mistake that nothing would catch, because the trees are only compared when
+   * something is emitted. And the *difference* between the trees was implicit:
+   * the reason the full copy gets an `@context` and an `@id` and the extract does
+   * not is the building mode, which was passed separately, from memory, at each
+   * of the eleven sites — and got it wrong at one of them, so a freshly built
+   * extract carried element `@id`s that a loaded one never had.
+   *
+   * Pairing each tree with its own building mode fixes both. One call per
+   * mutation, and the mode arrives with the tree it belongs to rather than being
+   * remembered alongside it.
+   */
+  applyToBothTrees(mutate: (tree: InstanceExtractData, buildingMode: DataObjectBuildingMode) => void): void {
+    mutate(this.instanceExtractData, DataObjectBuildingMode.EXCLUDE_CONTEXT);
+    mutate(this.instanceFullData, DataObjectBuildingMode.INCLUDE_CONTEXT);
+  }
+
   setInputTemplate(
     value: object,
     handlerContext: HandlerContext,

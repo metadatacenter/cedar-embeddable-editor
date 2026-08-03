@@ -138,36 +138,24 @@ export class DataObjectStructureHandler {
   ): void {
     const multiInstanceInfo: MultiInstanceObjectInfo =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
-    const instanceExtractData: object = dataContext.instanceExtractData;
-    const instanceFullData: object = dataContext.instanceFullData;
     const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
     const templateInput: CedarInputTemplate = dataContext.templateInput;
 
-    // Each tree gets an occurrence built to its own shape. The extract copy
-    // used to be built with the envelope and then stripped of it — the last
-    // caller of the hand-written `deleteContext`, and a walk over the whole
-    // instance every time the user pressed "+" to undo something that need not
-    // have been done. The builder already knows how to leave it off; the fresh
-    // instance is built that way.
-    this.performItemAdd(
-      instanceExtractData,
-      templateRepresentation,
-      component,
-      multiInstanceObjectService,
-      multiInstanceInfo,
-      templateInput,
-      messageHandlerService,
-      DataObjectBuildingMode.EXCLUDE_CONTEXT,
-    );
-    this.performItemAdd(
-      instanceFullData,
-      templateRepresentation,
-      component,
-      multiInstanceObjectService,
-      multiInstanceInfo,
-      templateInput,
-      messageHandlerService,
-      DataObjectBuildingMode.INCLUDE_CONTEXT,
+    // Each tree gets an occurrence built to its own shape, and the shape *is*
+    // the building mode — which is why `applyToBothTrees` hands them out
+    // together. The extract copy used to be built with the envelope and then
+    // stripped of it; the builder already knows how to leave it off.
+    dataContext.applyToBothTrees((tree, buildingMode) =>
+      this.performItemAdd(
+        tree,
+        templateRepresentation,
+        component,
+        multiInstanceObjectService,
+        multiInstanceInfo,
+        templateInput,
+        messageHandlerService,
+        buildingMode,
+      ),
     );
   }
 
@@ -179,7 +167,7 @@ export class DataObjectStructureHandler {
     multiInstanceInfo: MultiInstanceObjectInfo,
     templateInput: CedarInputTemplate,
     messageHandlerService: MessageHandlerService,
-    buildingMode: string,
+    buildingMode: DataObjectBuildingMode,
   ): void {
     const dataObject = {};
     const cloneComponent = _.cloneDeep(component);
@@ -209,22 +197,15 @@ export class DataObjectStructureHandler {
   ): void {
     const multiInstanceInfo: MultiInstanceObjectInfo =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
-    const instanceExtractData: object = dataContext.instanceExtractData;
-    const instanceFullData: object = dataContext.instanceFullData;
     const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
-    this.performItemCopy(
-      instanceExtractData,
-      templateRepresentation,
-      component.path,
-      multiInstanceObjectService,
-      multiInstanceInfo,
-    );
-    this.performItemCopy(
-      instanceFullData,
-      templateRepresentation,
-      component.path,
-      multiInstanceObjectService,
-      multiInstanceInfo,
+    dataContext.applyToBothTrees((tree) =>
+      this.performItemCopy(
+        tree,
+        templateRepresentation,
+        component.path,
+        multiInstanceObjectService,
+        multiInstanceInfo,
+      ),
     );
   }
 
@@ -256,22 +237,15 @@ export class DataObjectStructureHandler {
   ): void {
     const multiInstanceInfo: MultiInstanceObjectInfo =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
-    const instanceExtractData: object = dataContext.instanceExtractData;
-    const instanceFullData: object = dataContext.instanceFullData;
     const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
-    this.performItemDelete(
-      instanceExtractData,
-      templateRepresentation,
-      component.path,
-      multiInstanceObjectService,
-      multiInstanceInfo,
-    );
-    this.performItemDelete(
-      instanceFullData,
-      templateRepresentation,
-      component.path,
-      multiInstanceObjectService,
-      multiInstanceInfo,
+    dataContext.applyToBothTrees((tree) =>
+      this.performItemDelete(
+        tree,
+        templateRepresentation,
+        component.path,
+        multiInstanceObjectService,
+        multiInstanceInfo,
+      ),
     );
   }
 

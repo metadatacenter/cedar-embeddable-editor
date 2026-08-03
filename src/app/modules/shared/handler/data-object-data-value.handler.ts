@@ -273,23 +273,16 @@ export class DataObjectDataValueHandler {
         ? {}
         : InstanceValueNode.iriJson(value)
       : InstanceValueNode.literalJson(value);
-    this.setDataPathValueRecursively(
-      dataContext.instanceExtractData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-      path,
-    );
-    this.setDataPathValueRecursively(
-      dataContext.instanceFullData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-      path,
+    dataContext.applyToBothTrees((tree) =>
+      this.setDataPathValueRecursively(
+        tree,
+        null,
+        dataContext.templateRepresentation,
+        multiInstanceObjectService,
+        path,
+        valueObject,
+        path,
+      ),
     );
   }
 
@@ -310,23 +303,16 @@ export class DataObjectDataValueHandler {
       valueArray.push(InstanceValueNode.literalJson(val));
     }
 
-    this.setDataPathValueRecursively(
-      dataContext.instanceExtractData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueArray,
-      path,
-    );
-    this.setDataPathValueRecursively(
-      dataContext.instanceFullData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueArray,
-      path,
+    dataContext.applyToBothTrees((tree) =>
+      this.setDataPathValueRecursively(
+        tree,
+        null,
+        dataContext.templateRepresentation,
+        multiInstanceObjectService,
+        path,
+        valueArray,
+        path,
+      ),
     );
   }
 
@@ -349,23 +335,16 @@ export class DataObjectDataValueHandler {
     valueObject[JsonSchema.reservedAttributeName] = key;
     valueObject[JsonSchema.reservedAttributeValue] = obj;
 
-    this.setDataPathValueRecursively(
-      dataContext.instanceExtractData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-      path,
-    );
-    this.setDataPathValueRecursively(
-      dataContext.instanceFullData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-      path,
+    dataContext.applyToBothTrees((tree) =>
+      this.setDataPathValueRecursively(
+        tree,
+        null,
+        dataContext.templateRepresentation,
+        multiInstanceObjectService,
+        path,
+        valueObject,
+        path,
+      ),
     );
   }
 
@@ -383,21 +362,15 @@ export class DataObjectDataValueHandler {
     const valueObject = {};
     valueObject[JsonSchema.reservedAttributeName] = key;
 
-    this.deleteAttributeValueRecursively(
-      dataContext.instanceExtractData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-    );
-    this.deleteAttributeValueRecursively(
-      dataContext.instanceFullData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
+    dataContext.applyToBothTrees((tree) =>
+      this.deleteAttributeValueRecursively(
+        tree,
+        null,
+        dataContext.templateRepresentation,
+        multiInstanceObjectService,
+        path,
+        valueObject,
+      ),
     );
   }
 
@@ -411,23 +384,16 @@ export class DataObjectDataValueHandler {
     const path = component.path;
     const valueObject = atId ? InstanceValueNode.iriJson(atId, prefLabel) : {};
 
-    this.setDataPathValueRecursively(
-      dataContext.instanceExtractData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-      path,
-    );
-    this.setDataPathValueRecursively(
-      dataContext.instanceFullData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-      path,
+    dataContext.applyToBothTrees((tree) =>
+      this.setDataPathValueRecursively(
+        tree,
+        null,
+        dataContext.templateRepresentation,
+        multiInstanceObjectService,
+        path,
+        valueObject,
+        path,
+      ),
     );
   }
 }
