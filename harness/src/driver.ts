@@ -12,6 +12,7 @@
  * writes. Nothing here is a reimplementation or a mock of CEE's logic.
  */
 import { DataContext } from '@cee/util/data-context';
+import { InstanceDeserializer } from '@cee/util/instance-deserializer';
 import { HandlerContext } from '@cee/util/handler-context';
 import { MessageHandlerService } from '@cee/service/message-handler.service';
 import { PageBreakPaginatorService } from '@cee/service/page-break-paginator.service';
@@ -92,10 +93,12 @@ export class CeeDriver {
     this.paginator = new PageBreakPaginatorService(null as never, this.handlerContext);
 
     if (opts.instance) {
-      // Same two-clone dance as CedarEmbeddableMetadataEditorComponent
-      // .setDataContextWithInstance: full keeps @context, extract drops it.
-      this.dataContext.instanceFullData = JSON.parse(JSON.stringify(opts.instance));
-      this.dataContext.instanceExtractData = JSON.parse(JSON.stringify(opts.instance));
+      // Exactly what CedarEmbeddableMetadataEditorComponent
+      // .setDataContextWithInstance does: read once through the model library
+      // and project the two trees out of it.
+      const { full, extract } = InstanceDeserializer.read(opts.instance);
+      this.dataContext.instanceFullData = full;
+      this.dataContext.instanceExtractData = extract;
     }
 
     this.dataContext.setInputTemplate(

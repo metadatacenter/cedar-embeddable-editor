@@ -333,8 +333,52 @@ describe('controlled term structure', () => {
     expect(withNode({ '@id': 'https://example.org/t/1' })).toContain('controlledStructure');
   });
 
-  it('reports a label with no @id', () => {
-    expect(withNode({ 'rdfs:label': 'Some Term' })).toContain('controlledStructure');
+  /**
+   * BEHAVIOUR CHANGE, and a known gap.
+   *
+   * A label with no `@id` is not a value node — there is no term, only a piece
+   * of text where one should be. The model library says so while parsing, and
+   * since CEE now reads injected instances through it, the node arrives as
+   * empty and the field reads as unfilled. The `controlledStructure` diagnostic
+   * that used to name the problem is gone with it.
+   *
+   * What is *not* lost by the change: the label was already being discarded
+   * before it, because `currentMetadata` serialises through the same library.
+   * The instance CEE emitted never carried that label either way. So this
+   * costs a message, not data.
+   *
+   * The gap is that the discard is silent — the library reports no error for
+   * it, and CEE no longer has a place to notice. Recorded in CEE-ROADMAP.md
+   * under Open findings.
+   *
+   * The other two malformed shapes still report: an `@id` with no label, and a
+   * malformed `@id`, both of which survive parsing intact.
+   */
+  it('reads a label with no @id as empty, rather than reporting it', () => {
+    expect(withNode({ 'rdfs:label': 'Some Term' })).not.toContain('controlledStructure');
+  });
+
+  /**
+   * The consequence, at the level a host page sees: the field counts as
+   * unfilled and the instance is invalid. A missing required value is carried
+   * by the counters rather than the `problems` list — same as a field never
+   * filled in at all — so the user is still told something is wrong with that
+   * field, just not what.
+   */
+  it('a required field holding only a label counts as unfilled', () => {
+    const template = buildTemplate({
+      name: `ct${seq++}`,
+      children: [{ kind: CONTROLLED, name: 'f', required: true }],
+    });
+    const seed = new CeeDriver(template);
+    seed.setValue(['_f'], CONTROLLED);
+    const instance: any = seed.metadata;
+    instance._f = { 'rdfs:label': 'Some Term' };
+
+    const report = new CeeDriver(template, { instance }).qualityReport;
+    expect(report.requiredFieldValueCount).toBe(1);
+    expect(report.nonNullRequiredFieldValueCount).toBe(0);
+    expect(report.isValid).toBe(false);
   });
 
   it('reports a malformed @id', () => {

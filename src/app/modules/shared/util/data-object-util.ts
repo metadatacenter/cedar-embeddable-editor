@@ -129,38 +129,6 @@ export class DataObjectUtil {
     return true;
   }
 
-  /**
-   * Strip `@context` and provenance from an instance, leaving the values alone.
-   *
-   * "Leaving the values alone" used to mean matching exact key counts — two
-   * keys with an `@id` and an `rdfs:label` meaning a controlled term, one key
-   * with an `@id` meaning a link. Anything else was taken for a container and
-   * had its `@id` deleted, so a controlled term or a link that also carried a
-   * `@type` — ordinary JSON-LD, and what a host page can perfectly well inject
-   * — lost the IRI that *was* its value. The form then showed the field empty,
-   * and saving wrote the loss back.
-   */
-  static deleteContext(obj): void {
-    if (InstanceValueNode.isValue(obj)) {
-      // A value, whatever else it carries. Nothing here belongs to it.
-    } else {
-      Object.keys(obj).forEach((key) => {
-        delete obj[JsonSchema.atContext];
-        delete obj[JsonSchema.atId];
-        delete obj[JsonSchema.oslcModifiedBy];
-        delete obj[JsonSchema.pavCreatedOn];
-        delete obj[JsonSchema.pavLastUpdatedOn];
-        delete obj[JsonSchema.pavCreatedBy];
-        delete obj[JsonSchema.schemaIsBasedOn];
-        delete obj[JsonSchema.schemaName];
-        delete obj[JsonSchema.schemaDescription];
-        if (typeof obj[key] === 'object' && obj[key] !== null) {
-          DataObjectUtil.deleteContext(obj[key]);
-        }
-      });
-    }
-  }
-
   static getIriPrefix(): string {
     return CedarEmbeddableMetadataEditorComponent.iriPrefix;
   }

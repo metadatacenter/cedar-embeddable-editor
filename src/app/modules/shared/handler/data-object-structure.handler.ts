@@ -127,6 +127,12 @@ export class DataObjectStructureHandler {
     const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
     const templateInput: CedarInputTemplate = dataContext.templateInput;
 
+    // Each tree gets an occurrence built to its own shape. The extract copy
+    // used to be built with the envelope and then stripped of it — the last
+    // caller of the hand-written `deleteContext`, and a walk over the whole
+    // instance every time the user pressed "+" to undo something that need not
+    // have been done. The builder already knows how to leave it off; the fresh
+    // instance is built that way.
     this.performItemAdd(
       instanceExtractData,
       templateRepresentation,
@@ -135,8 +141,8 @@ export class DataObjectStructureHandler {
       multiInstanceInfo,
       templateInput,
       messageHandlerService,
+      DataObjectBuildingMode.EXCLUDE_CONTEXT,
     );
-    DataObjectUtil.deleteContext(instanceExtractData);
     this.performItemAdd(
       instanceFullData,
       templateRepresentation,
@@ -145,6 +151,7 @@ export class DataObjectStructureHandler {
       multiInstanceInfo,
       templateInput,
       messageHandlerService,
+      DataObjectBuildingMode.INCLUDE_CONTEXT,
     );
   }
 
@@ -156,13 +163,14 @@ export class DataObjectStructureHandler {
     multiInstanceInfo: MultiInstanceObjectInfo,
     templateInput: CedarInputTemplate,
     messageHandlerService: MessageHandlerService,
+    buildingMode: string,
   ): void {
     const dataObject = {};
     const cloneComponent = _.cloneDeep(component);
     DataObjectBuilderHandler.setCurrentCountToMinRecursively(cloneComponent, component.path);
     // The `@context` each new occurrence needs travels on the component, so
     // there is no sub-template to find first.
-    DataObjectBuilderHandler.buildRecursively(cloneComponent, dataObject, DataObjectBuildingMode.INCLUDE_CONTEXT);
+    DataObjectBuilderHandler.buildRecursively(cloneComponent, dataObject, buildingMode);
     const newDataObject = dataObject[component.name][0];
     const currentNodeAny = this.getDataPathNodeRecursively(
       instanceObject,

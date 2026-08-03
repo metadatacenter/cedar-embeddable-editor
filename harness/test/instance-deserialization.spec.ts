@@ -1,0 +1,267 @@
+/**
+ * Reading an injected instance through the library instead of by hand.
+ *
+ * A host page can hand CEE any valid CEDAR instance. CEE used to take it in by
+ * cloning the document twice and walking one copy deleting envelope keys,
+ * deciding which nodes were values — and so had to be left alone — by counting
+ * their keys. That guess destroyed data, and it was the last place CEE read a
+ * CEDAR artifact without asking the model what one is.
+ *
+ * `InstanceDeserializer` reads it once with `CedarReaders` and projects the two
+ * trees CEE edits out of the parsed model. These tests hold the projection to
+ * the old walk's output over every corpus instance — the fixtures the harness
+ * did not generate, so the library is not on both sides — and then to the
+ * properties the old walk got wrong.
+ */
+import { describe, expect, it } from 'vitest';
+import { InstanceDeserializer } from '@cee/util/instance-deserializer';
+import { InstanceValueNode } from '@cee/util/instance-value-node';
+import { InstanceSerializer } from '@cee/util/instance-serializer';
+import { corpusAvailable, corpusInstances } from '../src/corpus';
+
+const instances = corpusAvailable() ? corpusInstances() : [];
+
+/**
+ * `DataObjectUtil.deleteContext`, as it stood before the library replaced it.
+ *
+ * Kept here, and only here, because the evidence that the replacement is
+ * faithful is that the two agree across the corpus — and that evidence is worth
+ * more than the deleted code. It is a copy rather than an import because CEE no
+ * longer ships this: nothing in `src/` walks an instance deleting keys.
+ *
+ * Note that this is the *fixed* version. The original decided what was a value
+ * by counting keys and destroyed any IRI carrying a `@type`; asking
+ * `InstanceValueNode` is what stopped that, and is the closest the hand walk
+ * ever got to correct. Diffing against the broken one would flatter the
+ * replacement.
+ */
+const ENVELOPE_KEYS = [
+  '@context',
+  '@id',
+  'oslc:modifiedBy',
+  'pav:createdOn',
+  'pav:lastUpdatedOn',
+  'pav:createdBy',
+  'schema:isBasedOn',
+  'schema:name',
+  'schema:description',
+];
+
+const stripEnvelope = (obj: object): void => {
+  if (InstanceValueNode.isValue(obj)) {
+    return;
+  }
+  Object.keys(obj).forEach((key) => {
+    ENVELOPE_KEYS.forEach((envelopeKey) => delete obj[envelopeKey]);
+    if (typeof obj[key] === 'object' && obj[key] !== null) {
+      stripEnvelope(obj[key]);
+    }
+  });
+};
+
+const handBuiltExtract = (json: object): object => {
+  const extract = JSON.parse(JSON.stringify(json));
+  stripEnvelope(extract);
+  return extract;
+};
+
+describe.skipIf(!corpusAvailable())('the extract tree, against the walk it replaces', () => {
+  it('there are instances to check', () => {
+    expect(instances.length).toBeGreaterThan(15);
+  });
+
+  /**
+   * The whole corpus, one case per fixture. One diverges, deliberately, and is
+   * checked on its own below; every other must agree key for key.
+   */
+  it.each(instances.filter((i) => i.id !== '021').map((i) => [i.id, i] as const))('instance-%s', (_id, artifact) => {
+    expect(InstanceDeserializer.read(artifact.json).extract).toEqual(handBuiltExtract(artifact.json));
+  });
+});
+
+describe.skipIf(!corpusAvailable())('instance annotations', () => {
+  /**
+   * The one divergence from the old walk, and an improvement.
+   *
+   * `_annotations` is instance-level metadata — a DOI, a free-text note — not a
+   * value of any field, and no component has a path into it. The old walk did
+   * not recognise it, so it was not in the list of keys to strip and it stayed
+   * in the extract, sitting in the working tree where the handlers and the
+   * quality report walk. Nothing read it; nothing would have known what to do
+   * with it if it had.
+   *
+   * The library classifies it as what it is and holds it outside the data
+   * container, so it no longer appears in the extract — and writes it back
+   * unchanged, so the host page still gets it. That is the distinction the
+   * extract is *for*, applied to a key the hand-written walk had never heard
+   * of.
+   */
+  const annotated = instances.find((i) => i.id === '021');
+
+  it('are kept out of the tree the form edits', () => {
+    const extract = InstanceDeserializer.read(annotated!.json).extract as Record<string, unknown>;
+    expect(extract._annotations).toBeUndefined();
+    expect(handBuiltExtract(annotated!.json)['_annotations'], 'the walk this replaces kept them').toBeDefined();
+  });
+
+  it('are handed back to the host page unchanged', () => {
+    const full = InstanceDeserializer.read(annotated!.json).full as Record<string, unknown>;
+    expect(full._annotations).toEqual((annotated!.json as Record<string, unknown>)._annotations);
+  });
+
+  it('survive being written back out', () => {
+    const emitted = InstanceSerializer.toJson(InstanceDeserializer.read(annotated!.json).full) as Record<
+      string,
+      unknown
+    >;
+    expect(emitted._annotations).toEqual((annotated!.json as Record<string, unknown>)._annotations);
+  });
+
+  it('everything else about that instance still matches the walk', () => {
+    const byHand = handBuiltExtract(annotated!.json);
+    delete byHand['_annotations'];
+    expect(InstanceDeserializer.read(annotated!.json).extract).toEqual(byHand);
+  });
+});
+
+describe.skipIf(!corpusAvailable())('the full tree', () => {
+  /**
+   * The full tree keeps the envelope. It is no longer the document verbatim —
+   * it is what the library writes for the model it read — so this checks the
+   * parts a host page would notice survive the round trip.
+   */
+  it.each(instances.map((i) => [i.id, i] as const))('instance-%s keeps its envelope', (_id, artifact) => {
+    const source = artifact.json as Record<string, unknown>;
+    const full = InstanceDeserializer.read(artifact.json).full as Record<string, unknown>;
+
+    for (const key of ['@id', 'schema:isBasedOn', 'schema:name', 'schema:description']) {
+      if (source[key] !== undefined) {
+        expect(full[key], key).toEqual(source[key]);
+      }
+    }
+    expect(full['@context'], '@context').toBeDefined();
+  });
+
+  /**
+   * The property that matters more than key-by-key equality: what CEE hands
+   * back must be the same instance it was handed. Read and write are the same
+   * library's mirror halves, so this is a round trip through the model.
+   */
+  it.each(instances.map((i) => [i.id, i] as const))('instance-%s survives a round trip', (_id, artifact) => {
+    const once = InstanceDeserializer.read(artifact.json).full;
+    const twice = InstanceDeserializer.read(InstanceSerializer.toJson(once) as object).full;
+    expect(twice).toEqual(once);
+  });
+});
+
+describe('what the old walk got wrong', () => {
+  /**
+   * REGRESSION: the walk decided a node was a value by counting its keys — two
+   * with an `@id` and an `rdfs:label` meant a controlled term, one with an
+   * `@id` meant a link. A `@type` alongside either, which is ordinary JSON-LD,
+   * pushed the count over and the node was taken for a container, so its `@id`
+   * was deleted and the value vanished.
+   *
+   * `deleteContext` was fixed to ask `InstanceValueNode`; reading through the
+   * library means the question is not asked at all, because the library
+   * classified the node while parsing it.
+   */
+  const envelope = {
+    '@context': {},
+    '@id': 'https://repo.metadatacenter.org/template-instances/fixture',
+    'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/fixture',
+    'schema:name': 'A fixture instance',
+    'schema:description': '',
+  };
+
+  it.each([
+    ['a controlled term', { '@id': 'https://x/1', 'rdfs:label': 'One' }],
+    ['a controlled term with a @type', { '@id': 'https://x/1', 'rdfs:label': 'One', '@type': 'xsd:anyURI' }],
+    ['a link', { '@id': 'https://x/1' }],
+    ['a link with a @type', { '@id': 'https://x/1', '@type': 'xsd:anyURI' }],
+    ['a literal', { '@value': 'text' }],
+    ['a typed literal', { '@value': '7', '@type': 'xsd:int' }],
+  ])('keeps the value of %s', (_label, node) => {
+    const extract = InstanceDeserializer.read({ ...envelope, _f: node }).extract as Record<string, unknown>;
+    // The library normalises which keys a node carries; what must survive is
+    // the value itself, whichever key holds it.
+    const kept = extract._f as Record<string, unknown>;
+    for (const key of ['@value', '@id', 'rdfs:label']) {
+      if (node[key] !== undefined) {
+        expect(kept[key], key).toBe(node[key]);
+      }
+    }
+  });
+
+  it('strips @context and provenance from inside an element', () => {
+    const extract = InstanceDeserializer.read({
+      ...envelope,
+      _el: {
+        '@context': { _child: 'https://schema.metadatacenter.org/properties/1' },
+        '@id': 'https://repo.metadatacenter.org/template-element-instances/1',
+        'pav:createdOn': '2026-01-01T00:00:00-08:00',
+        'oslc:modifiedBy': 'https://metadatacenter.org/users/1',
+        _child: { '@value': 'kept' },
+      },
+    }).extract as Record<string, unknown>;
+
+    expect(extract._el).toEqual({ _child: { '@value': 'kept' } });
+  });
+
+  it('strips it from every occurrence of a multi element', () => {
+    const occurrence = (value: string) => ({
+      '@context': {},
+      '@id': `https://repo.metadatacenter.org/template-element-instances/${value}`,
+      _child: { '@value': value },
+    });
+    const extract = InstanceDeserializer.read({
+      ...envelope,
+      _el: [occurrence('a'), occurrence('b')],
+    }).extract as Record<string, unknown>;
+
+    expect(extract._el).toEqual([{ _child: { '@value': 'a' } }, { _child: { '@value': 'b' } }]);
+  });
+
+  it('strips the instance root', () => {
+    const extract = InstanceDeserializer.read({ ...envelope, _f: { '@value': 'kept' } }).extract;
+    expect(extract).toEqual({ _f: { '@value': 'kept' } });
+  });
+});
+
+describe('an attribute-value field comes back in two halves', () => {
+  /**
+   * The library holds an attribute-value field as one node pairing names with
+   * values. CEE's trees keep them apart — the field's key holds the names, and
+   * each name sits on the enclosing object as a value of its own — so the
+   * projection has to split it, and a name must not go missing on the way.
+   */
+  it('the field holds its names and the parent holds their values', () => {
+    const extract = InstanceDeserializer.read({
+      '@context': {},
+      '@id': 'https://repo.metadatacenter.org/template-instances/av',
+      'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/av',
+      'schema:name': 'An instance with attributes',
+      'schema:description': '',
+      _av: ['alpha', 'beta'],
+      alpha: { '@value': 'first' },
+      beta: { '@value': 'second' },
+    }).extract as Record<string, unknown>;
+
+    expect(extract._av).toEqual(['alpha', 'beta']);
+    expect(extract.alpha).toEqual({ '@value': 'first' });
+    expect(extract.beta).toEqual({ '@value': 'second' });
+  });
+
+  it('a field with no attributes yet is an empty list, not absent', () => {
+    const extract = InstanceDeserializer.read({
+      '@context': {},
+      '@id': 'https://repo.metadatacenter.org/template-instances/av',
+      'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/av',
+      'schema:name': 'An instance with no attributes',
+      'schema:description': '',
+      _av: [],
+    }).extract as Record<string, unknown>;
+
+    expect(extract._av).toEqual([]);
+  });
+});

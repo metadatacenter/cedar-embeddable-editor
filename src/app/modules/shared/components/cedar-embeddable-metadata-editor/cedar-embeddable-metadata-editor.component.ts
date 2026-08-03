@@ -4,7 +4,7 @@ import { DataContext } from '../../util/data-context';
 import { HandlerContext } from '../../util/handler-context';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
-import { DataObjectUtil } from '../../util/data-object-util';
+import { InstanceDeserializer } from '../../util/instance-deserializer';
 import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { RorFieldDataService } from '../../service/ror-field-data.service';
@@ -455,13 +455,19 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     }
   }
 
+  /**
+   * Take in the instance the host page handed us.
+   *
+   * Read once by the model library and projected into the two trees CEE edits.
+   * It used to be cloned twice, with one copy walked to delete envelope keys —
+   * a walk that had to guess from an untyped object which nodes were values,
+   * and got it wrong for any IRI carrying a `@type`. See `InstanceDeserializer`.
+   */
   setDataContextWithInstance(instanceObject): void {
-    const instanceFullData = JSON.parse(JSON.stringify(instanceObject));
-    const instanceExtractData = JSON.parse(JSON.stringify(instanceObject));
-    DataObjectUtil.deleteContext(instanceExtractData);
+    const { full, extract } = InstanceDeserializer.read(instanceObject);
     const dataContext = this.handlerContext.dataContext;
-    dataContext.instanceFullData = instanceFullData;
-    dataContext.instanceExtractData = instanceExtractData;
+    dataContext.instanceFullData = full;
+    dataContext.instanceExtractData = extract;
   }
 
   private async renderInstance(dataContext): Promise<void> {

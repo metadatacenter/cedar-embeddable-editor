@@ -15,7 +15,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
-import { DataObjectUtil } from '@cee/util/data-object-util';
+import { InstanceValueNode } from '@cee/util/instance-value-node';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
@@ -54,24 +54,24 @@ const LINK: FieldKind = {
   sample: 'https://example.org/resource',
 };
 
-describe('stripping @context without stripping values', () => {
+describe('telling a value from a container', () => {
   /**
-   * REGRESSION: `deleteContext` runs over the instance a host page injects, to
-   * make CEE's extract copy. It decided what to leave alone by counting keys —
-   * two keys with an `@id` and an `rdfs:label` meant a controlled term, one key
-   * with an `@id` meant a link, anything else was a container to be stripped.
+   * The classification on its own, without an instance around it.
    *
-   * A controlled term or a link that also carries a `@type` has three keys, or
-   * two of the wrong kind, and so had its `@id` deleted. `@type: xsd:anyURI` on
-   * an IRI is ordinary JSON-LD. The field then showed empty, and saving wrote
-   * the loss back.
+   * This used to test `DataObjectUtil.deleteContext`, the hand-written walk
+   * that made CEE's extract copy by deleting envelope keys. That walk decided
+   * what to leave alone by counting keys — two with an `@id` and an
+   * `rdfs:label` meant a controlled term, one with an `@id` meant a link,
+   * anything else was a container to be stripped — so a controlled term or a
+   * link that also carried a `@type` had its `@id` deleted, and the value that
+   * IRI *was* went with it.
+   *
+   * The walk is gone; `InstanceDeserializer` reads the document through the
+   * library instead, and `instance-deserialization.spec.ts` covers the same
+   * shapes end to end. What is left here is the predicate itself, because it is
+   * still consulted directly and the key-counting rule is what it must never
+   * go back to.
    */
-  const strip = (node: object) => {
-    const wrapper = { _f: JSON.parse(JSON.stringify(node)) };
-    DataObjectUtil.deleteContext(wrapper);
-    return wrapper._f;
-  };
-
   it.each([
     ['a controlled term', { '@id': 'https://x/1', 'rdfs:label': 'One' }],
     ['a controlled term with a @type', { '@id': 'https://x/1', 'rdfs:label': 'One', '@type': 'xsd:anyURI' }],
@@ -80,31 +80,16 @@ describe('stripping @context without stripping values', () => {
     ['a link with a @type', { '@id': 'https://x/1', '@type': 'xsd:anyURI' }],
     ['a literal', { '@value': 'text' }],
     ['a typed literal', { '@value': '7', '@type': 'xsd:int' }],
-  ])('keeps %s intact', (_label, node) => {
-    expect(strip(node)).toEqual(node);
+  ])('reads %s as a value', (_label, node) => {
+    expect(InstanceValueNode.isValue(node)).toBe(true);
   });
 
-  it('still strips @context and provenance from an element', () => {
-    const element = {
-      '@context': { _child: 'https://schema.metadatacenter.org/properties/1' },
-      '@id': 'https://repo.metadatacenter.org/template-element-instances/1',
-      'pav:createdOn': '2026-01-01T00:00:00-08:00',
-      _child: { '@value': 'kept' },
-    };
-    expect(strip(element)).toEqual({ _child: { '@value': 'kept' } });
-  });
-
-  it('strips the instance root', () => {
-    const instance = {
-      '@context': {},
-      '@id': 'https://repo.metadatacenter.org/template-instances/1',
-      'schema:name': 'An instance',
-      'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/1',
-      _f: { '@value': 'kept' },
-    };
-    const copy = JSON.parse(JSON.stringify(instance));
-    DataObjectUtil.deleteContext(copy);
-    expect(copy).toEqual({ _f: { '@value': 'kept' } });
+  it.each([
+    ['an element occurrence', { '@id': 'https://repo.metadatacenter.org/template-element-instances/1', _child: { '@value': 'kept' } }],
+    ['an element with a @context', { '@context': {}, _child: { '@value': 'kept' } }],
+    ['an instance root', { '@context': {}, 'schema:isBasedOn': 'https://x/t', _f: { '@value': 'kept' } }],
+  ])('reads %s as a container', (_label, node) => {
+    expect(InstanceValueNode.isValue(node)).toBe(false);
   });
 });
 
