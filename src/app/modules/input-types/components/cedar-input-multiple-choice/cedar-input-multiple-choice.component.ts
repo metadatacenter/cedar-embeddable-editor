@@ -46,7 +46,6 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
     validators.push(CedarValidators.forComponent(this.component));
     this.selectedChoiceInputControl.setValidators(validators);
     this.selectedChoiceInputControl.updateValueAndValidity();
-    this.populateItemsOnLoad();
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -76,21 +75,4 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
     this.selected = currentValue;
   }
 
-  private populateItemsOnLoad(): void {
-    const dataObject = this.handlerContext.getDataObjectNodeByPath(this.component.path);
-    if (dataObject && dataObject['@value'] !== undefined && dataObject['@value'] !== null) {
-      this.selected = dataObject['@value'];
-      this.selectedChoiceInputControl.setValue(dataObject['@value']);
-      return;
-    }
-    for (const choice of this.component.choiceInfo.choices) {
-      if (choice.selectedByDefault) {
-        this.handlerContext.changeValue(this.component, choice.label);
-        this.selected = choice.label;
-        this.selectedChoiceInputControl.setValue(choice.label);
-        return;
-      }
-    }
-    this.handlerContext.changeValue(this.component, null);
-  }
 }

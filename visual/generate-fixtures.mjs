@@ -477,3 +477,45 @@ const writeRaw = (name, document) => {
   tb = tb.addChild(pagedFilled, deploy(pagedFilled, 'paged_one_instance', { multi: true, minItems: 1, maxItems: 3 }));
   write('12-render-decision', tb.build());
 }
+
+// 13. A choice field inside a multi-instance element, with a different value on
+//     each occurrence — the case that decides whether widget-init population is
+//     load-bearing.
+//
+//     `renderInstance` sweeps `updateViewToModel` over every child once, after a
+//     load. Any widget created *later* — by paging to another occurrence, or by
+//     expanding something collapsed — was not part of that sweep, so if anything
+//     depends on a widget populating itself in `ngOnInit`, this is where it shows.
+//     Two occurrences holding different values means a page change must repaint the
+//     control, and reading the second page proves the value came from the model
+//     rather than from whatever the first page left behind.
+{
+  const choice = field('access', () => CedarBuilders.radioFieldBuilder(), (b) =>
+    b.addRadioOption('Private', false).addRadioOption('Limited', true).addRadioOption('Public', false),
+  );
+  let el = common(CedarBuilders.templateElementBuilder(), 'record', 'template-elements');
+  el = el.addChild(choice, deploy(choice, 'access'));
+  const record = el.build();
+
+  let tb = common(CedarBuilders.templateBuilder(), 'PagedChoice', 'templates').withSchemaDescription(
+    'A choice field inside a multi-instance element, one value per occurrence',
+  );
+  tb = tb.addChild(record, deploy(record, 'record', { multi: true, minItems: 2, maxItems: 4 }));
+  write('13-paged-choice', tb.build());
+
+  const templateId = `https://repo.metadatacenter.org/templates/${id('PagedChoice')}`;
+  writeRaw('13-paged-choice-instance', {
+    '@context': {},
+    '@id': 'https://example.org/instances/paged-choice-1',
+    'schema:isBasedOn': templateId,
+    'schema:name': 'PagedChoice instance',
+    'schema:description': 'Two occurrences, Public then Private',
+    'pav:createdOn': FIXED_DATE,
+    'pav:createdBy': USER,
+    'pav:lastUpdatedOn': FIXED_DATE,
+    'oslc:modifiedBy': USER,
+    // Neither is the template's default (`Limited`), so a default leaking through
+    // is visible rather than coincidentally right.
+    _record: [{ _access: { '@value': 'Public' } }, { _access: { '@value': 'Private' } }],
+  });
+}

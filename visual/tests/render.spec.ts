@@ -29,6 +29,7 @@ const FIXTURES = [
   ['09-temporal', 'temporal fields at every granularity'],
   ['10-attribute-values', 'attribute-value fields, whose names come from the user'],
   ['12-render-decision', 'whether a multi field renders its content, in all three cases'],
+  ['13-paged-choice', 'a choice field inside a multi-instance element'],
 ] as const;
 
 /**
@@ -80,10 +81,12 @@ const open = async (
   fixture: string,
   preset?: string,
   instance?: string,
+  mode?: 'separate' | 'combined',
 ) => {
   await page.clock.setFixedTime(FROZEN);
   await page.goto(
-    `/host.html?t=${fixture}${preset ? `&c=${preset}` : ''}${instance ? `&i=${instance}` : ''}&b=${BUNDLE_VERSION}`,
+    `/host.html?t=${fixture}${preset ? `&c=${preset}` : ''}${instance ? `&i=${instance}` : ''}` +
+      `${mode ? `&m=${mode}` : ''}&b=${BUNDLE_VERSION}`,
   );
   await page.waitForFunction(() => (window as any).__ceeReady === true || (window as any).__ceeError, null, {
     timeout: 20_000,
@@ -944,4 +947,66 @@ test.describe('ported from the deleted component specs', () => {
       await expect(card.locator('mat-card-content'), `${name}: ${why}`).toHaveCount(count);
     }
   });
+});
+
+/**
+ * Every route a value can arrive by, now that no widget populates itself.
+ *
+ * `CedarInputMultipleChoiceComponent.populateItemsOnLoad` is gone. It read the data
+ * object in `ngOnInit` and set its control from it, which was redundant: every load
+ * path — `templateObject`, `instanceObject`, `templateAndInstanceObject`, and the
+ * sample-template loader, which assembles the combined object and funnels into it —
+ * ends at `initDataFromInstance` → `renderInstance`, and that sweeps
+ * `ActiveComponentRegistryService.updateViewToModel` across every child. One
+ * mechanism, uniformly applied.
+ *
+ * Deleting it was checked path by path first, comparing both the checked radio and
+ * `currentMetadata` before and after: identical on all six cases below. These tests
+ * hold that, so the redundancy cannot quietly stop being redundant.
+ *
+ * The paged cases are the ones that earn their place. A widget created *after* the
+ * initial sweep — by paging to another occurrence — was never part of it, so if
+ * anything still depended on a widget populating itself in `ngOnInit`, reading the
+ * second occurrence is where it would show. Its two occurrences hold `Public` and
+ * `Private`, neither of them the template's default of `Limited`, so a default
+ * leaking through is visible rather than coincidentally right.
+ *
+ * Note the sibling `CedarInputSelectComponent.populateItemsOnLoad` survives and must:
+ * same name, unrelated job — it fills the dropdown's *option list*, not a value.
+ */
+test.describe('a choice value reaches the widget by every load path', () => {
+  const checkedLabels = (page: import('@playwright/test').Page) =>
+    page.locator('mat-radio-button.mat-radio-checked');
+
+  test('templateObject alone applies the template default', async ({ page }) => {
+    await open(page, '11-choice-default');
+    await expect(checkedLabels(page)).toHaveCount(1);
+    await expect(checkedLabels(page)).toContainText('Limited');
+  });
+
+  test('the combined templateAndInstanceObject input keeps the instance value', async ({ page }) => {
+    await open(page, '11-choice-default', undefined, '11-choice-default-instance', 'combined');
+    await expect(checkedLabels(page), 'exactly one option selected').toHaveCount(1);
+    await expect(checkedLabels(page), 'the combined input takes a different branch in the editor').toContainText(
+      'Private',
+    );
+  });
+
+  for (const mode of ['separate', 'combined'] as const) {
+    test(`each occurrence shows its own value (${mode} inputs)`, async ({ page }) => {
+      await open(page, '13-paged-choice', undefined, '13-paged-choice-instance', mode);
+
+      await expect(checkedLabels(page), 'first occurrence').toContainText('Public');
+
+      const chips = page.locator('app-cedar-multi-pager mat-chip');
+      await expect(chips, 'the fixture declares two occurrences').toHaveCount(2);
+      await chips.nth(1).click();
+      await page.waitForTimeout(400);
+
+      // The widget for this occurrence was not part of the initial sweep, so this is
+      // the assertion that would fail if anything still needed a widget to populate
+      // itself on init.
+      await expect(checkedLabels(page), 'second occurrence, after paging').toContainText('Private');
+    });
+  }
 });

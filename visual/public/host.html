@@ -122,12 +122,35 @@
         }
 
         cee.config = PRESETS[preset];
-        // Instance before template: setting the template is what triggers the
-        // load, so the instance has to already be there to be picked up.
-        if (instance) {
-          cee.instanceObject = instance;
+
+        /**
+         * Which input to load through, chosen with ?m=.
+         *
+         * `separate` (the default) sets `instanceObject` then `templateObject`, the
+         * two-input route a host page uses when it has them independently. Instance
+         * first because setting the template is what triggers the load.
+         *
+         * `combined` uses the single `templateAndInstanceObject` input instead. Worth
+         * covering separately: it takes a different branch in the editor, calling
+         * `setDataContextWithInstance` before `setInputTemplate` rather than after —
+         * and it is the route the sample-template loader funnels into, since
+         * `triggerUpdateOnInjectedSampleData` assembles exactly this object. So a test
+         * here covers the sample-template path's mechanism without needing the
+         * sample-template links and their network fetches.
+         */
+        const mode = params.get('m') || 'separate';
+        if (mode === 'combined') {
+          if (!instance) {
+            window.__ceeError = 'combined mode needs ?i=<instance fixture>';
+            return;
+          }
+          cee.templateAndInstanceObject = { templateObject: template, instanceObject: instance };
+        } else {
+          if (instance) {
+            cee.instanceObject = instance;
+          }
+          cee.templateObject = template;
         }
-        cee.templateObject = template;
 
         // The editor renders asynchronously; consider the DOM settled once two
         // consecutive samples show no further mutation.
