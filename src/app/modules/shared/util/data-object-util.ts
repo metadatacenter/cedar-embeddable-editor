@@ -23,37 +23,36 @@ export class DataObjectUtil {
    * walking, purely to re-derive things the tree had.
    */
   static getEmptyValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode): object {
-    const obj = {};
-    if (!DataObjectUtil.isIriValued(component)) {
-      obj[JsonSchema.atValue] = null;
-    }
-    if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-      this.injectAtTypeIfAvailable(obj, component);
-    }
-    return obj;
+    return InstanceValueNode.emptySlotJson(
+      DataObjectUtil.isIriValued(component),
+      DataObjectUtil.xsdTypeFor(component, buildingMode),
+    );
   }
 
   static getSingleValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode, value: string): object {
-    const obj = {};
-    if (component?.basicInfo?.inputType !== InputType.controlled) {
-      obj[JsonSchema.atValue] = value;
+    // A controlled term's default is not a literal, so it gets no `@value` — and
+    // no `@type` either, since only numeric and temporal fields have one.
+    if (component?.basicInfo?.inputType === InputType.controlled) {
+      return InstanceValueNode.emptySlotJson(true);
     }
-    if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-      this.injectAtTypeIfAvailable(obj, component);
-    }
-    return obj;
+    return InstanceValueNode.literalJson(value, DataObjectUtil.xsdTypeFor(component, buildingMode));
   }
 
   static getMultiValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode, values: string[]): object {
     const obj = [];
     if (component?.basicInfo?.inputType !== InputType.controlled) {
       for (const value of values) {
-        const subObj = {};
-        subObj[JsonSchema.atValue] = value;
-        obj.push(subObj);
+        // No XSD type on the elements, deliberately: see below.
+        obj.push(InstanceValueNode.literalJson(value));
       }
     }
     if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
+      // Transcribed as found. This sets `@type` as a *property of the array*,
+      // which `JSON.stringify` ignores — so it has never reached the emitted
+      // instance, and the elements have never carried a type. Kept because
+      // removing it and kept because adding the type to the elements are both
+      // behaviour changes to what a multi numeric field stores, and this commit
+      // is a refactor. Worth revisiting on its own.
       this.injectAtTypeIfAvailable(obj, component);
     }
     return obj;
@@ -80,6 +79,19 @@ export class DataObjectUtil {
 
   static getEmptyList(): [] {
     return [];
+  }
+
+  /**
+   * The XSD type a value carries alongside itself, if it carries one.
+   *
+   * Only numeric and temporal fields do, and only in the full copy — the type is
+   * part of the artifact rather than of the value the form is editing.
+   */
+  private static xsdTypeFor(component: FieldComponent, buildingMode: DataObjectBuildingMode): string | null {
+    if (buildingMode !== DataObjectBuildingMode.INCLUDE_CONTEXT) {
+      return null;
+    }
+    return component?.numberInfo?.numberType ?? component?.valueInfo?.temporalType ?? null;
   }
 
   /** A numeric or temporal value declares its XSD type alongside itself. */

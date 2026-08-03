@@ -2,6 +2,7 @@
 import {
   InstanceDataAtomType,
   InstanceDataControlledAtom,
+  InstanceDataEmptyAtom,
   InstanceDataLinkAtom,
   InstanceDataStringAtom,
   InstanceDataTypedAtom,
@@ -138,8 +139,30 @@ export class InstanceValueNode {
    * the `readValueNode` used to interpret them, so what CEE writes and what it
    * reads back cannot drift apart.
    */
-  static literalJson(value: any): object {
-    return JsonTemplateInstanceWriter.writeValueNode(new InstanceDataStringAtom(value)) as object;
+  static literalJson(value: any, xsdType: string | null = null): object {
+    const atom = xsdType === null ? new InstanceDataStringAtom(value) : new InstanceDataTypedAtom(value, xsdType);
+    return JsonTemplateInstanceWriter.writeValueNode(atom) as object;
+  }
+
+  /**
+   * The JSON an *unfilled* slot is stored as.
+   *
+   * `{}` for an IRI-valued field — there is no `@id` of null, so it holds nothing
+   * at all — and `{'@value': null}` otherwise, carrying the XSD type when the
+   * field declares one.
+   *
+   * Here rather than assembled by hand in the builder, which is where it was:
+   * three methods writing `obj['@value'] = null` and `obj['@type'] = …` directly.
+   * The *filled* slots already came through this class, so the empty ones being
+   * hand-built was an inconsistency rather than a decision — and `writeValueNode`
+   * is the mirror of the `readValueNode` that interprets them, so what CEE writes
+   * and what it reads back cannot drift.
+   */
+  static emptySlotJson(iriValued: boolean, xsdType: string | null = null): object {
+    if (iriValued) {
+      return JsonTemplateInstanceWriter.writeValueNode(new InstanceDataEmptyAtom()) as object;
+    }
+    return InstanceValueNode.literalJson(null, xsdType);
   }
 
   /** The JSON an IRI value is stored as, with a label when there is one. */

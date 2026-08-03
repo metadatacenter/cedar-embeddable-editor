@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { JsonSchema } from 'cedar-model-typescript-library';
+import { CedarReaders } from 'cedar-model-typescript-library';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, EMPTY, from, Observable, of, Subject } from 'rxjs';
 import { catchError, concatMap, map, takeUntil } from 'rxjs/operators';
@@ -197,13 +197,33 @@ export class SampleTemplatesService {
     );
   }
 
+  /**
+   * The name a fetched sample template goes by, for the menu.
+   *
+   * Read through the model library rather than by reaching for `schema:name`.
+   * This was the last place outside CEE's three artifact boundaries that opened a
+   * CEDAR document itself — a small thing, two key lookups, but the point of the
+   * boundaries is that there are three of them and not four.
+   *
+   * A template that fails to parse yields no name and is skipped, which is what
+   * the previous null check did for a template that had no `schema:name`.
+   */
   private getSingleTemplateLabel(templateUrl: string): Observable<string> {
     return this.http.get(templateUrl).pipe(
       map((response) => {
-        if (response == null || !response[JsonSchema.schemaName]) {
+        if (response == null) {
           return null;
         }
-        return response[JsonSchema.schemaName];
+        try {
+          const parsed = CedarReaders.json()
+            .getFebruary2024()
+            .getTemplateReader()
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .readFromObject(response as any).template;
+          return parsed.schema_name || null;
+        } catch {
+          return null;
+        }
       }),
     );
   }
