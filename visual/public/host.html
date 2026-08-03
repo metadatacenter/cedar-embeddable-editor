@@ -109,10 +109,31 @@
           terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
         };
 
+        /**
+         * A distinct, deliberately unroutable URL per authority.
+         *
+         * Each of the seven external authority fields reads its endpoint from its own
+         * config key, and nothing checked that a field ends up asking the endpoint it
+         * was configured with — a descriptor naming the wrong key, or a widget wired to
+         * the wrong descriptor, would send a field to another authority's service and
+         * fail only against something live. Giving each a unique path makes the
+         * question answerable by looking at the request.
+         *
+         * `127.0.0.1:9` is the discard port: nothing listens, so the requests are
+         * intercepted by the test and never leave the machine. Which is the same reason
+         * `base` points the terminology server there.
+         */
+        const AUTHORITY_ENDPOINTS = {};
+        for (const name of ['orcid', 'ror', 'pfas', 'pmid', 'rrid', 'nihGrant', 'doi']) {
+          AUTHORITY_ENDPOINTS[`${name}IntegratedExtAuthUrl`] = `http://127.0.0.1:9/authority/${name}/search`;
+          AUTHORITY_ENDPOINTS[`${name}IntegratedDetailsUrl`] = `http://127.0.0.1:9/authority/${name}/details`;
+        }
+
         const PRESETS = {
           base,
           chrome: { ...base, showHeader: true, showFooter: true, showPreferencesMenu: true },
           readonly: { ...base, readOnlyMode: true },
+          authority: { ...base, ...AUTHORITY_ENDPOINTS },
         };
 
         const preset = params.get('c') || 'base';

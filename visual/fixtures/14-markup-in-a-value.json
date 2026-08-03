@@ -1,0 +1,14 @@
+{
+  "@context": {},
+  "@id": "https://example.org/instances/markup-in-a-value",
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/3d7a89c9-0000-4000-8000-3d7a89c90000",
+  "schema:name": "markup in a value",
+  "schema:description": "A text value that happens to contain HTML",
+  "pav:createdOn": "2026-01-01T00:00:00-08:00",
+  "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "_text": {
+    "@value": "<b data-markup-probe=\"1\">bold from the instance</b>"
+  }
+}

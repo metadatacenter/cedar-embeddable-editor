@@ -1010,3 +1010,121 @@ test.describe('a choice value reaches the widget by every load path', () => {
     });
   }
 });
+
+/**
+ * CHARACTERISATION, NOT ENDORSEMENT: read-only mode parses instance values as HTML.
+ *
+ * `EscapeHtmlPipe` is `bypassSecurityTrustHtml`, and `cedar-input-text` renders
+ * `[innerHTML]="inputValueControl.value | keepHtml"` whenever `isRichText` is set.
+ * What sets it is `checkHTMLContent`, which asks `HtmlDetectService` whether the
+ * **value** looks like HTML — and it runs from `onReadOnlyModeChange(true)`. So the
+ * trigger is the data, and the gate is read-only mode.
+ *
+ * That means a value in an injected instance reaches an `innerHTML` sink with Angular's
+ * sanitizer explicitly bypassed, through a documented mode, in a component whose whole
+ * purpose is to be embedded in someone else's page. Whether that is a vulnerability
+ * depends on whether instance documents are attacker-influenced where CEE is deployed,
+ * which is not a question a test can answer.
+ *
+ * These two tests record what happens today, in both modes, so the behaviour is
+ * visible and any change to it is deliberate. **They are not an assertion that this is
+ * correct.** If sanitizing instance values is the decision, this test should be
+ * inverted, and the accompanying comment says why the two modes differ — template-authored
+ * rich text (`cedar-static-rich-text`) is a different trust level from instance data and
+ * would keep its current behaviour.
+ *
+ * The probe value is deliberately inert — one element with a data attribute, no script,
+ * no event handler. It distinguishes parsed from escaped, which is the whole question,
+ * and demonstrates nothing that needs demonstrating.
+ */
+test.describe('markup in an instance value', () => {
+  const PROBE = '[data-markup-probe]';
+
+  test('is escaped in editable mode', async ({ page }) => {
+    await open(page, '01-input-types', undefined, '14-markup-in-a-value');
+
+    await expect(page.locator(PROBE), 'no element should be parsed out of a field value').toHaveCount(0);
+    const shownLiterally = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('input,textarea')).some((e) =>
+        (e as HTMLInputElement).value.includes('<b data-markup-probe'),
+      ),
+    );
+    expect(shownLiterally, 'the field should hold the markup as text').toBe(true);
+  });
+
+  test('is parsed into live DOM in read-only mode', async ({ page }) => {
+    await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
+
+    // If this ever fails, someone has changed how read-only renders values — which may
+    // well be the right change. Read the comment above before re-recording it.
+    await expect(
+      page.locator(PROBE),
+      'read-only renders instance values through bypassSecurityTrustHtml',
+    ).toHaveCount(1);
+  });
+});
+
+/**
+ * Each authority field asks its own endpoint.
+ *
+ * `ExternalAuthorityLookupService` replaced seven near-identical services with one,
+ * which is a clear win and moved a per-field decision into a table: each descriptor
+ * names the config keys its endpoints come from. The table had no test. A descriptor
+ * naming another authority's key, or a widget wired to the wrong descriptor, would
+ * send a field to the wrong service — and because every one of them answers the same
+ * shape, the field would keep working against something live and fail only in ways
+ * nobody would attribute to a config key.
+ *
+ * The `authority` preset gives each of the seven a unique unroutable URL, and this
+ * intercepts the requests, so the assertion is on what CEE *asked for*. That covers
+ * the descriptor table, the wiring, and the query parameter, without a live service
+ * and without leaving the machine.
+ *
+ * Requests are fulfilled with an empty result rather than aborted: aborting surfaces
+ * as a lookup error in the widget, which is a different behaviour from a search that
+ * found nothing, and this test is about the request rather than the response.
+ */
+test.describe('external authority endpoints', () => {
+  const FIELDS = [
+    { label: 'contributor_orcid', authority: 'orcid' },
+    { label: 'institution_ror', authority: 'ror' },
+    { label: 'chemical_pfas', authority: 'pfas' },
+    { label: 'citation_pmid', authority: 'pmid' },
+    { label: 'resource_rrid', authority: 'rrid' },
+    { label: 'award_nih', authority: 'nihGrant' },
+    { label: 'dataset_doi', authority: 'doi' },
+  ] as const;
+
+  for (const { label, authority } of FIELDS) {
+    test(`${label} searches the ${authority} endpoint`, async ({ page }) => {
+      const asked: string[] = [];
+      await page.route('**/authority/**', async (route) => {
+        asked.push(route.request().url());
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ found: 0, results: {} }),
+        });
+      });
+
+      await open(page, '08-authority', 'authority');
+
+      const field = page.locator(`input[aria-label="${label}"]`);
+      await expect(field, `no field labelled ${label} in 08-authority`).toBeVisible();
+      // Typed rather than filled: the widget searches on input, and `fill` can land as
+      // a single event that the debounce swallows.
+      await field.pressSequentially('probe', { delay: 40 });
+
+      // The service staggers requests by up to 500ms — transcribed from the ORCID
+      // service it replaced, where it was there to avoid throttling — so this has to
+      // outwait that rather than assume a prompt request.
+      await expect(async () => {
+        expect(asked.length, `${label} issued no search request`).toBeGreaterThan(0);
+      }).toPass({ timeout: 5000 });
+
+      const wrong = asked.filter((u) => !u.includes(`/authority/${authority}/`));
+      expect(wrong, `${label} asked another authority's endpoint`).toEqual([]);
+      expect(asked.some((u) => u.includes('q=probe')), 'the query is not in the request').toBe(true);
+    });
+  }
+});
