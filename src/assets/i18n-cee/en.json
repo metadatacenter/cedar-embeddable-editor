@@ -1,11 +1,10 @@
 {
   "App": {
     "Title": "CEDAR Embeddable Editor",
-    "Maintained": "CEDAR is maintained by the Stanford Center for Biomedical Informatics Research.",
+    "Maintained": "CEDAR is maintained by the Stanford Division of Computational Medicine.",
     "Contact": "Contact CEDAR"
   },
   "Generic": {
-    "BMIR": "BMIR",
     "SAVE": "SAVE",
     "Infinite": "Infinite",
     "ExpandAll": "Expand All",

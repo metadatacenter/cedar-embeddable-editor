@@ -1,11 +1,10 @@
 {
   "App": {
     "Title": "CEDAR Beágyazható Szerkesztő",
-    "Maintained": "A CEDAR-t a Stanford Biomedikai Informatikai Kutatási Központ működteti.",
+    "Maintained": "A CEDAR-t a Stanford Számítógépes Medicina Osztály működteti.",
     "Contact": "Kapcsolat"
   },
   "Generic": {
-    "BMIR": "BMIR",
     "SAVE": "MENTÉS",
     "Infinite": "Végtelen",
     "ExpandAll": "Mindet kinyit",

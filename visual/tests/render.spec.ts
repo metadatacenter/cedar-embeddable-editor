@@ -251,6 +251,67 @@ test.describe('config presets', () => {
 });
 
 /**
+ * The footer, asserted on its own rather than as part of `preset-chrome`.
+ *
+ * `preset-chrome` was the only baseline covering the footer, and it did not
+ * catch the BMIR → Division of Computational Medicine rebrand: new logo, new
+ * wordmark-free mark, new organisation name, new link. Measured against the
+ * previous baselines, that whole change moved 0.708% of the desktop page and
+ * 0.897% of the narrow one — under the 1% `maxDiffPixelRatio`, so both projects
+ * reported green. Narrow cleared it by a tenth of a percentage point.
+ *
+ * The ratio is not the thing to fix; it is there to absorb cross-machine font
+ * rasterisation, and tightening it globally trades one silent failure for a
+ * noisy one. What was missing is that a *localised* change to a small region of
+ * a tall page is exactly what a whole-page ratio cannot see. So:
+ *
+ *  - the mark is screenshotted clipped to the footer, where the same 1% is
+ *    around a thousand pixels rather than sixteen thousand, and
+ *  - the organisation's name and URL are asserted as text, because that is what
+ *    they are. A brand is not a pixel region; it is a specific string, and it
+ *    should fail on the string.
+ */
+test.describe('the footer', () => {
+  const ORGANISATION = 'Stanford Division of Computational Medicine';
+  const HOME = 'https://computationalmedicine.stanford.edu';
+
+  test('names the maintaining organisation and links to it', async ({ page }) => {
+    await open(page, '01-input-types', 'chrome');
+    const footer = page.locator('footer.main__footer');
+    await expect(footer).toBeVisible();
+
+    await expect(footer).toContainText(ORGANISATION);
+    await expect(footer.locator('a').first()).toHaveAttribute('href', HOME);
+    // The link is the logo's, and it is the only non-text route to the site, so
+    // its accessible name has to carry the destination too.
+    await expect(footer.locator('a').first()).toHaveAttribute('aria-label', HOME);
+  });
+
+  /**
+   * The mark carries no text of its own.
+   *
+   * The old asset baked "BMIR" underneath the tree, so a rebrand that changed
+   * only the strings would have left the previous name rendered in an image
+   * where no text assertion could reach it. Cropping the wordmark off is what
+   * makes the name above the single source of it — and this keeps it that way by
+   * pinning the mark's aspect ratio to the crop.
+   */
+  test('shows the mark on its own', async ({ page }) => {
+    await open(page, '01-input-types', 'chrome');
+    const footer = page.locator('footer.main__footer');
+    const logo = footer.locator('.division-logo');
+
+    const box = await logo.boundingBox();
+    expect(box, 'the footer logo has no box').toBeTruthy();
+    // 224x194 cropped to the mark; `background-size: cover` would silently
+    // distort it if the box drifted away from that ratio.
+    expect(box!.width / box!.height).toBeCloseTo(224 / 194, 1);
+
+    await expect(footer).toHaveScreenshot('footer.png');
+  });
+});
+
+/**
  * External authority fields — ORCID, ROR, PFAS, PubMed, RRID, NIH Grant, DOI.
  *
  * These are search boxes, not value boxes. The control holds whatever the user

@@ -53,9 +53,17 @@ export default defineConfig({
 
   expect: {
     toHaveScreenshot: {
-      // Font rasterisation differs a little between machines and OS versions.
-      // A small ratio absorbs that without hiding a real layout change; a
+      // Font rasterisation differs a little between machines and OS versions,
+      // and this ratio absorbs that. It catches what it was chosen to catch: a
       // Material DOM rewrite moves far more than 1% of pixels.
+      //
+      // What it does NOT catch is a localised change to a small part of a tall
+      // page. Measured: rebranding the whole footer — logo, organisation name
+      // and link — moved 0.708% of the desktop page and 0.897% of the narrow
+      // one, and both reported green. Anything that matters within a region
+      // smaller than roughly 1% of its page needs a screenshot clipped to that
+      // region, where the same ratio is a much smaller absolute budget, or a
+      // DOM assertion. See `the footer` and `pager.png` in render.spec.ts.
       maxDiffPixelRatio: 0.01,
       animations: 'disabled',
       caret: 'hide',
