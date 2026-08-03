@@ -13,7 +13,7 @@ import { FieldComponent } from '../models/component/field-component.model';
 import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
 import { HandlerContext } from '../util/handler-context';
-import { JsonSchema } from '../models/json-schema.model';
+import { InstanceValueNode } from '../util/instance-value-node';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { FieldValueValidator } from '../validation/field-value-validator';
@@ -322,20 +322,16 @@ export class DataQualityReportBuilderHandler {
     return {};
   }
 
+  /**
+   * What this node holds, according to the model library's reading of it.
+   *
+   * The node's own type settles most of it — a literal by its value, a
+   * controlled term by its label, a link by its IRI. Only one question needs
+   * the template: `{@id, rdfs:label}` shows its label for a controlled term and
+   * its IRI for a link, and the instance cannot tell those apart.
+   */
   private static extractPlainValue(dataObject: object, component: SingleFieldComponent | MultiFieldComponent) {
-    if (dataObject == undefined || dataObject == null) {
-      return null;
-    }
-    if (Object.hasOwn(dataObject, JsonSchema.atValue)) {
-      return this.emptyToNull(dataObject[JsonSchema.atValue]);
-    } else if (Object.hasOwn(dataObject, JsonSchema.atId) && this.isIriValued(component)) {
-      // url field, or an external authority field: the IRI is the value
-      return this.emptyToNull(dataObject[JsonSchema.atId]);
-    } else if (Object.hasOwn(dataObject, JsonSchema.atId)) {
-      // controlled field single
-      return this.emptyToNull(dataObject[JsonSchema.rdfsLabel]);
-    }
-    return null;
+    return InstanceValueNode.plainValue(dataObject, this.isIriValued(component));
   }
 
   /**
@@ -357,11 +353,4 @@ export class DataQualityReportBuilderHandler {
     return inputType === InputType.link || EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType);
   }
 
-  private static emptyToNull(value: any) {
-    if (value === '' || value === undefined) {
-      return null;
-    } else {
-      return value;
-    }
-  }
 }

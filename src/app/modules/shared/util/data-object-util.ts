@@ -1,4 +1,5 @@
 import { JsonSchema } from '../models/json-schema.model';
+import { InstanceValueNode } from './instance-value-node';
 import { CedarModel } from '../models/cedar-model.model';
 import { JavascriptTypes } from '../models/javascript-types.model';
 import { TemplateObjectUtil } from './template-object-util';
@@ -129,12 +130,20 @@ export class DataObjectUtil {
     return true;
   }
 
+  /**
+   * Strip `@context` and provenance from an instance, leaving the values alone.
+   *
+   * "Leaving the values alone" used to mean matching exact key counts — two
+   * keys with an `@id` and an `rdfs:label` meaning a controlled term, one key
+   * with an `@id` meaning a link. Anything else was taken for a container and
+   * had its `@id` deleted, so a controlled term or a link that also carried a
+   * `@type` — ordinary JSON-LD, and what a host page can perfectly well inject
+   * — lost the IRI that *was* its value. The form then showed the field empty,
+   * and saving wrote the loss back.
+   */
   static deleteContext(obj): void {
-    const keyCount = Object.keys(obj).length;
-    if (keyCount === 2 && Object.hasOwn(obj, JsonSchema.atId) && Object.hasOwn(obj, JsonSchema.rdfsLabel)) {
-      // do nothing, it is a controlled term
-    } else if (keyCount === 1 && Object.hasOwn(obj, JsonSchema.atId)) {
-      // do nothing, it is a link
+    if (InstanceValueNode.isValue(obj)) {
+      // A value, whatever else it carries. Nothing here belongs to it.
     } else {
       Object.keys(obj).forEach((key) => {
         delete obj[JsonSchema.atContext];
