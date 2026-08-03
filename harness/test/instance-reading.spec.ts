@@ -1,0 +1,413 @@
+/**
+ * Reading an existing instance back in.
+ *
+ * When a host page hands CEE an `instanceObject`, the template alone no longer
+ * decides the shape of the form: the instance does. A multi element the
+ * template says starts at one may arrive holding four, and the pager has to
+ * come back showing four. `MultiInstanceObjectHandler.updateFromInstanceExtractData`
+ * is what works that out, by walking the instance and reconciling what it finds
+ * against the skeleton `buildRecursively` produced from the template.
+ *
+ * It is the least direct code in the domain layer. Paths are encoded as
+ * strings with `@#index[N]#@` segments spliced in for each occurrence, then
+ * re-parsed with a regex to navigate the info tree, growing that tree in place
+ * wherever the instance turns out to be deeper or wider than the template's
+ * minimum. Coverage found the growth branches unexercised: the suite only ever
+ * loaded instances that matched their template's `minItems` exactly, so the
+ * reconciliation never had to reconcile anything.
+ *
+ * That is the half of the instance side the model library is meant to take
+ * over, so it needs to be pinned before, not after.
+ */
+import { describe, expect, it } from 'vitest';
+import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
+import { FieldKind } from '../src/axes';
+import { buildTemplate } from '../src/generate';
+import { CeeDriver } from '../src/driver';
+
+const TEXT: FieldKind = {
+  key: 'text',
+  inputType: 'textfield',
+  make: () => CedarBuilders.textFieldBuilder(),
+  isStatic: false,
+  write: 'value',
+  sample: 'x',
+};
+
+/** One multi element, `minItems` occurrences to start, each holding two fields. */
+const multiElementTemplate = (minItems = 1) =>
+  buildTemplate({
+    name: `ir_multi_${minItems}`,
+    elements: [
+      {
+        name: 'author',
+        cardinality: 'multi',
+        minItems,
+        maxItems: 9,
+        children: [
+          { kind: TEXT, name: 'name' },
+          { kind: TEXT, name: 'email' },
+        ],
+      },
+    ],
+  });
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const countOf = (driver: CeeDriver, component: any): number =>
+  driver.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component).currentCount;
+
+describe('an instance wider than its template', () => {
+  /**
+   * REGRESSION SURFACE: the branch that grows the info tree for an occurrence
+   * the template did not pre-build had never run. `buildRecursively` creates
+   * `minItems` occurrences; anything beyond that has to be created while
+   * reading, and every earlier test happened to load an instance with exactly
+   * `minItems`.
+   */
+  it('restores every occurrence the instance holds, not just minItems', () => {
+    const template = multiElementTemplate(1);
+    const first = new CeeDriver(template);
+    const author = first.findOrThrow(['_author']);
+
+    first.setValue(['_author', '_name'], TEXT, 'Ada');
+    first.handlerContext.addMultiInstance(author);
+    first.setValue(['_author', '_name'], TEXT, 'Grace');
+    first.handlerContext.addMultiInstance(author);
+    first.setValue(['_author', '_name'], TEXT, 'Barbara');
+    expect(countOf(first, author)).toBe(3);
+
+    const reloaded = new CeeDriver(template, { instance: first.metadata });
+    reloaded.expectNoErrors('reloading a three-occurrence instance');
+
+    expect(countOf(reloaded, reloaded.findOrThrow(['_author']))).toBe(3);
+  });
+
+  it('brings the values back with the occurrences', () => {
+    const template = multiElementTemplate(1);
+    const first = new CeeDriver(template);
+    const author = first.findOrThrow(['_author']);
+
+    first.setValue(['_author', '_name'], TEXT, 'Ada');
+    first.handlerContext.addMultiInstance(author);
+    first.setValue(['_author', '_name'], TEXT, 'Grace');
+
+    const reloaded = new CeeDriver(template, { instance: first.metadata });
+    const names = reloaded.extract._author.map((o: Record<string, { '@value': string }>) => o._name['@value']);
+    expect(names).toEqual(['Ada', 'Grace']);
+  });
+
+  /**
+   * The cursor lands on the first occurrence, not wherever the previous
+   * session left it. Anything else would make a reload silently show a
+   * different page of the form than the one the URL implies.
+   */
+  it('leaves the cursor on the first occurrence', () => {
+    const template = multiElementTemplate(1);
+    const first = new CeeDriver(template);
+    const author = first.findOrThrow(['_author']);
+    first.setValue(['_author', '_name'], TEXT, 'Ada');
+    first.handlerContext.addMultiInstance(author);
+    first.setValue(['_author', '_name'], TEXT, 'Grace');
+
+    const reloaded = new CeeDriver(template, { instance: first.metadata });
+    const info = reloaded.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(
+      reloaded.findOrThrow(['_author']),
+    );
+    expect(info.currentIndex).toBe(0);
+  });
+});
+
+describe('an instance narrower than its template', () => {
+  /**
+   * The mirror case, and the one that decides whether `minItems` is a
+   * guarantee or a default. It is a default: the instance wins, and a saved
+   * document with fewer occurrences than the template now demands comes back
+   * as it was saved rather than being padded.
+   */
+  it('does not pad up to minItems', () => {
+    const template = multiElementTemplate(3);
+    const first = new CeeDriver(template);
+    expect(countOf(first, first.findOrThrow(['_author']))).toBe(3);
+
+    // A document saved before the template raised its minimum.
+    const instance = JSON.parse(JSON.stringify(first.metadata));
+    instance._author = [instance._author[0]];
+
+    const reloaded = new CeeDriver(template, { instance });
+    reloaded.expectNoErrors('reloading an under-filled instance');
+    expect(countOf(reloaded, reloaded.findOrThrow(['_author']))).toBe(1);
+  });
+});
+
+describe('occurrences that are not all alike', () => {
+  /**
+   * REGRESSION SURFACE: the branch that adds a missing child to an occurrence
+   * that already exists. Reached when one occurrence carries a field another
+   * does not — which a hand-edited or partially-migrated instance easily does,
+   * and which no generated fixture produced.
+   */
+  it('reconciles an occurrence that is missing a field the others have', () => {
+    const template = multiElementTemplate(1);
+    const first = new CeeDriver(template);
+    const author = first.findOrThrow(['_author']);
+    first.setValue(['_author', '_name'], TEXT, 'Ada');
+    first.setValue(['_author', '_email'], TEXT, 'ada@example.org');
+    first.handlerContext.addMultiInstance(author);
+    first.setValue(['_author', '_name'], TEXT, 'Grace');
+
+    const instance = JSON.parse(JSON.stringify(first.metadata));
+    delete instance._author[1]._email;
+
+    const reloaded = new CeeDriver(template, { instance });
+    reloaded.expectNoErrors('reloading an uneven instance');
+    expect(countOf(reloaded, reloaded.findOrThrow(['_author']))).toBe(2);
+    expect(reloaded.extract._author[0]._email['@value']).toBe('ada@example.org');
+  });
+
+  it('survives an occurrence that is empty', () => {
+    const template = multiElementTemplate(1);
+    const first = new CeeDriver(template);
+    const author = first.findOrThrow(['_author']);
+    first.setValue(['_author', '_name'], TEXT, 'Ada');
+    first.handlerContext.addMultiInstance(author);
+
+    const reloaded = new CeeDriver(template, { instance: first.metadata });
+    reloaded.expectNoErrors('reloading an instance with an empty occurrence');
+    expect(countOf(reloaded, reloaded.findOrThrow(['_author']))).toBe(2);
+  });
+});
+
+describe('elements are walked into, not mistaken for values', () => {
+  /**
+   * REGRESSION: CEE stamps every element occurrence it writes with an `@id` of
+   * its own — a `template-element-instances/…` IRI. The reader decided whether
+   * an instance node was a field's value or an element by asking whether it
+   * had an `@id`, so every element in an instance CEE had saved looked like an
+   * IRI-valued field, and the reader stopped at it instead of walking in.
+   *
+   * The occurrence count of the element itself still came back right, which is
+   * why this survived: it is only what is *inside* an element that was lost.
+   * Save three tags inside an element, reload, and the pager offers one. The
+   * other two are still in the data and unreachable from the UI.
+   *
+   * The two are now told apart by whether the node holds anything beyond the
+   * value keys. An element carries `@context` and its children, so it does.
+   */
+  it('restores a multi field inside a single element', () => {
+    const template = buildTemplate({
+      name: 'ir_single_el',
+      elements: [{ name: 'el', children: [{ kind: TEXT, name: 'tag', cardinality: 'multi', minItems: 1, maxItems: 9 }] }],
+    });
+    const first = new CeeDriver(template);
+    const tag = first.findOrThrow(['_el', '_tag']);
+    first.setValue(['_el', '_tag'], TEXT, 'one');
+    first.handlerContext.addMultiInstance(tag);
+    first.setValue(['_el', '_tag'], TEXT, 'two');
+    first.handlerContext.addMultiInstance(tag);
+    first.setValue(['_el', '_tag'], TEXT, 'three');
+
+    const reloaded = new CeeDriver(template, { instance: first.metadata });
+    reloaded.expectNoErrors('reloading a multi field inside an element');
+    expect(countOf(reloaded, reloaded.findOrThrow(['_el', '_tag']))).toBe(3);
+  });
+
+  it('restores a multi field inside a multi element, per occurrence', () => {
+    const template = buildTemplate({
+      name: 'ir_multi_el_field',
+      elements: [
+        {
+          name: 'author',
+          cardinality: 'multi',
+          minItems: 1,
+          maxItems: 9,
+          children: [{ kind: TEXT, name: 'tag', cardinality: 'multi', minItems: 1, maxItems: 9 }],
+        },
+      ],
+    });
+    const first = new CeeDriver(template);
+    const author = first.findOrThrow(['_author']);
+    const tag = first.findOrThrow(['_author', '_tag']);
+
+    first.setValue(['_author', '_tag'], TEXT, 'a1');
+    first.handlerContext.addMultiInstance(tag);
+    first.setValue(['_author', '_tag'], TEXT, 'a2');
+    first.handlerContext.addMultiInstance(author);
+    first.setValue(['_author', '_tag'], TEXT, 'b1');
+
+    const reloaded = new CeeDriver(template, { instance: first.metadata });
+    reloaded.expectNoErrors('reloading a multi field inside a multi element');
+
+    const service = reloaded.handlerContext.multiInstanceObjectService;
+    const reloadedAuthor = reloaded.findOrThrow(['_author']);
+    const reloadedTag = reloaded.findOrThrow(['_author', '_tag']);
+    expect(service.getMultiInstanceInfoForComponent(reloadedTag).currentCount).toBe(2);
+    service.setCurrentIndex(reloadedAuthor, 1);
+    expect(service.getMultiInstanceInfoForComponent(reloadedTag).currentCount).toBe(1);
+  });
+
+  /**
+   * The other half of the same test: a genuine IRI-valued field must still be
+   * read as a field. A controlled term is `@id` plus `rdfs:label` and nothing
+   * else, so it stays on the value side of the line.
+   */
+  it('still treats a controlled term as a value', () => {
+    const CONTROLLED: FieldKind = {
+      key: 'ct',
+      inputType: 'controlled',
+      make: () => CedarBuilders.controlledTermFieldBuilder(),
+      isStatic: false,
+      write: 'controlled',
+      sample: 'term',
+      configure: (b: unknown) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (b as any).addOntology(
+          new ControlledTermOntologyBuilder()
+            .withAcronym('MESH')
+            .withName('Medical Subject Headings')
+            .withUri(new Iri('https://data.bioontology.org/ontologies/MESH'))
+            .build(),
+        ),
+    };
+    const template = buildTemplate({
+      name: 'ir_ct',
+      children: [{ kind: CONTROLLED, name: 'ct', cardinality: 'multi', minItems: 1, maxItems: 9 }],
+    });
+    const first = new CeeDriver(template);
+    first.setValue(['_ct'], CONTROLLED, 'term');
+
+    const reloaded = new CeeDriver(template, { instance: first.metadata });
+    reloaded.expectNoErrors('reloading a controlled term');
+    expect(countOf(reloaded, reloaded.findOrThrow(['_ct']))).toBe(1);
+  });
+});
+
+describe('nested multi elements', () => {
+  /**
+   * Two cursors deep. Reading has to splice an `@#index[N]#@` segment for each
+   * level, and the inner occurrence counts are per outer occurrence rather than
+   * shared — a detail the string-path encoding makes easy to get wrong.
+   */
+  it('restores per-occurrence inner counts independently', () => {
+    const template = buildTemplate({
+      name: 'ir_nested',
+      elements: [
+        {
+          name: 'author',
+          cardinality: 'multi',
+          minItems: 1,
+          maxItems: 9,
+          elements: [
+            {
+              name: 'affil',
+              cardinality: 'multi',
+              minItems: 1,
+              maxItems: 9,
+              children: [{ kind: TEXT, name: 'org' }],
+            },
+          ],
+        },
+      ],
+    });
+
+    const first = new CeeDriver(template);
+    const author = first.findOrThrow(['_author']);
+    const affil = first.findOrThrow(['_author', '_affil']);
+
+    // First author: two affiliations.
+    first.setValue(['_author', '_affil', '_org'], TEXT, 'A1');
+    first.handlerContext.addMultiInstance(affil);
+    first.setValue(['_author', '_affil', '_org'], TEXT, 'A2');
+    // Second author: one.
+    first.handlerContext.addMultiInstance(author);
+    first.setValue(['_author', '_affil', '_org'], TEXT, 'B1');
+
+    const instance = first.metadata;
+    expect(instance._author[0]._affil).toHaveLength(2);
+    expect(instance._author[1]._affil).toHaveLength(1);
+
+    const reloaded = new CeeDriver(template, { instance });
+    reloaded.expectNoErrors('reloading nested multi elements');
+
+    const reloadedAuthor = reloaded.findOrThrow(['_author']);
+    const service = reloaded.handlerContext.multiInstanceObjectService;
+    expect(service.getMultiInstanceInfoForComponent(reloadedAuthor).currentCount).toBe(2);
+
+    // The inner count is read through the outer cursor, so move it and ask again.
+    const reloadedAffil = reloaded.findOrThrow(['_author', '_affil']);
+    expect(service.getMultiInstanceInfoForComponent(reloadedAffil).currentCount).toBe(2);
+    service.setCurrentIndex(reloadedAuthor, 1);
+    expect(service.getMultiInstanceInfoForComponent(reloadedAffil).currentCount).toBe(1);
+  });
+});
+
+describe('deleting occurrences', () => {
+  /**
+   * REGRESSION SURFACE: the cursor clamp. Deleting while parked on the last
+   * occurrence leaves `currentIndex` past the end, and every later path
+   * resolution goes through that index. The clamp had no test.
+   */
+  it('steps the cursor back when the last occurrence goes', () => {
+    const driver = new CeeDriver(multiElementTemplate(1));
+    const author = driver.findOrThrow(['_author']);
+    const service = driver.handlerContext.multiInstanceObjectService;
+
+    driver.handlerContext.addMultiInstance(author);
+    driver.handlerContext.addMultiInstance(author);
+    expect(service.getMultiInstanceInfoForComponent(author).currentIndex).toBe(2);
+
+    driver.handlerContext.deleteMultiInstance(author);
+    const info = service.getMultiInstanceInfoForComponent(author);
+    expect(info.currentCount).toBe(2);
+    expect(info.currentIndex, 'cursor left pointing past the end').toBe(1);
+  });
+
+  it('leaves the cursor alone when an earlier occurrence goes', () => {
+    const driver = new CeeDriver(multiElementTemplate(1));
+    const author = driver.findOrThrow(['_author']);
+    const service = driver.handlerContext.multiInstanceObjectService;
+
+    driver.handlerContext.addMultiInstance(author);
+    driver.handlerContext.addMultiInstance(author);
+    service.setCurrentIndex(author, 0);
+
+    driver.handlerContext.deleteMultiInstance(author);
+    const info = service.getMultiInstanceInfoForComponent(author);
+    expect(info.currentCount).toBe(2);
+    expect(info.currentIndex).toBe(0);
+  });
+
+  it('writes to the right occurrence after a delete', () => {
+    const driver = new CeeDriver(multiElementTemplate(1));
+    const author = driver.findOrThrow(['_author']);
+
+    driver.setValue(['_author', '_name'], TEXT, 'Ada');
+    driver.handlerContext.addMultiInstance(author);
+    driver.setValue(['_author', '_name'], TEXT, 'Grace');
+    driver.handlerContext.addMultiInstance(author);
+    driver.setValue(['_author', '_name'], TEXT, 'Barbara');
+
+    driver.handlerContext.deleteMultiInstance(author);
+    driver.setValue(['_author', '_name'], TEXT, 'Katherine');
+    driver.expectNoErrors('writing after a delete');
+
+    const names = driver.extract._author.map((o: Record<string, { '@value': string }>) => o._name['@value']);
+    expect(names).toEqual(['Ada', 'Katherine']);
+  });
+});
+
+describe('no template at all', () => {
+  /**
+   * A host page can set `templateObject` to null — before its fetch resolves,
+   * or after a failed one. CEE answers with a `NullTemplate`, which is not a
+   * `CedarTemplate` and has no children, and every downstream pass has to
+   * tolerate it. Nothing exercised that path.
+   */
+  it('produces an empty representation rather than throwing', () => {
+    expect(() => new CeeDriver(null as unknown as object)).not.toThrow();
+
+    const driver = new CeeDriver(null as unknown as object);
+    expect(driver.representation.className).toBe('NullTemplate');
+    expect(driver.representation.children).toEqual([]);
+    driver.expectNoErrors('building from a null template');
+  });
+});

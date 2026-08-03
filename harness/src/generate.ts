@@ -100,7 +100,7 @@ export interface ElementSpec {
   cardinality?: Cardinality;
   minItems?: number;
   maxItems?: number;
-  children: ChildSpec[];
+  children?: ChildSpec[];
   /** Nested elements. Recursion here is what produces multi-inside-multi. */
   elements?: ElementSpec[];
 }
@@ -124,7 +124,9 @@ const buildElement = (spec: ElementSpec) => {
     .withLastUpdatedOn(FIXED_DATE)
     .withModifiedBy(USER);
 
-  for (const child of spec.children) {
+  // Optional, like `elements` below: an element holding nothing but
+  // sub-elements is a shape real templates use.
+  for (const child of spec.children ?? []) {
     const field = buildField(child.kind, child.name);
     const { deployment } = deploy(field, child);
     eb = eb.addChild(field, deployment);
