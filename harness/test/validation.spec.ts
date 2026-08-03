@@ -349,7 +349,7 @@ describe('controlled term structure', () => {
    *
    * The gap is that the discard is silent — the library reports no error for
    * it, and CEE no longer has a place to notice. Recorded in CEE-ROADMAP.md
-   * under Open findings.
+   * as item 6 under What needs doing.
    *
    * The other two malformed shapes still report: an `@id` with no label, and a
    * malformed `@id`, both of which survive parsing intact.
