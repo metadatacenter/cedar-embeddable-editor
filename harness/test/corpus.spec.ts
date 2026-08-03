@@ -33,14 +33,20 @@ const templates = corpusAvailable() ? corpusTemplates() : [];
 const instances = corpusAvailable() ? corpusInstances() : [];
 
 /**
- * Corpus templates that are themselves malformed, and what CEE says about them.
+ * Corpus templates CEE has something to say about, and what it says.
  *
- * Listed rather than tolerated silently: CEE now recovers from these instead of
- * throwing, but it does report them, and a blanket "no errors" assertion across
- * the corpus would either fail here or have to be weakened everywhere. Naming
- * the one bad artifact keeps the assertion strict for the other 36.
+ * Listed rather than tolerated silently: CEE recovers from both of these
+ * instead of throwing, but it does report them, and a blanket "no errors"
+ * assertion across the corpus would either fail here or have to be weakened
+ * everywhere. Naming the two keeps the assertion strict for the other 35.
+ *
+ * `003` is malformed — its `_ui.order` names a child `properties` does not
+ * define. `001` is not malformed, it is unsaved: its readme says so, and a
+ * template with no `@id` means every instance built from it cannot name the
+ * template it came from.
  */
-const KNOWN_MALFORMED: Record<string, string> = {
+const KNOWN_REPORTED: Record<string, string> = {
+  '001': 'no @id',
   '003': 'TextfieldOrder',
 };
 
@@ -53,7 +59,7 @@ describe.skipIf(!corpusAvailable())('real corpus templates', () => {
     const driver = new CeeDriver(artifact.json);
     expect(driver.representation).toBeTruthy();
 
-    const expected = KNOWN_MALFORMED[artifact.id];
+    const expected = KNOWN_REPORTED[artifact.id];
     if (expected) {
       // Recovers, and says why.
       expect(driver.messages.errors.join(' ')).toContain(expected);

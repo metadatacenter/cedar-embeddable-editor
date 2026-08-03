@@ -167,6 +167,22 @@ describe('the instance says which template it is an instance of', () => {
   });
 
   /**
+   * And says so. An instance that cannot name its template is unusable
+   * downstream, so producing one silently is worse than producing one loudly.
+   * Only `template-001` of the 94 in the shared corpora is in this state, and
+   * its readme says why: it was never saved.
+   */
+  it('reports a template with no IRI rather than quietly orphaning its instances', () => {
+    const driver = withTemplateId(null);
+    expect(driver.messages.errors.join(' ')).toContain('no @id');
+  });
+
+  it('says nothing when the template has one', () => {
+    const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
+    driver.expectNoErrors('parsing a template with an @id');
+  });
+
+  /**
    * Not on the working copy CEE edits against — that has no envelope at all,
    * and `deleteContext` strips this along with `@id` and the provenance.
    */

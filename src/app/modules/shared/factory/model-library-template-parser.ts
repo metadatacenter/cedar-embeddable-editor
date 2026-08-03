@@ -84,6 +84,16 @@ export class ModelLibraryTemplateParser implements TemplateParser {
 
     ModelLibraryTemplateParser.report(result.parsingResult.getBlueprintComparisonErrors(), handlerContext);
     ModelLibraryTemplateParser.mapParsedTemplate(result.template, template);
+
+    if (!template.isBasedOn) {
+      // Every instance built from this template will have no `schema:isBasedOn`
+      // and so will not say what it is an instance of. That is not something to
+      // discover later from an unusable document.
+      handlerContext.messageHandlerService.error(
+        'Template has no @id, so instances of it cannot say which template they came from. ' +
+          'This is a template that has never been saved.',
+      );
+    }
   }
 
   /**
