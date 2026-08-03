@@ -1,9 +1,21 @@
+<!--
+  One template for every external authority field.
+
+  Angular lets several components share a `templateUrl`, so the five simple
+  authority widgets render from this file and differ only in their descriptor.
+  Everything that used to be baked into seven near-identical templates — the
+  placeholder, the aria-label on the details link, the error key, the two message
+  keys — comes off `descriptor` instead.
+
+  ORCID and ROR keep their own templates: each renders a panel built from a
+  detail document with its own shape, which is the one part of them that is
+  genuinely theirs.
+-->
 <form class="form-container" [formGroup]="options">
   <ng-container>
     <mat-form-field class="full-width">
-      <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
       <input matInput type="text"
-             placeholder="{{'Generic.FilterPfas' | translate}}"
+             placeholder="{{descriptor.placeholderKey | translate}}"
              #autoCompleteInput="matAutocompleteTrigger"
              [formControl]="inputValueControl"
              [errorStateMatcher]="errorStateMatcher"
@@ -23,25 +35,25 @@
         </mat-option>
         <mat-option *ngFor="let option of filteredOptions | async" [value]="option[JsonSchema.rdfsLabel] + ' - ' + option[JsonSchema.atId]"
                     (onSelectionChange)="onSelectionChange(option)"
-        >{{ getCompoundValue(option)}}</mat-option>
+        >{{ getCompoundValue(option) }}</mat-option>
       </mat-autocomplete>
       <a *ngIf="selectedData"
          matSuffix mat-icon-button
          [href]="detailsUrl"
          target="_blank" rel="noopener"
-         aria-label="View PFAS page"
+         attr.aria-label="View {{descriptor.label}} page"
          matTooltip="{{'Generic.Details' | translate}}">
         <mat-icon>{{ linkIconName }}</mat-icon>
       </a>
-      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}"  matTooltip="{{'Generic.Clear' | translate}}" (click)="clearValue()">
+      <button type="button" tabindex="0" mat-button *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" matTooltip="{{'Generic.Clear' | translate}}" (click)="clearValue()">
         <mat-icon>close</mat-icon>
       </button>
       <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
-      <mat-error tabindex="0" *ngIf="inputValueControl.getError('invalidPfas') && !readOnlyMode" class="mat-error align-start">
-        {{'Validation.PfasInvalid' | translate}}
+      <mat-error tabindex="0" *ngIf="inputValueControl.getError(descriptor.errorKey) && !readOnlyMode" class="mat-error align-start">
+        {{descriptor.invalidMessageKey | translate}}
       </mat-error>
       <mat-hint *ngIf="justReverted">
-        {{'Validation.PfasReverted' | translate}}
+        {{descriptor.revertedMessageKey | translate}}
       </mat-hint>
     </mat-form-field>
   </ng-container>

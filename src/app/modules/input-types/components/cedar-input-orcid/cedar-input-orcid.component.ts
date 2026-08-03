@@ -9,7 +9,9 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, switchMap, tap, catchError, finalize } from 'rxjs/operators';
 import { JsonSchema } from '../../../shared/models/json-schema.model';
-import { OrcidFieldDataService } from '../../../shared/service/orcid-field-data.service';
+import { ExternalAuthorityLookupService } from '../../../shared/service/external-authority-lookup.service';
+import { authorityDescriptorFor } from '../../../shared/models/authority/authority-descriptor.model';
+import { InputType } from '../../../shared/models/input-type.model';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { OrcidSearchResponseItem } from '../../../shared/models/rest/orcid-search/orcid-search-response-item';
 import { ResearcherDetails } from '../../../shared/models/rest/orcid-detail/orcid-detail-person';
@@ -54,7 +56,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
-    private orcidFieldDataService: OrcidFieldDataService,
+    private lookup: ExternalAuthorityLookupService,
   ) {
     super();
     this.options = fb.group({
@@ -127,8 +129,8 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     if (!val) {
       return of([]);
     }
-    if (/^(http|0|orcid\.org)/i.test(val)) {
-      return this.orcidFieldDataService.getDetails(val).pipe(
+    if (this.descriptor.looksLikeIdentifier(val)) {
+      return this.lookup.resolve(InputType.orcid, val).pipe(
         map((response) => {
           if (!response || response.found === false) {
             return [];
@@ -148,7 +150,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
         }),
       );
     } else {
-      return this.orcidFieldDataService.getData(val).pipe(
+      return this.lookup.search(InputType.orcid, val).pipe(
         map((response) => {
           if (!response || response.found === false) {
             return [];
@@ -255,8 +257,8 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     }
     this.loadingDetails = true;
     this.cdr.markForCheck();
-    this.orcidFieldDataService
-      .getDetails(selectedId)
+    this.lookup
+      .resolve<ResearcherDetails>(InputType.orcid, selectedId)
       .pipe(
         finalize(() => {
           this.loadingDetails = false;
@@ -277,5 +279,17 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
   setShowDetails = (setValue: boolean): void => {
     this.showDetails = setValue;
   };
+  /**
+   * Which authority this is.
+   *
+   * ORCID keeps its own component because of the researcher panel below — a
+   * document with its own shape, cached per term, that no other authority has.
+   * The identifier pattern and the message keys come off the shared descriptor
+   * even so, because those were the parts that drifted.
+   */
+  get descriptor() {
+    return authorityDescriptorFor(InputType.orcid)!;
+  }
+
   protected readonly JsonSchema = JsonSchema;
 }

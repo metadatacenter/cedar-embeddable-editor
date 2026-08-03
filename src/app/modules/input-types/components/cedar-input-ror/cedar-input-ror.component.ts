@@ -10,7 +10,9 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, switchMap, tap, finalize, catchError } from 'rxjs/operators';
 import { JsonSchema } from '../../../shared/models/json-schema.model';
-import { RorFieldDataService } from '../../../shared/service/ror-field-data.service';
+import { ExternalAuthorityLookupService } from '../../../shared/service/external-authority-lookup.service';
+import { authorityDescriptorFor } from '../../../shared/models/authority/authority-descriptor.model';
+import { InputType } from '../../../shared/models/input-type.model';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { RorSearchResponseItem } from '../../../shared/models/rest/ror-search/ror-search-response-item';
@@ -56,7 +58,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
-    private rorFieldDataService: RorFieldDataService,
+    private lookup: ExternalAuthorityLookupService,
     private messageHandlerService: MessageHandlerService,
   ) {
     super();
@@ -200,8 +202,8 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     if (this.getCompoundValue(this.selectedData) === val || val === undefined || val === '') {
       return of([]);
     }
-    if (/^(http|0|ror\.org)/i.test(val)) {
-      return this.rorFieldDataService.getDetails(val).pipe(
+    if (this.descriptor.looksLikeIdentifier(val)) {
+      return this.lookup.resolve(InputType.ror, val).pipe(
         map((response) => {
           if (!response || response.found === false) {
             return [];
@@ -219,7 +221,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
         }),
       );
     } else {
-      return this.rorFieldDataService.getData(val).pipe(
+      return this.lookup.search(InputType.ror, val).pipe(
         map((response) => {
           if (!response || response.found === false) {
             return [];
@@ -257,8 +259,8 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
       this.rorDetails = this.rorDetailsCache.get(selectedId);
       return;
     }
-    this.rorFieldDataService
-      .getDetails(selectedId)
+    this.lookup
+      .resolve<RorDetailResponse>(InputType.ror, selectedId)
       .pipe(
         catchError((error) => {
           console.error('Error retrieving details:', error);
@@ -280,5 +282,17 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
       this.cdr.markForCheck();
     }, 5000);
   }
+  /**
+   * Which authority this is.
+   *
+   * ROR keeps its own component for the organisation panel — geonames,
+   * external identifiers, relationships — which is a document unlike any other
+   * authority's. The identifier pattern and the message keys come off the shared
+   * descriptor, because those are the parts that drifted between the seven.
+   */
+  get descriptor() {
+    return authorityDescriptorFor(InputType.ror)!;
+  }
+
   protected readonly JsonSchema = JsonSchema;
 }
