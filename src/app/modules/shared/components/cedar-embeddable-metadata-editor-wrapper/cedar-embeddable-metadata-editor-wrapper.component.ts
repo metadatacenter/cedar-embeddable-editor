@@ -5,6 +5,7 @@ import { Subject } from 'rxjs';
 import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
 import { map, withLatestFrom } from 'rxjs/operators';
 import { HandlerContext } from '../../util/handler-context';
+import { InstanceSerializer } from '../../util/instance-serializer';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { TranslateService } from '@ngx-translate/core';
 import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
@@ -88,11 +89,32 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.doInitialize();
   }
 
+  /**
+   * The instance, as CEDAR JSON.
+   *
+   * Written by the CEDAR Model TypeScript Library rather than by CEE. The tree
+   * CEE keeps while the form is open is its own working copy — the widgets
+   * mutate it in place — but what leaves here is a CEDAR artifact, and what one
+   * of those looks like is the model's business.
+   */
   @Input() get currentMetadata(): object {
     if (this.handlerContext) {
-      return JSON.parse(JSON.stringify(this.handlerContext.dataContext.instanceFullData));
+      return InstanceSerializer.toJson(this.handlerContext.dataContext.instanceFullData);
     }
     return {};
+  }
+
+  /**
+   * The same instance, as CEDAR YAML.
+   *
+   * Free, once the instance is a model rather than a pile of JSON: a different
+   * writer, not a different code path.
+   */
+  @Input() get currentMetadataYaml(): string {
+    if (this.handlerContext) {
+      return InstanceSerializer.toYaml(this.handlerContext.dataContext.instanceFullData);
+    }
+    return '';
   }
 
   @Input() set templateObject(template: object) {
