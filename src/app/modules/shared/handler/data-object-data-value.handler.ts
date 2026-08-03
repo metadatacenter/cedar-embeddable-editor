@@ -13,6 +13,8 @@ import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { CedarModel } from '../models/cedar-model.model';
 import { DataObjectUtil } from '../util/data-object-util';
 import { InputType } from '../models/input-type.model';
+import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
+import { InstanceValueNode } from '../util/instance-value-node';
 import { MessageHandlerService } from '../service/message-handler.service';
 
 export class DataObjectDataValueHandler {
@@ -30,15 +32,9 @@ export class DataObjectDataValueHandler {
   private injectValue(target: InstanceExtractData, valueObject: object, fullPath: string[]): void {
     if (target === null || target === undefined) {
       this.messageHandlerService.error('Unable to set missing data target:' + fullPath);
-    } else {
-      if (Object.hasOwn(valueObject, JsonSchema.atValue)) {
-        target[JsonSchema.atValue] = valueObject[JsonSchema.atValue];
-      } else {
-        delete target[JsonSchema.atValue];
-        target[JsonSchema.atId] = valueObject[JsonSchema.atId];
-        target[JsonSchema.rdfsLabel] = valueObject[JsonSchema.rdfsLabel];
-      }
+      return;
     }
+    InstanceValueNode.overwrite(target, valueObject);
   }
 
   private injectArrayValue(target: InstanceExtractData, valueArray: object[]): void {
@@ -253,23 +249,15 @@ export class DataObjectDataValueHandler {
     value: string,
   ): void {
     const path = component.path;
-    const valueObject = {};
-    if (
-      component.basicInfo.inputType === InputType.link ||
-      component.basicInfo.inputType === InputType.orcid ||
-      component.basicInfo.inputType === InputType.ror ||
-      component.basicInfo.inputType === InputType.pfas ||
-      component.basicInfo.inputType === InputType.pmid ||
-      component.basicInfo.inputType === InputType.rrid ||
-      component.basicInfo.inputType === InputType.nihGrant ||
-      component.basicInfo.inputType === InputType.doi
-    ) {
-      if (value !== null) {
-        valueObject[JsonSchema.atId] = value;
-      }
-    } else {
-      valueObject[JsonSchema.atValue] = value;
-    }
+    const inputType = component.basicInfo.inputType;
+    const iriValued = inputType === InputType.link || EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType);
+    // An IRI-valued field cleared to null holds nothing at all, rather than an
+    // `@id` of null — there is no such IRI.
+    const valueObject = iriValued
+      ? value === null
+        ? {}
+        : InstanceValueNode.iriJson(value)
+      : InstanceValueNode.literalJson(value);
     this.setDataPathValueRecursively(
       dataContext.instanceExtractData,
       null,
@@ -304,9 +292,7 @@ export class DataObjectDataValueHandler {
     }
 
     for (const val of value) {
-      const obj = {};
-      obj[JsonSchema.atValue] = val;
-      valueArray.push(obj);
+      valueArray.push(InstanceValueNode.literalJson(val));
     }
 
     this.setDataPathValueRecursively(
@@ -408,12 +394,7 @@ export class DataObjectDataValueHandler {
     prefLabel: string,
   ): void {
     const path = component.path;
-    const valueObject = {};
-
-    if (atId) {
-      valueObject[JsonSchema.atId] = atId;
-      valueObject[JsonSchema.rdfsLabel] = prefLabel;
-    }
+    const valueObject = atId ? InstanceValueNode.iriJson(atId, prefLabel) : {};
 
     this.setDataPathValueRecursively(
       dataContext.instanceExtractData,

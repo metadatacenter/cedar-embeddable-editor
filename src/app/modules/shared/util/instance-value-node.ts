@@ -6,6 +6,7 @@ import {
   InstanceDataStringAtom,
   InstanceDataTypedAtom,
   JsonTemplateInstanceReader,
+  JsonTemplateInstanceWriter,
 } from 'cedar-model-typescript-library';
 
 /**
@@ -23,6 +24,9 @@ import {
  * the answer in the node's type. Asking it here means one rule instead of
  * three, and the same rule CEE now uses to read cardinality.
  */
+/** The keys a value node may carry, and the only ones `overwrite` disturbs. */
+const VALUE_KEYS = ['@value', '@id', 'rdfs:label', '@type', 'skos:notation'];
+
 export class InstanceValueNode {
   /**
    * True when this node is a field's value rather than an element.
@@ -127,6 +131,47 @@ export class InstanceValueNode {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  /**
+   * The JSON a literal value is stored as.
+   *
+   * The shapes are the library's, not CEE's: `writeValueNode` is the mirror of
+   * the `readValueNode` used to interpret them, so what CEE writes and what it
+   * reads back cannot drift apart.
+   */
+  static literalJson(value: any): object {
+    return JsonTemplateInstanceWriter.writeValueNode(new InstanceDataStringAtom(value)) as object;
+  }
+
+  /** The JSON an IRI value is stored as, with a label when there is one. */
+  static iriJson(iri: string, label?: string | null): object {
+    const atom =
+      label === undefined || label === null
+        ? new InstanceDataLinkAtom(iri)
+        : new InstanceDataControlledAtom(iri, label);
+    return JsonTemplateInstanceWriter.writeValueNode(atom) as object;
+  }
+
+  /**
+   * Overwrite `target` in place so it holds exactly `source`.
+   *
+   * In place because the widgets hold references into the instance, so a field's
+   * node is updated rather than replaced. "Exactly" because a node carrying both
+   * a leftover `@value` and a new `@id` reads back as the literal — the
+   * classifier checks `@value` first — so the value the user just chose would be
+   * invisible to the form and to the report while still sitting in the saved
+   * instance.
+   */
+  static overwrite(target: object, source: object): void {
+    for (const key of VALUE_KEYS) {
+      if (!Object.hasOwn(source, key)) {
+        delete target[key];
+      }
+    }
+    for (const key of Object.keys(source)) {
+      target[key] = source[key];
+    }
+  }
+
   private static emptyToNull(value: any): any {
     if (value === '' || value === undefined) {
       return null;
