@@ -11,6 +11,7 @@
              [matAutocompleteDisabled]="isEmpty"
              (focus)="inputFocused()"
              (input)="inputChanged($event)"
+             (blur)="onInputBlur()"
              [readonly]="readOnlyMode"
              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
       <mat-autocomplete #auto="matAutocomplete">
@@ -37,7 +38,7 @@
       </button>
       <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
       <mat-error tabindex="0" *ngIf="inputValueControl.getError('invalidPmid') && !readOnlyMode" class="mat-error align-start">
-        {{'Validation.PfasInvalid' | translate}}
+        {{'Validation.PmidInvalid' | translate}}
       </mat-error>
       <mat-hint *ngIf="justReverted">
         {{'Validation.PmidReverted' | translate}}

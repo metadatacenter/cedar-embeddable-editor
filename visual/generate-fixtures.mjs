@@ -272,3 +272,32 @@ const write = (name, template) => {
   tb = tb.addChild(dt, deploy(dt, 'sampled_at'));
   write('07-timezone', tb.build());
 }
+
+// 8. Every external authority type in one form.
+//
+//    These are search boxes: the control holds what the user is typing, never
+//    the IRI. That distinction is the source of a class of bug — a validator
+//    pointed at the control instead of the value put "not a valid RRID and has
+//    been cleared" under the field on the first keystroke — and it could not be
+//    reproduced against `04-controlled-terms`, which carries only ORCID and ROR.
+//    The other five widgets are copies of those two and drift from them.
+{
+  const types = [
+    ['contributor_orcid', () => CedarBuilders.extOrcidFieldBuilder()],
+    ['institution_ror', () => CedarBuilders.extRorFieldBuilder()],
+    ['chemical_pfas', () => CedarBuilders.extPfasFieldBuilder()],
+    ['citation_pmid', () => CedarBuilders.extPubmedFieldBuilder()],
+    ['resource_rrid', () => CedarBuilders.extRridFieldBuilder()],
+    ['award_nih', () => CedarBuilders.extNihGrantIdFieldBuilder()],
+    ['dataset_doi', () => CedarBuilders.extDoiFieldBuilder()],
+  ];
+
+  let tb = common(CedarBuilders.templateBuilder(), 'ExternalAuthority', 'templates').withSchemaDescription(
+    'Every external authority widget',
+  );
+  for (const [name, make] of types) {
+    const f = field(name, make);
+    tb = tb.addChild(f, deploy(f, name));
+  }
+  write('08-authority', tb.build());
+}

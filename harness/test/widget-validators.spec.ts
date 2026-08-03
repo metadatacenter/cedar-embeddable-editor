@@ -132,10 +132,21 @@ describe('legacy error keys still fire', () => {
   });
 
   /**
-   * PFAS, PubMed, RRID, NIH Grant and DOI each render a `mat-error` bound to a
-   * type-specific key that nothing ever set — copied from the ORCID/ROR pair
-   * without the code that raises it. Mapping `iriMalformed` onto those keys
-   * brings the existing markup to life.
+   * The external authority types, and the thing to be careful about with them.
+   *
+   * These tests say what happens when the *stored value* of such a field is not
+   * a well-formed IRI, which is a real question the data quality report asks of
+   * an injected instance. They say nothing about the widget, and an earlier
+   * version of this block was read as though they did: the adapter was wired
+   * into the seven authority widgets on the strength of it, and shipped an
+   * error on the first keystroke of every one of them.
+   *
+   * The gap is that those widgets' controls hold *search text*, not the value.
+   * `errorsFor(..., 'not-an-iri')` is a fair question about a value and a
+   * meaningless one about a half-typed name. Nothing here could have caught the
+   * difference, because nothing here knows what the control contains — which is
+   * why the behaviour is now covered in `visual/tests/render.spec.ts` against
+   * the real widgets in a browser.
    */
   it.each([
     ['ext-orcid', () => CedarBuilders.extOrcidFieldBuilder(), 'invalidOrcid'],
@@ -145,7 +156,7 @@ describe('legacy error keys still fire', () => {
     ['ext-rrid', () => CedarBuilders.extRridFieldBuilder(), 'invalidRrid'],
     ['ext-nih-grant-id', () => CedarBuilders.extNihGrantIdFieldBuilder(), 'invalidNihGrant'],
     ['ext-doi', () => CedarBuilders.extDoiFieldBuilder(), 'invalidDoi'],
-  ])('%s sets %s, which its template already listens for', (inputType, make, key) => {
+  ])('a stored %s value that is not an IRI reports %s', (inputType, make, key) => {
     const errors = errorsFor(kindOf(inputType, make), 'not-an-iri');
     expect(Object.keys(errors)).toContain(key);
     expect(Object.keys(errors)).toContain('iriMalformed');

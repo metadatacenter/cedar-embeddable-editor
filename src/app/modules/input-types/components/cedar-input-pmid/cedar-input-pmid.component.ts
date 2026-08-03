@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
+import { AuthoritySearchControl } from '../../../shared/util/authority-search-control';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { JsonSchema } from '../../../shared/models/json-schema.model';
@@ -13,7 +14,6 @@ import { PmidFieldDataService } from '../../../shared/service/pmid-field-data.se
 import { catchError, debounceTime, distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
 import { PmidDetailResponse } from '../../../shared/models/rest/pmid-detail/pmid-detail-response';
 import { TextFieldErrorStateMatcher } from '../cedar-input-pfas/cedar-input-pfas.component';
-import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 @Component({
   selector: 'app-cedar-input-pmid',
@@ -54,7 +54,14 @@ export class CedarInputPmidComponent extends CedarUIDirective implements OnInit,
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }
-    validators.push(CedarValidators.forComponent(this.component));
+    // Deliberately no `CedarValidators.forComponent` here. This control holds what
+    // the user is typing, and after a selection it holds "Label - https://iri";
+    // the IRI itself only ever reaches the model. Validating the control as
+    // though it were the field's value rejects every intermediate state, which
+    // put "not a valid ... and has been cleared" under the field on the first
+    // keystroke, over a field that had not been cleared. The stored IRI is
+    // checked by the data quality report, which sees the value rather than the
+    // search text; the discarded-edit error is raised explicitly on blur.
     this.inputValueControl = new FormControl(null, validators);
     this.options = this.fb.group({
       inputValue: this.inputValueControl,
@@ -131,7 +138,31 @@ export class CedarInputPmidComponent extends CedarUIDirective implements OnInit,
   clearValue(): void {
     this.selectedData = null;
     this.inputValueControl.setValue(null);
+    this.inputValueControl.setErrors(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
+  }
+
+  /**
+   * Reconcile the box with the value behind it when the user leaves.
+   *
+   * This widget had no blur handler at all, so free text stayed in the field
+   * over an instance that held nothing — it looked filled and read back blank.
+   * The `mat-error` in the template was decoration over a code path that did
+   * not exist. See `AuthoritySearchControl`.
+   */
+  onInputBlur(): void {
+    if (this.readOnlyMode) {
+      return;
+    }
+    const outcome = AuthoritySearchControl.reconcileOnBlur(
+      this.inputValueControl,
+      this.getCompoundValue(this.selectedData),
+      'invalidPmid',
+    );
+    if (outcome === 'cleared') {
+      this.selectedData = null;
+      this.handlerContext.changeControlledValue(this.component, null, null);
+    }
   }
   private setValueUIAndModel(atId: string, prefLabel: string): void {
     this.inputValueControl.setValue(prefLabel);

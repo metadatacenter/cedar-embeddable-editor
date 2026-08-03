@@ -11,6 +11,7 @@
              [matAutocompleteDisabled]="isEmpty"
              (focus)="inputFocused()"
              (input)="inputChanged($event)"
+             (blur)="onInputBlur()"
              [readonly]="readOnlyMode"
              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
       <mat-autocomplete #auto="matAutocomplete">

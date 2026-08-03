@@ -9,6 +9,7 @@
              [errorStateMatcher]="errorStateMatcher"
              [matAutocomplete]="auto"
              (input)="inputChanged($event)"
+             (blur)="onInputBlur()"
              [readonly]="readOnlyMode"
              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
       <mat-autocomplete #auto="matAutocomplete">

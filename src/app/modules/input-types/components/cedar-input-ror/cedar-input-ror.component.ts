@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { AuthoritySearchControl } from '../../../shared/util/authority-search-control';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
@@ -14,7 +15,6 @@ import { MessageHandlerService } from '../../../shared/service/message-handler.s
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { RorSearchResponseItem } from '../../../shared/models/rest/ror-search/ror-search-response-item';
 import { RorDetailResponse } from '../../../shared/models/rest/ror-detail/ror-detail-response';
-import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -69,7 +69,14 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }
-    validators.push(CedarValidators.forComponent(this.component));
+    // Deliberately no `CedarValidators.forComponent` here. This control holds what
+    // the user is typing, and after a selection it holds "Label - https://iri";
+    // the IRI itself only ever reaches the model. Validating the control as
+    // though it were the field's value rejects every intermediate state, which
+    // put "not a valid ... and has been cleared" under the field on the first
+    // keystroke, over a field that had not been cleared. The stored IRI is
+    // checked by the data quality report, which sees the value rather than the
+    // search text; the discarded-edit error is raised explicitly on blur.
     this.inputValueControl = new FormControl(null, validators);
     if (this.component?.valueInfo?.defaultValue) {
       const defaultAtId = this.component.valueInfo.defaultValue[JsonSchema.atId] || null;
@@ -145,6 +152,30 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     this.getDetails();
     this.hasSearched = false;
   }
+  /**
+   * Reconcile the box with the value behind it when the user leaves.
+   *
+   * ROR already had `clearValue(markError)` and `showRevertHint` — copied from
+   * ORCID — but nothing ever called them, because the template never bound a
+   * blur event. The machinery was complete and dead, so free text stayed in the
+   * field over an instance holding nothing. See `AuthoritySearchControl`.
+   */
+  onInputBlur(): void {
+    if (this.readOnlyMode || this.selectionInProgress) {
+      return;
+    }
+    const outcome = AuthoritySearchControl.reconcileOnBlur(
+      this.inputValueControl,
+      this.getCompoundValue(this.selectedData),
+      'invalidRor',
+    );
+    if (outcome === 'reverted') {
+      this.showRevertHint();
+    } else if (outcome === 'cleared') {
+      this.clearValue(true);
+    }
+  }
+
   clearValue(markError: boolean = false): void {
     this.selectedData = null;
     this.inputValueControl.setValue('', { emitEvent: true });

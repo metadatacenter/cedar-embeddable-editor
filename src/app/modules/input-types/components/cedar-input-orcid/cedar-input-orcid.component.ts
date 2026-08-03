@@ -13,7 +13,6 @@ import { OrcidFieldDataService } from '../../../shared/service/orcid-field-data.
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { OrcidSearchResponseItem } from '../../../shared/models/rest/orcid-search/orcid-search-response-item';
 import { ResearcherDetails } from '../../../shared/models/rest/orcid-detail/orcid-detail-person';
-import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -74,7 +73,14 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }
-    validators.push(CedarValidators.forComponent(this.component));
+    // Deliberately no `CedarValidators.forComponent` here. This control holds what
+    // the user is typing, and after a selection it holds "Label - https://iri";
+    // the IRI itself only ever reaches the model. Validating the control as
+    // though it were the field's value rejects every intermediate state, which
+    // put "not a valid ... and has been cleared" under the field on the first
+    // keystroke, over a field that had not been cleared. The stored IRI is
+    // checked by the data quality report, which sees the value rather than the
+    // search text; the discarded-edit error is raised explicitly on blur.
     this.inputValueControl = new FormControl(null, validators);
     if (this.component?.valueInfo?.defaultValue) {
       const defaultAtId = this.component.valueInfo.defaultValue[JsonSchema.atId] || null;

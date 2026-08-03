@@ -8,9 +8,10 @@
     "bundle": "cat ../dist/cedar-embeddable-editor/runtime.js ../dist/cedar-embeddable-editor/polyfills.js ../dist/cedar-embeddable-editor/main.js > public/cedar-embeddable-editor.js",
     "fixtures": "node generate-fixtures.mjs && rm -rf public/fixtures && cp -r fixtures public/fixtures",
     "prepare:all": "npm run bundle && npm run fixtures",
-    "test": "playwright test",
-    "update": "playwright test --update-snapshots",
-    "report": "playwright show-report"
+    "test": "node check-bundle-fresh.mjs && playwright test",
+    "update": "node check-bundle-fresh.mjs && playwright test --update-snapshots",
+    "report": "playwright show-report",
+    "check-fresh": "node check-bundle-fresh.mjs"
   },
   "dependencies": {
     "cedar-model-typescript-library": "file:../../cedar-model-typescript-library/dist"

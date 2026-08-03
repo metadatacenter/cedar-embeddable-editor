@@ -22,6 +22,7 @@ const FIXTURES = [
   ['05-static-paged', 'static content and page breaks'],
   ['06-validation', 'fields that can show validation errors'],
   ['07-timezone', 'temporal field with the timezone picker'],
+  ['08-authority', 'every external authority widget'],
 ] as const;
 
 /**
@@ -222,4 +223,133 @@ test.describe('config presets', () => {
     await open(page, '02-choices', 'readonly');
     await expect(page).toHaveScreenshot('preset-readonly-choices.png', { fullPage: true });
   });
+});
+
+/**
+ * External authority fields — ORCID, ROR, PFAS, PubMed, RRID, NIH Grant, DOI.
+ *
+ * These are search boxes, not value boxes. The control holds whatever the user
+ * is typing, and after a selection it holds `"Label - https://iri"`; the IRI
+ * itself only ever reaches the model. A validator that checks the control's
+ * contents for a well-formed IRI therefore rejects every intermediate state,
+ * which is how "Entered value is not a valid RRID and has been cleared."
+ * came to appear on the first keystroke — over a field that had not been
+ * cleared, above an autocomplete that was working.
+ *
+ * No screenshot: this asserts behaviour rather than pixels, and a baseline
+ * image would make it fail for unrelated styling changes.
+ */
+test.describe('external authority fields', () => {
+  test('typing does not raise an error', async ({ page }) => {
+    await open(page, '04-controlled-terms');
+
+    const orcid = page.locator('input[aria-label="contributor"]');
+    await expect(orcid).toBeVisible();
+    await orcid.pressSequentially('dav', { delay: 60 });
+    await page.waitForTimeout(600);
+
+    await expect(
+      page.locator('mat-error'),
+      'a partly typed search term is not an invalid value',
+    ).toHaveCount(0);
+  });
+
+  test('the character typed is not swallowed', async ({ page }) => {
+    await open(page, '04-controlled-terms');
+
+    const orcid = page.locator('input[aria-label="contributor"]');
+    await orcid.pressSequentially('dav', { delay: 60 });
+    await page.waitForTimeout(600);
+
+    await expect(orcid).toHaveValue('dav');
+  });
+
+  /**
+   * The message is real, at the right moment: free text that names no term is
+   * discarded on blur, and *then* the field says so.
+   */
+  test('free text is reported once it has actually been discarded', async ({ page }) => {
+    await open(page, '04-controlled-terms');
+
+    const orcid = page.locator('input[aria-label="contributor"]');
+    await orcid.pressSequentially('not a real researcher', { delay: 20 });
+    await page.waitForTimeout(600);
+    await orcid.blur();
+    await page.waitForTimeout(600);
+
+    await expect(orcid).toHaveValue('');
+    await expect(page.locator('mat-error')).toHaveCount(1);
+  });
+});
+
+/**
+ * All seven authority widgets, on the one fixture that carries them.
+ *
+ * `04-controlled-terms` has only ORCID and ROR, and the other five are copies
+ * of those two that had drifted — which is why a defect present in six of them
+ * went unseen. Parameterised so a new authority type is covered by adding one
+ * line to `generate-fixtures.mjs`.
+ */
+const AUTHORITY_FIELDS = [
+  ['contributor_orcid', 'ORCID'],
+  ['institution_ror', 'ROR'],
+  ['chemical_pfas', 'PFAS'],
+  ['citation_pmid', 'PubMed'],
+  ['resource_rrid', 'RRID'],
+  ['award_nih', 'NIH Grant'],
+  ['dataset_doi', 'DOI'],
+] as const;
+
+test.describe('every external authority widget', () => {
+  for (const [name, label] of AUTHORITY_FIELDS) {
+    /**
+     * REGRESSION: a validator pointed at the search control instead of the
+     * stored value rejected every intermediate state, so the field said "not a
+     * valid X and has been cleared" on the first keystroke — over a field that
+     * had not been cleared, above a working autocomplete.
+     */
+    test(`${label}: typing raises no error and keeps the text`, async ({ page }) => {
+      await open(page, '08-authority');
+
+      const input = page.locator(`input[aria-label="${name}"]`);
+      await expect(input).toBeVisible();
+      await input.pressSequentially('dav', { delay: 40 });
+      await page.waitForTimeout(500);
+
+      await expect(page.locator('mat-error')).toHaveCount(0);
+      await expect(input).toHaveValue('dav');
+    });
+
+    /**
+     * REGRESSION: six of the seven left free text in the box on blur, over an
+     * instance holding nothing — the field looked filled and read back blank.
+     * ORCID was the only one that reconciled; ROR had the machinery but never
+     * bound it to a blur event, and the other five had no blur handler at all.
+     */
+    test(`${label}: free text is discarded on blur, and said so`, async ({ page }) => {
+      await open(page, '08-authority');
+
+      const input = page.locator(`input[aria-label="${name}"]`);
+      await input.pressSequentially('zzz nonsense', { delay: 15 });
+      await page.waitForTimeout(500);
+      await input.blur();
+      await page.waitForTimeout(600);
+
+      await expect(input, 'text naming no term cannot be saved, so it must not linger').toHaveValue('');
+      await expect(page.locator('mat-error')).toHaveCount(1);
+    });
+
+    /** Each widget's message names its own authority. */
+    test(`${label}: the message names the right authority`, async ({ page }) => {
+      await open(page, '08-authority');
+
+      const input = page.locator(`input[aria-label="${name}"]`);
+      await input.pressSequentially('zzz nonsense', { delay: 15 });
+      await page.waitForTimeout(500);
+      await input.blur();
+      await page.waitForTimeout(600);
+
+      await expect(page.locator('mat-error')).toContainText(label);
+    });
+  }
 });

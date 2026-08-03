@@ -13,6 +13,7 @@ import {
   finalize,
 } from 'rxjs/operators';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
+import { AuthoritySearchControl } from '../../../shared/util/authority-search-control';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
@@ -21,7 +22,6 @@ import { DoiFieldDataService } from '../../../shared/service/doi-field-data.serv
 import { DoiSearchResponseItem } from '../../../shared/models/rest/doi-search/doi-search-response-item';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { DoiDetailResponse } from '../../../shared/models/rest/doi-detail/doi-detail-response';
-import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -68,7 +68,14 @@ export class CedarInputDoiComponent extends CedarUIDirective implements OnInit, 
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }
-    validators.push(CedarValidators.forComponent(this.component));
+    // Deliberately no `CedarValidators.forComponent` here. This control holds what
+    // the user is typing, and after a selection it holds "Label - https://iri";
+    // the IRI itself only ever reaches the model. Validating the control as
+    // though it were the field's value rejects every intermediate state, which
+    // put "not a valid ... and has been cleared" under the field on the first
+    // keystroke, over a field that had not been cleared. The stored IRI is
+    // checked by the data quality report, which sees the value rather than the
+    // search text; the discarded-edit error is raised explicitly on blur.
     this.inputValueControl = new FormControl(null, validators);
     this.options = this.fb.group({
       inputValue: this.inputValueControl,
@@ -144,7 +151,31 @@ export class CedarInputDoiComponent extends CedarUIDirective implements OnInit, 
   clearValue(): void {
     this.selectedData = null;
     this.inputValueControl.setValue(null);
+    this.inputValueControl.setErrors(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
+  }
+
+  /**
+   * Reconcile the box with the value behind it when the user leaves.
+   *
+   * This widget had no blur handler at all, so free text stayed in the field
+   * over an instance that held nothing — it looked filled and read back blank.
+   * The `mat-error` in the template was decoration over a code path that did
+   * not exist. See `AuthoritySearchControl`.
+   */
+  onInputBlur(): void {
+    if (this.readOnlyMode) {
+      return;
+    }
+    const outcome = AuthoritySearchControl.reconcileOnBlur(
+      this.inputValueControl,
+      this.getCompoundValue(this.selectedData),
+      'invalidDoi',
+    );
+    if (outcome === 'cleared') {
+      this.selectedData = null;
+      this.handlerContext.changeControlledValue(this.component, null, null);
+    }
   }
   private setValueUIAndModel(atId: string, prefLabel: string): void {
     this.inputValueControl.setValue(prefLabel);
