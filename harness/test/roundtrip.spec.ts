@@ -124,7 +124,10 @@ describe('the two instance trees stay in agreement', () => {
       if (o && typeof o === 'object') {
         const out: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(o)) {
-          if (k === '@context' || k === '@id' || k === '@type') continue;
+          // Envelope, not data: only the full tree carries it. `schema:isBasedOn`
+          // names the template the instance came from and belongs with the
+          // rest of the envelope the extract copy does without.
+          if (k === '@context' || k === '@id' || k === '@type' || k === 'schema:isBasedOn') continue;
           out[k] = stripContext(v);
         }
         return out;
