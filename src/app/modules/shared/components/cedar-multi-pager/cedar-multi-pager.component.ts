@@ -5,7 +5,8 @@ import { ActiveComponentRegistryService } from '../../service/active-component-r
 import { MultiInstanceObjectInfo } from '../../models/info/multi-instance-object-info.model';
 import { HandlerContext } from '../../util/handler-context';
 import { ComponentTypeHandler } from '../../handler/component-type.handler';
-import { JsonSchema } from '../../models/json-schema.model';
+import { InstanceValueNode } from '../../util/instance-value-node';
+import { valueIsIri } from '../../models/ext-auth-categories.model';
 import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
 import { InputType } from '../../models/input-type.model';
 import { TranslateService } from '@ngx-translate/core';
@@ -77,6 +78,18 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
     this.multiInstanceValue = this.getMultiInstanceDataValueInfo();
   }
 
+  /**
+   * The "All values" summary drawn above a paged field.
+   *
+   * What each occurrence holds is asked of `InstanceValueNode`, which is the
+   * one place that answers it. This used to run its own ladder — `@value`, then
+   * `@id` if the field is a link, then `rdfs:label` — and that ladder had no
+   * branch for the external authority types, which hold their value in `@id`
+   * exactly as a link does. A filled ORCID or ROR occurrence fell through to
+   * `rdfs:label`, found nothing, and drew "null" over a field the user had just
+   * filled in. The same omission in the quality report made a required ORCID
+   * field impossible to satisfy; it was fixed there and missed here.
+   */
   getMultiInstanceDataValueInfo(): string {
     if (!ComponentTypeHandler.isField(this.component)) {
       return '';
@@ -86,6 +99,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
     let info = '';
     const infoArray = [];
     const inputType = (this.component as MultiFieldComponent).basicInfo.inputType;
+    const iriValued = valueIsIri(inputType);
     if (nodeInfo !== null && nodeInfo !== undefined) {
       (nodeInfo as Array<any>).forEach((fieldName, index) => {
         const numStr =
@@ -96,26 +110,16 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
           (index + 1) +
           '</span> ';
 
-        if (typeof fieldName === 'string' && fieldName !== '') {
-          // attribute-value type input
-          infoArray.push(
-            numStr + fieldName + '=' + this.shortValue(inputType, parentNodeInfo[fieldName][JsonSchema.atValue]),
-          );
-        } else if (typeof fieldName === 'object') {
-          // all other type inputs
-          if (Object.hasOwn(fieldName, JsonSchema.atValue)) {
-            infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.atValue]) || 'null'));
-          } else if (Object.hasOwn(fieldName, JsonSchema.atId) && inputType === InputType.link) {
-            // link field
-            infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.atId]) || 'null'));
-          } else if (Object.hasOwn(fieldName, JsonSchema.atId)) {
-            // controlled field
-            infoArray.push(numStr + (this.shortValue(inputType, fieldName[JsonSchema.rdfsLabel]) || 'null'));
-          } else {
-            // empty controlled field
-            infoArray.push(numStr + 'null');
-          }
+        // An attribute-value occurrence *is* its own name; the value it names
+        // sits on the parent under that name. Every other kind of occurrence is
+        // the value node itself.
+        const isAttributeValue = typeof fieldName === 'string' && fieldName !== '';
+        if (!isAttributeValue && typeof fieldName !== 'object') {
+          return;
         }
+        const node = isAttributeValue ? parentNodeInfo[fieldName] : fieldName;
+        const shown = this.shortValue(inputType, InstanceValueNode.plainValue(node, iriValued));
+        infoArray.push(numStr + (isAttributeValue ? fieldName + '=' : '') + (shown ?? 'null'));
       });
     } else {
       this.messageHandlerService.error('Missing data in instance:' + this.component.path);

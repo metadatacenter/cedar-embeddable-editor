@@ -12,8 +12,7 @@ import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { CedarModel } from '../models/cedar-model.model';
 import { DataObjectUtil } from '../util/data-object-util';
-import { InputType } from '../models/input-type.model';
-import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
+import { valueIsIri } from '../models/ext-auth-categories.model';
 import { InstanceValueNode } from '../util/instance-value-node';
 import { MessageHandlerService } from '../service/message-handler.service';
 
@@ -250,7 +249,7 @@ export class DataObjectDataValueHandler {
   ): void {
     const path = component.path;
     const inputType = component.basicInfo.inputType;
-    const iriValued = inputType === InputType.link || EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType);
+    const iriValued = valueIsIri(inputType);
     // An IRI-valued field cleared to null holds nothing at all, rather than an
     // `@id` of null — there is no such IRI.
     const valueObject = iriValued

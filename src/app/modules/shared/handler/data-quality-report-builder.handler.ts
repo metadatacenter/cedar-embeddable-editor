@@ -14,8 +14,7 @@ import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
 import { HandlerContext } from '../util/handler-context';
 import { InstanceValueNode } from '../util/instance-value-node';
-import { InputType } from '../models/input-type.model';
-import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
+import { valueIsIri } from '../models/ext-auth-categories.model';
 import { FieldValueValidator } from '../validation/field-value-validator';
 import { ValidationCode, ValidationProblem } from '../validation/validation-problem.model';
 
@@ -334,23 +333,8 @@ export class DataQualityReportBuilderHandler {
     return InstanceValueNode.plainValue(dataObject, this.isIriValued(component));
   }
 
-  /**
-   * True when the field stores its value as a bare `@id` rather than `@value`.
-   *
-   * Links and external authority fields (ORCID, ROR, PFAS, PubMed, RRID, NIH
-   * Grant, DOI) are written by `changeValue` as `{'@id': <iri>}` with no
-   * `@value`. `DataObjectUtil.getEmptyValueWrapper` already makes the same
-   * distinction using the same set, so this keeps the quality report in
-   * agreement with the instance builder about which fields carry an IRI.
-   *
-   * Without it, every non-link IRI-valued field falls through to the
-   * controlled-term branch below and is read from `rdfs:label`, which these
-   * fields do not have — so a filled required field reports as empty and the
-   * instance can never become valid.
-   */
   private static isIriValued(component: SingleFieldComponent | MultiFieldComponent): boolean {
-    const inputType = component.basicInfo.inputType;
-    return inputType === InputType.link || EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType);
+    return valueIsIri(component.basicInfo.inputType);
   }
 
 }
