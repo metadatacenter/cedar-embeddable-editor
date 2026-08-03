@@ -347,9 +347,11 @@ describe('controlled term structure', () => {
    * The instance CEE emitted never carried that label either way. So this
    * costs a message, not data.
    *
-   * The gap is that the discard is silent — the library reports no error for
-   * it, and CEE no longer has a place to notice. Recorded in CEE-ROADMAP.md
-   * as item 6 under What needs doing.
+   * The discard is no longer silent. `InstanceDataEmptyAtom` carries what the
+   * library dropped, and `InstanceDeserializer` reports it when an instance is
+   * injected — so the user is told which field lost what, instead of being shown
+   * a blank box. See `instance-deserialization.spec.ts`. What remains gone is
+   * the per-field `mat-error`; the message goes to the message handler.
    *
    * The other two malformed shapes still report: an `@id` with no label, and a
    * malformed `@id`, both of which survive parsing intact.

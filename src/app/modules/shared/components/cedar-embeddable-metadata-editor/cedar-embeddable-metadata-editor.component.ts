@@ -464,7 +464,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
    * and got it wrong for any IRI carrying a `@type`. See `InstanceDeserializer`.
    */
   setDataContextWithInstance(instanceObject): void {
-    const { full, extract } = InstanceDeserializer.read(instanceObject);
+    const { full, extract } = InstanceDeserializer.read(instanceObject, (message) =>
+      this.messageHandlerService.error(message),
+    );
     const dataContext = this.handlerContext.dataContext;
     dataContext.instanceFullData = full;
     dataContext.instanceExtractData = extract;

@@ -4,6 +4,7 @@ import {
   CedarWriters,
   InstanceDataAtomType,
   InstanceDataAttributeValueField,
+  InstanceDataEmptyAtom,
   InstanceDataContainer,
   JsonTemplateInstanceWriter,
   TemplateInstance,
@@ -40,17 +41,72 @@ import { InstanceFullData } from '../models/instance-full-data.model';
  * it is that no code here decides what a node means by looking at its keys.
  */
 export class InstanceDeserializer {
-  /** Read an injected instance into the two trees CEE edits. */
-  static read(instanceJson: object): { full: InstanceFullData; extract: InstanceExtractData } {
+  /**
+   * Read an injected instance into the two trees CEE edits.
+   *
+   * `report`, when given, is told about anything the read threw away. Optional
+   * because several callers only want the trees, and because a reader that
+   * *can* report is the point — a silent discard is the thing being fixed.
+   */
+  static read(
+    instanceJson: object,
+    report?: (message: string) => void,
+  ): { full: InstanceFullData; extract: InstanceExtractData } {
     const instance = CedarReaders.json()
       .getFebruary2024()
       .getTemplateInstanceReader()
       .readFromObject(instanceJson as any, undefined as never).instance;
 
+    if (report) {
+      InstanceDeserializer.reportDiscarded(instance.dataContainer, [], report);
+    }
+
     return {
       full: InstanceDeserializer.writeFull(instance),
       extract: InstanceDeserializer.container(instance.dataContainer) as InstanceExtractData,
     };
+  }
+
+  /**
+   * Tell the caller about content the read could not make a value out of.
+   *
+   * A CEDAR value is a literal or an IRI. `{"rdfs:label": "Some Term"}` is
+   * neither — a label with nothing to label — so the library reads it as empty,
+   * and the field shows blank. That much is correct. Doing it in silence was
+   * not: a host page could inject a half-written controlled term, get an empty
+   * field back, and have no way to find out why.
+   *
+   * The library now keeps what it dropped on the atom, which is what makes this
+   * possible without CEE re-inspecting the JSON it just handed over.
+   */
+  private static reportDiscarded(
+    container: InstanceDataContainer,
+    parentPath: string[],
+    report: (message: string) => void,
+  ): void {
+    for (const key of Object.keys(container.values)) {
+      const path = [...parentPath, key];
+      InstanceDeserializer.reportNode(container.values[key], path, report);
+    }
+  }
+
+  private static reportNode(node: InstanceDataAtomType, path: string[], report: (message: string) => void): void {
+    if (Array.isArray(node)) {
+      (node as InstanceDataAtomType[]).forEach((item, i) =>
+        InstanceDeserializer.reportNode(item, [...path.slice(0, -1), `${path[path.length - 1]}[${i}]`], report),
+      );
+      return;
+    }
+    if (node instanceof InstanceDataContainer) {
+      InstanceDeserializer.reportDiscarded(node, path, report);
+      return;
+    }
+    if (node instanceof InstanceDataEmptyAtom && node.hasDiscardedContent()) {
+      report(
+        `The instance has no usable value for "${path.join(' > ')}": ${JSON.stringify(node.discarded)} is neither a ` +
+          'literal nor an IRI, so the field is empty. A label with no @id names no term.',
+      );
+    }
   }
 
   private static writeFull(instance: TemplateInstance): InstanceFullData {

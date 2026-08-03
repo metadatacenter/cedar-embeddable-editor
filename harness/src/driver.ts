@@ -97,7 +97,7 @@ export class CeeDriver {
       // Exactly what CedarEmbeddableMetadataEditorComponent
       // .setDataContextWithInstance does: read once through the model library
       // and project the two trees out of it.
-      const { full, extract } = InstanceDeserializer.read(opts.instance);
+      const { full, extract } = InstanceDeserializer.read(opts.instance, (m) => this.messages.error(m));
       this.dataContext.instanceFullData = full;
       this.dataContext.instanceExtractData = extract;
     }

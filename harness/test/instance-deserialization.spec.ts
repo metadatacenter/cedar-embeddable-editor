@@ -265,3 +265,70 @@ describe('an attribute-value field comes back in two halves', () => {
     expect(extract._av).toEqual([]);
   });
 });
+
+describe('content the read cannot make a value of', () => {
+  /**
+   * BEHAVIOUR CHANGE. A CEDAR value is a literal or an IRI, so
+   * `{"rdfs:label": "Some Term"}` is neither — a label with nothing to label.
+   * The library reads it as empty and the field shows blank, which is right.
+   * Doing it in silence was not: a host page could inject a half-written
+   * controlled term, get an empty field back, and have no way to find out why.
+   * Nothing in the parsing result mentioned it either.
+   *
+   * `InstanceDataEmptyAtom` now carries what was dropped, so CEE can say what
+   * happened without re-inspecting the JSON it just handed to the library.
+   */
+  const envelope = {
+    '@context': {},
+    '@id': 'https://repo.metadatacenter.org/template-instances/fixture',
+    'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/fixture',
+    'schema:name': 'A fixture instance',
+    'schema:description': '',
+  };
+
+  const messagesFor = (instance: object): string[] => {
+    const said: string[] = [];
+    InstanceDeserializer.read(instance, (m) => said.push(m));
+    return said;
+  };
+
+  it('reports a label with no @id, naming the field', () => {
+    const said = messagesFor({ ...envelope, _f: { 'rdfs:label': 'Some Term' } });
+    expect(said).toHaveLength(1);
+    expect(said[0]).toContain('_f');
+    expect(said[0]).toContain('Some Term');
+  });
+
+  it('reports one inside an element, with the path to it', () => {
+    const said = messagesFor({
+      ...envelope,
+      _el: { '@context': {}, _child: { 'rdfs:label': 'Some Term' } },
+    });
+    expect(said).toHaveLength(1);
+    expect(said[0]).toContain('_el > _child');
+  });
+
+  it('reports each occurrence of a multi field separately', () => {
+    const said = messagesFor({
+      ...envelope,
+      _f: [{ 'rdfs:label': 'One' }, { '@value': 'fine' }, { 'rdfs:label': 'Three' }],
+    });
+    expect(said).toHaveLength(2);
+    expect(said[0]).toContain('_f[0]');
+    expect(said[1]).toContain('_f[2]');
+  });
+
+  it.each([
+    ['a literal', { '@value': 'text' }],
+    ['a link', { '@id': 'https://x/1' }],
+    ['a controlled term', { '@id': 'https://x/1', 'rdfs:label': 'One' }],
+    ['an empty field', {}],
+    ['an explicit null', { '@value': null }],
+  ])('says nothing about %s', (_label, node) => {
+    expect(messagesFor({ ...envelope, _f: node })).toEqual([]);
+  });
+
+  it('says nothing when no reporter is given', () => {
+    expect(() => InstanceDeserializer.read({ ...envelope, _f: { 'rdfs:label': 'x' } })).not.toThrow();
+  });
+});
