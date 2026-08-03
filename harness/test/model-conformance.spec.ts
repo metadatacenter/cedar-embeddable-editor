@@ -17,8 +17,9 @@
  * spec" is a property no amount of internal consistency implies.
  *
  * Three templates still fail, listed below with what is wrong. They are recorded
- * rather than skipped so the count cannot quietly grow, and each names a real
- * defect rather than a quirk of the fixture.
+ * rather than skipped so the count cannot quietly grow — and all three are now
+ * defects in the templates themselves rather than in CEE, which is worth stating
+ * plainly rather than leaving the number to imply otherwise.
  */
 import { describe, expect, it } from 'vitest';
 import Ajv from 'ajv-draft-04';
@@ -34,8 +35,13 @@ import { CeeDriver } from '../src/driver';
  *   was never saved — so no instance of it can carry the `schema:isBasedOn` the
  *   schema requires. CEE reports the template when it reads it.
  * - **003** is malformed in its own right; its schema will not even compile.
- * - **029** writes `{'@value': …}` into a field whose schema allows only `@id`
- *   and `rdfs:label`, so CEE is not recognising it as IRI-valued.
+ * - **029** contradicts itself. Four of its fields declare `_ui.inputType: list`
+ *   with a set of plain `literals`, and declare their instance schema as
+ *   `{@type, @id, rdfs:label}` with `additionalProperties: false` — so each
+ *   offers only literals to choose from and permits only an IRI to be stored.
+ *   No instance can satisfy them, whatever an editor writes. Not CEE's defect;
+ *   the evidence is in `template-consistency.spec.ts`, which checks every choice
+ *   field in the corpus and finds these four the only ones of their kind.
  *
  * **025**, **028** and **034** used to be here, along with half of 029's problem.
  * A field marked `_ui.hidden` was dropped from the component tree, and a
@@ -45,7 +51,7 @@ import { CeeDriver } from '../src/driver';
 const KNOWN_NON_CONFORMANT: Record<string, string> = {
   '001': 'template has no @id, so no instance of it can name it',
   '003': 'template is malformed; its schema does not compile',
-  '029': 'a controlled field is written as @value',
+  '029': 'template contradicts itself: literal choices, IRI-only schema',
 };
 
 const templates = corpusAvailable() ? corpusTemplates() : [];
