@@ -1,6 +1,7 @@
 import { MultiComponent } from '../models/component/multi-component.model';
 import { DataContext } from './data-context';
 import { MultiInstanceObjectHandler } from '../handler/multi-instance-object.handler';
+import { OccurrenceSelectors } from '../handler/occurrence-selector';
 import { DataObjectBuilderHandler } from '../handler/data-object-builder.handler';
 import { FieldComponent } from '../models/component/field-component.model';
 import { DataObjectDataValueHandler } from '../handler/data-object-data-value.handler';
@@ -132,22 +133,59 @@ export class HandlerContext {
     return true;
   }
 
+  /**
+   * The node at this path, in whichever occurrences the user is looking at.
+   *
+   * Cursor-dependent, and now says so: two calls with a page turn between them
+   * return different nodes. That is what the widgets and the pager want — they
+   * act on the visible form — but it makes every caller order-dependent on a
+   * mutation, so anything that wants a *particular* occurrence should say which
+   * with `getDataObjectNodeAt`.
+   */
   getDataObjectNodeByPath(path: string[]): InstanceExtractData {
     return this.dataObjectManipulationService.getDataPathNodeRecursively(
       this.dataContext.instanceExtractData,
       this.dataContext.templateRepresentation,
       path,
-      this.multiInstanceObjectService,
+      OccurrenceSelectors.fromCursor(this.multiInstanceObjectService),
     );
   }
 
+  /**
+   * The node at this path, in the occurrences named — outermost multi ancestor
+   * first.
+   *
+   * The same walk with the cursor taken out of it. Same arguments, same node,
+   * whatever the user has since paged to.
+   */
+  getDataObjectNodeAt(path: string[], occurrences: ReadonlyArray<number>): InstanceExtractData {
+    return this.dataObjectManipulationService.getDataPathNodeRecursively(
+      this.dataContext.instanceExtractData,
+      this.dataContext.templateRepresentation,
+      path,
+      OccurrenceSelectors.at(occurrences),
+    );
+  }
+
+  /** The enclosing object at this path, in the occurrences on screen. */
   getParentDataObjectNodeByPath(path: string[]): InstanceExtractData {
     return this.dataObjectManipulationService.getParentDataPathNodeRecursively(
       this.dataContext.instanceExtractData,
       null,
       this.dataContext.templateRepresentation,
       path,
-      this.multiInstanceObjectService,
+      OccurrenceSelectors.fromCursor(this.multiInstanceObjectService),
+    );
+  }
+
+  /** The enclosing object at this path, in the occurrences named. */
+  getParentDataObjectNodeAt(path: string[], occurrences: ReadonlyArray<number>): InstanceExtractData {
+    return this.dataObjectManipulationService.getParentDataPathNodeRecursively(
+      this.dataContext.instanceExtractData,
+      null,
+      this.dataContext.templateRepresentation,
+      path,
+      OccurrenceSelectors.at(occurrences),
     );
   }
 

@@ -7,6 +7,7 @@ import { CedarTemplate } from '../models/template/cedar-template.model';
 import { MultiElementComponent } from '../models/element/multi-element-component.model';
 import { DataContext } from '../util/data-context';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
+import { OccurrenceSelector, OccurrenceSelectors } from './occurrence-selector';
 import { DataObjectBuilderHandler } from './data-object-builder.handler';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { CedarInputTemplate } from '../models/cedar-input-template.model';
@@ -17,11 +18,21 @@ import { MessageHandlerService } from '../service/message-handler.service';
 import { JsonSchema } from '../models/json-schema.model';
 
 export class DataObjectStructureHandler {
+  /**
+   * The node a component path points at, given a choice of occurrence at each
+   * multi ancestor.
+   *
+   * `selectOccurrence` makes that choice. It used to be made here, by reading
+   * each ancestor's `currentIndex` off the multi-instance service — so this
+   * returned different nodes at different times with nothing in the signature
+   * saying so, and every caller was silently order-dependent on a cursor
+   * mutation. See `OccurrenceSelector`.
+   */
   public getDataPathNodeRecursively(
     dataObject: InstanceExtractData,
     component: CedarComponent,
     path: string[],
-    multiInstanceObjectService: MultiInstanceObjectHandler,
+    selectOccurrence: OccurrenceSelector,
     depth = 0,
   ): InstanceExtractData {
     if (path.length === 0) {
@@ -43,17 +54,15 @@ export class DataObjectStructureHandler {
         }
       } else if (component instanceof MultiElementComponent) {
         const multiElement = component as MultiElementComponent;
-        const multiInstanceInfo: MultiInstanceObjectInfo =
-          multiInstanceObjectService.getMultiInstanceInfoForComponent(multiElement);
+        const occurrence = selectOccurrence(multiElement);
 
-        if (!multiInstanceInfo) {
+        if (occurrence === null) {
           return null;
         }
-        const currentIndex = multiInstanceInfo.currentIndex;
         childComponent = multiElement.getChildByName(firstPath);
         if (dataObject !== null && dataObject !== undefined) {
-          if (Object.hasOwn(dataObject, currentIndex)) {
-            dataSubObject = dataObject[currentIndex][firstPath];
+          if (Object.hasOwn(dataObject, occurrence)) {
+            dataSubObject = dataObject[occurrence][firstPath];
           }
         }
       }
@@ -61,18 +70,27 @@ export class DataObjectStructureHandler {
         dataSubObject,
         childComponent,
         remainingPath,
-        multiInstanceObjectService,
+        selectOccurrence,
         depth + 1,
       );
     }
   }
 
+  /**
+   * The object *containing* the node a path points at, same rules.
+   *
+   * The attribute-value widget and the pager need this: an attribute's value
+   * lives on the enclosing object under the attribute's own name, not under the
+   * field's. It walks the same occurrences, so it takes the same selector — the
+   * two had to change together or they would disagree about which occurrence a
+   * path meant.
+   */
   public getParentDataPathNodeRecursively(
     dataObject: InstanceExtractData,
     parentDataObject: InstanceExtractData,
     component: CedarComponent,
     path: string[],
-    multiInstanceObjectService: MultiInstanceObjectHandler,
+    selectOccurrence: OccurrenceSelector,
   ): InstanceExtractData {
     if (path.length === 0) {
       return parentDataObject;
@@ -93,23 +111,21 @@ export class DataObjectStructureHandler {
         parentDataSubObject = dataObject;
       } else if (component instanceof MultiElementComponent) {
         const multiElement = component as MultiElementComponent;
-        const multiInstanceInfo: MultiInstanceObjectInfo =
-          multiInstanceObjectService.getMultiInstanceInfoForComponent(multiElement);
-        const currentIndex = multiInstanceInfo.currentIndex;
+        const occurrence = selectOccurrence(multiElement);
 
-        if (currentIndex < 0) {
+        if (occurrence === null || occurrence < 0) {
           return null;
         }
         childComponent = multiElement.getChildByName(firstPath);
-        dataSubObject = dataObject[currentIndex][firstPath];
-        parentDataSubObject = dataObject[currentIndex];
+        dataSubObject = dataObject[occurrence][firstPath];
+        parentDataSubObject = dataObject[occurrence];
       }
       return this.getParentDataPathNodeRecursively(
         dataSubObject,
         parentDataSubObject,
         childComponent,
         remainingPath,
-        multiInstanceObjectService,
+        selectOccurrence,
       );
     }
   }
@@ -176,7 +192,7 @@ export class DataObjectStructureHandler {
       instanceObject,
       templateRepresentation,
       component.path,
-      multiInstanceObjectService,
+      OccurrenceSelectors.fromCursor(multiInstanceObjectService),
     );
     const currentNodeArray = currentNodeAny as [];
     if (currentNodeArray) {
@@ -223,7 +239,7 @@ export class DataObjectStructureHandler {
       instanceObject,
       templateRepresentation,
       path,
-      multiInstanceObjectService,
+      OccurrenceSelectors.fromCursor(multiInstanceObjectService),
     );
     const currentNodeArray = currentNodeAny as [];
     const sourceItem = currentNodeArray[multiInstanceInfo.currentIndex];
@@ -270,7 +286,7 @@ export class DataObjectStructureHandler {
       instanceObject,
       templateRepresentation,
       path,
-      multiInstanceObjectService,
+      OccurrenceSelectors.fromCursor(multiInstanceObjectService),
     );
     const currentNodeArray = currentNodeAny as [];
     currentNodeArray.splice(multiInstanceInfo.currentIndex, 1);

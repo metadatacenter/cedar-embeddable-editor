@@ -8,11 +8,15 @@
  * signature says so, and `HandlerContext` therefore depends on mutating the
  * cursor before reading data — an ordering requirement stated nowhere.
  *
- * This is characterisation, not a fix. Making resolution pure means giving
- * every caller a way to say *which* occurrence it means, which is a change to
- * the shape of `HandlerContext` and wants deciding rather than doing at 2am.
- * What it needs first is an exact account of the current behaviour, because that
- * is what any such change has to preserve or deliberately break.
+ * The choice of occurrence is now a parameter — see `OccurrenceSelector`. The
+ * cursor-reading behaviour is still what `getDataObjectNodeByPath` does, because
+ * that is what the widgets and the pager want, but it is one named selector a
+ * caller opts into rather than the only thing available. `getDataObjectNodeAt`
+ * is the same walk with the cursor taken out.
+ *
+ * The tests below still characterise the cursor-dependent path, because it is
+ * still the default and still what most callers use. The pure path is covered at
+ * the bottom.
  *
  * Read together with `cardinality.spec.ts`, which covers the counters, and
  * `view-sync.spec.ts`, which covers pushing values back into widgets after a
@@ -235,5 +239,132 @@ describe('the parent lookup follows the same rule', () => {
     expect(atZero).not.toBe(atTwo);
     expect(atZero).toBe(driver.dataContext.instanceExtractData['_el'][0]);
     expect(atTwo).toBe(driver.dataContext.instanceExtractData['_el'][2]);
+  });
+});
+
+describe('resolving a specific occurrence, cursor ignored', () => {
+  /**
+   * The point of making the choice a parameter: a caller can name the occurrence
+   * it means and get the same node however the user has since paged around.
+   */
+  const seeded = () => {
+    const driver = new CeeDriver(multiElement());
+    const element = driver.findOrThrow(['_el']);
+    for (const index of [0, 1, 2]) {
+      driver.handlerContext.setCurrentIndex(element, index);
+      driver.setValue(['_el', '_inner'], TEXT, `value ${index}`);
+    }
+    return { driver, element };
+  };
+
+  it('returns the named occurrence, not the current one', () => {
+    const { driver, element } = seeded();
+    driver.handlerContext.setCurrentIndex(element, 2);
+
+    expect(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [0])).toEqual({ '@value': 'value 0' });
+    expect(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [1])).toEqual({ '@value': 'value 1' });
+  });
+
+  it('gives the same answer whatever the cursor is doing', () => {
+    const { driver, element } = seeded();
+
+    const answers = [0, 1, 2].map((cursor) => {
+      driver.handlerContext.setCurrentIndex(element, cursor);
+      return driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [1]);
+    });
+
+    expect(answers[0]).toEqual({ '@value': 'value 1' });
+    expect(answers[1]).toBe(answers[0]);
+    expect(answers[2]).toBe(answers[0]);
+  });
+
+  it('still returns the live node, so a caller can write through it', () => {
+    const { driver } = seeded();
+    const node = driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [2]) as Record<string, unknown>;
+    node['@value'] = 'written directly';
+
+    expect(driver.extract._el[2]._inner['@value']).toBe('written directly');
+  });
+
+  it('resolves nothing for an occurrence that does not exist', () => {
+    const { driver } = seeded();
+    expect(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [99])).toBeFalsy();
+  });
+
+  /**
+   * With nesting, "which occurrence" is not one number. The indices are consumed
+   * outermost-first, because an inner element's occurrences live inside the outer
+   * element's chosen one.
+   */
+  it('takes one index per multi ancestor, outermost first', () => {
+    const template = buildTemplate({
+      name: 'pr_at_two_deep',
+      elements: [
+        {
+          name: 'outer',
+          cardinality: 'multi',
+          minItems: 2,
+          maxItems: 4,
+          children: [{ kind: TEXT, name: 'label' }],
+          elements: [
+            { name: 'inner', cardinality: 'multi', minItems: 2, maxItems: 4, children: [{ kind: TEXT, name: 'deep' }] },
+          ],
+        },
+      ],
+    });
+    const driver = new CeeDriver(template);
+    const outer = driver.findOrThrow(['_outer']);
+
+    for (const o of [0, 1]) {
+      driver.handlerContext.setCurrentIndex(outer, o);
+      const inner = driver.findOrThrow(['_outer', '_inner']);
+      for (const i of [0, 1]) {
+        driver.handlerContext.setCurrentIndex(inner, i);
+        driver.setValue(['_outer', '_inner', '_deep'], TEXT, `o${o}i${i}`);
+      }
+    }
+
+    // Park the cursors somewhere unrelated to what is being asked for.
+    driver.handlerContext.setCurrentIndex(outer, 0);
+
+    for (const o of [0, 1]) {
+      for (const i of [0, 1]) {
+        expect(
+          driver.handlerContext.getDataObjectNodeAt(['_outer', '_inner', '_deep'], [o, i]),
+          `occurrence [${o}, ${i}]`,
+        ).toEqual({ '@value': `o${o}i${i}` });
+      }
+    }
+  });
+
+  it('the parent lookup takes the same indices', () => {
+    const { driver, element } = seeded();
+    driver.handlerContext.setCurrentIndex(element, 0);
+
+    expect(driver.handlerContext.getParentDataObjectNodeAt(['_el', '_inner'], [2])).toBe(
+      driver.dataContext.instanceExtractData['_el'][2],
+    );
+  });
+});
+
+describe('the two selectors agree when the cursor is where you asked', () => {
+  /**
+   * The cursor-reading walk and the explicit walk are the same walk. If they
+   * ever disagreed for the same occurrence, one of them would be wrong.
+   */
+  it('for every occurrence in turn', () => {
+    const driver = new CeeDriver(multiElement());
+    const element = driver.findOrThrow(['_el']);
+    for (const index of [0, 1, 2]) {
+      driver.handlerContext.setCurrentIndex(element, index);
+      driver.setValue(['_el', '_inner'], TEXT, `value ${index}`);
+    }
+
+    for (const index of [0, 1, 2]) {
+      driver.handlerContext.setCurrentIndex(element, index);
+      expect(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [index])).toBe(
+        driver.handlerContext.getDataObjectNodeByPath(['_el', '_inner']),
+      );
+    }
   });
 });
