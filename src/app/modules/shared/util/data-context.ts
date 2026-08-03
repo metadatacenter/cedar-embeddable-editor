@@ -3,6 +3,7 @@ import { TemplateComponent } from '../models/template/template-component.model';
 import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { TemplateRepresentationFactory } from '../factory/template-representation.factory';
 import { TemplateParser } from '../factory/template-parser';
+import { InstanceCardinalityReader } from '../handler/instance-cardinality-reader';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { InstanceFullData } from '../models/instance-full-data.model';
 import { HandlerContext } from './handler-context';
@@ -33,6 +34,10 @@ export class DataContext {
     // unset in production; the parity suite passes both in turn to check they
     // agree. See `factory/template-parser.ts`.
     templateParser?: TemplateParser,
+    // Which reader works out occurrence counts from an injected instance.
+    // Unset in production; the parity run passes both in turn. See
+    // `handler/instance-cardinality-reader.ts`.
+    instanceReader?: InstanceCardinalityReader,
   ): void {
     this.templateInput = value as CedarInputTemplate;
     this.templateRepresentation = TemplateRepresentationFactory.create(
@@ -51,11 +56,16 @@ export class DataContext {
         this.templateInput,
       );
       this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
-      this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(this.templateRepresentation);
+      this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
+        this.templateRepresentation,
+        null,
+        instanceReader,
+      );
     } else {
       this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
         this.templateRepresentation,
         handlerContext.dataContext.instanceExtractData,
+        instanceReader,
       );
     }
     this.savedTemplateID = null;

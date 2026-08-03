@@ -13,58 +13,18 @@ import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { JavascriptTypes } from '../models/javascript-types.model';
-import { JsonSchema } from '../models/json-schema.model';
+import { InstanceCardinalityReader } from './instance-cardinality-reader';
+import { ModelLibraryInstanceReader } from './model-library-instance-reader';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MultiInstanceObjectHandler {
+  private static readonly defaultInstanceReader: InstanceCardinalityReader = new ModelLibraryInstanceReader();
+
   public multiInstanceObject: MultiInstanceInfo;
   private templateRepresentation: TemplateComponent;
   private indexRegEx = new RegExp(/@#index\[(\d+)\]#@/);
-
-  /**
-   * Everything a field's value may carry, and nothing an element occurrence
-   * would. `@type` and `skos:notation` appear on controlled terms; `@id` and
-   * `rdfs:label` are the IRI-valued pair; `@value` is the literal case.
-   */
-  private static readonly VALUE_WRAPPER_KEYS: ReadonlySet<string> = new Set([
-    JsonSchema.atValue,
-    JsonSchema.atId,
-    JsonSchema.rdfsLabel,
-    JsonSchema.atType,
-    'skos:notation',
-  ]);
-
-  /**
-   * True for a field's value, false for an element occurrence.
-   *
-   * The two are told apart by what the object holds, and the presence of `@id`
-   * is not enough on its own: CEE stamps every element occurrence it writes
-   * with an `@id` of its own — a `template-element-instances/…` IRI — so a
-   * saved instance's element occurrences looked exactly like IRI-valued fields
-   * to a test that only asked whether `@id` was there. They were therefore read
-   * as fields and never walked into. The occurrence count of the element itself
-   * still came back right, which is why this survived: it is only what is
-   * *inside* an element that was lost. Three values saved inside an element
-   * came back as one, the rest present in the data and unreachable from the
-   * form; nested multi elements came back holding whichever occurrence was read
-   * last, and asking for the pager state of any occurrence past the first threw
-   * on a null.
-   *
-   * A value carries only value keys. An element occurrence carries `@context`
-   * and its children, so it fails this and is walked into.
-   */
-  private static isValueWrapper(node: unknown): boolean {
-    if (typeof node !== JavascriptTypes.object || node === null || Array.isArray(node)) {
-      return false;
-    }
-    const keys = Object.keys(node);
-    if (keys.length === 0) {
-      return false;
-    }
-    return keys.every((k) => MultiInstanceObjectHandler.VALUE_WRAPPER_KEYS.has(k));
-  }
 
   private static getNodeByPath(obj, arrPath: string[]): object {
     let val: object;
@@ -90,76 +50,21 @@ export class MultiInstanceObjectHandler {
   buildNewOrFromMetadata(
     templateRepresentation: TemplateComponent,
     instanceExtractData: InstanceExtractData = null,
+    instanceReader: InstanceCardinalityReader = MultiInstanceObjectHandler.defaultInstanceReader,
   ): MultiInstanceInfo {
+    instanceReader = instanceReader ?? MultiInstanceObjectHandler.defaultInstanceReader;
     this.templateRepresentation = templateRepresentation;
     this.multiInstanceObject = new MultiInstanceInfo();
     this.buildRecursively(templateRepresentation, this.multiInstanceObject);
 
     if (instanceExtractData) {
-      this.updateFromInstanceExtractData(instanceExtractData, [], this.multiInstanceObject);
+      // The template gave us a skeleton at each component's `minItems`; the
+      // instance says what is actually there, and wins.
+      instanceReader.read(instanceExtractData, (path, count) =>
+        this.setSingleMultiInstance(path, count, this.multiInstanceObject),
+      );
     }
     return this.multiInstanceObject;
-  }
-
-  private updateFromInstanceExtractData(
-    instanceExtractDataIn: InstanceExtractData,
-    parentPath: string[],
-    multiInstanceObject: MultiInstanceInfo,
-  ): void {
-    const instanceExtractData = JSON.parse(JSON.stringify(instanceExtractDataIn));
-
-    for (const key in instanceExtractData) {
-      const myPath: string[] = parentPath.slice();
-      myPath.push(key);
-
-      // multi-page element or multi-page field
-      if (Array.isArray(instanceExtractData[key]) && instanceExtractData[key].length > 0) {
-        this.setSingleMultiInstance(myPath.slice(), instanceExtractData[key].length, multiInstanceObject);
-
-        // field component with values or attribute-value field
-        const isField =
-          // field component with values (text or controlled)
-          MultiInstanceObjectHandler.isValueWrapper(instanceExtractData[key][0]) ||
-          // attribute-value field
-          (typeof instanceExtractData[key][0] === JavascriptTypes.string && instanceExtractData[key].length > 0);
-
-        // not a field, so it is a multi-page element component
-        if (!isField) {
-          for (let i = 0; i < instanceExtractData[key].length; i++) {
-            if (i > 0) {
-              myPath.pop();
-            }
-            myPath.push(this.indexRegEx.source.replace('(\\d+)', i.toString()).replace(/\\/g, ''));
-            this.updateFromInstanceExtractData(instanceExtractData[key][i], myPath, multiInstanceObject);
-          }
-        }
-        // it's an object, can be a single-page element or a single-page field
-      } else if (
-        typeof instanceExtractData[key] === JavascriptTypes.object &&
-        instanceExtractData[key] !== null &&
-        Object.keys(instanceExtractData[key]).length > 0
-      ) {
-        // single-page field (it's never paginated, so not required for pagination,
-        // but still need to have an entry for it in multiInstanceObject)
-        if (MultiInstanceObjectHandler.isValueWrapper(instanceExtractData[key])) {
-          this.setSingleMultiInstance(myPath, 1, multiInstanceObject);
-        } else {
-          // single-page element component
-          // push a dummy 0 array element for a consistent multi-paging logic
-          // multi-page structure does not differentiate between single- and multi-page components
-          myPath.push(this.indexRegEx.source.replace('(\\d+)', '0').replace(/\\/g, ''));
-          this.updateFromInstanceExtractData(instanceExtractData[key], myPath, multiInstanceObject);
-        }
-      } else {
-        if (key === JsonSchema.atId || key === JsonSchema.rdfsLabel) {
-          // DO NOTHING, we came too deep into a controlled term
-        } else {
-          // empty fields
-          // need to record the component in multiInstanceObject even if it's empty
-          this.setSingleMultiInstance(myPath, 0, multiInstanceObject);
-        }
-      }
-    }
   }
 
   private setSingleMultiInstance(path: string[], count: number, multiInstanceObject: MultiInstanceInfo): void {

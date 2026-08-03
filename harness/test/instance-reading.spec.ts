@@ -25,6 +25,15 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 
+const ATTR: FieldKind = {
+  key: 'attr',
+  inputType: 'attribute-value',
+  make: () => CedarBuilders.attributeValueFieldBuilder(),
+  isStatic: false,
+  write: 'attribute',
+  sample: 'attr value',
+};
+
 const TEXT: FieldKind = {
   key: 'text',
   inputType: 'textfield',
@@ -392,6 +401,89 @@ describe('deleting occurrences', () => {
 
     const names = driver.extract._author.map((o: Record<string, { '@value': string }>) => o._name['@value']);
     expect(names).toEqual(['Ada', 'Katherine']);
+  });
+});
+
+describe('attribute values, read back', () => {
+  /**
+   * Attribute values are the shape that makes instance reading awkward: the
+   * field's own slot holds a list of *names*, and the values those names point
+   * at are properties of the enclosing object rather than of the field. A
+   * reader has to report both — the field, so the pager knows how many
+   * attributes there are, and each named attribute, so its own slot exists.
+   *
+   * The live editing path is covered in `attribute-values.spec.ts`. This is the
+   * reload path, which is what the model library's parsed instance has to
+   * reproduce: it pairs the names with their values and removes the values from
+   * the container, so both halves have to be put back.
+   */
+  const attributeTemplate = () =>
+    buildTemplate({ name: 'ir_av', children: [{ kind: ATTR, name: 'av' }] });
+
+  const withTwoAttributes = () => {
+    const template = attributeTemplate();
+    const first = new CeeDriver(template);
+    const component = first.findOrThrow(['_av']);
+    first.handlerContext.addMultiInstance(component);
+    first.handlerContext.changeAttributeValue(component, 'colour', 'blue');
+    first.handlerContext.addMultiInstance(component);
+    first.handlerContext.changeAttributeValue(component, 'size', 'large');
+    return { template, instance: first.metadata };
+  };
+
+  it('restores both attributes', () => {
+    const { template, instance } = withTwoAttributes();
+    const reloaded = new CeeDriver(template, { instance });
+    reloaded.expectNoErrors('reloading two attribute values');
+
+    expect(countOf(reloaded, reloaded.findOrThrow(['_av']))).toBe(2);
+    expect(reloaded.extract._av).toEqual(['colour', 'size']);
+    expect(reloaded.extract.colour['@value']).toBe('blue');
+    expect(reloaded.extract.size['@value']).toBe('large');
+  });
+
+  it('restores attributes inside an element', () => {
+    const template = buildTemplate({
+      name: 'ir_av_el',
+      elements: [{ name: 'el', children: [{ kind: ATTR, name: 'av' }] }],
+    });
+    const first = new CeeDriver(template);
+    const component = first.findOrThrow(['_el', '_av']);
+    first.handlerContext.addMultiInstance(component);
+    first.handlerContext.changeAttributeValue(component, 'colour', 'blue');
+
+    const reloaded = new CeeDriver(template, { instance: first.metadata });
+    reloaded.expectNoErrors('reloading an attribute inside an element');
+    expect(countOf(reloaded, reloaded.findOrThrow(['_el', '_av']))).toBe(1);
+    expect(reloaded.extract._el.colour['@value']).toBe('blue');
+  });
+});
+
+describe('slots that are empty', () => {
+  /**
+   * A multi field nobody filled serialises as `[]`. The slot still has to be
+   * recorded — with a count of zero — or the pager has no entry for a field
+   * the form is about to render.
+   */
+  it('empties a slot the template would have started at two', () => {
+    const template = buildTemplate({
+      name: 'ir_empty',
+      children: [{ kind: TEXT, name: 'tag', cardinality: 'multi', minItems: 2, maxItems: 9 }],
+    });
+    // From the template alone the pager offers two pages.
+    expect(countOf(new CeeDriver(template), new CeeDriver(template).findOrThrow(['_tag']))).toBe(2);
+
+    // The instance says otherwise, and the instance wins.
+    const first = new CeeDriver(template);
+    const instance = JSON.parse(JSON.stringify(first.metadata));
+    instance._tag = [];
+
+    const reloaded = new CeeDriver(template, { instance });
+    reloaded.expectNoErrors('reloading an emptied multi field');
+
+    const slot = reloaded.handlerContext.multiInstanceObjectService.getDataPathNode(['_tag']);
+    expect(slot.currentCount).toBe(0);
+    expect(slot.currentIndex).toBe(-1);
   });
 });
 

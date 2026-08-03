@@ -17,6 +17,9 @@ import { MessageHandlerService } from '@cee/service/message-handler.service';
 import { PageBreakPaginatorService } from '@cee/service/page-break-paginator.service';
 import type { TemplateParser } from '@cee/factory/template-parser';
 import { JsonWalkTemplateParser } from '@cee/factory/json-walk-template-parser';
+import type { InstanceCardinalityReader } from '@cee/handler/instance-cardinality-reader';
+import { JsonWalkInstanceReader } from '@cee/handler/json-walk-instance-reader';
+import { ModelLibraryInstanceReader } from '@cee/handler/model-library-instance-reader';
 import type { FieldKind } from './axes';
 
 /**
@@ -64,6 +67,8 @@ export interface DriverOptions {
    * whole suite gets run twice.
    */
   templateParser?: TemplateParser;
+  /** Which reader derives occurrence counts from an injected instance. */
+  instanceReader?: InstanceCardinalityReader;
 }
 
 /**
@@ -85,6 +90,20 @@ const PARSER_ENV = process.env.CEE_TEMPLATE_PARSER ?? 'model-library';
 export const defaultParser: TemplateParser | undefined =
   PARSER_ENV === 'json-walk' ? new JsonWalkTemplateParser() : undefined;
 export const defaultParserName = PARSER_ENV;
+
+/**
+ * The instance reader every suite uses unless it names one.
+ *
+ * Defaults to CEE's own default, which is the model library.
+ * `CEE_INSTANCE_READER=json-walk` runs the harness against the hand-written
+ * JSON walk instead. Same arrangement as `CEE_TEMPLATE_PARSER`, and
+ * the same reason: the only honest check on a swap this deep is every
+ * assertion in the suite holding with either side underneath.
+ */
+const READER_ENV = process.env.CEE_INSTANCE_READER ?? 'model-library';
+export const defaultInstanceReader: InstanceCardinalityReader | undefined =
+  READER_ENV === 'json-walk' ? new JsonWalkInstanceReader() : new ModelLibraryInstanceReader();
+export const defaultInstanceReaderName = READER_ENV;
 
 export class CeeDriver {
   readonly dataContext: DataContext;
@@ -123,6 +142,7 @@ export class CeeDriver {
       this.paginator,
       opts.collapseStaticComponents ?? false,
       opts.templateParser ?? defaultParser,
+      opts.instanceReader ?? defaultInstanceReader,
     );
   }
 
