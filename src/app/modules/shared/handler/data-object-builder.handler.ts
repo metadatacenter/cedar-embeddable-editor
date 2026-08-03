@@ -81,10 +81,13 @@ export class DataObjectBuilderHandler {
         const multiField: MultiFieldComponent = component as MultiFieldComponent;
         dataObject[targetName] = DataObjectUtil.getEmptyList();
         if (multiField.multiInfo.minItems > 0) {
-          for (let idx = 0; idx < multiField.multiInfo.minItems; idx++) {
-            dataObject[targetName].push(DataObjectUtil.getEmptyValueWrapper(nonIterableComponent, buildingMode));
-          }
           if (component?.choiceInfo?.choices?.length > 0) {
+            // A choice field starts holding whatever is selected by default.
+            // That used to *replace* the `minItems` skeleton outright, so a
+            // field with no default selection came out as `[]` against a schema
+            // demanding at least one item — invalid the moment it was built,
+            // and not something the user could correct, since the count is not
+            // theirs to change. Pad instead of replace.
             const values = [];
             for (const choice of component.choiceInfo.choices) {
               if (choice.selectedByDefault) {
@@ -92,6 +95,9 @@ export class DataObjectBuilderHandler {
               }
             }
             dataObject[targetName] = DataObjectUtil.getMultiValueWrapper(nonIterableComponent, buildingMode, values);
+          }
+          for (let idx = dataObject[targetName].length; idx < multiField.multiInfo.minItems; idx++) {
+            dataObject[targetName].push(DataObjectUtil.getEmptyValueWrapper(nonIterableComponent, buildingMode));
           }
         }
       } else {

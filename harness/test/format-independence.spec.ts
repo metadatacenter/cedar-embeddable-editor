@@ -70,6 +70,54 @@ const stable = (node: any): any => {
  */
 const withoutUnexpressibleBound = (line: string): string => line.replace(/ min=\d+/, '');
 
+/**
+ * The instance consequence of that missing bound, forgiven at any depth.
+ *
+ * A lower bound the YAML cannot state means the YAML reading starts that field
+ * with fewer empty slots. `Other Language` sits inside an element, so the
+ * difference is nested rather than at the root, and it only became visible once
+ * a fresh instance began honouring `minItems` on a choice field at all —
+ * previously both readings produced an empty list for the wrong reason and
+ * agreed by accident.
+ *
+ * This pads the YAML side back up, and will only do so with slots that are
+ * genuinely empty: any *filled* entry the two readings disagree about, or a
+ * difference in the other direction, still fails. The point is to forgive one
+ * known limitation of the format, not to stop comparing.
+ */
+const withoutUnexpressibleSlots = (fromYamlSide: unknown, fromJsonSide: unknown): unknown => {
+  if (Array.isArray(fromYamlSide) && Array.isArray(fromJsonSide)) {
+    const padded = fromYamlSide.map((item, i) => withoutUnexpressibleSlots(item, fromJsonSide[i]));
+    for (let i = padded.length; i < fromJsonSide.length; i++) {
+      const missing = fromJsonSide[i];
+      const isEmptySlot =
+        missing !== null &&
+        typeof missing === 'object' &&
+        Object.values(missing as object).every((v) => v === null || v === '');
+      if (!isEmptySlot) {
+        // A real value is missing, which the format limitation cannot explain.
+        return fromYamlSide;
+      }
+      padded.push(missing);
+    }
+    return padded;
+  }
+  if (
+    fromYamlSide !== null &&
+    typeof fromYamlSide === 'object' &&
+    fromJsonSide !== null &&
+    typeof fromJsonSide === 'object'
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out: any = {};
+    for (const key of Object.keys(fromYamlSide)) {
+      out[key] = withoutUnexpressibleSlots(fromYamlSide[key], (fromJsonSide as never)[key]);
+    }
+    return out;
+  }
+  return fromYamlSide;
+};
+
 const fromJson = (template: object) => new CeeDriver(template, { templateParser: new ModelLibraryTemplateParser() });
 const fromYaml = (template: object) => new CeeDriver(template, { templateParser: new YamlTemplateParser() });
 
@@ -94,12 +142,7 @@ describe.skipIf(!corpusAvailable())('a template read from YAML', () => {
     const y = stable(fromYaml(pair.yaml).extract);
     expect(Object.keys(y)).toEqual(Object.keys(j));
     for (const key of Object.keys(j)) {
-      if (Array.isArray(j[key]) && Array.isArray(y[key]) && j[key].length !== y[key].length) {
-        // Only the unexpressible lower bound may cause this.
-        expect(y[key].length, `${key}: an unexpected difference in slot count`).toBeLessThan(j[key].length);
-        continue;
-      }
-      expect(y[key], `${key} differs between the two readings`).toEqual(j[key]);
+      expect(withoutUnexpressibleSlots(y[key], j[key]), `${key} differs between the two readings`).toEqual(j[key]);
     }
   });
 

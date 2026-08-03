@@ -16,7 +16,7 @@
  * only check the properties someone thought to state, and "conforms to the
  * spec" is a property no amount of internal consistency implies.
  *
- * Four templates still fail, listed below with what is wrong. They are recorded
+ * Three templates still fail, listed below with what is wrong. They are recorded
  * rather than skipped so the count cannot quietly grow, and each names a real
  * defect rather than a quirk of the fixture.
  */
@@ -34,20 +34,17 @@ import { CeeDriver } from '../src/driver';
  *   was never saved — so no instance of it can carry the `schema:isBasedOn` the
  *   schema requires. CEE reports the template when it reads it.
  * - **003** is malformed in its own right; its schema will not even compile.
- * - **028**: a required multi field starts with fewer items than its own
- *   `minItems`.
  * - **029** writes `{'@value': …}` into a field whose schema allows only `@id`
  *   and `rdfs:label`, so CEE is not recognising it as IRI-valued.
  *
- * **025** and **034** used to be here, along with half of 029's problem: a
- * field marked `_ui.hidden` was dropped from the component tree, so the
- * instance got no slot for it while the template still listed it as required.
- * The child is now kept and flagged instead — see `hidden-fields.spec.ts`.
+ * **025**, **028** and **034** used to be here, along with half of 029's problem.
+ * A field marked `_ui.hidden` was dropped from the component tree, and a
+ * choice field with no default selection threw away its own `minItems`
+ * skeleton. See `hidden-fields.spec.ts` and `multi-minitems.spec.ts`.
  */
 const KNOWN_NON_CONFORMANT: Record<string, string> = {
   '001': 'template has no @id, so no instance of it can name it',
   '003': 'template is malformed; its schema does not compile',
-  '028': 'required multi field starts below its own minItems',
   '029': 'a controlled field is written as @value',
 };
 
@@ -102,11 +99,11 @@ describe.skipIf(!corpusAvailable())('an instance CEE builds validates against it
   });
 
   /**
-   * The count is the thing to watch. Four is not a target to live with, it is a
-   * list of defects with a number attached, and the number should only go down.
-   * It was six, and before that thirty-seven.
+   * The count is the thing to watch. Three is not a target to live with, it is
+   * a list of defects with a number attached, and the number should only go
+   * down. It was six, and before that thirty-seven.
    */
-  it('no more than the four known non-conformant templates', () => {
+  it('no more than the three known non-conformant templates', () => {
     const failing = templates.filter((t) => !validateAgainstOwnTemplate(t.json).valid).map((t) => t.id);
     expect(failing.sort()).toEqual(Object.keys(KNOWN_NON_CONFORMANT).sort());
   });
