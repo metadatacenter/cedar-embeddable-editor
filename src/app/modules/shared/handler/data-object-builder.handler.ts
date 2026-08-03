@@ -94,9 +94,8 @@ export class DataObjectBuilderHandler {
         const multiField: MultiFieldComponent = component as MultiFieldComponent;
         dataObject[targetName] = DataObjectUtil.getEmptyList();
         if (multiField.multiInfo.minItems > 0) {
-          const subTemplate = DataObjectUtil.getSafeSubTemplate(templateJsonObj, targetName);
           for (let idx = 0; idx < multiField.multiInfo.minItems; idx++) {
-            dataObject[targetName].push(DataObjectUtil.getEmptyValueWrapper(subTemplate, buildingMode));
+            dataObject[targetName].push(DataObjectUtil.getEmptyValueWrapper(nonIterableComponent, buildingMode));
           }
           if (component?.choiceInfo?.choices?.length > 0) {
             const values = [];
@@ -105,13 +104,12 @@ export class DataObjectBuilderHandler {
                 values.push(choice.label);
               }
             }
-            dataObject[targetName] = DataObjectUtil.getMultiValueWrapper(subTemplate, buildingMode, values);
+            dataObject[targetName] = DataObjectUtil.getMultiValueWrapper(nonIterableComponent, buildingMode, values);
           }
         }
       } else {
         // SingleFieldComponent
-        const subTemplate = DataObjectUtil.getSafeSubTemplate(templateJsonObj, targetName);
-        dataObject[targetName] = DataObjectUtil.getEmptyValueWrapper(subTemplate, buildingMode);
+        dataObject[targetName] = DataObjectUtil.getEmptyValueWrapper(nonIterableComponent, buildingMode);
         if (component?.choiceInfo?.choices?.length > 0) {
           let value = null;
           for (const choice of component.choiceInfo.choices) {
@@ -119,7 +117,7 @@ export class DataObjectBuilderHandler {
               value = choice.label;
             }
           }
-          dataObject[targetName] = DataObjectUtil.getSingleValueWrapper(subTemplate, buildingMode, value);
+          dataObject[targetName] = DataObjectUtil.getSingleValueWrapper(nonIterableComponent, buildingMode, value);
         }
       }
       ret = dataObject[targetName];

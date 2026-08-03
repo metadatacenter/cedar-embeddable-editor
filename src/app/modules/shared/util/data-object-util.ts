@@ -2,38 +2,53 @@ import { JsonSchema } from '../models/json-schema.model';
 import { InstanceValueNode } from './instance-value-node';
 import { CedarModel } from '../models/cedar-model.model';
 import { JavascriptTypes } from '../models/javascript-types.model';
-import { TemplateObjectUtil } from './template-object-util';
+import { FieldComponent } from '../models/component/field-component.model';
+import { InputType } from '../models/input-type.model';
+import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { CedarEmbeddableMetadataEditorComponent } from '../components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 
 export class DataObjectUtil {
-  static getEmptyValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode): object {
+  /**
+   * The slot a field's value will go in, before there is a value.
+   *
+   * Which slot depends only on what kind of field it is, and the parsed
+   * component already says: an IRI-valued field gets `{}`, because its value
+   * will be an `@id` and there is no `@value` to be null; a controlled term
+   * likewise; everything else gets `{'@value': null}`. Numeric and temporal
+   * fields carry their `@type` alongside in the full copy.
+   *
+   * These used to be answered by re-reading the field's own slice of the raw
+   * template — `isLInk`, `isExternalAuthorityField`, `hasControlledInfo`, and a
+   * dig into `_valueConstraints` for the `@type` — which meant the builder
+   * walked the template JSON in step with the component tree it was already
+   * walking, purely to re-derive things the tree had.
+   */
+  static getEmptyValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode): object {
     const obj = {};
-    if (TemplateObjectUtil.isLInk(templateJsonObj) || TemplateObjectUtil.isExternalAuthorityField(templateJsonObj)) {
-      // do nothing, leave object empty
-    } else if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
+    if (!DataObjectUtil.isIriValued(component)) {
       obj[JsonSchema.atValue] = null;
     }
     if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-      this.injectAtTypeIfAvailable(obj, templateJsonObj);
+      this.injectAtTypeIfAvailable(obj, component);
     }
     return obj;
   }
 
-  static getSingleValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode, value: string): object {
+  static getSingleValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode, value: string): object {
     const obj = {};
-    if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
+    if (component?.basicInfo?.inputType !== InputType.controlled) {
       obj[JsonSchema.atValue] = value;
     }
     if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-      this.injectAtTypeIfAvailable(obj, templateJsonObj);
+      this.injectAtTypeIfAvailable(obj, component);
     }
     return obj;
   }
 
-  static getMultiValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode, values: string[]): object {
+  static getMultiValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode, values: string[]): object {
     const obj = [];
-    if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
+    if (component?.basicInfo?.inputType !== InputType.controlled) {
       for (const value of values) {
         const subObj = {};
         subObj[JsonSchema.atValue] = value;
@@ -41,9 +56,24 @@ export class DataObjectUtil {
       }
     }
     if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-      this.injectAtTypeIfAvailable(obj, templateJsonObj);
+      this.injectAtTypeIfAvailable(obj, component);
     }
     return obj;
+  }
+
+  /**
+   * True when the field's value is an IRI, so its empty slot is `{}`.
+   *
+   * Links and the external authority types store the IRI as `@id`; a controlled
+   * term stores `@id` plus a label. None of them has a `@value` to leave null.
+   */
+  private static isIriValued(component: FieldComponent): boolean {
+    const inputType = component?.basicInfo?.inputType;
+    return (
+      inputType === InputType.link ||
+      inputType === InputType.controlled ||
+      EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType)
+    );
   }
 
   static getEmptyObject(): object {
@@ -54,16 +84,14 @@ export class DataObjectUtil {
     return [];
   }
 
-  private static injectAtTypeIfAvailable(obj: object, templateJsonObj: object): void {
-    if (templateJsonObj != null) {
-      if (Object.hasOwn(templateJsonObj, CedarModel.valueConstraints)) {
-        const vc = templateJsonObj[CedarModel.valueConstraints];
-        if (Object.hasOwn(vc, CedarModel.numberType)) {
-          obj[JsonSchema.atType] = vc[CedarModel.numberType];
-        } else if (Object.hasOwn(vc, CedarModel.temporalType)) {
-          obj[JsonSchema.atType] = vc[CedarModel.temporalType];
-        }
-      }
+  /** A numeric or temporal value declares its XSD type alongside itself. */
+  private static injectAtTypeIfAvailable(obj: object, component: FieldComponent): void {
+    const numberType = component?.numberInfo?.numberType;
+    const temporalType = component?.valueInfo?.temporalType;
+    if (numberType != null) {
+      obj[JsonSchema.atType] = numberType;
+    } else if (temporalType != null) {
+      obj[JsonSchema.atType] = temporalType;
     }
   }
 
