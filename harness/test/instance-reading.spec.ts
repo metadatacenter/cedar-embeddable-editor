@@ -25,6 +25,13 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 
+/**
+ * An instance always names the template it is an instance of; there is no
+ * valid CEDAR instance without one. Fixtures that stand in for what a host page
+ * injects have to be valid instances too.
+ */
+const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
+
 const ATTR: FieldKind = {
   key: 'attr',
   inputType: 'attribute-value',
@@ -501,7 +508,7 @@ describe('an attribute name with nothing behind it', () => {
   it('is not counted as an attribute', () => {
     const template = buildTemplate({ name: 'ir_blank_attr', children: [{ kind: ATTR, name: 'f' }] });
     const driver = new CeeDriver(template, {
-      instance: { '@context': {}, '@id': 'https://example.org/i/1', _f: [''] },
+      instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: [''] },
     });
     expect(countOf(driver, driver.findOrThrow(['_f']))).toBe(0);
   });
@@ -512,6 +519,7 @@ describe('an attribute name with nothing behind it', () => {
       instance: {
         '@context': {},
         '@id': 'https://example.org/i/1',
+        'schema:isBasedOn': TEMPLATE_IRI,
         _f: ['colour'],
         colour: { '@value': 'blue' },
       },

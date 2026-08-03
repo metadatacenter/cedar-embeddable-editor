@@ -20,6 +20,13 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 
+/**
+ * An instance always names the template it is an instance of; there is no
+ * valid CEDAR instance without one. Fixtures that stand in for what a host page
+ * injects have to be valid instances too.
+ */
+const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
+
 const CONTROLLED: FieldKind = {
   key: 'ct',
   inputType: 'controlled',
@@ -105,7 +112,7 @@ describe('what the quality report reads a node as', () => {
   const reportValue = (kind: FieldKind, node: unknown) => {
     const template = buildTemplate({ name: `ivn_${kind.key}`, children: [{ kind, name: 'f' }] });
     const driver = new CeeDriver(template, {
-      instance: { '@context': {}, '@id': 'https://example.org/i/1', _f: node },
+      instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: node },
     });
     driver.handlerContext.buildQualityReport();
     return driver.qualityReport.valueTree._f.value;
@@ -156,7 +163,7 @@ describe('a labelless controlled term satisfies a requirement', () => {
       children: [{ kind: CONTROLLED, name: 'f', required: true }],
     });
     const driver = new CeeDriver(template, {
-      instance: { '@context': {}, '@id': 'https://example.org/i/1', _f: { '@id': 'https://x/1' } },
+      instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: { '@id': 'https://x/1' } },
     });
     driver.handlerContext.buildQualityReport();
 

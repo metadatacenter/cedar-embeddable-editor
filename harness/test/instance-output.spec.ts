@@ -156,19 +156,11 @@ describe('the instance says which template it is an instance of', () => {
   });
 
   /**
-   * A template that has never been saved has no IRI to name. Omitted rather
-   * than written as null — the library's writers make the same distinction, and
-   * a null here would assert that the instance is based on nothing.
-   */
-  it('omits it when the template has no IRI of its own', () => {
-    const driver = withTemplateId(null);
-    const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
-    expect(Object.hasOwn(emitted, 'schema:isBasedOn')).toBe(false);
-  });
-
-  /**
-   * And says so. An instance that cannot name its template is unusable
-   * downstream, so producing one silently is worse than producing one loudly.
+   * A template with no IRI cannot produce a valid instance — there is no such
+   * thing as a CEDAR instance that does not name its template. CEE says so when
+   * it reads the template, rather than handing back a document nothing can
+   * resolve and leaving it to be discovered later.
+   *
    * Only `template-001` of the 94 in the shared corpora is in this state, and
    * its readme says why: it was never saved.
    */
@@ -189,6 +181,25 @@ describe('the instance says which template it is an instance of', () => {
   it('is not on the extract copy', () => {
     const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
     expect((driver.extract as Record<string, unknown>)['schema:isBasedOn']).toBeUndefined();
+  });
+
+  /**
+   * REGRESSION SURFACE: an injected instance skips the builder, so setting this
+   * only while building left every document a host page loaded orphaned — the
+   * common case, and the one where the instance already exists and matters.
+   */
+  it('names the template on an instance the host page injected', () => {
+    const template = buildTemplate({ name: 'io_injected', children: [{ kind: VALUED[0], name: 'f' }] }) as Record<
+      string,
+      unknown
+    >;
+    template['@id'] = 'https://repo.metadatacenter.org/templates/injected';
+    const driver = new CeeDriver(template, {
+      instance: { '@context': {}, '@id': 'https://example.org/i/9', _f: { '@value': 'loaded' } },
+    });
+
+    const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
+    expect(emitted['schema:isBasedOn']).toBe('https://repo.metadatacenter.org/templates/injected');
   });
 
   it('survives into the YAML', () => {

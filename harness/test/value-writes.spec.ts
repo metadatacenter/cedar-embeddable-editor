@@ -26,6 +26,13 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 
+/**
+ * An instance always names the template it is an instance of; there is no
+ * valid CEDAR instance without one. Fixtures that stand in for what a host page
+ * injects have to be valid instances too.
+ */
+const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
+
 const kind = (key: string, inputType: string, make: () => unknown, extra: Partial<FieldKind> = {}): FieldKind =>
   ({ key, inputType, make, isStatic: false, write: 'value', sample: 'x', ...extra }) as FieldKind;
 
@@ -52,7 +59,7 @@ const rig = (fieldKind: FieldKind, startingSlot?: unknown) => {
     startingSlot === undefined
       ? new CeeDriver(template)
       : new CeeDriver(template, {
-          instance: { '@context': {}, '@id': 'https://example.org/i/1', _f: startingSlot },
+          instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: startingSlot },
         });
   return { driver, component: driver.findOrThrow(['_f']) };
 };

@@ -9,6 +9,7 @@ import { InstanceFullData } from '../models/instance-full-data.model';
 import { HandlerContext } from './handler-context';
 import { MultiInstanceObjectHandler } from '../handler/multi-instance-object.handler';
 import { DataObjectBuilderHandler } from '../handler/data-object-builder.handler';
+import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { PageBreakPaginatorService } from '../service/page-break-paginator.service';
 import { DataQualityReport } from '../models/data-quality-report.model';
 import { CedarTemplate } from '../models/template/cedar-template.model';
@@ -68,6 +69,16 @@ export class DataContext {
         instanceReader,
       );
     }
+    // Whether the instance was just built or handed to us by the host page, it
+    // has to name the template it is an instance of. An injected instance skips
+    // the builder entirely, so doing this only there left every loaded document
+    // orphaned — which is not a state a CEDAR instance is ever allowed to be in.
+    DataObjectBuilderHandler.addIsBasedOn(
+      this.templateRepresentation,
+      this.instanceFullData,
+      DataObjectBuildingMode.INCLUDE_CONTEXT,
+    );
+
     this.savedTemplateID = null;
     // Built in read-only mode too. The guard used to skip it on the reasoning
     // that nothing can be edited, so validity was uninteresting — but read-only

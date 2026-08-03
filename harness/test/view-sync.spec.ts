@@ -25,6 +25,13 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 
+/**
+ * An instance always names the template it is an instance of; there is no
+ * valid CEDAR instance without one. Fixtures that stand in for what a host page
+ * injects have to be valid instances too.
+ */
+const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
+
 const kind = (key: string, inputType: string, make: () => unknown, sample: string, extra: Partial<FieldKind> = {}): FieldKind =>
   ({ key, inputType, make, isStatic: false, write: 'value', sample, ...extra }) as FieldKind;
 
@@ -385,6 +392,7 @@ describe('hiding empty fields in a repeated element', () => {
       instance: {
         '@context': {},
         '@id': 'https://example.org/i/1',
+        'schema:isBasedOn': TEMPLATE_IRI,
         _el: [{ '@id': 'https://example.org/e/1', _f: node }],
       },
     });
@@ -503,7 +511,7 @@ describe('paged attribute-value fields', () => {
   it('accepts an empty attribute name without pushing anything', () => {
     const template = buildTemplate({ name: 'vs_attr_blank', children: [{ kind: ATTR, name: 'f' }] });
     const driver = new CeeDriver(template, {
-      instance: { '@context': {}, '@id': 'https://example.org/i/1', _f: [''] },
+      instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: [''] },
     });
     const registry = new ActiveComponentRegistryService();
     const widget = new FakeWidget();
@@ -528,7 +536,7 @@ describe('a paged field the instance has nothing for', () => {
       children: [{ kind: TEXT, name: 'f', cardinality: 'multi', minItems: 1, maxItems: 9 }],
     });
     const driver = new CeeDriver(template, {
-      instance: { '@context': {}, '@id': 'https://example.org/i/1', _f: null },
+      instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: null },
     });
     const registry = new ActiveComponentRegistryService();
     const widget = new FakeWidget();

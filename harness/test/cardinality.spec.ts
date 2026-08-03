@@ -12,6 +12,13 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate, supportsMultiInstance } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 
+/**
+ * An instance always names the template it is an instance of; there is no
+ * valid CEDAR instance without one. Fixtures that stand in for what a host page
+ * injects have to be valid instances too.
+ */
+const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
+
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
 
@@ -337,7 +344,7 @@ describe('required values are page-independent', () => {
    */
   it('reports a minItems violation when the element has no instances', () => {
     const driver = new CeeDriver(threeInstances(), {
-      instance: { '@context': {}, '@id': 'https://example.org/i/1', _el: null },
+      instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _el: null },
     });
     driver.handlerContext.buildQualityReport();
 
@@ -361,7 +368,7 @@ describe('required values are page-independent', () => {
     delete noFloor.properties._el.minItems;
 
     const driver = new CeeDriver(noFloor, {
-      instance: { '@context': {}, '@id': 'https://example.org/i/2', _el: null },
+      instance: { '@context': {}, '@id': 'https://example.org/i/2', 'schema:isBasedOn': TEMPLATE_IRI, _el: null },
     });
     driver.handlerContext.buildQualityReport();
 
