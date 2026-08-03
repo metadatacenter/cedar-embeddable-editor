@@ -5,6 +5,7 @@ import { HandlerContext } from '../../util/handler-context';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { InstanceDeserializer } from '../../util/instance-deserializer';
+import { IriPrefix } from '../../util/iri-prefix';
 import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { RorFieldDataService } from '../../service/ror-field-data.service';
@@ -117,7 +118,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   readOnlyMode: boolean = false;
   showPreferencesMenu: boolean = true;
 
-  static iriPrefix = 'https://repo.metadatacenter.org/';
   static bioPortalPrefix = 'https://bioportal.bioontology.org/ontologies/';
   static orcidPrefix = 'https://orcid.org/';
   static rorPrefix = 'https://ror.org/';
@@ -228,7 +228,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         this.showStaticText = value[CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT];
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.IRI_PREFIX)) {
-        CedarEmbeddableMetadataEditorComponent.iriPrefix = value[CedarEmbeddableMetadataEditorComponent.IRI_PREFIX];
+        IriPrefix.set(value[CedarEmbeddableMetadataEditorComponent.IRI_PREFIX]);
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_ALL_MULTI_INSTANCE_VALUES)) {
         this.showAllMultiInstanceValues = value[CedarEmbeddableMetadataEditorComponent.SHOW_ALL_MULTI_INSTANCE_VALUES];

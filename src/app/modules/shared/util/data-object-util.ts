@@ -4,7 +4,7 @@ import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
-import { CedarEmbeddableMetadataEditorComponent } from '../components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
+import { IriPrefix } from './iri-prefix';
 
 export class DataObjectUtil {
   /**
@@ -130,6 +130,6 @@ export class DataObjectUtil {
   }
 
   static getIriPrefix(): string {
-    return CedarEmbeddableMetadataEditorComponent.iriPrefix;
+    return IriPrefix.get();
   }
 }

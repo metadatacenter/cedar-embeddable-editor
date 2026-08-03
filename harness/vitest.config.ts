@@ -39,11 +39,6 @@ const ceeStubs = (): Plugin => ({
     if (source === '@angular/core') {
       return path.resolve(here, 'stubs/angular-core.ts');
     }
-    // Cut the DataObjectUtil -> editor component edge. See stubs/editor-component.ts.
-    // Anchored on a full path segment so it does NOT match `...-wrapper.component`.
-    if (/(^|\/)cedar-embeddable-metadata-editor\.component$/.test(source)) {
-      return path.resolve(here, 'stubs/editor-component.ts');
-    }
     // CEE's handlers `import * as _ from 'lodash-es'`, but they live in
     // `../src`, and node resolution from there walks up to a repo root with no
     // node_modules. Point bare deps at the harness's own copy.
