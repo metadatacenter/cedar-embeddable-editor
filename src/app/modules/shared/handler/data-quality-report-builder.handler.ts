@@ -17,6 +17,7 @@ import { InstanceValueNode } from '../util/instance-value-node';
 import { valueIsIri } from '../models/ext-auth-categories.model';
 import { FieldValueValidator } from '../validation/field-value-validator';
 import { ValidationCode, ValidationProblem } from '../validation/validation-problem.model';
+import { InputType } from '../models/input-type.model';
 
 export class DataQualityReportBuilderHandler {
   private dataObjectFull: object;
@@ -65,6 +66,11 @@ export class DataQualityReportBuilderHandler {
         //const multiElement: MultiElementComponent = component as MultiElementComponent;
         valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyList();
         const multiCount = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount;
+        DataQualityReportBuilderHandler.collectPresenceProblems(
+          component as any,
+          handlerContext.dataContext.instanceFullData,
+          report,
+        );
         DataQualityReportBuilderHandler.collectCardinalityProblems(component as any, multiCount, report);
         if (multiCount > 0) {
           const dummyTargetObject: object = DataQualityReportBuilderHandler.getEmptyObject();
@@ -126,6 +132,11 @@ export class DataQualityReportBuilderHandler {
         report,
       );
       if (component instanceof MultiFieldComponent) {
+        DataQualityReportBuilderHandler.collectPresenceProblems(
+          nonIterableComponent,
+          handlerContext.dataContext.instanceFullData,
+          report,
+        );
         DataQualityReportBuilderHandler.collectCardinalityProblems(
           nonIterableComponent,
           (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount,
@@ -189,6 +200,74 @@ export class DataQualityReportBuilderHandler {
       for (const p of FieldValueValidator.validate(component, value, component.path)) {
         DataQualityReportBuilderHandler.addProblem(report, p, seen);
       }
+    }
+  }
+
+  /**
+   * A multi child's array has to *be there*, whatever `minItems` says.
+   *
+   * `collectCardinalityProblems` below asks how many entries an array holds. This
+   * asks the prior question, and they are genuinely different: CEDAR lists a multi
+   * child in its parent's JSON Schema `required` array independently of any floor,
+   * so the property is required to be present even when nothing constrains its
+   * length. `[]` satisfies that. Absent does not, and neither does `null`.
+   *
+   * Without this, an element with no `minItems` and no array reported valid — the
+   * cardinality check had nothing to compare against and returned early. The
+   * canonical validator rejects it, and that was the last case where the two
+   * disagreed. Verified by running `cedar-model-validation-library` itself rather
+   * than by reading the schema: with the floor removed from
+   * `multiple-element-items-template.json`, `[]` is valid while omitted gives
+   * `object has missing required properties` and `null` gives `null found, array
+   * expected`.
+   *
+   * Note it is not reachable from any template anyone has: across the corpus,
+   * HuBMAP and the validator's own fixtures there are 321 multi children and every
+   * one declares `minItems`. This closes the gap rather than fixing an outage.
+   *
+   * Attribute-value fields are exempt, and that is the model's distinction rather
+   * than a special case here — they are the one child kind CEDAR leaves out of
+   * `required`, because their names come from the user.
+   */
+  private static collectPresenceProblems(component: any, instance: object, report: DataQualityReport): void {
+    const path: string[] = component?.path ?? [];
+    if (path.length === 0) {
+      return;
+    }
+    if (component.basicInfo?.inputType === InputType.attributeValue) {
+      return;
+    }
+
+    const name = path[path.length - 1];
+    const parents = DataQualityReportBuilderHandler.collectNodes(path.slice(0, -1), instance);
+    const inputType = component.basicInfo?.inputType ?? 'element';
+
+    for (const parent of parents) {
+      const present = Object.hasOwn(parent, name);
+      const value = present ? parent[name] : undefined;
+      // An array is the only shape that satisfies this, which is what the gate
+      // asks for — `[]` included. Worth testing the shape rather than just
+      // presence: an injected `null` does not survive as `null`. It is read into
+      // `{}`, an object where the template declares an array, which the canonical
+      // validator rejects for the same reason it rejects `null`.
+      if (Array.isArray(value)) {
+        continue;
+      }
+      report.problems.push(
+        new ValidationProblem(
+          path,
+          name,
+          inputType,
+          ValidationCode.missingProperty,
+          present
+            ? `Holds ${value === null ? 'null' : typeof value} where the template declares an array.`
+            : 'Is absent, and the template requires the property.',
+          value ?? null,
+        ),
+      );
+      // One complaint per component is enough; a second parent holding the same
+      // shape says nothing new.
+      return;
     }
   }
 

@@ -44,4 +44,20 @@ export class ValidationCode {
   static iriMalformed = 'iriMalformed';
   static minItems = 'minItems';
   static maxItems = 'maxItems';
+  /**
+   * A multi child's array is absent from the instance, or is `null` rather than an
+   * array.
+   *
+   * Distinct from `minItems`, which is about how many entries an array that *is*
+   * there holds. CEDAR lists a multi child in its parent's JSON Schema `required`
+   * array independently of any `minItems`, so the property has to be present even
+   * when the floor is zero or absent — and `[]` satisfies that where `null` does
+   * not.
+   *
+   * The canonical validator raises two separate errors here, `object has missing
+   * required properties` and `null found, array expected`. They are one code with
+   * a distinguishing message, since the verdict is the same and a consumer that
+   * wants to tell them apart has the message.
+   */
+  static missingProperty = 'missingProperty';
 }
