@@ -13,6 +13,9 @@
  * record of whatever the migration did.
  */
 import { expect, test } from '@playwright/test';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as url from 'node:url';
 
 const FIXTURES = [
   ['01-input-types', 'every simple input type'],
@@ -39,10 +42,31 @@ const FIXTURES = [
  */
 const FROZEN = new Date('2026-01-01T09:30:00Z');
 
+/**
+ * A cache-buster keyed to the bundle, not to the clock.
+ *
+ * The dev server sends no `Cache-Control`, so a browser may reuse a cached
+ * bundle heuristically without revalidating — which after a re-bundle means
+ * rendering the previous build, and is the most likely explanation for the
+ * occasional single-screenshot failure that only ever appeared right after
+ * building. Read once per run: stable across the run's tests, different as soon
+ * as the file is rebuilt.
+ *
+ * Deliberately not wrapped in a try/catch. The first version of this was, and
+ * the fallback constant hid the fact that `__dirname` does not exist in this
+ * package — it is ESM — so the buster was a no-op that looked like a fix. A
+ * missing bundle should stop the run, and `check-bundle-fresh.mjs` says so more
+ * clearly anyway.
+ */
+const BUNDLE_VERSION = String(
+  fs.statSync(path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '../public/cedar-embeddable-editor.js'))
+    .mtimeMs,
+);
+
 /** Load a fixture, optionally under a config preset, and wait for it to settle. */
 const open = async (page: import('@playwright/test').Page, fixture: string, preset?: string) => {
   await page.clock.setFixedTime(FROZEN);
-  await page.goto(`/host.html?t=${fixture}${preset ? `&c=${preset}` : ''}`);
+  await page.goto(`/host.html?t=${fixture}${preset ? `&c=${preset}` : ''}&b=${BUNDLE_VERSION}`);
   await page.waitForFunction(() => (window as any).__ceeReady === true || (window as any).__ceeError, null, {
     timeout: 20_000,
   });
@@ -352,4 +376,30 @@ test.describe('every external authority widget', () => {
       await expect(page.locator('mat-error')).toContainText(label);
     });
   }
+});
+
+/**
+ * The cache-busting itself, because it is the kind of fix that can silently stop
+ * working.
+ *
+ * The first attempt did exactly that: it resolved the bundle path with
+ * `__dirname`, which does not exist in this package, and a `try/catch` turned the
+ * failure into a constant — so every run requested the same URL and nothing was
+ * busted. It passed 86 tests while doing nothing.
+ */
+test.describe('the served bundle', () => {
+  test('is fetched at a URL keyed to its mtime', async ({ page }) => {
+    const requested: string[] = [];
+    page.on('request', (r) => {
+      if (r.url().includes('cedar-embeddable-editor.js')) {
+        requested.push(r.url());
+      }
+    });
+
+    await open(page, '01-input-types');
+
+    expect(requested, 'the bundle should be fetched exactly once').toHaveLength(1);
+    expect(requested[0], 'the URL carries the bundle version').toContain(`?b=${BUNDLE_VERSION}`);
+    expect(BUNDLE_VERSION, 'the version is the real mtime, not a fallback').toMatch(/^\d+/);
+  });
 });

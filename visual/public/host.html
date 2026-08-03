@@ -25,7 +25,28 @@
   <body>
     <div id="frame"><cedar-embeddable-editor></cedar-embeddable-editor></div>
 
-    <script src="./cedar-embeddable-editor.js"></script>
+    <script>
+      /**
+       * Load the bundle at a URL that changes when the bundle does.
+       *
+       * `python3 -m http.server` sends no `Cache-Control`, and HTTP then permits
+       * a browser to reuse a cached response *heuristically* — without
+       * revalidating — for a fraction of its age. Right after a re-bundle that
+       * means a run can render the previous build: exactly one or two screenshots
+       * differ, and they pass on the next run once the cache has aged out. Which
+       * is what the intermittent failures looked like, and why they only appeared
+       * immediately after a fresh bundle.
+       *
+       * `?b=` comes from the test helper, which reads the bundle's mtime — stable
+       * for every test in a run, different once the file is rebuilt. Not
+       * `Date.now()`: the suite freezes the clock before navigating, so that
+       * would produce the same URL every time and bust nothing.
+       */
+      (function () {
+        var b = new URLSearchParams(location.search).get('b') || '';
+        document.write('<script src="./cedar-embeddable-editor.js' + (b ? '?b=' + encodeURIComponent(b) : '') + '"><\/script>');
+      })();
+    </script>
     <script>
       /**
        * Load the fixture named by ?t=<name> into the web component.

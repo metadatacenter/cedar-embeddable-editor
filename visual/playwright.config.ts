@@ -14,15 +14,28 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   /**
-   * One retry, so an intermittent failure is reported as flaky rather than as
-   * a regression — Playwright counts and prints those separately, so nothing is
+   * One retry, so an intermittent failure is reported as flaky rather than as a
+   * regression — Playwright counts and prints those separately, so nothing is
    * hidden, and `trace: 'retain-on-failure'` still captures the first attempt.
    *
-   * Earned: two runs out of roughly a dozen have failed a single screenshot
-   * immediately after a fresh bundle and passed on every re-run, and the cause
-   * has not been reproduced on demand. With no retries there is no way to tell
-   * that apart from a real regression, which is the worse failure mode of the
-   * two. Raise this to a real fix once a trace shows what it is.
+   * Earned: two runs out of roughly a dozen failed a single screenshot
+   * immediately after a fresh bundle and passed on every re-run.
+   *
+   * **A likely cause has since been addressed, but not proven.** The dev server
+   * sends no `Cache-Control`, and HTTP then lets a browser reuse a cached
+   * response heuristically — without revalidating — so a run straight after a
+   * re-bundle could render the *previous* build: a handful of screenshots differ
+   * and pass next time. That fits the symptom, including why it only ever
+   * happened right after building. `host.html` now loads the bundle at a URL
+   * keyed to its mtime, and a test asserts that the versioned URL is what gets
+   * fetched.
+   *
+   * What is not claimed: that this was the cause. 20 consecutive runs with
+   * `--retries=0` did not reproduce the failure either before or after the
+   * change, so the change is a fix for a mechanism that fits rather than one
+   * that was caught. `npm run flake-hunt` repeats the suite (RUNS=n) so the next
+   * occurrence can be chased instead of waited for. Drop the retry once a
+   * stretch of runs long enough to mean something has been clean.
    */
   retries: process.env.CI ? 2 : 1,
   reporter: process.env.CI ? 'github' : [['list'], ['html', { open: 'never' }]],
