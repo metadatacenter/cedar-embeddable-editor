@@ -165,7 +165,6 @@ describe('names the user did not supply', () => {
     const component = driver.findOrThrow(['_av']);
     addAttribute(driver, component, 'colour', 'blue');
     addAttribute(driver, component, 'colour', 'red');
-    driver.expectNoErrors('adding a duplicate attribute name');
 
     // The first value stands; the duplicate gets a generated name of its own.
     expect(valueOf(driver.extract, 'colour')).toBe('blue');
@@ -173,6 +172,41 @@ describe('names the user did not supply', () => {
     expect(names).toHaveLength(2);
     expect(names[1]).not.toBe('colour');
     expect(valueOf(driver.extract, names[1])).toBe('red');
+  });
+
+  /**
+   * BEHAVIOUR CHANGE: the rename above used to happen in silence. A name the
+   * user typed was discarded and the box changed under them with no
+   * explanation — data loss, small but real.
+   */
+  it('says so when it discards a name the user typed', () => {
+    const driver = new CeeDriver(flat());
+    const component = driver.findOrThrow(['_av']);
+    addAttribute(driver, component, 'colour', 'blue');
+    addAttribute(driver, component, 'colour', 'red');
+
+    expect(driver.messages.errors.join('\n')).toContain('colour');
+    expect(driver.messages.errors.join('\n')).toContain('already used');
+  });
+
+  /**
+   * The other half, and the reason this is not simply "report every
+   * substitution": the widget calls through on every keystroke in either box,
+   * so a blank name is the state of every attribute the moment it is created.
+   * Reporting that would put an error under the field before the user had
+   * typed a character — the same mistake as pointing a value validator at a
+   * search box.
+   */
+  it('stays quiet about a name the user has not typed yet', () => {
+    const driver = new CeeDriver(flat());
+    addAttribute(driver, driver.findOrThrow(['_av']), null, 'blue');
+    driver.expectNoErrors('a blank attribute name is not a complaint');
+  });
+
+  it('stays quiet about an empty-string name too', () => {
+    const driver = new CeeDriver(flat());
+    addAttribute(driver, driver.findOrThrow(['_av']), '', 'blue');
+    driver.expectNoErrors('an empty attribute name is not a complaint');
   });
 
   it('keeps generating distinct names when the generated one also collides', () => {

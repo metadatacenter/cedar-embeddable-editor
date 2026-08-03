@@ -52,7 +52,23 @@ export class DataObjectDataValueHandler {
     let newName = valueObject[JsonSchema.reservedAttributeName];
 
     if (!newName || this.isDuplicateAttributeName(newName, dataObject, parentDataObject, currentIndex)) {
+      const supplied = newName;
       newName = this.getDefaultAttributeName(dataObject, parentDataObject, currentIndex);
+      // A name the user actually typed has just been thrown away, because
+      // another attribute on this object already uses it and two properties
+      // cannot share a name. That is data loss, and it used to happen in
+      // silence — the box simply changed under them.
+      //
+      // A *blank* name is not reported. The widget calls this on every
+      // keystroke in either box, so empty is the state of every attribute the
+      // moment it is created; complaining about it would put an error under the
+      // field before the user had finished the first character.
+      if (supplied) {
+        this.messageHandlerService.error(
+          `Attribute name "${supplied}" is already used on this object, so this one was renamed to "${newName}". ` +
+            'Two attributes cannot share a name.',
+        );
+      }
     }
 
     const oldNameIndex = (dataObject as Array<string>).indexOf(oldName);
