@@ -487,6 +487,66 @@ describe('slots that are empty', () => {
   });
 });
 
+describe('where the two readers disagree', () => {
+  /**
+   * They agree on everything the suite asserts, which is the point of running
+   * it both ways — but "the tests pass either way" is not the same as "the two
+   * are equivalent", and one input separates them.
+   *
+   * An attribute-value slot holding an empty name, `['']`, with no matching
+   * property for it. The JSON walk counts the array: one slot, which the view
+   * sync then declines to render. The model library pairs names with their
+   * values while parsing and keeps only the pairs, so a name with nothing
+   * behind it is not an attribute and the count is zero.
+   *
+   * Zero is the better answer — an attribute with neither a name nor a value is
+   * not an attribute — and it is what ships, since the library-backed reader is
+   * the default. Pinned here so the difference is a recorded decision rather
+   * than something discovered later, and so that a change to either reader
+   * fails rather than silently closing or widening the gap.
+   */
+  it('counts an empty attribute name differently, deliberately', async () => {
+    const { JsonWalkInstanceReader } = await import('@cee/handler/json-walk-instance-reader');
+    const { ModelLibraryInstanceReader } = await import('@cee/handler/model-library-instance-reader');
+
+    const template = buildTemplate({ name: 'ir_blank_attr', children: [{ kind: ATTR, name: 'f' }] });
+    const instance = { '@context': {}, '@id': 'https://example.org/i/1', _f: [''] };
+
+    const countWith = (instanceReader: unknown) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const driver = new CeeDriver(template, { instance, instanceReader: instanceReader as any });
+      return countOf(driver, driver.findOrThrow(['_f']));
+    };
+
+    expect(countWith(new JsonWalkInstanceReader()), 'the walk counts the slot').toBe(1);
+    expect(countWith(new ModelLibraryInstanceReader()), 'the library counts the pairs').toBe(0);
+  });
+
+  /**
+   * The same input with a value behind the name is not a disagreement — both
+   * see one attribute. Kept alongside so the case above reads as narrow rather
+   * than as attribute-value handling differing in general.
+   */
+  it('agrees as soon as the name has a value behind it', async () => {
+    const { JsonWalkInstanceReader } = await import('@cee/handler/json-walk-instance-reader');
+    const { ModelLibraryInstanceReader } = await import('@cee/handler/model-library-instance-reader');
+
+    const template = buildTemplate({ name: 'ir_named_attr', children: [{ kind: ATTR, name: 'f' }] });
+    const instance = {
+      '@context': {},
+      '@id': 'https://example.org/i/1',
+      _f: ['colour'],
+      colour: { '@value': 'blue' },
+    };
+
+    for (const reader of [new JsonWalkInstanceReader(), new ModelLibraryInstanceReader()]) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const driver = new CeeDriver(template, { instance, instanceReader: reader as any });
+      expect(countOf(driver, driver.findOrThrow(['_f']))).toBe(1);
+    }
+  });
+});
+
 describe('no template at all', () => {
   /**
    * A host page can set `templateObject` to null — before its fetch resolves,
