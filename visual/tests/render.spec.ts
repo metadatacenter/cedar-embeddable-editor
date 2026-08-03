@@ -1128,3 +1128,131 @@ test.describe('external authority endpoints', () => {
     });
   }
 });
+
+/**
+ * The two output getters a host page reads.
+ *
+ * `currentMetadata` and `currentMetadataYaml` are how an embedding page gets the
+ * edited document back out — the whole point of the component from the host's side.
+ * The JSON one is exercised indirectly all over the domain harness; the YAML one was
+ * touched by nothing, in either suite, despite being a separate serializer
+ * (`InstanceSerializer.toYaml`) with its own failure modes.
+ *
+ * Asserted without a YAML parser, which `visual/` does not have and which is not worth
+ * a dependency: the checks are that the two outputs agree about the document. Same
+ * field values, same template IRI, and none of the shapes a broken serializer actually
+ * produces — an empty string, `undefined`, or `[object Object]` where a nested node
+ * should be. A structural check on agreement catches a serializer that has stopped
+ * working; it does not need to re-verify YAML grammar the library already tests.
+ */
+test.describe('what a host page reads back', () => {
+  const read = (page: import('@playwright/test').Page) =>
+    page.evaluate(() => {
+      const cee = document.querySelector('cedar-embeddable-editor') as any;
+      return { json: JSON.stringify(cee.currentMetadata), yaml: cee.currentMetadataYaml };
+    });
+
+  test('both outputs describe the instance that was injected', async ({ page }) => {
+    await open(page, '11-choice-default', undefined, '11-choice-default-instance');
+    const { json, yaml } = await read(page);
+
+    expect(json, 'currentMetadata should carry the injected value').toContain('Private');
+    expect(typeof yaml, 'currentMetadataYaml should be a string').toBe('string');
+    expect(yaml.length, 'currentMetadataYaml is empty').toBeGreaterThan(0);
+    expect(yaml, 'the YAML output should carry the same value as the JSON').toContain('Private');
+    // The two failure shapes a broken serializer produces rather than throwing.
+    expect(yaml).not.toContain('[object Object]');
+    expect(yaml).not.toContain('undefined');
+  });
+
+  test('the YAML output keeps a nested multi-instance structure', async ({ page }) => {
+    await open(page, '13-paged-choice', undefined, '13-paged-choice-instance');
+    const { json, yaml } = await read(page);
+
+    // Both occurrences, so a serializer that flattens or drops repeats is visible.
+    for (const value of ['Public', 'Private']) {
+      expect(json, `JSON output lost ${value}`).toContain(value);
+      expect(yaml, `YAML output lost ${value}`).toContain(value);
+    }
+    expect(yaml).not.toContain('[object Object]');
+  });
+
+  test('an edit reaches both outputs', async ({ page }) => {
+    await open(page, '01-input-types');
+    await page.locator('input[aria-label="text"]').fill('typed into the form');
+    await page.locator('body').click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(300);
+
+    const { json, yaml } = await read(page);
+    expect(json, 'an edit did not reach currentMetadata').toContain('typed into the form');
+    expect(yaml, 'an edit did not reach currentMetadataYaml').toContain('typed into the form');
+  });
+});
+
+/**
+ * Every boolean config flag does something.
+ *
+ * CEE takes 31 config keys and two thirds of them appeared in no test. Breadth is the
+ * point rather than depth: the failure this catches is a key that is silently ignored,
+ * which is indistinguishable from a working one until someone relies on it. That is
+ * not hypothetical — `eventHandler` is a documented input whose value is stored in
+ * `MessageHandlerService` and never read, so a host page passing one gets silence, and
+ * nothing said so.
+ *
+ * So each flag is loaded off and on, and the rendered DOM has to differ. A weak
+ * assertion deliberately: it cannot say a flag does the *right* thing, and pinning
+ * each one's exact output would be a large baseline for a small return. It can say the
+ * flag is wired to something, which is the question that was unanswered for nineteen
+ * of them.
+ *
+ * `expanded*` flags are paired with the panel they expand, since expanding a panel that
+ * is not shown changes nothing and would read as a dead flag.
+ */
+test.describe('config flags are wired to something', () => {
+  const FLAGS: ReadonlyArray<{ flag: string; withFlags?: string[]; fixture?: string }> = [
+    { flag: 'showHeader' },
+    { flag: 'showFooter' },
+    { flag: 'showPreferencesMenu' },
+    { flag: 'showSampleTemplateLinks' },
+    { flag: 'showTemplateRenderingRepresentation' },
+    { flag: 'showInstanceDataCore' },
+    { flag: 'showInstanceDataFull' },
+    { flag: 'showTemplateSourceData' },
+    { flag: 'showDataQualityReport' },
+    { flag: 'showMultiInstanceInfo', fixture: '03-nested-multi' },
+    { flag: 'showAllMultiInstanceValues', fixture: '03-nested-multi' },
+    { flag: 'showStaticText', fixture: '05-static-paged' },
+    // Expanding a panel only shows when the panel itself is shown.
+    { flag: 'expandedInstanceDataCore', withFlags: ['showInstanceDataCore'] },
+    { flag: 'expandedInstanceDataFull', withFlags: ['showInstanceDataFull'] },
+    { flag: 'expandedTemplateSourceData', withFlags: ['showTemplateSourceData'] },
+    { flag: 'expandedDataQualityReport', withFlags: ['showDataQualityReport'] },
+    { flag: 'expandedTemplateRenderingRepresentation', withFlags: ['showTemplateRenderingRepresentation'] },
+    { flag: 'expandedSampleTemplateLinks', withFlags: ['showSampleTemplateLinks'] },
+    { flag: 'expandedMultiInstanceInfo', withFlags: ['showMultiInstanceInfo'], fixture: '03-nested-multi' },
+  ];
+
+  const domOf = async (page: import('@playwright/test').Page, fixture: string, flags: string[]) => {
+    await page.clock.setFixedTime(FROZEN);
+    const f = flags.length ? `&f=${flags.join(',')}` : '';
+    await page.goto(`/host.html?t=${fixture}${f}&b=${BUNDLE_VERSION}`);
+    await page.waitForFunction(() => (window as any).__ceeReady === true || (window as any).__ceeError, null, {
+      timeout: 20_000,
+    });
+    expect(await page.evaluate(() => (window as any).__ceeError)).toBeFalsy();
+    await page.waitForTimeout(300);
+    return page.evaluate(() => document.body.innerHTML);
+  };
+
+  for (const { flag, withFlags = [], fixture = '01-input-types' } of FLAGS) {
+    test(`${flag} changes what renders`, async ({ page }) => {
+      const off = await domOf(page, fixture, withFlags);
+      const on = await domOf(page, fixture, [...withFlags, flag]);
+
+      expect(
+        on === off,
+        `turning on ${flag} rendered byte-identical DOM — the key is probably ignored`,
+      ).toBe(false);
+    });
+  }
+});
