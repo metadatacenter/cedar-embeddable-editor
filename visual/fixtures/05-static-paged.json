@@ -33,6 +33,7 @@
     "order": [
       "_section",
       "_note",
+      "_diagram",
       "_first",
       "_pb",
       "_second"
@@ -40,6 +41,7 @@
     "propertyLabels": {
       "_section": "section",
       "_note": "note",
+      "_diagram": "diagram",
       "_first": "first",
       "_pb": "pb",
       "_second": "second"
@@ -47,6 +49,7 @@
     "propertyDescriptions": {
       "_section": "section property description",
       "_note": "note property description",
+      "_diagram": "diagram property description",
       "_first": "first property description",
       "_pb": "pb property description",
       "_second": "second property description"
@@ -347,6 +350,34 @@
         "_content": "<p>Some <strong>rich</strong> guidance text.</p>"
       },
       "schema:name": "note",
+      "schema:description": null,
+      "pav:createdOn": "2026-01-01T00:00:00-08:00",
+      "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+      "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "schema:schemaVersion": "1.6.0",
+      "additionalProperties": false,
+      "pav:version": "0.0.1",
+      "bibo:status": "bibo:draft",
+      "$schema": "http://json-schema.org/draft-04/schema#"
+    },
+    "_diagram": {
+      "@id": "https://repo.metadatacenter.org/template-fields/d8b80606-0000-4000-8000-d8b806060000",
+      "@type": "https://schema.metadatacenter.org/core/StaticTemplateField",
+      "@context": {
+        "schema": "http://schema.org/",
+        "pav": "http://purl.org/pav/",
+        "bibo": "http://purl.org/ontology/bibo/",
+        "oslc": "http://open-services.net/ns/core#"
+      },
+      "type": "object",
+      "title": "diagram title",
+      "description": "diagram description",
+      "_ui": {
+        "inputType": "image",
+        "_content": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNDAnIGhlaWdodD0nMTIwJz48cmVjdCB3aWR0aD0nMjQwJyBoZWlnaHQ9JzEyMCcgZmlsbD0ncmdiKDIzMiwyMzIsMjMyKScvPjxyZWN0IHg9JzIwJyB5PScyMCcgd2lkdGg9JzgwJyBoZWlnaHQ9JzgwJyBmaWxsPSdyZ2IoMCwxMDUsOTIpJy8+PHJlY3QgeD0nMTMwJyB5PScyMCcgd2lkdGg9JzQwJyBoZWlnaHQ9JzgwJyBmaWxsPSdyZ2IoMjQ5LDE2OCwzNyknLz48cmVjdCB4PScxODUnIHk9JzQ1JyB3aWR0aD0nMzUnIGhlaWdodD0nMzAnIGZpbGw9J3JnYigyLDExOSwxODkpJy8+PC9zdmc+"
+      },
+      "schema:name": "diagram",
       "schema:description": null,
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",

@@ -27,6 +27,7 @@ const FIXTURES = [
   ['07-timezone', 'temporal field with the timezone picker'],
   ['08-authority', 'every external authority widget'],
   ['09-temporal', 'temporal fields at every granularity'],
+  ['10-attribute-values', 'attribute-value fields, whose names come from the user'],
 ] as const;
 
 /**
@@ -248,6 +249,119 @@ test.describe('config presets', () => {
     await open(page, '02-choices', 'readonly');
     await expect(page).toHaveScreenshot('preset-readonly-choices.png', { fullPage: true });
   });
+});
+
+/**
+ * One clipped screenshot per widget.
+ *
+ * The nine full-page fixtures above are the wrong instrument for a widget-level
+ * regression, and the footer rebrand proved it: a new logo, a new organisation
+ * name and a new link changed 0.708% of the desktop page and 0.897% of the
+ * narrow one, against a `maxDiffPixelRatio` of 1%, and `preset-chrome` reported
+ * green. Nothing about that is specific to footers. A single widget is a small
+ * fraction of any of these pages, so a widget that renders wrong after the
+ * Material 15 MDC rewrite — the exact thing this suite exists to catch — can move
+ * every pixel it owns and still come in under the page's budget.
+ *
+ * So each widget also gets a screenshot clipped to its own host element, with an
+ * absolute pixel budget rather than an inherited ratio. Two consequences worth
+ * having beyond the sensitivity: a failure names the widget instead of handing
+ * over a full-page diff to search, and the baselines are small enough to review.
+ *
+ * Mutation-tested, because a claim like that is worth checking rather than
+ * asserting. Shifting the section break's left padding from 10px to 14px — its
+ * own text moves 4px, nothing else on the page moves, which is the shape of an
+ * MDC restyle — changes 674 pixels. That is 0.059% of the desktop `05-static-paged`
+ * page and 0.107% of the narrow one, so **both full-page baselines pass**, in both
+ * projects, while both clipped section-break baselines fail. That is the whole
+ * gap, in one measurement.
+ *
+ * `nth` is here because two widgets share a component: a text field and a
+ * textarea are both `app-cedar-input-text`, and a single- and multi-select list
+ * are both `app-cedar-input-select`. Each entry asserts its own element exists
+ * before shooting, so a table that drifts out of step with a fixture fails
+ * loudly rather than silently screenshotting the wrong element.
+ *
+ * Not listed, deliberately:
+ *  - `app-time-picker` and `app-date-picker` are children of
+ *    `app-cedar-input-datetime`, so its clip already contains them, and the time
+ *    picker has its own tests below.
+ *  - `app-cedar-multi-pager` already has `pager.png`, clipped for this reason.
+ *  - `app-cedar-static-youtube` renders `<youtube-player>`, which fetches
+ *    `youtube.com/iframe_api`. The suite must not reach the network — it points
+ *    the terminology server at a dead port for the same reason — and a baseline
+ *    of the empty container it degrades to would assert nothing. Left uncovered,
+ *    on purpose. Note for the upgrade: this is a live network dependency inside
+ *    CEE, not only a test problem.
+ *  - `app-orcid-details` and `app-ror-details` only render after a term is
+ *    selected, which needs a reachable authority service.
+ */
+const WIDGETS = [
+  { name: 'input-text', selector: 'app-cedar-input-text', fixture: '01-input-types', nth: 0 },
+  { name: 'input-textarea', selector: 'app-cedar-input-text', fixture: '01-input-types', nth: 1 },
+  { name: 'input-numeric', selector: 'app-cedar-input-numeric', fixture: '01-input-types', nth: 0 },
+  { name: 'input-email', selector: 'app-cedar-input-email', fixture: '01-input-types', nth: 0 },
+  { name: 'input-phone', selector: 'app-cedar-input-phone', fixture: '01-input-types', nth: 0 },
+  { name: 'input-link', selector: 'app-cedar-input-link', fixture: '01-input-types', nth: 0 },
+  { name: 'input-datetime', selector: 'app-cedar-input-datetime', fixture: '01-input-types', nth: 0 },
+  { name: 'input-checkbox', selector: 'app-cedar-input-checkbox', fixture: '02-choices', nth: 0 },
+  { name: 'input-multiple-choice', selector: 'app-cedar-input-multiple-choice', fixture: '02-choices', nth: 0 },
+  { name: 'input-select', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 0 },
+  { name: 'input-select-multi', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 1 },
+  { name: 'input-controlled', selector: 'app-cedar-input-controlled', fixture: '04-controlled-terms', nth: 0 },
+  { name: 'input-orcid', selector: 'app-cedar-input-orcid', fixture: '08-authority', nth: 0 },
+  { name: 'input-ror', selector: 'app-cedar-input-ror', fixture: '08-authority', nth: 0 },
+  { name: 'input-pfas', selector: 'app-cedar-input-pfas', fixture: '08-authority', nth: 0 },
+  { name: 'input-pmid', selector: 'app-cedar-input-pmid', fixture: '08-authority', nth: 0 },
+  { name: 'input-rrid', selector: 'app-cedar-input-rrid', fixture: '08-authority', nth: 0 },
+  { name: 'input-nih-grant', selector: 'app-cedar-input-nih-grant', fixture: '08-authority', nth: 0 },
+  { name: 'input-doi', selector: 'app-cedar-input-doi', fixture: '08-authority', nth: 0 },
+  { name: 'input-attribute-value', selector: 'app-cedar-input-attribute-value', fixture: '10-attribute-values', nth: 0 },
+  { name: 'static-rich-text', selector: 'app-cedar-static-rich-text', fixture: '05-static-paged', nth: 0 },
+  { name: 'static-section-break', selector: 'app-cedar-static-section-break', fixture: '05-static-paged', nth: 0 },
+  { name: 'static-page-break', selector: 'app-cedar-static-page-break', fixture: '05-static-paged', nth: 0 },
+  { name: 'static-image', selector: 'app-cedar-static-image', fixture: '05-static-paged', nth: 0 },
+  { name: 'timezone-picker', selector: 'app-timezone-picker', fixture: '07-timezone', nth: 0 },
+] as const;
+
+/**
+ * An absolute budget, not a ratio.
+ *
+ * A ratio is what let the footer through, and it fails worst exactly where it
+ * matters most — the smaller the thing that broke, the more slack it gets. 120
+ * pixels is a couple of glyphs' worth of rasterisation variance, and it is far
+ * tighter than 1% of even the narrowest widget here (a 1142x61 field would get
+ * 696). Within one machine the real figure is zero.
+ *
+ * This does override the config, rather than being softened by it: given both,
+ * Playwright takes `Math.min` of the absolute budget and the ratio expanded
+ * against the image's own area, so the stricter of the two governs.
+ *
+ * The trade-off, stated so it is not a surprise: these baselines are keyed to the
+ * platform but not to the OS version, so an OS update that shifts font rendering
+ * will fail them. Re-recording is the right response to that, and a full-page
+ * baseline would very likely have gone with them anyway.
+ */
+const WIDGET_DIFF_BUDGET = 120;
+
+test.describe('widgets, clipped', () => {
+  for (const widget of WIDGETS) {
+    test(`${widget.name} renders as recorded`, async ({ page }) => {
+      await open(page, widget.fixture);
+
+      const all = page.locator(widget.selector);
+      expect(
+        await all.count(),
+        `${widget.fixture} has no ${widget.selector}[${widget.nth}] — the WIDGETS table is out of step with the fixture`,
+      ).toBeGreaterThan(widget.nth);
+
+      const element = all.nth(widget.nth);
+      await expect(element).toBeVisible();
+      await expect(element).toHaveScreenshot(`widget-${widget.name}.png`, {
+        maxDiffPixels: WIDGET_DIFF_BUDGET,
+      });
+    });
+  }
 });
 
 /**

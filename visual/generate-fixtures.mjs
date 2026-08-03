@@ -220,11 +220,37 @@ const write = (name, template) => {
   const a = field('first', () => CedarBuilders.textFieldBuilder());
   const b2 = field('second', () => CedarBuilders.textFieldBuilder());
 
+  /**
+   * The image field, with the image carried inline.
+   *
+   * `cedar-static-image.component.html` renders `<img src="{{content}}">`
+   * straight from the field's content, so a normal template would point at a
+   * remote URL — and the visual suite must not reach the network for the same
+   * reason it points the terminology server at a dead port: a baseline that
+   * depends on someone else's uptime fails for reasons that have nothing to do
+   * with CEE. A `data:` URI renders identically and offline.
+   *
+   * Rectangles on integer boundaries and no text, so there is nothing in the
+   * image for font or anti-aliasing variance to move. Built here rather than
+   * pasted as a blob so it stays readable.
+   */
+  const svg =
+    "<svg xmlns='http://www.w3.org/2000/svg' width='240' height='120'>" +
+    "<rect width='240' height='120' fill='rgb(232,232,232)'/>" +
+    "<rect x='20' y='20' width='80' height='80' fill='rgb(0,105,92)'/>" +
+    "<rect x='130' y='20' width='40' height='80' fill='rgb(249,168,37)'/>" +
+    "<rect x='185' y='45' width='35' height='30' fill='rgb(2,119,189)'/>" +
+    '</svg>';
+  const image = field('diagram', () => CedarBuilders.imageFieldBuilder(), (b) =>
+    opt(b, 'withContent', `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`),
+  );
+
   let tb = common(CedarBuilders.templateBuilder(), 'StaticAndPaged', 'templates').withSchemaDescription(
     'Static content and page breaks',
   );
   tb = tb.addChild(section, deploy(section, 'section'));
   tb = tb.addChild(rich, deploy(rich, 'note'));
+  tb = tb.addChild(image, deploy(image, 'diagram'));
   tb = tb.addChild(a, deploy(a, 'first'));
   tb = tb.addChild(pb, deploy(pb, 'pb'));
   tb = tb.addChild(b2, deploy(b2, 'second'));
@@ -339,4 +365,39 @@ const write = (name, template) => {
     tb = tb.addChild(f, deploy(f, f.schema_name ?? 'x'));
   }
   write('09-temporal', tb.build());
+}
+
+// 10. Attribute-value fields — the one dynamic field type that rendered in no
+//     fixture at all, so no baseline covered it and no clipped screenshot could.
+//
+//     It is the odd one out among the field types: the *name* is user-supplied
+//     rather than fixed by the template, so the widget is a name box beside a
+//     value box, each with its own clear button. Two Material form fields on one
+//     row, which is a layout no other widget in CEE uses — and `mat-form-field`
+//     is exactly what Material 15's MDC rewrite restructures.
+{
+  const av = field('attribute', () => CedarBuilders.attributeValueFieldBuilder());
+  const before = field('label', () => CedarBuilders.textFieldBuilder());
+
+  let tb = common(CedarBuilders.templateBuilder(), 'AttributeValues', 'templates').withSchemaDescription(
+    'Attribute-value fields, whose names come from the user rather than the template',
+  );
+  // A plain field above it, so the baseline also shows the attribute-value row
+  // in context rather than alone at the top of the form.
+  tb = tb.addChild(before, deploy(before, 'label'));
+  /**
+   * `minItems: 1`, deliberately.
+   *
+   * An attribute-value field is always an array — the user supplies the names, so
+   * the template cannot know them — and built without an explicit `minItems` the
+   * builder leaves it at 0. At 0 the field's header, its pager and its add button
+   * all render correctly, but there is no occupied row, so
+   * `app-cedar-input-attribute-value` itself is not on the page and a clipped
+   * baseline of the widget would have nothing to photograph. Hence one row here.
+   *
+   * That is a fact about this fixture, not a complaint about the behaviour: a
+   * 0..4 field showing an add control and no row is right.
+   */
+  tb = tb.addChild(av, deploy(av, 'attribute', { multi: true, minItems: 1, maxItems: 4 }));
+  write('10-attribute-values', tb.build());
 }
