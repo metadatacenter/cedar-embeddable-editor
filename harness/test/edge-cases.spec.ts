@@ -70,11 +70,18 @@ describe('page break pagination', () => {
 
 describe('hidden fields', () => {
   /**
-   * `_ui.hidden` is applied at parse time — the component never enters the
-   * tree at all, so it is not merely invisible, it is unreachable. Distinct
-   * from `hideEmptyFields`, which toggles `component.hidden` at runtime.
+   * BEHAVIOUR CHANGE. `_ui.hidden` used to be applied by *removing* the child
+   * at parse time, so the component was not merely invisible but unreachable —
+   * and, because the instance builder walks the component tree, the property
+   * was missing from the document as well. A template that hid a required
+   * field could not produce a valid instance at all.
+   *
+   * The child is now kept and flagged. `hidden` is what the renderer skips on;
+   * `hiddenInTemplate` records that the template is the reason, so the
+   * empty-field pass cannot reveal it later. Covered in full by
+   * `hidden-fields.spec.ts`.
    */
-  it('never enter the component tree', () => {
+  it('stay in the component tree, flagged rather than removed', () => {
     const driver = new CeeDriver(
       buildTemplate({
         name: 'hidden',
@@ -85,7 +92,24 @@ describe('hidden fields', () => {
       }),
     );
     expect(driver.find(['_visible'])).toBeTruthy();
-    expect(driver.find(['_invisible'])).toBeNull();
+
+    const concealed = driver.find(['_invisible']);
+    expect(concealed, 'the child is present').toBeTruthy();
+    expect(concealed.hidden, 'and not rendered').toBe(true);
+    expect(concealed.hiddenInTemplate, 'because the template says so').toBe(true);
+  });
+
+  it('so the instance keeps a slot for them', () => {
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'hidden_slot',
+        children: [
+          { kind: TEXT, name: 'visible' },
+          { kind: TEXT, name: 'invisible', hidden: true },
+        ],
+      }),
+    );
+    expect(Object.keys(driver.extract)).toContain('_invisible');
   });
 });
 

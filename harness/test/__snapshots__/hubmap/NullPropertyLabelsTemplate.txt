@@ -1,3 +1,6 @@
+templateType type=textfield single hidden required
+fileName type=textfield single hidden required
+name type=textfield single hidden required
 data multi min=0
   userDefinedId type=textfield single required
   fileName type=textfield single required

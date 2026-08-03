@@ -1,1 +1,1 @@
-(no rendered children)
+Linkfield type=link single hidden

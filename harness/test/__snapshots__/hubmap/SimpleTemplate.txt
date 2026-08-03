@@ -1,6 +1,7 @@
 Text Field type=textfield single
 Text Field - Default Value type=textfield single
 Text Field - Min/Max String Lengths type=textfield single minLen=3 maxLen=10
+Text Field - Hidden type=textfield single hidden
 Datetime Field - Datetime (hh:mm:ss) type=temporal single temporal=xsd:dateTime gran=second
 Datetime Field - Datetime (hh:mm:ss, seconds) type=temporal single temporal=xsd:dateTime gran=decimalSecond
 Datetime Field - Date (hh:mm) type=temporal single temporal=xsd:dateTime gran=minute

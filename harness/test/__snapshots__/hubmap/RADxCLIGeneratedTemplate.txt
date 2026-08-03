@@ -12,10 +12,12 @@ Data File Language single
   Other Languages type=list single choices=246 choice=single
 Data File Subjects multi min=0
   Subject Identifier type=controlled single ontologies=1
+  Subject Identifier Scheme type=textfield single hidden
   Keyword type=textfield single
 Data File Descriptions multi min=0
   Description type=textarea single
   Description Language type=list single choices=246 choice=single
+  Type Of Content type=controlled single hidden classes=1
 Data File Data Dictionary single
   Data Dictionary File Name type=textfield single
 Data File Creators multi min=0
@@ -82,6 +84,7 @@ Data File Distributions multi min=0
   Distribution Query Statement type=textfield single
   Data File Publication Date single
     Data File Publication Date type=temporal single temporal=xsd:date gran=day
+    Publication Date Type type=textfield single hidden
 Data Characteristics Summary single
   Data Characteristics Table in HTML type=textarea single
   Data Characteristics Table in CSV type=textarea single

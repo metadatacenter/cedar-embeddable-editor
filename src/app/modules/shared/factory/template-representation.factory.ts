@@ -100,6 +100,18 @@ export class TemplateRepresentationFactory {
       return;
     }
     for (const child of container.children) {
+      // A field the template marked `_ui.hidden` stays hidden whatever it
+      // holds. This pass writes the same flag for a different reason — the
+      // field is empty and the viewer is configured not to show empty fields —
+      // so without the guard a template-hidden field carrying a value would be
+      // revealed by it. `ActiveComponentRegistryService.setVisibility` makes
+      // the same distinction; the two run at different moments.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((child as any).hiddenInTemplate) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (child as any).hidden = true;
+        continue;
+      }
       if (child instanceof SingleFieldComponent || child instanceof MultiFieldComponent) {
         let val;
         if (child.basicInfo.inputType === InputType.attributeValue) {

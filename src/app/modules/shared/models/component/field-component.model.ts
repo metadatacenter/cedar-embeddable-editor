@@ -16,6 +16,8 @@ export interface FieldComponent extends CedarComponent {
   controlledInfo: ControlledInfo;
   multiInfo: MultiInfo;
   hidden: boolean;
+  /** The template said `_ui.hidden`; permanent, unlike `hidden`. */
+  hiddenInTemplate: boolean;
 
   isMulti(): boolean;
   isMultiPage(): boolean;

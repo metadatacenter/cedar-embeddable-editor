@@ -65,6 +65,7 @@ Data File Distributions multi min=0
   Distribution Access Configuration type=textfield single
   Distribution Query Statement type=textfield single
   Data File Publication Date type=temporal single temporal=xsd:date gran=day
+  Publication Date Type type=textfield single hidden
 Data Characteristics Summary single
   Data Characteristics Table in HTML type=textarea single
   Data Characteristics Table in CSV type=textarea single

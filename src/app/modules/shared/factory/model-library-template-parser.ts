@@ -203,13 +203,23 @@ export class ModelLibraryTemplateParser implements TemplateParser {
         (r as any).multiInfo.maxItems = multiInfo.maxItems;
       }
 
-      // A child the template marks hidden is left out of the tree entirely
-      // rather than flagged, which is what the walk does too.
-      if (!childInfo.hidden) {
-        component.children.push(r);
-        r.name = name;
-        r.path = myPath;
-      }
+      // A child the template marks `_ui.hidden` is kept and flagged, not
+      // dropped. Hiding is a display decision: the template still declares the
+      // property and may still require it, so the instance needs a slot for it
+      // whether or not anyone can see it. Dropping the child meant the instance
+      // builder never learned about it and the document came out missing a
+      // property its own schema demanded — three of the six non-conformant
+      // corpus templates failed for exactly that.
+      //
+      // The renderer already skips a component whose `hidden` is set, so
+      // marking it is enough to keep it off the screen.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const flaggable = r as any;
+      flaggable.hiddenInTemplate = childInfo.hidden === true;
+      flaggable.hidden = flaggable.hiddenInTemplate;
+      component.children.push(r);
+      r.name = name;
+      r.path = myPath;
     }
   }
 

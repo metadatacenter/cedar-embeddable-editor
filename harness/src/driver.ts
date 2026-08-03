@@ -13,6 +13,7 @@
  */
 import { DataContext } from '@cee/util/data-context';
 import { InstanceDeserializer } from '@cee/util/instance-deserializer';
+import { ActiveComponentRegistryService } from '@cee/service/active-component-registry.service';
 import { HandlerContext } from '@cee/util/handler-context';
 import { MessageHandlerService } from '@cee/service/message-handler.service';
 import { PageBreakPaginatorService } from '@cee/service/page-break-paginator.service';
@@ -127,6 +128,18 @@ export class CeeDriver {
 
   get qualityReport(): any {
     return JSON.parse(JSON.stringify(this.dataContext.dataQualityReport));
+  }
+
+  /**
+   * Run the empty-field visibility pass, as `hideEmptyFields` does on screen.
+   *
+   * `ActiveComponentRegistryService.setVisibility` is what decides which
+   * components a read-only viewer draws. It needs no registered widgets — it
+   * reads the instance and writes `hidden` on the components — so the harness
+   * can ask for it directly.
+   */
+  registryForVisibility(): void {
+    new ActiveComponentRegistryService().setVisibility(this.representation, this.handlerContext);
   }
 
   /** Locate a component by its template path, e.g. `['_element', '_field']`. */

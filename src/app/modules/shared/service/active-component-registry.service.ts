@@ -38,7 +38,13 @@ export class ActiveComponentRegistryService {
       if (dataObject == null) {
         continue;
       }
-      if (InstanceValueNode.isLiteral(dataObject)) {
+      // A field the template hid stays hidden whatever it holds. This pass
+      // writes the same flag for a different reason — the field is empty and
+      // the viewer is configured not to show empty fields — and without the
+      // guard a template-hidden field carrying a value would be revealed by it.
+      if (fieldComponent.hiddenInTemplate) {
+        fieldComponent.hidden = true;
+      } else if (InstanceValueNode.isLiteral(dataObject)) {
         const value = InstanceValueNode.literal(dataObject);
         fieldComponent.hidden = value === '' || value === null;
       } else if (InstanceValueNode.isIriBearing(dataObject)) {

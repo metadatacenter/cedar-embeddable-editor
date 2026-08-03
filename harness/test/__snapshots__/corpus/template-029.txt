@@ -14,10 +14,13 @@ Data File Language single
   Other Language type=list multi min=1 choices=246 choice=multi
 Data File Subjects multi min=1
   Subject Identifier type=controlled single ontologies=1
+  Subject Identifier Scheme type=textfield single hidden
+  Subject Identifier Scheme Identifier type=textfield single hidden
   Keyword type=textfield single
 Data File Description multi min=1
   Description type=textarea single
   Description Language type=list single choices=246 choice=single
+  Type Of Content type=controlled single hidden branches=1
 Data File Dictionary single
   Data Dictionary File Name type=textfield single
 Data File Creator multi min=1
@@ -27,10 +30,12 @@ Data File Creator multi min=1
   Creator Family Name type=textfield single
   Creator Identifier type=textfield single
   Creator Identifier Scheme type=controlled single branches=1
+  Creator Identifier Scheme Identifier type=link single hidden
   Creator Email type=email single
   Creator Affiliation type=textfield single
   Creator Affiliation Identifier type=textfield single
   Creator Affiliation Identifier Scheme type=controlled single branches=1
+  Creator Affiliation Identifier Scheme Identifier type=link single hidden
   Creator Role type=controlled single branches=1
 Data File Related Resource multi min=1
   Related Resource Identifier type=textfield single
@@ -45,13 +50,16 @@ Data File Contributor multi min=1
   Contributor Family Name type=textfield single
   Contributor Identifier type=textfield single
   Contributor Identifier Scheme type=controlled single branches=1
+  Contributor Identifier Scheme IRI type=link single hidden
   Contributor Affiliation type=textfield single
   Contributor Affiliation Identifier type=textfield single
   Contributor Affiliation Identifier Scheme type=controlled single branches=1
+  Contributor Affiliation Identifier Scheme IRI type=link single hidden
   Contributor Email type=email single
   Contributor Role type=controlled single branches=1
 Data File Rights multi min=1
   License Name type=controlled single branches=1
+  License Identifier type=link single hidden
   License Text type=textfield single
 Data File Date multi min=1
   Event Type type=controlled single branches=1
@@ -60,6 +68,7 @@ Data File Parent Study multi min=1
   PHS Identifier type=textfield single required
   Study Identifier type=textfield single
   Study Identifier Scheme type=controlled single branches=1
+  Study Identifier Scheme IRI type=link single hidden
   Study Name type=textfield single
   Study Start Date type=temporal single temporal=xsd:date gran=day
   Study End Date type=temporal single temporal=xsd:date gran=day
@@ -70,10 +79,12 @@ Data File Funding Source multi min=1
   Funder Name type=textfield single
   Funder Identifier type=textfield single
   Funder Identifier Scheme type=controlled single branches=1
+  Funder Identifier Scheme IRI type=link single hidden
 Data File Distribution multi min=1
   Distribution Publisher type=textfield single
   Distribution Publisher Identifier type=textfield single
   Distribution Publisher Identifier Scheme type=controlled single branches=1
+  Distribution Publisher Identifier Scheme IRI type=link single hidden
   Distribution Identifier type=textfield single
   Distribution Identifier Type type=controlled single branches=1
   Distribution Format type=textfield single
@@ -84,6 +95,7 @@ Data File Distribution multi min=1
   Distribution Query Statement type=textfield single
   Data File Publication Date single
     Data File Publication Date type=temporal single temporal=xsd:date gran=day
+    Publication Date Type type=controlled single hidden branches=1
 Data Characteristics Summary single
   Data Characteristics Table in HTML type=textarea single
   Data Characteristics Table in CSV type=textarea single
@@ -93,10 +105,12 @@ Data Source multi min=1
   Data Source Name type=textfield single
   Data Source Identifier type=textfield single
   Data Source Identifier Scheme type=controlled single branches=1
+  Data Source Identifier Scheme IRI type=link single hidden
 Data Stream multi min=1
   Data Stream Name type=textfield single
   Data Stream Identifier type=textfield single
   Data Stream Identifier Scheme type=controlled single branches=1
+  Data Stream Identifier Scheme IRI type=link single hidden
   Data Stream Variable Name type=textfield multi min=1
   Data Stream Data Source Identifier type=textfield single
 Data File Creation Process multi min=1

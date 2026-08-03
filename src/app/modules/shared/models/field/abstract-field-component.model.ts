@@ -21,6 +21,14 @@ export abstract class AbstractFieldComponent implements FieldComponent {
   controlledInfo: ControlledInfo = new ControlledInfo();
   multiInfo: MultiInfo = new MultiInfo();
   hidden: boolean;
+  /**
+   * The template said `_ui.hidden`, which is permanent.
+   *
+   * Distinct from `hidden`, which the read-only viewer also writes when a field
+   * is empty. One boolean cannot carry both: a template-hidden field holding a
+   * value would be un-hidden the moment the empty-field pass ran over it.
+   */
+  hiddenInTemplate = false;
 
   abstract isMulti(): boolean;
   abstract isMultiPage(): boolean;
