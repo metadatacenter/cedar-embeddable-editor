@@ -52,7 +52,7 @@ exports[`the shape of an element > a single element 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > attrValue > attrValue 1`] = `
+exports[`the slot a multi field starts with > attrValue 1`] = `
 {
   "extract": [
     {
@@ -73,7 +73,7 @@ exports[`the slot a multi field starts with > attrValue > attrValue 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > checkbox > checkbox 1`] = `
+exports[`the slot a multi field starts with > checkbox 1`] = `
 {
   "extract": [
     {
@@ -94,7 +94,7 @@ exports[`the slot a multi field starts with > checkbox > checkbox 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > controlled > controlled 1`] = `
+exports[`the slot a multi field starts with > controlled 1`] = `
 {
   "extract": [
     {},
@@ -107,7 +107,7 @@ exports[`the slot a multi field starts with > controlled > controlled 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > doi > doi 1`] = `
+exports[`the slot a multi field starts with > doi 1`] = `
 {
   "extract": [
     {},
@@ -120,41 +120,7 @@ exports[`the slot a multi field starts with > doi > doi 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > email > email 1`] = `
-{
-  "extract": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
-  ],
-  "full": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
-  ],
-}
-`;
-
-exports[`the slot a multi field starts with > link > link 1`] = `
-{
-  "extract": [
-    {},
-    {},
-  ],
-  "full": [
-    {},
-    {},
-  ],
-}
-`;
-
-exports[`the slot a multi field starts with > listMulti > listMulti 1`] = `
+exports[`the slot a multi field starts with > email 1`] = `
 {
   "extract": [
     {
@@ -175,7 +141,41 @@ exports[`the slot a multi field starts with > listMulti > listMulti 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > listSingle > listSingle 1`] = `
+exports[`the slot a multi field starts with > link 1`] = `
+{
+  "extract": [
+    {},
+    {},
+  ],
+  "full": [
+    {},
+    {},
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > listMulti 1`] = `
+{
+  "extract": [
+    {
+      "@value": null,
+    },
+    {
+      "@value": null,
+    },
+  ],
+  "full": [
+    {
+      "@value": null,
+    },
+    {
+      "@value": null,
+    },
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > listSingle 1`] = `
 {
   "extract": {
     "@value": null,
@@ -186,7 +186,7 @@ exports[`the slot a multi field starts with > listSingle > listSingle 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > nihGrant > nihGrant 1`] = `
+exports[`the slot a multi field starts with > nihGrant 1`] = `
 {
   "extract": [
     {},
@@ -199,28 +199,7 @@ exports[`the slot a multi field starts with > nihGrant > nihGrant 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > numeric > numeric (json-walk) 1`] = `
-{
-  "extract": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
-  ],
-  "full": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
-  ],
-}
-`;
-
-exports[`the slot a multi field starts with > numeric > numeric (model-library) 1`] = `
+exports[`the slot a multi field starts with > numeric 1`] = `
 {
   "extract": [
     {
@@ -243,7 +222,7 @@ exports[`the slot a multi field starts with > numeric > numeric (model-library) 
 }
 `;
 
-exports[`the slot a multi field starts with > orcid > orcid 1`] = `
+exports[`the slot a multi field starts with > orcid 1`] = `
 {
   "extract": [
     {},
@@ -256,7 +235,7 @@ exports[`the slot a multi field starts with > orcid > orcid 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > pfas > pfas 1`] = `
+exports[`the slot a multi field starts with > pfas 1`] = `
 {
   "extract": [
     {},
@@ -269,7 +248,7 @@ exports[`the slot a multi field starts with > pfas > pfas 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > phone > phone 1`] = `
+exports[`the slot a multi field starts with > phone 1`] = `
 {
   "extract": [
     {
@@ -290,7 +269,7 @@ exports[`the slot a multi field starts with > phone > phone 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > pubmed > pubmed 1`] = `
+exports[`the slot a multi field starts with > pubmed 1`] = `
 {
   "extract": [
     {},
@@ -303,7 +282,7 @@ exports[`the slot a multi field starts with > pubmed > pubmed 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > radio > radio 1`] = `
+exports[`the slot a multi field starts with > radio 1`] = `
 {
   "extract": {
     "@value": null,
@@ -314,7 +293,7 @@ exports[`the slot a multi field starts with > radio > radio 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > ror > ror 1`] = `
+exports[`the slot a multi field starts with > ror 1`] = `
 {
   "extract": [
     {},
@@ -327,7 +306,7 @@ exports[`the slot a multi field starts with > ror > ror 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > rrid > rrid 1`] = `
+exports[`the slot a multi field starts with > rrid 1`] = `
 {
   "extract": [
     {},
@@ -340,28 +319,7 @@ exports[`the slot a multi field starts with > rrid > rrid 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > temporal > temporal (json-walk) 1`] = `
-{
-  "extract": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
-  ],
-  "full": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
-  ],
-}
-`;
-
-exports[`the slot a multi field starts with > temporal > temporal (model-library) 1`] = `
+exports[`the slot a multi field starts with > temporal 1`] = `
 {
   "extract": [
     {
@@ -382,7 +340,7 @@ exports[`the slot a multi field starts with > temporal > temporal (model-library
 }
 `;
 
-exports[`the slot a multi field starts with > text > text 1`] = `
+exports[`the slot a multi field starts with > text 1`] = `
 {
   "extract": [
     {
@@ -403,7 +361,7 @@ exports[`the slot a multi field starts with > text > text 1`] = `
 }
 `;
 
-exports[`the slot a multi field starts with > textarea > textarea 1`] = `
+exports[`the slot a multi field starts with > textarea 1`] = `
 {
   "extract": [
     {
@@ -424,35 +382,35 @@ exports[`the slot a multi field starts with > textarea > textarea 1`] = `
 }
 `;
 
-exports[`the slot a single field starts with > attrValue > attrValue 1`] = `
+exports[`the slot a single field starts with > attrValue 1`] = `
 {
   "extract": [],
   "full": [],
 }
 `;
 
-exports[`the slot a single field starts with > checkbox > checkbox 1`] = `
+exports[`the slot a single field starts with > checkbox 1`] = `
 {
   "extract": [],
   "full": [],
 }
 `;
 
-exports[`the slot a single field starts with > controlled > controlled 1`] = `
+exports[`the slot a single field starts with > controlled 1`] = `
 {
   "extract": {},
   "full": {},
 }
 `;
 
-exports[`the slot a single field starts with > doi > doi 1`] = `
+exports[`the slot a single field starts with > doi 1`] = `
 {
   "extract": {},
   "full": {},
 }
 `;
 
-exports[`the slot a single field starts with > email > email 1`] = `
+exports[`the slot a single field starts with > email 1`] = `
 {
   "extract": {
     "@value": null,
@@ -463,21 +421,21 @@ exports[`the slot a single field starts with > email > email 1`] = `
 }
 `;
 
-exports[`the slot a single field starts with > link > link 1`] = `
+exports[`the slot a single field starts with > link 1`] = `
 {
   "extract": {},
   "full": {},
 }
 `;
 
-exports[`the slot a single field starts with > listMulti > listMulti 1`] = `
+exports[`the slot a single field starts with > listMulti 1`] = `
 {
   "extract": [],
   "full": [],
 }
 `;
 
-exports[`the slot a single field starts with > listSingle > listSingle 1`] = `
+exports[`the slot a single field starts with > listSingle 1`] = `
 {
   "extract": {
     "@value": null,
@@ -488,25 +446,14 @@ exports[`the slot a single field starts with > listSingle > listSingle 1`] = `
 }
 `;
 
-exports[`the slot a single field starts with > nihGrant > nihGrant 1`] = `
+exports[`the slot a single field starts with > nihGrant 1`] = `
 {
   "extract": {},
   "full": {},
 }
 `;
 
-exports[`the slot a single field starts with > numeric > numeric (json-walk) 1`] = `
-{
-  "extract": {
-    "@value": null,
-  },
-  "full": {
-    "@value": null,
-  },
-}
-`;
-
-exports[`the slot a single field starts with > numeric > numeric (model-library) 1`] = `
+exports[`the slot a single field starts with > numeric 1`] = `
 {
   "extract": {
     "@value": null,
@@ -518,21 +465,21 @@ exports[`the slot a single field starts with > numeric > numeric (model-library)
 }
 `;
 
-exports[`the slot a single field starts with > orcid > orcid 1`] = `
+exports[`the slot a single field starts with > orcid 1`] = `
 {
   "extract": {},
   "full": {},
 }
 `;
 
-exports[`the slot a single field starts with > pfas > pfas 1`] = `
+exports[`the slot a single field starts with > pfas 1`] = `
 {
   "extract": {},
   "full": {},
 }
 `;
 
-exports[`the slot a single field starts with > phone > phone 1`] = `
+exports[`the slot a single field starts with > phone 1`] = `
 {
   "extract": {
     "@value": null,
@@ -543,14 +490,14 @@ exports[`the slot a single field starts with > phone > phone 1`] = `
 }
 `;
 
-exports[`the slot a single field starts with > pubmed > pubmed 1`] = `
+exports[`the slot a single field starts with > pubmed 1`] = `
 {
   "extract": {},
   "full": {},
 }
 `;
 
-exports[`the slot a single field starts with > radio > radio 1`] = `
+exports[`the slot a single field starts with > radio 1`] = `
 {
   "extract": {
     "@value": null,
@@ -561,21 +508,21 @@ exports[`the slot a single field starts with > radio > radio 1`] = `
 }
 `;
 
-exports[`the slot a single field starts with > ror > ror 1`] = `
+exports[`the slot a single field starts with > ror 1`] = `
 {
   "extract": {},
   "full": {},
 }
 `;
 
-exports[`the slot a single field starts with > rrid > rrid 1`] = `
+exports[`the slot a single field starts with > rrid 1`] = `
 {
   "extract": {},
   "full": {},
 }
 `;
 
-exports[`the slot a single field starts with > temporal > temporal (json-walk) 1`] = `
+exports[`the slot a single field starts with > temporal 1`] = `
 {
   "extract": {
     "@value": null,
@@ -586,7 +533,7 @@ exports[`the slot a single field starts with > temporal > temporal (json-walk) 1
 }
 `;
 
-exports[`the slot a single field starts with > temporal > temporal (model-library) 1`] = `
+exports[`the slot a single field starts with > text 1`] = `
 {
   "extract": {
     "@value": null,
@@ -597,18 +544,7 @@ exports[`the slot a single field starts with > temporal > temporal (model-librar
 }
 `;
 
-exports[`the slot a single field starts with > text > text 1`] = `
-{
-  "extract": {
-    "@value": null,
-  },
-  "full": {
-    "@value": null,
-  },
-}
-`;
-
-exports[`the slot a single field starts with > textarea > textarea 1`] = `
+exports[`the slot a single field starts with > textarea 1`] = `
 {
   "extract": {
     "@value": null,

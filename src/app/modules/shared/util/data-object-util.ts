@@ -1,7 +1,5 @@
 import { JsonSchema } from '../models/json-schema.model';
 import { InstanceValueNode } from './instance-value-node';
-import { CedarModel } from '../models/cedar-model.model';
-import { JavascriptTypes } from '../models/javascript-types.model';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
@@ -93,33 +91,6 @@ export class DataObjectUtil {
     } else if (temporalType != null) {
       obj[JsonSchema.atType] = temporalType;
     }
-  }
-
-  static convertTemplateContextNode(propsContextProp: object): object {
-    let ret = null;
-    if (propsContextProp[CedarModel.type] === 'string' && propsContextProp[CedarModel.format] === 'uri') {
-      ret = propsContextProp[CedarModel.enum][0];
-    } else if (
-      propsContextProp[CedarModel.type] === 'object' &&
-      Object.hasOwn(propsContextProp, JsonSchema.properties)
-    ) {
-      ret = {};
-      ret[JsonSchema.atType] = propsContextProp[JsonSchema.properties][JsonSchema.atType][CedarModel.enum][0];
-    } else if (Object.hasOwn(propsContextProp, CedarModel.enum)) {
-      ret = propsContextProp[CedarModel.enum][0];
-    }
-    return ret;
-  }
-
-  static getSafeSubTemplate(templateJsonObj: object, targetName: string): object {
-    let subTemplate: object = null;
-    if (templateJsonObj != null) {
-      subTemplate = templateJsonObj[JsonSchema.properties][targetName];
-      if (subTemplate[CedarModel.type] === JavascriptTypes.array) {
-        subTemplate = subTemplate[CedarModel.items];
-      }
-    }
-    return subTemplate;
   }
 
   // Generating a RFC4122 version 4 compliant GUID

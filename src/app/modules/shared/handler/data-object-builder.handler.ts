@@ -24,16 +24,6 @@ export class DataObjectBuilderHandler {
   private templateRepresentation: TemplateComponent;
   private multiInstanceObjectService: MultiInstanceObjectHandler;
 
-  static getSubTemplate(template: CedarInputTemplate, path: string[]): CedarInputTemplate {
-    if (path.length === 0) {
-      return template;
-    }
-    const firstPath = path[0];
-    const remainingPath = path.slice(1);
-    const subTemplate = DataObjectUtil.getSafeSubTemplate(template, firstPath);
-    return this.getSubTemplate(subTemplate, remainingPath);
-  }
-
   public static buildRecursively(
     component: CedarComponent,
     dataObject: InstanceExtractData,

@@ -487,63 +487,36 @@ describe('slots that are empty', () => {
   });
 });
 
-describe('where the two readers disagree', () => {
+describe('an attribute name with nothing behind it', () => {
   /**
-   * They agree on everything the suite asserts, which is the point of running
-   * it both ways — but "the tests pass either way" is not the same as "the two
-   * are equivalent", and one input separates them.
+   * An attribute-value slot can hold a name that no property answers to — `['']`
+   * with no matching key, which an injected instance can easily carry. It is not
+   * an attribute: there is nothing to show and nothing to edit, so the field
+   * reports no occurrences and the pager offers no page.
    *
-   * An attribute-value slot holding an empty name, `['']`, with no matching
-   * property for it. The JSON walk counts the array: one slot, which the view
-   * sync then declines to render. The model library pairs names with their
-   * values while parsing and keeps only the pairs, so a name with nothing
-   * behind it is not an attribute and the count is zero.
-   *
-   * Zero is the better answer — an attribute with neither a name nor a value is
-   * not an attribute — and it is what ships, since the library-backed reader is
-   * the default. Pinned here so the difference is a recorded decision rather
-   * than something discovered later, and so that a change to either reader
-   * fails rather than silently closing or widening the gap.
+   * Worth stating because the obvious alternative is to count the array, which
+   * is what CEE's original walk did, and which leaves the pager offering a page
+   * that renders nothing.
    */
-  it('counts an empty attribute name differently, deliberately', async () => {
-    const { JsonWalkInstanceReader } = await import('@cee/handler/json-walk-instance-reader');
-    const { ModelLibraryInstanceReader } = await import('@cee/handler/model-library-instance-reader');
-
+  it('is not counted as an attribute', () => {
     const template = buildTemplate({ name: 'ir_blank_attr', children: [{ kind: ATTR, name: 'f' }] });
-    const instance = { '@context': {}, '@id': 'https://example.org/i/1', _f: [''] };
-
-    const countWith = (instanceReader: unknown) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const driver = new CeeDriver(template, { instance, instanceReader: instanceReader as any });
-      return countOf(driver, driver.findOrThrow(['_f']));
-    };
-
-    expect(countWith(new JsonWalkInstanceReader()), 'the walk counts the slot').toBe(1);
-    expect(countWith(new ModelLibraryInstanceReader()), 'the library counts the pairs').toBe(0);
+    const driver = new CeeDriver(template, {
+      instance: { '@context': {}, '@id': 'https://example.org/i/1', _f: [''] },
+    });
+    expect(countOf(driver, driver.findOrThrow(['_f']))).toBe(0);
   });
 
-  /**
-   * The same input with a value behind the name is not a disagreement — both
-   * see one attribute. Kept alongside so the case above reads as narrow rather
-   * than as attribute-value handling differing in general.
-   */
-  it('agrees as soon as the name has a value behind it', async () => {
-    const { JsonWalkInstanceReader } = await import('@cee/handler/json-walk-instance-reader');
-    const { ModelLibraryInstanceReader } = await import('@cee/handler/model-library-instance-reader');
-
+  it('is counted as soon as the name has a value behind it', () => {
     const template = buildTemplate({ name: 'ir_named_attr', children: [{ kind: ATTR, name: 'f' }] });
-    const instance = {
-      '@context': {},
-      '@id': 'https://example.org/i/1',
-      _f: ['colour'],
-      colour: { '@value': 'blue' },
-    };
-
-    for (const reader of [new JsonWalkInstanceReader(), new ModelLibraryInstanceReader()]) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const driver = new CeeDriver(template, { instance, instanceReader: reader as any });
-      expect(countOf(driver, driver.findOrThrow(['_f']))).toBe(1);
-    }
+    const driver = new CeeDriver(template, {
+      instance: {
+        '@context': {},
+        '@id': 'https://example.org/i/1',
+        _f: ['colour'],
+        colour: { '@value': 'blue' },
+      },
+    });
+    expect(countOf(driver, driver.findOrThrow(['_f']))).toBe(1);
   });
 });
 

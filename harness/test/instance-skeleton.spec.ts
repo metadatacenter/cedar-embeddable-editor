@@ -23,7 +23,7 @@ import { describe, expect, it } from 'vitest';
 import { CedarBuilders, NumberType, TemporalType } from 'cedar-model-typescript-library';
 import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
-import { CeeDriver, defaultParserName } from '../src/driver';
+import { CeeDriver } from '../src/driver';
 
 /** Every field type that takes a value; static content has no slot. */
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
@@ -43,21 +43,13 @@ const stable = (node: any): any => {
   return node;
 };
 
-/**
- * Two field types have a slot that depends on which template parser ran, and
- * only for a template that under-specifies them. See "the XSD type" below.
- */
-const PARSER_DEPENDENT = new Set(['numeric', 'temporal']);
-const forThisParser = (key: string) =>
-  PARSER_DEPENDENT.has(key) ? `${key} (${defaultParserName})` : key;
-
 describe('the slot a single field starts with', () => {
   it.each(VALUED.map((k) => [k.key, k] as const))('%s', (key, fieldKind) => {
     const driver = new CeeDriver(buildTemplate({ name: `sk_${key}`, children: [{ kind: fieldKind, name: 'f' }] }));
     expect({
       extract: stable(driver.extract._f),
       full: stable(driver.metadata._f),
-    }).toMatchSnapshot(forThisParser(key));
+    }).toMatchSnapshot();
   });
 });
 
@@ -72,7 +64,7 @@ describe('the slot a multi field starts with', () => {
     expect({
       extract: stable(driver.extract._f),
       full: stable(driver.metadata._f),
-    }).toMatchSnapshot(forThisParser(key));
+    }).toMatchSnapshot();
   });
 });
 
@@ -166,24 +158,12 @@ describe('the XSD type a numeric or temporal slot declares', () => {
   });
 
   /**
-   * Neither parser writes a null type any more, which is the fix. They differ
-   * in what they put there instead, for a template that declares nothing: the
-   * model library's reader supplies the model's default of `xsd:decimal`, while
-   * CEE's own JSON walk has only the template's null to go on and so leaves the
-   * key off entirely.
-   *
-   * Both are defensible and neither is invalid. The library's is the one that
-   * ships and the more useful of the two — a numeric field without a declared
-   * type is a decimal. Recorded per parser rather than smoothed over, so the
-   * walk's behaviour stays visible for as long as the walk is in the tree.
+   * A template that declares nothing gets the model's default rather than a
+   * null: a numeric field without a declared type is a decimal.
    */
-  it('never writes a null type, whichever parser ran', () => {
+  it('never writes a null type', () => {
     const slot = numeric();
     expect(slot['@type'], 'a null @type was written into the instance').not.toBeNull();
-    if (defaultParserName === 'json-walk') {
-      expect(Object.hasOwn(slot, '@type'), 'the walk has no type to supply').toBe(false);
-      return;
-    }
     expect(slot['@type']).toBe('xsd:decimal');
   });
 

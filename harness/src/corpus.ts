@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { parse as parseYaml } from 'yaml';
 
 /**
  * The shared CEDAR artifact corpus — real templates and instances.
@@ -48,6 +49,30 @@ const load = (kind: 'templates' | 'instances', prefix: string): CorpusArtifact[]
 };
 
 export const corpusTemplates = (): CorpusArtifact[] => load('templates', 'template');
+
+/**
+ * The same 37 templates, as YAML.
+ *
+ * The corpus ships each case in both serialisations. That is what makes it
+ * possible to ask whether CEE understands a template or merely understands its
+ * JSON — see `format-independence.spec.ts`.
+ */
+export const corpusTemplatesYaml = (): CorpusArtifact[] => {
+  const dir = path.join(CORPUS_ROOT, 'templates');
+  if (!fs.existsSync(dir)) {
+    return [];
+  }
+  return fs
+    .readdirSync(dir)
+    .sort()
+    .flatMap((id) => {
+      const file = path.join(dir, id, `template-${id}.yaml`);
+      if (!fs.existsSync(file)) {
+        return [];
+      }
+      return [{ id, json: parseYaml(fs.readFileSync(file, 'utf8')) as object }];
+    });
+};
 export const corpusInstances = (): CorpusArtifact[] => load('instances', 'instance');
 
 /**

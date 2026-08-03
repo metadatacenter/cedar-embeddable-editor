@@ -16,10 +16,7 @@ import { HandlerContext } from '@cee/util/handler-context';
 import { MessageHandlerService } from '@cee/service/message-handler.service';
 import { PageBreakPaginatorService } from '@cee/service/page-break-paginator.service';
 import type { TemplateParser } from '@cee/factory/template-parser';
-import { JsonWalkTemplateParser } from '@cee/factory/json-walk-template-parser';
 import type { InstanceCardinalityReader } from '@cee/handler/instance-cardinality-reader';
-import { JsonWalkInstanceReader } from '@cee/handler/json-walk-instance-reader';
-import { ModelLibraryInstanceReader } from '@cee/handler/model-library-instance-reader';
 import type { FieldKind } from './axes';
 
 /**
@@ -61,49 +58,14 @@ export interface DriverOptions {
   /**
    * Which parser turns the template JSON into the component tree.
    *
-   * Unset means whatever `CEE_TEMPLATE_PARSER` selects — see `defaultParser`.
-   * The parity suite passes each implementation explicitly and compares the
-   * results; everything else lets the environment decide, which is how the
-   * whole suite gets run twice.
+   * Unset means CEE's own.
    */
   templateParser?: TemplateParser;
   /** Which reader derives occurrence counts from an injected instance. */
   instanceReader?: InstanceCardinalityReader;
 }
 
-/**
- * The parser every suite uses unless it names one.
- *
- * Defaults to CEE's own default, which is the model library. Set
- * `CEE_TEMPLATE_PARSER=json-walk` and the entire harness runs against the
- * hand-written JSON walk instead. That is the real check on the swap: not a
- * tree diff over a handful of templates, but every assertion in the suite —
- * instance construction, path resolution, value writes, cardinality, the
- * quality report, the corpus snapshots — holding with either parser
- * underneath.
- *
- * An env var rather than a config file because it has to be trivial to run
- * both ways in one command, and because a spec that names a parser explicitly
- * must still win over it.
- */
-const PARSER_ENV = process.env.CEE_TEMPLATE_PARSER ?? 'model-library';
-export const defaultParser: TemplateParser | undefined =
-  PARSER_ENV === 'json-walk' ? new JsonWalkTemplateParser() : undefined;
-export const defaultParserName = PARSER_ENV;
 
-/**
- * The instance reader every suite uses unless it names one.
- *
- * Defaults to CEE's own default, which is the model library.
- * `CEE_INSTANCE_READER=json-walk` runs the harness against the hand-written
- * JSON walk instead. Same arrangement as `CEE_TEMPLATE_PARSER`, and
- * the same reason: the only honest check on a swap this deep is every
- * assertion in the suite holding with either side underneath.
- */
-const READER_ENV = process.env.CEE_INSTANCE_READER ?? 'model-library';
-export const defaultInstanceReader: InstanceCardinalityReader | undefined =
-  READER_ENV === 'json-walk' ? new JsonWalkInstanceReader() : new ModelLibraryInstanceReader();
-export const defaultInstanceReaderName = READER_ENV;
 
 export class CeeDriver {
   readonly dataContext: DataContext;
@@ -141,8 +103,8 @@ export class CeeDriver {
       this.handlerContext,
       this.paginator,
       opts.collapseStaticComponents ?? false,
-      opts.templateParser ?? defaultParser,
-      opts.instanceReader ?? defaultInstanceReader,
+      opts.templateParser,
+      opts.instanceReader,
     );
   }
 

@@ -8,6 +8,7 @@ import {
   JsonSchema,
   JsonTemplateInstanceContent,
   ChildDeploymentInfo,
+  Template,
   TemplateElement,
   TemplateField,
 } from 'cedar-model-typescript-library';
@@ -67,6 +68,13 @@ const ORPHAN_ORDER_ENTRY = 'jtr07';
  * to reproduce the difference.
  */
 export class ModelLibraryTemplateParser implements TemplateParser {
+  /**
+   * Read a template that arrived as JSON.
+   *
+   * The only part of this class that knows what a serialisation looks like.
+   * Everything below works on the parsed model, which is why
+   * `YamlTemplateParser` is four lines.
+   */
   parse(templateJson: object, template: CedarTemplate, handlerContext: HandlerContext): void {
     const result = CedarReaders.json()
       .getFebruary2024()
@@ -75,12 +83,23 @@ export class ModelLibraryTemplateParser implements TemplateParser {
       .readFromObject(templateJson as any);
 
     ModelLibraryTemplateParser.report(result.parsingResult.getBlueprintComparisonErrors(), handlerContext);
+    ModelLibraryTemplateParser.mapParsedTemplate(result.template, template);
+  }
 
-    ModelLibraryTemplateParser.wrap(result.template, template, []);
-    ModelLibraryTemplateParser.generateContext(result.template, template, true);
+  /**
+   * Build CEE's component tree from a parsed template, whatever produced it.
+   *
+   * Nothing below this line mentions a format. A template read from YAML gives
+   * the same `Template`, so it gives the same tree — which is the whole claim
+   * that CEE no longer depends on JSON, and `format-independence.spec.ts`
+   * checks it against all 37 corpus templates in both serialisations.
+   */
+  static mapParsedTemplate(parsed: Template, template: CedarTemplate): void {
+    ModelLibraryTemplateParser.wrap(parsed, template, []);
+    ModelLibraryTemplateParser.generateContext(parsed, template, true);
 
-    template.labelInfo.label = result.template.schema_name;
-    template.labelInfo.description = result.template.schema_description;
+    template.labelInfo.label = parsed.schema_name;
+    template.labelInfo.description = parsed.schema_description;
   }
 
   /**
