@@ -5,6 +5,7 @@ import { TemplateRepresentationFactory } from '../factory/template-representatio
 import { TemplateParser } from '../factory/template-parser';
 import { InstanceCardinalityReader } from '../handler/instance-cardinality-reader';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
+import { InstanceDeserializer } from './instance-deserializer';
 import { InstanceFullData } from '../models/instance-full-data.model';
 import { HandlerContext } from './handler-context';
 import { MultiInstanceObjectHandler } from '../handler/multi-instance-object.handler';
@@ -18,39 +19,65 @@ import { ElementComponent } from '../models/component/element-component.model';
 export class DataContext {
   templateInput: CedarInputTemplate = null;
   templateRepresentation: TemplateComponent = null;
-  instanceExtractData: InstanceExtractData = null;
   instanceFullData: InstanceFullData = null;
   multiInstanceData: MultiInstanceInfo = null;
   dataQualityReport: DataQualityReport = null;
   savedTemplateID: string;
 
+  private derivedExtract: InstanceExtractData = null;
+
   public constructor() {}
 
   /**
-   * Apply one mutation to both instance trees.
+   * The instance with its envelope left off, at every depth.
    *
-   * CEE keeps the instance twice: `instanceFullData` is the artifact, envelope
-   * and all, and `instanceExtractData` is the same content with the envelope left
-   * off at every depth. The widgets read and write the extract; the host page
-   * gets the full one. Both have to change together, and every mutation used to
-   * do that by making the same call twice with a different first argument —
-   * eleven pairs of them across two handlers.
+   * **Derived, not maintained.** `instanceFullData` is the only tree CEE keeps.
+   * This used to be a second one, written to alongside it by every mutation —
+   * eleven pairs of identical calls across two handlers — which meant two things
+   * that could disagree, and did: `addRandomAtId` ignored the building mode, so a
+   * freshly built extract carried element `@id`s a loaded one never had, and
+   * nothing noticed because the trees were only ever compared on the way out.
    *
-   * Two things were wrong with that. Forgetting the second call was a one-line
-   * mistake that nothing would catch, because the trees are only compared when
-   * something is emitted. And the *difference* between the trees was implicit:
-   * the reason the full copy gets an `@context` and an `@id` and the extract does
-   * not is the building mode, which was passed separately, from memory, at each
-   * of the eleven sites — and got it wrong at one of them, so a freshly built
-   * extract carried element `@id`s that a loaded one never had.
+   * It turned out not to be needed. Everything that reads an instance either
+   * navigates by *component path* — and no envelope key is a component name, so
+   * the envelope is never visited — or goes through the model library's parsed
+   * container, which excludes the envelope by construction. The only walk that
+   * enumerated raw keys was the one that re-mints element `@id`s when copying an
+   * occurrence, and that wants to see them.
    *
-   * Pairing each tree with its own building mode fixes both. One call per
-   * mutation, and the mode arrives with the tree it belongs to rather than being
-   * remembered alongside it.
+   * So the second tree existed to spare consumers a problem none of them had.
+   * What is left is a *view*, for the two places that genuinely want to look at
+   * the instance without its envelope: the data quality report hands one to the
+   * host page, and the source panel displays one.
+   *
+   * Derived through `InstanceDeserializer`, so the projection is the same library
+   * code that produces it at the read boundary rather than a second definition of
+   * what "without the envelope" means. Cached because the source panel re-reads
+   * it on every change detection; `invalidateDerivedViews` drops the cache, and
+   * every mutation goes through `mutate` so nothing has to remember to call it.
    */
-  applyToBothTrees(mutate: (tree: InstanceExtractData, buildingMode: DataObjectBuildingMode) => void): void {
-    mutate(this.instanceExtractData, DataObjectBuildingMode.EXCLUDE_CONTEXT);
-    mutate(this.instanceFullData, DataObjectBuildingMode.INCLUDE_CONTEXT);
+  get instanceExtractData(): InstanceExtractData {
+    if (this.derivedExtract === null && this.instanceFullData !== null) {
+      this.derivedExtract = InstanceDeserializer.read(this.instanceFullData).extract;
+    }
+    return this.derivedExtract;
+  }
+
+  /**
+   * Change the instance.
+   *
+   * One tree, so one call — and the building mode is no longer a parameter,
+   * because there is no longer a second shape to build. Every mutation goes
+   * through here so the derived view cannot go stale behind one.
+   */
+  mutate(change: (instance: InstanceFullData) => void): void {
+    change(this.instanceFullData);
+    this.invalidateDerivedViews();
+  }
+
+  /** Forget the derived view. Called for any change made outside `mutate`. */
+  invalidateDerivedViews(): void {
+    this.derivedExtract = null;
   }
 
   setInputTemplate(
@@ -76,14 +103,12 @@ export class DataContext {
     );
     pageBreakPaginatorService.reset(this.templateRepresentation.pageBreakChildren);
     const multiInstanceObjectService: MultiInstanceObjectHandler = handlerContext.multiInstanceObjectService;
-    //If instance was passed these are extracted from instance. No need to do it from template
-    if (this.instanceExtractData === null || this.instanceFullData === null) {
+    // A host page may have handed us an instance already; otherwise build a
+    // skeleton from the template.
+    if (this.instanceFullData === null) {
       const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
-      this.instanceExtractData = dataObjectService.buildNewExtractDataObject(
-        this.templateRepresentation,
-        this.templateInput,
-      );
       this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
+      this.invalidateDerivedViews();
       this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
         this.templateRepresentation,
         null,
@@ -92,7 +117,7 @@ export class DataContext {
     } else {
       this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
         this.templateRepresentation,
-        handlerContext.dataContext.instanceExtractData,
+        this.instanceFullData,
         instanceReader,
       );
     }
@@ -105,6 +130,7 @@ export class DataContext {
       this.instanceFullData,
       DataObjectBuildingMode.INCLUDE_CONTEXT,
     );
+    this.invalidateDerivedViews();
 
     this.savedTemplateID = null;
     // Built in read-only mode too. The guard used to skip it on the reasoning

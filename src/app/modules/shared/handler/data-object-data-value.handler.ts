@@ -273,9 +273,9 @@ export class DataObjectDataValueHandler {
         ? {}
         : InstanceValueNode.iriJson(value)
       : InstanceValueNode.literalJson(value);
-    dataContext.applyToBothTrees((tree) =>
+    dataContext.mutate((instance) =>
       this.setDataPathValueRecursively(
-        tree,
+        instance,
         null,
         dataContext.templateRepresentation,
         multiInstanceObjectService,
@@ -303,9 +303,9 @@ export class DataObjectDataValueHandler {
       valueArray.push(InstanceValueNode.literalJson(val));
     }
 
-    dataContext.applyToBothTrees((tree) =>
+    dataContext.mutate((instance) =>
       this.setDataPathValueRecursively(
-        tree,
+        instance,
         null,
         dataContext.templateRepresentation,
         multiInstanceObjectService,
@@ -335,9 +335,9 @@ export class DataObjectDataValueHandler {
     valueObject[JsonSchema.reservedAttributeName] = key;
     valueObject[JsonSchema.reservedAttributeValue] = obj;
 
-    dataContext.applyToBothTrees((tree) =>
+    dataContext.mutate((instance) =>
       this.setDataPathValueRecursively(
-        tree,
+        instance,
         null,
         dataContext.templateRepresentation,
         multiInstanceObjectService,
@@ -362,9 +362,9 @@ export class DataObjectDataValueHandler {
     const valueObject = {};
     valueObject[JsonSchema.reservedAttributeName] = key;
 
-    dataContext.applyToBothTrees((tree) =>
+    dataContext.mutate((instance) =>
       this.deleteAttributeValueRecursively(
-        tree,
+        instance,
         null,
         dataContext.templateRepresentation,
         multiInstanceObjectService,
@@ -384,9 +384,9 @@ export class DataObjectDataValueHandler {
     const path = component.path;
     const valueObject = atId ? InstanceValueNode.iriJson(atId, prefLabel) : {};
 
-    dataContext.applyToBothTrees((tree) =>
+    dataContext.mutate((instance) =>
       this.setDataPathValueRecursively(
-        tree,
+        instance,
         null,
         dataContext.templateRepresentation,
         multiInstanceObjectService,

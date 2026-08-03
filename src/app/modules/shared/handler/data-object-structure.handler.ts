@@ -141,20 +141,20 @@ export class DataObjectStructureHandler {
     const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
     const templateInput: CedarInputTemplate = dataContext.templateInput;
 
-    // Each tree gets an occurrence built to its own shape, and the shape *is*
-    // the building mode — which is why `applyToBothTrees` hands them out
-    // together. The extract copy used to be built with the envelope and then
-    // stripped of it; the builder already knows how to leave it off.
-    dataContext.applyToBothTrees((tree, buildingMode) =>
+    // The new occurrence is built with the envelope, because the instance is the
+    // artifact and that is what an occurrence in one looks like. There used to be
+    // a second, envelope-free copy of the whole instance to build it into as
+    // well — see `DataContext.instanceExtractData`, now a derived view.
+    dataContext.mutate((instance) =>
       this.performItemAdd(
-        tree,
+        instance,
         templateRepresentation,
         component,
         multiInstanceObjectService,
         multiInstanceInfo,
         templateInput,
         messageHandlerService,
-        buildingMode,
+        DataObjectBuildingMode.INCLUDE_CONTEXT,
       ),
     );
   }
@@ -198,9 +198,9 @@ export class DataObjectStructureHandler {
     const multiInstanceInfo: MultiInstanceObjectInfo =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
-    dataContext.applyToBothTrees((tree) =>
+    dataContext.mutate((instance) =>
       this.performItemCopy(
-        tree,
+        instance,
         templateRepresentation,
         component.path,
         multiInstanceObjectService,
@@ -238,9 +238,9 @@ export class DataObjectStructureHandler {
     const multiInstanceInfo: MultiInstanceObjectInfo =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
-    dataContext.applyToBothTrees((tree) =>
+    dataContext.mutate((instance) =>
       this.performItemDelete(
-        tree,
+        instance,
         templateRepresentation,
         component.path,
         multiInstanceObjectService,

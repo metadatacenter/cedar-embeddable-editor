@@ -1,25 +1,29 @@
 /**
- * The two working trees, and the two ways of arriving at them.
+ * One instance tree, and the view derived from it.
  *
- * CEE keeps an `instanceFullData` — the whole artifact, envelope and all — and
- * an `instanceExtractData`, the same content with the envelope left off at every
- * depth. The extract is what the handlers, the quality report and path
- * resolution read.
+ * CEE used to keep the instance twice: `instanceFullData`, the artifact with its
+ * envelope, and `instanceExtractData`, the same content with the envelope left
+ * off at every depth. Two trees, written to separately by every mutation, and
+ * they diverged — three times, that were found:
  *
- * There are two paths to that pair: build it from a template, or read it from an
- * instance a host page injected. They have to produce the same shape for the
- * same content, and nothing made them — the builder minted an element `@id` into
- * *both* trees regardless of which it was filling, so a freshly built extract
- * carried `@id` on every element occurrence and a loaded one did not. Every
- * consumer of the extract therefore saw a different shape depending on how the
- * user got there.
+ * - `addRandomAtId` ignored the building mode, so a freshly built extract carried
+ *   element `@id`s that a loaded one never had;
+ * - the builder left a numeric value's `@type` off the extract while the reader
+ *   put it on, which the fixture here missed because it had no numeric field;
+ * - and each divergence was invisible until something was emitted, because that
+ *   was the only moment the two were compared.
  *
- * These tests compare the two paths directly. That is the property the roadmap's
- * "two instance trees, no single source of truth" is really about: not that
- * there are two trees, but that nothing checks they mean the same thing.
+ * The second tree turned out not to be needed at all. Everything that reads an
+ * instance navigates by *component path* — and no envelope key is a component
+ * name — or goes through the model library's parsed container, which excludes the
+ * envelope by construction. So it is now a derived view, computed by the same
+ * library code that produces one at the read boundary, and there is one tree.
+ *
+ * These tests hold that: the view tracks the tree, and a mutation cannot leave it
+ * stale.
  */
 import { describe, expect, it } from 'vitest';
-import { CedarBuilders } from 'cedar-model-typescript-library';
+import { CedarBuilders, NumberType } from 'cedar-model-typescript-library';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { InstanceValueNode } from '@cee/util/instance-value-node';
@@ -34,18 +38,42 @@ const TEXT = {
   sample: 'a value',
 } as unknown as FieldKind;
 
+/**
+ * A numeric field, because a numeric value carries its XSD type *alongside the
+ * value* — and that is the one key which looks like envelope and is not.
+ *
+ * Its absence from this fixture is why an earlier version of these tests missed
+ * a third fresh-versus-loaded divergence: the builder left `@type` off the
+ * envelope-free copy while the reader put it on, and with only text fields here
+ * nothing noticed.
+ */
+const NUMERIC = {
+  key: 'numeric',
+  inputType: 'numeric',
+  make: () => CedarBuilders.numericFieldBuilder(),
+  isStatic: false,
+  write: 'value',
+  sample: '42',
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  configure: (b: unknown) => (b as any).withNumberType(NumberType.DECIMAL),
+} as unknown as FieldKind;
+
 /** Nesting worth checking: a single element, a multi element, a multi field. */
 const nested = () =>
   buildTemplate({
     name: 'tc_nested',
-    children: [{ kind: TEXT, name: 'top' }, { kind: TEXT, name: 'many', cardinality: 'multi', minItems: 2, maxItems: 5 }],
+    children: [
+      { kind: TEXT, name: 'top' },
+      { kind: NUMERIC, name: 'count' },
+      { kind: TEXT, name: 'many', cardinality: 'multi', minItems: 2, maxItems: 5 },
+    ],
     elements: [
       { name: 'single', children: [{ kind: TEXT, name: 'inner' }] },
       { name: 'multi', cardinality: 'multi', minItems: 2, maxItems: 4, children: [{ kind: TEXT, name: 'deep' }] },
     ],
   });
 
-describe('a built extract and a loaded extract have the same shape', () => {
+describe('a fresh instance and a loaded one have the same shape', () => {
   /**
    * REGRESSION: `addRandomAtId` ran for both trees whatever the building mode,
    * so the built extract carried an element `@id` the loaded one never had.
@@ -116,21 +144,14 @@ describe('the full tree still carries its @ids', () => {
 });
 
 /**
- * Every kind of mutation leaves the two trees agreeing.
- *
- * Each mutation used to be written to both trees by making the same call twice
- * with a different first argument — eleven pairs across two handlers. Forgetting
- * the second call was a one-line mistake nothing would catch, because the trees
- * are only compared when something is emitted; and the *difference* between them
- * was passed separately, from memory, at each site, which is how a freshly built
- * extract came to carry element `@id`s a loaded one never had.
+ * Every kind of mutation leaves the view agreeing with the tree.
  *
  * `DataContext.applyToBothTrees` makes it one call and hands each tree its own
  * building mode. That makes the mistake hard to write. These tests make it
  * detectable, which is the half that survives someone deciding to write it
  * anyway.
  */
-describe('a mutation reaches both trees', () => {
+describe('the derived view tracks the tree', () => {
   /**
    * The full tree is the extract plus the envelope, so agreement means: strip
    * what belongs to the envelope from the full copy and the two are identical.
@@ -210,6 +231,12 @@ describe('a mutation reaches both trees', () => {
     expectAgreement(driver, 'a value write');
   });
 
+  it('after a numeric write, whose value carries its own @type', () => {
+    const driver = new CeeDriver(nested());
+    driver.setValue(['_count'], NUMERIC, '42');
+    expectAgreement(driver, 'a numeric write');
+  });
+
   it('after a value write inside an element', () => {
     const driver = new CeeDriver(nested());
     driver.setValue(['_single', '_inner'], TEXT, 'written');
@@ -286,5 +313,69 @@ describe('a mutation reaches both trees', () => {
     driver.handlerContext.deleteMultiInstance(multi);
 
     expectAgreement(driver, 'a sequence of mutations');
+  });
+});
+
+describe('the derived view cannot go stale', () => {
+  /**
+   * The one failure mode a single tree still allows: a write that does not go
+   * through `DataContext.mutate`, leaving the cached view behind.
+   *
+   * Every production write does go through it — the widgets call
+   * `handlerContext.changeValue` and friends, and every consumer of a resolved
+   * node only reads. This is what would notice if that stopped being true.
+   */
+  it('reflects a value written after it was first read', () => {
+    const driver = new CeeDriver(nested());
+
+    const before = driver.dataContext.instanceExtractData;
+    expect(before['_top']).toEqual({ '@value': null });
+
+    driver.setValue(['_top'], TEXT, 'written after the first read');
+
+    expect(driver.dataContext.instanceExtractData['_top']).toEqual({ '@value': 'written after the first read' });
+  });
+
+  it('reflects an occurrence added after it was first read', () => {
+    const driver = new CeeDriver(nested());
+    const multi = driver.findOrThrow(['_multi']);
+
+    expect(driver.dataContext.instanceExtractData['_multi']).toHaveLength(2);
+    driver.handlerContext.addMultiInstance(multi);
+
+    expect(driver.dataContext.instanceExtractData['_multi']).toHaveLength(3);
+  });
+
+  it('reflects an occurrence deleted after it was first read', () => {
+    const driver = new CeeDriver(nested());
+    const multi = driver.findOrThrow(['_multi']);
+
+    // `_multi` declares minItems 2, and deletion refuses to cross a lower bound
+    // — so there has to be a third occurrence before one can go.
+    driver.handlerContext.addMultiInstance(multi);
+    expect(driver.dataContext.instanceExtractData['_multi']).toHaveLength(3);
+
+    driver.handlerContext.deleteMultiInstance(multi);
+    expect(driver.dataContext.instanceExtractData['_multi']).toHaveLength(2);
+  });
+
+  it('reflects a whole new instance being injected', () => {
+    const first = new CeeDriver(nested());
+    first.setValue(['_top'], TEXT, 'from the first');
+    void first.dataContext.instanceExtractData;
+
+    const second = new CeeDriver(nested(), { instance: first.metadata });
+    expect(second.dataContext.instanceExtractData['_top']).toEqual({ '@value': 'from the first' });
+  });
+
+  /** And it is a view, not the tree: writing to it changes nothing. */
+  it('is a projection, so writing to it does not reach the instance', () => {
+    const driver = new CeeDriver(nested());
+    const view = driver.dataContext.instanceExtractData as Record<string, Record<string, unknown>>;
+    view['_top']['@value'] = 'written to the view';
+
+    driver.dataContext.invalidateDerivedViews();
+    expect(driver.dataContext.instanceExtractData['_top']).toEqual({ '@value': null });
+    expect(driver.dataContext.instanceFullData['_top']).toEqual({ '@value': null });
   });
 });

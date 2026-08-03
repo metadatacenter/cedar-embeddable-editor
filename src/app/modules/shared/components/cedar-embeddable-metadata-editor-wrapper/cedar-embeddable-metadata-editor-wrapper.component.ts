@@ -246,8 +246,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       return;
     }
     if (this.loadedTemplateJson != null) {
-      this.handlerContext.dataContext.instanceExtractData = null;
       this.handlerContext.dataContext.instanceFullData = null;
+      this.handlerContext.dataContext.invalidateDerivedViews();
       this.templateObject = this.loadedTemplateJson;
     }
     if (this.loadedMetadata !== null) {

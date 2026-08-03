@@ -144,7 +144,7 @@ export class HandlerContext {
    */
   getDataObjectNodeByPath(path: string[]): InstanceExtractData {
     return this.dataObjectManipulationService.getDataPathNodeRecursively(
-      this.dataContext.instanceExtractData,
+      this.dataContext.instanceFullData,
       this.dataContext.templateRepresentation,
       path,
       OccurrenceSelectors.fromCursor(this.multiInstanceObjectService),
@@ -160,7 +160,7 @@ export class HandlerContext {
    */
   getDataObjectNodeAt(path: string[], occurrences: ReadonlyArray<number>): InstanceExtractData {
     return this.dataObjectManipulationService.getDataPathNodeRecursively(
-      this.dataContext.instanceExtractData,
+      this.dataContext.instanceFullData,
       this.dataContext.templateRepresentation,
       path,
       OccurrenceSelectors.at(occurrences),
@@ -170,7 +170,7 @@ export class HandlerContext {
   /** The enclosing object at this path, in the occurrences on screen. */
   getParentDataObjectNodeByPath(path: string[]): InstanceExtractData {
     return this.dataObjectManipulationService.getParentDataPathNodeRecursively(
-      this.dataContext.instanceExtractData,
+      this.dataContext.instanceFullData,
       null,
       this.dataContext.templateRepresentation,
       path,
@@ -181,7 +181,7 @@ export class HandlerContext {
   /** The enclosing object at this path, in the occurrences named. */
   getParentDataObjectNodeAt(path: string[], occurrences: ReadonlyArray<number>): InstanceExtractData {
     return this.dataObjectManipulationService.getParentDataPathNodeRecursively(
-      this.dataContext.instanceExtractData,
+      this.dataContext.instanceFullData,
       null,
       this.dataContext.templateRepresentation,
       path,
@@ -245,7 +245,7 @@ export class HandlerContext {
     this.dataContext.dataQualityReport = this.dataQualityReportBuilderService.buildReport(this.dataContext, this);
     // this.rdfService.toRdf(this.dataContext.instanceFullData).then((rdf) => {
     //   console.log('RDF', rdf);
-    //   console.log('Instance extract data', this.dataContext.instanceExtractData);
+    //   console.log('Instance extract data', this.dataContext.instanceFullData);
     //   this.dataContext.rdf = rdf;
     // });
   }

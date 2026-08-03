@@ -233,17 +233,6 @@ export class DataObjectBuilderHandler {
     this.multiInstanceObjectService = multiInstanceObjectService;
   }
 
-  buildNewExtractDataObject(
-    templateRepresentation: TemplateComponent,
-    templateJsonObj: CedarInputTemplate,
-  ): InstanceExtractData {
-    this.templateJsonObj = templateJsonObj;
-    this.templateRepresentation = templateRepresentation;
-    this.dataObject = new InstanceExtractData();
-    this.buildNewByIterating(this.dataObject, DataObjectBuildingMode.EXCLUDE_CONTEXT);
-    return this.dataObject;
-  }
-
   buildNewFullDataObject(
     templateRepresentation: TemplateComponent,
     templateJsonObj: CedarInputTemplate,

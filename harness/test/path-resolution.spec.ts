@@ -106,7 +106,9 @@ describe('a path inside a multi element resolves through the cursor', () => {
     const node = driver.handlerContext.getDataObjectNodeByPath(['_el', '_inner']) as Record<string, unknown>;
     node['@value'] = 'written through the reference';
 
-    expect(driver.extract._el[0]._inner['@value']).toBe('written through the reference');
+    // Against the tree itself, not `driver.extract` — that is a derived view now,
+    // so a write through a resolved node would not show up in a fresh copy of it.
+    expect(driver.dataContext.instanceFullData['_el'][0]['_inner']['@value']).toBe('written through the reference');
   });
 });
 
@@ -237,8 +239,8 @@ describe('the parent lookup follows the same rule', () => {
     const atTwo = driver.handlerContext.getParentDataObjectNodeByPath(['_el', '_inner']);
 
     expect(atZero).not.toBe(atTwo);
-    expect(atZero).toBe(driver.dataContext.instanceExtractData['_el'][0]);
-    expect(atTwo).toBe(driver.dataContext.instanceExtractData['_el'][2]);
+    expect(atZero).toBe(driver.dataContext.instanceFullData['_el'][0]);
+    expect(atTwo).toBe(driver.dataContext.instanceFullData['_el'][2]);
   });
 });
 
@@ -283,7 +285,7 @@ describe('resolving a specific occurrence, cursor ignored', () => {
     const node = driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [2]) as Record<string, unknown>;
     node['@value'] = 'written directly';
 
-    expect(driver.extract._el[2]._inner['@value']).toBe('written directly');
+    expect(driver.dataContext.instanceFullData['_el'][2]['_inner']['@value']).toBe('written directly');
   });
 
   it('resolves nothing for an occurrence that does not exist', () => {
@@ -342,7 +344,7 @@ describe('resolving a specific occurrence, cursor ignored', () => {
     driver.handlerContext.setCurrentIndex(element, 0);
 
     expect(driver.handlerContext.getParentDataObjectNodeAt(['_el', '_inner'], [2])).toBe(
-      driver.dataContext.instanceExtractData['_el'][2],
+      driver.dataContext.instanceFullData['_el'][2],
     );
   });
 });

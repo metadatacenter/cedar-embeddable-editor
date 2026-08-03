@@ -96,10 +96,10 @@ export class CeeDriver {
     if (opts.instance) {
       // Exactly what CedarEmbeddableMetadataEditorComponent
       // .setDataContextWithInstance does: read once through the model library
-      // and project the two trees out of it.
-      const { full, extract } = InstanceDeserializer.read(opts.instance, (m) => this.messages.error(m));
+      // into the one tree CEE keeps.
+      const { full } = InstanceDeserializer.read(opts.instance, (m) => this.messages.error(m));
       this.dataContext.instanceFullData = full;
-      this.dataContext.instanceExtractData = extract;
+      this.dataContext.invalidateDerivedViews();
     }
 
     this.dataContext.setInputTemplate(
@@ -122,6 +122,15 @@ export class CeeDriver {
     return JSON.parse(JSON.stringify(this.dataContext.instanceFullData));
   }
 
+  /**
+   * The instance without its envelope, as the quality report and the source
+   * panel see it.
+   *
+   * A derived view of `instanceFullData`, not a second tree — see
+   * `DataContext.instanceExtractData`. Still the natural thing for a test to
+   * assert against, because it is the instance's content with the bookkeeping
+   * left out.
+   */
   get extract(): any {
     return JSON.parse(JSON.stringify(this.dataContext.instanceExtractData));
   }

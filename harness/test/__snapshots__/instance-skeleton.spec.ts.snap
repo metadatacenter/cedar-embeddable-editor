@@ -202,9 +202,11 @@ exports[`the slot a multi field starts with > numeric 1`] = `
 {
   "extract": [
     {
+      "@type": "xsd:decimal",
       "@value": null,
     },
     {
+      "@type": "xsd:decimal",
       "@value": null,
     },
   ],
@@ -455,6 +457,7 @@ exports[`the slot a single field starts with > nihGrant 1`] = `
 exports[`the slot a single field starts with > numeric 1`] = `
 {
   "extract": {
+    "@type": "xsd:decimal",
     "@value": null,
   },
   "full": {

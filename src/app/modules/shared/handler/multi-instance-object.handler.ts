@@ -49,7 +49,7 @@ export class MultiInstanceObjectHandler {
 
   buildNewOrFromMetadata(
     templateRepresentation: TemplateComponent,
-    instanceExtractData: InstanceExtractData = null,
+    instance: InstanceExtractData = null,
     instanceReader: InstanceCardinalityReader = MultiInstanceObjectHandler.defaultInstanceReader,
   ): MultiInstanceInfo {
     instanceReader = instanceReader ?? MultiInstanceObjectHandler.defaultInstanceReader;
@@ -57,10 +57,10 @@ export class MultiInstanceObjectHandler {
     this.multiInstanceObject = new MultiInstanceInfo();
     this.buildRecursively(templateRepresentation, this.multiInstanceObject);
 
-    if (instanceExtractData) {
+    if (instance) {
       // The template gave us a skeleton at each component's `minItems`; the
       // instance says what is actually there, and wins.
-      instanceReader.read(instanceExtractData, (path, count) =>
+      instanceReader.read(instance, (path, count) =>
         this.setSingleMultiInstance(path, count, this.multiInstanceObject),
       );
     }

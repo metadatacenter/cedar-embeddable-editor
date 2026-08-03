@@ -26,6 +26,8 @@ export class DataQualityReportBuilderHandler {
   buildReport(dataContext: DataContext, handlerContext: HandlerContext): DataQualityReport {
     this.report = new DataQualityReport();
     this.report.templateRepresentation = dataContext.templateRepresentation;
+    // The envelope-free view, for the host page. Derived once here rather than
+    // maintained as a second tree — see `DataContext.instanceExtractData`.
     this.report.instanceExtractData = dataContext.instanceExtractData;
 
     const valueTree = {};
@@ -113,14 +115,14 @@ export class DataQualityReportBuilderHandler {
       const satisfiedBy = isRequired
         ? DataQualityReportBuilderHandler.findAnyValue(
             component.path,
-            handlerContext.dataContext.instanceExtractData,
+            handlerContext.dataContext.instanceFullData,
             component,
           )
         : null;
       DataQualityReportBuilderHandler.collectFieldProblems(
         nonIterableComponent,
         dataValueObject,
-        handlerContext.dataContext.instanceExtractData,
+        handlerContext.dataContext.instanceFullData,
         report,
       );
       if (component instanceof MultiFieldComponent) {
@@ -170,10 +172,10 @@ export class DataQualityReportBuilderHandler {
   private static collectFieldProblems(
     component: FieldComponent,
     displayedNode: object,
-    instanceExtractData: object,
+    instance: object,
     report: DataQualityReport,
   ): void {
-    const nodes = DataQualityReportBuilderHandler.collectNodes(component.path, instanceExtractData);
+    const nodes = DataQualityReportBuilderHandler.collectNodes(component.path, instance);
     // Fall back to the displayed node when the path resolves to nothing, so a
     // field is still checked if the instance shape is unexpected.
     const targets = nodes.length > 0 ? nodes : displayedNode == null ? [] : [displayedNode];
