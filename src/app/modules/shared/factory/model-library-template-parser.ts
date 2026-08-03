@@ -5,7 +5,6 @@ import {
   CedarFieldType,
   CedarReaders,
   CedarWriters,
-  JsonSchema,
   JsonTemplateInstanceContent,
   ChildDeploymentInfo,
   Template,
@@ -252,9 +251,14 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     // already in scope. Repeating them would bloat every occurrence of every
     // element and match nothing CEDAR writes.
     const entries: Record<string, unknown> = isRoot ? { ...JsonTemplateInstanceContent.CONTEXT_VERBATIM } : {};
-    const iriMap = container.getChildrenInfo().getIRIMap();
+    // `getChildIriMap` rather than `getIRIMap`: the latter returns the shape
+    // JSON Schema wants — `{ name: { enum: [iri] } }` — and reading an IRI out
+    // of it meant reaching through `[JsonSchema.enum][0]`, which was the last
+    // raw key lookup left anywhere in CEE's template read path. Asking the model
+    // for the mapping is the whole point of asking the model.
+    const iriMap = container.getChildrenInfo().getChildIriMap();
     for (const name of Object.keys(iriMap)) {
-      entries[name] = iriMap[name][JsonSchema.enum][0];
+      entries[name] = iriMap[name];
     }
     component.contextEntries = entries;
   }
