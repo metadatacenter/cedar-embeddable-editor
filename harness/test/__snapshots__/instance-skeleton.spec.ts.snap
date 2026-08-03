@@ -35,7 +35,6 @@ exports[`the shape of an element > a multi element starts at minItems 1`] = `
 exports[`the shape of an element > a single element 1`] = `
 {
   "extract": {
-    "@id": "<minted>",
     "_f": {
       "@value": null,
     },

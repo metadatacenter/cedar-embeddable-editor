@@ -54,7 +54,14 @@ export class DataObjectBuilderHandler {
             dataObject[targetName].push(clone);
           }
         }
-        if (component instanceof MultiElementComponent) {
+        // Only the full tree. An element occurrence needs an `@id` in the
+        // artifact — CEDAR requires one — but the extract tree is the same
+        // content with the envelope left off at every depth, and `@id` is
+        // envelope. Minting it into both meant a freshly built extract carried
+        // element @ids and one read back from an instance did not, so every
+        // consumer of the extract saw a different shape depending on how the
+        // user arrived at it.
+        if (component instanceof MultiElementComponent && buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
           dataObject[targetName].forEach((child) => {
             DataObjectBuilderHandler.addRandomAtId(child);
           });
@@ -66,7 +73,7 @@ export class DataObjectBuilderHandler {
         for (const childComponent of iterableComponent.children) {
           DataObjectBuilderHandler.buildRecursively(childComponent, dataObject[targetName], buildingMode);
         }
-        if (component instanceof SingleElementComponent) {
+        if (component instanceof SingleElementComponent && buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
           DataObjectBuilderHandler.addRandomAtId(dataObject[targetName]);
         }
       }

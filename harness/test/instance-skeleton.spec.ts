@@ -74,6 +74,13 @@ describe('the shape of an element', () => {
    * a list of `minItems` of them, each with its own. The `@id` only appears in
    * the full copy — the extract form drops it, which is why the reader had to
    * stop relying on `@context` to recognise an element.
+   *
+   * That last sentence was in this comment before it was true. The snapshot
+   * below recorded an `@id` in the extract for months, because the builder
+   * minted one into whichever tree it was filling, and a snapshot records
+   * whatever happens rather than whatever was meant. `tree-consistency.spec.ts`
+   * now asserts the property directly, in both directions, instead of leaving it
+   * to a comment and a recording that disagreed.
    */
   it('a single element', () => {
     const template = buildTemplate({
