@@ -7,7 +7,7 @@ import { ElementComponent } from '../models/component/element-component.model';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
-import { JsonSchema } from '../models/json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 import * as _ from 'lodash-es';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { InstanceFullData } from '../models/instance-full-data.model';

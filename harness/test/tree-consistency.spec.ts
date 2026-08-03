@@ -379,3 +379,86 @@ describe('the derived view cannot go stale', () => {
     expect(driver.dataContext.instanceFullData['_top']).toEqual({ '@value': null });
   });
 });
+
+describe('the cached occurrence count agrees with the instance', () => {
+  /**
+   * The remaining copy of something the instance already knows.
+   *
+   * `MultiInstanceObjectInfo.currentCount` is how many occurrences a multi
+   * component has — which is also `instance[path].length`. It is maintained
+   * alongside the instance: incremented on add and copy, decremented on delete.
+   * `currentIndex` beside it is genuinely UI state and belongs there; the count
+   * is not.
+   *
+   * The two agree today. Nothing checked that, which is exactly where the extract
+   * tree was before it diverged three times, so this checks it. A proper fix means
+   * deriving the count from the instance, which needs the info tree to know its
+   * own path — a bigger change than it looks, and recorded in the roadmap rather
+   * than done here.
+   */
+  const counted = () =>
+    buildTemplate({
+      name: 'tc_counts',
+      children: [{ kind: TEXT, name: 'manyValues', cardinality: 'multi', minItems: 2, maxItems: 6 }],
+      elements: [
+        { name: 'el', cardinality: 'multi', minItems: 2, maxItems: 6, children: [{ kind: TEXT, name: 'inner' }] },
+      ],
+    });
+
+  const check = (driver: CeeDriver, path: string[], key: string, what: string): void => {
+    const component = driver.findOrThrow(path);
+    const cached = driver.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)
+      .currentCount;
+    const actual = (driver.dataContext.instanceFullData[key] as unknown[]).length;
+    expect(cached, `${what}: cached count ${cached} but the instance holds ${actual}`).toBe(actual);
+  };
+
+  it.each([
+    ['a multi element', ['_el'], '_el'],
+    ['a multi field', ['_manyValues'], '_manyValues'],
+  ])('%s: on a fresh instance', (what, path, key) => {
+    check(new CeeDriver(counted()), path as string[], key as string, what as string);
+  });
+
+  it.each([
+    ['a multi element', ['_el'], '_el'],
+    ['a multi field', ['_manyValues'], '_manyValues'],
+  ])('%s: after add, copy and delete', (what, path, key) => {
+    const driver = new CeeDriver(counted());
+    const component = driver.findOrThrow(path as string[]);
+
+    driver.handlerContext.addMultiInstance(component);
+    check(driver, path as string[], key as string, `${what} after add`);
+
+    driver.handlerContext.copyMultiInstance(component);
+    check(driver, path as string[], key as string, `${what} after copy`);
+
+    driver.handlerContext.deleteMultiInstance(component);
+    check(driver, path as string[], key as string, `${what} after delete`);
+  });
+
+  /**
+   * The case worth singling out: at `minItems` the delete is refused, so the
+   * count must *not* move. A decrement that ran anyway would leave the cache one
+   * below the truth and the pager offering a page that does not exist.
+   */
+  it('does not move when a refused delete leaves the instance alone', () => {
+    const driver = new CeeDriver(counted());
+    const element = driver.findOrThrow(['_el']);
+
+    driver.handlerContext.deleteMultiInstance(element);
+    driver.handlerContext.deleteMultiInstance(element);
+
+    check(driver, ['_el'], '_el', 'at minItems');
+    expect((driver.dataContext.instanceFullData['_el'] as unknown[]).length).toBe(2);
+  });
+
+  it('agrees on an instance that was loaded rather than built', () => {
+    const seed = new CeeDriver(counted());
+    seed.handlerContext.addMultiInstance(seed.findOrThrow(['_el']));
+
+    const loaded = new CeeDriver(counted(), { instance: seed.metadata });
+    check(loaded, ['_el'], '_el', 'loaded');
+    expect((loaded.dataContext.instanceFullData['_el'] as unknown[]).length).toBe(3);
+  });
+});

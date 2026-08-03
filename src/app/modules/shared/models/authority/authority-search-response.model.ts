@@ -1,4 +1,4 @@
-import { JsonSchema } from '../json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
  * One result from an authority lookup: an IRI and a label.

@@ -4,7 +4,7 @@ import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
-import { JsonSchema } from '../../../shared/models/json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 @Component({

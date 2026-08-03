@@ -1,4 +1,4 @@
-import { JsonSchema } from '../models/json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 import { InstanceValueNode } from './instance-value-node';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';

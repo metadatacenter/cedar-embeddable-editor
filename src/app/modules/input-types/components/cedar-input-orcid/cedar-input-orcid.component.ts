@@ -8,7 +8,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, switchMap, tap, catchError, finalize } from 'rxjs/operators';
-import { JsonSchema } from '../../../shared/models/json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 import { ExternalAuthorityLookupService } from '../../../shared/service/external-authority-lookup.service';
 import { authorityDescriptorFor } from '../../../shared/models/authority/authority-descriptor.model';
 import { InputType } from '../../../shared/models/input-type.model';

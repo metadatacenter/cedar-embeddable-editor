@@ -1,5 +1,5 @@
 import { ResearcherDetails } from '../orcid-detail/orcid-detail-person';
-import { JsonSchema } from '../../json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 export interface OrcidSearchResponseItem {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment

@@ -9,7 +9,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
 import { IntegratedSearchResponseItem } from '../../../shared/models/rest/integrated-search/integrated-search-response-item';
-import { JsonSchema } from '../../../shared/models/json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { JsonSchema } from '../../models/json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, EMPTY, from, Observable, of, Subject } from 'rxjs';
 import { catchError, concatMap, map, takeUntil } from 'rxjs/operators';

@@ -6,7 +6,7 @@ import { Observable, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { HandlerContext } from '../../../shared/util/handler-context';
-import { JsonSchema } from '../../../shared/models/json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';

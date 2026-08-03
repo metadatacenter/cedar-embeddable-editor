@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { JsonSchema } from '../models/json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 import { InputType } from '../models/input-type.model';
 import {
   AuthorityDetailResponse,

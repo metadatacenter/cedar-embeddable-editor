@@ -1,5 +1,5 @@
 import { RorDetailResponse } from '../ror-detail/ror-detail-response';
-import { JsonSchema } from '../../json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 export interface RorSearchResponseItem {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment

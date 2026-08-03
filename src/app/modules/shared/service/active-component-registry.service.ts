@@ -1,7 +1,7 @@
 import { CedarUIDirective } from '../models/ui/cedar-ui-component.model';
 import { CedarComponent } from '../models/component/cedar-component.model';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
-import { JsonSchema } from '../models/json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { SingleElementComponent } from '../models/element/single-element-component.model';
 import { MultiElementComponent } from '../models/element/multi-element-component.model';

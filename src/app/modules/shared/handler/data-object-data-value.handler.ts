@@ -6,11 +6,11 @@ import { MultiElementComponent } from '../models/element/multi-element-component
 import { DataContext } from '../util/data-context';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
-import { JsonSchema } from '../models/json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
-import { CedarModel } from '../models/cedar-model.model';
+import { CedarModel } from 'cedar-model-typescript-library';
 import { DataObjectUtil } from '../util/data-object-util';
 import { valueIsIri } from '../models/ext-auth-categories.model';
 import { InstanceValueNode } from '../util/instance-value-node';
@@ -96,7 +96,7 @@ export class DataObjectDataValueHandler {
 
       if (!Object.hasOwn(parentDataObject[JsonSchema.atContext], newName)) {
         if (!elemId || elemId.length === 0) {
-          elemId = CedarModel.baseTemplateURL + '/' + JsonSchema.properties + '/' + DataObjectUtil.generateGUID();
+          elemId = CedarModel.propertyIriPrefix + DataObjectUtil.generateGUID();
         }
         parentDataObject[JsonSchema.atContext][newName] = elemId;
       }

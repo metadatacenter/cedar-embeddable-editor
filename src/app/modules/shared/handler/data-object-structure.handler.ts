@@ -15,7 +15,7 @@ import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode
 import { TemplateComponent } from '../models/template/template-component.model';
 import { DataObjectUtil } from '../util/data-object-util';
 import { MessageHandlerService } from '../service/message-handler.service';
-import { JsonSchema } from '../models/json-schema.model';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 export class DataObjectStructureHandler {
   /**
