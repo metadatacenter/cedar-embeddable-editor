@@ -12,6 +12,18 @@ export abstract class AbstractElementComponent implements ElementComponent {
   linkedStaticFieldComponent: StaticFieldComponent = null;
   hidden: boolean;
 
+  /**
+   * The `@context` block an instance of this container carries: the standard
+   * CEDAR prefixes and typed entries, plus one IRI per child property.
+   *
+   * A property of the template, so a parser supplies it — the same way it
+   * supplies the children. It used to be read out of the raw template's
+   * `properties/@context/properties` while the instance was being built, which
+   * meant the builder walked the template JSON alongside the component tree it
+   * was already walking.
+   */
+  contextEntries: Record<string, unknown> = {};
+
   getChildByName(childName: string): CedarComponent {
     for (const child of this.children) {
       if (child.name === childName) {

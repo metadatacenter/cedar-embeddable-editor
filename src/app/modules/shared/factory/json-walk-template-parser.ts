@@ -15,6 +15,8 @@ import { StaticFieldComponent } from '../models/static/static-field-component.mo
 import { InputType } from '../models/input-type.model';
 import { TemplateObjectUtil } from '../util/template-object-util';
 import { HandlerContext } from '../util/handler-context';
+import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
+import { DataObjectUtil } from '../util/data-object-util';
 import { TemplateParser } from './template-parser';
 
 /**
@@ -29,6 +31,7 @@ import { TemplateParser } from './template-parser';
 export class JsonWalkTemplateParser implements TemplateParser {
   parse(templateJson: object, template: CedarTemplate, handlerContext: HandlerContext): void {
     JsonWalkTemplateParser.wrap(templateJson, templateJson, template, [], handlerContext);
+    JsonWalkTemplateParser.copyContext(templateJson, template);
     template.labelInfo.label = templateJson[JsonSchema.schemaName];
     template.labelInfo.description = templateJson[JsonSchema.schemaDescription];
   }
@@ -107,6 +110,7 @@ export class JsonWalkTemplateParser implements TemplateParser {
         }
         JsonWalkTemplateParser.extractLabels(dataNode, parentDataNode, name, r as FieldComponent);
         JsonWalkTemplateParser.wrap(dataNode, templateJsonObj, r, myPath, handlerContext);
+        JsonWalkTemplateParser.copyContext(dataNode, r as AbstractElementComponent);
       } else if (fragmentAtType === CedarModel.templateStaticFieldType) {
         r = new StaticFieldComponent();
         JsonWalkTemplateParser.extractStaticData(dataNode, parentDataNode, name, r as StaticFieldComponent);
@@ -125,6 +129,28 @@ export class JsonWalkTemplateParser implements TemplateParser {
         JsonWalkTemplateParser.extractMultiInfo(templateFragment, mr);
       }
     }
+  }
+
+  /**
+   * Copy the container's declared `@context` entries verbatim.
+   *
+   * Verbatim including anything odd in them — `template-003` carries an
+   * `rdfs--` prefix and an IRI for a property it does not define, and both come
+   * straight through. That is what CEE has always done; the library-backed
+   * parser generates the block instead.
+   */
+  private static copyContext(containerJson: object, container: AbstractElementComponent): void {
+    const props = containerJson?.[JsonSchema.properties];
+    const propsContext = props?.[JsonSchema.atContext];
+    const propsContextProps = propsContext?.[JsonSchema.properties];
+    if (propsContextProps == null) {
+      return;
+    }
+    const entries: Record<string, unknown> = {};
+    for (const key of Object.keys(propsContextProps)) {
+      entries[key] = DataObjectUtil.convertTemplateContextNode(propsContextProps[key]);
+    }
+    container.contextEntries = entries;
   }
 
   private static getOrderedPropertyNames(jsonObj: object): string[] {

@@ -5,6 +5,8 @@ import {
   CedarFieldType,
   CedarReaders,
   CedarWriters,
+  JsonSchema,
+  JsonTemplateInstanceContent,
   ChildDeploymentInfo,
   TemplateElement,
   TemplateField,
@@ -19,6 +21,7 @@ import { ElementComponent } from '../models/component/element-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
 import { ChoiceOption } from '../models/info/choice-option.model';
 import { StaticFieldComponent } from '../models/static/static-field-component.model';
+import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
 import { InputType } from '../models/input-type.model';
 import { LabelInfo } from '../models/info/label-info.model';
 import { HandlerContext } from '../util/handler-context';
@@ -74,6 +77,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     ModelLibraryTemplateParser.report(result.parsingResult.getBlueprintComparisonErrors(), handlerContext);
 
     ModelLibraryTemplateParser.wrap(result.template, template, []);
+    ModelLibraryTemplateParser.generateContext(result.template, template, true);
 
     template.labelInfo.label = result.template.schema_name;
     template.labelInfo.description = result.template.schema_description;
@@ -140,6 +144,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
         r = isMulti ? new MultiElementComponent() : new SingleElementComponent();
         ModelLibraryTemplateParser.extractLabels(element, childInfo, name, r as FieldComponent);
         ModelLibraryTemplateParser.wrap(element, r as ElementComponent, myPath);
+        ModelLibraryTemplateParser.generateContext(element, r as AbstractElementComponent, false);
       } else if (childInfo.atType === CedarArtifactType.STATIC_TEMPLATE_FIELD) {
         const sfc = new StaticFieldComponent();
         sfc.basicInfo.inputType = childInfo.uiInputType.getValue();
@@ -176,6 +181,42 @@ export class ModelLibraryTemplateParser implements TemplateParser {
         r.path = myPath;
       }
     }
+  }
+
+  /**
+   * Generate the container's `@context` block rather than copying it.
+   *
+   * The standard prefixes and typed entries are fixed by the CEDAR model, and
+   * the library states them once; the child IRIs come from the same mapping the
+   * library uses when it writes a template, which takes each child's declared
+   * IRI and mints one where a template omits it.
+   *
+   * Generating drops whatever a template happens to carry that is not one of
+   * those things. Across the 94 templates in the shared corpora that is two
+   * entries, both in `template-003`, which is the deliberately malformed one: a
+   * prefix named `rdfs--` and an IRI for a property the template never defines.
+   * It also adds the entry that template is missing for a child it *does*
+   * define, and drops the one `template-022` carries for an attribute-value
+   * field — a field whose name is not a property of the instance, and whose
+   * entry CEE deletes anyway the moment the user names an attribute.
+   *
+   * Every other container comes out identical.
+   */
+  private static generateContext(
+    container: AbstractContainerArtifact,
+    component: AbstractElementComponent,
+    isRoot: boolean,
+  ): void {
+    // Only the instance root declares the prefixes; a nested element's
+    // `@context` is its child IRIs and nothing else, because the prefixes are
+    // already in scope. Repeating them would bloat every occurrence of every
+    // element and match nothing CEDAR writes.
+    const entries: Record<string, unknown> = isRoot ? { ...JsonTemplateInstanceContent.CONTEXT_VERBATIM } : {};
+    const iriMap = container.getChildrenInfo().getIRIMap();
+    for (const name of Object.keys(iriMap)) {
+      entries[name] = iriMap[name][JsonSchema.enum][0];
+    }
+    component.contextEntries = entries;
   }
 
   private static extractValueConstraints(

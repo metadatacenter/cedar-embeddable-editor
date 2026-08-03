@@ -13,7 +13,18 @@ export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: 0,
+  /**
+   * One retry, so an intermittent failure is reported as flaky rather than as
+   * a regression — Playwright counts and prints those separately, so nothing is
+   * hidden, and `trace: 'retain-on-failure'` still captures the first attempt.
+   *
+   * Earned: two runs out of roughly a dozen have failed a single screenshot
+   * immediately after a fresh bundle and passed on every re-run, and the cause
+   * has not been reproduced on demand. With no retries there is no way to tell
+   * that apart from a real regression, which is the worse failure mode of the
+   * two. Raise this to a real fix once a trace shows what it is.
+   */
+  retries: process.env.CI ? 2 : 1,
   reporter: process.env.CI ? 'github' : [['list'], ['html', { open: 'never' }]],
 
   use: {

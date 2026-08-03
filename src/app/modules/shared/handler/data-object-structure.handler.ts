@@ -160,17 +160,9 @@ export class DataObjectStructureHandler {
     const dataObject = {};
     const cloneComponent = _.cloneDeep(component);
     DataObjectBuilderHandler.setCurrentCountToMinRecursively(cloneComponent, component.path);
-    let subTemplate = null;
-    if (templateInput != null) {
-      const shorterPath = component.path.slice(0, component.path.length - 1);
-      subTemplate = DataObjectBuilderHandler.getSubTemplate(templateInput, shorterPath);
-    }
-    DataObjectBuilderHandler.buildRecursively(
-      cloneComponent,
-      dataObject,
-      subTemplate,
-      DataObjectBuildingMode.INCLUDE_CONTEXT,
-    );
+    // The `@context` each new occurrence needs travels on the component, so
+    // there is no sub-template to find first.
+    DataObjectBuilderHandler.buildRecursively(cloneComponent, dataObject, DataObjectBuildingMode.INCLUDE_CONTEXT);
     const newDataObject = dataObject[component.name][0];
     const currentNodeAny = this.getDataPathNodeRecursively(
       instanceObject,
