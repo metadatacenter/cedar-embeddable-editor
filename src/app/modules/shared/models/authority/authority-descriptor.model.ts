@@ -136,13 +136,17 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
     placeholderKey: 'Generic.FilterPmid',
     invalidMessageKey: 'Validation.PmidInvalid',
     revertedMessageKey: 'Validation.PmidReverted',
-    // TRANSCRIBED AS FOUND, AND IT IS WRONG. This is PFAS's pattern: the PubMed
-    // widget was produced from the PFAS one and this line was not changed, so a
-    // PubMed field recognises `DTXSID…` and `comptox.epa.gov` as identifiers and
-    // does not recognise a PubMed ID. Kept verbatim here so the unification is
-    // provably behaviour-preserving; fixed immediately afterwards, on its own,
-    // with its own test. Precisely the drift seven copies invite.
-    looksLikeIdentifier: byPattern(/^(https?:\/\/|http:\/\/|DTXSID|comptox\.epa\.gov)/i),
+    // Was PFAS's pattern, verbatim: the PubMed widget was produced from the PFAS
+    // one and this line was never changed, so a PubMed field treated `DTXSID…`
+    // as an identifier to resolve and a PubMed ID as a name to search for.
+    // Invisible unless you diff two files nobody had reason to diff, which is
+    // what seven copies cost.
+    //
+    // A PubMed ID is a bare number; the site and the `PMID:` prefix are the two
+    // other ways it is written down. Kept narrow deliberately — this decides
+    // whether to resolve an identifier or run a name search, and anything looser
+    // would send ordinary search text to the resolve endpoint.
+    looksLikeIdentifier: byPattern(/^(?:https?:\/\/(?:www\.)?ncbi\.nlm\.nih\.gov\/pubmed\/\d+|https?:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/\d+\/?|PMID:\s*\d+|\d+)$/i),
   },
   {
     inputType: InputType.rrid,

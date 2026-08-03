@@ -9,7 +9,10 @@
  *
  * Each pattern below is transcribed from the widget it came from, and the cases
  * are chosen to catch a transcription slip rather than to describe what the
- * pattern *should* be. Where a pattern is wrong, it is recorded as wrong.
+ * pattern *should* be — several are looser than an identifier really is.
+ *
+ * One was not merely loose but simply another authority's, and putting the seven
+ * side by side is what made that visible. See the PubMed block at the bottom.
  */
 import { describe, expect, it } from 'vitest';
 import {
@@ -52,7 +55,7 @@ describe('there is exactly one descriptor per authority type', () => {
  *
  * `accepts` and `rejects` are transcription checks. They are not a specification
  * of what each authority's identifiers look like — several of these patterns are
- * looser than that, and one is simply another authority's.
+ * looser than that.
  */
 const CASES: Array<{
   type: InputType;
@@ -123,34 +126,41 @@ describe('each pattern matches the widget it came from', () => {
   });
 });
 
-describe('PubMed carries PFAS’s pattern', () => {
+describe('PubMed recognises PubMed identifiers', () => {
   /**
-   * KNOWN DEFECT, transcribed rather than fixed, so that the unification is
-   * provably behaviour-preserving and the fix is a change of its own.
+   * REGRESSION. The PubMed widget was produced from the PFAS one and its
+   * identifier pattern was never changed, so it treated `DTXSID…` as something
+   * to resolve and a PubMed ID as a name to search for. Unifying the seven is
+   * what surfaced it: the two patterns sat side by side and were identical.
    *
-   * The PubMed widget was produced from the PFAS one and this line was never
-   * changed. A PubMed field therefore treats `DTXSID…` as an identifier to
-   * resolve, and treats a PubMed ID as a name to search for. It is the clearest
-   * single illustration of what seven copies cost: the bug is invisible unless
-   * you diff two files nobody had reason to diff.
+   * The replacement is deliberately narrow. This decides whether to call the
+   * resolve endpoint or the search endpoint, so a loose pattern sends ordinary
+   * search text to the wrong one.
    */
   const pmid = authorityDescriptorFor(InputType.pmid)!;
   const pfas = authorityDescriptorFor(InputType.pfas)!;
 
-  it.each(['DTXSID1234567', 'comptox.epa.gov/x'])('accepts %s, which is not a PubMed identifier', (text) => {
-    expect(pmid.looksLikeIdentifier(text)).toBe(true);
-  });
-
-  it.each(['12345678', 'PMID:12345678', 'pubmed.ncbi.nlm.nih.gov/12345678'])(
-    'rejects %s, which is one',
+  it.each(['12345678', 'PMID:12345678', 'PMID: 12345678', 'https://pubmed.ncbi.nlm.nih.gov/12345678', 'https://pubmed.ncbi.nlm.nih.gov/12345678/'])(
+    'accepts %s',
     (text) => {
-      expect(pmid.looksLikeIdentifier(text)).toBe(false);
+      expect(pmid.looksLikeIdentifier(text)).toBe(true);
     },
   );
 
-  it('agrees with PFAS on every case, which is the giveaway', () => {
-    for (const text of ['DTXSID1', 'comptox.epa.gov', '12345678', 'https://x', 'a name']) {
-      expect(pmid.looksLikeIdentifier(text)).toBe(pfas.looksLikeIdentifier(text));
-    }
+  it.each([
+    ['a chemical identifier', 'DTXSID1234567'],
+    ['another authority’s site', 'comptox.epa.gov/x'],
+    ['a paper title', 'a study of things'],
+    ['a DOI', '10.1000/x'],
+    ['a number with trailing text', '12345678 and more'],
+  ])('rejects %s', (_label, text) => {
+    expect(pmid.looksLikeIdentifier(text)).toBe(false);
+  });
+
+  it('no longer agrees with PFAS, which was the giveaway', () => {
+    const differs = ['DTXSID1', 'comptox.epa.gov', '12345678'].filter(
+      (text) => pmid.looksLikeIdentifier(text) !== pfas.looksLikeIdentifier(text),
+    );
+    expect(differs).toHaveLength(3);
   });
 });
