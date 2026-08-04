@@ -15,6 +15,7 @@ import { InputType } from '../models/input-type.model';
 import { HandlerContext } from '../util/handler-context';
 import { TemplateParser } from './template-parser';
 import { ModelLibraryTemplateParser } from './model-library-template-parser';
+import { InstanceValueNode } from '../util/instance-value-node';
 
 /**
  * Builds the component tree CEE renders.
@@ -167,11 +168,20 @@ export class TemplateRepresentationFactory {
       return null;
     }
     if (path.length === 0) {
-      if (Object.prototype.hasOwnProperty.call(json, '@value')) {
-        return json['@value'];
-      } else if (Object.prototype.hasOwnProperty.call(json, '@id')) {
-        return json['@id'];
-      } else return json;
+      // Read the leaf's literal or IRI through the value-node model rather than
+      // off `@value`/`@id`. `literal` returns `undefined` only when the node is
+      // not a literal — a stored `null` or `''` still comes back as itself — so
+      // an empty-but-present value is preserved, and a node that is neither a
+      // literal nor an IRI (an element, say) falls through unchanged.
+      const literal = InstanceValueNode.literal(json);
+      if (literal !== undefined) {
+        return literal;
+      }
+      const iri = InstanceValueNode.iri(json);
+      if (iri !== undefined) {
+        return iri;
+      }
+      return json;
     }
     const currentKey = path[0];
     const remainingPath = path.slice(1);
