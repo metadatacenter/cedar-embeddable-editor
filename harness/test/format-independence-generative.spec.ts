@@ -17,13 +17,14 @@
  * `YamlTemplateParser`), so any place CEE still took meaning from the JSON shape
  * rather than the model would surface as a divergence.
  *
- * Single cardinality throughout, deliberately: a field that is multiple by type
- * carries a `minItems` the YAML serialization cannot express (documented in
- * `format-independence.spec.ts`), and the generative builder only emits that
- * bound for an explicitly multi child. Staying single keeps the two readings
- * exactly equal with nothing to forgive.
+ * It covers both directions of the crossing. Input: a template read from JSON
+ * or YAML renders and fills the same, at single and multiple cardinality. Output:
+ * the instance CEE hands back carries the same values whether asked for as JSON
+ * or as YAML. There is no allowlist — the one divergence this surfaced, a numeric
+ * field's defaulted datatype, was fixed in the model library, not forgiven here.
  */
 import { describe, expect, it } from 'vitest';
+import { parse as parseYaml } from 'yaml';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { ModelLibraryTemplateParser } from '@cee/factory/model-library-template-parser';
 import { YamlTemplateParser } from '@cee/factory/yaml-template-parser';
@@ -124,5 +125,56 @@ describe('a multiple-instance field renders and fills the same across formats', 
     viaJson.setValue(['_f'], kind, kind.sample);
     viaYaml.setValue(['_f'], kind, kind.sample);
     expect(emitted(viaYaml)).toEqual(emitted(viaJson));
+  });
+});
+
+/**
+ * The instance CEE hands back carries the same values as JSON and as YAML.
+ *
+ * The two are genuinely different serializations, not one relabelled: CEDAR's
+ * YAML instance nests fields under `children` and names a value `value`, an IRI
+ * `id`, a type `datatype`, a term label `label` — where the JSON uses `@value`,
+ * `@id`, `@type`, `rdfs:label`. That renaming is a fixed property of the format
+ * and the only difference, so mapping the YAML keys back to the JSON ones must
+ * reproduce the JSON value node exactly. If a writer dropped, reordered or
+ * altered a value on one side, this would catch it.
+ *
+ * There is no YAML *instance reader* in the library to read the output back into
+ * a model, so the mapping is the comparison available; it is a pure key rename,
+ * not a re-derivation of the value.
+ *
+ * `attrValue` is left out on purpose: an attribute-value field has no fixed key,
+ * so the JSON writes the value at the instance root under the chosen name while
+ * the YAML nests it under the field — a structural difference CEE has no say in,
+ * pinned already by `instance-output.spec.ts`.
+ */
+describe("CEE's JSON and YAML output carry the same values", () => {
+  const YAML_TO_JSON: Record<string, string> = {
+    value: '@value',
+    id: '@id',
+    datatype: '@type',
+    label: 'rdfs:label',
+  };
+  const toJsonKeys = (node: unknown): unknown => {
+    if (Array.isArray(node)) return node.map(toJsonKeys);
+    if (node && typeof node === 'object') {
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(node)) out[YAML_TO_JSON[k] ?? k] = toJsonKeys(v);
+      return out;
+    }
+    return node;
+  };
+
+  const valued = writable.filter((k) => k.key !== 'attrValue');
+
+  it.each(valued.map((k) => [k.key, k] as const))('%s: the same value in JSON and YAML output', (_key, kind) => {
+    const driver = new CeeDriver(buildTemplate({ name: `out_${kind.key}`, children: [{ kind, name: 'f' }] }));
+    driver.setValue(['_f'], kind, kind.sample);
+    driver.expectNoErrors(`${kind.key} output`);
+    const asJson = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
+    const asYaml = parseYaml(InstanceSerializer.toYaml(driver.dataContext.instanceFullData)) as {
+      children: Record<string, unknown>;
+    };
+    expect(toJsonKeys(asYaml.children._f)).toEqual(asJson._f);
   });
 });
