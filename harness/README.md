@@ -105,12 +105,9 @@ matches real templates: `values` 601, `regex` 150, `minValue` 127, `default` 96,
 
 ## Running it
 
-The model library must be built first — the harness depends on its `dist/`, not
-its source.
-
-```bash
-cd /Users/martin/CEDAR/cedar-model-typescript-library && npm install && npm run build
-```
+The harness depends on the built model library, resolved from
+`@org.metadatacenter/cedar-model-typescript-library` on the BMIR Nexus, so no
+local build of that library is needed.
 
 ```bash
 cd /Users/martin/CEDAR/cedar-embeddable-editor/harness && npm install && npm test

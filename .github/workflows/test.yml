@@ -27,29 +27,15 @@ jobs:
         with:
           path: cedar-embeddable-editor
 
-      # CEE's current file: dependency expects the model library as a sibling.
-      # Roadmap item #1 tracks replacing this with a published npm dependency.
-      - name: Check out the model library
-        uses: actions/checkout@v4
-        with:
-          repository: metadatacenter/cedar-model-typescript-library
-          ref: develop
-          path: cedar-model-typescript-library
-
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20.20.2
           cache: npm
           cache-dependency-path: |
-            cedar-model-typescript-library/package-lock.json
             cedar-embeddable-editor/package-lock.json
             cedar-embeddable-editor/harness/package-lock.json
             cedar-embeddable-editor/visual/package-lock.json
-
-      - name: Build the model library
-        working-directory: cedar-model-typescript-library
-        run: npm ci && npm run build
 
       - name: Install CEE test dependencies
         working-directory: cedar-embeddable-editor

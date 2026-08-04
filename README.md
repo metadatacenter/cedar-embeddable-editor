@@ -92,23 +92,30 @@ not require `cedar-artifact-library` or `cedar-test-artifacts` checkouts.
 
 ### First-time setup
 
-CEE currently resolves `cedar-model-typescript-library` from a built sibling
-checkout. Build that library before installing CEE's dependencies:
+CEE resolves the model library from `@org.metadatacenter/cedar-model-typescript-library`,
+published to the BMIR Nexus, so no sibling checkout is needed:
 
 ```shell
-cd ../cedar-model-typescript-library
-npm ci
-npm run build
-
-cd ../cedar-embeddable-editor
 npm ci
 npm --prefix harness ci
 npm --prefix visual ci
 ./visual/node_modules/.bin/playwright install chromium
 ```
 
-Resolving the model library through a published npm package is tracked as
-roadmap item #1; the sibling dependency remains in place for now.
+Only that one package comes from Nexus; everything else resolves from npmjs.org.
+An `.npmrc` alongside each of the three `package.json` files maps the
+`@org.metadatacenter` scope to Nexus, and reads need no credentials.
+
+Each manifest depends on it under an alias:
+
+```json
+"cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@<version>"
+```
+
+The alias keeps the local import name, so source files import
+`cedar-model-typescript-library` regardless of the published name. To move to a
+newer build, publish it to Nexus and bump the version in the root, `harness/`,
+and `visual/` manifests together.
 
 ### Focused test commands
 
