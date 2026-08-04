@@ -13,7 +13,11 @@ module.exports = function (config) {
       require('@angular-devkit/build-angular/plugins/karma')
     ],
     client: {
-      clearContext: false // leave Jasmine Spec Runner output visible in browser
+      // Clear the test iframe before Karma shuts down Chrome. Keeping it alive
+      // makes Chrome's normal teardown fire Karma's beforeunload guard after a
+      // successful run, producing "Some of your tests did a full page reload!"
+      // after completion while still returning exit code 0.
+      clearContext: true
     },
     coverageIstanbulReporter: {
       dir: require('path').join(__dirname, './coverage/cedar-embeddable-editor'),

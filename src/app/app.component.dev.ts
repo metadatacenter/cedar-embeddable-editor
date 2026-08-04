@@ -7,9 +7,11 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AppComponentDev implements OnInit {
   ceeConfig = {
-    sampleTemplateLocationPrefix: 'http://localhost:4240/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '94',
-    showSampleTemplateLinks: true,
+    // The standalone developer app carries one local sample so it starts from
+    // this repository alone. Embedded hosts still provide their own templates.
+    sampleTemplateLocationPrefix: '/assets/cee-demo/',
+    loadSampleTemplateName: 'demo',
+    showSampleTemplateLinks: false,
     expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
     showAllMultiInstanceValues: true,

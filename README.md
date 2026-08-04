@@ -6,7 +6,11 @@ It takes CEDAR JSON Schema templates as input, and produces CEDAR JSON-LD metada
 
 ## Running as a standalone application
 
-You can run CEE as a standalone application. This is helpful for developers to see changes to the code reflected immediately in the application. To run CEE in the standalone mode (NOT as a Webcomponent), you will need the editor itself and the sample templates that the editor uses. These are stored in a [separate repo](https://github.com/metadatacenter/cedar-component-distribution).
+You can run CEE as a standalone application. This is helpful for developers to
+see changes to the code reflected immediately in the application. The standalone
+app loads a small sample template and instance from `src/assets/cee-demo`, so it
+does not require a separate sample-template server or a
+`cedar-component-distribution` checkout.
 
 Proceed with the following steps:
 
@@ -16,7 +20,6 @@ Clone this repository onto a local directory of your choice:
 
 ```shell
 git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
-git clone https://github.com/metadatacenter/cedar-component-distribution.git
 ```
 
 ### Edit configuration
@@ -30,17 +33,6 @@ git clone https://github.com/metadatacenter/cedar-component-distribution.git
 ```shell
 $ cd <...>/<clone directory>/cedar-embeddable-editor/
 ```
-1. Run these commands:
-```shell
-cedar-embeddable-editor$ npm install
-cedar-embeddable-editor$ ng serve
-```
-
-1. In a different shell navigate to the component distribution directory:
-```shell
-$ cd <...>/<clone directory>/cedar-component-distribution/
-```
-
 1. Run these commands:
 ```shell
 cedar-embeddable-editor$ npm install
@@ -165,8 +157,8 @@ There are other optional configuration parameters available for controlling vari
 
 ```json
 {
-  "sampleTemplateLocationPrefix": "http://localhost:4240/cedar-embeddable-editor-sample-templates/",
-  "loadSampleTemplateName": "01",
+  "sampleTemplateLocationPrefix": "/assets/cee-demo/",
+  "loadSampleTemplateName": "demo",
   "expandedSampleTemplateLinks": true,
   "showTemplateDescription": false,
 
