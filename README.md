@@ -1,8 +1,19 @@
-# Cedar Embeddable Editor (CEE)
+# CEDAR Embeddable Editor (CEE)
 
-The CEDAR Embeddable Editor is as a web component that implements the functionality of the CEDAR Metadata Editor.
+The CEDAR Embeddable Editor (CEE) is a lightweight Web Component for adding
+structured, standards-based metadata authoring to web applications.
 
-It takes CEDAR JSON Schema templates as input, and produces CEDAR JSON-LD metadata.
+CEE dynamically renders data-entry forms from machine-actionable CEDAR
+templates and produces semantically rich metadata as JSON-LD. Templates define
+the fields, constraints, controlled vocabularies, and repeatable structures in a
+form, allowing the metadata-authoring experience to evolve independently of the
+application that embeds it. CEE also supports ontology-backed value selection
+and persistent identifiers from external authorities such as ORCID and ROR.
+
+For the design rationale, architecture, and deployments in research platforms,
+see [*Author Once, Publish Everywhere: Portable Metadata Authoring with the CEDAR
+Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002), published in the
+*Data Science Journal* (2026).
 
 ## Running as a standalone application
 
