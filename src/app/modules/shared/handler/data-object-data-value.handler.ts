@@ -267,12 +267,15 @@ export class DataObjectDataValueHandler {
     const inputType = component.basicInfo.inputType;
     const iriValued = valueIsIri(inputType);
     // An IRI-valued field cleared to null holds nothing at all, rather than an
-    // `@id` of null — there is no such IRI.
+    // `@id` of null — there is no such IRI. A literal carries the field's XSD
+    // type in this full-copy tree, the same as the initial build attaches: a
+    // numeric or temporal value keeps its `@type`, without which the server
+    // rejects the instance on save.
     const valueObject = iriValued
       ? value === null
         ? {}
         : InstanceValueNode.iriJson(value)
-      : InstanceValueNode.literalJson(value);
+      : InstanceValueNode.literalJson(value, DataObjectUtil.xsdTypeForFullCopy(component));
     dataContext.mutate((instance) =>
       this.setDataPathValueRecursively(
         instance,

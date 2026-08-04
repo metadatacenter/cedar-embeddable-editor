@@ -82,6 +82,21 @@ export class DataObjectUtil {
   }
 
   /**
+   * The XSD type a numeric or temporal value carries alongside itself in the
+   * full copy, or null for every other field.
+   *
+   * Public because it is needed in two places that must agree: the initial
+   * structure build, and an in-place value edit. `changeValue` rebuilds the
+   * value node from scratch, so without re-attaching this it drops the `@type`
+   * the build put there — and a temporal value with no `@type` is one the server
+   * rejects (its instance schema makes `@type` required), so the save the user
+   * just made fails and the value is lost.
+   */
+  static xsdTypeForFullCopy(component: FieldComponent): string | null {
+    return component?.numberInfo?.numberType ?? component?.valueInfo?.temporalType ?? null;
+  }
+
+  /**
    * The XSD type a value carries alongside itself, if it carries one.
    *
    * Only numeric and temporal fields do, and only in the full copy — the type is
@@ -91,17 +106,14 @@ export class DataObjectUtil {
     if (buildingMode !== DataObjectBuildingMode.INCLUDE_CONTEXT) {
       return null;
     }
-    return component?.numberInfo?.numberType ?? component?.valueInfo?.temporalType ?? null;
+    return DataObjectUtil.xsdTypeForFullCopy(component);
   }
 
   /** A numeric or temporal value declares its XSD type alongside itself. */
   private static injectAtTypeIfAvailable(obj: object, component: FieldComponent): void {
-    const numberType = component?.numberInfo?.numberType;
-    const temporalType = component?.valueInfo?.temporalType;
-    if (numberType != null) {
-      obj[JsonSchema.atType] = numberType;
-    } else if (temporalType != null) {
-      obj[JsonSchema.atType] = temporalType;
+    const xsdType = DataObjectUtil.xsdTypeForFullCopy(component);
+    if (xsdType != null) {
+      obj[JsonSchema.atType] = xsdType;
     }
   }
 
