@@ -105,5 +105,19 @@ export default defineConfig({
     },
     // The generator builds a few hundred templates; give the suite room.
     testTimeout: 30_000,
+    coverage: {
+      provider: 'v8',
+      include: ['src/app/modules/shared/**'],
+      reporter: ['text'],
+      // These are aggregate thresholds for the headless domain directories,
+      // not per-file gates. Angular components and REST/view models remain in
+      // the report for visibility but do not dilute or satisfy these floors.
+      thresholds: {
+        'src/app/modules/shared/factory/**': { statements: 90, branches: 90 },
+        'src/app/modules/shared/handler/**': { statements: 90, branches: 85 },
+        'src/app/modules/shared/util/**': { statements: 90, branches: 85 },
+        'src/app/modules/shared/validation/**': { statements: 90, branches: 85 },
+      },
+    },
   },
 });

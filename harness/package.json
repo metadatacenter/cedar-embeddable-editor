@@ -8,7 +8,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.include='src/app/modules/shared/**' --coverage.reporter=text"
+    "test:coverage": "vitest run --coverage.enabled"
   },
   "dependencies": {
     "cedar-model-typescript-library": "file:../../cedar-model-typescript-library/dist",

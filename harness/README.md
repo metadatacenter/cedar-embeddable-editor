@@ -4,7 +4,7 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 2,257 tests, all passing** on Node 20.20.2 / Vitest 1.6.
+> **Status: 2,260 tests, all passing** on Node 20.20.2 / Vitest 1.6.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
 > Three CEE defects found, all three fixed. See [What it found](#what-it-found).
 
@@ -246,7 +246,25 @@ rebuilt.
    they live in `../src`, and node resolution from there walks up to a repo root
    with no `node_modules`.
 
-## Coverage is complete — and that is a moving target
+## Enforced domain coverage
+
+`npm run test:domain:coverage` measures all of `shared/` for visibility, but it
+enforces aggregate thresholds only on the four Angular-free domain directories:
+
+| Directory | Statements | Branches |
+|---|---:|---:|
+| `factory/` | 90% | 90% |
+| `handler/` | 90% | 85% |
+| `util/` | 90% | 85% |
+| `validation/` | 90% | 85% |
+
+The broad `shared/` percentage is not a gate. It includes Angular components,
+pipes, REST models and services that this headless harness deliberately does not
+load, so enforcing that aggregate would reward or punish unrelated file layout.
+The grouped thresholds in `vitest.config.ts` fail the coverage command—and
+therefore `npm run test:ci`—when domain coverage regresses below a floor.
+
+## Input-type coverage is complete — and that is a moving target
 
 All 24 of CEE's input types can be generated. It started at 19.
 

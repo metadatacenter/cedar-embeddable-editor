@@ -143,6 +143,27 @@ describe('static component collapsing', () => {
     expect(driver.find(['_img']), 'the static should have been absorbed').toBeNull();
     expect(driver.findOrThrow(['_field']).linkedStaticFieldComponent).toBeTruthy();
   });
+
+  it('collapses static content inside nested elements too', () => {
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'collapse_nested',
+        elements: [
+          {
+            name: 'details',
+            children: [
+              { kind: IMAGE, name: 'img' },
+              { kind: TEXT, name: 'field' },
+            ],
+          },
+        ],
+      }),
+      { collapseStaticComponents: true },
+    );
+
+    expect(driver.find(['_details', '_img']), 'the nested static should have been absorbed').toBeNull();
+    expect(driver.findOrThrow(['_details', '_field']).linkedStaticFieldComponent).toBeTruthy();
+  });
 });
 
 describe('multi-instance elements', () => {

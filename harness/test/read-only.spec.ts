@@ -23,6 +23,7 @@ import { CeeDriver } from '../src/driver';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
+const ATTRIBUTE_VALUE = kind('attribute-value');
 
 /** Build an instance by driving the editor, so it is shaped exactly as CEE emits it. */
 const instanceWith = (template: object, writes: Array<[string[], string]>) => {
@@ -133,6 +134,43 @@ describe('hideEmptyFields', () => {
     const driver = new CeeDriver(twoFields(), { instance });
 
     expect(driver.findOrThrow(['_empty']).hidden).toBeFalsy();
+  });
+
+  describe('attribute-value fields', () => {
+    const attributes = () =>
+      buildTemplate({ name: 'hef_attributes', children: [{ kind: ATTRIBUTE_VALUE, name: 'attributes' }] });
+
+    it('keeps a populated dynamic attribute visible', () => {
+      const template = attributes();
+      const seed = new CeeDriver(template);
+      const component = seed.findOrThrow(['_attributes']);
+      seed.handlerContext.addMultiInstance(component);
+      seed.handlerContext.changeAttributeValue(component, 'colour', 'blue');
+
+      const viewer = new CeeDriver(template, {
+        readOnlyMode: true,
+        hideEmptyFields: true,
+        instance: seed.metadata,
+      });
+
+      expect(viewer.extract._attributes).toEqual(['colour']);
+      expect(viewer.extract.colour['@value']).toBe('blue');
+      expect(viewer.findOrThrow(['_attributes']).hidden).toBe(false);
+    });
+
+    it('hides an attribute-value field whose dynamic-key array is empty', () => {
+      const template = attributes();
+      const seed = new CeeDriver(template);
+      expect(seed.extract._attributes).toEqual([]);
+
+      const viewer = new CeeDriver(template, {
+        readOnlyMode: true,
+        hideEmptyFields: true,
+        instance: seed.metadata,
+      });
+
+      expect(viewer.findOrThrow(['_attributes']).hidden).toBe(true);
+    });
   });
 
   describe('elements', () => {
