@@ -22,11 +22,11 @@
 import { describe, expect, it } from 'vitest';
 import { ModelLibraryTemplateParser } from '@cee/factory/model-library-template-parser';
 import { YamlTemplateParser } from '@cee/factory/yaml-template-parser';
-import { corpusAvailable, corpusTemplates, corpusTemplatesYaml, describeTree } from '../src/corpus';
+import { corpusTemplates, corpusTemplatesYaml, describeTree } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
 
-const json = corpusAvailable() ? corpusTemplates() : [];
-const yaml = corpusAvailable() ? corpusTemplatesYaml() : [];
+const json = corpusTemplates();
+const yaml = corpusTemplatesYaml();
 
 /** Cases that ship in both serialisations, paired up. */
 const paired = json
@@ -121,7 +121,7 @@ const withoutUnexpressibleSlots = (fromYamlSide: unknown, fromJsonSide: unknown)
 const fromJson = (template: object) => new CeeDriver(template, { templateParser: new ModelLibraryTemplateParser() });
 const fromYaml = (template: object) => new CeeDriver(template, { templateParser: new YamlTemplateParser() });
 
-describe.skipIf(!corpusAvailable())('a template read from YAML', () => {
+describe('a template read from YAML', () => {
   it('there are paired cases to compare', () => {
     expect(paired.length).toBeGreaterThan(30);
   });
@@ -161,7 +161,7 @@ describe.skipIf(!corpusAvailable())('a template read from YAML', () => {
   });
 });
 
-describe.skipIf(!corpusAvailable())('what that demonstrates', () => {
+describe('what that demonstrates', () => {
   /**
    * A guard against the comparison passing for an uninteresting reason. If the
    * YAML parser silently produced nothing, every assertion above would hold

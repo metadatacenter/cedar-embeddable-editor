@@ -22,7 +22,7 @@ import { describe, expect, it } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { CARDINALITIES, FIELD_KINDS } from '../src/axes';
-import { corpusAvailable, corpusTemplates } from '../src/corpus';
+import { corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 
@@ -200,7 +200,7 @@ describe('the instance says which template it is an instance of', () => {
   });
 });
 
-describe.skipIf(!corpusAvailable())('real instances survive the trip', () => {
+describe('real instances survive the trip', () => {
   /**
    * The generated cases cover one field at a time. These are whole templates,
    * with elements nested several deep and every field type mixed together.

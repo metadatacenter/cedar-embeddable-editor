@@ -15,7 +15,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { CedarReaders } from 'cedar-model-typescript-library';
-import { corpusAvailable, corpusTemplates } from '../src/corpus';
+import { corpusTemplates } from '../src/corpus';
 
 /** What the service does, minus the HTTP. */
 const labelFor = (template: object): string | null => {
@@ -32,9 +32,9 @@ const labelFor = (template: object): string | null => {
 const labelByHand = (template: object): string | null =>
   (template as Record<string, string>)['schema:name'] || null;
 
-const templates = corpusAvailable() ? corpusTemplates() : [];
+const templates = corpusTemplates();
 
-describe.skipIf(!corpusAvailable())('the label the library reads', () => {
+describe('the label the library reads', () => {
   it('there are templates to check', () => {
     expect(templates.length).toBeGreaterThan(30);
   });

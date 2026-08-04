@@ -13,7 +13,7 @@
  * comment.
  */
 import { describe, expect, it } from 'vitest';
-import { corpusAvailable, corpusTemplates } from '../src/corpus';
+import { corpusTemplates } from '../src/corpus';
 
 interface ChoiceField {
   template: string;
@@ -70,7 +70,7 @@ const collectChoiceFields = (): ChoiceField[] => {
   return found;
 };
 
-const choiceFields = corpusAvailable() ? collectChoiceFields() : [];
+const choiceFields = collectChoiceFields();
 
 /**
  * The four fields in `template-029` that cannot hold any of their own values.
@@ -95,7 +95,7 @@ const CONTRADICTORY = [
   '029:Data File Title/Language',
 ];
 
-describe.skipIf(!corpusAvailable())('a choice field permits the values it offers', () => {
+describe('a choice field permits the values it offers', () => {
   it('there are choice fields to check', () => {
     expect(choiceFields.length).toBeGreaterThan(5);
   });

@@ -27,6 +27,10 @@ Source: `metadatacenter/cedar-artifact-library`, branch `develop`, commit
 `98fe90ca25c9b6e79619488cb7ad100d34c2cd99`, directory
 `src/test/resources/templates-json/`.
 
+These snapshots are mandatory test inputs. `harness/src/corpus.ts` checks the
+expected corpus sizes and every numbered JSON/YAML pair. Missing or incomplete
+fixtures fail test collection; corpus-backed suites must not be skipped.
+
 When refreshing either corpus, run the full harness and review every changed
 tree snapshot. Updating a fixture and its snapshot together is a claim that the
 new interpretation is intentional.

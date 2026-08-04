@@ -20,17 +20,15 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
-  corpusAvailable,
   corpusInstances,
   corpusTemplates,
   describeTree,
-  hubmapAvailable,
   hubmapTemplates,
 } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
 
-const templates = corpusAvailable() ? corpusTemplates() : [];
-const instances = corpusAvailable() ? corpusInstances() : [];
+const templates = corpusTemplates();
+const instances = corpusInstances();
 
 /**
  * Corpus templates CEE has something to say about, and what it says.
@@ -50,7 +48,7 @@ const KNOWN_REPORTED: Record<string, string> = {
   '003': 'TextfieldOrder',
 };
 
-describe.skipIf(!corpusAvailable())('real corpus templates', () => {
+describe('real corpus templates', () => {
   it('the corpus is present and non-trivial', () => {
     expect(templates.length).toBeGreaterThan(30);
   });
@@ -99,7 +97,7 @@ describe.skipIf(!corpusAvailable())('real corpus templates', () => {
   });
 });
 
-describe.skipIf(!corpusAvailable())('real corpus instances', () => {
+describe('real corpus instances', () => {
   it('the corpus is present and non-trivial', () => {
     expect(instances.length).toBeGreaterThan(15);
   });
@@ -125,7 +123,7 @@ describe.skipIf(!corpusAvailable())('real corpus instances', () => {
   });
 });
 
-describe.skipIf(!corpusAvailable())('templates the generator would not produce', () => {
+describe('templates the generator would not produce', () => {
   /**
    * REGRESSION: `_ui.order` may name a child that `properties` does not define.
    *
@@ -175,9 +173,9 @@ describe.skipIf(!corpusAvailable())('templates the generator would not produce',
  * never thinks to emit. If CEE is going to hand its parsing to the model
  * library, these are the input that will say whether anything moved.
  */
-const hubmap = hubmapAvailable() ? hubmapTemplates() : [];
+const hubmap = hubmapTemplates();
 
-describe.skipIf(!hubmapAvailable())('HuBMAP production templates', () => {
+describe('HuBMAP production templates', () => {
   it('the corpus is present and non-trivial', () => {
     expect(hubmap.length).toBeGreaterThan(50);
   });

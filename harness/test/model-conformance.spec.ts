@@ -25,7 +25,7 @@ import { describe, expect, it } from 'vitest';
 import Ajv from 'ajv-draft-04';
 import addFormats from 'ajv-formats';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
-import { corpusAvailable, corpusTemplates } from '../src/corpus';
+import { corpusTemplates } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
 
 /**
@@ -54,7 +54,7 @@ const KNOWN_NON_CONFORMANT: Record<string, string> = {
   '029': 'template contradicts itself: literal choices, IRI-only schema',
 };
 
-const templates = corpusAvailable() ? corpusTemplates() : [];
+const templates = corpusTemplates();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const makeValidator = () => {
@@ -86,7 +86,7 @@ const validateAgainstOwnTemplate = (template: object): Outcome => {
   return { valid: false, errors: (validate.errors ?? []).map((e: any) => `${e.instancePath || '/'} ${e.message}`) };
 };
 
-describe.skipIf(!corpusAvailable())('an instance CEE builds validates against its own template', () => {
+describe('an instance CEE builds validates against its own template', () => {
   it('there are templates to check', () => {
     expect(templates.length).toBeGreaterThan(30);
   });
@@ -115,7 +115,7 @@ describe.skipIf(!corpusAvailable())('an instance CEE builds validates against it
   });
 });
 
-describe.skipIf(!corpusAvailable())('the envelope every instance must carry', () => {
+describe('the envelope every instance must carry', () => {
   /**
    * The template's `required` list names all nine envelope keys. CEE emitted
    * none of them until recently, then emitted them all as null — which is

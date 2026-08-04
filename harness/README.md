@@ -38,7 +38,9 @@ that: vendored snapshots of 37 fixtures from `cedar-test-artifacts` and 57
 HuBMAP production templates from `cedar-artifact-library`, all authored by
 people or by the CEDAR Template Editor. Their source commits and refresh
 instructions are recorded in `fixtures/README.md`; no sibling artifact
-repository is needed to run the suite.
+repository is needed to run the suite. The loader enforces the recorded fixture
+counts and required JSON/YAML pairs; a missing or incomplete snapshot fails test
+collection instead of skipping the corpus suites.
 
 The first run of that suite found CEE crashing on `template-003`. It also
 matters prospectively — if CEE ever parses templates *with* the model library,

@@ -18,13 +18,26 @@ import { parse as parseYaml } from 'yaml';
  * library on both sides of the comparison, and would agree with themselves
  * regardless of whether either matched the spec. These would still fail.
  *
- * The fixtures live in this repository so a normal checkout always runs the
- * independent corpus. `corpusAvailable` remains as a defensive check and as a
- * clear diagnostic if a packaged source tree accidentally omits fixtures.
+ * The fixtures live in this repository so every checkout must run the
+ * independent corpus. Missing or incomplete fixtures are a hard error: these
+ * suites must never become green by silently skipping their oracle.
  */
 const CORPUS_ROOT = path.resolve(__dirname, '../fixtures/corpus');
+const EXPECTED_TEMPLATE_COUNT = 37;
+const EXPECTED_INSTANCE_COUNT = 21;
+const EXPECTED_HUBMAP_COUNT = 57;
 
-export const corpusAvailable = (): boolean => fs.existsSync(CORPUS_ROOT);
+const requireDirectory = (dir: string, label: string): void => {
+  if (!fs.existsSync(dir)) {
+    throw new Error(`Required ${label} fixture directory is missing: ${dir}`);
+  }
+};
+
+const requireCount = (actual: number, expected: number, label: string): void => {
+  if (actual !== expected) {
+    throw new Error(`Required ${label} fixture set is incomplete: expected ${expected}, found ${actual}`);
+  }
+};
 
 export interface CorpusArtifact {
   /** Zero-padded case number, e.g. `003`. */
@@ -33,24 +46,21 @@ export interface CorpusArtifact {
   json: object;
 }
 
-const load = (kind: 'templates' | 'instances', prefix: string): CorpusArtifact[] => {
+const load = (kind: 'templates' | 'instances', prefix: string, expectedCount: number): CorpusArtifact[] => {
   const dir = path.join(CORPUS_ROOT, kind);
-  if (!fs.existsSync(dir)) {
-    return [];
-  }
-  return fs
-    .readdirSync(dir)
-    .sort()
-    .flatMap((id) => {
-      const file = path.join(dir, id, `${prefix}-${id}.json`);
-      if (!fs.existsSync(file)) {
-        return [];
-      }
-      return [{ id, json: JSON.parse(fs.readFileSync(file, 'utf8')) }];
-    });
+  requireDirectory(dir, `numbered corpus ${kind}`);
+  const ids = fs.readdirSync(dir).sort();
+  requireCount(ids.length, expectedCount, `numbered corpus ${kind}`);
+  return ids.map((id) => {
+    const file = path.join(dir, id, `${prefix}-${id}.json`);
+    if (!fs.existsSync(file)) {
+      throw new Error(`Required numbered corpus fixture is missing: ${file}`);
+    }
+    return { id, json: JSON.parse(fs.readFileSync(file, 'utf8')) };
+  });
 };
 
-export const corpusTemplates = (): CorpusArtifact[] => load('templates', 'template');
+export const corpusTemplates = (): CorpusArtifact[] => load('templates', 'template', EXPECTED_TEMPLATE_COUNT);
 
 /**
  * The same 37 templates, as YAML.
@@ -61,21 +71,18 @@ export const corpusTemplates = (): CorpusArtifact[] => load('templates', 'templa
  */
 export const corpusTemplatesYaml = (): CorpusArtifact[] => {
   const dir = path.join(CORPUS_ROOT, 'templates');
-  if (!fs.existsSync(dir)) {
-    return [];
-  }
-  return fs
-    .readdirSync(dir)
-    .sort()
-    .flatMap((id) => {
-      const file = path.join(dir, id, `template-${id}.yaml`);
-      if (!fs.existsSync(file)) {
-        return [];
-      }
-      return [{ id, json: parseYaml(fs.readFileSync(file, 'utf8')) as object }];
-    });
+  requireDirectory(dir, 'numbered corpus templates');
+  const ids = fs.readdirSync(dir).sort();
+  requireCount(ids.length, EXPECTED_TEMPLATE_COUNT, 'numbered corpus YAML templates');
+  return ids.map((id) => {
+    const file = path.join(dir, id, `template-${id}.yaml`);
+    if (!fs.existsSync(file)) {
+      throw new Error(`Required numbered corpus fixture is missing: ${file}`);
+    }
+    return { id, json: parseYaml(fs.readFileSync(file, 'utf8')) as object };
+  });
 };
-export const corpusInstances = (): CorpusArtifact[] => load('instances', 'instance');
+export const corpusInstances = (): CorpusArtifact[] => load('instances', 'instance', EXPECTED_INSTANCE_COUNT);
 
 /**
  * A vendored snapshot of the HuBMAP production templates originally shipped
@@ -88,20 +95,14 @@ export const corpusInstances = (): CorpusArtifact[] => load('instances', 'instan
  */
 const HUBMAP_ROOT = path.resolve(__dirname, '../fixtures/hubmap');
 
-export const hubmapAvailable = (): boolean => fs.existsSync(HUBMAP_ROOT);
-
 export const hubmapTemplates = (): CorpusArtifact[] => {
-  if (!hubmapAvailable()) {
-    return [];
-  }
-  return fs
-    .readdirSync(HUBMAP_ROOT)
-    .filter((f) => f.endsWith('.json'))
-    .sort()
-    .map((f) => ({
-      id: f.replace(/\.json$/, ''),
-      json: JSON.parse(fs.readFileSync(path.join(HUBMAP_ROOT, f), 'utf8')),
-    }));
+  requireDirectory(HUBMAP_ROOT, 'HuBMAP corpus');
+  const files = fs.readdirSync(HUBMAP_ROOT).filter((f) => f.endsWith('.json')).sort();
+  requireCount(files.length, EXPECTED_HUBMAP_COUNT, 'HuBMAP corpus');
+  return files.map((f) => ({
+    id: f.replace(/\.json$/, ''),
+    json: JSON.parse(fs.readFileSync(path.join(HUBMAP_ROOT, f), 'utf8')),
+  }));
 };
 
 /**

@@ -17,9 +17,9 @@ import { describe, expect, it } from 'vitest';
 import { InstanceDeserializer } from '@cee/util/instance-deserializer';
 import { InstanceValueNode } from '@cee/util/instance-value-node';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
-import { corpusAvailable, corpusInstances } from '../src/corpus';
+import { corpusInstances } from '../src/corpus';
 
-const instances = corpusAvailable() ? corpusInstances() : [];
+const instances = corpusInstances();
 
 /**
  * `DataObjectUtil.deleteContext`, as it stood before the library replaced it.
@@ -65,7 +65,7 @@ const handBuiltExtract = (json: object): object => {
   return extract;
 };
 
-describe.skipIf(!corpusAvailable())('the extract tree, against the walk it replaces', () => {
+describe('the extract tree, against the walk it replaces', () => {
   it('there are instances to check', () => {
     expect(instances.length).toBeGreaterThan(15);
   });
@@ -79,7 +79,7 @@ describe.skipIf(!corpusAvailable())('the extract tree, against the walk it repla
   });
 });
 
-describe.skipIf(!corpusAvailable())('instance annotations', () => {
+describe('instance annotations', () => {
   /**
    * The one divergence from the old walk, and an improvement.
    *
@@ -124,7 +124,7 @@ describe.skipIf(!corpusAvailable())('instance annotations', () => {
   });
 });
 
-describe.skipIf(!corpusAvailable())('the full tree', () => {
+describe('the full tree', () => {
   /**
    * The full tree keeps the envelope. It is no longer the document verbatim —
    * it is what the library writes for the model it read — so this checks the
