@@ -561,3 +561,69 @@ const writeRaw = (name, document) => {
     }),
   );
 }
+
+/**
+ * 16. Files for the two host inputs that fetch.
+ *
+ * `loadConfigFromURL(url, onSuccess, onError)` and the sample-template loader are the
+ * last two entry points a host page uses that no test touched, and both are untestable
+ * without something to fetch. So this writes what they fetch, under
+ * `fixtures/served/`, which the harness page copies into place.
+ *
+ * The sample-template loader wants a fixed layout it builds itself:
+ * `<prefix><name>/template.json` and `<prefix><name>/metadata.json`. Encoded here rather
+ * than in the test, so a change to `TEMPLATE_FILENAME` breaks in one obvious place.
+ *
+ * The metadata carries a value the template does not default to, so a test can tell
+ * "the sample template loaded" from "the sample template *and its metadata* loaded" —
+ * the second being the path that assembles `templateAndInstanceObject` and is easy to
+ * half-implement.
+ */
+{
+  const served = join(OUT, 'served');
+  const sample = join(served, 'sample', 'demo');
+  mkdirSync(sample, { recursive: true });
+
+  const text = field('title', () => CedarBuilders.textFieldBuilder());
+  let tb = common(CedarBuilders.templateBuilder(), 'SampleLoaded', 'templates').withSchemaDescription(
+    'A template fetched through the sample-template loader',
+  );
+  tb = tb.addChild(text, deploy(text, 'title'));
+  const template = tb.build();
+  const json = CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template);
+  writeFileSync(join(sample, 'template.json'), JSON.stringify(json, null, 2));
+
+  writeFileSync(
+    join(sample, 'metadata.json'),
+    JSON.stringify(
+      {
+        '@context': {},
+        '@id': 'https://example.org/instances/sample-loaded-1',
+        'schema:isBasedOn': `https://repo.metadatacenter.org/templates/${id('SampleLoaded')}`,
+        'schema:name': 'SampleLoaded instance',
+        'schema:description': 'Fetched alongside its template',
+        'pav:createdOn': FIXED_DATE,
+        'pav:createdBy': USER,
+        'pav:lastUpdatedOn': FIXED_DATE,
+        'oslc:modifiedBy': USER,
+        _title: { '@value': 'loaded from metadata.json' },
+      },
+      null,
+      2,
+    ),
+  );
+
+  // A config a host would fetch. `showFooter` is the observable part: it is off in the
+  // harness's base preset, so seeing a footer means this config was applied rather than
+  // the preset's.
+  writeFileSync(
+    join(served, 'host-config.json'),
+    JSON.stringify({ showHeader: false, showFooter: true, defaultLanguage: 'en', fallbackLanguage: 'en' }, null, 2),
+  );
+
+  // Deliberately not JSON. `loadConfigFromURL` calls `JSON.parse` on any 200 response
+  // with no guard, so this is what a misconfigured URL that returns a page looks like.
+  writeFileSync(join(served, 'not-json.json'), '<html><body>not a config</body></html>\n');
+
+  console.log('wrote fixtures/served/ (sample template + metadata, host config, malformed config)');
+}

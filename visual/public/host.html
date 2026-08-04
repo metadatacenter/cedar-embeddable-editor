@@ -58,6 +58,52 @@
       (async () => {
         const params = new URLSearchParams(location.search);
         const name = params.get('t');
+
+        /**
+         * `?host=config` and `?host=sample` exercise the two entry points that fetch.
+         *
+         * Both are host-page routes rather than data inputs, so neither loads a `?t=`
+         * fixture. `config` hands the component a URL and lets it fetch its own config;
+         * `sample` sets only the sample-template config keys and lets CEE's own loader
+         * fetch the template and its metadata. Deliberately no template is set in either
+         * case — the point is that CEE ends up with one without being handed it.
+         */
+        const hostRoute = params.get('host');
+        if (hostRoute) {
+          await customElements.whenDefined('cedar-embeddable-editor');
+          const el = document.querySelector('cedar-embeddable-editor');
+          window.__ceeConfigEvents = [];
+
+          if (hostRoute === 'config') {
+            const url = params.get('url') || './served/host-config.json';
+            el.loadConfigFromURL(
+              url,
+              (config) => window.__ceeConfigEvents.push({ kind: 'success', config }),
+              (xhr) => window.__ceeConfigEvents.push({ kind: 'error', status: xhr && xhr.status }),
+            );
+          } else if (hostRoute === 'sample') {
+            el.config = {
+              showHeader: false,
+              showFooter: false,
+              showPreferencesMenu: false,
+              showSampleTemplateLinks: false,
+              defaultLanguage: 'en',
+              fallbackLanguage: 'en',
+              sampleTemplateLocationPrefix: params.get('prefix') || './served/sample/',
+              loadSampleTemplateName: params.get('sample') || 'demo',
+              terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
+            };
+          } else {
+            window.__ceeError = `unknown ?host= route: ${hostRoute}`;
+            return;
+          }
+
+          // These routes are asynchronous by nature — a fetch CEE owns — so readiness is
+          // whatever the test waits for, not a settled DOM.
+          window.__ceeReady = true;
+          return;
+        }
+
         if (!name) {
           window.__ceeError = 'no ?t= fixture named';
           return;

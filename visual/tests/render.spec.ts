@@ -1346,3 +1346,124 @@ test.describe('the host event handler', () => {
     await expect(page.locator('input[aria-label="text"]')).toBeVisible();
   });
 });
+
+/**
+ * The two host entry points that fetch.
+ *
+ * `loadConfigFromURL` and the sample-template loader were the last inputs a host page
+ * uses that no test touched, and both were untestable until the harness page served
+ * something to fetch. Neither is a data input: in both cases CEE ends up with a
+ * configuration or a template **without being handed one**, which is the whole point and
+ * the reason they are worth covering — a host that relies on either has no other way to
+ * find out it broke.
+ */
+test.describe('host inputs that fetch', () => {
+  const openHost = async (page: import('@playwright/test').Page, query: string) => {
+    await page.clock.setFixedTime(FROZEN);
+    await page.goto(`/host.html?${query}&b=${BUNDLE_VERSION}`);
+    await page.waitForFunction(() => (window as any).__ceeReady === true || (window as any).__ceeError, null, {
+      timeout: 20_000,
+    });
+    expect(await page.evaluate(() => (window as any).__ceeError)).toBeFalsy();
+  };
+
+  const events = (page: import('@playwright/test').Page) =>
+    page.evaluate(() => (window as any).__ceeConfigEvents ?? []);
+
+  test('loadConfigFromURL applies the fetched config and calls the success handler', async ({ page }) => {
+    await openHost(page, 'host=config');
+
+    await expect(async () => {
+      expect((await events(page)).length, 'no handler was called').toBeGreaterThan(0);
+    }).toPass({ timeout: 5000 });
+
+    const seen = await events(page);
+    expect(seen[0].kind, `expected success, got ${JSON.stringify(seen[0])}`).toBe('success');
+    // The handler receives the parsed config, not the raw text.
+    expect(seen[0].config.showFooter, 'the parsed config should reach the handler').toBe(true);
+
+    /**
+     * And it was *applied*, not merely parsed — which needs a template, since CEE renders
+     * nothing at all without one. So hand it one now, in the order a host would: fetch the
+     * config, then supply the document. The footer is off in every preset here, so its
+     * appearance can only come from the fetched config.
+     */
+    await page.evaluate(async () => {
+      const template = await (await fetch('./fixtures/01-input-types.json')).json();
+      (document.querySelector('cedar-embeddable-editor') as any).templateObject = template;
+    });
+    await expect(page.locator('footer.main__footer'), 'the fetched config was parsed but not applied').toBeVisible({
+      timeout: 10_000,
+    });
+  });
+
+  test('loadConfigFromURL calls the error handler for a URL that is not there', async ({ page }) => {
+    await openHost(page, 'host=config&url=./served/does-not-exist.json');
+
+    await expect(async () => {
+      expect((await events(page)).length, 'no handler was called for a 404').toBeGreaterThan(0);
+    }).toPass({ timeout: 5000 });
+
+    const seen = await events(page);
+    expect(seen[0].kind).toBe('error');
+    expect(seen[0].status, 'the handler should receive the xhr, so a host can see the status').toBe(404);
+  });
+
+  /**
+   * A 200 carrying something that is not JSON.
+   *
+   * `loadConfigFromURL` calls `JSON.parse` on any 200 with no guard, so a URL that
+   * returns an HTML error page — a login redirect, a proxy notice, a misconfigured path —
+   * used to throw inside the XHR callback and call **neither** handler: the host was told
+   * nothing at all and could not distinguish it from a request still in flight. The parse
+   * is now guarded and the failure is reported as an error, which is what a host has an
+   * error handler for.
+   */
+  test('loadConfigFromURL reports a response that is not JSON as an error', async ({ page }) => {
+    await openHost(page, 'host=config&url=./served/not-json.json');
+
+    await expect(async () => {
+      expect((await events(page)).length, 'a non-JSON 200 told the host nothing').toBeGreaterThan(0);
+    }).toPass({ timeout: 5000 });
+
+    const seen = await events(page);
+    expect(seen[0].kind, 'a body that will not parse is an error, not a success').toBe('error');
+  });
+
+  /**
+   * The sample-template loader, which is the route the CEDAR demo pages use.
+   *
+   * Given only `sampleTemplateLocationPrefix` and `loadSampleTemplateName`, CEE builds
+   * `<prefix><name>/template.json` and `<prefix><name>/metadata.json` itself, fetches
+   * both, and assembles them into `templateAndInstanceObject`. So this covers the
+   * filename convention, the fetch, and the hand-off in one — and the metadata's value is
+   * something the template does not default to, so a form that renders with an empty
+   * field would fail rather than look right.
+   */
+  test('the sample-template loader fetches a template and its metadata', async ({ page }) => {
+    await openHost(page, 'host=sample');
+
+    const field = page.locator('input[aria-label="title"]');
+    await expect(field, 'no template was loaded from the sample location').toBeVisible({ timeout: 10_000 });
+    await expect(field, 'the template loaded but its metadata did not').toHaveValue('loaded from metadata.json');
+  });
+
+  test('a missing sample template leaves CEE standing and says so', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('console', (m) => {
+      if (m.type() === 'error') errors.push(m.text());
+    });
+
+    await openHost(page, 'host=sample&sample=nonexistent');
+
+    await expect(async () => {
+      expect(
+        errors.some((e) => e.includes('Error while loading sample template')),
+        `expected a load error on the console; got ${JSON.stringify(errors.slice(0, 3))}`,
+      ).toBe(true);
+    }).toPass({ timeout: 10_000 });
+
+    // The failure is reported rather than thrown: no form, but nothing broken either.
+    await expect(page.locator('input[aria-label="title"]')).toHaveCount(0);
+  });
+});

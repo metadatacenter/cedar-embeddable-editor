@@ -143,7 +143,36 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     xhr.onreadystatechange = () => {
       if (xhr.readyState === XMLHttpRequest.DONE) {
         if (xhr.status === HttpStatusCode.Ok) {
-          const jsonConfig = JSON.parse(xhr.responseText);
+          /**
+           * A 200 is not a promise of JSON.
+           *
+           * A misconfigured path, a login redirect or a proxy notice all answer 200 with
+           * HTML, and `JSON.parse` used to throw here — inside an XHR callback, so the
+           * exception went nowhere and *neither* handler was called. The host was told
+           * nothing and could not tell that from a request still in flight.
+           *
+           * A body that will not parse is a failure to load a config, which is what the
+           * error handler is for.
+           */
+          let jsonConfig = null;
+          try {
+            jsonConfig = JSON.parse(xhr.responseText);
+          } catch (e) {
+            /**
+             * Reported straight to the console, not through `MessageHandlerService`.
+             *
+             * When a host page calls this on the custom element, `this` is the element
+             * rather than this component: `that.config = ...` works because Angular
+             * Elements forwards it as an `@Input`, but injected services are not on the
+             * element and `that.messageHandlerService` is `undefined`. Reaching for it
+             * here threw, which is a worse failure than the one being handled.
+             */
+            console.error('CEE ERROR: config at ' + jsonURL + ' is not JSON: ' + e);
+            if (errorHandler) {
+              errorHandler(xhr);
+            }
+            return;
+          }
           that.config = jsonConfig;
 
           if (successHandler) {
