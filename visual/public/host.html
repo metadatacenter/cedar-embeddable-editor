@@ -148,8 +148,8 @@
          * CEE takes 31 config keys and `base` deliberately turns most of them off so a
          * diff reflects the form. That left two thirds of the config surface rendered in
          * no test at all — and a config key that is silently ignored looks exactly like
-         * one that works, which is not hypothetical: `eventHandler` is stored and never
-         * read, so a host page passing one gets silence.
+         * one that works. Not hypothetical: `eventHandler` was stored and never read, so
+         * a host page passing one got silence, which is what prompted this sweep.
          *
          * This exists so a test can ask the only question that catches that: does
          * turning this flag on change anything?
@@ -158,6 +158,22 @@
         const overrides = {};
         for (const flag of flags) {
           overrides[flag] = true;
+        }
+
+        /**
+         * An event handler, when ?e=1, recording what CEE tells the host.
+         *
+         * `eventHandler` is the input a host page passes to hear CEE's diagnostics, and
+         * it now forwards `MessageHandlerService`'s traces and errors. This is that real
+         * route rather than a test seam — the service's own contract is covered in
+         * `harness/test/message-handler.spec.ts`.
+         */
+        window.__ceeEvents = [];
+        if (params.get('e') === '1') {
+          cee.eventHandler = {
+            trace: (label, value) => window.__ceeEvents.push({ kind: 'trace', label, value }),
+            error: (label, value) => window.__ceeEvents.push({ kind: 'error', label, value }),
+          };
         }
 
         cee.config = { ...PRESETS[preset], ...overrides };

@@ -82,11 +82,12 @@ const open = async (
   preset?: string,
   instance?: string,
   mode?: 'separate' | 'combined',
+  extra?: string,
 ) => {
   await page.clock.setFixedTime(FROZEN);
   await page.goto(
     `/host.html?t=${fixture}${preset ? `&c=${preset}` : ''}${instance ? `&i=${instance}` : ''}` +
-      `${mode ? `&m=${mode}` : ''}&b=${BUNDLE_VERSION}`,
+      `${mode ? `&m=${mode}` : ''}${extra ?? ''}&b=${BUNDLE_VERSION}`,
   );
   await page.waitForFunction(() => (window as any).__ceeReady === true || (window as any).__ceeError, null, {
     timeout: 20_000,
@@ -1299,5 +1300,49 @@ test.describe('date display formats', () => {
     // Stated as its own assertion because it is the actual question: the two must not
     // have collapsed onto one shared format.
     expect(await year.inputValue()).not.toBe(await day.inputValue());
+  });
+});
+
+/**
+ * A host page hears what CEE has to say.
+ *
+ * `eventHandler` is a documented input that was stored and read nowhere, so a host
+ * passing one got silence. It now forwards `MessageHandlerService`'s traces and errors —
+ * the narrow reading, since that service is where the value was always routed.
+ *
+ * Exercised through the real input on the real web component rather than the service in
+ * isolation, which `harness/test/message-handler.spec.ts` already covers. The two halves
+ * answer different questions: that one asks whether the contract holds, this one asks
+ * whether the input is actually wired to it.
+ *
+ * No trigger is needed: CEE traces its config and its language-map choice on every load,
+ * which is a real message from a real path rather than something contrived. The first
+ * version of this test reached for a `hideEmptyFields` warning that turned out not to
+ * fire from a config flag — the handler had been receiving four traces all along.
+ */
+test.describe('the host event handler', () => {
+  test('receives CEE diagnostics through the web component input', async ({ page }) => {
+    await open(page, '01-input-types', undefined, undefined, undefined, '&e=1');
+
+    const events = await page.evaluate(() => (window as any).__ceeEvents);
+    expect(Array.isArray(events), 'the host page did not attach a handler').toBe(true);
+    expect(events.length, 'CEE emitted nothing to the injected handler').toBeGreaterThan(0);
+    expect(
+      events.some((e: any) => String(e.label).includes('config set to')),
+      `expected the config trace; got ${JSON.stringify(events.map((e: any) => String(e.label).slice(0, 40)))}`,
+    ).toBe(true);
+    expect(
+      events.every((e: any) => e.kind === 'trace' || e.kind === 'error'),
+      'an event arrived under a kind the handler did not declare',
+    ).toBe(true);
+  });
+
+  test('gets nothing when no handler is attached, and CEE still renders', async ({ page }) => {
+    await open(page, '01-input-types');
+
+    const events = await page.evaluate(() => (window as any).__ceeEvents);
+    expect(events, 'no handler was attached, so nothing should have been recorded').toEqual([]);
+    // The point of the negative case: the same code path runs, and is harmless.
+    await expect(page.locator('input[aria-label="text"]')).toBeVisible();
   });
 });
