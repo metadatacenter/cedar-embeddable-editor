@@ -2,7 +2,7 @@
 
 Playwright screenshot regression for the **built web component**.
 
-> **Status: 276 tests, all passing** on Chromium / macOS, most recently in
+> **Status: 294 tests, all passing** on Chromium / macOS, most recently in
 > ~40s for both viewports.
 
 ## Why this exists, and why it is separate from `harness/`
@@ -29,7 +29,7 @@ here to catch.
 
 ## Fixtures
 
-Seven templates, each exercising a distinct layout mechanism, generated
+Twelve templates, each exercising a distinct layout mechanism, generated
 deterministically by `generate-fixtures.mjs` from the CEDAR Model TypeScript
 Library:
 
@@ -42,6 +42,11 @@ Library:
 | `05-static-paged` | section break, rich text, page breaks |
 | `06-validation` | `mat-error` and the form-field subscript, in five error states |
 | `07-timezone` | the timezone picker — CEE's only `ng-select` |
+| `08-authority` | all seven external-authority widgets |
+| `09-temporal` | all eight temporal granularities and both time formats |
+| `10-attribute-values` | attribute-value names and values |
+| `12-render-decision` | the three multi-field rendering cases |
+| `13-paged-choice` | a choice field inside a multi-instance element |
 
 Hand-picked rather than exhaustive. Screenshot diffs are for catching rendering
 regressions, and a handful of templates covering distinct layout mechanisms

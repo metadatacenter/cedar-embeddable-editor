@@ -200,6 +200,9 @@ There are other optional configuration parameters available for controlling vari
 
   "collapseStaticComponents": false,
   "showStaticText": true,
+
+  "inputSerialization": "json",
+  "outputSerialization": "json",
   
   "readOnlyMode": false,
   "hideEmptyFields": false,
@@ -218,6 +221,41 @@ The metadata currently being edited inside CEE can be exported at anytime by mak
 ```javascript
 const meta = cee.currentMetadata;
 ```
+
+`currentMetadata` always returns a CEDAR JSON object. CEE also exposes two
+format-specific alternatives:
+
+```javascript
+const yaml = cee.currentMetadataYaml;             // always a YAML string
+const selected = cee.currentMetadataSerialized;   // JSON object or YAML string
+```
+
+`currentMetadataSerialized` follows the `outputSerialization` configuration
+value. It returns a JSON object by default and a YAML string when configured as
+follows:
+
+```json
+{
+  "outputSerialization": "yaml"
+}
+```
+
+Input and output serialization are independent. Setting
+`inputSerialization` to `"yaml"` selects the model library's YAML template
+reader; the value assigned to `templateObject` must be the parsed YAML object,
+not the YAML source string:
+
+```javascript
+cee.config = {
+  // Include the other settings required by the embedding application.
+  inputSerialization: 'yaml',
+  outputSerialization: 'yaml'
+};
+cee.templateObject = parsedTemplateYaml;
+```
+
+Any value other than `"yaml"`, including an omitted value or `"json"`, selects
+JSON serialization.
 
 In the example below, the metadata is sent to an external endpoint every 15 seconds:
 

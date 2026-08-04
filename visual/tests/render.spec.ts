@@ -274,7 +274,7 @@ test.describe('config presets', () => {
 /**
  * One clipped screenshot per widget.
  *
- * The nine full-page fixtures above are the wrong instrument for a widget-level
+ * The twelve full-page fixtures above are the wrong instrument for a widget-level
  * regression, and the footer rebrand proved it: a new logo, a new organisation
  * name and a new link changed 0.708% of the desktop page and 0.897% of the
  * narrow one, against a `maxDiffPixelRatio` of 1%, and `preset-chrome` reported
