@@ -7,6 +7,7 @@
  * should come from the code under test — never from the fixtures.
  */
 import { CedarBuilders, CedarWriters } from 'cedar-model-typescript-library';
+import { parse as parseYaml } from 'yaml';
 import { Cardinality, FieldKind, Nesting } from './axes';
 
 const FIXED_DATE = '2026-01-01T00:00:00-08:00';
@@ -155,8 +156,15 @@ export interface TemplateSpec {
   elements?: ElementSpec[];
 }
 
-/** Assemble a full CEDAR template as a plain JSON object CEE can consume. */
-export const buildTemplate = (spec: TemplateSpec): object => {
+/**
+ * The library's `Template` model for this spec, before any serialization.
+ *
+ * Kept separate from the renderers so a single generated template can be written
+ * down as JSON *and* as YAML — the two serializations of the one model that
+ * `format-independence` holds CEE to.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const buildTemplateModel = (spec: TemplateSpec): any => {
   let tb = CedarBuilders.templateBuilder()
     .withAtId(`https://repo.metadatacenter.org/templates/${id(spec.name)}`)
     .withTitle(`${spec.name} title`)
@@ -186,11 +194,29 @@ export const buildTemplate = (spec: TemplateSpec): object => {
     tb = tb.addChild(element, deployment);
   }
 
-  const template = tb.build();
+  return tb.build();
+};
+
+/** Assemble a full CEDAR template as a plain JSON object CEE can consume. */
+export const buildTemplate = (spec: TemplateSpec): object => {
   const writer = CedarWriters.json().getStrict().getTemplateWriter();
   // Round through JSON so CEE receives a plain object, exactly as it would
   // from an HTTP response or a host-page injection.
-  return JSON.parse(JSON.stringify(writer.getAsJsonNode(template)));
+  return JSON.parse(JSON.stringify(writer.getAsJsonNode(buildTemplateModel(spec))));
+};
+
+/**
+ * The same template, written down as YAML and parsed back to a plain object.
+ *
+ * The YAML *text* is produced by the library's YAML writer — the same one CEE
+ * emits with — so this is not a JSON object relabelled but the genuine YAML
+ * serialization. `parse` only turns that text into the object
+ * `YamlTemplateParser`/`CedarReaders.yaml()` expect, exactly as `JSON.parse`
+ * does for the JSON side. No structural manipulation happens here.
+ */
+export const buildTemplateYaml = (spec: TemplateSpec): object => {
+  const yaml = CedarWriters.yaml().getStrict().getTemplateWriter().getAsYamlString(buildTemplateModel(spec));
+  return parseYaml(yaml) as object;
 };
 
 /**
