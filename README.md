@@ -69,7 +69,21 @@ cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,mai
 
 ## Running as an `npm` package
 
-Please import the latest version of the editor into your project from: [https://www.npmjs.com/package/cedar-embeddable-editor](https://www.npmjs.com/package/cedar-embeddable-editor)
+Stable releases remain available as
+[`cedar-embeddable-editor`](https://www.npmjs.com/package/cedar-embeddable-editor)
+on npmjs.org. Development builds are published to the BMIR Nexus as the scoped
+package `@org.metadatacenter/cedar-embeddable-editor` under the `dev` tag:
+
+```shell
+npm config set @org.metadatacenter:registry https://nexus.bmir.stanford.edu/repository/npm-cedar/
+npm install @org.metadatacenter/cedar-embeddable-editor@dev
+```
+
+An existing consumer can retain the unscoped dependency name with an npm alias:
+
+```json
+"cedar-embeddable-editor": "npm:@org.metadatacenter/cedar-embeddable-editor@<version>"
+```
 
 ## Testing
 

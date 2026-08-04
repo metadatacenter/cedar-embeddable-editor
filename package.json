@@ -1,6 +1,6 @@
 {
   "name": "cedar-embeddable-editor",
-  "version": "1.5.2",
+  "version": "1.6.0-dev.20260804.85b7ccf",
   "publishConfig": {
     "registry": "https://nexus.bmir.stanford.edu/repository/npm-cedar/"
   },

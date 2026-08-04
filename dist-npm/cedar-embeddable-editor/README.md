@@ -1,12 +1,27 @@
-# Cedar Embeddable Editor (CEE)
+# CEDAR Embeddable Editor (CEE)
 
-The CEDAR Embeddable Editor is as a web component that implements the functionality of the CEDAR Metadata Editor.
+The CEDAR Embeddable Editor (CEE) is a lightweight Web Component for adding
+structured, standards-based metadata authoring to web applications.
 
-It takes CEDAR JSON Schema templates as input, and produces CEDAR JSON-LD metadata.
+CEE dynamically renders data-entry forms from machine-actionable CEDAR
+templates and produces semantically rich metadata as JSON-LD. Templates define
+the fields, constraints, controlled vocabularies, and repeatable structures in a
+form, allowing the metadata-authoring experience to evolve independently of the
+application that embeds it. CEE also supports ontology-backed value selection
+and persistent identifiers from external authorities such as ORCID and ROR.
+
+For the design rationale, architecture, and deployments in research platforms,
+see [*Author Once, Publish Everywhere: Portable Metadata Authoring with the CEDAR
+Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002), published in the
+*Data Science Journal* (2026).
 
 ## Running as a standalone application
 
-You can run CEE as a standalone application. This is helpful for developers to see changes to the code reflected immediately in the application. To run CEE in the standalone mode (NOT as a Webcomponent), you will need the editor itself and the sample templates that the editor uses. These are stored in a [separate repo](https://github.com/metadatacenter/cedar-component-distribution).
+You can run CEE as a standalone application. This is helpful for developers to
+see changes to the code reflected immediately in the application. The standalone
+app loads a small sample template and instance from `src/assets/cee-demo`, so it
+does not require a separate sample-template server or a
+`cedar-component-distribution` checkout.
 
 Proceed with the following steps:
 
@@ -16,12 +31,11 @@ Clone this repository onto a local directory of your choice:
 
 ```shell
 git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
-git clone https://github.com/metadatacenter/cedar-component-distribution.git
 ```
 
 ### Edit configuration
 
-1. Open the file ```app/app.component.dev.ts``` in your favorite editor.
+1. Open the file ```cedar-embeddable-editor/src/app/app.component.dev.ts``` in your favorite editor.
 2. Edit configuration parameters based on your local environment (see section [Configuration](https://github.com/metadatacenter/cedar-embeddable-editor/tree/develop#configuration) for details).
 
 ### Build the project and start the server
@@ -30,17 +44,6 @@ git clone https://github.com/metadatacenter/cedar-component-distribution.git
 ```shell
 $ cd <...>/<clone directory>/cedar-embeddable-editor/
 ```
-1. Run these commands:
-```shell
-cedar-embeddable-editor$ npm install
-cedar-embeddable-editor$ ng serve
-```
-
-1. In a different shell navigate to the component distribution directory:
-```shell
-$ cd <...>/<clone directory>/cedar-component-distribution/
-```
-
 1. Run these commands:
 ```shell
 cedar-embeddable-editor$ npm install
@@ -66,7 +69,81 @@ cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,mai
 
 ## Running as an `npm` package
 
-Please import the latest version of the editor into your project from: [https://www.npmjs.com/package/cedar-embeddable-editor](https://www.npmjs.com/package/cedar-embeddable-editor)
+Stable releases remain available as
+[`cedar-embeddable-editor`](https://www.npmjs.com/package/cedar-embeddable-editor)
+on npmjs.org. Development builds are published to the BMIR Nexus as the scoped
+package `@org.metadatacenter/cedar-embeddable-editor` under the `dev` tag:
+
+```shell
+npm config set @org.metadatacenter:registry https://nexus.bmir.stanford.edu/repository/npm-cedar/
+npm install @org.metadatacenter/cedar-embeddable-editor@dev
+```
+
+An existing consumer can retain the unscoped dependency name with an npm alias:
+
+```json
+"cedar-embeddable-editor": "npm:@org.metadatacenter/cedar-embeddable-editor@<version>"
+```
+
+## Testing
+
+The complete test gate is available from the repository root:
+
+```shell
+npm run test:ci
+```
+
+It runs, in order:
+
+1. The Angular/Karma unit tests in headless Chrome.
+2. The headless domain harness with V8 coverage.
+3. A production build of the web component.
+4. The Playwright suite against the concatenated production bundle, at desktop
+   and narrow viewport sizes.
+
+The domain corpora are checked into `harness/fixtures/`; running the tests does
+not require `cedar-artifact-library` or `cedar-test-artifacts` checkouts.
+
+### First-time setup
+
+CEE resolves the model library from `@org.metadatacenter/cedar-model-typescript-library`,
+published to the BMIR Nexus, so no sibling checkout is needed:
+
+```shell
+npm ci
+npm --prefix harness ci
+npm --prefix visual ci
+./visual/node_modules/.bin/playwright install chromium
+```
+
+Only that one package comes from Nexus; everything else resolves from npmjs.org.
+An `.npmrc` alongside each of the three `package.json` files maps the
+`@org.metadatacenter` scope to Nexus, and reads need no credentials.
+
+Each manifest depends on it under an alias:
+
+```json
+"cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@<version>"
+```
+
+The alias keeps the local import name, so source files import
+`cedar-model-typescript-library` regardless of the published name. To move to a
+newer build, publish it to Nexus and bump the version in the root, `harness/`,
+and `visual/` manifests together.
+
+### Focused test commands
+
+Use these when working on one layer:
+
+```shell
+npm run test:unit:ci          # Angular/Karma, one headless run
+npm run test:domain           # Vitest domain harness
+npm run test:domain:coverage  # domain harness with coverage report
+npm run test:visual           # production build, fixture preparation, Playwright
+```
+
+The legacy `npm test` command starts Angular/Karma in watch mode for interactive
+development. Use `npm run test:ci` for a complete, non-interactive verification.
 
 ## Configuration
 
@@ -112,8 +189,8 @@ There are other optional configuration parameters available for controlling vari
 
 ```json
 {
-  "sampleTemplateLocationPrefix": "http://localhost:4240/cedar-embeddable-editor-sample-templates/",
-  "loadSampleTemplateName": "01",
+  "sampleTemplateLocationPrefix": "/assets/cee-demo/",
+  "loadSampleTemplateName": "demo",
   "expandedSampleTemplateLinks": true,
   "showTemplateDescription": false,
 
@@ -144,6 +221,9 @@ There are other optional configuration parameters available for controlling vari
 
   "collapseStaticComponents": false,
   "showStaticText": true,
+
+  "inputSerialization": "json",
+  "outputSerialization": "json",
   
   "readOnlyMode": false,
   "hideEmptyFields": false,
@@ -162,6 +242,41 @@ The metadata currently being edited inside CEE can be exported at anytime by mak
 ```javascript
 const meta = cee.currentMetadata;
 ```
+
+`currentMetadata` always returns a CEDAR JSON object. CEE also exposes two
+format-specific alternatives:
+
+```javascript
+const yaml = cee.currentMetadataYaml;             // always a YAML string
+const selected = cee.currentMetadataSerialized;   // JSON object or YAML string
+```
+
+`currentMetadataSerialized` follows the `outputSerialization` configuration
+value. It returns a JSON object by default and a YAML string when configured as
+follows:
+
+```json
+{
+  "outputSerialization": "yaml"
+}
+```
+
+Input and output serialization are independent. Setting
+`inputSerialization` to `"yaml"` selects the model library's YAML template
+reader; the value assigned to `templateObject` must be the parsed YAML object,
+not the YAML source string:
+
+```javascript
+cee.config = {
+  // Include the other settings required by the embedding application.
+  inputSerialization: 'yaml',
+  outputSerialization: 'yaml'
+};
+cee.templateObject = parsedTemplateYaml;
+```
+
+Any value other than `"yaml"`, including an omitted value or `"json"`, selects
+JSON serialization.
 
 In the example below, the metadata is sent to an external endpoint every 15 seconds:
 
@@ -254,13 +369,48 @@ The dataQualityReport summarizes basic metrics on the instance data.
 const report = cee.dataQualityReport;
 ```
 
-At the moment these three fields are available, with more to come:
+The report answers two questions: is anything required missing, and is anything
+present invalid.
 
 ```
 requiredFieldValueCount: int
 nonNullRequiredFieldValueCount: int
+problems: ValidationProblem[]
 isValid: boolean
 ```
+
+`isValid` is true when nothing required is missing **and** `problems` is empty.
+
+Each problem names the field and what is wrong with it:
+
+```javascript
+{
+  path: ['_author', '_email'],   // component path from the template root
+  field: '_email',
+  inputType: 'email',
+  code: 'email',                 // stable, matchable without parsing the message
+  message: 'Not a valid email address.',
+  value: 'not-an-email'
+}
+```
+
+Constraints checked: `requiredValue`; `minLength`, `maxLength` and `regex`;
+email, link, phone and external-authority IRI format; numeric type — including
+`xsd:decimal`, `xsd:byte` and `xsd:short` — with the type's own range,
+`minValue`, `maxValue` and `decimalPlace`; temporal shape against
+`temporalType`, `granularity` and `timezoneEnabled`, plus calendar validity;
+membership of a value in its declared choice literals; `minItems` and
+`maxItems`; and the structure of a controlled-term value.
+
+Controlled-term **membership** — whether a term belongs to the declared
+ontologies, value sets, classes or branches — is not checked. It requires the
+terminology server, and a local synchronous report should not depend on the
+network. Structural checks on controlled values (`@id` and `rdfs:label` present
+as a pair, `@id` well-formed) are performed.
+
+An absent value produces no constraint problems; that is the required check's
+business, so an empty form reports what is missing rather than also reporting
+every blank as malformed.
 
 ### Language Maps / Translations
 
