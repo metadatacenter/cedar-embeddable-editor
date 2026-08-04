@@ -112,10 +112,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   readOnlyMode: boolean = false;
   showPreferencesMenu: boolean = true;
 
-  static bioPortalPrefix = 'https://bioportal.bioontology.org/ontologies/';
-  static orcidPrefix = 'https://orcid.org/';
-  static rorPrefix = 'https://ror.org/';
-
   extAuthBaseUrl: string = 'https://bridge.metadatacenter.orgx/ext-auth/';
 
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
@@ -127,12 +123,13 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     private activeComponentRegistry: ActiveComponentRegistryService,
     private externalAuthorityLookupService: ExternalAuthorityLookupService,
     private messageHandlerService: MessageHandlerService,
+    private iriPrefix: IriPrefix,
   ) {
     this.ceeVersion = packageJson.version;
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {}
 
   @Input() set dataContextObject(dataContext: DataContext) {
     this.dataContext = dataContext;
@@ -209,7 +206,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         this.showStaticText = value[CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT];
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.IRI_PREFIX)) {
-        IriPrefix.set(value[CedarEmbeddableMetadataEditorComponent.IRI_PREFIX]);
+        this.iriPrefix.set(value[CedarEmbeddableMetadataEditorComponent.IRI_PREFIX]);
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_ALL_MULTI_INSTANCE_VALUES)) {
         this.showAllMultiInstanceValues = value[CedarEmbeddableMetadataEditorComponent.SHOW_ALL_MULTI_INSTANCE_VALUES];
@@ -218,14 +215,13 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         this.showTemplateDescription = value[CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_DESCRIPTION];
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.BIO_PORTAL_PREFIX)) {
-        CedarEmbeddableMetadataEditorComponent.bioPortalPrefix =
-          value[CedarEmbeddableMetadataEditorComponent.BIO_PORTAL_PREFIX];
+        this.iriPrefix.setBioPortalPrefix(value[CedarEmbeddableMetadataEditorComponent.BIO_PORTAL_PREFIX]);
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ORCID_PREFIX)) {
-        CedarEmbeddableMetadataEditorComponent.orcidPrefix = value[CedarEmbeddableMetadataEditorComponent.ORCID_PREFIX];
+        this.iriPrefix.setOrcidPrefix(value[CedarEmbeddableMetadataEditorComponent.ORCID_PREFIX]);
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_PREFIX)) {
-        CedarEmbeddableMetadataEditorComponent.rorPrefix = value[CedarEmbeddableMetadataEditorComponent.ROR_PREFIX];
+        this.iriPrefix.setRorPrefix(value[CedarEmbeddableMetadataEditorComponent.ROR_PREFIX]);
       }
 
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXT_AUTH_BASE_URL)) {
@@ -277,8 +273,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       );
       setTimeout(() => {
         this.initDataFromInstance(this.dataContext.instanceFullData)
-          .then(() => { })
-          .catch(() => { });
+          .then(() => {})
+          .catch(() => {});
       });
     }
   }
@@ -291,8 +287,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       }
       setTimeout(() => {
         this.initDataFromInstance(value)
-          .then(() => { })
-          .catch(() => { });
+          .then(() => {})
+          .catch(() => {});
       });
     }
   }
@@ -321,8 +317,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
     );
     setTimeout(() => {
       this.initDataWithDataContext()
-        .then(() => { })
-        .catch(() => { });
+        .then(() => {})
+        .catch(() => {});
     });
   }
 
@@ -356,9 +352,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
    * and got it wrong for any IRI carrying a `@type`. See `InstanceDeserializer`.
    */
   setDataContextWithInstance(instanceObject): void {
-    const { full } = InstanceDeserializer.read(instanceObject, (message) =>
-      this.messageHandlerService.error(message),
-    );
+    const { full } = InstanceDeserializer.read(instanceObject, (message) => this.messageHandlerService.error(message));
     const dataContext = this.handlerContext.dataContext;
     dataContext.instanceFullData = full;
     dataContext.invalidateDerivedViews();

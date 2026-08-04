@@ -1,5 +1,6 @@
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper.component';
 import { Subject } from 'rxjs';
+import { IriPrefix } from '../../util/iri-prefix';
 
 /**
  * `outputSerialization` drives the host-facing `currentMetadataSerialized`
@@ -30,6 +31,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent output serialization', (
       { trace: (): void => undefined } as any, // messagingService (HandlerContext)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       {} as any, // globalSettingsContextService
+      new IriPrefix(),
     );
 
   it('serializes output as a YAML string when outputSerialization is "yaml"', () => {
@@ -97,6 +99,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       messaging as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mocks.globalSettings as any,
+      new IriPrefix(),
     );
     return { component, mocks };
   };

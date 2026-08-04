@@ -7,17 +7,49 @@ import { map, takeUntil, withLatestFrom } from 'rxjs/operators';
 import { HandlerContext } from '../../util/handler-context';
 import { InstanceSerializer } from '../../util/instance-serializer';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslateService, USE_DEFAULT_LANG, USE_STORE } from '@ngx-translate/core';
 import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { DataContext } from '../../util/data-context';
-import { HttpStatusCode } from '@angular/common/http';
+import { HttpClient, HttpStatusCode } from '@angular/common/http';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
+import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
+import { UserPreferencesService } from '../../service/user-preferences.service';
+import { IriPrefix } from '../../util/iri-prefix';
+import { FallbackTranslateLoaderFactory } from '../../util/fallback-translate-loader-factory';
+import * as fallbackMapEN from '../../../../../assets/i18n-cee/en.json';
+import * as fallbackMapHU from '../../../../../assets/i18n-cee/hu.json';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
   templateUrl: './cedar-embeddable-metadata-editor-wrapper.component.html',
   styleUrls: ['./cedar-embeddable-metadata-editor-wrapper.component.scss'],
   encapsulation: ViewEncapsulation.None,
+  providers: [
+    ActiveComponentRegistryService,
+    ControlledFieldDataService,
+    ExternalAuthorityLookupService,
+    GlobalSettingsContextService,
+    { provide: IriPrefix, useFactory: () => new IriPrefix() },
+    MessageHandlerService,
+    SampleTemplatesService,
+    UserPreferencesService,
+    {
+      provide: TranslateLoader,
+      useFactory: (
+        http: HttpClient,
+        messageHandlerService: MessageHandlerService,
+        globalSettingsContextService: GlobalSettingsContextService,
+      ) =>
+        FallbackTranslateLoaderFactory(http, messageHandlerService, globalSettingsContextService, {
+          en: fallbackMapEN,
+          hu: fallbackMapHU,
+        }),
+      deps: [HttpClient, MessageHandlerService, GlobalSettingsContextService],
+    },
+    { provide: USE_STORE, useValue: true },
+    { provide: USE_DEFAULT_LANG, useValue: true },
+    TranslateService,
+  ],
 })
 export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, OnDestroy {
   innerConfig: object = null;
@@ -49,10 +81,11 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private translateService: TranslateService,
     private messagingService: MessageHandlerService,
     private globalSettingsContextService: GlobalSettingsContextService,
+    private iriPrefix: IriPrefix,
   ) {
     this.sampleTemplateLoaderObject = this;
     this.dataContext = new DataContext();
-    this.handlerContext = new HandlerContext(this.dataContext, this.messagingService);
+    this.handlerContext = new HandlerContext(this.dataContext, this.messagingService, () => this.iriPrefix.get());
   }
 
   ngOnInit(): void {

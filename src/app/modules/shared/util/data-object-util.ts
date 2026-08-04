@@ -4,7 +4,6 @@ import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
-import { IriPrefix } from './iri-prefix';
 
 export class DataObjectUtil {
   /**
@@ -38,7 +37,11 @@ export class DataObjectUtil {
     return InstanceValueNode.literalJson(value, DataObjectUtil.xsdTypeFor(component, buildingMode));
   }
 
-  static getMultiValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode, values: string[]): object {
+  static getMultiValueWrapper(
+    component: FieldComponent,
+    buildingMode: DataObjectBuildingMode,
+    values: string[],
+  ): object {
     const obj = [];
     if (component?.basicInfo?.inputType !== InputType.controlled) {
       for (const value of values) {
@@ -151,9 +154,5 @@ export class DataObjectUtil {
       }
     }
     return true;
-  }
-
-  static getIriPrefix(): string {
-    return IriPrefix.get();
   }
 }

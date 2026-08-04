@@ -13,8 +13,8 @@ import { JsonSchema } from 'cedar-model-typescript-library';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { CedarEmbeddableMetadataEditorComponent } from '../../../shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { IriPrefix } from '../../../shared/util/iri-prefix';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -45,6 +45,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     private activeComponentRegistry: ActiveComponentRegistryService,
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
+    private iriPrefix: IriPrefix,
   ) {
     super();
     this.options = fb.group({
@@ -76,11 +77,9 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
         startWith(''),
         debounceTime(400),
         distinctUntilChanged(),
-        tap(() => this.loading = true),
+        tap(() => (this.loading = true)),
         switchMap((val) => {
-          return this.filter(val || '').pipe(
-            finalize(() => this.loading = false),
-          );
+          return this.filter(val || '').pipe(finalize(() => (this.loading = false)));
         }),
       );
     }
@@ -154,7 +153,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     const branch = controlledInfo.branches[0];
     const _class = controlledInfo.classes[0];
     const ontology = controlledInfo.ontologies[0];
-    const bioPortalPrefix = CedarEmbeddableMetadataEditorComponent.bioPortalPrefix;
+    const bioPortalPrefix = this.iriPrefix.getBioPortalPrefix();
 
     if (branch) {
       this.bioPortalTermLink = branch['source'] + midPart + urlEncodedAtId;

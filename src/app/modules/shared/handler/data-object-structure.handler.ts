@@ -18,6 +18,8 @@ import { MessageHandlerService } from '../service/message-handler.service';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 export class DataObjectStructureHandler {
+  constructor(private readonly dataObjectBuilderService: DataObjectBuilderHandler = new DataObjectBuilderHandler()) {}
+
   /**
    * The node a component path points at, given a choice of occurrence at each
    * multi ancestor.
@@ -66,13 +68,7 @@ export class DataObjectStructureHandler {
           }
         }
       }
-      return this.getDataPathNodeRecursively(
-        dataSubObject,
-        childComponent,
-        remainingPath,
-        selectOccurrence,
-        depth + 1,
-      );
+      return this.getDataPathNodeRecursively(dataSubObject, childComponent, remainingPath, selectOccurrence, depth + 1);
     }
   }
 
@@ -174,7 +170,7 @@ export class DataObjectStructureHandler {
     DataObjectBuilderHandler.setCurrentCountToMinRecursively(cloneComponent, component.path);
     // The `@context` each new occurrence needs travels on the component, so
     // there is no sub-template to find first.
-    DataObjectBuilderHandler.buildRecursively(cloneComponent, dataObject, buildingMode);
+    this.dataObjectBuilderService.buildRecursively(cloneComponent, dataObject, buildingMode);
     const newDataObject = dataObject[component.name][0];
     const currentNodeAny = this.getDataPathNodeRecursively(
       instanceObject,
@@ -271,9 +267,9 @@ export class DataObjectStructureHandler {
   private cleanUpAtIdsRecursively(item: object) {
     if (Object.hasOwn(item, JsonSchema.atId)) {
       const atIdValue = item[JsonSchema.atId];
-      if (atIdValue.startsWith(DataObjectBuilderHandler.getTemplateElementInstanceIRIPrefix())) {
+      if (atIdValue.startsWith(this.dataObjectBuilderService.getTemplateElementInstanceIRIPrefix())) {
         delete item[JsonSchema.atId];
-        DataObjectBuilderHandler.addRandomAtId(item);
+        this.dataObjectBuilderService.addRandomAtId(item);
       }
     }
     if (item instanceof Object) {

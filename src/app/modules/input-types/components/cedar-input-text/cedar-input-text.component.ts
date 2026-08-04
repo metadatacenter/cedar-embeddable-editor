@@ -7,9 +7,9 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { InputType } from '../../../shared/models/input-type.model';
-import { CedarEmbeddableMetadataEditorComponent } from '../../../shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { HtmlDetectService } from '../../../shared/service/html-detect.service';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { IriPrefix } from '../../../shared/util/iri-prefix';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -43,6 +43,7 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private htmlDetectService: HtmlDetectService,
+    private iriPrefix: IriPrefix,
   ) {
     super();
     this.options = fb.group({
@@ -56,7 +57,6 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     this.constraintMinLength = this.component.valueInfo.minLength;
 
     this.constraintMaxLength = this.component.valueInfo.maxLength;
-
 
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
@@ -113,13 +113,13 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
   }
 
   checkOrcid(value): boolean {
-    const pattern = CedarEmbeddableMetadataEditorComponent.orcidPrefix;
+    const pattern = this.iriPrefix.getOrcidPrefix();
     const orcidReg = new RegExp(`^${pattern}`);
     return orcidReg.test(value);
   }
 
   checkRor(value): boolean {
-    const pattern = CedarEmbeddableMetadataEditorComponent.rorPrefix;
+    const pattern = this.iriPrefix.getRorPrefix();
     const orcidReg = new RegExp(`^${pattern}`);
     return orcidReg.test(value);
   }

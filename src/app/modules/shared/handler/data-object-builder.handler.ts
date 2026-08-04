@@ -16,6 +16,7 @@ import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
+import { DEFAULT_IRI_PREFIX } from '../util/iri-prefix';
 
 export class DataObjectBuilderHandler {
   private dataObject: object;
@@ -24,7 +25,9 @@ export class DataObjectBuilderHandler {
   private templateRepresentation: TemplateComponent;
   private multiInstanceObjectService: MultiInstanceObjectHandler;
 
-  public static buildRecursively(
+  constructor(private readonly iriPrefix: () => string = () => DEFAULT_IRI_PREFIX) {}
+
+  public buildRecursively(
     component: CedarComponent,
     dataObject: InstanceExtractData,
     buildingMode: DataObjectBuildingMode,
@@ -47,7 +50,7 @@ export class DataObjectBuilderHandler {
           const dummyTargetObject: object = DataObjectUtil.getEmptyObject();
           DataObjectBuilderHandler.addContext(component, dummyTargetObject, buildingMode);
           for (const childComponent of iterableComponent.children) {
-            DataObjectBuilderHandler.buildRecursively(childComponent, dummyTargetObject, buildingMode);
+            this.buildRecursively(childComponent, dummyTargetObject, buildingMode);
           }
           for (let idx = 0; idx < multiElement.multiInfo.minItems; idx++) {
             const clone = _.cloneDeep(dummyTargetObject as any);
@@ -63,7 +66,7 @@ export class DataObjectBuilderHandler {
         // user arrived at it.
         if (component instanceof MultiElementComponent && buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
           dataObject[targetName].forEach((child) => {
-            DataObjectBuilderHandler.addRandomAtId(child);
+            this.addRandomAtId(child);
           });
         }
       } else {
@@ -71,10 +74,10 @@ export class DataObjectBuilderHandler {
         dataObject[targetName] = DataObjectUtil.getEmptyObject();
         DataObjectBuilderHandler.addContext(component, dataObject[targetName], buildingMode);
         for (const childComponent of iterableComponent.children) {
-          DataObjectBuilderHandler.buildRecursively(childComponent, dataObject[targetName], buildingMode);
+          this.buildRecursively(childComponent, dataObject[targetName], buildingMode);
         }
         if (component instanceof SingleElementComponent && buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-          DataObjectBuilderHandler.addRandomAtId(dataObject[targetName]);
+          this.addRandomAtId(dataObject[targetName]);
         }
       }
 
@@ -218,15 +221,15 @@ export class DataObjectBuilderHandler {
     }
   }
 
-  public static addRandomAtId(dataObject: InstanceExtractData): void {
+  public addRandomAtId(dataObject: InstanceExtractData): void {
     if (!Object.hasOwn(dataObject, JsonSchema.atId)) {
-      const iri = DataObjectBuilderHandler.getTemplateElementInstanceIRIPrefix() + DataObjectUtil.generateGUID();
+      const iri = this.getTemplateElementInstanceIRIPrefix() + DataObjectUtil.generateGUID();
       dataObject[JsonSchema.atId] = iri;
     }
   }
 
-  public static getTemplateElementInstanceIRIPrefix(): string {
-    return DataObjectUtil.getIriPrefix() + 'template-element-instances/';
+  public getTemplateElementInstanceIRIPrefix(): string {
+    return this.iriPrefix() + 'template-element-instances/';
   }
 
   injectMultiInstanceService(multiInstanceObjectService: MultiInstanceObjectHandler): void {
@@ -253,7 +256,7 @@ export class DataObjectBuilderHandler {
     DataObjectBuilderHandler.addContext(this.templateRepresentation, dataObject, buildingMode);
     DataObjectBuilderHandler.addEnvelope(this.templateRepresentation, dataObject, buildingMode);
     for (const childComponent of this.templateRepresentation.children) {
-      DataObjectBuilderHandler.buildRecursively(childComponent, dataObject, buildingMode);
+      this.buildRecursively(childComponent, dataObject, buildingMode);
     }
   }
 }

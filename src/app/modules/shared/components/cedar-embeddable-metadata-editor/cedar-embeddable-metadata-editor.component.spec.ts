@@ -2,6 +2,7 @@ import { CedarEmbeddableMetadataEditorComponent } from './cedar-embeddable-metad
 import { ModelLibraryTemplateParser } from '../../factory/model-library-template-parser';
 import { YamlTemplateParser } from '../../factory/yaml-template-parser';
 import { AUTHORITY_DESCRIPTORS } from '../../models/authority/authority-descriptor.model';
+import { IriPrefix } from '../../util/iri-prefix';
 
 /**
  * The `config` object is the CEE's host-facing API, and its setter is the one
@@ -26,6 +27,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       { setEndpoints } as any, // externalAuthorityLookupService
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       { trace: (): void => undefined } as any, // messageHandlerService
+      new IriPrefix(),
     );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,6 +92,28 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
   });
 
   describe('typed (non-boolean) config values', () => {
+    it('keeps all IRI prefixes on this editor instance', () => {
+      const prefixes = new IriPrefix();
+      const component = new CedarEmbeddableMetadataEditorComponent(
+        null,
+        { setEndpoints: (): void => undefined } as any,
+        { trace: (): void => undefined } as any,
+        prefixes,
+      );
+
+      component.config = {
+        iriPrefix: 'https://example.org/artifacts/',
+        bioPortalPrefix: 'https://example.org/bioportal/',
+        orcidPrefix: 'https://example.org/orcid/',
+        rorPrefix: 'https://example.org/ror/',
+      };
+
+      expect(prefixes.get()).toBe('https://example.org/artifacts/');
+      expect(prefixes.getBioPortalPrefix()).toBe('https://example.org/bioportal/');
+      expect(prefixes.getOrcidPrefix()).toBe('https://example.org/orcid/');
+      expect(prefixes.getRorPrefix()).toBe('https://example.org/ror/');
+    });
+
     it('extAuthBaseUrl overrides the external-authority base URL', () => {
       const component = make();
       component.config = { extAuthBaseUrl: 'https://example.org/ext-auth/' };

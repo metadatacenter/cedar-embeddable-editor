@@ -9,6 +9,7 @@ import { DataObjectStructureHandler } from '../handler/data-object-structure.han
 import { MessageHandlerService } from '../service/message-handler.service';
 import { DataQualityReportBuilderHandler } from '../handler/data-quality-report-builder.handler';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
+import { DEFAULT_IRI_PREFIX } from './iri-prefix';
 // import { RdfBuilderService } from '../service/rdf-builder.service';
 
 export class HandlerContext {
@@ -24,11 +25,15 @@ export class HandlerContext {
   readOnlyMode: boolean = false;
   hideEmptyFields: boolean = false;
 
-  public constructor(dataContext: DataContext, messageHandlerService: MessageHandlerService) {
-    this.dataObjectBuilderService = new DataObjectBuilderHandler();
+  public constructor(
+    dataContext: DataContext,
+    messageHandlerService: MessageHandlerService,
+    iriPrefix: () => string = () => DEFAULT_IRI_PREFIX,
+  ) {
+    this.dataObjectBuilderService = new DataObjectBuilderHandler(iriPrefix);
     this.multiInstanceObjectService = new MultiInstanceObjectHandler();
     this.dataObjectBuilderService.injectMultiInstanceService(this.multiInstanceObjectService);
-    this.dataObjectManipulationService = new DataObjectStructureHandler();
+    this.dataObjectManipulationService = new DataObjectStructureHandler(this.dataObjectBuilderService);
     this.dataObjectDataValueHandler = new DataObjectDataValueHandler(messageHandlerService);
     this.dataQualityReportBuilderService = new DataQualityReportBuilderHandler();
     this.dataContext = dataContext;

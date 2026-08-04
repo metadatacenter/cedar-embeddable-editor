@@ -98,6 +98,88 @@ const open = async (
   await page.waitForTimeout(300);
 };
 
+const openTwoEditors = async (page: import('@playwright/test').Page, fixture: string) => {
+  await page.clock.setFixedTime(FROZEN);
+  await page.goto(`/host.html?host=multi&t=${fixture}&b=${BUNDLE_VERSION}`);
+  await page.waitForFunction(() => (window as any).__ceeReady === true || (window as any).__ceeError, null, {
+    timeout: 20_000,
+  });
+  expect(await page.evaluate(() => (window as any).__ceeError)).toBeFalsy();
+  await expect(page.locator('#editor-first app-cedar-embeddable-metadata-editor')).toBeVisible();
+  await expect(page.locator('#editor-second app-cedar-embeddable-metadata-editor')).toBeVisible();
+};
+
+test.describe('multiple editor instances', () => {
+  test('keep language paths, IRI prefixes and preferences isolated', async ({ page }) => {
+    const languageRequests: string[] = [];
+    await page.route('**/served/languages/**', async (route) => {
+      languageRequests.push(route.request().url());
+      await route.fulfill({ status: 404, body: '' });
+    });
+
+    await openTwoEditors(page, '03-nested-multi');
+    await expect
+      .poll(() => languageRequests.some((request) => request.includes('/languages/first/en.json')))
+      .toBe(true);
+    await expect
+      .poll(() => languageRequests.some((request) => request.includes('/languages/second/en.json')))
+      .toBe(true);
+
+    const ids = await page.evaluate(() => {
+      const collect = (value: unknown): string[] => {
+        if (Array.isArray(value)) return value.flatMap(collect);
+        if (value && typeof value === 'object') {
+          const record = value as Record<string, unknown>;
+          return [
+            typeof record['@id'] === 'string' ? record['@id'] : '',
+            ...Object.values(record).flatMap(collect),
+          ].filter(Boolean);
+        }
+        return [];
+      };
+      const first = document.querySelector('#editor-first') as any;
+      const second = document.querySelector('#editor-second') as any;
+      return { first: collect(first.currentMetadata), second: collect(second.currentMetadata) };
+    });
+    const firstElementIds = ids.first.filter((id) => id.includes('template-element-instances'));
+    const secondElementIds = ids.second.filter((id) => id.includes('template-element-instances'));
+    expect(firstElementIds.length).toBeGreaterThan(0);
+    expect(secondElementIds.length).toBeGreaterThan(0);
+    expect(firstElementIds.every((id) => id.startsWith('https://first.example/'))).toBe(true);
+    expect(secondElementIds.every((id) => id.startsWith('https://second.example/'))).toBe(true);
+
+    const firstInput = page.locator('#editor-first input').first();
+    const secondInput = page.locator('#editor-second input').first();
+    await page.locator('#editor-first button[aria-label="Open preferences menu"]').click();
+    await page.getByText('Readonly Mode', { exact: true }).click();
+    await expect(firstInput).toHaveAttribute('readonly', 'true');
+    await expect(secondInput).not.toHaveAttribute('readonly', '');
+  });
+
+  test('keep terminology and authority endpoints isolated', async ({ page }) => {
+    await page.route('**/isolation/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ found: true, results: {}, collection: [] }),
+      });
+    });
+    await page.route('**/served/languages/**', async (route) => route.fulfill({ status: 404, body: '' }));
+
+    await openTwoEditors(page, '04-controlled-terms');
+    const terminologyRequest = page.waitForRequest((request) => request.url().includes('/isolation/first/terminology'));
+    await page.locator('#editor-first input[aria-label="organism"]').pressSequentially('human', { delay: 40 });
+    expect((await terminologyRequest).url()).toContain('/isolation/first/terminology');
+
+    await openTwoEditors(page, '08-authority');
+    const authorityRequest = page.waitForRequest((request) =>
+      request.url().includes('/isolation/first/authority/pfas/search'),
+    );
+    await page.locator('#editor-first input[aria-label="chemical_pfas"]').pressSequentially('chemical', { delay: 40 });
+    expect((await authorityRequest).url()).toContain('/isolation/first/authority/pfas/search');
+  });
+});
+
 for (const [fixture, description] of FIXTURES) {
   test(`${fixture} — ${description}`, async ({ page }) => {
     await open(page, fixture);

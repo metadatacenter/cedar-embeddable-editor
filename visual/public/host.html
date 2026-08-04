@@ -76,7 +76,45 @@
           const el = document.querySelector('cedar-embeddable-editor');
           window.__ceeConfigEvents = [];
 
-          if (hostRoute === 'config') {
+          if (hostRoute === 'multi') {
+            const fixture = params.get('t') || '03-nested-multi';
+            const template = await (await fetch(`./fixtures/${fixture}.json`)).json();
+            const first = el;
+            first.id = 'editor-first';
+            const second = document.createElement('cedar-embeddable-editor');
+            second.id = 'editor-second';
+            document.querySelector('#frame').appendChild(second);
+
+            const configFor = (owner) => {
+              const config = {
+                showHeader: false,
+                showFooter: false,
+                showPreferencesMenu: true,
+                showSampleTemplateLinks: false,
+                showTemplateSourceData: false,
+                defaultLanguage: 'en',
+                fallbackLanguage: 'en',
+                languageMapPathPrefix: `./served/languages/${owner}/`,
+                iriPrefix: `https://${owner}.example/`,
+                terminologyIntegratedSearchUrl: `http://127.0.0.1:9/isolation/${owner}/terminology`,
+                extAuthBaseUrl: '',
+              };
+              for (const authority of ['orcid', 'ror', 'pfas', 'pmid', 'rrid', 'nihGrant', 'doi']) {
+                config[`${authority}IntegratedExtAuthUrl`] =
+                  `http://127.0.0.1:9/isolation/${owner}/authority/${authority}/search`;
+                config[`${authority}IntegratedDetailsUrl`] =
+                  `http://127.0.0.1:9/isolation/${owner}/authority/${authority}/details`;
+              }
+              return config;
+            };
+
+            // Configure both before either builds. With global state, the
+            // second assignment wins and the first editor uses its values.
+            first.config = configFor('first');
+            second.config = configFor('second');
+            first.templateObject = structuredClone(template);
+            second.templateObject = structuredClone(template);
+          } else if (hostRoute === 'config') {
             const url = params.get('url') || './served/host-config.json';
             el.loadConfigFromURL(
               url,
@@ -100,8 +138,8 @@
             return;
           }
 
-          // These routes are asynchronous by nature — a fetch CEE owns — so readiness is
-          // whatever the test waits for, not a settled DOM.
+          // These routes are asynchronous by nature, so readiness is whatever
+          // the test waits for rather than a settled DOM.
           window.__ceeReady = true;
           return;
         }
