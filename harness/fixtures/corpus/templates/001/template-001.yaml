@@ -1,0 +1,15 @@
+type: "template"
+name: "Untitled"
+description: "Untitled description"
+status: "draft"
+version: "0.0.1"
+modelVersion: "1.6.0"
+children:
+  - key: "Textfield"
+    type: "text-field"
+    name: "Textfield"
+    description: "Help Text"
+    id: "tmp-1708998934299-6744386"
+    modelVersion: "1.6.0"
+    configuration:
+      propertyIri: "https://schema.metadatacenter.org/properties/fac2de3a-937e-4573-810a-c1653e658cde"

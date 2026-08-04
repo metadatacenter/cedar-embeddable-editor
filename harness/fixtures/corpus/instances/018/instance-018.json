@@ -1,0 +1,114 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "Datetime Element": "https://schema.metadatacenter.org/properties/c84d6e5d-c6ca-4539-ba6c-9b3fc747fb6f",
+    "Date Year Month": "https://schema.metadatacenter.org/properties/8cff0baf-29e0-4f57-9ce4-e360a6e32118",
+    "Time Only": "https://schema.metadatacenter.org/properties/5d77ca8e-e458-4fae-a598-8b5485805e52",
+    "Date and Time": "https://schema.metadatacenter.org/properties/e6ccdf27-4964-4109-a9ac-dd51301bac8c"
+  },
+  "Datetime Element": [
+    {
+      "@id": "https://repo.metadatacenter.org/template-element-instances/689c7c17-e23d-4fdb-a150-5b7efa7c3f68",
+      "@context": {
+        "Datetime in Element": "https://schema.metadatacenter.org/properties/3bd67552-346c-4ed5-a66e-f62f28b2c7bb"
+      },
+      "Datetime in Element": [
+        {
+          "@value": "2023-08-01",
+          "@type": "xsd:date"
+        },
+        {
+          "@value": "2023-08-02",
+          "@type": "xsd:date"
+        }
+      ]
+    },
+    {
+      "@id": "https://repo.metadatacenter.org/template-element-instances/73f6d3cb-b614-4e5a-a4b8-f1d4baf2056b",
+      "@context": {
+        "Datetime in Element": "https://schema.metadatacenter.org/properties/3bd67552-346c-4ed5-a66e-f62f28b2c7bb"
+      },
+      "Datetime in Element": [
+        {
+          "@value": "2023-08-11",
+          "@type": "xsd:date"
+        },
+        {
+          "@value": "2023-08-12",
+          "@type": "xsd:date"
+        },
+        {
+          "@value": "2023-08-13",
+          "@type": "xsd:date"
+        }
+      ]
+    }
+  ],
+  "Date Year Month": [
+    {
+      "@value": "2023-08-01",
+      "@type": "xsd:date"
+    },
+    {
+      "@value": "2022-08-01",
+      "@type": "xsd:date"
+    }
+  ],
+  "Time Only": [
+    {
+      "@value": "16:16:00",
+      "@type": "xsd:time"
+    },
+    {
+      "@value": "16:18:00-10:00",
+      "@type": "xsd:time"
+    }
+  ],
+  "Date and Time": [
+    {
+      "@value": "2023-08-05T16:16:17.0-10:00",
+      "@type": "xsd:dateTime"
+    },
+    {
+      "@value": "2023-08-31T18:21:05.123-08:00",
+      "@type": "xsd:dateTime"
+    }
+  ],
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/d9d52596-1a0e-464b-9207-b848faf2205d",
+  "schema:name": "With Email metadata",
+  "schema:description": "",
+  "pav:createdOn": "2020-07-17T15:36:46-07:00",
+  "pav:createdBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "pav:lastUpdatedOn": "2020-07-17T15:36:46-07:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "@id": "https://repo.metadatacenter.org/template-instances/1da98ce2-9b74-4257-af64-e6ef1c143f6e"
+}

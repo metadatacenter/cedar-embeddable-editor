@@ -4,7 +4,7 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 568 tests, all passing** on Node 20.20.2 / Vitest 1.6.
+> **Status: 2,257 tests, all passing** on Node 20.20.2 / Vitest 1.6.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
 > Three CEE defects found, all three fixed. See [What it found](#what-it-found).
 
@@ -34,9 +34,11 @@ A pile of real templates has unknown coverage; an enumeration of the decision
 space has coverage you can point at. So most of this suite generates its own
 templates. But generating them with the CEDAR Model TypeScript Library means CEE
 is only ever fed input that library produced, and `test/corpus.spec.ts` closes
-that: 37 fixtures from `cedar-test-artifacts` and 57 HuBMAP production templates
-from `cedar-artifact-library`, all authored by people or by the CEDAR Template
-Editor.
+that: vendored snapshots of 37 fixtures from `cedar-test-artifacts` and 57
+HuBMAP production templates from `cedar-artifact-library`, all authored by
+people or by the CEDAR Template Editor. Their source commits and refresh
+instructions are recorded in `fixtures/README.md`; no sibling artifact
+repository is needed to run the suite.
 
 The first run of that suite found CEE crashing on `template-003`. It also
 matters prospectively — if CEE ever parses templates *with* the model library,

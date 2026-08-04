@@ -1,0 +1,76 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "Single Select Element": "https://schema.metadatacenter.org/properties/114e2455-29cf-40b9-a841-121d2d10839a",
+    "Single Select Standalone": "https://schema.metadatacenter.org/properties/21f1d309-fcb7-48bb-8b48-0aa171f57ff9"
+  },
+  "Single Select Element": [
+    {
+      "@id": "https://repo.metadatacenter.org/template-element-instances/2500f1f9-24b9-4f9a-88c5-6f09a7b4865f",
+      "@context": {
+        "Single Select in Element": "https://schema.metadatacenter.org/properties/133f2af3-cadd-4c8e-8ebb-69f812cb74da"
+      },
+      "Single Select in Element": {
+        "@value": "Option 1"
+      }
+    },
+    {
+      "@id": "https://repo.metadatacenter.org/template-element-instances/f9c077a1-3818-41e0-805f-55d3d364b1cc",
+      "@context": {
+        "Single Select in Element": "https://schema.metadatacenter.org/properties/133f2af3-cadd-4c8e-8ebb-69f812cb74da"
+      },
+      "Single Select in Element": {
+        "@value": "Option 2"
+      }
+    },
+    {
+      "@id": "https://repo.metadatacenter.org/template-element-instances/903d67ba-5b6f-4b5b-9ef6-7556024e5443",
+      "@context": {
+        "Single Select in Element": "https://schema.metadatacenter.org/properties/133f2af3-cadd-4c8e-8ebb-69f812cb74da"
+      },
+      "Single Select in Element": {
+        "@value": null
+      }
+    }
+  ],
+  "Single Select Standalone": {
+    "@value": "Option 4"
+  },
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/d9d52596-1a0e-464b-9207-b848faf2205d",
+  "schema:name": "With Email metadata",
+  "schema:description": "",
+  "pav:createdOn": "2020-07-17T15:36:46-07:00",
+  "pav:createdBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "pav:lastUpdatedOn": "2020-07-17T15:36:46-07:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "@id": "https://repo.metadatacenter.org/template-instances/1da98ce2-9b74-4257-af64-e6ef1c143f6e"
+}

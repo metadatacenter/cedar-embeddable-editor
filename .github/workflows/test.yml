@@ -1,0 +1,64 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+      - cee-with-model-library
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    # The committed Playwright snapshots are macOS baselines.
+    runs-on: macos-14
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out CEE
+        uses: actions/checkout@v4
+        with:
+          path: cedar-embeddable-editor
+
+      # CEE's current file: dependency expects the model library as a sibling.
+      # Roadmap item #1 tracks replacing this with a published npm dependency.
+      - name: Check out the model library
+        uses: actions/checkout@v4
+        with:
+          repository: metadatacenter/cedar-model-typescript-library
+          ref: develop
+          path: cedar-model-typescript-library
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.20.2
+          cache: npm
+          cache-dependency-path: |
+            cedar-model-typescript-library/package-lock.json
+            cedar-embeddable-editor/package-lock.json
+            cedar-embeddable-editor/harness/package-lock.json
+            cedar-embeddable-editor/visual/package-lock.json
+
+      - name: Build the model library
+        working-directory: cedar-model-typescript-library
+        run: npm ci && npm run build
+
+      - name: Install CEE test dependencies
+        working-directory: cedar-embeddable-editor
+        run: |
+          npm ci
+          npm --prefix harness ci
+          npm --prefix visual ci
+          ./visual/node_modules/.bin/playwright install chromium
+
+      - name: Run the complete CEE test gate
+        working-directory: cedar-embeddable-editor
+        run: npm run test:ci

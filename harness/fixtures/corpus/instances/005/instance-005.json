@@ -1,0 +1,97 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Text Field Simple": "https://schema.metadatacenter.org/properties/3e67578f-4488-4172-9ba5-b75e1a242c67",
+    "Numeric Field Simple": "https://schema.metadatacenter.org/properties/8e976eaf-2aa2-4674-b907-1affaf139923",
+    "Phone Field Multiple": "https://schema.metadatacenter.org/properties/03ed1d58-9851-4696-aa65-4c3db57dd177",
+    "Element": "https://schema.metadatacenter.org/properties/d1969ccc-6d97-4d9f-9097-3e7619dc2527",
+    "Element1": "https://schema.metadatacenter.org/properties/09930ab1-1932-4e39-a44d-7909101f2e0b"
+  },
+  "Text Field Simple": {
+    "@value": "Text Value"
+  },
+  "Numeric Field Simple": {
+    "@value": "1234",
+    "@type": "xsd:decimal"
+  },
+  "Phone Field Multiple": [
+    {
+      "@value": "650-686-8815"
+    },
+    {
+      "@value": "650-686-8816"
+    }
+  ],
+  "Element as Single": {
+    "@context": {
+      "Text Field inside Element": "https://schema.metadatacenter.org/properties/69163f31-6ead-4285-9064-b39cc8dc70b5"
+    },
+    "Text Field inside Element": {
+      "@value": "Single text value"
+    },
+    "@id": "https://repo.metadatacenter.org/template-element-instances/0e408f4e-fc4a-4418-a9a8-c041901031a4"
+  },
+  "Element as Multi": [
+    {
+      "@context": {
+        "Text Field inside Element": "https://schema.metadatacenter.org/properties/69163f31-6ead-4285-9064-b39cc8dc70b5"
+      },
+      "Text Field inside Element": {
+        "@value": "Multi text value 1"
+      },
+      "@id": "https://repo.metadatacenter.org/template-element-instances/88dca08a-ff55-415b-b1f8-e78572a88d03"
+    },
+    {
+      "@context": {
+        "Text Field inside Element": "https://schema.metadatacenter.org/properties/69163f31-6ead-4285-9064-b39cc8dc70b5"
+      },
+      "Text Field inside Element": {
+        "@value": "Multi text value 2"
+      },
+      "@id": "https://repo.metadatacenter.org/template-element-instances/23587e15-7671-4e76-a852-6623d0279322"
+    }
+  ],
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/a29c046d-3c19-4213-be02-f5b6457cac9b",
+  "schema:name": "Complex template metadata",
+  "schema:description": "",
+  "pav:createdOn": "2024-10-17T13:15:26-07:00",
+  "pav:createdBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "pav:lastUpdatedOn": "2024-10-17T13:15:26-07:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "@id": "https://repo.metadatacenter.org/template-instances/593c3c2d-14b9-4e8e-9ce8-a7dbbb8e1c01"
+}

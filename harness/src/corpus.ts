@@ -3,7 +3,9 @@ import * as path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
 /**
- * The shared CEDAR artifact corpus — real templates and instances.
+ * A vendored snapshot of the CEDAR artifact corpus — real templates and
+ * instances. See `harness/fixtures/README.md` for provenance and refresh
+ * instructions.
  *
  * Everything else in this harness generates its own templates, which buys
  * enumerable coverage of the axes CEE branches on. It also means CEE is only
@@ -16,11 +18,11 @@ import { parse as parseYaml } from 'yaml';
  * library on both sides of the comparison, and would agree with themselves
  * regardless of whether either matched the spec. These would still fail.
  *
- * The corpus lives on `cedar-test-artifacts`' **develop** branch — `main`
- * carries only a README. If it is missing, these suites skip rather than fail,
- * so a checkout without it is merely less covered, not broken.
+ * The fixtures live in this repository so a normal checkout always runs the
+ * independent corpus. `corpusAvailable` remains as a defensive check and as a
+ * clear diagnostic if a packaged source tree accidentally omits fixtures.
  */
-const CORPUS_ROOT = path.resolve(__dirname, '../../../cedar-test-artifacts/artifacts');
+const CORPUS_ROOT = path.resolve(__dirname, '../fixtures/corpus');
 
 export const corpusAvailable = (): boolean => fs.existsSync(CORPUS_ROOT);
 
@@ -76,14 +78,15 @@ export const corpusTemplatesYaml = (): CorpusArtifact[] => {
 export const corpusInstances = (): CorpusArtifact[] => load('instances', 'instance');
 
 /**
- * The HuBMAP production templates, as shipped with `cedar-artifact-library`.
+ * A vendored snapshot of the HuBMAP production templates originally shipped
+ * with `cedar-artifact-library`.
  *
  * Bigger and messier than the numbered test fixtures — these are real
  * templates people authored and used, with deep element nesting, controlled
  * terms and the long tail of `_ui` metadata a generator never emits. They are
  * normalized JSON renderings of the YAML corpus in the same repo.
  */
-const HUBMAP_ROOT = path.resolve(__dirname, '../../../cedar-artifact-library/src/test/resources/templates-json');
+const HUBMAP_ROOT = path.resolve(__dirname, '../fixtures/hubmap');
 
 export const hubmapAvailable = (): boolean => fs.existsSync(HUBMAP_ROOT);
 

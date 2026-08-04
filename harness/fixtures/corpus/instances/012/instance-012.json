@@ -1,0 +1,91 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "Multi Select Element": "https://schema.metadatacenter.org/properties/40167116-75d9-4fcb-b310-77868a824fce",
+    "Multi Select Standalone": "https://schema.metadatacenter.org/properties/be3a4f4c-6ed7-4fc0-8d9a-997786e32427"
+  },
+  "Multi Select Element": [
+    {
+      "@id": "https://repo.metadatacenter.org/template-element-instances/2a9b4038-aec5-4fad-937f-edf22f76af9a",
+      "@context": {
+        "Multi Select in Element": "https://schema.metadatacenter.org/properties/1b810035-2fd8-40f0-92f4-f207c7f38261"
+      },
+      "Multi Select in Element": [
+        {
+          "@value": "Option 1"
+        },
+        {
+          "@value": "Option 2"
+        },
+        {
+          "@value": "Option 3"
+        }
+      ]
+    },
+    {
+      "@id": "https://repo.metadatacenter.org/template-element-instances/c5901d98-afd8-41a9-8a9f-55f2c3a9f10e",
+      "@context": {
+        "Multi Select in Element": "https://schema.metadatacenter.org/properties/1b810035-2fd8-40f0-92f4-f207c7f38261"
+      },
+      "Multi Select in Element": [
+        {
+          "@value": "Option 3"
+        },
+        {
+          "@value": "Option 4"
+        },
+        {
+          "@value": "Option 5"
+        }
+      ]
+    }
+  ],
+  "Multi Select Standalone": [
+    {
+      "@value": "Option 1"
+    },
+    {
+      "@value": "Option 3"
+    },
+    {
+      "@value": "Option 5"
+    }
+  ],
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/d9d52596-1a0e-464b-9207-b848faf2205d",
+  "schema:name": "With Email metadata",
+  "schema:description": "",
+  "pav:createdOn": "2020-07-17T15:36:46-07:00",
+  "pav:createdBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "pav:lastUpdatedOn": "2020-07-17T15:36:46-07:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "@id": "https://repo.metadatacenter.org/template-instances/1da98ce2-9b74-4257-af64-e6ef1c143f6e"
+}

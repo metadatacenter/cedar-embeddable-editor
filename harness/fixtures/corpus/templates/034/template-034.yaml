@@ -1,0 +1,25 @@
+type: "template"
+name: "Template with simple link"
+id: "https://repo.metadatacenter.org/templates/c395555a-eb46-4e66-8bd0-5eba2e98371a"
+status: "draft"
+version: "0.0.1"
+modelVersion: "1.6.0"
+createdOn: "2024-02-29T00:22:05-08:00"
+createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+modifiedOn: "2024-02-29T00:22:05-08:00"
+modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+children:
+  - key: "Linkfield"
+    type: "link-field"
+    name: "Linkfield"
+    description: "Help Text"
+    id: "https://repo.metadatacenter.org/template-fields/c10d0f70-0e5d-405c-9f84-fafa7693cc63"
+    modelVersion: "1.6.0"
+    createdOn: "2024-02-29T00:22:05-08:00"
+    createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+    modifiedOn: "2024-02-29T00:22:05-08:00"
+    modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+    configuration:
+      hidden: true
+      propertyIri: "https://schema.metadatacenter.org/properties/83dee10d-0c46-4650-9ce2-23e257801240"
+      continuePreviousLine: true

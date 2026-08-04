@@ -1,0 +1,103 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "Multiple Choice Element": "https://schema.metadatacenter.org/properties/deaff389-d4b2-4898-96f5-1a41c335a560",
+    "Multiple Choice Standalone": "https://schema.metadatacenter.org/properties/55cc6b8b-0fa8-4271-85b5-f3c87c5f471e"
+  },
+  "Multiple Choice Element": [
+    {
+      "@context": {
+        "Multiple Choice in Element (radio)": "https://schema.metadatacenter.org/properties/5756b073-0b9d-475d-a1a2-33f6547b3891"
+      },
+      "Multiple Choice in Element (radio)": {
+        "@value": "Option 1"
+      },
+      "@id": "https://repo.metadatacenter.org/template-element-instances/f8afd781-85fd-47b6-91f6-4576394936c1"
+    },
+    {
+      "@context": {
+        "Multiple Choice in Element (radio)": "https://schema.metadatacenter.org/properties/5756b073-0b9d-475d-a1a2-33f6547b3891"
+      },
+      "Multiple Choice in Element (radio)": {
+        "@value": "Option 2"
+      },
+      "@id": "https://repo.metadatacenter.org/template-element-instances/09042217-4939-4ecb-bca0-254761f57a8d"
+    },
+    {
+      "@context": {
+        "Multiple Choice in Element (radio)": "https://schema.metadatacenter.org/properties/5756b073-0b9d-475d-a1a2-33f6547b3891"
+      },
+      "Multiple Choice in Element (radio)": {
+        "@value": "Option 3"
+      },
+      "@id": "https://repo.metadatacenter.org/template-element-instances/4dec4f05-6e7c-442d-a7ef-4f4e8bf1d188"
+    },
+    {
+      "@context": {
+        "Multiple Choice in Element (radio)": "https://schema.metadatacenter.org/properties/5756b073-0b9d-475d-a1a2-33f6547b3891"
+      },
+      "Multiple Choice in Element (radio)": {
+        "@value": "Option 4"
+      },
+      "@id": "https://repo.metadatacenter.org/template-element-instances/5b96963c-0aef-4e17-96c7-94f0efef4102"
+    },
+    {
+      "@context": {
+        "Multiple Choice in Element (radio)": "https://schema.metadatacenter.org/properties/5756b073-0b9d-475d-a1a2-33f6547b3891"
+      },
+      "Multiple Choice in Element (radio)": {
+        "@value": "Option 5"
+      },
+      "@id": "https://repo.metadatacenter.org/template-element-instances/ee61c05d-b616-490c-b672-60517120773c"
+    },
+    {
+      "@context": {
+        "Multiple Choice in Element (radio)": "https://schema.metadatacenter.org/properties/5756b073-0b9d-475d-a1a2-33f6547b3891"
+      },
+      "Multiple Choice in Element (radio)": {
+        "@value": null
+      },
+      "@id": "https://repo.metadatacenter.org/template-element-instances/89c67f8e-da51-4c2a-83e8-c227f0f4e4db"
+    }
+  ],
+  "Multiple Choice Standalone": {
+    "@value": "Option 1"
+  },
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/e26d7ff6-3a92-4445-85e4-fb2648c62500",
+  "schema:name": "Template with multi-element metadata",
+  "schema:description": "",
+  "pav:createdOn": "2024-10-11T15:09:25-07:00",
+  "pav:createdBy": "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95",
+  "pav:lastUpdatedOn": "2024-10-11T15:09:25-07:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95",
+  "@id": "https://repo.metadatacenter.org/template-instances/32d6ec76-59e3-46cb-b335-61450202d80a"
+}

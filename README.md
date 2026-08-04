@@ -68,6 +68,59 @@ cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,mai
 
 Please import the latest version of the editor into your project from: [https://www.npmjs.com/package/cedar-embeddable-editor](https://www.npmjs.com/package/cedar-embeddable-editor)
 
+## Testing
+
+The complete test gate is available from the repository root:
+
+```shell
+npm run test:ci
+```
+
+It runs, in order:
+
+1. The Angular/Karma unit tests in headless Chrome.
+2. The headless domain harness with V8 coverage.
+3. A production build of the web component.
+4. The Playwright suite against the concatenated production bundle, at desktop
+   and narrow viewport sizes.
+
+The domain corpora are checked into `harness/fixtures/`; running the tests does
+not require `cedar-artifact-library` or `cedar-test-artifacts` checkouts.
+
+### First-time setup
+
+CEE currently resolves `cedar-model-typescript-library` from a built sibling
+checkout. Build that library before installing CEE's dependencies:
+
+```shell
+cd ../cedar-model-typescript-library
+npm ci
+npm run build
+
+cd ../cedar-embeddable-editor
+npm ci
+npm --prefix harness ci
+npm --prefix visual ci
+./visual/node_modules/.bin/playwright install chromium
+```
+
+Resolving the model library through a published npm package is tracked as
+roadmap item #1; the sibling dependency remains in place for now.
+
+### Focused test commands
+
+Use these when working on one layer:
+
+```shell
+npm run test:unit:ci          # Angular/Karma, one headless run
+npm run test:domain           # Vitest domain harness
+npm run test:domain:coverage  # domain harness with coverage report
+npm run test:visual           # production build, fixture preparation, Playwright
+```
+
+The legacy `npm test` command starts Angular/Karma in watch mode for interactive
+development. Use `npm run test:ci` for a complete, non-interactive verification.
+
 ## Configuration
 
 ### Configuration file

@@ -1,0 +1,13 @@
+type: "template"
+name: "template 36"
+id: "https://repo.metadatacenter.orgx/templates/50cee84b-bfd8-4b6b-9a97-a74a5d6d63f9"
+status: "published"
+version: "0.0.1"
+modelVersion: "1.6.0"
+createdOn: "2024-02-15T11:21:09-08:00"
+createdBy: "https://metadatacenter.org/users/68d898fd-2b81-492c-b68c-a80c8283fd8a"
+modifiedOn: "2024-02-15T11:23:19-08:00"
+modifiedBy: "https://metadatacenter.org/users/68d898fd-2b81-492c-b68c-a80c8283fd8a"
+annotations:
+  https://datacite.com/doi:
+    id: "https://doi.org/10.82658/8vc1-qf27"

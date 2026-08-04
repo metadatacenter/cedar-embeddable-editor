@@ -1,0 +1,84 @@
+{
+  "@id": "https://repo.metadatacenter.org/template-instances/1da98ce2-9b74-4257-af64-e6ef1c143f6e",
+  "schema:name": "With Email metadata",
+  "schema:description": "",
+  "Rich Text Element": [
+    {
+      "@id": "https://repo.metadatacenter.org/template-element-instances/dec637dd-ff34-4440-bc91-938ff0b75eef",
+      "@context": {
+        "Controlled in Rich Text Element": "https://schema.metadatacenter.org/properties/ba96fe3c-a597-4cf4-9c01-ab42673757e8",
+        "MultiSelect with Rich Text in Element": "https://schema.metadatacenter.org/properties/db6a1491-0948-43e3-9d6c-8029f09ee515"
+      },
+      "Controlled in Rich Text Element": {
+        "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C101161",
+        "rdfs:label": "Agonizing Pain"
+      },
+      "MultiSelect with Rich Text in Element": [
+        {
+          "@value": "Option 1"
+        },
+        {
+          "@value": "Option 2"
+        },
+        {
+          "@value": "Option 3"
+        }
+      ]
+    }
+  ],
+  "Paragraph Field": [
+    {
+      "@value": "This is paragraph\n#1"
+    },
+    {
+      "@value": "And this is second\none\nin\nthe\nrow"
+    }
+  ],
+  "Text Box Standalone Top": {
+    "@value": "Box on top"
+  },
+  "Text Box Standalone Bottom": {
+    "@value": "Last text box"
+  },
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "Text Box Standalone Top": "https://schema.metadatacenter.org/properties/5d1cd98b-eeda-4a78-80b0-9fb26e7c1d4c",
+    "Text Box Standalone Bottom": "https://schema.metadatacenter.org/properties/8977adf3-8c9b-493c-9bb2-3d8b9e488f65",
+    "Rich Text Element": "https://schema.metadatacenter.org/properties/e9258304-14fe-4274-9bf5-6d887ae273c8",
+    "Paragraph Field": "https://schema.metadatacenter.org/properties/486354e5-6150-4732-bfb2-1e31e288c13e"
+  },
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/d9d52596-1a0e-464b-9207-b848faf2205d",
+  "pav:createdOn": "2020-07-17T15:36:46-07:00",
+  "pav:createdBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d",
+  "pav:lastUpdatedOn": "2020-07-17T15:36:46-07:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/2fa8910d-96e7-4e2f-ae60-4dfa8ec9877d"
+}

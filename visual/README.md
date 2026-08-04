@@ -2,8 +2,8 @@
 
 Playwright screenshot regression for the **built web component**.
 
-> **Status: 36 tests, all passing**, verified stable across three consecutive
-> runs (~11s each) on Chromium / macOS arm64.
+> **Status: 276 tests, all passing** on Chromium / macOS, most recently in
+> ~40s for both viewports.
 
 ## Why this exists, and why it is separate from `harness/`
 
