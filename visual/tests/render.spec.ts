@@ -5,9 +5,8 @@
  * not cover. `harness/` imports no Angular precisely so it survives the
  * framework upgrade untouched — which also means it cannot see a single thing
  * about how CEE *looks*. Material 15 rewrote every component's DOM structure
- * and CSS class names, and CEE has 42 SCSS files plus
- * `ViewEncapsulation.None`, which is load-bearing: it is how the web component
- * styles itself. Only pixels catch that.
+ * and CSS class names, while CEE still has 42 SCSS files and substantial
+ * Material theming inside its shadow boundary. Only pixels catch that.
  *
  * Capture these baselines BEFORE the 14 → 15 hop. Afterwards they are just a
  * record of whatever the migration did.
@@ -108,6 +107,54 @@ const openTwoEditors = async (page: import('@playwright/test').Page, fixture: st
   await expect(page.locator('#editor-first app-cedar-embeddable-metadata-editor')).toBeVisible();
   await expect(page.locator('#editor-second app-cedar-embeddable-metadata-editor')).toBeVisible();
 };
+
+test.describe('host style isolation', () => {
+  test('host and editor styles do not cross the custom-element boundary', async ({ page }) => {
+    await open(page, '01-input-types');
+    await page.addStyleTag({
+      content: `
+        cedar-embeddable-editor input {
+          background: rgb(255, 0, 0) !important;
+          font-size: 2px !important;
+        }
+      `,
+    });
+
+    const inputStyle = await page.locator('input[aria-label="text"]').evaluate((input) => {
+      const style = getComputedStyle(input);
+      return { background: style.backgroundColor, fontSize: style.fontSize };
+    });
+    expect(inputStyle.background).not.toBe('rgb(255, 0, 0)');
+    expect(inputStyle.fontSize).not.toBe('2px');
+
+    const hostProbe = await page.evaluate(() => {
+      const probe = document.createElement('span');
+      probe.className = 'material-icons';
+      probe.textContent = 'host text';
+      document.body.appendChild(probe);
+      const style = getComputedStyle(probe);
+      return { display: style.display, fontFamily: style.fontFamily };
+    });
+    expect(hostProbe.display).toBe('inline');
+    expect(hostProbe.fontFamily).not.toContain('Material Icons');
+  });
+
+  test('Material overlays stay inside the editor shadow root', async ({ page }) => {
+    await open(page, '02-choices');
+    await page.locator('mat-select').first().click();
+    await expect(page.locator('mat-option').first()).toBeVisible();
+
+    const placement = await page.evaluate(() => {
+      const editor = document.querySelector('cedar-embeddable-editor') as HTMLElement;
+      return {
+        inside: editor.shadowRoot?.querySelectorAll('.cee-overlay-container mat-option').length ?? 0,
+        outside: document.body.querySelectorAll(':scope > .cdk-overlay-container').length,
+      };
+    });
+    expect(placement.inside).toBeGreaterThan(0);
+    expect(placement.outside).toBe(0);
+  });
+});
 
 test.describe('multiple editor instances', () => {
   test('keep language paths, IRI prefixes and preferences isolated', async ({ page }) => {
@@ -905,7 +952,9 @@ test.describe('the time picker', () => {
     await open(page, '09-temporal');
 
     const offsets = await page.evaluate(() => {
-      const picker = document.querySelectorAll('.cee-time-picker')[2]; // to_the_second
+      const picker = document
+        .querySelector('cedar-embeddable-editor')!
+        .shadowRoot!.querySelectorAll('.cee-time-picker')[2]; // to_the_second
       const digit = picker.querySelector('input[aria-label="Hour"]')!.getBoundingClientRect();
       const digitCentre = digit.top + digit.height / 2;
       return Array.from(picker.querySelectorAll('.cee-time-separator')).map((sep) => {
@@ -1134,9 +1183,9 @@ test.describe('markup in an instance value', () => {
 
     expect(await page.locator('[data-safe-markup]').count(), 'an editable field shows text').toBe(0);
     const asText = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('input,textarea')).some((e) =>
-        (e as HTMLInputElement).value.includes('<b data-safe-markup'),
-      ),
+      Array.from(
+        document.querySelector('cedar-embeddable-editor')!.shadowRoot!.querySelectorAll('input,textarea'),
+      ).some((e) => (e as HTMLInputElement).value.includes('<b data-safe-markup')),
     );
     expect(asText, 'the field should hold the markup verbatim as its value').toBe(true);
   });
@@ -1159,7 +1208,10 @@ test.describe('markup in an instance value', () => {
     expect(ran, 'an event handler from an instance value executed').toBe(false);
 
     const handlers = await page.evaluate(
-      () => Array.from(document.querySelectorAll('*')).filter((e) => e.hasAttribute('onerror')).length,
+      () =>
+        Array.from(document.querySelector('cedar-embeddable-editor')!.shadowRoot!.querySelectorAll('*')).filter((e) =>
+          e.hasAttribute('onerror'),
+        ).length,
     );
     expect(handlers, 'an onerror attribute survived sanitization').toBe(0);
     expect(handlerRan, 'the handler produced console output, so it ran').toEqual([]);
@@ -1519,7 +1571,9 @@ test.describe('config flags are wired to something', () => {
     });
     expect(await page.evaluate(() => (window as any).__ceeError)).toBeFalsy();
     await page.waitForTimeout(300);
-    return page.evaluate(() => document.body.innerHTML);
+    return page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as HTMLElement).shadowRoot?.innerHTML ?? '',
+    );
   };
 
   for (const { flag, withFlags = [], fixture = '01-input-types' } of FLAGS) {

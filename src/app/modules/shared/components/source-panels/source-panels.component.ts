@@ -5,7 +5,7 @@ import { DataContext } from '../../util/data-context';
   selector: 'app-source-panels',
   templateUrl: './source-panels.component.html',
   styleUrls: ['./source-panels.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class SourcePanelsComponent implements OnInit {
   @Input() dataContext: DataContext = null;

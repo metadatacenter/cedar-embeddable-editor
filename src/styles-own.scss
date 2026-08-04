@@ -1,9 +1,5 @@
 @use '@angular/material' as mat;
 @use '@angular/material/theming';
-@import "./styles-Material-Icons.scss";
-@import "./styles-Roboto-300";
-@import "./styles-Roboto-400";
-@import "./styles-Roboto-500";
 
 @include mat.core();
 
@@ -11,69 +7,69 @@
 // Also helpful: https://www.colorhexa.com/, https://www.colorbook.io/
 /* For use in src/lib/core/theming/_palette.scss */
 $md-cedarpalette: (
-  50 : #e2eff0,
-  100 : #b7d6db,
-  200 : #87bbc3,
-  300 : #579faa,
-  400 : #338b98,
-  500 : #0f7686,
-  600 : #0d6e7e,
-  700 : #0b6373,
-  800 : #085969,
-  900 : #044656,
-  A100 : #88e4ff,
-  A200 : #55d8ff,
-  A400 : #22ccff,
-  A700 : #08c7ff,
+  50: #e2eff0,
+  100: #b7d6db,
+  200: #87bbc3,
+  300: #579faa,
+  400: #338b98,
+  500: #0f7686,
+  600: #0d6e7e,
+  700: #0b6373,
+  800: #085969,
+  900: #044656,
+  A100: #88e4ff,
+  A200: #55d8ff,
+  A400: #22ccff,
+  A700: #08c7ff,
   contrast: (
-    50 : #000000,
-    100 : #000000,
-    200 : #000000,
-    300 : #000000,
-    400 : #ffffff,
-    500 : #ffffff,
-    600 : #ffffff,
-    700 : #ffffff,
-    800 : #ffffff,
-    900 : #ffffff,
-    A100 : #000000,
-    A200 : #000000,
-    A400 : #000000,
-    A700 : #000000,
-  )
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #000000,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #000000,
+    A200: #000000,
+    A400: #000000,
+    A700: #000000,
+  ),
 );
 
 $md-cedaraccent: (
-  50 : #f0e4e2,
-  100 : #dbbcb7,
-  200 : #c38f87,
-  300 : #aa6257,
-  400 : #984133,
-  500 : #861f0f,
-  600 : #7e1b0d,
-  700 : #73170b,
-  800 : #691208,
-  900 : #560a04,
-  A100 : #ff8d88,
-  A200 : #ff5c55,
-  A400 : #ff2b22,
-  A700 : #ff1308,
+  50: #f0e4e2,
+  100: #dbbcb7,
+  200: #c38f87,
+  300: #aa6257,
+  400: #984133,
+  500: #861f0f,
+  600: #7e1b0d,
+  700: #73170b,
+  800: #691208,
+  900: #560a04,
+  A100: #ff8d88,
+  A200: #ff5c55,
+  A400: #ff2b22,
+  A700: #ff1308,
   contrast: (
-    50 : #000000,
-    100 : #000000,
-    200 : #000000,
-    300 : #ffffff,
-    400 : #ffffff,
-    500 : #ffffff,
-    600 : #ffffff,
-    700 : #ffffff,
-    800 : #ffffff,
-    900 : #ffffff,
-    A100 : #000000,
-    A200 : #000000,
-    A400 : #ffffff,
-    A700 : #ffffff,
-  )
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #ffffff,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #000000,
+    A200: #000000,
+    A400: #ffffff,
+    A700: #ffffff,
+  ),
 );
 
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
@@ -87,41 +83,53 @@ $cedar-embeddable-editor-warn: mat.define-palette(mat.$red-palette);
 
 // Create the theme object. A theme consists of configurations for individual
 // theming systems such as "color" or "typography".
-$cedar-embeddable-editor-theme: mat.define-light-theme((
-  color: (
-    primary: $cedar-embeddable-editor-primary,
-    accent: $cedar-embeddable-editor-accent,
-    warn: $cedar-embeddable-editor-warn,
+$cedar-embeddable-editor-theme: mat.define-light-theme(
+  (
+    color: (
+      primary: $cedar-embeddable-editor-primary,
+      accent: $cedar-embeddable-editor-accent,
+      warn: $cedar-embeddable-editor-warn,
+    ),
   )
-));
+);
 
 $primary: map-get($cedar-embeddable-editor-theme, primary);
 $accent: map-get($cedar-embeddable-editor-theme, accent);
 
-:root {
-  --color-primary: #{mat.get-color-from-palette($cedar-embeddable-editor-primary, default)};
-  --color-text-primary: #{mat.get-color-from-palette($cedar-embeddable-editor-primary, default-contrast)};
-  --color-accent: #{mat.get-color-from-palette($cedar-embeddable-editor-accent)};
-  --color-warn: #{mat.get-color-from-palette($cedar-embeddable-editor-warn)};
+:host {
+  --cee-color-primary: #{mat.get-color-from-palette($cedar-embeddable-editor-primary, default)};
+  --cee-color-text-primary: #{mat.get-color-from-palette($cedar-embeddable-editor-primary, default-contrast)};
+  --cee-color-accent: #{mat.get-color-from-palette($cedar-embeddable-editor-accent)};
+  --cee-color-warn: #{mat.get-color-from-palette($cedar-embeddable-editor-warn)};
+  display: block;
+  font-family: 'CEE Roboto', 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  line-height: normal;
 }
 
-@import "@ng-select/ng-select/themes/material.theme.css";
+@import '@ng-select/ng-select/themes/material.theme.css';
 
 $my-primary: mat.define-palette(mat.$teal-palette, 600);
 $my-accent: mat.define-palette(mat.$deep-orange-palette, A200, A100, A400);
+$cee-typography: mat.define-typography-config(
+  $font-family: 'CEE Roboto, "Helvetica Neue", sans-serif',
+);
 
-$my-theme: mat.define-light-theme((
-  color: (
-    primary: $my-primary,
-    accent: $my-accent,
+$my-theme: mat.define-light-theme(
+  (
+    color: (
+      primary: $my-primary,
+      accent: $my-accent,
+    ),
+    typography: $cee-typography,
   )
-));
+);
 
 @include mat.all-component-themes($my-theme);
 @include mat.strong-focus-indicators-theme($my-theme);
 
 .material-icons {
-  font-family: 'Material Icons';
+  font-family: 'CEE Material Icons';
   font-weight: normal;
   font-style: normal;
   font-size: 24px; /* Preferred icon size */
@@ -145,13 +153,10 @@ $my-theme: mat.define-light-theme((
   font-feature-settings: 'liga';
 }
 
-html, body.cee-body {
-  height: 100%;
-}
-
-body.cee-body {
-  margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+.cdk-overlay-container {
+  font-family: 'CEE Roboto', 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  line-height: normal;
 }
 
 .allow-cr {
@@ -282,7 +287,6 @@ app-source-panels {
   .mat-expansion-panel-header-title .mat-icon {
     margin-right: 15px;
   }
-
 }
 
 app-sample-templates {
@@ -319,14 +323,22 @@ app-sample-templates {
   margin-bottom: 10px;
 }
 
-.notify-info, .notify-success, .notify-error, .notify-warning, .notify-progress {
+.notify-info,
+.notify-success,
+.notify-error,
+.notify-warning,
+.notify-progress {
   padding: 15px;
   border: 1px solid transparent;
   border-radius: 0.25rem;
 }
 
-.notify-info:before, .notify-success:before, .notify-error:before, .notify-warning:before, .notify-progress:before {
-  font-family: 'Material Icons';
+.notify-info:before,
+.notify-success:before,
+.notify-error:before,
+.notify-warning:before,
+.notify-progress:before {
+  font-family: 'CEE Material Icons';
   font-style: normal;
   font-weight: 400;
   font-size: 18px;
@@ -335,18 +347,18 @@ app-sample-templates {
   display: inline-block;
   text-decoration: inherit;
   width: 1em;
-  margin-right: .8em;
+  margin-right: 0.8em;
   text-align: center;
   font-variant: normal;
   text-transform: none;
   line-height: 1em;
-  margin-left: .2em;
+  margin-left: 0.2em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .notify-info:before {
-  content: "\e88e";
+  content: '\e88e';
 }
 
 .notify-success:before {
@@ -362,9 +374,9 @@ app-sample-templates {
 }
 
 .notify-progress-icon {
-  margin-right: .8em;
+  margin-right: 0.8em;
   line-height: 1em;
-  margin-left: .2em;
+  margin-left: 0.2em;
   float: left;
   margin-top: 2px;
 }
@@ -402,9 +414,9 @@ app-sample-templates {
 .close {
   float: right;
   font-size: 1.5rem;
-  line-height: .9;
+  line-height: 0.9;
   text-shadow: 0 1px 0 #fff;
-  opacity: .5;
+  opacity: 0.5;
   color: inherit;
 }
 
@@ -421,12 +433,12 @@ button.close {
 }
 
 .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
-  background: var(--color-primary);
-  color: var(--color-text-primary);
+  background: var(--cee-color-primary);
+  color: var(--cee-color-text-primary);
 }
 
 .ng-select.ng-select-multiple .ng-value-icon {
-  color: var(--color-text-primary) !important;
+  color: var(--cee-color-text-primary) !important;
 }
 
 .mat-form-field-infix {
@@ -463,7 +475,7 @@ button.close {
   border: 1px solid #777777;
   box-shadow: none !important;
 }
-.mat-card{
+.mat-card {
   //border: 1px solid #777777;
   box-shadow: none !important;
   margin-bottom: 0;
@@ -484,7 +496,7 @@ button.close {
   vertical-align: center;
 }
 .component-title {
-  color: #0B3938 !important;
+  color: #0b3938 !important;
 }
 .template-label {
   padding-left: 10px;

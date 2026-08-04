@@ -9,7 +9,7 @@ import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-meta
   selector: 'app-sample-template-select',
   templateUrl: './sample-template-select.component.html',
   styleUrls: ['./sample-template-select.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   @Input() callbackOwnerObject: any = null;

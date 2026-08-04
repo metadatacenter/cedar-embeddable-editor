@@ -38,6 +38,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CedarComponentLinkedStaticFieldHeaderComponent } from './components/cedar-component-linked-static-field-header/cedar-component-linked-static-field-header.component';
+import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/cedar-font-registrar.component';
 
 @NgModule({
   imports: [
@@ -76,6 +77,7 @@ import { CedarComponentLinkedStaticFieldHeaderComponent } from './components/ced
     CedarComponentLinkedStaticFieldHeaderComponent,
     CedarEmbeddableMetadataEditorComponent,
     CedarEmbeddableMetadataEditorWrapperComponent,
+    CedarFontRegistrarComponent,
     SampleTemplatesComponent,
     SampleTemplateSelectComponent,
     CedarComponentRendererComponent,

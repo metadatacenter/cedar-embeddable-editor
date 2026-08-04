@@ -18,7 +18,7 @@ import { PageBreakPaginatorService } from '../../service/page-break-paginator.se
   selector: 'app-cedar-component-renderer',
   templateUrl: './cedar-component-renderer.component.html',
   styleUrls: ['./cedar-component-renderer.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarComponentRendererComponent {
   protected readonly InputType = InputType;

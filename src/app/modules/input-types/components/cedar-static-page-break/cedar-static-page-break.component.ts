@@ -14,7 +14,7 @@ export class CustomMatPaginatorIntl extends MatPaginatorIntl {
   selector: 'app-cedar-static-page-break',
   templateUrl: './cedar-static-page-break.component.html',
   styleUrls: ['./cedar-static-page-break.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
   providers: [{ provide: MatPaginatorIntl, useClass: CustomMatPaginatorIntl }],
 })
 export class CedarStaticPageBreakComponent {

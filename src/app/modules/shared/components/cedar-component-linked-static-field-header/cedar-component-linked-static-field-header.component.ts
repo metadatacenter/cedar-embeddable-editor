@@ -6,7 +6,7 @@ import { ComponentDataService } from '../../service/component-data.service';
   selector: 'app-cedar-component-linked-static-field-header',
   templateUrl: './cedar-component-linked-static-field-header.component.html',
   styleUrls: ['./cedar-component-linked-static-field-header.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarComponentLinkedStaticFieldHeaderComponent {
   component: CedarComponent;

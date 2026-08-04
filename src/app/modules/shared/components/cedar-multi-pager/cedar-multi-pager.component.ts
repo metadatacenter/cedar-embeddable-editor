@@ -20,7 +20,7 @@ import { Subscription } from 'rxjs';
   selector: 'app-cedar-multi-pager',
   templateUrl: './cedar-multi-pager.component.html',
   styleUrls: ['./cedar-multi-pager.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   static readonly MAX_CHARACTERS_MULTI_VALUE = 30;

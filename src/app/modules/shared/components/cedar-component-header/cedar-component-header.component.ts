@@ -14,7 +14,7 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
   selector: 'app-cedar-component-header',
   templateUrl: './cedar-component-header.component.html',
   styleUrls: ['./cedar-component-header.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
   component: CedarComponent;

@@ -13,7 +13,7 @@ import { CedarValidators } from '../../../shared/validation/cedar-validators';
   selector: 'app-cedar-input-numeric',
   templateUrl: './cedar-input-numeric.component.html',
   styleUrls: ['./cedar-input-numeric.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarInputNumericComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;

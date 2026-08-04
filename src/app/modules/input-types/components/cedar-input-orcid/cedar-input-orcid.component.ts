@@ -26,7 +26,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   selector: 'app-cedar-input-orcid',
   templateUrl: './cedar-input-orcid.component.html',
   styleUrls: ['./cedar-input-orcid.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit {

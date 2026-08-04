@@ -22,7 +22,7 @@ import { InputType } from '../../../shared/models/input-type.model';
 @Component({
   selector: 'app-cedar-input-nih-grant',
   templateUrl: '../authority/authority-input.component.html',
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarInputNihGrantComponent extends AbstractAuthorityInputComponent implements OnInit, AfterViewInit {
   constructor(

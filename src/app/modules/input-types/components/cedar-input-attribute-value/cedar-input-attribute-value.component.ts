@@ -9,7 +9,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
   selector: 'app-cedar-input-attribute-value',
   templateUrl: './cedar-input-attribute-value.component.html',
   styleUrls: ['./cedar-input-attribute-value.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarInputAttributeValueComponent extends CedarUIDirective {
   component: FieldComponent;

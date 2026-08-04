@@ -22,7 +22,7 @@ import { InputType } from '../../../shared/models/input-type.model';
 @Component({
   selector: 'app-cedar-input-pfas',
   templateUrl: '../authority/authority-input.component.html',
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarInputPfasComponent extends AbstractAuthorityInputComponent implements OnInit, AfterViewInit {
   constructor(

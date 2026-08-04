@@ -17,7 +17,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   selector: 'app-cedar-input-select',
   templateUrl: './cedar-input-select.component.html',
   styleUrls: ['./cedar-input-select.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarInputSelectComponent extends CedarUIDirective implements OnInit {
   @ViewChild('inputSelect') selectElement;

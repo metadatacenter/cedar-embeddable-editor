@@ -15,7 +15,7 @@ import { TimezonePickerComponent, TZone } from '../../../shared/components/timez
   selector: 'app-cedar-input-datetime',
   templateUrl: './cedar-input-datetime.component.html',
   styleUrls: ['./cedar-input-datetime.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarInputDatetimeComponent extends CedarUIDirective implements AfterViewInit {
   component: FieldComponent;

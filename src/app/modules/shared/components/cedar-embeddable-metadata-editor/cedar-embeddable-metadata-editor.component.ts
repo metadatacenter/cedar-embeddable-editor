@@ -19,7 +19,7 @@ import packageJson from 'package.json';
   selector: 'app-cedar-embeddable-metadata-editor',
   templateUrl: './cedar-embeddable-metadata-editor.component.html',
   styleUrls: ['./cedar-embeddable-metadata-editor.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnInit, OnDestroy {
   private static INNER_VERSION = '2026-07-28 20:0500';

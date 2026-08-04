@@ -100,7 +100,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective {
         startWith(''),
         debounceTime(400),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        map((v: any) => (typeof v === 'string' ? v : (v?.[JsonSchema.rdfsLabel] ?? ''))),
+        map((v: any) => (typeof v === 'string' ? v : v?.[JsonSchema.rdfsLabel] ?? '')),
         map((v: string) => v.trim()),
         distinctUntilChanged(),
         switchMap((query: string) => {
@@ -164,6 +164,15 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective {
   inputChanged(event: Event): void {
     if (!(event.target as HTMLInputElement).value) {
       this.clearValue();
+    } else if (!this.readOnlyMode) {
+      // Material 14 checks document.activeElement before opening on input. In
+      // Shadow DOM that is the custom-element host, not this input, so open the
+      // panel explicitly once Angular has updated matAutocompleteDisabled.
+      setTimeout(() => {
+        if (!this.trigger.panelOpen) {
+          this.trigger.openPanel();
+        }
+      });
     }
   }
 
@@ -223,7 +232,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective {
 
   get isEmpty(): boolean {
     const raw = this.inputValueControl.value;
-    const query = (typeof raw === 'string' ? raw : (raw?.[JsonSchema.rdfsLabel] ?? '')).trim();
+    const query = (typeof raw === 'string' ? raw : raw?.[JsonSchema.rdfsLabel] ?? '').trim();
     return !query;
   }
 

@@ -18,7 +18,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   selector: 'app-cedar-input-email',
   templateUrl: './cedar-input-email.component.html',
   styleUrls: ['./cedar-input-email.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarInputEmailComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;

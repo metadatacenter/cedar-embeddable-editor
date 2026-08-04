@@ -8,7 +8,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
   selector: 'app-cedar-static-rich-text',
   templateUrl: './cedar-static-rich-text.component.html',
   styleUrls: ['./cedar-static-rich-text.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarStaticRichTextComponent extends CedarUIDirective {
   component: StaticFieldComponent;

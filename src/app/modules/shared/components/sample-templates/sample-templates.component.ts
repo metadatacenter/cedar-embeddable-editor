@@ -11,7 +11,7 @@ import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-meta
   selector: 'app-sample-templates',
   templateUrl: './sample-templates.component.html',
   styleUrls: ['./sample-templates.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class SampleTemplatesComponent implements OnInit, OnDestroy {
   @Input() callbackOwnerObject: any = null;

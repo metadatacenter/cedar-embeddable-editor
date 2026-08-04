@@ -9,7 +9,7 @@ import { StaticFieldComponent } from '../../../shared/models/static/static-field
   selector: 'app-cedar-foo-bar',
   templateUrl: './cedar-foo-bar.component.html',
   styleUrls: ['./cedar-foo-bar.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarFooBarComponent extends CedarUIDirective implements OnInit {
   component: StaticFieldComponent;

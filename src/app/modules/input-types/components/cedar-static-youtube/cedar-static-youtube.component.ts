@@ -10,7 +10,7 @@ import { StaticFieldComponent } from '../../../shared/models/static/static-field
   selector: 'app-cedar-static-youtube',
   templateUrl: './cedar-static-youtube.component.html',
   styleUrls: ['./cedar-static-youtube.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarStaticYoutubeComponent extends CedarUIDirective {
   component: StaticFieldComponent;

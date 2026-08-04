@@ -10,7 +10,7 @@ import { StaticFieldComponent } from '../../../shared/models/static/static-field
   selector: 'app-cedar-static-image',
   templateUrl: './cedar-static-image.component.html',
   styleUrls: ['./cedar-static-image.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarStaticImageComponent extends CedarUIDirective {
   component: StaticFieldComponent;

@@ -11,7 +11,7 @@ import { CedarValidators } from '../../../shared/validation/cedar-validators';
   selector: 'app-cedar-input-checkbox',
   templateUrl: './cedar-input-checkbox.component.html',
   styleUrls: ['./cedar-input-checkbox.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class CedarInputCheckboxComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;

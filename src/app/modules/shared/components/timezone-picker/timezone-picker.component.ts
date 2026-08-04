@@ -40,7 +40,7 @@ export interface SelectConfig {
       multi: true,
     },
   ],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
 })
 export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges, ControlValueAccessor {
   static readonly AVAILABLE_TIMEZONES = [

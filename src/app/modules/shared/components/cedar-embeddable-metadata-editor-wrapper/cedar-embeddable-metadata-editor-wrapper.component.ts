@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { Subject } from 'rxjs';
@@ -18,13 +18,21 @@ import { IriPrefix } from '../../util/iri-prefix';
 import { FallbackTranslateLoaderFactory } from '../../util/fallback-translate-loader-factory';
 import * as fallbackMapEN from '../../../../../assets/i18n-cee/en.json';
 import * as fallbackMapHU from '../../../../../assets/i18n-cee/hu.json';
+import { Overlay, OverlayContainer, OverlayPositionBuilder } from '@angular/cdk/overlay';
+import { CedarOverlayContainer } from '../../service/cedar-overlay-container.service';
+import { AriaDescriber } from '@angular/cdk/a11y';
+import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
   templateUrl: './cedar-embeddable-metadata-editor-wrapper.component.html',
   styleUrls: ['./cedar-embeddable-metadata-editor-wrapper.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.ShadowDom,
   providers: [
+    { provide: AriaDescriber, useClass: CedarAriaDescriber },
+    { provide: OverlayContainer, useClass: CedarOverlayContainer },
+    OverlayPositionBuilder,
+    Overlay,
     ActiveComponentRegistryService,
     ControlledFieldDataService,
     ExternalAuthorityLookupService,
@@ -74,6 +82,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   @ViewChild(CedarEmbeddableMetadataEditorComponent) editorComponent: CedarEmbeddableMetadataEditorComponent;
 
   constructor(
+    private readonly wrapper: ElementRef<HTMLElement>,
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
     private sampleTemplateService: SampleTemplatesService,
@@ -86,6 +95,20 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.sampleTemplateLoaderObject = this;
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext, this.messagingService, () => this.iriPrefix.get());
+  }
+
+  /** Re-publishes CEE's existing change contract across the shadow boundary. */
+  forwardChange(event: Event): void {
+    if (event.composed) {
+      return;
+    }
+    this.wrapper.nativeElement.dispatchEvent(
+      new CustomEvent('change', {
+        detail: event instanceof CustomEvent ? event.detail : undefined,
+        bubbles: true,
+        composed: true,
+      }),
+    );
   }
 
   ngOnInit(): void {

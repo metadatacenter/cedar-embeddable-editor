@@ -1,4 +1,5 @@
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper.component';
+import { ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { IriPrefix } from '../../util/iri-prefix';
 
@@ -17,6 +18,7 @@ import { IriPrefix } from '../../util/iri-prefix';
 describe('CedarEmbeddableMetadataEditorWrapperComponent output serialization', () => {
   const make = (): CedarEmbeddableMetadataEditorWrapperComponent =>
     new CedarEmbeddableMetadataEditorWrapperComponent(
+      new ElementRef(document.createElement('cedar-embeddable-editor')),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       {} as any, // controlledFieldDataService
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -83,6 +85,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     };
     const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined };
     const component = new CedarEmbeddableMetadataEditorWrapperComponent(
+      new ElementRef(document.createElement('cedar-embeddable-editor')),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       { setTerminologyIntegratedSearchUrl: mocks.setTerminologyIntegratedSearchUrl } as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
