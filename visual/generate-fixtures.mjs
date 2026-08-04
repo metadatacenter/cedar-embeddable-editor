@@ -519,3 +519,45 @@ const writeRaw = (name, document) => {
     _record: [{ _access: { '@value': 'Public' } }, { _access: { '@value': 'Private' } }],
   });
 }
+
+// 15. Two date fields of different granularity, both filled — the case that asks
+//     whether each picker formats with its own granularity.
+//
+//     `DateTimeService` is `providedIn: 'root'`, so one instance is shared by every
+//     date picker on the page, and each `DatePickerComponent.ngOnInit` writes its own
+//     `dateFormat` into it. `CustomDateAdapter.format` then reads that shared value and
+//     ignores the `displayFormat` Material passes it. Whether the last picker to
+//     initialise therefore formats all of them is not obvious from reading it, and
+//     matters: a year field showing `03/04/2026` or a day field showing `2026` is wrong
+//     in a way a user would notice and a developer would struggle to reproduce from one
+//     field alone.
+//
+//     A year-granularity field needs a full date in the instance — bare `2019` does not
+//     reach the control, which is input handling rather than formatting — so the value
+//     here is `2019-01-01` and the field should render it as `2019`.
+{
+  const instanceOf = (templateName, values) => {
+    const templateId = `https://repo.metadatacenter.org/templates/${id(templateName)}`;
+    return {
+      '@context': {},
+      '@id': 'https://example.org/instances/date-formats-1',
+      'schema:isBasedOn': templateId,
+      'schema:name': `${templateName} instance`,
+      'schema:description': 'Two granularities, both filled',
+      'pav:createdOn': FIXED_DATE,
+      'pav:createdBy': USER,
+      'pav:lastUpdatedOn': FIXED_DATE,
+      'oslc:modifiedBy': USER,
+      ...values,
+    };
+  };
+  writeRaw(
+    '15-date-formats-instance',
+    instanceOf('TemporalGranularity', {
+      // Deliberately a different year from the day field, and a day-of-month that
+      // cannot be mistaken for a month.
+      _year_only: { '@value': '2019-01-01', '@type': 'xsd:date' },
+      _day_only: { '@value': '2026-03-04', '@type': 'xsd:date' },
+    }),
+  );
+}

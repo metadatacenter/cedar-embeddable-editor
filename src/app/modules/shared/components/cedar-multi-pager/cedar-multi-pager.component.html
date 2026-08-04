@@ -58,5 +58,6 @@
     </mat-paginator>
   </div>
 </div>
+<!-- Built from instance values, so sanitized rather than trusted. See `safe-html.pipe.ts`. -->
 <div *ngIf="component && currentMultiInfo && multiInstanceValue && showAllMultiInstanceValues" class="info-box"
-     [innerHTML]="multiInstanceValue | keepHtml"></div>
+     [innerHTML]="multiInstanceValue | safeHtml"></div>

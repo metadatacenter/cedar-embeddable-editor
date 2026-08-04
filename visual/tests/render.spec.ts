@@ -1012,55 +1012,67 @@ test.describe('a choice value reaches the widget by every load path', () => {
 });
 
 /**
- * CHARACTERISATION, NOT ENDORSEMENT: read-only mode parses instance values as HTML.
+ * Instance values are sanitized; template-authored rich text is not.
  *
- * `EscapeHtmlPipe` is `bypassSecurityTrustHtml`, and `cedar-input-text` renders
- * `[innerHTML]="inputValueControl.value | keepHtml"` whenever `isRichText` is set.
- * What sets it is `checkHTMLContent`, which asks `HtmlDetectService` whether the
- * **value** looks like HTML — and it runs from `onReadOnlyModeChange(true)`. So the
- * trigger is the data, and the gate is read-only mode.
+ * `EscapeHtmlPipe` (`keepHtml`) is `bypassSecurityTrustHtml`, and it used to be applied
+ * to three things: the static rich-text field's body, a text field's own value when
+ * `isRichText`, and pager labels built from values. The first is content a *template
+ * author* wrote. The other two are **instance data**, arriving with whatever document
+ * the host page loaded — and CEE is embedded in someone else's page, so trusting them
+ * handed an instance author script execution in that origin.
  *
- * That means a value in an injected instance reaches an `innerHTML` sink with Angular's
- * sanitizer explicitly bypassed, through a documented mode, in a component whose whole
- * purpose is to be embedded in someone else's page. Whether that is a vulnerability
- * depends on whether instance documents are attacker-influenced where CEE is deployed,
- * which is not a question a test can answer.
+ * `isRichText` is set by `checkHTMLContent`, which asks whether the *value* looks like
+ * HTML, from `onReadOnlyModeChange(true)`. So the trigger was the data and the gate was
+ * read-only mode: a documented viewer mode, no exotic config needed. Verified before
+ * the fix — an inert probe element was parsed into live DOM.
  *
- * These two tests record what happens today, in both modes, so the behaviour is
- * visible and any change to it is deliberate. **They are not an assertion that this is
- * correct.** If sanitizing instance values is the decision, this test should be
- * inverted, and the accompanying comment says why the two modes differ — template-authored
- * rich text (`cedar-static-rich-text`) is a different trust level from instance data and
- * would keep its current behaviour.
+ * The two instance sinks now use `safeHtml`, which sanitizes rather than bypasses. The
+ * static rich-text field keeps `keepHtml`, deliberately: a template author is already
+ * trusted with the form's structure, and stripping their formatting would break a
+ * documented feature to no benefit.
  *
- * The probe value is deliberately inert — one element with a data attribute, no script,
- * no event handler. It distinguishes parsed from escaped, which is the whole question,
- * and demonstrates nothing that needs demonstrating.
+ * The probe value carries both halves, so one assertion distinguishes all three possible
+ * behaviours. `<b>` is safe formatting and survives sanitization — its presence proves
+ * the field was not simply escaped wholesale, which would have been a regression dressed
+ * up as a fix. The `onerror` handler is what sanitization removes, and it sets a window
+ * flag and nothing else.
  */
 test.describe('markup in an instance value', () => {
-  const PROBE = '[data-markup-probe]';
-
-  test('is escaped in editable mode', async ({ page }) => {
+  test('is escaped, not rendered, while the field is editable', async ({ page }) => {
     await open(page, '01-input-types', undefined, '14-markup-in-a-value');
 
-    await expect(page.locator(PROBE), 'no element should be parsed out of a field value').toHaveCount(0);
-    const shownLiterally = await page.evaluate(() =>
+    expect(await page.locator('[data-safe-markup]').count(), 'an editable field shows text').toBe(0);
+    const asText = await page.evaluate(() =>
       Array.from(document.querySelectorAll('input,textarea')).some((e) =>
-        (e as HTMLInputElement).value.includes('<b data-markup-probe'),
+        (e as HTMLInputElement).value.includes('<b data-safe-markup'),
       ),
     );
-    expect(shownLiterally, 'the field should hold the markup as text').toBe(true);
+    expect(asText, 'the field should hold the markup verbatim as its value').toBe(true);
   });
 
-  test('is parsed into live DOM in read-only mode', async ({ page }) => {
+  test('is sanitized, not trusted, when read-only renders it as HTML', async ({ page }) => {
+    const handlerRan: string[] = [];
+    page.on('console', (m) => {
+      if (m.text().includes('__handlerRan')) handlerRan.push(m.text());
+    });
+
     await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
 
-    // If this ever fails, someone has changed how read-only renders values — which may
-    // well be the right change. Read the comment above before re-recording it.
+    // Safe formatting survives — this is still a rich-text render, not an escape.
     await expect(
-      page.locator(PROBE),
-      'read-only renders instance values through bypassSecurityTrustHtml',
-    ).toHaveCount(1);
+      page.locator('b'),
+      'sanitizing must not strip safe formatting from a rich-text value',
+    ).not.toHaveCount(0);
+
+    // The handler does not.
+    const ran = await page.evaluate(() => (window as any).__handlerRan === true);
+    expect(ran, 'an event handler from an instance value executed').toBe(false);
+
+    const handlers = await page.evaluate(() =>
+      Array.from(document.querySelectorAll('*')).filter((e) => e.hasAttribute('onerror')).length,
+    );
+    expect(handlers, 'an onerror attribute survived sanitization').toBe(0);
+    expect(handlerRan, 'the handler produced console output, so it ran').toEqual([]);
   });
 });
 
@@ -1255,4 +1267,37 @@ test.describe('config flags are wired to something', () => {
       ).toBe(false);
     });
   }
+});
+
+/**
+ * Each date picker formats with its own granularity.
+ *
+ * `DateTimeService` is `providedIn: 'root'` — one instance shared by every date picker
+ * on the page — and each `DatePickerComponent.ngOnInit` writes its own `dateFormat`
+ * into it. `CustomDateAdapter.format` then reads that shared value and ignores the
+ * `displayFormat` Material hands it. Reading the code, it is not obvious whether the
+ * last picker to initialise ends up formatting all of them.
+ *
+ * It matters because the failure is quiet and hard to reproduce from one field: a year
+ * field showing `03/04/2026`, or a day field showing `2026`. Both are wrong, both look
+ * like a date, and neither errors.
+ *
+ * `09-temporal` has three date pickers, so this is the shape that would expose it. The
+ * two years differ and the day-of-month cannot be read as a month, so a value formatted
+ * with the wrong pattern cannot coincidentally look right.
+ */
+test.describe('date display formats', () => {
+  test('a year field and a day field each use their own format', async ({ page }) => {
+    await open(page, '09-temporal', undefined, '15-date-formats-instance');
+
+    const year = page.locator('input[aria-label="Select Year"]').first();
+    const day = page.locator('input[aria-label="Select Date"]').first();
+
+    await expect(year, 'the year field should render year granularity only').toHaveValue('2019');
+    await expect(day, 'the day field should render a full date').toHaveValue('03/04/2026');
+
+    // Stated as its own assertion because it is the actual question: the two must not
+    // have collapsed onto one shared format.
+    expect(await year.inputValue()).not.toBe(await day.inputValue());
+  });
 });
