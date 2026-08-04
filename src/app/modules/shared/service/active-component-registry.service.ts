@@ -1,4 +1,4 @@
-import { CedarUIDirective } from '../models/ui/cedar-ui-component.model';
+import type { CedarUIDirective } from '../models/ui/cedar-ui-component.model';
 import { CedarComponent } from '../models/component/cedar-component.model';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
 import { JsonSchema } from 'cedar-model-typescript-library';
@@ -6,7 +6,7 @@ import { MultiFieldComponent } from '../models/field/multi-field-component.model
 import { SingleElementComponent } from '../models/element/single-element-component.model';
 import { MultiElementComponent } from '../models/element/multi-element-component.model';
 import { Injectable } from '@angular/core';
-import { CedarMultiPagerComponent } from '../components/cedar-multi-pager/cedar-multi-pager.component';
+import type { CedarMultiPagerComponent } from '../components/cedar-multi-pager/cedar-multi-pager.component';
 import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
 import { HandlerContext } from '../util/handler-context';
 import { InputType } from '../models/input-type.model';
@@ -216,10 +216,42 @@ export class ActiveComponentRegistryService {
   }
 
   registerComponent(modelComponent: CedarComponent, uiComponent: CedarUIDirective): void {
+    // Angular can reuse a component instance while changing its input. Remove
+    // that UI's previous model binding before recording the new one.
+    for (const [registeredModel, registeredUI] of this.modelToUI) {
+      if (registeredUI === uiComponent && registeredModel !== modelComponent) {
+        this.modelToUI.delete(registeredModel);
+      }
+    }
     this.modelToUI.set(modelComponent, uiComponent);
   }
 
+  unregisterComponent(modelComponent: CedarComponent, uiComponent: CedarUIDirective): void {
+    // A replacement UI may already have registered for the same model by the
+    // time Angular destroys the old one. Never let that late destroy remove
+    // the replacement's binding.
+    if (this.modelToUI.get(modelComponent) === uiComponent) {
+      this.modelToUI.delete(modelComponent);
+    }
+  }
+
   registerMultiPagerComponent(modelComponent: CedarComponent, uiComponent: CedarMultiPagerComponent): void {
+    for (const [registeredModel, registeredUI] of this.modelToMultiPagerUI) {
+      if (registeredUI === uiComponent && registeredModel !== modelComponent) {
+        this.modelToMultiPagerUI.delete(registeredModel);
+      }
+    }
     this.modelToMultiPagerUI.set(modelComponent, uiComponent);
+  }
+
+  unregisterMultiPagerComponent(modelComponent: CedarComponent, uiComponent: CedarMultiPagerComponent): void {
+    if (this.modelToMultiPagerUI.get(modelComponent) === uiComponent) {
+      this.modelToMultiPagerUI.delete(modelComponent);
+    }
+  }
+
+  clear(): void {
+    this.modelToUI.clear();
+    this.modelToMultiPagerUI.clear();
   }
 }

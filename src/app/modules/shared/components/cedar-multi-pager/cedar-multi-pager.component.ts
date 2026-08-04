@@ -71,7 +71,8 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnDestroy(): void {
-    this.readOnlModeSubscription.unsubscribe();
+    this.readOnlModeSubscription?.unsubscribe();
+    this.activeComponentRegistry.unregisterMultiPagerComponent(this.component, this);
   }
 
   ngDoCheck(): void {

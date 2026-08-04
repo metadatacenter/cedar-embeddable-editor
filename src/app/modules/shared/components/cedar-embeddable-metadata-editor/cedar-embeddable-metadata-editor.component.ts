@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { NullTemplate } from '../../models/template/null-template.model';
 import { DataContext } from '../../util/data-context';
 import { HandlerContext } from '../../util/handler-context';
@@ -21,7 +21,7 @@ import packageJson from 'package.json';
   styleUrls: ['./cedar-embeddable-metadata-editor.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class CedarEmbeddableMetadataEditorComponent implements OnInit {
+export class CedarEmbeddableMetadataEditorComponent implements OnInit, OnDestroy {
   private static INNER_VERSION = '2026-07-28 20:0500';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
@@ -130,6 +130,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    this.activeComponentRegistry.clear();
+  }
 
   @Input() set dataContextObject(dataContext: DataContext) {
     this.dataContext = dataContext;
@@ -264,13 +268,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         this.messageHandlerService.trace('HideEmptyFields can not be used and set to false');
         this.handlerContext.hideEmptyFields = false;
       }
-      this.dataContext.setInputTemplate(
-        value,
-        this.handlerContext,
-        this.pageBreakPaginatorService,
-        this.collapseStaticComponents,
-        this.templateParser,
-      );
+      this.replaceInputTemplate(value);
       setTimeout(() => {
         this.initDataFromInstance(this.dataContext.instanceFullData)
           .then(() => {})
@@ -308,13 +306,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       return;
     }
     this.setDataContextWithInstance(instanceObject);
-    this.dataContext.setInputTemplate(
-      templateObject,
-      this.handlerContext,
-      this.pageBreakPaginatorService,
-      this.collapseStaticComponents,
-      this.templateParser,
-    );
+    this.replaceInputTemplate(templateObject);
     setTimeout(() => {
       this.initDataWithDataContext()
         .then(() => {})
@@ -328,6 +320,19 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       this.handlerContext.buildQualityReport();
       return this.renderInstance(dataContext);
     }
+  }
+
+  private replaceInputTemplate(templateObject: object): void {
+    this.dataContext.setInputTemplate(
+      templateObject,
+      this.handlerContext,
+      this.pageBreakPaginatorService,
+      this.collapseStaticComponents,
+      this.templateParser,
+    );
+    // The old component tree remains alive until Angular's next render pass.
+    // Drop its strong references immediately after the replacement succeeds.
+    this.activeComponentRegistry.clear();
   }
 
   private async initDataFromInstance(instance: object): Promise<void> {

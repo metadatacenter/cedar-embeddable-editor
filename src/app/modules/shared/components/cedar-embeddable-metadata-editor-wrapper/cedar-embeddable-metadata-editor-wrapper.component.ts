@@ -251,6 +251,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   ngOnDestroy(): void {
     this.onDestroySubject.next();
     this.onDestroySubject.complete();
+    this.activeComponentRegistry.clear();
   }
 
   @Input() set config(value: object) {

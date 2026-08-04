@@ -66,6 +66,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     setTerminologyIntegratedSearchUrl: jasmine.Spy;
     setDefaultLang: jasmine.Spy;
     use: jasmine.Spy;
+    clearRegistry: jasmine.Spy;
     globalSettings: { languageMapPathPrefix?: string };
   }
 
@@ -77,6 +78,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       setTerminologyIntegratedSearchUrl: jasmine.createSpy('setTerminologyIntegratedSearchUrl'),
       setDefaultLang: jasmine.createSpy('setDefaultLang'),
       use: jasmine.createSpy('use'),
+      clearRegistry: jasmine.createSpy('clearRegistry'),
       globalSettings: {},
     };
     const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined };
@@ -92,7 +94,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
         loadTemplate: mocks.loadTemplate,
       } as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      {} as any,
+      { clear: mocks.clearRegistry } as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       { setDefaultLang: mocks.setDefaultLang, use: mocks.use } as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -115,6 +117,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     expect(component.templateAndInstanceJson).toEqual({ templateObject: first, instanceObject: firstMetadata });
 
     component.ngOnDestroy();
+    expect(mocks.clearRegistry).toHaveBeenCalledTimes(1);
     mocks.templateJson$.next({ second: { title: 'second template' } });
     mocks.metadataJson$.next({ second: { title: 'second metadata' } });
 

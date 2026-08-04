@@ -186,4 +186,49 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       expect(component.showTemplateSourceData).toBe(sourceData);
     });
   });
+
+  describe('registry lifecycle', () => {
+    const makeWithRegistry = (): {
+      component: CedarEmbeddableMetadataEditorComponent;
+      clear: jasmine.Spy;
+      setInputTemplate: jasmine.Spy;
+    } => {
+      const clear = jasmine.createSpy('clear');
+      const setInputTemplate = jasmine.createSpy('setInputTemplate');
+      const component = new CedarEmbeddableMetadataEditorComponent(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { clear } as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { setEndpoints: (): void => undefined } as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { trace: (): void => undefined } as any,
+        new IriPrefix(),
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      component.handlerContext = { hideEmptyFields: false } as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      component.dataContext = { setInputTemplate, instanceFullData: {} } as any;
+      return { component, clear, setInputTemplate };
+    };
+
+    it('clears obsolete registrations after a replacement template is accepted', () => {
+      const { component, clear, setInputTemplate } = makeWithRegistry();
+      // Keep the setter's deferred instance initialization inert in this unit test.
+      spyOn(component as any, 'initDataFromInstance').and.returnValue(Promise.resolve());
+
+      component.templateJsonObject = { title: 'replacement' };
+
+      expect(setInputTemplate).toHaveBeenCalledTimes(1);
+      expect(clear).toHaveBeenCalledTimes(1);
+      expect(setInputTemplate).toHaveBeenCalledBefore(clear);
+    });
+
+    it('clears the registry when the editor is destroyed', () => {
+      const { component, clear } = makeWithRegistry();
+
+      component.ngOnDestroy();
+
+      expect(clear).toHaveBeenCalledTimes(1);
+    });
+  });
 });
