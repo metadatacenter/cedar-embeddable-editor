@@ -43,7 +43,7 @@ import { YouTubePlayerModule } from '@angular/youtube-player';
 import { CedarFooBarComponent } from './components/cedar-foo-bar/cedar-foo-bar.component';
 import { CedarInputControlledComponent } from './components/cedar-input-controlled/cedar-input-controlled.component';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { EscapeHtmlPipe } from '../shared/pipe/keep-html.pipe';
+import { TrustHtmlPipe } from '../shared/pipe/keep-html.pipe';
 import { SafeHtmlPipe } from '../shared/pipe/safe-html.pipe';
 import { DatePickerComponent } from '../shared/components/date-picker/date-picker.component';
 import { TimezonePickerComponent } from '../shared/components/timezone-picker/timezone-picker.component';
@@ -117,7 +117,7 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     DatePickerComponent,
     TimePickerComponent,
     TimezonePickerComponent,
-    EscapeHtmlPipe,
+    TrustHtmlPipe,
     SafeHtmlPipe,
     OrcidDetailsComponent,
     CedarInputPfasComponent,
@@ -150,7 +150,7 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     CedarStaticPageBreakComponent,
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
-    EscapeHtmlPipe,
+    TrustHtmlPipe,
     SafeHtmlPipe,
     CedarInputOrcidComponent,
     CedarInputRorComponent,

@@ -1023,7 +1023,7 @@ test.describe('a choice value reaches the widget by every load path', () => {
 /**
  * Instance values are sanitized; template-authored rich text is not.
  *
- * `EscapeHtmlPipe` (`keepHtml`) is `bypassSecurityTrustHtml`, and it used to be applied
+ * `TrustHtmlPipe` (`keepHtml`) is `bypassSecurityTrustHtml`, and it used to be applied
  * to three things: the static rich-text field's body, a text field's own value when
  * `isRichText`, and pager labels built from values. The first is content a *template
  * author* wrote. The other two are **instance data**, arriving with whatever document

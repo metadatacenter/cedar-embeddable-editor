@@ -7,7 +7,7 @@ import { DomSanitizer } from '@angular/platform-browser';
  * The counterpart to `keepHtml`, and the distinction between them is a trust
  * boundary rather than a preference:
  *
- * - `keepHtml` (`EscapeHtmlPipe`) calls `bypassSecurityTrustHtml` and is for content
+ * - `keepHtml` (`TrustHtmlPipe`) calls `bypassSecurityTrustHtml` and is for content
  *   a *template author* wrote — `cedar-static-rich-text`'s body, which exists to be
  *   formatted and whose author is already trusted with the form's structure.
  * - this one is for anything that came out of an **instance**: a field's value, or a
