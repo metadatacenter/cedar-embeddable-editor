@@ -5,6 +5,7 @@ import { Temporal } from '../models/temporal.model';
 import { Xsd } from '../models/xsd.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { ValidationCode, ValidationProblem } from './validation-problem.model';
+import { InstanceValueNode } from '../util/instance-value-node';
 
 /**
  * Constraint checking for a single field value.
@@ -397,9 +398,13 @@ export class FieldValueValidator {
     if (node === null || node === undefined || typeof node !== 'object') {
       return [];
     }
-    const obj = node as Record<string, unknown>;
-    const id = obj['@id'];
-    const label = obj['rdfs:label'];
+    // Read the id and label through the value-node model rather than off the raw
+    // keys, so this validator sees a controlled term the same way everything else
+    // in CEE does. A node the model does not read as an id/label pair — a bare
+    // `rdfs:label` with no `@id`, say — is not a controlled value to it, and is
+    // left alone here too.
+    const id = InstanceValueNode.iri(node);
+    const label = InstanceValueNode.label(node);
     const hasId = typeof id === 'string' && id !== '';
     const hasLabel = typeof label === 'string' && label !== '';
 
