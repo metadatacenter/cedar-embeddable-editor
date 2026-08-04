@@ -3,7 +3,7 @@ import { ControlledFieldDataService } from '../../service/controlled-field-data.
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { Subject } from 'rxjs';
 import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
-import { map, withLatestFrom } from 'rxjs/operators';
+import { map, takeUntil, withLatestFrom } from 'rxjs/operators';
 import { HandlerContext } from '../../util/handler-context';
 import { InstanceSerializer } from '../../util/instance-serializer';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
@@ -63,6 +63,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       map(([metadataJson, templateJson]) => {
         return { metadataJson, templateJson };
       }),
+      takeUntil(this.onDestroySubject),
     );
 
     metadataAndTemplate.subscribe((values) => {

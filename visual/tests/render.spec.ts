@@ -81,7 +81,7 @@ const open = async (
   fixture: string,
   preset?: string,
   instance?: string,
-  mode?: 'separate' | 'combined',
+  mode?: 'separate' | 'combined' | 'template-first',
   extra?: string,
 ) => {
   await page.clock.setFixedTime(FROZEN);
@@ -336,7 +336,12 @@ const WIDGETS = [
   { name: 'input-rrid', selector: 'app-cedar-input-rrid', fixture: '08-authority', nth: 0 },
   { name: 'input-nih-grant', selector: 'app-cedar-input-nih-grant', fixture: '08-authority', nth: 0 },
   { name: 'input-doi', selector: 'app-cedar-input-doi', fixture: '08-authority', nth: 0 },
-  { name: 'input-attribute-value', selector: 'app-cedar-input-attribute-value', fixture: '10-attribute-values', nth: 0 },
+  {
+    name: 'input-attribute-value',
+    selector: 'app-cedar-input-attribute-value',
+    fixture: '10-attribute-values',
+    nth: 0,
+  },
   { name: 'static-rich-text', selector: 'app-cedar-static-rich-text', fixture: '05-static-paged', nth: 0 },
   { name: 'static-section-break', selector: 'app-cedar-static-section-break', fixture: '05-static-paged', nth: 0 },
   { name: 'static-page-break', selector: 'app-cedar-static-page-break', fixture: '05-static-paged', nth: 0 },
@@ -468,10 +473,7 @@ test.describe('external authority fields', () => {
     await orcid.pressSequentially('dav', { delay: 60 });
     await page.waitForTimeout(600);
 
-    await expect(
-      page.locator('mat-error'),
-      'a partly typed search term is not an invalid value',
-    ).toHaveCount(0);
+    await expect(page.locator('mat-error'), 'a partly typed search term is not an invalid value').toHaveCount(0);
   });
 
   test('the character typed is not swallowed', async ({ page }) => {
@@ -624,7 +626,14 @@ test.describe('the time picker', () => {
    * `year_only` and `day_only` are `xsd:date`, so they have no time half at all —
    * the six pickers are the six fields that do.
    */
-  const PICKERS = ['hour_only', 'to_the_minute', 'to_the_second', 'decimal_seconds', 'twelve_hour', 'twelve_hour_seconds'];
+  const PICKERS = [
+    'hour_only',
+    'to_the_minute',
+    'to_the_second',
+    'decimal_seconds',
+    'twelve_hour',
+    'twelve_hour_seconds',
+  ];
   const pickerFor = (page: import('@playwright/test').Page, field: string) =>
     page.locator('.cee-time-picker').nth(PICKERS.indexOf(field));
 
@@ -976,8 +985,7 @@ test.describe('ported from the deleted component specs', () => {
  * same name, unrelated job — it fills the dropdown's *option list*, not a value.
  */
 test.describe('a choice value reaches the widget by every load path', () => {
-  const checkedLabels = (page: import('@playwright/test').Page) =>
-    page.locator('mat-radio-button.mat-radio-checked');
+  const checkedLabels = (page: import('@playwright/test').Page) => page.locator('mat-radio-button.mat-radio-checked');
 
   test('templateObject alone applies the template default', async ({ page }) => {
     await open(page, '11-choice-default');
@@ -1060,17 +1068,16 @@ test.describe('markup in an instance value', () => {
     await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
 
     // Safe formatting survives — this is still a rich-text render, not an escape.
-    await expect(
-      page.locator('b'),
-      'sanitizing must not strip safe formatting from a rich-text value',
-    ).not.toHaveCount(0);
+    await expect(page.locator('b'), 'sanitizing must not strip safe formatting from a rich-text value').not.toHaveCount(
+      0,
+    );
 
     // The handler does not.
     const ran = await page.evaluate(() => (window as any).__handlerRan === true);
     expect(ran, 'an event handler from an instance value executed').toBe(false);
 
-    const handlers = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('*')).filter((e) => e.hasAttribute('onerror')).length,
+    const handlers = await page.evaluate(
+      () => Array.from(document.querySelectorAll('*')).filter((e) => e.hasAttribute('onerror')).length,
     );
     expect(handlers, 'an onerror attribute survived sanitization').toBe(0);
     expect(handlerRan, 'the handler produced console output, so it ran').toEqual([]);
@@ -1137,9 +1144,66 @@ test.describe('external authority endpoints', () => {
 
       const wrong = asked.filter((u) => !u.includes(`/authority/${authority}/`));
       expect(wrong, `${label} asked another authority's endpoint`).toEqual([]);
-      expect(asked.some((u) => u.includes('q=probe')), 'the query is not in the request').toBe(true);
+      expect(
+        asked.some((u) => u.includes('q=probe')),
+        'the query is not in the request',
+      ).toBe(true);
     });
   }
+
+  test('a returned authority term can be selected and reaches the host metadata', async ({ page }) => {
+    const id = 'https://comptox.epa.gov/dashboard/chemical/details/DTXSID00000001';
+    const label = 'Deterministic PFAS result';
+    await page.route('**/authority/pfas/search**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ found: true, results: { [id]: { name: label } } }),
+      });
+    });
+
+    await open(page, '08-authority', 'authority');
+    const field = page.locator('input[aria-label="chemical_pfas"]');
+    await field.pressSequentially('deterministic', { delay: 40 });
+    const option = page.locator('mat-option').filter({ hasText: label });
+    await expect(option, 'the authority response did not become a selectable option').toBeVisible({ timeout: 5000 });
+    await option.click();
+
+    await expect(field).toHaveValue(`${label} - ${id}`);
+    const metadata = await page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
+    );
+    expect(JSON.stringify(metadata), 'the selected authority term did not reach currentMetadata').toContain(id);
+    expect(JSON.stringify(metadata)).toContain(label);
+  });
+});
+
+test.describe('controlled terminology selection', () => {
+  test('a returned term can be selected and reaches the host metadata', async ({ page }) => {
+    const id = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
+    const label = 'Homo sapiens';
+    await page.route('http://127.0.0.1:9/unused', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ collection: [{ id, '@id': id, prefLabel: label }] }),
+      });
+    });
+
+    await open(page, '04-controlled-terms');
+    const field = page.locator('input[aria-label="organism"]');
+    await field.pressSequentially('Homo', { delay: 40 });
+    const option = page.locator('mat-option').filter({ hasText: label });
+    await expect(option, 'the terminology response did not become a selectable option').toBeVisible({ timeout: 6000 });
+    await option.click();
+
+    await expect(field).toHaveValue(label);
+    const metadata = await page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
+    );
+    expect(JSON.stringify(metadata), 'the selected controlled term did not reach currentMetadata').toContain(id);
+    expect(JSON.stringify(metadata)).toContain(label);
+  });
 });
 
 /**
@@ -1199,6 +1263,125 @@ test.describe('what a host page reads back', () => {
     const { json, yaml } = await read(page);
     expect(json, 'an edit did not reach currentMetadata').toContain('typed into the form');
     expect(yaml, 'an edit did not reach currentMetadataYaml').toContain('typed into the form');
+  });
+
+  test('currentMetadataSerialized follows the configured format with real content', async ({ page }) => {
+    await open(page, '11-choice-default', undefined, '11-choice-default-instance');
+    const json = await page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadataSerialized,
+    );
+    expect(typeof json).toBe('object');
+    expect(JSON.stringify(json)).toContain('Private');
+
+    await open(page, '11-choice-default', undefined, '11-choice-default-instance', undefined, '&s=yaml');
+    const yaml = await page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadataSerialized,
+    );
+    expect(typeof yaml).toBe('string');
+    expect(yaml).toContain('Private');
+  });
+
+  test('dataQualityReport follows an invalid value and its correction', async ({ page }) => {
+    await open(page, '06-validation');
+    const email = page.locator('input[aria-label="an_email"]');
+    await email.fill('not-an-email');
+    await email.blur();
+
+    const readProblems = () =>
+      page.evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).dataQualityReport.problems);
+    await expect(async () => {
+      expect((await readProblems()).some((problem: any) => problem.code === 'email')).toBe(true);
+    }).toPass();
+
+    await email.fill('valid@example.org');
+    await email.blur();
+    await expect(async () => {
+      expect((await readProblems()).some((problem: any) => problem.code === 'email')).toBe(false);
+    }).toPass();
+  });
+});
+
+test.describe('host input timing', () => {
+  test('template-first separate inputs keep the supplied instance value', async ({ page }) => {
+    await open(page, '11-choice-default', undefined, '11-choice-default-instance', 'template-first');
+    await expect(page.locator('mat-radio-button.mat-radio-checked')).toContainText('Private');
+    const metadata = await page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
+    );
+    expect(JSON.stringify(metadata)).toContain('Private');
+  });
+
+  test('replacing an instance updates both the rendered widget and host output', async ({ page }) => {
+    await open(page, '11-choice-default', undefined, '11-choice-default-instance');
+    await page.evaluate(() => {
+      const cee = document.querySelector('cedar-embeddable-editor') as any;
+      const replacement = structuredClone(cee.currentMetadata);
+      replacement._access['@value'] = 'Public';
+      cee.instanceObject = replacement;
+    });
+
+    await expect(page.locator('mat-radio-button.mat-radio-checked')).toContainText('Public');
+    await expect(async () => {
+      const metadata = await page.evaluate(
+        () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
+      );
+      expect(metadata._access['@value']).toBe('Public');
+    }).toPass();
+  });
+});
+
+test.describe('host change notifications', () => {
+  const recordChanges = (page: import('@playwright/test').Page) =>
+    page.evaluate(() => {
+      (window as any).__ceeChanges = [];
+      document.querySelector('cedar-embeddable-editor').addEventListener('change', (event: CustomEvent) => {
+        (window as any).__ceeChanges.push(event.detail ?? null);
+      });
+    });
+
+  test('a field edit bubbles a change event and updates currentMetadata', async ({ page }) => {
+    await open(page, '01-input-types');
+    await recordChanges(page);
+    const field = page.locator('input[aria-label="text"]');
+    await field.fill('host-visible edit');
+    await field.blur();
+
+    await expect(async () => {
+      expect(await page.evaluate(() => (window as any).__ceeChanges.length)).toBeGreaterThan(0);
+    }).toPass();
+    const metadata = await page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
+    );
+    expect(JSON.stringify(metadata)).toContain('host-visible edit');
+  });
+
+  test('multi-instance add, copy and delete report their operation and obey maxItems', async ({ page }) => {
+    await open(page, '13-paged-choice', undefined, '13-paged-choice-instance');
+    await recordChanges(page);
+    const pager = page.locator('app-cedar-multi-pager').first();
+    const add = pager.locator('button').nth(0);
+    const copy = pager.locator('button').nth(1);
+    const remove = pager.locator('button').nth(2);
+    const count = () =>
+      page.evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata._record.length);
+    const messages = () =>
+      page.evaluate(() => (window as any).__ceeChanges.map((detail: any) => detail?.message).filter(Boolean));
+
+    expect(await count()).toBe(2);
+    await add.click();
+    await expect(async () => expect(await count()).toBe(3)).toPass();
+    await expect(async () => expect(await messages()).toContain('multiInstanceAdded')).toPass();
+
+    await copy.click();
+    await expect(async () => expect(await count()).toBe(4)).toPass();
+    await expect(async () => expect(await messages()).toContain('multiInstanceCopied')).toPass();
+    await expect(add, 'add must disable at maxItems').toBeDisabled();
+    await expect(copy, 'copy must disable at maxItems').toBeDisabled();
+
+    await remove.click();
+    await expect(async () => expect(await count()).toBe(3)).toPass();
+    await expect(async () => expect(await messages()).toContain('multiInstanceDeleted')).toPass();
+    await expect(add).toBeEnabled();
   });
 });
 
@@ -1262,10 +1445,7 @@ test.describe('config flags are wired to something', () => {
       const off = await domOf(page, fixture, withFlags);
       const on = await domOf(page, fixture, [...withFlags, flag]);
 
-      expect(
-        on === off,
-        `turning on ${flag} rendered byte-identical DOM — the key is probably ignored`,
-      ).toBe(false);
+      expect(on === off, `turning on ${flag} rendered byte-identical DOM — the key is probably ignored`).toBe(false);
     });
   }
 });
@@ -1344,6 +1524,24 @@ test.describe('the host event handler', () => {
     expect(events, 'no handler was attached, so nothing should have been recorded').toEqual([]);
     // The point of the negative case: the same code path runs, and is harmless.
     await expect(page.locator('input[aria-label="text"]')).toBeVisible();
+  });
+
+  test('receives a host-input error, not only startup traces', async ({ page }) => {
+    await open(page, '01-input-types', undefined, undefined, undefined, '&e=1');
+    await page.evaluate(async () => {
+      (window as any).__ceeEvents = [];
+      const template = await (await fetch('./fixtures/01-input-types.json')).json();
+      (document.querySelector('cedar-embeddable-editor') as any).templateAndInstanceObject = {
+        templateObject: template,
+      };
+    });
+
+    await expect(async () => {
+      const events = await page.evaluate(() => (window as any).__ceeEvents);
+      expect(
+        events.some((event: any) => event.kind === 'error' && event.label.includes('Instance Object is missing')),
+      ).toBe(true);
+    }).toPass();
   });
 });
 

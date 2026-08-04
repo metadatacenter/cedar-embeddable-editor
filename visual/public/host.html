@@ -44,7 +44,9 @@
        */
       (function () {
         var b = new URLSearchParams(location.search).get('b') || '';
-        document.write('<script src="./cedar-embeddable-editor.js' + (b ? '?b=' + encodeURIComponent(b) : '') + '"><\/script>');
+        document.write(
+          '<script src="./cedar-embeddable-editor.js' + (b ? '?b=' + encodeURIComponent(b) : '') + '"><\/script>',
+        );
       })();
     </script>
     <script>
@@ -205,6 +207,9 @@
         for (const flag of flags) {
           overrides[flag] = true;
         }
+        if (params.get('s')) {
+          overrides.outputSerialization = params.get('s');
+        }
 
         /**
          * An event handler, when ?e=1, recording what CEE tells the host.
@@ -246,6 +251,11 @@
             return;
           }
           cee.templateAndInstanceObject = { templateObject: template, instanceObject: instance };
+        } else if (mode === 'template-first') {
+          cee.templateObject = template;
+          if (instance) {
+            cee.instanceObject = instance;
+          }
         } else {
           if (instance) {
             cee.instanceObject = instance;

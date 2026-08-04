@@ -1,6 +1,7 @@
 import { CedarEmbeddableMetadataEditorComponent } from './cedar-embeddable-metadata-editor.component';
 import { ModelLibraryTemplateParser } from '../../factory/model-library-template-parser';
 import { YamlTemplateParser } from '../../factory/yaml-template-parser';
+import { AUTHORITY_DESCRIPTORS } from '../../models/authority/authority-descriptor.model';
 
 /**
  * The `config` object is the CEE's host-facing API, and its setter is the one
@@ -15,12 +16,14 @@ import { YamlTemplateParser } from '../../factory/yaml-template-parser';
  * needed.
  */
 describe('CedarEmbeddableMetadataEditorComponent config', () => {
-  const make = (): CedarEmbeddableMetadataEditorComponent =>
+  const make = (
+    setEndpoints: (...args: unknown[]) => void = (): void => undefined,
+  ): CedarEmbeddableMetadataEditorComponent =>
     new CedarEmbeddableMetadataEditorComponent(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       null as any, // activeComponentRegistry — untouched by the config setter
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { setEndpoints: (): void => undefined } as any, // externalAuthorityLookupService
+      { setEndpoints } as any, // externalAuthorityLookupService
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       { trace: (): void => undefined } as any, // messageHandlerService
     );
@@ -91,6 +94,47 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       const component = make();
       component.config = { extAuthBaseUrl: 'https://example.org/ext-auth/' };
       expect(component.extAuthBaseUrl).toBe('https://example.org/ext-auth/');
+    });
+
+    it('configures the default search and details endpoints for every authority', () => {
+      const setEndpoints = jasmine.createSpy('setEndpoints');
+      const component = make(setEndpoints);
+
+      component.config = {};
+
+      expect(setEndpoints).toHaveBeenCalledTimes(AUTHORITY_DESCRIPTORS.length);
+      for (const descriptor of AUTHORITY_DESCRIPTORS) {
+        expect(setEndpoints).toHaveBeenCalledWith(
+          descriptor.inputType,
+          component.extAuthBaseUrl + descriptor.defaultSearchPath,
+          component.extAuthBaseUrl + descriptor.defaultDetailsPath,
+        );
+      }
+    });
+
+    it('honours custom search and details paths independently for every authority', () => {
+      const setEndpoints = jasmine.createSpy('setEndpoints');
+      const component = make(setEndpoints);
+      const base = 'https://example.org/ext-auth/';
+      const config = AUTHORITY_DESCRIPTORS.reduce(
+        (value, descriptor, index) => ({
+          ...value,
+          [descriptor.searchUrlConfigKey]: `search-${index}`,
+          [descriptor.detailsUrlConfigKey]: `details-${index}`,
+        }),
+        { extAuthBaseUrl: base },
+      );
+
+      component.config = config;
+
+      expect(setEndpoints).toHaveBeenCalledTimes(AUTHORITY_DESCRIPTORS.length);
+      AUTHORITY_DESCRIPTORS.forEach((descriptor, index) => {
+        expect(setEndpoints).toHaveBeenCalledWith(
+          descriptor.inputType,
+          `${base}search-${index}`,
+          `${base}details-${index}`,
+        );
+      });
     });
   });
 

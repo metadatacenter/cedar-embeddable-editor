@@ -1,4 +1,5 @@
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper.component';
+import { Subject } from 'rxjs';
 
 /**
  * `outputSerialization` drives the host-facing `currentMetadataSerialized`
@@ -52,5 +53,100 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent output serialization', (
     component.innerConfig = { outputSerialization: 'yaml' };
     expect(typeof component.currentMetadata).toBe('object');
     expect(typeof component.currentMetadataYaml).toBe('string');
+  });
+});
+
+describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
+  interface Mocks {
+    templateJson$: Subject<object>;
+    metadataJson$: Subject<object>;
+    loadTemplate: jasmine.Spy;
+    setTerminologyIntegratedSearchUrl: jasmine.Spy;
+    setDefaultLang: jasmine.Spy;
+    use: jasmine.Spy;
+    globalSettings: { languageMapPathPrefix?: string };
+  }
+
+  const make = (): { component: CedarEmbeddableMetadataEditorWrapperComponent; mocks: Mocks } => {
+    const mocks: Mocks = {
+      templateJson$: new Subject<object>(),
+      metadataJson$: new Subject<object>(),
+      loadTemplate: jasmine.createSpy('loadTemplate'),
+      setTerminologyIntegratedSearchUrl: jasmine.createSpy('setTerminologyIntegratedSearchUrl'),
+      setDefaultLang: jasmine.createSpy('setDefaultLang'),
+      use: jasmine.createSpy('use'),
+      globalSettings: {},
+    };
+    const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined };
+    const component = new CedarEmbeddableMetadataEditorWrapperComponent(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { setTerminologyIntegratedSearchUrl: mocks.setTerminologyIntegratedSearchUrl } as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      messaging as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      {
+        templateJson$: mocks.templateJson$,
+        metadataJson$: mocks.metadataJson$,
+        loadTemplate: mocks.loadTemplate,
+      } as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { setDefaultLang: mocks.setDefaultLang, use: mocks.use } as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      messaging as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mocks.globalSettings as any,
+    );
+    return { component, mocks };
+  };
+
+  it('stops reacting to sample-template streams after destruction', () => {
+    const { component, mocks } = make();
+    const first = { title: 'first template' };
+    const firstMetadata = { title: 'first metadata' };
+    component.ngOnInit();
+
+    mocks.templateJson$.next({ first });
+    mocks.metadataJson$.next({ first: firstMetadata });
+    expect(component.templateAndInstanceJson).toEqual({ templateObject: first, instanceObject: firstMetadata });
+
+    component.ngOnDestroy();
+    mocks.templateJson$.next({ second: { title: 'second template' } });
+    mocks.metadataJson$.next({ second: { title: 'second metadata' } });
+
+    expect(component.templateAndInstanceJson).toEqual({ templateObject: first, instanceObject: firstMetadata });
+  });
+
+  it('applies config identically whether Angular supplies it before or after ngOnInit', () => {
+    const config = {
+      sampleTemplateLocationPrefix: '/samples/',
+      loadSampleTemplateName: 'example',
+      terminologyIntegratedSearchUrl: '/terminology/search',
+      showSpinnerBeforeInit: false,
+      languageMapPathPrefix: '/languages/',
+      fallbackLanguage: 'fr',
+      defaultLanguage: 'hu',
+      readOnlyMode: true,
+      hideEmptyFields: true,
+    };
+    const before = make();
+    const after = make();
+
+    before.component.config = config;
+    before.component.ngOnInit();
+    after.component.ngOnInit();
+    after.component.config = config;
+
+    for (const candidate of [before, after]) {
+      expect(candidate.mocks.loadTemplate).toHaveBeenCalledOnceWith('/samples/', 'example');
+      expect(candidate.mocks.setTerminologyIntegratedSearchUrl).toHaveBeenCalledOnceWith('/terminology/search');
+      expect(candidate.component.showSpinnerBeforeInit).toBe(false);
+      expect(candidate.mocks.globalSettings.languageMapPathPrefix).toBe('/languages/');
+      expect(candidate.mocks.setDefaultLang).toHaveBeenCalledOnceWith('fr');
+      expect(candidate.mocks.use).toHaveBeenCalledOnceWith('hu');
+      expect(candidate.component.handlerContext.readOnlyMode).toBe(true);
+      expect(candidate.component.handlerContext.hideEmptyFields).toBe(true);
+    }
   });
 });
