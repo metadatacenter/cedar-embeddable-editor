@@ -117,6 +117,31 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     return '';
   }
 
+  /**
+   * The instance in whichever serialization the config selected — a JSON object
+   * by default, or a YAML string when `outputSerialization: 'yaml'` is set.
+   *
+   * The typed getters above stay for a host that always wants one or the other;
+   * this is for a host that configures the format once and reads a single
+   * accessor. Output serialization is independent of input: the template can be
+   * handed in as JSON and the instance asked for as YAML.
+   */
+  @Input() get currentMetadataSerialized(): object | string {
+    if (!this.handlerContext) {
+      return this.isYamlOutput() ? '' : {};
+    }
+    const instance = this.handlerContext.dataContext.instanceFullData;
+    return this.isYamlOutput() ? InstanceSerializer.toYaml(instance) : InstanceSerializer.toJson(instance);
+  }
+
+  private isYamlOutput(): boolean {
+    return (
+      this.innerConfig != null &&
+      this.innerConfig[CedarEmbeddableMetadataEditorComponent.OUTPUT_SERIALIZATION] ===
+        CedarEmbeddableMetadataEditorComponent.SERIALIZATION_YAML
+    );
+  }
+
   @Input() set templateObject(template: object) {
     this.templateJson = template;
   }

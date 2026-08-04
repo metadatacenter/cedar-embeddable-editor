@@ -10,6 +10,9 @@ import { AUTHORITY_DESCRIPTORS } from '../../models/authority/authority-descript
 import { IriPrefix } from '../../util/iri-prefix';
 import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
 import { MessageHandlerService } from '../../service/message-handler.service';
+import { TemplateParser } from '../../factory/template-parser';
+import { ModelLibraryTemplateParser } from '../../factory/model-library-template-parser';
+import { YamlTemplateParser } from '../../factory/yaml-template-parser';
 import packageJson from 'package.json';
 
 @Component({
@@ -60,6 +63,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   static SHOW_PREFERENCES_MENU: string = 'showPreferencesMenu';
 
   private static IRI_PREFIX = 'iriPrefix';
+  // Input and output serialization are configured independently: a host can hand
+  // CEE a JSON template and read its instance back as YAML, or the reverse.
+  static INPUT_SERIALIZATION = 'inputSerialization';
+  static OUTPUT_SERIALIZATION = 'outputSerialization';
+  static SERIALIZATION_YAML = 'yaml';
   private static BIO_PORTAL_PREFIX = 'bioPortalPrefix';
   private static ORCID_PREFIX = 'orcidPrefix';
   private static ROR_PREFIX = 'rorPrefix';
@@ -94,6 +102,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
   expandedSampleTemplateLinks = false;
 
   collapseStaticComponents = false;
+  // Which parser turns the template a host hands in into the component tree.
+  // JSON by default; a host reading its templates as CEDAR YAML sets
+  // `inputSerialization: 'yaml'` in the config to switch it, and passes the
+  // YAML-parsed object. Input and output serialization are independent.
+  templateParser: TemplateParser = new ModelLibraryTemplateParser();
   showAllMultiInstanceValues = true;
   showTemplateDescription: boolean = false;
   readOnlyMode: boolean = false;
@@ -185,6 +198,13 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS)) {
         this.collapseStaticComponents = value[CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS];
       }
+      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.INPUT_SERIALIZATION)) {
+        const inputSerialization = value[CedarEmbeddableMetadataEditorComponent.INPUT_SERIALIZATION];
+        this.templateParser =
+          inputSerialization === CedarEmbeddableMetadataEditorComponent.SERIALIZATION_YAML
+            ? new YamlTemplateParser()
+            : new ModelLibraryTemplateParser();
+      }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT)) {
         this.showStaticText = value[CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT];
       }
@@ -253,6 +273,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
         this.handlerContext,
         this.pageBreakPaginatorService,
         this.collapseStaticComponents,
+        this.templateParser,
       );
       setTimeout(() => {
         this.initDataFromInstance(this.dataContext.instanceFullData)
@@ -296,6 +317,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit {
       this.handlerContext,
       this.pageBreakPaginatorService,
       this.collapseStaticComponents,
+      this.templateParser,
     );
     setTimeout(() => {
       this.initDataWithDataContext()
