@@ -4,19 +4,15 @@ import { environment } from './environments/environment';
 import { AppModuleProd } from './app/app.module.prod';
 import { AppModuleDev } from './app/app.module.dev';
 import packageJson from 'package.json';
+import { bootstrapCedarEditorOnce, CedarEditorBootstrapState } from './app/bootstrap-once';
 
 declare global {
-  interface Window {
+  interface Window extends CedarEditorBootstrapState {
     WebComponents: {
       ready: boolean;
     };
   }
 }
-
-// Expose the loaded CEE bundle version as a global, so host apps (e.g. the CEDAR
-// template-editor settings page) can display which CEE is actually running — a
-// stale cached bundle then shows the old version, which is the point.
-(window as any).cedarEmbeddableEditorVersion = packageJson.version;
 
 // needed for jsonld js library
 // (window as any).global = window;
@@ -26,10 +22,18 @@ if (environment.production) {
 }
 
 if (environment.production) {
-  platformBrowserDynamic()
-    .bootstrapModule(AppModuleProd)
-    .catch((err) => console.error(err));
+  bootstrapCedarEditorOnce(
+    window,
+    () => {
+      // Assign the version only to the bundle that wins the bootstrap slot. If
+      // another version is loaded later, it must not claim to be the one running.
+      (window as any).cedarEmbeddableEditorVersion = packageJson.version;
+      return platformBrowserDynamic().bootstrapModule(AppModuleProd);
+    },
+    (err) => console.error(err),
+  );
 } else {
+  (window as any).cedarEmbeddableEditorVersion = packageJson.version;
   platformBrowserDynamic()
     .bootstrapModule(AppModuleDev)
     .catch((err) => console.error(err));

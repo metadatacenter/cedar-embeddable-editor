@@ -198,7 +198,7 @@ export class DataObjectStructureHandler {
       this.performItemCopy(
         instance,
         templateRepresentation,
-        component.path,
+        component,
         multiInstanceObjectService,
         multiInstanceInfo,
       ),
@@ -208,21 +208,20 @@ export class DataObjectStructureHandler {
   private performItemCopy(
     instanceObject: InstanceExtractData,
     templateRepresentation: TemplateComponent,
-    path: string[],
+    component: MultiComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
     multiInstanceInfo: MultiInstanceObjectInfo,
   ): void {
     const currentNodeAny = this.getDataPathNodeRecursively(
       instanceObject,
       templateRepresentation,
-      path,
+      component.path,
       OccurrenceSelectors.fromCursor(multiInstanceObjectService),
     );
     const currentNodeArray = currentNodeAny as [];
     const sourceItem = currentNodeArray[multiInstanceInfo.currentIndex];
     const cloneItem = _.cloneDeep(sourceItem);
-    // TODO: Refactor this
-    this.cleanUpAtIdsRecursively(cloneItem);
+    this.remintElementInstanceIds(cloneItem, component);
     currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, cloneItem as never);
   }
 
@@ -262,21 +261,35 @@ export class DataObjectStructureHandler {
     currentNodeArray.splice(multiInstanceInfo.currentIndex, 1);
   }
 
-  // TODO: refactor this. This is a naive approach.
-  // Implement this as a recursive iterator taking into account the component, the multi-info, the template, and the data object
-  private cleanUpAtIdsRecursively(item: object) {
-    if (Object.hasOwn(item, JsonSchema.atId)) {
-      const atIdValue = item[JsonSchema.atId];
-      if (atIdValue.startsWith(this.dataObjectBuilderService.getTemplateElementInstanceIRIPrefix())) {
-        delete item[JsonSchema.atId];
-        this.dataObjectBuilderService.addRandomAtId(item);
-      }
+  /**
+   * Give every element occurrence in a copied subtree a new identity.
+   *
+   * An `@id` cannot identify its role by its string value. A field is allowed to
+   * hold an IRI under the same namespace CEE uses for element occurrences, so a
+   * prefix-based object walk can silently replace legitimate link or controlled-
+   * term values. The component tree does carry that distinction: only element
+   * components own occurrence-envelope IDs, while field components own data that
+   * must be copied verbatim.
+   */
+  private remintElementInstanceIds(item: unknown, component: CedarComponent): void {
+    if (!(component instanceof SingleElementComponent || component instanceof MultiElementComponent)) {
+      return;
     }
-    if (item instanceof Object) {
-      for (const key in item) {
-        const child = item[key];
-        if (child instanceof Object) {
-          this.cleanUpAtIdsRecursively(child);
+    if (item === null || typeof item !== 'object' || Array.isArray(item)) {
+      return;
+    }
+
+    const occurrence = item as InstanceExtractData;
+    delete occurrence[JsonSchema.atId];
+    this.dataObjectBuilderService.addRandomAtId(occurrence);
+
+    for (const childComponent of component.children) {
+      const childValue = occurrence[childComponent.name];
+      if (childComponent instanceof SingleElementComponent) {
+        this.remintElementInstanceIds(childValue, childComponent);
+      } else if (childComponent instanceof MultiElementComponent && Array.isArray(childValue)) {
+        for (const childOccurrence of childValue) {
+          this.remintElementInstanceIds(childOccurrence, childComponent);
         }
       }
     }

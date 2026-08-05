@@ -12,8 +12,11 @@ import { CeeDriver } from '../src/driver';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
+const LINK = kind('link');
+const CONTROLLED = kind('controlled');
 const PAGE_BREAK = kind('page-break');
 const IMAGE = kind('image');
+const ELEMENT_INSTANCE_IRI = 'https://repo.metadatacenter.org/template-element-instances/field-value';
 
 describe('page break pagination', () => {
   /**
@@ -240,6 +243,81 @@ describe('multi-instance elements', () => {
     const authors = driver.metadata['_author'];
     const ids = authors.map((a: any) => a['@id']).filter(Boolean);
     expect(new Set(ids).size, 'copied instances share an @id').toBe(ids.length);
+  });
+
+  it('copies a repeatable IRI field verbatim even when its value uses the element-instance namespace', () => {
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'copy_multi_link',
+        children: [{ kind: LINK, name: 'reference', cardinality: 'multi', minItems: 1 }],
+      }),
+    );
+    const reference = driver.findOrThrow(['_reference']);
+    driver.handlerContext.changeValue(reference, ELEMENT_INSTANCE_IRI);
+
+    driver.handlerContext.copyMultiInstance(reference);
+
+    expect(driver.metadata._reference.map((value: any) => value['@id'])).toEqual([
+      ELEMENT_INSTANCE_IRI,
+      ELEMENT_INSTANCE_IRI,
+    ]);
+  });
+
+  it('remints only element envelopes throughout a copied subtree', () => {
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'copy_nested_elements',
+        elements: [
+          {
+            name: 'outer',
+            cardinality: 'multi',
+            minItems: 1,
+            children: [{ kind: LINK, name: 'reference' }],
+            elements: [
+              {
+                name: 'inner',
+                children: [{ kind: LINK, name: 'innerReference' }],
+              },
+              {
+                name: 'manyInner',
+                cardinality: 'multi',
+                minItems: 2,
+                children: [{ kind: CONTROLLED, name: 'term' }],
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    driver.dataContext.mutate((instance: any) => {
+      const outer = instance._outer[0];
+      outer._reference = { '@id': `${ELEMENT_INSTANCE_IRI}/outer-field` };
+      outer._inner._innerReference = { '@id': `${ELEMENT_INSTANCE_IRI}/inner-field` };
+      outer._manyInner.forEach((inner: any, index: number) => {
+        inner._term = {
+          '@id': `${ELEMENT_INSTANCE_IRI}/term-${index}`,
+          'rdfs:label': `Term ${index}`,
+        };
+      });
+    });
+
+    const outerComponent = driver.findOrThrow(['_outer']);
+    const before = driver.metadata._outer[0];
+    driver.handlerContext.copyMultiInstance(outerComponent);
+    const [source, copy] = driver.metadata._outer;
+
+    expect(source['@id']).toBe(before['@id']);
+    expect(copy['@id']).not.toBe(source['@id']);
+    expect(copy._inner['@id']).not.toBe(source._inner['@id']);
+    expect(copy._manyInner.map((inner: any) => inner['@id'])).not.toEqual(
+      source._manyInner.map((inner: any) => inner['@id']),
+    );
+
+    expect(copy._reference['@id']).toBe(source._reference['@id']);
+    expect(copy._inner._innerReference['@id']).toBe(source._inner._innerReference['@id']);
+    expect(copy._manyInner.map((inner: any) => inner._term)).toEqual(
+      source._manyInner.map((inner: any) => inner._term),
+    );
   });
 });
 
