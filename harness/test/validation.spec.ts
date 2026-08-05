@@ -113,6 +113,38 @@ describe('numeric constraints', () => {
     expect(codesFor(k, '0')).toEqual([]);
     expect(codesFor(k, '10')).toEqual([]);
   });
+
+  /**
+   * xsd:long's range is wider than the doubles the check used to run on. 2^63-1 written as
+   * a numeric literal rounds up to 2^63, so the upper bound was one too high and every
+   * value within an ulp of it collapsed onto the same double: 9223372036854775808 passed
+   * as a long, and ...807 and ...809 were indistinguishable. The bounds are BigInt now.
+   */
+  describe('xsd:long at the edge of double precision', () => {
+    const long = () => numeric((b) => b.withNumberType(NumberType.LONG));
+
+    it.each([
+      ['LONG_MAX', '9223372036854775807'],
+      ['LONG_MIN', '-9223372036854775808'],
+    ])('accepts %s exactly', (_label, value) => {
+      expect(codesFor(long(), value)).toEqual([]);
+    });
+
+    it.each([
+      ['one past LONG_MAX', '9223372036854775808'],
+      ['one before LONG_MIN', '-9223372036854775809'],
+      ['far past LONG_MAX', '99999999999999999999'],
+    ])('rejects %s', (_label, value) => {
+      expect(codesFor(long(), value)).toContain('numberType');
+    });
+
+    // Same double as LONG_MAX, two apart as integers. Only exact arithmetic separates them.
+    it('separates values that share a double with LONG_MAX', () => {
+      expect(Number('9223372036854775807')).toBe(Number('9223372036854775809'));
+      expect(codesFor(long(), '9223372036854775807')).toEqual([]);
+      expect(codesFor(long(), '9223372036854775809')).toContain('numberType');
+    });
+  });
 });
 
 describe('temporal constraints', () => {

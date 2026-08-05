@@ -29,7 +29,7 @@ export class ClockTime {
 
   /** The 24-hour hour a 12-hour face means: 12 AM → 0, 12 PM → 12, 1 PM → 13. */
   static toTwentyFourHour(hour12: number, meridian: Meridian): number {
-    const onTheFace = ((hour12 - 1) % 12 + 12) % 12 + 1; // 1..12, tolerating 0 and 13
+    const onTheFace = ((((hour12 - 1) % 12) + 12) % 12) + 1; // 1..12, tolerating 0 and 13
     const base = onTheFace % 12; // 12 → 0
     return meridian === 'PM' ? base + 12 : base;
   }
@@ -47,7 +47,7 @@ export class ClockTime {
       return min;
     }
     const span = max - min + 1;
-    return min + (((Math.trunc(value) - min) % span) + span) % span;
+    return min + ((((Math.trunc(value) - min) % span) + span) % span);
   }
 
   /**

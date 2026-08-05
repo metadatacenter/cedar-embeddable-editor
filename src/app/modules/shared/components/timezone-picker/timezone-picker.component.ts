@@ -122,7 +122,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
    */
   timeZones: Array<any>;
   form: FormGroup;
-  private propagateChange: (_: any) => {};
+  private propagateChange: (_: any) => void;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -231,7 +231,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {}
+  registerOnTouched(_fn: any): void {}
 
   /**
    * Handle parent model value changes.

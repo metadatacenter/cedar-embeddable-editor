@@ -12,7 +12,6 @@ import * as _ from 'lodash-es';
 import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
-import { JavascriptTypes } from '../models/javascript-types.model';
 import { InstanceCardinalityReader } from './instance-cardinality-reader';
 import { ModelLibraryInstanceReader } from './model-library-instance-reader';
 

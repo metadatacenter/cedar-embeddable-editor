@@ -46,7 +46,6 @@ export class CedarComponentRendererComponent {
     this._allExpanded = allExpanded;
   }
   constructor() {}
-  ngOnInit() {}
 
   @Input() set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;

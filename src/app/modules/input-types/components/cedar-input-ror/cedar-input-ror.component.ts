@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { AuthoritySearchControl } from '../../../shared/util/authority-search-control';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -67,7 +67,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
 
   ngOnInit(): void {
     super.ngOnInit();
-    const validators: any[] = [];
+    const validators: ValidatorFn[] = [];
     if (this.component?.valueInfo?.requiredValue) {
       validators.push(Validators.required);
     }

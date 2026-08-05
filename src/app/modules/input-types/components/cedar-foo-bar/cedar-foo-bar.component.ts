@@ -23,15 +23,16 @@ export class CedarFooBarComponent extends CedarUIDirective implements OnInit {
     this.activeComponentRegistry = activeComponentRegistry;
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    super.ngOnInit();
+  }
 
   @Input() set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(_currentValue: any): void {
     // DO NOTHING
   }
 }

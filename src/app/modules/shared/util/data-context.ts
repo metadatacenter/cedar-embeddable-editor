@@ -13,8 +13,6 @@ import { DataObjectBuilderHandler } from '../handler/data-object-builder.handler
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { PageBreakPaginatorService } from '../service/page-break-paginator.service';
 import { DataQualityReport } from '../models/data-quality-report.model';
-import { CedarTemplate } from '../models/template/cedar-template.model';
-import { ElementComponent } from '../models/component/element-component.model';
 
 export class DataContext {
   templateInput: CedarInputTemplate = null;

@@ -1,8 +1,8 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { Injector, NgModule } from '@angular/core';
+import { DoBootstrap, Injector, NgModule } from '@angular/core';
 import { createCustomElement } from '@angular/elements';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { AppComponentDev } from './app.component.dev';
+import { AppDevComponent } from './app.component.dev';
 import { SharedModule } from './modules/shared/shared.module';
 import { JsonPipe } from '@angular/common';
 import { InputTypesModule } from './modules/input-types/input-types.module';
@@ -16,7 +16,7 @@ import { GlobalSettingsContextService } from './modules/shared/service/global-se
 import { defineCustomElementOnce } from './custom-element';
 
 @NgModule({
-  declarations: [AppComponentDev],
+  declarations: [AppDevComponent],
   imports: [
     BrowserModule,
     HttpClientModule,
@@ -39,11 +39,11 @@ import { defineCustomElementOnce } from './custom-element';
     }),
   ],
   providers: [JsonPipe],
-  bootstrap: [AppComponentDev],
+  bootstrap: [AppDevComponent],
   exports: [],
   entryComponents: [CedarEmbeddableMetadataEditorWrapperComponent],
 })
-export class AppModuleDev {
+export class AppModuleDev implements DoBootstrap {
   constructor(private injector: Injector) {}
 
   ngDoBootstrap(): void {

@@ -91,7 +91,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.writeValue();
   }
 
-  timeInputChanged(event): void {
+  timeInputChanged(_event): void {
     this.datetimeParsed.setHours(this.timePickerTime.getHours());
     this.datetimeParsed.setAMPM(this.enableMeridian());
 
@@ -105,7 +105,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.writeValue();
   }
 
-  decimalSecondsChanged(event): void {
+  decimalSecondsChanged(_event): void {
     this.datetimeParsed.setDecimalSeconds(this.decimalSeconds);
     this.writeValue();
   }

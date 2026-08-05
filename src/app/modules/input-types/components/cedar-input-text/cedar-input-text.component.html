@@ -8,13 +8,13 @@
   </div>
   <mat-form-field *ngIf="(!isOrcid && !isRor && !isRichText)" class="full-width">
 <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
-      <input matInput type="text" *ngIf="component.basicInfo.inputType==inputText"
+      <input matInput type="text" *ngIf="component.basicInfo.inputType===inputText"
              [formControl]="inputValueControl"
              [errorStateMatcher]="errorStateMatcher"
              (input)="inputChanged($event)"
              [readonly]="readOnlyMode"
              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
-    <textarea matInput type="text" *ngIf="component.basicInfo.inputType==inputTextarea"
+    <textarea matInput type="text" *ngIf="component.basicInfo.inputType===inputTextarea"
               cdkTextareaAutosize
               cdkAutosizeMinRows="6"
               [formControl]="inputValueControl"

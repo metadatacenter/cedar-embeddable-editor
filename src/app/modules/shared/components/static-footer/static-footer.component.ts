@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 
 @Component({
   selector: 'app-static-footer',
@@ -6,8 +6,6 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
   styleUrls: ['./static-footer.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
 })
-export class StaticFooterComponent implements OnInit {
+export class StaticFooterComponent {
   constructor() {}
-
-  ngOnInit(): void {}
 }

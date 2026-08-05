@@ -417,5 +417,4 @@ export class DataQualityReportBuilderHandler {
   private static isIriValued(component: SingleFieldComponent | MultiFieldComponent): boolean {
     return valueIsIri(component.basicInfo.inputType);
   }
-
 }

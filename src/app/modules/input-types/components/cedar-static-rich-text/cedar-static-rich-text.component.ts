@@ -23,7 +23,7 @@ export class CedarStaticRichTextComponent extends CedarUIDirective {
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(_currentValue: any): void {
     // not applicable to rich text component
   }
 }

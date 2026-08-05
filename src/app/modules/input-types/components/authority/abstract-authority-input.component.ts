@@ -1,4 +1,4 @@
-import { Directive, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Directive, Input, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
@@ -46,7 +46,7 @@ export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
  * that panel is the one thing about them that is genuinely their own.
  */
 @Directive()
-export abstract class AbstractAuthorityInputComponent extends CedarUIDirective {
+export abstract class AbstractAuthorityInputComponent extends CedarUIDirective implements OnInit, AfterViewInit {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger: MatAutocompleteTrigger;
   @Input() handlerContext: HandlerContext;
   @Input() set componentToRender(componentToRender: FieldComponent) {

@@ -35,7 +35,10 @@ export class InstanceSerializer {
     if (instance == null) {
       return {};
     }
-    return CedarWriters.json().getFebruary2024().getTemplateInstanceWriter().getAsJsonNode(InstanceSerializer.parse(instance));
+    return CedarWriters.json()
+      .getFebruary2024()
+      .getTemplateInstanceWriter()
+      .getAsJsonNode(InstanceSerializer.parse(instance));
   }
 
   /** The same instance as CEDAR YAML. */
@@ -43,6 +46,9 @@ export class InstanceSerializer {
     if (instance == null) {
       return '';
     }
-    return CedarWriters.yaml().getStrict().getTemplateInstanceWriter().getAsYamlString(InstanceSerializer.parse(instance));
+    return CedarWriters.yaml()
+      .getStrict()
+      .getTemplateInstanceWriter()
+      .getAsYamlString(InstanceSerializer.parse(instance));
   }
 }

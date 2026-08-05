@@ -120,12 +120,7 @@ export class FieldValueValidator {
   /** Used only for external-authority fields, which store a bare IRI. */
   private static readonly IRI = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\s]+$|^urn:[^\s]+$|^doi:[^\s]+$/;
 
-  private static checkFormat(
-    component: FieldComponent,
-    text: string,
-    path: string[],
-    out: ValidationProblem[],
-  ): void {
+  private static checkFormat(component: FieldComponent, text: string, path: string[], out: ValidationProblem[]): void {
     const inputType = component.basicInfo.inputType;
 
     if (inputType === InputType.email && !this.EMAIL.test(text)) {
@@ -144,20 +139,20 @@ export class FieldValueValidator {
     }
   }
 
-  /** Integer-like types and the implicit bounds the XSD type itself imposes. */
-  private static readonly INTEGRAL_BOUNDS: Record<string, [number, number]> = {
+  /**
+   * Integer-like types and the implicit bounds the XSD type itself imposes.
+   *
+   * BigInt, because xsd:long's range exceeds what a double represents exactly — see
+   * Numbers. The comparison below must stay in BigInt for the same reason.
+   */
+  private static readonly INTEGRAL_BOUNDS: Record<string, [bigint, bigint]> = {
     [Xsd.int]: [Numbers.NUMBER_INT_MIN, Numbers.NUMBER_INT_MAX],
     [Xsd.long]: [Numbers.NUMBER_LONG_MIN, Numbers.NUMBER_LONG_MAX],
     [Xsd.byte]: [Numbers.NUMBER_BYTE_MIN, Numbers.NUMBER_BYTE_MAX],
     [Xsd.short]: [Numbers.NUMBER_SHORT_MIN, Numbers.NUMBER_SHORT_MAX],
   };
 
-  private static checkNumeric(
-    component: FieldComponent,
-    text: string,
-    path: string[],
-    out: ValidationProblem[],
-  ): void {
+  private static checkNumeric(component: FieldComponent, text: string, path: string[], out: ValidationProblem[]): void {
     const ni = component.numberInfo;
     const numberType = ni.numberType;
     const integral = Object.prototype.hasOwnProperty.call(this.INTEGRAL_BOUNDS, numberType);
@@ -197,12 +192,16 @@ export class FieldValueValidator {
     }
 
     // The type's own range, then any narrower range the template declares.
+    //
+    // Integral types compare as BigInt against the exact bounds. Going through `numeric`
+    // would collapse every value near 2^63 onto the same double, which is how
+    // 9223372036854775808 used to pass as an xsd:long. Reaching here as an integral type
+    // means the text already matched PATTERN_XSD_INT_AND_LONG, so BigInt cannot throw.
     const bounds = this.INTEGRAL_BOUNDS[numberType];
     if (bounds) {
-      if (numeric < bounds[0] || numeric > bounds[1]) {
-        out.push(
-          this.problem(component, path, ValidationCode.numberType, `Outside the range of ${numberType}.`, text),
-        );
+      const exact = BigInt(text);
+      if (exact < bounds[0] || exact > bounds[1]) {
+        out.push(this.problem(component, path, ValidationCode.numberType, `Outside the range of ${numberType}.`, text));
       }
     }
     if (ni.minValue != null && numeric < ni.minValue) {
@@ -268,7 +267,7 @@ export class FieldValueValidator {
       }
     }
 
-    const dateStr = temporalType === Xsd.time ? null : (timePart !== null ? datePart : rest);
+    const dateStr = temporalType === Xsd.time ? null : timePart !== null ? datePart : rest;
     const timeStr = temporalType === Xsd.time ? rest : timePart;
 
     if (dateStr !== null && this.DATE_PART.test(dateStr)) {

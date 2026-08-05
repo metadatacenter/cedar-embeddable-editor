@@ -5,7 +5,7 @@ import { PageBreakPaginatorService } from '../../../shared/service/page-break-pa
 
 @Injectable()
 export class CustomMatPaginatorIntl extends MatPaginatorIntl {
-  getRangeLabel = (page: number, pageSize: number, length: number) => {
+  getRangeLabel = (_page: number, _pageSize: number, _length: number) => {
     return '';
   };
 }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation } from '@angular/core';
 
 @Component({
   selector: 'app-static-header',
@@ -6,11 +6,9 @@ import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
   styleUrls: ['./static-header.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
 })
-export class StaticHeaderComponent implements OnInit {
+export class StaticHeaderComponent {
   @Input() callbackOwnerObject: any = null;
   @Input() showSampleTemplateLinks: boolean = null;
 
   constructor() {}
-
-  ngOnInit(): void {}
 }

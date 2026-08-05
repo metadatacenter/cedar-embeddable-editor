@@ -13,7 +13,6 @@ import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { TemplateComponent } from '../models/template/template-component.model';
-import { DataObjectUtil } from '../util/data-object-util';
 import { MessageHandlerService } from '../service/message-handler.service';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
@@ -195,13 +194,7 @@ export class DataObjectStructureHandler {
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
     dataContext.mutate((instance) =>
-      this.performItemCopy(
-        instance,
-        templateRepresentation,
-        component,
-        multiInstanceObjectService,
-        multiInstanceInfo,
-      ),
+      this.performItemCopy(instance, templateRepresentation, component, multiInstanceObjectService, multiInstanceInfo),
     );
   }
 

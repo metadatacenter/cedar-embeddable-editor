@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
+import { FormControl, ValidatorFn, Validators } from '@angular/forms';
 import { DateAdapter } from '@angular/material/core';
 import { MatDatepicker } from '@angular/material/datepicker';
 
@@ -57,7 +57,7 @@ export class DatePickerComponent implements OnInit {
     this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
       this.readOnlyMode = mode;
     });
-    const validators: any[] = [];
+    const validators: ValidatorFn[] = [];
     this._dateTimeService.format = this.dateFormat;
     const m = moment();
 

@@ -70,7 +70,7 @@ export class SampleTemplatesService {
         );
         this.handleLoadedDataFiles();
       },
-      (error) => {
+      () => {
         this.attemptedFileCount++;
         this.loadedTemplate = null;
         this.messageHandlerService.error('Error while loading sample template from: ' + templateUrl);
@@ -92,7 +92,7 @@ export class SampleTemplatesService {
         );
         this.handleLoadedDataFiles();
       },
-      (error) => {
+      () => {
         this.attemptedFileCount++;
         this.loadedMetadata = null;
         this.messageHandlerService.error('Error while loading sample metadata from: ' + metadataUrl);
@@ -123,7 +123,7 @@ export class SampleTemplatesService {
       map((resp: object) => {
         return Object.keys(resp)
           .sort()
-          .map((key, index) => {
+          .map((key) => {
             const entry = {};
             entry[this.TEMPLATE_NUMBER] = key;
             entry[this.TEMPLATE_LABEL] = resp[key];

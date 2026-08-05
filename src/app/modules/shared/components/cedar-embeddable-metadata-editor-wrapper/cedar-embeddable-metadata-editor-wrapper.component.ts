@@ -220,7 +220,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   // TODO: revisit if this method is needed. The CEE should be agnostic of the environment, should expect the config to be injected
   @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
-    const that = this;
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => {
       if (xhr.readyState === XMLHttpRequest.DONE) {
@@ -255,7 +254,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
             }
             return;
           }
-          that.config = jsonConfig;
+          this.config = jsonConfig;
 
           if (successHandler) {
             successHandler(jsonConfig);

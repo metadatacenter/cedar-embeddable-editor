@@ -110,7 +110,10 @@ export class InstanceDeserializer {
   }
 
   private static writeFull(instance: TemplateInstance): InstanceFullData {
-    return CedarWriters.json().getFebruary2024().getTemplateInstanceWriter().getAsJsonNode(instance) as InstanceFullData;
+    return CedarWriters.json()
+      .getFebruary2024()
+      .getTemplateInstanceWriter()
+      .getAsJsonNode(instance) as InstanceFullData;
   }
 
   /**

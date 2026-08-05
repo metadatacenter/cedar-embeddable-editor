@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { DataContext } from '../../util/data-context';
 
 @Component({
@@ -7,7 +7,7 @@ import { DataContext } from '../../util/data-context';
   styleUrls: ['./source-panels.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
 })
-export class SourcePanelsComponent implements OnInit {
+export class SourcePanelsComponent {
   @Input() dataContext: DataContext = null;
 
   @Input() showTemplateRenderingRepresentation: boolean;
@@ -25,8 +25,6 @@ export class SourcePanelsComponent implements OnInit {
   @Input() expandedDataQualityReport: boolean;
 
   constructor() {}
-
-  ngOnInit(): void {}
 
   stopPropagation(event): void {
     event.stopPropagation();

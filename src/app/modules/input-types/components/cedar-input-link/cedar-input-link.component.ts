@@ -1,5 +1,13 @@
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormGroupDirective,
+  NgForm,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
@@ -9,7 +17,7 @@ import { ComponentDataService } from '../../../shared/service/component-data.ser
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
@@ -40,8 +48,7 @@ export class CedarInputLinkComponent extends CedarUIDirective implements OnInit 
 
   ngOnInit(): void {
     super.ngOnInit();
-    const validators: any[] = [];
-
+    const validators: ValidatorFn[] = [];
 
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);

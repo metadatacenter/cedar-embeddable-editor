@@ -1,0 +1,121 @@
+{
+  "root": true,
+  "ignorePatterns": ["dist/**", "dist-npm/**", "out-tsc/**", "node_modules/**"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module",
+        "project": ["./tsconfig.eslint.json"],
+        "tsconfigRootDir": "."
+      },
+      "env": {
+        "browser": true,
+        "es2022": true
+      },
+      "plugins": ["@typescript-eslint"],
+      "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@angular-eslint/recommended",
+        "plugin:@angular-eslint/template/process-inline-templates",
+        "plugin:prettier/recommended"
+      ],
+      "rules": {
+        "@typescript-eslint/object-curly-spacing": ["error", "always"],
+        "prettier/prettier": "error",
+        // A leading underscore marks a binding that an interface, override or callback
+        // signature forces us to declare but that the body does not use.
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          {
+            "argsIgnorePattern": "^_",
+            "varsIgnorePattern": "^_",
+            "caughtErrors": "all",
+            "caughtErrorsIgnorePattern": "^_"
+          }
+        ]
+      }
+    },
+    // Baseline for @typescript-eslint/no-explicit-any, which stays an error everywhere else so
+    // that new code cannot add to the debt. Each entry below is an `any` that predates the lint
+    // gate; removing one means giving it a real type and deleting its line here. The clusters:
+    //
+    //   - `setCurrentValue(currentValue: any)`, from the abstract member in
+    //     cedar-ui-component.model.ts. Typing it needs a union for every CEDAR field value.
+    //   - `static fromJson(json: any)` in the ORCID and ROR REST models, which parse
+    //     unvalidated third-party payloads.
+    //   - `callbackOwnerObject` / `sampleTemplateLoaderObject` host callbacks and the
+    //     `as any` structural casts in the data-object handlers.
+    {
+      "files": [
+        "src/app/modules/input-types/components/cedar-foo-bar/cedar-foo-bar.component.ts",
+        "src/app/modules/input-types/components/cedar-input-attribute-value/cedar-input-attribute-value.component.ts",
+        "src/app/modules/input-types/components/cedar-input-checkbox/cedar-input-checkbox.component.ts",
+        "src/app/modules/input-types/components/cedar-input-controlled/cedar-input-controlled.component.ts",
+        "src/app/modules/input-types/components/cedar-input-datetime/cedar-input-datetime.component.ts",
+        "src/app/modules/input-types/components/cedar-input-email/cedar-input-email.component.ts",
+        "src/app/modules/input-types/components/cedar-input-link/cedar-input-link.component.ts",
+        "src/app/modules/input-types/components/cedar-input-multiple-choice/cedar-input-multiple-choice.component.ts",
+        "src/app/modules/input-types/components/cedar-input-numeric/cedar-input-numeric.component.ts",
+        "src/app/modules/input-types/components/cedar-input-phone/cedar-input-phone.component.ts",
+        "src/app/modules/input-types/components/cedar-input-ror/cedar-input-ror.component.ts",
+        "src/app/modules/input-types/components/cedar-input-ror/ror-details/ror-details.component.ts",
+        "src/app/modules/input-types/components/cedar-input-select/cedar-input-select.component.ts",
+        "src/app/modules/input-types/components/cedar-input-text/cedar-input-text.component.ts",
+        "src/app/modules/input-types/components/cedar-static-image/cedar-static-image.component.ts",
+        "src/app/modules/input-types/components/cedar-static-rich-text/cedar-static-rich-text.component.ts",
+        "src/app/modules/input-types/components/cedar-static-section-break/cedar-static-section-break.component.ts",
+        "src/app/modules/input-types/components/cedar-static-youtube/cedar-static-youtube.component.ts",
+        "src/app/modules/shared/components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component.spec.ts",
+        "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.spec.ts",
+        "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.ts",
+        "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.ts",
+        "src/app/modules/shared/components/sample-template-select/sample-template-select.component.ts",
+        "src/app/modules/shared/components/sample-templates/sample-templates.component.ts",
+        "src/app/modules/shared/components/static-header/static-header.component.ts",
+        "src/app/modules/shared/components/timezone-picker/timezone-picker.component.ts",
+        "src/app/modules/shared/factory/yaml-template-parser.ts",
+        "src/app/modules/shared/handler/data-object-builder.handler.ts",
+        "src/app/modules/shared/handler/data-quality-report-builder.handler.ts",
+        "src/app/modules/shared/handler/multi-instance-object.handler.ts",
+        "src/app/modules/shared/models/rest/orcid-detail/orcid-detail-employment.ts",
+        "src/app/modules/shared/models/rest/orcid-detail/orcid-detail-person.ts",
+        "src/app/modules/shared/models/rest/ror-detail/ror-detail-external-id.ts",
+        "src/app/modules/shared/models/rest/ror-detail/ror-detail-geoname-details.ts",
+        "src/app/modules/shared/models/rest/ror-detail/ror-detail-link.ts",
+        "src/app/modules/shared/models/rest/ror-detail/ror-detail-location.ts",
+        "src/app/modules/shared/models/rest/ror-detail/ror-detail-name.ts",
+        "src/app/modules/shared/models/rest/ror-detail/ror-detail-raw-response.ts",
+        "src/app/modules/shared/models/rest/ror-detail/ror-detail-relationship.ts",
+        "src/app/modules/shared/models/rest/ror-detail/ror-detail-response.ts",
+        "src/app/modules/shared/models/ui/cedar-ui-component.model.ts",
+        "src/app/modules/shared/util/fallback-translate-loader-factory.ts",
+        "src/app/modules/shared/util/fallback-translate-loader.ts",
+        "src/main.ts"
+      ],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "warn"
+      }
+    },
+    {
+      "files": ["*.html"],
+      "extends": ["plugin:@angular-eslint/template/recommended"],
+      "rules": {}
+    },
+    {
+      "files": ["*.js", "*.cjs"],
+      "env": {
+        "node": true,
+        "es2022": true
+      },
+      "extends": ["eslint:recommended", "plugin:prettier/recommended"],
+      "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "script"
+      }
+    }
+  ]
+}

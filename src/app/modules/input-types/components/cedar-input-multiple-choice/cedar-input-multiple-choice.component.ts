@@ -1,6 +1,14 @@
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormGroupDirective,
+  NgForm,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
@@ -8,7 +16,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
@@ -39,7 +47,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
 
   ngOnInit(): void {
     super.ngOnInit();
-    const validators: any[] = [];
+    const validators: ValidatorFn[] = [];
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
@@ -74,5 +82,4 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
     this.selectedChoiceInputControl.setValue(currentValue);
     this.selected = currentValue;
   }
-
 }

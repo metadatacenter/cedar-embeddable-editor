@@ -1,0 +1,22 @@
+/*
+  TSConfig used only by ESLint.
+
+  The root tsconfig.json is a "solution style" file that includes no sources of its own, and
+  tsconfig.app.json lists just the build entry points. Neither one puts every file under src/
+  into a program, which type-aware lint rules require. This config includes them all.
+*/
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // Lint only cares about our own sources. @ngx-translate/core 11's typings predate
+    // Angular 14's ModuleWithProviders<T> and would otherwise error here.
+    "skipLibCheck": true,
+    // Both are set by tsconfig.app.json and needed by src/ (moment's default export,
+    // and the package.json import in cedar-embeddable-metadata-editor.component.ts).
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "types": ["jasmine", "node"]
+  },
+  "include": ["src/**/*.ts"]
+}

@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { NullTemplate } from '../../models/template/null-template.model';
 import { DataContext } from '../../util/data-context';
 import { HandlerContext } from '../../util/handler-context';
@@ -21,7 +21,7 @@ import packageJson from 'package.json';
   styleUrls: ['./cedar-embeddable-metadata-editor.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
 })
-export class CedarEmbeddableMetadataEditorComponent implements OnInit, OnDestroy {
+export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   private static INNER_VERSION = '2026-07-28 20:0500';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
@@ -131,8 +131,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit, OnDestroy
     this.ceeVersion = packageJson.version;
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
-
-  ngOnInit(): void {}
 
   ngOnDestroy(): void {
     this.activeComponentRegistry.clear();
@@ -299,7 +297,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit, OnDestroy
       return;
     }
     // TODO: an interface for templateAndInstance object
-    // @ts-ignore
+    // @ts-expect-error - templateAndInstance is typed as `object`
     const { templateObject, instanceObject } = templateAndInstance;
     if (!templateObject) {
       this.messageHandlerService.error('Template Object is missing.');

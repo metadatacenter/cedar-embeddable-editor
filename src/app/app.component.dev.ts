@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-component-dev',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponentDev implements OnInit {
+export class AppDevComponent {
   ceeConfig = {
     // The standalone developer app carries one local sample so it starts from
     // this repository alone. Embedded hosts still provide their own templates.
@@ -69,6 +69,4 @@ export class AppComponentDev implements OnInit {
   };
 
   constructor() {}
-
-  ngOnInit(): void {}
 }

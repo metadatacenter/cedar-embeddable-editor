@@ -146,7 +146,9 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
     // other ways it is written down. Kept narrow deliberately — this decides
     // whether to resolve an identifier or run a name search, and anything looser
     // would send ordinary search text to the resolve endpoint.
-    looksLikeIdentifier: byPattern(/^(?:https?:\/\/(?:www\.)?ncbi\.nlm\.nih\.gov\/pubmed\/\d+|https?:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/\d+\/?|PMID:\s*\d+|\d+)$/i),
+    looksLikeIdentifier: byPattern(
+      /^(?:https?:\/\/(?:www\.)?ncbi\.nlm\.nih\.gov\/pubmed\/\d+|https?:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/\d+\/?|PMID:\s*\d+|\d+)$/i,
+    ),
   },
   {
     inputType: InputType.rrid,

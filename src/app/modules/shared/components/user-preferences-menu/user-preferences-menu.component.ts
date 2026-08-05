@@ -7,7 +7,7 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
   templateUrl: './user-preferences-menu.component.html',
   styleUrls: ['./user-preferences-menu.component.scss'],
 })
-export class UserPreferencesMenu {
+export class UserPreferencesMenuComponent {
   @ViewChild(MatMenuTrigger, { static: false }) menuTrigger!: MatMenuTrigger;
   constructor(private userPreferencesService: UserPreferencesService) {
     this.userPreferencesService = userPreferencesService;

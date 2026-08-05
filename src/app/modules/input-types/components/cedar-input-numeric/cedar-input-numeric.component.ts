@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -40,7 +40,7 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
     super.ngOnInit();
     this.unitOfMeasure = this.component.numberInfo.unitOfMeasure;
 
-    const validators: any[] = [];
+    const validators: ValidatorFn[] = [];
 
     this.constraintMinValue = this.component.numberInfo.minValue;
     this.constraintMaxValue = this.component.numberInfo.maxValue;

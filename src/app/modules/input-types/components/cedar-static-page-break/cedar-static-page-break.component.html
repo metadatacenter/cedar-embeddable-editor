@@ -3,7 +3,7 @@
   <div class="pager-chips">
     <mat-chip-list>
       <mat-chip *ngFor="let pageNumber of pageBreakPaginatorService.allPageIndices()"
-                [selected]="pageNumber == pageBreakPaginatorService.currentPageBreakIndex"
+                [selected]="pageNumber === pageBreakPaginatorService.currentPageBreakIndex"
                 (click)="pageBreakPaginatorService.setPageNumberAndGet(pageNumber)"
                 selectable="true"
       >{{pageNumber + 1}}</mat-chip>
