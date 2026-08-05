@@ -1,6 +1,6 @@
 # CEDAR Embeddable Editor (CEE)
 
-The CEDAR Embeddable Editor (CEE) is a lightweight Web Component for adding
+The CEDAR Embeddable Editor (CEE) is a reusable Web Component for adding
 structured, standards-based metadata authoring to web applications.
 
 CEE dynamically renders data-entry forms from machine-actionable CEDAR
