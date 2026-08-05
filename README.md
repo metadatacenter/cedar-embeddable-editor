@@ -95,10 +95,10 @@ npm run test:ci
 
 It runs, in order:
 
-1. The Angular/Karma unit tests in headless Chrome.
+1. The unit tests, in Node under Vitest.
 2. The headless domain harness with V8 coverage.
 3. A production build of the web component.
-4. The raw and gzip size budgets for the concatenated production bundle.
+4. The raw and gzip size budgets for the packaged production bundle.
 5. The Playwright suite against that bundle: the full Chromium baseline at
    desktop and narrow viewport sizes, plus focused Chromium, Firefox and WebKit
    compatibility checks.
@@ -138,15 +138,22 @@ and `visual/` manifests together.
 Use these when working on one layer:
 
 ```shell
-npm run test:unit:ci          # Angular/Karma, one headless run
+npm run test:unit:ci          # Vitest unit tests, one run
+npm run test:unit:coverage    # unit tests with coverage report
 npm run test:domain           # Vitest domain harness
 npm run test:domain:coverage  # domain harness with coverage report
 npm run test:bundle-size      # exact raw and gzip budgets for the shipped bundle
 npm run test:visual           # production build, fixture preparation, Playwright
 ```
 
-The legacy `npm test` command starts Angular/Karma in watch mode for interactive
-development. Use `npm run test:ci` for a complete, non-interactive verification.
+`npm test` runs the unit tests once, and `npm run test:watch` keeps them running
+for interactive development. Use `npm run test:ci` for a complete verification.
+
+The unit tests run in Node rather than a browser. None of them uses `TestBed`, so
+none needs Angular's JIT compiler to build a component, and dropping the browser
+took the suite from a Chrome launch to about a second. Anything that does need a
+real browser belongs in the Playwright suite under `visual/`, which tests the
+shipped bundle rather than the sources.
 
 ## Configuration
 

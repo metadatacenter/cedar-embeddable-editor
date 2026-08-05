@@ -30,7 +30,7 @@ describe('CedarAriaDescriber', () => {
     expect(document.body.querySelector(`#${descriptionId}`)).toBeNull();
 
     service.removeDescription(control, 'Field help', 'tooltip');
-    expect(control.hasAttribute('aria-describedby')).toBeFalse();
+    expect(control.hasAttribute('aria-describedby')).toBe(false);
     expect(shadowRoot.querySelector('.cdk-describedby-message-container')).toBeNull();
   });
 

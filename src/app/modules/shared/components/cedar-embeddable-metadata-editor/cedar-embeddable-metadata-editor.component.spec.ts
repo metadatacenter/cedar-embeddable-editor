@@ -1,3 +1,4 @@
+import { type Mock, vi } from 'vitest';
 import { CedarEmbeddableMetadataEditorComponent } from './cedar-embeddable-metadata-editor.component';
 import { ModelLibraryTemplateParser } from '../../factory/model-library-template-parser';
 import { YamlTemplateParser } from '../../factory/yaml-template-parser';
@@ -125,7 +126,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     });
 
     it('configures the default search and details endpoints for every authority', () => {
-      const setEndpoints = jasmine.createSpy('setEndpoints');
+      const setEndpoints = vi.fn();
       const component = make(setEndpoints);
 
       component.config = {};
@@ -141,7 +142,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     });
 
     it('honours custom search and details paths independently for every authority', () => {
-      const setEndpoints = jasmine.createSpy('setEndpoints');
+      const setEndpoints = vi.fn();
       const component = make(setEndpoints);
       const base = 'https://example.org/ext-auth/';
       const config = AUTHORITY_DESCRIPTORS.reduce(
@@ -194,11 +195,11 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
   describe('registry lifecycle', () => {
     const makeWithRegistry = (): {
       component: CedarEmbeddableMetadataEditorComponent;
-      clear: jasmine.Spy;
-      setInputTemplate: jasmine.Spy;
+      clear: Mock;
+      setInputTemplate: Mock;
     } => {
-      const clear = jasmine.createSpy('clear');
-      const setInputTemplate = jasmine.createSpy('setInputTemplate');
+      const clear = vi.fn();
+      const setInputTemplate = vi.fn();
       const component = new CedarEmbeddableMetadataEditorComponent(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         { clear } as any,
@@ -218,13 +219,16 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     it('clears obsolete registrations after a replacement template is accepted', () => {
       const { component, clear, setInputTemplate } = makeWithRegistry();
       // Keep the setter's deferred instance initialization inert in this unit test.
-      spyOn(component as any, 'initDataFromInstance').and.returnValue(Promise.resolve());
+      vi.spyOn(component as any, 'initDataFromInstance').mockReturnValue(Promise.resolve());
 
       component.templateJsonObject = { title: 'replacement' };
 
       expect(setInputTemplate).toHaveBeenCalledTimes(1);
       expect(clear).toHaveBeenCalledTimes(1);
-      expect(setInputTemplate).toHaveBeenCalledBefore(clear);
+      // Ordering matters: the replacement template has to be taken before the old
+      // registrations are dropped. Jasmine spelled this `toHaveBeenCalledBefore`;
+      // Vitest exposes the call ordinals instead.
+      expect(setInputTemplate.mock.invocationCallOrder[0]).toBeLessThan(clear.mock.invocationCallOrder[0]);
     });
 
     it('clears the registry when the editor is destroyed', () => {
