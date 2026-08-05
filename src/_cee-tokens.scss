@@ -1,0 +1,129 @@
+// CEDAR's own design values.
+//
+// Nothing in this file may reference `@angular/material`. That is the whole
+// point of it: the values that define what CEE looks like are CEDAR's, and they
+// should not be expressed in the vocabulary of a framework that renames and
+// removes that vocabulary every couple of releases. Angular Material's theming
+// API is on its third generation — `define-palette` became `m2-define-palette`
+// and the M2 helpers are on the way out entirely — and each move would otherwise
+// edit the brand.
+//
+// _cee-material-theme.scss is the adapter that feeds these values to whatever
+// theming API the installed Material version happens to offer. It is the only
+// file that imports Material.
+
+@use 'sass:map';
+
+// ---------------------------------------------------------------------------
+// Typography
+// ---------------------------------------------------------------------------
+
+// Two spellings of one font stack, because they are consumed differently: this
+// one is a CSS value, used directly in `font-family` declarations.
+$cee-font-family: 'CEE Roboto', 'Helvetica Neue', sans-serif;
+
+// ...and this one is a single string, which is what Material's typography config
+// takes. Keep the two in step; they are deliberately not derived from each other
+// because quoting them differently is what makes each emit correctly.
+$cee-font-family-string: 'CEE Roboto, "Helvetica Neue", sans-serif';
+
+$cee-font-size: 14px;
+
+// ---------------------------------------------------------------------------
+// Brand palettes
+// ---------------------------------------------------------------------------
+//
+// Generated with http://mcg.mbitson.com/ from CEDAR's teal and rust. The 14-step
+// shape (50–900, A100–A700, plus a contrast map) is Material's convention, and
+// keeping it means the adapter can hand these straight to Material rather than
+// translating. It is a convention, not a dependency — no Material code is needed
+// to read these maps.
+
+$cee-brand-primary: (
+  50: #e2eff0,
+  100: #b7d6db,
+  200: #87bbc3,
+  300: #579faa,
+  400: #338b98,
+  500: #0f7686,
+  600: #0d6e7e,
+  700: #0b6373,
+  800: #085969,
+  900: #044656,
+  A100: #88e4ff,
+  A200: #55d8ff,
+  A400: #22ccff,
+  A700: #08c7ff,
+  contrast: (
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #000000,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #000000,
+    A200: #000000,
+    A400: #000000,
+    A700: #000000,
+  ),
+);
+
+$cee-brand-accent: (
+  50: #f0e4e2,
+  100: #dbbcb7,
+  200: #c38f87,
+  300: #aa6257,
+  400: #984133,
+  500: #861f0f,
+  600: #7e1b0d,
+  700: #73170b,
+  800: #691208,
+  900: #560a04,
+  A100: #ff8d88,
+  A200: #ff5c55,
+  A400: #ff2b22,
+  A700: #ff1308,
+  contrast: (
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #ffffff,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #000000,
+    A200: #000000,
+    A400: #ffffff,
+    A700: #ffffff,
+  ),
+);
+
+// ---------------------------------------------------------------------------
+// Resolved colors
+// ---------------------------------------------------------------------------
+//
+// Derived from the maps above rather than restated, so a palette edit cannot
+// leave these behind. The hues match what CEE publishes today: the primary's
+// default hue is 500, and the accent palette is declared with A200 as its
+// default.
+
+$cee-color-primary: map.get($cee-brand-primary, 500);
+$cee-color-on-primary: map.get(map.get($cee-brand-primary, contrast), 500);
+$cee-color-accent: map.get($cee-brand-accent, A200);
+
+// Material's red 500, pinned as a literal. CEE never chose a warn color — it
+// inherited Material's default — and reading it out of `mat.$red-palette` made
+// this one value depend on the framework for no benefit. Pinning it means the
+// upgrade cannot change it silently.
+$cee-color-warn: #f44336;
+
+// Brand colors used directly in component CSS rather than through the theme.
+$cee-color-icon-hover: map.get($cee-brand-primary, 500);
+$cee-color-component-title: #0b3938;
