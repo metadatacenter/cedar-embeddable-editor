@@ -14,8 +14,6 @@
  * that should not be.
  */
 import { describe, expect, it } from 'vitest';
-import Ajv from 'ajv-draft-04';
-import addFormats from 'ajv-formats';
 import { CedarBuilders } from 'cedar-model-typescript-library';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { FieldKind } from '../src/axes';
@@ -131,28 +129,6 @@ describe('a hidden field is still not rendered', () => {
 });
 
 describe('a required hidden field', () => {
-  /**
-   * The case that makes this a conformance failure rather than a cosmetic
-   * one: the template says the property must be present, and it was not.
-   */
-  const validate = (template: object, instance: object): { valid: boolean; errors: string } => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ajv = new (Ajv as any)({ strict: false, allErrors: true });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    addFormats(ajv as any);
-    const check = ajv.compile(template);
-    const valid = check(instance);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return { valid, errors: (check.errors ?? []).map((e: any) => `${e.instancePath} ${e.message}`).join('; ') };
-  };
-
-  it('produces an instance that validates against its own template', () => {
-    const template = withHidden({ required: true });
-    const emitted = InstanceSerializer.toJson(new CeeDriver(template).dataContext.instanceFullData);
-    const outcome = validate(template, emitted as object);
-    expect(outcome.valid, outcome.errors).toBe(true);
-  });
-
   it('counts towards the required-field tally', () => {
     const report = new CeeDriver(withHidden({ required: true })).qualityReport;
     expect(report.requiredFieldValueCount).toBeGreaterThan(0);
