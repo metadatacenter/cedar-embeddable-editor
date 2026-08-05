@@ -28,20 +28,6 @@ import { CeeDriver } from '../src/driver';
 
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
 
-/**
- * The envelope keys the *writer* supplies, as against the ones CEE fills in.
- *
- * A template's `required` list names nine keys its instances must carry. CEE
- * sets three of them, because it knows them: `schema:isBasedOn` from the
- * template's IRI, and `schema:name` and `schema:description`, whose schemas are
- * `string` — `minLength: 1` in the first case — so null would not validate.
- *
- * These five it cannot know. `@id` and the provenance fields are assigned when
- * the instance is saved, and their schemas are `["string", "null"]`, so null is
- * both honest and valid. The writer emits them so the document is complete.
- */
-const ENVELOPE_KEYS = ['@id', 'pav:createdOn', 'pav:createdBy', 'pav:lastUpdatedOn', 'oslc:modifiedBy'];
-
 /** A one-field form with a value in it. */
 const filled = (kindIndex: number, cardinality: 'single' | 'multi') => {
   const kind = VALUED[kindIndex];
@@ -85,22 +71,29 @@ describe('the JSON a host page receives', () => {
   });
 
   /**
-   * The writer completes the envelope with the keys CEE cannot fill in, and
-   * adds nothing else. Whether the result actually validates as a CEDAR
-   * instance is checked in `model-conformance.spec.ts`, against the template's
-   * own schema; this only pins what the emission step contributes.
+   * What the emission step contributes, and only that.
+   *
+   * This used to assert the exact set of keys added, against a list of the
+   * envelope written out here. That list was a copy of something CEDAR defines:
+   * if the model changed, the copy went stale silently, and keeping it in step
+   * is not CEE's job. Producing a valid instance is the model library's
+   * responsibility, so what remains is the part that is genuinely about the
+   * emitter — it invents no values, and it loses nothing it was given.
    */
-  it('adds the envelope keys CEE cannot know, and nothing else', () => {
+  it('adds only null placeholders, and drops nothing', () => {
     const driver = filled(0, 'single');
     const working = driver.dataContext.instanceFullData as Record<string, unknown>;
     const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
 
     const added = Object.keys(emitted).filter((k) => !(k in working));
-    expect(added.sort()).toEqual([...ENVELOPE_KEYS].sort());
+    expect(added.length, 'the writer contributed nothing, so the checks below are vacuous').toBeGreaterThan(0);
     for (const key of added) {
       expect(emitted[key], `${key} should be null, not invented`).toBeNull();
     }
-    expect(Object.keys(working).filter((k) => !(k in emitted)), 'the emitter dropped something').toEqual([]);
+    expect(
+      Object.keys(working).filter((k) => !(k in emitted)),
+      'the emitter dropped something',
+    ).toEqual([]);
   });
 
   it('is empty for an instance that does not exist', () => {
@@ -205,15 +198,18 @@ describe('real instances survive the trip', () => {
    * The generated cases cover one field at a time. These are whole templates,
    * with elements nested several deep and every field type mixed together.
    */
-  it.each(corpusTemplates().map((t) => [t.id, t] as const))('template-%s emits its values unchanged', (_id, artifact) => {
-    const driver = new CeeDriver(artifact.json);
-    const working = driver.dataContext.instanceFullData as Record<string, unknown>;
-    const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
+  it.each(corpusTemplates().map((t) => [t.id, t] as const))(
+    'template-%s emits its values unchanged',
+    (_id, artifact) => {
+      const driver = new CeeDriver(artifact.json);
+      const working = driver.dataContext.instanceFullData as Record<string, unknown>;
+      const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
 
-    for (const key of Object.keys(working)) {
-      expect(emitted[key], `${key} changed on the way out`).toEqual(working[key]);
-    }
-  });
+      for (const key of Object.keys(working)) {
+        expect(emitted[key], `${key} changed on the way out`).toEqual(working[key]);
+      }
+    },
+  );
 });
 
 describe('the YAML a host page can ask for instead', () => {
