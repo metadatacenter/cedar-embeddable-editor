@@ -71,8 +71,31 @@ export default defineConfig({
   },
 
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } } },
-    { name: 'narrow', use: { ...devices['Desktop Chrome'], viewport: { width: 480, height: 900 } } },
+    {
+      name: 'desktop',
+      testIgnore: /cross-browser-smoke\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
+    },
+    {
+      name: 'narrow',
+      testIgnore: /cross-browser-smoke\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 480, height: 900 } },
+    },
+    {
+      name: 'chromium-smoke',
+      testMatch: /cross-browser-smoke\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
+    },
+    {
+      name: 'firefox-smoke',
+      testMatch: /cross-browser-smoke\.spec\.ts/,
+      use: { ...devices['Desktop Firefox'], viewport: { width: 1280, height: 900 } },
+    },
+    {
+      name: 'webkit-smoke',
+      testMatch: /cross-browser-smoke\.spec\.ts/,
+      use: { ...devices['Desktop Safari'], viewport: { width: 1280, height: 900 } },
+    },
   ],
 
   webServer: {

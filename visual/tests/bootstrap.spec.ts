@@ -1,13 +1,5 @@
 import { expect, test } from '@playwright/test';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as url from 'node:url';
-
-const BUNDLE_PATH = path.resolve(
-  path.dirname(url.fileURLToPath(import.meta.url)),
-  '../public/cedar-embeddable-editor.js',
-);
-const BUNDLE_VERSION = String(fs.statSync(BUNDLE_PATH).mtimeMs);
+import { BUNDLE_VERSION } from './support/host';
 
 test('loading the production bundle twice reuses the first bootstrap', async ({ page }) => {
   await page.goto(`/host.html?b=${BUNDLE_VERSION}`);

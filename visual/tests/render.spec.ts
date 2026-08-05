@@ -12,9 +12,7 @@
  * record of whatever the migration did.
  */
 import { expect, test } from '@playwright/test';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as url from 'node:url';
+import { BUNDLE_VERSION, FROZEN, open, openTwoEditors } from './support/host';
 
 const FIXTURES = [
   ['01-input-types', 'every simple input type'],
@@ -30,83 +28,6 @@ const FIXTURES = [
   ['12-render-decision', 'whether a multi field renders its content, in all three cases'],
   ['13-paged-choice', 'a choice field inside a multi-instance element'],
 ] as const;
-
-/**
- * A fixed instant for every run.
- *
- * CEE seeds a temporal field's date and time from `new Date()` at component
- * init, so any fixture containing one renders the current wall clock. Without
- * pinning it, `01-input-types` and every preset built on it change every
- * minute — a baseline that rots on a timer, which looks exactly like a real
- * regression and trains people to re-record instead of investigate.
- *
- * `setFixedTime` only pins `Date`; it does not fake timers, so Angular's
- * animations and the settle poll still run normally.
- */
-const FROZEN = new Date('2026-01-01T09:30:00Z');
-
-/**
- * A cache-buster keyed to the bundle, not to the clock.
- *
- * The dev server sends no `Cache-Control`, so a browser may reuse a cached
- * bundle heuristically without revalidating — which after a re-bundle means
- * rendering the previous build, and is the most likely explanation for the
- * occasional single-screenshot failure that only ever appeared right after
- * building. Read once per run: stable across the run's tests, different as soon
- * as the file is rebuilt.
- *
- * Deliberately not wrapped in a try/catch. The first version of this was, and
- * the fallback constant hid the fact that `__dirname` does not exist in this
- * package — it is ESM — so the buster was a no-op that looked like a fix. A
- * missing bundle should stop the run, and `check-bundle-fresh.mjs` says so more
- * clearly anyway.
- */
-const BUNDLE_VERSION = String(
-  fs.statSync(path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '../public/cedar-embeddable-editor.js'))
-    .mtimeMs,
-);
-
-/**
- * Load a fixture, optionally under a config preset and with an instance injected,
- * and wait for it to settle.
- *
- * `instance` names a second fixture to hand to the web component's `instanceObject`
- * input — the same one a host page uses. Without it the suite can only see a
- * template rendered empty, which misses every behaviour that depends on a document
- * already holding values.
- */
-const open = async (
-  page: import('@playwright/test').Page,
-  fixture: string,
-  preset?: string,
-  instance?: string,
-  mode?: 'separate' | 'combined' | 'template-first',
-  extra?: string,
-) => {
-  await page.clock.setFixedTime(FROZEN);
-  await page.goto(
-    `/host.html?t=${fixture}${preset ? `&c=${preset}` : ''}${instance ? `&i=${instance}` : ''}` +
-      `${mode ? `&m=${mode}` : ''}${extra ?? ''}&b=${BUNDLE_VERSION}`,
-  );
-  await page.waitForFunction(() => (window as any).__ceeReady === true || (window as any).__ceeError, null, {
-    timeout: 20_000,
-  });
-  const err = await page.evaluate(() => (window as any).__ceeError);
-  expect(err, `host page failed to load ${fixture}`).toBeFalsy();
-  // Material ripples and expansion-panel transitions.
-  await page.waitForTimeout(300);
-};
-
-const openTwoEditors = async (page: import('@playwright/test').Page, fixture: string) => {
-  await page.clock.setFixedTime(FROZEN);
-  await page.goto(`/host.html?host=multi&t=${fixture}&b=${BUNDLE_VERSION}`);
-  await page.waitForFunction(() => (window as any).__ceeReady === true || (window as any).__ceeError, null, {
-    timeout: 20_000,
-  });
-  expect(await page.evaluate(() => (window as any).__ceeError)).toBeFalsy();
-  await expect(page.locator('#editor-first app-cedar-embeddable-metadata-editor')).toBeVisible();
-  await expect(page.locator('#editor-second app-cedar-embeddable-metadata-editor')).toBeVisible();
-};
 
 test.describe('host style isolation', () => {
   test('host and editor styles do not cross the custom-element boundary', async ({ page }) => {

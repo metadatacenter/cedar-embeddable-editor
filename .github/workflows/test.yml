@@ -43,7 +43,7 @@ jobs:
           npm ci
           npm --prefix harness ci
           npm --prefix visual ci
-          ./visual/node_modules/.bin/playwright install chromium
+          ./visual/node_modules/.bin/playwright install chromium firefox webkit
 
       - name: Run the complete CEE test gate
         working-directory: cedar-embeddable-editor

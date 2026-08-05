@@ -98,8 +98,10 @@ It runs, in order:
 1. The Angular/Karma unit tests in headless Chrome.
 2. The headless domain harness with V8 coverage.
 3. A production build of the web component.
-4. The Playwright suite against the concatenated production bundle, at desktop
-   and narrow viewport sizes.
+4. The raw and gzip size budgets for the concatenated production bundle.
+5. The Playwright suite against that bundle: the full Chromium baseline at
+   desktop and narrow viewport sizes, plus focused Chromium, Firefox and WebKit
+   compatibility checks.
 
 The domain corpora are checked into `harness/fixtures/`; running the tests does
 not require `cedar-artifact-library` or `cedar-test-artifacts` checkouts.
@@ -113,7 +115,7 @@ published to the BMIR Nexus, so no sibling checkout is needed:
 npm ci
 npm --prefix harness ci
 npm --prefix visual ci
-./visual/node_modules/.bin/playwright install chromium
+./visual/node_modules/.bin/playwright install chromium firefox webkit
 ```
 
 Only that one package comes from Nexus; everything else resolves from npmjs.org.
@@ -139,6 +141,7 @@ Use these when working on one layer:
 npm run test:unit:ci          # Angular/Karma, one headless run
 npm run test:domain           # Vitest domain harness
 npm run test:domain:coverage  # domain harness with coverage report
+npm run test:bundle-size      # exact raw and gzip budgets for the shipped bundle
 npm run test:visual           # production build, fixture preparation, Playwright
 ```
 

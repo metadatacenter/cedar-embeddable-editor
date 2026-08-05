@@ -2,8 +2,8 @@
 
 Playwright screenshot regression for the **built web component**.
 
-> **Status: 294 tests, all passing** on Chromium / macOS, most recently in
-> ~40s for both viewports.
+> **Status: 325 tests:** 304 full Chromium checks across two viewports, plus
+> seven semantic smoke checks on each of Chromium, Firefox and WebKit.
 
 ## Why this exists, and why it is separate from `harness/`
 
@@ -56,6 +56,25 @@ fixtures; see below.
 
 Two viewports: `desktop` (1280×900) and `narrow` (480×900).
 
+## Cross-browser smoke coverage
+
+The pixel baselines remain Chromium/macOS-only. Repeating screenshots for each
+engine would mostly version font rasterisation and triple the review burden.
+Instead, `cross-browser-smoke.spec.ts` runs seven semantic checks in Chromium,
+Firefox and WebKit against the same production bundle:
+
+- custom-element registration and Shadow DOM rendering;
+- edits reaching a composed `change` event and `currentMetadata`;
+- Angular Material overlays remaining inside the custom element;
+- the custom time picker updating temporal data;
+- multi-instance add and delete operations;
+- read-only rendering; and
+- instance replacement with JSON and YAML output.
+
+Every smoke check also fails on an unexpected page or console error. The
+`desktop` and `narrow` projects exclude this spec; dedicated `*-smoke` projects
+run it once per browser engine.
+
 ## Beyond the default state
 
 The fixture screenshots capture an empty form in the base configuration. An
@@ -91,7 +110,7 @@ Needs Node 20 — the app itself needs 18. See
 First time:
 
 ```bash
-nvm use 20 && npm install && npx playwright install chromium
+nvm use 20 && npm install && npx playwright install chromium firefox webkit
 ```
 
 The bundle and fixtures are build artifacts and are not committed. Rebuild the
@@ -104,6 +123,31 @@ cd .. && nvm use 18 && npx ng build --configuration=production
 ```bash
 nvm use 20 && npm run prepare:all && npm test
 ```
+
+To run only the compatibility checks:
+
+```bash
+npm test -- --project=chromium-smoke --project=firefox-smoke --project=webkit-smoke
+```
+
+## Bundle-size budget
+
+`npm test` measures the exact artifact an embedder downloads: the byte-for-byte
+concatenation of `runtime.js`, `polyfills.js` and `main.js`. It fails first if
+the served copy differs from those build outputs, then enforces both raw and
+gzip-9 limits.
+
+The baseline recorded on 2026-08-04 is 3,167,000 raw bytes and 749,628 gzip-9
+bytes. The initial limits — 3,230,000 raw and 765,000 gzip-9 bytes — leave about
+2% headroom. Run the check directly from the repository root with:
+
+```bash
+npm run test:bundle-size
+```
+
+Raising a limit is an intentional product decision. Update the baseline comment
+in `check-bundle-size.mjs` to the newly measured size and explain the increase in
+the pull request; do not add an environment-variable bypass.
 
 To accept intentional visual changes:
 
