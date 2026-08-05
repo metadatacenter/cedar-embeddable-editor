@@ -1721,4 +1721,49 @@ test.describe('host inputs that fetch', () => {
     // The failure is reported rather than thrown: no form, but nothing broken either.
     await expect(page.locator('input[aria-label="title"]')).toHaveCount(0);
   });
+
+  /**
+   * Translation is a third entry point that fetches, and the least covered.
+   *
+   * `FallbackTranslateLoader` asks `TranslateHttpLoader` for
+   * `<languageMapPathPrefix><lang>.json` and falls back to the bundled map when that
+   * fails. Every existing test took the fallback — the multi-editor route points at a
+   * prefix that is not there, so it 404s on every run — which meant the fetch itself was
+   * exercised only by failing. An external map that loads and wins was covered nowhere.
+   *
+   * That is the wrong half to leave untested. `@ngx-translate/http-loader` is a
+   * third-party package on its own release schedule, and a loader that silently stops
+   * fetching does not look broken: it looks like the built-in text, which is what CEE
+   * shows when everything is fine.
+   *
+   * Both directions are asserted here, against the same string, so neither reading can
+   * be mistaken for the other.
+   */
+  const BUILT_IN_FOOTER = 'CEDAR is maintained by the Stanford Division of Computational Medicine.';
+  const SERVED_FOOTER = 'Maintained per an externally served language map.';
+
+  const loadTemplateIntoHost = (page: import('@playwright/test').Page) =>
+    page.evaluate(async () => {
+      const template = await (await fetch('./fixtures/01-input-types.json')).json();
+      (document.querySelector('cedar-embeddable-editor') as any).templateObject = template;
+    });
+
+  test('an externally served language map is fetched and overrides the built-in one', async ({ page }) => {
+    await openHost(page, 'host=lang');
+    await loadTemplateIntoHost(page);
+
+    const footer = page.locator('footer.main__footer');
+    await expect(footer).toBeVisible({ timeout: 10_000 });
+    await expect(footer, 'the served language map did not reach the rendered form').toContainText(SERVED_FOOTER);
+    await expect(footer, 'the built-in map should have been overridden').not.toContainText(BUILT_IN_FOOTER);
+  });
+
+  test('an unreachable language map falls back to the built-in one', async ({ page }) => {
+    await openHost(page, 'host=lang&prefix=./served/no-such-languages/');
+    await loadTemplateIntoHost(page);
+
+    const footer = page.locator('footer.main__footer');
+    await expect(footer).toBeVisible({ timeout: 10_000 });
+    await expect(footer, 'a 404 on the language map should not blank the interface').toContainText(BUILT_IN_FOOTER);
+  });
 });

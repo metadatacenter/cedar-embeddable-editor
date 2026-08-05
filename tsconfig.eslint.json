@@ -9,14 +9,16 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
-    // Lint only cares about our own sources. @ngx-translate/core 11's typings predate
-    // Angular 14's ModuleWithProviders<T> and would otherwise error here.
+    // Same reason tsconfig.spec.json sets it: Vitest's declarations need TypeScript 5.2,
+    // and Angular 14 pins ~4.8. Our own sources are still fully checked.
     "skipLibCheck": true,
     // Both are set by tsconfig.app.json and needed by src/ (moment's default export,
     // and the package.json import in cedar-embeddable-metadata-editor.component.ts).
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "types": ["jasmine", "node"]
+    // The spec files under src/ use the globals vitest.config.ts exposes, so this must
+    // track tsconfig.spec.json's `types`.
+    "types": ["vitest/globals", "node"]
   },
   "include": ["src/**/*.ts"]
 }

@@ -1,3 +1,4 @@
+import { type Mock, vi } from 'vitest';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper.component';
 import { ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
@@ -60,15 +61,28 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent output serialization', (
   });
 });
 
+/**
+ * Jasmine's `toHaveBeenCalledOnceWith`, in the two assertions it stood for.
+ *
+ * Vitest 1.x has no single matcher for "called exactly once, and with these
+ * arguments". Both halves are load-bearing below: the test asserts that config is
+ * applied identically whether Angular supplies it before or after `ngOnInit`, so a
+ * second, identical call would be a real failure rather than a harmless repeat.
+ */
+const expectCalledOnceWith = (spy: Mock, ...args: unknown[]): void => {
+  expect(spy).toHaveBeenCalledTimes(1);
+  expect(spy).toHaveBeenCalledWith(...args);
+};
+
 describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
   interface Mocks {
     templateJson$: Subject<object>;
     metadataJson$: Subject<object>;
-    loadTemplate: jasmine.Spy;
-    setTerminologyIntegratedSearchUrl: jasmine.Spy;
-    setDefaultLang: jasmine.Spy;
-    use: jasmine.Spy;
-    clearRegistry: jasmine.Spy;
+    loadTemplate: Mock;
+    setTerminologyIntegratedSearchUrl: Mock;
+    setDefaultLang: Mock;
+    use: Mock;
+    clearRegistry: Mock;
     globalSettings: { languageMapPathPrefix?: string };
   }
 
@@ -76,11 +90,11 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     const mocks: Mocks = {
       templateJson$: new Subject<object>(),
       metadataJson$: new Subject<object>(),
-      loadTemplate: jasmine.createSpy('loadTemplate'),
-      setTerminologyIntegratedSearchUrl: jasmine.createSpy('setTerminologyIntegratedSearchUrl'),
-      setDefaultLang: jasmine.createSpy('setDefaultLang'),
-      use: jasmine.createSpy('use'),
-      clearRegistry: jasmine.createSpy('clearRegistry'),
+      loadTemplate: vi.fn(),
+      setTerminologyIntegratedSearchUrl: vi.fn(),
+      setDefaultLang: vi.fn(),
+      use: vi.fn(),
+      clearRegistry: vi.fn(),
       globalSettings: {},
     };
     const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined };
@@ -148,12 +162,12 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     after.component.config = config;
 
     for (const candidate of [before, after]) {
-      expect(candidate.mocks.loadTemplate).toHaveBeenCalledOnceWith('/samples/', 'example');
-      expect(candidate.mocks.setTerminologyIntegratedSearchUrl).toHaveBeenCalledOnceWith('/terminology/search');
+      expectCalledOnceWith(candidate.mocks.loadTemplate, '/samples/', 'example');
+      expectCalledOnceWith(candidate.mocks.setTerminologyIntegratedSearchUrl, '/terminology/search');
       expect(candidate.component.showSpinnerBeforeInit).toBe(false);
       expect(candidate.mocks.globalSettings.languageMapPathPrefix).toBe('/languages/');
-      expect(candidate.mocks.setDefaultLang).toHaveBeenCalledOnceWith('fr');
-      expect(candidate.mocks.use).toHaveBeenCalledOnceWith('hu');
+      expectCalledOnceWith(candidate.mocks.setDefaultLang, 'fr');
+      expectCalledOnceWith(candidate.mocks.use, 'hu');
       expect(candidate.component.handlerContext.readOnlyMode).toBe(true);
       expect(candidate.component.handlerContext.hideEmptyFields).toBe(true);
     }

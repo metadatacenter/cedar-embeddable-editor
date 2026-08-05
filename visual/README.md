@@ -22,10 +22,22 @@ record of whatever the migration already did.
 
 ## What it tests against
 
-The concatenated bundle — `runtime.js + polyfills.js + main.js` — exactly as an
-embedder consumes it, served statically. Not `ng serve`. An upgrade that breaks
-the bundle while leaving the dev server working is precisely the failure this is
-here to catch.
+The single packaged bundle, exactly as an embedder consumes it, served
+statically. Not `ng serve`. An upgrade that breaks the bundle while leaving the
+dev server working is precisely the failure this is here to catch.
+
+`npm run bundle` produces that file, and `resolve-build-output.mjs` is the only
+place that knows how. Under the webpack `browser` builder the packaging step is a
+concatenation of `runtime.js`, `polyfills.js` and `main.js` in load order, which
+is the artifact README.md tells embedders to build. Under Angular's esbuild
+`application` builder the output moves to a `browser/` subdirectory, filenames
+gain hashes, and the entry imports sibling chunks — so it is flattened with
+esbuild into one classic script instead, because concatenating an ES module graph
+would leave dangling `import` statements in a file that no longer loads.
+
+The step chooses between the two by reading the entry, not by consulting a
+version number. `packaging.test.mjs` covers both shapes against a synthetic
+`dist`, including that the flattened result actually evaluates.
 
 ## Fixtures
 
@@ -132,10 +144,16 @@ npm test -- --project=chromium-smoke --project=firefox-smoke --project=webkit-sm
 
 ## Bundle-size budget
 
-`npm test` measures the exact artifact an embedder downloads: the byte-for-byte
-concatenation of `runtime.js`, `polyfills.js` and `main.js`. It fails first if
-the served copy differs from those build outputs, then enforces both raw and
-gzip-9 limits.
+`npm test` measures the exact artifact an embedder downloads: the packaged
+`public/cedar-embeddable-editor.js`. It fails first if that copy is not
+attributable to the current build — stale, hand-edited, or made by a different
+builder than `dist` now holds — then enforces both raw and gzip-9 limits.
+
+Attribution comes from `public/bundle-manifest.json`, written alongside the
+bundle. It records the packaging strategy, the input filenames and a sha256 of
+the result. The digest is what makes the size figure trustworthy without
+re-deriving the bundle; the strategy and filenames are what catch a builder
+switching underneath the harness, which timestamps alone would miss.
 
 The baseline recorded on 2026-08-04 is 3,167,000 raw bytes and 749,628 gzip-9
 bytes. The initial limits — 3,230,000 raw and 765,000 gzip-9 bytes — leave about

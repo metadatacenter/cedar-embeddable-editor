@@ -5,10 +5,11 @@
   "type": "module",
   "description": "Visual regression baseline for the CEDAR Embeddable Editor web component",
   "scripts": {
-    "bundle": "cat ../dist/cedar-embeddable-editor/runtime.js ../dist/cedar-embeddable-editor/polyfills.js ../dist/cedar-embeddable-editor/main.js > public/cedar-embeddable-editor.js",
+    "bundle": "node make-bundle.mjs",
     "fixtures": "node generate-fixtures.mjs && rm -rf public/fixtures public/served && cp -r fixtures public/fixtures && cp -r fixtures/served public/served",
     "prepare:all": "npm run bundle && npm run fixtures",
-    "test": "node check-bundle-fresh.mjs && npm run check:size && playwright test",
+    "test": "npm run test:packaging && node check-bundle-fresh.mjs && npm run check:size && playwright test",
+    "test:packaging": "node --test packaging.test.mjs",
     "check:size": "node check-bundle-size.mjs",
     "update": "node check-bundle-fresh.mjs && playwright test --update-snapshots",
     "report": "playwright show-report",
@@ -19,6 +20,7 @@
     "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@0.9.2-dev.20260804.f1a3784"
   },
   "devDependencies": {
-    "@playwright/test": "^1.48.0"
+    "@playwright/test": "^1.48.0",
+    "esbuild": "^0.25.0"
   }
 }

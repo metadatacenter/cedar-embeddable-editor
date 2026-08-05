@@ -121,6 +121,24 @@
               (config) => window.__ceeConfigEvents.push({ kind: 'success', config }),
               (xhr) => window.__ceeConfigEvents.push({ kind: 'error', status: xhr && xhr.status }),
             );
+          } else if (hostRoute === 'lang') {
+            /**
+             * `?host=lang` drives translation through `languageMapPathPrefix`.
+             *
+             * `?prefix=` chooses what the loader finds: a served directory holding
+             * `en.json`, or an unroutable one. The footer is on because that is where
+             * the translated string under test is rendered.
+             */
+            el.config = {
+              showHeader: false,
+              showFooter: true,
+              showPreferencesMenu: false,
+              showSampleTemplateLinks: false,
+              defaultLanguage: 'en',
+              fallbackLanguage: 'en',
+              languageMapPathPrefix: params.get('prefix') || './served/languages/',
+              terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
+            };
           } else if (hostRoute === 'sample') {
             el.config = {
               showHeader: false,

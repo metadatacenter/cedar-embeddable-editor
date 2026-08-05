@@ -625,5 +625,27 @@ const writeRaw = (name, document) => {
   // with no guard, so this is what a misconfigured URL that returns a page looks like.
   writeFileSync(join(served, 'not-json.json'), '<html><body>not a config</body></html>\n');
 
-  console.log('wrote fixtures/served/ (sample template + metadata, host config, malformed config)');
+  /**
+   * An external language map, for the one branch of translation nothing reached.
+   *
+   * `FallbackTranslateLoader` fetches `<languageMapPathPrefix><lang>.json` through
+   * `TranslateHttpLoader` and falls back to the bundled map if that fails. Only the
+   * failure side was covered, and by accident: the multi-editor route points at a
+   * prefix that does not exist, so every run 404s into the fallback. The success
+   * side — an external map fetched over HTTP and winning over the built-in one — ran
+   * in no test, which is the wrong half to leave untested when the loader is a
+   * third-party package on its own release schedule.
+   *
+   * `App.Maintained` is the override because it already has an assertion on it, in
+   * the footer, so the two readings sit side by side: built-in text without a prefix,
+   * this text with one.
+   */
+  const languages = join(served, 'languages');
+  mkdirSync(languages, { recursive: true });
+  writeFileSync(
+    join(languages, 'en.json'),
+    JSON.stringify({ App: { Maintained: 'Maintained per an externally served language map.' } }, null, 2),
+  );
+
+  console.log('wrote fixtures/served/ (sample template + metadata, host config, malformed config, language map)');
 }

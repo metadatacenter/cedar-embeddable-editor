@@ -1,0 +1,71 @@
+// The only file in CEE that touches Angular Material's theming API.
+//
+// Everything Material's theming vocabulary is needed for lives here, so a
+// version hop that renames or removes part of that vocabulary is a change to one
+// file instead of a change to the brand. The known moves ahead:
+//
+//   * v18 renamed the M2 helpers — `define-palette` → `m2-define-palette`,
+//     `define-light-theme` → `m2-define-light-theme`,
+//     `define-typography-config` → `m2-define-typography-config`,
+//     `$teal-palette` → `$m2-teal-palette` — keeping the old names as
+//     deprecated aliases.
+//   * The M2 helpers are slated to go entirely in favour of M3's token-based
+//     `theme()` API, which is a different model rather than a renamed one.
+//
+// When that happens, rewrite the `$applied-theme` construction below. Do not
+// reach for _cee-tokens.scss: those are CEDAR's values and are not Material's to
+// restate.
+//
+// Emission order is deliberate. This file defines mixins and does not include
+// anything at the top level, because `@use` would then hoist Material's CSS
+// above the rules that override it in styles-own.scss and quietly change the
+// cascade. The call sites stay where they are; only the vocabulary moved.
+
+@use '@angular/material' as mat;
+@use 'cee-tokens' as tokens;
+
+// ---------------------------------------------------------------------------
+// The applied theme
+// ---------------------------------------------------------------------------
+//
+// NOTE, and read this before the Material 15 hop: these are Angular's stock teal
+// and deep-orange palettes, not CEDAR's brand palettes from _cee-tokens.scss.
+// That is what CEE renders today — stock teal 600 (#00897b) accounts for 35 of
+// the color values in the shipped bundle, while CEDAR's own #0f7686 appears
+// twice, both times outside the Material theme.
+//
+// This looks like an accident rather than a decision: the brand palettes are
+// fully specified and then applied to nothing but three custom properties. It is
+// recorded here as-is because changing it would be a visual change, and the
+// upgrade is not the place to make one silently. THEMING.md sets out the choice.
+$_applied-primary: mat.define-palette(mat.$teal-palette, 600);
+$_applied-accent: mat.define-palette(mat.$deep-orange-palette, A200, A100, A400);
+
+$_typography: mat.define-typography-config(
+  $font-family: tokens.$cee-font-family-string,
+);
+
+$applied-theme: mat.define-light-theme(
+  (
+    color: (
+      primary: $_applied-primary,
+      accent: $_applied-accent,
+    ),
+    typography: $_typography,
+  )
+);
+
+// ---------------------------------------------------------------------------
+// Emission points
+// ---------------------------------------------------------------------------
+
+/// Material's base styles. Must come before any component theme.
+@mixin core() {
+  @include mat.core();
+}
+
+/// Color and typography for every Material component CEE uses.
+@mixin component-themes() {
+  @include mat.all-component-themes($applied-theme);
+  @include mat.strong-focus-indicators-theme($applied-theme);
+}
