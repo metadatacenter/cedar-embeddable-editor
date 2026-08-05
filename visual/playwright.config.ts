@@ -99,9 +99,12 @@ export default defineConfig({
   ],
 
   webServer: {
-    // `npx serve` would add a dependency; python3 ships with macOS and is
-    // enough for static files.
-    command: 'python3 -m http.server 4455 --directory public',
+    // Was `python3 -m http.server`, on the reasoning that python3 ships with macOS.
+    // GitHub's macos-15 image has no python3 on PATH, and the failure was invisible:
+    // the process produced no output and Playwright reported only its generic
+    // webServer timeout. serve-public.mjs depends on Node, which this suite already
+    // requires, and adds no npm dependency.
+    command: 'node serve-public.mjs 4455',
     url: 'http://127.0.0.1:4455/host.html',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
