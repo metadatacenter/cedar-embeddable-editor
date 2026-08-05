@@ -24,12 +24,7 @@ the point of items 1 to 3.
    Parked at `harness/test/instance-conformance.spec.ts.pending`; rename to `.ts` once the
    dependency in `package.json` and `harness/package.json` moves.
 
-3. **Attribute the multi-choice `minItems` finding.** A fresh checkbox with `minItems: 2`
-   holds two empty slots; after a value is written it holds one, so the document no longer
-   satisfies its template. Found by item 2 on its first run. Either CEE's write path
-   replaces the list instead of filling a slot in it, or `CeeDriver.setValue` models the
-   write too bluntly and it is the harness's. Reading the driver against what the widget
-   does on a click settles it.
+3. ~~Attribute the multi-choice `minItems` finding.~~ **Closed** — see "Recently Closed".
 
 ## Library
 
@@ -82,6 +77,13 @@ These need someone who knows CEDAR's version history; they are not code changes.
     having at all.
 
 ## Recently Closed
+
+- A part-filled multi choice field is expected not to conform, and CEE already says so. The
+  test asserting otherwise was wrong: `minItems` on a choice field counts what the user
+  ticked, not slots to pad, so a group declaring two with one ticked is a constraint not yet
+  met. `cedar-input-checkbox` passes the selected options, so the harness models the write
+  faithfully. The spec now asserts the useful thing instead — that CEE's quality report
+  raises `minItems` on the same field the validator raises `missingIndexInRealObject` on.
 
 - Templates CEDAR served between 2018 and 2024 are readable again: the corpus went from 100
   to 121 of 123 clean, with the older forms recorded as warnings rather than rejected, and

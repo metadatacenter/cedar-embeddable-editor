@@ -91,20 +91,27 @@ describe('a populated template', () => {
    * field shows it.
    */
   /**
-   * OPEN: writing to a multi choice field drops the list below `minItems`.
+   * A part-filled multi choice field does not satisfy its template, and should
+   * not.
    *
-   * A fresh checkbox with `minItems: 2` holds two empty slots; after a value is
-   * written it holds one filled slot, so the document no longer satisfies the
-   * template. Found by this check on its first run, which is the point of having
-   * it — nothing in CEE noticed before.
+   * `minItems` means different things to the two shapes that carry it. On a
+   * multi-instance text field it is how many slots exist, and the builder pads
+   * to it. On a choice field the array holds what the user ticked, so a group
+   * declaring `minItems: 2` with one option ticked is a constraint not yet met —
+   * an ordinary state a form passes through on the way to being filled in, not a
+   * defect in what CEE wrote.
    *
-   * Not yet attributed. Either CEE's write path replaces the list instead of
-   * filling a slot in it, which is a real defect, or `CeeDriver.setValue` models
-   * the write too bluntly, which makes it the harness's. Reading the driver
-   * against what the widget does on a click settles it. Listed rather than
-   * skipped so the two cases stay visible and countable.
+   * The widget confirms it: `cedar-input-checkbox` passes `formArray.value`, the
+   * options actually selected, so one tick really is a one-element array. The
+   * harness models that faithfully.
+   *
+   * So the interesting assertion is not that these conform — they should not —
+   * but that CEE and the library agree about why. CEE's own data quality report
+   * raises `minItems` on the same field, which is the answer a user sees; the
+   * validator raises `missingIndexInRealObject` on the same path, which is the
+   * answer the document gets. Two implementations, one verdict.
    */
-  const DROPS_BELOW_MIN_ITEMS = ['checkbox/multi', 'listMulti/multi'];
+  const PART_FILLED_CHOICE = ['checkbox/multi', 'listMulti/multi'];
 
   it.each(cases)('%s still satisfies it once a value is written', (label, index, cardinality) => {
     const kind = VALUED[index];
@@ -123,7 +130,14 @@ describe('a populated template', () => {
     const driver = new CeeDriver(template);
     driver.setValue(['_f'], kind);
     const outcome = conformance(template, driver);
-    expect(outcome.count, outcome.detail).toBe(DROPS_BELOW_MIN_ITEMS.includes(label) ? 1 : 0);
+
+    if (PART_FILLED_CHOICE.includes(label)) {
+      expect(outcome.detail).toContain('missingIndexInRealObject');
+      const reported = driver.qualityReport.problems.map((problem) => problem.code);
+      expect(reported, 'CEE should raise minItems where the validator does').toContain('minItems');
+      return;
+    }
+    expect(outcome.count, outcome.detail).toBe(0);
   });
 });
 
