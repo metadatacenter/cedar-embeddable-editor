@@ -17,8 +17,15 @@ concurrency:
 
 jobs:
   test:
-    # The committed Playwright snapshots are macOS baselines.
-    runs-on: macos-14
+    # The committed Playwright snapshots are macOS baselines, so this label is pinned
+    # rather than tracking macos-latest: a runner bump would move them underneath us.
+    #
+    # Not macos-14. Playwright no longer builds WebKit for mac14-arm64 and serves a
+    # frozen v2251 there, while 1.62.1 drives v2336. The driver sends
+    # `Page.overrideSetting: PushAPIEnabled`, v2251 does not implement it, and every
+    # newPage() in the webkit-smoke project fails. Playwright's own install warning is
+    # "please update to the latest version of your operating system".
+    runs-on: macos-15
     timeout-minutes: 30
 
     steps:
