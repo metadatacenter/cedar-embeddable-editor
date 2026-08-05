@@ -1,0 +1,104 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Participant": "https://schema.staging.metadatacenter.org/properties/d99e2d46-17a9-4d0d-864e-e9639af663d3",
+    "Study Name": "https://schema.staging.metadatacenter.org/properties/a2155cb8-6f9b-4f37-b041-7297b6f24be8"
+  },
+  "Participant": [
+    {
+      "@context": {
+        "First Name": "https://schema.staging.metadatacenter.org/properties/5c573ce5-7109-43e4-b876-487cd275ae0a",
+        "Middle Name": "https://schema.staging.metadatacenter.org/properties/a189a558-d0ab-4fb1-bcf0-fde6efbabeeb",
+        "Last Name": "https://schema.staging.metadatacenter.org/properties/4f894f80-2f8c-438f-9bd4-9d6094807e9a",
+        "Title": "https://schema.staging.metadatacenter.org/properties/f1884068-53aa-48b0-8075-42abeac63b7a",
+        "Disease": "https://schema.staging.metadatacenter.org/properties/a8b21ef2-301c-4539-9336-0c876b904bee"
+      },
+      "First Name": {
+        "@value": "John"
+      },
+      "Middle Name": {
+        "@value": "Morgan"
+      },
+      "Last Name": {
+        "@value": "Smith"
+      },
+      "Title": {
+        "@value": "Mr."
+      },
+      "Disease": {
+        "@id": "http://purl.obolibrary.org/obo/DOID_0050140",
+        "rdfs:label": "acute diarrhea"
+      },
+      "@id": "https://repo.staging.metadatacenter.org/template-element-instances/9b0b5bdf-315f-4dd8-b389-b3e8ac3af3c5"
+    },
+    {
+      "@context": {
+        "First Name": "https://schema.staging.metadatacenter.org/properties/5c573ce5-7109-43e4-b876-487cd275ae0a",
+        "Middle Name": "https://schema.staging.metadatacenter.org/properties/a189a558-d0ab-4fb1-bcf0-fde6efbabeeb",
+        "Last Name": "https://schema.staging.metadatacenter.org/properties/4f894f80-2f8c-438f-9bd4-9d6094807e9a",
+        "Title": "https://schema.staging.metadatacenter.org/properties/f1884068-53aa-48b0-8075-42abeac63b7a",
+        "Disease": "https://schema.staging.metadatacenter.org/properties/a8b21ef2-301c-4539-9336-0c876b904bee"
+      },
+      "First Name": {
+        "@value": "Jane"
+      },
+      "Middle Name": {
+        "@value": ""
+      },
+      "Last Name": {
+        "@value": "Smith"
+      },
+      "Title": {
+        "@value": "Mrs."
+      },
+      "Disease": {
+        "@id": "http://purl.obolibrary.org/obo/DOID_0050140",
+        "rdfs:label": "acute diarrhea"
+      },
+      "@id": "https://repo.staging.metadatacenter.org/template-element-instances/9b0b5bdf-315f-4dd8-b389-b3e8ac3af3c6"
+    }
+  ],
+  "Study Name": {
+    "@value": "Lorem Ipsum"
+  },
+  "schema:isBasedOn": "https://repo.staging.metadatacenter.org/templates/c54aafdb-0379-4cde-b97e-173040d7b97c",
+  "schema:name": "Multiple Element Items Template metadata",
+  "schema:description": "",
+  "pav:createdOn": "2018-11-12T16:33:08-0800",
+  "pav:createdBy": "https://metadatacenter.org/users/018bbf94-f8e4-4e0e-946d-341698f70245",
+  "pav:lastUpdatedOn": "2018-11-12T16:33:08-0800",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/018bbf94-f8e4-4e0e-946d-341698f70245",
+  "@id": "https://repo.staging.metadatacenter.org/template-instances/94ae3a58-0955-4c73-9ca7-e55ca54f847d"
+}

@@ -1,0 +1,54 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Study Name": "https://schema.staging.metadatacenter.org/properties/25fc3cdc-cee8-40c0-a65f-fcebe55e4e4f",
+    "Disease Name": "https://schema.staging.metadatacenter.org/properties/aee9e6a0-40de-4388-b82a-1ece2a55e8f9"
+  },
+  "Study Name": {
+    "@value": "Lorem Ipsum"
+  },
+  "Disease Name": {
+    "@id": "http://purl.obolibrary.org/obo/DOID_0050140",
+    "rdfs:label": "acute diarrhea"
+  },
+  "schema:isBasedOn": "https://repo.staging.metadatacenter.org/templates/eca73928-733c-425a-8cb4-c7df1ec968ed",
+  "schema:name": "Many Fields Template metadata",
+  "schema:description": "",
+  "pav:createdOn": "2018-11-12T16:31:43-0800",
+  "pav:createdBy": "https://metadatacenter.org/users/018bbf94-f8e4-4e0e-946d-341698f70245",
+  "pav:lastUpdatedOn": "2018-11-12T16:31:43-0800",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/018bbf94-f8e4-4e0e-946d-341698f70245",
+  "@id": "https://repo.staging.metadatacenter.org/template-instances/e33cc919-dbbb-4d92-a85a-1808fa3bd6bd"
+}

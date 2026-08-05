@@ -1,0 +1,61 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Study Name": "https://schema.staging.metadatacenter.org/properties/b964aa60-0a9a-498a-9b7e-8ca055306a28",
+    "Topic": "https://schema.staging.metadatacenter.org/properties/6b70aaaa-4094-40e6-bc37-fc20b1569230"
+  },
+  "Study Name": {
+    "@value": "Lorem Ipsum"
+  },
+  "Topic": [
+    {
+      "@value": "Topic A"
+    },
+    {
+      "@value": "Topic B"
+    },
+    {
+      "@value": "Topic C"
+    }
+  ],
+  "schema:isBasedOn": "https://repo.staging.metadatacenter.org/templates/8d01cfac-596c-4603-8d81-679d30a91f2e",
+  "schema:name": "Multiple Field Items Template metadata",
+  "schema:description": "",
+  "pav:createdOn": "2018-11-12T16:35:48-0800",
+  "pav:createdBy": "https://metadatacenter.org/users/018bbf94-f8e4-4e0e-946d-341698f70245",
+  "pav:lastUpdatedOn": "2018-11-12T16:35:48-0800",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/018bbf94-f8e4-4e0e-946d-341698f70245",
+  "@id": "https://repo.staging.metadatacenter.org/template-instances/6b75acc7-056d-4904-8905-bc35375cfa85"
+}

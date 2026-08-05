@@ -1,0 +1,59 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "@language": "fr",
+    "_annotations": "@nest",
+    "Study Name": "https://schema.staging.metadatacenter.org/properties/de3eece8-0bab-4eb7-b382-4b26a6a770d8"
+  },
+  "Study Name": {
+    "@value": "Lorem Ipsum",
+    "@language": "la"
+  },
+  "_annotations": {
+     "aaa": { "@value": 23 },
+     "bbb": { "@value": false },
+     "ccc": { "@value": "vvv" },
+     "ddd": { "@id": "https://example.com/B1" },
+     "https://datacite.com/doi": { "@id": "https://example.com/B2" }
+  },
+  "schema:isBasedOn": "https://repo.staging.metadatacenter.org/templates/dc898011-2742-41e9-9dae-9b57dbf2600f",
+  "schema:name": "Instance with annotations",
+  "schema:description": "",
+  "pav:createdOn": "2018-11-12T16:37:43-0800",
+  "pav:createdBy": "https://metadatacenter.org/users/018bbf94-f8e4-4e0e-946d-341698f70245",
+  "pav:lastUpdatedOn": "2018-11-12T16:37:43-0800",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/018bbf94-f8e4-4e0e-946d-341698f70245",
+  "@id": "https://repo.staging.metadatacenter.org/template-instances/e68980be-6583-4529-954a-edabceb29239"
+}
