@@ -112,7 +112,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnInit, OnDestroy
   readOnlyMode: boolean = false;
   showPreferencesMenu: boolean = true;
 
-  extAuthBaseUrl: string = 'https://bridge.metadatacenter.orgx/ext-auth/';
+  // Embedders work against CEDAR's production bridge unless they explicitly
+  // point at another deployment. The standalone developer app overrides this
+  // with the local `.orgx` host in app.component.dev.ts.
+  extAuthBaseUrl: string = 'https://bridge.metadatacenter.org/ext-auth/';
 
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
 

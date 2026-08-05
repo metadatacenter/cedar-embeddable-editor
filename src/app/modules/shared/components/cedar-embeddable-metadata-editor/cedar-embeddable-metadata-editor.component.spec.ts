@@ -92,6 +92,10 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
   });
 
   describe('typed (non-boolean) config values', () => {
+    it('defaults external-authority lookups to the production CEDAR bridge', () => {
+      expect(make().extAuthBaseUrl).toBe('https://bridge.metadatacenter.org/ext-auth/');
+    });
+
     it('keeps all IRI prefixes on this editor instance', () => {
       const prefixes = new IriPrefix();
       const component = new CedarEmbeddableMetadataEditorComponent(

@@ -230,7 +230,33 @@ There are other optional configuration parameters available for controlling vari
   "showPreferencesMenu": true
 }
 ```
+
+External-authority fields (ORCID, ROR, PFAS, PubMed, RRID, NIH Grant and DOI)
+use CEDAR's production bridge by default. A host using another CEDAR deployment
+can override the base URL; it must include a trailing slash:
+
+```json
+{
+  "extAuthBaseUrl": "https://bridge.metadatacenter.org/ext-auth/"
+}
+```
+
+CEE appends an authority-specific search or details path to this base. Those
+paths can also be overridden independently with the following configuration
+keys:
+
+| Authority | Search path key | Details path key | Default paths |
+|---|---|---|---|
+| ORCID | `orcidIntegratedExtAuthUrl` | `orcidIntegratedDetailsUrl` | `orcid/search-by-name`, `orcid` |
+| ROR | `rorIntegratedExtAuthUrl` | `rorIntegratedDetailsUrl` | `ror/search-by-name`, `ror` |
+| PFAS | `pfasIntegratedExtAuthUrl` | `pfasIntegratedDetailsUrl` | `comp-tox/search-by-name`, `comp-tox` |
+| PubMed | `pmidIntegratedExtAuthUrl` | `pmidIntegratedDetailsUrl` | `pmid/search-by-name`, `pmid` |
+| RRID | `rridIntegratedExtAuthUrl` | `rridIntegratedDetailsUrl` | `rrid/search-by-name`, `rrid` |
+| NIH Grant | `nihGrantIntegratedExtAuthUrl` | `nihGrantIntegratedDetailsUrl` | `nih-grant/search-by-name`, `nih-grant` |
+| DOI | `doiIntegratedExtAuthUrl` | `doiIntegratedDetailsUrl` | `doi/search-by-name`, `doi` |
+
 Enabling of hiding empty fields is only possible in read-only mode.
+
 ## Metadata API
 
 CEE Webcomponent includes APIs for exporting metadata externally and importing metadata into CEE.
