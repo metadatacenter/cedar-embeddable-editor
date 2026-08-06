@@ -11,7 +11,7 @@
     "test:coverage": "vitest run --coverage.enabled"
   },
   "dependencies": {
-    "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@0.9.2-dev.20260805.4105f7c",
+    "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@0.9.2-dev.20260805.50ef2b3",
     "lodash-es": "^4.17.21"
   },
   "devDependencies": {
