@@ -1,7 +1,7 @@
 {
   "name": "cedar-embeddable-editor",
   "description": "A reusable Web Component for creating and editing CEDAR metadata instances.",
-  "version": "1.6.0-dev.20260805.b4960e6",
+  "version": "1.6.0-dev.20260805.0ec34e6",
   "publishConfig": {
     "registry": "https://nexus.bmir.stanford.edu/repository/npm-cedar/"
   },
