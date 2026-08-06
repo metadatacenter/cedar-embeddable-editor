@@ -68,20 +68,40 @@ cedar-embeddable-editor$ ng serve
 
 1. In your browser, navigate to `http://localhost:4400/`. The app will automatically reload if you change any of the source files.
 
-## Building the Webcomponent
+## Building the Web Component
 
-This method creates a single Javascript (JS) file that encapsulates all the functionality of CEE. The JS file can be embedded in any application or HTML page. To build a CEE Webcomponent, proceed with these steps:
+CEE is shipped as one JavaScript file that can be embedded in an application or
+HTML page. Do not concatenate named Angular output files manually: their names,
+locations, and module structure change when Angular changes builders.
 
-### Build and copy the Webcomponent JS file
+Build the production application under the Node version pinned for the current
+Angular hop. At Angular 14 that is Node 16.20.2:
 
-1. Run the build command:
 ```shell
-cedar-embeddable-editor$ ng build --configuration=production
+nvm use
+npm run build:production
 ```
-1. Combine the generated files into a single file and copy the final JS to the sample application:
+
+Then switch to Node 20 and run the browser suite against the builder-independent
+single-file bundle:
+
 ```shell
-cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,main}.js > cedar-embeddable-editor.js
+nvm use 20
+npm run test:visual:prebuilt
 ```
+
+Once that exact bundle is green, stage the publishable npm directory from it:
+
+```shell
+npm run package:npm:prebuilt
+```
+
+This copies the tested bytes to
+`dist-npm/cedar-embeddable-editor/cedar-embeddable-editor.js`, refreshes its
+version, README, changelog, and package lock, and records the bundle manifest.
+The command fails if the browser bundle is stale or does not match its SHA-256
+digest. `npm run check:npm-package` can repeat the byte-for-byte verification
+before `npm pack` or `npm publish`.
 
 ## Running as an `npm` package
 

@@ -21,6 +21,8 @@
     "test:visual": "npm run build:production && npm --prefix visual run prepare:all && npm --prefix visual test",
     "test:ci:prebuilt": "npm run test:unit:ci && npm run test:domain:coverage && npm run test:visual:prebuilt",
     "test:ci": "npm run test:unit:ci && npm run test:domain:coverage && npm run test:visual",
+    "package:npm:prebuilt": "npm --prefix visual run check:fresh && npm --prefix visual run check:size && node scripts/stage-npm-package.mjs && npm run check:npm-package",
+    "check:npm-package": "node scripts/check-npm-package.mjs",
     "lint": "ng lint"
   },
   "dependencies": {

@@ -1,6 +1,6 @@
 # CEDAR Embeddable Editor (CEE)
 
-The CEDAR Embeddable Editor (CEE) is a lightweight Web Component for adding
+The CEDAR Embeddable Editor (CEE) is a reusable Web Component for adding
 structured, standards-based metadata authoring to web applications.
 
 CEE dynamically renders data-entry forms from machine-actionable CEDAR
@@ -68,20 +68,40 @@ cedar-embeddable-editor$ ng serve
 
 1. In your browser, navigate to `http://localhost:4400/`. The app will automatically reload if you change any of the source files.
 
-## Building the Webcomponent
+## Building the Web Component
 
-This method creates a single Javascript (JS) file that encapsulates all the functionality of CEE. The JS file can be embedded in any application or HTML page. To build a CEE Webcomponent, proceed with these steps:
+CEE is shipped as one JavaScript file that can be embedded in an application or
+HTML page. Do not concatenate named Angular output files manually: their names,
+locations, and module structure change when Angular changes builders.
 
-### Build and copy the Webcomponent JS file
+Build the production application under the Node version pinned for the current
+Angular hop. At Angular 14 that is Node 16.20.2:
 
-1. Run the build command:
 ```shell
-cedar-embeddable-editor$ ng build --configuration=production
+nvm use
+npm run build:production
 ```
-1. Combine the generated files into a single file and copy the final JS to the sample application:
+
+Then switch to Node 20 and run the browser suite against the builder-independent
+single-file bundle:
+
 ```shell
-cedar-embeddable-editor$ cat dist/cedar-embeddable-editor/{runtime,polyfills,main}.js > cedar-embeddable-editor.js
+nvm use 20
+npm run test:visual:prebuilt
 ```
+
+Once that exact bundle is green, stage the publishable npm directory from it:
+
+```shell
+npm run package:npm:prebuilt
+```
+
+This copies the tested bytes to
+`dist-npm/cedar-embeddable-editor/cedar-embeddable-editor.js`, refreshes its
+version, README, changelog, and package lock, and records the bundle manifest.
+The command fails if the browser bundle is stale or does not match its SHA-256
+digest. `npm run check:npm-package` can repeat the byte-for-byte verification
+before `npm pack` or `npm publish`.
 
 ## Running as an `npm` package
 
@@ -111,11 +131,13 @@ npm run test:ci
 
 It runs, in order:
 
-1. The Angular/Karma unit tests in headless Chrome.
+1. The unit tests, in Node under Vitest.
 2. The headless domain harness with V8 coverage.
 3. A production build of the web component.
-4. The Playwright suite against the concatenated production bundle, at desktop
-   and narrow viewport sizes.
+4. The raw and gzip size budgets for the packaged production bundle.
+5. The Playwright suite against that bundle: the full Chromium baseline at
+   desktop and narrow viewport sizes, plus focused Chromium, Firefox and WebKit
+   compatibility checks.
 
 The domain corpora are checked into `harness/fixtures/`; running the tests does
 not require `cedar-artifact-library` or `cedar-test-artifacts` checkouts.
@@ -129,8 +151,28 @@ published to the BMIR Nexus, so no sibling checkout is needed:
 npm ci
 npm --prefix harness ci
 npm --prefix visual ci
-./visual/node_modules/.bin/playwright install chromium
+./visual/node_modules/.bin/playwright install chromium firefox webkit
 ```
+
+### Node versions during the Angular migration
+
+The root `.nvmrc` pins the Node version used to update, lint and compile the
+current Angular version. Move that pin with each completed framework hop:
+
+| Angular | Node used for Angular build/update |
+| --- | --- |
+| 14 | 16.20.x |
+| 15–16 | 18.20.x |
+| 17–21 | 20.19+ |
+| 22 | 22.22.3+ |
+
+At Angular 14 there is no Node version supported by both Angular and the current
+test tools: Vitest needs Node 18 or newer and Playwright needs Node 20 or newer.
+CI therefore lints and builds once on Node 16.20.2, switches the same runner to
+Node 20.20.2 without replacing `dist`, and runs Vitest and Playwright against
+that prebuilt artifact. `npm run test:ci:prebuilt` is the second half of that
+split and intentionally does not invoke `ng build`. From Angular 17 onward the
+build and test stages can use the same Node 20 toolchain again.
 
 Only that one package comes from Nexus; everything else resolves from npmjs.org.
 An `.npmrc` alongside each of the three `package.json` files maps the
@@ -152,14 +194,22 @@ and `visual/` manifests together.
 Use these when working on one layer:
 
 ```shell
-npm run test:unit:ci          # Angular/Karma, one headless run
+npm run test:unit:ci          # Vitest unit tests, one run
+npm run test:unit:coverage    # unit tests with coverage report
 npm run test:domain           # Vitest domain harness
 npm run test:domain:coverage  # domain harness with coverage report
+npm run test:bundle-size      # exact raw and gzip budgets for the shipped bundle
 npm run test:visual           # production build, fixture preparation, Playwright
 ```
 
-The legacy `npm test` command starts Angular/Karma in watch mode for interactive
-development. Use `npm run test:ci` for a complete, non-interactive verification.
+`npm test` runs the unit tests once, and `npm run test:watch` keeps them running
+for interactive development. Use `npm run test:ci` for a complete verification.
+
+The unit tests run in Node rather than a browser. None of them uses `TestBed`, so
+none needs Angular's JIT compiler to build a component, and dropping the browser
+took the suite from a Chrome launch to about a second. Anything that does need a
+real browser belongs in the Playwright suite under `visual/`, which tests the
+shipped bundle rather than the sources.
 
 ## Configuration
 
@@ -246,7 +296,33 @@ There are other optional configuration parameters available for controlling vari
   "showPreferencesMenu": true
 }
 ```
+
+External-authority fields (ORCID, ROR, PFAS, PubMed, RRID, NIH Grant and DOI)
+use CEDAR's production bridge by default. A host using another CEDAR deployment
+can override the base URL; it must include a trailing slash:
+
+```json
+{
+  "extAuthBaseUrl": "https://bridge.metadatacenter.org/ext-auth/"
+}
+```
+
+CEE appends an authority-specific search or details path to this base. Those
+paths can also be overridden independently with the following configuration
+keys:
+
+| Authority | Search path key | Details path key | Default paths |
+|---|---|---|---|
+| ORCID | `orcidIntegratedExtAuthUrl` | `orcidIntegratedDetailsUrl` | `orcid/search-by-name`, `orcid` |
+| ROR | `rorIntegratedExtAuthUrl` | `rorIntegratedDetailsUrl` | `ror/search-by-name`, `ror` |
+| PFAS | `pfasIntegratedExtAuthUrl` | `pfasIntegratedDetailsUrl` | `comp-tox/search-by-name`, `comp-tox` |
+| PubMed | `pmidIntegratedExtAuthUrl` | `pmidIntegratedDetailsUrl` | `pmid/search-by-name`, `pmid` |
+| RRID | `rridIntegratedExtAuthUrl` | `rridIntegratedDetailsUrl` | `rrid/search-by-name`, `rrid` |
+| NIH Grant | `nihGrantIntegratedExtAuthUrl` | `nihGrantIntegratedDetailsUrl` | `nih-grant/search-by-name`, `nih-grant` |
+| DOI | `doiIntegratedExtAuthUrl` | `doiIntegratedDetailsUrl` | `doi/search-by-name`, `doi` |
+
 Enabling of hiding empty fields is only possible in read-only mode.
+
 ## Metadata API
 
 CEE Webcomponent includes APIs for exporting metadata externally and importing metadata into CEE.

@@ -1,26 +1,29 @@
 {
   "name": "@org.metadatacenter/cedar-embeddable-editor",
   "version": "1.6.0-dev.20260805.0ec34e6",
+  "description": "A reusable Web Component for creating and editing CEDAR metadata instances.",
+  "main": "cedar-embeddable-editor.js",
+  "files": [
+    "cedar-embeddable-editor.js",
+    "bundle-manifest.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "publishConfig": {
     "registry": "https://nexus.bmir.stanford.edu/repository/npm-cedar/",
     "tag": "dev"
   },
-  "scripts": {},
-  "description": "Cedar embeddable editor web component",
-  "main": "cedar-embeddable-editor.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/metadatacenter/cedar-embeddable-editor.git"
   },
   "keywords": [
-    "Metadata",
-    "Cedar",
-    "Embeddable",
-    "editor",
-    "Web",
-    "component"
+    "metadata",
+    "CEDAR",
+    "embeddable editor",
+    "Web Component"
   ],
-  "author": "Metadatacenter",
+  "author": "Metadata Center",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/metadatacenter/cedar-embeddable-editor/issues"
