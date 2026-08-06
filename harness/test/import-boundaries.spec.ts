@@ -81,7 +81,7 @@ describe('the domain layer is framework-free', () => {
    *
    * "Framework-free" is not literally true and it would be dishonest to assert
    * it. What is true is that these six imports cost nothing at runtime here:
-   * four are types or decorators the harness's `@angular/core` stub satisfies,
+   * three are types or decorators the harness's `@angular/core` stub satisfies,
    * and two are the translate loader, which no domain code calls.
    *
    * Listed rather than allowed by pattern so a *new* one has to be added
@@ -92,7 +92,7 @@ describe('the domain layer is framework-free', () => {
     'handler/multi-instance-object.handler.ts': '@Injectable only; the class is constructed with new',
     'util/authority-search-control.ts': 'AbstractControl as a type, so widgets can pass their FormControl',
     'util/fallback-translate-loader-factory.ts': 'HttpClient; i18n wiring, never called by domain code',
-    'util/fallback-translate-loader.ts': 'HttpClient and @Injectable; same',
+    'util/fallback-translate-loader.ts': 'HttpClient; i18n wiring, never called by domain code',
     'validation/cedar-validators.ts': 'ValidatorFn and friends — this file *is* the Angular adapter',
     'models/ui/cedar-ui-component.model.ts': 'the base @Directive every widget extends',
   };

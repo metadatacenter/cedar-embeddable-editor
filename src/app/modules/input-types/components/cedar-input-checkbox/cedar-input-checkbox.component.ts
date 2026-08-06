@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
@@ -114,7 +114,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
       // find the unselected element
       let i = 0;
 
-      formArray.controls.forEach((ctrl: FormControl) => {
+      formArray.controls.forEach((ctrl: AbstractControl) => {
         if (ctrl.value === val) {
           // Remove the unselected element from the arrayForm
           formArray.removeAt(i);

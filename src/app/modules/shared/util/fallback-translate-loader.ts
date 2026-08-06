@@ -4,12 +4,8 @@ import { Observable, of } from 'rxjs';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { catchError, tap } from 'rxjs/operators';
 import { MessageHandlerService } from '../service/message-handler.service';
-import { Injectable } from '@angular/core';
 import { GlobalSettingsContextService } from '../service/global-settings-context.service';
 
-@Injectable({
-  providedIn: 'root',
-})
 export class FallbackTranslateLoader implements TranslateLoader {
   constructor(
     private http: HttpClient,

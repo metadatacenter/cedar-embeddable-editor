@@ -116,7 +116,7 @@ depend on the network.
 
 ## Running
 
-Needs Node 20 — the app itself needs 18. See
+Needs Node 20 — the Angular 14 app build uses Node 16.20.2. See
 [CEE-RUNBOOK.md](../../cedar-development/ops/CEE-RUNBOOK.md).
 
 First time:
@@ -129,7 +129,7 @@ The bundle and fixtures are build artifacts and are not committed. Rebuild the
 app first if `../dist` is stale:
 
 ```bash
-cd .. && nvm use 18 && npx ng build --configuration=production
+cd .. && nvm use 16.20.2 && npx ng build --configuration=production
 ```
 
 ```bash

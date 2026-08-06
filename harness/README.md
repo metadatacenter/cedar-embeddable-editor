@@ -4,7 +4,7 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 2,260 tests, all passing** on Node 20.20.2 / Vitest 1.6.
+> **Status: 2,125 tests, all passing** on Node 20.20.2 / Vitest 1.6.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
 > Three CEE defects found, all three fixed. See [What it found](#what-it-found).
 
@@ -113,7 +113,7 @@ local build of that library is needed.
 cd /Users/martin/CEDAR/cedar-embeddable-editor/harness && npm install && npm test
 ```
 
-Requires Node 20 (`nvm use 20`). CEE's own Angular 14 toolchain wants Node 16–18,
+Requires Node 20 (`nvm use 20`). CEE's own Angular 14 toolchain uses Node 16.20.2,
 so if you are switching between building the app and running these, expect to
 switch Node versions too.
 
