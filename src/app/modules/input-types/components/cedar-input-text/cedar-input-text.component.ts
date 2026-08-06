@@ -59,7 +59,7 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
     const validators: ValidatorFn[] = [];
     this.constraintMinLength = this.component.valueInfo.minLength;

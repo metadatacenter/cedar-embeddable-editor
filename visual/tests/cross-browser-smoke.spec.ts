@@ -122,7 +122,7 @@ test('replaces an instance and exposes JSON and YAML outputs', async ({ page }) 
     editor.instanceObject = replacement;
   });
 
-  await expect(page.locator('mat-radio-button.mat-radio-checked')).toContainText('Public');
+  await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Public');
   const outputs = await page.evaluate(() => {
     const editor = document.querySelector('cedar-embeddable-editor') as any;
     return { json: JSON.stringify(editor.currentMetadata), yaml: editor.currentMetadataYaml };

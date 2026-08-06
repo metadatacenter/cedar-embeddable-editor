@@ -6,16 +6,12 @@
     "types": [],
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "noImplicitReturns": true
+    "noImplicitReturns": true,
+    "noImplicitOverride": true
   },
   "angularCompilerOptions": {
     "strictTemplates": true
   },
-  "files": [
-    "src/main.ts",
-    "src/polyfills.ts"
-  ],
-  "include": [
-    "src/**/*.d.ts"
-  ]
+  "files": ["src/main.ts", "src/polyfills.ts"],
+  "include": ["src/**/*.d.ts"]
 }

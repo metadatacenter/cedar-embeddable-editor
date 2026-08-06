@@ -966,17 +966,19 @@ test.describe('ported from the deleted component specs', () => {
   test('a template default fills an empty choice field', async ({ page }) => {
     await open(page, '11-choice-default');
 
-    const checked = page.locator('mat-radio-button.mat-radio-checked');
+    const checked = page.getByRole('radio', { checked: true });
     await expect(checked).toHaveCount(1);
-    await expect(checked).toContainText('Limited');
+    await expect(checked).toHaveAccessibleName('Limited');
   });
 
   test('an injected value is not overwritten by the template default', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance');
 
-    const checked = page.locator('mat-radio-button.mat-radio-checked');
+    const checked = page.getByRole('radio', { checked: true });
     await expect(checked, 'exactly one option selected').toHaveCount(1);
-    await expect(checked, "the instance says Private; the template's default is Limited").toContainText('Private');
+    await expect(checked, "the instance says Private; the template's default is Limited").toHaveAccessibleName(
+      'Private',
+    );
   });
 
   /**
@@ -1037,18 +1039,18 @@ test.describe('ported from the deleted component specs', () => {
  * same name, unrelated job — it fills the dropdown's *option list*, not a value.
  */
 test.describe('a choice value reaches the widget by every load path', () => {
-  const checkedLabels = (page: import('@playwright/test').Page) => page.locator('mat-radio-button.mat-radio-checked');
+  const checkedRadio = (page: import('@playwright/test').Page) => page.getByRole('radio', { checked: true });
 
   test('templateObject alone applies the template default', async ({ page }) => {
     await open(page, '11-choice-default');
-    await expect(checkedLabels(page)).toHaveCount(1);
-    await expect(checkedLabels(page)).toContainText('Limited');
+    await expect(checkedRadio(page)).toHaveCount(1);
+    await expect(checkedRadio(page)).toHaveAccessibleName('Limited');
   });
 
   test('the combined templateAndInstanceObject input keeps the instance value', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance', 'combined');
-    await expect(checkedLabels(page), 'exactly one option selected').toHaveCount(1);
-    await expect(checkedLabels(page), 'the combined input takes a different branch in the editor').toContainText(
+    await expect(checkedRadio(page), 'exactly one option selected').toHaveCount(1);
+    await expect(checkedRadio(page), 'the combined input takes a different branch in the editor').toHaveAccessibleName(
       'Private',
     );
   });
@@ -1057,7 +1059,7 @@ test.describe('a choice value reaches the widget by every load path', () => {
     test(`each occurrence shows its own value (${mode} inputs)`, async ({ page }) => {
       await open(page, '13-paged-choice', undefined, '13-paged-choice-instance', mode);
 
-      await expect(checkedLabels(page), 'first occurrence').toContainText('Public');
+      await expect(checkedRadio(page), 'first occurrence').toHaveAccessibleName('Public');
 
       const chips = page.locator('app-cedar-multi-pager mat-chip');
       await expect(chips, 'the fixture declares two occurrences').toHaveCount(2);
@@ -1067,7 +1069,7 @@ test.describe('a choice value reaches the widget by every load path', () => {
       // The widget for this occurrence was not part of the initial sweep, so this is
       // the assertion that would fail if anything still needed a widget to populate
       // itself on init.
-      await expect(checkedLabels(page), 'second occurrence, after paging').toContainText('Private');
+      await expect(checkedRadio(page), 'second occurrence, after paging').toHaveAccessibleName('Private');
     });
   }
 });
@@ -1359,7 +1361,7 @@ test.describe('what a host page reads back', () => {
 test.describe('host input timing', () => {
   test('template-first separate inputs keep the supplied instance value', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance', 'template-first');
-    await expect(page.locator('mat-radio-button.mat-radio-checked')).toContainText('Private');
+    await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Private');
     const metadata = await page.evaluate(
       () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
     );
@@ -1375,7 +1377,7 @@ test.describe('host input timing', () => {
       cee.instanceObject = replacement;
     });
 
-    await expect(page.locator('mat-radio-button.mat-radio-checked')).toContainText('Public');
+    await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Public');
     await expect(async () => {
       const metadata = await page.evaluate(
         () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,

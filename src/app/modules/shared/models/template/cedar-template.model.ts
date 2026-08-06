@@ -4,7 +4,7 @@ import { CedarComponent } from '../component/cedar-component.model';
 import { DataObjectUtil } from '../../util/data-object-util';
 
 export class CedarTemplate extends AbstractElementComponent implements TemplateComponent {
-  className = 'CedarTemplate';
+  override className = 'CedarTemplate';
   pageBreakChildren: Array<CedarComponent[]>;
 
   /**

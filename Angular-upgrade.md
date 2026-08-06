@@ -79,17 +79,23 @@ tests rather than a failure. Seven of the 51 vanished that way before
 `src/test-setup.ts` existed. Worth knowing during the march, when spec files will
 be failing to import for other reasons.
 
-## The State of the Gate
+## The Current State of the Gate
 
-| Suite | Before | After |
-| --- | --- | --- |
-| Unit | 51 (Karma, headless Chrome) | 51 (Vitest, Node) |
-| Domain | 2270 | 2270 |
-| Visual | 325 | 329 |
-| Packaging | none | 9 |
-| Bundle gzip-9 | 749,628 | 749,582 |
+The original before/after counts have been superseded as the preparation work has
+continued. The current baseline is:
 
-Verified from a clean `npm ci` against both lockfiles.
+| Gate | Current baseline |
+| --- | --- |
+| Unit | 51 tests in 7 files (Vitest, Node) |
+| Domain | 2,125 tests in 39 files |
+| Visual | 329 tests in 3 files, across the configured Playwright projects |
+| Visual snapshots | 98 baselines |
+| Packaging | 9 tests |
+| Lint | 0 errors; 77 baselined `no-explicit-any` warnings |
+| Bundle | 3,157,756 raw / 750,702 gzip-9 bytes, within the enforced budgets |
+
+CI installs from all three lockfiles: the application, domain harness, and visual
+harness lockfiles.
 
 ## What Was Deliberately Not Done
 
@@ -111,11 +117,10 @@ values buys almost nothing, while transcribing them (including the `rgba`-based
 contrast entries) risks a silent mismatch. The single choke point is what makes
 the rename a one-line change.
 
-**`ng lint` was left broken.** It has never worked in this repo:
-`angular.json` declares an `@angular-eslint` builder that has never been a
-dependency. Adopting a linter means triaging a backlog of first-run findings,
-which is a separate decision. A working lint gate would help the march surface
-deprecated API usage, so it is worth doing — just not silently, inside this.
+**Lint has since become a working gate.** `@angular-eslint` is installed and CI
+runs `npm run lint`. The existing explicit-`any` debt is visible as 77 warnings;
+lint errors still fail the gate. This closes the gap called out by the original
+preparation work without turning the migration into an unrelated typing rewrite.
 
 **No `TestBed` route under Vitest.** Nothing under `src/**` needs one today.
 Adding one requires an Angular-aware Vite plugin, which is a real dependency and

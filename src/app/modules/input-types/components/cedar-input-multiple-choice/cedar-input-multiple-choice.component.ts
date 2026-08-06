@@ -45,7 +45,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
     });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
     const validators: ValidatorFn[] = [];
     if (this.component.valueInfo.requiredValue) {

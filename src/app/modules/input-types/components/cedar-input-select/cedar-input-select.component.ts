@@ -53,7 +53,7 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
     this.populateItemsOnLoad();
     const validators: ValidatorFn[] = [];

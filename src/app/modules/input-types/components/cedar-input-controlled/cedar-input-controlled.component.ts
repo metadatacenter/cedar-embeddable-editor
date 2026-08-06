@@ -60,7 +60,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       inputValue: this.inputValueControl,
     });
   }
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
     const validators: ValidatorFn[] = [];
 

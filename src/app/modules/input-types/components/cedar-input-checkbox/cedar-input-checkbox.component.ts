@@ -29,7 +29,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
     for (const choice of this.component.choiceInfo.choices) {
       const fc = new FormControl();

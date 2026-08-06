@@ -23,7 +23,7 @@ export class CedarFooBarComponent extends CedarUIDirective implements OnInit {
     this.activeComponentRegistry = activeComponentRegistry;
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
   }
 

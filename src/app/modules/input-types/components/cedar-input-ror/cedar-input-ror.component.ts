@@ -65,7 +65,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     this.options = fb.group({ inputValue: this.inputValueControl });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
     const validators: ValidatorFn[] = [];
     if (this.component?.valueInfo?.requiredValue) {
@@ -110,7 +110,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
         }),
         tap(() => {
           setTimeout(() => {
-            const panel = document.querySelector('.mat-autocomplete-panel') as HTMLElement;
+            const panel = this.trigger?.autocomplete?.panel?.nativeElement as HTMLElement;
             if (panel) panel.scrollTop = 0;
           });
         }),

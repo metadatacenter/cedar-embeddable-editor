@@ -36,7 +36,7 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
     });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
     this.unitOfMeasure = this.component.numberInfo.unitOfMeasure;
 

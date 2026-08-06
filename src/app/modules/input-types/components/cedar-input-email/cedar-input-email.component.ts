@@ -46,7 +46,7 @@ export class CedarInputEmailComponent extends CedarUIDirective implements OnInit
     });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
     const validators: ValidatorFn[] = [];
 
