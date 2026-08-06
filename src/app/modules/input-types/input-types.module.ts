@@ -1,8 +1,6 @@
 import { NgModule } from '@angular/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldModule } from '@angular/material/form-field';
-import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -61,12 +59,9 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
 
 @NgModule({
   imports: [
-    BrowserModule,
-    HttpClientModule,
-    BrowserAnimationsModule,
+    CommonModule,
     MatAutocompleteModule,
     MatCardModule,
-    MatFormFieldModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -126,11 +121,7 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     CedarInputNihGrantComponent,
     CedarInputDoiComponent,
   ],
-  providers: [
-    MatDatepickerModule,
-    MatNativeDateModule,
-    { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } },
-  ],
+  providers: [{ provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } }],
   exports: [
     // FooBar is needed because the first component gets exported without style otherwise
     CedarFooBarComponent,

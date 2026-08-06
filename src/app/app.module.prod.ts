@@ -1,11 +1,11 @@
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DoBootstrap, Injector, NgModule } from '@angular/core';
 import { createCustomElement } from '@angular/elements';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { AppProdComponent } from './app.component.prod';
 import { SharedModule } from './modules/shared/shared.module';
 import { JsonPipe } from '@angular/common';
-import { InputTypesModule } from './modules/input-types/input-types.module';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './modules/shared/components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import * as fallbackMapEN from '../assets/i18n-cee/en.json';
@@ -19,9 +19,9 @@ import { defineCustomElementOnce } from './custom-element';
   declarations: [AppProdComponent],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     HttpClientModule,
     SharedModule,
-    InputTypesModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -41,7 +41,6 @@ import { defineCustomElementOnce } from './custom-element';
   providers: [JsonPipe],
   bootstrap: [],
   exports: [],
-  entryComponents: [CedarEmbeddableMetadataEditorWrapperComponent],
 })
 export class AppModuleProd implements DoBootstrap {
   constructor(private injector: Injector) {}

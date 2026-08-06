@@ -4,7 +4,6 @@ import { RdfPipe } from './pipe/rdf.pipe';
 import { CedarComponentHeaderComponent } from './components/cedar-component-header/cedar-component-header.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -45,8 +44,6 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     CommonModule,
     MatCardModule,
     MatIconModule,
-    BrowserAnimationsModule,
-    MatFormFieldModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
