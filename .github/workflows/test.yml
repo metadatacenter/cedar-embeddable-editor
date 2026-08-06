@@ -34,7 +34,34 @@ jobs:
         with:
           path: cedar-embeddable-editor
 
-      - name: Use Node.js 20
+      # Angular 14 supports Node 14 and 16, but not the Node 20 required by the
+      # current Playwright installation. Compile once on a supported Angular
+      # toolchain, then switch this runner to Node 20 and test the same dist.
+      - name: Use Node.js 16 for Angular 14
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16.20.2
+          cache: npm
+          cache-dependency-path: cedar-embeddable-editor/package-lock.json
+
+      - name: Install Angular build dependencies
+        working-directory: cedar-embeddable-editor
+        run: npm ci
+
+      # Lint runs beside the Angular compiler so both use the supported Node
+      # version for this hop. Warnings do not fail the build; the pre-existing
+      # `any` debt is baselined per file in .eslintrc.json.
+      - name: Lint
+        working-directory: cedar-embeddable-editor
+        run: npm run lint
+
+      - name: Build the production web component
+        working-directory: cedar-embeddable-editor
+        run: npm run build:production
+
+      # setup-node changes the executable in PATH but leaves dist untouched.
+      # Reinstall under Node 20 in case a test dependency has Node-specific code.
+      - name: Use Node.js 20 for Vitest and Playwright
         uses: actions/setup-node@v4
         with:
           node-version: 20.20.2
@@ -52,14 +79,6 @@ jobs:
           npm --prefix visual ci
           ./visual/node_modules/.bin/playwright install chromium firefox webkit
 
-      # Before the tests: lint is the cheap gate, and on the march to Angular 22 it is what
-      # surfaces deprecated API usage per version hop. Warnings do not fail the build; the
-      # pre-existing `any` debt is baselined per file in .eslintrc.json, so anything that
-      # fails here is a new error rather than inherited debt.
-      - name: Lint
+      - name: Test the prebuilt Node 16 production artifact
         working-directory: cedar-embeddable-editor
-        run: npm run lint
-
-      - name: Run the complete CEE test gate
-        working-directory: cedar-embeddable-editor
-        run: npm run test:ci
+        run: npm run test:ci:prebuilt

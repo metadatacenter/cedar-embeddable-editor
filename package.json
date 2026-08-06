@@ -17,7 +17,9 @@
     "test:domain": "npm --prefix harness test",
     "test:domain:coverage": "npm --prefix harness run test:coverage",
     "test:bundle-size": "npm run build:production && npm --prefix visual run bundle && npm --prefix visual run check:size",
+    "test:visual:prebuilt": "npm --prefix visual run prepare:all && npm --prefix visual test",
     "test:visual": "npm run build:production && npm --prefix visual run prepare:all && npm --prefix visual test",
+    "test:ci:prebuilt": "npm run test:unit:ci && npm run test:domain:coverage && npm run test:visual:prebuilt",
     "test:ci": "npm run test:unit:ci && npm run test:domain:coverage && npm run test:visual",
     "lint": "ng lint"
   },

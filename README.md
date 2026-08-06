@@ -118,6 +118,26 @@ npm --prefix visual ci
 ./visual/node_modules/.bin/playwright install chromium firefox webkit
 ```
 
+### Node versions during the Angular migration
+
+The root `.nvmrc` pins the Node version used to update, lint and compile the
+current Angular version. Move that pin with each completed framework hop:
+
+| Angular | Node used for Angular build/update |
+| --- | --- |
+| 14 | 16.20.x |
+| 15–16 | 18.20.x |
+| 17–21 | 20.19+ |
+| 22 | 22.22.3+ |
+
+At Angular 14 there is no Node version supported by both Angular and the current
+test tools: Vitest needs Node 18 or newer and Playwright needs Node 20 or newer.
+CI therefore lints and builds once on Node 16.20.2, switches the same runner to
+Node 20.20.2 without replacing `dist`, and runs Vitest and Playwright against
+that prebuilt artifact. `npm run test:ci:prebuilt` is the second half of that
+split and intentionally does not invoke `ng build`. From Angular 17 onward the
+build and test stages can use the same Node 20 toolchain again.
+
 Only that one package comes from Nexus; everything else resolves from npmjs.org.
 An `.npmrc` alongside each of the three `package.json` files maps the
 `@org.metadatacenter` scope to Nexus, and reads need no credentials.
