@@ -562,8 +562,23 @@ const writeRaw = (name, document) => {
   );
 }
 
+// 16. YouTube content — a full URL, because real CEDAR templates contain both
+// full URLs and bare IDs and the old Angular wrapper only handled the latter.
+{
+  const video = field(
+    'video',
+    () => CedarBuilders.youtubeFieldBuilder(),
+    (b) => opt(b, 'withVideoId', 'https://www.youtube.com/watch?v=1NBYWOKo9qo'),
+  );
+  let tb = common(CedarBuilders.templateBuilder(), 'YouTube', 'templates').withSchemaDescription(
+    'A native YouTube embed without the Player API',
+  );
+  tb = tb.addChild(video, deploy(video, 'video'));
+  write('16-youtube', tb.build());
+}
+
 /**
- * 16. Files for the two host inputs that fetch.
+ * 17. Files for the two host inputs that fetch.
  *
  * `loadConfigFromURL(url, onSuccess, onError)` and the sample-template loader are the
  * last two entry points a host page uses that no test touched, and both are untestable
@@ -613,6 +628,14 @@ const writeRaw = (name, document) => {
     ),
   );
 
+  // The toolbar's sample-template select fetches this registry before it can
+  // filter or load a choice. The second entry need not be selected; it exists
+  // to prove filtering removes and restores alternatives.
+  writeFileSync(
+    join(served, 'sample', 'registry.json'),
+    JSON.stringify({ demo: 'Demo template', other: 'Unrelated template' }, null, 2),
+  );
+
   // A config a host would fetch. `showFooter` is the observable part: it is off in the
   // harness's base preset, so seeing a footer means this config was applied rather than
   // the preset's.
@@ -647,5 +670,7 @@ const writeRaw = (name, document) => {
     JSON.stringify({ App: { Maintained: 'Maintained per an externally served language map.' } }, null, 2),
   );
 
-  console.log('wrote fixtures/served/ (sample template + metadata, host config, malformed config, language map)');
+  console.log(
+    'wrote fixtures/served/ (sample registry + template + metadata, host config, malformed config, language map)',
+  );
 }

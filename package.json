@@ -36,7 +36,6 @@
     "@angular/platform-browser": "~14.3.0",
     "@angular/platform-browser-dynamic": "~14.3.0",
     "@angular/router": "~14.3.0",
-    "@angular/youtube-player": "^14.2.7",
     "@ng-select/ng-select": "^9.1.0",
     "@ngx-translate/core": "^14.0.0",
     "@ngx-translate/http-loader": "^7.0.0",

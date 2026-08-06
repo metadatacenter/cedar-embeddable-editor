@@ -357,12 +357,10 @@ test.describe('config presets', () => {
  *    `app-cedar-input-datetime`, so its clip already contains them, and the time
  *    picker has its own tests below.
  *  - `app-cedar-multi-pager` already has `pager.png`, clipped for this reason.
- *  - `app-cedar-static-youtube` renders `<youtube-player>`, which fetches
- *    `youtube.com/iframe_api`. The suite must not reach the network — it points
- *    the terminology server at a dead port for the same reason — and a baseline
- *    of the empty container it degrades to would assert nothing. Left uncovered,
- *    on purpose. Note for the upgrade: this is a live network dependency inside
- *    CEE, not only a test problem.
+ *  - `app-cedar-static-youtube` is covered semantically in
+ *    `cross-browser-smoke.spec.ts`, where the iframe navigation is intercepted.
+ *    A screenshot of third-party YouTube UI would depend on live network content
+ *    and would not be a stable assertion about CEE.
  *  - `app-orcid-details` and `app-ror-details` only render after a term is
  *    selected, which needs a reachable authority service.
  */

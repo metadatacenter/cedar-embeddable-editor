@@ -79,6 +79,46 @@ test('keeps a Material overlay inside the custom element', async ({ page }) => {
   expect(placement.outside).toBe(0);
 });
 
+test('filters and loads a sample template through the Material select', async ({ page }) => {
+  await open(page, '01-input-types', 'chrome', undefined, undefined, '&f=showSampleTemplateLinks');
+
+  await page.locator('app-sample-template-select mat-select').click();
+  const search = page.getByRole('textbox', { name: 'dropdown search' });
+  await expect(search).toBeVisible();
+
+  // ngx-mat-select-search deliberately lives inside a disabled mat-option so
+  // Material cannot select the search row. Browsers still focus its input, but
+  // Playwright inherits aria-disabled from the option unless the actionability
+  // check is bypassed.
+  await search.fill('Demo', { force: true });
+  await expect(page.getByRole('option', { name: 'Demo template' })).toBeVisible();
+  await expect(page.getByRole('option', { name: 'Unrelated template' })).toHaveCount(0);
+
+  await search.fill('', { force: true });
+  await expect(page.getByRole('option', { name: 'Unrelated template' })).toBeVisible();
+  await search.fill('Demo', { force: true });
+  await page.getByRole('option', { name: 'Demo template' }).click();
+
+  await expect(page.locator('input[aria-label="title"]')).toHaveValue('loaded from metadata.json');
+});
+
+test('renders YouTube content as a native iframe without the Player API', async ({ page }) => {
+  await page.route('https://www.youtube.com/embed/**', (route) =>
+    route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>YouTube stub</title>' }),
+  );
+  await open(page, '16-youtube');
+
+  const iframe = page.locator('app-cedar-static-youtube iframe');
+  await expect(iframe).toHaveAttribute('src', 'https://www.youtube.com/embed/1NBYWOKo9qo');
+  await expect(iframe).toHaveAttribute('title', /video/i);
+  await expect(iframe).toHaveAttribute('loading', 'lazy');
+  await expect(page.locator('youtube-player')).toHaveCount(0);
+  expect(
+    await page.locator('script[src="https://www.youtube.com/iframe_api"]').count(),
+    'the global Player API script came back',
+  ).toBe(0);
+});
+
 test('updates temporal data through the custom time picker', async ({ page }) => {
   await open(page, '09-temporal');
   const seconds = page.locator('.cee-time-picker').nth(2).locator('input[aria-label="Second"]');

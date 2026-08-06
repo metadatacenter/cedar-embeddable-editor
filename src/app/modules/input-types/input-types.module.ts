@@ -37,7 +37,6 @@ import { CedarStaticYoutubeComponent } from './components/cedar-static-youtube/c
 import { CedarInputOrcidComponent } from './components/cedar-input-orcid/cedar-input-orcid.component';
 import { CedarInputRorComponent } from './components/cedar-input-ror/cedar-input-ror.component';
 import { RorDetailsComponent } from './components/cedar-input-ror/ror-details/ror-details.component';
-import { YouTubePlayerModule } from '@angular/youtube-player';
 import { CedarFooBarComponent } from './components/cedar-foo-bar/cedar-foo-bar.component';
 import { CedarInputControlledComponent } from './components/cedar-input-controlled/cedar-input-controlled.component';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -80,7 +79,6 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     MatDatepickerModule,
     MatNativeDateModule,
     NgSelectModule,
-    YouTubePlayerModule,
     FormsModule,
     MatSelectModule,
     TranslateModule,

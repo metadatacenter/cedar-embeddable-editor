@@ -35,7 +35,9 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
       });
 
     this.sampleTemplateService.templateJson$.pipe(takeUntil(this._onDestroy)).subscribe((templateJson) => {
-      this.templateCtrl.setValue(Object.keys(templateJson)[0]);
+      if (templateJson) {
+        this.templateCtrl.setValue(Object.keys(templateJson)[0]);
+      }
     });
 
     // listen for search field value changes

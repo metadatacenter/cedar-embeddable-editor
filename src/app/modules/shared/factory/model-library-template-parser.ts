@@ -177,10 +177,12 @@ export class ModelLibraryTemplateParser implements TemplateParser {
       } else if (childInfo.atType === CedarArtifactType.STATIC_TEMPLATE_FIELD) {
         const sfc = new StaticFieldComponent();
         sfc.basicInfo.inputType = childInfo.uiInputType.getValue();
-        // Every static type declares `content`, but they are separate classes
-        // with no shared interface exposing it.
+        // YouTube calls this value `videoId`; the other static content types
+        // call it `content`. They have no shared interface exposing either.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        sfc.contentInfo.content = (child as any).content;
+        const staticField = child as any;
+        sfc.contentInfo.content =
+          sfc.basicInfo.inputType === InputType.youtube ? staticField.videoId : staticField.content;
         ModelLibraryTemplateParser.extractLabels(child as TemplateField, childInfo, name, sfc);
         r = sfc;
       }
