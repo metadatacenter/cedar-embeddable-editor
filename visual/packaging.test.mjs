@@ -34,9 +34,6 @@ const webpackDist = () => {
   writeFileSync(join(dist, 'runtime.js'), '(function(){window.__runtime=1})();\n');
   writeFileSync(join(dist, 'polyfills.js'), '(function(){window.__polyfills=1})();\n');
   writeFileSync(join(dist, 'main.js'), '(function(){window.__main=1})();\n');
-  // Emitted for angular.json's `scripts` array and loaded by the dev page, but
-  // deliberately not part of the documented embeddable artifact.
-  writeFileSync(join(dist, 'scripts.js'), '(function(){window.__shim=1})();\n');
   writeFileSync(join(dist, 'index.html'), '<html></html>');
   return dist;
 };
@@ -68,11 +65,6 @@ describe('resolveBuildOutput', () => {
       ['runtime.js', 'polyfills.js', 'main.js'],
       'runtime must load before polyfills before the entry',
     );
-  });
-
-  it('excludes scripts.js from the embeddable artifact', () => {
-    const { inputs } = resolveBuildOutput(webpackDist());
-    assert.ok(!inputs.some((p) => p.endsWith('scripts.js')));
   });
 
   it('reads the esbuild shape as a bundle, from the nested output directory', () => {

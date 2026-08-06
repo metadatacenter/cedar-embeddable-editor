@@ -15,6 +15,22 @@ see [*Author Once, Publish Everywhere: Portable Metadata Authoring with the CEDA
 Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002), published in the
 *Data Science Journal* (2026).
 
+## Browser support
+
+CEE supports the browser targets selected for the Angular version used to build
+each release and by this repository's `.browserslistrc`. CEE requires native
+Custom Elements v1 and native Shadow DOM.
+
+Automated compatibility tests run against current desktop Chromium, Firefox and
+WebKit engines. Firefox ESR and the configured Edge, Safari and iOS versions are
+compilation targets, but are not all exercised as separate browser products.
+
+Internet Explorer, legacy EdgeHTML, and browsers or embedded web views without
+native `window.customElements` and Shadow DOM support are not supported. CEE
+does not polyfill its host page. Consumers choosing to support browsers outside
+this contract must load and maintain their own Web Components polyfills before
+loading CEE.
+
 ## Running as a standalone application
 
 You can run CEE as a standalone application. This is helpful for developers to
@@ -184,7 +200,7 @@ The CEE configuration file format and storage location depends on the applicatio
 * When running CEE in the standalone mode (developer mode), the configuration parameters are stored in and read from the file: `src/app/app.component.dev.ts`.
 * When running CEE as a generic Webcomponent, the configuration parameters can be stored in any `.json` file that is visible to the application that embeds CEE Webcomponent. CEE Webcomponent API provides a method for loading the configuration file from its path at runtime. For example:
 ```javascript
-document.addEventListener('WebComponentsReady', function () {
+customElements.whenDefined('cedar-embeddable-editor').then(() => {
   const cee = document.querySelector('cedar-embeddable-editor');
   cee.loadConfigFromURL('assets/data/cee-config.json');
 });
@@ -337,7 +353,7 @@ JSON serialization.
 In the example below, the metadata is sent to an external endpoint every 15 seconds:
 
 ```javascript
-document.addEventListener('WebComponentsReady', function () {
+customElements.whenDefined('cedar-embeddable-editor').then(() => {
   const cee = document.querySelector('cedar-embeddable-editor');
   cee.loadConfigFromURL('assets/data/cee-config.json');
   const saveTime = 15000; // 15 seconds
@@ -396,7 +412,7 @@ function restoreMetadataFromURL(metaUrl, cee, successHandler = null, errorHandle
   xhr.send();
 }
 
-document.addEventListener('WebComponentsReady', function () {
+customElements.whenDefined('cedar-embeddable-editor').then(() => {
   const cee = document.querySelector('cedar-embeddable-editor');
   cee.loadConfigFromURL('assets/data/cee-config.json');
   restoreMetadataFromURL('uploads/metadata-for-restore.json', cee);

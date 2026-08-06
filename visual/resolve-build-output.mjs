@@ -25,11 +25,6 @@ export const DEFAULT_DIST = fileURLToPath(new URL('../dist/cedar-embeddable-edit
 /**
  * Roles in load order. `runtime` must precede everything (it defines the chunk
  * registry the others register into) and the entry must come last.
- *
- * `scripts.js` is intentionally absent. The webpack builder emits it for
- * `angular.json`'s `scripts` array — the custom-elements native shim — and the
- * dev `index.html` loads it, but the documented embeddable artifact does not
- * include it. The demo host and the shipped component are different things.
  */
 const ROLES = [
   { role: 'runtime', pattern: /^runtime(\.[0-9a-f]+)?\.js$/ },
@@ -103,7 +98,7 @@ export const resolveBuildOutput = (dist = DEFAULT_DIST) => {
   // Under `bundle` the entry's import graph reaches the chunks, so esbuild
   // resolves them itself. They still belong in `inputs`: a lazy chunk changing
   // is a reason to consider the copy stale.
-  const chunks = present.filter((f) => /\.js$/.test(f) && f !== 'scripts.js').map((f) => join(dir, f));
+  const chunks = present.filter((f) => /\.js$/.test(f)).map((f) => join(dir, f));
   const polyfills = found.get('polyfills');
   return {
     dir,

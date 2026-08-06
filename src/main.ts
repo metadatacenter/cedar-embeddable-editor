@@ -6,14 +6,6 @@ import { AppModuleDev } from './app/app.module.dev';
 import packageJson from 'package.json';
 import { bootstrapCedarEditorOnce, CedarEditorBootstrapState } from './app/bootstrap-once';
 
-declare global {
-  interface Window extends CedarEditorBootstrapState {
-    WebComponents: {
-      ready: boolean;
-    };
-  }
-}
-
 // needed for jsonld js library
 // (window as any).global = window;
 
@@ -23,7 +15,7 @@ if (environment.production) {
 
 if (environment.production) {
   bootstrapCedarEditorOnce(
-    window,
+    window as Window & CedarEditorBootstrapState,
     () => {
       // Assign the version only to the bundle that wins the bootstrap slot. If
       // another version is loaded later, it must not claim to be the one running.
