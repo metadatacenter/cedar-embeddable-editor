@@ -9,7 +9,7 @@
     <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
     <input matInput type="text" placeholder="{{'Generic.Filter' | translate}}"
       #autoCompleteInput="matAutocompleteTrigger" [formControl]="inputValueControl"
-      [errorStateMatcher]="errorStateMatcher" [matAutocomplete]="auto" (focus)="inputFocused()"
+      [errorStateMatcher]="errorStateMatcher" [matAutocomplete]="auto"
       (input)="inputChanged($event)" [readonly]="readOnlyMode"
       attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
     <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>

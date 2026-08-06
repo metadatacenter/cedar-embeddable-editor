@@ -6,6 +6,7 @@ export interface CedarComponent {
   name: string;
   path: string[];
   linkedStaticFieldComponent: StaticFieldComponent;
+  hidden?: boolean;
 
   labelInfo: LabelInfo;
 
