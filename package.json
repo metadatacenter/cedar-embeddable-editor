@@ -39,7 +39,7 @@
     "@ngx-translate/core": "^14.0.0",
     "@ngx-translate/http-loader": "^7.0.0",
     "@webcomponents/custom-elements": "^1.4.3",
-    "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@0.9.2-dev.20260804.f1a3784",
+    "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@0.9.2-dev.20260805.4105f7c",
     "lodash-es": "^4.17.21",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
