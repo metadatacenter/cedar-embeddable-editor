@@ -37,6 +37,68 @@ export const open = async (
   await page.waitForTimeout(300);
 };
 
+/** The stub served in place of every image a template points at an outside host. */
+const STUB_IMAGE = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), './stub-image.png');
+
+/**
+ * Serve the outside world from disk, and fail if a page reaches for anything else.
+ *
+ * Generated fixtures reference nothing off-origin. Templates written by a person do:
+ * the two real ones here embed the CEDAR logo from the public site and a YouTube
+ * video. Left alone, each screenshot would depend on a third party being reachable
+ * and on neither of them restyling — a baseline that goes red for reasons no commit
+ * in this repository caused. So both are answered locally, with fixed bytes.
+ *
+ * They are answered rather than blocked because CEE renders a *failed* image as an
+ * error notice instead of a picture (`resolveStaticImageView`), which would take the
+ * card out of the layout the screenshot is here to watch.
+ *
+ * The third is not the templates' doing. CEE's own ROR icon is a `background-image`
+ * pointing at raw.githubusercontent.com — alone among the five authority icons, which
+ * are otherwise inlined as `data:` SVGs — so any fixture holding an `ext-ror` field
+ * fetches it. That includes `04-controlled-terms` and `08-authority`, whose baselines
+ * have therefore always been network-dependent without saying so. Stubbed here rather
+ * than fixed, because inlining it changes what those two render and belongs in its own
+ * commit with its own re-baseline.
+ *
+ * The unmatched-host route is the part worth keeping, and it earned that on its first
+ * run by finding the ROR icon. It aborts anything else and records it, so
+ * `expectNoStrayHosts` fails a fixture that quietly starts depending on the network
+ * instead of letting it become another silent one.
+ */
+export const hermetic = async (page: Page): Promise<string[]> => {
+  const stray: string[] = [];
+
+  // Registered first on purpose: Playwright tries the most recently added route
+  // first, so the catch-all has to go down before the stubs that must outrank it.
+  await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (route) => {
+    stray.push(route.request().url());
+    return route.abort();
+  });
+
+  await page.route('https://cedar.metadatacenter.org/**', (route) =>
+    route.fulfill({ contentType: 'image/png', body: fs.readFileSync(STUB_IMAGE) }),
+  );
+
+  await page.route('https://www.youtube.com/embed/**', (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>stub</title>' }),
+  );
+
+  await page.route('https://raw.githubusercontent.com/ror-community/**', (route) =>
+    route.fulfill({
+      contentType: 'image/svg+xml',
+      body: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='#53baa1'/></svg>",
+    }),
+  );
+
+  return stray;
+};
+
+/** Assert the page reached for nothing beyond what `hermetic` answers. */
+export const expectNoStrayHosts = (stray: string[]): void => {
+  expect([...new Set(stray)], 'fixture reached an unstubbed external host').toEqual([]);
+};
+
 export const openTwoEditors = async (page: Page, fixture: string): Promise<void> => {
   await page.clock.setFixedTime(FROZEN);
   await page.goto(`/host.html?host=multi&t=${fixture}&b=${BUNDLE_VERSION}`);
