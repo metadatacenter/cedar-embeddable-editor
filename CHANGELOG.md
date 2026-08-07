@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-dev.20260806.62725e3] - 2026-08-06
+
+### Fixed
+
+- Static image fields report a URL that cannot be loaded instead of rendering an empty card, and
+  fall back to the field label when `schema:description` is empty rather than emitting `alt=""`.
+- Static YouTube fields explain why a link cannot be embedded — a playlist or channel link, a
+  non-YouTube host, or an invalid video ID — instead of rendering an empty card.
+- Controlled-term and external-authority fields distinguish a failed lookup from one that matched
+  nothing, rather than labelling both "No results found".
+- A failed terminology lookup no longer ends the controlled-term field's `valueChanges` pipeline,
+  which left its autocomplete inoperative for the rest of the session.
+
 ## [1.6.0-dev.20260804.85b7ccf] - 2026-08-04
 
 ### Added
