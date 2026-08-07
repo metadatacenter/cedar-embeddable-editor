@@ -7,6 +7,8 @@ on:
       - main
       - develop
       - cee-with-model-library
+      - cee-angular-upgrade
+      - 'cee-angular-**'
 
 permissions:
   contents: read
@@ -34,34 +36,18 @@ jobs:
         with:
           path: cedar-embeddable-editor
 
-      # Angular 14 supports Node 14 and 16, but not the Node 20 required by the
-      # current Playwright installation. Compile once on a supported Angular
-      # toolchain, then switch this runner to Node 20 and test the same dist.
-      - name: Use Node.js 16 for Angular 14
-        uses: actions/setup-node@v4
-        with:
-          node-version: 16.20.2
-          cache: npm
-          cache-dependency-path: cedar-embeddable-editor/package-lock.json
-
-      - name: Install Angular build dependencies
-        working-directory: cedar-embeddable-editor
-        run: npm ci
-
-      # Lint runs beside the Angular compiler so both use the supported Node
-      # version for this hop. Warnings do not fail the build; the pre-existing
-      # `any` debt is baselined per file in .eslintrc.json.
-      - name: Lint
-        working-directory: cedar-embeddable-editor
-        run: npm run lint
-
-      - name: Build the production web component
-        working-directory: cedar-embeddable-editor
-        run: npm run build:production
-
-      # setup-node changes the executable in PATH but leaves dist untouched.
-      # Reinstall under Node 20 in case a test dependency has Node-specific code.
-      - name: Use Node.js 20 for Vitest and Playwright
+      # One Node for the whole job, which Angular 14 could not give us.
+      #
+      # This job used to build on Node 16 and then switch the runner to Node 20 to
+      # test, because Angular 14's toolchain did not support the version Playwright
+      # needs. Angular 15 accepts ">=18.10.0", so the split has no reason left and
+      # the build and the tests now share one version — which also means the dist
+      # that ships is produced on the same Node that exercised it.
+      #
+      # 20.20.2 carries the rest of the march: Angular 17 wants ">=20.9.0", 18 and
+      # 19 "^20.11.1", 20 and 21 "^20.19.0". Angular 22 is where it has to move,
+      # to "^22.22.3 || ^24.15.0 || >=26".
+      - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20.20.2
@@ -71,14 +57,29 @@ jobs:
             cedar-embeddable-editor/harness/package-lock.json
             cedar-embeddable-editor/visual/package-lock.json
 
+      - name: Install Angular build dependencies
+        working-directory: cedar-embeddable-editor
+        run: npm ci
+
+      # Warnings do not fail the build; the pre-existing `any` debt is baselined
+      # per file in .eslintrc.json.
+      - name: Lint
+        working-directory: cedar-embeddable-editor
+        run: npm run lint
+
+      - name: Build the production web component
+        working-directory: cedar-embeddable-editor
+        run: npm run build:production
+
+      # The root `npm ci` is already done above; only the two test workspaces are
+      # left, now that the runner no longer changes Node underneath them.
       - name: Install CEE test dependencies
         working-directory: cedar-embeddable-editor
         run: |
-          npm ci
           npm --prefix harness ci
           npm --prefix visual ci
           ./visual/node_modules/.bin/playwright install chromium firefox webkit
 
-      - name: Test the prebuilt Node 16 production artifact
+      - name: Test the production artifact built above
         working-directory: cedar-embeddable-editor
         run: npm run test:ci:prebuilt
