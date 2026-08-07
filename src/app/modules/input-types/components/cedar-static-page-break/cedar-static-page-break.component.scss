@@ -8,11 +8,11 @@
 }
 
 .page-break-pager {
-  .mat-paginator {
+  .mat-mdc-paginator {
     background-color: transparent;
   }
 
-  .mat-paginator-range-label {
+  .mat-mdc-paginator-range-label {
     display: none;
   }
 }

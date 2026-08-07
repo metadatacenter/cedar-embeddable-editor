@@ -47,7 +47,7 @@
   </mat-accordion>
 </ng-container>
 <ng-container *ngIf="nonIterableComponent">
-  <mat-card class="child-component-card non-iterable-component">
+  <mat-card appearance="outlined" class="child-component-card non-iterable-component">
     <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
     <app-cedar-multi-pager *ngIf="nonIterableComponent.isMultiPage()"
                            [componentToRender]="nonIterableComponent"

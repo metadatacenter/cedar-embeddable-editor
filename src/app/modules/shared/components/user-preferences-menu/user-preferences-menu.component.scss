@@ -22,12 +22,13 @@
   font-size: 14px;
   margin-left: 16px;
 }
-.preferences-menu .menu-body button.mat-menu-item {
+.preferences-menu .menu-body button.mat-mdc-menu-item {
   display: flex;
   flex-direction: column;    /* stack header, divider, body vertically */
   align-items: stretch;
   padding-left: 12px;
 }
+/*TODO(mdc-migration): The following rule targets internal classes of slide-toggle that may no longer apply for the MDC version.*/
 mat-slide-toggle {
   margin-left: 20px;
 }

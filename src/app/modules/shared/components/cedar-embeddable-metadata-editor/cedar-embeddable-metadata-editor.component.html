@@ -2,7 +2,7 @@
                    [callbackOwnerObject]="sampleTemplateLoaderObject"
                    [showSampleTemplateLinks]="showSampleTemplateLinks"></app-static-header>
 <user-preferences-menu [isVisible]="showPreferencesMenu" [readOnlyMode]="readOnlyMode"></user-preferences-menu>
-<mat-card class="template-card" *ngIf="dataAvailableForRender()">
+<mat-card appearance="outlined" class="template-card" *ngIf="dataAvailableForRender()">
 <!--  <mat-card-header>-->
   <div class="template-header">
     <div class="logo-block">

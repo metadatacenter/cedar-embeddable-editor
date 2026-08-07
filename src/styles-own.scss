@@ -120,7 +120,7 @@
   margin-left: 10px;
 }
 
-.mat-card {
+.mat-mdc-card {
   margin-top: 5px;
 }
 
@@ -204,7 +204,7 @@ app-sample-templates {
   justify-content: center;
   margin-top: 30px;
 
-  .mat-progress-spinner {
+  .mat-mdc-progress-spinner {
     float: left;
     margin-right: 20px;
   }
@@ -338,8 +338,23 @@ button.close {
   color: var(--cee-color-text-primary) !important;
 }
 
-.mat-form-field-infix {
+/*
+ * Compress the field box. CEDAR forms run to dozens of fields, so Material's
+ * default density costs a screenful every ten of them.
+ *
+ * MDC drives the height from `min-height` on the infix (56px) as well as its
+ * padding, where the legacy component used padding alone — so porting only the
+ * padding leaves the field its full height. Measured: infix 56px tall at 16px
+ * top and bottom, against the 5/7 this asks for.
+ *
+ * The migration schematic left the old selector in place under a TODO rather
+ * than renaming it, which is the honest thing for it to have done: the rule does
+ * not translate one-for-one, and a silent rename would have compressed nothing
+ * while looking like it had.
+ */
+.mat-mdc-form-field-infix {
   margin: 0 !important;
+  min-height: auto !important;
   padding-top: 5px !important;
   padding-bottom: 7px !important;
 }
@@ -349,7 +364,7 @@ button.close {
   scale: 1.2;
 }
 
-.mat-tooltip.tooltip {
+.mat-mdc-tooltip.tooltip {
   font-size: 12px;
 }
 
@@ -364,15 +379,31 @@ button.close {
   z-index: 9999 !important;
 }
 
-.mat-form-field-appearance-outline .mat-form-field-outline {
-  color: black;
+/*
+ * A black outline rather than Material's default.
+ *
+ * Legacy drew the outline as an SVG that inherited `color`, so one declaration
+ * did it. MDC draws it as three bordered boxes — leading, notch and trailing —
+ * and takes their colour from `border-color`, so the same intent needs all three
+ * named. Left at the default they render rgba(0, 0, 0, 0.38), which is visibly
+ * grey against the black the rest of the form uses.
+ *
+ * `!important` because MDC sets the same property from a three-class selector
+ * (`.mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__leading`)
+ * that outranks this one. Measured, not assumed: without it the computed colour
+ * stays rgba(0, 0, 0, 0.38).
+ */
+.mat-form-field-appearance-outline .mdc-notched-outline__leading,
+.mat-form-field-appearance-outline .mdc-notched-outline__notch,
+.mat-form-field-appearance-outline .mdc-notched-outline__trailing {
+  border-color: black !important;
 }
 
 .mat-expansion-panel {
   border: 1px solid #777777;
   box-shadow: none !important;
 }
-.mat-card {
+.mat-mdc-card {
   //border: 1px solid #777777;
   box-shadow: none !important;
   margin-bottom: 0;
@@ -408,7 +439,7 @@ button.close {
  * it. It sits next to "No results found", and the whole point is that the two
  * do not read alike — so this one is coloured as the fault it reports.
  */
-.mat-option.lookup-failed {
+.mat-mdc-option.lookup-failed {
   color: #a1332b;
   font-style: italic;
   white-space: normal;

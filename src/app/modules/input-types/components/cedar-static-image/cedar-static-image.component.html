@@ -1,4 +1,4 @@
-<mat-card class="child-component-card image-component">
+<mat-card appearance="outlined" class="child-component-card image-component">
   <div *ngIf="view.src" role="img" attr.aria-label="{{ altText }}">
     <img mat-card-image [src]="view.src" [alt]="altText" (error)="onImageError()" />
   </div>

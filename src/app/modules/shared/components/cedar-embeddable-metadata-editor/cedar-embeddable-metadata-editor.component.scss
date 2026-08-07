@@ -1,15 +1,11 @@
 @import '../../../../../styles-common.scss';
 
-.mat-card {
+.mat-mdc-card {
   padding: 5px;
   margin-bottom: 5px;
 }
 .header-flex-child {
   flex: auto;
-}
-.mat-card-header {
-  margin-bottom: 5px;
-  vertical-align: middle;
 }
 .header-image {
   background-image: url($cedar-logo-80x80);

@@ -19,12 +19,19 @@ import { gzipSync, constants as zlibConstants } from 'node:zlib';
 
 const COPY = fileURLToPath(new URL('./public/cedar-embeddable-editor.js', import.meta.url));
 
-// Baseline on 2026-08-04: 3,167,000 raw and 749,628 gzip-9 bytes.
+// Baseline on 2026-08-07: 3,380,035 raw and 772,342 gzip-9 bytes.
+//
+// Raised from 3,230,000 / 765,000 for the MDC migration, which costs 190,966 raw
+// and 19,620 gzip. That is what the MDC components weigh against the legacy ones
+// they replace, measured on either side of the migration commit with nothing else
+// changing — not drift, and not something a further pass could trim, since the
+// legacy components no longer exist to go back to.
+//
 // The limits leave about 2% headroom. Raising one is an intentional product
 // decision: update the baseline comment and explain the increase in the PR.
 const LIMITS = {
-  raw: 3_230_000,
-  gzip: 765_000,
+  raw: 3_450_000,
+  gzip: 790_000,
 };
 
 const die = (message) => {

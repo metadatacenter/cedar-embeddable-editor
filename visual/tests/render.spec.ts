@@ -215,7 +215,7 @@ test.describe('real templates', () => {
    */
   const gotoPage = async (page: Page, n: number): Promise<void> => {
     await page
-      .locator('.page-break-paginator-container mat-chip', { hasText: String(n) })
+      .locator('.page-break-paginator-container mat-chip-option', { hasText: String(n) })
       .first()
       .click();
     await page.waitForTimeout(300);
@@ -1176,7 +1176,7 @@ test.describe('a choice value reaches the widget by every load path', () => {
 
       await expect(checkedRadio(page), 'first occurrence').toHaveAccessibleName('Public');
 
-      const chips = page.locator('app-cedar-multi-pager mat-chip');
+      const chips = page.locator('app-cedar-multi-pager mat-chip-option');
       await expect(chips, 'the fixture declares two occurrences').toHaveCount(2);
       await chips.nth(1).click();
       await page.waitForTimeout(400);
@@ -1534,9 +1534,12 @@ test.describe('host change notifications', () => {
     await open(page, '13-paged-choice', undefined, '13-paged-choice-instance');
     await recordChanges(page);
     const pager = page.locator('app-cedar-multi-pager').first();
-    const add = pager.locator('button').nth(0);
-    const copy = pager.locator('button').nth(1);
-    const remove = pager.locator('button').nth(2);
+    // `button[mat-icon-button]` rather than every button in the pager: an MDC chip
+    // renders its own button inside itself, so a bare `button` locator picks up one
+    // per occurrence and the action buttons stop being nth(0..2).
+    const add = pager.locator('button[mat-icon-button]').nth(0);
+    const copy = pager.locator('button[mat-icon-button]').nth(1);
+    const remove = pager.locator('button[mat-icon-button]').nth(2);
     const count = () =>
       page.evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata._record.length);
     const messages = () =>

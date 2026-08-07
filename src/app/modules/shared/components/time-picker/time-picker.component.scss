@@ -41,14 +41,18 @@
 /*
  * The colon, between two digit boxes and level with the digits.
  *
- * One stepper's height down, then a line box the height of a form field's input
- * row — so the colon centres where the digits do. Both are in `em`, so they track
- * the font rather than a pixel measurement.
+ * One stepper's height down, plus the padding CEE's own `.mat-mdc-form-field-infix`
+ * rule puts above the input, then a line box the height of the input itself — so
+ * the colon centres exactly where the digits do.
  *
- * This is the one place here with a number chosen to match Material's own
- * geometry, and Material changes that in the 14 → 15 MDC migration. So it is
- * *tested*: `visual/tests/render.spec.ts` asserts the colon's centre sits within
- * a couple of pixels of a digit's, and will fail loudly rather than drift.
+ * Every term is CEE's own: the 24px stepper below, and the 5px infix padding in
+ * styles-own.scss. That is the point of writing it this way. The previous version
+ * used a 3.4em line box chosen to match *Material's* geometry, and the MDC
+ * migration duly moved it — the colon came out 6.8px low. Anchoring to values CEE
+ * sets means Material can change its metrics without dragging the colon along.
+ *
+ * Still tested, because a number is a number: `visual/tests/render.spec.ts`
+ * asserts the colon's centre sits within a couple of pixels of a digit's.
  *
  * Two cleverer attempts came first and both went wrong, which is why the simple
  * version is here. A chrome-less `mat-form-field` holding the colon collapsed its
@@ -58,9 +62,9 @@
  */
 .cee-time-separator {
   align-self: flex-start;
-  margin-top: 24px;
-  height: 3.4em;
-  line-height: 3.4em;
+  margin-top: calc(24px + 5px);
+  height: 24px;
+  line-height: 24px;
   padding: 0 2px;
 }
 
