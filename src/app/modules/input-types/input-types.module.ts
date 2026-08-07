@@ -1,5 +1,8 @@
 import { NgModule } from '@angular/core';
-import { MAT_LEGACY_FORM_FIELD_DEFAULT_OPTIONS as MAT_FORM_FIELD_DEFAULT_OPTIONS, MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
+import {
+  MAT_LEGACY_FORM_FIELD_DEFAULT_OPTIONS as MAT_FORM_FIELD_DEFAULT_OPTIONS,
+  MatLegacyFormFieldModule as MatFormFieldModule,
+} from '@angular/material/legacy-form-field';
 import { CommonModule } from '@angular/common';
 import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
