@@ -1594,8 +1594,6 @@ test.describe('config flags are wired to something', () => {
     { flag: 'showTemplateSourceData' },
     { flag: 'showDataQualityReport' },
     { flag: 'showMultiInstanceInfo', fixture: '03-nested-multi' },
-    { flag: 'showAllMultiInstanceValues', fixture: '03-nested-multi' },
-    { flag: 'showStaticText', fixture: '05-static-paged' },
     // Expanding a panel only shows when the panel itself is shown.
     { flag: 'expandedInstanceDataCore', withFlags: ['showInstanceDataCore'] },
     { flag: 'expandedInstanceDataFull', withFlags: ['showInstanceDataFull'] },
@@ -1606,23 +1604,79 @@ test.describe('config flags are wired to something', () => {
     { flag: 'expandedMultiInstanceInfo', withFlags: ['showMultiInstanceInfo'], fixture: '03-nested-multi' },
   ];
 
-  const domOf = async (page: import('@playwright/test').Page, fixture: string, flags: string[]) => {
+  /**
+   * Strip the identifiers Angular generates, which say nothing about a config key.
+   *
+   * Comparing raw innerHTML made this whole sweep pass for the wrong reason on
+   * Angular 14 and 15: the style-encapsulation prefix was random per bootstrap, so
+   * `_nghost-hom-c24` and `_nghost-uwy-c24` made any two page loads "differ"
+   * whether or not the flag did anything. Three flags were tested that way and
+   * changed nothing at all. Angular 16 made the prefixes deterministic and the free
+   * pass vanished, which is how they were finally caught.
+   *
+   * Normalising here is what makes the assertion mean what it says. A comparison
+   * that can be satisfied by a random string is not a comparison.
+   */
+  const normaliseAngularIds = (html: string): string =>
+    html
+      .replace(/_nghost-[\w-]+/g, '_nghost')
+      .replace(/_ngcontent-[\w-]+/g, '_ngcontent')
+      .replace(/ng-tns-c\d+-\d+/g, 'ng-tns');
+
+  const domOf = async (page: import('@playwright/test').Page, fixture: string, flags: string[], off: string[] = []) => {
     await page.clock.setFixedTime(FROZEN);
     const f = flags.length ? `&f=${flags.join(',')}` : '';
-    await page.goto(`/host.html?t=${fixture}${f}&b=${BUNDLE_VERSION}`);
+    const n = off.length ? `&n=${off.join(',')}` : '';
+    await page.goto(`/host.html?t=${fixture}${f}${n}&b=${BUNDLE_VERSION}`);
     await page.waitForFunction(() => (window as any).__ceeReady === true || (window as any).__ceeError, null, {
       timeout: 20_000,
     });
     expect(await page.evaluate(() => (window as any).__ceeError)).toBeFalsy();
     await page.waitForTimeout(300);
-    return page.evaluate(
+    const html = await page.evaluate(
       () => (document.querySelector('cedar-embeddable-editor') as HTMLElement).shadowRoot?.innerHTML ?? '',
     );
+    return normaliseAngularIds(html);
   };
+
+  /**
+   * Wired, but to something no fixture in the corpus produces.
+   *
+   * Each of these gates on a second condition as well as the flag, and the corpus
+   * never satisfies it — so the flag cannot change anything here whatever it is set
+   * to. They were "passing" until Angular 16 made ids deterministic, at which point
+   * it became clear they were comparing a page with itself.
+   *
+   * `fixme` rather than deletion or a silent skip: the run reports them, so the gap
+   * stays visible until a fixture reaches the condition. Adding one is tracked
+   * separately; both conditions are named here so whoever builds it knows the shape.
+   */
+  const UNREACHABLE = new Map([
+    [
+      'showStaticText',
+      'gates on `linkedStaticFieldComponent`, which template-representation.factory only ' +
+        'sets for a lone static component immediately preceding a field or element. Every ' +
+        'static run in the corpus is a pair, so nothing is ever linked.',
+    ],
+    [
+      'showAllMultiInstanceValues',
+      'gates on `multiInstanceValue`, and getMultiInstanceDataValueInfo returns "" unless ' +
+        'the paged component is a *field* holding values. The corpus pages elements, so the ' +
+        'summary is always empty. Needs a multi-instance field plus an instance to fill it.',
+    ],
+  ]);
+
+  for (const [flag, why] of UNREACHABLE) {
+    test.fixme(`${flag} changes what renders`, () => {
+      throw new Error(`no fixture reaches this flag: ${why}`);
+    });
+  }
 
   for (const { flag, withFlags = [], fixture = '01-input-types' } of FLAGS) {
     test(`${flag} changes what renders`, async ({ page }) => {
-      const off = await domOf(page, fixture, withFlags);
+      // Both ends stated explicitly. Relying on the flag's absence as its off-state
+      // is only correct for keys that default to false, and three here do not.
+      const off = await domOf(page, fixture, withFlags, [flag]);
       const on = await domOf(page, fixture, [...withFlags, flag]);
 
       expect(on === off, `turning on ${flag} rendered byte-identical DOM — the key is probably ignored`).toBe(false);

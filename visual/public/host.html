@@ -264,6 +264,18 @@
         for (const flag of flags) {
           overrides[flag] = true;
         }
+        /*
+         * ?n= turns a flag explicitly off.
+         *
+         * `base` leaves most keys unset, so for a key whose component default is
+         * `true` the absence of ?f= is its *on* state, and the sweep below would
+         * compare a page with itself. Naming both ends is what makes the comparison
+         * a comparison, and it keeps the sweep from having to change `base` — which
+         * every screenshot baseline depends on.
+         */
+        for (const flag of (params.get('n') || '').split(',').filter(Boolean)) {
+          overrides[flag] = false;
+        }
         if (params.get('s')) {
           overrides.outputSerialization = params.get('s');
         }
