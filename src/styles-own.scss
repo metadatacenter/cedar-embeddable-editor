@@ -47,6 +47,20 @@
    * root.
    */
   @include cdk.a11y-visually-hidden();
+
+  /*
+   * The CDK's autosize measuring styles, for the same reason.
+   *
+   * `cdkTextareaAutosize` sizes a textarea by cloning it, measuring the clone and
+   * reading the result back. The clone is styled by rules the CDK injects at
+   * runtime from Angular 19, scoped to `html`, so inside the shadow root it is
+   * unstyled and measures wrong: the Text Area Field came out 54px taller than it
+   * should be, and every page holding one grew with it.
+   *
+   * `text-field-autosize()` rather than the deprecated `text-field()`, which also
+   * pulls in autofill styling CEE does not use.
+   */
+  @include cdk.text-field-autosize();
 }
 
 .material-icons {
