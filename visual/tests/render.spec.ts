@@ -85,6 +85,38 @@ test.describe('host style isolation', () => {
     expect(placement.inside).toBeGreaterThan(0);
     expect(placement.outside).toBe(0);
   });
+
+  /**
+   * Teardown, which used to be a unit spec and could not stay one.
+   *
+   * `CedarOverlayContainer` extends the CDK's `OverlayContainer`, and from Angular
+   * 19 that base resolves its dependencies in field initializers — including a
+   * private `_CdkPrivateStyleLoader`. Constructing it outside an injection context
+   * throws, and satisfying that by hand means providing CDK internals that are not
+   * API and will move again. The unit spec was deleted rather than propped up; the
+   * unit setup deliberately has no TestBed and no zone, and one spec is not worth
+   * patching globals for all 107 others.
+   *
+   * Nothing is lost by asserting it here instead. The container's whole purpose is
+   * to live in a real shadow root, so the real element is the honest place to check
+   * that destroying the editor takes the container with it. A container left behind
+   * would leak a detached overlay host into any host page that mounts CEE twice.
+   */
+  test('destroying the editor removes its overlay container', async ({ page }) => {
+    await open(page, '02-choices');
+    await page.locator('mat-select').first().click();
+    await expect(page.locator('mat-option').first()).toBeVisible();
+
+    const counts = await page.evaluate(() => {
+      const editor = document.querySelector('cedar-embeddable-editor') as HTMLElement;
+      const before = editor.shadowRoot?.querySelectorAll('.cee-overlay-container').length ?? 0;
+      editor.remove();
+      return { before, afterInDocument: document.querySelectorAll('.cee-overlay-container').length };
+    });
+
+    expect(counts.before, 'the overlay container should exist while the editor does').toBe(1);
+    expect(counts.afterInDocument, 'the overlay container outlived the editor').toBe(0);
+  });
 });
 
 test.describe('multiple editor instances', () => {

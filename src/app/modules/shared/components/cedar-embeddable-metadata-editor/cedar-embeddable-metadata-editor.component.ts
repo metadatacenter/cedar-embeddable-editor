@@ -16,11 +16,11 @@ import { YamlTemplateParser } from '../../factory/yaml-template-parser';
 import packageJson from 'package.json';
 
 @Component({
-    selector: 'app-cedar-embeddable-metadata-editor',
-    templateUrl: './cedar-embeddable-metadata-editor.component.html',
-    styleUrls: ['./cedar-embeddable-metadata-editor.component.scss'],
-    encapsulation: ViewEncapsulation.Emulated,
-    standalone: false
+  selector: 'app-cedar-embeddable-metadata-editor',
+  templateUrl: './cedar-embeddable-metadata-editor.component.html',
+  styleUrls: ['./cedar-embeddable-metadata-editor.component.scss'],
+  encapsulation: ViewEncapsulation.Emulated,
+  standalone: false,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   private static INNER_VERSION = '2026-08-07 12:53 a686b77';

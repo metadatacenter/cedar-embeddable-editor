@@ -24,12 +24,12 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
 }
 
 @Component({
-    selector: 'app-cedar-input-orcid',
-    templateUrl: './cedar-input-orcid.component.html',
-    styleUrls: ['./cedar-input-orcid.component.scss'],
-    encapsulation: ViewEncapsulation.Emulated,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: false
+  selector: 'app-cedar-input-orcid',
+  templateUrl: './cedar-input-orcid.component.html',
+  styleUrls: ['./cedar-input-orcid.component.scss'],
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false,
 })
 export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger })

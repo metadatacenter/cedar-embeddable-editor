@@ -2,11 +2,11 @@ import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { DataContext } from '../../util/data-context';
 
 @Component({
-    selector: 'app-source-panels',
-    templateUrl: './source-panels.component.html',
-    styleUrls: ['./source-panels.component.scss'],
-    encapsulation: ViewEncapsulation.Emulated,
-    standalone: false
+  selector: 'app-source-panels',
+  templateUrl: './source-panels.component.html',
+  styleUrls: ['./source-panels.component.scss'],
+  encapsulation: ViewEncapsulation.Emulated,
+  standalone: false,
 })
 export class SourcePanelsComponent {
   @Input() dataContext: DataContext = null;

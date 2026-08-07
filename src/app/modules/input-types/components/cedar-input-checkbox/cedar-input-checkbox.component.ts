@@ -8,11 +8,11 @@ import { JsonSchema } from 'cedar-model-typescript-library';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 @Component({
-    selector: 'app-cedar-input-checkbox',
-    templateUrl: './cedar-input-checkbox.component.html',
-    styleUrls: ['./cedar-input-checkbox.component.scss'],
-    encapsulation: ViewEncapsulation.Emulated,
-    standalone: false
+  selector: 'app-cedar-input-checkbox',
+  templateUrl: './cedar-input-checkbox.component.html',
+  styleUrls: ['./cedar-input-checkbox.component.scss'],
+  encapsulation: ViewEncapsulation.Emulated,
+  standalone: false,
 })
 export class CedarInputCheckboxComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;

@@ -17,11 +17,11 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
 import { Subscription } from 'rxjs';
 
 @Component({
-    selector: 'app-cedar-multi-pager',
-    templateUrl: './cedar-multi-pager.component.html',
-    styleUrls: ['./cedar-multi-pager.component.scss'],
-    encapsulation: ViewEncapsulation.Emulated,
-    standalone: false
+  selector: 'app-cedar-multi-pager',
+  templateUrl: './cedar-multi-pager.component.html',
+  styleUrls: ['./cedar-multi-pager.component.scss'],
+  encapsulation: ViewEncapsulation.Emulated,
+  standalone: false,
 })
 export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   static readonly MAX_CHARACTERS_MULTI_VALUE = 30;

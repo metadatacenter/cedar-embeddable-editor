@@ -24,8 +24,9 @@ import { DomSanitizer } from '@angular/platform-browser';
  * neutralised handler and surviving formatting in the same value.
  */
 @Pipe({
-    name: 'safeHtml', pure: false,
-    standalone: false
+  name: 'safeHtml',
+  pure: false,
+  standalone: false,
 })
 export class SafeHtmlPipe implements PipeTransform {
   constructor(private sanitizer: DomSanitizer) {}

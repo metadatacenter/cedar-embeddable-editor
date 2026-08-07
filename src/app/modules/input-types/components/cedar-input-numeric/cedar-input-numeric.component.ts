@@ -10,11 +10,11 @@ import { Xsd } from '../../../shared/models/xsd.model';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 @Component({
-    selector: 'app-cedar-input-numeric',
-    templateUrl: './cedar-input-numeric.component.html',
-    styleUrls: ['./cedar-input-numeric.component.scss'],
-    encapsulation: ViewEncapsulation.Emulated,
-    standalone: false
+  selector: 'app-cedar-input-numeric',
+  templateUrl: './cedar-input-numeric.component.html',
+  styleUrls: ['./cedar-input-numeric.component.scss'],
+  encapsulation: ViewEncapsulation.Emulated,
+  standalone: false,
 })
 export class CedarInputNumericComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;

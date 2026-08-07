@@ -3,10 +3,10 @@ import { MatMenuTrigger } from '@angular/material/menu';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 
 @Component({
-    selector: 'user-preferences-menu',
-    templateUrl: './user-preferences-menu.component.html',
-    styleUrls: ['./user-preferences-menu.component.scss'],
-    standalone: false
+  selector: 'user-preferences-menu',
+  templateUrl: './user-preferences-menu.component.html',
+  styleUrls: ['./user-preferences-menu.component.scss'],
+  standalone: false,
 })
 export class UserPreferencesMenuComponent {
   @ViewChild(MatMenuTrigger, { static: false }) menuTrigger!: MatMenuTrigger;

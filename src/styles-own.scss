@@ -3,6 +3,7 @@
 // `@include` call sites below still control emission order.
 @use 'cee-tokens' as tokens;
 @use 'cee-material-theme' as theme;
+@use '@angular/cdk' as cdk;
 
 @include theme.core();
 
@@ -25,6 +26,27 @@
 
 :host {
   @include theme.component-themes();
+
+  /*
+   * The CDK's own visually-hidden rule, emitted where the shadow root can see it.
+   *
+   * From Angular 19 the CDK injects this at runtime through a private style loader
+   * rather than shipping it in the compiled stylesheet, and what it injects is
+   * scoped to `html` — which matches nothing inside a shadow root. The class then
+   * styles nothing, and content meant for screen readers alone becomes content
+   * everyone sees: each `cdk-visually-hidden` span went from 1px to 16px tall and
+   * the describedby container from 1px to 128px, adding a block of announcement
+   * text to the middle of the form.
+   *
+   * `cdk.a11y-visually-hidden()` is the CDK's supported mixin for emitting it
+   * yourself, so this is the intended escape hatch rather than a copied rule, and
+   * it stays correct if the CDK changes what "visually hidden" means.
+   *
+   * Same shape as the Material token re-rooting above it: a library that assumes
+   * it is styling a document has to be told, once, that it is styling a shadow
+   * root.
+   */
+  @include cdk.a11y-visually-hidden();
 }
 
 .material-icons {

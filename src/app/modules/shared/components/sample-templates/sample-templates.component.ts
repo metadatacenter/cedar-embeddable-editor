@@ -8,11 +8,11 @@ import { takeUntil } from 'rxjs/operators';
 import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 
 @Component({
-    selector: 'app-sample-templates',
-    templateUrl: './sample-templates.component.html',
-    styleUrls: ['./sample-templates.component.scss'],
-    encapsulation: ViewEncapsulation.Emulated,
-    standalone: false
+  selector: 'app-sample-templates',
+  templateUrl: './sample-templates.component.html',
+  styleUrls: ['./sample-templates.component.scss'],
+  encapsulation: ViewEncapsulation.Emulated,
+  standalone: false,
 })
 export class SampleTemplatesComponent implements OnInit, OnDestroy {
   @Input() callbackOwnerObject: any = null;
