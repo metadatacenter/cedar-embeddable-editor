@@ -11,6 +11,19 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "es2022",
+    /*
+     * Angular requires this false, and TypeScript defaults it to true whenever the
+     * target is ES2022 or higher. With it true, a class field declaration is emitted
+     * as a constructor-time Object.defineProperty, which overwrites what Angular has
+     * already assigned to an @Input — so a bound input silently reverts to whatever
+     * the field declares, which is how read-only mode stopped being read-only.
+     *
+     * `ng update` to 15 carries a migration that sets exactly this, and it reported
+     * "No changes made": it edits tsconfig.json, and CEE keeps its compilerOptions
+     * here in tsconfig.base.json instead. The migration is not wrong, it just could
+     * not see this file. Anything reading its output would conclude it was handled.
+     */
+    "useDefineForClassFields": false,
     "module": "es2022",
     "lib": [
       "es2022",

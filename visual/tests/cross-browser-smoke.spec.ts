@@ -83,7 +83,30 @@ test('filters and loads a sample template through the Material select', async ({
   await open(page, '01-input-types', 'chrome', undefined, undefined, '&f=showSampleTemplateLinks');
 
   await page.locator('app-sample-template-select mat-select').click();
-  const search = page.getByRole('textbox', { name: 'dropdown search' });
+
+  // KNOWN DEFECT pinned: the search box is hidden from assistive technology.
+  //
+  // ngx-mat-select-search v6 sets aria-hidden="true" on the mat-option it lives in
+  // (`this.matOption._getHostElement().setAttribute('aria-hidden', 'true')`), which
+  // takes the whole subtree out of the accessibility tree — including its own input.
+  // v4.2.1, which CEE used until Angular 15 forced a version that peers on Material
+  // 15, set no such attribute. So a screen-reader user can no longer find the filter,
+  // and it is focusable-but-hidden, which is the anti-pattern browsers handle least
+  // consistently.
+  //
+  // Asserted rather than merely tolerated, so this turns red the day it is fixed.
+  // Until then the input is located structurally, because getByRole cannot see it.
+  const option = page.locator('mat-option.contains-mat-select-search');
+  await expect(option, 'the search row is no longer aria-hidden — unpin this').toHaveAttribute(
+    'aria-hidden',
+    'true',
+  );
+  await expect(
+    page.getByRole('textbox', { name: 'dropdown search' }),
+    'the search box is reachable by role again — restore the role query and unpin this',
+  ).toHaveCount(0);
+
+  const search = page.locator('input.mat-select-search-input[aria-label="dropdown search"]');
   await expect(search).toBeVisible();
 
   // ngx-mat-select-search deliberately lives inside a disabled mat-option so

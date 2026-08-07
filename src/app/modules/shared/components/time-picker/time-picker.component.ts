@@ -56,7 +56,30 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   second = 0;
   meridian: Meridian = 'AM';
 
-  readOnlyMode = false;
+  /**
+   * Not editable, for either of the two independent reasons it can be true.
+   *
+   * The widget is locked when the user has turned read-only mode on, and separately
+   * when the form control bound to it is disabled. They were one field until Angular
+   * 15, and that worked only by accident: `setDisabledState` used to be called only
+   * for a control that was actually disabled, so the false it passes for an enabled
+   * one never arrived to overwrite the preference. Angular 15 calls it on every
+   * attach — `setUpControl`'s `callSetDisabledState` now defaults to `always`,
+   * described in Angular's own source as fixing a bug — so an enabled control
+   * immediately reset read-only mode to false and the editable boxes came back in a
+   * form the user had locked.
+   *
+   * Keeping the two apart is the fix rather than restoring the old call behaviour
+   * with `FormsModule.withConfig({ callSetDisabledState: 'whenDisabledForLegacyCode' })`,
+   * which would leave one field with two writers still racing and would have to be
+   * unpicked the day that option goes.
+   */
+  get readOnlyMode(): boolean {
+    return this.readOnlyPreference || this.controlDisabled;
+  }
+
+  private readOnlyPreference = false;
+  private controlDisabled = false;
 
   /**
    * The `Date` last written in, kept so a time edit does not move the day.
@@ -76,7 +99,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
 
   ngOnInit(): void {
     this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
-      this.readOnlyMode = mode;
+      this.readOnlyPreference = mode;
     });
   }
 
@@ -114,7 +137,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.readOnlyMode = isDisabled;
+    this.controlDisabled = isDisabled;
   }
 
   // --- editing --------------------------------------------------------------
