@@ -215,7 +215,12 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
       return of([]);
     }
     if (this.descriptor.looksLikeIdentifier(val)) {
-      return this.lookup.resolve(InputType.ror, val).pipe(
+      // `resolve<RorDetailResponse>`, matching the call in `showDetails` below: both
+      // hit the same ROR detail endpoint, and this one hands the result to
+      // `RorDetailResponse.fromJSON`, which reads `rawResponse`. Untyped, it resolved
+      // to `AuthorityDetailResponse` — the three-field shape that has no `rawResponse`
+      // at all. Typing the parser is what surfaced the two calls disagreeing.
+      return this.lookup.resolve<RorDetailResponse>(InputType.ror, val).pipe(
         map((response) => {
           if (!response || response.found === false) {
             return [];

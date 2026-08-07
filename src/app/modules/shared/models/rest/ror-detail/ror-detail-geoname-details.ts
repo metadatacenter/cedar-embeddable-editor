@@ -31,7 +31,7 @@ export class GeonamesDetails {
     this.name = name;
   }
 
-  static fromJSON(json: any): GeonamesDetails {
+  static fromJSON(json: GeonamesDetails): GeonamesDetails {
     return new GeonamesDetails(
       json.continent_code,
       json.continent_name,

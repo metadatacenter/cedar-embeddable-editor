@@ -37,14 +37,14 @@ export class RorDetailRawResponse {
     this.types = types;
   }
 
-  static fromJSON(json: any): RorDetailRawResponse {
+  static fromJSON(json: RorDetailRawResponse): RorDetailRawResponse {
     const established = json.established;
-    const external_ids = (json.external_ids || []).map((item: any) => ExternalId.fromJSON(item));
+    const external_ids = (json.external_ids || []).map((item: ExternalId) => ExternalId.fromJSON(item));
     const id = json.id;
-    const links = (json.links || []).map((item: any) => Link.fromJSON(item));
-    const locations = (json.locations || []).map((item: any) => Location.fromJSON(item));
-    const names = (json.names || []).map((item: any) => RorName.fromJSON(item));
-    const relationships = (json.relationships || []).map((item: any) => Relationship.fromJSON(item));
+    const links = (json.links || []).map((item: Link) => Link.fromJSON(item));
+    const locations = (json.locations || []).map((item: Location) => Location.fromJSON(item));
+    const names = (json.names || []).map((item: RorName) => RorName.fromJSON(item));
+    const relationships = (json.relationships || []).map((item: Relationship) => Relationship.fromJSON(item));
     const status = json.status;
     const types = json.types;
     return new RorDetailRawResponse(

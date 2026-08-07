@@ -9,7 +9,7 @@ export class RorName {
     this.value = value;
   }
 
-  static fromJSON(json: any): RorName {
+  static fromJSON(json: RorName): RorName {
     return new RorName(json.lang, json.types, json.value);
   }
 }

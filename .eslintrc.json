@@ -81,16 +81,14 @@
         "src/app/modules/shared/handler/data-object-builder.handler.ts",
         "src/app/modules/shared/handler/data-quality-report-builder.handler.ts",
         "src/app/modules/shared/handler/multi-instance-object.handler.ts",
-        "src/app/modules/shared/models/rest/orcid-detail/orcid-detail-employment.ts",
-        "src/app/modules/shared/models/rest/orcid-detail/orcid-detail-person.ts",
-        "src/app/modules/shared/models/rest/ror-detail/ror-detail-external-id.ts",
-        "src/app/modules/shared/models/rest/ror-detail/ror-detail-geoname-details.ts",
-        "src/app/modules/shared/models/rest/ror-detail/ror-detail-link.ts",
-        "src/app/modules/shared/models/rest/ror-detail/ror-detail-location.ts",
-        "src/app/modules/shared/models/rest/ror-detail/ror-detail-name.ts",
-        "src/app/modules/shared/models/rest/ror-detail/ror-detail-raw-response.ts",
-        "src/app/modules/shared/models/rest/ror-detail/ror-detail-relationship.ts",
-        "src/app/modules/shared/models/rest/ror-detail/ror-detail-response.ts",
+
+
+
+
+
+
+
+
         "src/app/modules/shared/models/ui/cedar-ui-component.model.ts",
         "src/app/modules/shared/util/fallback-translate-loader-factory.ts",
         "src/app/modules/shared/util/fallback-translate-loader.ts",

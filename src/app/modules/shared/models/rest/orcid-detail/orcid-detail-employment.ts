@@ -1,3 +1,30 @@
+/**
+ * The fragments of ORCID's employment record this reads, and nothing more.
+ *
+ * ORCID wraps every scalar in `{ value }` and hyphenates its keys, so the wire
+ * shape looks nothing like the class built from it. Declared here rather than left
+ * as `any` so that a rename on ORCID's side becomes a compile error instead of an
+ * `undefined` that reaches the UI as "Unknown".
+ *
+ * Every field is optional because none is guaranteed: the parser already defends
+ * against each one being absent, and the type now says so.
+ */
+interface OrcidDateJson {
+  year?: { value?: string };
+  month?: { value?: string };
+  day?: { value?: string };
+}
+
+interface OrcidEmploymentJson {
+  'role-title'?: string;
+  'start-date'?: OrcidDateJson;
+  'end-date'?: OrcidDateJson;
+  organization?: {
+    name?: string;
+    address?: { country?: string; city?: string; region?: string };
+  };
+}
+
 export class Employment {
   roleTitle: string;
   startDate: string; // formatted as "YYYY-MM-DD"
@@ -24,7 +51,7 @@ export class Employment {
     this.organizationCity = organizationCity;
     this.organizationRegion = organizationRegion;
   }
-  private static parseAndFormatDate(dateObj: any): string | null {
+  private static parseAndFormatDate(dateObj: OrcidDateJson | undefined): string | null {
     if (!dateObj || !dateObj.year || !dateObj.year.value) {
       return null;
     }
@@ -36,7 +63,7 @@ export class Employment {
     return `${year}-${monthStr}-${dayStr}`;
   }
 
-  static fromJson(json: any): Employment | null {
+  static fromJson(json: OrcidEmploymentJson | null | undefined): Employment | null {
     if (!json) return null;
 
     const roleTitle: string = json['role-title'] || 'Unknown';

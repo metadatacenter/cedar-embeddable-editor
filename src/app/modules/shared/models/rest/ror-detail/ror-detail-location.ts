@@ -9,7 +9,7 @@ export class Location {
     this.geonames_id = geonames_id;
   }
 
-  static fromJSON(json: any): Location {
+  static fromJSON(json: Location): Location {
     return new Location(GeonamesDetails.fromJSON(json.geonames_details), json.geonames_id);
   }
 }

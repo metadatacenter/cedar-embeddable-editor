@@ -15,7 +15,7 @@ export class RorDetailResponse {
     this.requestedId = requestedId;
   }
 
-  static fromJSON(json: any): RorDetailResponse {
+  static fromJSON(json: RorDetailResponse): RorDetailResponse {
     const rawResponse = RorDetailRawResponse.fromJSON(json.rawResponse);
     return new RorDetailResponse(json.found, rawResponse, json.name, json.id, json.requestedId);
   }

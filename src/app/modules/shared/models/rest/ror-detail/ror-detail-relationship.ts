@@ -9,7 +9,7 @@ export class Relationship {
     this.id = id;
   }
 
-  static fromJSON(json: any): Relationship {
+  static fromJSON(json: Relationship): Relationship {
     return new Relationship(json.label, json.type, json.id);
   }
 }

@@ -7,7 +7,7 @@ export class Link {
     this.value = value;
   }
 
-  static fromJSON(json: any): Link {
+  static fromJSON(json: Link): Link {
     return new Link(json.type, json.value);
   }
 }

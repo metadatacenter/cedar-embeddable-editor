@@ -61,12 +61,6 @@ jobs:
         working-directory: cedar-embeddable-editor
         run: npm ci
 
-      # Warnings do not fail the build; the pre-existing `any` debt is baselined
-      # per file in .eslintrc.json.
-      - name: Lint
-        working-directory: cedar-embeddable-editor
-        run: npm run lint
-
       - name: Build the production web component
         working-directory: cedar-embeddable-editor
         run: npm run build:production

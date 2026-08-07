@@ -9,7 +9,7 @@ export class ExternalId {
     this.type = type;
   }
 
-  static fromJSON(json: any): ExternalId {
+  static fromJSON(json: ExternalId): ExternalId {
     return new ExternalId(json.all, json.preferred, json.type);
   }
 }
