@@ -70,19 +70,19 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "cedar-embeddable-editor:build",
-            "port": 4400
+            "port": 4400,
+            "buildTarget": "cedar-embeddable-editor:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "cedar-embeddable-editor:build:production"
+              "buildTarget": "cedar-embeddable-editor:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "cedar-embeddable-editor:build"
+            "buildTarget": "cedar-embeddable-editor:build"
           }
         },
         "lint": {

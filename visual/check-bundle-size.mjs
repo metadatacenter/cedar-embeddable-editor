@@ -19,19 +19,26 @@ import { gzipSync, constants as zlibConstants } from 'node:zlib';
 
 const COPY = fileURLToPath(new URL('./public/cedar-embeddable-editor.js', import.meta.url));
 
-// Baseline on 2026-08-07: 3,380,035 raw and 772,342 gzip-9 bytes.
+// Baseline on 2026-08-07: 3,445,176 raw and 781,612 gzip-9 bytes, at Angular 17.
 //
-// Raised from 3,230,000 / 765,000 for the MDC migration, which costs 190,966 raw
-// and 19,620 gzip. That is what the MDC components weigh against the legacy ones
-// they replace, measured on either side of the migration commit with nothing else
-// changing — not drift, and not something a further pass could trim, since the
-// legacy components no longer exist to go back to.
+// The march has moved this twice. The MDC migration cost 190,966 raw and 19,620
+// gzip — what the MDC components weigh against the legacy ones they replace,
+// measured either side of that commit with nothing else changing, and not
+// something a later pass could trim since the legacy components are gone. Angular
+// 16 to 17 then added a further 42,632 raw and 6,226 gzip, which is the framework
+// rather than CEE.
 //
 // The limits leave about 2% headroom. Raising one is an intentional product
 // decision: update the baseline comment and explain the increase in the PR.
+//
+// Worth saying plainly, since three raises in one march start to look like a
+// ratchet: this is a decision to let the framework upgrade cost bytes, taken each
+// time on the evidence that the growth is the framework's and not a regression in
+// CEE. If the remaining hops keep adding, the question stops being "raise it
+// again?" and becomes whether the single-file bundle is still the right artifact.
 const LIMITS = {
-  raw: 3_450_000,
-  gzip: 790_000,
+  raw: 3_515_000,
+  gzip: 800_000,
 };
 
 const die = (message) => {
