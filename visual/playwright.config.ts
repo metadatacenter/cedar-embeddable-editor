@@ -67,6 +67,9 @@ export default defineConfig({
       maxDiffPixelRatio: 0.01,
       animations: 'disabled',
       caret: 'hide',
+      // Neutralises content that differs between two builds of the same code —
+      // today just the version stamp. See screenshot.css for what may go in it.
+      stylePath: './screenshot.css',
     },
   },
 
