@@ -1,5 +1,30 @@
 const YOUTUBE_VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 
+/** Hosts that carry the video in the first path segment. */
+const SHORT_HOSTS = new Set(['youtu.be', 'www.youtu.be']);
+
+/** Hosts that carry it in `?v=`, or in an `/embed`, `/shorts` or `/live` segment. */
+const WATCH_HOSTS = new Set([
+  'youtube.com',
+  'www.youtube.com',
+  'm.youtube.com',
+  'music.youtube.com',
+  'youtube-nocookie.com',
+  'www.youtube-nocookie.com',
+]);
+
+/**
+ * Whether a hostname is one this module will take a video from.
+ *
+ * Exported so a caller can tell "not YouTube at all" from "YouTube, but naming
+ * no video" when explaining a rejection. It is an exact-match set, which is what
+ * keeps `youtube.com.evil.example` out.
+ */
+export const isYouTubeHost = (hostname: string): boolean => {
+  const host = hostname?.toLowerCase();
+  return SHORT_HOSTS.has(host) || WATCH_HOSTS.has(host);
+};
+
 /**
  * Accept the values CEDAR templates have historically stored for YouTube
  * fields, but return only a validated video ID. The caller can therefore build
@@ -24,16 +49,9 @@ export const extractYouTubeVideoId = (value: string): string => {
 
   const hostname = parsed.hostname.toLowerCase();
   let videoId: string = null;
-  if (hostname === 'youtu.be' || hostname === 'www.youtu.be') {
+  if (SHORT_HOSTS.has(hostname)) {
     videoId = parsed.pathname.split('/').filter(Boolean)[0] ?? null;
-  } else if (
-    hostname === 'youtube.com' ||
-    hostname === 'www.youtube.com' ||
-    hostname === 'm.youtube.com' ||
-    hostname === 'music.youtube.com' ||
-    hostname === 'youtube-nocookie.com' ||
-    hostname === 'www.youtube-nocookie.com'
-  ) {
+  } else if (WATCH_HOSTS.has(hostname)) {
     if (parsed.pathname === '/watch') {
       videoId = parsed.searchParams.get('v');
     } else {

@@ -1,0 +1,18 @@
+/**
+ * The failure notice sits on the card's own khaki background (`.image-component`
+ * in `styles-own.scss`), which is what an empty card used to show on its own.
+ * It has to read as a message rather than as part of the field, so it is boxed
+ * and set apart from the card's fill.
+ */
+.image-error {
+  margin: 15px;
+  padding: 10px 12px;
+  border: 1px solid #8a6d3b;
+  border-radius: 4px;
+  background-color: #fffaf0;
+  color: #6b4e1e;
+  font-size: 0.9em;
+  line-height: 1.4;
+  /* URLs are long and have no spaces to break on. */
+  overflow-wrap: anywhere;
+}

@@ -11,6 +11,7 @@
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen
   ></iframe>
+  <p *ngIf="contentError" class="video-error" role="alert">{{ contentError }}</p>
   <mat-card-content>
     {{ component.labelInfo.description }}
   </mat-card-content>

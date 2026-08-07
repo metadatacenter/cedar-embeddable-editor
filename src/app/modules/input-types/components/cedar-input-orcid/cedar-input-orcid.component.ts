@@ -5,6 +5,7 @@ import { ComponentDataService } from '../../../shared/service/component-data.ser
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
+import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, switchMap, tap, catchError, finalize } from 'rxjs/operators';
@@ -46,6 +47,8 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
   loadingOptions = false;
   hasSearched = false;
   loadingDetails = false;
+  /** Whether the last search failed, as opposed to returning nothing. */
+  lookupFailed = false;
 
   filteredOptions: Observable<OrcidSearchResponseItem[]>;
   private researcherDetailsCache = new Map<string, ResearcherDetails>();
@@ -100,7 +103,15 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
             this.cdr.markForCheck();
             return of([this.selectedData]);
           }
+          this.lookupFailed = false;
           return this.filter(val || '').pipe(
+            // A failed search and an empty one both used to arrive here as an
+            // empty list, and the panel called both "No results found". Recorded
+            // so the template can tell the user which of the two happened.
+            catchLookupFailure<OrcidSearchResponseItem>((error) => {
+              this.lookupFailed = true;
+              console.error(`CEE ERROR: ORCID lookup failed for "${val}"`, error);
+            }),
             finalize(() => {
               this.loadingOptions = false;
               this.hasSearched = true;
@@ -144,10 +155,6 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
           this.researcherDetailsCache.set(response.id, details);
           return [item];
         }),
-        catchError((error) => {
-          console.error('Error in getDetails:', error);
-          return of([]);
-        }),
       );
     } else {
       return this.lookup.search(InputType.orcid, val).pipe(
@@ -156,10 +163,6 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
             return [];
           }
           return response.results;
-        }),
-        catchError((error) => {
-          console.error('Error in getData:', error);
-          return of([]);
         }),
       );
     }

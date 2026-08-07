@@ -30,7 +30,10 @@
         <mat-option *ngIf="loadingOptions" disabled class="spinner-container">
           <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
         </mat-option>
-        <mat-option *ngIf="inputValueControl.value?.trim().length > 0 && (filteredOptions | async)?.length === 0" disabled>
+        <mat-option *ngIf="lookupFailed && !loadingOptions" disabled class="lookup-failed">
+          {{'Error.LookupFailed' | translate}}
+        </mat-option>
+        <mat-option *ngIf="!lookupFailed && inputValueControl.value?.trim().length > 0 && (filteredOptions | async)?.length === 0" disabled>
           No results found
         </mat-option>
         <mat-option *ngFor="let option of filteredOptions | async" [value]="option[JsonSchema.rdfsLabel] + ' - ' + option[JsonSchema.atId]"

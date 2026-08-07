@@ -399,3 +399,18 @@ button.close {
   padding-left: 10px;
   padding-top: 6px;
 }
+
+/**
+ * The "search failed" row in an autocomplete panel.
+ *
+ * Global rather than component-scoped because Material renders the panel into an
+ * overlay container, outside the emulated encapsulation of the field that owns
+ * it. It sits next to "No results found", and the whole point is that the two
+ * do not read alike — so this one is coloured as the fault it reports.
+ */
+.mat-option.lookup-failed {
+  color: #a1332b;
+  font-style: italic;
+  white-space: normal;
+  line-height: 1.3;
+}

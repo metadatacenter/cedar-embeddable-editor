@@ -3,7 +3,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Observable, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { JsonSchema } from 'cedar-model-typescript-library';
@@ -14,6 +14,7 @@ import { ExternalAuthorityLookupService } from '../../../shared/service/external
 import { AuthoritySearchControl } from '../../../shared/util/authority-search-control';
 import { AuthorityDescriptor } from '../../../shared/models/authority/authority-descriptor.model';
 import { AuthoritySearchResponseItem } from '../../../shared/models/authority/authority-search-response.model';
+import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 
 export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -42,8 +43,9 @@ export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
  * A subclass supplies a `descriptor` and nothing else. What it must *not* supply
  * is a second copy of anything below.
  *
- * ORCID and ROR extend this too, and add the detail panel each of them renders;
- * that panel is the one thing about them that is genuinely their own.
+ * ORCID and ROR do *not* extend this. Each carries its own copy of the search
+ * pipeline alongside the detail panel that is genuinely its own, so a change to
+ * the flow here has to be made in those two as well until they are folded in.
  */
 @Directive()
 export abstract class AbstractAuthorityInputComponent extends CedarUIDirective implements OnInit, AfterViewInit {
@@ -63,6 +65,17 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
   loadingOptions = false;
   justReverted = false;
   linkIconName = 'open_in_new';
+
+  /**
+   * Whether the last search failed rather than returned nothing.
+   *
+   * Both used to end as an empty option list, so an authority being down was
+   * shown to the user as "No results found" — a statement about their query,
+   * made when nothing had been learned about their query at all. The distinction
+   * only exists if the failure is recorded, so it is recorded here and the
+   * template says which of the two happened.
+   */
+  lookupFailed = false;
 
   /** Which authority this field searches. The only thing a subclass decides. */
   abstract get descriptor(): AuthorityDescriptor;
@@ -104,13 +117,23 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
         map((v: string) => v.trim()),
         distinctUntilChanged(),
         switchMap((query: string) => {
+          this.lookupFailed = false;
           if (!query) {
             this.loadingOptions = false;
             return of<AuthoritySearchResponseItem[]>([]);
           }
           this.loadingOptions = true;
           return this.filter(query).pipe(
-            catchError(() => of<AuthoritySearchResponseItem[]>([])),
+            // The one place a failed lookup is turned back into an empty list,
+            // so it is also the one place that can record that it happened.
+            // `filter` therefore lets its errors through rather than catching
+            // them itself.
+            catchLookupFailure<AuthoritySearchResponseItem>((error) => {
+              this.lookupFailed = true;
+              // Kept alongside the visible notice: the message tells a user the
+              // search failed, the console tells a developer how.
+              console.error(`CEE ERROR: ${this.descriptor.inputType} lookup failed for "${query}"`, error);
+            }),
             finalize(() => {
               this.loadingOptions = false;
             }),
@@ -262,7 +285,6 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
             } as AuthoritySearchResponseItem,
           ];
         }),
-        catchError(() => of<AuthoritySearchResponseItem[]>([])),
       );
     }
 
@@ -280,7 +302,6 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
           ? results.filter((option) => (option?.[JsonSchema.rdfsLabel] ?? '').toLowerCase().includes(needle))
           : results;
       }),
-      catchError(() => of<AuthoritySearchResponseItem[]>([])),
     );
   }
 

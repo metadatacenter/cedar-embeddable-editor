@@ -5,7 +5,7 @@ import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
-import { extractYouTubeVideoId } from './youtube-video-id';
+import { resolveStaticYoutubeView } from './static-youtube-view';
 
 @Component({
   selector: 'app-cedar-static-youtube',
@@ -19,6 +19,7 @@ export class CedarStaticYoutubeComponent extends CedarUIDirective {
   readonly videoHeight = 390;
   readonly videoWidth = 640;
   videoEmbedUrl: SafeResourceUrl = null;
+  contentError: string = null;
 
   constructor(
     public cds: ComponentDataService,
@@ -30,10 +31,11 @@ export class CedarStaticYoutubeComponent extends CedarUIDirective {
 
   @Input() set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
-    const videoId = extractYouTubeVideoId(componentToRender.contentInfo?.content);
-    this.videoEmbedUrl = videoId
-      ? this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${videoId}`)
+    const view = resolveStaticYoutubeView(componentToRender.contentInfo?.content);
+    this.videoEmbedUrl = view.videoId
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${view.videoId}`)
       : null;
+    this.contentError = view.error;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 

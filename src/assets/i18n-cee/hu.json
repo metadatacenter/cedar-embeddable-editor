@@ -60,7 +60,8 @@
     "DeleteCurrent": "Aktuális törlése"
   },
   "Error": {
-    "ValueRequired": "A mező kitöltése kötelező"
+    "ValueRequired": "A mező kitöltése kötelező",
+    "LookupFailed": "A keresés sikertelen: a szolgáltatás nem érhető el"
   },
   "Extra": {
     "SampleTemplate": {

@@ -6,6 +6,7 @@ import { ComponentDataService } from '../../../shared/service/component-data.ser
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
+import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, switchMap, tap, finalize, catchError } from 'rxjs/operators';
@@ -52,6 +53,8 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
   private rorDetailsCache = new Map<string, RorDetailResponse>();
   justReverted: boolean;
   hasSearched: boolean;
+  /** Whether the last search failed, as opposed to returning nothing. */
+  lookupFailed = false;
   selectionInProgress = false;
 
   constructor(
@@ -99,8 +102,16 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
 
           this.loadingOptions = true;
           this.hasSearched = false;
+          this.lookupFailed = false;
 
           return this.filter(val || '').pipe(
+            // A failed search and an empty one both used to arrive here as an
+            // empty list, and the panel called both "No results found". Recorded
+            // so the template can tell the user which of the two happened.
+            catchLookupFailure<RorSearchResponseItem>((error) => {
+              this.lookupFailed = true;
+              console.error(`CEE ERROR: ROR lookup failed for "${val}"`, error);
+            }),
             finalize(() => {
               this.loadingOptions = false;
               this.hasSearched = true;
@@ -215,10 +226,6 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
             return [{ [JsonSchema.atId]: response.id, [JsonSchema.rdfsLabel]: response.name, details: details }];
           }
         }),
-        catchError((error) => {
-          console.error('Error in getDetails:', error);
-          return of([]);
-        }),
       );
     } else {
       return this.lookup.search(InputType.ror, val).pipe(
@@ -234,10 +241,6 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
             this.messageHandlerService.errorObject(val, response);
             return [];
           }
-        }),
-        catchError((error) => {
-          console.error('Error in getData:', error);
-          return of([]);
         }),
       );
     }

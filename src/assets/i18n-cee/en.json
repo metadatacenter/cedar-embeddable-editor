@@ -60,7 +60,8 @@
     "DeleteCurrent": "Delete current"
   },
   "Error": {
-    "ValueRequired": "The value is required"
+    "ValueRequired": "The value is required",
+    "LookupFailed": "Search failed: the service could not be reached"
   },
   "Extra": {
     "SampleTemplate": {

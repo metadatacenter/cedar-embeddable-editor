@@ -1,8 +1,9 @@
 <mat-card class="child-component-card image-component">
-  <div role="img" attr.aria-label="{{component.labelInfo.description}}">
-    <img mat-card-image src="{{component.contentInfo.content}}" alt="{{component.labelInfo.description}}" />
+  <div *ngIf="view.src" role="img" attr.aria-label="{{ altText }}">
+    <img mat-card-image [src]="view.src" [alt]="altText" (error)="onImageError()" />
   </div>
+  <p *ngIf="view.error" class="image-error" role="alert">{{ view.error }}</p>
   <mat-card-content>
-    <p>{{component.labelInfo.description}}</p>
+    <p>{{ component.labelInfo.description }}</p>
   </mat-card-content>
 </mat-card>

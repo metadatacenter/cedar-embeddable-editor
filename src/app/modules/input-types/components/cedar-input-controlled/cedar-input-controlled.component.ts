@@ -13,6 +13,7 @@ import { ComponentDataService } from '../../../shared/service/component-data.ser
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
+import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
@@ -46,6 +47,8 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   bioPortalTermLink: string = null;
   filteredOptions: Observable<IntegratedSearchResponseItem[]>;
   loading = false;
+  /** Whether the last lookup failed, as opposed to matching nothing. */
+  lookupFailed = false;
 
   constructor(
     fb: FormBuilder,
@@ -87,7 +90,21 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
         distinctUntilChanged(),
         tap(() => (this.loading = true)),
         switchMap((val) => {
-          return this.filter(val || '').pipe(finalize(() => (this.loading = false)));
+          this.lookupFailed = false;
+          return this.filter(val || '').pipe(
+            /**
+             * Without this, a failing terminology server did not merely go
+             * unreported: the error reached `valueChanges`, which ends the
+             * observable, so the field's autocomplete stopped working for the
+             * rest of the session and only a reload brought it back. Catching
+             * here keeps the stream alive and records what happened.
+             */
+            catchLookupFailure<IntegratedSearchResponseItem>((error) => {
+              this.lookupFailed = true;
+              this.messageHandlerService.errorObject(`terminology lookup failed for "${val}"`, error as object);
+            }),
+            finalize(() => (this.loading = false)),
+          );
         }),
       );
     }

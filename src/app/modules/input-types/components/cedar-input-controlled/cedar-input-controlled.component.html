@@ -16,6 +16,9 @@
       <mat-option *ngIf="loading" disabled class="spinner-container">
         <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
       </mat-option>
+      <mat-option *ngIf="lookupFailed && !loading" disabled class="lookup-failed">
+        {{'Error.LookupFailed' | translate}}
+      </mat-option>
       <mat-option *ngFor="let option of filteredOptions | async" [value]="option.prefLabel"
         (onSelectionChange)="onSelectionChange(option)">{{option.prefLabel}}</mat-option>
     </mat-autocomplete>
