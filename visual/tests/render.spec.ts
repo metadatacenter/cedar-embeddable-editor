@@ -12,7 +12,15 @@
  * record of whatever the migration did.
  */
 import { expect, test, type Page } from '@playwright/test';
-import { BUNDLE_VERSION, FROZEN, expectNoStrayHosts, hermetic, open, openTwoEditors } from './support/host';
+import {
+  BUNDLE_VERSION,
+  FROZEN,
+  expectNoStrayHosts,
+  hermetic,
+  open,
+  openTwoEditors,
+  passDebounceWindow,
+} from './support/host';
 
 const FIXTURES = [
   ['01-input-types', 'every simple input type'],
@@ -137,6 +145,7 @@ test.describe('multiple editor instances', () => {
     await openTwoEditors(page, '04-controlled-terms');
     const terminologyRequest = page.waitForRequest((request) => request.url().includes('/isolation/first/terminology'));
     await page.locator('#editor-first input[aria-label="organism"]').pressSequentially('human', { delay: 40 });
+    await passDebounceWindow(page);
     expect((await terminologyRequest).url()).toContain('/isolation/first/terminology');
 
     await openTwoEditors(page, '08-authority');
@@ -144,6 +153,7 @@ test.describe('multiple editor instances', () => {
       request.url().includes('/isolation/first/authority/pfas/search'),
     );
     await page.locator('#editor-first input[aria-label="chemical_pfas"]').pressSequentially('chemical', { delay: 40 });
+    await passDebounceWindow(page);
     expect((await authorityRequest).url()).toContain('/isolation/first/authority/pfas/search');
   });
 });
@@ -1266,6 +1276,7 @@ test.describe('external authority endpoints', () => {
       // Typed rather than filled: the widget searches on input, and `fill` can land as
       // a single event that the debounce swallows.
       await field.pressSequentially('probe', { delay: 40 });
+      await passDebounceWindow(page);
 
       // The service staggers requests by up to 500ms — transcribed from the ORCID
       // service it replaced, where it was there to avoid throttling — so this has to
@@ -1297,6 +1308,7 @@ test.describe('external authority endpoints', () => {
     await open(page, '08-authority', 'authority');
     const field = page.locator('input[aria-label="chemical_pfas"]');
     await field.pressSequentially('deterministic', { delay: 40 });
+    await passDebounceWindow(page);
     const option = page.locator('mat-option').filter({ hasText: label });
     await expect(option, 'the authority response did not become a selectable option').toBeVisible({ timeout: 5000 });
     await option.click();
@@ -1325,6 +1337,7 @@ test.describe('controlled terminology selection', () => {
     await open(page, '04-controlled-terms');
     const field = page.locator('input[aria-label="organism"]');
     await field.pressSequentially('Homo', { delay: 40 });
+    await passDebounceWindow(page);
     const option = page.locator('mat-option').filter({ hasText: label });
     await expect(option, 'the terminology response did not become a selectable option').toBeVisible({ timeout: 6000 });
     await option.click();

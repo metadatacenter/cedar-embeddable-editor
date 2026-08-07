@@ -37,6 +37,28 @@ export const open = async (
   await page.waitForTimeout(300);
 };
 
+/**
+ * Let a debounced search fire under a frozen clock.
+ *
+ * The screenshots need `Date.now()` pinned, because CEE seeds its temporal controls
+ * from it and a second ticking over between the seed and the capture is a diff. But
+ * rxjs 7 rewrote `debounceTime` to compare `scheduler.now()` against `lastTime +
+ * dueTime` rather than to lean on `setTimeout` alone, so under a clock that never
+ * advances it reschedules itself forever and the search is never issued. rxjs 6 had
+ * no such comparison, which is why this was invisible until the bump.
+ *
+ * Nothing about that is a defect in CEE: no real clock is frozen. What it does mean
+ * is that a suite freezing time has to say when a debounce window has passed, rather
+ * than assume wall-clock does it. Called after typing, before awaiting the request.
+ *
+ * A minute is far past every debounce in the editor (400ms and 500ms) and is not a
+ * wait — `setFixedTime` does not fake timers, so the already-scheduled task simply
+ * finds the window elapsed on its next tick.
+ */
+export const passDebounceWindow = async (page: Page): Promise<void> => {
+  await page.clock.setFixedTime(new Date(FROZEN.getTime() + 60_000));
+};
+
 /** The stub served in place of every image a template points at an outside host. */
 const STUB_IMAGE = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), './stub-image.png');
 

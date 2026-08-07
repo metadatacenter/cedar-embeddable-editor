@@ -46,7 +46,7 @@
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
     "ngx-mat-select-search": "^4.2.1",
-    "rxjs": "~6.6.7",
+    "rxjs": "^7.8.2",
     "tslib": "^2.6.2",
     "zone.js": "~0.12.0"
   },
