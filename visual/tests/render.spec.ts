@@ -12,6 +12,8 @@
  * record of whatever the migration did.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import {
   BUNDLE_VERSION,
   FROZEN,
@@ -545,6 +547,34 @@ test.describe('widgets, clipped', () => {
  *    they are. A brand is not a pixel region; it is a specific string, and it
  *    should fail on the string.
  */
+/**
+ * The version stamp, which the screenshots deliberately cannot see.
+ *
+ * screenshot.css hides it so the baselines survive a version bump, and that
+ * removed the only thing watching it — a stamp that silently stopped rendering,
+ * or rendered `undefined`, would now cost nothing. Asserted here instead, where
+ * the check is about the text rather than about pixels, and where it can compare
+ * against the manifest rather than against a hard-coded string that would have to
+ * be edited at every hop.
+ */
+test.describe('the version stamp', () => {
+  const declared = JSON.parse(readFileSync(fileURLToPath(new URL('../../package.json', import.meta.url)), 'utf8'))
+    .version as string;
+
+  test('is published on window and rendered in the header', async ({ page }) => {
+    await open(page, '01-input-types', 'chrome');
+
+    expect(
+      await page.evaluate(() => (window as { cedarEmbeddableEditorVersion?: string }).cedarEmbeddableEditorVersion),
+    ).toBe(declared);
+
+    const stamp = page.locator('.cee-version');
+    await expect(stamp).toHaveText(declared);
+    // Hidden from the screenshot, not from the page: an embedder still sees it.
+    await expect(stamp).toBeVisible();
+  });
+});
+
 test.describe('the footer', () => {
   const ORGANISATION = 'Stanford Division of Computational Medicine';
   const HOME = 'https://computationalmedicine.stanford.edu';
