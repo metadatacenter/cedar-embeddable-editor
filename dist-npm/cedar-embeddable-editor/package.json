@@ -1,6 +1,6 @@
 {
   "name": "@org.metadatacenter/cedar-embeddable-editor",
-  "version": "1.6.0-ng15",
+  "version": "1.6.0-ng16",
   "description": "A reusable Web Component for creating and editing CEDAR metadata instances.",
   "main": "cedar-embeddable-editor.js",
   "files": [
