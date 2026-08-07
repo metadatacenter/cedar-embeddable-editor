@@ -94,7 +94,6 @@
       }
     }
   },
-  "defaultProject": "cedar-embeddable-editor",
   "cli": {
     "analytics": false
   }

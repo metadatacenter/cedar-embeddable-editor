@@ -52,6 +52,21 @@ $applied-theme: mat.define-light-theme(
       accent: $_applied-accent,
     ),
     typography: $_typography,
+    /*
+     * Density is not optional, even at the default of 0.
+     *
+     * `all-component-themes` emits density styles only when the theme config
+     * carries the key, and from Material 16 several components take their size
+     * from those tokens rather than from a fixed rule. Omitted, the expansion
+     * panel header had no height at all: it collapsed to its text, 16px instead
+     * of 48px, and the panel body then overlapped it — which showed up not as a
+     * visual oddity but as clicks on the header timing out, because the body was
+     * intercepting them.
+     *
+     * 0 is the default, so this changes nothing about the intended appearance. It
+     * only makes the theme say so.
+     */
+    density: 0,
   )
 );
 

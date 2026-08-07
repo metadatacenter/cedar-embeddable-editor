@@ -23,7 +23,9 @@
 
 @import '@ng-select/ng-select/themes/material.theme.css';
 
-@include theme.component-themes();
+:host {
+  @include theme.component-themes();
+}
 
 .material-icons {
   font-family: 'CEE Material Icons';
