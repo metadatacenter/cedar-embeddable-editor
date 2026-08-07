@@ -15,7 +15,7 @@ import { ExternalAuthorityLookupService } from '../../../shared/service/external
 import { authorityDescriptorFor } from '../../../shared/models/authority/authority-descriptor.model';
 import { InputType } from '../../../shared/models/input-type.model';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
-import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatLegacyAutocompleteTrigger as MatAutocompleteTrigger } from '@angular/material/legacy-autocomplete';
 import { RorSearchResponseItem } from '../../../shared/models/rest/ror-search/ror-search-response-item';
 import { RorDetailResponse } from '../../../shared/models/rest/ror-detail/ror-detail-response';
 

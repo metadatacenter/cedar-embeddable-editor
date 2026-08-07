@@ -1,5 +1,5 @@
 import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { MatListOption } from '@angular/material/list';
+import { MatLegacyListOption as MatListOption } from '@angular/material/legacy-list';
 import { HttpClient } from '@angular/common/http';
 import { SampleTemplatesService } from './sample-templates.service';
 import { Subject } from 'rxjs';

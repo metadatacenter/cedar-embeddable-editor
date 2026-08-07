@@ -13,7 +13,7 @@ import { JsonSchema } from 'cedar-model-typescript-library';
 import { ExternalAuthorityLookupService } from '../../../shared/service/external-authority-lookup.service';
 import { authorityDescriptorFor } from '../../../shared/models/authority/authority-descriptor.model';
 import { InputType } from '../../../shared/models/input-type.model';
-import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatLegacyAutocompleteTrigger as MatAutocompleteTrigger } from '@angular/material/legacy-autocomplete';
 import { OrcidSearchResponseItem } from '../../../shared/models/rest/orcid-search/orcid-search-response-item';
 import { ResearcherDetails } from '../../../shared/models/rest/orcid-detail/orcid-detail-person';
 

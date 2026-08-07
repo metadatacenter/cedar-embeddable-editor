@@ -21,7 +21,7 @@ import { IntegratedSearchResponseItem } from '../../../shared/models/rest/integr
 import { JsonSchema } from 'cedar-model-typescript-library';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
-import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatLegacyAutocompleteTrigger as MatAutocompleteTrigger } from '@angular/material/legacy-autocomplete';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { IriPrefix } from '../../../shared/util/iri-prefix';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
