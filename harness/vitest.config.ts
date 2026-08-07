@@ -108,6 +108,29 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/app/modules/shared/**'],
+      /**
+       * Files this harness cannot load, so counting them measures nothing.
+       *
+       * The harness imports no Angular on purpose — that is what lets it survive a
+       * framework upgrade untouched — so anything that reaches for Angular is
+       * unreachable here by construction, not merely untested. Both translate
+       * loaders import `@ngx-translate/core` and `@angular/common/http`. They sat at
+       * 0% and pulled the `shared/util` floor to 89.71%, which failed `test:ci` for
+       * a coverage gap that no test could ever close.
+       *
+       * They are covered where they can be: the browser suite serves an external
+       * language map from `visual/generate-fixtures.mjs` and asserts both the
+       * fetched map and the built-in fallback.
+       *
+       * `CEE-RUNBOOK.md` already makes this argument for the rest of `shared/` —
+       * "the headline number for all of `shared/` is meaningless" — and this floor
+       * had quietly acquired the same problem. Keep the list short: an entry here
+       * must be unreachable to the harness, not just inconvenient to test.
+       */
+      exclude: [
+        'src/app/modules/shared/util/fallback-translate-loader.ts',
+        'src/app/modules/shared/util/fallback-translate-loader-factory.ts',
+      ],
       reporter: ['text'],
       // These are aggregate thresholds for the headless domain directories,
       // not per-file gates. Angular components and REST/view models remain in

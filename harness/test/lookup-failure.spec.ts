@@ -1,9 +1,15 @@
+import { describe, expect, it } from 'vitest';
 import { Subject, of, throwError } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { catchLookupFailure } from './lookup-failure';
+import { catchLookupFailure } from '@cee/util/lookup-failure';
 
 /**
  * Two separate defects, one operator.
+ *
+ * Lives in the harness rather than beside the source because `catchLookupFailure`
+ * is pure rxjs with no Angular in it, and the harness is what the coverage floor
+ * for `shared/util` measures. Run from `src/` it was tested but uncounted, which
+ * read in the report as an untested file.
  *
  * The reported one: every authority and terminology field turned a failed
  * lookup into an empty list and lost the fact, so a service being down was
