@@ -24,40 +24,36 @@ import { AriaDescriber } from '@angular/cdk/a11y';
 import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
 
 @Component({
-  selector: 'app-cedar-embeddable-metadata-editor-wrapper',
-  templateUrl: './cedar-embeddable-metadata-editor-wrapper.component.html',
-  styleUrls: ['./cedar-embeddable-metadata-editor-wrapper.component.scss'],
-  encapsulation: ViewEncapsulation.ShadowDom,
-  providers: [
-    { provide: AriaDescriber, useClass: CedarAriaDescriber },
-    { provide: OverlayContainer, useClass: CedarOverlayContainer },
-    OverlayPositionBuilder,
-    Overlay,
-    ActiveComponentRegistryService,
-    ControlledFieldDataService,
-    ExternalAuthorityLookupService,
-    GlobalSettingsContextService,
-    { provide: IriPrefix, useFactory: () => new IriPrefix() },
-    MessageHandlerService,
-    SampleTemplatesService,
-    UserPreferencesService,
-    {
-      provide: TranslateLoader,
-      useFactory: (
-        http: HttpClient,
-        messageHandlerService: MessageHandlerService,
-        globalSettingsContextService: GlobalSettingsContextService,
-      ) =>
-        FallbackTranslateLoaderFactory(http, messageHandlerService, globalSettingsContextService, {
-          en: fallbackMapEN,
-          hu: fallbackMapHU,
-        }),
-      deps: [HttpClient, MessageHandlerService, GlobalSettingsContextService],
-    },
-    { provide: USE_STORE, useValue: true },
-    { provide: USE_DEFAULT_LANG, useValue: true },
-    TranslateService,
-  ],
+    selector: 'app-cedar-embeddable-metadata-editor-wrapper',
+    templateUrl: './cedar-embeddable-metadata-editor-wrapper.component.html',
+    styleUrls: ['./cedar-embeddable-metadata-editor-wrapper.component.scss'],
+    encapsulation: ViewEncapsulation.ShadowDom,
+    providers: [
+        { provide: AriaDescriber, useClass: CedarAriaDescriber },
+        { provide: OverlayContainer, useClass: CedarOverlayContainer },
+        OverlayPositionBuilder,
+        Overlay,
+        ActiveComponentRegistryService,
+        ControlledFieldDataService,
+        ExternalAuthorityLookupService,
+        GlobalSettingsContextService,
+        { provide: IriPrefix, useFactory: () => new IriPrefix() },
+        MessageHandlerService,
+        SampleTemplatesService,
+        UserPreferencesService,
+        {
+            provide: TranslateLoader,
+            useFactory: (http: HttpClient, messageHandlerService: MessageHandlerService, globalSettingsContextService: GlobalSettingsContextService) => FallbackTranslateLoaderFactory(http, messageHandlerService, globalSettingsContextService, {
+                en: fallbackMapEN,
+                hu: fallbackMapHU,
+            }),
+            deps: [HttpClient, MessageHandlerService, GlobalSettingsContextService],
+        },
+        { provide: USE_STORE, useValue: true },
+        { provide: USE_DEFAULT_LANG, useValue: true },
+        TranslateService,
+    ],
+    standalone: false
 })
 export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, OnDestroy {
   innerConfig: object = null;

@@ -18,17 +18,18 @@ import { Subscription } from 'rxjs';
 const moment = _rollupMoment || _moment;
 
 @Component({
-  selector: 'app-date-picker',
-  templateUrl: './date-picker.component.html',
-  styleUrls: ['./date-picker.component.scss'],
-  providers: [
-    // DateTimeService is added as a provider to allow it
-    // to be injected as a new instance per component, rather
-    // than a Singleton instance
-    DateTimeService,
-    CustomDateAdapter, // so we could inject services to 'CustomDateAdapter'
-    { provide: DateAdapter, useClass: CustomDateAdapter }, // Parse MatDatePicker format
-  ],
+    selector: 'app-date-picker',
+    templateUrl: './date-picker.component.html',
+    styleUrls: ['./date-picker.component.scss'],
+    providers: [
+        // DateTimeService is added as a provider to allow it
+        // to be injected as a new instance per component, rather
+        // than a Singleton instance
+        DateTimeService,
+        CustomDateAdapter, // so we could inject services to 'CustomDateAdapter'
+        { provide: DateAdapter, useClass: CustomDateAdapter }, // Parse MatDatePicker format
+    ],
+    standalone: false
 })
 export class DatePickerComponent implements OnInit {
   static readonly YEAR_FORMAT = 'YYYY';

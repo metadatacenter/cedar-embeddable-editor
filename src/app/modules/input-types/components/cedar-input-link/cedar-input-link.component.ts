@@ -23,10 +23,11 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
 }
 
 @Component({
-  selector: 'app-cedar-input-link',
-  templateUrl: './cedar-input-link.component.html',
-  styleUrls: ['./cedar-input-link.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
+    selector: 'app-cedar-input-link',
+    templateUrl: './cedar-input-link.component.html',
+    styleUrls: ['./cedar-input-link.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    standalone: false
 })
 export class CedarInputLinkComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;

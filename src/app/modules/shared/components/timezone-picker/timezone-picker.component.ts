@@ -30,17 +30,18 @@ export interface SelectConfig {
 }
 
 @Component({
-  selector: 'app-timezone-picker',
-  templateUrl: './timezone-picker.component.html',
-  styleUrls: ['./timezone-picker.component.scss'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => TimezonePickerComponent),
-      multi: true,
-    },
-  ],
-  encapsulation: ViewEncapsulation.Emulated,
+    selector: 'app-timezone-picker',
+    templateUrl: './timezone-picker.component.html',
+    styleUrls: ['./timezone-picker.component.scss'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => TimezonePickerComponent),
+            multi: true,
+        },
+    ],
+    encapsulation: ViewEncapsulation.Emulated,
+    standalone: false
 })
 export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges, ControlValueAccessor {
   static readonly AVAILABLE_TIMEZONES = [

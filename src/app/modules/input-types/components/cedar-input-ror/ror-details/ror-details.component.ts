@@ -2,9 +2,10 @@ import { Component, Input, OnInit } from '@angular/core';
 import { RorDetailResponse } from '../../../../shared/models/rest/ror-detail/ror-detail-response';
 
 @Component({
-  selector: 'app-ror-details',
-  templateUrl: './ror-details.component.html',
-  styleUrls: ['./ror-details.component.scss'],
+    selector: 'app-ror-details',
+    templateUrl: './ror-details.component.html',
+    styleUrls: ['./ror-details.component.scss'],
+    standalone: false
 })
 export class RorDetailsComponent implements OnInit {
   groupedRelationships: { [key: string]: any[] } = {};

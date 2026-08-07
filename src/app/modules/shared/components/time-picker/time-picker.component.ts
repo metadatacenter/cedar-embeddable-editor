@@ -30,17 +30,18 @@ import { ClockTime, Meridian } from '../../util/clock-time';
  * values look perfectly well-formed.
  */
 @Component({
-  selector: 'app-time-picker',
-  templateUrl: './time-picker.component.html',
-  styleUrls: ['./time-picker.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => TimePickerComponent),
-      multi: true,
-    },
-  ],
+    selector: 'app-time-picker',
+    templateUrl: './time-picker.component.html',
+    styleUrls: ['./time-picker.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => TimePickerComponent),
+            multi: true,
+        },
+    ],
+    standalone: false
 })
 export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDestroy {
   /** Show a 12-hour face with an AM/PM control. Display only. */

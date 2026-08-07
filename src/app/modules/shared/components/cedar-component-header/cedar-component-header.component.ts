@@ -11,10 +11,11 @@ import { Subscription } from 'rxjs';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 
 @Component({
-  selector: 'app-cedar-component-header',
-  templateUrl: './cedar-component-header.component.html',
-  styleUrls: ['./cedar-component-header.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
+    selector: 'app-cedar-component-header',
+    templateUrl: './cedar-component-header.component.html',
+    styleUrls: ['./cedar-component-header.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    standalone: false
 })
 export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
   component: CedarComponent;

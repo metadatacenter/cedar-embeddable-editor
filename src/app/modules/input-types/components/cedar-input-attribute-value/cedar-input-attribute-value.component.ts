@@ -6,10 +6,11 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 
 @Component({
-  selector: 'app-cedar-input-attribute-value',
-  templateUrl: './cedar-input-attribute-value.component.html',
-  styleUrls: ['./cedar-input-attribute-value.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
+    selector: 'app-cedar-input-attribute-value',
+    templateUrl: './cedar-input-attribute-value.component.html',
+    styleUrls: ['./cedar-input-attribute-value.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    standalone: false
 })
 export class CedarInputAttributeValueComponent extends CedarUIDirective {
   component: FieldComponent;

@@ -12,10 +12,11 @@ import moment, { Moment } from 'moment';
 import { TimezonePickerComponent, TZone } from '../../../shared/components/timezone-picker/timezone-picker.component';
 
 @Component({
-  selector: 'app-cedar-input-datetime',
-  templateUrl: './cedar-input-datetime.component.html',
-  styleUrls: ['./cedar-input-datetime.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
+    selector: 'app-cedar-input-datetime',
+    templateUrl: './cedar-input-datetime.component.html',
+    styleUrls: ['./cedar-input-datetime.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    standalone: false
 })
 export class CedarInputDatetimeComponent extends CedarUIDirective implements AfterViewInit {
   component: FieldComponent;

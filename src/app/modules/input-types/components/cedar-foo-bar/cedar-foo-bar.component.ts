@@ -6,10 +6,11 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
 
 @Component({
-  selector: 'app-cedar-foo-bar',
-  templateUrl: './cedar-foo-bar.component.html',
-  styleUrls: ['./cedar-foo-bar.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
+    selector: 'app-cedar-foo-bar',
+    templateUrl: './cedar-foo-bar.component.html',
+    styleUrls: ['./cedar-foo-bar.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    standalone: false
 })
 export class CedarFooBarComponent extends CedarUIDirective implements OnInit {
   component: StaticFieldComponent;

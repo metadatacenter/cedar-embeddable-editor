@@ -3,10 +3,11 @@ import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ComponentDataService } from '../../service/component-data.service';
 
 @Component({
-  selector: 'app-cedar-component-linked-static-field-header',
-  templateUrl: './cedar-component-linked-static-field-header.component.html',
-  styleUrls: ['./cedar-component-linked-static-field-header.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
+    selector: 'app-cedar-component-linked-static-field-header',
+    templateUrl: './cedar-component-linked-static-field-header.component.html',
+    styleUrls: ['./cedar-component-linked-static-field-header.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    standalone: false
 })
 export class CedarComponentLinkedStaticFieldHeaderComponent {
   component: CedarComponent;

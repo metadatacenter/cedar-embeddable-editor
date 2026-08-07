@@ -7,10 +7,11 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
 
 @Component({
-  selector: 'app-cedar-static-section-break',
-  templateUrl: './cedar-static-section-break.component.html',
-  styleUrls: ['./cedar-static-section-break.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
+    selector: 'app-cedar-static-section-break',
+    templateUrl: './cedar-static-section-break.component.html',
+    styleUrls: ['./cedar-static-section-break.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    standalone: false
 })
 export class CedarStaticSectionBreakComponent extends CedarUIDirective {
   @Input() handlerContext: HandlerContext;

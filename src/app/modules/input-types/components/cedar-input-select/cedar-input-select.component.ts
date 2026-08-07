@@ -22,10 +22,11 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   }
 }
 @Component({
-  selector: 'app-cedar-input-select',
-  templateUrl: './cedar-input-select.component.html',
-  styleUrls: ['./cedar-input-select.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
+    selector: 'app-cedar-input-select',
+    templateUrl: './cedar-input-select.component.html',
+    styleUrls: ['./cedar-input-select.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    standalone: false
 })
 export class CedarInputSelectComponent extends CedarUIDirective implements OnInit {
   @ViewChild('inputSelect') selectElement;

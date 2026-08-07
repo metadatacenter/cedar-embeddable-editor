@@ -8,9 +8,10 @@ import { Component, ViewEncapsulation } from '@angular/core';
  * contains no selectors: only CEE-namespaced @font-face declarations.
  */
 @Component({
-  selector: 'app-cedar-font-registrar',
-  template: '',
-  styleUrls: ['./cedar-font-registrar.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+    selector: 'app-cedar-font-registrar',
+    template: '',
+    styleUrls: ['./cedar-font-registrar.component.scss'],
+    encapsulation: ViewEncapsulation.None,
+    standalone: false
 })
 export class CedarFontRegistrarComponent {}

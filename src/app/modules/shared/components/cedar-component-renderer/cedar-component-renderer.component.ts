@@ -15,10 +15,11 @@ import { MultiComponent } from '../../models/component/multi-component.model';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 
 @Component({
-  selector: 'app-cedar-component-renderer',
-  templateUrl: './cedar-component-renderer.component.html',
-  styleUrls: ['./cedar-component-renderer.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
+    selector: 'app-cedar-component-renderer',
+    templateUrl: './cedar-component-renderer.component.html',
+    styleUrls: ['./cedar-component-renderer.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    standalone: false
 })
 export class CedarComponentRendererComponent {
   protected readonly InputType = InputType;

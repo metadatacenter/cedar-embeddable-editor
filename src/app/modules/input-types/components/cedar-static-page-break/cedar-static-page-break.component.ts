@@ -11,11 +11,12 @@ export class CustomMatPaginatorIntl extends MatPaginatorIntl {
 }
 
 @Component({
-  selector: 'app-cedar-static-page-break',
-  templateUrl: './cedar-static-page-break.component.html',
-  styleUrls: ['./cedar-static-page-break.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
-  providers: [{ provide: MatPaginatorIntl, useClass: CustomMatPaginatorIntl }],
+    selector: 'app-cedar-static-page-break',
+    templateUrl: './cedar-static-page-break.component.html',
+    styleUrls: ['./cedar-static-page-break.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    providers: [{ provide: MatPaginatorIntl, useClass: CustomMatPaginatorIntl }],
+    standalone: false
 })
 export class CedarStaticPageBreakComponent {
   @Input() dataContext: DataContext;

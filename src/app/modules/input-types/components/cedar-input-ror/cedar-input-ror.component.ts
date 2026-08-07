@@ -25,10 +25,11 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   }
 }
 @Component({
-  selector: 'app-cedar-input-ror',
-  templateUrl: './cedar-input-ror.component.html',
-  styleUrls: ['./cedar-input-ror.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
+    selector: 'app-cedar-input-ror',
+    templateUrl: './cedar-input-ror.component.html',
+    styleUrls: ['./cedar-input-ror.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    standalone: false
 })
 export class CedarInputRorComponent extends CedarUIDirective implements OnInit, AfterViewInit {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger })

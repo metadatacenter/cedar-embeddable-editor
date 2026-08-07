@@ -22,10 +22,11 @@ export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
 }
 
 @Component({
-  selector: 'app-cedar-input-multiple-choice',
-  templateUrl: './cedar-input-multiple-choice.component.html',
-  styleUrls: ['./cedar-input-multiple-choice.component.scss'],
-  encapsulation: ViewEncapsulation.Emulated,
+    selector: 'app-cedar-input-multiple-choice',
+    templateUrl: './cedar-input-multiple-choice.component.html',
+    styleUrls: ['./cedar-input-multiple-choice.component.scss'],
+    encapsulation: ViewEncapsulation.Emulated,
+    standalone: false
 })
 export class CedarInputMultipleChoiceComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;

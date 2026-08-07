@@ -2,9 +2,10 @@ import { Component, Input } from '@angular/core';
 import { ResearcherDetails } from '../../../../shared/models/rest/orcid-detail/orcid-detail-person';
 
 @Component({
-  selector: 'app-orcid-details',
-  templateUrl: './orcid-details.component.html',
-  styleUrls: ['./orcid-details.component.scss'],
+    selector: 'app-orcid-details',
+    templateUrl: './orcid-details.component.html',
+    styleUrls: ['./orcid-details.component.scss'],
+    standalone: false
 })
 export class OrcidDetailsComponent {
   @Input() researcher: ResearcherDetails;

@@ -23,7 +23,10 @@ import { DomSanitizer } from '@angular/platform-browser';
  * Covered by `markup in an instance value` in the visual suite, which asserts a
  * neutralised handler and surviving formatting in the same value.
  */
-@Pipe({ name: 'safeHtml', pure: false })
+@Pipe({
+    name: 'safeHtml', pure: false,
+    standalone: false
+})
 export class SafeHtmlPipe implements PipeTransform {
   constructor(private sanitizer: DomSanitizer) {}
 
