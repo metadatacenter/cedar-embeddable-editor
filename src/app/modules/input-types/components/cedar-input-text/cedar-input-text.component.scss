@@ -22,3 +22,29 @@
 //  margin-right: 5px;
 //  line-height: 20px;
 //}
+
+/*
+ * State the line height, so the CDK's very first measurement of it is right.
+ *
+ * `cdkAutosizeMinRows="6"` becomes a height by way of `_setMinHeight()`, which is
+ * `minRows * _cachedLineHeight`. That cache is filled once, from a throwaway clone
+ * measured during the directive's first resize, and never revisited — the CDK's own
+ * comment says it "will assume that the height of a single line does not ever
+ * change". If the measurement is taken before the styles that set the line height
+ * have landed, the wrong number is cached permanently.
+ *
+ * Which is what happened: 15px cached against a real line height of 24px, so six
+ * rows came out at 90px instead of 144px. Angular 19 made it visible by
+ * re-measuring on viewport resize, reaching 144px, and keeping it — so resizing the
+ * window made every text area jump 54px taller.
+ *
+ * A component stylesheet is present before the directive runs, unlike the styles
+ * Angular 19's CDK injects at runtime, so declaring the value here is what makes the
+ * first measurement and every later one agree. Do not replace this with a
+ * `min-height`: the clone is a copy of the textarea and matches the same selectors,
+ * so a floor set that way is measured as the height of a *single* row and multiplied
+ * by six.
+ */
+textarea[cdkTextareaAutosize] {
+  line-height: 24px;
+}
