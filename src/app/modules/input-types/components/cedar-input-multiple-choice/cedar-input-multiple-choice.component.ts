@@ -77,7 +77,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
     this.setValueUIAndModel(null);
   }
 
-  private setValueUIAndModel(value: string): void {
+  private setValueUIAndModel(value: string | null): void {
     this.selectedChoiceInputControl.setValue(value);
     this.handlerContext.changeValue(this.component, value);
   }

@@ -141,16 +141,17 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     this.activeComponentRegistry.clear();
   }
 
-  @Input() set dataContextObject(dataContext: DataContext) {
+  @Input() set dataContextObject(dataContext: DataContext | null) {
     this.dataContext = dataContext;
   }
 
-  @Input() set handlerContextObject(handlerContext: HandlerContext) {
+  @Input() set handlerContextObject(handlerContext: HandlerContext | null) {
     this.handlerContext = handlerContext;
-    this.pageBreakPaginatorService = new PageBreakPaginatorService(this.activeComponentRegistry, this.handlerContext);
+    this.pageBreakPaginatorService =
+      handlerContext === null ? null : new PageBreakPaginatorService(this.activeComponentRegistry, handlerContext);
   }
 
-  @Input() set config(value: CeeConfig) {
+  @Input() set config(value: CeeConfig | null) {
     if (value != null) {
       this.showTemplateRenderingRepresentation = configFlag(
         value,
@@ -301,7 +302,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    * free to set `templateJsonObject` before `handlerContextObject`. The early return
    * says that once instead of at each of the six reads below it.
    */
-  @Input() set templateJsonObject(value: InstanceObject) {
+  @Input() set templateJsonObject(value: InstanceObject | null) {
     const { dataContext, handlerContext } = this;
     if (value == null || dataContext == null || handlerContext == null) {
       return;
@@ -321,7 +322,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     });
   }
 
-  @Input() set instanceJsonObject(value: InstanceObject) {
+  @Input() set instanceJsonObject(value: InstanceObject | null) {
     const handlerContext = this.handlerContext;
     if (value == null || handlerContext == null) {
       return;
@@ -339,7 +340,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     }
   }
 
-  @Input() set templateAndInstanceObject(templateAndInstance: object) {
+  @Input() set templateAndInstanceObject(templateAndInstance: object | null) {
     if (templateAndInstance === null) {
       return;
     }

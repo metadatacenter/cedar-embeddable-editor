@@ -103,7 +103,7 @@ export type ReportNode = ReportValue | ReportList | ReportContainer;
 
 export class DataQualityReportBuilderHandler {
   private dataObjectFull: object;
-  private templateRepresentation: TemplateComponent;
+  private templateRepresentation: TemplateComponent | null;
   private report: DataQualityReport;
 
   buildReport(dataContext: DataContext, handlerContext: HandlerContext): DataQualityReport {
@@ -120,7 +120,7 @@ export class DataQualityReportBuilderHandler {
         dataContext.templateRepresentation,
         this.report,
         valueTree,
-        dataContext.multiInstanceData,
+        dataContext.multiInstanceData ?? new MultiInstanceInfo(),
         handlerContext,
       );
     }
@@ -517,6 +517,6 @@ export class DataQualityReportBuilderHandler {
   }
 
   private static isIriValued(component: SingleFieldComponent | MultiFieldComponent): boolean {
-    return valueIsIri(component.basicInfo.inputType);
+    return component.basicInfo.inputType !== null && valueIsIri(component.basicInfo.inputType as InputType);
   }
 }

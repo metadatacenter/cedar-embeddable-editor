@@ -136,11 +136,11 @@ export class DataObjectStructureHandler {
     multiInstanceObjectService: MultiInstanceObjectHandler,
     messageHandlerService: MessageHandlerService,
   ): void {
-    const multiInstanceInfo: MultiInstanceObjectInfo =
+    const multiInstanceInfo: MultiInstanceObjectInfo | null =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const templateRepresentation = dataContext.templateRepresentation;
     const templateInput = dataContext.templateInput;
-    if (templateRepresentation === null || templateInput === null) {
+    if (templateRepresentation === null || templateInput === null || multiInstanceInfo === null) {
       return;
     }
 
@@ -202,10 +202,10 @@ export class DataObjectStructureHandler {
     component: MultiComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
   ): void {
-    const multiInstanceInfo: MultiInstanceObjectInfo =
+    const multiInstanceInfo: MultiInstanceObjectInfo | null =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const templateRepresentation = dataContext.templateRepresentation;
-    if (templateRepresentation === null) {
+    if (templateRepresentation === null || multiInstanceInfo === null) {
       return;
     }
     dataContext.mutate((instance) =>
@@ -238,10 +238,10 @@ export class DataObjectStructureHandler {
     component: MultiComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
   ): void {
-    const multiInstanceInfo: MultiInstanceObjectInfo =
+    const multiInstanceInfo: MultiInstanceObjectInfo | null =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const templateRepresentation = dataContext.templateRepresentation;
-    if (templateRepresentation === null) {
+    if (templateRepresentation === null || multiInstanceInfo === null) {
       return;
     }
     dataContext.mutate((instance) =>

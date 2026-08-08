@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, timer } from 'rxjs';
+import { EMPTY, Observable, timer } from 'rxjs';
 import { IntegratedSearchResponse } from '../models/rest/integrated-search/integrated-search-response';
 import { IntegratedSearchRequest } from '../models/rest/integrated-search/integrated-search-request';
 import { FieldComponent } from '../models/component/field-component.model';
@@ -30,9 +30,13 @@ export class ControlledFieldDataService {
     postData.parameterObject.valueConstraints.ontologies = component.controlledInfo.ontologies;
     postData.parameterObject.valueConstraints.valueSets = component.controlledInfo.valueSets;
     // Random delay to prevent throttling
+    const searchUrl = this.terminologyIntegratedSearchUrl;
+    if (searchUrl === null) {
+      // No endpoint configured, so no terms to offer. The autocomplete shows its
+      // "no results" row, which is what an empty response produces anyway.
+      return EMPTY;
+    }
     const randomDelay = Math.floor(Math.random() * 2000);
-    return timer(randomDelay).pipe(
-      switchMap(() => this.http.post<IntegratedSearchResponse>(this.terminologyIntegratedSearchUrl, postData)),
-    );
+    return timer(randomDelay).pipe(switchMap(() => this.http.post<IntegratedSearchResponse>(searchUrl, postData)));
   }
 }

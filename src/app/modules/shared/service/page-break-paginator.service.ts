@@ -28,7 +28,7 @@ export class PageBreakPaginatorService {
     return this.pageBreakChildren[this.currentPageBreakIndex];
   }
 
-  setPageNumberAndGet(pageNum: number): CedarComponent[] {
+  setPageNumberAndGet(pageNum: number): CedarComponent[] | null {
     if (pageNum >= 0 && pageNum < this.pageBreakChildren.length) {
       this.currentPageBreakIndex = pageNum;
       setTimeout(() => {

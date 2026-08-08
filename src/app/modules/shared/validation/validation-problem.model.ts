@@ -12,7 +12,8 @@ export class ValidationProblem {
     /** The field's property name — the last path segment. */
     public readonly field: string,
     /** `_ui.inputType` of the field the problem belongs to. */
-    public readonly inputType: string,
+    /** Null for a field that declares no `_ui.inputType`. */
+    public readonly inputType: string | null,
     /** Stable machine-readable kind, e.g. `minLength`, `pattern`, `maxItems`. */
     public readonly code: string,
     /** Human-readable description. Not translated: these are diagnostics, not UI copy. */

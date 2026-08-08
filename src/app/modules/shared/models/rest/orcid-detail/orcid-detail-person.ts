@@ -166,14 +166,19 @@ export class ResearcherDetails {
         }
       }
     }
-    employments.sort((a, b) => (b.startDate > a.startDate ? 1 : -1));
+    // `?? ''` on both sides: a record without a start date sorts as the earliest,
+    // which is where an undated post belongs against dated ones. Comparing them
+    // unguarded made the comparator's answer depend on which side the null was on.
+    employments.sort((a, b) => ((b.startDate ?? '') > (a.startDate ?? '') ? 1 : -1));
 
     if (!country && employments.length > 0 && employments[0].organizationCountry) {
-      country = employments[0].organizationCountry;
+      country = employments[0].organizationCountry ?? '';
     }
 
     return new ResearcherDetails(
-      id,
+      // The record's own `id` is optional; a researcher without one has no ORCID to
+      // show, which reads as empty rather than as the string "undefined".
+      id ?? '',
       fullName,
       creditName,
       otherNames,

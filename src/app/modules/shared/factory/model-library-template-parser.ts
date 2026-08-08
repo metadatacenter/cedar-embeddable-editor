@@ -367,7 +367,9 @@ export class ModelLibraryTemplateParser implements TemplateParser {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
     } else {
-      fc.valueInfo.defaultValue = undefined;
+      // Null, not undefined: a field with no declared default holds nothing, and
+      // `ValueInfo.defaultValue` says `string | InstanceObject | null`.
+      fc.valueInfo.defaultValue = null;
     }
   }
 

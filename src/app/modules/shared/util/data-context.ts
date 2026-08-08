@@ -22,7 +22,8 @@ export class DataContext {
   instanceFullData: InstanceObject | null = null;
   multiInstanceData: MultiInstanceInfo | null = null;
   dataQualityReport: DataQualityReport | null = null;
-  savedTemplateID: string;
+  /** Null until a template is saved, and reset to null when one is replaced. */
+  savedTemplateID: string | null;
 
   private derivedExtract: InstanceExtractData = null;
 

@@ -83,6 +83,34 @@ describe('reading a path before a template is set', () => {
   });
 });
 
+describe('building the quality report before a template is set', () => {
+  it('produces an empty report rather than throwing', () => {
+    const { handlerContext } = emptyContextAnd();
+    expect(() => handlerContext.buildQualityReport()).not.toThrow();
+  });
+});
+
+describe('naming fewer occurrences than the path has multi ancestors', () => {
+  /**
+   * `getDataObjectNodeAt` takes one index per multi ancestor, outermost first. A
+   * caller that supplies too few runs the selector dry, and the walk stops rather
+   * than guessing an occurrence — which is the whole reason the selector exists
+   * separately from the cursor.
+   */
+  it('stops at the ancestor it has no index for', () => {
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'too_few_indices',
+        elements: [{ name: 'el', cardinality: 'multi', minItems: 2, children: [{ kind: TEXT, name: 'inner' }] }],
+      }),
+    );
+    const inner = driver.findOrThrow(['_el', '_inner']) as FieldComponent;
+
+    expect(driver.handlerContext.getDataObjectNodeAt(inner.path, [0])).not.toBeUndefined();
+    expect(driver.handlerContext.getDataObjectNodeAt(inner.path, [])).toBeNull();
+  });
+});
+
 describe('a path naming a child that does not exist', () => {
   /**
    * The walks step from component to component by name, and a name that matches no

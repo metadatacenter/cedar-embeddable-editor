@@ -159,9 +159,9 @@ export class DataObjectDataValueHandler {
         }
       } else {
         const multiField = component as MultiFieldComponent;
-        const multiInstanceInfo: MultiInstanceObjectInfo =
+        const multiInstanceInfo: MultiInstanceObjectInfo | null =
           multiInstanceObjectService.getMultiInstanceInfoForComponent(multiField);
-        const currentIndex = multiInstanceInfo.currentIndex;
+        const currentIndex = multiInstanceInfo?.currentIndex ?? 0;
 
         // Three shapes arrive here and the branch order is the discrimination: a
         // wrapper carrying a reserved attribute name, a list of occurrences, or a
@@ -254,9 +254,9 @@ export class DataObjectDataValueHandler {
       }
       parentDataSubObject = dataObject;
     } else if (component instanceof MultiElementComponent) {
-      const multiInstanceInfo: MultiInstanceObjectInfo =
+      const multiInstanceInfo: MultiInstanceObjectInfo | null =
         multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
-      const currentIndex = multiInstanceInfo.currentIndex;
+      const currentIndex = multiInstanceInfo?.currentIndex ?? 0;
       childComponent = component.getChildByName(firstPath);
       const occurrence = isInstanceArray(dataObject) ? dataObject[currentIndex] : null;
       if (isInstanceObject(occurrence)) {

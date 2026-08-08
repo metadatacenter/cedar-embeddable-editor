@@ -109,7 +109,7 @@ export class DatePickerComponent implements OnInit {
 
   chosenDateHandler(event: MatDatepickerInputEvent<Moment>): void {
     if (event) {
-      this.dateChangedEvent.emit(event.value);
+      this.dateChangedEvent.emit(event.value ?? undefined);
     }
   }
 }

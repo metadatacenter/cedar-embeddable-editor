@@ -120,13 +120,17 @@ export class DataObjectBuilderHandler {
         // SingleFieldComponent
         dataObject[targetName] = DataObjectUtil.getEmptyValueWrapper(nonIterableComponent, buildingMode);
         if (component?.choiceInfo?.choices?.length > 0) {
-          let value = null;
+          let value: string | null = null;
           for (const choice of component.choiceInfo.choices) {
             if (choice.selectedByDefault) {
               value = choice.label;
             }
           }
-          dataObject[targetName] = DataObjectUtil.getSingleValueWrapper(nonIterableComponent, buildingMode, value);
+          dataObject[targetName] = DataObjectUtil.getSingleValueWrapper(
+            nonIterableComponent,
+            buildingMode,
+            value ?? '',
+          );
         }
       }
     }

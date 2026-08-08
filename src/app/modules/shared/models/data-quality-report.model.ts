@@ -3,7 +3,8 @@ import { InstanceExtractData } from './instance-extract-data.model';
 import { ValidationProblem } from '../validation/validation-problem.model';
 
 export class DataQualityReport extends Object {
-  templateRepresentation: TemplateComponent;
+  /** Null when a report is built before a template is set, which produces an empty one. */
+  templateRepresentation: TemplateComponent | null;
   instanceExtractData: InstanceExtractData;
   valueTree: object;
   requiredFieldValueCount = 0;

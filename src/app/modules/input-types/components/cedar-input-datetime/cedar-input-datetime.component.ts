@@ -380,7 +380,7 @@ export class DatetimeRepresentation {
 
       if (timezoneStr && timezoneStr.length > 0) {
         const timezone = TimezonePickerComponent.AVAILABLE_TIMEZONES.find((z) => z.id === timezoneStr[0]);
-        that.setTimezone(timezone);
+        that.setTimezone(timezone ?? null);
       }
     }
     return that;
@@ -431,7 +431,7 @@ export class DatetimeRepresentation {
     this.ampm = val;
   }
 
-  setDecimalSeconds(decSecondsIn: number): void {
+  setDecimalSeconds(decSecondsIn: number | null): void {
     this.timeIsSet = true;
 
     if (decSecondsIn == null) {

@@ -8,19 +8,20 @@ import { SingleElementComponent } from '../models/element/single-element-compone
 import { MultiElementComponent } from '../models/element/multi-element-component.model';
 
 export class ComponentTypeHandler {
-  public static isImage(component: CedarComponent): boolean {
+  public static isImage(component: CedarComponent | null): boolean {
     return component instanceof StaticFieldComponent && component.basicInfo.inputType === InputType.image;
   }
 
-  static isYoutube(component: CedarComponent): boolean {
+  static isYoutube(component: CedarComponent | null): boolean {
     return component instanceof StaticFieldComponent && component.basicInfo.inputType === InputType.youtube;
   }
 
-  public static isRichText(component: CedarComponent): boolean {
+  public static isRichText(component: CedarComponent | null): boolean {
     return component instanceof StaticFieldComponent && component.basicInfo.inputType === InputType.richText;
   }
 
-  public static isStaticContentComponent(component: CedarComponent): boolean {
+  /** False for an absent component, which is what a first child has no predecessor of. */
+  public static isStaticContentComponent(component: CedarComponent | null): boolean {
     return this.isImage(component) || this.isYoutube(component) || this.isRichText(component);
   }
 

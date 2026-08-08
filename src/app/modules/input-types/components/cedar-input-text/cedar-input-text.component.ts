@@ -95,17 +95,16 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
   }
   protected override onReadOnlyModeChange(mode: boolean): void {
     if (mode) {
-      this.checkHTMLContent(this.inputValueControl.value);
+      this.checkHTMLContent(this.inputValueControl.value ?? '');
     } else {
       this.isRichText = false;
     }
   }
   inputChanged($event: Event): void {
-    let val = ($event.target as HTMLTextAreaElement).value;
-    if (val.length === 0) {
-      val = null;
-    }
-    this.handlerContext.changeValue(this.component, val);
+    // An emptied box clears the field rather than storing '', which is what the
+    // instance means by an unfilled slot.
+    const typed = ($event.target as HTMLTextAreaElement).value;
+    this.handlerContext.changeValue(this.component, typed.length === 0 ? null : typed);
   }
 
   setCurrentValue(currentValue: unknown): void {
@@ -142,7 +141,7 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     this.setValueUIAndModel(null);
   }
 
-  private setValueUIAndModel(value: string): void {
+  private setValueUIAndModel(value: string | null): void {
     this.inputValueControl.setValue(value);
     this.handlerContext.changeValue(this.component, value);
   }
@@ -175,7 +174,9 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
   }
 
   goToLink() {
-    window.open(this.originalValue, '_blank');
+    if (this.originalValue !== null) {
+      window.open(this.originalValue, '_blank');
+    }
   }
 
   protected readonly window = window;

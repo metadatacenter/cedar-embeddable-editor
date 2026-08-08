@@ -20,7 +20,8 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
 })
 export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
   component: CedarComponent;
-  multiComponent: MultiComponent;
+  /** Null for a component that is not multi-instance, which is most of them. */
+  multiComponent: MultiComponent | null = null;
   shouldRenderRequiredMark = false;
   isOrcid = false;
   isRor = false;

@@ -135,7 +135,7 @@ export class FieldValueValidator {
     }
     // External authority fields store an IRI. Membership in the authority is a
     // server question; well-formedness is not.
-    if (EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType) && !this.IRI.test(text)) {
+    if (inputType !== null && EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType) && !this.IRI.test(text)) {
       out.push(this.problem(component, path, ValidationCode.iriMalformed, 'Not a valid IRI.', text));
     }
   }
@@ -272,7 +272,9 @@ export class FieldValueValidator {
     const timeStr = temporalType === Xsd.time ? rest : timePart;
 
     if (dateStr !== null && this.DATE_PART.test(dateStr)) {
-      const [, y, mo, d] = dateStr.match(this.DATE_PART);
+      // `?? []` because `String.match` types its result nullable; the `test` on the
+      // line above already established the groups are there.
+      const [, y, mo, d] = dateStr.match(this.DATE_PART) ?? [];
       const month = Number(mo);
       const day = Number(d);
       const daysInMonth = new Date(Number(y), month, 0).getDate();
@@ -281,7 +283,7 @@ export class FieldValueValidator {
       }
     }
     if (timeStr !== null && this.TIME_PART.test(timeStr)) {
-      const [, h, mi, sec] = timeStr.match(this.TIME_PART);
+      const [, h, mi, sec] = timeStr.match(this.TIME_PART) ?? [];
       if (Number(h) > 23 || Number(mi) > 59 || (sec !== undefined && Number(sec) > 59)) {
         out.push(this.problem(component, path, ValidationCode.temporalCalendar, 'Not a real time of day.', text));
       }

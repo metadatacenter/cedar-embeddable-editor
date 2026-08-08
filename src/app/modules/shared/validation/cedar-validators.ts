@@ -76,7 +76,10 @@ export class CedarValidators {
           errors[alias] = detail;
         }
         if (problem.code === ValidationCode.iriMalformed) {
-          const key = CedarValidators.AUTHORITY_KEYS[component.basicInfo.inputType];
+          // A field with no declared input type is not one of the authority kinds,
+          // so it has no key in this map and no error to attach.
+          const inputType = component.basicInfo.inputType;
+          const key = inputType === null ? undefined : CedarValidators.AUTHORITY_KEYS[inputType];
           if (key) {
             errors[key] = detail;
           }
@@ -108,7 +111,8 @@ export class CedarValidators {
    * with the pattern actually applied — which is the reason it lives beside the
    * validator rather than in the component.
    */
-  static describeNumberType(component: FieldComponent): string {
+  /** Null for a field whose XSD type carries no hint worth showing. */
+  static describeNumberType(component: FieldComponent): string | null {
     const numberType = component.numberInfo?.numberType;
     const decimalPlace = component.numberInfo?.decimalPlace;
     const decimals = decimalPlace != null ? ` maximum ${decimalPlace} decimals.` : '';

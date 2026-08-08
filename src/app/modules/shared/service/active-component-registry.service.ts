@@ -124,7 +124,7 @@ export class ActiveComponentRegistryService {
       const dataObject: InstanceNode = handlerContext.getDataObjectNodeByPath(component.path);
       const parentDataObject = handlerContext.getParentDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIDirective | null = this.getUIComponent(component);
-      const multiInstanceInfo: MultiInstanceObjectInfo =
+      const multiInstanceInfo: MultiInstanceObjectInfo | null =
         handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
 
       // this is a multi-value but not multipage component, such as checkbox or multiselect
@@ -134,7 +134,9 @@ export class ActiveComponentRegistryService {
         if (uiComponent && dataArr) {
           uiComponent.setCurrentValue(dataArr.map((a) => InstanceValueNode.literal(a)));
         }
-      } else if (isInstanceArray(dataObject)) {
+      } else if (isInstanceArray(dataObject) && multiInstanceInfo !== null) {
+        // A paged multi field with no node in the info tree has no cursor, so there
+        // is no occurrence to push back into the widget.
         if (dataObject[multiInstanceInfo.currentIndex] != null) {
           if (component.basicInfo.inputType === InputType.attributeValue) {
             let key = dataObject[multiInstanceInfo.currentIndex];
@@ -159,7 +161,7 @@ export class ActiveComponentRegistryService {
             }
             const value = InstanceValueNode.literal(parentDataObject[key]);
             const obj: InstanceObject = {};
-            obj[key] = value;
+            obj[key] = value ?? null;
 
             if (uiComponent) {
               uiComponent.setCurrentValue(obj);
@@ -176,7 +178,7 @@ export class ActiveComponentRegistryService {
                   ActiveComponentRegistryService.iriValueForWidget(pageNode, component, handlerContext.readOnlyMode),
                 );
               }
-            } else if (Object.keys(pageNode).length === 0) {
+            } else if (isInstanceObject(pageNode) && Object.keys(pageNode).length === 0) {
               // A page with nothing on it at all. The controlled-term widget is
               // still told, so it clears rather than keeping the previous
               // page's term on screen.

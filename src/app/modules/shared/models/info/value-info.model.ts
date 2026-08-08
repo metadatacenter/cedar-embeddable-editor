@@ -6,7 +6,7 @@ export class ValueInfo {
    * ROR field's is the term node itself, carrying `@id` and `rdfs:label`. It was
    * declared `string` while three components indexed it as an object.
    */
-  defaultValue: string | InstanceObject;
+  defaultValue: string | InstanceObject | null;
   minLength: number;
   maxLength: number;
   temporalType: string;

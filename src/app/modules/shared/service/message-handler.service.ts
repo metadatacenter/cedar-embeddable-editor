@@ -42,7 +42,7 @@ export class MessageHandlerService {
    * bug. The throw is reported on the console rather than swallowed, since a broken
    * handler is worth knowing about and this is the only place that can say so.
    */
-  private emit(kind: string, label: string, value: object = null): void {
+  private emit(kind: string, label: string, value: object | null = null): void {
     const handler = this.eventHandler;
     if (handler === null || handler === undefined || typeof handler[kind] !== 'function') {
       return;

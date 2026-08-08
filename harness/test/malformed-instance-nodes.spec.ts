@@ -165,6 +165,49 @@ describe('adding an occurrence where the node is not a list', () => {
   });
 });
 
+describe('the quality report over a multi field that is not a list', () => {
+  /**
+   * The report says what it found where a list belonged, so a host reading it can
+   * tell a wrong-shaped document from a merely incomplete one. Both spellings of
+   * "not a list" are worth the round trip: a scalar, and an outright null.
+   */
+  const reportOver = (occupant: unknown): string => {
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'multi_not_a_list',
+        children: [{ kind: TEXT, name: 'm', cardinality: 'multi', minItems: 1 }],
+      }),
+    );
+    driver.dataContext.instanceFullData['_m'] = occupant as never;
+    driver.dataContext.invalidateDerivedViews();
+    driver.handlerContext.buildQualityReport();
+    return JSON.stringify(driver.dataContext.dataQualityReport);
+  };
+
+  it('names the type it found instead of a list', () => {
+    expect(reportOver('not a list')).toContain('where the template declares an array');
+  });
+
+  it('says null rather than "object" when the field holds null', () => {
+    expect(reportOver(null)).toContain('null');
+  });
+
+  it('says the property is absent when the instance omits it entirely', () => {
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'multi_absent',
+        children: [{ kind: TEXT, name: 'm', cardinality: 'multi', minItems: 1 }],
+      }),
+    );
+    // Not the same as holding the wrong shape: an instance from an older template
+    // version simply will not have the key, and the report distinguishes the two.
+    delete (driver.dataContext.instanceFullData as Record<string, unknown>)['_m'];
+    driver.dataContext.invalidateDerivedViews();
+    driver.handlerContext.buildQualityReport();
+    expect(JSON.stringify(driver.dataContext.dataQualityReport)).toContain('absent');
+  });
+});
+
 describe('the quality report over a malformed instance', () => {
   it('still produces a report', () => {
     const driver = new CeeDriver(buildTemplate({ name: 'malformed_report', children: [{ kind: TEXT, name: 'a' }] }));

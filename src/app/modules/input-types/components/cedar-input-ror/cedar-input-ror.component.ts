@@ -152,7 +152,9 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
         // `Observable<MatOptionSelectionChange | null>`, and `source` is on it.
         const selectionMode = !!event && !!event.source;
         if (selectionMode) return;
-        this.setCurrentValue(this.selectedData);
+        if (this.selectedData !== null) {
+          this.setCurrentValue(this.selectedData);
+        }
       });
     }
   }
@@ -222,7 +224,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
   setShowDetails = (setValue: boolean): void => {
     this.showDetails = setValue;
   };
-  getCompoundValue(option: RorSearchResponseItem): string {
+  getCompoundValue(option: RorSearchResponseItem | null): string {
     if (!option) return '';
     const label = (option[JsonSchema.rdfsLabel] as string) ? (option[JsonSchema.rdfsLabel] as string).trim() : '';
     const id = (option[JsonSchema.atId] as string) ? (option[JsonSchema.atId] as string).trim() : '';
@@ -286,7 +288,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     }
     const selectedId = this.selectedData[JsonSchema.atId] as string;
     if (this.rorDetailsCache.has(selectedId)) {
-      this.rorDetails = this.rorDetailsCache.get(selectedId);
+      this.rorDetails = this.rorDetailsCache.get(selectedId) ?? null;
       return;
     }
     this.lookup
@@ -297,7 +299,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
           return of(null);
         }),
       )
-      .subscribe((response: RorDetailResponse) => {
+      .subscribe((response: RorDetailResponse | null) => {
         if (response && response.found) {
           this.rorDetails = RorDetailResponse.fromJSON(response);
           this.rorDetailsCache.set(selectedId, this.rorDetails);

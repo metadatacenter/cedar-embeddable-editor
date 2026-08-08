@@ -16,13 +16,18 @@ export class MultiInstanceInfo {
   [componentName: string]:
     | MultiInstanceObjectInfo
     | ((multiInfo: MultiInstanceObjectInfo) => void)
-    | ((componentName: string) => MultiInstanceObjectInfo);
+    | ((componentName: string) => MultiInstanceObjectInfo | null);
 
   addChild(multiInfo: MultiInstanceObjectInfo): void {
+    // The root info node describes no component and so has no name to file itself
+    // under; only named children go in the map.
+    if (multiInfo.componentName === null) {
+      return;
+    }
     this[multiInfo.componentName] = multiInfo;
   }
 
-  getChildByName(componentName: string): MultiInstanceObjectInfo {
+  getChildByName(componentName: string): MultiInstanceObjectInfo | null {
     if (Object.hasOwn(this, componentName)) {
       return this[componentName] as MultiInstanceObjectInfo;
     } else {

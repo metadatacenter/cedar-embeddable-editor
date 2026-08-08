@@ -77,7 +77,7 @@ export class DataObjectUtil {
     return (
       inputType === InputType.link ||
       inputType === InputType.controlled ||
-      EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType)
+      (inputType !== null && EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType))
     );
   }
 

@@ -83,12 +83,8 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
   }
 
   inputChanged($event: Event): void {
-    let val = ($event.target as HTMLTextAreaElement).value;
-
-    if (val.length === 0) {
-      val = null;
-    }
-    this.handlerContext.changeValue(this.component, val);
+    const typed = ($event.target as HTMLTextAreaElement).value;
+    this.handlerContext.changeValue(this.component, typed.length === 0 ? null : typed);
   }
 
   setCurrentValue(currentValue: unknown): void {
@@ -99,7 +95,7 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
     this.setValueUIAndModel(null);
   }
 
-  private setValueUIAndModel(value: string): void {
+  private setValueUIAndModel(value: string | null): void {
     this.inputValueControl.setValue(value);
     this.handlerContext.changeValue(this.component, value);
   }

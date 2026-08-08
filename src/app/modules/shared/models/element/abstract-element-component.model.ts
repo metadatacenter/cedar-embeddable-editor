@@ -38,7 +38,7 @@ export abstract class AbstractElementComponent implements ElementComponent {
    */
   contextEntries: InstanceObject = {};
 
-  getChildByName(childName: string): CedarComponent {
+  getChildByName(childName: string): CedarComponent | null {
     for (const child of this.children) {
       if (child.name === childName) {
         return child;
