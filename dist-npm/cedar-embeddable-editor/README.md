@@ -349,6 +349,21 @@ The declarations are **types only**. The bundle is a script that registers a cus
 element and exports no values, so there is nothing to import at runtime — use
 `import type`, and let the interface rather than a constant catch a mistyped key.
 
+If you are not using TypeScript, or you load configuration with
+`loadConfigFromURL`, CEE checks it at runtime instead and reports what it cannot
+use. An unknown key is named, with the nearest real key suggested; a value of the
+wrong kind says what was expected; and settings that conflict are called out. The
+messages go to the console and to any `eventHandler` you registered:
+
+```
+CEE ERROR: Unknown configuration key "readOnlyMod". It has no effect. Did you mean "readOnlyMode"?
+CEE ERROR: Configuration key "outputSerialization" expects "json" or "yaml", but was "xml".
+CEE ERROR: Configuration key "hideEmptyFields" only takes effect in read-only mode, which is not enabled.
+```
+
+Reporting only: a key CEE cannot use is ignored, exactly as before. The change is
+that you are told rather than left watching a setting do nothing.
+
 Two behaviours the types cannot express, and which are worth knowing before you
 reassign configuration:
 
