@@ -20,6 +20,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cannot: a JavaScript host, and `loadConfigFromURL`. Reporting only — a key CEE cannot
   use is ignored as it always was.
 
+### Fixed
+
+- Timezone data is current. `moment-timezone` was pinned to a release carrying tzdb
+  2023c, so the timezone picker computed offsets from rules three years old and
+  stamped them into instances. `Asia/Almaty` read `+06:00` after Kazakhstan unified
+  the country to UTC+5 in March 2024, and `America/Asuncion` read `-04:00` after
+  Paraguay abandoned daylight saving the same year. Now tzdb 2026c — and the bundle
+  is 60,655 bytes smaller, since the newer packed dataset is smaller despite
+  covering three more years.
+
 ### Security
 
 - `lodash-es` moves to 4.18.1, clearing the one high-severity advisory group a
