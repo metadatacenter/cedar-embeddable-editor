@@ -274,8 +274,8 @@ export class MultiInstanceObjectHandler {
     }
     const firstPath = path[0];
     const remainingPath = path.slice(1);
-    let childComponent: CedarComponent = null;
-    let childMultiInfo: MultiInstanceObjectInfo = null;
+    let childComponent: CedarComponent | null = null;
+    let childMultiInfo: MultiInstanceObjectInfo | null = null;
     if (component instanceof SingleElementComponent) {
       childComponent = (component as SingleElementComponent).getChildByName(firstPath);
       childMultiInfo = multiInstanceObject.getChildByName(firstPath);

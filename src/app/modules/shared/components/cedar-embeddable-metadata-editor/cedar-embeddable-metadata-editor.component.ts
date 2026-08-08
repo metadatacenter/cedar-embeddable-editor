@@ -79,12 +79,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   static EXT_AUTH_BASE_URL = 'extAuthBaseUrl';
 
-  dataContext: DataContext = null;
-  handlerContext: HandlerContext = null;
+  dataContext: DataContext | null = null;
+  handlerContext: HandlerContext | null = null;
 
-  pageBreakPaginatorService: PageBreakPaginatorService = null;
+  pageBreakPaginatorService: PageBreakPaginatorService | null = null;
 
-  @Input() sampleTemplateLoaderObject: SampleTemplateLoaderOwner = null;
+  @Input() sampleTemplateLoaderObject: SampleTemplateLoaderOwner | null = null;
 
   showTemplateRenderingRepresentation = false;
   showMultiInstanceInfo = false;

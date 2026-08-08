@@ -15,6 +15,7 @@ import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALUE_ACC
 import { Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { UserPreferencesService } from '../../service/user-preferences.service';
+import { requireControl } from '../../forms/form-control';
 
 export class TZone {
   id: string;
@@ -184,7 +185,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     setTimeout(() => {
       if (this.getUserZone) {
         const guessedZone = TimezonePickerComponent.guessedUserZone();
-        this.form.get('timezone').setValue(guessedZone);
+        requireControl(this.form, 'timezone').setValue(guessedZone);
       }
     });
   }
@@ -203,7 +204,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
    */
   private fireChanges(): void {
     if (this.propagateChange) {
-      const { value } = this.form.get('timezone');
+      const { value } = requireControl(this.form, 'timezone');
       this.readOnlyTimezoneControl.setValue(value?.label);
       this.propagateChange(value);
     }
@@ -213,7 +214,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
    * Clear selection.
    */
   private clearZone(): void {
-    this.form.get('timezone').setValue(null);
+    requireControl(this.form, 'timezone').setValue(null);
   }
 
   /**
@@ -225,7 +226,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     }
     if (changes.disabled) {
       setTimeout(() => {
-        const timezone = this.form.get('timezone');
+        const timezone = requireControl(this.form, 'timezone');
         if (changes.disabled.currentValue) {
           timezone.disable();
         } else {
@@ -252,7 +253,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
    */
   writeValue(zone: string | TZone): void {
     if (zone) {
-      let _zone: TZone = null;
+      let _zone: TZone | null = null;
 
       if (typeof zone === 'string' && zone.length > 0) {
         _zone = this.timeZones.find((z) => z.id === zone);
@@ -261,7 +262,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
       }
 
       if (_zone) {
-        this.form.get('timezone').setValue(_zone);
+        requireControl(this.form, 'timezone').setValue(_zone);
       }
     } else {
       this.clearZone();

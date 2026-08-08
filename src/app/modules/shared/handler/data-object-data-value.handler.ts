@@ -233,7 +233,7 @@ export class DataObjectDataValueHandler {
   ): DownstreamObjects {
     const firstPath = path[0];
     const remainingPath = path.slice(1);
-    let childComponent: CedarComponent = null;
+    let childComponent: CedarComponent | null = null;
     let dataSubObject: InstanceNode = null;
     let parentDataSubObject: InstanceNode = null;
 

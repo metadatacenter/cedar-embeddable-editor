@@ -16,12 +16,12 @@ import { DataQualityReport } from '../models/data-quality-report.model';
 import { InstanceObject } from '../models/instance-node.model';
 
 export class DataContext {
-  templateInput: CedarInputTemplate = null;
-  templateRepresentation: TemplateComponent = null;
+  templateInput: CedarInputTemplate | null = null;
+  templateRepresentation: TemplateComponent | null = null;
   /** The instance root, which is a JSON-LD document and so always an object. */
-  instanceFullData: InstanceObject = null;
-  multiInstanceData: MultiInstanceInfo = null;
-  dataQualityReport: DataQualityReport = null;
+  instanceFullData: InstanceObject | null = null;
+  multiInstanceData: MultiInstanceInfo | null = null;
+  dataQualityReport: DataQualityReport | null = null;
   savedTemplateID: string;
 
   private derivedExtract: InstanceExtractData = null;

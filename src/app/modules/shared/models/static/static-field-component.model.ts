@@ -11,7 +11,7 @@ export class StaticFieldComponent implements SingleComponent {
   labelInfo: LabelInfo = new LabelInfo();
   basicInfo: BasicInfo = new BasicInfo();
   contentInfo: ContentInfo = new ContentInfo();
-  linkedStaticFieldComponent: StaticFieldComponent = null;
+  linkedStaticFieldComponent: StaticFieldComponent | null = null;
 
   isMulti(): boolean {
     return false;

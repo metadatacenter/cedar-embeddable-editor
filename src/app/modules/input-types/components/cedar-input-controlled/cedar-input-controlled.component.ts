@@ -54,8 +54,8 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   inputValueControl = new FormControl(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
-  model: IntegratedSearchResponseItem = null;
-  bioPortalTermLink: string = null;
+  model: IntegratedSearchResponseItem | null = null;
+  bioPortalTermLink: string | null = null;
   filteredOptions: Observable<IntegratedSearchResponseItem[]>;
   loading = false;
   /** Whether the last lookup failed, as opposed to matching nothing. */

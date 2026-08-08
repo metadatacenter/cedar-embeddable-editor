@@ -18,7 +18,7 @@ import { SampleTemplateEntry } from './sample-templates.service';
   standalone: false,
 })
 export class SampleTemplatesComponent implements OnInit, OnDestroy {
-  @Input() callbackOwnerObject: SampleTemplateLoaderOwner = null;
+  @Input() callbackOwnerObject: SampleTemplateLoaderOwner | null = null;
   @Input() expandedSampleTemplateLinks: boolean;
   templateLocationPrefix: string;
   templateCtrl: FormControl = new FormControl();

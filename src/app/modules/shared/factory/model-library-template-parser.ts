@@ -158,7 +158,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
       const myPath: string[] = parentPath.slice();
       myPath.push(name);
 
-      let r: CedarComponent = null;
+      let r: CedarComponent | null = null;
 
       if (childInfo.atType === CedarArtifactType.TEMPLATE_FIELD) {
         const field = child as TemplateField;

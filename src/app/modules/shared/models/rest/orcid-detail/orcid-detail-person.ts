@@ -1,4 +1,5 @@
 import { Employment } from './orcid-detail-employment';
+import { OrcidEmploymentJson } from './orcid-detail-employment';
 
 /**
  * The parts of an ORCID record this reads.
@@ -84,22 +85,32 @@ export class ResearcherDetails {
     this.country = country;
   }
   static fromJson(json: OrcidRecordJson): ResearcherDetails {
-    const raw = json.rawResponse;
-    const person = raw.person || {};
+    const raw = json.rawResponse ?? {};
+    const person = raw.person ?? {};
 
     const id = json.id;
 
-    const fullName = person.name['given-names'].value + ' ' + person.name['family-name'].value || '';
-    const creditName: string = person.name['credit-name']?.value || '';
+    // Optional all the way down, because the record is ORCID's and every one of
+    // these is genuinely absent for some researchers. `person.name['given-names']
+    // .value` read three levels unguarded, so a record with no given name — a
+    // mononymous researcher, or a name withheld by privacy settings — threw here
+    // rather than rendering the credit name it falls back to.
+    const given = person.name?.['given-names']?.value ?? '';
+    const family = person.name?.['family-name']?.value ?? '';
+    const fullName = [given, family].filter((part) => part !== '').join(' ');
+    const creditName: string = person.name?.['credit-name']?.value ?? '';
 
     const _otherNames = person['other-names'];
+    // `?? 0` on the sort key and an empty-string drop on the content: both are
+    // optional in the record, and an entry without a display index used to make
+    // the comparator return NaN, which leaves the order undefined rather than
+    // sorting that entry last.
     let otherNames: string[] =
       _otherNames && Array.isArray(_otherNames['other-name'])
         ? _otherNames['other-name']
-            .sort(function (a, b) {
-              return a['display-index'] - b['display-index'];
-            })
-            .map((otherName) => otherName.content)
+            .sort((a, b) => (a['display-index'] ?? 0) - (b['display-index'] ?? 0))
+            .map((otherName) => otherName.content ?? '')
+            .filter((name) => name !== '')
         : [];
 
     if (fullName !== '' && creditName !== '') {
@@ -110,7 +121,7 @@ export class ResearcherDetails {
 
     const emails: string[] =
       person.emails && Array.isArray(person.emails.email)
-        ? person.emails.email.map((e: OrcidEmailJson) => e.email || e.value).filter((val: string) => !!val)
+        ? person.emails.email.map((e: OrcidEmailJson) => e.email ?? e.value ?? '').filter((val) => val !== '')
         : [];
 
     const keywords: string[] =
@@ -133,7 +144,7 @@ export class ResearcherDetails {
     if (person.addresses && Array.isArray(person.addresses.address) && person.addresses.address.length > 0) {
       for (const addr of person.addresses.address) {
         if (addr.country) {
-          country = addr.country.value;
+          country = addr.country.value ?? '';
           break;
         }
       }
@@ -144,7 +155,10 @@ export class ResearcherDetails {
     for (const group of empGroups) {
       if (group.summaries && Array.isArray(group.summaries)) {
         for (const summary of group.summaries) {
-          const empSummary = summary['employment-summary'];
+          // Declared `unknown` on the record because its shape belongs to
+          // `Employment.fromJson`, which is where it is read; the cast names the
+          // handoff rather than widening the declaration to match one consumer.
+          const empSummary = summary['employment-summary'] as OrcidEmploymentJson | null | undefined;
           const emp = Employment.fromJson(empSummary);
           if (emp) {
             employments.push(emp);

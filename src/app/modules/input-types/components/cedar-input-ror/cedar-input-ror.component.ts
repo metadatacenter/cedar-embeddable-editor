@@ -56,8 +56,8 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
   options: FormGroup;
   inputValueControl = new FormControl(null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  model: RorSearchResponseItem = null;
-  rorDetails: RorDetailResponse = null;
+  model: RorSearchResponseItem | null = null;
+  rorDetails: RorDetailResponse | null = null;
   showDetails: boolean = false;
   filteredOptions: Observable<RorSearchResponseItem[]>;
   loadingOptions = false;

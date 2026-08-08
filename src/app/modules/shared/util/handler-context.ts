@@ -13,13 +13,17 @@ import { DEFAULT_IRI_PREFIX } from './iri-prefix';
 // import { RdfBuilderService } from '../service/rdf-builder.service';
 
 export class HandlerContext {
-  readonly dataObjectBuilderService: DataObjectBuilderHandler = null;
-  readonly multiInstanceObjectService: MultiInstanceObjectHandler = null;
-  readonly dataObjectManipulationService: DataObjectStructureHandler = null;
-  readonly dataObjectDataValueHandler: DataObjectDataValueHandler = null;
+  // No `= null` initialisers. The constructor assigns every one of these, so the
+  // null was a placeholder that never survived construction — and declaring it
+  // made each service nullable at all 45 call sites for a state none of them can
+  // observe.
+  readonly dataObjectBuilderService: DataObjectBuilderHandler;
+  readonly multiInstanceObjectService: MultiInstanceObjectHandler;
+  readonly dataObjectManipulationService: DataObjectStructureHandler;
+  readonly dataObjectDataValueHandler: DataObjectDataValueHandler;
   readonly dataQualityReportBuilderService: DataQualityReportBuilderHandler;
-  readonly dataContext: DataContext = null;
-  readonly messageHandlerService: MessageHandlerService = null;
+  readonly dataContext: DataContext;
+  readonly messageHandlerService: MessageHandlerService;
   // readonly rdfService: RdfBuilderService = null;
 
   readOnlyMode: boolean = false;

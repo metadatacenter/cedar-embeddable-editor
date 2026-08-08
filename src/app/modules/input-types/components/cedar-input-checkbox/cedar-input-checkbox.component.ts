@@ -7,6 +7,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { JsonSchema } from 'cedar-model-typescript-library';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { isInstanceObject } from '../../../shared/models/instance-node.model';
+import { requireControl, requireFormArray } from '../../../shared/forms/form-control';
 
 @Component({
   selector: 'app-cedar-input-checkbox',
@@ -57,8 +58,8 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     // If readOnly -> revert the change
     if (this.readOnlyMode) {
       const name = (event.target as HTMLInputElement).value;
-      const val = this.options.get(this.getFormControlName(name)).value;
-      this.options.get(this.getFormControlName(name)).setValue(!val);
+      const val = requireControl(this.options, this.getFormControlName(name)).value;
+      requireControl(this.options, this.getFormControlName(name)).setValue(!val);
       event.preventDefault();
       event.stopPropagation();
       return;
@@ -104,7 +105,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
   }
 
   private setInput(isChecked: boolean, val: string): void {
-    const formArray: FormArray = this.options.get('checkedChoices') as FormArray;
+    const formArray: FormArray = requireFormArray(this.options, 'checkedChoices');
 
     /* Selected */
     if (isChecked) {
@@ -112,7 +113,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
       if (formArray.value.indexOf(val) < 0) {
         formArray.push(new FormControl(val));
       }
-      this.options.get(this.getFormControlName(val)).setValue('checked');
+      requireControl(this.options, this.getFormControlName(val)).setValue('checked');
     } else {
       /* unselected */
       // find the unselected element
@@ -122,7 +123,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
         if (ctrl.value === val) {
           // Remove the unselected element from the arrayForm
           formArray.removeAt(i);
-          this.options.get(this.getFormControlName(val)).setValue(null);
+          requireControl(this.options, this.getFormControlName(val)).setValue(null);
           return;
         }
         i++;

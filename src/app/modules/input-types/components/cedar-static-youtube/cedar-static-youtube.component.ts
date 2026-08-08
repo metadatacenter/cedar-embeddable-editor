@@ -20,8 +20,8 @@ export class CedarStaticYoutubeComponent extends CedarUIDirective {
   @Input() handlerContext: HandlerContext;
   readonly videoHeight = 390;
   readonly videoWidth = 640;
-  videoEmbedUrl: SafeResourceUrl = null;
-  contentError: string = null;
+  videoEmbedUrl: SafeResourceUrl | null = null;
+  contentError: string | null = null;
 
   constructor(
     public cds: ComponentDataService,

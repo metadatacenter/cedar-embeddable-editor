@@ -10,8 +10,8 @@ import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loade
   standalone: false,
 })
 export class StaticHeaderComponent {
-  @Input() callbackOwnerObject: SampleTemplateLoaderOwner = null;
-  @Input() showSampleTemplateLinks: boolean = null;
+  @Input() callbackOwnerObject: SampleTemplateLoaderOwner | null = null;
+  @Input() showSampleTemplateLinks: boolean | null = null;
 
   constructor() {}
 }

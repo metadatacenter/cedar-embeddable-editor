@@ -17,7 +17,7 @@ export abstract class AbstractFieldComponent implements FieldComponent {
   numberInfo: NumberInfo = new NumberInfo();
   choiceInfo: ChoiceInfo = new ChoiceInfo();
   labelInfo: LabelInfo = new LabelInfo();
-  linkedStaticFieldComponent: StaticFieldComponent = null;
+  linkedStaticFieldComponent: StaticFieldComponent | null = null;
   controlledInfo: ControlledInfo = new ControlledInfo();
   multiInfo: MultiInfo = new MultiInfo();
   hidden: boolean;

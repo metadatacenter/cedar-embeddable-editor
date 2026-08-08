@@ -36,7 +36,7 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
   }
 
   nameChanged($event: Event): void {
-    let name: string = null;
+    let name: string | null = null;
 
     if ($event) {
       name = ($event.target as HTMLTextAreaElement).value;
@@ -49,7 +49,7 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
   }
 
   valueChanged($event: Event): void {
-    let value: string = null;
+    let value: string | null = null;
 
     if ($event) {
       value = ($event.target as HTMLTextAreaElement).value;

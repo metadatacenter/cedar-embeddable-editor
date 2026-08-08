@@ -211,7 +211,7 @@ export class TemplateRepresentationFactory {
     // but only if they aren't paired with other like fields
     if (ComponentTypeHandler.isContainerComponent(component)) {
       const elementComponent = component as ElementComponent;
-      let prevChild: CedarComponent = null;
+      let prevChild: CedarComponent | null = null;
       const newChildren: CedarComponent[] = [];
       let isStaticPair = false;
 

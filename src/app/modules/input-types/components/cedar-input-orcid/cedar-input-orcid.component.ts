@@ -42,8 +42,8 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
   inputValueControl = new FormControl(null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
-  model: OrcidSearchResponseItem = null;
-  researcherDetails: ResearcherDetails = null;
+  model: OrcidSearchResponseItem | null = null;
+  researcherDetails: ResearcherDetails | null = null;
   showDetails = false;
 
   loadingOptions = false;

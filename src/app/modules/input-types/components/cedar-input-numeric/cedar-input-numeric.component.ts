@@ -21,7 +21,7 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl(null, Validators.min(10));
-  unitOfMeasure: string = null;
+  unitOfMeasure: string | null = null;
   constraintMinValue: number | null = null;
   constraintMaxValue: number | null = null;
   patternErrorMessage: string | null = null;

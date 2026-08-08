@@ -74,21 +74,24 @@ import { InstanceObject } from '../../models/instance-node.model';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, OnDestroy {
-  innerConfig: CeeConfig = null;
+  innerConfig: CeeConfig | null = null;
   private initialized = false;
   private configSet = false;
 
-  templateJson: InstanceObject = null;
-  instanceJson: InstanceObject = null;
-  templateAndInstanceJson: object = null;
-  sampleTemplateLoaderObject: SampleTemplateLoaderOwner = null;
+  templateJson: InstanceObject | null = null;
+  instanceJson: InstanceObject | null = null;
+  templateAndInstanceJson: object | null = null;
+  sampleTemplateLoaderObject: SampleTemplateLoaderOwner | null = null;
   showSpinnerBeforeInit = true;
   protected onDestroySubject = new Subject<void>();
-  private loadedTemplateJson: InstanceObject = null;
-  private loadedMetadata: InstanceObject = null;
+  private loadedTemplateJson: InstanceObject | null = null;
+  private loadedMetadata: InstanceObject | null = null;
 
-  readonly dataContext: DataContext = null;
-  readonly handlerContext: HandlerContext = null;
+  // Constructor-assigned, so no `= null` placeholder: unlike the editor's, which
+  // arrive through @Input setters and really can be unset, these two exist from
+  // the moment the wrapper does.
+  readonly dataContext: DataContext;
+  readonly handlerContext: HandlerContext;
 
   private defaultLanguage = GlobalSettingsContextService.DEFAULT_LANGUAGE;
   private fallbackLanguage = GlobalSettingsContextService.DEFAULT_LANGUAGE;

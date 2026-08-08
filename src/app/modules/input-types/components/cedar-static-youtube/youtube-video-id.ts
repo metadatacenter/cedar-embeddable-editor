@@ -48,7 +48,7 @@ export const extractYouTubeVideoId = (value: string): string => {
   }
 
   const hostname = parsed.hostname.toLowerCase();
-  let videoId: string = null;
+  let videoId: string | null = null;
   if (SHORT_HOSTS.has(hostname)) {
     videoId = parsed.pathname.split('/').filter(Boolean)[0] ?? null;
   } else if (WATCH_HOSTS.has(hostname)) {

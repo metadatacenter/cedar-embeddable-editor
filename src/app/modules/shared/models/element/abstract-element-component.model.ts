@@ -10,7 +10,7 @@ export abstract class AbstractElementComponent implements ElementComponent {
   path: string[];
   children: CedarComponent[] = [];
   labelInfo: LabelInfo = new LabelInfo();
-  linkedStaticFieldComponent: StaticFieldComponent = null;
+  linkedStaticFieldComponent: StaticFieldComponent | null = null;
   hidden: boolean;
   /**
    * The template said `_ui.hidden`, which is permanent.

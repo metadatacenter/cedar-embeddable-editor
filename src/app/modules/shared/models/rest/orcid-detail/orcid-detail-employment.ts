@@ -15,7 +15,7 @@ interface OrcidDateJson {
   day?: { value?: string };
 }
 
-interface OrcidEmploymentJson {
+export interface OrcidEmploymentJson {
   'role-title'?: string;
   'start-date'?: OrcidDateJson;
   'end-date'?: OrcidDateJson;
@@ -27,7 +27,8 @@ interface OrcidEmploymentJson {
 
 export class Employment {
   roleTitle: string;
-  startDate: string; // formatted as "YYYY-MM-DD"
+  /** Formatted "YYYY-MM-DD", or null when the record carries no start date at all. */
+  startDate: string | null;
   endDate?: string; // formatted as "YYYY-MM-DD", if available
   organizationName: string;
   organizationCountry?: string;
@@ -36,7 +37,7 @@ export class Employment {
 
   constructor(
     roleTitle: string,
-    startDate: string,
+    startDate: string | null,
     endDate: string | undefined,
     organizationName: string,
     organizationCountry?: string,
