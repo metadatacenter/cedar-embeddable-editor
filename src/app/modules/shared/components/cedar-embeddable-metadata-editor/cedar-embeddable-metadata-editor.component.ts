@@ -24,7 +24,7 @@ import packageJson from 'package.json';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
-  private static INNER_VERSION = '2026-08-07 18:13 293ad4e';
+  private static INNER_VERSION = '2026-08-07 18:53 90e20a5';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
