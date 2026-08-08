@@ -4,14 +4,19 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 2,125 tests, all passing** on Node 20.20.2 / Vitest 1.6.
+> **Status: 2,190 tests, all passing** on Node 24.19.0 / Vitest 1.6.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
 > Three CEE defects found, all three fixed. See [What it found](#what-it-found).
 
 ## Why this exists
 
-CEE is on Angular 14 and needs to reach a supported version. The instinct is
-"write tests first" — correct, but the obvious tests are the wrong ones.
+This was written while CEE was on Angular 14 and had to reach a supported version.
+It is on 22 now, and the reasoning is kept in the present tense because it is the
+argument for what this harness covers, not a status report — and because the next
+framework march will meet the same shapes.
+
+The instinct is "write tests first" — correct, but the obvious tests are the wrong
+ones.
 
 The gnarliest code in CEE (handlers, factory, `currentIndex`-dependent path
 resolution, attribute-value handling) is the code **least** likely to break in
@@ -113,9 +118,10 @@ local build of that library is needed.
 cd /Users/martin/CEDAR/cedar-embeddable-editor/harness && npm install && npm test
 ```
 
-Requires Node 20 (`nvm use 20`). CEE's own Angular 14 toolchain uses Node 16.20.2,
-so if you are switching between building the app and running these, expect to
-switch Node versions too.
+Requires Node 24.19.0, the same version everything else in CEE uses — `nvm use` in
+the repository root picks it up. There is no longer a version to switch between:
+that was Angular 14's toolchain and the test tools disagreeing, and it ended at
+Angular 15.
 
 ## Does it have teeth?
 

@@ -2,8 +2,10 @@
 
 Playwright screenshot regression for the **built web component**.
 
-> **Status: 325 tests:** 304 full Chromium checks across two viewports, plus
-> seven semantic smoke checks on each of Chromium, Firefox and WebKit.
+> **Status: 360 tests:** 330 full Chromium checks across two viewports, plus
+> ten semantic smoke checks on each of Chromium, Firefox and WebKit. A run reports
+> 356 of them — four are `fixme`, held open on purpose because no fixture reaches
+> the two config flags they cover.
 
 ## Why this exists, and why it is separate from `harness/`
 
@@ -116,24 +118,25 @@ depend on the network.
 
 ## Running
 
-Needs Node 20 — the Angular 14 app build uses Node 16.20.2. See
+Needs Node 24.19.0, which is what the app build uses too — one version for
+everything, since Angular 15 ended the split that required two. See
 [CEE-RUNBOOK.md](../../cedar-development/ops/CEE-RUNBOOK.md).
 
 First time:
 
 ```bash
-nvm use 20 && npm install && npx playwright install chromium firefox webkit
+nvm use && npm install && npx playwright install chromium firefox webkit
 ```
 
 The bundle and fixtures are build artifacts and are not committed. Rebuild the
 app first if `../dist` is stale:
 
 ```bash
-cd .. && nvm use 16.20.2 && npx ng build --configuration=production
+cd .. && npm run build:production
 ```
 
 ```bash
-nvm use 20 && npm run prepare:all && npm test
+npm run prepare:all && npm test
 ```
 
 To run only the compatibility checks:

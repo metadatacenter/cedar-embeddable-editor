@@ -74,21 +74,19 @@ CEE is shipped as one JavaScript file that can be embedded in an application or
 HTML page. Do not concatenate named Angular output files manually: their names,
 locations, and module structure change when Angular changes builders.
 
-Build the production application under the Node version pinned for the current
-Angular hop. At Angular 14 that is Node 16.20.2:
+Build the production application, then run the browser suite against the
+single-file bundle it produced:
 
 ```shell
 nvm use
 npm run build:production
-```
-
-Then switch to Node 20 and run the browser suite against the builder-independent
-single-file bundle:
-
-```shell
-nvm use 20
 npm run test:visual:prebuilt
 ```
+
+One Node version throughout — 24.19.0, which `.nvmrc` names. The build and the
+tests used to run on different ones, because Angular 14's toolchain and the
+Playwright the suite needs did not accept the same version; from Angular 15 they
+do, so the dist that ships is produced on the same Node that exercised it.
 
 Once that exact bundle is green, stage the publishable npm directory from it:
 
@@ -157,22 +155,18 @@ npm --prefix visual ci
 ### Node versions during the Angular migration
 
 The root `.nvmrc` pins the Node version used to update, lint and compile the
-current Angular version. Move that pin with each completed framework hop:
+current Angular version. Move that pin with each completed framework hop.
 
-| Angular | Node used for Angular build/update |
-| --- | --- |
-| 14 | 16.20.x |
-| 15–16 | 18.20.x |
-| 17–21 | 20.19+ |
-| 22 | 22.22.3+ |
+CEE is on **Angular 22.1** and **Node 24.19.0**, named in `.nvmrc`, declared in
+`engines`, and pinned by CI. Angular 22 accepts `^22.22.3 || ^24.15.0 || >=26`; 24
+is the active LTS where 22 is in maintenance, so that is the one CEE uses.
 
-At Angular 14 there is no Node version supported by both Angular and the current
-test tools: Vitest needs Node 18 or newer and Playwright needs Node 20 or newer.
-CI therefore lints and builds once on Node 16.20.2, switches the same runner to
-Node 20.20.2 without replacing `dist`, and runs Vitest and Playwright against
-that prebuilt artifact. `npm run test:ci:prebuilt` is the second half of that
-split and intentionally does not invoke `ng build`. From Angular 17 onward the
-build and test stages can use the same Node 20 toolchain again.
+Build and test share it. Through Angular 14 they could not: no Node version
+satisfied both that toolchain and the test tools, so CI built on one and switched
+the runner to another without replacing `dist`. `npm run test:ci:prebuilt` is what
+remains of that arrangement — it tests an already-built artifact and deliberately
+does not invoke `ng build`, which is still what CI wants, because it means the
+bytes tested are the bytes that ship.
 
 Only that one package comes from Nexus; everything else resolves from npmjs.org.
 An `.npmrc` alongside each of the three `package.json` files maps the
