@@ -1,7 +1,6 @@
-import { DOCUMENT } from '@angular/common';
 import { OverlayContainer } from '@angular/cdk/overlay';
 import { Platform } from '@angular/cdk/platform';
-import { ElementRef, Inject, Injectable } from '@angular/core';
+import { ElementRef, Inject, Injectable, DOCUMENT } from '@angular/core';
 
 /** Keeps Angular Material overlays inside the editor's style boundary. */
 @Injectable()

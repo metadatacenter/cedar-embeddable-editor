@@ -10,11 +10,7 @@ import { JsonSchema } from 'cedar-model-typescript-library';
  * own types; `details` carries whichever of those applies.
  */
 export interface AuthoritySearchResponseItem {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
   [JsonSchema.atId]: string;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
   [JsonSchema.rdfsLabel]: string;
   /**
    * The authority's own record for this term, when the widget shows one.

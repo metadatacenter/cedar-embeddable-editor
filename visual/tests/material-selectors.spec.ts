@@ -42,12 +42,12 @@ const withoutComments = (css: string): string => css.replace(/\/\*[\s\S]*?\*\//g
 const declared = [
   ...new Set(
     scssFiles(SRC).flatMap((f) =>
-      [...withoutComments(readFileSync(f, 'utf8')).matchAll(/\.(?:mat|mdc)-[a-z0-9_-]+/g)].map((m) => m[0]),
+      [...withoutComments(readFileSync(f, 'utf8')).matchAll(/\.(?:mat|mdc|ng)-[a-z0-9_-]+/g)].map((m) => m[0]),
     ),
   ),
 ].sort();
 
-test('every Material selector CEE styles still matches an element', async ({ page }) => {
+test('every third-party selector CEE styles still matches an element', async ({ page }) => {
   const seen = new Set<string>();
   const sweep = async () => {
     for (const sel of declared) {
@@ -62,6 +62,9 @@ test('every Material selector CEE styles still matches an element', async ({ pag
   await sweep();
   // Page breaks, for the paginator classes.
   await open(page, '05-static-paged');
+  await sweep();
+  // The only fixture with an ng-select in it, which is the timezone picker.
+  await open(page, '07-timezone');
   await sweep();
 
   // An open select panel, for the option classes.
@@ -83,7 +86,7 @@ test('every Material selector CEE styles still matches an element', async ({ pag
   await sweep();
 
   const dead = declared.filter((s) => !seen.has(s) && !UNREACHABLE.has(s));
-  expect(dead, 'these Material classes are styled by CEE but match nothing — Material renamed them').toEqual([]);
+  expect(dead, 'these classes are styled by CEE but match nothing — the library renamed them').toEqual([]);
   expect(declared.length, 'no selectors were collected; the source scan is broken').toBeGreaterThan(10);
 });
 

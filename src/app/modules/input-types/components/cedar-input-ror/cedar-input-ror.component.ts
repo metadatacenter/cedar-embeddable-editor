@@ -85,8 +85,8 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     // search text; the discarded-edit error is raised explicitly on blur.
     this.inputValueControl = new FormControl(null, validators);
     if (this.component?.valueInfo?.defaultValue) {
-      const defaultAtId = this.component.valueInfo.defaultValue[JsonSchema.atId] || null;
-      const defaultLabel = this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] || null;
+      const defaultAtId = (this.component.valueInfo.defaultValue[JsonSchema.atId] as string) || null;
+      const defaultLabel = (this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] as string) || null;
       this.updateValue(defaultAtId, defaultLabel);
     }
     if (!this.readOnlyMode) {
@@ -155,8 +155,8 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     if (!option) return;
     this.selectionInProgress = false;
     this.selectedData = option;
-    const id = option[JsonSchema.atId];
-    const rdfsLabel = option[JsonSchema.rdfsLabel];
+    const id = option[JsonSchema.atId] as string;
+    const rdfsLabel = option[JsonSchema.rdfsLabel] as string;
     this.handlerContext.changeControlledValue(this.component, id, rdfsLabel);
   }
   setCurrentValue(value: RorSearchResponseItem): void {
@@ -206,8 +206,8 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
   };
   getCompoundValue(option: RorSearchResponseItem): string {
     if (!option) return '';
-    const label = option[JsonSchema.rdfsLabel] ? option[JsonSchema.rdfsLabel].trim() : '';
-    const id = option[JsonSchema.atId] ? option[JsonSchema.atId].trim() : '';
+    const label = (option[JsonSchema.rdfsLabel] as string) ? (option[JsonSchema.rdfsLabel] as string).trim() : '';
+    const id = (option[JsonSchema.atId] as string) ? (option[JsonSchema.atId] as string).trim() : '';
     return `${label} - ${id}`;
   }
   private filter(val: string): Observable<RorSearchResponseItem[]> {
@@ -226,8 +226,8 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
             return [];
           } else {
             const details = RorDetailResponse.fromJSON(response);
-            if (!this.rorDetailsCache.has(response[JsonSchema.atId])) {
-              this.rorDetailsCache.set(response[JsonSchema.atId], details);
+            if (!this.rorDetailsCache.has(response[JsonSchema.atId] as string)) {
+              this.rorDetailsCache.set(response[JsonSchema.atId] as string, details);
             }
             return [{ [JsonSchema.atId]: response.id, [JsonSchema.rdfsLabel]: response.name, details: details }];
           }
@@ -241,7 +241,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
           } else if (response.results) {
             return response.results.filter(
               (option: RorSearchResponseItem) =>
-                option[JsonSchema.rdfsLabel]?.toLowerCase().includes(val.toLowerCase()),
+                (option[JsonSchema.rdfsLabel] as string)?.toLowerCase().includes(val.toLowerCase()),
             );
           } else {
             this.messageHandlerService.errorObject(val, response);
@@ -259,11 +259,11 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
   }
   private getDetails(): void {
-    if (!this.selectedData || !this.selectedData[JsonSchema.atId]) {
+    if (!this.selectedData || !(this.selectedData[JsonSchema.atId] as string)) {
       console.warn('No valid selected data to retrieve details.');
       return;
     }
-    const selectedId = this.selectedData[JsonSchema.atId];
+    const selectedId = this.selectedData[JsonSchema.atId] as string;
     if (this.rorDetailsCache.has(selectedId)) {
       this.rorDetails = this.rorDetailsCache.get(selectedId);
       return;

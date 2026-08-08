@@ -367,14 +367,14 @@ button.close {
   -webkit-appearance: none;
 }
 
-.ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
-  background: var(--cee-color-primary);
-  color: var(--cee-color-text-primary);
-}
-
-.ng-select.ng-select-multiple .ng-value-icon {
-  color: var(--cee-color-text-primary) !important;
-}
+/*
+ * The two `.ng-select-multiple` rules that stood here are deleted: they styled a
+ * multi-select ng-select, and CEE has exactly one ng-select — the timezone picker
+ * — which never sets `[multiple]`. Nothing an embedder can do changes that, since
+ * the element is in CEE's own template. Found by widening the selector-liveness
+ * check to `ng-`, the same way it found `.mat-mdc-card-header` whose markup had
+ * been commented out.
+ */
 
 /*
  * Compress the field box. CEDAR forms run to dozens of fields, so Material's

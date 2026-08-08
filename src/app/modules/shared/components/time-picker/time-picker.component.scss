@@ -27,7 +27,7 @@
 
 .cee-time-step {
   /*
-   * MDC sizes an icon button from `--mdc-icon-button-state-layer-size`, not from
+   * MDC sizes an icon button from `--mat-icon-button-state-layer-size`, not from
    * `height`, so setting the height alone left these at Material's 48px default and
    * doubled the picker's height. Setting the token is the MDC-native way to say it,
    * and it also keeps the colon's anchor below correct, since that counts one
@@ -37,7 +37,7 @@
    * emission sets this from `:host .mat-mdc-icon-button.mat-mdc-button-base`,
    * three classes, which outranks a component-scoped class selector.
    */
-  --mdc-icon-button-state-layer-size: 24px !important;
+  --mat-icon-button-state-layer-size: 24px !important;
   width: 24px;
   height: 24px;
   padding: 0;

@@ -89,8 +89,8 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     // search text; the discarded-edit error is raised explicitly on blur.
     this.inputValueControl = new FormControl(null, validators);
     if (this.component?.valueInfo?.defaultValue) {
-      const defaultAtId = this.component.valueInfo.defaultValue[JsonSchema.atId] || null;
-      const defaultLabel = this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] || null;
+      const defaultAtId = (this.component.valueInfo.defaultValue[JsonSchema.atId] as string) || null;
+      const defaultLabel = (this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] as string) || null;
       this.updateValue(defaultAtId, defaultLabel);
     }
     if (!this.readOnlyMode) {
@@ -133,8 +133,8 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     if (!option) {
       return '';
     }
-    const label = option[JsonSchema.rdfsLabel] ? option[JsonSchema.rdfsLabel].trim() : '';
-    const id = option[JsonSchema.atId] ? option[JsonSchema.atId].trim() : '';
+    const label = (option[JsonSchema.rdfsLabel] as string) ? (option[JsonSchema.rdfsLabel] as string).trim() : '';
+    const id = (option[JsonSchema.atId] as string) ? (option[JsonSchema.atId] as string).trim() : '';
     return `${label} - ${id}`;
   }
   private filter(val: string): Observable<OrcidSearchResponseItem[]> {
@@ -180,8 +180,8 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     this.selectionInProgress = false;
     this.selectedData = option;
 
-    const id = option[JsonSchema.atId];
-    const rdfsLabel = option[JsonSchema.rdfsLabel];
+    const id = option[JsonSchema.atId] as string;
+    const rdfsLabel = option[JsonSchema.rdfsLabel] as string;
     this.handlerContext.changeControlledValue(this.component, id, rdfsLabel);
 
     this.setCurrentValue(option);
@@ -250,11 +250,11 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
   private getDetails(): void {
-    if (!this.selectedData || !this.selectedData[JsonSchema.atId]) {
+    if (!this.selectedData || !(this.selectedData[JsonSchema.atId] as string)) {
       console.warn('No valid selected data to retrieve details.');
       return;
     }
-    const selectedId = this.selectedData[JsonSchema.atId];
+    const selectedId = this.selectedData[JsonSchema.atId] as string;
     if (this.researcherDetailsCache.has(selectedId)) {
       this.researcherDetails = this.researcherDetailsCache.get(selectedId);
       return;
