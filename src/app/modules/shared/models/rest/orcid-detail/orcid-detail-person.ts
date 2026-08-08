@@ -32,6 +32,16 @@ interface OrcidRecordJson {
       keywords?: { keyword?: OrcidKeywordJson[] };
       addresses?: { address?: { country?: { value?: string } }[] };
     };
+    /**
+     * The employment history, declared because `fromJson` walks it. Only the two
+     * levels this reader steps through are named; `employment-summary` is handed
+     * straight to `Employment.fromJson`, which is where its shape belongs.
+     */
+    'activities-summary'?: {
+      employments?: {
+        'affiliation-group'?: { summaries?: { 'employment-summary'?: unknown }[] }[];
+      };
+    };
   };
 }
 

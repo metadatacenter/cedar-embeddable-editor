@@ -22,9 +22,9 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
   options: FormGroup;
   inputValueControl = new FormControl(null, Validators.min(10));
   unitOfMeasure: string = null;
-  constraintMinValue = null;
-  constraintMaxValue = null;
-  patternErrorMessage = null;
+  constraintMinValue: number | null = null;
+  constraintMaxValue: number | null = null;
+  patternErrorMessage: string | null = null;
   @Input() handlerContext: HandlerContext;
 
   constructor(
@@ -64,8 +64,11 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
         [Xsd.short]: [Numbers.NUMBER_SHORT_MIN, Numbers.NUMBER_SHORT_MAX],
       }[numberType];
       if (implicitBounds) {
-        this.constraintMinValue = this.constraintMinValue ?? implicitBounds[0];
-        this.constraintMaxValue = this.constraintMaxValue ?? implicitBounds[1];
+        // `Number(...)` because the table carries `bigint` for `xsd:long`, whose
+        // bounds exceed the safe integer range. The control compares as a number
+        // either way; this states the narrowing instead of leaving it implicit.
+        this.constraintMinValue = this.constraintMinValue ?? Number(implicitBounds[0]);
+        this.constraintMaxValue = this.constraintMaxValue ?? Number(implicitBounds[1]);
       }
     }
     this.patternErrorMessage = CedarValidators.describeNumberType(this.component);

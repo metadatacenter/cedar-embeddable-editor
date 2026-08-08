@@ -6,6 +6,7 @@ import { Xsd } from '../models/xsd.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { ValidationCode, ValidationProblem } from './validation-problem.model';
 import { InstanceValueNode } from '../util/instance-value-node';
+import { InstanceNode, isInstanceObject } from '../models/instance-node.model';
 
 /**
  * Constraint checking for a single field value.
@@ -390,11 +391,11 @@ export class FieldValueValidator {
    * sets, classes or branches cannot be answered without the terminology
    * server and is deliberately not attempted.
    */
-  static validateControlledNode(component: FieldComponent, node: unknown, path: string[]): ValidationProblem[] {
+  static validateControlledNode(component: FieldComponent, node: InstanceNode, path: string[]): ValidationProblem[] {
     if (component.basicInfo.inputType !== InputType.controlled) {
       return [];
     }
-    if (node === null || node === undefined || typeof node !== 'object') {
+    if (!isInstanceObject(node)) {
       return [];
     }
     // Read the id and label through the value-node model rather than off the raw

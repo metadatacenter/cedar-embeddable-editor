@@ -26,6 +26,7 @@ import { MessageHandlerService } from '../../../shared/service/message-handler.s
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { RorSearchResponseItem } from '../../../shared/models/rest/ror-search/ror-search-response-item';
 import { RorDetailResponse } from '../../../shared/models/rest/ror-detail/ror-detail-response';
+import { isInstanceObject } from '../../../shared/models/instance-node.model';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -94,8 +95,13 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     // search text; the discarded-edit error is raised explicitly on blur.
     this.inputValueControl = new FormControl(null, validators);
     if (this.component?.valueInfo?.defaultValue) {
-      const defaultAtId = (this.component.valueInfo.defaultValue[JsonSchema.atId] as string) || null;
-      const defaultLabel = (this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] as string) || null;
+      // A default on one of these fields is the term node, not text. Guarded rather
+      // than asserted: a template declaring a bare string here would otherwise read
+      // as a term with two undefined halves.
+      const declared = this.component.valueInfo.defaultValue;
+      const defaultTerm = isInstanceObject(declared) ? declared : {};
+      const defaultAtId = (defaultTerm[JsonSchema.atId] as string) || null;
+      const defaultLabel = (defaultTerm[JsonSchema.rdfsLabel] as string) || null;
       this.updateValue(defaultAtId, defaultLabel);
     }
     if (!this.readOnlyMode) {
@@ -237,8 +243,11 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
             return [];
           } else {
             const details = RorDetailResponse.fromJSON(response);
-            if (!this.rorDetailsCache.has(response[JsonSchema.atId] as string)) {
-              this.rorDetailsCache.set(response[JsonSchema.atId] as string, details);
+            // Keyed by `response.id`, which is what reads it. It used to be keyed by
+            // `response[JsonSchema.atId]` — a `RorDetailResponse` has no `@id`, so every
+            // write went in under `undefined` and the lookup below never hit one.
+            if (!this.rorDetailsCache.has(response.id)) {
+              this.rorDetailsCache.set(response.id, details);
             }
             return [{ [JsonSchema.atId]: response.id, [JsonSchema.rdfsLabel]: response.name, details: details }];
           }

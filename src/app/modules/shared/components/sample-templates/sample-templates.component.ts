@@ -7,6 +7,7 @@ import { FormControl } from '@angular/forms';
 import { takeUntil } from 'rxjs/operators';
 import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
+import { SampleTemplateEntry } from './sample-templates.service';
 
 @Component({
   selector: 'app-sample-templates',
@@ -21,7 +22,7 @@ export class SampleTemplatesComponent implements OnInit, OnDestroy {
   @Input() expandedSampleTemplateLinks: boolean;
   templateLocationPrefix: string;
   templateCtrl: FormControl = new FormControl();
-  sampleTemplates: object[] = [];
+  sampleTemplates: SampleTemplateEntry[] = [];
   protected _onDestroy = new Subject<void>();
 
   constructor(
@@ -36,7 +37,7 @@ export class SampleTemplatesComponent implements OnInit, OnDestroy {
     this.sampleTemplateService
       .getSampleTemplatesFromRegistry(this.templateLocationPrefix)
       .pipe(takeUntil(this._onDestroy))
-      .subscribe((templates: object[]) => {
+      .subscribe((templates: SampleTemplateEntry[]) => {
         this.sampleTemplates.push(...templates);
       });
 

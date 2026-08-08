@@ -26,6 +26,7 @@ import { InputType } from '../models/input-type.model';
 import { LabelInfo } from '../models/info/label-info.model';
 import { HandlerContext } from '../util/handler-context';
 import { TemplateParser } from './template-parser';
+import { InstanceObject } from '../models/instance-node.model';
 
 /**
  * The reader's code for an `_ui.order` entry with no matching property. It is
@@ -252,7 +253,9 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     // `@context` is its child IRIs and nothing else, because the prefixes are
     // already in scope. Repeating them would bloat every occurrence of every
     // element and match nothing CEDAR writes.
-    const entries: Record<string, unknown> = isRoot ? { ...JsonTemplateInstanceContent.CONTEXT_VERBATIM } : {};
+    const entries: InstanceObject = isRoot
+      ? ({ ...JsonTemplateInstanceContent.CONTEXT_VERBATIM } as InstanceObject)
+      : {};
     // `getChildIriMap` rather than `getIRIMap`: the latter returns the shape
     // JSON Schema wants — `{ name: { enum: [iri] } }` — and reading an IRI out
     // of it meant reaching through `[JsonSchema.enum][0]`, which was the last
@@ -260,7 +263,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     // for the mapping is the whole point of asking the model.
     const iriMap = container.getChildrenInfo().getChildIriMap();
     for (const name of Object.keys(iriMap)) {
-      entries[name] = iriMap[name];
+      entries[name] = String(iriMap[name]);
     }
     component.contextEntries = entries;
   }

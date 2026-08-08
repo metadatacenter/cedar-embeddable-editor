@@ -15,6 +15,8 @@ import { ModelLibraryTemplateParser } from '../../factory/model-library-template
 import { YamlTemplateParser } from '../../factory/yaml-template-parser';
 import packageJson from 'package.json';
 import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
+import { InstanceObject } from '../../models/instance-node.model';
+import { CeeConfig, configFlag, configText } from '../../util/config-reader';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -148,61 +150,85 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     this.pageBreakPaginatorService = new PageBreakPaginatorService(this.activeComponentRegistry, this.handlerContext);
   }
 
-  @Input() set config(value: object) {
+  @Input() set config(value: CeeConfig) {
     if (value != null) {
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_RENDERING)) {
-        this.showTemplateRenderingRepresentation =
-          value[CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_RENDERING];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_MULTI_INSTANCE)) {
-        this.showMultiInstanceInfo = value[CedarEmbeddableMetadataEditorComponent.SHOW_MULTI_INSTANCE];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_SOURCE)) {
-        this.showTemplateSourceData = value[CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_SOURCE];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_CORE)) {
-        this.showInstanceDataCore = value[CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_CORE];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_FULL)) {
-        this.showInstanceDataFull = value[CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_FULL];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_DATA_QUALITY_REPORT)) {
-        this.showDataQualityReport = value[CedarEmbeddableMetadataEditorComponent.SHOW_DATA_QUALITY_REPORT];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS)) {
-        this.showSampleTemplateLinks = value[CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER)) {
-        this.showFooter = value[CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_HEADER)) {
-        this.showHeader = value[CedarEmbeddableMetadataEditorComponent.SHOW_HEADER];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_RENDERING)) {
-        this.expandedTemplateRenderingRepresentation =
-          value[CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_RENDERING];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXPANDED_MULTI_INSTANCE)) {
-        this.expandedMultiInstanceInfo = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_MULTI_INSTANCE];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_SOURCE)) {
-        this.expandedTemplateSourceData = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_SOURCE];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_CORE)) {
-        this.expandedInstanceDataCore = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_CORE];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_FULL)) {
-        this.expandedInstanceDataFull = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_FULL];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXPANDED_DATA_QUALITY_REPORT)) {
-        this.expandedDataQualityReport = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_DATA_QUALITY_REPORT];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXPANDED_SAMPLE_TEMPLATE_LINKS)) {
-        this.expandedSampleTemplateLinks = value[CedarEmbeddableMetadataEditorComponent.EXPANDED_SAMPLE_TEMPLATE_LINKS];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS)) {
-        this.collapseStaticComponents = value[CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS];
-      }
+      this.showTemplateRenderingRepresentation = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_RENDERING,
+        this.showTemplateRenderingRepresentation,
+      );
+      this.showMultiInstanceInfo = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_MULTI_INSTANCE,
+        this.showMultiInstanceInfo,
+      );
+      this.showTemplateSourceData = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_SOURCE,
+        this.showTemplateSourceData,
+      );
+      this.showInstanceDataCore = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_CORE,
+        this.showInstanceDataCore,
+      );
+      this.showInstanceDataFull = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_FULL,
+        this.showInstanceDataFull,
+      );
+      this.showDataQualityReport = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_DATA_QUALITY_REPORT,
+        this.showDataQualityReport,
+      );
+      this.showSampleTemplateLinks = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS,
+        this.showSampleTemplateLinks,
+      );
+      this.showFooter = configFlag(value, CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER, this.showFooter);
+      this.showHeader = configFlag(value, CedarEmbeddableMetadataEditorComponent.SHOW_HEADER, this.showHeader);
+      this.expandedTemplateRenderingRepresentation = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_RENDERING,
+        this.expandedTemplateRenderingRepresentation,
+      );
+      this.expandedMultiInstanceInfo = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.EXPANDED_MULTI_INSTANCE,
+        this.expandedMultiInstanceInfo,
+      );
+      this.expandedTemplateSourceData = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_SOURCE,
+        this.expandedTemplateSourceData,
+      );
+      this.expandedInstanceDataCore = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_CORE,
+        this.expandedInstanceDataCore,
+      );
+      this.expandedInstanceDataFull = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_FULL,
+        this.expandedInstanceDataFull,
+      );
+      this.expandedDataQualityReport = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.EXPANDED_DATA_QUALITY_REPORT,
+        this.expandedDataQualityReport,
+      );
+      this.expandedSampleTemplateLinks = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.EXPANDED_SAMPLE_TEMPLATE_LINKS,
+        this.expandedSampleTemplateLinks,
+      );
+      this.collapseStaticComponents = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS,
+        this.collapseStaticComponents,
+      );
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.INPUT_SERIALIZATION)) {
         const inputSerialization = value[CedarEmbeddableMetadataEditorComponent.INPUT_SERIALIZATION];
         this.templateParser =
@@ -210,31 +236,39 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
             ? new YamlTemplateParser()
             : new ModelLibraryTemplateParser();
       }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT)) {
-        this.showStaticText = value[CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT];
-      }
+      this.showStaticText = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT,
+        this.showStaticText,
+      );
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.IRI_PREFIX)) {
-        this.iriPrefix.set(value[CedarEmbeddableMetadataEditorComponent.IRI_PREFIX]);
+        this.iriPrefix.set(String(value[CedarEmbeddableMetadataEditorComponent.IRI_PREFIX]));
       }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_ALL_MULTI_INSTANCE_VALUES)) {
-        this.showAllMultiInstanceValues = value[CedarEmbeddableMetadataEditorComponent.SHOW_ALL_MULTI_INSTANCE_VALUES];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_DESCRIPTION)) {
-        this.showTemplateDescription = value[CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_DESCRIPTION];
-      }
+      this.showAllMultiInstanceValues = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_ALL_MULTI_INSTANCE_VALUES,
+        this.showAllMultiInstanceValues,
+      );
+      this.showTemplateDescription = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_DESCRIPTION,
+        this.showTemplateDescription,
+      );
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.BIO_PORTAL_PREFIX)) {
-        this.iriPrefix.setBioPortalPrefix(value[CedarEmbeddableMetadataEditorComponent.BIO_PORTAL_PREFIX]);
+        this.iriPrefix.setBioPortalPrefix(String(value[CedarEmbeddableMetadataEditorComponent.BIO_PORTAL_PREFIX]));
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ORCID_PREFIX)) {
-        this.iriPrefix.setOrcidPrefix(value[CedarEmbeddableMetadataEditorComponent.ORCID_PREFIX]);
+        this.iriPrefix.setOrcidPrefix(String(value[CedarEmbeddableMetadataEditorComponent.ORCID_PREFIX]));
       }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_PREFIX)) {
-        this.iriPrefix.setRorPrefix(value[CedarEmbeddableMetadataEditorComponent.ROR_PREFIX]);
+        this.iriPrefix.setRorPrefix(String(value[CedarEmbeddableMetadataEditorComponent.ROR_PREFIX]));
       }
 
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.EXT_AUTH_BASE_URL)) {
-        this.extAuthBaseUrl = value[CedarEmbeddableMetadataEditorComponent.EXT_AUTH_BASE_URL];
-      }
+      this.extAuthBaseUrl = configText(
+        value,
+        CedarEmbeddableMetadataEditorComponent.EXT_AUTH_BASE_URL,
+        this.extAuthBaseUrl,
+      );
 
       // Every external authority's two endpoints, in one loop.
       //
@@ -244,12 +278,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       // service, and a new injected dependency here. The keys and defaults now
       // live on the descriptor, so it costs a descriptor.
       for (const descriptor of AUTHORITY_DESCRIPTORS) {
-        const searchPath = Object.hasOwn(value, descriptor.searchUrlConfigKey)
-          ? value[descriptor.searchUrlConfigKey]
-          : descriptor.defaultSearchPath;
-        const detailsPath = Object.hasOwn(value, descriptor.detailsUrlConfigKey)
-          ? value[descriptor.detailsUrlConfigKey]
-          : descriptor.defaultDetailsPath;
+        const searchPath = configText(value, descriptor.searchUrlConfigKey, descriptor.defaultSearchPath);
+        const detailsPath = configText(value, descriptor.detailsUrlConfigKey, descriptor.defaultDetailsPath);
         this.externalAuthorityLookupService.setEndpoints(
           descriptor.inputType,
           this.extAuthBaseUrl + searchPath,
@@ -257,16 +287,16 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         );
       }
 
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
-        this.readOnlyMode = value[CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE];
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.SHOW_PREFERENCES_MENU)) {
-        this.showPreferencesMenu = value[CedarEmbeddableMetadataEditorComponent.SHOW_PREFERENCES_MENU];
-      }
+      this.readOnlyMode = configFlag(value, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE, this.readOnlyMode);
+      this.showPreferencesMenu = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_PREFERENCES_MENU,
+        this.showPreferencesMenu,
+      );
     }
   }
 
-  @Input() set templateJsonObject(value: object) {
+  @Input() set templateJsonObject(value: InstanceObject) {
     if (value != null) {
       if (this.handlerContext.hideEmptyFields) {
         this.messageHandlerService.trace('HideEmptyFields can not be used and set to false');
@@ -281,7 +311,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     }
   }
 
-  @Input() set instanceJsonObject(value: object) {
+  @Input() set instanceJsonObject(value: InstanceObject) {
     if (value != null) {
       if (this.handlerContext.hideEmptyFields) {
         this.messageHandlerService.trace('HideEmptyFields can not be used and set to false');
@@ -339,7 +369,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     this.activeComponentRegistry.clear();
   }
 
-  private async initDataFromInstance(instance: object): Promise<void> {
+  private async initDataFromInstance(instance: InstanceObject): Promise<void> {
     if (this.handlerContext) {
       this.setDataContextWithInstance(instance);
       const dataContext = this.handlerContext.dataContext;
@@ -360,14 +390,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    * a walk that had to guess from an untyped object which nodes were values,
    * and got it wrong for any IRI carrying a `@type`. See `InstanceDeserializer`.
    */
-  setDataContextWithInstance(instanceObject): void {
+  setDataContextWithInstance(instanceObject: InstanceObject): void {
     const { full } = InstanceDeserializer.read(instanceObject, (message) => this.messageHandlerService.error(message));
     const dataContext = this.handlerContext.dataContext;
     dataContext.instanceFullData = full;
     dataContext.invalidateDerivedViews();
   }
 
-  private async renderInstance(dataContext): Promise<void> {
+  private async renderInstance(dataContext: DataContext): Promise<void> {
     this.initDataFromInstanceQueue = this.initDataFromInstanceQueue.finally(async () => {
       if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
         await new Promise<void>((resolve) => {

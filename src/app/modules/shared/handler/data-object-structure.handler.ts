@@ -15,6 +15,7 @@ import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode
 import { TemplateComponent } from '../models/template/template-component.model';
 import { MessageHandlerService } from '../service/message-handler.service';
 import { JsonSchema } from 'cedar-model-typescript-library';
+import { InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
 export class DataObjectStructureHandler {
   constructor(private readonly dataObjectBuilderService: DataObjectBuilderHandler = new DataObjectBuilderHandler()) {}
@@ -43,27 +44,22 @@ export class DataObjectStructureHandler {
       const remainingPath = path.slice(1);
       let childComponent: CedarComponent = null;
       let dataSubObject = null;
-      if (component instanceof SingleElementComponent) {
-        childComponent = (component as SingleElementComponent).getChildByName(firstPath);
-        if (dataObject !== null && dataObject !== undefined) {
-          dataSubObject = dataObject[firstPath];
-        }
-      } else if (component instanceof CedarTemplate) {
-        childComponent = (component as CedarTemplate).getChildByName(firstPath);
-        if (dataObject !== null && dataObject !== undefined) {
+      if (component instanceof SingleElementComponent || component instanceof CedarTemplate) {
+        childComponent = component.getChildByName(firstPath);
+        if (isInstanceObject(dataObject)) {
           dataSubObject = dataObject[firstPath];
         }
       } else if (component instanceof MultiElementComponent) {
-        const multiElement = component as MultiElementComponent;
-        const occurrence = selectOccurrence(multiElement);
+        const occurrence = selectOccurrence(component);
 
         if (occurrence === null) {
           return null;
         }
-        childComponent = multiElement.getChildByName(firstPath);
-        if (dataObject !== null && dataObject !== undefined) {
-          if (Object.hasOwn(dataObject, occurrence)) {
-            dataSubObject = dataObject[occurrence][firstPath];
+        childComponent = component.getChildByName(firstPath);
+        if (isInstanceArray(dataObject)) {
+          const node = dataObject[occurrence];
+          if (isInstanceObject(node)) {
+            dataSubObject = node[firstPath];
           }
         }
       }
@@ -96,24 +92,24 @@ export class DataObjectStructureHandler {
       let dataSubObject = null;
       let parentDataSubObject = null;
 
-      if (component instanceof SingleElementComponent) {
-        childComponent = (component as SingleElementComponent).getChildByName(firstPath);
-        dataSubObject = dataObject[firstPath];
-        parentDataSubObject = dataObject;
-      } else if (component instanceof CedarTemplate) {
-        childComponent = (component as CedarTemplate).getChildByName(firstPath);
-        dataSubObject = dataObject[firstPath];
+      if (component instanceof SingleElementComponent || component instanceof CedarTemplate) {
+        childComponent = component.getChildByName(firstPath);
+        if (isInstanceObject(dataObject)) {
+          dataSubObject = dataObject[firstPath];
+        }
         parentDataSubObject = dataObject;
       } else if (component instanceof MultiElementComponent) {
-        const multiElement = component as MultiElementComponent;
-        const occurrence = selectOccurrence(multiElement);
+        const occurrence = selectOccurrence(component);
 
         if (occurrence === null || occurrence < 0) {
           return null;
         }
-        childComponent = multiElement.getChildByName(firstPath);
-        dataSubObject = dataObject[occurrence][firstPath];
-        parentDataSubObject = dataObject[occurrence];
+        childComponent = component.getChildByName(firstPath);
+        const node = isInstanceArray(dataObject) ? dataObject[occurrence] : null;
+        if (isInstanceObject(node)) {
+          dataSubObject = node[firstPath];
+        }
+        parentDataSubObject = node;
       }
       return this.getParentDataPathNodeRecursively(
         dataSubObject,
@@ -170,16 +166,20 @@ export class DataObjectStructureHandler {
     // The `@context` each new occurrence needs travels on the component, so
     // there is no sub-template to find first.
     this.dataObjectBuilderService.buildRecursively(cloneComponent, dataObject, buildingMode);
-    const newDataObject = dataObject[component.name][0];
+    const built = isInstanceObject(dataObject) ? dataObject[component.name] : null;
+    const newDataObject = isInstanceArray(built) ? built[0] : null;
     const currentNodeAny = this.getDataPathNodeRecursively(
       instanceObject,
       templateRepresentation,
       component.path,
       OccurrenceSelectors.fromCursor(multiInstanceObjectService),
     );
-    const currentNodeArray = currentNodeAny as [];
-    if (currentNodeArray) {
-      currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, newDataObject as never);
+    // `isInstanceArray`, not truthiness. `currentNodeAny as []` asserted the shape
+    // and the check that followed only asked whether it was present — so a node
+    // holding a non-empty string passed the test and threw on `.splice`. The guard
+    // asks the question the assertion was pretending to answer.
+    if (isInstanceArray(currentNodeAny)) {
+      currentNodeAny.splice(multiInstanceInfo.currentIndex + 1, 0, newDataObject);
     } else {
       messageHandlerService.error('missing data in instance:' + component.path);
     }
@@ -264,15 +264,18 @@ export class DataObjectStructureHandler {
    * components own occurrence-envelope IDs, while field components own data that
    * must be copied verbatim.
    */
-  private remintElementInstanceIds(item: unknown, component: CedarComponent): void {
+  private remintElementInstanceIds(item: InstanceNode, component: CedarComponent): void {
     if (!(component instanceof SingleElementComponent || component instanceof MultiElementComponent)) {
       return;
     }
-    if (item === null || typeof item !== 'object' || Array.isArray(item)) {
+    // The hand-rolled shape test this replaces — `typeof item !== 'object' ||
+    // Array.isArray(item)` — is exactly what the guard means, and the guard tells
+    // the compiler as well as the reader.
+    if (!isInstanceObject(item)) {
       return;
     }
 
-    const occurrence = item as InstanceExtractData;
+    const occurrence = item;
     delete occurrence[JsonSchema.atId];
     this.dataObjectBuilderService.addRandomAtId(occurrence);
 

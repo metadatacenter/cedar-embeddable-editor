@@ -9,6 +9,7 @@ import {
   JsonTemplateInstanceWriter,
   JsonNode,
 } from 'cedar-model-typescript-library';
+import { InstanceNode, InstanceObject, isInstanceObject } from '../models/instance-node.model';
 
 /**
  * What a node in an instance is, and what it holds.
@@ -59,7 +60,7 @@ export class InstanceValueNode {
    * label. A field's own type decides which of the two to show, so both are
    * offered rather than one chosen here.
    */
-  static iri(node: unknown): string | null | undefined {
+  static iri(node: InstanceNode): string | null | undefined {
     const atom = InstanceValueNode.atom(node);
     if (atom instanceof InstanceDataLinkAtom || atom instanceof InstanceDataControlledAtom) {
       return atom.id;
@@ -68,7 +69,7 @@ export class InstanceValueNode {
   }
 
   /** The label this node carries, if it carries one. */
-  static label(node: unknown): string | null | undefined {
+  static label(node: InstanceNode): string | null | undefined {
     const atom = InstanceValueNode.atom(node);
     return atom instanceof InstanceDataControlledAtom ? atom.label : undefined;
   }
@@ -80,7 +81,7 @@ export class InstanceValueNode {
    * as a literal of `''` or `null` — both of which are values a field can
    * legitimately hold and which a widget has to be shown.
    */
-  static literal(node: unknown): unknown {
+  static literal(node: InstanceNode): string | null | undefined {
     const atom = InstanceValueNode.atom(node);
     if (atom instanceof InstanceDataStringAtom || atom instanceof InstanceDataTypedAtom) {
       return atom.value;
@@ -89,13 +90,13 @@ export class InstanceValueNode {
   }
 
   /** True when this node holds a literal, however empty. */
-  static isLiteral(node: unknown): boolean {
+  static isLiteral(node: InstanceNode): boolean {
     const atom = InstanceValueNode.atom(node);
     return atom instanceof InstanceDataStringAtom || atom instanceof InstanceDataTypedAtom;
   }
 
   /** True when this node carries an IRI — a link or a controlled term. */
-  static isIriBearing(node: unknown): boolean {
+  static isIriBearing(node: InstanceNode): boolean {
     const atom = InstanceValueNode.atom(node);
     return atom instanceof InstanceDataLinkAtom || atom instanceof InstanceDataControlledAtom;
   }
@@ -136,9 +137,9 @@ export class InstanceValueNode {
    * the `readValueNode` used to interpret them, so what CEE writes and what it
    * reads back cannot drift apart.
    */
-  static literalJson(value: string | null, xsdType: string | null = null): object {
+  static literalJson(value: string | null, xsdType: string | null = null): InstanceObject {
     const atom = xsdType === null ? new InstanceDataStringAtom(value) : new InstanceDataTypedAtom(value, xsdType);
-    return JsonTemplateInstanceWriter.writeValueNode(atom) as object;
+    return JsonTemplateInstanceWriter.writeValueNode(atom) as InstanceObject;
   }
 
   /**
@@ -155,20 +156,20 @@ export class InstanceValueNode {
    * is the mirror of the `readValueNode` that interprets them, so what CEE writes
    * and what it reads back cannot drift.
    */
-  static emptySlotJson(iriValued: boolean, xsdType: string | null = null): object {
+  static emptySlotJson(iriValued: boolean, xsdType: string | null = null): InstanceObject {
     if (iriValued) {
-      return JsonTemplateInstanceWriter.writeValueNode(new InstanceDataEmptyAtom()) as object;
+      return JsonTemplateInstanceWriter.writeValueNode(new InstanceDataEmptyAtom()) as InstanceObject;
     }
     return InstanceValueNode.literalJson(null, xsdType);
   }
 
   /** The JSON an IRI value is stored as, with a label when there is one. */
-  static iriJson(iri: string, label?: string | null): object {
+  static iriJson(iri: string, label?: string | null): InstanceObject {
     const atom =
       label === undefined || label === null
         ? new InstanceDataLinkAtom(iri)
         : new InstanceDataControlledAtom(iri, label);
-    return JsonTemplateInstanceWriter.writeValueNode(atom) as object;
+    return JsonTemplateInstanceWriter.writeValueNode(atom) as InstanceObject;
   }
 
   /**
@@ -181,7 +182,13 @@ export class InstanceValueNode {
    * invisible to the form and to the report while still sitting in the saved
    * instance.
    */
-  static overwrite(target: object, source: object): void {
+  static overwrite(target: InstanceNode, source: InstanceObject): void {
+    // A leaf or a list has no value keys to reconcile; only a node can be overwritten
+    // in place, and the callers that reach here with anything else have already gone
+    // wrong somewhere earlier.
+    if (!isInstanceObject(target)) {
+      return;
+    }
     for (const key of VALUE_KEYS) {
       if (!Object.hasOwn(source, key)) {
         delete target[key];

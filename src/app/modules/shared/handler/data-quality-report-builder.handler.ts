@@ -20,6 +20,7 @@ import { ValidationCode, ValidationProblem } from '../validation/validation-prob
 import { InputType } from '../models/input-type.model';
 import { BasicInfo } from '../models/info/basic-info.model';
 import { MultiInfo } from '../models/info/multi-info.model';
+import { InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
 /**
  * What the two problem collectors read off a component.
@@ -51,7 +52,54 @@ type InspectedComponent = CedarComponent & {
  * real and worth fixing properly one day: the parameter type is honest at the
  * root call and wrong at every recursive one.
  */
+/*
+ * The two multi-instance info types are conflated, and these two bridges are where
+ * it shows. `MultiInstanceInfo` is a map from component name to
+ * `MultiInstanceObjectInfo`; `MultiInstanceObjectInfo` is a node with a count, an
+ * index and a list of child maps. The recursion below alternates between them —
+ * the root is a map, every child is a node — while declaring one type throughout.
+ *
+ * `asObjectInfo` predates this work and papered over it while the parameter was
+ * effectively untyped. `asInfo` is its inverse, needed now that `getChildByName`
+ * returns its real type. Neither is a fix: straightening out the two is a model
+ * change of its own, recorded on the roadmap rather than smuggled in here.
+ */
 const asObjectInfo = (info: MultiInstanceInfo): MultiInstanceObjectInfo => info as unknown as MultiInstanceObjectInfo;
+
+/**
+ * A child of the info tree, by component name.
+ *
+ * Deliberately a property lookup and not `MultiInstanceInfo.getChildByName`, even
+ * though that accessor exists and is typed. What actually arrives here is sometimes
+ * a `MultiInstanceObjectInfo`, which has no such method — swapping the lookup for
+ * the accessor threw `getChildByName is not a function` across 216 domain tests.
+ * The declared parameter type is the lie; the lookup is what works on both.
+ */
+const childInfo = (info: MultiInstanceInfo, name: string): MultiInstanceInfo =>
+  (info as unknown as Record<string, MultiInstanceInfo>)[name];
+
+/**
+ * The report's value tree, which is not an instance tree and never was.
+ *
+ * Three shapes, mirroring the template rather than the document: a container keyed
+ * by child component name, a list of occurrences under `values`, and a leaf holding
+ * what was found and whether it was required. It was typed `object` throughout, so
+ * `valueTree[name]['values'].push(...)` type-checked against nothing.
+ */
+export interface ReportValue {
+  value: unknown;
+  required?: true;
+}
+
+export interface ReportList {
+  values: ReportNode[];
+}
+
+export interface ReportContainer {
+  [componentName: string]: ReportNode;
+}
+
+export type ReportNode = ReportValue | ReportList | ReportContainer;
 
 export class DataQualityReportBuilderHandler {
   private dataObjectFull: object;
@@ -65,7 +113,7 @@ export class DataQualityReportBuilderHandler {
     // maintained as a second tree — see `DataContext.instanceExtractData`.
     this.report.instanceExtractData = dataContext.instanceExtractData;
 
-    const valueTree = {};
+    const valueTree: ReportContainer = {};
 
     if (dataContext.templateRepresentation != null && dataContext.templateInput != null) {
       DataQualityReportBuilderHandler.buildRecursively(
@@ -84,11 +132,10 @@ export class DataQualityReportBuilderHandler {
   private static buildRecursively(
     component: CedarComponent,
     report: DataQualityReport,
-    valueTree: object,
+    valueTree: ReportContainer,
     multiInstanceInfo: MultiInstanceInfo,
     handlerContext: HandlerContext,
   ): void {
-    let ret = null;
     if (
       component instanceof SingleElementComponent ||
       component instanceof MultiElementComponent ||
@@ -98,7 +145,8 @@ export class DataQualityReportBuilderHandler {
       const targetName = iterableComponent.name;
       if (component instanceof MultiElementComponent) {
         //const multiElement: MultiElementComponent = component as MultiElementComponent;
-        valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyList();
+        const occurrences = DataQualityReportBuilderHandler.getEmptyList();
+        valueTree[targetName] = occurrences;
         const multiCount = asObjectInfo(multiInstanceInfo).currentCount;
         DataQualityReportBuilderHandler.collectPresenceProblems(
           component,
@@ -107,29 +155,29 @@ export class DataQualityReportBuilderHandler {
         );
         DataQualityReportBuilderHandler.collectCardinalityProblems(component, multiCount, report);
         if (multiCount > 0) {
-          const dummyTargetObject: object = DataQualityReportBuilderHandler.getEmptyObject();
+          const dummyTargetObject: ReportContainer = DataQualityReportBuilderHandler.getEmptyObject();
           const currentIndex = asObjectInfo(multiInstanceInfo).currentIndex;
           for (const childComponent of iterableComponent.children) {
             DataQualityReportBuilderHandler.buildRecursively(
               childComponent,
               report,
               dummyTargetObject,
-              multiInstanceInfo['children'][currentIndex][childComponent.name],
+              childInfo(asObjectInfo(multiInstanceInfo).children[currentIndex], childComponent.name),
               handlerContext,
             );
           }
           const multiCount = asObjectInfo(multiInstanceInfo).currentCount;
           for (let idx = 0; idx < multiCount; idx++) {
             const clone = _.cloneDeep(dummyTargetObject);
-            valueTree[targetName]['values'].push(clone);
+            occurrences.values.push(clone);
           }
         }
       } else {
         valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyObject();
         for (const childComponent of iterableComponent.children) {
-          let nextMultiInstanceInfo = multiInstanceInfo[childComponent.name];
+          let nextMultiInstanceInfo = childInfo(multiInstanceInfo, childComponent.name);
           if (nextMultiInstanceInfo == undefined) {
-            nextMultiInstanceInfo = multiInstanceInfo['children'][0][childComponent.name];
+            nextMultiInstanceInfo = childInfo(asObjectInfo(multiInstanceInfo).children[0], childComponent.name);
           }
           DataQualityReportBuilderHandler.buildRecursively(
             childComponent,
@@ -140,7 +188,6 @@ export class DataQualityReportBuilderHandler {
           );
         }
       }
-      ret = valueTree[targetName];
     }
     if (component instanceof SingleFieldComponent || component instanceof MultiFieldComponent) {
       const nonIterableComponent = component as FieldComponent;
@@ -149,7 +196,7 @@ export class DataQualityReportBuilderHandler {
       if (component.valueInfo.requiredValue) {
         isRequired = true;
       }
-      const dataValueObject: object = handlerContext.getDataObjectNodeByPath(component.path);
+      const dataValueObject: InstanceNode = handlerContext.getDataObjectNodeByPath(component.path);
       // Whether a requirement is satisfied is asked of the whole instance, not
       // of the page currently on screen. See findAnyValue.
       const satisfiedBy = isRequired
@@ -176,11 +223,13 @@ export class DataQualityReportBuilderHandler {
           asObjectInfo(multiInstanceInfo).currentCount,
           report,
         );
-        valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyList();
+        const occurrences = DataQualityReportBuilderHandler.getEmptyList();
+        valueTree[targetName] = occurrences;
         const multiCount = asObjectInfo(multiInstanceInfo).currentCount;
         for (let idx = 0; idx < multiCount; idx++) {
-          const value = DataQualityReportBuilderHandler.extractPlainValue(dataValueObject[idx], component);
-          valueTree[targetName]['values'].push(
+          const occurrence = isInstanceArray(dataValueObject) ? dataValueObject[idx] : null;
+          const value = DataQualityReportBuilderHandler.extractPlainValue(occurrence, component);
+          occurrences.values.push(
             DataQualityReportBuilderHandler.getEmptyValueWrapper(value, isRequired, report, satisfiedBy),
           );
         }
@@ -193,9 +242,7 @@ export class DataQualityReportBuilderHandler {
           satisfiedBy,
         );
       }
-      ret = valueTree[targetName];
     }
-    return ret;
   }
 
   /**
@@ -216,8 +263,8 @@ export class DataQualityReportBuilderHandler {
    */
   private static collectFieldProblems(
     component: FieldComponent,
-    displayedNode: object,
-    instance: object,
+    displayedNode: InstanceNode,
+    instance: InstanceNode,
     report: DataQualityReport,
   ): void {
     const nodes = DataQualityReportBuilderHandler.collectNodes(component.path, instance);
@@ -265,7 +312,7 @@ export class DataQualityReportBuilderHandler {
    */
   private static collectPresenceProblems(
     component: InspectedComponent,
-    instance: object,
+    instance: InstanceNode,
     report: DataQualityReport,
   ): void {
     const path: string[] = component?.path ?? [];
@@ -281,7 +328,7 @@ export class DataQualityReportBuilderHandler {
     const inputType = component.basicInfo?.inputType ?? 'element';
 
     for (const parent of parents) {
-      const present = Object.hasOwn(parent, name);
+      const present = isInstanceObject(parent) && Object.hasOwn(parent, name);
       const value = present ? parent[name] : undefined;
       // An array is the only shape that satisfies this, which is what the gate
       // asks for — `[]` included. Worth testing the shape rather than just
@@ -360,7 +407,7 @@ export class DataQualityReportBuilderHandler {
   }
 
   /** Every node at `path`, branching into every array entry. Cursor-free, like findAnyValue. */
-  private static collectNodes(path: string[], node: unknown, acc: object[] = []): object[] {
+  private static collectNodes(path: string[], node: InstanceNode, acc: InstanceNode[] = []): InstanceNode[] {
     if (node === null || node === undefined) {
       return acc;
     }
@@ -381,7 +428,7 @@ export class DataQualityReportBuilderHandler {
       return acc;
     }
     const [head, ...rest] = path;
-    if (!Object.hasOwn(node, head)) {
+    if (!isInstanceObject(node) || !Object.hasOwn(node, head)) {
       return acc;
     }
     return DataQualityReportBuilderHandler.collectNodes(rest, node[head], acc);
@@ -392,10 +439,10 @@ export class DataQualityReportBuilderHandler {
     isRequired: boolean,
     report: DataQualityReport,
     satisfiedBy: unknown = value,
-  ) {
-    const v = { value: value };
+  ): ReportValue {
+    const v: ReportValue = { value: value };
     if (isRequired) {
-      v['required'] = true;
+      v.required = true;
       report.requiredFieldValueCount++;
       if (satisfiedBy !== null) {
         report.nonNullRequiredFieldValueCount++;
@@ -421,7 +468,7 @@ export class DataQualityReportBuilderHandler {
    */
   private static findAnyValue(
     path: string[],
-    node: unknown,
+    node: InstanceNode,
     component: SingleFieldComponent | MultiFieldComponent,
   ): unknown {
     if (node === null || node === undefined) {
@@ -443,17 +490,17 @@ export class DataQualityReportBuilderHandler {
       return DataQualityReportBuilderHandler.extractPlainValue(node, component);
     }
     const [head, ...rest] = path;
-    if (!Object.hasOwn(node, head)) {
+    if (!isInstanceObject(node) || !Object.hasOwn(node, head)) {
       return null;
     }
     return DataQualityReportBuilderHandler.findAnyValue(rest, node[head], component);
   }
 
-  private static getEmptyList() {
+  private static getEmptyList(): ReportList {
     return { values: [] };
   }
 
-  private static getEmptyObject() {
+  private static getEmptyObject(): ReportContainer {
     return {};
   }
 
@@ -465,7 +512,7 @@ export class DataQualityReportBuilderHandler {
    * the template: `{@id, rdfs:label}` shows its label for a controlled term and
    * its IRI for a link, and the instance cannot tell those apart.
    */
-  private static extractPlainValue(dataObject: unknown, component: SingleFieldComponent | MultiFieldComponent) {
+  private static extractPlainValue(dataObject: InstanceNode, component: SingleFieldComponent | MultiFieldComponent) {
     return InstanceValueNode.plainValue(dataObject, this.isIriValued(component));
   }
 

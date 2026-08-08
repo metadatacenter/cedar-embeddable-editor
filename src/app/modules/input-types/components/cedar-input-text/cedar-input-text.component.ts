@@ -38,15 +38,15 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
   options: FormGroup;
   inputValueControl = new FormControl(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  constraintMinLength = null;
-  constraintMaxLength = null;
+  constraintMinLength: number | null = null;
+  constraintMaxLength: number | null = null;
   @Input() handlerContext: HandlerContext;
   inputText = InputType.text;
   inputTextarea = InputType.textarea;
   isRichText: boolean = false;
   isOrcid: boolean = false;
   isRor: boolean = false;
-  originalValue = null;
+  originalValue: string | null = null;
 
   constructor(
     fb: FormBuilder,
@@ -74,10 +74,12 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl(null, validators);
 
-    if (this.component.valueInfo.defaultValue != null) {
-      if (this.inputValueControl.getRawValue() == '') {
-        this.setValueUIAndModel(this.component.valueInfo.defaultValue);
-      }
+    // `typeof`, not a cast: on a literal field the declared default is text, and a
+    // template that puts a term node here is declaring something this field cannot
+    // hold — which is now skipped rather than assigned as `[object Object]`.
+    const declaredDefault = this.component.valueInfo.defaultValue;
+    if (typeof declaredDefault === 'string' && this.inputValueControl.getRawValue() == '') {
+      this.setValueUIAndModel(declaredDefault);
     }
   }
 
@@ -86,7 +88,7 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  checkHTMLContent(value) {
+  checkHTMLContent(value: string): void {
     if (this.htmlDetectService.isHtmlString(value)) {
       this.isRichText = true;
     }
@@ -107,32 +109,31 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
   }
 
   setCurrentValue(currentValue: unknown): void {
-    if (this.readOnlyMode) {
+    // Narrowed once, at the top. Everything in here reads the value as text — the
+    // HTML sniff and both IRI patterns — so proving it is a string here replaces the
+    // two `as string` casts that used to state the same fact twice.
+    if (this.readOnlyMode && typeof currentValue === 'string') {
       this.checkHTMLContent(currentValue);
-      // Both checks match an IRI, so the value is a string inside either branch —
-      // stated once per branch instead of casting twice for the same fact.
       if (this.checkOrcid(currentValue)) {
-        const iri = currentValue as string;
         this.isOrcid = true;
-        this.originalValue = iri;
-        currentValue = iri.split('/').pop();
+        this.originalValue = currentValue;
+        currentValue = currentValue.split('/').pop();
       } else if (this.checkRor(currentValue)) {
-        const iri = currentValue as string;
         this.isRor = true;
-        this.originalValue = iri;
-        currentValue = iri.split('/').pop();
+        this.originalValue = currentValue;
+        currentValue = currentValue.split('/').pop();
       }
     }
     this.inputValueControl.setValue(currentValue);
   }
 
-  checkOrcid(value): boolean {
+  checkOrcid(value: string): boolean {
     const pattern = this.iriPrefix.getOrcidPrefix();
     const orcidReg = new RegExp(`^${pattern}`);
     return orcidReg.test(value);
   }
 
-  checkRor(value): boolean {
+  checkRor(value: string): boolean {
     const pattern = this.iriPrefix.getRorPrefix();
     const orcidReg = new RegExp(`^${pattern}`);
     return orcidReg.test(value);

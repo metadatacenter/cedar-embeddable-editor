@@ -28,7 +28,7 @@
     <mat-error *ngIf="inputValueControl.getError('minlength') && !readOnlyMode">{{'Validation.Text.MinLength' | translate: {constraintMinLength} }}</mat-error>
     <mat-error *ngIf="inputValueControl.getError('maxlength') && !readOnlyMode">{{'Validation.Text.MaxLength' | translate: {constraintMaxLength} }}</mat-error>
     <mat-error *ngIf="inputValueControl.hasError('required') && !readOnlyMode">{{'Validation.Required' | translate}}</mat-error>
-    <mat-hint *ngIf="inputValueControl.hasValidator(constraintMaxLength) && !readOnlyMode" align="end">{{getCharCountHint()}}</mat-hint>
+    <mat-hint *ngIf="constraintMaxLength !== null && !readOnlyMode" align="end">{{getCharCountHint()}}</mat-hint>
   </mat-form-field>
   <!-- The value came from the instance, so it is sanitized rather than trusted.
        See `safe-html.pipe.ts` for why this differs from the static rich-text field. -->

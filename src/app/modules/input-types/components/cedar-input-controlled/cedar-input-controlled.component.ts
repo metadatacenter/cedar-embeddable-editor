@@ -32,6 +32,7 @@ import { MessageHandlerService } from '../../../shared/service/message-handler.s
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { IriPrefix } from '../../../shared/util/iri-prefix';
+import { InstanceObject } from '../../../shared/models/instance-node.model';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -88,10 +89,8 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       typeof this.component.valueInfo.defaultValue === 'object' &&
       Object.hasOwn(this.component.valueInfo.defaultValue as object, JsonSchema.termUri)
     ) {
-      this.setValueUIAndModel(
-        this.component.valueInfo.defaultValue ? this.component.valueInfo.defaultValue[JsonSchema.termUri] : null,
-        this.component.valueInfo.defaultValue ? this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] : null,
-      );
+      const term = this.component.valueInfo.defaultValue as InstanceObject;
+      this.setValueUIAndModel(term[JsonSchema.termUri] as string, term[JsonSchema.rdfsLabel] as string);
     }
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
@@ -153,7 +152,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   }
 
   onSelectionChange(option: IntegratedSearchResponseItem): void {
-    this.handlerContext.changeControlledValue(this.component, option[JsonSchema.atId], option.prefLabel);
+    this.handlerContext.changeControlledValue(this.component, option['@id'], option.prefLabel);
     if (option) {
       this.selectedData = option;
     }
@@ -201,11 +200,11 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     const bioPortalPrefix = this.iriPrefix.getBioPortalPrefix();
 
     if (branch) {
-      this.bioPortalTermLink = branch['source'] + midPart + urlEncodedAtId;
+      this.bioPortalTermLink = branch.source + midPart + urlEncodedAtId;
     } else if (_class) {
-      this.bioPortalTermLink = bioPortalPrefix + _class['source'] + midPart + urlEncodedAtId;
+      this.bioPortalTermLink = bioPortalPrefix + _class.source + midPart + urlEncodedAtId;
     } else if (ontology) {
-      this.bioPortalTermLink = bioPortalPrefix + ontology['acronym'] + midPart + urlEncodedAtId;
+      this.bioPortalTermLink = bioPortalPrefix + ontology.acronym + midPart + urlEncodedAtId;
     }
 
     if (rdfsLabel && atId) {

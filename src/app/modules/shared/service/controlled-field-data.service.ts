@@ -11,7 +11,7 @@ import { switchMap } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class ControlledFieldDataService {
-  private terminologyIntegratedSearchUrl = null;
+  private terminologyIntegratedSearchUrl: string | null = null;
 
   constructor(
     private http: HttpClient,

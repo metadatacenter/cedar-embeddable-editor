@@ -38,24 +38,33 @@ export class MultiInstanceObjectHandler {
   private resolveInstanceNode: ((path: string[]) => unknown) | null = null;
   private indexRegEx = new RegExp(/@#index\[(\d+)\]#@/);
 
-  private static getNodeByPath(obj, arrPath: string[]): object {
-    let val: object;
+  /**
+   * Walk the multi-instance info tree by component path.
+   *
+   * The tree is keyed by component name at every level, so a step is a lookup on
+   * whatever the previous step returned. Typed as the record it is rather than as
+   * `object`, which is what let the two callers below assert their way to a result.
+   */
+  private static getNodeByPath(obj: MultiInstanceInfo, arrPath: string[]): unknown {
+    let val: unknown = obj;
 
-    for (let i = 0; i < arrPath.length; i++) {
-      if (val) {
-        val = val[arrPath[i]];
-      } else {
-        val = obj[arrPath[i]];
+    for (const step of arrPath) {
+      if (val === null || typeof val !== 'object') {
+        return undefined;
       }
+      val = (val as Record<string, unknown>)[step];
     }
     return val;
   }
 
-  private static getMultiInstanceInfoNodeByPath(obj, arrPath: string[]): MultiInstanceInfo {
+  private static getMultiInstanceInfoNodeByPath(obj: MultiInstanceInfo, arrPath: string[]): MultiInstanceInfo {
     return MultiInstanceObjectHandler.getNodeByPath(obj, arrPath) as MultiInstanceInfo;
   }
 
-  private static getMultiInstanceObjectInfoNodeByPath(obj, arrPath: string[]): MultiInstanceObjectInfo {
+  private static getMultiInstanceObjectInfoNodeByPath(
+    obj: MultiInstanceInfo,
+    arrPath: string[],
+  ): MultiInstanceObjectInfo {
     return MultiInstanceObjectHandler.getNodeByPath(obj, arrPath) as MultiInstanceObjectInfo;
   }
 

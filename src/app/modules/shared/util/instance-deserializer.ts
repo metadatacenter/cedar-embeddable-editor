@@ -10,7 +10,7 @@ import {
   JsonNode,
 } from 'cedar-model-typescript-library';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
-import { InstanceFullData } from '../models/instance-full-data.model';
+import { InstanceNode, InstanceObject } from '../models/instance-node.model';
 
 /**
  * Take in an instance a host page handed us.
@@ -49,9 +49,9 @@ export class InstanceDeserializer {
    * *can* report is the point — a silent discard is the thing being fixed.
    */
   static read(
-    instanceJson: object,
+    instanceJson: InstanceObject,
     report?: (message: string) => void,
-  ): { full: InstanceFullData; extract: InstanceExtractData } {
+  ): { full: InstanceObject; extract: InstanceExtractData } {
     const instance = CedarReaders.json()
       .getFebruary2024()
       .getTemplateInstanceReader()
@@ -63,7 +63,7 @@ export class InstanceDeserializer {
 
     return {
       full: InstanceDeserializer.writeFull(instance),
-      extract: InstanceDeserializer.container(instance.dataContainer) as InstanceExtractData,
+      extract: InstanceDeserializer.container(instance.dataContainer),
     };
   }
 
@@ -109,11 +109,8 @@ export class InstanceDeserializer {
     }
   }
 
-  private static writeFull(instance: TemplateInstance): InstanceFullData {
-    return CedarWriters.json()
-      .getFebruary2024()
-      .getTemplateInstanceWriter()
-      .getAsJsonNode(instance) as InstanceFullData;
+  private static writeFull(instance: TemplateInstance): InstanceObject {
+    return CedarWriters.json().getFebruary2024().getTemplateInstanceWriter().getAsJsonNode(instance) as InstanceObject;
   }
 
   /**
@@ -123,8 +120,8 @@ export class InstanceDeserializer {
    * extract has neither, at any depth — that is the whole difference between
    * the two trees.
    */
-  private static container(container: InstanceDataContainer): object {
-    const out: object = {};
+  private static container(container: InstanceDataContainer): InstanceObject {
+    const out: InstanceObject = {};
     for (const key of Object.keys(container.values)) {
       const node = container.values[key];
       if (node instanceof InstanceDataAttributeValueField) {
@@ -137,14 +134,17 @@ export class InstanceDeserializer {
   }
 
   /** A value, an element, or a list of either — dispatched on type, not shape. */
-  private static node(node: InstanceDataAtomType): unknown {
+  private static node(node: InstanceDataAtomType): InstanceNode {
+    // The three arms are the three shapes an instance node has, which is why the
+    // return type can be `InstanceNode` rather than `unknown`: a list of children,
+    // a container, or the JSON a value node is written as.
     if (Array.isArray(node)) {
       return (node as InstanceDataAtomType[]).map((item) => InstanceDeserializer.node(item));
     }
     if (node instanceof InstanceDataContainer) {
       return InstanceDeserializer.container(node);
     }
-    return JsonTemplateInstanceWriter.writeValueNode(node);
+    return JsonTemplateInstanceWriter.writeValueNode(node) as InstanceObject;
   }
 
   /**
@@ -156,11 +156,11 @@ export class InstanceDeserializer {
    * enclosing object as a value in its own right — which is also how it appears
    * in the instance CEE writes back out.
    */
-  private static attributeValueField(field: InstanceDataAttributeValueField, key: string, out: object): void {
+  private static attributeValueField(field: InstanceDataAttributeValueField, key: string, out: InstanceObject): void {
     const names = Object.keys(field.values);
     out[key] = names.slice();
     for (const name of names) {
-      out[name] = JsonTemplateInstanceWriter.writeValueNode(field.values[name]);
+      out[name] = JsonTemplateInstanceWriter.writeValueNode(field.values[name]) as InstanceObject;
     }
   }
 }

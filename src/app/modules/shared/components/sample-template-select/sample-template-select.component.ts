@@ -5,6 +5,8 @@ import { ReplaySubject, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
+import { MatSelectChange } from '@angular/material/select';
+import { SampleTemplateEntry } from '../sample-templates/sample-templates.service';
 
 @Component({
   selector: 'app-sample-template-select',
@@ -16,11 +18,11 @@ import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loade
 })
 export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   @Input() callbackOwnerObject: SampleTemplateLoaderOwner = null;
-  sampleTemplates: object[];
+  sampleTemplates: SampleTemplateEntry[];
   templateLocationPrefix: string;
   templateCtrl: FormControl = new FormControl();
   templateFilterCtrl: FormControl = new FormControl();
-  filteredTemplates: ReplaySubject<object[]> = new ReplaySubject<object[]>(1);
+  filteredTemplates: ReplaySubject<SampleTemplateEntry[]> = new ReplaySubject<SampleTemplateEntry[]>(1);
   loadMetadata = true;
   protected _onDestroy = new Subject<void>();
 
@@ -33,7 +35,7 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
     this.sampleTemplateService
       .getSampleTemplatesFromRegistry(this.templateLocationPrefix)
       .pipe(takeUntil(this._onDestroy))
-      .subscribe((templates: object[]) => {
+      .subscribe((templates: SampleTemplateEntry[]) => {
         this.sampleTemplates = templates;
         this.filteredTemplates.next(this.sampleTemplates);
       });
@@ -68,9 +70,7 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
       search = search.toLowerCase();
     }
     this.filteredTemplates.next(
-      this.sampleTemplates.filter(
-        (template) => template[this.sampleTemplateService.TEMPLATE_LABEL]?.toLowerCase().indexOf(search) > -1,
-      ),
+      this.sampleTemplates.filter((template) => template.label?.toLowerCase().indexOf(search) > -1),
     );
   }
 
@@ -79,7 +79,7 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
     window.scroll(0, 0);
   }
 
-  inputChanged(event): void {
+  inputChanged(event: MatSelectChange): void {
     if (event) {
       this.loadBuiltinTemplate(event.value);
     }

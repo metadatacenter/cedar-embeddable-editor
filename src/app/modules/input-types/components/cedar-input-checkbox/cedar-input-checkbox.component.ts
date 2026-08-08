@@ -6,6 +6,7 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { JsonSchema } from 'cedar-model-typescript-library';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { isInstanceObject } from '../../../shared/models/instance-node.model';
 
 @Component({
   selector: 'app-cedar-input-checkbox',
@@ -90,7 +91,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     const dataObject = this.handlerContext.getDataObjectNodeByPath(this.component.path);
     if (Array.isArray(dataObject)) {
       const loadedValues = dataObject
-        .map((d) => (d ? d[JsonSchema.atValue] : null))
+        .map((d) => (isInstanceObject(d) ? d[JsonSchema.atValue] : null))
         .filter((v) => v !== null && v !== undefined);
       if (loadedValues.length > 0) {
         this.setCurrentValue(loadedValues);

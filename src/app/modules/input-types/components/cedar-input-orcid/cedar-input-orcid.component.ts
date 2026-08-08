@@ -16,6 +16,7 @@ import { InputType } from '../../../shared/models/input-type.model';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { OrcidSearchResponseItem } from '../../../shared/models/rest/orcid-search/orcid-search-response-item';
 import { ResearcherDetails } from '../../../shared/models/rest/orcid-detail/orcid-detail-person';
+import { isInstanceObject } from '../../../shared/models/instance-node.model';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -89,8 +90,13 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     // search text; the discarded-edit error is raised explicitly on blur.
     this.inputValueControl = new FormControl(null, validators);
     if (this.component?.valueInfo?.defaultValue) {
-      const defaultAtId = (this.component.valueInfo.defaultValue[JsonSchema.atId] as string) || null;
-      const defaultLabel = (this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] as string) || null;
+      // A default on one of these fields is the term node, not text. Guarded rather
+      // than asserted: a template declaring a bare string here would otherwise read
+      // as a term with two undefined halves.
+      const declared = this.component.valueInfo.defaultValue;
+      const defaultTerm = isInstanceObject(declared) ? declared : {};
+      const defaultAtId = (defaultTerm[JsonSchema.atId] as string) || null;
+      const defaultLabel = (defaultTerm[JsonSchema.rdfsLabel] as string) || null;
       this.updateValue(defaultAtId, defaultLabel);
     }
     if (!this.readOnlyMode) {

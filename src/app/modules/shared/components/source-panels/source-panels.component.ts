@@ -28,7 +28,7 @@ export class SourcePanelsComponent {
 
   constructor() {}
 
-  stopPropagation(event): void {
+  stopPropagation(event: Event): void {
     event.stopPropagation();
   }
 }

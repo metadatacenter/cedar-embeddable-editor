@@ -141,7 +141,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   static findZone(zone: string): TZone {
-    const allZones = JSON.parse(JSON.stringify(TimezonePickerComponent.AVAILABLE_TIMEZONES));
+    const allZones: TZone[] = JSON.parse(JSON.stringify(TimezonePickerComponent.AVAILABLE_TIMEZONES));
     const utc: string = momentZone.tz(zone).format('Z');
     return allZones.find((z) => z.id === utc);
   }

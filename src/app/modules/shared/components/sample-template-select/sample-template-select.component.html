@@ -15,8 +15,8 @@
         ></ngx-mat-select-search>
       </mat-option>
       <mat-option *ngFor="let template of filteredTemplates | async"
-                  [value]="template[sampleTemplateService.TEMPLATE_NUMBER]"
-      >{{template[sampleTemplateService.TEMPLATE_LABEL]}}</mat-option>
+                  [value]="template.num"
+      >{{template.label}}</mat-option>
     </mat-select>
   </mat-form-field>
 </div>

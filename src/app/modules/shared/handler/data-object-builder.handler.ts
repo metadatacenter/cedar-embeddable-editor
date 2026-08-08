@@ -9,31 +9,33 @@ import { MultiFieldComponent } from '../models/field/multi-field-component.model
 import { FieldComponent } from '../models/component/field-component.model';
 import { JsonSchema } from 'cedar-model-typescript-library';
 import * as _ from 'lodash-es';
-import { InstanceExtractData } from '../models/instance-extract-data.model';
-import { InstanceFullData } from '../models/instance-full-data.model';
 import { DataObjectUtil } from '../util/data-object-util';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
 import { DEFAULT_IRI_PREFIX } from '../util/iri-prefix';
+import { InstanceNode, InstanceObject, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
 export class DataObjectBuilderHandler {
   private dataObject: object;
-  private dataObjectFull: object;
+  private dataObjectFull: InstanceObject;
   private templateJsonObj: object;
   private templateRepresentation: TemplateComponent;
   private multiInstanceObjectService: MultiInstanceObjectHandler;
 
   constructor(private readonly iriPrefix: () => string = () => DEFAULT_IRI_PREFIX) {}
 
+  /*
+   * `InstanceObject`, not `InstanceExtractData`. The builder only ever writes named
+   * children into a container — every line below is `dataObject[targetName] = …` —
+   * so a node that could be a leaf or a list was never what this accepts.
+   */
   public buildRecursively(
     component: CedarComponent,
-    dataObject: InstanceExtractData,
+    dataObject: InstanceObject,
     buildingMode: DataObjectBuildingMode,
   ): void {
-    let ret = null;
-
     if (
       component instanceof SingleElementComponent ||
       component instanceof MultiElementComponent ||
@@ -47,7 +49,7 @@ export class DataObjectBuilderHandler {
         const multiElement: MultiElementComponent = component as MultiElementComponent;
         dataObject[targetName] = DataObjectUtil.getEmptyList();
         if (multiElement.multiInfo.minItems > 0) {
-          const dummyTargetObject: object = DataObjectUtil.getEmptyObject();
+          const dummyTargetObject: InstanceObject = DataObjectUtil.getEmptyObject();
           DataObjectBuilderHandler.addContext(component, dummyTargetObject, buildingMode);
           for (const childComponent of iterableComponent.children) {
             this.buildRecursively(childComponent, dummyTargetObject, buildingMode);
@@ -80,8 +82,6 @@ export class DataObjectBuilderHandler {
           this.addRandomAtId(dataObject[targetName]);
         }
       }
-
-      ret = dataObject[targetName];
     }
     if (component instanceof SingleFieldComponent || component instanceof MultiFieldComponent) {
       const nonIterableComponent = component as FieldComponent;
@@ -106,8 +106,14 @@ export class DataObjectBuilderHandler {
             }
             dataObject[targetName] = DataObjectUtil.getMultiValueWrapper(nonIterableComponent, buildingMode, values);
           }
-          for (let idx = dataObject[targetName].length; idx < multiField.multiInfo.minItems; idx++) {
-            dataObject[targetName].push(DataObjectUtil.getEmptyValueWrapper(nonIterableComponent, buildingMode));
+          // Through a typed local rather than re-indexing `dataObject[targetName]`
+          // three times: the index cannot know the child is a list, and the whole
+          // point of the branch is that it is one.
+          const occurrences = dataObject[targetName];
+          if (isInstanceArray(occurrences)) {
+            for (let idx = occurrences.length; idx < multiField.multiInfo.minItems; idx++) {
+              occurrences.push(DataObjectUtil.getEmptyValueWrapper(nonIterableComponent, buildingMode));
+            }
           }
         }
       } else {
@@ -123,9 +129,7 @@ export class DataObjectBuilderHandler {
           dataObject[targetName] = DataObjectUtil.getSingleValueWrapper(nonIterableComponent, buildingMode, value);
         }
       }
-      ret = dataObject[targetName];
     }
-    return ret;
   }
 
   public static setCurrentCountToMinRecursively(component: CedarComponent, path: string[]): void {
@@ -166,7 +170,7 @@ export class DataObjectBuilderHandler {
    */
   public static addContext(
     component: CedarComponent,
-    dataObject: InstanceExtractData,
+    dataObject: InstanceObject,
     buildingMode: DataObjectBuildingMode,
   ): void {
     if (buildingMode !== DataObjectBuildingMode.INCLUDE_CONTEXT) {
@@ -201,7 +205,7 @@ export class DataObjectBuilderHandler {
    */
   public static addEnvelope(
     templateRepresentation: TemplateComponent,
-    dataObject: InstanceExtractData,
+    dataObject: InstanceObject,
     buildingMode: DataObjectBuildingMode,
   ): void {
     if (buildingMode !== DataObjectBuildingMode.INCLUDE_CONTEXT || dataObject == null) {
@@ -221,7 +225,10 @@ export class DataObjectBuilderHandler {
     }
   }
 
-  public addRandomAtId(dataObject: InstanceExtractData): void {
+  public addRandomAtId(dataObject: InstanceNode): void {
+    if (!isInstanceObject(dataObject)) {
+      return;
+    }
     if (!Object.hasOwn(dataObject, JsonSchema.atId)) {
       const iri = this.getTemplateElementInstanceIRIPrefix() + DataObjectUtil.generateGUID();
       dataObject[JsonSchema.atId] = iri;
@@ -239,15 +246,17 @@ export class DataObjectBuilderHandler {
   buildNewFullDataObject(
     templateRepresentation: TemplateComponent,
     templateJsonObj: CedarInputTemplate,
-  ): InstanceFullData {
+  ): InstanceObject {
     this.templateJsonObj = templateJsonObj;
     this.templateRepresentation = templateRepresentation;
-    this.dataObjectFull = new InstanceFullData();
+    // `InstanceFullData` is a type alias now, not a class: an empty instance root
+    // is an empty object, which is what `new` produced anyway.
+    this.dataObjectFull = {};
     this.buildNewByIterating(this.dataObjectFull, DataObjectBuildingMode.INCLUDE_CONTEXT);
     return this.dataObjectFull;
   }
 
-  private buildNewByIterating(dataObject: InstanceExtractData, buildingMode: DataObjectBuildingMode): void {
+  private buildNewByIterating(dataObject: InstanceObject, buildingMode: DataObjectBuildingMode): void {
     if (this.templateRepresentation == null || this.templateRepresentation.children == null) {
       return;
     }

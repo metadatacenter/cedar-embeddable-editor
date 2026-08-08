@@ -12,8 +12,8 @@
                           [multiple]="false"
                           (click)="selectionClicked({option : templates.selectedOptions.selected[0]})">
         <mat-list-option *ngFor="let template of sampleTemplates"
-                         [value]="template[sampleTemplateService.TEMPLATE_NUMBER]"
-        >{{template[sampleTemplateService.TEMPLATE_LABEL]}}</mat-list-option>
+                         [value]="template.num"
+        >{{template.label}}</mat-list-option>
       </mat-selection-list>
   </ng-template>
 </mat-expansion-panel>

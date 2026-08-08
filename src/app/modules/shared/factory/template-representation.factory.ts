@@ -16,6 +16,8 @@ import { HandlerContext } from '../util/handler-context';
 import { TemplateParser } from './template-parser';
 import { ModelLibraryTemplateParser } from './model-library-template-parser';
 import { InstanceValueNode } from '../util/instance-value-node';
+import { InstanceNode } from '../models/instance-node.model';
+import { isInstanceObject } from '../models/instance-node.model';
 
 /**
  * Builds the component tree CEE renders.
@@ -52,8 +54,8 @@ export class TemplateRepresentationFactory {
   }
 
   static extractPageBreakPages(template: CedarTemplate): void {
-    const pages = [];
-    let page = [];
+    const pages: CedarComponent[][] = [];
+    let page: CedarComponent[] = [];
     let numPBInRow = 0;
 
     template.children.forEach((child, index) => {
@@ -117,12 +119,12 @@ export class TemplateRepresentationFactory {
         let val;
         if (child.basicInfo.inputType === InputType.attributeValue) {
           val = this.getValueByPath(child.path, handlerContext.dataContext.instanceExtractData);
-          if (val) {
+          if (typeof val === 'string') {
             const newPath = [...child.path.slice(0, -1), val];
             val = this.getValueByPath(newPath, handlerContext.dataContext.instanceExtractData);
           }
         } else val = this.getValueByPath(child.path, handlerContext.dataContext.instanceExtractData);
-        child.hidden = !val || Object.keys(val).length === 0;
+        child.hidden = !val || (isInstanceObject(val) && Object.keys(val).length === 0);
       } else if (child instanceof MultiElementComponent || child instanceof SingleElementComponent) {
         this.applyEmptyFieldHiding(child, handlerContext);
         child.hidden = !this.hasNonEmptyChild(child, handlerContext);
@@ -149,7 +151,7 @@ export class TemplateRepresentationFactory {
    * data was reported empty whenever a later sibling element happened to be
    * empty, and under `hideEmptyFields` that section vanished from the viewer.
    */
-  private static hasNonEmptyChild(component: ElementComponent, handlerContext): boolean {
+  private static hasNonEmptyChild(component: ElementComponent, handlerContext: HandlerContext): boolean {
     const instanceExtractData = handlerContext.dataContext.instanceExtractData;
     for (const child of component.children) {
       if (child instanceof MultiElementComponent || child instanceof SingleElementComponent) {
@@ -163,7 +165,7 @@ export class TemplateRepresentationFactory {
     return false;
   }
 
-  private static getValueByPath(path: string[], json) {
+  private static getValueByPath(path: string[], json: InstanceNode): InstanceNode | undefined {
     if (!json) {
       return null;
     }
@@ -185,7 +187,7 @@ export class TemplateRepresentationFactory {
     }
     const currentKey = path[0];
     const remainingPath = path.slice(1);
-    if (Object.prototype.hasOwnProperty.call(json, currentKey)) {
+    if (isInstanceObject(json) && Object.hasOwn(json, currentKey)) {
       const value = json[currentKey];
       if (value instanceof Array) {
         if (!value.length) {
@@ -196,6 +198,8 @@ export class TemplateRepresentationFactory {
         return this.getValueByPath(remainingPath, value);
       }
     }
+    // The path names a child this node does not have.
+    return undefined;
   }
 
   // Group RTF/image/video fields into consecutive pairs. Any pair gets combined

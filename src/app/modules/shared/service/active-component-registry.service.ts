@@ -12,6 +12,7 @@ import { HandlerContext } from '../util/handler-context';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { InstanceValueNode } from '../util/instance-value-node';
+import { InstanceNode, InstanceObject, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
 @Injectable({
   providedIn: 'root',
@@ -31,7 +32,7 @@ export class ActiveComponentRegistryService {
     return this.modelToMultiPagerUI.get(component);
   }
 
-  setVisibility(component: CedarComponent, handlerContext): void {
+  setVisibility(component: CedarComponent, handlerContext: HandlerContext): void {
     const fieldComponents = this.getFieldComponents(component);
     for (const fieldComponent of fieldComponents) {
       const dataObject = handlerContext.getDataObjectNodeByPath(fieldComponent.path);
@@ -71,7 +72,7 @@ export class ActiveComponentRegistryService {
    * value is the label, and both once read-only, where there is no
    * autocomplete and the viewer wants the IRI to link to.
    */
-  private static iriValueForWidget(node: object, component: CedarComponent, readOnlyMode: boolean): unknown {
+  private static iriValueForWidget(node: InstanceNode, component: CedarComponent, readOnlyMode: boolean): InstanceNode {
     const inputType = (component as SingleFieldComponent).basicInfo.inputType;
     const iri = InstanceValueNode.iri(node);
 
@@ -80,7 +81,7 @@ export class ActiveComponentRegistryService {
     }
     const label = InstanceValueNode.label(node);
     if (EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType) || readOnlyMode) {
-      const valueObject = {};
+      const valueObject: InstanceObject = {};
       valueObject[JsonSchema.rdfsLabel] = label;
       valueObject[JsonSchema.atId] = iri;
       return valueObject;
@@ -88,7 +89,7 @@ export class ActiveComponentRegistryService {
     return label;
   }
 
-  getFieldComponents(component): SingleFieldComponent[] {
+  getFieldComponents(component: CedarComponent): SingleFieldComponent[] {
     const fieldComponents = [] as SingleFieldComponent[];
     if (component instanceof MultiElementComponent) {
       for (const child of component.children) {
@@ -101,7 +102,7 @@ export class ActiveComponentRegistryService {
   }
   updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
     if (component instanceof SingleFieldComponent) {
-      const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
+      const dataObject: InstanceNode = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIDirective = this.getUIComponent(component);
       if (uiComponent != null && dataObject != null) {
         if (InstanceValueNode.isLiteral(dataObject)) {
@@ -113,7 +114,7 @@ export class ActiveComponentRegistryService {
         }
       }
     } else if (component instanceof MultiFieldComponent) {
-      const dataObject: object = handlerContext.getDataObjectNodeByPath(component.path);
+      const dataObject: InstanceNode = handlerContext.getDataObjectNodeByPath(component.path);
       const parentDataObject = handlerContext.getParentDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIDirective = this.getUIComponent(component);
       const multiInstanceInfo: MultiInstanceObjectInfo =
@@ -121,12 +122,12 @@ export class ActiveComponentRegistryService {
 
       // this is a multi-value but not multipage component, such as checkbox or multiselect
       if (!component.isMultiPage()) {
-        const dataArr = dataObject as Array<object>;
+        const dataArr = isInstanceArray(dataObject) ? dataObject : null;
 
         if (uiComponent && dataArr) {
           uiComponent.setCurrentValue(dataArr.map((a) => InstanceValueNode.literal(a)));
         }
-      } else if (dataObject != null) {
+      } else if (isInstanceArray(dataObject)) {
         if (dataObject[multiInstanceInfo.currentIndex] != null) {
           if (component.basicInfo.inputType === InputType.attributeValue) {
             let key = dataObject[multiInstanceInfo.currentIndex];
@@ -136,8 +137,8 @@ export class ActiveComponentRegistryService {
             } else if (multiInstanceInfo.currentIndex > 0) {
               const cloneSourceKey = dataObject[multiInstanceInfo.currentIndex - 1];
 
-              if (key === cloneSourceKey) {
-                const val = InstanceValueNode.literal(parentDataObject[cloneSourceKey]) as string;
+              if (key === cloneSourceKey && isInstanceObject(parentDataObject) && typeof key === 'string') {
+                const val = InstanceValueNode.literal(parentDataObject[key]) as string;
                 handlerContext.changeAttributeValue(component, null, val);
               }
             } else if (typeof key === 'string' && key === '') {
@@ -146,8 +147,11 @@ export class ActiveComponentRegistryService {
             }
             // This next line is actually needed, current index can change
             key = dataObject[multiInstanceInfo.currentIndex];
+            if (typeof key !== 'string' || !isInstanceObject(parentDataObject)) {
+              return;
+            }
             const value = InstanceValueNode.literal(parentDataObject[key]);
-            const obj = {};
+            const obj: InstanceObject = {};
             obj[key] = value;
 
             if (uiComponent) {

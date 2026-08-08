@@ -23,6 +23,7 @@ import { InstanceExtractData } from '../../models/instance-extract-data.model';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { Subscription } from 'rxjs';
+import { isInstanceObject } from '../../models/instance-node.model';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -44,7 +45,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   @Input() isAlignedUp: boolean;
   @Input() showAllMultiInstanceValues: boolean;
   @Input() pageBreakPaginatorService: PageBreakPaginatorService;
-  readOnlyMode;
+  readOnlyMode: boolean;
   readOnlModeSubscription: Subscription;
   userPreferencesService: UserPreferencesService;
 
@@ -108,7 +109,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
     const parentNodeInfo: InstanceExtractData = this.handlerContext.getParentDataObjectNodeByPath(this.component.path);
     const nodeInfo: InstanceExtractData = this.handlerContext.getDataObjectNodeByPath(this.component.path);
     let info = '';
-    const infoArray = [];
+    const infoArray: string[] = [];
     const inputType = (this.component as MultiFieldComponent).basicInfo.inputType;
     const iriValued = valueIsIri(inputType);
     if (nodeInfo !== null && nodeInfo !== undefined) {
@@ -136,7 +137,8 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
         if (attributeName === null && typeof fieldName !== 'object') {
           return;
         }
-        const node = attributeName !== null ? parentNodeInfo[attributeName] : fieldName;
+        const node =
+          attributeName !== null && isInstanceObject(parentNodeInfo) ? parentNodeInfo[attributeName] : fieldName;
         const shown = this.shortValue(inputType, InstanceValueNode.plainValue(node, iriValued));
         infoArray.push(numStr + (attributeName !== null ? attributeName + '=' : '') + (shown ?? 'null'));
       });

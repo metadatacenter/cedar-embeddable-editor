@@ -20,6 +20,7 @@ import { CustomDateAdapter } from '../../service/date-time/custom-date-adapter';
 import { DateTimeService } from '../../service/date-time/date-time.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { Subscription } from 'rxjs';
+import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
 @Component({
   selector: 'app-date-picker',
@@ -106,7 +107,7 @@ export class DatePickerComponent implements OnInit {
     this.dateChangedEvent.emit(this.dateMonthYear.value);
   }
 
-  chosenDateHandler(event): void {
+  chosenDateHandler(event: MatDatepickerInputEvent<Moment>): void {
     if (event) {
       this.dateChangedEvent.emit(event.value);
     }

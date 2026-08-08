@@ -4,6 +4,7 @@ import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
+import { InstanceArray, InstanceObject } from '../models/instance-node.model';
 
 export class DataObjectUtil {
   /**
@@ -21,14 +22,18 @@ export class DataObjectUtil {
    * walked the template JSON in step with the component tree it was already
    * walking, purely to re-derive things the tree had.
    */
-  static getEmptyValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode): object {
+  static getEmptyValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode): InstanceObject {
     return InstanceValueNode.emptySlotJson(
       DataObjectUtil.isIriValued(component),
       DataObjectUtil.xsdTypeFor(component, buildingMode),
     );
   }
 
-  static getSingleValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode, value: string): object {
+  static getSingleValueWrapper(
+    component: FieldComponent,
+    buildingMode: DataObjectBuildingMode,
+    value: string,
+  ): InstanceObject {
     // A controlled term's default is not a literal, so it gets no `@value` — and
     // no `@type` either, since only numeric and temporal fields have one.
     if (component?.basicInfo?.inputType === InputType.controlled) {
@@ -41,8 +46,8 @@ export class DataObjectUtil {
     component: FieldComponent,
     buildingMode: DataObjectBuildingMode,
     values: string[],
-  ): object {
-    const obj = [];
+  ): InstanceArray {
+    const obj: InstanceArray = [];
     if (component?.basicInfo?.inputType !== InputType.controlled) {
       for (const value of values) {
         // No XSD type on the elements, deliberately: see below.
@@ -56,7 +61,7 @@ export class DataObjectUtil {
       // removing it and kept because adding the type to the elements are both
       // behaviour changes to what a multi numeric field stores, and this commit
       // is a refactor. Worth revisiting on its own.
-      this.injectAtTypeIfAvailable(obj, component);
+      this.injectAtTypeIfAvailable(obj as unknown as InstanceObject, component);
     }
     return obj;
   }
@@ -76,11 +81,11 @@ export class DataObjectUtil {
     );
   }
 
-  static getEmptyObject(): object {
+  static getEmptyObject(): InstanceObject {
     return {};
   }
 
-  static getEmptyList(): [] {
+  static getEmptyList(): InstanceArray {
     return [];
   }
 
@@ -113,7 +118,7 @@ export class DataObjectUtil {
   }
 
   /** A numeric or temporal value declares its XSD type alongside itself. */
-  private static injectAtTypeIfAvailable(obj: object, component: FieldComponent): void {
+  private static injectAtTypeIfAvailable(obj: InstanceObject, component: FieldComponent): void {
     const xsdType = DataObjectUtil.xsdTypeForFullCopy(component);
     if (xsdType != null) {
       obj[JsonSchema.atType] = xsdType;
@@ -130,7 +135,7 @@ export class DataObjectUtil {
     });
   }
 
-  static arraysEqual(arr1, arr2): boolean {
+  static arraysEqual(arr1: unknown[], arr2: unknown[]): boolean {
     // if the other array is a falsy value, return
     if (!arr2) {
       return false;
@@ -145,7 +150,7 @@ export class DataObjectUtil {
       // Check if we have nested arrays
       if (arr1[i] instanceof Array && arr2[i] instanceof Array) {
         // recurse into the nested arrays
-        if (!arr1[i].equals(arr2[i])) {
+        if (!DataObjectUtil.arraysEqual(arr1[i] as unknown[], arr2[i] as unknown[])) {
           return false;
         }
       } else if (arr1[i] !== arr2[i]) {

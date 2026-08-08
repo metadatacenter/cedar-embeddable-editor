@@ -1,6 +1,12 @@
+import { InstanceObject } from '../instance-node.model';
 export class ValueInfo {
   requiredValue: boolean;
-  defaultValue: string;
+  /**
+   * A field's declared default. A literal field's is text; a controlled, ORCID or
+   * ROR field's is the term node itself, carrying `@id` and `rdfs:label`. It was
+   * declared `string` while three components indexed it as an object.
+   */
+  defaultValue: string | InstanceObject;
   minLength: number;
   maxLength: number;
   temporalType: string;

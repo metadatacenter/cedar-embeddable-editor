@@ -95,12 +95,12 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  dateInputChanged(event): void {
+  dateInputChanged(event: Moment): void {
     this.datetimeParsed.setDate(event);
     this.writeValue();
   }
 
-  timeInputChanged(_event): void {
+  timeInputChanged(_event: unknown): void {
     this.datetimeParsed.setHours(this.timePickerTime.getHours());
     this.datetimeParsed.setAMPM(this.enableMeridian());
 
@@ -114,12 +114,12 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.writeValue();
   }
 
-  decimalSecondsChanged(_event): void {
+  decimalSecondsChanged(_event: unknown): void {
     this.datetimeParsed.setDecimalSeconds(this.decimalSeconds);
     this.writeValue();
   }
 
-  timezoneInputChanged(event): void {
+  timezoneInputChanged(event: TZone): void {
     if (event != null) {
       this.datetimeParsed.setTimezone(event);
       this.writeValue();
@@ -385,12 +385,12 @@ export class DatetimeRepresentation {
     return that;
   }
 
-  static regexIndexOf(text, re, i): number {
+  static regexIndexOf(text: string, re: RegExp, i: number): number {
     const indexInSuffix = text.slice(i).search(re);
     return indexInSuffix < 0 ? indexInSuffix : indexInSuffix + i;
   }
 
-  static indexOfEnd(sourceStr, matchStr): number {
+  static indexOfEnd(sourceStr: string, matchStr: string): number {
     const io = sourceStr.indexOf(matchStr);
     return io === -1 ? -1 : io + matchStr.length;
   }

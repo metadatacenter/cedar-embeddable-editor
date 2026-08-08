@@ -56,6 +56,7 @@
      * cannot move it again without someone deciding to.
      */
     "strict": false,
+    "noImplicitAny": true,
     "module": "es2022",
     "lib": [
       "es2022",

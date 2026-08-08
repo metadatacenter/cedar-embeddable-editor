@@ -31,6 +31,9 @@ import { Overlay, OverlayContainer, OverlayPositionBuilder } from '@angular/cdk/
 import { CedarOverlayContainer } from '../../service/cedar-overlay-container.service';
 import { AriaDescriber } from '@angular/cdk/a11y';
 import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
+import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
+import { CeeConfig, configFlag, configText } from '../../util/config-reader';
+import { InstanceObject } from '../../models/instance-node.model';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -71,18 +74,18 @@ import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, OnDestroy {
-  innerConfig: object = null;
+  innerConfig: CeeConfig = null;
   private initialized = false;
   private configSet = false;
 
-  templateJson: object = null;
-  instanceJson: object = null;
+  templateJson: InstanceObject = null;
+  instanceJson: InstanceObject = null;
   templateAndInstanceJson: object = null;
-  sampleTemplateLoaderObject = null;
+  sampleTemplateLoaderObject: SampleTemplateLoaderOwner = null;
   showSpinnerBeforeInit = true;
   protected onDestroySubject = new Subject<void>();
-  private loadedTemplateJson: object = null;
-  private loadedMetadata: object = null;
+  private loadedTemplateJson: InstanceObject = null;
+  private loadedMetadata: InstanceObject = null;
 
   readonly dataContext: DataContext = null;
   readonly handlerContext: HandlerContext = null;
@@ -134,10 +137,13 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     );
 
     metadataAndTemplate.subscribe((values) => {
-      let { templateJson, metadataJson } = values;
-      if (templateJson && metadataJson) {
-        templateJson = Object.values(templateJson)[0];
-        metadataJson = Object.values(metadataJson)[0];
+      const { templateJson: templateByNum, metadataJson: metadataByNum } = values;
+      if (templateByNum && metadataByNum) {
+        // Separate bindings rather than reassigning the same two: what arrives is a
+        // `{ templateNum: artifact }` map, and what is wanted is the artifact inside
+        // it. The old code put both through one name and the types disagreed.
+        const templateJson = Object.values(templateByNum)[0];
+        const metadataJson = Object.values(metadataByNum)[0];
         if (templateJson && metadataJson) {
           this.loadedTemplateJson = templateJson;
           this.loadedMetadata = metadataJson;
@@ -210,11 +216,11 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     );
   }
 
-  @Input() set templateObject(template: object) {
+  @Input() set templateObject(template: InstanceObject) {
     this.templateJson = template;
   }
 
-  @Input() set instanceObject(instance: object) {
+  @Input() set instanceObject(instance: InstanceObject) {
     this.instanceJson = instance;
   }
 
@@ -230,7 +236,11 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   // TODO: revisit if this method is needed. The CEE should be agnostic of the environment, should expect the config to be injected
-  @Input() loadConfigFromURL(jsonURL, successHandler = null, errorHandler = null): void {
+  @Input() loadConfigFromURL(
+    jsonURL: string,
+    successHandler: ((config: unknown) => void) | null = null,
+    errorHandler: ((request: XMLHttpRequest) => void) | null = null,
+  ): void {
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = () => {
       if (xhr.readyState === XMLHttpRequest.DONE) {
@@ -287,7 +297,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.activeComponentRegistry.clear();
   }
 
-  @Input() set config(value: object) {
+  @Input() set config(value: CeeConfig) {
     this.messageHandlerService.trace('CEDAR Embeddable Editor config set to:' + JSON.stringify(value));
 
     if (value != null) {
@@ -305,24 +315,39 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     if (this.initialized && this.configSet) {
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
         this.sampleTemplateService.loadTemplate(
-          this.innerConfig[CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX],
-          this.innerConfig[CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME],
+          configText(this.innerConfig, CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX, ''),
+          configText(this.innerConfig, CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME, ''),
         );
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
-        const integratedSearchUrl =
-          this.innerConfig[CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL];
+        const integratedSearchUrl = configText(
+          this.innerConfig,
+          CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL,
+          '',
+        );
         this.controlledFieldDataService.setTerminologyIntegratedSearchUrl(integratedSearchUrl);
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT)) {
-        this.showSpinnerBeforeInit = this.innerConfig[CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT];
+        this.showSpinnerBeforeInit = configFlag(
+          this.innerConfig,
+          CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT,
+          this.showSpinnerBeforeInit,
+        );
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX)) {
-        const languageMapPathPrefix = this.innerConfig[CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX];
+        const languageMapPathPrefix = configText(
+          this.innerConfig,
+          CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX,
+          '',
+        );
         this.globalSettingsContextService.languageMapPathPrefix = languageMapPathPrefix;
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE)) {
-        this.fallbackLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE];
+        this.fallbackLanguage = configText(
+          this.innerConfig,
+          CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE,
+          this.fallbackLanguage,
+        );
       } else {
         this.messagingService.traceGroup(
           'language',
@@ -330,7 +355,11 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         );
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE)) {
-        this.defaultLanguage = this.innerConfig[CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE];
+        this.defaultLanguage = configText(
+          this.innerConfig,
+          CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE,
+          this.defaultLanguage,
+        );
       } else {
         this.messagingService.traceGroup(
           'language',
@@ -338,14 +367,18 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         );
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
-        const mode = this.innerConfig[CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE];
+        const mode = configFlag(this.innerConfig, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE, false);
         if (mode) {
           this.handlerContext.enableReadOnlyMode();
         }
       }
       if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS)) {
         // Hiding empty fields is only allowed in ReadOnly Mode
-        const hideEmptyFields: boolean = this.innerConfig[CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS];
+        const hideEmptyFields = configFlag(
+          this.innerConfig,
+          CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS,
+          false,
+        );
         if (this.handlerContext.readOnlyMode && hideEmptyFields) {
           this.handlerContext.enableEmptyFieldHiding();
         }

@@ -13,11 +13,13 @@ import { DataObjectBuilderHandler } from '../handler/data-object-builder.handler
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { PageBreakPaginatorService } from '../service/page-break-paginator.service';
 import { DataQualityReport } from '../models/data-quality-report.model';
+import { InstanceObject } from '../models/instance-node.model';
 
 export class DataContext {
   templateInput: CedarInputTemplate = null;
   templateRepresentation: TemplateComponent = null;
-  instanceFullData: InstanceFullData = null;
+  /** The instance root, which is a JSON-LD document and so always an object. */
+  instanceFullData: InstanceObject = null;
   multiInstanceData: MultiInstanceInfo = null;
   dataQualityReport: DataQualityReport = null;
   savedTemplateID: string;

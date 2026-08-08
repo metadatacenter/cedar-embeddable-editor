@@ -42,8 +42,9 @@
            (dateChange)="chosenDateHandler($event)"
            attr.aria-label="{{'Generic.SelectDate' | translate}}">
     <mat-datepicker-toggle *ngIf="!readOnlyMode" matSuffix [for]="dp"></mat-datepicker-toggle>
-    <mat-datepicker #dp
-                    (opened)="chosenDateHandler($event)"
-    ></mat-datepicker>
+    <!-- `(dateChange)` above is what carries the chosen date. `(opened)` emits
+         nothing, so binding the same handler to it passed `undefined` and the body
+         never ran; removed rather than left looking live. -->
+    <mat-datepicker #dp></mat-datepicker>
   </mat-form-field>
 </ng-container>

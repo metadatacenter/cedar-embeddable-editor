@@ -2,6 +2,7 @@ import { CedarComponent } from '../component/cedar-component.model';
 import { ElementComponent } from '../component/element-component.model';
 import { LabelInfo } from '../info/label-info.model';
 import { StaticFieldComponent } from '../static/static-field-component.model';
+import { InstanceObject } from '../instance-node.model';
 
 export abstract class AbstractElementComponent implements ElementComponent {
   className = 'AbstractElementComponent';
@@ -30,7 +31,12 @@ export abstract class AbstractElementComponent implements ElementComponent {
    * meant the builder walked the template JSON alongside the component tree it
    * was already walking.
    */
-  contextEntries: Record<string, unknown> = {};
+  /**
+   * The `@context` entries this element contributes, copied straight into an
+   * instance — so its values are instance nodes, not `unknown`. Saying so here is
+   * what lets the builder write them in without a cast.
+   */
+  contextEntries: InstanceObject = {};
 
   getChildByName(childName: string): CedarComponent {
     for (const child of this.children) {
