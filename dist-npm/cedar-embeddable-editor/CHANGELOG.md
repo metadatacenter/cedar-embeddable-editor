@@ -20,6 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cannot: a JavaScript host, and `loadConfigFromURL`. Reporting only — a key CEE cannot
   use is ignored as it always was.
 
+### Removed
+
+- `BrowserAnimationsModule`, and with it the `@angular/animations` dependency. Angular
+  deprecated the module at 20.2 and intends to remove it at 23. CEE declares no
+  animation of its own, and Material 22 animates in CSS without that package, so
+  nothing changes visually — 64,099 bytes leave the bundle.
+
 ### Fixed
 
 - Timezone data is current. `moment-timezone` was pinned to a release carrying tzdb

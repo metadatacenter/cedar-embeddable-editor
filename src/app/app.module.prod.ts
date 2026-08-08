@@ -1,5 +1,4 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DoBootstrap, Injector, NgModule } from '@angular/core';
 import { createCustomElement } from '@angular/elements';
 import { HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
@@ -21,7 +20,6 @@ import { defineCustomElementOnce } from './custom-element';
   exports: [],
   imports: [
     BrowserModule,
-    BrowserAnimationsModule,
     SharedModule,
     TranslateModule.forRoot({
       loader: {
