@@ -108,7 +108,9 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
           if (isSame) {
             this.loadingOptions = false;
             this.cdr.markForCheck();
-            return of([this.selectedData]);
+            // `[this.selectedData]` only when there is one; `isSame` above already
+            // required it, which the compiler cannot see through the `&&`.
+            return of(this.selectedData === null ? [] : [this.selectedData]);
           }
           this.lookupFailed = false;
           return this.filter(val || '').pipe(
@@ -174,7 +176,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
       );
     }
   }
-  private updateValue(atId: string, prefLabel: string): void {
+  private updateValue(atId: string | null, prefLabel: string | null): void {
     if (!prefLabel) {
       return;
     }
@@ -226,7 +228,9 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
       this.clearValue(true);
       return;
     }
-    this.setCurrentValue(this.selectedData);
+    if (this.selectedData !== null) {
+      this.setCurrentValue(this.selectedData);
+    }
   }
   setCurrentValue(item: OrcidSearchResponseItem): void {
     const display = this.getCompoundValue(item);
@@ -262,7 +266,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     }
     const selectedId = this.selectedData[JsonSchema.atId] as string;
     if (this.researcherDetailsCache.has(selectedId)) {
-      this.researcherDetails = this.researcherDetailsCache.get(selectedId);
+      this.researcherDetails = this.researcherDetailsCache.get(selectedId) ?? null;
       return;
     }
     this.loadingDetails = true;
@@ -278,7 +282,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
           return of(null as never);
         }),
       )
-      .subscribe((response: ResearcherDetails) => {
+      .subscribe((response: ResearcherDetails | null) => {
         if (response && response.found) {
           this.researcherDetails = ResearcherDetails.fromJson(response);
           this.researcherDetailsCache.set(selectedId, this.researcherDetails);

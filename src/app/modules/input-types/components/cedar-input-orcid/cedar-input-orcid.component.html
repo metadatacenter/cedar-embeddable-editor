@@ -44,7 +44,7 @@
     </mat-form-field>
   </ng-container>
   <ng-container *ngIf="showDetails===true">
-    <app-orcid-details *ngIf="showDetails" [researcher]="researcherDetails" [close]="setShowDetails"> </app-orcid-details>
+    <app-orcid-details *ngIf="showDetails && researcherDetails" [researcher]="researcherDetails" [close]="setShowDetails"> </app-orcid-details>
   </ng-container>
 </form>
 

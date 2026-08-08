@@ -37,7 +37,8 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   static readonly MAX_CHARACTERS_MULTI_VALUE = 30;
 
   component: MultiComponent;
-  currentMultiInfo: MultiInstanceObjectInfo;
+  /** Null until the component is set, and for a component the info tree has no node for. */
+  currentMultiInfo: MultiInstanceObjectInfo | null;
   activeComponentRegistry: ActiveComponentRegistryService;
   translateService: TranslateService;
   messageHandlerService: MessageHandlerService;
@@ -110,8 +111,10 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
     const nodeInfo: InstanceExtractData = this.handlerContext.getDataObjectNodeByPath(this.component.path);
     let info = '';
     const infoArray: string[] = [];
-    const inputType = (this.component as MultiFieldComponent).basicInfo.inputType;
-    const iriValued = valueIsIri(inputType);
+    // `?? ''` so a field with no declared input type is simply not IRI-valued,
+    // which is what it was before the type said the declaration can be absent.
+    const inputType = (this.component as MultiFieldComponent).basicInfo.inputType ?? '';
+    const iriValued = valueIsIri(inputType as InputType);
     if (nodeInfo !== null && nodeInfo !== undefined) {
       // `unknown[]`, not `any[]`: an occurrence is either the value node itself or,
       // for attribute-value fields, the *name* under which the parent holds it. The
@@ -121,7 +124,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
         const numStr =
           '<span class="multiinfo-index' +
           (index > 0 ? ' not-first-multiinfo-index' : '') +
-          (index === this.currentMultiInfo.currentIndex ? ' current-multiinfo-index' : '') +
+          (index === this.currentMultiInfo?.currentIndex ? ' current-multiinfo-index' : '') +
           '">' +
           (index + 1) +
           '</span> ';
@@ -160,7 +163,12 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
     this.activeComponentRegistry.registerMultiPagerComponent(this.component, this);
   }
 
-  private shortValue(inputType: string, value: string): string {
+  /*
+   * Null passes straight through, and that matters: the caller turns it into the
+   * literal "null" that the pager shows for an unfilled occurrence. Folding it to
+   * an empty string here made that fallback unreachable, and `pager-labels` said so.
+   */
+  private shortValue(inputType: string, value: string | null): string | null {
     let val = value;
 
     if (
@@ -236,12 +244,14 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   private computeFirstIndex(): void {
-    this.pageIndex = Math.floor(this.currentMultiInfo.currentIndex / this.pageSize);
+    // Page zero with no info node: the pager has nothing to page through, which is
+    // the same position it starts in.
+    this.pageIndex = Math.floor((this.currentMultiInfo?.currentIndex ?? 0) / this.pageSize);
     this.firstIndex = this.pageIndex * this.pageSize;
   }
 
   private computeLastIndex(): void {
-    this.length = this.currentMultiInfo.currentCount;
+    this.length = this.currentMultiInfo?.currentCount ?? 0;
     if (this.length > 0) {
       this.lastIndex = this.firstIndex + this.pageSize - 1;
       if (this.lastIndex > this.length - 1) {
@@ -262,7 +272,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
     // };
     // this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
     // nothing has changed, the same page number is clicked
-    if (chipIdx === this.currentMultiInfo.currentIndex) {
+    if (chipIdx === (this.currentMultiInfo?.currentIndex ?? 0)) {
       return;
     }
     this.handlerContext.setCurrentIndex(this.component, chipIdx);
@@ -304,7 +314,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
       this.emitEvent(event, 'multiInstanceDeleted');
     });
 
-    if (this.currentMultiInfo.currentCount > 0) {
+    if ((this.currentMultiInfo?.currentCount ?? 0) > 0) {
       setTimeout(() => {
         this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
       });
@@ -312,11 +322,11 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   isEnabledDelete(): boolean {
-    if (this.currentMultiInfo.currentCount === 0) {
+    if ((this.currentMultiInfo?.currentCount ?? 0) === 0) {
       return false;
     }
     if (this.component.multiInfo.minItems != null) {
-      if (this.currentMultiInfo.currentCount <= this.component.multiInfo.minItems) {
+      if ((this.currentMultiInfo?.currentCount ?? 0) <= this.component.multiInfo.minItems) {
         return false;
       }
     }
@@ -324,7 +334,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   isEnabledCopy(): boolean {
-    if (this.currentMultiInfo.currentCount === 0) {
+    if ((this.currentMultiInfo?.currentCount ?? 0) === 0) {
       return false;
     }
     return this.isEnabledAdd();
@@ -335,7 +345,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
     // guarded on minItems, so a field declaring an upper bound without a lower
     // one never disabled the add button and the bound went unenforced.
     if (this.component.multiInfo.maxItems != null) {
-      if (this.currentMultiInfo.currentCount >= this.component.multiInfo.maxItems) {
+      if ((this.currentMultiInfo?.currentCount ?? 0) >= this.component.multiInfo.maxItems) {
         return false;
       }
     }
@@ -347,11 +357,11 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   hasMultiInstances(): boolean {
-    return this.currentMultiInfo.currentCount > 0;
+    return (this.currentMultiInfo?.currentCount ?? 0) > 0;
   }
 
   getInstanceCount(): number {
-    return this.currentMultiInfo.currentCount;
+    return this.currentMultiInfo?.currentCount ?? 0;
   }
 
   private emitEvent(event: MouseEvent, message: string) {
@@ -360,6 +370,6 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
       bubbles: true,
       cancelable: true,
     });
-    event.target.dispatchEvent(myEvent);
+    event.target?.dispatchEvent(myEvent);
   }
 }

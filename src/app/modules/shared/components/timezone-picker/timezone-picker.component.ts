@@ -24,7 +24,8 @@ export class TZone {
 
 export interface SelectConfig {
   appearance: 'underline' | 'outline';
-  appendTo: string;
+  /** The selector to attach the dropdown to, or null to leave it in place. */
+  appendTo: string | null;
   clearOnBackspace: boolean;
   closeOnSelect: boolean;
   dropdownPosition: 'auto' | 'bottom' | 'top';
@@ -136,15 +137,15 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     this.userPreferencesService = userPreferenceService;
   }
 
-  static guessedUserZone(): TZone {
+  static guessedUserZone(): TZone | null {
     const guessedZone = momentZone.tz.guess(true);
     return TimezonePickerComponent.findZone(guessedZone);
   }
 
-  static findZone(zone: string): TZone {
+  static findZone(zone: string): TZone | null {
     const allZones: TZone[] = JSON.parse(JSON.stringify(TimezonePickerComponent.AVAILABLE_TIMEZONES));
     const utc: string = momentZone.tz(zone).format('Z');
-    return allZones.find((z) => z.id === utc);
+    return allZones.find((z) => z.id === utc) ?? null;
   }
 
   ngOnInit(): void {
@@ -160,15 +161,13 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     /**
      * Value change subscription.
      */
-    this.form
-      .get('timezone')
+    requireControl(this.form, 'timezone')
       .valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe(() => this.fireChanges());
   }
 
   ngAfterViewInit(): void {
-    this.form
-      .get('timezone')
+    requireControl(this.form, 'timezone')
       .valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.fireChanges();
@@ -256,9 +255,9 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
       let _zone: TZone | null = null;
 
       if (typeof zone === 'string' && zone.length > 0) {
-        _zone = this.timeZones.find((z) => z.id === zone);
+        _zone = this.timeZones.find((z) => z.id === zone) ?? null;
       } else if (typeof zone === 'object') {
-        _zone = this.timeZones.find((z) => z.id === zone.id);
+        _zone = this.timeZones.find((z) => z.id === zone.id) ?? null;
       }
 
       if (_zone) {

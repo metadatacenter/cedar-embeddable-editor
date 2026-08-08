@@ -43,6 +43,6 @@
     </mat-form-field>
   </ng-container>
   <ng-container *ngIf="showDetails===true">
-    <app-ror-details *ngIf="showDetails" [rorDetail]="rorDetails" [close]="setShowDetails"> </app-ror-details>
+    <app-ror-details *ngIf="showDetails && rorDetails" [rorDetail]="rorDetails" [close]="setShowDetails"> </app-ror-details>
   </ng-container>
 </form>

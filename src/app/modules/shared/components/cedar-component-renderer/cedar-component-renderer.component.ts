@@ -26,9 +26,9 @@ export class CedarComponentRendererComponent {
   protected readonly InputType = InputType;
 
   private component: CedarComponent;
-  iterableComponent: ElementComponent;
-  nonIterableComponent: FieldComponent;
-  iterableAsMultiComponent: MultiComponent;
+  iterableComponent: ElementComponent | null = null;
+  nonIterableComponent: FieldComponent | null = null;
+  iterableAsMultiComponent: MultiComponent | null = null;
   staticComponent: StaticFieldComponent;
   multiInfo: MultiInfo;
   panelOpenState: boolean;

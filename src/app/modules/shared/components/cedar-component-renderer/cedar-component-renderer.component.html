@@ -12,7 +12,7 @@
           ></app-cedar-component-linked-static-field-header>
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <app-cedar-multi-pager *ngIf="iterableComponent.isMulti()"
+      <app-cedar-multi-pager *ngIf="iterableComponent.isMulti() && iterableAsMultiComponent"
                              [componentToRender]="iterableAsMultiComponent"
                              [handlerContext]="handlerContext"
                              [isAlignedUp]=true

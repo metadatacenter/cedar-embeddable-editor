@@ -113,7 +113,8 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
           if (isSame) {
             this.loadingOptions = false;
             this.hasSearched = true;
-            return of([this.selectedData]);
+            // See the ORCID field: `isSame` already required a selection.
+            return of(this.selectedData === null ? [] : [this.selectedData]);
           }
 
           this.loadingOptions = true;
@@ -271,7 +272,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
       );
     }
   }
-  private updateValue(atId: string, prefLabel: string): void {
+  private updateValue(atId: string | null, prefLabel: string | null): void {
     if (!prefLabel) {
       return;
     }

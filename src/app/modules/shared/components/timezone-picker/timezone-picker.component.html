@@ -6,6 +6,9 @@
 <!--           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">-->
   </ng-container>
   <ng-container *ngIf="!readOnlyMode">
+    <!-- `[appendTo]` gets `?? ''` because ng-select declares it `string` and tests
+         it for truthiness, so an empty string and CEE's null default mean the same
+         thing to it: leave the dropdown where it is. -->
     <ng-select formControlName="timezone"
                [items]="timeZones"
                [clearable]="clearable"
@@ -14,7 +17,7 @@
                [placeholder]="customPlaceholderText"
                [notFoundText]="customNotFoundText"
                [appearance]="config.appearance"
-               [appendTo]="config.appendTo"
+               [appendTo]="config.appendTo ?? ''"
                [clearOnBackspace]="config.clearOnBackspace"
                [closeOnSelect]="config.closeOnSelect"
                [dropdownPosition]="config.dropdownPosition"
