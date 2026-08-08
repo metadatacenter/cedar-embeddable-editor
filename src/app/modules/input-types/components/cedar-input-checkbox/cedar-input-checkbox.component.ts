@@ -64,7 +64,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     this.setInput(event.target.checked, event.target.value);
   }
 
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(currentValue: unknown): void {
     const arrVal = currentValue as Array<string>;
 
     for (const choice of this.component.choiceInfo.choices) {

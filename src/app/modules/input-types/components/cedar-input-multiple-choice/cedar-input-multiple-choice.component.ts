@@ -79,7 +79,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
     this.handlerContext.changeValue(this.component, value);
   }
 
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(currentValue: unknown): void {
     this.selectedChoiceInputControl.setValue(currentValue);
     this.selected = currentValue;
   }

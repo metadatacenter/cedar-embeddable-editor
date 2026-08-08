@@ -52,19 +52,11 @@
     {
       "files": [
         "src/app/modules/input-types/components/cedar-foo-bar/cedar-foo-bar.component.ts",
-        "src/app/modules/input-types/components/cedar-input-attribute-value/cedar-input-attribute-value.component.ts",
-        "src/app/modules/input-types/components/cedar-input-checkbox/cedar-input-checkbox.component.ts",
         "src/app/modules/input-types/components/cedar-input-controlled/cedar-input-controlled.component.ts",
         "src/app/modules/input-types/components/cedar-input-datetime/cedar-input-datetime.component.ts",
-        "src/app/modules/input-types/components/cedar-input-email/cedar-input-email.component.ts",
-        "src/app/modules/input-types/components/cedar-input-link/cedar-input-link.component.ts",
-        "src/app/modules/input-types/components/cedar-input-multiple-choice/cedar-input-multiple-choice.component.ts",
-        "src/app/modules/input-types/components/cedar-input-numeric/cedar-input-numeric.component.ts",
-        "src/app/modules/input-types/components/cedar-input-phone/cedar-input-phone.component.ts",
         "src/app/modules/input-types/components/cedar-input-ror/cedar-input-ror.component.ts",
         "src/app/modules/input-types/components/cedar-input-ror/ror-details/ror-details.component.ts",
         "src/app/modules/input-types/components/cedar-input-select/cedar-input-select.component.ts",
-        "src/app/modules/input-types/components/cedar-input-text/cedar-input-text.component.ts",
         "src/app/modules/input-types/components/cedar-static-image/cedar-static-image.component.ts",
         "src/app/modules/input-types/components/cedar-static-rich-text/cedar-static-rich-text.component.ts",
         "src/app/modules/input-types/components/cedar-static-section-break/cedar-static-section-break.component.ts",
@@ -78,17 +70,6 @@
         "src/app/modules/shared/components/static-header/static-header.component.ts",
         "src/app/modules/shared/components/timezone-picker/timezone-picker.component.ts",
         "src/app/modules/shared/factory/yaml-template-parser.ts",
-        "src/app/modules/shared/handler/data-object-builder.handler.ts",
-        "src/app/modules/shared/handler/multi-instance-object.handler.ts",
-
-
-
-
-
-
-
-
-        "src/app/modules/shared/models/ui/cedar-ui-component.model.ts",
         "src/app/modules/shared/util/fallback-translate-loader-factory.ts",
         "src/app/modules/shared/util/fallback-translate-loader.ts",
         "src/main.ts"

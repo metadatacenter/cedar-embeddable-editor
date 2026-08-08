@@ -10,7 +10,16 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
   protected readonly cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
   private readonly componentRegistry = inject(ActiveComponentRegistryService);
   abstract component: CedarComponent;
-  abstract setCurrentValue(currentValue: any): void;
+  /**
+   * The value the field should now show, as it sits in the instance.
+   *
+   * `unknown` rather than `any` because it genuinely varies by field: a string for
+   * text, link, phone and email; `string[]` for checkbox; an object for
+   * attribute-value and controlled terms. There is no one type, and pretending
+   * otherwise with `any` meant every implementation silently opted out of checking.
+   * Each narrows what it expects instead — several already did.
+   */
+  abstract setCurrentValue(currentValue: unknown): void;
 
   readOnlyMode = false;
 

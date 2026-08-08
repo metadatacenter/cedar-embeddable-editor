@@ -87,7 +87,7 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
     this.handlerContext.changeValue(this.component, val);
   }
 
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(currentValue: unknown): void {
     this.inputValueControl.setValue(currentValue);
   }
 

@@ -53,7 +53,7 @@ export class DataObjectBuilderHandler {
             this.buildRecursively(childComponent, dummyTargetObject, buildingMode);
           }
           for (let idx = 0; idx < multiElement.multiInfo.minItems; idx++) {
-            const clone = _.cloneDeep(dummyTargetObject as any);
+            const clone = _.cloneDeep(dummyTargetObject);
             dataObject[targetName].push(clone);
           }
         }

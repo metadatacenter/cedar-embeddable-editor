@@ -105,17 +105,21 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     this.handlerContext.changeValue(this.component, val);
   }
 
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(currentValue: unknown): void {
     if (this.readOnlyMode) {
       this.checkHTMLContent(currentValue);
+      // Both checks match an IRI, so the value is a string inside either branch —
+      // stated once per branch instead of casting twice for the same fact.
       if (this.checkOrcid(currentValue)) {
+        const iri = currentValue as string;
         this.isOrcid = true;
-        this.originalValue = currentValue as string;
-        currentValue = currentValue.split('/').pop();
+        this.originalValue = iri;
+        currentValue = iri.split('/').pop();
       } else if (this.checkRor(currentValue)) {
+        const iri = currentValue as string;
         this.isRor = true;
-        this.originalValue = currentValue as string;
-        currentValue = currentValue.split('/').pop();
+        this.originalValue = iri;
+        currentValue = iri.split('/').pop();
       }
     }
     this.inputValueControl.setValue(currentValue);

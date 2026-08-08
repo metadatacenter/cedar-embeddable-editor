@@ -63,7 +63,7 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
     this.handlerContext.changeAttributeValue(this.component, name, value);
   }
 
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(currentValue: unknown): void {
     this.nameInputControl.setValue(Object.keys(currentValue)[0]);
     this.valueInputControl.setValue(Object.values(currentValue)[0]);
   }

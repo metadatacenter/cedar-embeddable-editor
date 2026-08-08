@@ -79,7 +79,7 @@ export class CedarInputEmailComponent extends CedarUIDirective implements OnInit
     this.handlerContext.changeValue(this.component, val);
   }
 
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(currentValue: unknown): void {
     this.inputValueControl.setValue(currentValue);
   }
 

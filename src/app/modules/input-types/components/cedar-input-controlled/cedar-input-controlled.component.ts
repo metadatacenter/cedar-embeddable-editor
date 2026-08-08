@@ -161,7 +161,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   //     setTimeout(() => this.trigger.openPanel(), 0);
   //   }
   // }
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(currentValue: unknown): void {
     if (this.readOnlyMode) {
       const displayTerm = this.getBioPortalTermDisplayValue(currentValue);
       this.inputValueControl.setValue(displayTerm);

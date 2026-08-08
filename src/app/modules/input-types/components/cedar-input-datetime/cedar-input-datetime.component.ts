@@ -179,7 +179,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.handlerContext.changeValue(this.component, stored);
   }
 
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(currentValue: unknown): void {
     this.revalidate(currentValue as string);
     if (currentValue) {
       this.datetimeParsed = DatetimeRepresentation.fromStorageRepresentation(

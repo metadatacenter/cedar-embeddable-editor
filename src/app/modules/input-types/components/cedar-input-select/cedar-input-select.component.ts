@@ -92,7 +92,7 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     }
   }
 
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(currentValue: unknown): void {
     this.inputValueControl.setValue(currentValue);
   }
 

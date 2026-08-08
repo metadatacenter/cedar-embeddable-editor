@@ -227,7 +227,7 @@ export class MultiInstanceObjectHandler {
     if (component instanceof MultiElementComponent) {
       const currentIdx = multiInstanceInfo.currentIndex;
       const sourceItem = multiInstanceInfo.children[currentIdx];
-      const cloneItem = _.cloneDeep(sourceItem as any);
+      const cloneItem = _.cloneDeep(sourceItem);
       multiInstanceInfo.children.splice(currentIdx + 1, 0, cloneItem as never);
     }
     multiInstanceInfo.currentIndex++;
