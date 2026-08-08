@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   InstanceDataAtomType,
   InstanceDataControlledAtom,
@@ -38,7 +37,6 @@ export class InstanceValueNode {
    * of an instance strips them.
    */
   static isValue(node: unknown): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return JsonTemplateInstanceReader.isValueNode(node as any);
   }
 
@@ -116,7 +114,6 @@ export class InstanceValueNode {
    * reported as unfilled and could not satisfy a requirement.
    */
   static plainValue(node: unknown, iriValued: boolean): any {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const atom = JsonTemplateInstanceReader.readValueNode(node as any);
 
     if (atom instanceof InstanceDataStringAtom || atom instanceof InstanceDataTypedAtom) {
@@ -131,7 +128,6 @@ export class InstanceValueNode {
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   /**
    * The JSON a literal value is stored as.
    *

@@ -100,9 +100,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   private value: Date | null = null;
   private readOnlyModeSubscription: Subscription;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   private onChange: (value: Date) => void = () => {};
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   private onTouched: () => void = () => {};
 
   constructor(private userPreferencesService: UserPreferencesService) {}

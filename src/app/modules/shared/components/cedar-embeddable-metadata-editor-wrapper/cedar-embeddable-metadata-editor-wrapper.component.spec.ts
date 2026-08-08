@@ -104,7 +104,6 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       { setTerminologyIntegratedSearchUrl: mocks.setTerminologyIntegratedSearchUrl } as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messaging as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       {
         templateJson$: mocks.templateJson$,
         metadataJson$: mocks.metadataJson$,

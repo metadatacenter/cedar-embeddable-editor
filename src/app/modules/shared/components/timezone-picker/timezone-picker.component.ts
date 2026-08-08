@@ -225,7 +225,12 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     }
     if (changes.disabled) {
       setTimeout(() => {
-        changes.disabled.currentValue ? this.form.get('timezone').disable() : this.form.get('timezone').enable();
+        const timezone = this.form.get('timezone');
+        if (changes.disabled.currentValue) {
+          timezone.disable();
+        } else {
+          timezone.enable();
+        }
       });
     }
   }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CedarReaders, CedarWriters, TemplateInstance } from 'cedar-model-typescript-library';
 import { InstanceFullData } from '../models/instance-full-data.model';
 

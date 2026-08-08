@@ -24,7 +24,6 @@ import { TemplateParser } from './template-parser';
  */
 export class YamlTemplateParser implements TemplateParser {
   parse(templateYaml: object, template: CedarTemplate, _handlerContext: HandlerContext): void {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = CedarReaders.yaml()
       .getStrict()
       .getTemplateReader()
