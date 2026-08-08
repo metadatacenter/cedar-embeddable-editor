@@ -5,7 +5,8 @@ export interface CedarComponent {
   className: string;
   name: string;
   path: string[];
-  linkedStaticFieldComponent: StaticFieldComponent;
+  /** The static field a component is paired with, or null when it has none — most do not. */
+  linkedStaticFieldComponent: StaticFieldComponent | null;
   hidden?: boolean;
 
   labelInfo: LabelInfo;

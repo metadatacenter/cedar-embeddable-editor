@@ -2,16 +2,20 @@
                    [callbackOwnerObject]="sampleTemplateLoaderObject"
                    [showSampleTemplateLinks]="showSampleTemplateLinks"></app-static-header>
 <user-preferences-menu [isVisible]="showPreferencesMenu" [readOnlyMode]="readOnlyMode"></user-preferences-menu>
-<mat-card appearance="outlined" class="template-card" *ngIf="dataAvailableForRender()">
+<mat-card
+  appearance="outlined"
+  class="template-card"
+  *ngIf="dataAvailableForRender() && dataContext && handlerContext && pageBreakPaginatorService"
+>
 <!--  <mat-card-header>-->
   <div class="template-header">
     <div class="logo-block">
       <div mat-card-avatar class="header-image" (click)="launchMetadataCenter()" role="link" aria-label="Cedar logo - https://metadatacenter.org"></div>
       <span class="cee-version" [title]="ceeVersion">{{ceeVersion}}</span>
     </div>
-    <h1 class="template-label">{{dataContext.templateRepresentation.labelInfo.label}}</h1>
-    <h2 *ngIf="dataContext.templateRepresentation.labelInfo.description && showTemplateDescription">&nbsp;{{dataContext.templateRepresentation.labelInfo.description}}</h2>
-    <div *ngIf="dataContext.templateRepresentation.hasPageBreaks()" class="header-flex-child">
+    <h1 class="template-label">{{dataContext.templateRepresentation?.labelInfo?.label}}</h1>
+    <h2 *ngIf="dataContext.templateRepresentation?.labelInfo?.description && showTemplateDescription">&nbsp;{{dataContext.templateRepresentation?.labelInfo?.description}}</h2>
+    <div *ngIf="dataContext.templateRepresentation?.hasPageBreaks()" class="header-flex-child">
       <app-cedar-static-page-break
         [dataContext]="dataContext"
         [pageBreakPaginatorService]="pageBreakPaginatorService"
@@ -24,7 +28,7 @@
   </div>
 <!--  </mat-card-header>-->
   <mat-card-content>
-    <ng-container *ngFor="let childComponent of this.pageBreakPaginatorService.getCurrentPage()">
+    <ng-container *ngFor="let childComponent of pageBreakPaginatorService.getCurrentPage()">
       <app-cedar-component-renderer *ngIf="!childComponent.hidden"
                                     [componentToRender]="childComponent"
                                     [handlerContext]="handlerContext"
@@ -36,7 +40,7 @@
     </ng-container>
   </mat-card-content>
 </mat-card>
-<app-source-panels *ngIf="dataAvailableForRender()"
+<app-source-panels *ngIf="dataAvailableForRender() && dataContext"
                    [dataContext]="dataContext"
                    [showTemplateRenderingRepresentation]="showTemplateRenderingRepresentation"
                    [showMultiInstanceInfo]="showMultiInstanceInfo"

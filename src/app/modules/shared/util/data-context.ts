@@ -83,7 +83,14 @@ export class DataContext {
   setInputTemplate(
     value: object,
     handlerContext: HandlerContext,
-    pageBreakPaginatorService: PageBreakPaginatorService,
+    /*
+     * Nullable, because it is created by the editor's `handlerContextObject`
+     * setter and a caller can legitimately have a handler context without having
+     * gone through that setter. Requiring it here would make accepting a template
+     * depend on the paginator existing, which is the wrong way round: the
+     * paginator is told about the template, not the other way about.
+     */
+    pageBreakPaginatorService: PageBreakPaginatorService | null,
     collapseStaticComponents: boolean,
     // Which parser turns the template's JSON into the component tree. Left
     // unset in production; the parity suite passes both in turn to check they
@@ -101,7 +108,7 @@ export class DataContext {
       handlerContext,
       templateParser,
     );
-    pageBreakPaginatorService.reset(this.templateRepresentation.pageBreakChildren);
+    pageBreakPaginatorService?.reset(this.templateRepresentation.pageBreakChildren);
     const multiInstanceObjectService: MultiInstanceObjectHandler = handlerContext.multiInstanceObjectService;
     // A host page may have handed us an instance already; otherwise build a
     // skeleton from the template.

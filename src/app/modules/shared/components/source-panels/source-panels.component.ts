@@ -10,7 +10,7 @@ import { DataContext } from '../../util/data-context';
   standalone: false,
 })
 export class SourcePanelsComponent {
-  @Input() dataContext: DataContext | null = null;
+  @Input() dataContext: DataContext;
 
   @Input() showTemplateRenderingRepresentation: boolean;
   @Input() showMultiInstanceInfo: boolean;

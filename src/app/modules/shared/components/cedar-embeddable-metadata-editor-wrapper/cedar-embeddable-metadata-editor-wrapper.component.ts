@@ -315,80 +315,82 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private doInitialize(): void {
-    if (this.initialized && this.configSet) {
-      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
-        this.sampleTemplateService.loadTemplate(
-          configText(this.innerConfig, CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX, ''),
-          configText(this.innerConfig, CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME, ''),
-        );
-      }
-      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
-        const integratedSearchUrl = configText(
-          this.innerConfig,
-          CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL,
-          '',
-        );
-        this.controlledFieldDataService.setTerminologyIntegratedSearchUrl(integratedSearchUrl);
-      }
-      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT)) {
-        this.showSpinnerBeforeInit = configFlag(
-          this.innerConfig,
-          CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT,
-          this.showSpinnerBeforeInit,
-        );
-      }
-      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX)) {
-        const languageMapPathPrefix = configText(
-          this.innerConfig,
-          CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX,
-          '',
-        );
-        this.globalSettingsContextService.languageMapPathPrefix = languageMapPathPrefix;
-      }
-      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE)) {
-        this.fallbackLanguage = configText(
-          this.innerConfig,
-          CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE,
-          this.fallbackLanguage,
-        );
-      } else {
-        this.messagingService.traceGroup(
-          'language',
-          '"fallbackLanguage" not set, using default: "' + this.fallbackLanguage + '"',
-        );
-      }
-      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE)) {
-        this.defaultLanguage = configText(
-          this.innerConfig,
-          CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE,
-          this.defaultLanguage,
-        );
-      } else {
-        this.messagingService.traceGroup(
-          'language',
-          '"defaultLanguage" not set, using default: "' + this.defaultLanguage + '"',
-        );
-      }
-      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
-        const mode = configFlag(this.innerConfig, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE, false);
-        if (mode) {
-          this.handlerContext.enableReadOnlyMode();
-        }
-      }
-      if (Object.hasOwn(this.innerConfig, CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS)) {
-        // Hiding empty fields is only allowed in ReadOnly Mode
-        const hideEmptyFields = configFlag(
-          this.innerConfig,
-          CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS,
-          false,
-        );
-        if (this.handlerContext.readOnlyMode && hideEmptyFields) {
-          this.handlerContext.enableEmptyFieldHiding();
-        }
-      }
-      this.translateService.setDefaultLang(this.fallbackLanguage);
-      this.translateService.use(this.defaultLanguage);
+    // Narrowed once. Every read below went through `this.innerConfig`, which is
+    // nullable until a host sets it, so each of the sixteen would otherwise have
+    // to restate that. `configSet` already implies it is there; this makes the
+    // implication something the compiler can see.
+    const config = this.innerConfig;
+    if (!this.initialized || !this.configSet || config === null) {
+      return;
     }
+    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
+      this.sampleTemplateService.loadTemplate(
+        configText(config, CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX, ''),
+        configText(config, CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME, ''),
+      );
+    }
+    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
+      const integratedSearchUrl = configText(
+        config,
+        CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL,
+        '',
+      );
+      this.controlledFieldDataService.setTerminologyIntegratedSearchUrl(integratedSearchUrl);
+    }
+    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT)) {
+      this.showSpinnerBeforeInit = configFlag(
+        config,
+        CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT,
+        this.showSpinnerBeforeInit,
+      );
+    }
+    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX)) {
+      const languageMapPathPrefix = configText(
+        config,
+        CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX,
+        '',
+      );
+      this.globalSettingsContextService.languageMapPathPrefix = languageMapPathPrefix;
+    }
+    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE)) {
+      this.fallbackLanguage = configText(
+        config,
+        CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE,
+        this.fallbackLanguage,
+      );
+    } else {
+      this.messagingService.traceGroup(
+        'language',
+        '"fallbackLanguage" not set, using default: "' + this.fallbackLanguage + '"',
+      );
+    }
+    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE)) {
+      this.defaultLanguage = configText(
+        config,
+        CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE,
+        this.defaultLanguage,
+      );
+    } else {
+      this.messagingService.traceGroup(
+        'language',
+        '"defaultLanguage" not set, using default: "' + this.defaultLanguage + '"',
+      );
+    }
+    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
+      const mode = configFlag(config, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE, false);
+      if (mode) {
+        this.handlerContext.enableReadOnlyMode();
+      }
+    }
+    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS)) {
+      // Hiding empty fields is only allowed in ReadOnly Mode
+      const hideEmptyFields = configFlag(config, CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS, false);
+      if (this.handlerContext.readOnlyMode && hideEmptyFields) {
+        this.handlerContext.enableEmptyFieldHiding();
+      }
+    }
+    this.translateService.setDefaultLang(this.fallbackLanguage);
+    this.translateService.use(this.defaultLanguage);
   }
 
   editorDataReady(): boolean {

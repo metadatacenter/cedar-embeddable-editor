@@ -296,26 +296,40 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     }
   }
 
+  /*
+   * Both artifact setters run before the contexts are guaranteed, because a host is
+   * free to set `templateJsonObject` before `handlerContextObject`. The early return
+   * says that once instead of at each of the six reads below it.
+   */
   @Input() set templateJsonObject(value: InstanceObject) {
-    if (value != null) {
-      if (this.handlerContext.hideEmptyFields) {
-        this.messageHandlerService.trace('HideEmptyFields can not be used and set to false');
-        this.handlerContext.hideEmptyFields = false;
-      }
-      this.replaceInputTemplate(value);
-      setTimeout(() => {
-        this.initDataFromInstance(this.dataContext.instanceFullData)
+    const { dataContext, handlerContext } = this;
+    if (value == null || dataContext == null || handlerContext == null) {
+      return;
+    }
+    if (handlerContext.hideEmptyFields) {
+      this.messageHandlerService.trace('HideEmptyFields can not be used and set to false');
+      handlerContext.hideEmptyFields = false;
+    }
+    this.replaceInputTemplate(value);
+    setTimeout(() => {
+      const instance = dataContext.instanceFullData;
+      if (instance !== null) {
+        this.initDataFromInstance(instance)
           .then(() => {})
           .catch(() => {});
-      });
-    }
+      }
+    });
   }
 
   @Input() set instanceJsonObject(value: InstanceObject) {
-    if (value != null) {
-      if (this.handlerContext.hideEmptyFields) {
+    const handlerContext = this.handlerContext;
+    if (value == null || handlerContext == null) {
+      return;
+    }
+    {
+      if (handlerContext.hideEmptyFields) {
         this.messageHandlerService.trace('HideEmptyFields can not be used and set to false');
-        this.handlerContext.hideEmptyFields = false;
+        handlerContext.hideEmptyFields = false;
       }
       setTimeout(() => {
         this.initDataFromInstance(value)
@@ -357,10 +371,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   }
 
   private replaceInputTemplate(templateObject: object): void {
-    this.dataContext.setInputTemplate(
+    const { dataContext, handlerContext, pageBreakPaginatorService } = this;
+    if (dataContext == null || handlerContext == null) {
+      return;
+    }
+    dataContext.setInputTemplate(
       templateObject,
-      this.handlerContext,
-      this.pageBreakPaginatorService,
+      handlerContext,
+      pageBreakPaginatorService,
       this.collapseStaticComponents,
       this.templateParser,
     );
@@ -374,8 +392,15 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       this.setDataContextWithInstance(instance);
       const dataContext = this.handlerContext.dataContext;
       const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
+      // `templateRepresentation` is null only before a template has been set, and
+      // an instance cannot arrive first — `initDataFromInstance` is reached from the
+      // artifact setters, both of which run `replaceInputTemplate` ahead of it.
+      const representation = dataContext.templateRepresentation;
+      if (representation === null) {
+        return;
+      }
       dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
-        dataContext.templateRepresentation,
+        representation,
         dataContext.instanceExtractData,
       );
       return this.renderInstance(dataContext);
@@ -391,19 +416,28 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    * and got it wrong for any IRI carrying a `@type`. See `InstanceDeserializer`.
    */
   setDataContextWithInstance(instanceObject: InstanceObject): void {
+    const handlerContext = this.handlerContext;
+    if (handlerContext == null) {
+      return;
+    }
     const { full } = InstanceDeserializer.read(instanceObject, (message) => this.messageHandlerService.error(message));
-    const dataContext = this.handlerContext.dataContext;
+    const dataContext = handlerContext.dataContext;
     dataContext.instanceFullData = full;
     dataContext.invalidateDerivedViews();
   }
 
   private async renderInstance(dataContext: DataContext): Promise<void> {
     this.initDataFromInstanceQueue = this.initDataFromInstanceQueue.finally(async () => {
-      if (dataContext.templateRepresentation != null && dataContext.templateRepresentation.children != null) {
+      // Held in a local: the deferred callback runs a tick later, and the two
+      // reads of `dataContext.templateRepresentation` that the check guarded were
+      // separate reads of a mutable field rather than one narrowed value.
+      const representation = dataContext.templateRepresentation;
+      const handlerContext = this.handlerContext;
+      if (representation != null && representation.children != null && handlerContext != null) {
         await new Promise<void>((resolve) => {
           setTimeout(() => {
-            for (const childComponent of dataContext.templateRepresentation.children) {
-              this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
+            for (const childComponent of representation.children) {
+              this.activeComponentRegistry.updateViewToModel(childComponent, handlerContext);
             }
             resolve();
           });

@@ -7,7 +7,7 @@ export class NullComponent implements CedarComponent {
   labelInfo: LabelInfo;
   name: string;
   path: string[];
-  linkedStaticFieldComponent: StaticFieldComponent;
+  linkedStaticFieldComponent: StaticFieldComponent | null;
 
   isMulti(): boolean {
     return false;
