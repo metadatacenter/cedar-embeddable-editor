@@ -1,10 +1,11 @@
 {
-  "strategy": "bundle",
+  "strategy": "concat",
   "inputs": [
     "main.js",
-    "polyfills.js"
+    "polyfills.js",
+    "runtime.js"
   ],
-  "builtAt": 1786220669403.6462,
-  "bytes": 3207044,
-  "sha256": "46d350e2efd555fc4e94aa68a3be497ad396fc89881b444dd16a95134aab5248"
+  "builtAt": 1786221852298.294,
+  "bytes": 3397353,
+  "sha256": "0e3e117aae313ac943f5f7e62ec36eed8e8dc3a92cc777cedd889ed5909a9b3c"
 }

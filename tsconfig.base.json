@@ -62,22 +62,7 @@
       "es2022",
       "dom"
     ],
-    /*
-     * `esModuleInterop`, not `allowSyntheticDefaultImports`, which it implies.
-     * The two are often treated as the same switch and are not: the first only
-     * relaxes type-checking of a default import, while this also corrects the
-     * interop at emit.
-     *
-     * The application-builder migration asks for exactly this swap, and cannot
-     * make it. It hard-codes the path `tsconfig.json`, where CEE keeps no
-     * compilerOptions, so it writes the new option into the solution file that
-     * compiles nothing and fails to remove the old one from here — the same trap
-     * the Angular 15 `useDefineForClassFields` migration fell into, recorded
-     * above. Done by hand, and measured: the app type-checks, builds and passes
-     * every bundle-level check, including the `import * as _ from 'lodash-es'`
-     * sites and the JSON language maps, which are what the emit change reaches.
-     */
-    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true
   }
 }

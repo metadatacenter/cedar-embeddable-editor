@@ -70,8 +70,14 @@ const findOutputDir = (dist) => {
  */
 const selfContained = (file) => {
   const text = readFileSync(file, 'utf8');
-  // Past a banner comment, a self-wrapping bundle opens its IIFE immediately.
-  const code = text.replace(/^(?:\s+|\/\*[\s\S]*?\*\/|\/\/[^\n]*(?:\n|$))+/, '');
+  // Past a banner comment and a directive prologue, a self-wrapping bundle opens
+  // its IIFE immediately. The prologue is not incidental: webpack emits
+  // `"use strict";` ahead of the wrapper in `polyfills.js` and nowhere else, so a
+  // test that does not allow for it reads the webpack output as unjoinable and
+  // quietly re-bundles an artifact that concatenation already produced correctly.
+  const code = text
+    .replace(/^(?:\s+|\/\*[\s\S]*?\*\/|\/\/[^\n]*(?:\n|$))+/, '')
+    .replace(/^(?:(["'])use strict\1\s*;\s*)+/, '');
   return /^[;!+~-]*\(/.test(code) || /^!?function\s*[(*]/.test(code);
 };
 

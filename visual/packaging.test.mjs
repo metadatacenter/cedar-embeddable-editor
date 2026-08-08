@@ -32,7 +32,10 @@ after(() => temps.forEach((dir) => rmSync(dir, { recursive: true, force: true })
 const webpackDist = () => {
   const dist = scratch();
   writeFileSync(join(dist, 'runtime.js'), '(function(){window.__runtime=1})();\n');
-  writeFileSync(join(dist, 'polyfills.js'), '(function(){window.__polyfills=1})();\n');
+  // The directive prologue is verbatim from a real build: webpack emits it ahead
+  // of the wrapper in polyfills.js and nowhere else. A self-containment test that
+  // does not skip it reads this shape as unjoinable and silently re-bundles.
+  writeFileSync(join(dist, 'polyfills.js'), '"use strict";(function(){window.__polyfills=1})();\n');
   writeFileSync(join(dist, 'main.js'), '(function(){window.__main=1})();\n');
   writeFileSync(join(dist, 'index.html'), '<html></html>');
   return dist;
@@ -125,7 +128,9 @@ describe('produceBundle', () => {
     const { bundle, manifest } = await produceBundle(webpackDist());
     assert.equal(
       bundle.toString(),
-      '(function(){window.__runtime=1})();\n(function(){window.__polyfills=1})();\n(function(){window.__main=1})();\n',
+      '(function(){window.__runtime=1})();\n' +
+        '"use strict";(function(){window.__polyfills=1})();\n' +
+        '(function(){window.__main=1})();\n',
     );
     assert.equal(manifest.strategy, 'concat');
     assert.equal(manifest.bytes, bundle.byteLength);
