@@ -23,8 +23,3 @@ export function configFlag(config: CeeConfig, key: string, current: boolean): bo
 export function configText(config: CeeConfig, key: string, current: string): string {
   return config != null && Object.hasOwn(config, key) ? String(config[key]) : current;
 }
-
-/** Present and set to something truthy — the shape the read-only and sample-load gates want. */
-export function configHas(config: CeeConfig, key: string): boolean {
-  return config != null && Object.hasOwn(config, key);
-}
