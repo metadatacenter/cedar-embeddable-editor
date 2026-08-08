@@ -8,6 +8,7 @@ import { takeUntil } from 'rxjs/operators';
 import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
 import { SampleTemplateEntry } from './sample-templates.service';
+import { configText } from '../../util/config-reader';
 
 @Component({
   selector: 'app-sample-templates',
@@ -21,7 +22,12 @@ export class SampleTemplatesComponent implements OnInit, OnDestroy {
   @Input() callbackOwnerObject: SampleTemplateLoaderOwner | null = null;
   @Input() expandedSampleTemplateLinks: boolean;
   templateLocationPrefix: string;
-  templateCtrl: FormControl = new FormControl();
+  /*
+   * `string[]`, not `string`: this is bound to a `mat-selection-list`, whose value
+   * is the list of selected options even with `[multiple]="false"` — which is why
+   * the one place that sets it wraps the template number in an array.
+   */
+  templateCtrl: FormControl<string[] | null> = new FormControl<string[] | null>(null);
   sampleTemplates: SampleTemplateEntry[] = [];
   protected _onDestroy = new Subject<void>();
 
@@ -31,9 +37,15 @@ export class SampleTemplatesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.templateLocationPrefix = this.callbackOwnerObject.innerConfig[
-      CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX
-    ] as string;
+    const config = this.callbackOwnerObject?.innerConfig;
+    if (config == null) {
+      return;
+    }
+    this.templateLocationPrefix = configText(
+      config,
+      CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX,
+      '',
+    );
     this.sampleTemplateService
       .getSampleTemplatesFromRegistry(this.templateLocationPrefix)
       .pipe(takeUntil(this._onDestroy))

@@ -58,10 +58,10 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
 
   component: FieldComponent;
   options: FormGroup;
-  inputValueControl!: FormControl;
+  inputValueControl!: FormControl<string | null>;
   errorStateMatcher = new AuthorityErrorStateMatcher();
   filteredOptions: Observable<AuthoritySearchResponseItem[]>;
-  selectedData: AuthoritySearchResponseItem;
+  selectedData: AuthoritySearchResponseItem | null = null;
   loadingOptions = false;
   justReverted = false;
   linkIconName = 'open_in_new';
@@ -151,7 +151,9 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
         if (selectionMode) {
           return;
         }
-        this.setCurrentValue(this.selectedData);
+        if (this.selectedData !== null) {
+          this.setCurrentValue(this.selectedData);
+        }
       });
     }
   }
@@ -243,7 +245,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
   }
 
   /** How a selected term reads in the box: "Label - https://iri". */
-  getCompoundValue(option: AuthoritySearchResponseItem): string {
+  getCompoundValue(option: AuthoritySearchResponseItem | null): string {
     const label = option?.[JsonSchema.rdfsLabel]?.trim() || '';
     const id = option?.[JsonSchema.atId]?.trim() || '';
     return label || id ? `${label} - ${id}` : '';

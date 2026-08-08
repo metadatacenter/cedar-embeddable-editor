@@ -20,7 +20,7 @@
           {{'Error.LookupFailed' | translate}}
         </mat-option>
         <mat-option
-          *ngIf="!lookupFailed && !loadingOptions && hasSearched && inputValueControl.value?.trim().length > 0 && (filteredOptions | async)?.length === 0" disabled>
+          *ngIf="!lookupFailed && !loadingOptions && hasSearched && (inputValueControl.value?.trim()?.length ?? 0) > 0 && ((filteredOptions | async)?.length ?? 0) === 0" disabled>
           No results found
         </mat-option>
         <mat-option *ngFor="let option of filteredOptions | async" [value]="option[JsonSchema.rdfsLabel] + ' - '  + option[JsonSchema.atId]"

@@ -51,10 +51,10 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  selectedData: RorSearchResponseItem;
+  selectedData: RorSearchResponseItem | null = null;
   component: FieldComponent;
   options: FormGroup;
-  inputValueControl = new FormControl(null);
+  inputValueControl = new FormControl<string | null>(null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   model: RorSearchResponseItem | null = null;
   rorDetails: RorDetailResponse | null = null;

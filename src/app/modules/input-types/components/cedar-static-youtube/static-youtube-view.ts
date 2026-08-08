@@ -3,13 +3,11 @@ import { extractYouTubeVideoId, isYouTubeHost } from './youtube-video-id';
 /**
  * What a static YouTube field should render.
  *
- * Exactly one of the two is set. `videoId` means embed it; `error` means say why
- * there is nothing to embed.
+ * Exactly one of the two is set — written as a union so that is a fact the compiler
+ * holds rather than a promise this comment makes. `videoId` means embed it;
+ * `error` means say why there is nothing to embed.
  */
-export interface StaticYoutubeView {
-  videoId: string;
-  error: string;
-}
+export type StaticYoutubeView = { videoId: string; error: null } | { videoId: null; error: string };
 
 /**
  * Decide what the field shows, and when it shows nothing, say why.

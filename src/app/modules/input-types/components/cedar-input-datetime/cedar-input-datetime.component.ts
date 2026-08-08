@@ -30,8 +30,9 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   component: FieldComponent;
 
   timePickerTime: Date;
-  decimalSeconds: number;
-  timezone: TZone;
+  /** Both null when the field holds no time yet, and reset to null on clear. */
+  decimalSeconds: number | null;
+  timezone: TZone | null;
   setDefaultZone = false;
   datetimeParsed: DatetimeRepresentation;
   dateMonthYearControl: FormControl;
@@ -44,7 +45,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
    * temporal was the only field type with no validators at all, despite having
    * the most declared structure to check against.
    */
-  valueControl: FormControl = new FormControl(null);
+  valueControl: FormControl = new FormControl<string | null>(null);
   /**
    * Whether the user has actually edited this field.
    *
@@ -440,7 +441,7 @@ export class DatetimeRepresentation {
     }
   }
 
-  setTimezone(timezoneIn: TZone): void {
+  setTimezone(timezoneIn: TZone | null): void {
     if (timezoneIn) {
       this.timezoneIsSet = true;
       this.timezoneOffset = timezoneIn.id;

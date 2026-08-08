@@ -36,10 +36,10 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger })
   trigger: MatAutocompleteTrigger;
 
-  selectedData: OrcidSearchResponseItem;
+  selectedData: OrcidSearchResponseItem | null = null;
   component: FieldComponent;
   options: FormGroup;
-  inputValueControl = new FormControl(null);
+  inputValueControl = new FormControl<string | null>(null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
   model: OrcidSearchResponseItem | null = null;
@@ -135,7 +135,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
       );
     }
   }
-  private getCompoundValue(option: OrcidSearchResponseItem): string {
+  private getCompoundValue(option: OrcidSearchResponseItem | null): string {
     if (!option) {
       return '';
     }

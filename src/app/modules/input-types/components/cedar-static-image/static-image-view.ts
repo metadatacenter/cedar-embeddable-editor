@@ -2,13 +2,11 @@
  * What a static image field should render, decided from the template content and
  * whether the browser has already failed to load it.
  *
- * Exactly one of the two is set. `src` means render the image; `error` means
- * render an explanation instead.
+ * Exactly one of the two is set — written as a union so that is a fact the compiler
+ * holds rather than a promise this comment makes. `src` means render the image;
+ * `error` means render an explanation instead.
  */
-export interface StaticImageView {
-  src: string;
-  error: string;
-}
+export type StaticImageView = { src: string; error: null } | { src: null; error: string };
 
 /** Schemes that are usable in an `img` `src` and safe to hand the browser. */
 const RENDERABLE_SCHEMES = ['http:', 'https:', 'data:'];

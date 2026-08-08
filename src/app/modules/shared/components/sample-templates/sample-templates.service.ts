@@ -21,9 +21,9 @@ export class SampleTemplatesService {
   readonly METADATA_FILENAME = 'metadata.json';
   readonly TEMPLATE_REGISTRY_FILENAME = 'registry.json';
   private allTemplates: Observable<SampleTemplateEntry[]>;
-  private templateJsonSubject = new BehaviorSubject<Record<string, InstanceObject>>(null);
+  private templateJsonSubject = new BehaviorSubject<Record<string, InstanceObject | null> | null>(null);
   templateJson$ = this.templateJsonSubject.asObservable();
-  private metadataJsonSubject = new BehaviorSubject<Record<string, InstanceObject>>(null);
+  private metadataJsonSubject = new BehaviorSubject<Record<string, InstanceObject | null> | null>(null);
   metadataJson$ = this.metadataJsonSubject.asObservable();
   private loadedTemplate: InstanceObject | null = null;
   private loadedMetadata: InstanceObject | null = null;
@@ -62,7 +62,7 @@ export class SampleTemplatesService {
     }
   }
 
-  loadTemplateFromURL(templateUrl: string, templateNum: string = null): void {
+  loadTemplateFromURL(templateUrl: string, templateNum: string | null = null): void {
     if (!templateNum) {
       templateNum = this.templateNumberFromUrl(templateUrl);
     }
@@ -84,7 +84,7 @@ export class SampleTemplatesService {
     );
   }
 
-  loadMetadataFromURL(metadataUrl: string, templateNum: string = null): void {
+  loadMetadataFromURL(metadataUrl: string, templateNum: string | null = null): void {
     if (!templateNum) {
       templateNum = this.templateNumberFromUrl(metadataUrl);
     }
@@ -108,11 +108,15 @@ export class SampleTemplatesService {
 
   handleLoadedDataFiles(): void {
     if (this.attemptedFileCount === this.targetAttemptedFileCount) {
-      const templateObj: Record<string, InstanceObject> = {};
+      // Only published once both files have arrived, which is what the count above
+      // waits for — but a fetch can fail, and the wrapper's subscriber already
+      // tests each half, so the maps admit the miss rather than claiming it cannot
+      // happen.
+      const templateObj: Record<string, InstanceObject | null> = {};
       templateObj[this.templateNum] = this.loadedTemplate;
       this.templateJsonSubject.next(templateObj);
 
-      const metadataObj: Record<string, InstanceObject> = {};
+      const metadataObj: Record<string, InstanceObject | null> = {};
       metadataObj[this.templateNum] = this.loadedMetadata;
       this.metadataJsonSubject.next(metadataObj);
     }
@@ -205,7 +209,7 @@ export class SampleTemplatesService {
    * A template that fails to parse yields no name and is skipped, which is what
    * the previous null check did for a template that had no `schema:name`.
    */
-  private getSingleTemplateLabel(templateUrl: string): Observable<string> {
+  private getSingleTemplateLabel(templateUrl: string): Observable<string | null> {
     return this.http.get(templateUrl).pipe(
       map((response) => {
         if (response == null) {

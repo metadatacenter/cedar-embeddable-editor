@@ -48,7 +48,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
 })
 export class CedarInputControlledComponent extends CedarUIDirective implements OnInit, AfterViewInit {
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger: MatAutocompleteTrigger;
-  selectedData: IntegratedSearchResponseItem;
+  selectedData: IntegratedSearchResponseItem | null = null;
   component: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
@@ -121,7 +121,9 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
       this.trigger.panelClosingActions.subscribe(() => {
-        this.setCurrentValue(this.selectedData.prefLabel);
+        if (this.selectedData !== null) {
+          this.setCurrentValue(this.selectedData.prefLabel);
+        }
       });
     }
   }
@@ -221,6 +223,8 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
   }
   goToBioPortalTerm() {
-    window.open(this.bioPortalTermLink, '_blank');
+    if (this.bioPortalTermLink !== null) {
+      window.open(this.bioPortalTermLink, '_blank');
+    }
   }
 }

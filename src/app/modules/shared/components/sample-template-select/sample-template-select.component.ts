@@ -7,6 +7,7 @@ import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-meta
 import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
 import { MatSelectChange } from '@angular/material/select';
 import { SampleTemplateEntry } from '../sample-templates/sample-templates.service';
+import { configText } from '../../util/config-reader';
 
 @Component({
   selector: 'app-sample-template-select',
@@ -20,8 +21,8 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   @Input() callbackOwnerObject: SampleTemplateLoaderOwner | null = null;
   sampleTemplates: SampleTemplateEntry[];
   templateLocationPrefix: string;
-  templateCtrl: FormControl = new FormControl();
-  templateFilterCtrl: FormControl = new FormControl();
+  templateCtrl: FormControl<string | null> = new FormControl<string | null>(null);
+  templateFilterCtrl: FormControl<string | null> = new FormControl<string | null>(null);
   filteredTemplates: ReplaySubject<SampleTemplateEntry[]> = new ReplaySubject<SampleTemplateEntry[]>(1);
   loadMetadata = true;
   protected _onDestroy = new Subject<void>();
@@ -29,9 +30,15 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   constructor(public sampleTemplateService: SampleTemplatesService) {}
 
   ngOnInit(): void {
-    this.templateLocationPrefix = this.callbackOwnerObject.innerConfig[
-      CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX
-    ] as string;
+    const config = this.callbackOwnerObject?.innerConfig;
+    if (config == null) {
+      return;
+    }
+    this.templateLocationPrefix = configText(
+      config,
+      CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX,
+      '',
+    );
     this.sampleTemplateService
       .getSampleTemplatesFromRegistry(this.templateLocationPrefix)
       .pipe(takeUntil(this._onDestroy))

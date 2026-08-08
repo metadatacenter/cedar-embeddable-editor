@@ -19,7 +19,11 @@ export class CedarStaticImageComponent extends CedarUIDirective {
   component: StaticFieldComponent;
   @Input() handlerContext: HandlerContext;
 
-  view: StaticImageView = { src: null, error: null };
+  // The state before a field is set is not "neither", which the union forbids and
+  // was what this held: it is the same as a field with no URL, which
+  // `staticImageView` already has an answer for. Nothing renders it either way —
+  // `componentToRender` runs before the first change detection.
+  view: StaticImageView = { src: null, error: 'This image field has no URL.' };
   private loadFailed = false;
 
   constructor(
