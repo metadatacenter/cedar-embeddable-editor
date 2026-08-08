@@ -293,9 +293,15 @@ There are other optional configuration parameters available for controlling vari
   
   "readOnlyMode": false,
   "hideEmptyFields": false,
-  "showPreferencesMenu": true
+  "showPreferencesMenu": true,
+
+  "trustTemplateMarkup": false
 }
 ```
+
+`trustTemplateMarkup` decides whether a template author's rich text renders verbatim
+or is sanitized first. It defaults to `false` and should stay there unless your
+application controls which templates load — see [Embedding security](#embedding-security).
 
 External-authority fields (ORCID, ROR, PFAS, PubMed, RRID, NIH Grant and DOI)
 use CEDAR's production bridge by default. A host using another CEDAR deployment
@@ -322,6 +328,56 @@ keys:
 | DOI | `doiIntegratedExtAuthUrl` | `doiIntegratedDetailsUrl` | `doi/search-by-name`, `doi` |
 
 Enabling of hiding empty fields is only possible in read-only mode.
+
+## Embedding security
+
+CEE renders inside your page, in your origin. It is a custom element using Shadow
+DOM, and **Shadow DOM is not a security boundary**: it scopes styles and markup, not
+privileges. Anything CEE executes runs with the same access to cookies, storage and
+network as the rest of your application.
+
+That matters for one input in particular.
+
+### Templates are trusted input
+
+A template can carry a **static rich-text field**, whose body is HTML composed by the
+template's author and rendered as HTML by CEE. Instance data is different and is
+always sanitized — a value a form's user typed can never introduce markup that runs.
+The question is only what a *template author* may do.
+
+CEE sanitizes template rich text by default. Script elements, event-handler
+attributes such as `onerror`, `javascript:` URLs, `iframe`, `form` controls and
+AngularJS directive attributes such as `ng-click` are removed. Formatting is
+preserved: inline styles, tables, lists, headings, links, and inline `data:` images
+in the raster formats all render as the author composed them.
+
+If your application decides which templates load — they ship with the application, or
+come from a source you control — you may prefer the author's markup to render exactly
+as written:
+
+```json
+{
+  "trustTemplateMarkup": true
+}
+```
+
+**Only set this if template authors are as trusted as your own application code.**
+With it on, a template author can run JavaScript in your origin. "Allowed to define a
+form" and "allowed to run code in this page" are very different permissions, and this
+key is where you say they are the same for your deployment.
+
+In particular, **do not set it if your users choose their own templates** — from
+CEDAR's public library, or from anywhere your users can write to. Leave it off and
+CEE will render the formatting without the risk.
+
+### What is sanitized where
+
+| Content | Origin | Treatment |
+|---|---|---|
+| Static rich-text field body | Template author | Sanitized, unless `trustTemplateMarkup` is on |
+| Static section break, image, YouTube | Template author | Not rendered as HTML; content is used as text or a URL |
+| Field values, in the form and in read-only view | Instance data | Always sanitized. Not configurable |
+| Multi-instance value summaries | Instance data | Always sanitized. Not configurable |
 
 ## Metadata API
 
