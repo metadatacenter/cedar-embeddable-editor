@@ -6,6 +6,12 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const SOURCE_BUNDLE = resolve(ROOT, 'visual/public/cedar-embeddable-editor.js');
 export const SOURCE_MANIFEST = resolve(ROOT, 'visual/public/bundle-manifest.json');
+/**
+ * The published type declarations, emitted by `npm run types:public` from the one
+ * self-contained source file. Regenerated on every stage rather than committed, so
+ * it cannot describe an older contract than the bundle beside it.
+ */
+export const SOURCE_TYPES = resolve(ROOT, 'dist-types/cee-public-api.d.ts');
 export const TARGET = resolve(ROOT, 'dist-npm/cedar-embeddable-editor');
 
 export const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
@@ -18,8 +24,14 @@ export const packageMetadata = () => {
     version: rootPackage.version,
     description: rootPackage.description,
     main: 'cedar-embeddable-editor.js',
+    // The bundle is a side-effecting script that registers a custom element, so it
+    // exports nothing. `types` is what a host imports `CeeConfig` and friends from,
+    // and it carries the `HTMLElementTagNameMap` entry that makes
+    // `document.querySelector('cedar-embeddable-editor')` typed on its own.
+    types: 'cedar-embeddable-editor.d.ts',
     files: [
       'cedar-embeddable-editor.js',
+      'cedar-embeddable-editor.d.ts',
       'bundle-manifest.json',
       'README.md',
       'CHANGELOG.md',
@@ -72,8 +84,16 @@ export const assertSourceBundle = () => {
   return { bundle, manifest };
 };
 
+const readTypes = () => {
+  if (!existsSync(SOURCE_TYPES)) {
+    throw new Error('type declarations are not built. Run: npm run types:public');
+  }
+  return readFileSync(SOURCE_TYPES);
+};
+
 export const expectedFiles = () => ({
   'cedar-embeddable-editor.js': readFileSync(SOURCE_BUNDLE),
+  'cedar-embeddable-editor.d.ts': readTypes(),
   'bundle-manifest.json': readFileSync(SOURCE_MANIFEST),
   'README.md': readFileSync(resolve(ROOT, 'README.md')),
   'CHANGELOG.md': readFileSync(resolve(ROOT, 'CHANGELOG.md')),

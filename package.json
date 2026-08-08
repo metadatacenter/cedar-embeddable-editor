@@ -22,7 +22,8 @@
     "test:ci:prebuilt": "npm run lint && npm run typecheck && npm run test:unit:ci && npm run test:domain:coverage && npm run test:visual:prebuilt",
     "typecheck": "tsc -p tsconfig.eslint.json --noEmit && tsc -p harness/tsconfig.json --noEmit",
     "test:ci": "npm run lint && npm run typecheck && npm run test:unit:ci && npm run test:domain:coverage && npm run test:visual",
-    "package:npm:prebuilt": "npm --prefix visual run check:fresh && npm --prefix visual run check:size && node scripts/stage-npm-package.mjs && npm run check:npm-package",
+    "types:public": "tsc -p tsconfig.public-api.json",
+    "package:npm:prebuilt": "npm --prefix visual run check:fresh && npm --prefix visual run check:size && npm run types:public && node scripts/stage-npm-package.mjs && npm run check:npm-package",
     "check:npm-package": "node scripts/check-npm-package.mjs",
     "lint": "ng lint"
   },

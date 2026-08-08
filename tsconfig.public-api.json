@@ -1,0 +1,21 @@
+/*
+  Emits the `.d.ts` the npm package ships, from `src/app/cee-public-api.ts` and
+  nothing else.
+
+  One file, deliberately. The public API is written without imports so that its
+  declarations stand alone: a `.d.ts` referring to `../modules/shared/...` would
+  name paths that exist in this repository and not in the package. Compiling only
+  that file is what enforces the property — add an import to it and this build
+  emits a broken declaration rather than silently shipping one.
+*/
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./dist-types",
+    "rootDir": "./src/app",
+    "types": []
+  },
+  "files": ["src/app/cee-public-api.ts"]
+}
