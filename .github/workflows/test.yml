@@ -82,3 +82,23 @@ jobs:
       - name: Test the production artifact built above
         working-directory: cedar-embeddable-editor
         run: npm run test:ci:prebuilt
+
+      # Deliberately its own step, and deliberately not part of `test:ci`.
+      #
+      # This is the one check that can start failing without anyone having changed
+      # anything: it fails on a disclosure, not on a commit. Inside the gate that
+      # would break an unrelated pull request with an error its author cannot fix
+      # there, and — worse — would train people to expect a red gate for reasons
+      # that are not theirs. As its own step the build still fails, which is the
+      # point, and the reason is legible from the job summary alone.
+      #
+      # After the tests, so a genuine regression is reported first.
+      #
+      # `--omit=dev` because only runtime dependencies reach the bundle an embedder
+      # downloads; the Angular CLI's own tree is a hazard to this machine, not to
+      # anyone consuming CEE. `--audit-level=high` because moderate advisories
+      # against build tooling are not worth stopping a release for, and the whole
+      # value of this step is that a failure means something.
+      - name: Audit what ships
+        working-directory: cedar-embeddable-editor
+        run: npm run audit:prod

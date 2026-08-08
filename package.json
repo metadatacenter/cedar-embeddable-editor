@@ -24,6 +24,7 @@
     "test:visual": "npm run build:production && npm --prefix visual run prepare:all && npm --prefix visual test",
     "test:ci:prebuilt": "npm run lint && npm run typecheck && npm run test:unit:ci && npm run test:domain:coverage && npm run test:visual:prebuilt",
     "typecheck": "tsc -p tsconfig.eslint.json --noEmit && tsc -p harness/tsconfig.json --noEmit",
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
     "test:ci": "npm run lint && npm run typecheck && npm run test:unit:ci && npm run test:domain:coverage && npm run test:visual",
     "types:public": "tsc -p tsconfig.public-api.json",
     "package:npm:prebuilt": "npm --prefix visual run check:fresh && npm --prefix visual run check:size && npm run types:public && node scripts/stage-npm-package.mjs && npm run check:npm-package",
