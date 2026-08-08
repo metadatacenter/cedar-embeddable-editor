@@ -23,7 +23,7 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
 import { IntegratedSearchResponseItem } from '../../../shared/models/rest/integrated-search/integrated-search-response-item';
 import { JsonSchema } from 'cedar-model-typescript-library';
@@ -47,16 +47,27 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   standalone: false,
 })
 export class CedarInputControlledComponent extends CedarUIDirective implements OnInit, AfterViewInit {
-  @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger: MatAutocompleteTrigger;
+  /**
+   * Undefined until the view exists, and for good in read-only mode — the
+   * autocomplete input the trigger reads sits behind an `*ngIf` on it. ORCID and
+   * ROR already tested for that; the other two reached through it inside a
+   * `!readOnlyMode` guard, which is the same fact stated less directly.
+   */
+  @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger?: MatAutocompleteTrigger;
   selectedData: IntegratedSearchResponseItem | null = null;
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  @Input() handlerContext: HandlerContext;
+  @Input({ required: true }) handlerContext!: HandlerContext;
   model: IntegratedSearchResponseItem | null = null;
   bioPortalTermLink: string | null = null;
-  filteredOptions: Observable<IntegratedSearchResponseItem[]>;
+  /**
+   * An empty list until `ngOnInit` builds the search pipeline, and for good in
+   * read-only mode, where there is no autocomplete to feed. A real observable
+   * rather than nothing, so the template's async pipe always has one to read.
+   */
+  filteredOptions: Observable<IntegratedSearchResponseItem[]> = of([]);
   loading = false;
   /** Whether the last lookup failed, as opposed to matching nothing. */
   lookupFailed = false;
@@ -120,7 +131,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   }
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
-      this.trigger.panelClosingActions.subscribe(() => {
+      this.trigger?.panelClosingActions.subscribe(() => {
         if (this.selectedData !== null) {
           this.setCurrentValue(this.selectedData.prefLabel);
         }
@@ -148,13 +159,16 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     );
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
   onSelectionChange(option: IntegratedSearchResponseItem): void {
-    this.handlerContext.changeControlledValue(this.component, option['@id'], option.prefLabel);
+    // `?? null` because a term arriving without a label is a state this component
+    // already handles — `filter` drops such items from the list — and null is what
+    // the model holds for a term whose label is unknown, rather than "undefined".
+    this.handlerContext.changeControlledValue(this.component, option['@id'], option.prefLabel ?? null);
     if (option) {
       this.selectedData = option;
     }

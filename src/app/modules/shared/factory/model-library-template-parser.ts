@@ -200,9 +200,9 @@ export class ModelLibraryTemplateParser implements TemplateParser {
         // would emit.
         const multiInfo = childInfo as AbstractDynamicChildDeploymentInfo;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (r as any).multiInfo.minItems = multiInfo.minItems;
+        (r as any).multiInfo.minItems = multiInfo.minItems ?? null;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (r as any).multiInfo.maxItems = multiInfo.maxItems;
+        (r as any).multiInfo.maxItems = multiInfo.maxItems ?? null;
       }
 
       // A child the template marks `_ui.hidden` is kept and flagged, not
@@ -292,42 +292,46 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     if (fieldType === CedarFieldType.TEMPORAL) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const temporal = field as any;
-      fc.basicInfo.timezoneEnabled = temporal.timezoneEnabled;
-      fc.basicInfo.inputTimeFormat = temporal.inputTimeFormat?.getValue();
-      fc.basicInfo.temporalGranularity = temporal.temporalGranularity?.getValue();
-      fc.valueInfo.temporalType = vc?.temporalType?.getValue();
+      fc.basicInfo.timezoneEnabled = temporal.timezoneEnabled === true;
+      fc.basicInfo.inputTimeFormat = temporal.inputTimeFormat?.getValue() ?? null;
+      fc.basicInfo.temporalGranularity = temporal.temporalGranularity?.getValue() ?? null;
+      fc.valueInfo.temporalType = vc?.temporalType?.getValue() ?? null;
     }
 
     if (vc == null) {
       return;
     }
 
-    fc.valueInfo.defaultValue = vc.defaultValue;
-    fc.valueInfo.minLength = vc.minLength;
-    fc.valueInfo.maxLength = vc.maxLength;
-    fc.valueInfo.regex = vc.regex;
+    /*
+     * `?? null` throughout, because `vc` is the library's `valueConstraints` held as
+     * `any` and a constraint the template omits is simply not on it. The info models
+     * say null for an undeclared bound, so the conversion belongs here — at the one
+     * place that reads the raw JSON — rather than in each of the nine widgets and
+     * validators that go on to ask what the bound is.
+     */
+    fc.valueInfo.defaultValue = vc.defaultValue ?? null;
+    fc.valueInfo.minLength = vc.minLength ?? null;
+    fc.valueInfo.maxLength = vc.maxLength ?? null;
+    fc.valueInfo.regex = vc.regex ?? null;
 
     if (fieldType === CedarFieldType.NUMERIC) {
-      fc.numberInfo.numberType = vc.numberType?.getValue();
-      fc.numberInfo.unitOfMeasure = vc.unitOfMeasure;
-      fc.numberInfo.minValue = vc.minValue;
-      fc.numberInfo.maxValue = vc.maxValue;
+      fc.numberInfo.numberType = vc.numberType?.getValue() ?? null;
+      fc.numberInfo.unitOfMeasure = vc.unitOfMeasure ?? null;
+      fc.numberInfo.minValue = vc.minValue ?? null;
+      fc.numberInfo.maxValue = vc.maxValue ?? null;
       // The model spells it `decimalPlaces`; CEE's ValueInfo spells it
       // `decimalPlace`, matching the JSON key.
-      fc.numberInfo.decimalPlace = vc.decimalPlaces;
+      fc.numberInfo.decimalPlace = vc.decimalPlaces ?? null;
     }
 
     if (Array.isArray(vc.literals)) {
       for (const literal of vc.literals) {
-        const option = new ChoiceOption();
-        option.label = literal.label;
-        option.selectedByDefault = literal.selectedByDefault;
-        fc.choiceInfo.choices.push(option);
+        fc.choiceInfo.choices.push(new ChoiceOption(literal.label ?? '', literal.selectedByDefault === true));
       }
     }
     // Only list fields carry it, and only the select widget reads it.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    fc.choiceInfo.multipleChoice = (field as any).multipleChoice;
+    fc.choiceInfo.multipleChoice = (field as any).multipleChoice === true;
 
     if (fieldType === CedarFieldType.CONTROLLED_TERM) {
       ModelLibraryTemplateParser.extractControlledInfo(vc, fc);
@@ -395,7 +399,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     fc: { labelInfo: LabelInfo },
   ): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    fc.labelInfo.preferredLabel = (artifact as any).skos_prefLabel;
+    fc.labelInfo.preferredLabel = (artifact as any).skos_prefLabel ?? null;
     fc.labelInfo.description = artifact.schema_description;
     fc.labelInfo.label = artifact.schema_name;
 

@@ -1,7 +1,7 @@
 import { ChoiceOption } from './choice-option.model';
 
 export class ChoiceInfo {
-  multipleChoice: boolean;
-  // multipleChoice: number;
+  /** Whether the field takes more than one of its choices. Only list fields declare it. */
+  multipleChoice = false;
   choices: ChoiceOption[] = [];
 }

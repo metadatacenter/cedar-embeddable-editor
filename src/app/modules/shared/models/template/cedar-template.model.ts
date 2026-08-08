@@ -5,7 +5,8 @@ import { DataObjectUtil } from '../../util/data-object-util';
 
 export class CedarTemplate extends AbstractElementComponent implements TemplateComponent {
   override className = 'CedarTemplate';
-  pageBreakChildren: Array<CedarComponent[]>;
+  /** No pages until the parser finds the breaks, which `hasPageBreaks` reads as none. */
+  pageBreakChildren: Array<CedarComponent[]> = [];
 
   /**
    * The template's own IRI, which every instance of it has to name.

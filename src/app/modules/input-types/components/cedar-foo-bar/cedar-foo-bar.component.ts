@@ -14,8 +14,8 @@ import { StaticFieldComponent } from '../../../shared/models/static/static-field
   standalone: false,
 })
 export class CedarFooBarComponent extends CedarUIDirective implements OnInit {
-  component: StaticFieldComponent;
-  @Input() handlerContext: HandlerContext;
+  component!: StaticFieldComponent;
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
     fb: FormBuilder,
@@ -29,7 +29,7 @@ export class CedarFooBarComponent extends CedarUIDirective implements OnInit {
     super.ngOnInit();
   }
 
-  @Input() set componentToRender(componentToRender: StaticFieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }

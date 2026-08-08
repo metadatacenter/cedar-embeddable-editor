@@ -19,7 +19,7 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
   standalone: false,
 })
 export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
-  component: CedarComponent;
+  component!: CedarComponent;
   /** Null for a component that is not multi-instance, which is most of them. */
   multiComponent: MultiComponent | null = null;
   shouldRenderRequiredMark = false;
@@ -30,8 +30,8 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
   isRrid = false;
   isNihGrant = false;
   isDoi = false;
-  readOnlyMode: boolean;
-  readOnlyModeSubscription: Subscription;
+  readOnlyMode = false;
+  readOnlyModeSubscription: Subscription = Subscription.EMPTY;
   userPreferencesService: UserPreferencesService;
 
   constructor(
@@ -50,7 +50,7 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
     this.readOnlyModeSubscription.unsubscribe();
   }
 
-  @Input() set componentToRender(componentToRender: CedarComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;
     if (ComponentTypeHandler.isMulti(componentToRender)) {
       this.multiComponent = componentToRender as MultiComponent;

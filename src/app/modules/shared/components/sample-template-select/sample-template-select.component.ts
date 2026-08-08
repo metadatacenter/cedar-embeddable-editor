@@ -19,8 +19,9 @@ import { configText } from '../../util/config-reader';
 })
 export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   @Input() callbackOwnerObject: SampleTemplateLoaderOwner | null = null;
-  sampleTemplates: SampleTemplateEntry[];
-  templateLocationPrefix: string;
+  sampleTemplates: SampleTemplateEntry[] = [];
+  /** Empty until the config supplies one, which is also what `configText` falls back to. */
+  templateLocationPrefix = '';
   templateCtrl: FormControl<string | null> = new FormControl<string | null>(null);
   templateFilterCtrl: FormControl<string | null> = new FormControl<string | null>(null);
   filteredTemplates: ReplaySubject<SampleTemplateEntry[]> = new ReplaySubject<SampleTemplateEntry[]>(1);

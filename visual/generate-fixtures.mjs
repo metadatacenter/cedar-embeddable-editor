@@ -164,13 +164,27 @@ const writeRaw = (name, document) => {
         ['South', false],
       ]),
     ],
+    // The same widget with a declared ceiling. Both cases are here on purpose:
+    // the select shows a "select up to N" hint, and whether it shows one at all
+    // turns on whether the template named a maximum. With only the unbounded
+    // field recorded, a hint that rendered its own placeholder text for a field
+    // with no maximum sat in the baseline as though it were the design.
+    [
+      'bounded_list',
+      () => CedarBuilders.multipleChoiceListFieldBuilder(),
+      opts('addListOption', [
+        ['Up', false],
+        ['Down', false],
+        ['Sideways', false],
+      ]),
+    ],
   ];
   let tb = common(CedarBuilders.templateBuilder(), 'ChoiceWidgets', 'templates').withSchemaDescription(
     'Radio, checkbox and list widgets',
   );
   for (const [name, make, configure] of kinds) {
     const f = field(name, make, configure);
-    tb = tb.addChild(f, deploy(f, name));
+    tb = tb.addChild(f, name === 'bounded_list' ? deploy(f, name, { multi: true, minItems: 0, maxItems: 2 }) : deploy(f, name));
   }
   write('02-choices', tb.build());
 }

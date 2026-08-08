@@ -20,7 +20,8 @@ export class SampleTemplatesService {
   readonly TEMPLATE_FILENAME = 'template.json';
   readonly METADATA_FILENAME = 'metadata.json';
   readonly TEMPLATE_REGISTRY_FILENAME = 'registry.json';
-  private allTemplates: Observable<SampleTemplateEntry[]>;
+  /** The registry, fetched once. Null until then — which is the state both readers already test for. */
+  private allTemplates: Observable<SampleTemplateEntry[]> | null = null;
   private templateJsonSubject = new BehaviorSubject<Record<string, InstanceObject | null> | null>(null);
   templateJson$ = this.templateJsonSubject.asObservable();
   private metadataJsonSubject = new BehaviorSubject<Record<string, InstanceObject | null> | null>(null);
@@ -147,7 +148,7 @@ export class SampleTemplatesService {
       templateLocationPrefix = this.fixedLocationPrefix(templateLocationPrefix);
       this.buildAllTemplatesDynamically(templateLocationPrefix);
     }
-    return this.allTemplates;
+    return this.allTemplates ?? EMPTY;
   }
 
   private buildAllTemplatesDynamically(templateLocationPrefix: string): void {

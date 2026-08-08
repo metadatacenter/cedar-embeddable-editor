@@ -10,21 +10,28 @@ import { DataContext } from '../../util/data-context';
   standalone: false,
 })
 export class SourcePanelsComponent {
-  @Input() dataContext: DataContext;
+  @Input({ required: true }) dataContext!: DataContext;
 
-  @Input() showTemplateRenderingRepresentation: boolean;
-  @Input() showMultiInstanceInfo: boolean;
-  @Input() showTemplateSourceData: boolean;
-  @Input() showInstanceDataCore: boolean;
-  @Input() showInstanceDataFull: boolean;
-  @Input() showDataQualityReport: boolean;
+  /*
+   * All twelve default to false — a panel nobody asked for is closed, and one the
+   * host has not enabled is absent. That is what the editor above already declares
+   * for each of these, so the two agree rather than one relying on the other always
+   * binding. Six of them said `boolean` and were `undefined` until bound, which the
+   * templates read as false anyway.
+   */
+  @Input() showTemplateRenderingRepresentation = false;
+  @Input() showMultiInstanceInfo = false;
+  @Input() showTemplateSourceData = false;
+  @Input() showInstanceDataCore = false;
+  @Input() showInstanceDataFull = false;
+  @Input() showDataQualityReport = false;
 
   @Input() expandedInstanceDataCore = false;
   @Input() expandedInstanceDataFull = false;
   @Input() expandedTemplateSourceData = false;
   @Input() expandedTemplateRenderingRepresentation = false;
   @Input() expandedMultiInstanceInfo = false;
-  @Input() expandedDataQualityReport: boolean;
+  @Input() expandedDataQualityReport = false;
 
   constructor() {}
 

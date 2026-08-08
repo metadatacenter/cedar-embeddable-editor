@@ -1,4 +1,3 @@
-import { TemplateComponent } from '../models/template/template-component.model';
 import { DataQualityReport } from '../models/data-quality-report.model';
 import { DataContext } from '../util/data-context';
 import { CedarComponent } from '../models/component/cedar-component.model';
@@ -101,32 +100,45 @@ export interface ReportContainer {
 
 export type ReportNode = ReportValue | ReportList | ReportContainer;
 
+/**
+ * Builds the data quality report from a template and the instance under it.
+ *
+ * Stateless, for the reason given on `DataObjectBuilderHandler`: `dataObjectFull`
+ * and `templateRepresentation` were declared and never read, and `report` is a
+ * local that one method builds and returns — it reaches the recursion as an
+ * argument, which is why it never needed to be a field.
+ */
 export class DataQualityReportBuilderHandler {
-  private dataObjectFull: object;
-  private templateRepresentation: TemplateComponent | null;
-  private report: DataQualityReport;
-
   buildReport(dataContext: DataContext, handlerContext: HandlerContext): DataQualityReport {
-    this.report = new DataQualityReport();
-    this.report.templateRepresentation = dataContext.templateRepresentation;
+    const report = new DataQualityReport();
+    report.templateRepresentation = dataContext.templateRepresentation;
     // The envelope-free view, for the host page. Derived once here rather than
     // maintained as a second tree — see `DataContext.instanceExtractData`.
-    this.report.instanceExtractData = dataContext.instanceExtractData;
+    report.instanceExtractData = dataContext.instanceExtractData;
 
     const valueTree: ReportContainer = {};
 
     if (dataContext.templateRepresentation != null && dataContext.templateInput != null) {
       DataQualityReportBuilderHandler.buildRecursively(
         dataContext.templateRepresentation,
-        this.report,
+        report,
         valueTree,
         dataContext.multiInstanceData ?? new MultiInstanceInfo(),
         handlerContext,
       );
     }
-    this.report.valueTree = valueTree['undefined'];
-    this.report.computeValidity();
-    return this.report;
+    /*
+     * The recursion files every component's subtree under that component's own
+     * name, so the template's sits under the template's — and a template has none,
+     * because the parser names only children. This read the literal string
+     * `'undefined'`, which is what that unset name stringified to when used as a
+     * key. Asking the root what it is called says the same thing without depending
+     * on a field having no default, and keeps working if a template ever gets one.
+     */
+    const rootName = dataContext.templateRepresentation?.name ?? '';
+    report.valueTree = valueTree[rootName] ?? {};
+    report.computeValidity();
+    return report;
   }
 
   private static buildRecursively(

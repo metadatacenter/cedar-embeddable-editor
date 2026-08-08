@@ -1,5 +1,6 @@
 import { type Mock, vi } from 'vitest';
 import { CedarEmbeddableMetadataEditorComponent } from './cedar-embeddable-metadata-editor.component';
+import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { ModelLibraryTemplateParser } from '../../factory/model-library-template-parser';
 import { YamlTemplateParser } from '../../factory/yaml-template-parser';
 import { AUTHORITY_DESCRIPTORS } from '../../models/authority/authority-descriptor.model';
@@ -102,7 +103,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     it('keeps all IRI prefixes on this editor instance', () => {
       const prefixes = new IriPrefix();
       const component = new CedarEmbeddableMetadataEditorComponent(
-        null,
+        null as unknown as ActiveComponentRegistryService,
         // `as unknown as T`, not `as any`. A stub only needs the members this test
         // exercises, but naming the target type keeps the constructor's shape in the
         // test: change a parameter and the double stops compiling, which `any` would

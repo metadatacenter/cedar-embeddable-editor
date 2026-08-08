@@ -18,14 +18,14 @@ import { CedarValidators } from '../../../shared/validation/cedar-validators';
   standalone: false,
 })
 export class CedarInputNumericComponent extends CedarUIDirective implements OnInit {
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl<string | null>(null, Validators.min(10));
   unitOfMeasure: string | null = null;
   constraintMinValue: number | null = null;
   constraintMaxValue: number | null = null;
   patternErrorMessage: string | null = null;
-  @Input() handlerContext: HandlerContext;
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
     fb: FormBuilder,
@@ -57,12 +57,17 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
     // are still resolved here because the template shows them as hints.
     const numberType = this.component.numberInfo.numberType;
     if (this.constraintMinValue == null || this.constraintMaxValue == null) {
-      const implicitBounds = {
-        [Xsd.int]: [Numbers.NUMBER_INT_MIN, Numbers.NUMBER_INT_MAX],
-        [Xsd.long]: [Numbers.NUMBER_LONG_MIN, Numbers.NUMBER_LONG_MAX],
-        [Xsd.byte]: [Numbers.NUMBER_BYTE_MIN, Numbers.NUMBER_BYTE_MAX],
-        [Xsd.short]: [Numbers.NUMBER_SHORT_MIN, Numbers.NUMBER_SHORT_MAX],
-      }[numberType];
+      // A field declaring no numeric type has no implicit bounds to take, so the
+      // table is not consulted at all rather than indexed by nothing.
+      const implicitBounds =
+        numberType == null
+          ? undefined
+          : {
+              [Xsd.int]: [Numbers.NUMBER_INT_MIN, Numbers.NUMBER_INT_MAX],
+              [Xsd.long]: [Numbers.NUMBER_LONG_MIN, Numbers.NUMBER_LONG_MAX],
+              [Xsd.byte]: [Numbers.NUMBER_BYTE_MIN, Numbers.NUMBER_BYTE_MAX],
+              [Xsd.short]: [Numbers.NUMBER_SHORT_MIN, Numbers.NUMBER_SHORT_MAX],
+            }[numberType];
       if (implicitBounds) {
         // `Number(...)` because the table carries `bigint` for `xsd:long`, whose
         // bounds exceed the safe integer range. The control compares as a number
@@ -77,7 +82,7 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
     this.inputValueControl = new FormControl<string | null>(null, validators);
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }

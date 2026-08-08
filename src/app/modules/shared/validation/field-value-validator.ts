@@ -156,7 +156,7 @@ export class FieldValueValidator {
   private static checkNumeric(component: FieldComponent, text: string, path: string[], out: ValidationProblem[]): void {
     const ni = component.numberInfo;
     const numberType = ni.numberType;
-    const integral = Object.prototype.hasOwnProperty.call(this.INTEGRAL_BOUNDS, numberType);
+    const integral = numberType != null && Object.prototype.hasOwnProperty.call(this.INTEGRAL_BOUNDS, numberType);
     const fractional = numberType === Xsd.float || numberType === Xsd.double || numberType === Xsd.decimal;
 
     if (integral && !new RegExp(`^${Numbers.PATTERN_XSD_INT_AND_LONG}$`).test(text)) {
@@ -198,7 +198,7 @@ export class FieldValueValidator {
     // would collapse every value near 2^63 onto the same double, which is how
     // 9223372036854775808 used to pass as an xsd:long. Reaching here as an integral type
     // means the text already matched PATTERN_XSD_INT_AND_LONG, so BigInt cannot throw.
-    const bounds = this.INTEGRAL_BOUNDS[numberType];
+    const bounds = numberType == null ? undefined : this.INTEGRAL_BOUNDS[numberType];
     if (bounds) {
       const exact = BigInt(text);
       if (exact < bounds[0] || exact > bounds[1]) {
@@ -300,7 +300,8 @@ export class FieldValueValidator {
   private static checkGranularity(
     component: FieldComponent,
     text: string,
-    granularity: string,
+    /** Null for a temporal field whose template declares no granularity, which the guard below has always expected. */
+    granularity: string | null,
     timeStr: string | null,
     path: string[],
     out: ValidationProblem[],

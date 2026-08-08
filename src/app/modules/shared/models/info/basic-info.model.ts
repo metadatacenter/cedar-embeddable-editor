@@ -4,8 +4,9 @@ export class BasicInfo {
    * declares no `_ui.inputType` has none, and CEE dispatches on the value rather
    * than requiring it.
    */
-  inputType: string | null;
-  temporalGranularity: string;
-  timezoneEnabled: boolean;
-  inputTimeFormat: string;
+  inputType: string | null = null;
+  /** The three temporal settings, set only for a temporal field. */
+  temporalGranularity: string | null = null;
+  inputTimeFormat: string | null = null;
+  timezoneEnabled = false;
 }

@@ -36,18 +36,18 @@ import { isInstanceObject } from '../../models/instance-node.model';
 export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   static readonly MAX_CHARACTERS_MULTI_VALUE = 30;
 
-  component: MultiComponent;
+  component!: MultiComponent;
   /** Null until the component is set, and for a component the info tree has no node for. */
-  currentMultiInfo: MultiInstanceObjectInfo | null;
+  currentMultiInfo: MultiInstanceObjectInfo | null = null;
   activeComponentRegistry: ActiveComponentRegistryService;
   translateService: TranslateService;
   messageHandlerService: MessageHandlerService;
-  @Input() handlerContext: HandlerContext;
-  @Input() isAlignedUp: boolean;
-  @Input() showAllMultiInstanceValues: boolean;
-  @Input() pageBreakPaginatorService: PageBreakPaginatorService;
-  readOnlyMode: boolean;
-  readOnlModeSubscription: Subscription;
+  @Input({ required: true }) handlerContext!: HandlerContext;
+  @Input() isAlignedUp = false;
+  @Input() showAllMultiInstanceValues = false;
+  @Input({ required: true }) pageBreakPaginatorService!: PageBreakPaginatorService;
+  readOnlyMode = false;
+  readOnlModeSubscription: Subscription = Subscription.EMPTY;
   userPreferencesService: UserPreferencesService;
 
   length = 0;
@@ -61,7 +61,10 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   showPageSizeOptions = false;
   hidePageSize = true;
 
-  multiInstanceValue: string;
+  /** The "All values" summary. Empty until `ngDoCheck` builds one, and empty for a
+   * component that is not a field — which is what `getMultiInstanceDataValueInfo`
+   * returns in that case, and what the template treats as nothing to show. */
+  multiInstanceValue = '';
 
   constructor(
     activeComponentRegistry: ActiveComponentRegistryService,
@@ -83,7 +86,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   ngOnDestroy(): void {
-    this.readOnlModeSubscription?.unsubscribe();
+    this.readOnlModeSubscription.unsubscribe();
     this.activeComponentRegistry.unregisterMultiPagerComponent(this.component, this);
   }
 
@@ -158,7 +161,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
     return info || '';
   }
 
-  @Input() set componentToRender(componentToRender: MultiComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: MultiComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerMultiPagerComponent(this.component, this);
   }

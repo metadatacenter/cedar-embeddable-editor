@@ -31,11 +31,12 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   standalone: false,
 })
 export class CedarInputSelectComponent extends CedarUIDirective implements OnInit {
-  @ViewChild('inputSelect') selectElement: MatSelect;
+  /** Undefined until the view exists; the code that closes the panel already tests for it. */
+  @ViewChild('inputSelect') selectElement?: MatSelect;
   readonly ITEM_ID_FIELD = 'id';
   readonly ITEM_TEXT_FIELD = 'label';
 
-  component: FieldComponent;
+  component!: FieldComponent;
   dropdownList: Record<string, string>[] = [];
   options: FormGroup;
   /*
@@ -45,9 +46,17 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
    */
   inputValueControl = new FormControl<string | string[] | null>(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  selections: string[];
-  maxSelections: number;
-  @Input() handlerContext: HandlerContext;
+  selections: string[] = [];
+  /**
+   * How many options may be chosen at once, or null for no declared limit.
+   *
+   * It said `number`, held `undefined` when the template declared no `maxItems`,
+   * and was tested against `undefined` in three places including the template —
+   * three different accounts of the same field. Null throughout now, matching the
+   * `MultiInfo` it comes from.
+   */
+  maxSelections: number | null = null;
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,
@@ -72,7 +81,7 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     this.inputValueControl = new FormControl<string | string[] | null>(null, validators);
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
     this.maxSelections = this.component.multiInfo.maxItems;
@@ -86,13 +95,13 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
       // list. Named separately rather than reused, because the else branch below
       // reads the same control as a single string.
       const values = Array.isArray(raw) ? raw : [];
-      if (this.maxSelections === undefined || (values && values.length <= this.maxSelections)) {
+      if (this.maxSelections === null || (values && values.length <= this.maxSelections)) {
         this.selections = values;
       } else {
         this.inputValueControl.setValue(this.selections);
       }
       // close dropdown if max selections reached
-      if (this.selectElement && this.maxSelections !== undefined && values && values.length === this.maxSelections) {
+      if (this.selectElement && this.maxSelections !== null && values && values.length === this.maxSelections) {
         this.selectElement.close();
       }
       this.changeValue(this.selections);

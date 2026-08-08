@@ -11,11 +11,11 @@ import { ComponentDataService } from '../../service/component-data.service';
   standalone: false,
 })
 export class CedarComponentLinkedStaticFieldHeaderComponent {
-  component: CedarComponent;
+  component!: CedarComponent;
 
   constructor(public cds: ComponentDataService) {}
 
-  @Input() set componentToRender(componentToRender: CedarComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;
   }
 }

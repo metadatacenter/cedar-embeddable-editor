@@ -98,7 +98,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
    * stored representation.
    */
   private value: Date | null = null;
-  private readOnlyModeSubscription: Subscription;
+  private readOnlyModeSubscription: Subscription = Subscription.EMPTY;
 
   private onChange: (value: Date) => void = () => {};
   private onTouched: () => void = () => {};
@@ -112,7 +112,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   }
 
   ngOnDestroy(): void {
-    this.readOnlyModeSubscription?.unsubscribe();
+    this.readOnlyModeSubscription.unsubscribe();
   }
 
   // --- ControlValueAccessor -------------------------------------------------

@@ -34,13 +34,13 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   standalone: false,
 })
 export class CedarInputTextComponent extends CedarUIDirective implements OnInit {
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   constraintMinLength: number | null = null;
   constraintMaxLength: number | null = null;
-  @Input() handlerContext: HandlerContext;
+  @Input({ required: true }) handlerContext!: HandlerContext;
   inputText = InputType.text;
   inputTextarea = InputType.textarea;
   isRichText: boolean = false;
@@ -83,7 +83,7 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     }
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }

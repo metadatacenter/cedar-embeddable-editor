@@ -21,8 +21,9 @@ import { ModelLibraryInstanceReader } from './model-library-instance-reader';
 export class MultiInstanceObjectHandler {
   private static readonly defaultInstanceReader: InstanceCardinalityReader = new ModelLibraryInstanceReader();
 
-  public multiInstanceObject: MultiInstanceInfo;
-  private templateRepresentation: TemplateComponent;
+  /** An empty info tree until a template is built into one, which is CEE's starting state. */
+  public multiInstanceObject: MultiInstanceInfo = new MultiInstanceInfo();
+  private templateRepresentation: TemplateComponent | null = null;
 
   /**
    * Resolves a component path in the live instance, through the current cursors.
@@ -185,7 +186,7 @@ export class MultiInstanceObjectHandler {
       let count = 0;
       let currentIndex = -1;
       if (child instanceof MultiFieldComponent) {
-        count = (child as MultiComponent).multiInfo.minItems;
+        count = (child as MultiComponent).multiInfo.getSafeMinItems();
         currentIndex = count > 0 ? 0 : -1;
         /// delete multiInfo.children;
       } else if (child instanceof SingleFieldComponent) {
@@ -193,7 +194,7 @@ export class MultiInstanceObjectHandler {
         currentIndex = -1;
         /// delete multiInfo.children;
       } else if (child instanceof MultiElementComponent) {
-        count = (child as MultiComponent).multiInfo.minItems;
+        count = (child as MultiComponent).multiInfo.getSafeMinItems();
         currentIndex = count > 0 ? 0 : -1;
         for (let i = 0; i < count; i++) {
           const mc = new MultiInstanceInfo();
@@ -283,7 +284,14 @@ export class MultiInstanceObjectHandler {
 
   private getDataPathNodeRecursively(
     multiInstanceObject: MultiInstanceInfo,
-    component: CedarComponent,
+    /*
+     * Nullable, as in the matching walk in `DataObjectStructureHandler`. It is null
+     * before a template is set, which is the state CEE starts in and the state a
+     * host can return it to. None of the three `instanceof` branches below matches
+     * null, so `childComponent` stays null and the walk ends where it stands —
+     * which is the answer, not an oversight to guard against at the top.
+     */
+    component: CedarComponent | null,
     path: string[],
   ): MultiInstanceObjectInfo | null {
     if (!multiInstanceObject) {

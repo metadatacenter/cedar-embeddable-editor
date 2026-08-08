@@ -45,13 +45,13 @@ export class DatePickerComponent implements OnInit {
   yearMonthFormat = DatePickerComponent.YEAR_MONTH_FORMAT;
   yearMonthDayFormat = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
 
-  @Input() dateMonthYear: FormControl;
+  @Input({ required: true }) dateMonthYear!: FormControl;
   @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
-  @Input() required: boolean;
+  @Input() required = false;
   @Output() dateChangedEvent = new EventEmitter<Moment>();
   private userPreferencesService: UserPreferencesService;
-  private readOnlyModeSubscription: Subscription;
-  readOnlyMode: boolean;
+  private readOnlyModeSubscription: Subscription = Subscription.EMPTY;
+  readOnlyMode = false;
 
   public constructor(
     private _dateTimeService: DateTimeService,

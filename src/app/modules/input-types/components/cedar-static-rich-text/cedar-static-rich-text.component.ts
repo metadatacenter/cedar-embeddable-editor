@@ -13,14 +13,14 @@ import { HandlerContext } from '../../../shared/util/handler-context';
   standalone: false,
 })
 export class CedarStaticRichTextComponent extends CedarUIDirective {
-  component: StaticFieldComponent;
-  @Input() handlerContext: HandlerContext;
+  component!: StaticFieldComponent;
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(private activeComponentRegistry: ActiveComponentRegistryService) {
     super();
   }
 
-  @Input() set componentToRender(componentToRender: StaticFieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }

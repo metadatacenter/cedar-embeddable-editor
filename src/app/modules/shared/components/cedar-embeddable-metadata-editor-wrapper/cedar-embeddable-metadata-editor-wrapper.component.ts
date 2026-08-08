@@ -4,7 +4,6 @@ import {
   Input,
   OnDestroy,
   OnInit,
-  ViewChild,
   ViewEncapsulation,
   ChangeDetectionStrategy,
 } from '@angular/core';
@@ -95,8 +94,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   private defaultLanguage = GlobalSettingsContextService.DEFAULT_LANGUAGE;
   private fallbackLanguage = GlobalSettingsContextService.DEFAULT_LANGUAGE;
-
-  @ViewChild(CedarEmbeddableMetadataEditorComponent) editorComponent: CedarEmbeddableMetadataEditorComponent;
 
   constructor(
     private readonly wrapper: ElementRef<HTMLElement>,

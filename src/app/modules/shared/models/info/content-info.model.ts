@@ -1,3 +1,3 @@
 export class ContentInfo {
-  content: string;
+  content = '';
 }

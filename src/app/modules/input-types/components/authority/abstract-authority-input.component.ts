@@ -49,18 +49,35 @@ export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
  */
 @Directive()
 export abstract class AbstractAuthorityInputComponent extends CedarUIDirective implements OnInit, AfterViewInit {
-  @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger: MatAutocompleteTrigger;
-  @Input() handlerContext: HandlerContext;
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  /**
+   * Undefined until the view exists, and for good in read-only mode — the
+   * autocomplete input the trigger reads sits behind an `*ngIf` on it. ORCID and
+   * ROR already tested for that; the other two reached through it inside a
+   * `!readOnlyMode` guard, which is the same fact stated less directly.
+   */
+  @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger?: MatAutocompleteTrigger;
+  @Input({ required: true }) handlerContext!: HandlerContext;
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  component: FieldComponent;
-  options: FormGroup;
+  component!: FieldComponent;
+  /*
+   * Both built in `ngOnInit`, because the control's validators come off the
+   * component and that arrives as an input. Asserted rather than made optional:
+   * Angular runs `ngOnInit` before it first checks the template that binds them,
+   * so there is no render in which they are absent.
+   */
+  options!: FormGroup;
   inputValueControl!: FormControl<string | null>;
   errorStateMatcher = new AuthorityErrorStateMatcher();
-  filteredOptions: Observable<AuthoritySearchResponseItem[]>;
+  /**
+   * An empty list until `ngOnInit` builds the search pipeline, and for good in
+   * read-only mode, where there is no autocomplete to feed. A real observable
+   * rather than nothing, so the template's async pipe always has one to read.
+   */
+  filteredOptions: Observable<AuthoritySearchResponseItem[]> = of([]);
   selectedData: AuthoritySearchResponseItem | null = null;
   loadingOptions = false;
   justReverted = false;
@@ -145,7 +162,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
 
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
-      this.trigger.panelClosingActions.subscribe((event) => {
+      this.trigger?.panelClosingActions.subscribe((event) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const selectionMode = !!event && !!(event as any).source;
         if (selectionMode) {
@@ -194,7 +211,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
       // Shadow DOM that is the custom-element host, not this input, so open the
       // panel explicitly once Angular has updated matAutocompleteDisabled.
       setTimeout(() => {
-        if (!this.trigger.panelOpen) {
+        if (this.trigger && !this.trigger.panelOpen) {
           this.trigger.openPanel();
         }
       });

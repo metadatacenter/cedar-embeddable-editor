@@ -31,7 +31,8 @@ export const isYouTubeHost = (hostname: string): boolean => {
  * an embed URL from a fixed origin instead of trusting template content as a
  * resource URL.
  */
-export const extractYouTubeVideoId = (value: string): string | null => {
+/** Nullable for the same reason as `resolveStaticImageView`: the body opens with `value?.trim()`. */
+export const extractYouTubeVideoId = (value: string | null | undefined): string | null => {
   const candidate = value?.trim();
   if (!candidate) {
     return null;

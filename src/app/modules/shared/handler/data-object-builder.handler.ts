@@ -10,20 +10,22 @@ import { FieldComponent } from '../models/component/field-component.model';
 import { JsonSchema } from 'cedar-model-typescript-library';
 import * as _ from 'lodash-es';
 import { DataObjectUtil } from '../util/data-object-util';
-import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
-import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
 import { DEFAULT_IRI_PREFIX } from '../util/iri-prefix';
 import { InstanceNode, InstanceObject, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
+/**
+ * Builds an empty instance from a template.
+ *
+ * Stateless. It held five fields, and four of them were never read: `dataObject`
+ * was assigned nowhere, `templateJsonObj` and `multiInstanceObjectService` were
+ * assigned and read nowhere — the second through an `injectMultiInstanceService`
+ * call that therefore did nothing — and `dataObjectFull` was a local that a
+ * single method wrote and returned. Only the template was genuinely threaded, and
+ * it is now a parameter, which is what threading a value through two calls means.
+ */
 export class DataObjectBuilderHandler {
-  private dataObject: object;
-  private dataObjectFull: InstanceObject;
-  private templateJsonObj: object;
-  private templateRepresentation: TemplateComponent;
-  private multiInstanceObjectService: MultiInstanceObjectHandler;
-
   constructor(private readonly iriPrefix: () => string = () => DEFAULT_IRI_PREFIX) {}
 
   /*
@@ -48,13 +50,13 @@ export class DataObjectBuilderHandler {
         // MultiElement
         const multiElement: MultiElementComponent = component as MultiElementComponent;
         dataObject[targetName] = DataObjectUtil.getEmptyList();
-        if (multiElement.multiInfo.minItems > 0) {
+        if (multiElement.multiInfo.getSafeMinItems() > 0) {
           const dummyTargetObject: InstanceObject = DataObjectUtil.getEmptyObject();
           DataObjectBuilderHandler.addContext(component, dummyTargetObject, buildingMode);
           for (const childComponent of iterableComponent.children) {
             this.buildRecursively(childComponent, dummyTargetObject, buildingMode);
           }
-          for (let idx = 0; idx < multiElement.multiInfo.minItems; idx++) {
+          for (let idx = 0; idx < multiElement.multiInfo.getSafeMinItems(); idx++) {
             const clone = _.cloneDeep(dummyTargetObject);
             dataObject[targetName].push(clone);
           }
@@ -90,7 +92,7 @@ export class DataObjectBuilderHandler {
         // MultiFieldComponent
         const multiField: MultiFieldComponent = component as MultiFieldComponent;
         dataObject[targetName] = DataObjectUtil.getEmptyList();
-        if (multiField.multiInfo.minItems > 0) {
+        if (multiField.multiInfo.getSafeMinItems() > 0) {
           if (component?.choiceInfo?.choices?.length > 0) {
             // A choice field starts holding whatever is selected by default.
             // That used to *replace* the `minItems` skeleton outright, so a
@@ -111,7 +113,7 @@ export class DataObjectBuilderHandler {
           // point of the branch is that it is one.
           const occurrences = dataObject[targetName];
           if (isInstanceArray(occurrences)) {
-            for (let idx = occurrences.length; idx < multiField.multiInfo.minItems; idx++) {
+            for (let idx = occurrences.length; idx < multiField.multiInfo.getSafeMinItems(); idx++) {
               occurrences.push(DataObjectUtil.getEmptyValueWrapper(nonIterableComponent, buildingMode));
             }
           }
@@ -243,32 +245,27 @@ export class DataObjectBuilderHandler {
     return this.iriPrefix() + 'template-element-instances/';
   }
 
-  injectMultiInstanceService(multiInstanceObjectService: MultiInstanceObjectHandler): void {
-    this.multiInstanceObjectService = multiInstanceObjectService;
-  }
-
-  buildNewFullDataObject(
-    templateRepresentation: TemplateComponent,
-    templateJsonObj: CedarInputTemplate,
-  ): InstanceObject {
-    this.templateJsonObj = templateJsonObj;
-    this.templateRepresentation = templateRepresentation;
+  buildNewFullDataObject(templateRepresentation: TemplateComponent): InstanceObject {
     // `InstanceFullData` is a type alias now, not a class: an empty instance root
     // is an empty object, which is what `new` produced anyway.
-    this.dataObjectFull = {};
-    this.buildNewByIterating(this.dataObjectFull, DataObjectBuildingMode.INCLUDE_CONTEXT);
-    return this.dataObjectFull;
+    const dataObjectFull: InstanceObject = {};
+    this.buildNewByIterating(templateRepresentation, dataObjectFull, DataObjectBuildingMode.INCLUDE_CONTEXT);
+    return dataObjectFull;
   }
 
-  private buildNewByIterating(dataObject: InstanceObject, buildingMode: DataObjectBuildingMode): void {
-    if (this.templateRepresentation == null || this.templateRepresentation.children == null) {
+  private buildNewByIterating(
+    templateRepresentation: TemplateComponent,
+    dataObject: InstanceObject,
+    buildingMode: DataObjectBuildingMode,
+  ): void {
+    if (templateRepresentation == null || templateRepresentation.children == null) {
       return;
     }
     // The template's own `@context` sits on the instance root, and so does the
     // IRI of the template the instance is an instance of.
-    DataObjectBuilderHandler.addContext(this.templateRepresentation, dataObject, buildingMode);
-    DataObjectBuilderHandler.addEnvelope(this.templateRepresentation, dataObject, buildingMode);
-    for (const childComponent of this.templateRepresentation.children) {
+    DataObjectBuilderHandler.addContext(templateRepresentation, dataObject, buildingMode);
+    DataObjectBuilderHandler.addEnvelope(templateRepresentation, dataObject, buildingMode);
+    for (const childComponent of templateRepresentation.children) {
       this.buildRecursively(childComponent, dataObject, buildingMode);
     }
   }

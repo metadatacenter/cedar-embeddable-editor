@@ -23,7 +23,13 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
 
   readOnlyMode = false;
 
-  protected readOnlyModeSubscription: Subscription;
+  /*
+   * `Subscription.EMPTY` rather than nothing, here and in the five components that
+   * keep their own. It is a real subscription to nothing, so "never subscribed"
+   * stops being a separate state the teardown has to test for — the closed
+   * singleton's `unsubscribe` is a no-op by design.
+   */
+  protected readOnlyModeSubscription: Subscription = Subscription.EMPTY;
 
   protected constructor() {}
   ngOnInit() {
@@ -33,7 +39,7 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
     });
   }
   ngOnDestroy(): void {
-    this.readOnlyModeSubscription?.unsubscribe();
+    this.readOnlyModeSubscription.unsubscribe();
     this.componentRegistry.unregisterComponent(this.component, this);
   }
   deleteCurrentValue(): void {

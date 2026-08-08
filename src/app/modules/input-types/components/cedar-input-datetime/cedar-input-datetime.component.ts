@@ -27,15 +27,16 @@ import { TimezonePickerComponent, TZone } from '../../../shared/components/timez
   standalone: false,
 })
 export class CedarInputDatetimeComponent extends CedarUIDirective implements AfterViewInit {
-  component: FieldComponent;
+  component!: FieldComponent;
 
   timePickerTime: Date;
   /** Both null when the field holds no time yet, and reset to null on clear. */
-  decimalSeconds: number | null;
-  timezone: TZone | null;
+  decimalSeconds: number | null = null;
+  timezone: TZone | null = null;
   setDefaultZone = false;
   datetimeParsed: DatetimeRepresentation;
-  dateMonthYearControl: FormControl;
+  /** An empty date control until a value or a default replaces it. */
+  dateMonthYearControl: FormControl = new FormControl(null);
   /**
    * Carries the stored representation so it can be validated.
    *
@@ -68,9 +69,9 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   onUserEdit(): void {
     this.userEdited = true;
   }
-  required: boolean;
+  required = false;
 
-  @Input() handlerContext: HandlerContext;
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
     fb: FormBuilder,
@@ -85,7 +86,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.cdr.detectChanges();
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     const validators = [CedarValidators.forComponent(componentToRender)];
     if (componentToRender.valueInfo.requiredValue) {
@@ -128,7 +129,8 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   }
 
   showDatePicker(): boolean {
-    return [Xsd.dateTime, Xsd.date].indexOf(this.component.valueInfo.temporalType) > -1;
+    const temporalType = this.component.valueInfo.temporalType;
+    return temporalType != null && [Xsd.dateTime, Xsd.date].includes(temporalType);
   }
 
   dateFormat(): string {
@@ -148,7 +150,8 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   }
 
   showTimePicker(): boolean {
-    return [Xsd.dateTime, Xsd.time].indexOf(this.component.valueInfo.temporalType) > -1;
+    const temporalType = this.component.valueInfo.temporalType;
+    return temporalType != null && [Xsd.dateTime, Xsd.time].includes(temporalType);
   }
 
   enableMeridian(): boolean {
@@ -160,7 +163,8 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   }
 
   showSeconds(): boolean {
-    return [Temporal.second, Temporal.decimalSecond].indexOf(this.component.basicInfo.temporalGranularity) > -1;
+    const granularity = this.component.basicInfo.temporalGranularity;
+    return granularity != null && [Temporal.second, Temporal.decimalSecond].includes(granularity);
   }
 
   showDecimalSeconds(): boolean {

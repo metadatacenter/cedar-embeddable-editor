@@ -42,22 +42,21 @@
      */
     "useDefineForClassFields": false,
     /*
-     * TypeScript 6.0 turns `strict` on by default. CEE was written against the old
-     * default and does not compile under it: 659 errors, overwhelmingly
-     * `strictNullChecks`, `noImplicitAny` and `strictPropertyInitialization`.
-     * Measured, not estimated — the build reports 685 with it on and 26 with it
-     * off, and those 26 are the genuine Angular 22 and TypeScript 6 breakages
-     * fixed elsewhere in this hop.
+     * On, and all of it. The Angular 22 hop measured 659 errors under `strict` and
+     * left it off, because rewriting null handling across a codebase is not a
+     * framework hop. That work is now done, taken one flag at a time in the order
+     * they depend on each other: `noImplicitAny` (242 errors), then
+     * `strictNullChecks` (279), then `strictPropertyInitialization` (179).
      *
-     * Turning strict on is worth doing and is tracked on the roadmap. It is not
-     * this commit: it rewrites null handling across the codebase, which is exactly
-     * the kind of change the march exists to keep separate from a framework hop.
-     * Set explicitly rather than left to the default so the next TypeScript major
-     * cannot move it again without someone deciding to.
+     * Those three are what `strict` costs here. With them satisfied the rest —
+     * `strictFunctionTypes`, `strictBindCallApply`, `noImplicitThis`,
+     * `useUnknownInCatchVariables`, `alwaysStrict` — came for nothing, so the flag
+     * is set whole rather than as a list of the parts that happened to be needed.
+     *
+     * Set explicitly rather than left to TypeScript 6's default, so a later major
+     * cannot move it without someone deciding to.
      */
-    "strict": false,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
+    "strict": true,
     "module": "es2022",
     "lib": [
       "es2022",

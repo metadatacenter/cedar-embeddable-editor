@@ -15,7 +15,7 @@ import { authorityDescriptorFor } from '../../../shared/models/authority/authori
 import { InputType } from '../../../shared/models/input-type.model';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { OrcidSearchResponseItem } from '../../../shared/models/rest/orcid-search/orcid-search-response-item';
-import { ResearcherDetails } from '../../../shared/models/rest/orcid-detail/orcid-detail-person';
+import { OrcidResolveResponse, ResearcherDetails } from '../../../shared/models/rest/orcid-detail/orcid-detail-person';
 import { isInstanceObject } from '../../../shared/models/instance-node.model';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
@@ -33,15 +33,21 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   standalone: false,
 })
 export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit {
+  /**
+   * Undefined until the view exists, and for good in read-only mode — the
+   * autocomplete input the trigger reads sits behind an `*ngIf` on it. ORCID and
+   * ROR already tested for that; the other two reached through it inside a
+   * `!readOnlyMode` guard, which is the same fact stated less directly.
+   */
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger })
-  trigger: MatAutocompleteTrigger;
+  trigger?: MatAutocompleteTrigger;
 
   selectedData: OrcidSearchResponseItem | null = null;
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl<string | null>(null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  @Input() handlerContext: HandlerContext;
+  @Input({ required: true }) handlerContext!: HandlerContext;
   model: OrcidSearchResponseItem | null = null;
   researcherDetails: ResearcherDetails | null = null;
   showDetails = false;
@@ -52,9 +58,14 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
   /** Whether the last search failed, as opposed to returning nothing. */
   lookupFailed = false;
 
-  filteredOptions: Observable<OrcidSearchResponseItem[]>;
+  /**
+   * An empty list until `ngOnInit` builds the search pipeline, and for good in
+   * read-only mode, where there is no autocomplete to feed. A real observable
+   * rather than nothing, so the template's async pipe always has one to read.
+   */
+  filteredOptions: Observable<OrcidSearchResponseItem[]> = of([]);
   private researcherDetailsCache = new Map<string, ResearcherDetails>();
-  justReverted: boolean;
+  justReverted = false;
   selectionInProgress = false;
 
   constructor(
@@ -69,7 +80,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     });
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
@@ -150,7 +161,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
       return of([]);
     }
     if (this.descriptor.looksLikeIdentifier(val)) {
-      return this.lookup.resolve(InputType.orcid, val).pipe(
+      return this.lookup.resolve<OrcidResolveResponse>(InputType.orcid, val).pipe(
         map((response) => {
           if (!response || response.found === false) {
             return [];
@@ -272,7 +283,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     this.loadingDetails = true;
     this.cdr.markForCheck();
     this.lookup
-      .resolve<ResearcherDetails>(InputType.orcid, selectedId)
+      .resolve<OrcidResolveResponse>(InputType.orcid, selectedId)
       .pipe(
         finalize(() => {
           this.loadingDetails = false;
@@ -282,7 +293,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
           return of(null as never);
         }),
       )
-      .subscribe((response: ResearcherDetails | null) => {
+      .subscribe((response: OrcidResolveResponse | null) => {
         if (response && response.found) {
           this.researcherDetails = ResearcherDetails.fromJson(response);
           this.researcherDetailsCache.set(selectedId, this.researcherDetails);

@@ -36,7 +36,6 @@ export class HandlerContext {
   ) {
     this.dataObjectBuilderService = new DataObjectBuilderHandler(iriPrefix);
     this.multiInstanceObjectService = new MultiInstanceObjectHandler();
-    this.dataObjectBuilderService.injectMultiInstanceService(this.multiInstanceObjectService);
     this.dataObjectManipulationService = new DataObjectStructureHandler(this.dataObjectBuilderService);
     this.dataObjectDataValueHandler = new DataObjectDataValueHandler(messageHandlerService);
     this.dataQualityReportBuilderService = new DataQualityReportBuilderHandler();

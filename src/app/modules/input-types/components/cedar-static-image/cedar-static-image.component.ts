@@ -16,8 +16,8 @@ import { resolveStaticImageView, StaticImageView } from './static-image-view';
   standalone: false,
 })
 export class CedarStaticImageComponent extends CedarUIDirective {
-  component: StaticFieldComponent;
-  @Input() handlerContext: HandlerContext;
+  component!: StaticFieldComponent;
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   // The state before a field is set is not "neither", which the union forbids and
   // was what this held: it is the same as a field with no URL, which
@@ -34,7 +34,7 @@ export class CedarStaticImageComponent extends CedarUIDirective {
     super();
   }
 
-  @Input() set componentToRender(componentToRender: StaticFieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
     // A new field is a new URL: whatever the last one did to the browser says
     // nothing about this one.

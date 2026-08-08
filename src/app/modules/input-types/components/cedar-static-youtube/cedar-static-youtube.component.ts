@@ -16,8 +16,8 @@ import { resolveStaticYoutubeView } from './static-youtube-view';
   standalone: false,
 })
 export class CedarStaticYoutubeComponent extends CedarUIDirective {
-  component: StaticFieldComponent;
-  @Input() handlerContext: HandlerContext;
+  component!: StaticFieldComponent;
+  @Input({ required: true }) handlerContext!: HandlerContext;
   readonly videoHeight = 390;
   readonly videoWidth = 640;
   videoEmbedUrl: SafeResourceUrl | null = null;
@@ -31,7 +31,7 @@ export class CedarStaticYoutubeComponent extends CedarUIDirective {
     super();
   }
 
-  @Input() set componentToRender(componentToRender: StaticFieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
     const view = resolveStaticYoutubeView(componentToRender.contentInfo?.content);
     this.videoEmbedUrl = view.videoId

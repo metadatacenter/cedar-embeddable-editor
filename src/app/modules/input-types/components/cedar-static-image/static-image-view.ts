@@ -26,7 +26,12 @@ const ABSOLUTE_URL = /^[a-zA-Z][a-zA-Z0-9+.-]*:/;
  * the browser knows what they resolve against, so rejecting them here would fail
  * images that work.
  */
-export const resolveStaticImageView = (content: string, loadFailed: boolean): StaticImageView => {
+export const resolveStaticImageView = (
+  /** Nullable: the caller reads it through `component?.contentInfo?.content`, and the
+   * first thing done with it here is `content?.trim()`. The signature said `string`. */
+  content: string | null | undefined,
+  loadFailed: boolean,
+): StaticImageView => {
   const candidate = content?.trim();
 
   if (!candidate) {

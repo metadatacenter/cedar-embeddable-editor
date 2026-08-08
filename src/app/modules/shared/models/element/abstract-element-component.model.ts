@@ -6,12 +6,12 @@ import { InstanceObject } from '../instance-node.model';
 
 export abstract class AbstractElementComponent implements ElementComponent {
   className = 'AbstractElementComponent';
-  name: string;
-  path: string[];
+  name = '';
+  path: string[] = [];
   children: CedarComponent[] = [];
   labelInfo: LabelInfo = new LabelInfo();
   linkedStaticFieldComponent: StaticFieldComponent | null = null;
-  hidden: boolean;
+  hidden = false;
   /**
    * The template said `_ui.hidden`, which is permanent.
    *

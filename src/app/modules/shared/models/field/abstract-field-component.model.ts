@@ -10,8 +10,8 @@ import { MultiInfo } from '../info/multi-info.model';
 
 export abstract class AbstractFieldComponent implements FieldComponent {
   className = 'AbstractFieldComponent';
-  name: string;
-  path: string[];
+  name = '';
+  path: string[] = [];
   basicInfo: BasicInfo = new BasicInfo();
   valueInfo: ValueInfo = new ValueInfo();
   numberInfo: NumberInfo = new NumberInfo();
@@ -20,7 +20,7 @@ export abstract class AbstractFieldComponent implements FieldComponent {
   linkedStaticFieldComponent: StaticFieldComponent | null = null;
   controlledInfo: ControlledInfo = new ControlledInfo();
   multiInfo: MultiInfo = new MultiInfo();
-  hidden: boolean;
+  hidden = false;
   /**
    * The template said `_ui.hidden`, which is permanent.
    *

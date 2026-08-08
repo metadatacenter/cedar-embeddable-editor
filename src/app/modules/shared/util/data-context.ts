@@ -23,7 +23,7 @@ export class DataContext {
   multiInstanceData: MultiInstanceInfo | null = null;
   dataQualityReport: DataQualityReport | null = null;
   /** Null until a template is saved, and reset to null when one is replaced. */
-  savedTemplateID: string | null;
+  savedTemplateID: string | null = null;
 
   private derivedExtract: InstanceExtractData = null;
 
@@ -115,7 +115,7 @@ export class DataContext {
     // skeleton from the template.
     if (this.instanceFullData === null) {
       const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
-      this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation, this.templateInput);
+      this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation);
       this.invalidateDerivedViews();
       this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
         this.templateRepresentation,

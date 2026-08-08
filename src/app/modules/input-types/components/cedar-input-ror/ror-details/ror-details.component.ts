@@ -12,8 +12,9 @@ import { Relationship } from '../../../../shared/models/rest/ror-detail/ror-deta
 export class RorDetailsComponent implements OnInit {
   groupedRelationships: Record<string, Relationship[]> = {};
 
-  @Input() rorDetail: RorDetailResponse;
-  @Input() close: (value: boolean) => void;
+  @Input({ required: true }) rorDetail!: RorDetailResponse;
+  /** What the panel's close button does. A no-op until the host says otherwise. */
+  @Input() close: (value: boolean) => void = () => {};
   constructor() {}
   ngOnInit(): void {
     if (this.rorDetail?.rawResponse?.relationships) {

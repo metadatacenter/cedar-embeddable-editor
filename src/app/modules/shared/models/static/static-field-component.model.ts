@@ -6,8 +6,8 @@ import { ContentInfo } from '../info/content-info.model';
 export class StaticFieldComponent implements SingleComponent {
   className = 'StaticFieldComponent';
 
-  name: string;
-  path: string[];
+  name = '';
+  path: string[] = [];
   labelInfo: LabelInfo = new LabelInfo();
   basicInfo: BasicInfo = new BasicInfo();
   contentInfo: ContentInfo = new ContentInfo();

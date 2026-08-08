@@ -1,10 +1,11 @@
 export class LabelInfo {
-  preferredLabel: string;
   /**
-   * Both nullable: the library types a template's `schema:name` and
+   * All three nullable: the library types a template's `schema:name` and
    * `schema:description` as `NullableString`, because a template is free to omit
    * either, and CEE renders them through `?.` rather than requiring them.
+   * `skos:prefLabel` is rarer still — most fields have none.
    */
-  description: string | null;
-  label: string | null;
+  preferredLabel: string | null = null;
+  description: string | null = null;
+  label: string | null = null;
 }

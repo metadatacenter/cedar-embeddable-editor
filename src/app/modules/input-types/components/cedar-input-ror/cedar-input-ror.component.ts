@@ -42,28 +42,39 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   standalone: false,
 })
 export class CedarInputRorComponent extends CedarUIDirective implements OnInit, AfterViewInit {
+  /**
+   * Undefined until the view exists, and for good in read-only mode — the
+   * autocomplete input the trigger reads sits behind an `*ngIf` on it. ORCID and
+   * ROR already tested for that; the other two reached through it inside a
+   * `!readOnlyMode` guard, which is the same fact stated less directly.
+   */
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger })
-  trigger: MatAutocompleteTrigger;
+  trigger?: MatAutocompleteTrigger;
 
-  @Input() handlerContext: HandlerContext;
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) handlerContext!: HandlerContext;
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
   selectedData: RorSearchResponseItem | null = null;
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl<string | null>(null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   model: RorSearchResponseItem | null = null;
   rorDetails: RorDetailResponse | null = null;
   showDetails: boolean = false;
-  filteredOptions: Observable<RorSearchResponseItem[]>;
+  /**
+   * An empty list until `ngOnInit` builds the search pipeline, and for good in
+   * read-only mode, where there is no autocomplete to feed. A real observable
+   * rather than nothing, so the template's async pipe always has one to read.
+   */
+  filteredOptions: Observable<RorSearchResponseItem[]> = of([]);
   loadingOptions = false;
   private rorDetailsCache = new Map<string, RorDetailResponse>();
-  justReverted: boolean;
-  hasSearched: boolean;
+  justReverted = false;
+  hasSearched = false;
   /** Whether the last search failed, as opposed to returning nothing. */
   lookupFailed = false;
   selectionInProgress = false;
@@ -147,7 +158,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
   }
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
-      this.trigger.panelClosingActions.subscribe((event) => {
+      this.trigger?.panelClosingActions.subscribe((event) => {
         // No cast needed: `panelClosingActions` is typed
         // `Observable<MatOptionSelectionChange | null>`, and `source` is on it.
         const selectionMode = !!event && !!event.source;

@@ -42,8 +42,9 @@ export interface ValueSetConstraint {
 }
 
 export class ControlledInfo {
-  ontologies: OntologyConstraint[];
-  valueSets: ValueSetConstraint[];
-  classes: ClassConstraint[];
-  branches: BranchConstraint[];
+  /** Empty for a field constrained by none of that kind, which most fields are. */
+  ontologies: OntologyConstraint[] = [];
+  valueSets: ValueSetConstraint[] = [];
+  classes: ClassConstraint[] = [];
+  branches: BranchConstraint[] = [];
 }

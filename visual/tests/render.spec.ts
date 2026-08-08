@@ -529,6 +529,9 @@ const WIDGETS = [
   { name: 'input-multiple-choice', selector: 'app-cedar-input-multiple-choice', fixture: '02-choices', nth: 0 },
   { name: 'input-select', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 0 },
   { name: 'input-select-multi', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 1 },
+  // Same widget, with a maximum the template declared. Its hint states the
+  // number; the unbounded one above shows no hint at all.
+  { name: 'input-select-multi-bounded', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 2 },
   { name: 'input-controlled', selector: 'app-cedar-input-controlled', fixture: '04-controlled-terms', nth: 0 },
   { name: 'input-orcid', selector: 'app-cedar-input-orcid', fixture: '08-authority', nth: 0 },
   { name: 'input-ror', selector: 'app-cedar-input-ror', fixture: '08-authority', nth: 0 },

@@ -18,9 +18,9 @@ import { requireControl, requireFormArray } from '../../../shared/forms/form-con
   standalone: false,
 })
 export class CedarInputCheckboxComponent extends CedarUIDirective implements OnInit {
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
-  @Input() handlerContext: HandlerContext;
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
     fb: FormBuilder,
@@ -49,7 +49,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     this.populateValuesOnLoad();
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }

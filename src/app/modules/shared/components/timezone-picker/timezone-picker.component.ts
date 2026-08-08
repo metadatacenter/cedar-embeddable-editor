@@ -17,7 +17,8 @@ import { takeUntil } from 'rxjs/operators';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { requireControl } from '../../forms/form-control';
 
-export class TZone {
+/** A zone offset and its display text. Read out of a JSON list, never constructed. */
+export interface TZone {
   id: string;
   label: string;
 }
@@ -102,8 +103,8 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() disabled = false;
   readOnlyTimezoneControl = new FormControl<string | null>(null, null);
   private userPreferencesService: UserPreferencesService;
-  private readOnlyModeSubscription: Subscription;
-  readOnlyMode: boolean;
+  private readOnlyModeSubscription: Subscription = Subscription.EMPTY;
+  readOnlyMode = false;
 
   @Input() set config(conf: SelectConfig) {
     this._config = conf;
@@ -125,9 +126,16 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   /**
    * Internals section.
    */
-  timeZones: TZone[];
+  timeZones: TZone[] = [];
   form: FormGroup;
-  private propagateChange: (value: TZone | null) => void;
+  /**
+   * What to tell the forms API when the zone changes.
+   *
+   * A no-op until `registerOnChange` supplies the real one, because a picker
+   * nobody has registered with has nowhere to report to — which is what the
+   * `if (this.propagateChange)` guard at the call site was saying.
+   */
+  private propagateChange: (value: TZone | null) => void = () => {};
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -135,6 +143,11 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     userPreferenceService: UserPreferencesService,
   ) {
     this.userPreferencesService = userPreferenceService;
+    // Built here rather than in `ngOnInit`: it depends on nothing but the builder,
+    // and a picker whose form exists from construction has no half-built state.
+    this.form = this.fb.group({
+      timezone: [],
+    });
   }
 
   static guessedUserZone(): TZone | null {
@@ -154,10 +167,6 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     });
     // make a copy of the list to avoid modifying the original timezones array
     this.timeZones = JSON.parse(JSON.stringify(TimezonePickerComponent.AVAILABLE_TIMEZONES));
-    this.form = this.fb.group({
-      timezone: [],
-    });
-
     /**
      * Value change subscription.
      */
@@ -202,11 +211,9 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
    * Propagate result to parent component.
    */
   private fireChanges(): void {
-    if (this.propagateChange) {
-      const { value } = requireControl(this.form, 'timezone');
-      this.readOnlyTimezoneControl.setValue(value?.label);
-      this.propagateChange(value);
-    }
+    const { value } = requireControl(this.form, 'timezone');
+    this.readOnlyTimezoneControl.setValue(value?.label);
+    this.propagateChange(value);
   }
 
   /**

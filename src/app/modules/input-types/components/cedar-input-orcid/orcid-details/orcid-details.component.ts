@@ -10,8 +10,9 @@ import { Employment } from '../../../../shared/models/rest/orcid-detail/orcid-de
   standalone: false,
 })
 export class OrcidDetailsComponent {
-  @Input() researcher: ResearcherDetails;
-  @Input() close: (value: boolean) => void;
+  @Input({ required: true }) researcher!: ResearcherDetails;
+  /** What the panel's close button does. A no-op until the host says otherwise. */
+  @Input() close: (value: boolean) => void = () => {};
 
   constructor() {}
   closeClicked() {

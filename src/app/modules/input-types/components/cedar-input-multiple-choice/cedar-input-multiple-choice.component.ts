@@ -31,11 +31,11 @@ export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
   standalone: false,
 })
 export class CedarInputMultipleChoiceComponent extends CedarUIDirective implements OnInit {
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
   selectedChoiceInputControl = new FormControl<string | null>(null, null);
   errorStateMatcher = new MultipleChoiceErrorStateMatcher();
-  @Input() handlerContext: HandlerContext;
+  @Input({ required: true }) handlerContext!: HandlerContext;
   /** The last value pushed in by `setCurrentValue`, which is typed `unknown` there. */
   selected: unknown;
 
@@ -60,7 +60,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
     this.selectedChoiceInputControl.updateValueAndValidity();
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }

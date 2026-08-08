@@ -21,7 +21,7 @@
        <mat-icon>close</mat-icon>
     </button>
     <mat-error tabindex="0" *ngIf="inputValueControl.hasError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
-    <mat-hint *ngIf="maxSelections!==undefined && !readOnlyMode">{{'Validation.Select.MaxSelection' | translate: {maxSelections} }}</mat-hint>
+    <mat-hint *ngIf="maxSelections!==null && !readOnlyMode">{{'Validation.Select.MaxSelection' | translate: {maxSelections} }}</mat-hint>
   </mat-form-field>
 </form>
 

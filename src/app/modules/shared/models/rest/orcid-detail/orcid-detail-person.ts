@@ -1,5 +1,6 @@
 import { Employment } from './orcid-detail-employment';
 import { OrcidEmploymentJson } from './orcid-detail-employment';
+import { AuthorityDetailResponse } from '../../authority/authority-search-response.model';
 
 /**
  * The parts of an ORCID record this reads.
@@ -18,37 +19,55 @@ interface OrcidKeywordJson {
   content: string;
 }
 
-interface OrcidRecordJson {
-  id?: string;
-  rawResponse?: {
-    person?: {
-      name?: {
-        'given-names'?: { value?: string };
-        'family-name'?: { value?: string };
-        'credit-name'?: { value?: string };
-      };
-      'other-names'?: { 'other-name'?: { content?: string; 'display-index'?: number }[] };
-      biography?: { content?: string };
-      emails?: { email?: OrcidEmailJson[] };
-      keywords?: { keyword?: OrcidKeywordJson[] };
-      addresses?: { address?: { country?: { value?: string } }[] };
+/** ORCID's record, as it sits inside the lookup response. */
+interface OrcidRawRecord {
+  person?: {
+    name?: {
+      'given-names'?: { value?: string };
+      'family-name'?: { value?: string };
+      'credit-name'?: { value?: string };
     };
-    /**
-     * The employment history, declared because `fromJson` walks it. Only the two
-     * levels this reader steps through are named; `employment-summary` is handed
-     * straight to `Employment.fromJson`, which is where its shape belongs.
-     */
-    'activities-summary'?: {
-      employments?: {
-        'affiliation-group'?: { summaries?: { 'employment-summary'?: unknown }[] }[];
-      };
+    'other-names'?: { 'other-name'?: { content?: string; 'display-index'?: number }[] };
+    biography?: { content?: string };
+    emails?: { email?: OrcidEmailJson[] };
+    keywords?: { keyword?: OrcidKeywordJson[] };
+    addresses?: { address?: { country?: { value?: string } }[] };
+  };
+  /**
+   * The employment history, declared because `fromJson` walks it. Only the two
+   * levels this reader steps through are named; `employment-summary` is handed
+   * straight to `Employment.fromJson`, which is where its shape belongs.
+   */
+  'activities-summary'?: {
+    employments?: {
+      'affiliation-group'?: { summaries?: { 'employment-summary'?: unknown }[] }[];
     };
   };
 }
 
+/** The least `fromJson` needs to read. */
+interface OrcidRecordJson {
+  id?: string;
+  rawResponse?: OrcidRawRecord;
+}
+
+/**
+ * What the lookup endpoint answers when asked to resolve an ORCID identifier:
+ * the envelope every authority shares, carrying ORCID's record.
+ *
+ * Named because both call sites had it wrong and neither could be caught. One
+ * asked for the bare `AuthorityDetailResponse`, whose type has no `rawResponse`
+ * at all, and handed it to `fromJson` anyway; the other asked for
+ * `ResearcherDetails`, which is the *parsed* researcher rather than the document
+ * parsed into one. Both compiled because `OrcidRecordJson` is optional
+ * throughout, so anything at all satisfies it structurally.
+ */
+export interface OrcidResolveResponse extends AuthorityDetailResponse {
+  rawResponse?: OrcidRawRecord;
+}
+
 export class ResearcherDetails {
   id: string;
-  found: boolean;
   fullName: string;
   creditName: string;
   otherNames: string[];

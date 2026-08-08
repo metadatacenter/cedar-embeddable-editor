@@ -4,7 +4,7 @@ import { CedarComponent } from '../component/cedar-component.model';
 
 export class NullTemplate extends AbstractElementComponent implements TemplateComponent {
   override className = 'NullTemplate';
-  pageBreakChildren: Array<CedarComponent[]>;
+  pageBreakChildren: Array<CedarComponent[]> = [];
 
   hasPageBreaks(): boolean {
     return false;

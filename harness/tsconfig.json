@@ -13,7 +13,18 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "types": ["node", "vitest/globals"],
-    "baseUrl": ".",
+    /*
+     * No `baseUrl`: TypeScript 6 deprecates it and 7 stops honouring it, and the
+     * mappings below are already written relative to this file, which is where
+     * `paths` resolves from without it.
+     *
+     * Removing it made this project type-check for the first time. TS5101 is a
+     * configuration error, and tsc reports those instead of checking the program —
+     * so `tsc -p harness/tsconfig.json` reported one problem and looked clean. It
+     * now reports the 25 real ones underneath, most of them the Angular stub in
+     * `stubs/` not exporting what the shared code imports. Nothing runs this
+     * command in the gate; vitest does not type-check. Tracked on the roadmap.
+     */
     "paths": {
       "@cee/*": ["../src/app/modules/shared/*"],
       "@angular/core": ["./stubs/angular-core.ts"]

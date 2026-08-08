@@ -20,8 +20,9 @@ import { configText } from '../../util/config-reader';
 })
 export class SampleTemplatesComponent implements OnInit, OnDestroy {
   @Input() callbackOwnerObject: SampleTemplateLoaderOwner | null = null;
-  @Input() expandedSampleTemplateLinks: boolean;
-  templateLocationPrefix: string;
+  @Input() expandedSampleTemplateLinks = false;
+  /** Empty until the config supplies one, which is also what `configText` falls back to. */
+  templateLocationPrefix = '';
   /*
    * `string[]`, not `string`: this is bound to a `mat-selection-list`, whose value
    * is the list of selected options even with `[multiple]="false"` — which is why

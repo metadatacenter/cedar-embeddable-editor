@@ -34,19 +34,22 @@
       "_radio",
       "_checkbox",
       "_single_list",
-      "_multi_list"
+      "_multi_list",
+      "_bounded_list"
     ],
     "propertyLabels": {
       "_radio": "radio",
       "_checkbox": "checkbox",
       "_single_list": "single_list",
-      "_multi_list": "multi_list"
+      "_multi_list": "multi_list",
+      "_bounded_list": "bounded_list"
     },
     "propertyDescriptions": {
       "_radio": "radio property description",
       "_checkbox": "checkbox property description",
       "_single_list": "single_list property description",
-      "_multi_list": "multi_list property description"
+      "_multi_list": "multi_list property description",
+      "_bounded_list": "bounded_list property description"
     }
   },
   "properties": {
@@ -224,6 +227,11 @@
           "enum": [
             "https://schema.metadatacenter.org/properties/2e3c1960-0000-4000-8000-2e3c19600000"
           ]
+        },
+        "_bounded_list": {
+          "enum": [
+            "https://schema.metadatacenter.org/properties/0a139df0-0000-4000-8000-0a139df00000"
+          ]
         }
       },
       "required": [
@@ -241,7 +249,8 @@
         "_radio",
         "_checkbox",
         "_single_list",
-        "_multi_list"
+        "_multi_list",
+        "_bounded_list"
       ],
       "additionalProperties": false
     },
@@ -700,6 +709,107 @@
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-04/schema#"
       }
+    },
+    "_bounded_list": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 2,
+      "items": {
+        "@id": "https://repo.metadatacenter.org/template-fields/0fa3feb7-0000-4000-8000-0fa3feb70000",
+        "@type": "https://schema.metadatacenter.org/core/TemplateField",
+        "@context": {
+          "xsd": "http://www.w3.org/2001/XMLSchema#",
+          "pav": "http://purl.org/pav/",
+          "bibo": "http://purl.org/ontology/bibo/",
+          "oslc": "http://open-services.net/ns/core#",
+          "schema": "http://schema.org/",
+          "skos": "http://www.w3.org/2004/02/skos/core#",
+          "schema:name": {
+            "@type": "xsd:string"
+          },
+          "schema:description": {
+            "@type": "xsd:string"
+          },
+          "skos:prefLabel": {
+            "@type": "xsd:string"
+          },
+          "skos:altLabel": {
+            "@type": "xsd:string"
+          },
+          "pav:createdOn": {
+            "@type": "xsd:dateTime"
+          },
+          "pav:createdBy": {
+            "@type": "@id"
+          },
+          "pav:lastUpdatedOn": {
+            "@type": "xsd:dateTime"
+          },
+          "oslc:modifiedBy": {
+            "@type": "@id"
+          }
+        },
+        "type": "object",
+        "title": "bounded_list title",
+        "description": "bounded_list description",
+        "_ui": {
+          "inputType": "list"
+        },
+        "_valueConstraints": {
+          "literals": [
+            {
+              "label": "Up"
+            },
+            {
+              "label": "Down"
+            },
+            {
+              "label": "Sideways"
+            }
+          ],
+          "requiredValue": false,
+          "multipleChoice": true
+        },
+        "properties": {
+          "@type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "rdfs:label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "@value": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "@language": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          }
+        },
+        "required": [
+          "@value"
+        ],
+        "schema:name": "bounded_list",
+        "schema:description": null,
+        "pav:createdOn": "2026-01-01T00:00:00-08:00",
+        "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+        "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+        "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+        "pav:version": "0.0.1",
+        "bibo:status": "bibo:draft",
+        "schema:schemaVersion": "1.6.0",
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-04/schema#"
+      }
     }
   },
   "required": [
@@ -715,7 +825,8 @@
     "_radio",
     "_checkbox",
     "_single_list",
-    "_multi_list"
+    "_multi_list",
+    "_bounded_list"
   ],
   "additionalProperties": false,
   "schema:name": "ChoiceWidgets",

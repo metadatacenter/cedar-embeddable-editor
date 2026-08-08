@@ -20,8 +20,8 @@ export class CustomMatPaginatorIntl extends MatPaginatorIntl {
   standalone: false,
 })
 export class CedarStaticPageBreakComponent {
-  @Input() dataContext: DataContext;
-  @Input() pageBreakPaginatorService: PageBreakPaginatorService;
+  @Input({ required: true }) dataContext!: DataContext;
+  @Input({ required: true }) pageBreakPaginatorService!: PageBreakPaginatorService;
 
   constructor() {}
 

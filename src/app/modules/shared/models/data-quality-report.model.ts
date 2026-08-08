@@ -4,9 +4,9 @@ import { ValidationProblem } from '../validation/validation-problem.model';
 
 export class DataQualityReport extends Object {
   /** Null when a report is built before a template is set, which produces an empty one. */
-  templateRepresentation: TemplateComponent | null;
-  instanceExtractData: InstanceExtractData;
-  valueTree: object;
+  templateRepresentation: TemplateComponent | null = null;
+  instanceExtractData: InstanceExtractData = null;
+  valueTree: object = {};
   requiredFieldValueCount = 0;
   nonNullRequiredFieldValueCount = 0;
   /**
