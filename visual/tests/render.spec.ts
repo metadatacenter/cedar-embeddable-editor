@@ -1295,6 +1295,50 @@ test.describe('a choice value reaches the widget by every load path', () => {
  * record what a sanitizer's output happens to look like rather than what it must
  * never do.
  */
+/**
+ * A configuration CEE cannot use is reported, not swallowed.
+ *
+ * The shipped declarations catch a misspelled key for a TypeScript host writing a
+ * literal, and can say nothing about the two likelier routes in: a JavaScript host,
+ * and `loadConfigFromURL`, whose JSON has been type-checked by nobody. Both used to
+ * be answered with silence, and a key that is silently ignored looks exactly like
+ * one that works.
+ *
+ * Driven through the real custom element rather than the validator directly —
+ * `config-validation.spec.ts` covers the rules — because what is being asserted
+ * here is that the check is *wired to the boundary* at all.
+ */
+test.describe('an unusable configuration', () => {
+  const errorsWhileLoading = async (
+    page: import('@playwright/test').Page,
+    extra: string,
+  ): Promise<string[]> => {
+    const errors: string[] = [];
+    page.on('console', (message) => {
+      if (message.type() === 'error' && message.text().includes('CEE ERROR')) {
+        errors.push(message.text());
+      }
+    });
+    await open(page, '01-input-types', undefined, undefined, undefined, extra);
+    return errors;
+  };
+
+  test('names an unknown key and suggests the one meant', async ({ page }) => {
+    const errors = await errorsWhileLoading(page, '&n=readOnlyMod');
+    expect(errors.join('\n'), 'a misspelled key should be reported').toContain(
+      'Unknown configuration key "readOnlyMod"',
+    );
+    expect(errors.join('\n'), 'and the near miss named').toContain('Did you mean "readOnlyMode"?');
+  });
+
+  test('says nothing about a configuration it can use', async ({ page }) => {
+    const errors = await errorsWhileLoading(page, '&f=readOnlyMode');
+    expect(errors.join('\n'), 'a valid configuration must not be reported').not.toContain(
+      'configuration key',
+    );
+  });
+});
+
 test.describe('template rich text', () => {
   const shadowHtml = (page: import('@playwright/test').Page): Promise<string> =>
     page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.shadowRoot!.innerHTML);

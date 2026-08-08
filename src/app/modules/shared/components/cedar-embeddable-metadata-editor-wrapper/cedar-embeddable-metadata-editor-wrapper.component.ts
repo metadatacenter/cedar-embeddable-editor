@@ -32,6 +32,7 @@ import { AriaDescriber } from '@angular/cdk/a11y';
 import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
 import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
 import { CeeConfig, configFlag, configText } from '../../util/config-reader';
+import { validateCeeConfig } from '../../util/config-validation';
 import { InstanceObject } from '../../models/instance-node.model';
 
 @Component({
@@ -299,6 +300,21 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   @Input() set config(value: CeeConfig) {
     this.messageHandlerService.trace('CEDAR Embeddable Editor config set to:' + JSON.stringify(value));
+
+    /*
+     * Both ways in converge here: a host assigning `config`, and `loadConfigFromURL`
+     * assigning it after parsing. That matters, because the fetched one is the
+     * configuration nothing has type-checked — the shipped declarations catch a
+     * misspelled key for a TypeScript host writing a literal, and can say nothing
+     * about JSON off a URL.
+     *
+     * Reported, not rejected. A bad key is ignored downstream exactly as before;
+     * the change is that the host is told rather than left watching a setting do
+     * nothing.
+     */
+    for (const problem of validateCeeConfig(value)) {
+      this.messageHandlerService.error(problem);
+    }
 
     if (value != null) {
       this.innerConfig = value;

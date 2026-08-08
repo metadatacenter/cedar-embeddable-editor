@@ -14,6 +14,7 @@
 import { describe, expect, it } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { CONFIG_SCHEMA } from './modules/shared/util/config-validation';
 
 const COMPONENT = path.resolve(
   __dirname,
@@ -58,6 +59,27 @@ describe('the published config keys and the ones the editor reads', () => {
     expect(
       declared.filter((key) => !implemented.includes(key)),
       'CeeConfig declares a key the editor never reads',
+    ).toEqual([]);
+  });
+
+  /**
+   * A third list, and the only one that exists at runtime.
+   *
+   * `CONFIG_SCHEMA` is what the boundary validator checks a host's configuration
+   * against, so a key missing from it is reported to that host as unknown — the
+   * loudest possible way for these to disagree.
+   */
+  it('match the schema the runtime validator uses', () => {
+    const scheme = Object.keys(CONFIG_SCHEMA).sort();
+    const implemented = componentKeys();
+
+    expect(
+      implemented.filter((key) => !scheme.includes(key)),
+      'the editor reads a key the validator would report as unknown',
+    ).toEqual([]);
+    expect(
+      scheme.filter((key) => !implemented.includes(key)),
+      'the validator accepts a key the editor never reads',
     ).toEqual([]);
   });
 });

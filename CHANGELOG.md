@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- TypeScript declarations for the host contract, shipped with the package: `CeeConfig`,
+  `CedarEmbeddableEditorElement`, the report and event-handler types, and an
+  `HTMLElementTagNameMap` entry so `document.querySelector('cedar-embeddable-editor')` is
+  typed without a cast. Types only — the bundle registers a custom element and exports no
+  values, so use `import type`.
+- Configuration is checked when it crosses the custom-element boundary. Unknown keys are
+  named with the nearest real key suggested, values of the wrong kind say what was
+  expected, and conflicting settings are reported. This covers the two routes a compiler
+  cannot: a JavaScript host, and `loadConfigFromURL`. Reporting only — a key CEE cannot
+  use is ignored as it always was.
+
 ### Security
 
 - Static rich-text fields are sanitized by default. A template author's markup previously
