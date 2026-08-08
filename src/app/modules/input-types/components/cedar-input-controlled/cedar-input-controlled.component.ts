@@ -178,10 +178,20 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       this.inputValueControl.setValue(currentValue);
     }
   }
-  getBioPortalTermDisplayValue(value: any): string {
+  /*
+   * `unknown`, matching what `setCurrentValue` is handed. A controlled value arrives
+   * as a node carrying an IRI and a label; anything else — a plain string on a field
+   * whose constraint was removed — falls through the last branch and is shown as-is.
+   *
+   * The reads are asserted because `JsonSchema.atId` is a `static atId: string`
+   * rather than a literal, so indexing through it tells TypeScript only that the key
+   * is some string. Both have always held strings.
+   */
+  getBioPortalTermDisplayValue(value: unknown): string {
     const controlledInfo = this.component.controlledInfo;
-    const rdfsLabel = value[JsonSchema?.rdfsLabel];
-    const atId = value[JsonSchema.atId];
+    const term = (value ?? {}) as Record<string, unknown>;
+    const rdfsLabel = term[JsonSchema.rdfsLabel] as string;
+    const atId = term[JsonSchema.atId] as string;
     const midPart = '?p=classes&conceptid=';
     const urlEncodedAtId = encodeURIComponent(atId);
 
@@ -200,7 +210,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
 
     if (rdfsLabel && atId) {
       return rdfsLabel + ' - (' + atId + ')';
-    } else return value;
+    } else return value as string;
   }
   clearValue(): void {
     this.selectedData = null;

@@ -19,7 +19,7 @@ if (environment.production) {
     () => {
       // Assign the version only to the bundle that wins the bootstrap slot. If
       // another version is loaded later, it must not claim to be the one running.
-      (window as any).cedarEmbeddableEditorVersion = packageJson.version;
+      (window as Window & CedarEditorBootstrapState).cedarEmbeddableEditorVersion = packageJson.version;
       return platformBrowserDynamic().bootstrapModule(AppModuleProd, {
         applicationProviders: [provideZoneChangeDetection()],
       });
@@ -27,7 +27,7 @@ if (environment.production) {
     (err) => console.error(err),
   );
 } else {
-  (window as any).cedarEmbeddableEditorVersion = packageJson.version;
+  (window as Window & CedarEditorBootstrapState).cedarEmbeddableEditorVersion = packageJson.version;
   platformBrowserDynamic()
     .bootstrapModule(AppModuleDev, { applicationProviders: [provideZoneChangeDetection()] })
     .catch((err) => console.error(err));

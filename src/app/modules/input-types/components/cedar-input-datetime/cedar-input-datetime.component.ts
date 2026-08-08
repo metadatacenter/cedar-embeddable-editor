@@ -401,8 +401,14 @@ export class DatetimeRepresentation {
     }
     this.dateIsSet = true;
     this.year = dateIn.year().toLocaleString().replace(/,/, '');
-    this.month = this.stringify((dateIn.month() + 1).toLocaleString());
-    this.day = this.stringify(dateIn.date().toLocaleString());
+    // Passed as numbers. `stringify` pads anything below 10, which it did by
+    // comparing a string to a number and letting JavaScript coerce it; these two
+    // call sites were also stringifying with `toLocaleString()` only for
+    // `stringify` to call `toString()` on the result. Months and days never reach
+    // the grouping separator that made `toLocaleString()` worth using for the year
+    // on the line above, so nothing about the output changes.
+    this.month = this.stringify(dateIn.month() + 1);
+    this.day = this.stringify(dateIn.date());
   }
 
   setHours(hoursIn: number): void {
@@ -517,7 +523,7 @@ export class DatetimeRepresentation {
     return this.toStorageRepresentation();
   }
 
-  private stringify(valIn: any): string {
+  private stringify(valIn: number): string {
     let str = valIn.toString();
     if (valIn < 10) {
       str = '0' + str;

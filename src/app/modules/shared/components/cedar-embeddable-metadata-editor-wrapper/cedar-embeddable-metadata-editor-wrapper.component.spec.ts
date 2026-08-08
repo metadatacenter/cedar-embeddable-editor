@@ -3,6 +3,12 @@ import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddabl
 import { ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { IriPrefix } from '../../util/iri-prefix';
+import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
+import { MessageHandlerService } from '../../service/message-handler.service';
+import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
+import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
+import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
+import { TranslateService } from '@ngx-translate/core';
 
 /**
  * `outputSerialization` drives the host-facing `currentMetadataSerialized`
@@ -98,25 +104,26 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       globalSettings: {},
     };
     const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined };
+    // `as unknown as T` throughout, rather than `as any`. Each double implements only
+    // what this test exercises, which is the point of a double — but naming the
+    // service it stands in for keeps the constructor's shape under test. Reorder or
+    // retype a parameter and these stop compiling; under `as any` they would have
+    // gone on silently standing in for the wrong thing.
     const component = new CedarEmbeddableMetadataEditorWrapperComponent(
       new ElementRef(document.createElement('cedar-embeddable-editor')),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { setTerminologyIntegratedSearchUrl: mocks.setTerminologyIntegratedSearchUrl } as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      messaging as any,
+      {
+        setTerminologyIntegratedSearchUrl: mocks.setTerminologyIntegratedSearchUrl,
+      } as unknown as ControlledFieldDataService,
+      messaging as unknown as MessageHandlerService,
       {
         templateJson$: mocks.templateJson$,
         metadataJson$: mocks.metadataJson$,
         loadTemplate: mocks.loadTemplate,
-      } as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { clear: mocks.clearRegistry } as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { setDefaultLang: mocks.setDefaultLang, use: mocks.use } as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      messaging as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mocks.globalSettings as any,
+      } as unknown as SampleTemplatesService,
+      { clear: mocks.clearRegistry } as unknown as ActiveComponentRegistryService,
+      { setDefaultLang: mocks.setDefaultLang, use: mocks.use } as unknown as TranslateService,
+      messaging as unknown as MessageHandlerService,
+      mocks.globalSettings as unknown as GlobalSettingsContextService,
       new IriPrefix(),
     );
     return { component, mocks };

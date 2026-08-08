@@ -7,6 +7,7 @@ import {
   InstanceDataContainer,
   JsonTemplateInstanceWriter,
   TemplateInstance,
+  JsonNode,
 } from 'cedar-model-typescript-library';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { InstanceFullData } from '../models/instance-full-data.model';
@@ -54,7 +55,7 @@ export class InstanceDeserializer {
     const instance = CedarReaders.json()
       .getFebruary2024()
       .getTemplateInstanceReader()
-      .readFromObject(instanceJson as any, undefined as never).instance;
+      .readFromObject(instanceJson as JsonNode).instance;
 
     if (report) {
       InstanceDeserializer.reportDiscarded(instance.dataContainer, [], report);

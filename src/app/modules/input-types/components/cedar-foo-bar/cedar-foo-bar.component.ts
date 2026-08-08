@@ -34,7 +34,7 @@ export class CedarFooBarComponent extends CedarUIDirective implements OnInit {
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  setCurrentValue(_currentValue: any): void {
+  setCurrentValue(_currentValue: unknown): void {
     // DO NOTHING
   }
 }

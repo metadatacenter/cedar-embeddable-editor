@@ -14,6 +14,7 @@ import { TemplateParser } from '../../factory/template-parser';
 import { ModelLibraryTemplateParser } from '../../factory/model-library-template-parser';
 import { YamlTemplateParser } from '../../factory/yaml-template-parser';
 import packageJson from 'package.json';
+import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -81,7 +82,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   pageBreakPaginatorService: PageBreakPaginatorService = null;
 
-  @Input() sampleTemplateLoaderObject: any = null;
+  @Input() sampleTemplateLoaderObject: SampleTemplateLoaderOwner = null;
 
   showTemplateRenderingRepresentation = false;
   showMultiInstanceInfo = false;

@@ -123,9 +123,9 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   /**
    * Internals section.
    */
-  timeZones: Array<any>;
+  timeZones: TZone[];
   form: FormGroup;
-  private propagateChange: (_: any) => void;
+  private propagateChange: (value: TZone | null) => void;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -235,11 +235,17 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     }
   }
 
-  registerOnChange(fn: any): void {
+  /*
+   * Narrower than `ControlValueAccessor` declares. The interface says `fn: any` for
+   * both, which TypeScript's method parameter bivariance lets an implementation
+   * tighten — and what actually arrives here is the form's `TZone`, since
+   * `fireChanges` passes the control's value straight through.
+   */
+  registerOnChange(fn: (value: TZone | null) => void): void {
     this.propagateChange = fn;
   }
 
-  registerOnTouched(_fn: any): void {}
+  registerOnTouched(_fn: () => void): void {}
 
   /**
    * Handle parent model value changes.

@@ -141,7 +141,9 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
       this.trigger.panelClosingActions.subscribe((event) => {
-        const selectionMode = !!event && !!(event as any).source;
+        // No cast needed: `panelClosingActions` is typed
+        // `Observable<MatOptionSelectionChange | null>`, and `source` is on it.
+        const selectionMode = !!event && !!event.source;
         if (selectionMode) return;
         this.setCurrentValue(this.selectedData);
       });

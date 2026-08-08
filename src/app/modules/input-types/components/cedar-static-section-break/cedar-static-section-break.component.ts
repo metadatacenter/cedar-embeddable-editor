@@ -36,7 +36,7 @@ export class CedarStaticSectionBreakComponent extends CedarUIDirective {
     }
   }
 
-  setCurrentValue(_currentValue: any): void {
+  setCurrentValue(_currentValue: unknown): void {
     // DO NOTHING
   }
 }

@@ -7,6 +7,7 @@ import {
   InstanceDataTypedAtom,
   JsonTemplateInstanceReader,
   JsonTemplateInstanceWriter,
+  JsonNode,
 } from 'cedar-model-typescript-library';
 
 /**
@@ -37,7 +38,7 @@ export class InstanceValueNode {
    * of an instance strips them.
    */
   static isValue(node: unknown): boolean {
-    return JsonTemplateInstanceReader.isValueNode(node as any);
+    return JsonTemplateInstanceReader.isValueNode(node as JsonNode);
   }
 
   /**
@@ -48,7 +49,7 @@ export class InstanceValueNode {
    * An element, or anything that is not a value, comes back as an empty node.
    */
   static atom(node: unknown): InstanceDataAtomType {
-    return JsonTemplateInstanceReader.readValueNode(node as any);
+    return JsonTemplateInstanceReader.readValueNode(node as JsonNode);
   }
 
   /**
@@ -113,8 +114,8 @@ export class InstanceValueNode {
    * looked up and was not there — so a controlled term that arrived without one
    * reported as unfilled and could not satisfy a requirement.
    */
-  static plainValue(node: unknown, iriValued: boolean): any {
-    const atom = JsonTemplateInstanceReader.readValueNode(node as any);
+  static plainValue(node: unknown, iriValued: boolean): string | null {
+    const atom = JsonTemplateInstanceReader.readValueNode(node as JsonNode);
 
     if (atom instanceof InstanceDataStringAtom || atom instanceof InstanceDataTypedAtom) {
       return InstanceValueNode.emptyToNull(atom.value);
@@ -135,7 +136,7 @@ export class InstanceValueNode {
    * the `readValueNode` used to interpret them, so what CEE writes and what it
    * reads back cannot drift apart.
    */
-  static literalJson(value: any, xsdType: string | null = null): object {
+  static literalJson(value: string | null, xsdType: string | null = null): object {
     const atom = xsdType === null ? new InstanceDataStringAtom(value) : new InstanceDataTypedAtom(value, xsdType);
     return JsonTemplateInstanceWriter.writeValueNode(atom) as object;
   }
@@ -191,7 +192,12 @@ export class InstanceValueNode {
     }
   }
 
-  private static emptyToNull(value: any): any {
+  /*
+   * Every atom the library hands back exposes `string | null`, so that is what this
+   * folds an empty string or an absent value into. `undefined` is checked as well as
+   * `''` because a missing key and an empty one are both the same unfilled slot.
+   */
+  private static emptyToNull(value: string | null | undefined): string | null {
     if (value === '' || value === undefined) {
       return null;
     }

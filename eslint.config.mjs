@@ -100,63 +100,6 @@ export default tseslint.config(
       '@angular-eslint/prefer-on-push-component-change-detection': 'off',
     },
   },
-  /*
-   * Baseline for @typescript-eslint/no-explicit-any, which stays an error everywhere
-   * else so that new code cannot add to the debt. Each entry below is an `any` that
-   * predates the lint gate; removing one means giving it a real type and deleting its
-   * line here. 25 files and 41 warnings, down from 44 and 77.
-   *
-   * 41 and not 32, which is what this said before the toolchain upgrade. The last three
-   * files below carried a blanket `/* eslint-disable @typescript-eslint/no-explicit-any *\/`
-   * at the top, so their nine `any`s were suppressed rather than counted — while this
-   * very comment claimed the debt was "a curated baseline rather than a blanket
-   * suppression". It was not, in three files. They are listed here now, which makes the
-   * claim true and the number honest. A warning that shows up in every run is pressure;
-   * a file-level disable is silence.
-   *
-   * The clusters:
-   *
-   *   - `setCurrentValue(currentValue: any)`, from the abstract member in
-   *     cedar-ui-component.model.ts. Typing it needs a union for every CEDAR field value.
-   *   - `callbackOwnerObject` / `sampleTemplateLoaderObject` host callbacks, which a host
-   *     supplies and CEE only calls back into.
-   *   - Angular and ngx-translate interfaces that declare `any` themselves:
-   *     ControlValueAccessor's `registerOnChange`, TranslateLoader's `Observable<any>`.
-   *   - `x as any` at the model-library boundary, where CEE hands a plain object to a
-   *     reader whose parameter is a library type it does not construct.
-   */
-  {
-    files: [
-      'src/app/modules/input-types/components/cedar-foo-bar/cedar-foo-bar.component.ts',
-      'src/app/modules/input-types/components/cedar-input-controlled/cedar-input-controlled.component.ts',
-      'src/app/modules/input-types/components/cedar-input-datetime/cedar-input-datetime.component.ts',
-      'src/app/modules/input-types/components/cedar-input-ror/cedar-input-ror.component.ts',
-      'src/app/modules/input-types/components/cedar-input-ror/ror-details/ror-details.component.ts',
-      'src/app/modules/input-types/components/cedar-input-select/cedar-input-select.component.ts',
-      'src/app/modules/input-types/components/cedar-static-image/cedar-static-image.component.ts',
-      'src/app/modules/input-types/components/cedar-static-rich-text/cedar-static-rich-text.component.ts',
-      'src/app/modules/input-types/components/cedar-static-section-break/cedar-static-section-break.component.ts',
-      'src/app/modules/input-types/components/cedar-static-youtube/cedar-static-youtube.component.ts',
-      'src/app/modules/shared/components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component.spec.ts',
-      'src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.spec.ts',
-      'src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.ts',
-      'src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.ts',
-      'src/app/modules/shared/components/sample-template-select/sample-template-select.component.ts',
-      'src/app/modules/shared/components/sample-templates/sample-templates.component.ts',
-      'src/app/modules/shared/components/static-header/static-header.component.ts',
-      'src/app/modules/shared/components/timezone-picker/timezone-picker.component.ts',
-      'src/app/modules/shared/factory/yaml-template-parser.ts',
-      'src/app/modules/shared/util/fallback-translate-loader-factory.ts',
-      'src/app/modules/shared/util/fallback-translate-loader.ts',
-      'src/main.ts',
-      'src/app/modules/shared/util/instance-deserializer.ts',
-      'src/app/modules/shared/util/instance-serializer.ts',
-      'src/app/modules/shared/util/instance-value-node.ts',
-    ],
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
-    },
-  },
   {
     files: ['**/*.html'],
     extends: [...angular.configs.templateRecommended],

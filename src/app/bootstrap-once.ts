@@ -1,5 +1,12 @@
 export interface CedarEditorBootstrapState {
   cedarEmbeddableEditorBootstrap?: Promise<unknown>;
+  /**
+   * The version of the bundle that won the bootstrap slot, published for anyone
+   * debugging which copy of CEE a page is actually running. Declared here beside
+   * the slot it belongs to, so `main.ts` can set it through the same typed window
+   * reference rather than casting to `any` twice.
+   */
+  cedarEmbeddableEditorVersion?: string;
 }
 
 /**

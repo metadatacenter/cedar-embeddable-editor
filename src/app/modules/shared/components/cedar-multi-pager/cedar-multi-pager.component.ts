@@ -112,7 +112,11 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
     const inputType = (this.component as MultiFieldComponent).basicInfo.inputType;
     const iriValued = valueIsIri(inputType);
     if (nodeInfo !== null && nodeInfo !== undefined) {
-      (nodeInfo as Array<any>).forEach((fieldName, index) => {
+      // `unknown[]`, not `any[]`: an occurrence is either the value node itself or,
+      // for attribute-value fields, the *name* under which the parent holds it. The
+      // code below already distinguishes them by `typeof`, so the element type is
+      // honestly unknown and the narrowing is what decides.
+      (nodeInfo as unknown[]).forEach((fieldName, index) => {
         const numStr =
           '<span class="multiinfo-index' +
           (index > 0 ? ' not-first-multiinfo-index' : '') +
@@ -124,13 +128,17 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
         // An attribute-value occurrence *is* its own name; the value it names
         // sits on the parent under that name. Every other kind of occurrence is
         // the value node itself.
-        const isAttributeValue = typeof fieldName === 'string' && fieldName !== '';
-        if (!isAttributeValue && typeof fieldName !== 'object') {
+        //
+        // Held as a nullable name rather than a boolean so the narrowing survives:
+        // a separate `isAttributeValue` flag tells TypeScript nothing about
+        // `fieldName`, and every use below would need a cast back to string.
+        const attributeName = typeof fieldName === 'string' && fieldName !== '' ? fieldName : null;
+        if (attributeName === null && typeof fieldName !== 'object') {
           return;
         }
-        const node = isAttributeValue ? parentNodeInfo[fieldName] : fieldName;
+        const node = attributeName !== null ? parentNodeInfo[attributeName] : fieldName;
         const shown = this.shortValue(inputType, InstanceValueNode.plainValue(node, iriValued));
-        infoArray.push(numStr + (isAttributeValue ? fieldName + '=' : '') + (shown ?? 'null'));
+        infoArray.push(numStr + (attributeName !== null ? attributeName + '=' : '') + (shown ?? 'null'));
       });
     } else {
       this.messageHandlerService.error('Missing data in instance:' + this.component.path);

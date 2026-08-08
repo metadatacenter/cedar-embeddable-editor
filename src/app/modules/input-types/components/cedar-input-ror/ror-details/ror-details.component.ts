@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RorDetailResponse } from '../../../../shared/models/rest/ror-detail/ror-detail-response';
+import { Relationship } from '../../../../shared/models/rest/ror-detail/ror-detail-relationship';
 
 @Component({
   selector: 'app-ror-details',
@@ -9,7 +10,7 @@ import { RorDetailResponse } from '../../../../shared/models/rest/ror-detail/ror
   standalone: false,
 })
 export class RorDetailsComponent implements OnInit {
-  groupedRelationships: { [key: string]: any[] } = {};
+  groupedRelationships: Record<string, Relationship[]> = {};
 
   @Input() rorDetail: RorDetailResponse;
   @Input() close: (value: boolean) => void;
@@ -20,9 +21,14 @@ export class RorDetailsComponent implements OnInit {
     }
   }
 
-  groupBy(array: any[], key: string): { [key: string]: any[] } {
-    return array.reduce((result, item) => {
-      const groupKey = item[key];
+  /*
+   * Generic rather than `any[]`, so the grouped output keeps the element type the
+   * caller passed in. `keyof T & string` because the key both indexes the item and
+   * becomes a property name on the result.
+   */
+  groupBy<T>(array: T[], key: keyof T & string): Record<string, T[]> {
+    return array.reduce<Record<string, T[]>>((result, item) => {
+      const groupKey = String(item[key]);
       (result[groupKey] = result[groupKey] || []).push(item);
       return result;
     }, {});

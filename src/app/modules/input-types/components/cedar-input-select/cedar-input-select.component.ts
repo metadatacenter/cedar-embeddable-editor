@@ -35,8 +35,7 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
   readonly ITEM_TEXT_FIELD = 'label';
 
   component: FieldComponent;
-  dropdownList = [];
-  selectedItems: any;
+  dropdownList: Record<string, string>[] = [];
   options: FormGroup;
   inputValueControl = new FormControl(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
@@ -98,12 +97,11 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
   }
 
   private populateItemsOnLoad(): void {
-    const multi = this.component.choiceInfo.multipleChoice;
-    if (multi) {
-      this.selectedItems = [];
-    }
+    // `selectedItems` used to be reset to `[]` here for a multi-choice field. It was
+    // assigned in this one place and read nowhere — not in the component, not in the
+    // template — so it and the `multipleChoice` branch that guarded it are gone.
     for (const choice of this.component.choiceInfo.choices) {
-      const entry: { [key: string]: any } = {
+      const entry: Record<string, string> = {
         [this.ITEM_ID_FIELD]: choice.label,
         [this.ITEM_TEXT_FIELD]: choice.label,
       };

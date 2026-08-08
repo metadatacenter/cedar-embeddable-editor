@@ -1,4 +1,4 @@
-import { CedarReaders, CedarWriters, TemplateInstance } from 'cedar-model-typescript-library';
+import { CedarReaders, CedarWriters, JsonNode, TemplateInstance } from 'cedar-model-typescript-library';
 import { InstanceFullData } from '../models/instance-full-data.model';
 
 /**
@@ -26,7 +26,7 @@ export class InstanceSerializer {
     return CedarReaders.json()
       .getFebruary2024()
       .getTemplateInstanceReader()
-      .readFromObject(instance as any, undefined as never).instance;
+      .readFromObject(instance as unknown as JsonNode).instance;
   }
 
   /** The instance as CEDAR JSON, written by the library. */

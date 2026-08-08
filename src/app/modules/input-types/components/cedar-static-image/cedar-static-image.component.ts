@@ -64,7 +64,7 @@ export class CedarStaticImageComponent extends CedarUIDirective {
     this.view = resolveStaticImageView(this.component?.contentInfo?.content, this.loadFailed);
   }
 
-  setCurrentValue(_currentValue: any): void {
+  setCurrentValue(_currentValue: unknown): void {
     // DO NOTHING
   }
 }

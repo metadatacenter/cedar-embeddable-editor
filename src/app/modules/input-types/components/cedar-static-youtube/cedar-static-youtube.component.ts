@@ -50,7 +50,7 @@ export class CedarStaticYoutubeComponent extends CedarUIDirective {
     );
   }
 
-  setCurrentValue(_currentValue: any): void {
+  setCurrentValue(_currentValue: unknown): void {
     // DO NOTHING
   }
 }

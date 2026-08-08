@@ -1,4 +1,5 @@
 import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
 
 @Component({
   selector: 'app-static-header',
@@ -9,7 +10,7 @@ import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@a
   standalone: false,
 })
 export class StaticHeaderComponent {
-  @Input() callbackOwnerObject: any = null;
+  @Input() callbackOwnerObject: SampleTemplateLoaderOwner = null;
   @Input() showSampleTemplateLinks: boolean = null;
 
   constructor() {}

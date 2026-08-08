@@ -1,4 +1,4 @@
-import { CedarReaders } from 'cedar-model-typescript-library';
+import { CedarReaders, JsonNode } from 'cedar-model-typescript-library';
 import { CedarTemplate } from '../models/template/cedar-template.model';
 import { HandlerContext } from '../util/handler-context';
 import { ModelLibraryTemplateParser } from './model-library-template-parser';
@@ -27,7 +27,7 @@ export class YamlTemplateParser implements TemplateParser {
     const result = CedarReaders.yaml()
       .getStrict()
       .getTemplateReader()
-      .readFromObject(templateYaml as any);
+      .readFromObject(templateYaml as JsonNode);
     ModelLibraryTemplateParser.mapParsedTemplate(result.template, template);
   }
 }

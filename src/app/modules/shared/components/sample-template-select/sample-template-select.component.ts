@@ -4,6 +4,7 @@ import { FormControl } from '@angular/forms';
 import { ReplaySubject, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
+import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
 
 @Component({
   selector: 'app-sample-template-select',
@@ -14,7 +15,7 @@ import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-meta
   standalone: false,
 })
 export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
-  @Input() callbackOwnerObject: any = null;
+  @Input() callbackOwnerObject: SampleTemplateLoaderOwner = null;
   sampleTemplates: object[];
   templateLocationPrefix: string;
   templateCtrl: FormControl = new FormControl();
@@ -26,8 +27,9 @@ export class SampleTemplateSelectComponent implements OnInit, OnDestroy {
   constructor(public sampleTemplateService: SampleTemplatesService) {}
 
   ngOnInit(): void {
-    this.templateLocationPrefix =
-      this.callbackOwnerObject.innerConfig[CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX];
+    this.templateLocationPrefix = this.callbackOwnerObject.innerConfig[
+      CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX
+    ] as string;
     this.sampleTemplateService
       .getSampleTemplatesFromRegistry(this.templateLocationPrefix)
       .pipe(takeUntil(this._onDestroy))

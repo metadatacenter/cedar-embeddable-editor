@@ -4,6 +4,8 @@ import { ModelLibraryTemplateParser } from '../../factory/model-library-template
 import { YamlTemplateParser } from '../../factory/yaml-template-parser';
 import { AUTHORITY_DESCRIPTORS } from '../../models/authority/authority-descriptor.model';
 import { IriPrefix } from '../../util/iri-prefix';
+import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
+import { MessageHandlerService } from '../../service/message-handler.service';
 
 /**
  * The `config` object is the CEE's host-facing API, and its setter is the one
@@ -101,8 +103,12 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       const prefixes = new IriPrefix();
       const component = new CedarEmbeddableMetadataEditorComponent(
         null,
-        { setEndpoints: (): void => undefined } as any,
-        { trace: (): void => undefined } as any,
+        // `as unknown as T`, not `as any`. A stub only needs the members this test
+        // exercises, but naming the target type keeps the constructor's shape in the
+        // test: change a parameter and the double stops compiling, which `any` would
+        // have hidden.
+        { setEndpoints: (): void => undefined } as unknown as ExternalAuthorityLookupService,
+        { trace: (): void => undefined } as unknown as MessageHandlerService,
         prefixes,
       );
 
@@ -219,7 +225,13 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     it('clears obsolete registrations after a replacement template is accepted', () => {
       const { component, clear, setInputTemplate } = makeWithRegistry();
       // Keep the setter's deferred instance initialization inert in this unit test.
-      vi.spyOn(component as any, 'initDataFromInstance').mockReturnValue(Promise.resolve());
+      // `initDataFromInstance` is private, so the spy needs a view of the component
+      // that admits it. Naming the one member is narrower than `any` and says which
+      // private the test is reaching for.
+      vi.spyOn(
+        component as unknown as { initDataFromInstance: () => Promise<void> },
+        'initDataFromInstance',
+      ).mockReturnValue(Promise.resolve());
 
       component.templateJsonObject = { title: 'replacement' };
 
