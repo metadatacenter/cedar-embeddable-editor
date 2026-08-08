@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Visual regression baseline for the CEDAR Embeddable Editor web component",
+  "engines": {
+    "node": "^24.15.0"
+  },
   "scripts": {
     "bundle": "node make-bundle.mjs",
     "fixtures": "node generate-fixtures.mjs && rm -rf public/fixtures public/served && cp -r fixtures public/fixtures && cp -r fixtures/served public/served",

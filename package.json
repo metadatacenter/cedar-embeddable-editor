@@ -5,6 +5,9 @@
   "publishConfig": {
     "registry": "https://nexus.bmir.stanford.edu/repository/npm-cedar/"
   },
+  "engines": {
+    "node": "^24.15.0"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
