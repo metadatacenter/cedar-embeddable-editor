@@ -8,7 +8,15 @@
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    /*
+     * "bundler", not "node". Angular 21 ships its subpath entry points through an
+     * `exports` map — `@angular/common/http`, `@angular/core/primitives/di` — which
+     * classic node resolution cannot see, so the build fails to find modules that
+     * are plainly there. This is how the Angular CLI resolves them, and the app is
+     * bundled rather than run through node's resolver, so it is also the honest
+     * description of what happens.
+     */
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "es2022",
     /*

@@ -1,4 +1,4 @@
-import { enableProdMode } from '@angular/core';
+import { enableProdMode, provideZoneChangeDetection } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { environment } from './environments/environment';
 import { AppModuleProd } from './app/app.module.prod';
@@ -20,13 +20,15 @@ if (environment.production) {
       // Assign the version only to the bundle that wins the bootstrap slot. If
       // another version is loaded later, it must not claim to be the one running.
       (window as any).cedarEmbeddableEditorVersion = packageJson.version;
-      return platformBrowserDynamic().bootstrapModule(AppModuleProd);
+      return platformBrowserDynamic().bootstrapModule(AppModuleProd, {
+        applicationProviders: [provideZoneChangeDetection()],
+      });
     },
     (err) => console.error(err),
   );
 } else {
   (window as any).cedarEmbeddableEditorVersion = packageJson.version;
   platformBrowserDynamic()
-    .bootstrapModule(AppModuleDev)
+    .bootstrapModule(AppModuleDev, { applicationProviders: [provideZoneChangeDetection()] })
     .catch((err) => console.error(err));
 }

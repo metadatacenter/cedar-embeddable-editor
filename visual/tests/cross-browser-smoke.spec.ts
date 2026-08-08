@@ -71,7 +71,10 @@ test('keeps a Material overlay inside the custom element', async ({ page }) => {
   const placement = await page.evaluate(() => {
     const editor = document.querySelector('cedar-embeddable-editor') as HTMLElement;
     return {
-      inside: editor.shadowRoot?.querySelectorAll('.cee-overlay-container mat-option').length ?? 0,
+      // Not `.cee-overlay-container mat-option`: Material 21 renders the select
+      // panel inline rather than through the CDK overlay. The guarantee is that it
+      // is in the shadow root and not in the host document, which both still hold.
+      inside: editor.shadowRoot?.querySelectorAll('mat-option').length ?? 0,
       outside: document.body.querySelectorAll(':scope > .cdk-overlay-container').length,
     };
   });
@@ -126,6 +129,50 @@ test('renders YouTube content as a native iframe without the Player API', async 
     await page.locator('script[src="https://www.youtube.com/iframe_api"]').count(),
     'the global Player API script came back',
   ).toBe(0);
+});
+
+/**
+ * The timezone picker is CEE's only ng-select, and nothing opened it until now.
+ *
+ * The screenshots cover it closed and empty, which is the one state that exercises
+ * none of the component: no filtering, no virtual scroll, no selection, no write
+ * back to the metadata. That gap went unnoticed until the Angular 21 hop carried
+ * ng-select from 15 to 21 — six majors of a third-party component, landing under a
+ * suite that could only have told us the empty box still looked like a box.
+ *
+ * Here rather than in render.spec.ts because virtual scroll and the filter input
+ * are exactly the kind of thing that renders per engine, and pixels are not what
+ * this is asking about.
+ *
+ * "Calcutta" and not "Kolkata": CEE ships its own fixed timezone list with the
+ * older spellings, so this searches for what is actually in it.
+ */
+test('filters, selects and records a timezone through the ng-select', async ({ page }) => {
+  await open(page, '07-timezone');
+  const select = page.locator('ng-select').first();
+  await select.click();
+
+  const options = page.locator('.ng-dropdown-panel .ng-option');
+  await expect(options.first()).toBeVisible();
+
+  await page.locator('ng-select input[type=text]').first().fill('Calcutta');
+  await expect(options).toHaveCount(1);
+  await options.first().click();
+
+  await expect(select.locator('.ng-value-label')).toHaveText('(GMT +5:30) Bombay, Calcutta, Madras, New Delhi');
+  await expect(select.locator('.ng-select-container')).toHaveClass(/ng-has-value/);
+
+  // No clear affordance, and deliberately so: cedar-input-datetime passes
+  // `[clearable]="false"` explicitly rather than leaning on the @Input default.
+  // Pinned because ng-select renders the clear wrapper from the same subtree as
+  // the value, so a change in how it decides to show it would land here silently.
+  await expect(select.locator('.ng-clear-wrapper')).toHaveCount(0);
+
+  await expect
+    .poll(() =>
+      page.evaluate(() => JSON.stringify((document.querySelector('cedar-embeddable-editor') as any).currentMetadata)),
+    )
+    .toContain('+05:30');
 });
 
 test('updates temporal data through the custom time picker', async ({ page }) => {

@@ -19,26 +19,31 @@ import { gzipSync, constants as zlibConstants } from 'node:zlib';
 
 const COPY = fileURLToPath(new URL('./public/cedar-embeddable-editor.js', import.meta.url));
 
-// Baseline on 2026-08-07: 3,445,176 raw and 781,612 gzip-9 bytes, at Angular 17.
+// Baseline on 2026-08-08: 3,471,865 raw and 798,253 gzip-9 bytes, at Angular 21.
 //
-// The march has moved this twice. The MDC migration cost 190,966 raw and 19,620
+// Raised three times across the Angular march. MDC cost 190,966 raw and 19,620
 // gzip — what the MDC components weigh against the legacy ones they replace,
-// measured either side of that commit with nothing else changing, and not
-// something a later pass could trim since the legacy components are gone. Angular
-// 16 to 17 then added a further 42,632 raw and 6,226 gzip, which is the framework
-// rather than CEE.
+// measured either side of that commit. Angular 16→17 added 42,632 raw. Angular 18
+// gave 78,423 back. Angular 20 and 21 together took 84,748 raw and 13,965 gzip.
 //
-// The limits leave about 2% headroom. Raising one is an intentional product
+// The gzip figure is the binding one now, not raw: at Angular 21 it came within
+// 1,747 bytes of its previous ceiling while raw still had 43KB spare. CI also
+// measures gzip a little larger than a developer machine does — 786,570 against
+// 784,252 for the same bundle — so headroom here has to cover that difference
+// too, which is why this raise is to 830,000 rather than the ~815,000 that two
+// percent would give.
+//
+// The limits leave headroom deliberately. Raising one is an intentional product
 // decision: update the baseline comment and explain the increase in the PR.
 //
-// Worth saying plainly, since three raises in one march start to look like a
-// ratchet: this is a decision to let the framework upgrade cost bytes, taken each
-// time on the evidence that the growth is the framework's and not a regression in
-// CEE. If the remaining hops keep adding, the question stops being "raise it
-// again?" and becomes whether the single-file bundle is still the right artifact.
+// Worth saying plainly, since this is the third raise: this is a decision to let
+// the framework upgrade cost bytes, taken each time on the evidence that the
+// growth is the framework's and not a regression in CEE. The single-file bundle
+// is now 3.4MB, and whether that is still the right artifact deserves asking on
+// its own merits rather than one increment at a time.
 const LIMITS = {
-  raw: 3_515_000,
-  gzip: 800_000,
+  raw: 3_560_000,
+  gzip: 830_000,
 };
 
 const die = (message) => {

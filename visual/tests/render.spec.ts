@@ -70,20 +70,52 @@ test.describe('host style isolation', () => {
     expect(hostProbe.fontFamily).not.toContain('Material Icons');
   });
 
+  /**
+   * The guarantee, not the mechanism that used to deliver it.
+   *
+   * What matters is that overlay content renders inside the editor's shadow root
+   * and never lands in the host document — that is what keeps CEE's styles reaching
+   * it and keeps it out of an embedder's way. It used to be asserted by looking for
+   * the content inside `.cee-overlay-container`, which was true right up until
+   * Angular Material 21 stopped routing `mat-select` through the CDK overlay at all
+   * and began rendering its panel inline.
+   *
+   * Nothing was broken by that — the options are still in the shadow root, still
+   * nowhere in `body` — but the old assertion failed, having pinned one
+   * implementation of the guarantee rather than the guarantee.
+   *
+   * The container is still doing its job for everything that does use it, so that
+   * is checked too, on the datepicker: 151 elements land there and none in `body`.
+   * If Material ever routes those inline as well, this notices.
+   */
   test('Material overlays stay inside the editor shadow root', async ({ page }) => {
     await open(page, '02-choices');
     await page.locator('mat-select').first().click();
     await expect(page.locator('mat-option').first()).toBeVisible();
 
-    const placement = await page.evaluate(() => {
+    const panel = await page.evaluate(() => {
       const editor = document.querySelector('cedar-embeddable-editor') as HTMLElement;
       return {
-        inside: editor.shadowRoot?.querySelectorAll('.cee-overlay-container mat-option').length ?? 0,
-        outside: document.body.querySelectorAll(':scope > .cdk-overlay-container').length,
+        inShadowRoot: editor.shadowRoot?.querySelectorAll('mat-option').length ?? 0,
+        leakedToBody: document.body.querySelectorAll(':scope > .cdk-overlay-container').length,
       };
     });
-    expect(placement.inside).toBeGreaterThan(0);
-    expect(placement.outside).toBe(0);
+    expect(panel.inShadowRoot, 'the select panel rendered outside the editor').toBeGreaterThan(0);
+    expect(panel.leakedToBody, 'an overlay container was attached to the host document').toBe(0);
+
+    await open(page, '09-temporal');
+    await page.locator('mat-datepicker-toggle button').first().click();
+    await page.waitForTimeout(300);
+
+    const calendar = await page.evaluate(() => {
+      const editor = document.querySelector('cedar-embeddable-editor') as HTMLElement;
+      return {
+        inCeeContainer: editor.shadowRoot?.querySelectorAll('.cee-overlay-container *').length ?? 0,
+        leakedToBody: document.body.querySelectorAll(':scope > .cdk-overlay-container').length,
+      };
+    });
+    expect(calendar.inCeeContainer, 'the datepicker no longer uses CEE overlay container').toBeGreaterThan(0);
+    expect(calendar.leakedToBody, 'an overlay container was attached to the host document').toBe(0);
   });
 
   /**
