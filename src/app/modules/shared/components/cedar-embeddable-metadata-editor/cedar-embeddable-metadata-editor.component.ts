@@ -8,6 +8,7 @@ import { InstanceDeserializer } from '../../util/instance-deserializer';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
 import { AUTHORITY_DESCRIPTORS } from '../../models/authority/authority-descriptor.model';
 import { IriPrefix } from '../../util/iri-prefix';
+import { TemplateTrustService } from '../../service/template-trust.service';
 import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { TemplateParser } from '../../factory/template-parser';
@@ -62,6 +63,16 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   static DEFAULT_LANGUAGE = 'defaultLanguage';
   static LANGUAGE_MAP_PATH_PREFIX = 'languageMapPathPrefix';
   static SHOW_TEMPLATE_DESCRIPTION: string = 'showTemplateDescription';
+
+  /**
+   * Whether the host vouches for its template's markup.
+   *
+   * A static rich-text field's body renders as HTML in the host's own origin. CEE
+   * sanitizes it unless this says otherwise, so an embedder that loads templates
+   * chosen by its own users is safe without having to know that. See the embedding
+   * security section of the README.
+   */
+  static TRUST_TEMPLATE_MARKUP: string = 'trustTemplateMarkup';
 
   static READ_ONLY_MODE: string = 'readOnlyMode';
   static HIDE_EMPTY_FIELDS: string = 'hideEmptyFields';
@@ -132,6 +143,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     private externalAuthorityLookupService: ExternalAuthorityLookupService,
     private messageHandlerService: MessageHandlerService,
     private iriPrefix: IriPrefix,
+    private templateTrustService: TemplateTrustService,
   ) {
     this.ceeVersion = packageJson.version;
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
@@ -287,6 +299,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
           this.extAuthBaseUrl + detailsPath,
         );
       }
+
+      this.templateTrustService.setTrustTemplateMarkup(
+        configFlag(
+          value,
+          CedarEmbeddableMetadataEditorComponent.TRUST_TEMPLATE_MARKUP,
+          this.templateTrustService.trustTemplateMarkup,
+        ),
+      );
 
       this.readOnlyMode = configFlag(value, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE, this.readOnlyMode);
       this.showPreferencesMenu = configFlag(

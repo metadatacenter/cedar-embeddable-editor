@@ -1282,6 +1282,70 @@ test.describe('a choice value reaches the widget by every load path', () => {
  * up as a fix. The `onerror` handler is what sanitization removes, and it sets a window
  * flag and nothing else.
  */
+/**
+ * The other half of the trust boundary: markup a *template* author wrote.
+ *
+ * `markup in an instance value` below asserts that instance-authored HTML is
+ * sanitized. This asserts the same for template-authored HTML, which used to be
+ * rendered verbatim on the strength of an assumption no embedder was told about —
+ * that the host, not its users, chooses which template loads.
+ *
+ * Assertion-only, and `19-template-markup` is deliberately absent from `FIXTURES`:
+ * its content is adversarial rather than representative, and a screenshot would
+ * record what a sanitizer's output happens to look like rather than what it must
+ * never do.
+ */
+test.describe('template rich text', () => {
+  const shadowHtml = (page: import('@playwright/test').Page): Promise<string> =>
+    page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.shadowRoot!.innerHTML);
+
+  test('cannot execute, and keeps its formatting, under the default policy', async ({ page }) => {
+    await open(page, '19-template-markup');
+    // The broken image has had time to fail, which is what would fire its handler.
+    await page.waitForTimeout(500);
+
+    const ran = await page.evaluate(() => (window as any).__templateMarkupRan === true);
+    expect(ran, 'a handler from template rich text executed').toBe(false);
+
+    const html = await shadowHtml(page);
+    expect(html, 'an event handler survived sanitizing').not.toContain('onerror');
+    expect(html, 'a javascript: URL survived sanitizing').not.toContain('javascript:');
+    expect(html, 'an AngularJS directive survived sanitizing').not.toContain('ng-click');
+    expect(html, 'an iframe survived sanitizing').not.toContain('<iframe');
+
+    /*
+     * The half that protects the feature rather than the origin. Angular's own
+     * sanitizer would pass every assertion above and fail all of these, because it
+     * has no `style` in its attribute allowlist — which is the entire reason this
+     * field has a policy of its own.
+     */
+    expect(html, 'inline styles must survive: they are what rich text is for').toContain('rgb(12, 34, 56)');
+    expect(html, 'font sizing must survive').toContain('font-size');
+    expect(html, 'tables must survive').toContain('<table');
+    expect(html, 'table attributes must survive').toContain('colspan');
+    expect(html, 'lists must survive').toContain('<li');
+    expect(html, 'inline data images must survive').toContain('data:image/png;base64');
+    expect(html, 'safe links must survive').toContain('https://example.org/ok');
+    expect(await page.locator('text=styled text').count(), 'the text itself must still render').toBeGreaterThan(0);
+  });
+
+  /**
+   * `trustTemplateMarkup` renders the author's markup as written.
+   *
+   * Asserted through an attribute the policy would have removed rather than by
+   * letting a handler fire: the proof needed is that the key reaches the pipe, and
+   * an assertion that waits for a failed image load to run script is a slower and
+   * flakier way to learn the same thing.
+   */
+  test('renders verbatim when the host asks for it by name', async ({ page }) => {
+    await open(page, '19-template-markup', undefined, undefined, undefined, '&f=trustTemplateMarkup');
+
+    const html = await shadowHtml(page);
+    expect(html, 'trustTemplateMarkup did not reach the rich-text pipe').toContain('ng-click');
+    expect(html, 'trusted markup should be verbatim').toContain('<iframe');
+  });
+});
+
 test.describe('markup in an instance value', () => {
   test('is escaped, not rendered, while the field is editable', async ({ page }) => {
     await open(page, '01-input-types', undefined, '14-markup-in-a-value');

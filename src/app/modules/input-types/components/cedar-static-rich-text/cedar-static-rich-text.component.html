@@ -1,2 +1,8 @@
-<p [innerHTML]="(component.contentInfo.content || '') | keepHtml"></p>
-
+<!--
+  A div, not a p. Rich text from CKEditor is block content — it opens with a <p> of
+  its own, and carries lists, headings and tables — and a <p> cannot contain those:
+  the parser closes the outer paragraph at the first block child and reparents the
+  rest as siblings. The rendering survived that, but nothing asserting on structure
+  could, which matters now that the sanitizer's output is under test.
+-->
+<div [innerHTML]="(component.contentInfo.content || '') | keepHtml"></div>

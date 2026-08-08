@@ -131,6 +131,12 @@ export default defineConfig({
       exclude: [
         'src/app/modules/shared/util/fallback-translate-loader.ts',
         'src/app/modules/shared/util/fallback-translate-loader-factory.ts',
+        // Same rule, different dependency: the template rich-text policy needs a
+        // DOM, and DOMPurify without one does not degrade — `sanitize` is not a
+        // function. The harness can reach exactly one branch of that file, the
+        // fail-closed guard, and `template-markup-policy-fallback.spec.ts` asserts
+        // it. The allowlist itself is asserted under jsdom and in the browser.
+        'src/app/modules/shared/util/template-markup-policy.ts',
       ],
       reporter: ['text'],
       // These are aggregate thresholds for the headless domain directories,

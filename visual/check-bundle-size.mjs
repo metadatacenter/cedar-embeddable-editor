@@ -41,9 +41,21 @@ const COPY = fileURLToPath(new URL('./public/cedar-embeddable-editor.js', import
 // growth is the framework's and not a regression in CEE. The single-file bundle
 // is now 3.4MB, and whether that is still the right artifact deserves asking on
 // its own merits rather than one increment at a time.
+//
+// Fourth raise, and the first that is not the framework's doing: DOMPurify, at
+// 31,625 raw and 10,727 gzip. It is what makes a static rich-text field safe to
+// render for a host that did not choose its own template, and Angular's sanitizer
+// cannot do the job — it has no `style` in its attribute allowlist, and 99 of the
+// corpus's 271 static content blocks carry one. The alternative was to keep
+// rendering template markup verbatim and document the hazard, which is a worse
+// trade than eleven kilobytes.
+//
+// Raised to restore the margin rather than to fit: at the old ceiling the bundle
+// had 9,282 raw bytes free, which is close enough that an unrelated change would
+// break the build and look like a regression.
 const LIMITS = {
-  raw: 3_560_000,
-  gzip: 830_000,
+  raw: 3_600_000,
+  gzip: 840_000,
 };
 
 const die = (message) => {

@@ -235,6 +235,46 @@ const writeRaw = (name, document) => {
   write('04-controlled-terms', tb.build());
 }
 
+/**
+ * 19. Template rich text carrying markup that would execute if it were trusted.
+ *
+ * Not in FIXTURES, so it records no baseline: its content is adversarial rather
+ * than representative, and a screenshot of it would assert what a sanitizer's
+ * output happens to look like rather than what it must not do.
+ *
+ * The formatting alongside it is the point. Half of this fixture exists to fail
+ * loudly if someone "hardens" the rich-text field by routing it through Angular's
+ * sanitizer, which strips `style` — every colour, size and table rule here would
+ * vanish while all the security assertions still passed.
+ */
+{
+  const dangerous = field('note', () => CedarBuilders.richTextFieldBuilder(), (b) =>
+    opt(
+      b,
+      'withContent',
+      // An image that cannot load, so its handler is a genuinely reachable path —
+      // `innerHTML` never runs a <script>, but it does run `onerror`.
+      '<img src="./does-not-exist.png" onerror="window.__templateMarkupRan = true" alt="broken">' +
+        '<a href="javascript:window.__templateMarkupRan = true">js link</a>' +
+        // Inert in CEE, which is Angular; executable in the AngularJS Template
+        // Designer that embeds it. Corpus template 009 carries exactly these.
+        '<a href="https://example.org/ok" ng-click="dc.goToMyWorkspace()">ng link</a>' +
+        '<iframe src="about:blank" title="frame"></iframe>' +
+        '<script>window.__templateMarkupRan = true;<\/script>' +
+        // Everything below must survive.
+        '<p style="color: rgb(12, 34, 56); font-size: 18px;">styled text</p>' +
+        '<table border="1"><tbody><tr><td colspan="2">cell</td></tr></tbody></table>' +
+        '<ul><li>listed</li></ul>' +
+        '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" alt="inline">',
+    ),
+  );
+  let tb = common(CedarBuilders.templateBuilder(), 'TemplateMarkup', 'templates').withSchemaDescription(
+    'Static rich text carrying executable markup',
+  );
+  tb = tb.addChild(dangerous, deploy(dangerous, 'note'));
+  write('19-template-markup', tb.build());
+}
+
 // 5. Static content and page breaks — section headers, rich text, pagination.
 {
   const section = field('section', () => CedarBuilders.sectionBreakFieldBuilder(), (b) =>

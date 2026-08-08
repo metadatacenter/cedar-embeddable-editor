@@ -1,5 +1,6 @@
 import { type Mock, vi } from 'vitest';
 import { CedarEmbeddableMetadataEditorComponent } from './cedar-embeddable-metadata-editor.component';
+import { TemplateTrustService } from '../../service/template-trust.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { ModelLibraryTemplateParser } from '../../factory/model-library-template-parser';
 import { YamlTemplateParser } from '../../factory/yaml-template-parser';
@@ -32,6 +33,9 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       { trace: (): void => undefined } as any, // messageHandlerService
       new IriPrefix(),
+      // A real one: it holds a boolean and nothing else, so a stub would be more
+      // code than the thing it replaces.
+      new TemplateTrustService(),
     );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -111,6 +115,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
         { setEndpoints: (): void => undefined } as unknown as ExternalAuthorityLookupService,
         { trace: (): void => undefined } as unknown as MessageHandlerService,
         prefixes,
+        new TemplateTrustService(),
       );
 
       component.config = {
@@ -215,6 +220,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         { trace: (): void => undefined } as any,
         new IriPrefix(),
+        new TemplateTrustService(),
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       component.handlerContext = { hideEmptyFields: false } as any;

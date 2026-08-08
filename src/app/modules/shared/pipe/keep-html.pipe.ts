@@ -1,8 +1,10 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { TemplateTrustService } from '../service/template-trust.service';
+import { sanitizeTemplateMarkup } from '../util/template-markup-policy';
 
 /**
- * Render HTML verbatim, with Angular's sanitizer switched off.
+ * Render a template author's rich text.
  *
  * The counterpart to `safeHtml`, and the choice between the two is a trust boundary
  * rather than a preference. This one is for markup a *template author* wrote. Anything
@@ -11,22 +13,26 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
  * page, so trusting it hands an instance author script execution in that origin.
  *
  * One caller qualifies, the body of `cedar-static-rich-text`, a field whose whole
- * purpose is to carry formatting its author composed. Sanitizing it would not harden
- * the field, it would break it: Angular's allowlist has no `style` attribute and no
- * `iframe`, while the rich-text editor in `cedar-template-editor` emits inline styles
- * for color, size and table formatting. That formatting would silently disappear.
+ * purpose is to carry formatting its author composed.
  *
- * Trusting the template rests on an assumption the embedding application has to satisfy.
- * The host page decides which template loads, so a template is as trusted as the host's
- * own configuration. A host that instead lets end users pick an arbitrary template from
- * CEDAR breaks that assumption, because "allowed to define the form" is a much weaker
- * credential than "allowed to run JavaScript in the host origin". Such a host wants
- * sanitization here, and wants it from a sanitizer that keeps inline styles rather than
- * Angular's, so that the feature survives the fix.
+ * This used to call `bypassSecurityTrustHtml` unconditionally, which made every
+ * embedder's security depend on a property none of them were told about: that the
+ * host, not its users, decides which template loads. A host that lets end users pick
+ * a template from CEDAR's library breaks that assumption, because "allowed to define
+ * the form" is a much weaker credential than "allowed to run JavaScript in the host
+ * origin". Nothing in the README said so.
  *
- * Covered by `markup in an instance value` in the visual suite, which asserts the
- * boundary from the other side: a handler in an instance value is neutralized while
- * safe formatting survives.
+ * So the default is now to sanitize, through `sanitizeTemplateMarkup` rather than
+ * Angular's sanitizer — Angular's allowlist has no `style` attribute, and 99 of the
+ * corpus's 271 static content blocks carry one, so using it would silently flatten
+ * the colours, sizes and margins the field exists to show. Verbatim rendering is
+ * still available, but only to a host that asks for it by name, through the
+ * `trustTemplateMarkup` configuration key.
+ *
+ * Covered from both sides in the visual suite: `template rich text` asserts that a
+ * malicious template cannot execute under the default and that supported formatting
+ * survives it, and `markup in an instance value` asserts the same boundary for
+ * instance-authored content.
  */
 @Pipe({
   name: 'keepHtml',
@@ -34,9 +40,22 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   standalone: false,
 })
 export class TrustHtmlPipe implements PipeTransform {
-  constructor(private sanitizer: DomSanitizer) {}
+  constructor(
+    private sanitizer: DomSanitizer,
+    private templateTrust: TemplateTrustService,
+  ) {}
 
   transform(content: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(content);
+    if (this.templateTrust.trustTemplateMarkup) {
+      return this.sanitizer.bypassSecurityTrustHtml(content);
+    }
+    /*
+     * Marked trusted *after* being sanitized, which reads oddly and is deliberate.
+     * The markup has been through the policy already; handing the result back to
+     * Angular's sanitizer would strip the `style` attributes the policy exists to
+     * keep, so the bypass here says "already checked, by something stricter about
+     * scripts and looser about formatting" rather than "unchecked".
+     */
+    return this.sanitizer.bypassSecurityTrustHtml(sanitizeTemplateMarkup(content));
   }
 }

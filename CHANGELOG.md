@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+
+- Static rich-text fields are sanitized by default. A template author's markup previously
+  rendered verbatim, so an embedder that let its users choose a template gave those users
+  script execution in the embedder's origin — a property documented only in a source
+  comment. Script, event handlers, `javascript:` URLs, frames, form controls and AngularJS
+  directive attributes are removed; inline styles, tables, lists, links and raster `data:`
+  images are kept, so the formatting the field exists for is unaffected. Angular's own
+  sanitizer cannot do this: it drops the `style` attribute that 99 of the 271 static
+  content blocks in the CEDAR, HuBMAP and test-artifact corpora carry.
+- Added the `trustTemplateMarkup` configuration key, default `false`, for hosts that
+  control which templates load and want the author's markup rendered as written. The
+  README's new *Embedding security* section says who should set it and who should not.
+- Links in template rich text that open a new tab are given `rel="noopener noreferrer"`.
+
+### Fixed
+
+- A static rich-text field's body renders in a `div` rather than a `p`. Rich text is block
+  content, which a `p` cannot contain, so the browser was silently reparenting it.
+
 ## [1.6.0-dev.20260806.62725e3] - 2026-08-06
 
 ### Fixed
