@@ -137,9 +137,9 @@ export default defineConfig({
       // the report for visibility but do not dilute or satisfy these floors.
       thresholds: {
         'src/app/modules/shared/factory/**': { statements: 90, branches: 90 },
-        'src/app/modules/shared/handler/**': { statements: 90, branches: 85 },
-        'src/app/modules/shared/util/**': { statements: 90, branches: 85 },
-        'src/app/modules/shared/validation/**': { statements: 90, branches: 85 },
+        'src/app/modules/shared/handler/**': { statements: 90, branches: 90 },
+        'src/app/modules/shared/util/**': { statements: 90, branches: 90 },
+        'src/app/modules/shared/validation/**': { statements: 90, branches: 90 },
       },
     },
   },
