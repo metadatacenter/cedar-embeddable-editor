@@ -33,7 +33,7 @@ export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
 export class CedarInputMultipleChoiceComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;
   options: FormGroup;
-  selectedChoiceInputControl = new FormControl(null, null);
+  selectedChoiceInputControl = new FormControl<string | null>(null, null);
   errorStateMatcher = new MultipleChoiceErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
   /** The last value pushed in by `setCurrentValue`, which is typed `unknown` there. */
@@ -67,7 +67,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
 
   inputChanged(event: MatRadioChange): void {
     if (this.readOnlyMode) {
-      this.selectedChoiceInputControl.setValue(this.selected);
+      this.selectedChoiceInputControl.setValue(typeof this.selected === 'string' ? this.selected : null);
       return;
     }
     this.handlerContext.changeValue(this.component, event.value);
@@ -83,7 +83,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
   }
 
   setCurrentValue(currentValue: unknown): void {
-    this.selectedChoiceInputControl.setValue(currentValue);
+    this.selectedChoiceInputControl.setValue(typeof currentValue === 'string' ? currentValue : null);
     this.selected = currentValue;
   }
 }

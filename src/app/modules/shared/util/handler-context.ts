@@ -206,13 +206,18 @@ export class HandlerContext {
     this.multiInstanceObjectService.setCurrentIndex(component, idx);
   }
 
-  changeValue(component: FieldComponent, value: string): void {
+  /*
+   * All four take null, because clearing a field is how null gets here: the
+   * widgets call these with null on a clear, and always have. The declarations
+   * said `string` and were the half that was wrong.
+   */
+  changeValue(component: FieldComponent, value: string | null): void {
     this.dataObjectDataValueHandler.changeValue(this.dataContext, component, this.multiInstanceObjectService, value);
     this.buildQualityReport();
     // this.rdfService.toRdf(this.dataContext.instanceFullData);
   }
 
-  changeListValue(component: FieldComponent, value: string[]): void {
+  changeListValue(component: FieldComponent, value: string[] | null): void {
     this.dataObjectDataValueHandler.changeListValue(
       this.dataContext,
       component,
@@ -222,7 +227,7 @@ export class HandlerContext {
     this.buildQualityReport();
   }
 
-  changeAttributeValue(component: FieldComponent, key: string, value: string): void {
+  changeAttributeValue(component: FieldComponent, key: string | null, value: string | null): void {
     this.dataObjectDataValueHandler.changeAttributeValue(
       this.dataContext,
       component,
@@ -233,7 +238,7 @@ export class HandlerContext {
     this.buildQualityReport();
   }
 
-  deleteAttributeValue(component: FieldComponent, key: string): void {
+  deleteAttributeValue(component: FieldComponent, key: string | null): void {
     this.dataObjectDataValueHandler.deleteAttributeValue(
       this.dataContext,
       component,
@@ -243,7 +248,7 @@ export class HandlerContext {
     this.buildQualityReport();
   }
 
-  changeControlledValue(component: FieldComponent, atId: string, prefLabel: string): void {
+  changeControlledValue(component: FieldComponent, atId: string | null, prefLabel: string | null): void {
     this.dataObjectDataValueHandler.changeControlledValue(
       this.dataContext,
       component,

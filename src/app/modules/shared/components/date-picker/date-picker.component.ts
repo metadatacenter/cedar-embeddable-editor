@@ -80,7 +80,7 @@ export class DatePickerComponent implements OnInit {
     if (this.required) {
       validators.push(Validators.required);
     }
-    this.dateMonthYear = new FormControl(null, validators);
+    this.dateMonthYear = new FormControl<string | null>(null, validators);
   }
 
   chosenYearHandler(normalizedYear: Moment, datepicker: MatDatepicker<Moment>): void {

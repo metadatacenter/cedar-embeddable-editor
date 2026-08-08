@@ -51,7 +51,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   selectedData: IntegratedSearchResponseItem;
   component: FieldComponent;
   options: FormGroup;
-  inputValueControl = new FormControl(null, null);
+  inputValueControl = new FormControl<string | null>(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
   model: IntegratedSearchResponseItem | null = null;
@@ -82,7 +82,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       validators.push(Validators.required);
     }
     validators.push(CedarValidators.forComponent(this.component));
-    this.inputValueControl = new FormControl(null, validators);
+    this.inputValueControl = new FormControl<string | null>(null, validators);
 
     if (
       this.component.valueInfo.defaultValue &&
@@ -174,7 +174,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       const displayTerm = this.getBioPortalTermDisplayValue(currentValue);
       this.inputValueControl.setValue(displayTerm);
     } else {
-      this.inputValueControl.setValue(currentValue);
+      this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
     }
   }
   /*

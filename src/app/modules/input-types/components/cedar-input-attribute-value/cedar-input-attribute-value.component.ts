@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
+import { InstanceNode, InstanceObject, isInstanceObject } from '../../../shared/models/instance-node.model';
 
 @Component({
   selector: 'app-cedar-input-attribute-value',
@@ -16,8 +17,8 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 export class CedarInputAttributeValueComponent extends CedarUIDirective {
   component: FieldComponent;
   options: FormGroup;
-  nameInputControl = new FormControl(null, null);
-  valueInputControl = new FormControl(null, null);
+  nameInputControl = new FormControl<string | null>(null, null);
+  valueInputControl = new FormControl<string | null>(null, null);
   @Input() handlerContext: HandlerContext;
 
   constructor(
@@ -64,9 +65,23 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
     this.handlerContext.changeAttributeValue(this.component, name, value);
   }
 
+  /*
+   * An attribute-value occurrence arrives as a one-entry object: the attribute's
+   * name is the key and its value is the value. Guarded rather than indexed
+   * blind — `setCurrentValue` is declared `unknown` on the base, and a leaf or a
+   * list here means the instance disagrees with the template.
+   */
   setCurrentValue(currentValue: unknown): void {
-    this.nameInputControl.setValue(Object.keys(currentValue)[0]);
-    this.valueInputControl.setValue(Object.values(currentValue)[0]);
+    if (!isInstanceObject(currentValue as InstanceNode)) {
+      return;
+    }
+    const entries = Object.entries(currentValue as InstanceObject);
+    if (entries.length === 0) {
+      return;
+    }
+    const [name, value] = entries[0];
+    this.nameInputControl.setValue(name);
+    this.valueInputControl.setValue(typeof value === 'string' ? value : null);
   }
 
   override deleteCurrentValue(): void {

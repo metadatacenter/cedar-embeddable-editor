@@ -300,7 +300,7 @@ export class DataObjectDataValueHandler {
     dataContext: DataContext,
     component: FieldComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
-    value: string,
+    value: string | null,
   ): void {
     const path = component.path;
     const inputType = component.basicInfo.inputType;
@@ -332,7 +332,7 @@ export class DataObjectDataValueHandler {
     dataContext: DataContext,
     component: FieldComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
-    value: string[],
+    value: string[] | null,
   ): void {
     const path = component.path;
     const valueArray: InstanceObject[] = [];
@@ -362,8 +362,8 @@ export class DataObjectDataValueHandler {
     dataContext: DataContext,
     component: FieldComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
-    key: string,
-    value: string,
+    key: string | null,
+    value: string | null,
   ): void {
     const path = component.path;
     const valueObject: InstanceObject = {};
@@ -394,7 +394,7 @@ export class DataObjectDataValueHandler {
     dataContext: DataContext,
     component: FieldComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
-    key: string,
+    key: string | null,
   ): void {
     if (!key) {
       return;
@@ -420,8 +420,8 @@ export class DataObjectDataValueHandler {
     dataContext: DataContext,
     component: FieldComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
-    atId: string,
-    prefLabel: string,
+    atId: string | null,
+    prefLabel: string | null,
   ): void {
     const path = component.path;
     const valueObject = atId ? InstanceValueNode.iriJson(atId, prefLabel) : {};

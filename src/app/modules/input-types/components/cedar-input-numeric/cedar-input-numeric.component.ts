@@ -20,7 +20,7 @@ import { CedarValidators } from '../../../shared/validation/cedar-validators';
 export class CedarInputNumericComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;
   options: FormGroup;
-  inputValueControl = new FormControl(null, Validators.min(10));
+  inputValueControl = new FormControl<string | null>(null, Validators.min(10));
   unitOfMeasure: string | null = null;
   constraintMinValue: number | null = null;
   constraintMaxValue: number | null = null;
@@ -74,7 +74,7 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
     this.patternErrorMessage = CedarValidators.describeNumberType(this.component);
 
     validators.push(CedarValidators.forComponent(this.component));
-    this.inputValueControl = new FormControl(null, validators);
+    this.inputValueControl = new FormControl<string | null>(null, validators);
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -92,7 +92,7 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
   }
 
   setCurrentValue(currentValue: unknown): void {
-    this.inputValueControl.setValue(currentValue);
+    this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
   }
 
   clearValue(): void {

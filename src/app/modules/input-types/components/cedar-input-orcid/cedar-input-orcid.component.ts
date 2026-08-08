@@ -88,7 +88,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     // keystroke, over a field that had not been cleared. The stored IRI is
     // checked by the data quality report, which sees the value rather than the
     // search text; the discarded-edit error is raised explicitly on blur.
-    this.inputValueControl = new FormControl(null, validators);
+    this.inputValueControl = new FormControl<string | null>(null, validators);
     if (this.component?.valueInfo?.defaultValue) {
       // A default on one of these fields is the term node, not text. Guarded rather
       // than asserted: a template declaring a bare string here would otherwise read

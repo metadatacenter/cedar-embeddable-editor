@@ -99,7 +99,7 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() clearable = false;
   @Input() virtualScroll = true;
   @Input() disabled = false;
-  readOnlyTimezoneControl = new FormControl(null, null);
+  readOnlyTimezoneControl = new FormControl<string | null>(null, null);
   private userPreferencesService: UserPreferencesService;
   private readOnlyModeSubscription: Subscription;
   readOnlyMode: boolean;

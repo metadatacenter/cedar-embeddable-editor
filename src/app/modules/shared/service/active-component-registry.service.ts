@@ -24,12 +24,17 @@ export class ActiveComponentRegistryService {
     CedarMultiPagerComponent
   >();
 
-  private getUIComponent(component: CedarComponent): CedarUIDirective {
-    return this.modelToUI.get(component);
+  /*
+   * `?? null` on both. `Map.get` returns `undefined` for a component that has no
+   * live widget, which is the normal state for anything off the current page — and
+   * every caller already tests the result against null.
+   */
+  private getUIComponent(component: CedarComponent): CedarUIDirective | null {
+    return this.modelToUI.get(component) ?? null;
   }
 
-  private getMultiPagerUI(component: CedarComponent): CedarMultiPagerComponent {
-    return this.modelToMultiPagerUI.get(component);
+  private getMultiPagerUI(component: CedarComponent): CedarMultiPagerComponent | null {
+    return this.modelToMultiPagerUI.get(component) ?? null;
   }
 
   setVisibility(component: CedarComponent, handlerContext: HandlerContext): void {
@@ -73,14 +78,16 @@ export class ActiveComponentRegistryService {
    * autocomplete and the viewer wants the IRI to link to.
    */
   private static iriValueForWidget(node: InstanceNode, component: CedarComponent, readOnlyMode: boolean): InstanceNode {
-    const inputType = (component as SingleFieldComponent).basicInfo.inputType;
-    const iri = InstanceValueNode.iri(node);
+    // `?? ''` so a field with no declared input type falls through the two tests
+    // below to the label, which is what it did when the type was `any`.
+    const inputType = (component as SingleFieldComponent).basicInfo.inputType ?? '';
+    const iri = InstanceValueNode.iri(node) ?? null;
 
     if (inputType === InputType.link) {
       return iri;
     }
-    const label = InstanceValueNode.label(node);
-    if (EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType) || readOnlyMode) {
+    const label = InstanceValueNode.label(node) ?? null;
+    if (EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType) || readOnlyMode) {
       const valueObject: InstanceObject = {};
       valueObject[JsonSchema.rdfsLabel] = label;
       valueObject[JsonSchema.atId] = iri;
@@ -103,7 +110,7 @@ export class ActiveComponentRegistryService {
   updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
     if (component instanceof SingleFieldComponent) {
       const dataObject: InstanceNode = handlerContext.getDataObjectNodeByPath(component.path);
-      const uiComponent: CedarUIDirective = this.getUIComponent(component);
+      const uiComponent: CedarUIDirective | null = this.getUIComponent(component);
       if (uiComponent != null && dataObject != null) {
         if (InstanceValueNode.isLiteral(dataObject)) {
           uiComponent.setCurrentValue(InstanceValueNode.literal(dataObject));
@@ -116,7 +123,7 @@ export class ActiveComponentRegistryService {
     } else if (component instanceof MultiFieldComponent) {
       const dataObject: InstanceNode = handlerContext.getDataObjectNodeByPath(component.path);
       const parentDataObject = handlerContext.getParentDataObjectNodeByPath(component.path);
-      const uiComponent: CedarUIDirective = this.getUIComponent(component);
+      const uiComponent: CedarUIDirective | null = this.getUIComponent(component);
       const multiInstanceInfo: MultiInstanceObjectInfo =
         handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
 
@@ -212,7 +219,7 @@ export class ActiveComponentRegistryService {
   }
 
   deleteCurrentValue(component: CedarComponent): void {
-    const uiComponent: CedarUIDirective = this.getUIComponent(component);
+    const uiComponent: CedarUIDirective | null = this.getUIComponent(component);
 
     if (uiComponent) {
       uiComponent.deleteCurrentValue();

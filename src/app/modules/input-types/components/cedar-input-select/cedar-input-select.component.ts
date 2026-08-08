@@ -38,7 +38,12 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
   component: FieldComponent;
   dropdownList: Record<string, string>[] = [];
   options: FormGroup;
-  inputValueControl = new FormControl(null, null);
+  /*
+   * A string or a list of them: a single-choice field holds the chosen label, a
+   * multiple-choice field the chosen labels. `multipleChoice` is what decides
+   * which, and the same flag decides how `changeValue` hands it on.
+   */
+  inputValueControl = new FormControl<string | string[] | null>(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   selections: string[];
   maxSelections: number;
@@ -64,7 +69,7 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
       validators.push(Validators.required);
     }
     validators.push(CedarValidators.forComponent(this.component));
-    this.inputValueControl = new FormControl(null, validators);
+    this.inputValueControl = new FormControl<string | string[] | null>(null, validators);
   }
 
   @Input() set componentToRender(componentToRender: FieldComponent) {
@@ -74,9 +79,13 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
   }
 
   inputChanged(): void {
-    const values = this.inputValueControl.value;
+    const raw = this.inputValueControl.value;
     const multi = this.component.choiceInfo.multipleChoice;
     if (multi) {
+      // Inside this branch the control is the multi-select's, so its value is the
+      // list. Named separately rather than reused, because the else branch below
+      // reads the same control as a single string.
+      const values = Array.isArray(raw) ? raw : [];
       if (this.maxSelections === undefined || (values && values.length <= this.maxSelections)) {
         this.selections = values;
       } else {
@@ -88,13 +97,19 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
       }
       this.changeValue(this.selections);
     } else {
-      this.inputValueControl.setValue(values);
-      this.changeValue(values);
+      const value = typeof raw === 'string' ? raw : null;
+      this.inputValueControl.setValue(value);
+      this.changeValue(value);
     }
   }
 
   setCurrentValue(currentValue: unknown): void {
-    this.inputValueControl.setValue(currentValue);
+    // A multiple-choice field is handed the whole list, a single-choice field one
+    // label. Both are values this control holds, which is why its type is the union
+    // — narrowing to string alone dropped every multi-select's selection on load.
+    const value =
+      typeof currentValue === 'string' || Array.isArray(currentValue) ? (currentValue as string | string[]) : null;
+    this.inputValueControl.setValue(value);
   }
 
   private populateItemsOnLoad(): void {

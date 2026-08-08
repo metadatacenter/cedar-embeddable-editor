@@ -103,7 +103,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     // put "not a valid ... and has been cleared" under the field on the first
     // keystroke. The stored IRI is checked by the data quality report, which
     // sees the value rather than the search text.
-    this.inputValueControl = new FormControl(null, validators);
+    this.inputValueControl = new FormControl<string | null>(null, validators);
     this.options = this.fb.group({ inputValue: this.inputValueControl });
 
     this.applyDefaultValue();

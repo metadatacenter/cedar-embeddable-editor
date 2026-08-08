@@ -33,7 +33,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
 export class CedarInputPhoneComponent extends CedarUIDirective implements OnInit {
   component: FieldComponent;
   options: FormGroup;
-  inputValueControl = new FormControl(null, null);
+  inputValueControl = new FormControl<string | null>(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
 
@@ -57,7 +57,7 @@ export class CedarInputPhoneComponent extends CedarUIDirective implements OnInit
     }
 
     validators.push(CedarValidators.forComponent(this.component));
-    this.inputValueControl = new FormControl(null, validators);
+    this.inputValueControl = new FormControl<string | null>(null, validators);
 
     // `typeof`, not a cast: on a literal field the declared default is text, and a
     // template that puts a term node here is declaring something this field cannot
@@ -84,7 +84,7 @@ export class CedarInputPhoneComponent extends CedarUIDirective implements OnInit
   }
 
   setCurrentValue(currentValue: unknown): void {
-    this.inputValueControl.setValue(currentValue);
+    this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
   }
 
   clearValue(): void {
