@@ -22,6 +22,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- CEE builds on Angular's `application` builder instead of the deprecated webpack
+  `browser` one. The shipped artifact is still a single classic script an embedder
+  loads with a plain `<script>`, and is 190,309 bytes smaller — 3,207,044 raw and
+  754,371 gzip. Packaging changed with it: the two entries the new builder emits are
+  ES modules whose top-level names only module scope keeps apart, so they are now
+  flattened through esbuild into one wrapper rather than concatenated. Concatenating
+  them produced a file that loaded and then failed inside Angular.
+
 - Templates use Angular's block control flow. All 203 `*ngIf` and `*ngFor` sites across
   33 templates are now `@if` and `@for`, migrated by
   `ng generate @angular/core:control-flow`. The directives have been deprecated since

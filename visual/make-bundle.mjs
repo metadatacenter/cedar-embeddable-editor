@@ -40,9 +40,15 @@ const flatten = async (entry) => {
     entryPoints: [entry],
     bundle: true,
     format: 'iife',
-    // The input is already minified, downleveled and tree-shaken by Angular.
-    // Re-minifying would only add risk and obscure the size comparison.
-    minify: false,
+    /*
+     * Whitespace only. The input is already minified, downleveled and
+     * tree-shaken by Angular, so re-mangling names or rewriting syntax would add
+     * risk for nothing — but esbuild re-prints what it parses, and printing
+     * minified input with default formatting inflated the artifact by 543,029
+     * bytes, past its own size ceiling. This undoes that formatting and touches
+     * nothing else.
+     */
+    minifyWhitespace: true,
     write: false,
     logLevel: 'silent',
     platform: 'browser',

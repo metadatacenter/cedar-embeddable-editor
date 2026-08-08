@@ -45,14 +45,34 @@ const findOutputDir = (dist) => {
 };
 
 /**
- * An ES module entry that pulls in sibling chunks cannot be concatenated. Detect
- * that directly from the bytes rather than inferring it from a version number:
- * the question is what the file *is*, and a build flag or a future builder could
- * change the answer without changing anything we could look up.
+ * Whether a file can be dropped into a scope it shares with others.
+ *
+ * This is the question concatenation actually turns on, and asking a different
+ * one cost a working artifact. The first version of this asked whether the entry
+ * imported sibling chunks, on the reasoning that dangling `import` statements are
+ * what breaks a joined file. The `application` builder emits an entry that
+ * imports nothing — so that test said "concatenate", and the result loaded, ran,
+ * and died inside Angular with `Cannot read properties of undefined (reading
+ * 'lFrame')`. Each file alone was fine; both together were not.
+ *
+ * The reason is scope. Webpack wrapped its chunks in an IIFE, so joining them
+ * shared nothing. The `application` builder emits ES modules, whose top-level
+ * declarations are module-scoped and are meant to stay that way — `polyfills.js`
+ * opens `var ce=globalThis`, `main.js` opens `var zk=Object.create`, both from
+ * the same minifier alphabet across megabytes. Concatenated into one classic
+ * script those become globals, and they collide.
+ *
+ * So `concat` now needs positive proof that every input keeps to itself, and
+ * anything else falls to `bundle`, which re-wraps each file through esbuild and
+ * is always correct. That direction matters more than the test: `bundle` is
+ * merely slower, while a wrong `concat` produces a plausible file that fails
+ * only when something runs it.
  */
-const importsSiblings = (file) => {
+const selfContained = (file) => {
   const text = readFileSync(file, 'utf8');
-  return /(?:^|[;}\s])(?:import|export)\s*(?:\{[^}]*\}|\*[^;]*?|[\w$]+)?\s*(?:from\s*)?["']\.\//m.test(text);
+  // Past a banner comment, a self-wrapping bundle opens its IIFE immediately.
+  const code = text.replace(/^(?:\s+|\/\*[\s\S]*?\*\/|\/\/[^\n]*(?:\n|$))+/, '');
+  return /^[;!+~-]*\(/.test(code) || /^!?function\s*[(*]/.test(code);
 };
 
 /**
@@ -86,13 +106,15 @@ export const resolveBuildOutput = (dist = DEFAULT_DIST) => {
     throw new Error(`no entry (main*.js) in ${dir}. Run: npm run build:production`);
   }
 
-  // A `runtime.js` is a webpack tell, but the entry's own contents are the
-  // authority — that is what actually decides whether joining is legal.
-  const strategy = importsSiblings(entry) ? 'bundle' : 'concat';
+  // A `runtime.js` is a webpack tell, but the files' own contents are the
+  // authority — that is what actually decides whether joining is legal. Every
+  // input has to be self-contained, not just the entry: the collision that
+  // motivated this was between `polyfills.js` and `main.js`.
+  const joinable = ['runtime', 'polyfills', 'entry'].map((r) => found.get(r)).filter(Boolean);
+  const strategy = joinable.every(selfContained) ? 'concat' : 'bundle';
 
   if (strategy === 'concat') {
-    const inputs = ['runtime', 'polyfills', 'entry'].map((r) => found.get(r)).filter(Boolean);
-    return { dir, strategy, entry, inputs };
+    return { dir, strategy, entry, inputs: joinable };
   }
 
   // Under `bundle` the entry's import graph reaches the chunks, so esbuild

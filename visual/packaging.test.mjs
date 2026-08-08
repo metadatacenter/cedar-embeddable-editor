@@ -56,6 +56,28 @@ const esbuildDist = () => {
   return dist;
 };
 
+/**
+ * The shape the `application` builder turned out to emit, which is not the one
+ * predicted above: a single self-contained entry importing nothing, beside a
+ * separate polyfills entry — but both ES modules, declaring top-level names that
+ * only module scope keeps apart.
+ *
+ * This is the case that shipped a broken artifact. The entry imports no sibling,
+ * so the old "does it import siblings?" test said concatenate; concatenating put
+ * `polyfills`' and `main`'s minified top-level names in one global scope, where
+ * they collided and Angular died on `Cannot read properties of undefined
+ * (reading 'lFrame')`. The names below are the real ones from that build.
+ */
+const esbuildFlatDist = () => {
+  const dist = scratch();
+  const browser = join(dist, 'browser');
+  mkdirSync(browser);
+  writeFileSync(join(browser, 'polyfills.js'), 'var ce=globalThis;ce.__polyfills=1;\n');
+  writeFileSync(join(browser, 'main.js'), 'var ce=Object.create;window.__main=typeof ce;\n');
+  writeFileSync(join(browser, 'index.html'), '<html></html>');
+  return dist;
+};
+
 describe('resolveBuildOutput', () => {
   it('reads the webpack shape as a concatenation, in load order', () => {
     const { strategy, inputs } = resolveBuildOutput(webpackDist());
@@ -75,6 +97,15 @@ describe('resolveBuildOutput', () => {
     assert.ok(
       inputs.some((p) => p.includes('chunk-')),
       'lazy chunks belong to the freshness set even though esbuild resolves them itself',
+    );
+  });
+
+  it('reads an import-free ES module entry as a bundle, because scope is the question', () => {
+    const { strategy } = resolveBuildOutput(esbuildFlatDist());
+    assert.equal(
+      strategy,
+      'bundle',
+      'nothing here imports a sibling, so only the sharing of top-level scope rules concatenation out',
     );
   });
 
@@ -110,6 +141,21 @@ describe('produceBundle', () => {
     );
     assert.ok(text.includes('window.__polyfills'), 'polyfills must survive, and come first');
     assert.ok(text.indexOf('window.__polyfills') < text.indexOf('window.__main'));
+  });
+
+  /**
+   * The failure this whole predicate exists for, asserted on behaviour rather
+   * than on strategy: both files declare `ce`, and only a wrapper keeps the
+   * second from overwriting the first.
+   */
+  it('keeps two entries that share a top-level name from colliding', async () => {
+    const { bundle } = await produceBundle(esbuildFlatDist());
+    const text = bundle.toString();
+    assert.ok(
+      !/^var ce=globalThis/m.test(text),
+      'a bare top-level declaration means the files share a scope, which is how they clobber each other',
+    );
+    assert.ok(/^\(\s*\(\s*\)\s*=>|^\(function/.test(text.trimStart()), 'the artifact must be wrapped');
   });
 
   it('produces an esbuild-shaped artifact that actually evaluates', async () => {
