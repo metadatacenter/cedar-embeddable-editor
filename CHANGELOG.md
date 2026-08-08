@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- `lodash-es` moves to 4.18.1, clearing the one high-severity advisory group a
+  production audit reported against 4.17.21 — code injection through `_.template`,
+  prototype pollution through `_.unset` and `_.omit`. CEE calls only `cloneDeep`, so
+  no advisory described a path this code could reach, but a flagged package is one
+  every embedder would otherwise have to reason about themselves. The shipped bundle
+  is byte-for-byte unchanged by the upgrade.
 - Static rich-text fields are sanitized by default. A template author's markup previously
   rendered verbatim, so an embedder that let its users choose a template gave those users
   script execution in the embedder's origin — a property documented only in a source
