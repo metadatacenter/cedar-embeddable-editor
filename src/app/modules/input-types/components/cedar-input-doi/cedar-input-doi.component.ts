@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -23,6 +23,7 @@ import { InputType } from '../../../shared/models/input-type.model';
   selector: 'app-cedar-input-doi',
   templateUrl: '../authority/authority-input.component.html',
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarInputDoiComponent extends AbstractAuthorityInputComponent implements OnInit, AfterViewInit {

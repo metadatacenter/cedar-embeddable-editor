@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
@@ -14,6 +14,7 @@ import { CedarValidators } from '../../../shared/validation/cedar-validators';
   templateUrl: './cedar-input-numeric.component.html',
   styleUrls: ['./cedar-input-numeric.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarInputNumericComponent extends CedarUIDirective implements OnInit {

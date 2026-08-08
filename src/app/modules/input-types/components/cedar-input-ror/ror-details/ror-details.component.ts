@@ -1,10 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RorDetailResponse } from '../../../../shared/models/rest/ror-detail/ror-detail-response';
 
 @Component({
   selector: 'app-ror-details',
   templateUrl: './ror-details.component.html',
   styleUrls: ['./ror-details.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class RorDetailsComponent implements OnInit {

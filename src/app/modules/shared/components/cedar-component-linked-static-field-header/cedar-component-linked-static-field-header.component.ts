@@ -1,4 +1,4 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ComponentDataService } from '../../service/component-data.service';
 
@@ -7,6 +7,7 @@ import { ComponentDataService } from '../../service/component-data.service';
   templateUrl: './cedar-component-linked-static-field-header.component.html',
   styleUrls: ['./cedar-component-linked-static-field-header.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarComponentLinkedStaticFieldHeaderComponent {

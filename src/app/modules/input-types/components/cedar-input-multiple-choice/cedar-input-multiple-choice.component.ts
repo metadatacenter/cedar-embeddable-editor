@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import {
   FormBuilder,
@@ -26,6 +26,7 @@ export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
   templateUrl: './cedar-input-multiple-choice.component.html',
   styleUrls: ['./cedar-input-multiple-choice.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarInputMultipleChoiceComponent extends CedarUIDirective implements OnInit {

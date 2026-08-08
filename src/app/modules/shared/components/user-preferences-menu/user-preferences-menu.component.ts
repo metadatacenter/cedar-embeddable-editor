@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild } from '@angular/core';
+import { Component, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 
@@ -6,6 +6,7 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
   selector: 'user-preferences-menu',
   templateUrl: './user-preferences-menu.component.html',
   styleUrls: ['./user-preferences-menu.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class UserPreferencesMenuComponent {

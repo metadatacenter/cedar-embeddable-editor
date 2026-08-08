@@ -1,10 +1,11 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { ResearcherDetails } from '../../../../shared/models/rest/orcid-detail/orcid-detail-person';
 
 @Component({
   selector: 'app-orcid-details',
   templateUrl: './orcid-details.component.html',
   styleUrls: ['./orcid-details.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class OrcidDetailsComponent {

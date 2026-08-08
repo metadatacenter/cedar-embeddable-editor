@@ -2,11 +2,20 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
+    /*
+     * `paths` rather than `baseUrl`, which TypeScript 6.0 deprecates and 7.0 will
+     * stop honouring. The only thing that ever needed it is `import packageJson
+     * from 'package.json'` — every other non-relative import in CEE resolves from
+     * node_modules — so naming that one mapping is both the migration and an
+     * honest description of the dependency. Without `baseUrl`, `paths` resolves
+     * relative to the file declaring it, which is this one, at the repo root.
+     */
+    "paths": {
+      "package.json": ["./package.json"]
+    },
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
-    "downlevelIteration": true,
     "experimentalDecorators": true,
     /*
      * "bundler", not "node". Angular 21 ships its subpath entry points through an
@@ -32,6 +41,21 @@
      * not see this file. Anything reading its output would conclude it was handled.
      */
     "useDefineForClassFields": false,
+    /*
+     * TypeScript 6.0 turns `strict` on by default. CEE was written against the old
+     * default and does not compile under it: 659 errors, overwhelmingly
+     * `strictNullChecks`, `noImplicitAny` and `strictPropertyInitialization`.
+     * Measured, not estimated — the build reports 685 with it on and 26 with it
+     * off, and those 26 are the genuine Angular 22 and TypeScript 6 breakages
+     * fixed elsewhere in this hop.
+     *
+     * Turning strict on is worth doing and is tracked on the roadmap. It is not
+     * this commit: it rewrites null handling across the codebase, which is exactly
+     * the kind of change the march exists to keep separate from a framework hop.
+     * Set explicitly rather than left to the default so the next TypeScript major
+     * cannot move it again without someone deciding to.
+     */
+    "strict": false,
     "module": "es2022",
     "lib": [
       "es2022",

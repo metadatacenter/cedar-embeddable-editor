@@ -1,4 +1,4 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
@@ -11,6 +11,7 @@ import { StaticFieldComponent } from '../../../shared/models/static/static-field
   templateUrl: './cedar-static-section-break.component.html',
   styleUrls: ['./cedar-static-section-break.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarStaticSectionBreakComponent extends CedarUIDirective {

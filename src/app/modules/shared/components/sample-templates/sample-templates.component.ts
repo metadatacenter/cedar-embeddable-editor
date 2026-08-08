@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { MatListOption } from '@angular/material/list';
 import { HttpClient } from '@angular/common/http';
 import { SampleTemplatesService } from './sample-templates.service';
@@ -12,6 +12,7 @@ import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-meta
   templateUrl: './sample-templates.component.html',
   styleUrls: ['./sample-templates.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class SampleTemplatesComponent implements OnInit, OnDestroy {

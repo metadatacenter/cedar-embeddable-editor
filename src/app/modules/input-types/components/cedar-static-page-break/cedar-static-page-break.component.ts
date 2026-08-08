@@ -1,4 +1,4 @@
-import { Component, Injectable, Input, ViewEncapsulation } from '@angular/core';
+import { Component, Injectable, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { DataContext } from '../../../shared/util/data-context';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { PageBreakPaginatorService } from '../../../shared/service/page-break-paginator.service';
@@ -16,6 +16,7 @@ export class CustomMatPaginatorIntl extends MatPaginatorIntl {
   styleUrls: ['./cedar-static-page-break.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
   providers: [{ provide: MatPaginatorIntl, useClass: CustomMatPaginatorIntl }],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarStaticPageBreakComponent {

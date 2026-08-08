@@ -1,4 +1,4 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -9,6 +9,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
   templateUrl: './cedar-static-rich-text.component.html',
   styleUrls: ['./cedar-static-rich-text.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarStaticRichTextComponent extends CedarUIDirective {

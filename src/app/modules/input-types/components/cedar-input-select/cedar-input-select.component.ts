@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -26,6 +26,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   templateUrl: './cedar-input-select.component.html',
   styleUrls: ['./cedar-input-select.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarInputSelectComponent extends CedarUIDirective implements OnInit {

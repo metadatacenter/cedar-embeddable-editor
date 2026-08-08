@@ -37,6 +37,26 @@ export enum ViewEncapsulation {
   ShadowDom = 3,
 }
 
+/**
+ * Values copied from Angular, not invented.
+ *
+ * Only the decorator metadata reads these and the decorators here are no-ops, so
+ * the harness never acts on the value — but a wrong one would still be a lie
+ * sitting in a file the next person reads to learn what CEE does.
+ *
+ * `Eager` is Angular 22's name for what was `Default`; both are 1, and `Default`
+ * is deprecated rather than gone. The rename matters more than it looks: from 22
+ * a component that specifies no strategy gets OnPush, so `ng update` stamped
+ * `Eager` onto all 46 of CEE's components to hold the old behaviour. CEE leans on
+ * `DoCheck` and mutates model objects in place, so that migration is doing real
+ * work, not tidying.
+ */
+export enum ChangeDetectionStrategy {
+  OnPush = 0,
+  Eager = 1,
+  Default = 1,
+}
+
 export class EventEmitter<T = any> {
   private listeners: Array<(v: T) => void> = [];
   emit(value?: T): void {

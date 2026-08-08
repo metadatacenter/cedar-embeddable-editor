@@ -1,4 +1,4 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ElementComponent } from '../../models/component/element-component.model';
 import { SingleElementComponent } from '../../models/element/single-element-component.model';
@@ -19,6 +19,7 @@ import { PageBreakPaginatorService } from '../../service/page-break-paginator.se
   templateUrl: './cedar-component-renderer.component.html',
   styleUrls: ['./cedar-component-renderer.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarComponentRendererComponent {

@@ -44,13 +44,18 @@ jobs:
       # the build and the tests now share one version — which also means the dist
       # that ships is produced on the same Node that exercised it.
       #
-      # 20.20.2 carries the rest of the march: Angular 17 wants ">=20.9.0", 18 and
-      # 19 "^20.11.1", 20 and 21 "^20.19.0". Angular 22 is where it has to move,
-      # to "^22.22.3 || ^24.15.0 || >=26".
-      - name: Use Node.js 20
+      # 20.20.2 carried the march to 21: Angular 17 wanted ">=20.9.0", 18 and 19
+      # "^20.11.1", 20 and 21 "^20.19.0". Angular 22 requires "^22.22.3 ||
+      # ^24.15.0 || >=26", so this is where it moved, as the previous note said it
+      # would have to.
+      #
+      # 24, not 22, of the two the range allows: 24 is the active LTS and 22 is in
+      # maintenance, so this is the version with the longer life rather than the
+      # smaller number. 26 does not exist yet.
+      - name: Use Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: 20.20.2
+          node-version: 24.19.0
           cache: npm
           cache-dependency-path: |
             cedar-embeddable-editor/package-lock.json

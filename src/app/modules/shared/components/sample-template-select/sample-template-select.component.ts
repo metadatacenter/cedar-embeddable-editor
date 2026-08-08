@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
 import { FormControl } from '@angular/forms';
 import { ReplaySubject, Subject } from 'rxjs';
@@ -10,6 +10,7 @@ import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-meta
   templateUrl: './sample-template-select.component.html',
   styleUrls: ['./sample-template-select.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class SampleTemplateSelectComponent implements OnInit, OnDestroy {

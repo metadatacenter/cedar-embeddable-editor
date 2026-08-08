@@ -1,4 +1,4 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { DataContext } from '../../util/data-context';
 
 @Component({
@@ -6,6 +6,7 @@ import { DataContext } from '../../util/data-context';
   templateUrl: './source-panels.component.html',
   styleUrls: ['./source-panels.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class SourcePanelsComponent {

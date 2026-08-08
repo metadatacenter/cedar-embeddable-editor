@@ -1,4 +1,12 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  Input,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import {
   FormBuilder,
@@ -34,6 +42,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   templateUrl: './cedar-input-controlled.component.html',
   styleUrls: ['./cedar-input-controlled.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarInputControlledComponent extends CedarUIDirective implements OnInit, AfterViewInit {

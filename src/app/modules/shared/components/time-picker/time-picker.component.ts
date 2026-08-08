@@ -1,4 +1,12 @@
-import { Component, forwardRef, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  forwardRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewEncapsulation,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { UserPreferencesService } from '../../service/user-preferences.service';
@@ -41,6 +49,7 @@ import { ClockTime, Meridian } from '../../util/clock-time';
       multi: true,
     },
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDestroy {

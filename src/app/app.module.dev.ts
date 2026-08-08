@@ -2,7 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DoBootstrap, Injector, NgModule } from '@angular/core';
 import { createCustomElement } from '@angular/elements';
-import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { AppDevComponent } from './app.component.dev';
 import { SharedModule } from './modules/shared/shared.module';
 import { JsonPipe } from '@angular/common';
@@ -39,7 +39,7 @@ import { defineCustomElementOnce } from './custom-element';
       },
     }),
   ],
-  providers: [JsonPipe, provideHttpClient(withInterceptorsFromDi())],
+  providers: [JsonPipe, provideHttpClient(withXhr(), withInterceptorsFromDi())],
 })
 export class AppModuleDev implements DoBootstrap {
   constructor(private injector: Injector) {}

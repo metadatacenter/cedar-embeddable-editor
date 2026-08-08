@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 
 /**
  * Registers CEE's embedded fonts in the document font set.
@@ -12,6 +12,7 @@ import { Component, ViewEncapsulation } from '@angular/core';
   template: '',
   styleUrls: ['./cedar-font-registrar.component.scss'],
   encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarFontRegistrarComponent {}

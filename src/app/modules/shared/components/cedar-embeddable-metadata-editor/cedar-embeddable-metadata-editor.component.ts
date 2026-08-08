@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnDestroy, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { NullTemplate } from '../../models/template/null-template.model';
 import { DataContext } from '../../util/data-context';
 import { HandlerContext } from '../../util/handler-context';
@@ -20,6 +20,7 @@ import packageJson from 'package.json';
   templateUrl: './cedar-embeddable-metadata-editor.component.html',
   styleUrls: ['./cedar-embeddable-metadata-editor.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {

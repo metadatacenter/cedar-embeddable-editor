@@ -1,21 +1,25 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, ValidatorFn, Validators } from '@angular/forms';
 import { DateAdapter } from '@angular/material/core';
 import { MatDatepicker } from '@angular/material/datepicker';
 
-// Depending on whether rollup is used, moment needs to be imported differently.
-// Since Moment.js doesn't have a default export, we normally need to import using the `* as`
-// syntax. However, rollup creates a synthetic default module, and we thus need to import it using
-// the `default as` syntax.
-import * as _moment from 'moment';
-// tslint:disable-next-line:no-duplicate-imports
-import { default as _rollupMoment, Moment } from 'moment';
+// One import, not the `_rollupMoment || _moment` pair this used to carry.
+//
+// That pattern is from Material's own datepicker guide, written when a project
+// might be built by a bundler that synthesised a default export for a CommonJS
+// module or by one that did not, so it took whichever it was given. CEE is built
+// by the Angular CLI through esbuild, which does synthesise it, so the fallback
+// arm was never the one taken.
+//
+// TypeScript 6.0 is what forced the question: a namespace import is not callable,
+// so `_rollupMoment || _moment` types as a union with one non-callable arm and
+// `moment()` stops compiling. Keeping both arms would mean suppressing that,
+// which would be pretending the dead arm is live.
+import moment, { Moment } from 'moment';
 import { CustomDateAdapter } from '../../service/date-time/custom-date-adapter';
 import { DateTimeService } from '../../service/date-time/date-time.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { Subscription } from 'rxjs';
-
-const moment = _rollupMoment || _moment;
 
 @Component({
   selector: 'app-date-picker',
@@ -29,6 +33,7 @@ const moment = _rollupMoment || _moment;
     CustomDateAdapter, // so we could inject services to 'CustomDateAdapter'
     { provide: DateAdapter, useClass: CustomDateAdapter }, // Parse MatDatePicker format
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class DatePickerComponent implements OnInit {

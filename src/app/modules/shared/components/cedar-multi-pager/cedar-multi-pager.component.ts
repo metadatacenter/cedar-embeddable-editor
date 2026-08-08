@@ -1,4 +1,12 @@
-import { Component, DoCheck, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  DoCheck,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewEncapsulation,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { MultiComponent } from '../../models/component/multi-component.model';
 import { PageEvent } from '@angular/material/paginator';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
@@ -21,6 +29,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './cedar-multi-pager.component.html',
   styleUrls: ['./cedar-multi-pager.component.scss'],
   encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
