@@ -8,7 +8,7 @@ export class PageBreakPaginatorService {
    * in: the service is constructed with the handler context, and the template
    * renders from `getCurrentPage()` whether or not a template has arrived. Declared
    * without initialisers, every read before the first `reset` was a crash — and the
-   * one the template makes is inside an `*ngFor`, which throws rather than skipping.
+   * one the template makes is inside a `@for`, which throws rather than skipping.
    */
   currentPageBreakIndex = 0;
   pageBreakChildren: Array<CedarComponent[]> = [];
@@ -31,7 +31,7 @@ export class PageBreakPaginatorService {
     return this.pageBreakChildren.map((_, i) => i);
   }
 
-  /** An empty page when there are none, so the caller's `*ngFor` renders nothing. */
+  /** An empty page when there are none, so the caller's `@for` renders nothing. */
   getCurrentPage(): CedarComponent[] {
     return this.pageBreakChildren[this.currentPageBreakIndex] ?? [];
   }

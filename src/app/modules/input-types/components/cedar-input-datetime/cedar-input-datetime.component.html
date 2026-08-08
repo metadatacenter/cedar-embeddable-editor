@@ -1,62 +1,70 @@
-<app-date-picker *ngIf="showDatePicker()"
-                 [dateFormat]="dateFormat()"
-                 (dateChangedEvent)="dateInputChanged($event)"
-                 [dateMonthYear]="dateMonthYearControl"
-                 [required]="required"
-                 xmlns="http://www.w3.org/1999/html"></app-date-picker>
-<ng-container *ngIf="showTimePicker()">
+@if (showDatePicker()) {
+  <app-date-picker
+    [dateFormat]="dateFormat()"
+    (dateChangedEvent)="dateInputChanged($event)"
+    [dateMonthYear]="dateMonthYearControl"
+    [required]="required"
+    xmlns="http://www.w3.org/1999/html"
+  ></app-date-picker>
+}
+@if (showTimePicker()) {
   <!--
-    CEE's own picker. Replaced `ngx-mat-timepicker`, whose package peers Angular
-    16 and nothing later — one element, and it capped the framework upgrade.
-
-    Same contract: a two-way bound 24-hour `Date`, and the three flags come from
-    the same predicates below. The read-only branch that used to sit here is gone;
-    the picker renders its own value as text, which is one place rather than two
-    deciding what a read-only time looks like.
+  CEE's own picker. Replaced `ngx-mat-timepicker`, whose package peers Angular
+  16 and nothing later — one element, and it capped the framework upgrade.
+  Same contract: a two-way bound 24-hour `Date`, and the three flags come from
+  the same predicates below. The read-only branch that used to sit here is gone;
+  the picker renders its own value as text, which is one place rather than two
+  deciding what a read-only time looks like.
   -->
   <app-time-picker
     [(ngModel)]="timePickerTime"
     (ngModelChange)="timeInputChanged($event)"
     [enableMeridian]="enableMeridian()"
     [disableMinute]="disableMinute()"
-    [showSeconds]="showSeconds()">
+    [showSeconds]="showSeconds()"
+  >
   </app-time-picker>
-</ng-container>
-<ng-container *ngIf="showDecimalSeconds()">
+}
+@if (showDecimalSeconds()) {
   <mat-form-field>
-<!--    <mat-label>Select Decimal Seconds</mat-label>-->
-    <input matInput type="number"
-           (input)="decimalSecondsChanged($event)"
-           [(ngModel)]="decimalSeconds"
-           name="decimalSeconds"
-           placeholder="{{'Generic.DecimalSeconds' | translate}}"
-           matTooltip="{{'Generic.DecimalSeconds' | translate}}"
-           attr.aria-label="{{'Generic.SelectDecimalSeconds' | translate}}"
-          [readonly]="readOnlyMode">
+    <!--    <mat-label>Select Decimal Seconds</mat-label>-->
+    <input
+      matInput
+      type="number"
+      (input)="decimalSecondsChanged($event)"
+      [(ngModel)]="decimalSeconds"
+      name="decimalSeconds"
+      placeholder="{{ 'Generic.DecimalSeconds' | translate }}"
+      matTooltip="{{ 'Generic.DecimalSeconds' | translate }}"
+      attr.aria-label="{{ 'Generic.SelectDecimalSeconds' | translate }}"
+      [readonly]="readOnlyMode"
+    />
   </mat-form-field>
-</ng-container>
-<ng-container *ngIf="showTimezonePicker()">
+}
+@if (showTimezonePicker()) {
   <app-timezone-picker
     [(ngModel)]="timezone"
     (ngModelChange)="timezoneInputChanged($event)"
-    customPlaceholderText="{{'Generic.SelectTimeZone' | translate}}"
-    customNotFoundText="{{'Generic.NoTimeZoneFound' | translate}}"
+    customPlaceholderText="{{ 'Generic.SelectTimeZone' | translate }}"
+    customNotFoundText="{{ 'Generic.NoTimeZoneFound' | translate }}"
     [getUserZone]="setDefaultZone"
     [clearable]="false"
   ></app-timezone-picker>
-</ng-container>
+}
 <!--<p class="info-box">-->
 <!--  DateTime is:&nbsp;&nbsp;&nbsp;{{datetimeParsed.toDateRepresentation()}}<br/>-->
 <!--  Stored as:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{datetimeParsed.toStorageRepresentation()}}-->
 <!--</p>-->
 
 <!--
-  Temporal validation had no home before: the component installed no validators
-  and the template had no mat-error, so an injected value of any shape rendered
-  silently. One message, carrying the validator's own text, rather than a
-  hand-written string per constraint — that duplication is what let messages
-  drift from the checks elsewhere.
+Temporal validation had no home before: the component installed no validators
+and the template had no mat-error, so an injected value of any shape rendered
+silently. One message, carrying the validator's own text, rather than a
+hand-written string per constraint — that duplication is what let messages
+drift from the checks elsewhere.
 -->
-<mat-error *ngIf="valueControl.invalid && userEdited && !readOnlyMode" class="mat-error align-start">
-  {{ validationMessage() }}
-</mat-error>
+@if (valueControl.invalid && userEdited && !readOnlyMode) {
+  <mat-error class="mat-error align-start">
+    {{ validationMessage() }}
+  </mat-error>
+}

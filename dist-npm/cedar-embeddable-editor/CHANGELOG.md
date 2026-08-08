@@ -20,6 +20,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cannot: a JavaScript host, and `loadConfigFromURL`. Reporting only — a key CEE cannot
   use is ignored as it always was.
 
+### Changed
+
+- Templates use Angular's block control flow. All 203 `*ngIf` and `*ngFor` sites across
+  33 templates are now `@if` and `@for`, migrated by
+  `ng generate @angular/core:control-flow`. The directives have been deprecated since
+  Angular 20 and are intended for removal in a later major. Nothing renders differently
+  — all 108 pixel snapshots match — and the bundle is 17,912 bytes smaller, since the
+  blocks compile to instructions rather than pulling the directives in.
+
 ### Removed
 
 - `BrowserAnimationsModule`, and with it the `@angular/animations` dependency. Angular

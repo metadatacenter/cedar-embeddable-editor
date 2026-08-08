@@ -1,18 +1,17 @@
-<button *ngIf="visible"
-  mat-icon-button
-  class="preferences-trigger"
-  [matMenuTriggerFor]="preferencesMenu"
-  aria-label="Open preferences menu">
-  <mat-icon>more_vert</mat-icon>
-</button>
+@if (visible) {
+  <button
+    mat-icon-button
+    class="preferences-trigger"
+    [matMenuTriggerFor]="preferencesMenu"
+    aria-label="Open preferences menu"
+  >
+    <mat-icon>more_vert</mat-icon>
+  </button>
+}
 <mat-menu #preferencesMenu="matMenu" class="preferences-menu">
   <div class="menu-header">
     <span class="menu-title">Preferences</span>
-    <button
-      mat-icon-button
-      class="close-icon"
-      aria-label="Close preferences menu"
-      (click)="close()">
+    <button mat-icon-button class="close-icon" aria-label="Close preferences menu" (click)="close()">
       <mat-icon>close</mat-icon>
     </button>
   </div>
@@ -25,19 +24,20 @@
       <mat-slide-toggle
         [checked]="readOnlyMode$"
         (click)="$event.stopPropagation()"
-        (change)="toggleReadOnly($event.checked)">
+        (change)="toggleReadOnly($event.checked)"
+      >
       </mat-slide-toggle>
     </button>
-<!--    <button-->
-<!--      mat-menu-item-->
-<!--      [disabled]="!readOnlyMode$"-->
-<!--      (click)="$event.stopPropagation()">-->
-<!--      <span>Hide Empty Fields</span>-->
-<!--      <mat-slide-toggle-->
-<!--        [checked]="readOnlyMode$ | async"-->
-<!--        (click)="$event.stopPropagation()">-->
-<!--&lt;!&ndash;        (change)="handlerContext.setHideEmptyFields($event.checked)">&ndash;&gt;-->
-<!--      </mat-slide-toggle>-->
-<!--    </button>-->
+    <!--    <button-->
+    <!--      mat-menu-item-->
+    <!--      [disabled]="!readOnlyMode$"-->
+    <!--      (click)="$event.stopPropagation()">-->
+    <!--      <span>Hide Empty Fields</span>-->
+    <!--      <mat-slide-toggle-->
+    <!--        [checked]="readOnlyMode$ | async"-->
+    <!--        (click)="$event.stopPropagation()">-->
+    <!--&lt;!&ndash;        (change)="handlerContext.setHideEmptyFields($event.checked)">&ndash;&gt;-->
+    <!--      </mat-slide-toggle>-->
+    <!--    </button>-->
   </div>
 </mat-menu>

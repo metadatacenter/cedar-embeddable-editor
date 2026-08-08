@@ -1,32 +1,59 @@
 <form class="form-container" [formGroup]="options">
-  <div *ngIf="bioPortalTermLink" class="mat-form-field-wrapper mat-form-field-flex mat-form-field-outline fake-input">
-    <a href={{bioPortalTermLink}} target="_blank">
-      <button matPrefix class="bio-portal-icon" (click)="goToBioPortalTerm()"></button>
-      <span class="text-class">{{inputValueControl.getRawValue()}}</span>
-    </a>
-  </div>
-  <mat-form-field *ngIf="!bioPortalTermLink" class="full-width">
-    <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
-    <input matInput type="text" placeholder="{{'Generic.Filter' | translate}}"
-      #autoCompleteInput="matAutocompleteTrigger" [formControl]="inputValueControl"
-      [errorStateMatcher]="errorStateMatcher" [matAutocomplete]="auto"
-      (input)="inputChanged($event)" [readonly]="readOnlyMode"
-      attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
-    <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
-      <mat-option *ngIf="loading" disabled class="spinner-container">
-        <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
-      </mat-option>
-      <mat-option *ngIf="lookupFailed && !loading" disabled class="lookup-failed">
-        {{'Error.LookupFailed' | translate}}
-      </mat-option>
-      <mat-option *ngFor="let option of filteredOptions | async" [value]="option.prefLabel"
-        (onSelectionChange)="onSelectionChange(option)">{{option.prefLabel}}</mat-option>
-    </mat-autocomplete>
-    <button type="button" tabindex="0" *ngIf="inputValueControl.value && !readOnlyMode" matSuffix
-      mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
-      <mat-icon>close</mat-icon>
-    </button>
-    <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode"
-      class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
-  </mat-form-field>
+  @if (bioPortalTermLink) {
+    <div class="mat-form-field-wrapper mat-form-field-flex mat-form-field-outline fake-input">
+      <a href="{{ bioPortalTermLink }}" target="_blank">
+        <button matPrefix class="bio-portal-icon" (click)="goToBioPortalTerm()"></button>
+        <span class="text-class">{{ inputValueControl.getRawValue() }}</span>
+      </a>
+    </div>
+  }
+  @if (!bioPortalTermLink) {
+    <mat-form-field class="full-width">
+      <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
+      <input
+        matInput
+        type="text"
+        placeholder="{{ 'Generic.Filter' | translate }}"
+        #autoCompleteInput="matAutocompleteTrigger"
+        [formControl]="inputValueControl"
+        [errorStateMatcher]="errorStateMatcher"
+        [matAutocomplete]="auto"
+        (input)="inputChanged($event)"
+        [readonly]="readOnlyMode"
+        attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+      />
+      <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
+        @if (loading) {
+          <mat-option disabled class="spinner-container">
+            <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+          </mat-option>
+        }
+        @if (lookupFailed && !loading) {
+          <mat-option disabled class="lookup-failed">
+            {{ 'Error.LookupFailed' | translate }}
+          </mat-option>
+        }
+        @for (option of filteredOptions | async; track option) {
+          <mat-option [value]="option.prefLabel" (onSelectionChange)="onSelectionChange(option)">{{
+            option.prefLabel
+          }}</mat-option>
+        }
+      </mat-autocomplete>
+      @if (inputValueControl.value && !readOnlyMode) {
+        <button
+          type="button"
+          tabindex="0"
+          matSuffix
+          mat-icon-button
+          attr.aria-label="{{ 'Generic.Clear' | translate }}"
+          (click)="clearValue()"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+      @if (inputValueControl.getError('required') && !readOnlyMode) {
+        <mat-error tabindex="0" class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
+      }
+    </mat-form-field>
+  }
 </form>

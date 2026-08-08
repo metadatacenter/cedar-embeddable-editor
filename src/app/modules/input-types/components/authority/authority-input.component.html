@@ -1,63 +1,99 @@
 <!--
-  One template for every external authority field.
+One template for every external authority field.
 
-  Angular lets several components share a `templateUrl`, so the five simple
-  authority widgets render from this file and differ only in their descriptor.
-  Everything that used to be baked into seven near-identical templates — the
-  placeholder, the aria-label on the details link, the error key, the two message
-  keys — comes off `descriptor` instead.
+Angular lets several components share a `templateUrl`, so the five simple
+authority widgets render from this file and differ only in their descriptor.
+Everything that used to be baked into seven near-identical templates — the
+placeholder, the aria-label on the details link, the error key, the two message
+keys — comes off `descriptor` instead.
 
-  ORCID and ROR keep their own templates: each renders a panel built from a
-  detail document with its own shape, which is the one part of them that is
-  genuinely theirs.
+ORCID and ROR keep their own templates: each renders a panel built from a
+detail document with its own shape, which is the one part of them that is
+genuinely theirs.
 -->
 <form class="form-container" [formGroup]="options">
   <ng-container>
     <mat-form-field class="full-width">
-      <input matInput type="text"
-             placeholder="{{descriptor.placeholderKey | translate}}"
-             #autoCompleteInput="matAutocompleteTrigger"
-             [formControl]="inputValueControl"
-             [errorStateMatcher]="errorStateMatcher"
-             [matAutocomplete]="auto"
-             [matAutocompleteDisabled]="isEmpty"
-             (focus)="inputFocused()"
-             (input)="inputChanged($event)"
-             (blur)="onInputBlur()"
-             [readonly]="readOnlyMode"
-             attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
+      <input
+        matInput
+        type="text"
+        placeholder="{{ descriptor.placeholderKey | translate }}"
+        #autoCompleteInput="matAutocompleteTrigger"
+        [formControl]="inputValueControl"
+        [errorStateMatcher]="errorStateMatcher"
+        [matAutocomplete]="auto"
+        [matAutocompleteDisabled]="isEmpty"
+        (focus)="inputFocused()"
+        (input)="inputChanged($event)"
+        (blur)="onInputBlur()"
+        [readonly]="readOnlyMode"
+        attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+      />
       <mat-autocomplete #auto="matAutocomplete">
-        <mat-option *ngIf="loadingOptions" disabled class="spinner-container">
-          <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
-        </mat-option>
-        <mat-option *ngIf="lookupFailed && !loadingOptions" disabled class="lookup-failed">
-          {{'Error.LookupFailed' | translate}}
-        </mat-option>
-        <mat-option *ngIf="!lookupFailed && (inputValueControl.value?.trim()?.length ?? 0) > 0 && ((filteredOptions | async)?.length ?? 0) === 0" disabled>
-          No results found
-        </mat-option>
-        <mat-option *ngFor="let option of filteredOptions | async" [value]="option[JsonSchema.rdfsLabel] + ' - ' + option[JsonSchema.atId]"
-                    (onSelectionChange)="onSelectionChange(option)"
-        >{{ getCompoundValue(option) }}</mat-option>
+        @if (loadingOptions) {
+          <mat-option disabled class="spinner-container">
+            <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+          </mat-option>
+        }
+        @if (lookupFailed && !loadingOptions) {
+          <mat-option disabled class="lookup-failed">
+            {{ 'Error.LookupFailed' | translate }}
+          </mat-option>
+        }
+        @if (
+          !lookupFailed &&
+          (inputValueControl.value?.trim()?.length ?? 0) > 0 &&
+          ((filteredOptions | async)?.length ?? 0) === 0
+        ) {
+          <mat-option disabled> No results found </mat-option>
+        }
+        @for (option of filteredOptions | async; track option) {
+          <mat-option
+            [value]="option[JsonSchema.rdfsLabel] + ' - ' + option[JsonSchema.atId]"
+            (onSelectionChange)="onSelectionChange(option)"
+            >{{ getCompoundValue(option) }}</mat-option
+          >
+        }
       </mat-autocomplete>
-      <a *ngIf="selectedData"
-         matSuffix mat-icon-button
-         [href]="detailsUrl"
-         target="_blank" rel="noopener"
-         attr.aria-label="View {{descriptor.label}} page"
-         matTooltip="{{'Generic.Details' | translate}}">
-        <mat-icon>{{ linkIconName }}</mat-icon>
-      </a>
-      <button type="button" tabindex="0" *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" matTooltip="{{'Generic.Clear' | translate}}" (click)="clearValue()">
-        <mat-icon>close</mat-icon>
-      </button>
-      <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
-      <mat-error tabindex="0" *ngIf="inputValueControl.getError(descriptor.errorKey) && !readOnlyMode" class="mat-error align-start">
-        {{descriptor.invalidMessageKey | translate}}
-      </mat-error>
-      <mat-hint *ngIf="justReverted">
-        {{descriptor.revertedMessageKey | translate}}
-      </mat-hint>
+      @if (selectedData) {
+        <a
+          matSuffix
+          mat-icon-button
+          [href]="detailsUrl"
+          target="_blank"
+          rel="noopener"
+          attr.aria-label="View {{ descriptor.label }} page"
+          matTooltip="{{ 'Generic.Details' | translate }}"
+        >
+          <mat-icon>{{ linkIconName }}</mat-icon>
+        </a>
+      }
+      @if (inputValueControl.value && !readOnlyMode) {
+        <button
+          type="button"
+          tabindex="0"
+          matSuffix
+          mat-icon-button
+          attr.aria-label="{{ 'Generic.Clear' | translate }}"
+          matTooltip="{{ 'Generic.Clear' | translate }}"
+          (click)="clearValue()"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+      @if (inputValueControl.getError('required') && !readOnlyMode) {
+        <mat-error tabindex="0" class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
+      }
+      @if (inputValueControl.getError(descriptor.errorKey) && !readOnlyMode) {
+        <mat-error tabindex="0" class="mat-error align-start">
+          {{ descriptor.invalidMessageKey | translate }}
+        </mat-error>
+      }
+      @if (justReverted) {
+        <mat-hint>
+          {{ descriptor.revertedMessageKey | translate }}
+        </mat-hint>
+      }
     </mat-form-field>
   </ng-container>
 </form>

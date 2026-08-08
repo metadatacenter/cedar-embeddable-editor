@@ -62,7 +62,7 @@ export class CedarComponentRendererComponent {
     // Reset alongside the other three. Angular reuses a renderer instance while
     // changing its input, and this one was never cleared — so a static field
     // followed by anything else left the static block rendering underneath it,
-    // its `*ngIf` still satisfied by the previous component.
+    // its `@if` still satisfied by the previous component.
     this.staticComponent = null;
     if (
       componentToRender instanceof SingleElementComponent ||

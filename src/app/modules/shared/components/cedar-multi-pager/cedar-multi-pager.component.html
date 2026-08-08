@@ -1,63 +1,89 @@
-<div *ngIf="component && currentMultiInfo" [ngClass]="(isAlignedUp && readOnlyMode && getInstanceCount()>1 ||
-  (isAlignedUp && !readOnlyMode)) ? 'aligned-up' : (!readOnlyMode || getInstanceCount()>1) ? 'pager-container' : 'page-container-ro'">
-  <div class="pager-chips">
-    <mat-chip-listbox *ngIf="getInstanceCount()>1" [tabIndex]="0" aria-label="Allows multi values.">
-      <mat-chip-option selectable="false" disabled="true" *ngIf="!hasMultiInstances()" aria-label="No values yet">{{'Multi.NoInstancesYet' | translate}}</mat-chip-option>
-      <mat-chip-option *ngFor="let pageNumber of pageNumbers"
-                [selected]="pageNumber === currentMultiInfo.currentIndex"
-                (click)="chipClicked(pageNumber)"
-                selectable="true"
-      >{{pageNumber + 1}}</mat-chip-option>
-    </mat-chip-listbox>
-    <mat-chip-listbox *ngIf="getInstanceCount()<1" [tabIndex]="0">
-      <mat-chip-option selectable="false" disabled="true" aria-label="No values yet">{{'Multi.NoInstancesYet' | translate}}</mat-chip-option>
-    </mat-chip-listbox>
+@if (component && currentMultiInfo) {
+  <div
+    [ngClass]="
+      (isAlignedUp && readOnlyMode && getInstanceCount() > 1) || (isAlignedUp && !readOnlyMode)
+        ? 'aligned-up'
+        : !readOnlyMode || getInstanceCount() > 1
+          ? 'pager-container'
+          : 'page-container-ro'
+    "
+  >
+    <div class="pager-chips">
+      @if (getInstanceCount() > 1) {
+        <mat-chip-listbox [tabIndex]="0" aria-label="Allows multi values.">
+          @if (!hasMultiInstances()) {
+            <mat-chip-option selectable="false" disabled="true" aria-label="No values yet">{{
+              'Multi.NoInstancesYet' | translate
+            }}</mat-chip-option>
+          }
+          @for (pageNumber of pageNumbers; track pageNumber) {
+            <mat-chip-option
+              [selected]="pageNumber === currentMultiInfo.currentIndex"
+              (click)="chipClicked(pageNumber)"
+              selectable="true"
+              >{{ pageNumber + 1 }}</mat-chip-option
+            >
+          }
+        </mat-chip-listbox>
+      }
+      @if (getInstanceCount() < 1) {
+        <mat-chip-listbox [tabIndex]="0">
+          <mat-chip-option selectable="false" disabled="true" aria-label="No values yet">{{
+            'Multi.NoInstancesYet' | translate
+          }}</mat-chip-option>
+        </mat-chip-listbox>
+      }
+    </div>
+    @if (!readOnlyMode) {
+      <div>
+        <button
+          mat-icon-button
+          type="button"
+          [disabled]="!isEnabledAdd()"
+          [matTooltip]="'Multi.AddEmptyAfter' | translate"
+          [attr.aria-label]="'Multi.AddEmptyAfter' | translate"
+          (click)="clickedAdd($event)"
+        >
+          <mat-icon>note_add</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          type="button"
+          [disabled]="!isEnabledCopy()"
+          [matTooltip]="'Multi.AddCloneAfter' | translate"
+          [attr.aria-label]="'Multi.AddCloneAfter' | translate"
+          (click)="clickedCopy($event)"
+        >
+          <mat-icon>content_copy</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          type="button"
+          [disabled]="!isEnabledDelete()"
+          [matTooltip]="'Multi.DeleteCurrent' | translate"
+          [attr.aria-label]="'Multi.DeleteCurrent' | translate"
+          (click)="clickedDelete($event)"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    }
+    <div class="pager-pager">
+      @if (getInstanceCount() > pageSize) {
+        <mat-paginator
+          [length]="length"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="showPageSizeOptions ? pageSizeOptions : []"
+          [pageIndex]="pageIndex"
+          [hidePageSize]="hidePageSize"
+          (page)="paginatorChanged($event)"
+        >
+        </mat-paginator>
+      }
+    </div>
   </div>
-  <div *ngIf="!readOnlyMode">
-    <button
-      mat-icon-button
-      type="button"
-      [disabled]="!isEnabledAdd()"
-      [matTooltip]="'Multi.AddEmptyAfter' | translate"
-      [attr.aria-label]="'Multi.AddEmptyAfter' | translate"
-      (click)="clickedAdd($event)"
-    >
-      <mat-icon>note_add</mat-icon>
-    </button>
-
-    <button
-      mat-icon-button
-      type="button"
-      [disabled]="!isEnabledCopy()"
-      [matTooltip]="'Multi.AddCloneAfter' | translate"
-      [attr.aria-label]="'Multi.AddCloneAfter' | translate"
-      (click)="clickedCopy($event)"
-    >
-      <mat-icon>content_copy</mat-icon>
-    </button>
-
-    <button
-      mat-icon-button
-      type="button"
-      [disabled]="!isEnabledDelete()"
-      [matTooltip]="'Multi.DeleteCurrent' | translate"
-      [attr.aria-label]="'Multi.DeleteCurrent' | translate"
-      (click)="clickedDelete($event)"
-    >
-      <mat-icon>delete</mat-icon>
-    </button>
-  </div>
-  <div class="pager-pager">
-    <mat-paginator
-      *ngIf="getInstanceCount()>pageSize" [length]="length"
-                   [pageSize]="pageSize"
-                   [pageSizeOptions]="showPageSizeOptions ? pageSizeOptions: []"
-                   [pageIndex]="pageIndex"
-                   [hidePageSize]="hidePageSize"
-                   (page)="paginatorChanged($event)">
-    </mat-paginator>
-  </div>
-</div>
+}
 <!-- Built from instance values, so sanitized rather than trusted. See `safe-html.pipe.ts`. -->
-<div *ngIf="component && currentMultiInfo && multiInstanceValue && showAllMultiInstanceValues" class="info-box"
-     [innerHTML]="multiInstanceValue | safeHtml"></div>
+@if (component && currentMultiInfo && multiInstanceValue && showAllMultiInstanceValues) {
+  <div class="info-box" [innerHTML]="multiInstanceValue | safeHtml"></div>
+}

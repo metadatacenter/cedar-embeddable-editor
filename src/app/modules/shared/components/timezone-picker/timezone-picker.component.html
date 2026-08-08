@@ -1,27 +1,27 @@
 <div class="wrapper" [formGroup]="form">
-  <ng-container *ngIf="readOnlyMode">
-    <input matInput type="text"
-           [formControl]="readOnlyTimezoneControl"
-           readonly>
-<!--           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">-->
-  </ng-container>
-  <ng-container *ngIf="!readOnlyMode">
+  @if (readOnlyMode) {
+    <input matInput type="text" [formControl]="readOnlyTimezoneControl" readonly />
+    <!--           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">-->
+  }
+  @if (!readOnlyMode) {
     <!-- `[appendTo]` gets `?? ''` because ng-select declares it `string` and tests
-         it for truthiness, so an empty string and CEE's null default mean the same
-         thing to it: leave the dropdown where it is. -->
-    <ng-select formControlName="timezone"
-               [items]="timeZones"
-               [clearable]="clearable"
-               [virtualScroll]="virtualScroll"
-               bindLabel="label"
-               [placeholder]="customPlaceholderText"
-               [notFoundText]="customNotFoundText"
-               [appearance]="config.appearance"
-               [appendTo]="config.appendTo ?? ''"
-               [clearOnBackspace]="config.clearOnBackspace"
-               [closeOnSelect]="config.closeOnSelect"
-               [dropdownPosition]="config.dropdownPosition"
-               [hideSelected]="config.hideSelected">
+    it for truthiness, so an empty string and CEE's null default mean the same
+    thing to it: leave the dropdown where it is. -->
+    <ng-select
+      formControlName="timezone"
+      [items]="timeZones"
+      [clearable]="clearable"
+      [virtualScroll]="virtualScroll"
+      bindLabel="label"
+      [placeholder]="customPlaceholderText"
+      [notFoundText]="customNotFoundText"
+      [appearance]="config.appearance"
+      [appendTo]="config.appendTo ?? ''"
+      [clearOnBackspace]="config.clearOnBackspace"
+      [closeOnSelect]="config.closeOnSelect"
+      [dropdownPosition]="config.dropdownPosition"
+      [hideSelected]="config.hideSelected"
+    >
     </ng-select>
-  </ng-container>
+  }
 </div>

@@ -1,37 +1,75 @@
 <form class="form-container" [formGroup]="options">
-  <div *ngIf="(isOrcid || isRor)" class="mat-form-field-wrapper mat-form-field-flex mat-form-field-outline fake-input">
-    <a *ngIf="inputValueControl.getRawValue()" href={{originalValue}} target="_blank">
-      <button *ngIf="isOrcid" matPrefix class="orcid-icon" (click)="goToLink()"></button>
-      <button *ngIf="isRor" matPrefix class="ror-icon" (click)="goToLink()"></button>
-      <span class="text-class">{{inputValueControl.getRawValue()}}</span>
-    </a>
-  </div>
-  <mat-form-field *ngIf="(!isOrcid && !isRor && !isRichText)" class="full-width">
-<!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
-      <input matInput type="text" *ngIf="component.basicInfo.inputType===inputText"
-             [formControl]="inputValueControl"
-             [errorStateMatcher]="errorStateMatcher"
-             (input)="inputChanged($event)"
-             [readonly]="readOnlyMode"
-             attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
-    <textarea matInput type="text" *ngIf="component.basicInfo.inputType===inputTextarea"
-              cdkTextareaAutosize
-              cdkAutosizeMinRows="6"
-              [formControl]="inputValueControl"
-              [errorStateMatcher]="errorStateMatcher"
-              (input)="inputChanged($event)"
-              attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}"
-              [readonly]="readOnlyMode"></textarea>
-    <button type="button" tabindex="0" *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
-      <mat-icon>close</mat-icon>
-    </button>
-    <mat-error *ngIf="inputValueControl.getError('minlength') && !readOnlyMode">{{'Validation.Text.MinLength' | translate: {constraintMinLength} }}</mat-error>
-    <mat-error *ngIf="inputValueControl.getError('maxlength') && !readOnlyMode">{{'Validation.Text.MaxLength' | translate: {constraintMaxLength} }}</mat-error>
-    <mat-error *ngIf="inputValueControl.hasError('required') && !readOnlyMode">{{'Validation.Required' | translate}}</mat-error>
-    <mat-hint *ngIf="constraintMaxLength !== null && !readOnlyMode" align="end">{{getCharCountHint()}}</mat-hint>
-  </mat-form-field>
+  @if (isOrcid || isRor) {
+    <div class="mat-form-field-wrapper mat-form-field-flex mat-form-field-outline fake-input">
+      @if (inputValueControl.getRawValue()) {
+        <a href="{{ originalValue }}" target="_blank">
+          @if (isOrcid) {
+            <button matPrefix class="orcid-icon" (click)="goToLink()"></button>
+          }
+          @if (isRor) {
+            <button matPrefix class="ror-icon" (click)="goToLink()"></button>
+          }
+          <span class="text-class">{{ inputValueControl.getRawValue() }}</span>
+        </a>
+      }
+    </div>
+  }
+  @if (!isOrcid && !isRor && !isRichText) {
+    <mat-form-field class="full-width">
+      <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
+      @if (component.basicInfo.inputType === inputText) {
+        <input
+          matInput
+          type="text"
+          [formControl]="inputValueControl"
+          [errorStateMatcher]="errorStateMatcher"
+          (input)="inputChanged($event)"
+          [readonly]="readOnlyMode"
+          attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+        />
+      }
+      @if (component.basicInfo.inputType === inputTextarea) {
+        <textarea
+          matInput
+          type="text"
+          cdkTextareaAutosize
+          cdkAutosizeMinRows="6"
+          [formControl]="inputValueControl"
+          [errorStateMatcher]="errorStateMatcher"
+          (input)="inputChanged($event)"
+          attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+          [readonly]="readOnlyMode"
+        ></textarea>
+      }
+      @if (inputValueControl.value && !readOnlyMode) {
+        <button
+          type="button"
+          tabindex="0"
+          matSuffix
+          mat-icon-button
+          attr.aria-label="{{ 'Generic.Clear' | translate }}"
+          (click)="clearValue()"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+      @if (inputValueControl.getError('minlength') && !readOnlyMode) {
+        <mat-error>{{ 'Validation.Text.MinLength' | translate: { constraintMinLength } }}</mat-error>
+      }
+      @if (inputValueControl.getError('maxlength') && !readOnlyMode) {
+        <mat-error>{{ 'Validation.Text.MaxLength' | translate: { constraintMaxLength } }}</mat-error>
+      }
+      @if (inputValueControl.hasError('required') && !readOnlyMode) {
+        <mat-error>{{ 'Validation.Required' | translate }}</mat-error>
+      }
+      @if (constraintMaxLength !== null && !readOnlyMode) {
+        <mat-hint align="end">{{ getCharCountHint() }}</mat-hint>
+      }
+    </mat-form-field>
+  }
   <!-- The value came from the instance, so it is sanitized rather than trusted.
-       See `safe-html.pipe.ts` for why this differs from the static rich-text field. -->
-  <p *ngIf="isRichText" [innerHTML]="(inputValueControl.value || '') | safeHtml"></p>
+  See `safe-html.pipe.ts` for why this differs from the static rich-text field. -->
+  @if (isRichText) {
+    <p [innerHTML]="inputValueControl.value || '' | safeHtml"></p>
+  }
 </form>
-

@@ -105,16 +105,19 @@ export default tseslint.config(
     extends: [...angular.configs.templateRecommended],
     rules: {
       /*
-       * 203 sites, and the fourth of the "adopt the newer idiom" rules. It wants
-       * `@if`/`@for` in place of `*ngIf`/`*ngFor`.
+       * On, because the migration it asks for is done: 203 sites across 33
+       * templates, 184 `*ngIf` and 19 `*ngFor`, rewritten as `@if` and `@for` by
+       * `ng generate @angular/core:control-flow`.
        *
-       * `ng update` offered exactly this migration at Angular 21 and it was declined
-       * there on the roadmap's own advice — do not combine a framework hop with a
-       * control-flow rewrite — after seeing it touch 33 files in one diff. `NgIf` and
-       * `NgFor` are not deprecated and work through 22. Turning the rule on now would
-       * assert the opposite of a decision already taken, and reverse it by nagging.
+       * It was declined once, at Angular 21, on the advice not to combine a
+       * framework hop with a control-flow rewrite. That advice expired when the
+       * march landed, and the reason given alongside it — that `NgIf` and `NgFor`
+       * are not deprecated — was wrong even then: Angular marked them
+       * `@deprecated 20.0`, with removal intended in a later major.
+       *
+       * The rule is what stops the old syntax coming back one template at a time.
        */
-      '@angular-eslint/template/prefer-control-flow': 'off',
+      '@angular-eslint/template/prefer-control-flow': 'error',
     },
   },
   {

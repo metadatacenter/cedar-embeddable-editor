@@ -1,17 +1,27 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
-    <input matInput [formControl]="selectedChoiceInputControl" style="display:none">
+    <input matInput [formControl]="selectedChoiceInputControl" style="display: none" />
     <mat-radio-group [formControl]="selectedChoiceInputControl">
-      <div *ngFor="let choice of component.choiceInfo.choices" class="col-md-2">
-        <mat-radio-button
-          [value]="choice.label"
-          (change)="inputChanged($event)"
-        >{{choice.label}}</mat-radio-button>
-      </div>
-      <button type="button" tabindex="0" *ngIf="selectedChoiceInputControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}" (click)="clearValue()">
-        <mat-icon>close</mat-icon>
-      </button>
+      @for (choice of component.choiceInfo.choices; track choice) {
+        <div class="col-md-2">
+          <mat-radio-button [value]="choice.label" (change)="inputChanged($event)">{{ choice.label }}</mat-radio-button>
+        </div>
+      }
+      @if (selectedChoiceInputControl.value && !readOnlyMode) {
+        <button
+          type="button"
+          tabindex="0"
+          matSuffix
+          mat-icon-button
+          attr.aria-label="{{ 'Generic.Clear' | translate }}"
+          (click)="clearValue()"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
     </mat-radio-group>
-    <mat-error *ngIf="selectedChoiceInputControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
+    @if (selectedChoiceInputControl.getError('required') && !readOnlyMode) {
+      <mat-error class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
+    }
   </mat-form-field>
 </form>

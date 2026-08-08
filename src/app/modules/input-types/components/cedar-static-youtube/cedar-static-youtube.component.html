@@ -1,17 +1,20 @@
 <mat-card appearance="outlined" class="child-component-card youtube-component">
-  <iframe
-    *ngIf="videoEmbedUrl"
-    class="youtube-player"
-    [src]="videoEmbedUrl"
-    [attr.height]="videoHeight"
-    [attr.width]="videoWidth"
-    [attr.title]="videoTitle"
-    loading="lazy"
-    referrerpolicy="strict-origin-when-cross-origin"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen
-  ></iframe>
-  <p *ngIf="contentError" class="video-error" role="alert">{{ contentError }}</p>
+  @if (videoEmbedUrl) {
+    <iframe
+      class="youtube-player"
+      [src]="videoEmbedUrl"
+      [attr.height]="videoHeight"
+      [attr.width]="videoWidth"
+      [attr.title]="videoTitle"
+      loading="lazy"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen
+    ></iframe>
+  }
+  @if (contentError) {
+    <p class="video-error" role="alert">{{ contentError }}</p>
+  }
   <mat-card-content>
     {{ component.labelInfo.description }}
   </mat-card-content>

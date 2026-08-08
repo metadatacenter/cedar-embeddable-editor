@@ -1,39 +1,65 @@
 <div class="flex-container">
-  <i *ngIf="isRor" class="ror-icon"></i>
-  <i *ngIf="isOrcid" class="orcid-icon"></i>
-  <i *ngIf="isPfas" class="pfas-icon"></i>
-  <i *ngIf="isPmid" class="pmid-icon"></i>
-  <i *ngIf="isRrid" class="rrid-icon"></i>
-  <i *ngIf="isNihGrant" class="nih-grant-icon"></i>
-  <i *ngIf="isDoi" class="doi-icon"></i>
+  @if (isRor) {
+    <i class="ror-icon"></i>
+  }
+  @if (isOrcid) {
+    <i class="orcid-icon"></i>
+  }
+  @if (isPfas) {
+    <i class="pfas-icon"></i>
+  }
+  @if (isPmid) {
+    <i class="pmid-icon"></i>
+  }
+  @if (isRrid) {
+    <i class="rrid-icon"></i>
+  }
+  @if (isNihGrant) {
+    <i class="nih-grant-icon"></i>
+  }
+  @if (isDoi) {
+    <i class="doi-icon"></i>
+  }
 
   <span class="title">
     {{ cds.getRenderingLabelForComponent(component) }}
-    <span *ngIf="shouldRenderRequiredMark">
-      <sup style="font-size: medium; color: red" aria-label="required"><b>*</b></sup>
-    </span>
-    <span class="flex-child" *ngIf="component.isMultiPage() && !readOnlyMode && multiComponent">
-      &nbsp;({{multiComponent.multiInfo.getSafeMinItems()}}
-      ..
-      <span *ngIf="multiComponent.multiInfo.maxItems">
-        {{multiComponent.multiInfo.maxItems}}
+    @if (shouldRenderRequiredMark) {
+      <span>
+        <sup style="font-size: medium; color: red" aria-label="required"><b>*</b></sup>
       </span>
-      <span *ngIf="!multiComponent.multiInfo.maxItems" matTooltip="{{'Generic.Infinite' | translate}}">
-        ∞
-      </span>)
-    </span>
+    }
+    @if (component.isMultiPage() && !readOnlyMode && multiComponent) {
+      <span class="flex-child">
+        &nbsp;({{ multiComponent.multiInfo.getSafeMinItems() }}
+        ..
+        @if (multiComponent.multiInfo.maxItems) {
+          <span>
+            {{ multiComponent.multiInfo.maxItems }}
+          </span>
+        }
+        @if (!multiComponent.multiInfo.maxItems) {
+          <span matTooltip="{{ 'Generic.Infinite' | translate }}"> ∞ </span>
+        }
+        )
+      </span>
+    }
   </span>
 
-  <mat-icon *ngIf="component.labelInfo.description && component.labelInfo.description !== 'Help Text'"
-            matTooltip="{{component.labelInfo.description}}"
-            matTooltipClass="tooltip"
-            matTooltipPosition="right"
-            aria-hidden="false"
-            aria-labelledby="description"
-            class="icon-help icon-questionmark"
-            role="tooltip"
-            inline="false">help</mat-icon>
+  @if (component.labelInfo.description && component.labelInfo.description !== 'Help Text') {
+    <mat-icon
+      matTooltip="{{ component.labelInfo.description }}"
+      matTooltipClass="tooltip"
+      matTooltipPosition="right"
+      aria-hidden="false"
+      aria-labelledby="description"
+      class="icon-help icon-questionmark"
+      role="tooltip"
+      inline="false"
+      >help</mat-icon
+    >
+  }
 
-  <span id="Description of {{cds.getRenderingLabelForComponent(component)}}"
-        class="cdk-visually-hidden">{{component.labelInfo.description}}</span>
+  <span id="Description of {{ cds.getRenderingLabelForComponent(component) }}" class="cdk-visually-hidden">{{
+    component.labelInfo.description
+  }}</span>
 </div>

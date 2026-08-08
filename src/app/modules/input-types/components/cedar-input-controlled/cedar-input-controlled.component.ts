@@ -49,7 +49,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
 export class CedarInputControlledComponent extends CedarUIDirective implements OnInit, AfterViewInit {
   /**
    * Undefined until the view exists, and for good in read-only mode — the
-   * autocomplete input the trigger reads sits behind an `*ngIf` on it. ORCID and
+   * autocomplete input the trigger reads sits behind an `@if` on it. ORCID and
    * ROR already tested for that; the other two reached through it inside a
    * `!readOnlyMode` guard, which is the same fact stated less directly.
    */

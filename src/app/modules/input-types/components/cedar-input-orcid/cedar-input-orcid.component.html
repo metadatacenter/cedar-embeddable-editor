@@ -1,50 +1,102 @@
 <form class="form-container" [formGroup]="options">
-  <ng-container *ngIf="!showDetails">
+  @if (!showDetails) {
     <mat-form-field class="full-width">
       <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
-      <input matInput type="text"
-             placeholder="{{'Generic.FilterOrcid' | translate}}"
-             #autoCompleteInput="matAutocompleteTrigger"
-             [formControl]="inputValueControl"
-             [errorStateMatcher]="errorStateMatcher"
-             [matAutocomplete]="auto"
-             (input)="inputChanged($event)"
-             (blur)="onInputBlur()"
-             [readonly]="readOnlyMode"
-             attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">
+      <input
+        matInput
+        type="text"
+        placeholder="{{ 'Generic.FilterOrcid' | translate }}"
+        #autoCompleteInput="matAutocompleteTrigger"
+        [formControl]="inputValueControl"
+        [errorStateMatcher]="errorStateMatcher"
+        [matAutocomplete]="auto"
+        (input)="inputChanged($event)"
+        (blur)="onInputBlur()"
+        [readonly]="readOnlyMode"
+        attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+      />
       <mat-autocomplete #auto="matAutocomplete">
-        <mat-option *ngIf="loadingOptions" disabled class="spinner-option">
-          <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
-        </mat-option>
-        <mat-option *ngIf="lookupFailed && !loadingOptions" disabled class="lookup-failed">
-          {{'Error.LookupFailed' | translate}}
-        </mat-option>
-        <mat-option
-          *ngIf="!lookupFailed && !loadingOptions && hasSearched && (inputValueControl.value?.trim()?.length ?? 0) > 0 && ((filteredOptions | async)?.length ?? 0) === 0" disabled>
-          No results found
-        </mat-option>
-        <mat-option *ngFor="let option of filteredOptions | async" [value]="option[JsonSchema.rdfsLabel] + ' - '  + option[JsonSchema.atId]"
-                    (onSelectionChange)="onSelectionChange(option)"
-                    (mousedown)="selectionInProgress = true"
-        >{{option[JsonSchema.rdfsLabel]}} - {{option[JsonSchema.atId]}}<span *ngIf="option._details && option._details.trim() !== ''"> - {{ option._details }}</span></mat-option>
+        @if (loadingOptions) {
+          <mat-option disabled class="spinner-option">
+            <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+          </mat-option>
+        }
+        @if (lookupFailed && !loadingOptions) {
+          <mat-option disabled class="lookup-failed">
+            {{ 'Error.LookupFailed' | translate }}
+          </mat-option>
+        }
+        @if (
+          !lookupFailed &&
+          !loadingOptions &&
+          hasSearched &&
+          (inputValueControl.value?.trim()?.length ?? 0) > 0 &&
+          ((filteredOptions | async)?.length ?? 0) === 0
+        ) {
+          <mat-option disabled> No results found </mat-option>
+        }
+        @for (option of filteredOptions | async; track option) {
+          <mat-option
+            [value]="option[JsonSchema.rdfsLabel] + ' - ' + option[JsonSchema.atId]"
+            (onSelectionChange)="onSelectionChange(option)"
+            (mousedown)="selectionInProgress = true"
+            >{{ option[JsonSchema.rdfsLabel] }} - {{ option[JsonSchema.atId] }}
+            @if (option._details && option._details.trim() !== '') {
+              <span> - {{ option._details }}</span>
+            }
+          </mat-option>
+        }
       </mat-autocomplete>
-      <button type="button" tabindex="0" *ngIf="selectedData" matSuffix mat-icon-button attr.aria-label="{{'Generic.Details' | translate}}"  matTooltip="{{'Generic.Details' | translate}}" (click)="setShowDetails(true)" [disabled]="loadingDetails">
-        <mat-spinner [diameter]="20" *ngIf="loadingDetails"></mat-spinner><mat-icon *ngIf="!loadingDetails && researcherDetails">info</mat-icon>
-      </button>
-      <button type="button" tabindex="0" *ngIf="inputValueControl.value && !readOnlyMode" matSuffix mat-icon-button attr.aria-label="{{'Generic.Clear' | translate}}"  matTooltip="{{'Generic.Clear' | translate}}" (click)="clearValue(false)">
-        <mat-icon>close</mat-icon>
-      </button>
-      <mat-error tabindex="0" *ngIf="inputValueControl.getError('required') && !readOnlyMode" class="mat-error align-start">{{'Validation.Required' | translate}}</mat-error>
-      <mat-error tabindex="-1" *ngIf="inputValueControl.getError('invalidOrcid') && !readOnlyMode" class="mat-error align-start">
-        {{'Validation.OrcidInvalid' | translate}}
-      </mat-error>
-      <mat-hint *ngIf="justReverted">
-        {{'Validation.OrcidReverted' | translate}}
-      </mat-hint>
+      @if (selectedData) {
+        <button
+          type="button"
+          tabindex="0"
+          matSuffix
+          mat-icon-button
+          attr.aria-label="{{ 'Generic.Details' | translate }}"
+          matTooltip="{{ 'Generic.Details' | translate }}"
+          (click)="setShowDetails(true)"
+          [disabled]="loadingDetails"
+        >
+          @if (loadingDetails) {
+            <mat-spinner [diameter]="20"></mat-spinner>
+          }
+          @if (!loadingDetails && researcherDetails) {
+            <mat-icon>info</mat-icon>
+          }
+        </button>
+      }
+      @if (inputValueControl.value && !readOnlyMode) {
+        <button
+          type="button"
+          tabindex="0"
+          matSuffix
+          mat-icon-button
+          attr.aria-label="{{ 'Generic.Clear' | translate }}"
+          matTooltip="{{ 'Generic.Clear' | translate }}"
+          (click)="clearValue(false)"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+      @if (inputValueControl.getError('required') && !readOnlyMode) {
+        <mat-error tabindex="0" class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
+      }
+      @if (inputValueControl.getError('invalidOrcid') && !readOnlyMode) {
+        <mat-error tabindex="-1" class="mat-error align-start">
+          {{ 'Validation.OrcidInvalid' | translate }}
+        </mat-error>
+      }
+      @if (justReverted) {
+        <mat-hint>
+          {{ 'Validation.OrcidReverted' | translate }}
+        </mat-hint>
+      }
     </mat-form-field>
-  </ng-container>
-  <ng-container *ngIf="showDetails===true">
-    <app-orcid-details *ngIf="showDetails && researcherDetails" [researcher]="researcherDetails" [close]="setShowDetails"> </app-orcid-details>
-  </ng-container>
+  }
+  @if (showDetails === true) {
+    @if (showDetails && researcherDetails) {
+      <app-orcid-details [researcher]="researcherDetails" [close]="setShowDetails"> </app-orcid-details>
+    }
+  }
 </form>
-
