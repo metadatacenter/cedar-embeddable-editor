@@ -1,6 +1,6 @@
 import { Component, Injectable, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { DataContext } from '../../../shared/util/data-context';
-import { MatPaginatorIntl } from '@angular/material/paginator';
+import { MatPaginatorIntl, PageEvent } from '@angular/material/paginator';
 import { PageBreakPaginatorService } from '../../../shared/service/page-break-paginator.service';
 
 @Injectable()
@@ -25,7 +25,7 @@ export class CedarStaticPageBreakComponent {
 
   constructor() {}
 
-  paginatorChanged(event): void {
+  paginatorChanged(event: PageEvent): void {
     this.pageBreakPaginatorService.setPageNumberAndGet(event.pageIndex);
   }
 }

@@ -14,6 +14,7 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { MatRadioChange } from '@angular/material/radio';
 
 export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
@@ -35,7 +36,8 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
   selectedChoiceInputControl = new FormControl(null, null);
   errorStateMatcher = new MultipleChoiceErrorStateMatcher();
   @Input() handlerContext: HandlerContext;
-  selected;
+  /** The last value pushed in by `setCurrentValue`, which is typed `unknown` there. */
+  selected: unknown;
 
   constructor(
     fb: FormBuilder,
@@ -63,7 +65,7 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  inputChanged(event): void {
+  inputChanged(event: MatRadioChange): void {
     if (this.readOnlyMode) {
       this.selectedChoiceInputControl.setValue(this.selected);
       return;

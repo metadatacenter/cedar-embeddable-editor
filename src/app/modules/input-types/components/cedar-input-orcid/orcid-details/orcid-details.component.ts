@@ -1,5 +1,6 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { ResearcherDetails } from '../../../../shared/models/rest/orcid-detail/orcid-detail-person';
+import { Employment } from '../../../../shared/models/rest/orcid-detail/orcid-detail-employment';
 
 @Component({
   selector: 'app-orcid-details',
@@ -16,7 +17,7 @@ export class OrcidDetailsComponent {
   closeClicked() {
     this.close(false);
   }
-  getFormattedOrganization(emp): string {
+  getFormattedOrganization(emp: Employment): string {
     return [emp.organizationCity, emp.organizationRegion, emp.organizationCountry]
       .filter((value) => value && value.trim() !== '')
       .join(', ');

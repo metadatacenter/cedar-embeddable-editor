@@ -52,17 +52,18 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  inputChanged(event): void {
+  inputChanged(event: Event): void {
     // If readOnly -> revert the change
     if (this.readOnlyMode) {
-      const name = event.target.value;
+      const name = (event.target as HTMLInputElement).value;
       const val = this.options.get(this.getFormControlName(name)).value;
       this.options.get(this.getFormControlName(name)).setValue(!val);
       event.preventDefault();
       event.stopPropagation();
       return;
     }
-    this.setInput(event.target.checked, event.target.value);
+    const checkbox = event.target as HTMLInputElement;
+    this.setInput(checkbox.checked, checkbox.value);
   }
 
   setCurrentValue(currentValue: unknown): void {
@@ -77,7 +78,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     }
   }
 
-  getFormControlName(val): string {
+  getFormControlName(val: string): string {
     return val.replace(/\s+/g, '');
   }
 
@@ -101,7 +102,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     }
   }
 
-  private setInput(isChecked, val): void {
+  private setInput(isChecked: boolean, val: string): void {
     const formArray: FormArray = this.options.get('checkedChoices') as FormArray;
 
     /* Selected */
@@ -129,7 +130,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
 
     // Keep the values in the original sort order
     const sortingArr = this.component.choiceInfo.choices.map((a) => a.label);
-    formArray.value.sort((a, b) => sortingArr.indexOf(a) - sortingArr.indexOf(b));
+    formArray.value.sort((a: string, b: string) => sortingArr.indexOf(a) - sortingArr.indexOf(b));
     this.handlerContext.changeListValue(this.component, formArray.value);
   }
 }

@@ -9,6 +9,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
+import { MatSelect } from '@angular/material/select';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -30,7 +31,7 @@ export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   standalone: false,
 })
 export class CedarInputSelectComponent extends CedarUIDirective implements OnInit {
-  @ViewChild('inputSelect') selectElement;
+  @ViewChild('inputSelect') selectElement: MatSelect;
   readonly ITEM_ID_FIELD = 'id';
   readonly ITEM_TEXT_FIELD = 'label';
 
@@ -109,7 +110,7 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     }
   }
 
-  clearValue($event): void {
+  clearValue($event: Event): void {
     $event.stopPropagation();
     this.inputValueControl.setValue(null);
     const multi = this.component.choiceInfo.multipleChoice;
@@ -120,12 +121,18 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     }
   }
 
-  changeValue(value): void {
+  /*
+   * A multiple-choice field carries a list and a single-choice field a string, so
+   * the parameter is the union and `multipleChoice` is what says which arm applies.
+   * The assertions are on that branch rather than on hope: the same flag decides
+   * both what the caller passes and which handler is called.
+   */
+  changeValue(value: string | string[] | null): void {
     const multi = this.component.choiceInfo.multipleChoice;
     if (multi) {
-      this.handlerContext.changeListValue(this.component, value);
+      this.handlerContext.changeListValue(this.component, value as string[]);
     } else {
-      this.handlerContext.changeValue(this.component, value);
+      this.handlerContext.changeValue(this.component, value as string);
     }
   }
 }

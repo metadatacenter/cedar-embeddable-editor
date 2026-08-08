@@ -158,7 +158,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       this.selectedData = option;
     }
   }
-  inputChanged(event): void {
+  inputChanged(event: Event): void {
     if (!(event.target as HTMLTextAreaElement).value) {
       this.clearValue();
     }
