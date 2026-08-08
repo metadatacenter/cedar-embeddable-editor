@@ -3,8 +3,10 @@
   "version": "1.6.0-ng22",
   "description": "A reusable Web Component for creating and editing CEDAR metadata instances.",
   "main": "cedar-embeddable-editor.js",
+  "types": "cedar-embeddable-editor.d.ts",
   "files": [
     "cedar-embeddable-editor.js",
+    "cedar-embeddable-editor.d.ts",
     "bundle-manifest.json",
     "README.md",
     "CHANGELOG.md"

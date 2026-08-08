@@ -329,6 +329,35 @@ keys:
 
 Enabling of hiding empty fields is only possible in read-only mode.
 
+### TypeScript types
+
+The package ships declarations. A host importing them gets a checked configuration
+object and a typed element:
+
+```ts
+import type { CeeConfig, CedarEmbeddableEditorElement } from 'cedar-embeddable-editor';
+
+const config: CeeConfig = { readOnlyMode: true, outputSerialization: 'yaml' };
+
+// Typed by the package, with no cast: it declares the tag in HTMLElementTagNameMap.
+const cee = document.querySelector('cedar-embeddable-editor');
+cee!.config = config;
+const report = cee!.dataQualityReport;   // CeeDataQualityReport
+```
+
+The declarations are **types only**. The bundle is a script that registers a custom
+element and exports no values, so there is nothing to import at runtime — use
+`import type`, and let the interface rather than a constant catch a mistyped key.
+
+Two behaviours the types cannot express, and which are worth knowing before you
+reassign configuration:
+
+- Setting `config` a second time **patches** for most keys — one you omit keeps its
+  previous value — while `outputSerialization` follows the new object exactly. Treat
+  configuration as set-once until this is settled.
+- `readOnlyMode` and `hideEmptyFields` are one-way. Passing `false` after `true` does
+  not turn them back off.
+
 ## Embedding security
 
 CEE renders inside your page, in your origin. It is a custom element using Shadow
