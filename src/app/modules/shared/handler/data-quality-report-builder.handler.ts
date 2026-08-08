@@ -18,6 +18,40 @@ import { valueIsIri } from '../models/ext-auth-categories.model';
 import { FieldValueValidator } from '../validation/field-value-validator';
 import { ValidationCode, ValidationProblem } from '../validation/validation-problem.model';
 import { InputType } from '../models/input-type.model';
+import { BasicInfo } from '../models/info/basic-info.model';
+import { MultiInfo } from '../models/info/multi-info.model';
+
+/**
+ * What the two problem collectors read off a component.
+ *
+ * `CedarComponent` declares neither `basicInfo` nor `multiInfo` — the first
+ * belongs to fields, the second to multi-instance components — and both
+ * collectors are called with elements, templates and fields alike. They already
+ * optional-chain both and fall back, so the shape they actually require is the
+ * common interface plus those two as optional. Written down rather than left as
+ * `any`, which said nothing and permitted everything.
+ */
+type InspectedComponent = CedarComponent & {
+  basicInfo?: BasicInfo;
+  multiInfo?: MultiInfo;
+};
+
+/**
+ * Read a node of the multi-instance tree as the object info it holds.
+ *
+ * `MultiInstanceInfo` and `MultiInstanceObjectInfo` are unrelated classes: the
+ * first is a bag keyed by component name, the second is what those keys hold. The
+ * recursion below walks from one into the other, so at the points that read
+ * `currentCount` the value is an object info even though the parameter is typed as
+ * the bag. TypeScript cannot see that, so the conversion has to be asserted.
+ *
+ * It was asserted five separate times as `as any as`. Named once instead, and
+ * through `unknown` rather than `any`, which is the same assertion without
+ * disabling every other check on the expression. The muddle it papers over is
+ * real and worth fixing properly one day: the parameter type is honest at the
+ * root call and wrong at every recursive one.
+ */
+const asObjectInfo = (info: MultiInstanceInfo): MultiInstanceObjectInfo => info as unknown as MultiInstanceObjectInfo;
 
 export class DataQualityReportBuilderHandler {
   private dataObjectFull: object;
@@ -65,16 +99,16 @@ export class DataQualityReportBuilderHandler {
       if (component instanceof MultiElementComponent) {
         //const multiElement: MultiElementComponent = component as MultiElementComponent;
         valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyList();
-        const multiCount = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount;
+        const multiCount = asObjectInfo(multiInstanceInfo).currentCount;
         DataQualityReportBuilderHandler.collectPresenceProblems(
-          component as any,
+          component,
           handlerContext.dataContext.instanceFullData,
           report,
         );
-        DataQualityReportBuilderHandler.collectCardinalityProblems(component as any, multiCount, report);
+        DataQualityReportBuilderHandler.collectCardinalityProblems(component, multiCount, report);
         if (multiCount > 0) {
           const dummyTargetObject: object = DataQualityReportBuilderHandler.getEmptyObject();
-          const currentIndex = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentIndex;
+          const currentIndex = asObjectInfo(multiInstanceInfo).currentIndex;
           for (const childComponent of iterableComponent.children) {
             DataQualityReportBuilderHandler.buildRecursively(
               childComponent,
@@ -84,9 +118,9 @@ export class DataQualityReportBuilderHandler {
               handlerContext,
             );
           }
-          const multiCount = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount;
+          const multiCount = asObjectInfo(multiInstanceInfo).currentCount;
           for (let idx = 0; idx < multiCount; idx++) {
-            const clone = _.cloneDeep(dummyTargetObject as any);
+            const clone = _.cloneDeep(dummyTargetObject);
             valueTree[targetName]['values'].push(clone);
           }
         }
@@ -139,11 +173,11 @@ export class DataQualityReportBuilderHandler {
         );
         DataQualityReportBuilderHandler.collectCardinalityProblems(
           nonIterableComponent,
-          (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount,
+          asObjectInfo(multiInstanceInfo).currentCount,
           report,
         );
         valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyList();
-        const multiCount = (multiInstanceInfo as any as MultiInstanceObjectInfo).currentCount;
+        const multiCount = asObjectInfo(multiInstanceInfo).currentCount;
         for (let idx = 0; idx < multiCount; idx++) {
           const value = DataQualityReportBuilderHandler.extractPlainValue(dataValueObject[idx], component);
           valueTree[targetName]['values'].push(
@@ -229,7 +263,11 @@ export class DataQualityReportBuilderHandler {
    * than a special case here — they are the one child kind CEDAR leaves out of
    * `required`, because their names come from the user.
    */
-  private static collectPresenceProblems(component: any, instance: object, report: DataQualityReport): void {
+  private static collectPresenceProblems(
+    component: InspectedComponent,
+    instance: object,
+    report: DataQualityReport,
+  ): void {
     const path: string[] = component?.path ?? [];
     if (path.length === 0) {
       return;
@@ -272,7 +310,11 @@ export class DataQualityReportBuilderHandler {
   }
 
   /** `minItems` / `maxItems`, which nothing enforced outside the pager's buttons. */
-  private static collectCardinalityProblems(component: any, currentCount: number, report: DataQualityReport): void {
+  private static collectCardinalityProblems(
+    component: InspectedComponent,
+    currentCount: number,
+    report: DataQualityReport,
+  ): void {
     const multiInfo = component?.multiInfo;
     if (multiInfo == null) {
       return;
@@ -318,7 +360,7 @@ export class DataQualityReportBuilderHandler {
   }
 
   /** Every node at `path`, branching into every array entry. Cursor-free, like findAnyValue. */
-  private static collectNodes(path: string[], node: any, acc: object[] = []): object[] {
+  private static collectNodes(path: string[], node: unknown, acc: object[] = []): object[] {
     if (node === null || node === undefined) {
       return acc;
     }
@@ -326,6 +368,12 @@ export class DataQualityReportBuilderHandler {
       for (const entry of node) {
         DataQualityReportBuilderHandler.collectNodes(path, entry, acc);
       }
+      return acc;
+    }
+    // Narrowed rather than assumed: `unknown` is what an instance node really is,
+    // and a primitive leaf reaches here on a path that expects more depth. It was
+    // pushed into `object[]` regardless while this was `any`.
+    if (typeof node !== 'object') {
       return acc;
     }
     if (path.length === 0) {
@@ -340,10 +388,10 @@ export class DataQualityReportBuilderHandler {
   }
 
   private static getEmptyValueWrapper(
-    value: object,
+    value: unknown,
     isRequired: boolean,
     report: DataQualityReport,
-    satisfiedBy: object = value,
+    satisfiedBy: unknown = value,
   ) {
     const v = { value: value };
     if (isRequired) {
@@ -371,7 +419,11 @@ export class DataQualityReportBuilderHandler {
    * one would need per-instance evaluation, which is a different and larger
    * change; see the roadmap.
    */
-  private static findAnyValue(path: string[], node: any, component: SingleFieldComponent | MultiFieldComponent): any {
+  private static findAnyValue(
+    path: string[],
+    node: unknown,
+    component: SingleFieldComponent | MultiFieldComponent,
+  ): unknown {
     if (node === null || node === undefined) {
       return null;
     }
@@ -382,6 +434,9 @@ export class DataQualityReportBuilderHandler {
           return found;
         }
       }
+      return null;
+    }
+    if (typeof node !== 'object') {
       return null;
     }
     if (path.length === 0) {
@@ -410,7 +465,7 @@ export class DataQualityReportBuilderHandler {
    * the template: `{@id, rdfs:label}` shows its label for a controlled term and
    * its IRI for a link, and the instance cannot tell those apart.
    */
-  private static extractPlainValue(dataObject: object, component: SingleFieldComponent | MultiFieldComponent) {
+  private static extractPlainValue(dataObject: unknown, component: SingleFieldComponent | MultiFieldComponent) {
     return InstanceValueNode.plainValue(dataObject, this.isIriValued(component));
   }
 

@@ -79,7 +79,6 @@
         "src/app/modules/shared/components/timezone-picker/timezone-picker.component.ts",
         "src/app/modules/shared/factory/yaml-template-parser.ts",
         "src/app/modules/shared/handler/data-object-builder.handler.ts",
-        "src/app/modules/shared/handler/data-quality-report-builder.handler.ts",
         "src/app/modules/shared/handler/multi-instance-object.handler.ts",
 
 
