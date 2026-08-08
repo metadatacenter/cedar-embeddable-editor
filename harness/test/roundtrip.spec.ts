@@ -100,10 +100,11 @@ describe('emitted instances are structurally sound', () => {
     const result = JsonTemplateInstanceReader.getStrict().readFromString(JSON.stringify(driver.metadata));
 
     expect(result.instance, 'reader returned no instance').toBeTruthy();
-    expect(
-      result.parsingResult.wasSuccessful(),
-      () => `parse errors:\n  ${result.parsingResult.getBlueprintComparisonErrors().join('\n  ')}`,
-    ).toBe(true);
+    // Built eagerly: vitest's second argument is a message, not a thunk it calls
+    // on failure. Written as one it was never invoked, so a failing case reported
+    // "expected false to be true" and none of the parse errors it had collected.
+    const parseErrors = result.parsingResult.getBlueprintComparisonErrors().join('\n  ');
+    expect(result.parsingResult.wasSuccessful(), `parse errors:\n  ${parseErrors}`).toBe(true);
   });
 });
 

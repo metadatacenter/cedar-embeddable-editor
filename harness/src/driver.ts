@@ -13,6 +13,7 @@
  */
 import { DataContext } from '@cee/util/data-context';
 import { InstanceDeserializer } from '@cee/util/instance-deserializer';
+import type { InstanceObject } from '@cee/models/instance-node.model';
 import { ActiveComponentRegistryService } from '@cee/service/active-component-registry.service';
 import { HandlerContext } from '@cee/util/handler-context';
 import { MessageHandlerService } from '@cee/service/message-handler.service';
@@ -56,7 +57,7 @@ export interface DriverOptions {
   readOnlyMode?: boolean;
   hideEmptyFields?: boolean;
   /** Pre-load an existing instance, as the host page's `instanceObject` would. */
-  instance?: object;
+  instance?: InstanceObject;
   /**
    * Which parser turns the template JSON into the component tree.
    *

@@ -45,7 +45,7 @@ describe('there is exactly one descriptor per authority type', () => {
   });
 
   it('returns null for a type that is not an authority', () => {
-    expect(authorityDescriptorFor(InputType.textfield)).toBeNull();
+    expect(authorityDescriptorFor(InputType.text)).toBeNull();
     expect(authorityDescriptorFor(InputType.link)).toBeNull();
   });
 });

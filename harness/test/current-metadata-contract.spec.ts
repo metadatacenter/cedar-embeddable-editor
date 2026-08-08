@@ -63,13 +63,14 @@ describe('currentMetadata for an instance the host loaded to edit', () => {
   const EXISTING = 'https://repo.metadatacenter.org/template-instances/edit-abc-123';
 
   const loaded = () => {
+    const templateIri = 'https://repo.metadatacenter.org/templates/cm_edit';
     const template = buildTemplate({ name: 'cm_edit', children: [{ kind: TEXT, name: 'note' }] }) as Record<
       string,
       unknown
     >;
-    template['@id'] = 'https://repo.metadatacenter.org/templates/cm_edit';
+    template['@id'] = templateIri;
     return new CeeDriver(template, {
-      instance: { '@context': {}, '@id': EXISTING, 'schema:isBasedOn': template['@id'], _note: { '@value': 'loaded' } },
+      instance: { '@context': {}, '@id': EXISTING, 'schema:isBasedOn': templateIri, _note: { '@value': 'loaded' } },
     });
   };
 

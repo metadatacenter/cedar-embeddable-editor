@@ -107,7 +107,7 @@ describe('an edited typed value carries its @type in the full copy', () => {
  * three are pinned, not just the one the original report happened to use.
  */
 describe('each temporal type stamps its own @type', () => {
-  const temporalTemplate = (temporalType: string, granularity: string): object => {
+  const temporalTemplate = (temporalType: TemporalType, granularity: TemporalGranularity): object => {
     const f = CedarBuilders.temporalFieldBuilder()
       .withAtId('https://repo.metadatacenter.org/template-fields/when')
       .withTitle('When').withDescription('when').withSchemaName('When').withSchemaDescription('when')
@@ -125,7 +125,7 @@ describe('each temporal type stamps its own @type', () => {
     return JSON.parse(JSON.stringify(CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template)));
   };
 
-  const emitted = (temporalType: string, granularity: string, value: string) => {
+  const emitted = (temporalType: TemporalType, granularity: TemporalGranularity, value: string) => {
     const driver = new CeeDriver(temporalTemplate(temporalType, granularity));
     driver.setValue(['_when'], TEMPORAL, value);
     driver.expectNoErrors(`temporal ${temporalType}`);

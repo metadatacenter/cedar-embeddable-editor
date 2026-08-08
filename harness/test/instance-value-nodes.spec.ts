@@ -16,6 +16,7 @@
 import { describe, expect, it } from 'vitest';
 import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
 import { InstanceValueNode } from '@cee/util/instance-value-node';
+import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
@@ -94,7 +95,7 @@ describe('telling a value from a container', () => {
 });
 
 describe('what the quality report reads a node as', () => {
-  const reportValue = (kind: FieldKind, node: unknown) => {
+  const reportValue = (kind: FieldKind, node: InstanceNode) => {
     const template = buildTemplate({ name: `ivn_${kind.key}`, children: [{ kind, name: 'f' }] });
     const driver = new CeeDriver(template, {
       instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: node },

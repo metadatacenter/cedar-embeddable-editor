@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { parse as parseYaml } from 'yaml';
+import type { InstanceObject } from '@cee/models/instance-node.model';
 
 /**
  * A vendored snapshot of the CEDAR artifact corpus — real templates and
@@ -46,7 +47,21 @@ export interface CorpusArtifact {
   json: object;
 }
 
-const load = (kind: 'templates' | 'instances', prefix: string, expectedCount: number): CorpusArtifact[] => {
+/**
+ * A corpus *instance*, whose root is narrowed to the node type the deserializer
+ * and the quality report take. A template is a different document and keeps the
+ * looser `object`, so the two cannot be handed to each other's readers.
+ */
+export interface CorpusInstance {
+  id: string;
+  json: InstanceObject;
+}
+
+const load = <T extends object = object>(
+  kind: 'templates' | 'instances',
+  prefix: string,
+  expectedCount: number,
+): Array<{ id: string; json: T }> => {
   const dir = path.join(CORPUS_ROOT, kind);
   requireDirectory(dir, `numbered corpus ${kind}`);
   const ids = fs.readdirSync(dir).sort();
@@ -82,7 +97,8 @@ export const corpusTemplatesYaml = (): CorpusArtifact[] => {
     return { id, json: parseYaml(fs.readFileSync(file, 'utf8')) as object };
   });
 };
-export const corpusInstances = (): CorpusArtifact[] => load('instances', 'instance', EXPECTED_INSTANCE_COUNT);
+export const corpusInstances = (): CorpusInstance[] =>
+  load<InstanceObject>('instances', 'instance', EXPECTED_INSTANCE_COUNT);
 
 /**
  * A vendored snapshot of the HuBMAP production templates originally shipped

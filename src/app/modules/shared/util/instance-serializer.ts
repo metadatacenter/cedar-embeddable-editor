@@ -1,5 +1,6 @@
 import { CedarReaders, CedarWriters, JsonNode, TemplateInstance } from 'cedar-model-typescript-library';
 import { InstanceFullData } from '../models/instance-full-data.model';
+import { InstanceObject } from '../models/instance-node.model';
 
 /**
  * Hand the instance out in whatever serialisation is asked for.
@@ -29,15 +30,22 @@ export class InstanceSerializer {
       .readFromObject(instance as unknown as JsonNode).instance;
   }
 
-  /** The instance as CEDAR JSON, written by the library. */
-  static toJson(instance: InstanceFullData): object {
+  /**
+   * The instance as CEDAR JSON, written by the library.
+   *
+   * `InstanceObject` rather than `object`: what comes back is an instance root,
+   * which is the same thing `InstanceDeserializer.read` takes — and the round-trip
+   * test feeds this straight back into it. The library types its writer's output
+   * as `JsonNode`, so the conversion is named here, once, at the boundary.
+   */
+  static toJson(instance: InstanceFullData): InstanceObject {
     if (instance == null) {
       return {};
     }
     return CedarWriters.json()
       .getFebruary2024()
       .getTemplateInstanceWriter()
-      .getAsJsonNode(InstanceSerializer.parse(instance));
+      .getAsJsonNode(InstanceSerializer.parse(instance)) as unknown as InstanceObject;
   }
 
   /** The same instance as CEDAR YAML. */

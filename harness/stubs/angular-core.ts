@@ -31,6 +31,56 @@ export const HostListener = noopDecoratorFactory;
 export const Inject = noopDecoratorFactory;
 export const Optional = noopDecoratorFactory;
 
+/**
+ * The lifecycle interfaces the shared code implements.
+ *
+ * Type-only, so they cost nothing at runtime — but without them the harness
+ * could not type-check at all, and for a long time nobody noticed: a deprecated
+ * `baseUrl` in `tsconfig.json` made tsc report a configuration error *instead of*
+ * checking the program.
+ */
+export interface OnInit {
+  ngOnInit(): void;
+}
+
+export interface OnDestroy {
+  ngOnDestroy(): void;
+}
+
+export interface DoCheck {
+  ngDoCheck(): void;
+}
+
+export interface AfterViewInit {
+  ngAfterViewInit(): void;
+}
+
+/** Declared because `CedarUIDirective` holds one; nothing here ever calls it. */
+export abstract class ChangeDetectorRef {
+  abstract markForCheck(): void;
+  abstract detectChanges(): void;
+  abstract detach(): void;
+  abstract reattach(): void;
+  abstract checkNoChanges(): void;
+}
+
+/**
+ * Throws, deliberately.
+ *
+ * `inject` needs a declaration because `CedarUIDirective` reaches the harness's
+ * type program — `ActiveComponentRegistryService` names it, through `import
+ * type` — but nothing here should ever construct an Angular component, and the
+ * harness has no injector to serve one from. Returning a plausible object would
+ * let a test drift into depending on Angular without saying so. Throwing means
+ * the day that happens, a test says which call it was.
+ */
+export const inject = <T>(token: abstract new (...args: any[]) => T): T => {
+  throw new Error(
+    `The harness has no Angular injector: inject(${token?.name ?? 'unknown'}) was called. ` +
+      'Domain code must be constructible with plain `new`.',
+  );
+};
+
 export enum ViewEncapsulation {
   Emulated = 0,
   None = 2,

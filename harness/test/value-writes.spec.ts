@@ -25,6 +25,7 @@ import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-t
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import type { InstanceNode } from '@cee/models/instance-node.model';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -53,7 +54,7 @@ const CONTROLLED = kind('controlled', 'controlled', () => CedarBuilders.controll
 });
 
 /** A one-field form, optionally starting from a slot a host page supplied. */
-const rig = (fieldKind: FieldKind, startingSlot?: unknown) => {
+const rig = (fieldKind: FieldKind, startingSlot?: InstanceNode) => {
   const template = buildTemplate({ name: `vw_${fieldKind.key}`, children: [{ kind: fieldKind, name: 'f' }] });
   const driver =
     startingSlot === undefined

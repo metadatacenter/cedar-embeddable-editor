@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Subject, of, throwError } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { catchLookupFailure } from '@cee/util/lookup-failure';
 
@@ -65,7 +65,7 @@ describe('catchLookupFailure', () => {
    */
   it('keeps the surrounding pipeline alive, so a later query still runs', () => {
     const queries = new Subject<string>();
-    const lookup = (q: string): ReturnType<typeof of<string[]>> =>
+    const lookup = (q: string): Observable<string[]> =>
       q === 'boom' ? throwError(new Error('down')) : of([`hit:${q}`]);
 
     const seen = collect<string[]>(

@@ -21,6 +21,7 @@
 import { describe, expect, it } from 'vitest';
 import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
 import { ActiveComponentRegistryService } from '@cee/service/active-component-registry.service';
+import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
@@ -383,7 +384,7 @@ describe('hiding empty fields in a repeated element', () => {
    * `||` reads like a slip, but the tests should say what CEE does until that
    * is settled.
    */
-  const iriVisibility = (fieldKind: FieldKind, node: object) => {
+  const iriVisibility = (fieldKind: FieldKind, node: InstanceNode) => {
     const template = buildTemplate({
       name: `vs_vis_${fieldKind.key}`,
       elements: [{ name: 'el', cardinality: 'multi', minItems: 1, maxItems: 9, children: [{ kind: fieldKind, name: 'f' }] }],

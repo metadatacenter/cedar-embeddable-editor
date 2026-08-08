@@ -15,6 +15,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { InstanceDeserializer } from '@cee/util/instance-deserializer';
+import type { InstanceObject } from '@cee/models/instance-node.model';
 import { InstanceValueNode } from '@cee/util/instance-value-node';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { corpusInstances } from '../src/corpus';
@@ -149,7 +150,7 @@ describe('the full tree', () => {
    */
   it.each(instances.map((i) => [i.id, i] as const))('instance-%s survives a round trip', (_id, artifact) => {
     const once = InstanceDeserializer.read(artifact.json).full;
-    const twice = InstanceDeserializer.read(InstanceSerializer.toJson(once) as object).full;
+    const twice = InstanceDeserializer.read(InstanceSerializer.toJson(once)).full;
     expect(twice).toEqual(once);
   });
 });
@@ -286,7 +287,7 @@ describe('content the read cannot make a value of', () => {
     'schema:description': '',
   };
 
-  const messagesFor = (instance: object): string[] => {
+  const messagesFor = (instance: InstanceObject): string[] => {
     const said: string[] = [];
     InstanceDeserializer.read(instance, (m) => said.push(m));
     return said;

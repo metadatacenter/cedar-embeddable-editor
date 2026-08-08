@@ -1,4 +1,5 @@
-import { defineConfig, Plugin } from 'vitest/config';
+import { defineConfig } from 'vitest/config';
+import type { Plugin } from 'vite';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
