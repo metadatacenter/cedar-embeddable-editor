@@ -22,6 +22,7 @@ import { DataObjectUtil } from '../util/data-object-util';
 import { valueIsIri } from '../models/ext-auth-categories.model';
 import { InstanceValueNode } from '../util/instance-value-node';
 import { MessageHandlerService } from '../service/message-handler.service';
+import { InputType } from '../models/input-type.model';
 
 /**
  * One step of the walk down to the node a value belongs in.
@@ -34,7 +35,8 @@ import { MessageHandlerService } from '../service/message-handler.service';
 interface DownstreamObjects {
   dataSubObject: InstanceNode;
   parentDataSubObject: InstanceNode;
-  childComponent: CedarComponent;
+  /** Null when the path names a child the component does not have. */
+  childComponent: CedarComponent | null;
   remainingPath: string[];
 }
 
@@ -176,6 +178,9 @@ export class DataObjectDataValueHandler {
       }
     } else {
       const downstream = this.getDownstreamObjects(dataObject, component, multiInstanceObjectService, path);
+      if (downstream.childComponent === null) {
+        return;
+      }
       this.setDataPathValueRecursively(
         downstream.dataSubObject,
         downstream.parentDataSubObject,
@@ -214,6 +219,9 @@ export class DataObjectDataValueHandler {
       }
     } else {
       const downstream = this.getDownstreamObjects(dataObject, component, multiInstanceObjectService, path);
+      if (downstream.childComponent === null) {
+        return;
+      }
       this.deleteAttributeValueRecursively(
         downstream.dataSubObject,
         downstream.parentDataSubObject,
@@ -304,7 +312,7 @@ export class DataObjectDataValueHandler {
   ): void {
     const path = component.path;
     const inputType = component.basicInfo.inputType;
-    const iriValued = valueIsIri(inputType);
+    const iriValued = inputType !== null && valueIsIri(inputType as InputType);
     // An IRI-valued field cleared to null holds nothing at all, rather than an
     // `@id` of null — there is no such IRI. A literal carries the field's XSD
     // type in this full-copy tree, the same as the initial build attaches: a
@@ -315,11 +323,15 @@ export class DataObjectDataValueHandler {
         ? {}
         : InstanceValueNode.iriJson(value)
       : InstanceValueNode.literalJson(value, DataObjectUtil.xsdTypeForFullCopy(component));
+    const representation = dataContext.templateRepresentation;
+    if (representation === null) {
+      return;
+    }
     dataContext.mutate((instance) =>
       this.setDataPathValueRecursively(
         instance,
         null,
-        dataContext.templateRepresentation,
+        representation,
         multiInstanceObjectService,
         path,
         valueObject,
@@ -337,19 +349,25 @@ export class DataObjectDataValueHandler {
     const path = component.path;
     const valueArray: InstanceObject[] = [];
 
-    if (!value || value.length === 0) {
-      value = [null];
-    }
+    // A cleared list is one empty slot, not no slots: the field still exists and
+    // still has an occurrence to show. Held separately from `value` so the empty
+    // case is a list of one null rather than a reassignment that widens the
+    // parameter for everything below it.
+    const values: (string | null)[] = !value || value.length === 0 ? [null] : value;
 
-    for (const val of value) {
+    for (const val of values) {
       valueArray.push(InstanceValueNode.literalJson(val));
     }
 
+    const representation = dataContext.templateRepresentation;
+    if (representation === null) {
+      return;
+    }
     dataContext.mutate((instance) =>
       this.setDataPathValueRecursively(
         instance,
         null,
-        dataContext.templateRepresentation,
+        representation,
         multiInstanceObjectService,
         path,
         valueArray,
@@ -377,11 +395,15 @@ export class DataObjectDataValueHandler {
     valueObject[JsonSchema.reservedAttributeName] = key;
     valueObject[JsonSchema.reservedAttributeValue] = obj;
 
+    const representation = dataContext.templateRepresentation;
+    if (representation === null) {
+      return;
+    }
     dataContext.mutate((instance) =>
       this.setDataPathValueRecursively(
         instance,
         null,
-        dataContext.templateRepresentation,
+        representation,
         multiInstanceObjectService,
         path,
         valueObject,
@@ -404,11 +426,15 @@ export class DataObjectDataValueHandler {
     const valueObject: InstanceObject = {};
     valueObject[JsonSchema.reservedAttributeName] = key;
 
+    const representation = dataContext.templateRepresentation;
+    if (representation === null) {
+      return;
+    }
     dataContext.mutate((instance) =>
       this.deleteAttributeValueRecursively(
         instance,
         null,
-        dataContext.templateRepresentation,
+        representation,
         multiInstanceObjectService,
         path,
         valueObject,
@@ -426,11 +452,15 @@ export class DataObjectDataValueHandler {
     const path = component.path;
     const valueObject = atId ? InstanceValueNode.iriJson(atId, prefLabel) : {};
 
+    const representation = dataContext.templateRepresentation;
+    if (representation === null) {
+      return;
+    }
     dataContext.mutate((instance) =>
       this.setDataPathValueRecursively(
         instance,
         null,
-        dataContext.templateRepresentation,
+        representation,
         multiInstanceObjectService,
         path,
         valueObject,

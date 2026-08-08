@@ -213,12 +213,18 @@ export class MultiInstanceObjectHandler {
   }
 
   setCurrentIndex(component: MultiComponent, currentIdx: number): void {
-    const multiInstanceInfo: MultiInstanceObjectInfo = this.getDataPathNode(component.path);
+    const multiInstanceInfo = this.getDataPathNode(component.path);
+    if (multiInstanceInfo === null) {
+      return;
+    }
     multiInstanceInfo.currentIndex = currentIdx;
   }
 
   multiInstanceItemAdd(component: MultiComponent): void {
-    const multiInstanceInfo: MultiInstanceObjectInfo = this.getDataPathNode(component.path);
+    const multiInstanceInfo = this.getDataPathNode(component.path);
+    if (multiInstanceInfo === null) {
+      return;
+    }
 
     if (component instanceof MultiElementComponent) {
       const newMultiInstanceObject: MultiInstanceInfo = new MultiInstanceInfo();
@@ -232,6 +238,9 @@ export class MultiInstanceObjectHandler {
 
   multiInstanceItemCopy(component: MultiComponent): void {
     const multiInstanceInfo = this.getDataPathNode(component.path);
+    if (multiInstanceInfo === null) {
+      return;
+    }
 
     if (component instanceof MultiElementComponent) {
       const currentIdx = multiInstanceInfo.currentIndex;
@@ -244,6 +253,9 @@ export class MultiInstanceObjectHandler {
 
   multiInstanceItemDelete(component: MultiComponent): void {
     const multiInstanceInfo = this.getDataPathNode(component.path);
+    if (multiInstanceInfo === null) {
+      return;
+    }
 
     if (component instanceof MultiElementComponent) {
       const currentIdx = multiInstanceInfo.currentIndex;
@@ -256,11 +268,16 @@ export class MultiInstanceObjectHandler {
     }
   }
 
-  getMultiInstanceInfoForComponent(component: MultiComponent): MultiInstanceObjectInfo {
+  /*
+   * Both return null for a component the info tree has no node for — a path into a
+   * template that has since been replaced, say. Every caller already tests the
+   * result, which is what the declaration now says.
+   */
+  getMultiInstanceInfoForComponent(component: MultiComponent): MultiInstanceObjectInfo | null {
     return this.getDataPathNode(component.path);
   }
 
-  public getDataPathNode(path: string[]): MultiInstanceObjectInfo {
+  public getDataPathNode(path: string[]): MultiInstanceObjectInfo | null {
     return this.getDataPathNodeRecursively(this.multiInstanceObject, this.templateRepresentation, path);
   }
 
@@ -268,7 +285,7 @@ export class MultiInstanceObjectHandler {
     multiInstanceObject: MultiInstanceInfo,
     component: CedarComponent,
     path: string[],
-  ): MultiInstanceObjectInfo {
+  ): MultiInstanceObjectInfo | null {
     if (!multiInstanceObject) {
       return null;
     }
@@ -289,17 +306,19 @@ export class MultiInstanceObjectHandler {
 
     if (remainingPath.length === 0) {
       return childMultiInfo;
-    } else {
-      let goIdx = 0;
-      if (childMultiInfo.currentIndex > 0) {
-        goIdx = childMultiInfo.currentIndex;
-      }
-      return this.getDataPathNodeRecursively(childMultiInfo.children[goIdx], childComponent, remainingPath);
     }
+    // A path step naming a child that the component or the info tree does not have
+    // ends the walk, which is the same `null` the empty-tree case above returns.
+    if (childMultiInfo === null || childComponent === null) {
+      return null;
+    }
+    const goIdx = childMultiInfo.currentIndex > 0 ? childMultiInfo.currentIndex : 0;
+    return this.getDataPathNodeRecursively(childMultiInfo.children[goIdx], childComponent, remainingPath);
   }
 
   hasMultiInstances(multiComponent: MultiComponent): boolean {
-    const multiInstanceObjectInfo: MultiInstanceObjectInfo = this.getMultiInstanceInfoForComponent(multiComponent);
-    return multiInstanceObjectInfo.currentCount > 0;
+    // A component with no node in the info tree has no occurrences, which is the
+    // same answer as a node reporting a count of zero.
+    return (this.getMultiInstanceInfoForComponent(multiComponent)?.currentCount ?? 0) > 0;
   }
 }

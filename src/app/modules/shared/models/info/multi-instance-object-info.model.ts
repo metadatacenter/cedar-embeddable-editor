@@ -17,7 +17,8 @@ import { MultiInstanceInfo } from './multi-instance-info.model';
  * and add/copy/delete no longer maintain it.
  */
 export class MultiInstanceObjectInfo {
-  componentName: string;
+  /** Null on the root node, which describes no component. */
+  componentName: string | null;
   currentIndex: number;
   children: Array<MultiInstanceInfo>;
 

@@ -32,7 +32,15 @@ export class DataObjectStructureHandler {
    */
   public getDataPathNodeRecursively(
     dataObject: InstanceExtractData,
-    component: CedarComponent,
+    /*
+     * Nullable, and deliberately so. None of the three `instanceof` branches below
+     * matches a field, so a path that continues past one recurses with a null
+     * component — which is how the walk says "the rest of this resolves to
+     * nothing" and lets the `path.length === 0` case above answer. Guarding it
+     * instead of admitting it is a real behaviour change: it emptied the external
+     * authority field on selection, and five visual tests said so.
+     */
+    component: CedarComponent | null,
     path: string[],
     selectOccurrence: OccurrenceSelector,
     depth = 0,
@@ -79,7 +87,8 @@ export class DataObjectStructureHandler {
   public getParentDataPathNodeRecursively(
     dataObject: InstanceExtractData,
     parentDataObject: InstanceExtractData,
-    component: CedarComponent,
+    /** Nullable for the same reason as the walk above. */
+    component: CedarComponent | null,
     path: string[],
     selectOccurrence: OccurrenceSelector,
   ): InstanceExtractData {
@@ -129,8 +138,11 @@ export class DataObjectStructureHandler {
   ): void {
     const multiInstanceInfo: MultiInstanceObjectInfo =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
-    const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
-    const templateInput: CedarInputTemplate = dataContext.templateInput;
+    const templateRepresentation = dataContext.templateRepresentation;
+    const templateInput = dataContext.templateInput;
+    if (templateRepresentation === null || templateInput === null) {
+      return;
+    }
 
     // The new occurrence is built with the envelope, because the instance is the
     // artifact and that is what an occurrence in one looks like. There used to be
@@ -192,7 +204,10 @@ export class DataObjectStructureHandler {
   ): void {
     const multiInstanceInfo: MultiInstanceObjectInfo =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
-    const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
+    const templateRepresentation = dataContext.templateRepresentation;
+    if (templateRepresentation === null) {
+      return;
+    }
     dataContext.mutate((instance) =>
       this.performItemCopy(instance, templateRepresentation, component, multiInstanceObjectService, multiInstanceInfo),
     );
@@ -225,7 +240,10 @@ export class DataObjectStructureHandler {
   ): void {
     const multiInstanceInfo: MultiInstanceObjectInfo =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
-    const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
+    const templateRepresentation = dataContext.templateRepresentation;
+    if (templateRepresentation === null) {
+      return;
+    }
     dataContext.mutate((instance) =>
       this.performItemDelete(
         instance,

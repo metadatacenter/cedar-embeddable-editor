@@ -114,8 +114,9 @@ export class HandlerContext {
   copyMultiInstance(component: MultiComponent): boolean {
     const multiInfo = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
 
-    // nothing to copy from, create new
-    if (multiInfo.currentIndex < 0) {
+    // nothing to copy from, create new — and a component the info tree has no node
+    // for has nothing to copy either.
+    if (multiInfo === null || multiInfo.currentIndex < 0) {
       return this.addMultiInstance(component);
     }
     if (!this.withinAddBound(component)) {
@@ -156,9 +157,13 @@ export class HandlerContext {
    * with `getDataObjectNodeAt`.
    */
   getDataObjectNodeByPath(path: string[]): InstanceExtractData {
+    const representation = this.dataContext.templateRepresentation;
+    if (representation === null) {
+      return null;
+    }
     return this.dataObjectManipulationService.getDataPathNodeRecursively(
       this.dataContext.instanceFullData,
-      this.dataContext.templateRepresentation,
+      representation,
       path,
       OccurrenceSelectors.fromCursor(this.multiInstanceObjectService),
     );
@@ -172,9 +177,13 @@ export class HandlerContext {
    * whatever the user has since paged to.
    */
   getDataObjectNodeAt(path: string[], occurrences: ReadonlyArray<number>): InstanceExtractData {
+    const representation = this.dataContext.templateRepresentation;
+    if (representation === null) {
+      return null;
+    }
     return this.dataObjectManipulationService.getDataPathNodeRecursively(
       this.dataContext.instanceFullData,
-      this.dataContext.templateRepresentation,
+      representation,
       path,
       OccurrenceSelectors.at(occurrences),
     );
@@ -182,10 +191,14 @@ export class HandlerContext {
 
   /** The enclosing object at this path, in the occurrences on screen. */
   getParentDataObjectNodeByPath(path: string[]): InstanceExtractData {
+    const representation = this.dataContext.templateRepresentation;
+    if (representation === null) {
+      return null;
+    }
     return this.dataObjectManipulationService.getParentDataPathNodeRecursively(
       this.dataContext.instanceFullData,
       null,
-      this.dataContext.templateRepresentation,
+      representation,
       path,
       OccurrenceSelectors.fromCursor(this.multiInstanceObjectService),
     );
@@ -193,10 +206,14 @@ export class HandlerContext {
 
   /** The enclosing object at this path, in the occurrences named. */
   getParentDataObjectNodeAt(path: string[], occurrences: ReadonlyArray<number>): InstanceExtractData {
+    const representation = this.dataContext.templateRepresentation;
+    if (representation === null) {
+      return null;
+    }
     return this.dataObjectManipulationService.getParentDataPathNodeRecursively(
       this.dataContext.instanceFullData,
       null,
-      this.dataContext.templateRepresentation,
+      representation,
       path,
       OccurrenceSelectors.at(occurrences),
     );
