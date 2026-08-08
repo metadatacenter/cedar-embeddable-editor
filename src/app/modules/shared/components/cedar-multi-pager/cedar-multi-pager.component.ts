@@ -44,7 +44,8 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
   messageHandlerService: MessageHandlerService;
   @Input({ required: true }) handlerContext!: HandlerContext;
   @Input() isAlignedUp = false;
-  @Input() showAllMultiInstanceValues = false;
+  /** True, for the reason given on the renderer: it is CEE's default, not false. */
+  @Input() showAllMultiInstanceValues = true;
   @Input({ required: true }) pageBreakPaginatorService!: PageBreakPaginatorService;
   readOnlyMode = false;
   readOnlModeSubscription: Subscription = Subscription.EMPTY;
