@@ -3,16 +3,14 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
-    /* `vitest/globals` for the describe/it/expect that vitest.config.ts exposes
+    /* `vitest/globals` for the describe/it/expect that vitest.config.mts exposes
        globally, and `node` because the setup file is Node code. `jasmine` was
        here for the Karma runner. */
-    "types": ["vitest/globals", "node"],
-    /* Vitest's own declarations reference `WeakKey` and `rollup/parseAst`, which
-       need TypeScript 5.2 and a newer module resolution. Angular 14 pins
-       TypeScript to ~4.8, so those are unreachable until the version march moves
-       both. Spec code is still fully checked; only declarations in node_modules
-       are skipped. Revisit once TypeScript passes 5.2. */
-    "skipLibCheck": true
+    "types": ["vitest/globals", "node"]
+    /* No `skipLibCheck`. It was set because Vitest's declarations referenced
+       `WeakKey` and `rollup/parseAst`, needing TypeScript 5.2 while Angular 14
+       pinned ~4.8. That revisit is done: TypeScript is 6.0 and Vitest is 4, and
+       `tsc` reports no error with library declarations checked. */
   },
   "files": ["src/test-setup.ts", "src/polyfills.ts"],
   "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]

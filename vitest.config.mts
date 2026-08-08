@@ -74,24 +74,29 @@ export default defineConfig({
       'package.json': fileURLToPath(new URL('./package.json', import.meta.url)),
     },
   },
-  esbuild: {
-    /**
-     * Stated inline rather than discovered.
-     *
-     * The root tsconfig.json is a solution-style file with no `compilerOptions`,
-     * so nothing useful would be found there. Both settings are load-bearing:
-     * Angular uses TypeScript's legacy decorators, which esbuild only accepts
-     * under `experimentalDecorators`, and `useDefineForClassFields` must stay off
-     * or class fields are installed with `Object.defineProperty` and shadow the
-     * accessors decorators put in place. The Angular compiler forces the same
-     * setting for the same reason.
-     */
-    tsconfigRaw: {
-      compilerOptions: {
-        experimentalDecorators: true,
-        useDefineForClassFields: false,
-        target: 'es2022',
-      },
-    },
+  /**
+   * Stated inline rather than discovered.
+   *
+   * The root tsconfig.json is a solution-style file with no `compilerOptions`, so
+   * nothing useful would be found there. Both settings are load-bearing: Angular
+   * uses TypeScript's legacy decorators, and class fields must be assigned rather
+   * than defined, or they are installed with `Object.defineProperty` and shadow
+   * the accessors decorators put in place. The Angular compiler forces the same
+   * pair for the same reason.
+   *
+   * Written as `oxc` rather than `esbuild` because Vite 8 transforms with oxc and
+   * ignores the esbuild block entirely — it says so on startup, then fails every
+   * spec that imports a decorated class with "Invalid or unexpected token". The
+   * three settings do not map one for one. `experimentalDecorators` is
+   * `decorator.legacy`, and `useDefineForClassFields: false` is the *pair*
+   * `assumptions.setPublicClassFields` and
+   * `typescript.removeClassFieldsWithoutInitializer`, both true; oxc documents
+   * that combination as the equivalent, and either alone is not.
+   */
+  oxc: {
+    target: 'es2022',
+    decorator: { legacy: true },
+    assumptions: { setPublicClassFields: true },
+    typescript: { removeClassFieldsWithoutInitializer: true },
   },
 });

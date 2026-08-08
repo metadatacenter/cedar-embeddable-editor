@@ -48,6 +48,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Vitest moves from 1.6.1 to 4.1.10, in the root and the harness together, clearing
+  the critical advisory that lets a listening Vitest UI server read and execute
+  arbitrary files. Nothing shipped is affected: this is test tooling, and CEE never
+  had `@vitest/ui` installed. The exposure was one command away rather than present,
+  since the harness declared a `test:ui` script for a package that was not a
+  dependency — that script is removed. Both projects had to move at once: the harness
+  sets its Vite root to the repository, so a split loads the root's worker and dies
+  with `No handler function exported`. A root audit falls from 19 findings to 12, both
+  criticals among the seven, and the harness now reports none.
+
 - `lodash-es` moves to 4.18.1, clearing the one high-severity advisory group a
   production audit reported against 4.17.21 — code injection through `_.template`,
   prototype pollution through `_.unset` and `_.omit`. CEE calls only `cloneDeep`, so
