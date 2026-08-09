@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.6.0-dev.20260809.8127503] - 2026-08-09
 
 ### Added
 
@@ -22,9 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The package version is `1.6.0-e5`. `-ng22` named the branch that produced the
-  build, which stopped being the useful thing to know once that branch became
-  where CEE is developed.
+- The version names the commit whose content it carries. `-ng22` named the branch that
+  produced the build and `-eN` counted local deploys from it; both stopped meaning
+  anything once that branch was merged and CEE went back to being developed on
+  `develop`. A published build is now `1.6.0-dev.<date>.<sha>`, which identifies exactly
+  one set of bytes and says where to read them.
 
 - The temporal editors are rebuilt around one temporal value. Date, time and timezone
   are parsed, normalized and rendered through `CedarTemporalValue` rather than each
