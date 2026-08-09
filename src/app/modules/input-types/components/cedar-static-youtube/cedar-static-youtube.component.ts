@@ -6,6 +6,7 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
 import { resolveStaticYoutubeView } from './static-youtube-view';
+import { DEFAULT_YOUTUBE_SIZE, resolveYoutubeSize } from './static-youtube-size';
 
 @Component({
   selector: 'app-cedar-static-youtube',
@@ -18,8 +19,11 @@ import { resolveStaticYoutubeView } from './static-youtube-view';
 export class CedarStaticYoutubeComponent extends CedarUIDirective {
   component!: StaticFieldComponent;
   @Input({ required: true }) handlerContext!: HandlerContext;
-  readonly videoHeight = 390;
-  readonly videoWidth = 640;
+  // What the template asked for, or the size CEE has always used. Not readonly
+  // any more: these follow `componentToRender`, which changes while a renderer
+  // instance is reused.
+  videoWidth: number = DEFAULT_YOUTUBE_SIZE.width;
+  videoHeight: number = DEFAULT_YOUTUBE_SIZE.height;
   videoEmbedUrl: SafeResourceUrl | null = null;
   contentError: string | null = null;
 
@@ -38,6 +42,9 @@ export class CedarStaticYoutubeComponent extends CedarUIDirective {
       ? this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${view.videoId}`)
       : null;
     this.contentError = view.error;
+    const size = resolveYoutubeSize(componentToRender.contentInfo?.width, componentToRender.contentInfo?.height);
+    this.videoWidth = size.width;
+    this.videoHeight = size.height;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 

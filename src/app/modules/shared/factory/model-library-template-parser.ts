@@ -184,6 +184,16 @@ export class ModelLibraryTemplateParser implements TemplateParser {
         const staticField = child as any;
         sfc.contentInfo.content =
           sfc.basicInfo.inputType === InputType.youtube ? staticField.videoId : staticField.content;
+        // `_ui._size`, and only YouTube can carry it: the model library models
+        // `width`/`height` on `StaticYoutubeField` and not on
+        // `StaticImageField`, so an image's size is gone before it reaches
+        // here. Read off the same untyped `staticField` as `content` above, for
+        // the same reason — the two static kinds share no interface exposing
+        // either.
+        if (sfc.basicInfo.inputType === InputType.youtube) {
+          sfc.contentInfo.width = staticField.width ?? null;
+          sfc.contentInfo.height = staticField.height ?? null;
+        }
         ModelLibraryTemplateParser.extractLabels(child as TemplateField, childInfo, name, sfc);
         r = sfc;
       }

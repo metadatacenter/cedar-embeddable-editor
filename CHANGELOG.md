@@ -22,6 +22,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- A static YouTube field renders at the size its template asks for. `_ui._size` was
+  read by nobody: the component carried 640 × 390 as two fixed values, so every video
+  was that size whatever the template said. The corpus asks for 400 × 300 six times
+  and 192 × 108 four times. A template that sets no size still gets 640 × 390, and a
+  dimension that cannot be a size — zero, negative, not a number — falls back on its
+  own rather than taking the other with it.
+
+  Static **images** still ignore `_ui._size`, and cannot honour it: the model library
+  models `width` and `height` on its YouTube field and not on its image field, so an
+  image's size is gone before CEE can see it.
+
 - Templates use Angular's block control flow. All 203 `*ngIf` and `*ngFor` sites across
   33 templates are now `@if` and `@for`, migrated by
   `ng generate @angular/core:control-flow`. The directives have been deprecated since
