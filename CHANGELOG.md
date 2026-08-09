@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.6.0-dev.20260809.604e9e6] - 2026-08-09
 
+### Added
+
+- Static image fields honour the width and height a template asks for. The previous release
+  recorded that they could not, because the model library carried `width` and `height` on its
+  YouTube field alone. `0.9.2-dev.20260808.92f3412` carries them on the image field too, and CEE
+  now reads them. A template declaring no size leaves the attributes unset, so the browser uses the
+  image's own dimensions, while a static YouTube field, having no intrinsic size of its own, still
+  falls back to 640 × 390.
+- The instance-conformance spec runs in the domain harness. It builds CEE's instance for each
+  corpus template and validates it against that template with the model library's
+  `InstanceValidator`, so a dropped `@type` or a missing property fails the gate.
+- `--cee-element-heading-size`, `--cee-element-heading-weight` and `--cee-element-content-gap` on
+  the element, so an embedder can adapt the typography and density of a nested element's heading
+  and content without acquiring a second say in the template's structure.
+
+### Changed
+
+- The build runs through `@angular/build:application`. The webpack `browser` builder is gone,
+  along with the dev-server and extract-i18n builders beside it.
+- `@angular-devkit/build-angular` is no longer a devDependency. Nothing had referenced it since the
+  builder move, and removing it takes 427 packages and eight `npm audit` findings with it, every
+  high among them. `npm run audit:prod`, which describes what an embedder downloads, reported 0
+  before and after.
+- TypeScript `strict` is on throughout, including the domain harness, which previously opted out.
+- The model library moves to `0.9.2-dev.20260808.92f3412` in the application, the harness and the
+  visual suite together, since a skew between them would mean the domain tests and the bundle
+  disagreed about the model.
+
 ### Fixed
 
 - `CeeDataQualityReport` names the problem array `problems`, as the report has always carried it.
@@ -15,6 +43,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reads.
 - `cee-public-api.spec.ts` holds the report types against the objects behind them. It checked the
   configuration keys only, which is how the name drifted unnoticed.
+- Read-only mode hides the multi-instance pager for a group holding one instance or none, rather
+  than showing a control that offers nothing.
+- The attribute-value widget labels its value input `Generic.AttributeValue` instead of repeating
+  the name input's label, and floats both labels so neither collapses over a filled value.
+- The multi-instance pager's actions align with its chips, and reflow beneath them below 620px
+  rather than overhanging the container.
+- A numeric field renders its unit only when the template declares one, with spacing that keeps it
+  clear of the input.
+- The page-break paginator drops the 64px of margin Material reserved for a range label the
+  component hides, and gives its arrows a 44px target.
 
 ## [1.6.0-dev.20260809.8127503] - 2026-08-09
 
