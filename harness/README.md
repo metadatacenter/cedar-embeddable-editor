@@ -4,7 +4,7 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 2,200 tests, all passing** on Node 24.19.0 / Vitest 4.1.
+> **Status: 2,202 tests, all passing** on Node 24.19.0 / Vitest 4.1.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
 > Three CEE defects found, all three fixed. See [What it found](#what-it-found).
 
@@ -140,8 +140,11 @@ it go red. Every fix below was mutation-tested, and the mutations were reverted.
 | `configFlag`/`configText`: `Object.hasOwn` → a truthiness test | 2 |
 | `configFlag`/`configText`: drop the `config != null` guard | 1 |
 | `configFlag`: fall back to `false` rather than the current value | 2 |
+| the parser stops reading `_ui._size` | 1 |
+| `usable()` accepts zero as a size | 2 |
+| video size falls back as a pair rather than per dimension | 1 |
 
-The last one is the interesting entry. It **survived** the first time: the
+`findAnyValue`'s null guard is the interesting entry. It **survived** the first time: the
 null-node guard is unreachable from an instance CEE built, because CEE always
 writes `{'@value': null}` rather than a bare null, so nothing exercised it.
 Adding partial-instance cases — the kind a host page can inject — closed it.
