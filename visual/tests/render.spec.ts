@@ -356,14 +356,72 @@ test.describe('real templates', () => {
   }
 });
 
-test('multi-instance pager renders its chips', async ({ page }) => {
+test('multi-instance pager renders its chips without covering a narrow expansion header', async ({ page }, testInfo) => {
   await open(page, '03-nested-multi');
   // The pager is the most Material-dependent control in the editor: chips,
   // ripples and an icon button row. Screenshot it in isolation so a diff here
   // is unambiguous.
   const pager = page.locator('app-cedar-multi-pager').first();
   await expect(pager).toBeVisible();
+
+  const geometry = await page.evaluate(() => {
+    const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+    const panel = root.querySelector('mat-expansion-panel')!;
+    const header = panel.querySelector('mat-expansion-panel-header')!.getBoundingClientRect();
+    const controls = panel.querySelector('app-cedar-multi-pager')!.firstElementChild!.getBoundingClientRect();
+    return {
+      header: { top: header.top, bottom: header.bottom, center: header.top + header.height / 2 },
+      controls: { top: controls.top, center: controls.top + controls.height / 2 },
+    };
+  });
+  if (testInfo.project.name === 'desktop') {
+    expect(Math.abs(geometry.header.center - geometry.controls.center)).toBeLessThan(1);
+  } else {
+    expect(geometry.controls.top, 'the pager should form a separate row below a narrow header').toBeGreaterThanOrEqual(
+      geometry.header.bottom,
+    );
+  }
+
   await expect(pager).toHaveScreenshot('pager.png');
+});
+
+test('attribute-value labels stay distinct and its pager aligns responsively', async ({ page }, testInfo) => {
+  await open(page, '10-attribute-values');
+
+  const name = page.locator('input[aria-label="Attribute Name"]');
+  const value = page.locator('input[aria-label="Attribute Value"]');
+  await expect(name).toHaveCount(1);
+  await expect(value).toHaveCount(1);
+  await name.fill('Attribute Value Field3');
+
+  const renderer = name.locator('xpath=ancestor::app-cedar-component-renderer');
+  expect(
+    await renderer.locator('mat-form-field').evaluateAll((fields) =>
+      fields.slice(0, 2).map((field) => field.querySelector('.mdc-floating-label--float-above') !== null),
+    ),
+    'Name and Value labels should occupy the same floating-label row',
+  ).toEqual([true, true]);
+
+  // The fixture starts at its minimum of one value; add a second so both the
+  // page chips and all three actions are present, matching the deployed state.
+  await renderer.locator('app-cedar-multi-pager button[mat-icon-button]').first().click();
+  const geometry = await renderer.evaluate((element) => {
+    const header = element.querySelector('app-cedar-component-header')!.getBoundingClientRect();
+    const controls = element.querySelector('app-cedar-multi-pager')!.firstElementChild!.getBoundingClientRect();
+    const action = element.querySelector('app-cedar-multi-pager button[mat-icon-button]')!.getBoundingClientRect();
+    return {
+      header: { bottom: header.bottom, center: header.top + header.height / 2 },
+      controls: { top: controls.top },
+      actionCenter: action.top + action.height / 2,
+    };
+  });
+  if (testInfo.project.name === 'desktop') {
+    expect(Math.abs(geometry.header.center - geometry.actionCenter)).toBeLessThan(1);
+  } else {
+    expect(geometry.controls.top, 'the pager should form a separate row below a narrow field title').toBeGreaterThanOrEqual(
+      geometry.header.bottom,
+    );
+  }
 });
 
 test('an expansion panel collapses and expands', async ({ page }) => {
@@ -372,18 +430,11 @@ test('an expansion panel collapses and expands', async ({ page }) => {
   await expect(header).toBeVisible();
 
   /**
-   * Click the title, not the header's centre.
-   *
-   * The multi-instance pager is rendered with `isAlignedUp`, which pulls its
-   * chip row up into the header band. At 480px the chips reach the horizontal
-   * centre, so a default centre-click lands on a MAT-CHIP — Playwright's
-   * actionability check sees the wrong element and waits until timeout.
-   *
-   * Worth noting beyond the test: at narrow widths a user aiming for the
-   * middle of that header hits a page chip and switches instance instead of
-   * collapsing.
+   * A normal centre-click is deliberate. At narrow widths the pager used to
+   * cover this point, switching instances instead of collapsing the panel.
+   * The responsive pager row must leave the whole header as its own target.
    */
-  await header.locator('mat-panel-title').click({ position: { x: 8, y: 16 } });
+  await header.click();
   await page.waitForTimeout(400);
   await expect(page).toHaveScreenshot('nested-collapsed.png', { fullPage: true });
 });

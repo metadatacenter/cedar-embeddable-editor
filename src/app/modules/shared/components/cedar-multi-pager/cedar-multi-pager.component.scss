@@ -37,5 +37,12 @@
   align-items: center;
   margin-right: 10px;
   margin-bottom: 15px;
-  margin-top: -50px;
+  margin-top: -56px;
+}
+
+@container cee (max-width: 620px) {
+  .aligned-up {
+    justify-content: flex-start;
+    margin: 0.5rem 0 0.75rem;
+  }
 }

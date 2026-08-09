@@ -190,7 +190,8 @@
   justify-content: right;
   align-items: center;
   margin-right: 10px;
-  margin-top: -20px;
+  /* Centre the 48px pager actions on the compact field-title row. */
+  margin-top: -33px;
 }
 
 .pager-container-ro {
@@ -206,7 +207,24 @@
   margin-right: 20px;
 }
 
-.pager-pager {
+.pager-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* At embedding widths the pager becomes its own row instead of covering the title. */
+@container cee (max-width: 620px) {
+  .pager-container,
+  .pager-container-ro {
+    justify-content: flex-start;
+    margin-top: 0.5rem;
+    margin-right: 0;
+  }
+
+  .pager-chips {
+    margin-right: 0.75rem;
+  }
 }
 
 app-source-panels {

@@ -1,5 +1,5 @@
 <form class="form-container" [formGroup]="options">
-  <mat-form-field class="half-width-with-margin">
+  <mat-form-field class="half-width-with-margin" floatLabel="always">
     <mat-label>{{ 'Generic.Name' | translate }}</mat-label>
     <input
       matInput
@@ -23,7 +23,7 @@
       </button>
     }
   </mat-form-field>
-  <mat-form-field class="half-width">
+  <mat-form-field class="half-width" floatLabel="always">
     <mat-label>{{ 'Generic.Value' | translate }}</mat-label>
     <input
       matInput
@@ -32,7 +32,7 @@
       [formControl]="valueInputControl"
       (input)="valueChanged($event)"
       [readonly]="readOnlyMode"
-      attr.aria-label="{{ 'Generic.AttributeName' | translate }}"
+      attr.aria-label="{{ 'Generic.AttributeValue' | translate }}"
     />
     @if (valueInputControl.value && !readOnlyMode) {
       <button
