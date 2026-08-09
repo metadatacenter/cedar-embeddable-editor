@@ -1,15 +1,3 @@
-// PARKED — not run yet. See ROADMAP.md item 2.
-//
-// This calls InstanceValidator.validate, which exists on the model library's
-// develop branch and not in the published 0.9.2-dev.20260804.f1a3784 that
-// package.json still pins. Against that version all 117 tests fail on
-// `InstanceValidator` being undefined, so the file is parked with a .pending
-// suffix rather than committed as a broken suite.
-//
-// Verified against a local build of the library: 117 pass, taking the domain
-// suite from 2125 to 2242. To land it, bump the dependency in package.json and
-// harness/package.json, then drop the .pending suffix.
-
 import { describe, expect, it } from 'vitest';
 import { CedarReaders, InstanceValidator } from 'cedar-model-typescript-library';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
@@ -133,7 +121,10 @@ describe('a populated template', () => {
 
     if (PART_FILLED_CHOICE.includes(label)) {
       expect(outcome.detail).toContain('missingIndexInRealObject');
-      const reported = driver.qualityReport.problems.map((problem) => problem.code);
+      // `qualityReport` is a JSON round trip and so is typed `any`; name the one
+      // member this reads rather than letting the parameter infer to `any`,
+      // which the harness's `strict` no longer allows.
+      const reported = driver.qualityReport.problems.map((problem: { code: string }) => problem.code);
       expect(reported, 'CEE should raise minItems where the validator does').toContain('minItems');
       return;
     }
