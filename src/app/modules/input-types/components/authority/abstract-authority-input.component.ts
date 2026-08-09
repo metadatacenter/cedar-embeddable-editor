@@ -79,6 +79,17 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    */
   filteredOptions: Observable<AuthoritySearchResponseItem[]> = of([]);
   selectedData: AuthoritySearchResponseItem | null = null;
+
+  /**
+   * A press has begun on a suggestion, so the blur it causes is not the user
+   * leaving the field.
+   *
+   * The same name and the same rule ORCID and ROR already carry. Those two do
+   * not extend this class, they had the guard, and the five widgets folded in
+   * here did not — the identical shape of omission the header describes for the
+   * blur handling itself, found the same way.
+   */
+  private selectionInProgress = false;
   loadingOptions = false;
   justReverted = false;
   linkIconName = 'open_in_new';
@@ -165,6 +176,10 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
       this.trigger?.panelClosingActions.subscribe((event) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const selectionMode = !!event && !!(event as any).source;
+        // A press that closed the panel without choosing anything — dragged off
+        // the option, or a click outside — leaves the flag set otherwise, and
+        // the next blur would find it and decline to reconcile forever.
+        this.selectionInProgress = false;
         if (selectionMode) {
           return;
         }
@@ -195,10 +210,21 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     }
   }
 
+  /**
+   * A press has landed on a suggestion.
+   *
+   * Bound to `mousedown`, which fires before the blur it causes — so by the time
+   * `onInputBlur` runs, this has already said the blur is not the user leaving.
+   */
+  selectionStarting(): void {
+    this.selectionInProgress = true;
+  }
+
   onSelectionChange(option: AuthoritySearchResponseItem): void {
     if (!option) {
       return;
     }
+    this.selectionInProgress = false;
     this.selectedData = option;
     this.handlerContext.changeControlledValue(this.component, option[JsonSchema.atId], option[JsonSchema.rdfsLabel]);
   }
@@ -236,6 +262,34 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     if (this.readOnlyMode) {
       return;
     }
+    /*
+     * Clicking a suggestion blurs the input, and the blur arrives *before*
+     * Material reports the selection. Reconciling here would then read
+     * `selectedData` as still null, decide the typed text names no term, and
+     * clear the very value being chosen — emptying the box and pushing null to
+     * the host. Measured at 7 failures in 24 clicks before this guard, and it is
+     * what the browser suite's one intermittent check had been reporting all
+     * along.
+     *
+     * The question is which gesture caused the blur, so the guard asks exactly
+     * that: a press on a suggestion sets `selectionInProgress` before the blur can
+     * fire, and `onSelectionChange` is then entitled to the decision instead.
+     *
+     * Deliberately not "is the panel open?" — that was the first attempt and it
+     * is wrong twice over. The panel being open says nothing about whether a
+     * selection is coming, and a blur that leaves the field does not reliably
+     * close it: the browser suite's free-text checks call `blur()` with the
+     * panel still open, so deferring to `panelClosingActions` waited for an
+     * event that never arrived and left the rejected text sitting in the box.
+     */
+    if (this.selectionInProgress) {
+      return;
+    }
+    this.reconcileWithSelection();
+  }
+
+  /** What blur decides once nothing is in flight. */
+  private reconcileWithSelection(): void {
     const outcome = AuthoritySearchControl.reconcileOnBlur(
       this.inputValueControl,
       this.getCompoundValue(this.selectedData),

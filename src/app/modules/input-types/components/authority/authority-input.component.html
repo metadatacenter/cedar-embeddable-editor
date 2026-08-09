@@ -48,8 +48,15 @@ genuinely theirs.
           <mat-option disabled> No results found </mat-option>
         }
         @for (option of filteredOptions | async; track option) {
+          <!--
+            `mousedown` rather than `click`: it is the event that precedes the
+            blur, which is the whole point. It tells the blur handler that the
+            blur it is about to see was caused by reaching for this option, not
+            by leaving the field.
+          -->
           <mat-option
             [value]="option[JsonSchema.rdfsLabel] + ' - ' + option[JsonSchema.atId]"
+            (mousedown)="selectionStarting()"
             (onSelectionChange)="onSelectionChange(option)"
             >{{ getCompoundValue(option) }}</mat-option
           >
