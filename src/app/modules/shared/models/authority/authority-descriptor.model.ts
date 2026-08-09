@@ -27,15 +27,6 @@ export interface AuthorityDescriptor {
   /** Human name, used in messages. "ORCID", "NIH Grant". */
   readonly label: string;
 
-  /**
-   * The control error key this authority's template listens for —
-   * `invalidOrcid`, `invalidRrid`, and so on.
-   *
-   * Per-type rather than shared because each widget renders its own
-   * `mat-error` with its own message, and those messages name the authority.
-   */
-  readonly errorKey: string;
-
   /** Translation keys for the field's own messages. */
   readonly placeholderKey: string;
   readonly invalidMessageKey: string;
@@ -93,7 +84,6 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
     defaultSearchPath: 'orcid/search-by-name',
     defaultDetailsPath: 'orcid',
     label: 'ORCID',
-    errorKey: 'invalidOrcid',
     placeholderKey: 'Generic.FilterOrcid',
     invalidMessageKey: 'Validation.OrcidInvalid',
     revertedMessageKey: 'Validation.OrcidReverted',
@@ -106,7 +96,6 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
     defaultSearchPath: 'ror/search-by-name',
     defaultDetailsPath: 'ror',
     label: 'ROR',
-    errorKey: 'invalidRor',
     placeholderKey: 'Generic.FilterRor',
     invalidMessageKey: 'Validation.RorInvalid',
     revertedMessageKey: 'Validation.RorReverted',
@@ -119,7 +108,6 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
     defaultSearchPath: 'comp-tox/search-by-name',
     defaultDetailsPath: 'comp-tox',
     label: 'PFAS',
-    errorKey: 'invalidPfas',
     placeholderKey: 'Generic.FilterPfas',
     invalidMessageKey: 'Validation.PfasInvalid',
     revertedMessageKey: 'Validation.PfasReverted',
@@ -132,7 +120,6 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
     defaultSearchPath: 'pmid/search-by-name',
     defaultDetailsPath: 'pmid',
     label: 'PubMed',
-    errorKey: 'invalidPmid',
     placeholderKey: 'Generic.FilterPmid',
     invalidMessageKey: 'Validation.PmidInvalid',
     revertedMessageKey: 'Validation.PmidReverted',
@@ -157,7 +144,6 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
     defaultSearchPath: 'rrid/search-by-name',
     defaultDetailsPath: 'rrid',
     label: 'RRID',
-    errorKey: 'invalidRrid',
     placeholderKey: 'Generic.FilterRrid',
     invalidMessageKey: 'Validation.RridInvalid',
     revertedMessageKey: 'Validation.RridReverted',
@@ -170,7 +156,6 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
     defaultSearchPath: 'nih-grant/search-by-name',
     defaultDetailsPath: 'nih-grant',
     label: 'NIH Grant',
-    errorKey: 'invalidNihGrant',
     placeholderKey: 'Generic.FilterNihGrant',
     invalidMessageKey: 'Validation.NihGrantInvalid',
     revertedMessageKey: 'Validation.NihGrantReverted',
@@ -185,7 +170,6 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
     defaultSearchPath: 'doi/search-by-name',
     defaultDetailsPath: 'doi',
     label: 'DOI',
-    errorKey: 'invalidDoi',
     placeholderKey: 'Generic.FilterDoi',
     invalidMessageKey: 'Validation.DoiInvalid',
     revertedMessageKey: 'Validation.DoiReverted',

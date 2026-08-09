@@ -123,6 +123,7 @@ $cee-color-accent: map.get($cee-brand-accent, A200);
 // this one value depend on the framework for no benefit. Pinning it means the
 // upgrade cannot change it silently.
 $cee-color-warn: #f44336;
+$cee-color-warning: #856404;
 
 // Brand colors used directly in component CSS rather than through the theme.
 $cee-color-icon-hover: map.get($cee-brand-primary, 500);

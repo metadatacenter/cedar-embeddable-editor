@@ -74,6 +74,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
   loadingOptions = false;
   private rorDetailsCache = new Map<string, RorDetailResponse>();
   justReverted = false;
+  justCleared = false;
   hasSearched = false;
   /** Whether the last search failed, as opposed to returning nothing. */
   lookupFailed = false;
@@ -212,24 +213,19 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     const outcome = AuthoritySearchControl.reconcileOnBlur(
       this.inputValueControl,
       this.getCompoundValue(this.selectedData),
-      'invalidRor',
     );
     if (outcome === 'reverted') {
       this.showRevertHint();
     } else if (outcome === 'cleared') {
-      this.clearValue(true);
+      this.selectedData = null;
+      this.handlerContext.changeControlledValue(this.component, null, null);
+      this.showClearedWarning();
     }
   }
 
-  clearValue(markError: boolean = false): void {
+  clearValue(): void {
     this.selectedData = null;
     this.inputValueControl.setValue('', { emitEvent: true });
-    if (markError) {
-      this.inputValueControl.setErrors({ invalidRor: true });
-      this.inputValueControl.markAsTouched();
-    } else {
-      this.inputValueControl.setErrors(null);
-    }
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
   setShowDetails = (setValue: boolean): void => {
@@ -322,6 +318,15 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     this.cdr.markForCheck();
     setTimeout(() => {
       this.justReverted = false;
+      this.cdr.markForCheck();
+    }, 5000);
+  }
+
+  private showClearedWarning(): void {
+    this.justCleared = true;
+    this.cdr.markForCheck();
+    setTimeout(() => {
+      this.justCleared = false;
       this.cdr.markForCheck();
     }, 5000);
   }

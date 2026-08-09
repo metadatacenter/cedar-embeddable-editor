@@ -66,6 +66,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
   filteredOptions: Observable<OrcidSearchResponseItem[]> = of([]);
   private researcherDetailsCache = new Map<string, ResearcherDetails>();
   justReverted = false;
+  justCleared = false;
   selectionInProgress = false;
 
   constructor(
@@ -230,13 +231,14 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
         this.inputValueControl.setValue(current, { emitEvent: true });
         this.showRevertHint();
       } else {
-        this.clearValue(true);
+        this.clearValue();
+        this.showClearedWarning();
       }
       return;
     }
     if (!this.selectedData && raw) {
-      this.showRevertHint();
-      this.clearValue(true);
+      this.clearValue();
+      this.showClearedWarning();
       return;
     }
     if (this.selectedData !== null) {
@@ -259,15 +261,19 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
       this.cdr.markForCheck();
     }, 5000);
   }
-  clearValue(markError = false): void {
+
+  private showClearedWarning(): void {
+    this.justCleared = true;
+    this.cdr.markForCheck();
+    setTimeout(() => {
+      this.justCleared = false;
+      this.cdr.markForCheck();
+    }, 5000);
+  }
+
+  clearValue(): void {
     this.selectedData = null;
     this.inputValueControl.setValue('', { emitEvent: true });
-    if (markError) {
-      this.inputValueControl.setErrors({ invalidOrcid: true });
-      this.inputValueControl.markAsTouched();
-    } else {
-      this.inputValueControl.setErrors(null);
-    }
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
   private getDetails(): void {

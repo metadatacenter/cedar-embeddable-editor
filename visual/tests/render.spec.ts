@@ -810,7 +810,8 @@ test.describe('external authority fields', () => {
     await page.waitForTimeout(600);
 
     await expect(orcid).toHaveValue('');
-    await expect(page.locator('mat-error')).toHaveCount(1);
+    await expect(page.locator('mat-error')).toHaveCount(0);
+    await expect(page.locator('.input-warning')).toHaveCount(1);
   });
 });
 
@@ -868,7 +869,8 @@ test.describe('every external authority widget', () => {
       await page.waitForTimeout(600);
 
       await expect(input, 'text naming no term cannot be saved, so it must not linger').toHaveValue('');
-      await expect(page.locator('mat-error')).toHaveCount(1);
+      await expect(page.locator('mat-error')).toHaveCount(0);
+      await expect(page.locator('.input-warning')).toHaveCount(1);
     });
 
     /** Each widget's message names its own authority. */
@@ -881,7 +883,7 @@ test.describe('every external authority widget', () => {
       await input.blur();
       await page.waitForTimeout(600);
 
-      await expect(page.locator('mat-error')).toContainText(label);
+      await expect(page.locator('.input-warning')).toContainText(label);
     });
   }
 });
@@ -1681,6 +1683,7 @@ test.describe('controlled terminology selection', () => {
 
     await expect(field, 'text naming no term cannot be saved, so it must not linger').toHaveValue('');
     await expect(page.locator('mat-error')).toHaveCount(1);
+    await expect(page.locator('.input-warning')).toHaveCount(1);
     const metadata = await page.evaluate(
       () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
     );

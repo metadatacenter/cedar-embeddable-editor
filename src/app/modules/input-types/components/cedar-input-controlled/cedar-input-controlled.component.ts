@@ -67,6 +67,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
 
   /** Shown once free text has actually been discarded, not before. */
   justReverted = false;
+  justCleared = false;
   component!: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
@@ -224,14 +225,22 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     const outcome = AuthoritySearchControl.reconcileOnBlur(
       this.inputValueControl,
       this.selectedData?.prefLabel ?? null,
-      'invalidControlledTerm',
     );
     if (outcome === 'reverted') {
       this.showRevertHint();
     } else if (outcome === 'cleared') {
       this.selectedData = null;
       this.handlerContext.changeControlledValue(this.component, null, null);
+      this.showClearedWarning();
     }
+  }
+
+  /** Explain a discarded value without leaving an already-cleared field invalid. */
+  private showClearedWarning(): void {
+    this.justCleared = true;
+    setTimeout(() => {
+      this.justCleared = false;
+    }, 5000);
   }
   // inputFocused(): void {
   //   if (!this.readOnlyMode) {

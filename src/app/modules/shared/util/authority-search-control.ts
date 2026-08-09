@@ -31,13 +31,14 @@ export class AuthoritySearchControl {
    * - `reverted` — the text was edited away from a term that is still selected,
    *   so the term's display text is restored. The edit named nothing; the value
    *   is untouched.
-   * - `cleared` — text with no term behind it. Removed, and `errorKey` set so
-   *   the widget's existing message explains why the box emptied itself.
+   * - `cleared` — text with no term behind it. Removed; the widget reports the
+   *   discard as a warning while normal validators decide whether empty is an
+   *   actual error (for example, when the field is required).
    *
    * @param selectedDisplay what the box reads when the selected term is shown,
    *                        or `''`/null when no term is selected.
    */
-  static reconcileOnBlur(control: AbstractControl, selectedDisplay: string | null, errorKey: string): BlurOutcome {
+  static reconcileOnBlur(control: AbstractControl, selectedDisplay: string | null): BlurOutcome {
     const typed = (control.value ?? '').toString().trim();
     const selected = (selectedDisplay ?? '').trim();
 
@@ -53,7 +54,6 @@ export class AuthoritySearchControl {
       return 'unchanged';
     }
     control.setValue('', { emitEvent: true });
-    control.setErrors({ [errorKey]: true });
     control.markAsTouched();
     return 'cleared';
   }

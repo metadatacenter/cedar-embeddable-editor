@@ -92,6 +92,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
   private selectionInProgress = false;
   loadingOptions = false;
   justReverted = false;
+  justCleared = false;
   linkIconName = 'open_in_new';
 
   /**
@@ -293,13 +294,13 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     const outcome = AuthoritySearchControl.reconcileOnBlur(
       this.inputValueControl,
       this.getCompoundValue(this.selectedData),
-      this.descriptor.errorKey,
     );
     if (outcome === 'reverted') {
       this.showRevertHint();
     } else if (outcome === 'cleared') {
       this.selectedData = null;
       this.handlerContext.changeControlledValue(this.component, null, null);
+      this.showClearedWarning();
     }
   }
 
@@ -388,6 +389,14 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     this.justReverted = true;
     setTimeout(() => {
       this.justReverted = false;
+    }, 5000);
+  }
+
+  /** The text was discarded, but the now-empty optional field is not invalid. */
+  private showClearedWarning(): void {
+    this.justCleared = true;
+    setTimeout(() => {
+      this.justCleared = false;
     }, 5000);
   }
 

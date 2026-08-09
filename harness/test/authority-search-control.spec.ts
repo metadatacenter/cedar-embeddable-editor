@@ -41,7 +41,7 @@ class FakeControl {
 const reconcile = (typed: unknown, selectedDisplay: string | null) => {
   const control = new FakeControl(typed);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const outcome = AuthoritySearchControl.reconcileOnBlur(control as any, selectedDisplay, 'invalidRrid');
+  const outcome = AuthoritySearchControl.reconcileOnBlur(control as any, selectedDisplay);
   return { outcome, control };
 };
 
@@ -50,15 +50,15 @@ describe('text with no term behind it', () => {
    * REGRESSION: the case the user hit. Type a name, tab away, and the text
    * stayed — over a field holding nothing.
    */
-  it('is cleared, and the field says why', () => {
+  it('is cleared without manufacturing a validation error', () => {
     const { outcome, control } = reconcile('zzz nonsense', null);
     expect(outcome).toBe('cleared');
     expect(control.value).toBe('');
-    expect(control.errors).toEqual({ invalidRrid: true });
+    expect(control.errors).toBeNull();
   });
 
-  /** `mat-error` only renders on a touched control, so this is load-bearing. */
-  it('marks the control touched so the message renders', () => {
+  /** A real required validator still needs to become visible when focus leaves. */
+  it('marks the control touched so genuine validation errors can render', () => {
     expect(reconcile('zzz', null).control.touched).toBe(true);
   });
 

@@ -39,8 +39,8 @@ describe('there is exactly one descriptor per authority type', () => {
     expect(new Set(types).size).toBe(types.length);
   });
 
-  it('gives every one a distinct error key', () => {
-    const keys = AUTHORITY_DESCRIPTORS.map((d) => d.errorKey);
+  it('gives every one a distinct warning message', () => {
+    const keys = AUTHORITY_DESCRIPTORS.map((d) => d.invalidMessageKey);
     expect(new Set(keys).size).toBe(keys.length);
   });
 

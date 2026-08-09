@@ -59,14 +59,12 @@
       @if (inputValueControl.getError('required') && !readOnlyMode) {
         <mat-error tabindex="0" class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
       }
-      @if (inputValueControl.getError('invalidControlledTerm') && !readOnlyMode) {
-        <mat-error tabindex="0" class="mat-error align-start">
-          {{ 'Validation.ControlledTermInvalid' | translate }}
-        </mat-error>
-      }
-      @if (justReverted) {
-        <mat-hint>{{ 'Validation.ControlledTermReverted' | translate }}</mat-hint>
-      }
     </mat-form-field>
+    @if (justCleared) {
+      <div class="input-warning" role="status">{{ 'Validation.ControlledTermInvalid' | translate }}</div>
+    }
+    @if (justReverted) {
+      <div class="input-warning" role="status">{{ 'Validation.ControlledTermReverted' | translate }}</div>
+    }
   }
 </form>

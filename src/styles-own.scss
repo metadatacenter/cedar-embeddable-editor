@@ -16,6 +16,7 @@
   --cee-color-text-primary: #{tokens.$cee-color-on-primary};
   --cee-color-accent: #{tokens.$cee-color-accent};
   --cee-color-warn: #{tokens.$cee-color-warn};
+  --cee-color-warning: #{tokens.$cee-color-warning};
   display: block;
   box-sizing: border-box;
   width: 100%;
@@ -408,6 +409,18 @@ button.close {
   padding-bottom: 7px !important;
 }
 
+/*
+ * Attribute-value controls are a visual pair. A populated half gains
+ * Material's 48px clear action, so keeping the other half at the general 36px
+ * compact height produces mismatched outlines. Give both halves the action-row
+ * height while retaining the same two-pixel optical bias as the compact fields.
+ */
+app-cedar-input-attribute-value .mat-mdc-form-field-infix {
+  min-height: 48px !important;
+  padding-top: 11px !important;
+  padding-bottom: 13px !important;
+}
+
 .mat-icon:hover {
   color: tokens.$cee-color-icon-hover;
   scale: 1.2;
@@ -423,6 +436,19 @@ button.close {
 
 .align-end {
   text-align: end;
+}
+
+/*
+ * Non-blocking feedback, outside Material's mutually-exclusive hint/error
+ * projection so a required field can still show its genuine validation error.
+ */
+.input-warning {
+  display: block;
+  color: var(--cee-color-warning);
+  margin-inline: 16px;
+  font-size: 12px;
+  line-height: 22px;
+  text-align: start;
 }
 .cdk-overlay-container {
   z-index: 9999 !important;
