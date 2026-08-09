@@ -56,3 +56,14 @@ Thumbs.db
 /cedar-development
 /cedar-component-distribution
 dist-types/
+
+# The staged npm package, written by `npm run package:npm:prebuilt`. Every file in
+# it is generated: the bundle from source, the declarations by `types:public`, the
+# manifests by `scripts/npm-package.mjs`, and README/CHANGELOG copied from the root.
+# Staging verifies each staged byte against the source it came from, and two clean
+# builds of identical source were measured byte-identical, so committing the output
+# as well only added a second copy that could disagree with the first — which it did,
+# repeatedly, until the gate was taught to catch it. Local consumers symlink
+# `node_modules/cedar-embeddable-editor` here, so this directory still has to exist
+# on disk; a fresh clone needs one `npm run package:npm:prebuilt` before it does.
+/dist-npm
