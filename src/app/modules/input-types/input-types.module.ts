@@ -46,7 +46,6 @@ import { DatePickerComponent } from '../shared/components/date-picker/date-picke
 import { TimezonePickerComponent } from '../shared/components/timezone-picker/timezone-picker.component';
 import { TimePickerComponent } from '../shared/components/time-picker/time-picker.component';
 import { TranslateModule } from '@ngx-translate/core';
-import { NgOptimizedImage } from '@angular/common';
 import { OrcidDetailsComponent } from './components/cedar-input-orcid/orcid-details/orcid-details.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
@@ -82,7 +81,6 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     FormsModule,
     MatSelectModule,
     TranslateModule,
-    NgOptimizedImage,
     MatProgressSpinnerModule,
     MatDividerModule,
   ],
