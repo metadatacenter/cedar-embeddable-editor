@@ -10,7 +10,7 @@
   >
     <div class="pager-chips">
       @if (getInstanceCount() > 1) {
-        <mat-chip-listbox [tabIndex]="0" aria-label="Allows multi values.">
+        <mat-chip-listbox [tabIndex]="0" [hideSingleSelectionIndicator]="true" aria-label="Allows multi values.">
           @if (!hasMultiInstances()) {
             <mat-chip-option selectable="false" disabled="true" aria-label="No values yet">{{
               'Multi.NoInstancesYet' | translate

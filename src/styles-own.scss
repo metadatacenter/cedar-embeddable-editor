@@ -392,12 +392,16 @@ button.close {
  * padding leaves the field its full height. Measured: infix 56px tall at 16px
  * top and bottom, against the 5/7 this asks for.
  *
+ * Keep the compressed infix centred when Material adds a 48px suffix action.
+ * Without this, the editable value sits seven pixels above info/clear icons.
+ *
  * The migration schematic left the old selector in place under a TODO rather
  * than renaming it, which is the honest thing for it to have done: the rule does
  * not translate one-for-one, and a silent rename would have compressed nothing
  * while looking like it had.
  */
 .mat-mdc-form-field-infix {
+  align-self: center;
   margin: 0 !important;
   min-height: auto !important;
   padding-top: 5px !important;
