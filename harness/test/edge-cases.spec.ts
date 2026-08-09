@@ -9,6 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { at, infoOf } from '../src/nodes';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
@@ -26,7 +27,13 @@ describe('page break pagination', () => {
    */
   it('produces a single page when there are no page breaks', () => {
     const driver = new CeeDriver(
-      buildTemplate({ name: 'pb_none', children: [{ kind: TEXT, name: 'a' }, { kind: TEXT, name: 'b' }] }),
+      buildTemplate({
+        name: 'pb_none',
+        children: [
+          { kind: TEXT, name: 'a' },
+          { kind: TEXT, name: 'b' },
+        ],
+      }),
     );
     expect(driver.representation.pageBreakChildren).toHaveLength(1);
     expect(driver.representation.hasPageBreaks()).toBe(false);
@@ -36,7 +43,11 @@ describe('page break pagination', () => {
     const driver = new CeeDriver(
       buildTemplate({
         name: 'pb_one',
-        children: [{ kind: TEXT, name: 'a' }, { kind: PAGE_BREAK, name: 'pb' }, { kind: TEXT, name: 'b' }],
+        children: [
+          { kind: TEXT, name: 'a' },
+          { kind: PAGE_BREAK, name: 'pb' },
+          { kind: TEXT, name: 'b' },
+        ],
       }),
     );
     expect(driver.representation.pageBreakChildren).toHaveLength(2);
@@ -47,7 +58,10 @@ describe('page break pagination', () => {
     const driver = new CeeDriver(
       buildTemplate({
         name: 'pb_trailing',
-        children: [{ kind: TEXT, name: 'a' }, { kind: PAGE_BREAK, name: 'pb' }],
+        children: [
+          { kind: TEXT, name: 'a' },
+          { kind: PAGE_BREAK, name: 'pb' },
+        ],
       }),
     );
     // Content page + the empty page the trailing break implies.
@@ -127,7 +141,10 @@ describe('static component collapsing', () => {
     const driver = new CeeDriver(
       buildTemplate({
         name: 'collapse_off',
-        children: [{ kind: IMAGE, name: 'img' }, { kind: TEXT, name: 'field' }],
+        children: [
+          { kind: IMAGE, name: 'img' },
+          { kind: TEXT, name: 'field' },
+        ],
       }),
       { collapseStaticComponents: false },
     );
@@ -139,7 +156,10 @@ describe('static component collapsing', () => {
     const driver = new CeeDriver(
       buildTemplate({
         name: 'collapse_on',
-        children: [{ kind: IMAGE, name: 'img' }, { kind: TEXT, name: 'field' }],
+        children: [
+          { kind: IMAGE, name: 'img' },
+          { kind: TEXT, name: 'field' },
+        ],
       }),
       { collapseStaticComponents: true },
     );
@@ -184,7 +204,8 @@ describe('multi-instance elements', () => {
     });
 
   const countOf = (driver: CeeDriver, component: any) =>
-    driver.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component).currentCount;
+    infoOf(driver.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component), component)
+      .currentCount;
 
   it('starts at minItems', () => {
     const driver = new CeeDriver(multiElementTemplate());
@@ -226,10 +247,10 @@ describe('multi-instance elements', () => {
     driver.handlerContext.changeValue(nameField, 'second');
 
     driver.handlerContext.setCurrentIndex(author, 0);
-    expect(driver.handlerContext.getDataObjectNodeByPath(['_author', '_name'])['@value']).toBe('first');
+    expect(at(driver.handlerContext.getDataObjectNodeByPath(['_author', '_name']), '@value')).toBe('first');
 
     driver.handlerContext.setCurrentIndex(author, 1);
-    expect(driver.handlerContext.getDataObjectNodeByPath(['_author', '_name'])['@value']).toBe('second');
+    expect(at(driver.handlerContext.getDataObjectNodeByPath(['_author', '_name']), '@value')).toBe('second');
 
     driver.expectNoErrors('per-page writes');
   });
@@ -357,9 +378,7 @@ describe('loading an existing instance', () => {
   it('recovers multi-instance counts from the instance, not the template', () => {
     const template = buildTemplate({
       name: 'reload',
-      elements: [
-        { name: 'author', cardinality: 'multi', minItems: 1, children: [{ kind: TEXT, name: 'name' }] },
-      ],
+      elements: [{ name: 'author', cardinality: 'multi', minItems: 1, children: [{ kind: TEXT, name: 'name' }] }],
     });
 
     // Build an instance with three authors by driving the editor, then reload it.
@@ -372,7 +391,10 @@ describe('loading an existing instance', () => {
 
     const reloaded = new CeeDriver(template, { instance: saved });
     const reloadedAuthor = reloaded.findOrThrow(['_author']);
-    const info = reloaded.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(reloadedAuthor);
+    const info = infoOf(
+      reloaded.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(reloadedAuthor),
+      reloadedAuthor,
+    );
 
     expect(info.currentCount, 'count came from the template minItems, not the loaded instance').toBe(3);
     reloaded.expectNoErrors('instance reload');

@@ -1,4 +1,4 @@
-import { InstanceExtractData } from '../models/instance-extract-data.model';
+import { InstanceObject } from '../models/instance-node.model';
 
 /**
  * How many occurrences of each component an existing instance holds.
@@ -13,12 +13,13 @@ import { InstanceExtractData } from '../models/instance-extract-data.model';
  * `MultiInstanceObjectHandler.setSingleMultiInstance` parses — a segment is
  * spliced in for each occurrence, so `['_author', '@#index[1]#@', '_affil']`
  * means the `_affil` inside the second author. Emitting rather than returning a
- * structure keeps the two implementations honest about ordering as well as
- * content: they have to say the same things in the same sequence.
+ * structure keeps an implementation honest about ordering as well as content:
+ * it has to say the same things in the same sequence.
  *
- * Two implementations exist, one walking the raw JSON and one reading the
- * CEDAR Model TypeScript Library's parsed instance. The whole harness runs
- * against either; see `CEE_INSTANCE_READER` in the harness driver.
+ * One implementation remains, `ModelLibraryInstanceReader`, which reads the
+ * CEDAR Model TypeScript Library's parsed instance. The hand-written walk it
+ * was checked against is gone. The interface stays as the seam that comparison
+ * needed, and `DataContext.setInputTemplate` still takes a reader.
  */
 export interface InstanceCardinalityReader {
   /**
@@ -30,7 +31,7 @@ export interface InstanceCardinalityReader {
    * tree are tolerated and ignored downstream; the instance carries `@context`,
    * provenance and other keys that are not components.
    */
-  read(instance: InstanceExtractData, emit: (path: string[], count: number) => void): void;
+  read(instance: InstanceObject, emit: (path: string[], count: number) => void): void;
 }
 
 /** The `@#index[N]#@` segment for occurrence `i`. */

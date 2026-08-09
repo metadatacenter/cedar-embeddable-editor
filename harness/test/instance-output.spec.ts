@@ -58,15 +58,15 @@ describe('the JSON a host page receives', () => {
    */
   it.each(cases)('%s keeps its value', (_label, index, cardinality) => {
     const driver = filled(index, cardinality);
-    const working = driver.dataContext.instanceFullData as Record<string, unknown>;
-    const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
+    const working = driver.fullData as Record<string, unknown>;
+    const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
     expect(emitted._f).toEqual(working._f);
   });
 
   it.each(cases)('%s keeps its @context', (_label, index, cardinality) => {
     const driver = filled(index, cardinality);
-    const working = driver.dataContext.instanceFullData as Record<string, unknown>;
-    const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
+    const working = driver.fullData as Record<string, unknown>;
+    const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
     expect(emitted['@context']).toEqual(working['@context']);
   });
 
@@ -82,8 +82,8 @@ describe('the JSON a host page receives', () => {
    */
   it('adds only null placeholders, and drops nothing', () => {
     const driver = filled(0, 'single');
-    const working = driver.dataContext.instanceFullData as Record<string, unknown>;
-    const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
+    const working = driver.fullData as Record<string, unknown>;
+    const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
 
     const added = Object.keys(emitted).filter((k) => !(k in working));
     expect(added.length, 'the writer contributed nothing, so the checks below are vacuous').toBeGreaterThan(0);
@@ -127,13 +127,13 @@ describe('the instance says which template it is an instance of', () => {
 
   it('names the template it came from', () => {
     const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
-    const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
+    const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
     expect(emitted['schema:isBasedOn']).toBe('https://repo.metadatacenter.org/templates/abc');
   });
 
   it('reads it from whichever serialisation the template arrived in', () => {
     const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
-    expect((driver.dataContext.instanceFullData as Record<string, unknown>)['schema:isBasedOn']).toBe(
+    expect((driver.fullData as Record<string, unknown>)['schema:isBasedOn']).toBe(
       'https://repo.metadatacenter.org/templates/abc',
     );
   });
@@ -181,13 +181,13 @@ describe('the instance says which template it is an instance of', () => {
       instance: { '@context': {}, '@id': 'https://example.org/i/9', _f: { '@value': 'loaded' } },
     });
 
-    const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
+    const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
     expect(emitted['schema:isBasedOn']).toBe('https://repo.metadatacenter.org/templates/injected');
   });
 
   it('survives into the YAML', () => {
     const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
-    expect(InstanceSerializer.toYaml(driver.dataContext.instanceFullData)).toContain(
+    expect(InstanceSerializer.toYaml(driver.fullData)).toContain(
       'https://repo.metadatacenter.org/templates/abc',
     );
   });
@@ -202,8 +202,8 @@ describe('real instances survive the trip', () => {
     'template-%s emits its values unchanged',
     (_id, artifact) => {
       const driver = new CeeDriver(artifact.json);
-      const working = driver.dataContext.instanceFullData as Record<string, unknown>;
-      const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
+      const working = driver.fullData as Record<string, unknown>;
+      const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
 
       for (const key of Object.keys(working)) {
         expect(emitted[key], `${key} changed on the way out`).toEqual(working[key]);
@@ -225,7 +225,7 @@ describe('the YAML a host page can ask for instead', () => {
    */
   it.each(cases)('%s survives as YAML', (_label, index, cardinality) => {
     const driver = filled(index, cardinality);
-    const yaml = InstanceSerializer.toYaml(driver.dataContext.instanceFullData);
+    const yaml = InstanceSerializer.toYaml(driver.fullData);
     expect(yaml.length, 'no YAML was produced').toBeGreaterThan(0);
 
     const reparsed = parseYaml(yaml) as Record<string, any>;
@@ -244,7 +244,7 @@ describe('the YAML a host page can ask for instead', () => {
       VALUED.findIndex((k) => k.key === 'text'),
       'single',
     );
-    const reparsed = parseYaml(InstanceSerializer.toYaml(driver.dataContext.instanceFullData)) as Record<string, any>;
+    const reparsed = parseYaml(InstanceSerializer.toYaml(driver.fullData)) as Record<string, any>;
     expect(reparsed.children._f.value).toBe('some text');
   });
 
@@ -253,7 +253,7 @@ describe('the YAML a host page can ask for instead', () => {
   });
 
   it('produces YAML, not JSON', () => {
-    const yaml = InstanceSerializer.toYaml(filled(0, 'single').dataContext.instanceFullData);
+    const yaml = InstanceSerializer.toYaml(filled(0, 'single').fullData);
     expect(yaml.trimStart().startsWith('{'), 'that is JSON').toBe(false);
     expect(yaml).toContain('_f:');
   });

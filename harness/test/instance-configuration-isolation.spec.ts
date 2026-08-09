@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DataContext } from '../../src/app/modules/shared/util/data-context';
 import { HandlerContext } from '../../src/app/modules/shared/util/handler-context';
 import { IriPrefix } from '../../src/app/modules/shared/util/iri-prefix';
+import type { InstanceObject } from '@cee/models/instance-node.model';
 
 const messages = {
   trace: (): void => undefined,
@@ -33,8 +34,8 @@ describe('editor-instance configuration isolation', () => {
     firstPrefix.set('https://first.example/');
     secondPrefix.set('https://second.example/');
 
-    const firstElement = {};
-    const secondElement = {};
+    const firstElement: InstanceObject = {};
+    const secondElement: InstanceObject = {};
     // Build from the first context only after the second editor has changed its
     // configuration. A static prefix made both IDs use the second value.
     second.dataObjectBuilderService.addRandomAtId(secondElement);

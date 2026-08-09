@@ -11,7 +11,7 @@ import { CedarTemplate } from '../models/template/cedar-template.model';
 import * as _ from 'lodash-es';
 import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
-import { InstanceExtractData } from '../models/instance-extract-data.model';
+import { InstanceObject } from '../models/instance-node.model';
 import { InstanceCardinalityReader } from './instance-cardinality-reader';
 import { ModelLibraryInstanceReader } from './model-library-instance-reader';
 
@@ -84,7 +84,8 @@ export class MultiInstanceObjectHandler {
 
   buildNewOrFromMetadata(
     templateRepresentation: TemplateComponent,
-    instance: InstanceExtractData = null,
+    /** The instance root, which is a JSON-LD document and so always an object. */
+    instance: InstanceObject | null = null,
     instanceReader: InstanceCardinalityReader = MultiInstanceObjectHandler.defaultInstanceReader,
   ): MultiInstanceInfo {
     instanceReader = instanceReader ?? MultiInstanceObjectHandler.defaultInstanceReader;

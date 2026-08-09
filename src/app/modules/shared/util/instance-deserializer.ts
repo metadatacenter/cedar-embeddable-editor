@@ -9,7 +9,6 @@ import {
   TemplateInstance,
   JsonNode,
 } from 'cedar-model-typescript-library';
-import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { InstanceNode, InstanceObject } from '../models/instance-node.model';
 
 /**
@@ -51,7 +50,7 @@ export class InstanceDeserializer {
   static read(
     instanceJson: InstanceObject,
     report?: (message: string) => void,
-  ): { full: InstanceObject; extract: InstanceExtractData } {
+  ): { full: InstanceObject; extract: InstanceObject } {
     const instance = CedarReaders.json()
       .getFebruary2024()
       .getTemplateInstanceReader()

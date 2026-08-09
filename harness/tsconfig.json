@@ -4,8 +4,21 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "lib": ["ES2022", "DOM"],
-    "strict": false,
-    "noImplicitAny": false,
+    /*
+     * On, like the root projects. This declares its own options rather than
+     * extending `tsconfig.base.json`, for the `paths` reason given below — which
+     * meant the claim that the repository is strict throughout had a hole in the
+     * one project written to outlive framework upgrades.
+     *
+     * Turning it on reported 94 errors: 57 possibly-null or possibly-undefined,
+     * 28 implicit-`any` index reads, and 9 argument and overload mismatches.
+     * Almost all of them were one shape — a spec reaching into
+     * `driver.dataContext.instanceFullData`, which is `InstanceObject | null`,
+     * and then indexing an `InstanceNode` union that a key cannot address. The
+     * fix is `harness/src/nodes.ts`, which navigates through the model's own
+     * guards and fails with the path when the shape is not what the spec claims.
+     */
+    "strict": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": false,
     "esModuleInterop": true,

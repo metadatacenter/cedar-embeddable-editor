@@ -17,6 +17,22 @@ interface AuthorityEndpoints {
 }
 
 /**
+ * What an authority's search endpoint answers with, before it becomes terms.
+ *
+ * Every field optional, and `results` in either of the two shapes seen in the
+ * wild: an object keyed by IRI, or a list of terms already. This is the raw
+ * document, not CEE's model of it — `toItems` is the conversion, and holding the
+ * payload as `any` was what let that function read whatever it liked.
+ */
+interface AuthoritySearchPayload {
+  found?: boolean;
+  results?:
+    | Record<string, { name?: string; details?: string } | null | undefined>
+    | AuthoritySearchResponseItem[]
+    | null;
+}
+
+/**
  * Search and resolve against any external authority.
  *
  * Replaces seven services — ORCID, ROR, PFAS, PubMed, RRID, NIH Grant, DOI —
@@ -57,8 +73,7 @@ export class ExternalAuthorityLookupService {
 
     return timer(randomDelay).pipe(
       switchMap(() =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        this.http.get<any>(url, { params }).pipe(
+        this.http.get<AuthoritySearchPayload>(url, { params }).pipe(
           map((response) => ({
             found: response?.found,
             results: ExternalAuthorityLookupService.toItems(response),
@@ -92,8 +107,7 @@ export class ExternalAuthorityLookupService {
    * costs nothing, and a branch on input type here would be the first crack in
    * the thing being removed.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static toItems(response: any): AuthoritySearchResponseItem[] {
+  private static toItems(response: AuthoritySearchPayload | null): AuthoritySearchResponseItem[] {
     const results = response?.results;
     if (results === null || results === undefined) {
       return [];
@@ -101,7 +115,7 @@ export class ExternalAuthorityLookupService {
     // Already a list of terms: some endpoints answer that way, and the widgets
     // all guarded for it before passing results on.
     if (Array.isArray(results)) {
-      return results as AuthoritySearchResponseItem[];
+      return results;
     }
     return Object.keys(results).map(
       (key) =>

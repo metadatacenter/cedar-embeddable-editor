@@ -35,41 +35,93 @@ const componentFor = (kind: FieldKind) =>
   new CeeDriver(buildTemplate({ name: kind.key, children: [{ kind, name: 'f' }] })).findOrThrow(['_f']);
 
 /** Run the adapter the way Angular would. */
-const errorsFor = (kind: FieldKind, value: unknown): Record<string, any> | null =>
-  CedarValidators.forComponent(componentFor(kind))({ value } as any) as any;
+/** One error detail: the validator's message and the value that produced it. */
+interface ErrorDetail {
+  message: string;
+  value: unknown;
+}
+
+/**
+ * What `forComponent`'s validator takes, without naming `@angular/forms`.
+ *
+ * The harness stubs `@angular/core` and imports no Angular package of its own,
+ * so `AbstractControl` is derived from the function under test rather than
+ * imported. A control here only ever carries a `value`.
+ */
+type ValidatedControl = Parameters<ReturnType<typeof CedarValidators.forComponent>>[0];
+
+const errorsFor = (kind: FieldKind, value: unknown): Record<string, ErrorDetail> | null =>
+  CedarValidators.forComponent(componentFor(kind))({ value } as unknown as ValidatedControl) as Record<
+    string,
+    ErrorDetail
+  > | null;
+
+/**
+ * The errors a value produces, when the point of the case is that it produces
+ * some.
+ *
+ * `forComponent` answers null for a value that satisfies every constraint, so a
+ * case asserting which code came back is also asserting that something did. That
+ * belongs in one sentence rather than as a null dereference inside
+ * `Object.keys`.
+ */
+const failuresFor = (kind: FieldKind, value: unknown): Record<string, ErrorDetail> => {
+  const errors = errorsFor(kind, value);
+  if (errors === null) {
+    throw new Error(`Expected ${JSON.stringify(value)} to fail validation on a ${kind.inputType} field. It passed.`);
+  }
+  return errors;
+};
 
 describe('the adapter reports the same problems as the report', () => {
   it.each([
     ['a malformed email', () => kindOf('email', () => CedarBuilders.emailFieldBuilder()), 'not-an-email', 'email'],
     [
       'text under minLength',
-      () => kindOf('textfield', () => CedarBuilders.textFieldBuilder(), (b) => b.withMinLength(8)),
+      () =>
+        kindOf(
+          'textfield',
+          () => CedarBuilders.textFieldBuilder(),
+          (b) => b.withMinLength(8),
+        ),
       'abc',
       'minLength',
     ],
     [
       'a regex mismatch',
-      () => kindOf('textfield', () => CedarBuilders.textFieldBuilder(), (b) => b.withRegex('^[A-Z]{3}$')),
+      () =>
+        kindOf(
+          'textfield',
+          () => CedarBuilders.textFieldBuilder(),
+          (b) => b.withRegex('^[A-Z]{3}$'),
+        ),
       'zzz',
       'regex',
     ],
     [
       'a numeric type mismatch',
-      () => kindOf('numeric', () => CedarBuilders.numericFieldBuilder(), (b) => b.withNumberType(NumberType.INT)),
+      () =>
+        kindOf(
+          'numeric',
+          () => CedarBuilders.numericFieldBuilder(),
+          (b) => b.withNumberType(NumberType.INT),
+        ),
       '3.7',
       'numberType',
     ],
     [
       'a numeric out of range',
       () =>
-        kindOf('numeric', () => CedarBuilders.numericFieldBuilder(), (b) =>
-          b.withNumberType(NumberType.INT).withMaxValue(10),
+        kindOf(
+          'numeric',
+          () => CedarBuilders.numericFieldBuilder(),
+          (b) => b.withNumberType(NumberType.INT).withMaxValue(10),
         ),
       '999',
       'maxValue',
     ],
   ])('%s produces the %s error', (_label, make, value, code) => {
-    expect(Object.keys(errorsFor(make(), value))).toContain(code);
+    expect(Object.keys(failuresFor(make(), value))).toContain(code);
   });
 
   it('returns null for a value that satisfies every constraint', () => {
@@ -98,37 +150,56 @@ describe('legacy error keys still fire', () => {
   it.each([
     [
       'minlength',
-      () => kindOf('textfield', () => CedarBuilders.textFieldBuilder(), (b) => b.withMinLength(8)),
+      () =>
+        kindOf(
+          'textfield',
+          () => CedarBuilders.textFieldBuilder(),
+          (b) => b.withMinLength(8),
+        ),
       'abc',
     ],
     [
       'maxlength',
-      () => kindOf('textfield', () => CedarBuilders.textFieldBuilder(), (b) => b.withMaxLength(2)),
+      () =>
+        kindOf(
+          'textfield',
+          () => CedarBuilders.textFieldBuilder(),
+          (b) => b.withMaxLength(2),
+        ),
       'abcdef',
     ],
     [
       'pattern',
-      () => kindOf('textfield', () => CedarBuilders.textFieldBuilder(), (b) => b.withRegex('^[A-Z]+$')),
+      () =>
+        kindOf(
+          'textfield',
+          () => CedarBuilders.textFieldBuilder(),
+          (b) => b.withRegex('^[A-Z]+$'),
+        ),
       'lower',
     ],
     [
       'max',
       () =>
-        kindOf('numeric', () => CedarBuilders.numericFieldBuilder(), (b) =>
-          b.withNumberType(NumberType.INT).withMaxValue(10),
+        kindOf(
+          'numeric',
+          () => CedarBuilders.numericFieldBuilder(),
+          (b) => b.withNumberType(NumberType.INT).withMaxValue(10),
         ),
       '99',
     ],
     [
       'min',
       () =>
-        kindOf('numeric', () => CedarBuilders.numericFieldBuilder(), (b) =>
-          b.withNumberType(NumberType.INT).withMinValue(10),
+        kindOf(
+          'numeric',
+          () => CedarBuilders.numericFieldBuilder(),
+          (b) => b.withNumberType(NumberType.INT).withMinValue(10),
         ),
       '1',
     ],
   ])('%s', (alias, make, value) => {
-    expect(Object.keys(errorsFor(make(), value))).toContain(alias);
+    expect(Object.keys(failuresFor(make(), value))).toContain(alias);
   });
 
   /**
@@ -157,22 +228,29 @@ describe('legacy error keys still fire', () => {
     ['ext-nih-grant-id', () => CedarBuilders.extNihGrantIdFieldBuilder(), 'invalidNihGrant'],
     ['ext-doi', () => CedarBuilders.extDoiFieldBuilder(), 'invalidDoi'],
   ])('a stored %s value that is not an IRI reports %s', (inputType, make, key) => {
-    const errors = errorsFor(kindOf(inputType, make), 'not-an-iri');
+    const errors = failuresFor(kindOf(inputType, make), 'not-an-iri');
     expect(Object.keys(errors)).toContain(key);
     expect(Object.keys(errors)).toContain('iriMalformed');
   });
 
   it('accepts a well-formed authority IRI', () => {
-    expect(errorsFor(kindOf('ext-doi', () => CedarBuilders.extDoiFieldBuilder()), 'https://doi.org/10.1000/x')).toBeNull();
+    expect(
+      errorsFor(
+        kindOf('ext-doi', () => CedarBuilders.extDoiFieldBuilder()),
+        'https://doi.org/10.1000/x',
+      ),
+    ).toBeNull();
   });
 });
 
 describe('error details', () => {
   it('carries the validator message and the offending value', () => {
-    const kind = kindOf('numeric', () => CedarBuilders.numericFieldBuilder(), (b) =>
-      b.withNumberType(NumberType.INT).withMaxValue(10),
+    const kind = kindOf(
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => b.withNumberType(NumberType.INT).withMaxValue(10),
     );
-    const errors = errorsFor(kind, '99');
+    const errors = failuresFor(kind, '99');
     expect(errors['maxValue'].message).toContain('10');
     expect(errors['maxValue'].value).toBe('99');
   });
@@ -203,13 +281,19 @@ describe('numeric hint text', () => {
     [NumberType.DOUBLE, 'double'],
     [NumberType.DECIMAL, 'decimal'],
   ])('describes %s', (type, expected) => {
-    const kind = kindOf('numeric', () => CedarBuilders.numericFieldBuilder(), (b) => b.withNumberType(type));
+    const kind = kindOf(
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => b.withNumberType(type),
+    );
     expect(CedarValidators.describeNumberType(componentFor(kind))).toContain(expected);
   });
 
   it('mentions the decimal limit when one is declared', () => {
-    const kind = kindOf('numeric', () => CedarBuilders.numericFieldBuilder(), (b) =>
-      b.withNumberType(NumberType.DOUBLE).withDecimalPlaces(3),
+    const kind = kindOf(
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => b.withNumberType(NumberType.DOUBLE).withDecimalPlaces(3),
     );
     expect(CedarValidators.describeNumberType(componentFor(kind))).toContain('3 decimals');
   });

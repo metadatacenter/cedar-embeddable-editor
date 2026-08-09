@@ -8,6 +8,8 @@ import { AUTHORITY_DESCRIPTORS } from '../../models/authority/authority-descript
 import { IriPrefix } from '../../util/iri-prefix';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
+import { HandlerContext } from '../../util/handler-context';
+import { DataContext } from '../../util/data-context';
 
 /**
  * The `config` object is the CEE's host-facing API, and its setter is the one
@@ -26,20 +28,25 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     setEndpoints: (...args: unknown[]) => void = (): void => undefined,
   ): CedarEmbeddableMetadataEditorComponent =>
     new CedarEmbeddableMetadataEditorComponent(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      null as any, // activeComponentRegistry — untouched by the config setter
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { setEndpoints } as any, // externalAuthorityLookupService
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { trace: (): void => undefined } as any, // messageHandlerService
+      // `as unknown as T` throughout, not `as any`. A stub only needs the members
+      // the test exercises, but naming the target type keeps the constructor's
+      // shape in the test: change a parameter and the double stops compiling.
+      null as unknown as ActiveComponentRegistryService, // untouched by the config setter
+      { setEndpoints } as unknown as ExternalAuthorityLookupService,
+      { trace: (): void => undefined } as unknown as MessageHandlerService,
       new IriPrefix(),
       // A real one: it holds a boolean and nothing else, so a stub would be more
       // code than the thing it replaces.
       new TemplateTrustService(),
     );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const field = (component: CedarEmbeddableMetadataEditorComponent, name: string): any =>
+  /**
+   * Read a field by name, including the ones the class does not expose.
+   *
+   * `unknown`, so every assertion below has to say what it expects rather than
+   * being handed a value that satisfies anything.
+   */
+  const field = (component: CedarEmbeddableMetadataEditorComponent, name: string): unknown =>
     (component as unknown as Record<string, unknown>)[name];
 
   // For every boolean display flag the config key and the field it sets share a
@@ -213,19 +220,14 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       const clear = vi.fn();
       const setInputTemplate = vi.fn();
       const component = new CedarEmbeddableMetadataEditorComponent(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { clear } as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { setEndpoints: (): void => undefined } as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { trace: (): void => undefined } as any,
+        { clear } as unknown as ActiveComponentRegistryService,
+        { setEndpoints: (): void => undefined } as unknown as ExternalAuthorityLookupService,
+        { trace: (): void => undefined } as unknown as MessageHandlerService,
         new IriPrefix(),
         new TemplateTrustService(),
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      component.handlerContext = { hideEmptyFields: false } as any;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      component.dataContext = { setInputTemplate, instanceFullData: {} } as any;
+      component.handlerContext = { hideEmptyFields: false } as unknown as HandlerContext;
+      component.dataContext = { setInputTemplate, instanceFullData: {} } as unknown as DataContext;
       return { component, clear, setInputTemplate };
     };
 

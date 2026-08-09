@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
+import { CeeEventHandler } from '../../../../cee-public-api';
 import { Subject } from 'rxjs';
 import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
 import { map, takeUntil, withLatestFrom } from 'rxjs/operators';
@@ -323,7 +324,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     }
   }
 
-  @Input() set eventHandler(value: object) {
+  @Input() set eventHandler(value: CeeEventHandler) {
     this.messageHandlerService.injectEventHandler(value);
   }
 

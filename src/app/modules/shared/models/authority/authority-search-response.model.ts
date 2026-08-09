@@ -12,23 +12,36 @@ import { JsonSchema } from 'cedar-model-typescript-library';
 export interface AuthoritySearchResponseItem {
   [JsonSchema.atId]: string;
   [JsonSchema.rdfsLabel]: string;
-  /**
-   * The authority's own record for this term, when the widget shows one.
-   *
-   * Deliberately untyped here. ORCID and ROR each render a panel from a document
-   * with its own shape, and those two components know what they asked for; the
-   * five simple authorities never look at it.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  details?: any;
   /** ORCID's search results carry a details URL alongside the term. */
   _details?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  researcherDetails?: any;
 }
 
+/*
+ * Why there is no `details` here.
+ *
+ * There were two members, `details?: any` and `researcherDetails?: any`, and
+ * nothing read either through this type: ORCID and ROR render their panels from
+ * `OrcidSearchResponseItem.researcherDetails` and `RorSearchResponseItem.details`,
+ * which are typed, and the five simple authorities never look at a record at all.
+ * The base `filter` wrote `details` and no one collected it.
+ *
+ * They could not be typed where they stood, either. `JsonSchema.atId` is declared
+ * `static atId: string` rather than as a literal, so `[JsonSchema.atId]: string`
+ * above is an index signature over every string key instead of one named property
+ * — see the note in `orcid-search-response-item.ts`. Every other member joins that
+ * signature's type, and the two subtypes above stay interchangeable with this one
+ * only while it stays `string`. `any` was what let an object sit under a signature
+ * that says `string`; a real type here breaks the two subtypes instead. Literal key
+ * constants in the model library remove the whole problem.
+ */
+
 export interface AuthoritySearchResponse {
-  found: boolean;
+  /**
+   * Optional, because it is whatever the authority said. A response that omits
+   * it is treated as a hit — every consumer tests `found === false` rather than
+   * falsiness, which is what lets a terse endpoint answer with results alone.
+   */
+  found: boolean | undefined;
   results: Array<AuthoritySearchResponseItem>;
 }
 

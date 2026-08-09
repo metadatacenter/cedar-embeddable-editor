@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CedarReaders } from 'cedar-model-typescript-library';
+import { CedarReaders, JsonNode } from 'cedar-model-typescript-library';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, EMPTY, from, Observable, of, Subject } from 'rxjs';
 import { catchError, concatMap, map, takeUntil } from 'rxjs/operators';
@@ -220,8 +220,10 @@ export class SampleTemplatesService {
           const parsed = CedarReaders.json()
             .getFebruary2024()
             .getTemplateReader()
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .readFromObject(response as any).template;
+            // `JsonNode` is the library's name for a parsed JSON object.
+            // `HttpClient.get` answers `object`, which differs from it only in
+            // not declaring the index signature that makes it one.
+            .readFromObject(response as JsonNode).template;
           return parsed.schema_name || null;
         } catch {
           return null;

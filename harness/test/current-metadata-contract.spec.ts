@@ -32,7 +32,7 @@ const CONTROLLED = FIELD_KINDS.find((k) => k.key === 'controlled')!;
 
 /** `currentMetadata` as the host reads it: the working tree, through the writer. */
 const currentMetadata = (driver: CeeDriver): Record<string, unknown> =>
-  InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
+  InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
 
 describe('currentMetadata for a not-yet-created instance', () => {
   const fresh = () => {

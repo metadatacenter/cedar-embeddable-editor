@@ -15,6 +15,7 @@ import { AuthoritySearchControl } from '../../../shared/util/authority-search-co
 import { AuthorityDescriptor } from '../../../shared/models/authority/authority-descriptor.model';
 import { AuthoritySearchResponseItem } from '../../../shared/models/authority/authority-search-response.model';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
+import { isInstanceObject } from '../../../shared/models/instance-node.model';
 
 export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -141,8 +142,11 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
         startWith(''),
         debounceTime(400),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        map((v: any) => (typeof v === 'string' ? v : v?.[JsonSchema.rdfsLabel] ?? '')),
+        // The control holds text, never a term: every `mat-option` in the three
+        // templates that drive this binds `[value]` to a compound string. The
+        // read this replaces also handled an option object, which is what the
+        // seven services it came from did before that was true.
+        map((v: string | null) => v ?? ''),
         map((v: string) => v.trim()),
         distinctUntilChanged(),
         switchMap((query: string) => {
@@ -175,8 +179,9 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
       this.trigger?.panelClosingActions.subscribe((event) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const selectionMode = !!event && !!(event as any).source;
+        // `panelClosingActions` emits the option-selection event that closed the
+        // panel, or null when something else did. `source` is the option.
+        const selectionMode = !!event?.source;
         // A press that closed the panel without choosing anything — dragged off
         // the option, or a click outside — leaves the flag set otherwise, and
         // the next blur would find it and decline to reconcile forever.
@@ -195,20 +200,22 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    * A template may name a term to start with, as `{@id, rdfs:label}`.
    */
   private applyDefaultValue(): void {
-    const defaultValue = this.component?.valueInfo?.defaultValue;
-    if (
-      defaultValue &&
-      typeof defaultValue === 'object' &&
-      Object.hasOwn(defaultValue as object, JsonSchema.atId) &&
-      Object.hasOwn(defaultValue as object, JsonSchema.rdfsLabel)
-    ) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const asTerm = defaultValue as any;
-      const atId = asTerm[JsonSchema.atId] || null;
-      const label = asTerm[JsonSchema.rdfsLabel] || null;
-      this.inputValueControl.setValue(label);
-      this.handlerContext.changeControlledValue(this.component, atId, label);
+    const defaultValue = this.component?.valueInfo?.defaultValue ?? null;
+    // A guard, not a cast: `isInstanceObject` is the same test the rest of CEE
+    // uses to tell a container from a leaf, and it is what makes the two reads
+    // below legitimate rather than asserted.
+    if (!isInstanceObject(defaultValue)) {
+      return;
     }
+    const atId = defaultValue[JsonSchema.atId];
+    const label = defaultValue[JsonSchema.rdfsLabel];
+    if (typeof atId !== 'string' || typeof label !== 'string') {
+      return;
+    }
+    // `|| null` as before: a term declaring an empty `@id` or label is not a
+    // term, and setting it would put an empty selection on the field.
+    this.inputValueControl.setValue(label || null);
+    this.handlerContext.changeControlledValue(this.component, atId || null, label || null);
   }
 
   /**
@@ -227,7 +234,14 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     }
     this.selectionInProgress = false;
     this.selectedData = option;
-    this.handlerContext.changeControlledValue(this.component, option[JsonSchema.atId], option[JsonSchema.rdfsLabel]);
+    // `?? null`, because reading through `JsonSchema.atId` goes through the
+    // interface's implicit index signature rather than the named member, so it
+    // answers `string | undefined` however the member is declared.
+    this.handlerContext.changeControlledValue(
+      this.component,
+      option[JsonSchema.atId] ?? null,
+      option[JsonSchema.rdfsLabel] ?? null,
+    );
   }
 
   inputChanged(event: Event): void {
@@ -351,11 +365,13 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
           if (!response || response.found === false) {
             return [];
           }
+          // The resolved record itself is not carried on the term. It was, as
+          // `details`, and nothing on this path ever read it — the two widgets
+          // that show a record fetch it themselves into their own typed field.
           return [
             {
               [JsonSchema.atId]: response.id,
               [JsonSchema.rdfsLabel]: response.name,
-              details: response,
             } as AuthoritySearchResponseItem,
           ];
         }),

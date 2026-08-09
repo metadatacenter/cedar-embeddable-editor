@@ -1,15 +1,31 @@
 import {
+  AbstractChildDeploymentInfo,
   AbstractContainerArtifact,
   AbstractDynamicChildDeploymentInfo,
+  BooleanField,
   CedarArtifactType,
   CedarFieldType,
   CedarReaders,
   CedarWriters,
+  CheckboxField,
+  ComparisonError,
+  ControlledTermField,
+  JsonNode,
   JsonTemplateInstanceContent,
   ChildDeploymentInfo,
+  MultipleChoiceListField,
+  NumericField,
+  RadioField,
+  SingleChoiceListField,
+  StaticImageField,
+  StaticRichTextField,
+  StaticYoutubeField,
   Template,
   TemplateElement,
   TemplateField,
+  TemporalField,
+  TextArea,
+  TextField,
 } from 'cedar-model-typescript-library';
 import { CedarComponent } from '../models/component/cedar-component.model';
 import { MultiElementComponent } from '../models/element/multi-element-component.model';
@@ -27,12 +43,79 @@ import { LabelInfo } from '../models/info/label-info.model';
 import { HandlerContext } from '../util/handler-context';
 import { TemplateParser } from './template-parser';
 import { InstanceObject } from '../models/instance-node.model';
+import { MultiComponent } from '../models/component/multi-component.model';
 
 /**
  * The reader's code for an `_ui.order` entry with no matching property. It is
  * the one blueprint finding that costs the user something they can see.
  */
 const ORPHAN_ORDER_ENTRY = 'jtr07';
+
+/**
+ * Which kind of field the model says this is.
+ *
+ * The library models a field's constraints on a per-kind interface —
+ * `NumericField.valueConstraints` is a `ValueConstraintsNumericField`, and the
+ * base `ValueConstraints` every `TemplateField` declares is empty — so reading a
+ * bound means first establishing which kind is in hand. These do that against
+ * `cedarFieldType`, which is the same discriminant the reader itself branches on
+ * when it decides which constraint object to build. A guard rather than a cast:
+ * the check is real, and it is the one the model already trusts.
+ *
+ * This replaced holding `valueConstraints` as `any`, which typed every bound as
+ * `any` and hid that the library returns an empty constraint object for the
+ * email, link, phone-number and `ext-*` kinds — so a default value or a length
+ * bound declared on one of those has never reached CEE.
+ */
+const isTextField = (field: TemplateField): field is TextField => field.cedarFieldType === CedarFieldType.TEXT;
+
+const isTextArea = (field: TemplateField): field is TextArea => field.cedarFieldType === CedarFieldType.TEXTAREA;
+
+const isNumericField = (field: TemplateField): field is NumericField => field.cedarFieldType === CedarFieldType.NUMERIC;
+
+const isTemporalField = (field: TemplateField): field is TemporalField =>
+  field.cedarFieldType === CedarFieldType.TEMPORAL;
+
+const isBooleanField = (field: TemplateField): field is BooleanField => field.cedarFieldType === CedarFieldType.BOOLEAN;
+
+const isControlledTermField = (field: TemplateField): field is ControlledTermField =>
+  field.cedarFieldType === CedarFieldType.CONTROLLED_TERM;
+
+const isCheckboxField = (field: TemplateField): field is CheckboxField =>
+  field.cedarFieldType === CedarFieldType.CHECKBOX;
+
+const isRadioField = (field: TemplateField): field is RadioField => field.cedarFieldType === CedarFieldType.RADIO;
+
+/** Both list kinds, which differ in cardinality and share every constraint. */
+const isListField = (field: TemplateField): field is SingleChoiceListField | MultipleChoiceListField =>
+  field.cedarFieldType === CedarFieldType.SINGLE_SELECT_LIST ||
+  field.cedarFieldType === CedarFieldType.MULTIPLE_SELECT_LIST;
+
+const isYoutubeField = (field: TemplateField): field is StaticYoutubeField =>
+  field.cedarFieldType === CedarFieldType.STATIC_YOUTUBE;
+
+/** The two static kinds that render something the template supplies. */
+const isStaticContentField = (field: TemplateField): field is StaticImageField | StaticRichTextField =>
+  field.cedarFieldType === CedarFieldType.STATIC_IMAGE || field.cedarFieldType === CedarFieldType.STATIC_RICH_TEXT;
+
+/** A component that carries occurrence bounds, which both multi halves do. */
+const isMultiComponent = (component: CedarComponent): component is MultiComponent =>
+  component instanceof MultiFieldComponent || component instanceof MultiElementComponent;
+
+/**
+ * The four controlled-term constraint kinds, as one element type.
+ *
+ * Derived from the exported `ControlledTermField` rather than named directly:
+ * the library exports the field interfaces and the builders, not the constraint
+ * entities, and reaching into its file layout to name them would tie CEE to a
+ * path rather than to the model.
+ */
+type ControlledConstraints = ControlledTermField['valueConstraints'];
+type ControlledConstraintEntry =
+  | ControlledConstraints['ontologies'][number]
+  | ControlledConstraints['valueSets'][number]
+  | ControlledConstraints['classes'][number]
+  | ControlledConstraints['branches'][number];
 
 /**
  * Builds CEE's component tree from the CEDAR Model TypeScript Library's parsed
@@ -79,8 +162,9 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     const result = CedarReaders.json()
       .getFebruary2024()
       .getTemplateReader()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .readFromObject(templateJson as any);
+      // `JsonNode` is the library's name for a parsed JSON object, and differs
+      // from `object` only in declaring the index signature that makes it one.
+      .readFromObject(templateJson as JsonNode);
 
     ModelLibraryTemplateParser.report(result.parsingResult.getBlueprintComparisonErrors(), handlerContext);
     ModelLibraryTemplateParser.mapParsedTemplate(result.template, template);
@@ -128,11 +212,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
    * does not define means something the template asked for is not on the
    * screen. The rest are traced.
    */
-  private static report(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    errors: any[],
-    handlerContext: HandlerContext,
-  ): void {
+  private static report(errors: ComparisonError[], handlerContext: HandlerContext): void {
     for (const error of errors) {
       if (error.errorLocation === ORPHAN_ORDER_ENTRY) {
         handlerContext.messageHandlerService.error(
@@ -176,25 +256,25 @@ export class ModelLibraryTemplateParser implements TemplateParser {
         ModelLibraryTemplateParser.wrap(element, r as ElementComponent, myPath);
         ModelLibraryTemplateParser.generateContext(element, r as AbstractElementComponent, false);
       } else if (childInfo.atType === CedarArtifactType.STATIC_TEMPLATE_FIELD) {
+        const staticField = child as TemplateField;
         const sfc = new StaticFieldComponent();
         sfc.basicInfo.inputType = childInfo.uiInputType.getValue();
-        // YouTube calls this value `videoId`; the other static content types
-        // call it `content`. They have no shared interface exposing either.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const staticField = child as any;
-        sfc.contentInfo.content =
-          sfc.basicInfo.inputType === InputType.youtube ? staticField.videoId : staticField.content;
-        // `_ui._size`, and only YouTube can carry it: the model library models
-        // `width`/`height` on `StaticYoutubeField` and not on
-        // `StaticImageField`, so an image's size is gone before it reaches
-        // here. Read off the same untyped `staticField` as `content` above, for
-        // the same reason — the two static kinds share no interface exposing
-        // either.
-        if (sfc.basicInfo.inputType === InputType.youtube) {
+        // YouTube calls this value `videoId`; image and rich text call it
+        // `content`; a page or section break has neither. They share no
+        // interface exposing any of it, so which kind this is decides which
+        // property exists to read.
+        if (isYoutubeField(staticField)) {
+          sfc.contentInfo.content = staticField.videoId ?? '';
+          // `_ui._size`, and only YouTube can carry it: the model library
+          // models `width`/`height` on `StaticYoutubeField` and not on
+          // `StaticImageField`, so an image's size is gone before it reaches
+          // here.
           sfc.contentInfo.width = staticField.width ?? null;
           sfc.contentInfo.height = staticField.height ?? null;
+        } else if (isStaticContentField(staticField)) {
+          sfc.contentInfo.content = staticField.content ?? '';
         }
-        ModelLibraryTemplateParser.extractLabels(child as TemplateField, childInfo, name, sfc);
+        ModelLibraryTemplateParser.extractLabels(staticField, childInfo, name, sfc);
         r = sfc;
       }
 
@@ -202,17 +282,15 @@ export class ModelLibraryTemplateParser implements TemplateParser {
         continue;
       }
 
-      if (isMulti) {
+      if (isMulti && isMultiComponent(r)) {
         // Every dynamic child answers these. For a checkbox, a multiple-choice
         // list or an attribute-value field the template usually leaves them out
         // and the model derives them from `requiredValue` — the same rule the
         // JSON writer applies, so what CEE reads matches what a round-trip
         // would emit.
         const multiInfo = childInfo as AbstractDynamicChildDeploymentInfo;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (r as any).multiInfo.minItems = multiInfo.minItems ?? null;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (r as any).multiInfo.maxItems = multiInfo.maxItems ?? null;
+        r.multiInfo.minItems = multiInfo.minItems ?? null;
+        r.multiInfo.maxItems = multiInfo.maxItems ?? null;
       }
 
       // A child the template marks `_ui.hidden` is kept and flagged, not
@@ -225,10 +303,8 @@ export class ModelLibraryTemplateParser implements TemplateParser {
       //
       // The renderer already skips a component whose `hidden` is set, so
       // marking it is enough to keep it off the screen.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const flaggable = r as any;
-      flaggable.hiddenInTemplate = childInfo.hidden === true;
-      flaggable.hidden = flaggable.hiddenInTemplate;
+      r.hiddenInTemplate = childInfo.hidden === true;
+      r.hidden = r.hiddenInTemplate;
       component.children.push(r);
       r.name = name;
       r.path = myPath;
@@ -296,55 +372,55 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     // parsed field.
     fc.valueInfo.requiredValue = childInfo.requiredValue;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const vc = field.valueConstraints as any;
-
-    if (fieldType === CedarFieldType.TEMPORAL) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const temporal = field as any;
-      fc.basicInfo.timezoneEnabled = temporal.timezoneEnabled === true;
-      fc.basicInfo.inputTimeFormat = temporal.inputTimeFormat?.getValue() ?? null;
-      fc.basicInfo.temporalGranularity = temporal.temporalGranularity?.getValue() ?? null;
-      fc.valueInfo.temporalType = vc?.temporalType?.getValue() ?? null;
-    }
-
-    if (vc == null) {
-      return;
+    if (isTemporalField(field)) {
+      fc.basicInfo.timezoneEnabled = field.timezoneEnabled === true;
+      fc.basicInfo.inputTimeFormat = field.inputTimeFormat.getValue();
+      fc.basicInfo.temporalGranularity = field.temporalGranularity.getValue();
+      fc.valueInfo.temporalType = field.valueConstraints.temporalType.getValue();
     }
 
     /*
-     * `?? null` throughout, because `vc` is the library's `valueConstraints` held as
-     * `any` and a constraint the template omits is simply not on it. The info models
-     * say null for an undeclared bound, so the conversion belongs here — at the one
-     * place that reads the raw JSON — rather than in each of the nine widgets and
-     * validators that go on to ask what the bound is.
+     * `?? null` throughout, because a constraint the template omits is simply not
+     * on the object the library built. The info models say null for an undeclared
+     * bound, so the conversion belongs here — at the one place that reads the
+     * model — rather than in each of the nine widgets and validators that go on to
+     * ask what the bound is.
+     *
+     * Each read sits under the guard for the kind that declares it. That is not a
+     * narrowing of what CEE reads: the four kinds below are the only ones the
+     * library gives a constraint object carrying these at all.
      */
-    fc.valueInfo.defaultValue = vc.defaultValue ?? null;
-    fc.valueInfo.minLength = vc.minLength ?? null;
-    fc.valueInfo.maxLength = vc.maxLength ?? null;
-    fc.valueInfo.regex = vc.regex ?? null;
-
-    if (fieldType === CedarFieldType.NUMERIC) {
-      fc.numberInfo.numberType = vc.numberType?.getValue() ?? null;
-      fc.numberInfo.unitOfMeasure = vc.unitOfMeasure ?? null;
-      fc.numberInfo.minValue = vc.minValue ?? null;
-      fc.numberInfo.maxValue = vc.maxValue ?? null;
-      // The model spells it `decimalPlaces`; CEE's ValueInfo spells it
-      // `decimalPlace`, matching the JSON key.
-      fc.numberInfo.decimalPlace = vc.decimalPlaces ?? null;
+    if (isTextField(field) || isTextArea(field) || isListField(field) || isBooleanField(field)) {
+      fc.valueInfo.defaultValue = field.valueConstraints.defaultValue ?? null;
     }
 
-    if (Array.isArray(vc.literals)) {
-      for (const literal of vc.literals) {
+    if (isTextField(field)) {
+      fc.valueInfo.minLength = field.valueConstraints.minLength ?? null;
+      fc.valueInfo.maxLength = field.valueConstraints.maxLength ?? null;
+      fc.valueInfo.regex = field.valueConstraints.regex ?? null;
+    }
+
+    if (isNumericField(field)) {
+      fc.numberInfo.numberType = field.valueConstraints.numberType.getValue();
+      fc.numberInfo.unitOfMeasure = field.valueConstraints.unitOfMeasure ?? null;
+      fc.numberInfo.minValue = field.valueConstraints.minValue ?? null;
+      fc.numberInfo.maxValue = field.valueConstraints.maxValue ?? null;
+      // The model spells it `decimalPlaces`; CEE's ValueInfo spells it
+      // `decimalPlace`, matching the JSON key.
+      fc.numberInfo.decimalPlace = field.valueConstraints.decimalPlaces ?? null;
+    }
+
+    if (isCheckboxField(field) || isRadioField(field) || isListField(field)) {
+      for (const literal of field.valueConstraints.literals) {
         fc.choiceInfo.choices.push(new ChoiceOption(literal.label ?? '', literal.selectedByDefault === true));
       }
     }
-    // Only list fields carry it, and only the select widget reads it.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    fc.choiceInfo.multipleChoice = (field as any).multipleChoice === true;
 
-    if (fieldType === CedarFieldType.CONTROLLED_TERM) {
-      ModelLibraryTemplateParser.extractControlledInfo(vc, fc);
+    // Only list fields carry it, and only the select widget reads it.
+    fc.choiceInfo.multipleChoice = isListField(field) && field.multipleChoice === true;
+
+    if (isControlledTermField(field)) {
+      ModelLibraryTemplateParser.extractControlledInfo(field.valueConstraints, fc);
     }
   }
 
@@ -359,15 +435,10 @@ export class ModelLibraryTemplateParser implements TemplateParser {
    * on only some ontologies, and inventing `numTerms: null` for the rest would
    * change the request body.
    */
-  private static extractControlledInfo(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vc: any,
-    fc: FieldComponent,
-  ): void {
+  private static extractControlledInfo(vc: ControlledConstraints, fc: FieldComponent): void {
     const writers = CedarWriters.json().getStrict();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const asJson = (list: any[]): object[] =>
-      (list ?? []).map((entry) => writers.getWriterForValueConstraint(entry).getAsJsonNode(entry));
+    const asJson = (list: readonly ControlledConstraintEntry[]): object[] =>
+      list.map((entry) => writers.getWriterForValueConstraint(entry).getAsJsonNode(entry));
 
     fc.controlledInfo.ontologies = asJson(vc.ontologies);
     fc.controlledInfo.valueSets = asJson(vc.valueSets);
@@ -377,9 +448,8 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     if (vc.defaultValue != null) {
       fc.valueInfo.defaultValue = {
         'rdfs:label': vc.defaultValue.rdfsLabel,
-        termUri: vc.defaultValue.termUri?.getValue(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any;
+        termUri: vc.defaultValue.termUri.getValue(),
+      };
     } else {
       // Null, not undefined: a field with no declared default holds nothing, and
       // `ValueInfo.defaultValue` says `string | InstanceObject | null`.
@@ -403,13 +473,11 @@ export class ModelLibraryTemplateParser implements TemplateParser {
    */
   private static extractLabels(
     artifact: TemplateField | TemplateElement,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    childInfo: any,
+    childInfo: AbstractChildDeploymentInfo,
     name: string,
     fc: { labelInfo: LabelInfo },
   ): void {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    fc.labelInfo.preferredLabel = (artifact as any).skos_prefLabel ?? null;
+    fc.labelInfo.preferredLabel = artifact.skos_prefLabel ?? null;
     fc.labelInfo.description = artifact.schema_description;
     fc.labelInfo.label = artifact.schema_name;
 

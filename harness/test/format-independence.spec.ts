@@ -108,10 +108,11 @@ const withoutUnexpressibleSlots = (fromYamlSide: unknown, fromJsonSide: unknown)
     fromJsonSide !== null &&
     typeof fromJsonSide === 'object'
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const out: any = {};
-    for (const key of Object.keys(fromYamlSide)) {
-      out[key] = withoutUnexpressibleSlots(fromYamlSide[key], (fromJsonSide as never)[key]);
+    const yamlSide = fromYamlSide as Record<string, unknown>;
+    const jsonSide = fromJsonSide as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const key of Object.keys(yamlSide)) {
+      out[key] = withoutUnexpressibleSlots(yamlSide[key], jsonSide[key]);
     }
     return out;
   }
@@ -168,9 +169,7 @@ describe('what that demonstrates', () => {
    * trivially — two empty trees are equal.
    */
   it('the YAML side actually renders fields', () => {
-    const rendered = paired
-      .map((p) => describeTree(fromYaml(p.yaml).representation).length)
-      .reduce((a, b) => a + b, 0);
+    const rendered = paired.map((p) => describeTree(fromYaml(p.yaml).representation).length).reduce((a, b) => a + b, 0);
     expect(rendered, 'the YAML parser produced no components at all').toBeGreaterThan(100);
   });
 

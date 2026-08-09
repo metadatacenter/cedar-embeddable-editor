@@ -20,10 +20,9 @@ import { catchLookupFailure } from '@cee/util/lookup-failure';
  * autocomplete stayed dead for the rest of the session.
  */
 describe('catchLookupFailure', () => {
-  const collect = <T>(source: { subscribe: (o: unknown) => unknown }): { values: T[]; errored: boolean } => {
+  const collect = <T>(source: Observable<T>): { values: T[]; errored: boolean } => {
     const seen = { values: [] as T[], errored: false };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (source as any).subscribe({
+    source.subscribe({
       next: (v: T) => seen.values.push(v),
       error: () => (seen.errored = true),
     });

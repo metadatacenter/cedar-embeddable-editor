@@ -109,10 +109,8 @@ export class TemplateRepresentationFactory {
       // so without the guard a template-hidden field carrying a value would be
       // revealed by it. `ActiveComponentRegistryService.setVisibility` makes
       // the same distinction; the two run at different moments.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((child as any).hiddenInTemplate) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (child as any).hidden = true;
+      if (child.hiddenInTemplate) {
+        child.hidden = true;
         continue;
       }
       if (child instanceof SingleFieldComponent || child instanceof MultiFieldComponent) {

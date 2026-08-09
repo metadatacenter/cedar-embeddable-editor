@@ -3,8 +3,9 @@ import {
   InstanceDataAttributeValueField,
   InstanceDataContainer,
   InstanceDataEmptyNode,
+  JsonNode,
 } from 'cedar-model-typescript-library';
-import { InstanceExtractData } from '../models/instance-extract-data.model';
+import { InstanceObject } from '../models/instance-node.model';
 import { indexSegment, InstanceCardinalityReader } from './instance-cardinality-reader';
 
 /**
@@ -19,17 +20,19 @@ import { indexSegment, InstanceCardinalityReader } from './instance-cardinality-
  * its names and values already paired up. Reading the counts off that model
  * removes the guesswork rather than reimplementing it more carefully.
  *
- * The counts and paths this emits must match `JsonWalkInstanceReader`
- * exactly; `CEE_INSTANCE_READER=json-walk` runs the whole harness against the
- * other one.
+ * The counts and paths this emits were required to match the hand-written walk
+ * exactly, and did; that walk has since been removed.
  */
 export class ModelLibraryInstanceReader implements InstanceCardinalityReader {
-  read(instance: InstanceExtractData, emit: (path: string[], count: number) => void): void {
+  read(instance: InstanceObject, emit: (path: string[], count: number) => void): void {
     const result = CedarReaders.json()
       .getFebruary2024()
       .getTemplateInstanceReader()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .readFromObject(instance as any, undefined as never);
+      // `JsonNode` is the library's name for a parsed JSON object, and differs
+      // from `InstanceObject` only in how it says a value may be anything JSON
+      // holds. The second parameter is the path to read at, and is optional —
+      // it was being passed `undefined as never` to satisfy the untyped call.
+      .readFromObject(instance as JsonNode);
     ModelLibraryInstanceReader.walk(result.instance.dataContainer, [], emit);
   }
 

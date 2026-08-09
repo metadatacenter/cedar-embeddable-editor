@@ -28,6 +28,7 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { InstanceValueNode } from '@cee/util/instance-value-node';
 import { CeeDriver, normalize } from '../src/driver';
+import { arrayAt, infoOf } from '../src/nodes';
 
 const TEXT = {
   key: 'text',
@@ -328,22 +329,22 @@ describe('the derived view cannot go stale', () => {
   it('reflects a value written after it was first read', () => {
     const driver = new CeeDriver(nested());
 
-    const before = driver.dataContext.instanceExtractData;
+    const before = driver.extractData;
     expect(before['_top']).toEqual({ '@value': null });
 
     driver.setValue(['_top'], TEXT, 'written after the first read');
 
-    expect(driver.dataContext.instanceExtractData['_top']).toEqual({ '@value': 'written after the first read' });
+    expect(driver.extractData['_top']).toEqual({ '@value': 'written after the first read' });
   });
 
   it('reflects an occurrence added after it was first read', () => {
     const driver = new CeeDriver(nested());
     const multi = driver.findOrThrow(['_multi']);
 
-    expect(driver.dataContext.instanceExtractData['_multi']).toHaveLength(2);
+    expect(driver.extractData['_multi']).toHaveLength(2);
     driver.handlerContext.addMultiInstance(multi);
 
-    expect(driver.dataContext.instanceExtractData['_multi']).toHaveLength(3);
+    expect(driver.extractData['_multi']).toHaveLength(3);
   });
 
   it('reflects an occurrence deleted after it was first read', () => {
@@ -353,30 +354,30 @@ describe('the derived view cannot go stale', () => {
     // `_multi` declares minItems 2, and deletion refuses to cross a lower bound
     // — so there has to be a third occurrence before one can go.
     driver.handlerContext.addMultiInstance(multi);
-    expect(driver.dataContext.instanceExtractData['_multi']).toHaveLength(3);
+    expect(driver.extractData['_multi']).toHaveLength(3);
 
     driver.handlerContext.deleteMultiInstance(multi);
-    expect(driver.dataContext.instanceExtractData['_multi']).toHaveLength(2);
+    expect(driver.extractData['_multi']).toHaveLength(2);
   });
 
   it('reflects a whole new instance being injected', () => {
     const first = new CeeDriver(nested());
     first.setValue(['_top'], TEXT, 'from the first');
-    void first.dataContext.instanceExtractData;
+    void first.extractData;
 
     const second = new CeeDriver(nested(), { instance: first.metadata });
-    expect(second.dataContext.instanceExtractData['_top']).toEqual({ '@value': 'from the first' });
+    expect(second.extractData['_top']).toEqual({ '@value': 'from the first' });
   });
 
   /** And it is a view, not the tree: writing to it changes nothing. */
   it('is a projection, so writing to it does not reach the instance', () => {
     const driver = new CeeDriver(nested());
-    const view = driver.dataContext.instanceExtractData as Record<string, Record<string, unknown>>;
+    const view = driver.extractData as Record<string, Record<string, unknown>>;
     view['_top']['@value'] = 'written to the view';
 
     driver.dataContext.invalidateDerivedViews();
-    expect(driver.dataContext.instanceExtractData['_top']).toEqual({ '@value': null });
-    expect(driver.dataContext.instanceFullData['_top']).toEqual({ '@value': null });
+    expect(driver.extractData['_top']).toEqual({ '@value': null });
+    expect(driver.fullData['_top']).toEqual({ '@value': null });
   });
 });
 
@@ -407,9 +408,11 @@ describe('the cached occurrence count agrees with the instance', () => {
 
   const check = (driver: CeeDriver, path: string[], key: string, what: string): void => {
     const component = driver.findOrThrow(path);
-    const cached = driver.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)
-      .currentCount;
-    const actual = (driver.dataContext.instanceFullData[key] as unknown[]).length;
+    const cached = infoOf(
+      driver.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component),
+      component,
+    ).currentCount;
+    const actual = arrayAt(driver.fullData, key).length;
     expect(cached, `${what}: cached count ${cached} but the instance holds ${actual}`).toBe(actual);
   };
 
@@ -450,7 +453,7 @@ describe('the cached occurrence count agrees with the instance', () => {
     driver.handlerContext.deleteMultiInstance(element);
 
     check(driver, ['_el'], '_el', 'at minItems');
-    expect((driver.dataContext.instanceFullData['_el'] as unknown[]).length).toBe(2);
+    expect((driver.fullData['_el'] as unknown[]).length).toBe(2);
   });
 
   it('agrees on an instance that was loaded rather than built', () => {
@@ -459,6 +462,6 @@ describe('the cached occurrence count agrees with the instance', () => {
 
     const loaded = new CeeDriver(counted(), { instance: seed.metadata });
     check(loaded, ['_el'], '_el', 'loaded');
-    expect((loaded.dataContext.instanceFullData['_el'] as unknown[]).length).toBe(3);
+    expect((loaded.fullData['_el'] as unknown[]).length).toBe(3);
   });
 });

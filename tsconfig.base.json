@@ -62,6 +62,20 @@
       "es2022",
       "dom"
     ],
+    /*
+     * What the `use-application-builder` migration sets, added by hand because the
+     * schematic could not reach this file: it edits `tsconfig.json`, and CEE keeps
+     * its compilerOptions here — the same blind spot that made the Angular 15
+     * `useDefineForClassFields` migration report "No changes made" above.
+     *
+     * Not load-bearing for the build, which succeeds without it and emits an
+     * artifact 27 bytes different. What it settles is `moment` and
+     * `moment-timezone`, the two CommonJS dependencies: with only
+     * `allowSyntheticDefaultImports` the default-import syntax type-checks while
+     * the interop is left to the bundler, and the two can disagree about what a
+     * CommonJS module's default is. Set so they cannot.
+     */
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true
   }

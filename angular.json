@@ -15,26 +15,33 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular/build:application",
           "options": {
             "outputPath": "dist/cedar-embeddable-editor",
             "index": "src/index.html",
-            "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
-            "assets": ["src/favicon.ico", "src/assets", "src/assets/i18n-cee"],
+            "assets": [
+              "src/favicon.ico",
+              "src/assets",
+              "src/assets/i18n-cee"
+            ],
             "styles": [],
             "stylePreprocessorOptions": {
-              "includePaths": ["src"]
+              "includePaths": [
+                "src"
+              ]
             },
-            "allowedCommonJsDependencies": ["moment", "moment-timezone"],
-            "aot": true,
-            "vendorChunk": true,
+            "allowedCommonJsDependencies": [
+              "moment",
+              "moment-timezone"
+            ],
             "extractLicenses": false,
-            "buildOptimizer": false,
             "sourceMap": true,
             "optimization": false,
-            "namedChunks": true
+            "browser": "src/main.ts",
+            "polyfills": [
+              "src/polyfills.ts"
+            ]
           },
           "configurations": {
             "production": {
@@ -47,10 +54,7 @@
               "optimization": true,
               "outputHashing": "none",
               "sourceMap": false,
-              "namedChunks": false,
               "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
               "budgets": [
                 {
                   "type": "initial",
@@ -67,7 +71,7 @@
           }
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "options": {
             "port": 4400,
             "buildTarget": "cedar-embeddable-editor:build"
@@ -79,7 +83,7 @@
           }
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "builder": "@angular/build:extract-i18n",
           "options": {
             "buildTarget": "cedar-embeddable-editor:build"
           }
@@ -87,7 +91,10 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
           }
         }
       }

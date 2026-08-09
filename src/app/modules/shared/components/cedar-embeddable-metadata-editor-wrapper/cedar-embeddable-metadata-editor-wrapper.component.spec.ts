@@ -24,22 +24,18 @@ import { TranslateService } from '@ngx-translate/core';
  */
 describe('CedarEmbeddableMetadataEditorWrapperComponent output serialization', () => {
   const make = (): CedarEmbeddableMetadataEditorWrapperComponent =>
+    // `as unknown as T` throughout, for the reason given on the lifecycle suite's
+    // own doubles below: naming the service each stands in for keeps the
+    // constructor's shape under test, which `as any` would have hidden.
     new CedarEmbeddableMetadataEditorWrapperComponent(
       new ElementRef(document.createElement('cedar-embeddable-editor')),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      {} as any, // controlledFieldDataService
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { trace: (): void => undefined } as any, // messageHandlerService
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      {} as any, // sampleTemplateService
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      {} as any, // activeComponentRegistry
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      {} as any, // translateService
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { trace: (): void => undefined } as any, // messagingService (HandlerContext)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      {} as any, // globalSettingsContextService
+      {} as unknown as ControlledFieldDataService,
+      { trace: (): void => undefined } as unknown as MessageHandlerService,
+      {} as unknown as SampleTemplatesService,
+      {} as unknown as ActiveComponentRegistryService,
+      {} as unknown as TranslateService,
+      { trace: (): void => undefined } as unknown as MessageHandlerService, // messagingService (HandlerContext)
+      {} as unknown as GlobalSettingsContextService,
       new IriPrefix(),
     );
 

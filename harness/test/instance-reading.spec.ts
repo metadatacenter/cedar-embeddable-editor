@@ -24,6 +24,7 @@ import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-t
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { infoOf } from '../src/nodes';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -70,7 +71,8 @@ const multiElementTemplate = (minItems = 1) =>
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const countOf = (driver: CeeDriver, component: any): number =>
-  driver.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component).currentCount;
+  infoOf(driver.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(component), component)
+    .currentCount;
 
 describe('an instance wider than its template', () => {
   /**
@@ -126,8 +128,10 @@ describe('an instance wider than its template', () => {
     first.setValue(['_author', '_name'], TEXT, 'Grace');
 
     const reloaded = new CeeDriver(template, { instance: first.metadata });
-    const info = reloaded.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(
-      reloaded.findOrThrow(['_author']),
+    const reloadedAuthor = reloaded.findOrThrow(['_author']);
+    const info = infoOf(
+      reloaded.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(reloadedAuthor),
+      reloadedAuthor,
     );
     expect(info.currentIndex).toBe(0);
   });
@@ -212,7 +216,9 @@ describe('elements are walked into, not mistaken for values', () => {
   it('restores a multi field inside a single element', () => {
     const template = buildTemplate({
       name: 'ir_single_el',
-      elements: [{ name: 'el', children: [{ kind: TEXT, name: 'tag', cardinality: 'multi', minItems: 1, maxItems: 9 }] }],
+      elements: [
+        { name: 'el', children: [{ kind: TEXT, name: 'tag', cardinality: 'multi', minItems: 1, maxItems: 9 }] },
+      ],
     });
     const first = new CeeDriver(template);
     const tag = first.findOrThrow(['_el', '_tag']);
@@ -256,9 +262,9 @@ describe('elements are walked into, not mistaken for values', () => {
     const service = reloaded.handlerContext.multiInstanceObjectService;
     const reloadedAuthor = reloaded.findOrThrow(['_author']);
     const reloadedTag = reloaded.findOrThrow(['_author', '_tag']);
-    expect(service.getMultiInstanceInfoForComponent(reloadedTag).currentCount).toBe(2);
+    expect(infoOf(service.getMultiInstanceInfoForComponent(reloadedTag), reloadedTag).currentCount).toBe(2);
     service.setCurrentIndex(reloadedAuthor, 1);
-    expect(service.getMultiInstanceInfoForComponent(reloadedTag).currentCount).toBe(1);
+    expect(infoOf(service.getMultiInstanceInfoForComponent(reloadedTag), reloadedTag).currentCount).toBe(1);
   });
 
   /**
@@ -346,13 +352,13 @@ describe('nested multi elements', () => {
 
     const reloadedAuthor = reloaded.findOrThrow(['_author']);
     const service = reloaded.handlerContext.multiInstanceObjectService;
-    expect(service.getMultiInstanceInfoForComponent(reloadedAuthor).currentCount).toBe(2);
+    expect(infoOf(service.getMultiInstanceInfoForComponent(reloadedAuthor), reloadedAuthor).currentCount).toBe(2);
 
     // The inner count is read through the outer cursor, so move it and ask again.
     const reloadedAffil = reloaded.findOrThrow(['_author', '_affil']);
-    expect(service.getMultiInstanceInfoForComponent(reloadedAffil).currentCount).toBe(2);
+    expect(infoOf(service.getMultiInstanceInfoForComponent(reloadedAffil), reloadedAffil).currentCount).toBe(2);
     service.setCurrentIndex(reloadedAuthor, 1);
-    expect(service.getMultiInstanceInfoForComponent(reloadedAffil).currentCount).toBe(1);
+    expect(infoOf(service.getMultiInstanceInfoForComponent(reloadedAffil), reloadedAffil).currentCount).toBe(1);
   });
 });
 
@@ -369,10 +375,10 @@ describe('deleting occurrences', () => {
 
     driver.handlerContext.addMultiInstance(author);
     driver.handlerContext.addMultiInstance(author);
-    expect(service.getMultiInstanceInfoForComponent(author).currentIndex).toBe(2);
+    expect(infoOf(service.getMultiInstanceInfoForComponent(author), author).currentIndex).toBe(2);
 
     driver.handlerContext.deleteMultiInstance(author);
-    const info = service.getMultiInstanceInfoForComponent(author);
+    const info = infoOf(service.getMultiInstanceInfoForComponent(author), author);
     expect(info.currentCount).toBe(2);
     expect(info.currentIndex, 'cursor left pointing past the end').toBe(1);
   });
@@ -387,7 +393,7 @@ describe('deleting occurrences', () => {
     service.setCurrentIndex(author, 0);
 
     driver.handlerContext.deleteMultiInstance(author);
-    const info = service.getMultiInstanceInfoForComponent(author);
+    const info = infoOf(service.getMultiInstanceInfoForComponent(author), author);
     expect(info.currentCount).toBe(2);
     expect(info.currentIndex).toBe(0);
   });
@@ -424,8 +430,7 @@ describe('attribute values, read back', () => {
    * reproduce: it pairs the names with their values and removes the values from
    * the container, so both halves have to be put back.
    */
-  const attributeTemplate = () =>
-    buildTemplate({ name: 'ir_av', children: [{ kind: ATTR, name: 'av' }] });
+  const attributeTemplate = () => buildTemplate({ name: 'ir_av', children: [{ kind: ATTR, name: 'av' }] });
 
   const withTwoAttributes = () => {
     const template = attributeTemplate();
@@ -488,7 +493,7 @@ describe('slots that are empty', () => {
     const reloaded = new CeeDriver(template, { instance });
     reloaded.expectNoErrors('reloading an emptied multi field');
 
-    const slot = reloaded.handlerContext.multiInstanceObjectService.getDataPathNode(['_tag']);
+    const slot = infoOf(reloaded.handlerContext.multiInstanceObjectService.getDataPathNode(['_tag']));
     expect(slot.currentCount).toBe(0);
     expect(slot.currentIndex).toBe(-1);
   });

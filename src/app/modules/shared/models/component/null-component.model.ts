@@ -8,6 +8,8 @@ export class NullComponent implements CedarComponent {
   name = '';
   path: string[] = [];
   linkedStaticFieldComponent: StaticFieldComponent | null = null;
+  hidden = false;
+  hiddenInTemplate = false;
 
   isMulti(): boolean {
     return false;

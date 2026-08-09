@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest';
 import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate, supportsMultiInstance } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { infoOf } from '../src/nodes';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -23,7 +24,7 @@ const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inpu
 const TEXT = kind('textfield');
 
 const countOf = (d: CeeDriver, c: any) =>
-  d.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(c).currentCount;
+  infoOf(d.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(c), c).currentCount;
 
 describe('minItems seeds the initial instance count', () => {
   it.each([0, 1, 2, 5])('a multi element with minItems=%i starts with that many', (minItems) => {
@@ -355,10 +356,7 @@ describe('required values are page-independent', () => {
 
     expect(driver.qualityReport.isValid, 'still invalid').toBe(false);
     expect(driver.qualityReport.problems.map((p: any) => p.code)).toContain('minItems');
-    expect(
-      driver.qualityReport.requiredFieldValueCount,
-      'no occurrences means no required fields to count',
-    ).toBe(0);
+    expect(driver.qualityReport.requiredFieldValueCount, 'no occurrences means no required fields to count').toBe(0);
   });
 
   /**

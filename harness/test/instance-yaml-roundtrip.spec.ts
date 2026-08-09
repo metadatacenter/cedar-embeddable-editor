@@ -51,8 +51,8 @@ describe('a CEE instance survives write-as-YAML then read + inflate back to JSON
   driver.setValue(['_addr', '_city'], TEXT, 'Palo Alto');
   driver.expectNoErrors('roundtrip fill');
 
-  const directJson = InstanceSerializer.toJson(driver.dataContext.instanceFullData) as Record<string, unknown>;
-  const yaml = InstanceSerializer.toYaml(driver.dataContext.instanceFullData);
+  const directJson = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
+  const yaml = InstanceSerializer.toYaml(driver.fullData);
 
   const reModel = CedarReaders.yaml().getStrict().getTemplateInstanceReader().readFromString(yaml).instance;
   InstanceInflater.inflate(reModel, buildTemplateModel(spec));

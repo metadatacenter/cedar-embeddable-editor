@@ -27,6 +27,7 @@ import { CedarBuilders } from 'cedar-model-typescript-library';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { at } from '../src/nodes';
 
 const TEXT = {
   key: 'text',
@@ -108,7 +109,7 @@ describe('a path inside a multi element resolves through the cursor', () => {
 
     // Against the tree itself, not `driver.extract` — that is a derived view now,
     // so a write through a resolved node would not show up in a fresh copy of it.
-    expect(driver.dataContext.instanceFullData['_el'][0]['_inner']['@value']).toBe('written through the reference');
+    expect(at(driver.fullData, '_el', 0, '_inner', '@value')).toBe('written through the reference');
   });
 });
 
@@ -137,9 +138,7 @@ describe('a multi field resolves to the whole list', () => {
 
 describe('a path with no multi ancestor is already pure', () => {
   it('resolves the same node however the cursor has moved', () => {
-    const driver = new CeeDriver(
-      buildTemplate({ name: 'pr_flat', children: [{ kind: TEXT, name: 'f' }] }),
-    );
+    const driver = new CeeDriver(buildTemplate({ name: 'pr_flat', children: [{ kind: TEXT, name: 'f' }] }));
     const first = driver.handlerContext.getDataObjectNodeByPath(['_f']);
     const second = driver.handlerContext.getDataObjectNodeByPath(['_f']);
 
@@ -239,8 +238,8 @@ describe('the parent lookup follows the same rule', () => {
     const atTwo = driver.handlerContext.getParentDataObjectNodeByPath(['_el', '_inner']);
 
     expect(atZero).not.toBe(atTwo);
-    expect(atZero).toBe(driver.dataContext.instanceFullData['_el'][0]);
-    expect(atTwo).toBe(driver.dataContext.instanceFullData['_el'][2]);
+    expect(atZero).toBe(at(driver.fullData, '_el', 0));
+    expect(atTwo).toBe(at(driver.fullData, '_el', 2));
   });
 });
 
@@ -285,7 +284,7 @@ describe('resolving a specific occurrence, cursor ignored', () => {
     const node = driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [2]) as Record<string, unknown>;
     node['@value'] = 'written directly';
 
-    expect(driver.dataContext.instanceFullData['_el'][2]['_inner']['@value']).toBe('written directly');
+    expect(at(driver.fullData, '_el', 2, '_inner', '@value')).toBe('written directly');
   });
 
   it('resolves nothing for an occurrence that does not exist', () => {
@@ -343,9 +342,7 @@ describe('resolving a specific occurrence, cursor ignored', () => {
     const { driver, element } = seeded();
     driver.handlerContext.setCurrentIndex(element, 0);
 
-    expect(driver.handlerContext.getParentDataObjectNodeAt(['_el', '_inner'], [2])).toBe(
-      driver.dataContext.instanceFullData['_el'][2],
-    );
+    expect(driver.handlerContext.getParentDataObjectNodeAt(['_el', '_inner'], [2])).toBe(at(driver.fullData, '_el', 2));
   });
 });
 

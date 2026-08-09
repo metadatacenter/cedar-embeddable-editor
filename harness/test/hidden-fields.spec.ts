@@ -49,7 +49,7 @@ describe('a hidden field stays in the document', () => {
    * `required` could not produce a valid instance at all.
    */
   it('gets a slot in the instance', () => {
-    const emitted = InstanceSerializer.toJson(new CeeDriver(withHidden()).dataContext.instanceFullData) as Record<
+    const emitted = InstanceSerializer.toJson(new CeeDriver(withHidden()).fullData) as Record<
       string,
       unknown
     >;
@@ -61,7 +61,7 @@ describe('a hidden field stays in the document', () => {
   });
 
   it('is in the @context, like any other property', () => {
-    const emitted = InstanceSerializer.toJson(new CeeDriver(withHidden()).dataContext.instanceFullData) as Record<
+    const emitted = InstanceSerializer.toJson(new CeeDriver(withHidden()).fullData) as Record<
       string,
       Record<string, unknown>
     >;

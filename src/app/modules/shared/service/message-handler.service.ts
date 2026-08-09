@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { CeeEventHandler } from '../../../cee-public-api';
 
 /**
  * Where CEE's diagnostics go.
@@ -24,12 +25,11 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class MessageHandlerService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private eventHandler: any = null;
+  private eventHandler: CeeEventHandler | null = null;
 
   constructor() {}
 
-  injectEventHandler(value: object): void {
+  injectEventHandler(value: CeeEventHandler): void {
     this.eventHandler = value;
   }
 
@@ -42,13 +42,16 @@ export class MessageHandlerService {
    * bug. The throw is reported on the console rather than swallowed, since a broken
    * handler is worth knowing about and this is the only place that can say so.
    */
-  private emit(kind: string, label: string, value: object | null = null): void {
+  private emit(kind: 'trace' | 'error', label: string, value: object | null = null): void {
     const handler = this.eventHandler;
-    if (handler === null || handler === undefined || typeof handler[kind] !== 'function') {
+    const method = handler?.[kind];
+    if (typeof method !== 'function') {
       return;
     }
     try {
-      handler[kind](label, value);
+      // `.call`, not `method(...)`: a handler may be a class instance whose
+      // method reads `this`, and detaching it from the object would break that.
+      method.call(handler, label, value);
     } catch (e) {
       console.error('CEE ERROR: the injected eventHandler threw from ' + kind + '()');
       console.error(e);

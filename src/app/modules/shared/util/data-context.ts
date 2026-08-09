@@ -4,7 +4,6 @@ import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { TemplateRepresentationFactory } from '../factory/template-representation.factory';
 import { TemplateParser } from '../factory/template-parser';
 import { InstanceCardinalityReader } from '../handler/instance-cardinality-reader';
-import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { InstanceDeserializer } from './instance-deserializer';
 import { InstanceFullData } from '../models/instance-full-data.model';
 import { HandlerContext } from './handler-context';
@@ -25,7 +24,7 @@ export class DataContext {
   /** Null until a template is saved, and reset to null when one is replaced. */
   savedTemplateID: string | null = null;
 
-  private derivedExtract: InstanceExtractData = null;
+  private derivedExtract: InstanceObject | null = null;
 
   public constructor() {}
 
@@ -57,7 +56,7 @@ export class DataContext {
    * it on every change detection; `invalidateDerivedViews` drops the cache, and
    * every mutation goes through `mutate` so nothing has to remember to call it.
    */
-  get instanceExtractData(): InstanceExtractData {
+  get instanceExtractData(): InstanceObject | null {
     if (this.derivedExtract === null && this.instanceFullData !== null) {
       this.derivedExtract = InstanceDeserializer.read(this.instanceFullData).extract;
     }

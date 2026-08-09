@@ -28,7 +28,7 @@ describe('a value node replaced by a scalar', () => {
     const driver = new CeeDriver(buildTemplate({ name: 'malformed', children: [{ kind: TEXT, name: 'a' }] }));
     // The field's node should be `{'@value': null}`. A document that puts a bare
     // string there is what an older export or a hand edit produces.
-    driver.dataContext.instanceFullData['_a'] = 'not a value node';
+    driver.fullData['_a'] = 'not a value node';
 
     expect(() => driver.setValue(['_a'], TEXT, 'typed')).not.toThrow();
   });
@@ -43,7 +43,7 @@ describe('a value node replaced by a scalar', () => {
         ],
       }),
     );
-    driver.dataContext.instanceFullData['_a'] = 'not a value node';
+    driver.fullData['_a'] = 'not a value node';
 
     driver.setValue(['_b'], TEXT, 'still works');
     expect(JSON.stringify(driver.metadata)).toContain('still works');
@@ -58,7 +58,7 @@ describe('a container replaced by a scalar', () => {
         elements: [{ name: 'el', children: [{ kind: TEXT, name: 'inner' }] }],
       }),
     );
-    driver.dataContext.instanceFullData['_el'] = 'not an element';
+    driver.fullData['_el'] = 'not an element';
 
     expect(() => driver.setValue(['_el', '_inner'], TEXT, 'x')).not.toThrow();
   });
@@ -70,7 +70,7 @@ describe('a container replaced by a scalar', () => {
         elements: [{ name: 'el', children: [{ kind: TEXT, name: 'inner' }] }],
       }),
     );
-    driver.dataContext.instanceFullData['_el'] = [];
+    driver.fullData['_el'] = [];
 
     expect(() => driver.setValue(['_el', '_inner'], TEXT, 'x')).not.toThrow();
   });
@@ -94,7 +94,7 @@ describe('a list replaced by a scalar', () => {
         children: [{ kind: TEXT, name: 'm', cardinality: 'multi', minItems: 1 }],
       }),
     );
-    driver.dataContext.instanceFullData['_m'] = 'not a list';
+    driver.fullData['_m'] = 'not a list';
 
     expect(() => driver.setValue(['_m'], TEXT, 'v')).not.toThrow();
   });
@@ -114,7 +114,7 @@ describe('a list replaced by a scalar, written as a list', () => {
       }),
     );
     const component = driver.findOrThrow(['_m']);
-    driver.dataContext.instanceFullData['_m'] = 'not a list';
+    driver.fullData['_m'] = 'not a list';
 
     expect(() => driver.handlerContext.changeListValue(component, ['a', 'b'])).not.toThrow();
     expect(driver.messages.errors.join(' ')).toContain('list of occurrences');
@@ -135,7 +135,7 @@ describe('copying an occurrence whose contents are malformed', () => {
       }),
     );
     const element = driver.findOrThrow(['_el']);
-    const occurrences = driver.dataContext.instanceFullData['_el'];
+    const occurrences = driver.fullData['_el'];
     if (Array.isArray(occurrences) && occurrences.length > 0) {
       occurrences[0] = 'not an element';
     }
@@ -158,7 +158,7 @@ describe('adding an occurrence where the node is not a list', () => {
       }),
     );
     const component = driver.findOrThrow(['_m']);
-    driver.dataContext.instanceFullData['_m'] = 'not a list';
+    driver.fullData['_m'] = 'not a list';
 
     expect(() => driver.handlerContext.addMultiInstance(component as never)).not.toThrow();
     expect(driver.messages.errors.join(' ').toLowerCase()).toContain('missing data in instance');
@@ -178,7 +178,7 @@ describe('the quality report over a multi field that is not a list', () => {
         children: [{ kind: TEXT, name: 'm', cardinality: 'multi', minItems: 1 }],
       }),
     );
-    driver.dataContext.instanceFullData['_m'] = occupant as never;
+    driver.fullData['_m'] = occupant as never;
     driver.dataContext.invalidateDerivedViews();
     driver.handlerContext.buildQualityReport();
     return JSON.stringify(driver.dataContext.dataQualityReport);
@@ -201,7 +201,7 @@ describe('the quality report over a multi field that is not a list', () => {
     );
     // Not the same as holding the wrong shape: an instance from an older template
     // version simply will not have the key, and the report distinguishes the two.
-    delete (driver.dataContext.instanceFullData as Record<string, unknown>)['_m'];
+    delete (driver.fullData as Record<string, unknown>)['_m'];
     driver.dataContext.invalidateDerivedViews();
     driver.handlerContext.buildQualityReport();
     expect(JSON.stringify(driver.dataContext.dataQualityReport)).toContain('absent');
@@ -211,7 +211,7 @@ describe('the quality report over a multi field that is not a list', () => {
 describe('the quality report over a malformed instance', () => {
   it('still produces a report', () => {
     const driver = new CeeDriver(buildTemplate({ name: 'malformed_report', children: [{ kind: TEXT, name: 'a' }] }));
-    driver.dataContext.instanceFullData['_a'] = 'not a value node';
+    driver.fullData['_a'] = 'not a value node';
     driver.dataContext.invalidateDerivedViews();
 
     expect(() => driver.handlerContext.buildQualityReport()).not.toThrow();
@@ -224,7 +224,7 @@ describe('the quality report over a malformed instance', () => {
         elements: [{ name: 'el', children: [{ kind: TEXT, name: 'inner' }] }],
       }),
     );
-    driver.dataContext.instanceFullData['_el'] = 'not an element';
+    driver.fullData['_el'] = 'not an element';
     driver.dataContext.invalidateDerivedViews();
 
     expect(() => driver.handlerContext.buildQualityReport()).not.toThrow();

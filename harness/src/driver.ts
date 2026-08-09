@@ -21,6 +21,7 @@ import { PageBreakPaginatorService } from '@cee/service/page-break-paginator.ser
 import type { TemplateParser } from '@cee/factory/template-parser';
 import type { InstanceCardinalityReader } from '@cee/handler/instance-cardinality-reader';
 import type { FieldKind } from './axes';
+import { present } from './nodes';
 
 /**
  * Captures CEE's log output instead of printing it.
@@ -68,8 +69,6 @@ export interface DriverOptions {
   instanceReader?: InstanceCardinalityReader;
 }
 
-
-
 export class CeeDriver {
   readonly dataContext: DataContext;
   readonly handlerContext: HandlerContext;
@@ -116,6 +115,31 @@ export class CeeDriver {
   /** The component tree CEE would render. */
   get representation(): any {
     return this.dataContext.templateRepresentation;
+  }
+
+  /**
+   * The instance CEE is editing, asserted present.
+   *
+   * `DataContext.instanceFullData` is `InstanceObject | null` — null until a
+   * template or an instance has been set. Every spec here has set one before it
+   * looks, so this states that once instead of at each of the forty-odd reads,
+   * and fails with a sentence rather than a null dereference if it is ever
+   * wrong. The tree itself, not a copy: writing through it edits what CEE holds,
+   * which is what the malformed-node specs are for.
+   */
+  get fullData(): InstanceObject {
+    return present(this.dataContext.instanceFullData, 'instanceFullData');
+  }
+
+  /**
+   * The live extract view, asserted present.
+   *
+   * Derived from `fullData` and recomputed after every mutation — the same
+   * object the source panel reads. `extract` below is a deep copy of it, for
+   * specs that want a value frozen at a moment rather than a view that moves.
+   */
+  get extractData(): InstanceObject {
+    return present(this.dataContext.instanceExtractData, 'instanceExtractData');
   }
 
   /** What the host page receives from `cee.currentMetadata`. */
@@ -186,7 +210,11 @@ export class CeeDriver {
 
     switch (kind.write) {
       case 'controlled':
-        this.handlerContext.changeControlledValue(component, `https://example.org/terms/${encodeURIComponent(value)}`, value);
+        this.handlerContext.changeControlledValue(
+          component,
+          `https://example.org/terms/${encodeURIComponent(value)}`,
+          value,
+        );
         return;
       case 'attribute':
         // An attribute-value field starts with no occurrences — minItems is 0

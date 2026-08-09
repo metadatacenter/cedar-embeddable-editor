@@ -48,20 +48,21 @@ const ENVELOPE_KEYS = [
   'schema:description',
 ];
 
-const stripEnvelope = (obj: object): void => {
+const stripEnvelope = (obj: Record<string, unknown>): void => {
   if (InstanceValueNode.isValue(obj)) {
     return;
   }
   Object.keys(obj).forEach((key) => {
     ENVELOPE_KEYS.forEach((envelopeKey) => delete obj[envelopeKey]);
-    if (typeof obj[key] === 'object' && obj[key] !== null) {
-      stripEnvelope(obj[key]);
+    const child = obj[key];
+    if (typeof child === 'object' && child !== null) {
+      stripEnvelope(child as Record<string, unknown>);
     }
   });
 };
 
-const handBuiltExtract = (json: object): object => {
-  const extract = JSON.parse(JSON.stringify(json));
+const handBuiltExtract = (json: object): Record<string, unknown> => {
+  const extract = JSON.parse(JSON.stringify(json)) as Record<string, unknown>;
   stripEnvelope(extract);
   return extract;
 };
@@ -187,9 +188,13 @@ describe('what the old walk got wrong', () => {
     // The library normalises which keys a node carries; what must survive is
     // the value itself, whichever key holds it.
     const kept = extract._f as Record<string, unknown>;
+    // `node` is one of the six literal shapes the cases enumerate, so a key it
+    // does not declare is not indexable on its union — read it as the record it
+    // is, which is also all this loop needs it to be.
+    const declared = node as Record<string, string | undefined>;
     for (const key of ['@value', '@id', 'rdfs:label']) {
-      if (node[key] !== undefined) {
-        expect(kept[key], key).toBe(node[key]);
+      if (declared[key] !== undefined) {
+        expect(kept[key], key).toBe(declared[key]);
       }
     }
   });
