@@ -132,41 +132,16 @@ test('renders YouTube content as a native iframe without the Player API', async 
 });
 
 /**
- * The timezone picker is CEE's only ng-select, and nothing opened it until now.
- *
- * The screenshots cover it closed and empty, which is the one state that exercises
- * none of the component: no filtering, no virtual scroll, no selection, no write
- * back to the metadata. That gap went unnoticed until the Angular 21 hop carried
- * ng-select from 15 to 21 — six majors of a third-party component, landing under a
- * suite that could only have told us the empty box still looked like a box.
- *
- * Here rather than in render.spec.ts because virtual scroll and the filter input
- * are exactly the kind of thing that renders per engine, and pixels are not what
- * this is asking about.
- *
- * "Calcutta" and not "Kolkata": CEE ships its own fixed timezone list with the
- * older spellings, so this searches for what is actually in it.
+ * CEE stores a fixed numeric offset, not a daylight-saving-aware IANA timezone.
+ * Exercise that semantic contract through the Material control in every engine.
  */
-test('filters, selects and records a timezone through the ng-select', async ({ page }) => {
+test('selects and records a fixed UTC offset', async ({ page }) => {
   await open(page, '07-timezone');
-  const select = page.locator('ng-select').first();
+  const select = page.locator('app-timezone-picker mat-select');
   await select.click();
 
-  const options = page.locator('.ng-dropdown-panel .ng-option');
-  await expect(options.first()).toBeVisible();
-
-  await page.locator('ng-select input[type=text]').first().fill('Calcutta');
-  await expect(options).toHaveCount(1);
-  await options.first().click();
-
-  await expect(select.locator('.ng-value-label')).toHaveText('(GMT +5:30) Bombay, Calcutta, Madras, New Delhi');
-  await expect(select.locator('.ng-select-container')).toHaveClass(/ng-has-value/);
-
-  // No clear affordance, and deliberately so: cedar-input-datetime passes
-  // `[clearable]="false"` explicitly rather than leaning on the @Input default.
-  // Pinned because ng-select renders the clear wrapper from the same subtree as
-  // the value, so a change in how it decides to show it would land here silently.
-  await expect(select.locator('.ng-clear-wrapper')).toHaveCount(0);
+  await page.getByRole('option', { name: 'UTC+05:30', exact: true }).click();
+  await expect(select).toContainText('UTC+05:30');
 
   // The offset is part of the editor's draft, but an offset by itself is not a
   // lexical xsd:dateTime. Do not publish the malformed intermediate value the

@@ -18,7 +18,6 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatSelectModule } from '@angular/material/select';
-import { NgSelectModule } from '@ng-select/ng-select';
 import { CedarInputEmailComponent } from './components/cedar-input-email/cedar-input-email.component';
 import { CedarInputCheckboxComponent } from './components/cedar-input-checkbox/cedar-input-checkbox.component';
 import { CedarInputSelectComponent } from './components/cedar-input-select/cedar-input-select.component';
@@ -77,7 +76,6 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     MatGridListModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    NgSelectModule,
     FormsModule,
     MatSelectModule,
     TranslateModule,

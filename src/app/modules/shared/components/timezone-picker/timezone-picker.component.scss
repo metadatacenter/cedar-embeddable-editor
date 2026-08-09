@@ -1,0 +1,14 @@
+:host,
+.cee-offset-picker,
+mat-form-field {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.cee-offset-readonly {
+  display: block;
+  min-height: 24px;
+  padding-block: 6px;
+  font-variant-numeric: tabular-nums;
+}

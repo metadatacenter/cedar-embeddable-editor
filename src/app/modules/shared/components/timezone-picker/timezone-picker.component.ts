@@ -1,36 +1,22 @@
 import {
-  AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   forwardRef,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
-  SimpleChanges,
   ViewEncapsulation,
-  ChangeDetectionStrategy,
 } from '@angular/core';
-import * as momentZone from 'moment-timezone';
-import { ControlValueAccessor, FormBuilder, FormControl, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Subject, Subscription } from 'rxjs';
+import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { UserPreferencesService } from '../../service/user-preferences.service';
-import { requireControl } from '../../forms/form-control';
 
-/** A zone offset and its display text. Read out of a JSON list, never constructed. */
+/** A fixed UTC offset and its unambiguous display text. */
 export interface TZone {
-  id: string;
-  label: string;
-}
-
-export interface SelectConfig {
-  appearance: 'underline' | 'outline';
-  /** The selector to attach the dropdown to, or null to leave it in place. */
-  appendTo: string | null;
-  clearOnBackspace: boolean;
-  closeOnSelect: boolean;
-  dropdownPosition: 'auto' | 'bottom' | 'top';
-  hideSelected: boolean;
+  readonly id: string;
+  readonly label: string;
 }
 
 @Component({
@@ -48,140 +34,128 @@ export interface SelectConfig {
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges, ControlValueAccessor {
-  static readonly AVAILABLE_TIMEZONES = [
-    { id: '-12:00', label: '(GMT -12:00) Eniwetok, Kwajalein' },
-    { id: '-11:00', label: '(GMT -11:00) Midway Island, Samoa' },
-    { id: '-10:00', label: '(GMT -10:00) Hawaii' },
-    { id: '-09:30', label: '(GMT -9:30) Taiohae' },
-    { id: '-09:00', label: '(GMT -9:00) Alaska' },
-    { id: '-08:00', label: '(GMT -8:00) Pacific Time (US & Canada)' },
-    { id: '-07:00', label: '(GMT -7:00) Mountain Time (US & Canada)' },
-    { id: '-06:00', label: '(GMT -6:00) Central Time (US & Canada), Mexico City' },
-    { id: '-05:00', label: '(GMT -5:00) Eastern Time (US & Canada), Bogota, Lima' },
-    { id: '-04:30', label: '(GMT -4:30) Caracas' },
-    { id: '-04:00', label: '(GMT -4:00) Atlantic Time (Canada), Caracas, La Paz' },
-    { id: '-03:30', label: '(GMT -3:30) Newfoundland' },
-    { id: '-03:00', label: '(GMT -3:00) Brazil, Buenos Aires, Georgetown' },
-    { id: '-02:00', label: '(GMT -2:00) Mid-Atlantic' },
-    { id: '-01:00', label: '(GMT -1:00) Azores, Cape Verde Islands' },
-    { id: 'Z', label: '(GMT) Western Europe Time, London, Lisbon, Casablanca' },
-    { id: '+01:00', label: '(GMT +1:00) Brussels, Copenhagen, Madrid, Paris' },
-    { id: '+02:00', label: '(GMT +2:00) Kaliningrad, South Africa' },
-    { id: '+03:00', label: '(GMT +3:00) Baghdad, Riyadh, Moscow, St. Petersburg' },
-    { id: '+03:30', label: '(GMT +3:30) Tehran' },
-    { id: '+04:00', label: '(GMT +4:00) Abu Dhabi, Muscat, Baku, Tbilisi' },
-    { id: '+04:30', label: '(GMT +4:30) Kabul' },
-    { id: '+05:00', label: '(GMT +5:00) Ekaterinburg, Islamabad, Karachi, Tashkent' },
-    { id: '+05:30', label: '(GMT +5:30) Bombay, Calcutta, Madras, New Delhi' },
-    { id: '+05:45', label: '(GMT +5:45) Kathmandu, Pokhara' },
-    { id: '+06:00', label: '(GMT +6:00) Almaty, Dhaka, Colombo' },
-    { id: '+06:30', label: '(GMT +6:30) Yangon, Mandalay' },
-    { id: '+07:00', label: '(GMT +7:00) Bangkok, Hanoi, Jakarta' },
-    { id: '+08:00', label: '(GMT +8:00) Beijing, Perth, Singapore, Hong Kong' },
-    { id: '+08:45', label: '(GMT +8:45) Eucla' },
-    { id: '+09:00', label: '(GMT +9:00) Tokyo, Seoul, Osaka, Sapporo, Yakutsk' },
-    { id: '+09:30', label: '(GMT +9:30) Adelaide, Darwin' },
-    { id: '+10:00', label: '(GMT +10:00) Eastern Australia, Guam, Vladivostok' },
-    { id: '+10:30', label: '(GMT +10:30) Lord Howe Island' },
-    { id: '+11:00', label: '(GMT +11:00) Magadan, Solomon Islands, New Caledonia' },
-    { id: '+11:30', label: '(GMT +11:30) Norfolk Island' },
-    { id: '+12:00', label: '(GMT +12:00) Auckland, Wellington, Fiji, Kamchatka' },
-    { id: '+12:45', label: '(GMT +12:45) Chatham Islands' },
-    { id: '+13:00', label: '(GMT +13:00) Apia, Nukualofa' },
-    { id: '+14:00', label: '(GMT +14:00) Line Islands, Tokelau' },
-  ];
-
+export class TimezonePickerComponent implements OnInit, OnChanges, OnDestroy, ControlValueAccessor {
   /**
-   * Setup section.
+   * Fixed offsets CEE has historically accepted, now named for what they are.
+   *
+   * The old labels attached cities to offsets. That was misleading whenever a
+   * city's daylight-saving rule changed: CEE stores `+05:30`, not an IANA zone
+   * such as `Asia/Kolkata`. Keeping the same ids preserves stored values while
+   * the labels make the storage semantics explicit.
    */
+  static readonly AVAILABLE_TIMEZONES: readonly TZone[] = [
+    '-12:00',
+    '-11:00',
+    '-10:00',
+    '-09:30',
+    '-09:00',
+    '-08:00',
+    '-07:00',
+    '-06:00',
+    '-05:00',
+    '-04:30',
+    '-04:00',
+    '-03:30',
+    '-03:00',
+    '-02:30',
+    '-02:00',
+    '-01:00',
+    'Z',
+    '+01:00',
+    '+02:00',
+    '+03:00',
+    '+03:30',
+    '+04:00',
+    '+04:30',
+    '+05:00',
+    '+05:30',
+    '+05:45',
+    '+06:00',
+    '+06:30',
+    '+07:00',
+    '+08:00',
+    '+08:45',
+    '+09:00',
+    '+09:30',
+    '+10:00',
+    '+10:30',
+    '+11:00',
+    '+11:30',
+    '+12:00',
+    '+12:45',
+    '+13:00',
+    '+13:45',
+    '+14:00',
+  ].map((id) => ({ id, label: TimezonePickerComponent.labelFor(id) }));
+
   @Input() getUserZone = false;
-  @Input() customPlaceholderText = 'Choose...';
-  @Input() customNotFoundText = 'No zone found';
-  @Input() clearable = false;
-  @Input() virtualScroll = true;
-  @Input() disabled = false;
-  readOnlyTimezoneControl = new FormControl<string | null>(null, null);
-  private userPreferencesService: UserPreferencesService;
-  private readOnlyModeSubscription: Subscription = Subscription.EMPTY;
+  @Input() customPlaceholderText = 'Select UTC offset';
+
+  readonly form = new FormGroup({
+    timezone: new FormControl<TZone | null>(null),
+  });
+  timeZones: TZone[] = [...TimezonePickerComponent.AVAILABLE_TIMEZONES];
   readOnlyMode = false;
 
-  @Input() set config(conf: SelectConfig) {
-    this._config = conf;
-  }
-
-  private _config: SelectConfig = {
-    hideSelected: false,
-    dropdownPosition: 'auto',
-    appearance: 'underline',
-    clearOnBackspace: true,
-    closeOnSelect: true,
-    appendTo: null,
-  };
-
-  get config(): SelectConfig {
-    return this._config;
-  }
-
-  /**
-   * Internals section.
-   */
-  timeZones: TZone[] = [];
-  form: FormGroup;
-  /**
-   * What to tell the forms API when the zone changes.
-   *
-   * A no-op until `registerOnChange` supplies the real one, because a picker
-   * nobody has registered with has nowhere to report to — which is what the
-   * `if (this.propagateChange)` guard at the call site was saying.
-   */
+  private initialized = false;
+  private readonly destroy$ = new Subject<void>();
   private propagateChange: (value: TZone | null) => void = () => {};
-  private destroy$ = new Subject<void>();
+  private propagateTouched: () => void = () => {};
 
-  constructor(
-    private fb: FormBuilder,
-    userPreferenceService: UserPreferencesService,
-  ) {
-    this.userPreferencesService = userPreferenceService;
-    // Built here rather than in `ngOnInit`: it depends on nothing but the builder,
-    // and a picker whose form exists from construction has no half-built state.
-    this.form = this.fb.group({
-      timezone: [],
-    });
+  constructor(private readonly userPreferencesService: UserPreferencesService) {}
+
+  static guessedUserZone(): TZone {
+    // getTimezoneOffset has the inverse sign of an ISO 8601 offset.
+    return TimezonePickerComponent.zoneForMinutes(-new Date().getTimezoneOffset());
   }
 
-  static guessedUserZone(): TZone | null {
-    const guessedZone = momentZone.tz.guess(true);
-    return TimezonePickerComponent.findZone(guessedZone);
+  static zoneForOffset(offset: string): TZone | null {
+    if (offset === 'Z' || offset === '+00:00' || offset === '-00:00') {
+      return TimezonePickerComponent.AVAILABLE_TIMEZONES.find((zone) => zone.id === 'Z') ?? null;
+    }
+    if (!/^[+-](?:0\d|1[0-3]):[0-5]\d$|^[+-]14:00$/.test(offset)) {
+      return null;
+    }
+    return (
+      TimezonePickerComponent.AVAILABLE_TIMEZONES.find((zone) => zone.id === offset) ?? {
+        id: offset,
+        label: TimezonePickerComponent.labelFor(offset),
+      }
+    );
   }
 
-  static findZone(zone: string): TZone | null {
-    const allZones: TZone[] = JSON.parse(JSON.stringify(TimezonePickerComponent.AVAILABLE_TIMEZONES));
-    const utc: string = momentZone.tz(zone).format('Z');
-    return allZones.find((z) => z.id === utc) ?? null;
+  private static zoneForMinutes(totalMinutes: number): TZone {
+    if (totalMinutes === 0) {
+      return TimezonePickerComponent.zoneForOffset('Z')!;
+    }
+    const sign = totalMinutes < 0 ? '-' : '+';
+    const absolute = Math.abs(totalMinutes);
+    const hours = Math.floor(absolute / 60)
+      .toString()
+      .padStart(2, '0');
+    const minutes = (absolute % 60).toString().padStart(2, '0');
+    return TimezonePickerComponent.zoneForOffset(`${sign}${hours}:${minutes}`)!;
+  }
+
+  private static labelFor(offset: string): string {
+    return offset === 'Z' ? 'UTC (Z)' : `UTC${offset}`;
   }
 
   ngOnInit(): void {
-    this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
+    this.initialized = true;
+    this.userPreferencesService.readOnlyMode$.pipe(takeUntil(this.destroy$)).subscribe((mode) => {
       this.readOnlyMode = mode;
     });
-    // make a copy of the list to avoid modifying the original timezones array
-    this.timeZones = JSON.parse(JSON.stringify(TimezonePickerComponent.AVAILABLE_TIMEZONES));
-    /**
-     * Value change subscription.
-     */
-    requireControl(this.form, 'timezone')
-      .valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.fireChanges());
+    this.form.controls.timezone.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value) => {
+      this.propagateChange(value);
+    });
+    this.applyGuessedZone();
   }
 
-  ngAfterViewInit(): void {
-    requireControl(this.form, 'timezone')
-      .valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.fireChanges();
-      });
-    this.guessUserTimezone();
+  ngOnChanges(): void {
+    if (this.initialized) {
+      this.applyGuessedZone();
+    }
   }
 
   ngOnDestroy(): void {
@@ -189,89 +163,50 @@ export class TimezonePickerComponent implements OnInit, AfterViewInit, OnDestroy
     this.destroy$.complete();
   }
 
-  private guessUserTimezone(): void {
-    setTimeout(() => {
-      if (this.getUserZone) {
-        const guessedZone = TimezonePickerComponent.guessedUserZone();
-        requireControl(this.form, 'timezone').setValue(guessedZone);
-      }
-    });
+  compareZones(first: TZone | null, second: TZone | null): boolean {
+    return first?.id === second?.id;
   }
 
-  // /**
-  //  * Make TZone object from simple string.
-  //  * @link ngOnInit
-  //  */
-  // formatZone(zone: string): TZone {
-  //   const utc: string = momentZone.tz(zone).format('Z');
-  //   return this.timeZones.find(z => z.id === utc);
-  // }
-
-  /**
-   * Propagate result to parent component.
-   */
-  private fireChanges(): void {
-    const { value } = requireControl(this.form, 'timezone');
-    this.readOnlyTimezoneControl.setValue(value?.label);
-    this.propagateChange(value);
+  markTouched(): void {
+    this.propagateTouched();
   }
 
-  /**
-   * Clear selection.
-   */
-  private clearZone(): void {
-    requireControl(this.form, 'timezone').setValue(null);
+  displayValue(): string {
+    return this.form.controls.timezone.value?.label ?? '';
   }
 
-  /**
-   * Handle parent imports changes.
-   */
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.getUserZone && changes.getUserZone.currentValue) {
-      this.guessUserTimezone();
-    }
-    if (changes.disabled) {
-      setTimeout(() => {
-        const timezone = requireControl(this.form, 'timezone');
-        if (changes.disabled.currentValue) {
-          timezone.disable();
-        } else {
-          timezone.enable();
-        }
-      });
-    }
-  }
-
-  /*
-   * Narrower than `ControlValueAccessor` declares. The interface says `fn: any` for
-   * both, which TypeScript's method parameter bivariance lets an implementation
-   * tighten — and what actually arrives here is the form's `TZone`, since
-   * `fireChanges` passes the control's value straight through.
-   */
   registerOnChange(fn: (value: TZone | null) => void): void {
     this.propagateChange = fn;
   }
 
-  registerOnTouched(_fn: () => void): void {}
+  registerOnTouched(fn: () => void): void {
+    this.propagateTouched = fn;
+  }
 
-  /**
-   * Handle parent model value changes.
-   */
-  writeValue(zone: string | TZone): void {
-    if (zone) {
-      let _zone: TZone | null = null;
-
-      if (typeof zone === 'string' && zone.length > 0) {
-        _zone = this.timeZones.find((z) => z.id === zone) ?? null;
-      } else if (typeof zone === 'object') {
-        _zone = this.timeZones.find((z) => z.id === zone.id) ?? null;
-      }
-
-      if (_zone) {
-        requireControl(this.form, 'timezone').setValue(_zone);
-      }
+  setDisabledState(disabled: boolean): void {
+    if (disabled) {
+      this.form.controls.timezone.disable({ emitEvent: false });
     } else {
-      this.clearZone();
+      this.form.controls.timezone.enable({ emitEvent: false });
     }
+  }
+
+  writeValue(value: string | TZone | null): void {
+    const offset = typeof value === 'string' ? value : value?.id;
+    const zone = this.ensureAvailable(offset ? TimezonePickerComponent.zoneForOffset(offset) : null);
+    this.form.controls.timezone.setValue(zone, { emitEvent: false });
+  }
+
+  private applyGuessedZone(): void {
+    if (this.getUserZone && this.form.controls.timezone.value === null) {
+      this.form.controls.timezone.setValue(this.ensureAvailable(TimezonePickerComponent.guessedUserZone()));
+    }
+  }
+
+  private ensureAvailable(zone: TZone | null): TZone | null {
+    if (zone !== null && !this.timeZones.some((candidate) => candidate.id === zone.id)) {
+      this.timeZones = [...this.timeZones, zone];
+    }
+    return zone;
   }
 }

@@ -63,7 +63,7 @@ test('every third-party selector CEE styles still matches an element', async ({ 
   // Page breaks, for the paginator classes.
   await open(page, '05-static-paged');
   await sweep();
-  // The only fixture with an ng-select in it, which is the timezone picker.
+  // The temporal fixture with the optional UTC-offset control.
   await open(page, '07-timezone');
   await sweep();
 

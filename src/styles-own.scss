@@ -9,8 +9,8 @@
 
 // CEE's public theming surface. An embedder can override these on the custom
 // element, so the names are API — do not rename or drop one without treating it
-// as a breaking change. `--cee-color-accent` and `--cee-color-warn` have no
-// internal consumer and exist for exactly that reason.
+// as a breaking change. `--cee-color-accent` remains for embedders; warn also
+// supplies CEE's validation feedback.
 :host {
   --cee-color-primary: #{tokens.$cee-color-primary};
   --cee-color-text-primary: #{tokens.$cee-color-on-primary};
@@ -27,7 +27,6 @@
   line-height: normal;
 }
 
-@import '@ng-select/ng-select/themes/material.theme.css';
 
 :host {
   @include theme.component-themes();
@@ -374,15 +373,6 @@ button.close {
   border: 0;
   -webkit-appearance: none;
 }
-
-/*
- * The two `.ng-select-multiple` rules that stood here are deleted: they styled a
- * multi-select ng-select, and CEE has exactly one ng-select — the timezone picker
- * — which never sets `[multiple]`. Nothing an embedder can do changes that, since
- * the element is in CEE's own template. Found by widening the selector-liveness
- * check to `ng-`, the same way it found `.mat-mdc-card-header` whose markup had
- * been commented out.
- */
 
 /*
  * Compress the field box. CEDAR forms run to dozens of fields, so Material's

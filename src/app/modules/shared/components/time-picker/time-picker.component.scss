@@ -1,6 +1,7 @@
 .cee-time-picker {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   min-width: 0;
 }
@@ -65,4 +66,12 @@
   min-height: 24px;
   padding-block: 6px;
   font-variant-numeric: tabular-nums;
+}
+
+.cee-time-validation {
+  flex-basis: 100%;
+  margin-inline-start: 4px;
+  color: var(--cee-color-warn);
+  font-size: 0.875rem;
+  line-height: 1.35;
 }

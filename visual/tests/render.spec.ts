@@ -1033,6 +1033,25 @@ test.describe('the time picker', () => {
     expect(String(await storedValue(page, '_to_the_minute'))).toContain('14:');
   });
 
+  test('an out-of-range typed hour waits for blur, then restores instead of wrapping', async ({ page }) => {
+    await open(page, '09-temporal');
+    const picker = pickerFor(page, 'to_the_minute');
+    const hour = picker.locator('input[aria-label="Hour"]');
+
+    await hour.fill('25');
+    await expect(hour, 'do not interrupt while the user is still typing').toHaveValue('25');
+    await expect(picker.getByRole('alert')).toHaveCount(0);
+    expect(await storedValue(page, '_to_the_minute'), 'an invalid edit must never reach metadata').toBeNull();
+
+    await hour.blur();
+    await expect(hour, 'there was no previous value, so blur restores the empty field').toHaveValue('');
+    await expect(picker.getByRole('alert')).toContainText('00 to 23');
+
+    await hour.fill('14');
+    await expect(picker.getByRole('alert'), 'a correction clears the feedback live').toHaveCount(0);
+    await expect.poll(async () => String(await storedValue(page, '_to_the_minute'))).toContain('14:');
+  });
+
   /** Wrapping rather than clamping when a focused segment is stepped. */
   test('stepping past the end of an hour wraps to the start', async ({ page }) => {
     await open(page, '09-temporal');
@@ -1173,6 +1192,19 @@ test.describe('the time picker', () => {
     await open(page, '09-temporal', 'readonly');
     expect(await page.locator('input[aria-label="Hour"]').count()).toBe(0);
     expect(await page.locator('.cee-time-picker-readonly').count()).toBeGreaterThan(0);
+  });
+
+  test('one clear action removes every part of a temporal value', async ({ page }) => {
+    await open(page, '21-temporal-normalization', undefined, '21-temporal-normalization-instance');
+    const field = page.locator('app-cedar-input-datetime').nth(4); // time_fraction
+
+    await field.getByRole('button', { name: 'Clear', exact: true }).click();
+
+    await expect.poll(() => storedValue(page, '_time_fraction')).toBeNull();
+    await expect(field.locator('input[aria-label="Hour"]')).toHaveValue('');
+    await expect(field.locator('input[aria-label="Minute"]')).toHaveValue('');
+    await expect(field.locator('input[aria-label="Second"]')).toHaveValue('');
+    await expect(field.locator('input[aria-label="Select Decimal Seconds"]')).toHaveValue('');
   });
 });
 
@@ -2049,11 +2081,10 @@ test.describe('config flags are wired to something', () => {
 /**
  * Each date picker formats with its own granularity.
  *
- * `DateTimeService` is `providedIn: 'root'` — one instance shared by every date picker
- * on the page — and each `DatePickerComponent.ngOnInit` writes its own `dateFormat`
- * into it. `CustomDateAdapter.format` then reads that shared value and ignores the
- * `displayFormat` Material hands it. Reading the code, it is not obvious whether the
- * last picker to initialise ends up formatting all of them.
+ * Each date picker provides its own DateTimeService, writes its own `dateFormat`
+ * into it, and CustomDateAdapter formats the native Date from that local value.
+ * The test protects that component boundary: a year field must not inherit the
+ * day format from another picker on the same page.
  *
  * It matters because the failure is quiet and hard to reproduce from one field: a year
  * field showing `03/04/2026`, or a day field showing `2026`. Both are wrong, both look
@@ -2076,6 +2107,63 @@ test.describe('date display formats', () => {
     // Stated as its own assertion because it is the actual question: the two must not
     // have collapsed onto one shared format.
     expect(await year.inputValue()).not.toBe(await day.inputValue());
+  });
+});
+
+/**
+ * The date picker boundary uses native `Date` values now, but CEE's public value
+ * remains the XSD lexical form dictated by the template granularity. Exercise
+ * the Material calendar itself so a display-only success cannot hide a broken
+ * selection event or an accidental local-date conversion.
+ */
+test.describe('date calendar selection', () => {
+  const storedValue = async (page: import('@playwright/test').Page, field: string): Promise<unknown> =>
+    page.evaluate((name) => {
+      const cee = document.querySelector('cedar-embeddable-editor') as unknown as Record<string, never>;
+      const instance = cee['currentMetadata'] as Record<string, { '@value'?: unknown }>;
+      return instance?.[name]?.['@value'];
+    }, field);
+
+  const openCalendar = async (input: import('@playwright/test').Locator): Promise<void> => {
+    await input.locator('xpath=ancestor::mat-form-field').locator('.mat-datepicker-toggle button').click();
+  };
+
+  const chooseCell = async (page: import('@playwright/test').Page, accessibleName: string): Promise<void> => {
+    await page.getByRole('dialog').getByRole('button', { name: accessibleName, exact: true }).click();
+  };
+
+  test('year selection stores January 1 at year granularity', async ({ page }) => {
+    await open(page, '09-temporal');
+    const year = page.locator('input[aria-label="Select Year"]').first();
+
+    await openCalendar(year);
+    await chooseCell(page, '2030');
+
+    await expect(year).toHaveValue('2030');
+    await expect.poll(() => storedValue(page, '_year_only')).toBe('2030-01-01');
+  });
+
+  test('month selection stores the first day at month granularity', async ({ page }) => {
+    await open(page, '21-temporal-normalization', undefined, '21-temporal-normalization-instance');
+    const month = page.locator('input[aria-label="Select Year and Month"]').first();
+
+    await openCalendar(month);
+    await chooseCell(page, '2030');
+    await chooseCell(page, '08/2030');
+
+    await expect(month).toHaveValue('08/2030');
+    await expect.poll(() => storedValue(page, '_date_month')).toBe('2030-08-01');
+  });
+
+  test('day selection stores exactly the selected local calendar day', async ({ page }) => {
+    await open(page, '09-temporal', undefined, '15-date-formats-instance');
+    const day = page.locator('input[aria-label="Select Date"]').first();
+
+    await openCalendar(day);
+    await chooseCell(page, '03/15/2026');
+
+    await expect(day).toHaveValue('03/15/2026');
+    await expect.poll(() => storedValue(page, '_day_only')).toBe('2026-03-15');
   });
 });
 

@@ -18,8 +18,7 @@
     "AllValues": "All Values",
     "Clear": "Clear",
     "SelectDecimalSeconds": "Select Decimal Seconds",
-    "SelectTimeZone": "Select Time Zone",
-    "NoTimeZoneFound": "No Time Zone Found",
+    "SelectUtcOffset": "Select UTC offset",
     "SelectYear": "Select Year",
     "SelectYearAndMonth": "Select Year and Month",
     "SelectDate": "Select Date",
@@ -100,6 +99,12 @@
     "Numeric": {
       "MinValue": "Value should be at least {{constraintMinValue}}.",
       "MaxValue": "Value should be at most {{constraintMaxValue}}."
+    },
+    "Time": {
+      "InvalidHour24": "Enter an hour from 00 to 23. The previous value was restored.",
+      "InvalidHour12": "Enter an hour from 1 to 12. The previous value was restored.",
+      "InvalidMinute": "Enter a minute from 00 to 59. The previous value was restored.",
+      "InvalidSecond": "Enter a second from 00 to 59. The previous value was restored."
     },
     "OrcidInvalid": "Entered value is not a valid ORCID and has been cleared.",
     "OrcidReverted": "Invalid ORCID, edit was discarded; restored last valid ORCID.",

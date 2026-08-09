@@ -348,8 +348,8 @@ const writeRaw = (name, document) => {
   write('06-validation', tb.build());
 }
 
-// 7. Timezone picker — the only `ng-select` in the application, reachable only
-//    when a temporal field sets timezoneEnabled.
+// 7. UTC-offset picker, reachable only when a temporal field sets
+//    timezoneEnabled.
 {
   const dt = field(
     'sampled_at',
@@ -577,14 +577,11 @@ const writeRaw = (name, document) => {
 // 15. Two date fields of different granularity, both filled — the case that asks
 //     whether each picker formats with its own granularity.
 //
-//     `DateTimeService` is `providedIn: 'root'`, so one instance is shared by every
-//     date picker on the page, and each `DatePickerComponent.ngOnInit` writes its own
-//     `dateFormat` into it. `CustomDateAdapter.format` then reads that shared value and
-//     ignores the `displayFormat` Material passes it. Whether the last picker to
-//     initialise therefore formats all of them is not obvious from reading it, and
-//     matters: a year field showing `03/04/2026` or a day field showing `2026` is wrong
-//     in a way a user would notice and a developer would struggle to reproduce from one
-//     field alone.
+//     Each date picker provides a local `DateTimeService`, writes its `dateFormat`
+//     into it, and `CustomDateAdapter` formats that picker's native Date. The
+//     fixture keeps that isolation observable: a year field showing `03/04/2026`
+//     or a day field showing `2026` is wrong in a way a user would notice and a
+//     developer would struggle to reproduce from one field alone.
 //
 //     A year-granularity field needs a full date in the instance — bare `2019` does not
 //     reach the control, which is input handling rather than formatting — so the value

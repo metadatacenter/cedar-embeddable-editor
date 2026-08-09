@@ -18,8 +18,7 @@
     "AllValues": "Minden érték",
     "Clear": "Törlés",
     "SelectDecimalSeconds": "Tizedes másodpercek kiválasztása",
-    "SelectTimeZone": "Időzóna kiválasztása",
-    "NoTimeZoneFound": "Nem található időzóna",
+    "SelectUtcOffset": "UTC-eltolás kiválasztása",
     "SelectYear": "Év kiválasztása",
     "SelectYearAndMonth": "Év és hónap kiválasztása",
     "SelectDate": "Dátum kiválasztása",
@@ -100,6 +99,12 @@
     "Numeric": {
       "MinValue": "Az érték legalább {{constraintMinValue}} kell legyen.",
       "MaxValue": "Az érték legfeljebb {{constraintMaxValue}} lehet."
+    },
+    "Time": {
+      "InvalidHour24": "Adjon meg egy órát 00 és 23 között. Az előző érték visszaállítva.",
+      "InvalidHour12": "Adjon meg egy órát 1 és 12 között. Az előző érték visszaállítva.",
+      "InvalidMinute": "Adjon meg egy percet 00 és 59 között. Az előző érték visszaállítva.",
+      "InvalidSecond": "Adjon meg egy másodpercet 00 és 59 között. Az előző érték visszaállítva."
     },
     "OrcidInvalid": "A megadott érték nem érvényes ORCID, ezért törlésre került.",
     "OrcidReverted": "Érvénytelen ORCID, a módosítás elvetve; az utolsó érvényes ORCID visszaállítva.",

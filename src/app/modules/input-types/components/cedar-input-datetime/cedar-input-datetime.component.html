@@ -47,12 +47,23 @@
     <app-timezone-picker
       [(ngModel)]="timezone"
       (ngModelChange)="timezoneInputChanged($event)"
-      customPlaceholderText="{{ 'Generic.SelectTimeZone' | translate }}"
-      customNotFoundText="{{ 'Generic.NoTimeZoneFound' | translate }}"
+      customPlaceholderText="{{ 'Generic.SelectUtcOffset' | translate }}"
       [getUserZone]="setDefaultZone"
-      [clearable]="false"
     ></app-timezone-picker>
   </div>
+}
+
+@if (hasTemporalValue() && !readOnlyMode) {
+  <button
+    type="button"
+    mat-icon-button
+    class="cee-temporal-clear"
+    attr.aria-label="{{ 'Generic.Clear' | translate }}"
+    matTooltip="{{ 'Generic.Clear' | translate }}"
+    (click)="clearValue()"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
 }
 
 @if (valueControl.invalid && userEdited && !readOnlyMode) {

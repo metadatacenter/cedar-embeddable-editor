@@ -65,6 +65,10 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   minute = 0;
   second = 0;
   meridian: Meridian = 'AM';
+  /** The segment whose rejected edit was most recently restored on blur. */
+  restoredSegment: 'hour' | 'minute' | 'second' | null = null;
+
+  private invalidSegment: 'hour' | 'minute' | 'second' | null = null;
 
   /**
    * Not editable, for either of the two independent reasons it can be true.
@@ -123,6 +127,8 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
 
   writeValue(value: Date | null): void {
     this.value = value ? new Date(value.getTime()) : null;
+    this.invalidSegment = null;
+    this.restoredSegment = null;
     const hour24 = this.value ? this.value.getHours() : 0;
 
     if (this.enableMeridian) {
@@ -150,21 +156,37 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
 
   // --- editing --------------------------------------------------------------
 
-  /** The hour box, wrapped into whichever face is showing. */
+  /** Accept a typed hour only when it is valid on the face being shown. */
   hourChanged(raw: unknown): void {
-    this.hour = this.enableMeridian
-      ? ClockTime.wrap(TimePickerComponent.toNumber(raw), 1, 12)
-      : ClockTime.wrap(TimePickerComponent.toNumber(raw), 0, 23);
+    const value = TimePickerComponent.typedSegment(raw, this.enableMeridian ? 1 : 0, this.enableMeridian ? 12 : 23);
+    if (value === null) {
+      this.invalidSegment = 'hour';
+      return;
+    }
+    this.hour = value;
+    this.acceptSegment('hour');
     this.emit();
   }
 
   minuteChanged(raw: unknown): void {
-    this.minute = ClockTime.wrap(TimePickerComponent.toNumber(raw), 0, 59);
+    const value = TimePickerComponent.typedSegment(raw, 0, 59);
+    if (value === null) {
+      this.invalidSegment = 'minute';
+      return;
+    }
+    this.minute = value;
+    this.acceptSegment('minute');
     this.emit();
   }
 
   secondChanged(raw: unknown): void {
-    this.second = ClockTime.wrap(TimePickerComponent.toNumber(raw), 0, 59);
+    const value = TimePickerComponent.typedSegment(raw, 0, 59);
+    if (value === null) {
+      this.invalidSegment = 'second';
+      return;
+    }
+    this.second = value;
+    this.acceptSegment('second');
     this.emit();
   }
 
@@ -179,12 +201,14 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       return;
     }
     if (field === 'hour') {
-      this.hourChanged(this.hour + by);
+      this.hour = this.enableMeridian ? ClockTime.wrap(this.hour + by, 1, 12) : ClockTime.wrap(this.hour + by, 0, 23);
     } else if (field === 'minute') {
-      this.minuteChanged(this.minute + by);
+      this.minute = ClockTime.wrap(this.minute + by, 0, 59);
     } else {
-      this.secondChanged(this.second + by);
+      this.second = ClockTime.wrap(this.second + by, 0, 59);
     }
+    this.acceptSegment(field);
+    this.emit();
   }
 
   /** Keep clock stepping available from the keyboard without permanent button towers. */
@@ -194,6 +218,22 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
     }
     event.preventDefault();
     this.step(field, event.key === 'ArrowUp' ? 1 : -1);
+  }
+
+  /**
+   * Reject an out-of-range typed segment on blur and restore the last stored
+   * value. Arrow-key stepping still wraps because stepping a clock and entering
+   * a number are different actions: `23 + ArrowUp` means midnight, while typing
+   * `25` should never silently become `01`.
+   */
+  segmentBlur(event: FocusEvent, field: 'hour' | 'minute' | 'second'): void {
+    if (this.invalidSegment === field) {
+      const input = event.target as HTMLInputElement;
+      input.value = this.hasValue ? this.segmentText(field) : '';
+      this.invalidSegment = null;
+      this.restoredSegment = field;
+    }
+    this.onTouched();
   }
 
   toggleMeridian(): void {
@@ -259,11 +299,26 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
     this.onChange(this.value);
   }
 
-  private static toNumber(raw: unknown): number | null {
-    if (raw === null || raw === undefined || raw === '') {
+  private acceptSegment(field: 'hour' | 'minute' | 'second'): void {
+    if (this.invalidSegment === field) {
+      this.invalidSegment = null;
+    }
+    this.restoredSegment = null;
+  }
+
+  private segmentText(field: 'hour' | 'minute' | 'second'): string {
+    if (field === 'hour') {
+      return this.hourText;
+    }
+    return field === 'minute' ? this.minuteText : this.secondText;
+  }
+
+  private static typedSegment(raw: unknown, min: number, max: number): number | null {
+    const text = String(raw ?? '');
+    if (!/^\d{1,2}$/.test(text)) {
       return null;
     }
-    const parsed = typeof raw === 'number' ? raw : Number.parseInt(String(raw), 10);
-    return Number.isNaN(parsed) ? null : parsed;
+    const parsed = Number.parseInt(text, 10);
+    return parsed >= min && parsed <= max ? parsed : null;
   }
 }

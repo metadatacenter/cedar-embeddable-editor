@@ -20,7 +20,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
-import { NgSelectModule } from '@ng-select/ng-select';
 import { CedarEmbeddableMetadataEditorComponent } from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { CedarComponentRendererComponent } from './components/cedar-component-renderer/cedar-component-renderer.component';
 import { StaticFooterComponent } from './components/static-footer/static-footer.component';
@@ -60,7 +59,6 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     MatListModule,
     MatSelectModule,
     NgxMatSelectSearchModule,
-    NgSelectModule,
     InputTypesModule,
     FormsModule,
     MatMenuModule,

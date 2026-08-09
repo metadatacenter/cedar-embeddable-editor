@@ -55,7 +55,7 @@ Library:
 | `04-controlled-terms` | controlled-term autocomplete, ORCID, ROR |
 | `05-static-paged` | section break, rich text, page breaks |
 | `06-validation` | `mat-error` and the form-field subscript, in five error states |
-| `07-timezone` | the timezone picker — CEE's only `ng-select` |
+| `07-timezone` | the fixed UTC-offset picker |
 | `08-authority` | all seven external-authority widgets |
 | `09-temporal` | all eight temporal granularities and both time formats |
 | `10-attribute-values` | attribute-value names and values |

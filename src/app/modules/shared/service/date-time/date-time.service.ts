@@ -5,11 +5,9 @@ import { Injectable } from '@angular/core';
 })
 export class DateTimeService {
   private formatString: string;
-  private localeString: string;
 
   public constructor() {
-    this.formatString = 'LL';
-    this.localeString = 'en-US';
+    this.formatString = 'MM/DD/YYYY';
   }
 
   public get format(): string {
@@ -18,13 +16,5 @@ export class DateTimeService {
 
   public set format(value: string) {
     this.formatString = value;
-  }
-
-  public get locale(): string {
-    return this.localeString;
-  }
-
-  public set locale(value: string) {
-    this.localeString = value;
   }
 }

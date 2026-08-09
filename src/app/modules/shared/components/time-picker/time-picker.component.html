@@ -10,6 +10,7 @@
         placeholder="HH"
         (input)="hourChanged($any($event.target).value)"
         (keydown)="segmentKeydown($event, 'hour')"
+        (blur)="segmentBlur($event, 'hour')"
         attr.aria-label="{{ 'Generic.Hour' | translate }}"
       />
       @if (!disableMinute) {
@@ -23,6 +24,7 @@
           placeholder="MM"
           (input)="minuteChanged($any($event.target).value)"
           (keydown)="segmentKeydown($event, 'minute')"
+          (blur)="segmentBlur($event, 'minute')"
           attr.aria-label="{{ 'Generic.Minute' | translate }}"
         />
         @if (showSeconds) {
@@ -36,6 +38,7 @@
             placeholder="SS"
             (input)="secondChanged($any($event.target).value)"
             (keydown)="segmentKeydown($event, 'second')"
+            (blur)="segmentBlur($event, 'second')"
             attr.aria-label="{{ 'Generic.Second' | translate }}"
           />
         }
@@ -51,6 +54,17 @@
       >
         {{ meridian }}
       </button>
+    }
+    @if (restoredSegment === 'hour') {
+      <div class="cee-time-validation" role="alert">
+        {{ (enableMeridian ? 'Validation.Time.InvalidHour12' : 'Validation.Time.InvalidHour24') | translate }}
+      </div>
+    }
+    @if (restoredSegment === 'minute') {
+      <div class="cee-time-validation" role="alert">{{ 'Validation.Time.InvalidMinute' | translate }}</div>
+    }
+    @if (restoredSegment === 'second') {
+      <div class="cee-time-validation" role="alert">{{ 'Validation.Time.InvalidSecond' | translate }}</div>
     }
   </div>
 }

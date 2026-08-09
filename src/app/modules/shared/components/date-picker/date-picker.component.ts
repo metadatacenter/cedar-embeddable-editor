@@ -1,21 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
-import { FormControl, ValidatorFn, Validators } from '@angular/forms';
+import { FormControl, Validators } from '@angular/forms';
 import { DateAdapter } from '@angular/material/core';
 import { MatDatepicker } from '@angular/material/datepicker';
-
-// One import, not the `_rollupMoment || _moment` pair this used to carry.
-//
-// That pattern is from Material's own datepicker guide, written when a project
-// might be built by a bundler that synthesised a default export for a CommonJS
-// module or by one that did not, so it took whichever it was given. CEE is built
-// by the Angular CLI through esbuild, which does synthesise it, so the fallback
-// arm was never the one taken.
-//
-// TypeScript 6.0 is what forced the question: a namespace import is not callable,
-// so `_rollupMoment || _moment` types as a union with one non-callable arm and
-// `moment()` stops compiling. Keeping both arms would mean suppressing that,
-// which would be pretending the dead arm is live.
-import moment, { Moment } from 'moment';
 import { CustomDateAdapter } from '../../service/date-time/custom-date-adapter';
 import { DateTimeService } from '../../service/date-time/date-time.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
@@ -45,10 +31,10 @@ export class DatePickerComponent implements OnInit {
   yearMonthFormat = DatePickerComponent.YEAR_MONTH_FORMAT;
   yearMonthDayFormat = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
 
-  @Input({ required: true }) dateMonthYear!: FormControl;
+  @Input({ required: true }) dateMonthYear!: FormControl<Date | null>;
   @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
   @Input() required = false;
-  @Output() dateChangedEvent = new EventEmitter<Moment>();
+  @Output() dateChangedEvent = new EventEmitter<Date>();
   private userPreferencesService: UserPreferencesService;
   private readOnlyModeSubscription: Subscription = Subscription.EMPTY;
   readOnlyMode = false;
@@ -64,52 +50,44 @@ export class DatePickerComponent implements OnInit {
     this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
       this.readOnlyMode = mode;
     });
-    const validators: ValidatorFn[] = [];
     this._dateTimeService.format = this.dateFormat;
-    const m = moment();
-
-    switch (this.dateFormat) {
-      case this.yearMonthFormat:
-        m.set('date', 1);
-        break;
-      case this.yearFormat:
-        m.set('date', 1);
-        m.set('month', 0);
-        break;
-    }
     if (this.required) {
-      validators.push(Validators.required);
+      this.dateMonthYear.addValidators(Validators.required);
+      this.dateMonthYear.updateValueAndValidity({ emitEvent: false });
     }
-    this.dateMonthYear = new FormControl<string | null>(null, validators);
   }
 
-  chosenYearHandler(normalizedYear: Moment, datepicker: MatDatepicker<Moment>): void {
-    if (this.dateMonthYear.value == null) {
-      this.dateMonthYear.setValue(moment());
-    }
-    const ctrlValue = this.dateMonthYear.value;
-    ctrlValue.year(normalizedYear.year());
-    this.dateMonthYear.setValue(ctrlValue);
+  chosenYearHandler(normalizedYear: Date, datepicker: MatDatepicker<Date>): void {
+    const current = this.dateMonthYear.value ?? new Date();
+    const month = this.dateFormat === this.yearFormat ? 0 : current.getMonth();
+    const next = DatePickerComponent.localDate(normalizedYear.getFullYear(), month, 1);
+    this.dateMonthYear.setValue(next);
     if (this.dateFormat === this.yearFormat) {
       datepicker.close();
-      this.dateChangedEvent.emit(this.dateMonthYear.value);
+      this.dateChangedEvent.emit(next);
     }
   }
 
-  chosenMonthHandler(normalizedMonth: Moment, datepicker: MatDatepicker<Moment>): void {
-    const ctrlValue = this.dateMonthYear.value;
-    ctrlValue.month(normalizedMonth.month());
-    this.dateMonthYear.setValue(ctrlValue);
-
+  chosenMonthHandler(normalizedMonth: Date, datepicker: MatDatepicker<Date>): void {
+    const current = this.dateMonthYear.value ?? normalizedMonth;
+    const next = DatePickerComponent.localDate(current.getFullYear(), normalizedMonth.getMonth(), 1);
+    this.dateMonthYear.setValue(next);
     if (this.dateFormat === this.yearMonthFormat) {
       datepicker.close();
     }
-    this.dateChangedEvent.emit(this.dateMonthYear.value);
+    this.dateChangedEvent.emit(next);
   }
 
-  chosenDateHandler(event: MatDatepickerInputEvent<Moment>): void {
-    if (event) {
-      this.dateChangedEvent.emit(event.value ?? undefined);
+  chosenDateHandler(event: MatDatepickerInputEvent<Date>): void {
+    if (event.value !== null) {
+      this.dateChangedEvent.emit(event.value);
     }
+  }
+
+  private static localDate(year: number, month: number, day: number): Date {
+    const value = new Date(0);
+    value.setHours(0, 0, 0, 0);
+    value.setFullYear(year, month, day);
+    return value;
   }
 }
