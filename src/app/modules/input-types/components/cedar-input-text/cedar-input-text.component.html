@@ -22,7 +22,6 @@
           matInput
           type="text"
           [formControl]="inputValueControl"
-          [errorStateMatcher]="errorStateMatcher"
           (input)="inputChanged($event)"
           [readonly]="readOnlyMode"
           attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
@@ -35,7 +34,6 @@
           cdkTextareaAutosize
           cdkAutosizeMinRows="6"
           [formControl]="inputValueControl"
-          [errorStateMatcher]="errorStateMatcher"
           (input)="inputChanged($event)"
           attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
           [readonly]="readOnlyMode"

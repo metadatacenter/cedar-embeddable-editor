@@ -94,6 +94,9 @@
     "Link": {
       "Invalid": "Az érték érvényes webcímnek (URL-nek) kell lennie."
     },
+    "Phone": {
+      "Invalid": "Az értéknek érvényes telefonszámnak kell lennie."
+    },
     "Numeric": {
       "MinValue": "Az érték legalább {{constraintMinValue}} kell legyen.",
       "MaxValue": "Az érték legfeljebb {{constraintMaxValue}} lehet."

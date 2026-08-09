@@ -94,6 +94,9 @@
     "Link": {
       "Invalid": "Value should be a valid URL."
     },
+    "Phone": {
+      "Invalid": "Value should be a valid phone number."
+    },
     "Numeric": {
       "MinValue": "Value should be at least {{constraintMinValue}}.",
       "MaxValue": "Value should be at most {{constraintMaxValue}}."

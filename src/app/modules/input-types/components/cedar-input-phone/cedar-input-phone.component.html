@@ -5,7 +5,6 @@
       matInput
       type="text"
       [formControl]="inputValueControl"
-      [errorStateMatcher]="errorStateMatcher"
       (input)="inputChanged($event)"
       [readonly]="readOnlyMode"
       attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
@@ -20,6 +19,9 @@
       >
         <mat-icon>close</mat-icon>
       </button>
+    }
+    @if (inputValueControl.getError('pattern') && !readOnlyMode) {
+      <mat-error class="mat-error align-start">{{ 'Validation.Phone.Invalid' | translate }}</mat-error>
     }
     @if (inputValueControl.getError('required') && !readOnlyMode) {
       <mat-error class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>

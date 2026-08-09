@@ -6,7 +6,6 @@
       type="text"
       placeholder="example@domain.com"
       [formControl]="inputValueControl"
-      [errorStateMatcher]="errorStateMatcher"
       (input)="inputChanged($event)"
       [readonly]="readOnlyMode"
       attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"

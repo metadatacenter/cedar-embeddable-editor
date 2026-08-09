@@ -5,7 +5,6 @@
       matInput
       type="text"
       [formControl]="inputValueControl"
-      [errorStateMatcher]="errorStateMatcher"
       (input)="inputChanged($event)"
       [readonly]="readOnlyMode"
       attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"

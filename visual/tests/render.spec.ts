@@ -415,8 +415,8 @@ test.describe('validation states', () => {
    * Touch each required field and leave it empty.
    *
    * Material's default ErrorStateMatcher only shows `mat-error` once a control
-   * is touched or dirty, so focusing and blurring is the whole trick — no
-   * invalid input is needed for the `required` case.
+   * is touched or its form is submitted, so focusing and blurring is the whole
+   * trick — no invalid input is needed for the `required` case.
    */
   test('required fields show errors once touched', async ({ page }) => {
     await open(page, '06-validation');
@@ -435,6 +435,31 @@ test.describe('validation states', () => {
 
     await expect(page.locator('mat-error').first()).toBeVisible();
     await expect(page).toHaveScreenshot('validation-required.png', { fullPage: true });
+  });
+
+  test('typed format errors wait for blur and then clear live', async ({ page }) => {
+    await open(page, '06-validation');
+
+    const cases = [
+      { name: 'short_text', invalid: 'abc', valid: 'abcdefgh' },
+      { name: 'an_email', invalid: 'not-an-email', valid: 'valid@example.org' },
+      { name: 'a_link', invalid: 'example', valid: 'https://example.org' },
+      { name: 'a_phone', invalid: 'letters', valid: '+1 (650) 555-0100' },
+    ];
+
+    for (const entry of cases) {
+      const input = page.locator(`input[aria-label="${entry.name}"]`);
+      const error = input.locator('xpath=ancestor::mat-form-field').locator('mat-error');
+
+      await input.fill(entry.invalid);
+      await expect(error, `${entry.name} reported an error while the user was still typing`).toBeHidden();
+
+      await input.blur();
+      await expect(error, `${entry.name} did not report its error after blur`).toBeVisible();
+
+      await input.fill(entry.valid);
+      await expect(error, `${entry.name} did not clear its error as soon as the value became valid`).toBeHidden();
+    }
   });
 
   test('an invalid email shows its own error', async ({ page }) => {

@@ -1,29 +1,14 @@
 import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  FormGroupDirective,
-  NgForm,
-  ValidatorFn,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
-import { ErrorStateMatcher } from '@angular/material/core';
 import { InputType } from '../../../shared/models/input-type.model';
 import { HtmlDetectService } from '../../../shared/service/html-detect.service';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { IriPrefix } from '../../../shared/util/iri-prefix';
-
-export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
-    return !!(control && control.invalid && (control.dirty || control.touched));
-  }
-}
 
 @Component({
   selector: 'app-cedar-input-text',
@@ -37,7 +22,6 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
   component!: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
-  errorStateMatcher = new TextFieldErrorStateMatcher();
   constraintMinLength: number | null = null;
   constraintMaxLength: number | null = null;
   @Input({ required: true }) handlerContext!: HandlerContext;
