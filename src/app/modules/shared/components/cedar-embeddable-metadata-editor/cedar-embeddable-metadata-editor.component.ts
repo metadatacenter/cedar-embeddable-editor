@@ -28,7 +28,7 @@ import { CeeConfig, configFlag, configText } from '../../util/config-reader';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
-  private static INNER_VERSION = '2026-08-09 09:44 90c9ae4';
+  private static INNER_VERSION = '2026-08-09 10:17 c796e20';
 
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
