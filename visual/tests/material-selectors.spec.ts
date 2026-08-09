@@ -104,7 +104,15 @@ test('the public custom properties and namespaced faces survive', async ({ page 
   await open(page, '01-input-types');
 
   const host = page.locator('cedar-embeddable-editor');
-  for (const prop of ['--cee-color-primary', '--cee-color-text-primary', '--cee-color-accent', '--cee-color-warn']) {
+  for (const prop of [
+    '--cee-color-primary',
+    '--cee-color-text-primary',
+    '--cee-color-accent',
+    '--cee-color-warn',
+    '--cee-element-heading-size',
+    '--cee-element-heading-weight',
+    '--cee-element-content-gap',
+  ]) {
     const value = await host.evaluate((n, p) => getComputedStyle(n).getPropertyValue(p).trim(), prop);
     expect(value, `${prop} is public API and must stay published on :host`).not.toBe('');
   }

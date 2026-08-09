@@ -17,6 +17,9 @@
   --cee-color-accent: #{tokens.$cee-color-accent};
   --cee-color-warn: #{tokens.$cee-color-warn};
   --cee-color-warning: #{tokens.$cee-color-warning};
+  --cee-element-heading-size: 1rem;
+  --cee-element-heading-weight: 600;
+  --cee-element-content-gap: 1rem;
   display: block;
   box-sizing: border-box;
   width: 100%;

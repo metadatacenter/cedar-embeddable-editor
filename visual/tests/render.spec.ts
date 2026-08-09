@@ -628,6 +628,41 @@ test('the editor shrinks to its host without horizontal overflow', async ({ page
   expect(layout.actions!.right).toBeLessThanOrEqual(layout.host!.right);
 });
 
+test('element headings establish hierarchy without doubling the first content gap', async ({ page }) => {
+  await open(page, '18-real-nested', 'readonly');
+  await page.locator('.page-break-paginator-container mat-chip-option', { hasText: '2' }).first().click();
+  await page.waitForTimeout(300);
+
+  const panel = page.locator('mat-expansion-panel', { hasText: 'Wrapper then Nested (single)' }).first();
+  const readMetrics = () =>
+    panel.evaluate((element) => {
+      const header = element.querySelector(':scope > mat-expansion-panel-header')!.getBoundingClientRect();
+      const title = element.querySelector(':scope > mat-expansion-panel-header mat-panel-title')!;
+      const firstFieldHeader = element
+        .querySelector(
+          ':scope > .mat-expansion-panel-content-wrapper > .mat-expansion-panel-content > .mat-expansion-panel-body > .cee-element-content > app-cedar-component-renderer:first-of-type > .non-iterable-component > app-cedar-component-header',
+        )!
+        .getBoundingClientRect();
+      const titleStyle = getComputedStyle(title);
+      return {
+        fontSize: titleStyle.fontSize,
+        fontWeight: titleStyle.fontWeight,
+        contentGap: firstFieldHeader.top - header.bottom,
+      };
+    });
+
+  expect(await readMetrics()).toEqual({ fontSize: '16px', fontWeight: '600', contentGap: 16 });
+
+  await page.locator('cedar-embeddable-editor').evaluate((host) => {
+    const style = (host as HTMLElement).style;
+    style.setProperty('--cee-element-heading-size', '18px');
+    style.setProperty('--cee-element-heading-weight', '700');
+    style.setProperty('--cee-element-content-gap', '8px');
+  });
+
+  expect(await readMetrics()).toEqual({ fontSize: '18px', fontWeight: '700', contentGap: 8 });
+});
+
 test('page navigation keeps its controls in a compact row', async ({ page }) => {
   await open(page, '17-real-flat', 'readonly');
 

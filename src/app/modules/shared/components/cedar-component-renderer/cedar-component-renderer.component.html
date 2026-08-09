@@ -6,7 +6,7 @@
       [expanded]="panelOpenState"
     >
       <mat-expansion-panel-header>
-        <mat-panel-title>
+        <mat-panel-title class="cee-element-heading">
           @if (!iterableComponent.linkedStaticFieldComponent) {
             <app-cedar-component-header [componentToRender]="iterableComponent"></app-cedar-component-header>
           }
@@ -28,7 +28,10 @@
         </app-cedar-multi-pager>
       }
       @if (shouldRenderContentOfIterable(iterableComponent)) {
-        <mat-card-content>
+        <mat-card-content
+          class="cee-element-content"
+          [class.cee-element-content-with-static]="!!iterableComponent.linkedStaticFieldComponent"
+        >
           @if (iterableComponent.linkedStaticFieldComponent) {
             <!-- These are the collapsed static components before elements -->
             @if (iterableComponent.linkedStaticFieldComponent.basicInfo.inputType === InputType.image) {

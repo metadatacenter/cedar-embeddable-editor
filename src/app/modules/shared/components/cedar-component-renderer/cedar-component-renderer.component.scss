@@ -3,12 +3,34 @@
   min-width: 0;
 }
 
+.cee-element-heading {
+  font-size: var(--cee-element-heading-size);
+  font-weight: var(--cee-element-heading-weight);
+}
+
+.cee-element-content {
+  padding-top: var(--cee-element-content-gap);
+}
+
 .non-iterable-component {
   box-sizing: border-box;
   min-width: 0;
   padding: 1rem 0;
   background: transparent;
   border-bottom: 1px solid #e1e7e6;
+}
+
+/*
+ * Material card content supplies the element's heading-to-content gap. The
+ * first ordinary field used to add its own 16px top padding as well, producing
+ * a 32px blank band at every nesting level. Keep the field's bottom rhythm but
+ * do not count its top spacing twice.
+ */
+::ng-deep
+  .cee-element-content:not(.cee-element-content-with-static)
+  > app-cedar-component-renderer:first-of-type
+  > .non-iterable-component {
+  padding-top: 0;
 }
 
 .child-component-content {

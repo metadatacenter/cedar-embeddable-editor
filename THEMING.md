@@ -47,9 +47,17 @@ These are commitments. A diff that changes one of them is a regression.
 
 **The `--cee-*` custom properties are public API.** `--cee-color-primary`,
 `--cee-color-text-primary`, `--cee-color-accent` and `--cee-color-warn` are
-published on `:host`, where an embedder can override them. Two have no internal
-consumer, which is the point. Renaming or dropping one breaks embedders silently,
-so treat the set as versioned surface.
+published on `:host`, where an embedder can override them. Element hierarchy is
+customizable in the same way through `--cee-element-heading-size`,
+`--cee-element-heading-weight`, and `--cee-element-content-gap`. Their defaults
+are `1rem`, `600`, and `1rem` respectively. Two of the color properties have no
+internal consumer, which is the point. Renaming or dropping any public property
+breaks embedders silently, so treat the set as versioned surface.
+
+These layout properties deliberately customize presentation rather than
+structure. The template still decides which elements are nested and collapsible;
+an embedding application can adapt their typography and density without gaining
+a second, conflicting representation of the template hierarchy.
 
 **`ViewEncapsulation.None` is how the component styles itself.** CEE is a web
 component whose styles have to reach its own light-DOM content and the CDK
