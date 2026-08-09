@@ -2,17 +2,20 @@
  * Whether `_ui._size` reaches CEE's tree at all.
  *
  * The rules for choosing a final size are arithmetic and are tested beside the
- * component. This is the other half, and the half that was actually missing:
+ * components. This is the other half, and the half that was actually missing:
  * the number has to survive the trip from the template's `_ui._size`, through
- * the model library's reader, into `contentInfo` — and for one of the two field
- * types it does not.
+ * the model library's reader, into `contentInfo`.
  *
- * The model library models `width` and `height` on `StaticYoutubeField` and not
- * on `StaticImageField`. So a template can ask an image to be 300 × 200 and CEE
- * cannot know: the size is dropped before the parser sees the field. That is a
- * model library gap rather than a CEE one, it is on the roadmap, and it is
- * asserted here rather than described so that the day the library grows the
- * property, this test fails and says so.
+ * Both sizeable kinds carry it now. The model library modelled `width` and
+ * `height` on `StaticYoutubeField` alone until 0.9.2-dev.20260808.92f3412, so a
+ * template could ask an image to be 300 × 200 and CEE could not know — the size
+ * was dropped before the parser saw the field. That was a model library gap
+ * rather than a CEE one, and it was asserted here rather than described so that
+ * the day the library grew the property, the test would fail and say so. It did.
+ *
+ * What each renderer does with an absent size is its own question, answered
+ * beside the components: a video falls back to a default because an `iframe`
+ * collapses without one, an image is left at its natural dimensions.
  */
 import { describe, expect, it } from 'vitest';
 import { CeeDriver } from '../src/driver';
@@ -43,7 +46,11 @@ const templateWithSizedStatics = () => ({
   'schema:schemaVersion': '1.6.0',
   additionalProperties: false,
   $schema: 'http://json-schema.org/draft-04/schema#',
-  _ui: { order: ['video', 'picture'], propertyLabels: { video: 'Video', picture: 'Picture' }, propertyDescriptions: { video: '', picture: '' } },
+  _ui: {
+    order: ['video', 'picture'],
+    propertyLabels: { video: 'Video', picture: 'Picture' },
+    propertyDescriptions: { video: '', picture: '' },
+  },
   required: [],
   properties: {
     '@context': {},
@@ -98,18 +105,23 @@ describe('a size a template asks for', () => {
   });
 
   /**
-   * Not a preference. `StaticImageField` in the model library exposes `content`
-   * and nothing else, so this is what CEE can see, not what it chooses to read.
-   * When this starts failing, the library has grown the property and the image
-   * component can honour it — which is the whole point of asserting it.
+   * This asserted the opposite until the library grew the property, which is
+   * what it was for: `StaticImageField` exposed `content` and nothing else, so
+   * an image's size was dropped before the parser could see it, and the test
+   * was written to fail on the day that stopped being true.
+   *
+   * It did stop being true, in 0.9.2-dev.20260808.92f3412. The assertion is now
+   * that the size arrives, and the content beside it, because the two travel
+   * through different properties of the same field and only one of them was
+   * ever missing.
    */
-  it('does not reach an image field, because the model library drops it', () => {
+  it('reaches an image field', () => {
     const picture = childNamed(parse(), 'picture');
     expect(picture, 'the probe template did not produce an image child').toBeTruthy();
     expect(picture.contentInfo.content).toBe('https://cedar.metadatacenter.org/img/cedar-logo.png');
     expect({ width: picture.contentInfo.width, height: picture.contentInfo.height }).toEqual({
-      width: null,
-      height: null,
+      width: 300,
+      height: 200,
     });
   });
 });

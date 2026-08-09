@@ -6,6 +6,7 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
 import { resolveStaticImageView, StaticImageView } from './static-image-view';
+import { resolveStaticImageSize, StaticImageSize } from './static-image-size';
 
 @Component({
   selector: 'app-cedar-static-image',
@@ -24,6 +25,11 @@ export class CedarStaticImageComponent extends CedarUIDirective {
   // `staticImageView` already has an answer for. Nothing renders it either way —
   // `componentToRender` runs before the first change detection.
   view: StaticImageView = { src: null, error: 'This image field has no URL.' };
+  /**
+   * What `_ui._size` asked for, or nulls. Null means the attribute is left off
+   * and the image renders at its own size — see `resolveStaticImageSize`.
+   */
+  size: StaticImageSize = { width: null, height: null };
   private loadFailed = false;
 
   constructor(
@@ -66,6 +72,7 @@ export class CedarStaticImageComponent extends CedarUIDirective {
 
   private refreshView(): void {
     this.view = resolveStaticImageView(this.component?.contentInfo?.content, this.loadFailed);
+    this.size = resolveStaticImageSize(this.component?.contentInfo?.width, this.component?.contentInfo?.height);
   }
 
   setCurrentValue(_currentValue: unknown): void {

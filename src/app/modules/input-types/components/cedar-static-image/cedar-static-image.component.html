@@ -1,7 +1,14 @@
 <mat-card appearance="outlined" class="child-component-card image-component">
   @if (view.src) {
     <div role="img" attr.aria-label="{{ altText }}">
-      <img mat-card-image [src]="view.src" [alt]="altText" (error)="onImageError()" />
+      <img
+        mat-card-image
+        [src]="view.src"
+        [alt]="altText"
+        [attr.width]="size.width"
+        [attr.height]="size.height"
+        (error)="onImageError()"
+      />
     </div>
   }
   @if (view.error) {

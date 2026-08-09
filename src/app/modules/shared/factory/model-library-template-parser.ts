@@ -94,9 +94,11 @@ const isListField = (field: TemplateField): field is SingleChoiceListField | Mul
 const isYoutubeField = (field: TemplateField): field is StaticYoutubeField =>
   field.cedarFieldType === CedarFieldType.STATIC_YOUTUBE;
 
-/** The two static kinds that render something the template supplies. */
-const isStaticContentField = (field: TemplateField): field is StaticImageField | StaticRichTextField =>
-  field.cedarFieldType === CedarFieldType.STATIC_IMAGE || field.cedarFieldType === CedarFieldType.STATIC_RICH_TEXT;
+const isImageField = (field: TemplateField): field is StaticImageField =>
+  field.cedarFieldType === CedarFieldType.STATIC_IMAGE;
+
+const isRichTextField = (field: TemplateField): field is StaticRichTextField =>
+  field.cedarFieldType === CedarFieldType.STATIC_RICH_TEXT;
 
 /** A component that carries occurrence bounds, which both multi halves do. */
 const isMultiComponent = (component: CedarComponent): component is MultiComponent =>
@@ -265,13 +267,16 @@ export class ModelLibraryTemplateParser implements TemplateParser {
         // property exists to read.
         if (isYoutubeField(staticField)) {
           sfc.contentInfo.content = staticField.videoId ?? '';
-          // `_ui._size`, and only YouTube can carry it: the model library
-          // models `width`/`height` on `StaticYoutubeField` and not on
-          // `StaticImageField`, so an image's size is gone before it reaches
-          // here.
+          // `_ui._size`. Both sizeable kinds carry it now — the model library
+          // used to model `width`/`height` on `StaticYoutubeField` alone, so an
+          // image's size was gone before it reached here.
           sfc.contentInfo.width = staticField.width ?? null;
           sfc.contentInfo.height = staticField.height ?? null;
-        } else if (isStaticContentField(staticField)) {
+        } else if (isImageField(staticField)) {
+          sfc.contentInfo.content = staticField.content ?? '';
+          sfc.contentInfo.width = staticField.width ?? null;
+          sfc.contentInfo.height = staticField.height ?? null;
+        } else if (isRichTextField(staticField)) {
           sfc.contentInfo.content = staticField.content ?? '';
         }
         ModelLibraryTemplateParser.extractLabels(staticField, childInfo, name, sfc);
