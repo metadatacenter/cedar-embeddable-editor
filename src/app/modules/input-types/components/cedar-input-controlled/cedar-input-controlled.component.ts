@@ -18,6 +18,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
+import { AuthoritySearchControl } from '../../../shared/util/authority-search-control';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
@@ -55,6 +56,17 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    */
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger?: MatAutocompleteTrigger;
   selectedData: IntegratedSearchResponseItem | null = null;
+
+  /**
+   * A press has begun on a suggestion, so the blur it causes is not the user
+   * leaving the field. The same name and rule the seven authority widgets carry
+   * — added here with the blur handling, because a blur that reconciles without
+   * this guard clears the very term being clicked.
+   */
+  private selectionInProgress = false;
+
+  /** Shown once free text has actually been discarded, not before. */
+  justReverted = false;
   component!: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
@@ -164,7 +176,21 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
+  /** The hint stands for a few seconds, matching the authority widgets. */
+  private showRevertHint(): void {
+    this.justReverted = true;
+    setTimeout(() => {
+      this.justReverted = false;
+    }, 5000);
+  }
+
+  /** Bound to the option's `mousedown`, which precedes the blur it causes. */
+  selectionStarting(): void {
+    this.selectionInProgress = true;
+  }
+
   onSelectionChange(option: IntegratedSearchResponseItem): void {
+    this.selectionInProgress = false;
     // `?? null` because a term arriving without a label is a state this component
     // already handles — `filter` drops such items from the list — and null is what
     // the model holds for a term whose label is unknown, rather than "undefined".
@@ -176,6 +202,35 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   inputChanged(event: Event): void {
     if (!(event.target as HTMLTextAreaElement).value) {
       this.clearValue();
+    }
+  }
+
+  /**
+   * Reconcile the box with the term behind it when the user leaves.
+   *
+   * This widget had no blur handling at all, so text naming no term simply
+   * stayed in the field over an instance holding nothing — the field looked
+   * filled and read back blank. That is the defect the seven external-authority
+   * widgets were fixed for; this one searches BioPortal rather than an
+   * authority, and was never part of that pass.
+   *
+   * The rule itself is `AuthoritySearchControl.reconcileOnBlur`, unchanged and
+   * shared, so the two families cannot drift apart on what a blur means.
+   */
+  onInputBlur(): void {
+    if (this.readOnlyMode || this.selectionInProgress) {
+      return;
+    }
+    const outcome = AuthoritySearchControl.reconcileOnBlur(
+      this.inputValueControl,
+      this.selectedData?.prefLabel ?? null,
+      'invalidControlledTerm',
+    );
+    if (outcome === 'reverted') {
+      this.showRevertHint();
+    } else if (outcome === 'cleared') {
+      this.selectedData = null;
+      this.handlerContext.changeControlledValue(this.component, null, null);
     }
   }
   // inputFocused(): void {

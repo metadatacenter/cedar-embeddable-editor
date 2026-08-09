@@ -1499,32 +1499,61 @@ test.describe('external authority endpoints', () => {
     });
   }
 
-  test('a returned authority term can be selected and reaches the host metadata', async ({ page }) => {
-    const id = 'https://comptox.epa.gov/dashboard/chemical/details/DTXSID00000001';
-    const label = 'Deterministic PFAS result';
-    await page.route('**/authority/pfas/search**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ found: true, results: { [id]: { name: label } } }),
+  /**
+   * REGRESSION, and the reason this is parameterised.
+   *
+   * Clicking a suggestion blurs the input, and the blur arrives before Material
+   * reports the selection — so a blur handler that reconciles immediately reads
+   * no selection, decides the typed text names no term, and clears the value
+   * being chosen. It emptied the box and pushed null to the host on 7 of 24
+   * clicks.
+   *
+   * It went unfixed for a long time because this assertion covered PFAS alone
+   * while the defect sat in the base class behind five widgets, so it read as
+   * one flaky test rather than a bug in all of them. The blur assertion beside
+   * it has always run over every authority; this one now does too. ORCID and ROR
+   * are included although they carry their own copies of the flow — they are
+   * where the guard already existed, so they are exactly what would regress
+   * unnoticed.
+   */
+  for (const { label: fieldName, authority, name } of [
+    { label: 'contributor_orcid', authority: 'orcid', name: 'ORCID' },
+    { label: 'institution_ror', authority: 'ror', name: 'ROR' },
+    { label: 'chemical_pfas', authority: 'pfas', name: 'PFAS' },
+    { label: 'citation_pmid', authority: 'pmid', name: 'PubMed' },
+    { label: 'resource_rrid', authority: 'rrid', name: 'RRID' },
+    { label: 'award_nih', authority: 'nihGrant', name: 'NIH Grant' },
+    { label: 'dataset_doi', authority: 'doi', name: 'DOI' },
+  ] as const) {
+    test(`${name}: a returned term can be selected and reaches the host metadata`, async ({ page }) => {
+      const id = `https://example.org/${authority}/DETERMINISTIC-1`;
+      const label = `Deterministic ${name} result`;
+      await page.route(`**/authority/${authority}/search**`, async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ found: true, results: { [id]: { name: label } } }),
+        });
       });
+
+      await open(page, '08-authority', 'authority');
+      const field = page.locator(`input[aria-label="${fieldName}"]`);
+      await field.pressSequentially('deterministic', { delay: 40 });
+      await passDebounceWindow(page);
+      const option = page.locator('mat-option').filter({ hasText: label });
+      await expect(option, 'the authority response did not become a selectable option').toBeVisible({ timeout: 5000 });
+      await option.click();
+
+      await expect(field, 'clicking a suggestion must not clear the field it selects').toHaveValue(
+        `${label} - ${id}`,
+      );
+      const metadata = await page.evaluate(
+        () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
+      );
+      expect(JSON.stringify(metadata), 'the selected authority term did not reach currentMetadata').toContain(id);
+      expect(JSON.stringify(metadata)).toContain(label);
     });
-
-    await open(page, '08-authority', 'authority');
-    const field = page.locator('input[aria-label="chemical_pfas"]');
-    await field.pressSequentially('deterministic', { delay: 40 });
-    await passDebounceWindow(page);
-    const option = page.locator('mat-option').filter({ hasText: label });
-    await expect(option, 'the authority response did not become a selectable option').toBeVisible({ timeout: 5000 });
-    await option.click();
-
-    await expect(field).toHaveValue(`${label} - ${id}`);
-    const metadata = await page.evaluate(
-      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
-    );
-    expect(JSON.stringify(metadata), 'the selected authority term did not reach currentMetadata').toContain(id);
-    expect(JSON.stringify(metadata)).toContain(label);
-  });
+  }
 });
 
 test.describe('controlled terminology selection', () => {
@@ -1553,6 +1582,31 @@ test.describe('controlled terminology selection', () => {
     );
     expect(JSON.stringify(metadata), 'the selected controlled term did not reach currentMetadata').toContain(id);
     expect(JSON.stringify(metadata)).toContain(label);
+  });
+
+  /**
+   * REGRESSION: this widget searches BioPortal rather than an authority, and had
+   * no blur handling at all — so text naming no term simply stayed in the box
+   * over an instance holding nothing. It is the same defect the seven authority
+   * widgets were fixed for, and this one was never part of that pass. Measured
+   * before the fix: `zzz nonsense` left in the field, no message, empty
+   * instance.
+   */
+  test('free text is discarded on blur, and said so', async ({ page }) => {
+    await open(page, '04-controlled-terms');
+
+    const field = page.locator('input[aria-label="organism"]');
+    await field.pressSequentially('zzz nonsense', { delay: 15 });
+    await page.waitForTimeout(500);
+    await field.blur();
+    await page.waitForTimeout(600);
+
+    await expect(field, 'text naming no term cannot be saved, so it must not linger').toHaveValue('');
+    await expect(page.locator('mat-error')).toHaveCount(1);
+    const metadata = await page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
+    );
+    expect(JSON.stringify(metadata), 'discarded text must not reach the instance').not.toContain('nonsense');
   });
 });
 

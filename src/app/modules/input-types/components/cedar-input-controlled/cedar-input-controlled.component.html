@@ -19,6 +19,7 @@
         [errorStateMatcher]="errorStateMatcher"
         [matAutocomplete]="auto"
         (input)="inputChanged($event)"
+        (blur)="onInputBlur()"
         [readonly]="readOnlyMode"
         attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
       />
@@ -34,9 +35,13 @@
           </mat-option>
         }
         @for (option of filteredOptions | async; track option) {
-          <mat-option [value]="option.prefLabel" (onSelectionChange)="onSelectionChange(option)">{{
-            option.prefLabel
-          }}</mat-option>
+          <!-- `mousedown` precedes the blur it causes: see `selectionStarting`. -->
+          <mat-option
+            [value]="option.prefLabel"
+            (mousedown)="selectionStarting()"
+            (onSelectionChange)="onSelectionChange(option)"
+            >{{ option.prefLabel }}</mat-option
+          >
         }
       </mat-autocomplete>
       @if (inputValueControl.value && !readOnlyMode) {
@@ -53,6 +58,14 @@
       }
       @if (inputValueControl.getError('required') && !readOnlyMode) {
         <mat-error tabindex="0" class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
+      }
+      @if (inputValueControl.getError('invalidControlledTerm') && !readOnlyMode) {
+        <mat-error tabindex="0" class="mat-error align-start">
+          {{ 'Validation.ControlledTermInvalid' | translate }}
+        </mat-error>
+      }
+      @if (justReverted) {
+        <mat-hint>{{ 'Validation.ControlledTermReverted' | translate }}</mat-hint>
       }
     </mat-form-field>
   }

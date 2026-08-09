@@ -110,6 +110,8 @@
     "RridReverted": "Invalid RRID, edit was discarded; restored last valid RRID Id.",
     "NihGrantInvalid": "Entered value is not a valid NIH Grant ID and has been cleared.",
     "NihGrantReverted": "Invalid NIH Grant ID, edit was discarded; restored last valid NIH Grant ID.",
+    "ControlledTermInvalid": "Entered value is not a term from the allowed set and has been cleared.",
+    "ControlledTermReverted": "Not a term from the allowed set, edit was discarded; restored last valid term.",
     "DoiInvalid": "Entered value is not a valid DOI and has been cleared.",
     "DoiReverted": "Invalid DOI, edit was discarded; restored last valid DOI."
   }

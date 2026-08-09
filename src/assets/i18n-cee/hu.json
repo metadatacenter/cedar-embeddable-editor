@@ -110,6 +110,8 @@
     "RridReverted": "Érvénytelen RRID, a módosítás elvetve; az utolsó érvényes RRID visszaállítva.",
     "NihGrantInvalid": "A megadott érték nem érvényes NIH Grant azonosító, ezért törlésre került.",
     "NihGrantReverted": "Érvénytelen NIH Grant azonosító, a módosítás elvetve; az utolsó érvényes NIH Grant azonosító visszaállítva.",
+    "ControlledTermInvalid": "A megadott érték nem a megengedett halmaz eleme, ezért törölve lett.",
+    "ControlledTermReverted": "Nem a megengedett halmaz eleme, a szerkesztés elvetve; visszaállítva az utolsó érvényes érték.",
     "DoiInvalid": "A megadott érték nem érvényes DOI, ezért törlésre került.",
     "DoiReverted": "Érvénytelen DOI, a módosítás elvetve; az utolsó érvényes DOI visszaállítva."
   }
