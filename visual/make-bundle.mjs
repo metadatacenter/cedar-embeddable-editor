@@ -14,7 +14,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { DEFAULT_DIST, describeInputs, newestInputMtime, resolveBuildOutput } from './resolve-build-output.mjs';
+import { DEFAULT_DIST, describeInputs, resolveBuildOutput } from './resolve-build-output.mjs';
 
 const OUT = fileURLToPath(new URL('./public/cedar-embeddable-editor.js', import.meta.url));
 const MANIFEST = fileURLToPath(new URL('./public/bundle-manifest.json', import.meta.url));
@@ -80,10 +80,16 @@ export const produceBundle = async (dist = DEFAULT_DIST) => {
     bundle,
     strategy,
     inputs,
+    /*
+     * No timestamp. A build time in here made the manifest differ on every
+     * rebuild even when the bundle was byte-identical, so the staged copy could
+     * never be verified by comparison — which is how the committed artifact
+     * drifted three commits behind without anything noticing. Nothing read it:
+     * the freshness guard takes both its timestamps from the filesystem.
+     */
     manifest: {
       strategy,
       inputs: describeInputs(dir, inputs),
-      builtAt: newestInputMtime(inputs),
       bytes: bundle.byteLength,
       sha256: createHash('sha256').update(bundle).digest('hex'),
     },
