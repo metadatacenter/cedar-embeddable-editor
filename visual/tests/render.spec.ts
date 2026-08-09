@@ -1465,9 +1465,10 @@ test.describe('ported from the deleted component specs', () => {
    *
    * `isMultiPage()` is `!(checkbox || list)`. So a list field is multiple but not
    * paged and always shows its content, while a paged field with no instances shows
-   * none — there is no occurrence to show, and its pager says so instead. The
-   * fixture puts all three cases on one page in this order, and the observable
-   * consequence is whether a content area exists inside each field container.
+   * none — there is no occurrence to show, and its pager says so in edit mode.
+   * The fixture puts all three cases on one page in this order, and the
+   * observable consequence is whether a content area exists inside each field
+   * container.
    */
   test('a multi field renders its content only when it has something to show', async ({ page }) => {
     await open(page, '12-render-decision');
@@ -1488,6 +1489,23 @@ test.describe('ported from the deleted component specs', () => {
       );
       await expect(field.locator('.child-component-content'), `${name}: ${why}`).toHaveCount(count);
     }
+  });
+
+  test('read-only empty multi fields keep their specification label without editor-only instance messaging', async ({
+    page,
+  }) => {
+    await open(page, '12-render-decision');
+
+    const emptyEditableField = page.locator('.non-iterable-component').nth(1);
+    await expect(emptyEditableField.locator('app-cedar-component-header')).toContainText('paged_no_instances');
+    await expect(emptyEditableField).toContainText('No instances yet');
+
+    await open(page, '12-render-decision', 'readonly');
+
+    const emptyReadOnlyField = page.locator('.non-iterable-component').nth(1);
+    await expect(emptyReadOnlyField.locator('app-cedar-component-header')).toContainText('paged_no_instances');
+    await expect(emptyReadOnlyField).not.toContainText('No instances yet');
+    await expect(emptyReadOnlyField.locator('mat-chip-listbox')).toHaveCount(0);
   });
 });
 

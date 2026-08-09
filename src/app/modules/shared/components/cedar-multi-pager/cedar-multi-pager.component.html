@@ -1,4 +1,4 @@
-@if (component && currentMultiInfo) {
+@if (component && currentMultiInfo && (!readOnlyMode || getInstanceCount() > 1)) {
   <div
     [ngClass]="
       (isAlignedUp && readOnlyMode && getInstanceCount() > 1) || (isAlignedUp && !readOnlyMode)
