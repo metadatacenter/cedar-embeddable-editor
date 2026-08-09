@@ -1,7 +1,46 @@
 .flex-container {
   display: flex;
   align-items: center;
-  gap: .35rem;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+}
+
+/*
+ * Every field gets the same alignment slot. Generic type icons are deliberately
+ * quiet; external-authority marks retain their identity, and controlled terms
+ * receive the one emphasized semantic badge in the set.
+ */
+.field-icon-slot {
+  display: inline-flex;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  color: #627472;
+}
+
+.field-type-icon {
+  width: 18px;
+  height: 18px;
+  overflow: hidden;
+  font-size: 18px;
+  line-height: 18px;
+}
+
+.ontology-icon-slot {
+  height: 24px;
+  color: #0b7480;
+  background: #e4f1f1;
+  border-radius: 50%;
+}
+
+.ontology-icon-slot .field-type-icon {
+  font-size: 17px;
+}
+
+.authority-icon-slot {
+  height: 22px;
 }
 
 /* Keep the Material help icon aligned with text */
@@ -18,7 +57,7 @@
 /* --- Icon assets --- */
 $ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/main/ror-icon-rgb.svg";
 
-/* Normalize all three custom <i> icons so they align with text */
+/* Normalize the custom authority icons inside the shared alignment slot. */
 .ror-icon,
 .orcid-icon,
 .pfas-icon,
@@ -28,14 +67,12 @@ $ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/m
   display: inline-block;
   vertical-align: middle;
   line-height: 0;
-  width: 1.9em;
-  height: 1.9em;
-  margin-right: 5px;
+  width: 22px;
+  height: 22px;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
   border: none;
-  cursor: pointer;
 }
 
 /* ORCID — inline SVG (host can override via CSS var if desired) */
@@ -106,21 +143,8 @@ $ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/m
   height: 20px;
   background: url("data:image/png;base64,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") no-repeat center/contain;
 }
-.flex-container {
-  display: flex;
-  align-items: center;
-  gap: .35rem;
-  flex-wrap: nowrap;
-}
 
-/* Make icons non-flexing fixed-size items */
-.ror-icon,
-.orcid-icon,
-.pfas-icon,
-.pmid-icon,
-.rrid-icon,
-.nih-grant-icon,
-.doi-icon,
+/* Make the help icon a non-flexing fixed-size item. */
 .mat-icon.icon-questionmark {
   flex: 0 0 auto;
 }
@@ -144,5 +168,3 @@ $ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/m
   vertical-align: middle;
   line-height: 1;
 }
-
-

@@ -231,6 +231,54 @@ for (const [fixture, description] of FIXTURES) {
   });
 }
 
+test.describe('field type markers', () => {
+  test('simple fields use the bundled icon font without adding accessible noise', async ({ page }) => {
+    await open(page, '01-input-types');
+
+    const slots = page.locator('[data-field-type-icon]');
+    await expect(slots).toHaveCount(7);
+    await expect(slots.locator('.field-type-icon')).toHaveText([
+      'short_text',
+      'notes',
+      'dialpad',
+      'email',
+      'phone',
+      'link',
+      'event',
+    ]);
+
+    const renderedIcons = await slots.evaluateAll((elements) =>
+      elements.map((slot) => {
+        const icon = slot.querySelector('.field-type-icon') as HTMLElement;
+        return {
+          ariaHidden: slot.getAttribute('aria-hidden'),
+          fontFamily: getComputedStyle(icon).fontFamily,
+          clientWidth: icon.clientWidth,
+          scrollWidth: icon.scrollWidth,
+        };
+      }),
+    );
+    expect(renderedIcons).toEqual(
+      renderedIcons.map((icon) => ({
+        ...icon,
+        ariaHidden: 'true',
+        fontFamily: '"CEE Material Icons"',
+        scrollWidth: icon.clientWidth,
+      })),
+    );
+  });
+
+  test('controlled terms get the ontology marker while authority fields keep their identities', async ({ page }) => {
+    await open(page, '04-controlled-terms');
+
+    const ontologyMarker = page.locator('.ontology-icon-slot');
+    await expect(ontologyMarker).toHaveCount(1);
+    await expect(ontologyMarker.locator('.field-type-icon')).toHaveText('device_hub');
+    await expect(page.locator('.authority-icon-slot')).toHaveCount(2);
+    await expect(page.locator('[data-field-type-icon]')).toHaveCount(1);
+  });
+});
+
 /**
  * Two templates a person authored in the Template Designer, exported from a running
  * CEDAR stack and committed unedited.

@@ -19,6 +19,26 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
   standalone: false,
 })
 export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
+  private static readonly FIELD_TYPE_ICONS: Readonly<Record<string, string>> = {
+    [InputType.numeric]: 'dialpad',
+    [InputType.text]: 'short_text',
+    [InputType.textarea]: 'notes',
+    [InputType.richText]: 'format_align_left',
+    [InputType.controlled]: 'device_hub',
+    [InputType.email]: 'email',
+    [InputType.link]: 'link',
+    [InputType.phoneNumber]: 'phone',
+    [InputType.list]: 'arrow_drop_down_circle',
+    [InputType.checkbox]: 'check_box',
+    [InputType.radio]: 'radio_button_checked',
+    [InputType.temporal]: 'event',
+    [InputType.image]: 'image',
+    [InputType.youtube]: 'play_circle_filled',
+    [InputType.sectionBreak]: 'remove',
+    [InputType.pageBreak]: 'insert_drive_file',
+    [InputType.attributeValue]: 'list_alt',
+  };
+
   component!: CedarComponent;
   /** Null for a component that is not multi-instance, which is most of them. */
   multiComponent: MultiComponent | null = null;
@@ -30,6 +50,8 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
   isRrid = false;
   isNihGrant = false;
   isDoi = false;
+  fieldTypeIcon: string | null = null;
+  isOntologyField = false;
   readOnlyMode = false;
   readOnlyModeSubscription: Subscription = Subscription.EMPTY;
   userPreferencesService: UserPreferencesService;
@@ -52,6 +74,17 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
 
   @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;
+    this.shouldRenderRequiredMark = false;
+    this.isOrcid = false;
+    this.isRor = false;
+    this.isPfas = false;
+    this.isPmid = false;
+    this.isRrid = false;
+    this.isNihGrant = false;
+    this.isDoi = false;
+    this.fieldTypeIcon = null;
+    this.isOntologyField = false;
+
     if (ComponentTypeHandler.isMulti(componentToRender)) {
       this.multiComponent = componentToRender as MultiComponent;
       if (this.multiComponent instanceof MultiFieldComponent) {
@@ -65,20 +98,24 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
     }
     if (this.component instanceof SingleFieldComponent || this.component instanceof MultiFieldComponent) {
       const fieldComp = this.component as unknown as FieldComponent;
-      if (fieldComp.basicInfo.inputType === InputType.orcid) {
+      const inputType = fieldComp.basicInfo.inputType;
+      if (inputType === InputType.orcid) {
         this.isOrcid = true;
-      } else if (fieldComp.basicInfo.inputType === InputType.ror) {
+      } else if (inputType === InputType.ror) {
         this.isRor = true;
-      } else if (fieldComp.basicInfo.inputType === InputType.pfas) {
+      } else if (inputType === InputType.pfas) {
         this.isPfas = true;
-      } else if (fieldComp.basicInfo.inputType === InputType.pmid) {
+      } else if (inputType === InputType.pmid) {
         this.isPmid = true;
-      } else if (fieldComp.basicInfo.inputType === InputType.rrid) {
+      } else if (inputType === InputType.rrid) {
         this.isRrid = true;
-      } else if (fieldComp.basicInfo.inputType === InputType.nihGrant) {
+      } else if (inputType === InputType.nihGrant) {
         this.isNihGrant = true;
-      } else if (fieldComp.basicInfo.inputType === InputType.doi) {
+      } else if (inputType === InputType.doi) {
         this.isDoi = true;
+      } else if (inputType) {
+        this.fieldTypeIcon = CedarComponentHeaderComponent.FIELD_TYPE_ICONS[inputType] ?? 'edit';
+        this.isOntologyField = inputType === InputType.controlled;
       }
       if (fieldComp.valueInfo.requiredValue) {
         this.shouldRenderRequiredMark = true;

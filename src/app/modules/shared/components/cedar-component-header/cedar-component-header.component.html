@@ -1,24 +1,29 @@
 <div class="flex-container">
   @if (isRor) {
-    <i class="ror-icon"></i>
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="ror-icon"></i></span>
   }
   @if (isOrcid) {
-    <i class="orcid-icon"></i>
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="orcid-icon"></i></span>
   }
   @if (isPfas) {
-    <i class="pfas-icon"></i>
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="pfas-icon"></i></span>
   }
   @if (isPmid) {
-    <i class="pmid-icon"></i>
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="pmid-icon"></i></span>
   }
   @if (isRrid) {
-    <i class="rrid-icon"></i>
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="rrid-icon"></i></span>
   }
   @if (isNihGrant) {
-    <i class="nih-grant-icon"></i>
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="nih-grant-icon"></i></span>
   }
   @if (isDoi) {
-    <i class="doi-icon"></i>
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="doi-icon"></i></span>
+  }
+  @if (fieldTypeIcon) {
+    <span class="field-icon-slot" [class.ontology-icon-slot]="isOntologyField" aria-hidden="true" data-field-type-icon>
+      <span class="material-icons field-type-icon">{{ fieldTypeIcon }}</span>
+    </span>
   }
 
   <span class="title">
