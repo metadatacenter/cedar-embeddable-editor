@@ -10,7 +10,9 @@
       [readonly]="readOnlyMode"
       attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
     />
-    <span matSuffix>{{ unitOfMeasure }}</span>
+    @if (unitOfMeasure) {
+      <span matSuffix class="cee-numeric-unit">{{ unitOfMeasure }}</span>
+    }
     @if (inputValueControl.getError('min') && !readOnlyMode) {
       <mat-error class="mat-error align-start">{{
         'Validation.Numeric.MinValue' | translate: { constraintMinValue }

@@ -62,10 +62,28 @@
 }
 
 .cee-time-picker-readonly {
-  display: inline-block;
-  min-height: 24px;
-  padding-block: 6px;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-width: 6rem;
+  min-height: 48px;
+  padding-inline: 10px;
+  border: 1px solid #777;
+  border-radius: 4px;
+  background: white;
   font-variant-numeric: tabular-nums;
+}
+
+.cee-time-picker-readonly-hour-only {
+  min-width: 4rem;
+}
+
+.cee-time-picker-readonly-seconds {
+  min-width: 7.5rem;
+}
+
+.cee-time-picker-readonly-meridian {
+  min-width: 8rem;
 }
 
 .cee-time-validation {

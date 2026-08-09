@@ -628,6 +628,37 @@ test('the editor shrinks to its host without horizontal overflow', async ({ page
   expect(layout.actions!.right).toBeLessThanOrEqual(layout.host!.right);
 });
 
+test('page navigation keeps its controls in a compact row', async ({ page }) => {
+  await open(page, '17-real-flat', 'readonly');
+
+  const pager = await page.locator('.page-break-paginator-container').evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    const rangeLabel = element.querySelector('.mat-mdc-paginator-range-label');
+    const rangeStyle = rangeLabel ? getComputedStyle(rangeLabel) : null;
+    return {
+      height: box.height,
+      hiddenRangeMargin: rangeStyle?.margin ?? null,
+    };
+  });
+
+  expect(pager.height, 'page controls should fit in one 48px row').toBeLessThanOrEqual(48);
+  expect(pager.hiddenRangeMargin, 'the hidden Material range label must not reserve space').toBe('0px');
+});
+
+test('numeric units are inset from the input outline', async ({ page }) => {
+  await open(page, '17-real-flat', 'readonly');
+
+  const unitInset = await page.locator('.cee-numeric-unit', { hasText: 'mg' }).evaluate((unit) => {
+    const field = unit.closest('mat-form-field')!.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(unit);
+    const text = range.getBoundingClientRect();
+    return field.right - text.right;
+  });
+
+  expect(unitInset, 'unit text should not touch the field outline').toBeGreaterThanOrEqual(10);
+});
+
 /**
  * One clipped screenshot per widget.
  *
@@ -1239,10 +1270,25 @@ test.describe('the time picker', () => {
     }
   });
 
-  test('read-only mode shows the time as text, not as boxes', async ({ page }) => {
+  test('read-only mode shows time in a non-editable outlined shell', async ({ page }) => {
     await open(page, '09-temporal', 'readonly');
     expect(await page.locator('input[aria-label="Hour"]').count()).toBe(0);
-    expect(await page.locator('.cee-time-picker-readonly').count()).toBeGreaterThan(0);
+    const shells = page.locator('.cee-time-picker-readonly');
+    expect(await shells.count()).toBeGreaterThan(0);
+
+    const emptyShells = await shells.evaluateAll((elements) =>
+      elements.map((element) => {
+        const box = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        return { text: element.textContent?.trim(), width: box.width, height: box.height, borderStyle: style.borderStyle };
+      }),
+    );
+    for (const shell of emptyShells) {
+      expect(shell.text, 'the fixture deliberately has no stored time').toBe('');
+      expect(shell.width, 'an empty read-only time must remain visible').toBeGreaterThanOrEqual(64);
+      expect(shell.height).toBeGreaterThanOrEqual(48);
+      expect(shell.borderStyle).toBe('solid');
+    }
   });
 
   test('one clear action removes every part of a temporal value', async ({ page }) => {

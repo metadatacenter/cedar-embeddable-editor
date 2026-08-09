@@ -123,6 +123,11 @@
       'actions actions';
   }
 
+  .template-header-paged {
+    row-gap: 0.5rem;
+    padding-block: 0.75rem;
+  }
+
   .logo-block {
     flex-basis: 64px;
   }
@@ -131,6 +136,10 @@
     justify-content: space-between;
     border-top: 1px solid #e5ebea;
     padding-top: 0.75rem;
+  }
+
+  .template-header-paged .template-actions {
+    padding-top: 0.5rem;
   }
 }
 

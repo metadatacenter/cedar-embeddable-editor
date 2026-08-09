@@ -70,7 +70,13 @@
 }
 
 @if (readOnlyMode) {
-  <span class="cee-time-picker-readonly" attr.aria-label="{{ 'Generic.Time' | translate }}">
+  <span
+    class="cee-time-picker-readonly"
+    [class.cee-time-picker-readonly-hour-only]="disableMinute"
+    [class.cee-time-picker-readonly-seconds]="showSeconds"
+    [class.cee-time-picker-readonly-meridian]="enableMeridian"
+    attr.aria-label="{{ 'Generic.Time' | translate }}"
+  >
     {{ hasValue ? displayValue : '' }}
   </span>
 }
