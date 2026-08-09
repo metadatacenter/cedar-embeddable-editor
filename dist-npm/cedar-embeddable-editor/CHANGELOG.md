@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The package version is `1.6.0-e1`. `-ng22` named the branch that produced the
+  build, which stopped being the useful thing to know once that branch became
+  where CEE is developed.
+
 - A static YouTube field renders at the size its template asks for. `_ui._size` was
   read by nobody: the component carried 640 × 390 as two fixed values, so every video
   was that size whatever the template said. The corpus asks for 400 × 300 six times
