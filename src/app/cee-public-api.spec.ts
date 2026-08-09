@@ -15,6 +15,8 @@ import { describe, expect, it } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { CONFIG_SCHEMA } from './modules/shared/util/config-validation';
+import { DataQualityReport } from './modules/shared/models/data-quality-report.model';
+import { ValidationProblem } from './modules/shared/validation/validation-problem.model';
 
 const COMPONENT = path.resolve(
   __dirname,
@@ -80,6 +82,49 @@ describe('the published config keys and the ones the editor reads', () => {
     expect(
       scheme.filter((key) => !implemented.includes(key)),
       'the validator accepts a key the editor never reads',
+    ).toEqual([]);
+  });
+});
+
+/** The property names an interface declares, optional or not. */
+const interfaceMembers = (name: string): string[] => {
+  const source = fs.readFileSync(PUBLIC_API, 'utf8');
+  const body = source.slice(source.indexOf(`export interface ${name} {`));
+  return [...body.slice(0, body.indexOf('\n}')).matchAll(/^ {2}([a-zA-Z][a-zA-Z0-9]*)\??:/gm)]
+    .map(([, member]) => member)
+    .sort();
+};
+
+/**
+ * The report types against the objects a host actually receives.
+ *
+ * One direction only. Both interfaces are deliberately narrower than the classes
+ * behind them — the report also carries CEE's internal working views, which are not
+ * part of the contract — so a runtime property missing from the declaration is a
+ * choice. A *declared* property missing at runtime is not: it type-checks in a host
+ * and reads `undefined`, which is exactly how `problems` came to be published under
+ * a name the report has never used.
+ */
+describe('the published report types and the objects behind them', () => {
+  it('declare only members the report really has', () => {
+    const report = new DataQualityReport() as unknown as Record<string, unknown>;
+    const declared = interfaceMembers('CeeDataQualityReport');
+
+    expect(declared.length, 'the CeeDataQualityReport members were not parsed').toBeGreaterThan(3);
+    expect(
+      declared.filter((member) => !(member in report)),
+      'CeeDataQualityReport declares a member DataQualityReport does not have',
+    ).toEqual([]);
+  });
+
+  it('declare only members a problem really has', () => {
+    const problem = new ValidationProblem([], 'field', null, 'code', 'message') as unknown as Record<string, unknown>;
+    const declared = interfaceMembers('CeeValidationProblem');
+
+    expect(declared.length, 'the CeeValidationProblem members were not parsed').toBeGreaterThan(3);
+    expect(
+      declared.filter((member) => !(member in problem)),
+      'CeeValidationProblem declares a member ValidationProblem does not have',
     ).toEqual([]);
   });
 });

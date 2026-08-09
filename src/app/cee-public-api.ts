@@ -153,7 +153,7 @@ export interface CeeDataQualityReport {
   /** How many of those the instance actually fills. */
   nonNullRequiredFieldValueCount: number;
   /** Constraint violations. Empty when every present value satisfies its constraints. */
-  validationProblems: CeeValidationProblem[];
+  problems: CeeValidationProblem[];
   /** True when every required field is filled and no constraint is violated. */
   isValid: boolean;
 }
