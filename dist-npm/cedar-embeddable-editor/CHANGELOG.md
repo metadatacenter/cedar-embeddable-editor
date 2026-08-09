@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The package version is `1.6.0-e1`. `-ng22` named the branch that produced the
+- The package version is `1.6.0-e2`. `-ng22` named the branch that produced the
   build, which stopped being the useful thing to know once that branch became
   where CEE is developed.
 
