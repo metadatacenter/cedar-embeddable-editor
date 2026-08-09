@@ -173,7 +173,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
     this.emit();
   }
 
-  /** Step a field, which is what the spinner buttons do. */
+  /** Step a focused clock segment from its ArrowUp or ArrowDown key. */
   step(field: 'hour' | 'minute' | 'second', by: number): void {
     if (this.readOnlyMode) {
       return;
@@ -185,6 +185,15 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
     } else {
       this.secondChanged(this.second + by);
     }
+  }
+
+  /** Keep clock stepping available from the keyboard without permanent button towers. */
+  segmentKeydown(event: KeyboardEvent, field: 'hour' | 'minute' | 'second'): void {
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+      return;
+    }
+    event.preventDefault();
+    this.step(field, event.key === 'ArrowUp' ? 1 : -1);
   }
 
   toggleMeridian(): void {
@@ -214,6 +223,10 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
 
   get secondText(): string {
     return TimePickerComponent.pad(this.second);
+  }
+
+  get hasValue(): boolean {
+    return this.value !== null;
   }
 
   private static pad(value: number): string {

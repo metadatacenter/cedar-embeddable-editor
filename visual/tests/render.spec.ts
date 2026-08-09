@@ -1033,10 +1033,7 @@ test.describe('the time picker', () => {
     expect(String(await storedValue(page, '_to_the_minute'))).toContain('14:');
   });
 
-  /**
-   * Wrapping rather than clamping. The browser's native stepper clamps at max,
-   * which is why the buttons exist.
-   */
+  /** Wrapping rather than clamping when a focused segment is stepped. */
   test('stepping past the end of an hour wraps to the start', async ({ page }) => {
     await open(page, '09-temporal');
     const picker = pickerFor(page, 'to_the_minute');
@@ -1044,8 +1041,7 @@ test.describe('the time picker', () => {
     await hour.fill('23');
     await page.waitForTimeout(200);
 
-    // The increment button sits above its box.
-    await picker.locator('button[aria-label="Increment hour"]').click();
+    await hour.press('ArrowUp');
     await page.waitForTimeout(300);
 
     // Zero-padded, as a clock reads and as the dependency this replaced did.
@@ -1059,7 +1055,7 @@ test.describe('the time picker', () => {
     const minute = picker.locator('input[aria-label="Minute"]');
     await minute.fill('0');
     await page.waitForTimeout(200);
-    await picker.locator('button[aria-label="Decrement minute"]').click();
+    await minute.press('ArrowDown');
     await page.waitForTimeout(300);
 
     await expect(minute).toHaveValue('59');
@@ -1145,16 +1141,9 @@ test.describe('the time picker', () => {
   /**
    * The colons line up with the digits.
    *
-   * Guarded rather than eyeballed because the CSS that achieves it is matched to
-   * Material's own geometry — `mat-form-field` reserves space beneath its input,
-   * so the digits' centre is well above the control's — and the 14 → 15 MDC
-   * migration changes that. A screenshot baseline would catch it too, but only as
-   * "these pixels differ"; this says what is wrong.
-   *
-   * Two cleverer approaches failed first: a chrome-less form field holding the
-   * colon collapsed its input to zero width, correctly positioned and entirely
-   * invisible; a `matSuffix` aligned perfectly but put the colon inside the
-   * preceding box.
+   * Guarded rather than eyeballed because a screenshot would report only that
+   * pixels moved. The semantic failure is simpler: punctuation in a segmented
+   * clock must share the digits' baseline and remain visible.
    */
   test('the colons sit level with the digits', async ({ page }) => {
     await open(page, '09-temporal');
@@ -1185,6 +1174,44 @@ test.describe('the time picker', () => {
     expect(await page.locator('input[aria-label="Hour"]').count()).toBe(0);
     expect(await page.locator('.cee-time-picker-readonly').count()).toBeGreaterThan(0);
   });
+});
+
+/**
+ * Granularity is a storage rule, not only a decision about which boxes render.
+ *
+ * These values arrive with deliberately finer information. Loading the instance
+ * must rewrite them to the neutral padding defined by the field's granularity,
+ * while a decimal-second value keeps its exact fraction digits.
+ */
+test('normalizes existing temporal values to their declared granularity', async ({ page }) => {
+  await open(page, '21-temporal-normalization', undefined, '21-temporal-normalization-instance');
+
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const editor = document.querySelector('cedar-embeddable-editor') as any;
+        const metadata = editor.currentMetadata;
+        return {
+          year: metadata._date_year?.['@value'],
+          month: metadata._date_month?.['@value'],
+          day: metadata._datetime_day?.['@value'],
+          minute: metadata._time_minute?.['@value'],
+          fraction: metadata._time_fraction?.['@value'],
+        };
+      }),
+    )
+    .toEqual({
+      year: '2026-01-01',
+      month: '2026-08-01',
+      day: '2026-08-09T00:00:00',
+      minute: '21:45:00',
+      fraction: '21:45:32.001',
+    });
+
+  const fields = page.locator('app-cedar-input-datetime');
+  await expect(fields).toHaveCount(5);
+  await expect(fields.nth(2).locator('app-date-picker'), 'dateTime/day keeps its date input').toHaveCount(1);
+  await expect(fields.nth(2).locator('.cee-time-picker'), 'dateTime/day hides finer time input').toHaveCount(0);
 });
 
 /**

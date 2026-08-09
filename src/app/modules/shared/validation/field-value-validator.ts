@@ -216,10 +216,10 @@ export class FieldValueValidator {
   /**
    * Temporal values, which nothing validated anywhere before this.
    *
-   * The stored form is built by `DatetimeRepresentation.toStorageRepresentation`
-   * as `YYYY-MM-DD`, `HH:mm:ss`, the two joined by `T`, optionally a `.` and
-   * decimal seconds, optionally a trailing offset. A value entered through the
-   * widget is well-formed by construction; one injected by a host page is not.
+   * The stored form is built by `CedarTemporalValue` as `YYYY-MM-DD`,
+   * `HH:mm:ss`, the two joined by `T`, optionally a `.` and decimal seconds,
+   * optionally a trailing offset. A value entered through the widget is
+   * well-formed by construction; one injected by a host page is not.
    */
   private static readonly DATE_PART = /^(\d{4})-(\d{2})-(\d{2})$/;
   private static readonly TIME_PART = /^(\d{2}):(\d{2})(?::(\d{2}))?(\.\d+)?$/;
@@ -289,19 +289,25 @@ export class FieldValueValidator {
       }
     }
 
-    this.checkGranularity(component, text, granularity, timeStr, path, out);
+    this.checkGranularity(component, text, granularity, dateStr, timeStr, path, out);
   }
 
   /**
-   * Granularity says how precise the value is meant to be. A field asking for a
-   * year should not carry a timestamp, and one asking for seconds should carry
-   * them.
+   * Granularity says which parts the user supplies. The stored XSD lexical value
+   * remains complete, so hidden parts are permitted only at their neutral value:
+   * a year is `YYYY-01-01`, a minute is `HH:mm:00`, and a dateTime whose
+   * granularity stops at the day ends in `T00:00:00`.
+   *
+   * This is also the boundary for legacy values. The editor normalizes finer
+   * information away when it loads them; validation still reports the original
+   * value as over-precise until that normalization has happened.
    */
   private static checkGranularity(
     component: FieldComponent,
     text: string,
     /** Null for a temporal field whose template declares no granularity, which the guard below has always expected. */
     granularity: string | null,
+    dateStr: string | null,
     timeStr: string | null,
     path: string[],
     out: ValidationProblem[],
@@ -310,14 +316,47 @@ export class FieldValueValidator {
       return;
     }
     const dateOnly = [Temporal.year, Temporal.month, Temporal.day];
-    const tooPrecise = dateOnly.includes(granularity) && timeStr !== null;
-    if (tooPrecise) {
+    const dateParts = dateStr?.match(this.DATE_PART) ?? null;
+    if (dateParts !== null) {
+      const [, , month, day] = dateParts;
+      if (granularity === Temporal.year && (month !== '01' || day !== '01')) {
+        out.push(
+          this.problem(
+            component,
+            path,
+            ValidationCode.temporalGranularity,
+            'Granularity is year, but the padded month or day is not 01.',
+            text,
+          ),
+        );
+      } else if (granularity === Temporal.month && day !== '01') {
+        out.push(
+          this.problem(
+            component,
+            path,
+            ValidationCode.temporalGranularity,
+            'Granularity is month, but the padded day is not 01.',
+            text,
+          ),
+        );
+      }
+    }
+
+    const timeParts = timeStr?.match(this.TIME_PART) ?? null;
+    const timeIsPaddedMidnight =
+      timeParts !== null &&
+      timeParts[1] === '00' &&
+      timeParts[2] === '00' &&
+      (timeParts[3] === undefined || timeParts[3] === '00') &&
+      timeParts[4] === undefined;
+    const dateTimePadding = component.valueInfo.temporalType === Xsd.dateTime && timeIsPaddedMidnight;
+    if (dateOnly.includes(granularity) && timeStr !== null && !dateTimePadding) {
       out.push(
         this.problem(
           component,
           path,
           ValidationCode.temporalGranularity,
-          `Granularity is ${granularity}, but the value carries a time.`,
+          `Granularity is ${granularity}, but the padded time is not midnight.`,
           text,
         ),
       );
@@ -352,13 +391,20 @@ export class FieldValueValidator {
         ),
       );
     }
-    if (granularity === Temporal.hour && parts !== null && (parts[2] !== '00' || hasSeconds)) {
+    const finerThanHour =
+      granularity === Temporal.hour &&
+      parts !== null &&
+      (parts[2] !== '00' || (hasSeconds && parts[3] !== '00') || hasDecimal);
+    const finerThanMinute =
+      granularity === Temporal.minute && parts !== null && ((hasSeconds && parts[3] !== '00') || hasDecimal);
+    const finerThanSecond = granularity === Temporal.second && hasDecimal;
+    if (finerThanHour || finerThanMinute || finerThanSecond) {
       out.push(
         this.problem(
           component,
           path,
           ValidationCode.temporalGranularity,
-          'Granularity is hour, but the value is more precise.',
+          `Granularity is ${granularity}, but the value contains finer information.`,
           text,
         ),
       );

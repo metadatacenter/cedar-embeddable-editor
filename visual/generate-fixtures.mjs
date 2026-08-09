@@ -728,3 +728,55 @@ const writeRaw = (name, document) => {
     'wrote fixtures/served/ (sample registry + template + metadata, host config, malformed config, language map)',
   );
 }
+
+// 21. Existing temporal values that carry more information than their declared
+//     granularity.
+//
+//     The temporal editor deliberately normalizes these on load. This is a
+//     compatibility fixture rather than a screenshot fixture: it proves that a
+//     dateTime whose granularity stops at the day loses its old clock value and
+//     that fractional zeroes survive when decimalSecond is the requested
+//     precision.
+{
+  const temporal = (name, type, granularity, timezone = false) =>
+    field(name, () => CedarBuilders.temporalFieldBuilder(), (b) => {
+      let out = b.withTemporalType(type).withTemporalGranularity(granularity);
+      if (timezone) out = out.withTimezoneEnabled(true);
+      return out;
+    });
+
+  const fields = [
+    temporal('date_year', TemporalType.DATE, TemporalGranularity.YEAR),
+    temporal('date_month', TemporalType.DATE, TemporalGranularity.MONTH),
+    temporal('datetime_day', TemporalType.DATETIME, TemporalGranularity.DAY),
+    temporal('time_minute', TemporalType.TIME, TemporalGranularity.MINUTE),
+    temporal('time_fraction', TemporalType.TIME, TemporalGranularity.DECIMAL_SECOND),
+  ];
+
+  let tb = common(CedarBuilders.templateBuilder(), 'TemporalNormalization', 'templates').withSchemaDescription(
+    'Existing temporal values normalized to their declared granularity',
+  );
+  for (const f of fields) {
+    tb = tb.addChild(f, deploy(f, f.schema_name ?? 'x'));
+  }
+  write('21-temporal-normalization', tb.build());
+
+  writeRaw('21-temporal-normalization-instance', {
+    '@context': {},
+    '@id': 'https://example.org/instances/temporal-normalization-1',
+    'schema:isBasedOn': `https://repo.metadatacenter.org/templates/${id('TemporalNormalization')}`,
+    'schema:name': 'Temporal normalization instance',
+    'schema:description': 'Values deliberately finer than their template granularities',
+    'pav:createdOn': FIXED_DATE,
+    'pav:createdBy': USER,
+    'pav:lastUpdatedOn': FIXED_DATE,
+    'oslc:modifiedBy': USER,
+    _date_year: { '@value': '2026-08-09', '@type': 'xsd:date' },
+    _date_month: { '@value': '2026-08-09', '@type': 'xsd:date' },
+    // The offset is undeclared as well as the clock being too precise, so both
+    // disappear when the template contract is applied.
+    _datetime_day: { '@value': '2026-08-09T21:45:32.125-07:00', '@type': 'xsd:dateTime' },
+    _time_minute: { '@value': '21:45:32.125', '@type': 'xsd:time' },
+    _time_fraction: { '@value': '21:45:32.001', '@type': 'xsd:time' },
+  });
+}

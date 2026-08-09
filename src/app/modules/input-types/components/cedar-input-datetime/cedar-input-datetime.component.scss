@@ -1,0 +1,63 @@
+:host {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.cee-temporal-date {
+  flex: 0 1 16rem;
+  min-width: 11rem;
+}
+
+.cee-temporal-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cee-fraction-separator {
+  align-self: center;
+  margin-inline: 0 -1px;
+  font-size: 18px;
+  line-height: 40px;
+}
+
+.cee-fraction-field {
+  width: 5.5rem;
+}
+
+.cee-temporal-offset {
+  flex: 1 1 18rem;
+  min-width: 14rem;
+}
+
+.cee-temporal-error {
+  flex-basis: 100%;
+  margin-inline: 12px;
+}
+
+::ng-deep .cee-temporal-date app-date-picker mat-form-field,
+::ng-deep .cee-temporal-offset app-timezone-picker {
+  width: 100%;
+}
+
+@container cee (max-width: 620px) {
+  :host {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cee-temporal-date,
+  .cee-temporal-offset {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  .cee-temporal-time {
+    flex-wrap: wrap;
+  }
+}

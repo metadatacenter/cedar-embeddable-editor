@@ -1,120 +1,50 @@
-<!--
-CEE's time picker: one box per unit the field's granularity asks for.
-
-Which boxes appear comes straight from the CEDAR model — `disableMinute` when
-granularity stops at the hour, `showSeconds` for second and decimalSecond — so
-a field never offers precision it cannot store, and never hides precision it
-can.
-
-Spinner buttons rather than relying on the browser's number stepper: the
-stepper clamps at min/max, and clock fields should wrap. Stepping past 59
-minutes means 0.
--->
 @if (!readOnlyMode) {
-  <div class="cee-time-picker">
-    <div class="cee-time-picker-field">
-      <button
-        type="button"
-        mat-icon-button
-        class="cee-time-step"
-        (click)="step('hour', 1)"
-        attr.aria-label="{{ 'Generic.IncrementHour' | translate }}"
-      >
-        <mat-icon>keyboard_arrow_up</mat-icon>
-      </button>
-      <mat-form-field class="cee-time-box">
+  <div class="cee-time-picker" role="group" attr.aria-label="{{ 'Generic.Time' | translate }}">
+    <div class="cee-time-input-shell">
+      <input
+        class="cee-time-segment"
+        type="text"
+        inputmode="numeric"
+        maxlength="2"
+        [value]="hasValue ? hourText : ''"
+        placeholder="HH"
+        (input)="hourChanged($any($event.target).value)"
+        (keydown)="segmentKeydown($event, 'hour')"
+        attr.aria-label="{{ 'Generic.Hour' | translate }}"
+      />
+      @if (!disableMinute) {
+        <span class="cee-time-separator" aria-hidden="true">:</span>
         <input
-          matInput
+          class="cee-time-segment"
           type="text"
           inputmode="numeric"
           maxlength="2"
-          [value]="hourText"
-          (input)="hourChanged($any($event.target).value)"
-          attr.aria-label="{{ 'Generic.Hour' | translate }}"
+          [value]="hasValue ? minuteText : ''"
+          placeholder="MM"
+          (input)="minuteChanged($any($event.target).value)"
+          (keydown)="segmentKeydown($event, 'minute')"
+          attr.aria-label="{{ 'Generic.Minute' | translate }}"
         />
-      </mat-form-field>
-      <button
-        type="button"
-        mat-icon-button
-        class="cee-time-step"
-        (click)="step('hour', -1)"
-        attr.aria-label="{{ 'Generic.DecrementHour' | translate }}"
-      >
-        <mat-icon>keyboard_arrow_down</mat-icon>
-      </button>
-    </div>
-    @if (!disableMinute) {
-      <span class="cee-time-separator">:</span>
-      <div class="cee-time-picker-field">
-        <button
-          type="button"
-          mat-icon-button
-          class="cee-time-step"
-          (click)="step('minute', 1)"
-          attr.aria-label="{{ 'Generic.IncrementMinute' | translate }}"
-        >
-          <mat-icon>keyboard_arrow_up</mat-icon>
-        </button>
-        <mat-form-field class="cee-time-box">
+        @if (showSeconds) {
+          <span class="cee-time-separator" aria-hidden="true">:</span>
           <input
-            matInput
+            class="cee-time-segment"
             type="text"
             inputmode="numeric"
             maxlength="2"
-            [value]="minuteText"
-            (input)="minuteChanged($any($event.target).value)"
-            attr.aria-label="{{ 'Generic.Minute' | translate }}"
+            [value]="hasValue ? secondText : ''"
+            placeholder="SS"
+            (input)="secondChanged($any($event.target).value)"
+            (keydown)="segmentKeydown($event, 'second')"
+            attr.aria-label="{{ 'Generic.Second' | translate }}"
           />
-        </mat-form-field>
-        <button
-          type="button"
-          mat-icon-button
-          class="cee-time-step"
-          (click)="step('minute', -1)"
-          attr.aria-label="{{ 'Generic.DecrementMinute' | translate }}"
-        >
-          <mat-icon>keyboard_arrow_down</mat-icon>
-        </button>
-      </div>
-      @if (showSeconds) {
-        <span class="cee-time-separator">:</span>
-        <div class="cee-time-picker-field">
-          <button
-            type="button"
-            mat-icon-button
-            class="cee-time-step"
-            (click)="step('second', 1)"
-            attr.aria-label="{{ 'Generic.IncrementSecond' | translate }}"
-          >
-            <mat-icon>keyboard_arrow_up</mat-icon>
-          </button>
-          <mat-form-field class="cee-time-box">
-            <input
-              matInput
-              type="text"
-              inputmode="numeric"
-              maxlength="2"
-              [value]="secondText"
-              (input)="secondChanged($any($event.target).value)"
-              attr.aria-label="{{ 'Generic.Second' | translate }}"
-            />
-          </mat-form-field>
-          <button
-            type="button"
-            mat-icon-button
-            class="cee-time-step"
-            (click)="step('second', -1)"
-            attr.aria-label="{{ 'Generic.DecrementSecond' | translate }}"
-          >
-            <mat-icon>keyboard_arrow_down</mat-icon>
-          </button>
-        </div>
+        }
       }
-    }
+    </div>
     @if (enableMeridian) {
       <button
         type="button"
-        mat-button
+        mat-stroked-button
         class="cee-time-meridian"
         (click)="toggleMeridian()"
         attr.aria-label="{{ 'Generic.ToggleMeridian' | translate }}"
@@ -125,9 +55,8 @@ minutes means 0.
   </div>
 }
 
-<!-- Read-only: the same value as text, not disabled boxes. -->
 @if (readOnlyMode) {
-  <div class="cee-time-picker-readonly">
-    <input matInput type="text" [value]="displayValue" readonly attr.aria-label="{{ 'Generic.Time' | translate }}" />
-  </div>
+  <span class="cee-time-picker-readonly" attr.aria-label="{{ 'Generic.Time' | translate }}">
+    {{ hasValue ? displayValue : '' }}
+  </span>
 }

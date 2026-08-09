@@ -1,0 +1,31 @@
+{
+  "@context": {},
+  "@id": "https://example.org/instances/temporal-normalization-1",
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/c81967f4-0000-4000-8000-c81967f40000",
+  "schema:name": "Temporal normalization instance",
+  "schema:description": "Values deliberately finer than their template granularities",
+  "pav:createdOn": "2026-01-01T00:00:00-08:00",
+  "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "_date_year": {
+    "@value": "2026-08-09",
+    "@type": "xsd:date"
+  },
+  "_date_month": {
+    "@value": "2026-08-09",
+    "@type": "xsd:date"
+  },
+  "_datetime_day": {
+    "@value": "2026-08-09T21:45:32.125-07:00",
+    "@type": "xsd:dateTime"
+  },
+  "_time_minute": {
+    "@value": "21:45:32.125",
+    "@type": "xsd:time"
+  },
+  "_time_fraction": {
+    "@value": "21:45:32.001",
+    "@type": "xsd:time"
+  }
+}

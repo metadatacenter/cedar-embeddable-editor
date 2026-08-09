@@ -1,10 +1,10 @@
 /**
  * Converting between what a clock face shows and what an hour *is*.
  *
- * CEDAR stores a time as `HH:mm:ss` on a 24-hour clock, always —
- * `DatetimeRepresentation.setHours` records the number it is given and
- * `toStorageRepresentation` writes it verbatim. The 12-hour setting is a display
- * choice: `_ui.inputTimeFormat` of `12h` means show `2 PM`, not store `02`.
+ * CEDAR stores a time as `HH:mm:ss` on a 24-hour clock, always. The temporal
+ * field records that 24-hour value and the storage codec writes it verbatim. The
+ * 12-hour setting is a display choice: `_ui.inputTimeFormat` of `12h` means show
+ * `2 PM`, not store `02`.
  *
  * So a time picker offering a 12-hour face has to convert in both directions, and
  * getting that wrong writes the wrong instant into somebody's metadata — silently,

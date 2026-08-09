@@ -168,11 +168,31 @@ test('filters, selects and records a timezone through the ng-select', async ({ p
   // the value, so a change in how it decides to show it would land here silently.
   await expect(select.locator('.ng-clear-wrapper')).toHaveCount(0);
 
+  // The offset is part of the editor's draft, but an offset by itself is not a
+  // lexical xsd:dateTime. Do not publish the malformed intermediate value the
+  // legacy widget used to expose.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata._sampled_at['@value'],
+      ),
+    )
+    .toBeNull();
+
+  // Complete the dateTime through the public controls. Once the visible parts
+  // are complete, the previously selected offset is emitted atomically with
+  // the canonical minute-granularity value.
+  await page.locator('mat-datepicker-toggle button').click();
+  await page.getByRole('button', { name: '01/01/2026', exact: true }).click();
+  const time = page.locator('.cee-time-picker');
+  await time.locator('input[aria-label="Hour"]').fill('09');
+  await time.locator('input[aria-label="Minute"]').fill('30');
+
   await expect
     .poll(() =>
       page.evaluate(() => JSON.stringify((document.querySelector('cedar-embeddable-editor') as any).currentMetadata)),
     )
-    .toContain('+05:30');
+    .toContain('2026-01-01T09:30:00+05:30');
 });
 
 test('updates temporal data through the custom time picker', async ({ page }) => {

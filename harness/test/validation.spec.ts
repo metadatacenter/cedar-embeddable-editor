@@ -182,6 +182,36 @@ describe('temporal constraints', () => {
       '2026-08-02T10:30-08:00',
       'timezone',
     ],
+    [
+      'year granularity with a non-padding month',
+      () => temporal(TemporalType.DATE, TemporalGranularity.YEAR),
+      '2026-08-01',
+      'temporalGranularity',
+    ],
+    [
+      'month granularity with a non-padding day',
+      () => temporal(TemporalType.DATE, TemporalGranularity.MONTH),
+      '2026-08-09',
+      'temporalGranularity',
+    ],
+    [
+      'day-granularity dateTime with a non-midnight time',
+      () => temporal(TemporalType.DATETIME, TemporalGranularity.DAY),
+      '2026-08-02T10:30:00',
+      'temporalGranularity',
+    ],
+    [
+      'minute granularity with non-zero seconds',
+      () => temporal(TemporalType.TIME, TemporalGranularity.MINUTE),
+      '10:30:01',
+      'temporalGranularity',
+    ],
+    [
+      'second granularity with a fraction',
+      () => temporal(TemporalType.TIME, TemporalGranularity.SECOND),
+      '10:30:01.5',
+      'temporalGranularity',
+    ],
   ])('%s → %s', (_label, make, value, code) => {
     expect(codesFor(make(), value)).toContain(code);
   });
@@ -189,7 +219,16 @@ describe('temporal constraints', () => {
   it.each([
     ['a valid date', () => temporal(TemporalType.DATE, TemporalGranularity.DAY), '2026-08-02'],
     ['a valid time', () => temporal(TemporalType.TIME, TemporalGranularity.MINUTE), '10:30'],
+    ['a canonical year', () => temporal(TemporalType.DATE, TemporalGranularity.YEAR), '2026-01-01'],
+    ['a canonical month', () => temporal(TemporalType.DATE, TemporalGranularity.MONTH), '2026-08-01'],
+    ['a canonical hour', () => temporal(TemporalType.TIME, TemporalGranularity.HOUR), '10:00:00'],
+    ['a canonical minute', () => temporal(TemporalType.TIME, TemporalGranularity.MINUTE), '10:30:00'],
     ['a valid dateTime', () => temporal(TemporalType.DATETIME, TemporalGranularity.SECOND), '2026-08-02T10:30:00'],
+    [
+      'a canonical day-granularity dateTime',
+      () => temporal(TemporalType.DATETIME, TemporalGranularity.DAY),
+      '2026-08-02T00:00:00',
+    ],
     [
       'an offset when timezone is enabled',
       () => temporal(TemporalType.DATETIME, TemporalGranularity.SECOND, true),

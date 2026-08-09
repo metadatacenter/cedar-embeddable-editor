@@ -1,97 +1,68 @@
-/*
- * Laid out as a row of narrow boxes with a stepper above and below each, which
- * is the shape `ngx-mat-timepicker` had — the field is recognisable to anyone
- * who used CEE before this replaced it.
- */
 .cee-time-picker {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  min-width: 0;
 }
 
-.cee-time-picker-field {
-  display: flex;
-  flex-direction: column;
+/* One clock-shaped control rather than an outlined Material field per unit. */
+.cee-time-input-shell {
+  display: inline-flex;
   align-items: center;
-}
+  box-sizing: border-box;
+  min-height: 40px;
+  padding-inline: 8px;
+  border: 1px solid #777;
+  border-radius: 4px;
+  background: white;
+  color: inherit;
 
-.cee-time-box {
-  width: 4em;
-
-  /* Text rather than number inputs, so an hour can read `01`. The spinner
-     buttons do the stepping, and they wrap where a native stepper clamps. */
-  input {
-    text-align: center;
+  &:focus-within {
+    border-color: var(--cee-color-primary);
+    box-shadow: inset 0 0 0 1px var(--cee-color-primary);
   }
 }
 
-.cee-time-step {
-  /*
-   * MDC sizes an icon button from `--mat-icon-button-state-layer-size`, not from
-   * `height`, so setting the height alone left these at Material's 48px default and
-   * doubled the picker's height. Setting the token is the MDC-native way to say it,
-   * and it also keeps the colon's anchor below correct, since that counts one
-   * stepper down.
-   *
-   * `!important` for the same reason the outline needs it: Material's density
-   * emission sets this from `:host .mat-mdc-icon-button.mat-mdc-button-base`,
-   * three classes, which outranks a component-scoped class selector.
-   */
-  --mat-icon-button-state-layer-size: 24px !important;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  line-height: 24px;
+.cee-time-segment {
+  box-sizing: content-box;
+  width: 2.25ch;
+  min-width: 2.25ch;
+  padding: 8px 2px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 22px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 
-  .mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-    line-height: 18px;
+  &::placeholder {
+    color: #6f6f6f;
+    opacity: 1;
+  }
+
+  &:focus {
+    background: color-mix(in srgb, var(--cee-color-primary) 9%, transparent);
+    border-radius: 2px;
   }
 }
 
-/*
- * The colon, between two digit boxes and level with the digits.
- *
- * One stepper's height down, plus the padding CEE's own `.mat-mdc-form-field-infix`
- * rule puts above the input, then a line box the height of the input itself — so
- * the colon centres exactly where the digits do.
- *
- * Every term is CEE's own: the 24px stepper below, and the 5px infix padding in
- * styles-own.scss. That is the point of writing it this way. The previous version
- * used a 3.4em line box chosen to match *Material's* geometry, and the MDC
- * migration duly moved it — the colon came out 6.8px low. Anchoring to values CEE
- * sets means Material can change its metrics without dragging the colon along.
- *
- * Still tested, because a number is a number: `visual/tests/render.spec.ts`
- * asserts the colon's centre sits within a couple of pixels of a digit's.
- *
- * Two cleverer attempts came first and both went wrong, which is why the simple
- * version is here. A chrome-less `mat-form-field` holding the colon collapsed its
- * input to zero width — correctly positioned and completely invisible. A
- * `matSuffix` aligned perfectly but rendered the colon *inside* the preceding
- * box, which is not where a clock puts it.
- */
 .cee-time-separator {
-  align-self: flex-start;
-  margin-top: calc(24px + 5px);
-  height: 24px;
-  line-height: 24px;
-  padding: 0 2px;
+  line-height: 22px;
+  color: #555;
+  user-select: none;
 }
 
 .cee-time-meridian {
-  min-width: 3.5em;
-  /* One stepper's height down, which puts it on the digit row. A button has no
-     subscript space, so unlike the separator this needs no trickery. */
-  align-self: flex-start;
-  margin-top: 24px;
+  min-width: 52px;
+  height: 40px;
+  padding-inline: 10px;
 }
 
 .cee-time-picker-readonly {
-  input {
-    border: none;
-    background: transparent;
-  }
+  display: inline-block;
+  min-height: 24px;
+  padding-block: 6px;
+  font-variant-numeric: tabular-nums;
 }
