@@ -2111,6 +2111,104 @@ test.describe('date display formats', () => {
 });
 
 /**
+ * Date, clock, fraction, offset and clear are separate components, but they are
+ * perceived as one temporal control. Material gives a date field a 48px row as
+ * soon as its calendar action is present, while CEE's compact fields otherwise
+ * settle at 36px. Guard the shared action-row height so the pieces cannot drift
+ * back into the stepped baseline seen in the filled migration template.
+ */
+test('temporal controls share one action-row height and wide-screen baseline', async ({ page }, testInfo) => {
+  await open(page, '07-timezone');
+
+  const composed = await page.evaluate(() => {
+    const field = document
+      .querySelector('cedar-embeddable-editor')!
+      .shadowRoot!.querySelector('app-cedar-input-datetime')!;
+    const boxes = [
+      field.querySelector('.cee-temporal-date mat-form-field'),
+      field.querySelector('.cee-time-input-shell'),
+      field.querySelector('.cee-temporal-offset mat-form-field'),
+    ].map((element) => {
+      const rect = element!.getBoundingClientRect();
+      return { height: rect.height, top: rect.top };
+    });
+    return boxes;
+  });
+
+  for (const box of composed) {
+    expect(box.height, 'every visible temporal control uses the Material action-row height').toBeCloseTo(48, 0);
+  }
+  if (testInfo.project.name === 'desktop') {
+    expect(Math.max(...composed.map(({ top }) => top)) - Math.min(...composed.map(({ top }) => top))).toBeLessThan(1);
+  }
+
+  await open(page, '21-temporal-normalization', undefined, '21-temporal-normalization-instance');
+  const filled = await page.evaluate(() => {
+    const fields = document
+      .querySelector('cedar-embeddable-editor')!
+      .shadowRoot!.querySelectorAll('app-cedar-input-datetime');
+    const measure = (element: Element | null) => {
+      const rect = element!.getBoundingClientRect();
+      return { height: rect.height, top: rect.top };
+    };
+    return {
+      date: [measure(fields[0].querySelector('mat-form-field')), measure(fields[0].querySelector('.cee-temporal-clear'))],
+      fractionalTime: [
+        measure(fields[4].querySelector('.cee-time-input-shell')),
+        measure(fields[4].querySelector('.cee-fraction-field')),
+        measure(fields[4].querySelector('.cee-temporal-clear')),
+      ],
+    };
+  });
+
+  for (const box of [...filled.date, ...filled.fractionalTime]) {
+    expect(box.height).toBeCloseTo(48, 0);
+  }
+  if (testInfo.project.name === 'desktop') {
+    for (const row of [filled.date, filled.fractionalTime]) {
+      expect(Math.max(...row.map(({ top }) => top)) - Math.min(...row.map(({ top }) => top))).toBeLessThan(1);
+    }
+  }
+});
+
+test('temporal input text and boundaries meet WCAG 2.2 AA contrast', async ({ page }) => {
+  await open(page, '09-temporal');
+
+  const colors = await page.evaluate(() => {
+    const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+    const shell = root.querySelector('.cee-time-input-shell')!;
+    const input = shell.querySelector('input')!;
+    return {
+      background: getComputedStyle(shell).backgroundColor,
+      border: getComputedStyle(shell).borderTopColor,
+      text: getComputedStyle(input).color,
+      placeholder: getComputedStyle(input, '::placeholder').color,
+    };
+  });
+
+  const channels = (color: string): number[] =>
+    color
+      .match(/[\d.]+/g)!
+      .slice(0, 3)
+      .map(Number);
+  const luminance = (color: string): number => {
+    const linear = channels(color).map((channel) => {
+      const srgb = channel / 255;
+      return srgb <= 0.04045 ? srgb / 12.92 : ((srgb + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+  };
+  const contrast = (foreground: string, background: string): number => {
+    const [lighter, darker] = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+    return (lighter + 0.05) / (darker + 0.05);
+  };
+
+  expect(contrast(colors.text, colors.background), 'entered time text needs 4.5:1 contrast').toBeGreaterThanOrEqual(4.5);
+  expect(contrast(colors.placeholder, colors.background), 'time placeholders need 4.5:1 contrast').toBeGreaterThanOrEqual(4.5);
+  expect(contrast(colors.border, colors.background), 'the time control boundary needs 3:1 contrast').toBeGreaterThanOrEqual(3);
+});
+
+/**
  * The date picker boundary uses native `Date` values now, but CEE's public value
  * remains the XSD lexical form dictated by the template granularity. Exercise
  * the Material calendar itself so a display-only success cannot hide a broken

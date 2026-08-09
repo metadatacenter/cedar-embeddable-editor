@@ -23,7 +23,7 @@
   align-self: center;
   margin-inline: 0 -1px;
   font-size: 18px;
-  line-height: 40px;
+  line-height: 48px;
 }
 
 .cee-fraction-field {
@@ -37,7 +37,7 @@
 
 .cee-temporal-clear {
   flex: 0 0 auto;
-  margin-top: 1px;
+  margin: 0;
 }
 
 .cee-temporal-error {
@@ -48,6 +48,13 @@
 ::ng-deep .cee-temporal-date app-date-picker mat-form-field,
 ::ng-deep .cee-temporal-offset app-timezone-picker {
   width: 100%;
+}
+
+/* Decimal seconds sit in the same row as the 48px clock shell. */
+::ng-deep .cee-fraction-field .mat-mdc-form-field-infix {
+  min-height: 48px !important;
+  padding-top: 11px !important;
+  padding-bottom: 13px !important;
 }
 
 @container cee (max-width: 620px) {

@@ -30,6 +30,46 @@ import { CeeDriver } from '../src/driver';
 const templates = corpusTemplates();
 const instances = corpusInstances();
 
+interface TemporalDeclaration {
+  source: string;
+  temporalType: string;
+  granularity: string;
+  timezoneEnabled: boolean;
+}
+
+/**
+ * Find temporal fields in the source artifacts, before CEE or the model
+ * library has interpreted them. This keeps the release evidence independent
+ * of the code whose behaviour it is intended to protect.
+ */
+const collectTemporalDeclarations = (
+  artifacts: ReadonlyArray<{ id: string; json: object }>,
+  sourceSet: string,
+): TemporalDeclaration[] => {
+  const declarations: TemporalDeclaration[] = [];
+
+  const visit = (value: unknown, source: string): void => {
+    if (!value || typeof value !== 'object') return;
+
+    const record = value as Record<string, unknown>;
+    const ui = record['_ui'] as Record<string, unknown> | undefined;
+    const constraints = record['_valueConstraints'] as Record<string, unknown> | undefined;
+    if (ui?.['inputType'] === 'temporal') {
+      declarations.push({
+        source,
+        temporalType: String(constraints?.['temporalType'] ?? ''),
+        granularity: String(ui['temporalGranularity'] ?? ''),
+        timezoneEnabled: ui['timezoneEnabled'] === true,
+      });
+    }
+
+    for (const child of Object.values(record)) visit(child, source);
+  };
+
+  for (const artifact of artifacts) visit(artifact.json, `${sourceSet}/${artifact.id}`);
+  return declarations;
+};
+
 /**
  * Corpus templates CEE has something to say about, and what it says.
  *
@@ -174,6 +214,42 @@ describe('templates the generator would not produce', () => {
  * library, these are the input that will say whether anything moved.
  */
 const hubmap = hubmapTemplates();
+
+describe('real temporal-field coverage', () => {
+  const declarations = [
+    ...collectTemporalDeclarations(templates, 'numbered'),
+    ...collectTemporalDeclarations(hubmap, 'hubmap'),
+  ];
+
+  it('keeps the audited corpus and its temporal declarations intact', () => {
+    expect(templates).toHaveLength(37);
+    expect(hubmap).toHaveLength(57);
+    expect(declarations).toHaveLength(39);
+    expect(new Set(declarations.map(({ source }) => source)).size).toBe(8);
+  });
+
+  it('covers every supported granularity with stable real-world combinations', () => {
+    const combinations = declarations.reduce<Record<string, number>>((counts, field) => {
+      const key = `${field.temporalType}|${field.granularity}|${field.timezoneEnabled}`;
+      counts[key] = (counts[key] ?? 0) + 1;
+      return counts;
+    }, {});
+
+    expect(combinations).toEqual({
+      'xsd:date|day|false': 21,
+      'xsd:time|second|true': 2,
+      'xsd:dateTime|decimalSecond|true': 2,
+      'xsd:dateTime|second|true': 3,
+      'xsd:date|year|false': 5,
+      'xsd:dateTime|minute|true': 1,
+      'xsd:dateTime|hour|true': 1,
+      'xsd:date|month|false': 1,
+      'xsd:time|decimalSecond|true': 1,
+      'xsd:time|minute|true': 1,
+      'xsd:time|hour|true': 1,
+    });
+  });
+});
 
 describe('HuBMAP production templates', () => {
   it('the corpus is present and non-trivial', () => {

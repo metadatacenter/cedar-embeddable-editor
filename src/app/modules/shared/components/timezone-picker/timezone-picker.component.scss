@@ -12,3 +12,14 @@ mat-form-field {
   padding-block: 6px;
   font-variant-numeric: tabular-nums;
 }
+
+/*
+ * Temporal controls form one visual row. Date fields are 48px tall because the
+ * calendar suffix is a 48px Material action; give the offset selector the same
+ * action-row density instead of the global 36px compact-field density.
+ */
+::ng-deep .mat-mdc-form-field-infix {
+  min-height: 48px !important;
+  padding-top: 11px !important;
+  padding-bottom: 13px !important;
+}

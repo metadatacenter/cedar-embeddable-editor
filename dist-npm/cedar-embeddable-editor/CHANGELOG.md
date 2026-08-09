@@ -22,9 +22,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The package version is `1.6.0-e2`. `-ng22` named the branch that produced the
+- The package version is `1.6.0-e4`. `-ng22` named the branch that produced the
   build, which stopped being the useful thing to know once that branch became
   where CEE is developed.
+
+- The temporal editors are rebuilt around one temporal value. Date, time and timezone
+  are parsed, normalized and rendered through `CedarTemporalValue` rather than each
+  picker carrying its own string handling, so a field's granularity decides what is
+  shown and what is written. The time and timezone pickers were reworked to match.
+  Existing values are normalized on load: information finer than the template's
+  declared granularity is intentionally discarded, hidden parts are padded to a
+  canonical complete XSD value, and an offset is removed when time zones are disabled.
+
+- A typed field reports its validation error on blur rather than on every keystroke,
+  so an address, email, phone number or URL is not marked invalid while it is still
+  being typed.
 
 - A static YouTube field renders at the size its template asks for. `_ui._size` was
   read by nobody: the component carried 640 × 390 as two fixed values, so every video
