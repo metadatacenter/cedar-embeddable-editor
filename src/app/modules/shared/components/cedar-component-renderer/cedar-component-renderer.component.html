@@ -70,7 +70,7 @@
   </mat-accordion>
 }
 @if (nonIterableComponent) {
-  <mat-card appearance="outlined" class="child-component-card non-iterable-component">
+  <div class="child-component-card non-iterable-component">
     <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
     @if (nonIterableComponent.isMultiPage()) {
       <app-cedar-multi-pager
@@ -83,7 +83,7 @@
       </app-cedar-multi-pager>
     }
     @if (shouldRenderContentOfNonIterable(nonIterableComponent)) {
-      <mat-card-content>
+      <div class="child-component-content">
         @if (nonIterableComponent.linkedStaticFieldComponent && showStaticText) {
           <ng-container tabIndex="0">
             <!-- These are the collapsed static components before fields-->
@@ -219,9 +219,9 @@
             [handlerContext]="handlerContext"
           ></app-cedar-input-phone>
         }
-      </mat-card-content>
+      </div>
     }
-  </mat-card>
+  </div>
 }
 @if (staticComponent) {
   <!-- This is the normal section break -->

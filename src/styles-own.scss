@@ -17,6 +17,10 @@
   --cee-color-accent: #{tokens.$cee-color-accent};
   --cee-color-warn: #{tokens.$cee-color-warn};
   display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  container: cee / inline-size;
   font-family: tokens.$cee-font-family;
   font-size: tokens.$cee-font-size;
   line-height: normal;
@@ -171,9 +175,12 @@
 }
 
 .template-card {
-  max-width: 90%;
-  background-color: #f8f8f8;
-  margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  background-color: #ffffff;
+  margin: 0;
   border: none !important;
 }
 
@@ -449,24 +456,8 @@ button.close {
 .tooltip {
   background-color: black;
 }
-.template-header {
-  display: flex;
-  background-color: white !important;
-  padding-top: 10px !important;
-  min-height: fit-content !important;
-}
-.expand-buttons {
-  margin-left: auto;
-  margin-right: 20px;
-  padding-top: 6px;
-  vertical-align: center;
-}
 .component-title {
   color: tokens.$cee-color-component-title !important;
-}
-.template-label {
-  padding-left: 10px;
-  padding-top: 6px;
 }
 
 /**

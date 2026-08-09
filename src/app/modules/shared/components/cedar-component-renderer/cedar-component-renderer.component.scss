@@ -1,5 +1,17 @@
-.mat-mdc-card {
-  padding: 5px;
-  margin-top: 5px;
-  background-color: white;
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.non-iterable-component {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 1rem 0;
+  background: transparent;
+  border-bottom: 1px solid #e1e7e6;
+}
+
+.child-component-content {
+  min-width: 0;
+  padding-top: 0.6rem;
 }

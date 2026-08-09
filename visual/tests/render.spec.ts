@@ -474,6 +474,36 @@ test.describe('config presets', () => {
   });
 });
 
+test('the editor shrinks to its host without horizontal overflow', async ({ page }) => {
+  await open(page, '17-real-flat');
+
+  const layout = await page.evaluate(() => {
+    const host = document.querySelector('cedar-embeddable-editor');
+    const header = host?.shadowRoot?.querySelector('.template-header');
+    const actions = host?.shadowRoot?.querySelector('.template-actions');
+    const rect = (element: Element | null | undefined) => element?.getBoundingClientRect();
+
+    return {
+      viewportWidth: document.documentElement.clientWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      host: rect(host),
+      header: rect(header),
+      actions: rect(actions),
+    };
+  });
+
+  expect(layout.documentWidth, 'CEE must not make the embedding document wider than its viewport').toBeLessThanOrEqual(
+    layout.viewportWidth,
+  );
+  expect(layout.host).toBeTruthy();
+  expect(layout.header).toBeTruthy();
+  expect(layout.actions).toBeTruthy();
+  expect(layout.header!.left).toBeGreaterThanOrEqual(layout.host!.left);
+  expect(layout.header!.right).toBeLessThanOrEqual(layout.host!.right);
+  expect(layout.actions!.left).toBeGreaterThanOrEqual(layout.host!.left);
+  expect(layout.actions!.right).toBeLessThanOrEqual(layout.host!.right);
+});
+
 /**
  * One clipped screenshot per widget.
  *
@@ -1171,13 +1201,13 @@ test.describe('ported from the deleted component specs', () => {
    * paged and always shows its content, while a paged field with no instances shows
    * none — there is no occurrence to show, and its pager says so instead. The
    * fixture puts all three cases on one page in this order, and the observable
-   * consequence is whether a `mat-card-content` exists inside each field's card.
+   * consequence is whether a content area exists inside each field container.
    */
   test('a multi field renders its content only when it has something to show', async ({ page }) => {
     await open(page, '12-render-decision');
 
-    const cards = page.locator('mat-card.non-iterable-component');
-    await expect(cards, 'fixture should render three fields').toHaveCount(3);
+    const fields = page.locator('.non-iterable-component');
+    await expect(fields, 'fixture should render three fields').toHaveCount(3);
 
     const expected = [
       ['list_no_values', 1, 'a list field is multi but not paged, so it always shows its content'],
@@ -1186,11 +1216,11 @@ test.describe('ported from the deleted component specs', () => {
     ] as const;
 
     for (const [name, count, why] of expected) {
-      const card = cards.nth(expected.findIndex((e) => e[0] === name));
-      await expect(card.locator('app-cedar-component-header'), `card order changed: expected ${name}`).toContainText(
+      const field = fields.nth(expected.findIndex((e) => e[0] === name));
+      await expect(field.locator('app-cedar-component-header'), `field order changed: expected ${name}`).toContainText(
         name,
       );
-      await expect(card.locator('mat-card-content'), `${name}: ${why}`).toHaveCount(count);
+      await expect(field.locator('.child-component-content'), `${name}: ${why}`).toHaveCount(count);
     }
   });
 });

@@ -117,7 +117,9 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     CedarInputNihGrantComponent,
     CedarInputDoiComponent,
   ],
-  providers: [{ provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } }],
+  providers: [
+    { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline', subscriptSizing: 'dynamic' } },
+  ],
   exports: [
     // FooBar is needed because the first component gets exported without style otherwise
     CedarFooBarComponent,

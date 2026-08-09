@@ -1,12 +1,10 @@
 @use '../../../../../styles-common' as common;
 
-.mat-mdc-card {
-  padding: 5px;
-  margin-bottom: 5px;
+:host {
+  display: block;
+  min-width: 0;
 }
-.header-flex-child {
-  flex: auto;
-}
+
 .header-image {
   background-image: url(common.$cedar-logo-80x80);
   background-size: cover;
@@ -14,10 +12,15 @@
   cursor: pointer;
 }
 .template-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 72px minmax(12rem, 1fr) auto;
+  grid-template-areas: 'logo title actions';
   align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
+  gap: 0.75rem 1rem;
+  min-width: 0;
+  padding: 1rem clamp(0.75rem, 2.5cqi, 1.5rem);
+  background: #ffffff;
+  border-bottom: 1px solid #d7e0df;
 }
 
 /*
@@ -39,12 +42,12 @@
  * layout.
  */
 .logo-block {
+  grid-area: logo;
   display: flex;
   flex-direction: column;
   align-items: center;
   flex: 0 0 72px;
   min-width: 0;
-  margin-right: 1rem;
 }
 
 .cee-version {
@@ -58,13 +61,106 @@
   color: #666;
   margin-top: 2px;
 }
-.header-flex-child {
-  display: flex;
-  align-items: center;
-  flex: auto;
+.template-title-block {
+  grid-area: title;
+  min-width: 0;
 }
+
+.template-label {
+  margin: 0;
+  color: #173f3e;
+  font-size: clamp(1.2rem, 3cqi, 1.65rem);
+  font-weight: 500;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.template-description {
+  max-width: 70ch;
+  margin: 0.35rem 0 0;
+  color: #526260;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.template-actions {
+  grid-area: actions;
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem 1rem;
+}
+
+.page-break-control {
+  min-width: 0;
+}
+
 .expand-buttons {
   display: flex;
   align-items: center;
-  gap: 0.5rem;                
+  justify-content: flex-end;
+  gap: 0.25rem;
+
+  button {
+    white-space: nowrap;
+  }
+}
+
+.template-content {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+  padding: 0 clamp(0.75rem, 3cqi, 2rem) 1.5rem;
+}
+
+@container cee (max-width: 1100px) {
+  .template-header {
+    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-areas:
+      'logo title'
+      'actions actions';
+  }
+
+  .logo-block {
+    flex-basis: 64px;
+  }
+
+  .template-actions {
+    justify-content: space-between;
+    border-top: 1px solid #e5ebea;
+    padding-top: 0.75rem;
+  }
+}
+
+@container cee (max-width: 520px) {
+  .template-header {
+    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-areas:
+      'logo title'
+      'actions actions';
+  }
+
+  .logo-block {
+    flex-basis: 52px;
+  }
+
+  .cee-version {
+    font-size: 0.65rem;
+  }
+
+  .template-actions,
+  .expand-buttons {
+    width: 100%;
+  }
+
+  .template-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .expand-buttons button {
+    flex: 1 1 0;
+  }
 }

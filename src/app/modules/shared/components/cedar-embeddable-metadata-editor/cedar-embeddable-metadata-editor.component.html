@@ -19,29 +19,33 @@
         ></div>
         <span class="cee-version" [title]="ceeVersion">{{ ceeVersion }}</span>
       </div>
-      <h1 class="template-label">{{ dataContext.templateRepresentation?.labelInfo?.label }}</h1>
-      @if (dataContext.templateRepresentation?.labelInfo?.description && showTemplateDescription) {
-        <h2>&nbsp;{{ dataContext.templateRepresentation?.labelInfo?.description }}</h2>
-      }
-      @if (dataContext.templateRepresentation?.hasPageBreaks()) {
-        <div class="header-flex-child">
-          <app-cedar-static-page-break
-            [dataContext]="dataContext"
-            [pageBreakPaginatorService]="pageBreakPaginatorService"
-          ></app-cedar-static-page-break>
+      <div class="template-title-block">
+        <h1 class="template-label">{{ dataContext.templateRepresentation?.labelInfo?.label }}</h1>
+        @if (dataContext.templateRepresentation?.labelInfo?.description && showTemplateDescription) {
+          <p class="template-description">{{ dataContext.templateRepresentation?.labelInfo?.description }}</p>
+        }
+      </div>
+      <div class="template-actions">
+        @if (dataContext.templateRepresentation?.hasPageBreaks()) {
+          <div class="page-break-control">
+            <app-cedar-static-page-break
+              [dataContext]="dataContext"
+              [pageBreakPaginatorService]="pageBreakPaginatorService"
+            ></app-cedar-static-page-break>
+          </div>
+        }
+        <div class="expand-buttons">
+          <button mat-button (click)="openAll()">
+            <mat-icon>unfold_more</mat-icon>{{ 'Generic.ExpandAll' | translate }}
+          </button>
+          <button mat-button (click)="closeAll()">
+            <mat-icon>unfold_less</mat-icon>{{ 'Generic.CollapseAll' | translate }}
+          </button>
         </div>
-      }
-      <div class="expand-buttons">
-        <button mat-button (click)="openAll()">
-          <mat-icon>unfold_more</mat-icon>{{ 'Generic.ExpandAll' | translate }}
-        </button>
-        <button mat-button (click)="closeAll()">
-          <mat-icon>unfold_less</mat-icon>{{ 'Generic.CollapseAll' | translate }}
-        </button>
       </div>
     </div>
     <!--  </mat-card-header>-->
-    <mat-card-content>
+    <mat-card-content class="template-content">
       @for (childComponent of pageBreakPaginatorService.getCurrentPage(); track childComponent) {
         @if (!childComponent.hidden) {
           <app-cedar-component-renderer
