@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-dev.20260809.604e9e6] - 2026-08-09
+
+### Fixed
+
+- `CeeDataQualityReport` names the problem array `problems`, as the report has always carried it.
+  The declarations called it `validationProblems`, so a TypeScript host reading that member
+  compiled and received `undefined`. Hosts using the published declarations should rename their
+  reads.
+- `cee-public-api.spec.ts` holds the report types against the objects behind them. It checked the
+  configuration keys only, which is how the name drifted unnoticed.
+
 ## [1.6.0-dev.20260809.8127503] - 2026-08-09
 
 ### Added
