@@ -78,6 +78,13 @@
     "MultiInstance": "Multi-példány információ",
     "DataQualityReport": "Adatminőségi riport"
   },
+  "Hint": {
+    "Numeric": {
+      "Minimum": "Minimum: {{minValue}}",
+      "Maximum": "Maximum: {{maxValue}}",
+      "DecimalPlaces": "Tizedesjegyek: {{decimalPlace}}"
+    }
+  },
   "Validation": {
     "Required": "Az érték megadása kötelező.",
     "Text": {

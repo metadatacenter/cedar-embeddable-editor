@@ -8,6 +8,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { Numbers } from '../../../shared/models/numbers.model';
 import { Xsd } from '../../../shared/models/xsd.model';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-cedar-input-numeric',
@@ -31,6 +32,7 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
     fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
+    private translateService: TranslateService,
   ) {
     super();
     this.options = fb.group({
@@ -105,33 +107,30 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
     this.handlerContext.changeValue(this.component, value);
   }
 
-  getMinMaxValueHint(): string {
-    let s = '';
-    let min = null;
-    let max = null;
+  /**
+   * The bounds the template declares, as a hint under the input.
+   *
+   * Each bound is a translated label rather than an abbreviation assembled
+   * here, so the hint reads the way the validation messages beside it do and a
+   * language bundle can change it. Only the bounds the template actually
+   * declares appear; the implicit range a numeric type carries is resolved in
+   * `ngOnInit` for validation and is deliberately not advertised, because a
+   * field inherits it whether or not its author thought about it.
+   */
+  boundsHint(): string {
+    const { minValue, maxValue, decimalPlace } = this.component.numberInfo;
+    const parts: string[] = [];
 
-    if (this.component.numberInfo.minValue != null) {
-      min = this.component.numberInfo.minValue;
+    if (minValue != null) {
+      parts.push(this.translateService.instant('Hint.Numeric.Minimum', { minValue }));
     }
-
-    if (this.component.numberInfo.maxValue != null) {
-      max = this.component.numberInfo.maxValue;
+    if (maxValue != null) {
+      parts.push(this.translateService.instant('Hint.Numeric.Maximum', { maxValue }));
     }
-
-    if (min != null || max != null) {
-      if (min != null) {
-        s += 'min: ' + min + '; ';
-      }
-
-      if (max != null) {
-        s += 'max: ' + max + ';';
-      }
-    }
-    const decimalPlace = this.component.numberInfo.decimalPlace;
-
     if (decimalPlace != null) {
-      s += ' max ' + decimalPlace + ' decimals;';
+      parts.push(this.translateService.instant('Hint.Numeric.DecimalPlaces', { decimalPlace }));
     }
-    return s;
+
+    return parts.join(', ');
   }
 }

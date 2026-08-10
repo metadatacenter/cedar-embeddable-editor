@@ -78,6 +78,13 @@
     "MultiInstance": "Multi-Instance Information",
     "DataQualityReport": "Data Quality Report"
   },
+  "Hint": {
+    "Numeric": {
+      "Minimum": "Minimum: {{minValue}}",
+      "Maximum": "Maximum: {{maxValue}}",
+      "DecimalPlaces": "Decimal places: {{decimalPlace}}"
+    }
+  },
   "Validation": {
     "Required": "The value is required.",
     "Text": {

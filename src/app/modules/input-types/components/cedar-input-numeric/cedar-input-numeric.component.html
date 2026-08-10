@@ -30,7 +30,7 @@
       <mat-error class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
     }
     @if (!readOnlyMode) {
-      <mat-hint class="align-end">{{ getMinMaxValueHint() }}</mat-hint>
+      <mat-hint class="align-end">{{ boundsHint() }}</mat-hint>
     }
   </mat-form-field>
 </form>

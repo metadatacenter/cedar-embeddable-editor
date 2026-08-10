@@ -797,6 +797,31 @@ test('numeric units are inset from the input outline', async ({ page }) => {
 });
 
 /**
+ * The bounds hint, as a reader meets it.
+ *
+ * It used to read `min: 0; max: 100;` — abbreviated, semicolon-delimited and
+ * assembled from string fragments in the component while every other visible
+ * string came from a language bundle. Asserting the rendered text is what makes
+ * the wording a commitment rather than an implementation detail, and it covers
+ * the three shapes independently: both bounds, a decimal limit alone, and all
+ * three at once.
+ */
+test('numeric fields state their bounds in words', async ({ page }) => {
+  await open(page, '17-real-flat');
+
+  // Fields are addressed by aria-label, as elsewhere in this suite.
+  const hintFor = (label: string) =>
+    page
+      .locator('app-cedar-input-numeric')
+      .filter({ has: page.locator(`input[aria-label="${label}"]`) })
+      .locator('mat-hint');
+
+  await expect(hintFor('Numeric Field')).toHaveText('Minimum: 0, Maximum: 100');
+  await expect(hintFor('Numeric Decimal (4 dp)')).toHaveText('Decimal places: 4');
+  await expect(hintFor('Numeric Decimal (2 dp)')).toHaveText('Minimum: 0, Maximum: 1000, Decimal places: 2');
+});
+
+/**
  * One clipped screenshot per widget.
  *
  * The twelve full-page fixtures above are the wrong instrument for a widget-level
