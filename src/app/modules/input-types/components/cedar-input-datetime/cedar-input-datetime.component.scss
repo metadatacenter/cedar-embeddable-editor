@@ -27,7 +27,12 @@
 }
 
 .cee-fraction-field {
-  width: 5.5rem;
+  width: 6rem;
+}
+
+.cee-fraction-field input {
+  min-width: 3ch;
+  font-variant-numeric: tabular-nums;
 }
 
 .cee-temporal-offset {

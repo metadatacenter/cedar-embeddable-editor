@@ -26,9 +26,15 @@
 
 .cee-time-segment {
   box-sizing: content-box;
-  width: 2.25ch;
-  min-width: 2.25ch;
-  padding: 12px 2px;
+  /*
+   * The ch unit measures the width of "0", but the empty control displays
+   * HH/MM/SS and M is materially wider. 2.25ch fitted two digits and clipped
+   * the right stroke of the minute placeholder; 3ch fits both states without
+   * making the filled clock look loose.
+   */
+  width: 3ch;
+  min-width: 3ch;
+  padding: 12px 1px;
   border: 0;
   outline: 0;
   background: transparent;

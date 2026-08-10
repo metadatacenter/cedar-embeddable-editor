@@ -623,6 +623,34 @@ test.describe('filled state', () => {
   });
 });
 
+test('temporal placeholders and decimal seconds fit without clipping', async ({ page }) => {
+  await open(page, '09-temporal');
+
+  const segments = page.locator('.cee-time-segment');
+  expect(await segments.count()).toBeGreaterThan(0);
+  const fit = await segments.evaluateAll((inputs: HTMLInputElement[]) =>
+    inputs.map((input) => ({
+      placeholder: input.placeholder,
+      clientWidth: input.clientWidth,
+      scrollWidth: input.scrollWidth,
+    })),
+  );
+  for (const measurement of fit) {
+    expect(
+      measurement.scrollWidth,
+      measurement.placeholder + ' is clipped in a ' + measurement.clientWidth + 'px segment',
+    ).toBeLessThanOrEqual(measurement.clientWidth + 1);
+  }
+
+  const fraction = page.locator('input[aria-label="Select Decimal Seconds"]');
+  await fraction.fill('999');
+  const fractionFit = await fraction.evaluate((input: HTMLInputElement) => ({
+    clientWidth: input.clientWidth,
+    scrollWidth: input.scrollWidth,
+  }));
+  expect(fractionFit.scrollWidth).toBeLessThanOrEqual(fractionFit.clientWidth + 1);
+});
+
 test('radio selection uses primary color and keeps Clear on the selected row', async ({ page }) => {
   await open(page, '02-choices');
 
