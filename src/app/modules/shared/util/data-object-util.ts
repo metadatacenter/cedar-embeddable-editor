@@ -22,7 +22,7 @@ export class DataObjectUtil {
    * walking, purely to re-derive things the tree had.
    */
   static getEmptyValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode): InstanceObject {
-    return InstanceValueNode.emptySlotJson(
+    return InstanceValueNode.emptySlot(
       DataObjectUtil.isIriValued(component),
       DataObjectUtil.xsdTypeFor(component, buildingMode),
     );
@@ -36,9 +36,9 @@ export class DataObjectUtil {
     // A controlled term's default is not a literal, so it gets no `@value` — and
     // no `@type` either, since only numeric and temporal fields have one.
     if (component?.basicInfo?.inputType === InputType.controlled) {
-      return InstanceValueNode.emptySlotJson(true);
+      return InstanceValueNode.emptySlot(true);
     }
-    return InstanceValueNode.literalJson(value, DataObjectUtil.xsdTypeFor(component, buildingMode));
+    return InstanceValueNode.literalValue(value, DataObjectUtil.xsdTypeFor(component, buildingMode));
   }
 
   static getMultiValueWrapper(
@@ -50,7 +50,7 @@ export class DataObjectUtil {
     if (component?.basicInfo?.inputType !== InputType.controlled) {
       for (const value of values) {
         // No XSD type on the elements, deliberately: see below.
-        obj.push(InstanceValueNode.literalJson(value));
+        obj.push(InstanceValueNode.literalValue(value));
       }
     }
     // A multi field's elements carry no XSD type, and nothing here sets one.

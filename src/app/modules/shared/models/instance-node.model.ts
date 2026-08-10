@@ -1,71 +1,61 @@
-/**
- * What a node in a CEDAR instance document is.
- *
- * Three shapes, and the code moves between them constantly: an element or a value
- * wrapper is an object, a multi-instance field is an array of occurrences, and a
- * `@value` holds a primitive. That is what a JSON document is, and until now the
- * type said none of it — `class InstanceExtractData extends Object {}`, empty, so
- * every read was an unchecked `any` and nothing could tell a leaf from a container.
- *
- * Written as a union rather than a class hierarchy because the values are plain
- * parsed JSON: they arrive from `JSON.parse` and from the model library, never
- * through a constructor here, so a class would be a claim the runtime does not
- * back. The union is the closest TypeScript gets to a sealed type — `typeof` and
- * `Array.isArray` narrow it, and `unreachableNode` below makes a match exhaustive.
- */
-export type InstanceLeaf = string | number | boolean | null;
+import { InstanceDataAtomType, InstanceDataContainer } from 'cedar-model-typescript-library';
 
-/** A container: an element, a value wrapper, or the instance root. */
-export type InstanceObject = { [key: string]: InstanceNode };
+/**
+ * What a node in an instance is.
+ *
+ * The model library's, not CEE's. These were CEE's own union over parsed JSON —
+ * an object, an array, or a primitive — because CEE's working tree *was* a CEDAR
+ * JSON-LD document: the thing a host sent, mutated in place, and handed back. So
+ * a container was `{[key: string]: InstanceNode}` and a field's value was
+ * `{'@value': 'text'}`, and CEE had to assemble the envelope and the `@context`
+ * itself to make the document valid.
+ *
+ * The tree is a `TemplateInstance` now. A container is an
+ * `InstanceDataContainer`, a value is an atom, and how either is written down is
+ * the library's business — asked once, at the edge, by a writer. The names are
+ * kept because they say what the code means by them; only what they mean has
+ * changed.
+ */
+
+/** A container: an element occurrence, or the instance root. */
+export type InstanceObject = InstanceDataContainer;
 
 /** The occurrences of a multi-instance field. */
-export type InstanceArray = InstanceNode[];
+export type InstanceArray = InstanceDataAtomType[];
 
-export type InstanceNode = InstanceLeaf | InstanceObject | InstanceArray;
-
-/**
- * The three guards. Order matters in the implementations, not at the call site:
- * `typeof null === 'object'` and an array is an object too, so both are excluded
- * explicitly rather than left to reading order.
- */
-export function isInstanceObject(node: InstanceNode): node is InstanceObject {
-  return typeof node === 'object' && node !== null && !Array.isArray(node);
-}
-
-export function isInstanceArray(node: InstanceNode): node is InstanceArray {
-  return Array.isArray(node);
-}
-
-export function isInstanceLeaf(node: InstanceNode): node is InstanceLeaf {
-  return node === null || typeof node !== 'object';
-}
+/** Any node: a container, a list of them, or a value. */
+export type InstanceNode = InstanceDataAtomType;
 
 /**
- * Exhaustiveness. Call it in the branch that should be impossible; if a shape is
- * ever added to `InstanceNode` without a matching branch, the argument stops being
- * `never` and this fails to compile at every incomplete match.
+ * The two guards.
  *
- * It throws rather than returning, because reaching it means the value was not the
- * shape the type promised — which is a bug in whatever produced it, not something
- * to absorb.
+ * `instanceof` rather than a shape test. The nodes are the library's classes
+ * now, so the question "is this a container" has an answer the runtime carries,
+ * instead of being inferred from whether it looks like one — which is what the
+ * old `typeof node === 'object' && !Array.isArray(node)` was doing, and why a
+ * value wrapper and an element were indistinguishable to it.
  */
-export function unreachableNode(node: never): never {
-  throw new Error('Unhandled instance node shape: ' + JSON.stringify(node));
+export function isInstanceObject(node: InstanceNode | null | undefined): node is InstanceObject {
+  return node instanceof InstanceDataContainer;
+}
+
+export function isInstanceArray(node: InstanceNode | null | undefined): node is InstanceArray {
+  return Array.isArray(node);
 }
 
 /**
  * Read a container's child, or `null` if this node is not a container.
  *
- * Most call sites want exactly this — walk into a node the caller believes is an
- * object — and writing the guard out at each of them would bury the intent. The
- * guard still happens; it happens once.
+ * Most call sites want exactly this — walk into a node the caller believes is a
+ * container — and writing the guard out at each of them would bury the intent.
+ * The guard still happens; it happens once.
  */
-export function childOf(node: InstanceNode, key: string | number): InstanceNode | null {
+export function childOf(node: InstanceNode | null | undefined, key: string | number): InstanceNode | null {
   if (isInstanceArray(node)) {
     return typeof key === 'number' ? node[key] ?? null : null;
   }
   if (isInstanceObject(node)) {
-    return node[String(key)] ?? null;
+    return node.values[String(key)] ?? null;
   }
   return null;
 }

@@ -384,8 +384,8 @@ export class DataObjectDataValueHandler {
     const valueObject = iriValued
       ? value === null
         ? {}
-        : InstanceValueNode.iriJson(value)
-      : InstanceValueNode.literalJson(value, DataObjectUtil.xsdTypeForFullCopy(component));
+        : InstanceValueNode.iriValue(value)
+      : InstanceValueNode.literalValue(value, DataObjectUtil.xsdTypeForFullCopy(component));
     const representation = dataContext.templateRepresentation;
     if (representation === null) {
       return;
@@ -419,7 +419,7 @@ export class DataObjectDataValueHandler {
     const values: (string | null)[] = !value || value.length === 0 ? [null] : value;
 
     for (const val of values) {
-      valueArray.push(InstanceValueNode.literalJson(val));
+      valueArray.push(InstanceValueNode.literalValue(val));
     }
 
     const representation = dataContext.templateRepresentation;
@@ -456,7 +456,7 @@ export class DataObjectDataValueHandler {
     // Through `InstanceValueNode` rather than assembled here. The shape of a
     // literal is the library's to decide, and this was the last place in the
     // handler that named `@value` itself.
-    const obj: InstanceObject = InstanceValueNode.literalJson(value);
+    const obj: InstanceObject = InstanceValueNode.literalValue(value);
     valueObject[JsonSchema.reservedAttributeName] = key;
     valueObject[JsonSchema.reservedAttributeValue] = obj;
 
@@ -515,7 +515,7 @@ export class DataObjectDataValueHandler {
     prefLabel: string | null,
   ): void {
     const path = component.path;
-    const valueObject = atId ? InstanceValueNode.iriJson(atId, prefLabel) : {};
+    const valueObject = atId ? InstanceValueNode.iriValue(atId, prefLabel) : {};
 
     const representation = dataContext.templateRepresentation;
     if (representation === null) {
