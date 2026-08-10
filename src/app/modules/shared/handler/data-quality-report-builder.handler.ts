@@ -340,7 +340,7 @@ export class DataQualityReportBuilderHandler {
     const inputType = component.basicInfo?.inputType ?? 'element';
 
     for (const parent of parents) {
-      const present = isInstanceObject(parent) && Object.hasOwn(parent, name);
+      const present = isInstanceObject(parent) && parent.hasValue(name);
       const value = present ? parent.values[name] : undefined;
       // An array is the only shape that satisfies this, which is what the gate
       // asks for — `[]` included. Worth testing the shape rather than just
@@ -440,7 +440,7 @@ export class DataQualityReportBuilderHandler {
       return acc;
     }
     const [head, ...rest] = path;
-    if (!isInstanceObject(node) || !Object.hasOwn(node, head)) {
+    if (!isInstanceObject(node) || !node.hasValue(head)) {
       return acc;
     }
     return DataQualityReportBuilderHandler.collectNodes(rest, node.values[head] ?? null, acc);
@@ -502,7 +502,7 @@ export class DataQualityReportBuilderHandler {
       return DataQualityReportBuilderHandler.extractPlainValue(node, component);
     }
     const [head, ...rest] = path;
-    if (!isInstanceObject(node) || !Object.hasOwn(node, head)) {
+    if (!isInstanceObject(node) || !node.hasValue(head)) {
       return null;
     }
     return DataQualityReportBuilderHandler.findAnyValue(rest, node.values[head] ?? null, component);

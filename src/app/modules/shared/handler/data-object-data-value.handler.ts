@@ -347,7 +347,7 @@ export class DataObjectDataValueHandler {
 
     // completely new name, check if parent object's names conflict
     if (ind < 0) {
-      return Object.hasOwn(parentDataObject, name);
+      return parentDataObject.hasValue(name);
     }
     // name has not changed
     else if (ind === currentIndex) {
