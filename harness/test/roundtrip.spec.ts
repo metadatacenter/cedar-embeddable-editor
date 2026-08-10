@@ -91,73 +91,18 @@ describe('value round-trip', () => {
   });
 });
 
-describe('emitted instances are structurally sound', () => {
-  /**
-   * A failure here means CEE emitted JSON-LD the CEDAR model cannot parse.
-   *
-   * This is deliberately a separate block from the value round-trip so that a
-   * systemic problem (e.g. a missing `schema:isBasedOn` on every instance)
-   * shows up as one obvious cluster rather than masking the value assertions.
-   * If this whole block goes red on first run, read it as a finding about
-   * CEE's output contract, not as a broken harness.
-   */
-  it.each(CASES.map((c) => [c.label, c] as const))('%s parses with the model library', (_label, c) => {
-    const driver = new CeeDriver(c.template);
-    driver.setValue(c.path, c.kind);
-
-    const result = JsonTemplateInstanceReader.getStrict().readFromString(JSON.stringify(driver.metadata));
-
-    expect(result.instance, 'reader returned no instance').toBeTruthy();
-    // Built eagerly: vitest's second argument is a message, not a thunk it calls
-    // on failure. Written as one it was never invoked, so a failing case reported
-    // "expected false to be true" and none of the parse errors it had collected.
-    const parseErrors = result.parsingResult.getBlueprintComparisonErrors().join('\n  ');
-    expect(result.parsingResult.wasSuccessful(), `parse errors:\n  ${parseErrors}`).toBe(true);
-  });
-});
-
-/**
- * The envelope: present on the full tree the host page receives, absent from the
- * extract copy CEE edits against. Not data, so not part of the comparison —
- * `DataObjectUtil.deleteContext` is what keeps it off the extract side.
+/*
+ * Two blocks stood below this one and are gone.
+ *
+ * "emitted instances are structurally sound" read every emitted document back
+ * with the model library and asserted it parsed. That is the library reading
+ * what the library wrote; CEE's part is upstream of it, and is what the round
+ * trip above states.
+ *
+ * "the two instance trees stay in agreement" asserted that the envelope-free
+ * view matched the full tree after each kind of edit, envelope keys excepted.
+ * CEE kept two trees and wrote every mutation to both, so divergence was a live
+ * failure mode. There is one tree, and the view without the envelope is the
+ * instance's own data container — the same object, so there is nothing a test
+ * can catch drifting.
  */
-const ENVELOPE_ONLY_ON_THE_FULL_TREE = new Set([
-  JsonSchema.atContext,
-  JsonSchema.atId,
-  JsonSchema.atType,
-  'schema:isBasedOn',
-  'schema:name',
-  'schema:description',
-]);
-
-describe('the two instance trees stay in agreement', () => {
-  /**
-   * CEE maintains `instanceExtractData` and `instanceFullData` as separate
-   * trees and writes every mutation to both. There is no single source of
-   * truth, so divergence is a live failure mode — and it is invisible from the
-   * UI, because widgets are seeded from the extract tree while the host page
-   * reads the full tree.
-   */
-  it.each(VALUED.map((c) => [c.label, c] as const))('%s writes to both trees', (_label, c) => {
-    const driver = new CeeDriver(c.template);
-    driver.setValue(c.path, c.kind);
-
-    const stripContext = (o: unknown): unknown => {
-      if (Array.isArray(o)) return o.map(stripContext);
-      if (o && typeof o === 'object') {
-        const out: Record<string, unknown> = {};
-        for (const [k, v] of Object.entries(o)) {
-          // Envelope, not data: only the full tree carries it. `schema:isBasedOn`
-          // names the template the instance came from and belongs with the
-          // rest of the envelope the extract copy does without.
-          if (ENVELOPE_ONLY_ON_THE_FULL_TREE.has(k)) continue;
-          out[k] = stripContext(v);
-        }
-        return out;
-      }
-      return o;
-    };
-
-    expect(stripContext(driver.extract)).toEqual(stripContext(driver.metadata));
-  });
-});
