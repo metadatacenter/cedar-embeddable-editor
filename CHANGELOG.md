@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-dev.20260809.9755ad1] - 2026-08-09
+
+### Changed
+
+- CEE no longer names a CEDAR serialization key outside its two wire adapters. The authority
+  layer — ORCID, ROR, and the five simpler authorities, plus the terminology server's integrated
+  search — held its terms as `{'@id', 'rdfs:label'}`, borrowing the model library's key constants
+  for HTTP responses that have nothing to do with CEDAR's JSON. Terms are now `{iri, label}`. The
+  three keys that remain are read where an external service sends them, and converted on arrival.
+- Because those constants are declared `string` rather than as literals, an interface keyed by them
+  became an index signature over every string key. That is what made a `details` member untypeable
+  and forced 20 `as string` casts; all of it is gone.
+- An attribute-value slot added with the pager, or produced by copying an occurrence, stays unnamed
+  until the user names it. It used to be given `Attribute Value Field1` on the next sync, so a user
+  who clicked "+" and stopped had a property in their instance they never asked for.
+
+### Fixed
+
+- Static image and YouTube fields, temporal inputs, section breaks, radio controls, pager actions
+  and nested element headings all take the styling pass's corrections; the visual baselines they
+  left behind are re-recorded.
+
 ## [1.6.0-dev.20260809.604e9e6] - 2026-08-09
 
 ### Added
