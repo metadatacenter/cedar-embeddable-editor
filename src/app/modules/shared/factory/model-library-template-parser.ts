@@ -347,11 +347,13 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     // `@context` is its child IRIs and nothing else, because the prefixes are
     // already in scope. Repeating them would bloat every occurrence of every
     // element and match nothing CEDAR writes.
-    const entries: Record<string, string> = isRoot
-      ? Object.fromEntries(
-          Object.entries(JsonTemplateInstanceContent.CONTEXT_VERBATIM).map(([key, value]) => [key, String(value)]),
-        )
-      : {};
+    // The standard prefixes and typed entries are not copied, at the root or
+    // anywhere else. They are the same for every CEDAR instance, and the JSON
+    // writer emits them; what a container carries is the property IRI of each of
+    // its children. Copying the verbatim block through here turned its typed
+    // entries — `{'@type': 'xsd:string'}` and the like — into the string
+    // "[object Object]", because a property IRI map holds IRIs.
+    const entries: Record<string, string> = {};
     // `getChildIriMap` rather than `getIRIMap`: the latter returns the shape
     // JSON Schema wants — `{ name: { enum: [iri] } }` — and reading an IRI out
     // of it meant reaching through `[JsonSchema.enum][0]`, which was the last

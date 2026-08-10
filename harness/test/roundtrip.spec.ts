@@ -16,7 +16,7 @@ import { JsonTemplateInstanceReader } from 'cedar-model-typescript-library';
 import { CARDINALITIES, FIELD_KINDS, NESTINGS } from '../src/axes';
 import { sweep } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { labelOf, literalOf } from '../src/values';
+import { labelOf, literalOf, heldValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 const CASES = sweep(FIELD_KINDS, CARDINALITIES, NESTINGS);
@@ -37,14 +37,20 @@ const VALUED = CASES.filter((c) => c.kind.write !== 'none');
  * `JsonSchema.rdfsLabel in node` is still true. A key-presence check silently returns
  * undefined for every IRI-valued field.
  */
-const plainValue = (node: any): unknown => {
-  if (node === null || node === undefined) return null;
-  if (Array.isArray(node)) return node.map((n) => plainValue(n));
-  if (typeof node !== 'object') return node;
-  if (literalOf(node) !== undefined) return literalOf(node);
-  if (labelOf(node) !== undefined) return labelOf(node);
-  if (node[JsonSchema.atId] !== undefined) return node[JsonSchema.atId];
-  return null;
+/**
+ * What a field ended up holding, as the sample that was written into it.
+ *
+ * `heldValue` answers for either side of the write/read boundary; a term comes
+ * back as its IRI and label, and which of the two a spec expects depends on the
+ * field: a controlled term is written by label, a link by IRI.
+ */
+const plainValue = (node: unknown): unknown => {
+  const held = heldValue(node);
+  if (held !== null && !Array.isArray(held) && typeof held === 'object') {
+    const term = held as { iri?: string | null; label?: string | null };
+    return term.label ?? term.iri ?? null;
+  }
+  return held;
 };
 
 describe('value round-trip', () => {
