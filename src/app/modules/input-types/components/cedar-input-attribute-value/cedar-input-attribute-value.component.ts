@@ -73,10 +73,14 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
    */
   setCurrentValue(currentValue: unknown): void {
     if (!isInstanceObject(currentValue as InstanceNode)) {
+      this.nameInputControl.setValue(null);
+      this.valueInputControl.setValue(null);
       return;
     }
     const entries = Object.entries(currentValue as InstanceObject);
     if (entries.length === 0) {
+      this.nameInputControl.setValue(null);
+      this.valueInputControl.setValue(null);
       return;
     }
     const [name, value] = entries[0];

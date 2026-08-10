@@ -128,7 +128,28 @@ export class DataObjectDataValueHandler {
     const suppliedName = valueObject[JsonSchema.reservedAttributeName];
     let newName = typeof suppliedName === 'string' ? suppliedName : '';
 
-    if (!newName || this.isDuplicateAttributeName(newName, dataObject, parentDataObject, currentIndex)) {
+    /*
+     * An attribute row is created before its user-defined name exists. Keep that
+     * row as an empty-name slot instead of manufacturing a real property such as
+     * "Attribute Value Field1". The value control retains anything the user has
+     * typed; once a name arrives the regular path below writes both halves.
+     *
+     * This also makes clearing a name honest: remove the old property and its
+     * context entry rather than silently replacing it with another real name.
+     */
+    if (!newName) {
+      dataObject[currentIndex] = '';
+      if (oldName) {
+        delete parentDataObject[oldName];
+        const context = parentDataObject[JsonSchema.atContext];
+        if (isInstanceObject(context)) {
+          delete context[oldName];
+        }
+      }
+      return;
+    }
+
+    if (this.isDuplicateAttributeName(newName, dataObject, parentDataObject, currentIndex)) {
       const supplied = newName;
       newName = this.getDefaultAttributeName(dataObject, parentDataObject, currentIndex);
       // A name the user actually typed has just been thrown away, because

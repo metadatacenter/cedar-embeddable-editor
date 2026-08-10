@@ -151,15 +151,16 @@ describe('names the user did not supply', () => {
    * keystroke in either box, so a blank name is not an edge case — it is the
    * state of every attribute the moment it is created.
    */
-  it('generates a name when none is given', () => {
+  it('keeps a new row unnamed until the user supplies a name', () => {
     const driver = new CeeDriver(flat());
     addAttribute(driver, driver.findOrThrow(['_av']), null, 'blue');
     driver.expectNoErrors('adding an unnamed attribute');
 
-    const names: string[] = driver.extract._av;
+    const names: string[] = driver.metadata._av;
     expect(names).toHaveLength(1);
-    expect(names[0], 'no name was generated for the blank attribute').toBeTruthy();
-    expect(valueOf(driver.extract, names[0])).toBe('blue');
+    expect(names[0]).toBe('');
+    expect(valueOf(driver.extract, 'Attribute Value Field1')).toBeUndefined();
+    expect(driver.emitted._av).toEqual([]);
   });
 
   it('does not let a second attribute overwrite the first by reusing its name', () => {
@@ -211,17 +212,15 @@ describe('names the user did not supply', () => {
     driver.expectNoErrors('an empty attribute name is not a complaint');
   });
 
-  it('keeps generating distinct names when the generated one also collides', () => {
+  it('writes a pending value when the user subsequently supplies its name', () => {
     const driver = new CeeDriver(flat());
     const component = driver.findOrThrow(['_av']);
-    addAttribute(driver, component, null, 'one');
-    addAttribute(driver, component, null, 'two');
-    addAttribute(driver, component, null, 'three');
-    driver.expectNoErrors('adding three unnamed attributes');
+    addAttribute(driver, component, null, 'blue');
+    driver.handlerContext.changeAttributeValue(component, 'colour', 'blue');
+    driver.expectNoErrors('naming a pending attribute');
 
-    const names: string[] = driver.extract._av;
-    expect(new Set(names).size, `generated names collided: ${names.join(', ')}`).toBe(3);
-    expect(names.map((n) => valueOf(driver.extract, n))).toEqual(['one', 'two', 'three']);
+    expect(driver.extract._av).toEqual(['colour']);
+    expect(valueOf(driver.extract, 'colour')).toBe('blue');
   });
 });
 

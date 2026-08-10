@@ -414,6 +414,23 @@ test('attribute-value labels stay distinct and its pager aligns responsively', a
   }
 });
 
+test('a new attribute-value row starts with placeholders, not a generated name', async ({ page }) => {
+  await open(page, '10-attribute-values');
+
+  const renderer = page.locator('app-cedar-component-renderer').filter({
+    has: page.locator('input[aria-label="Attribute Name"]'),
+  });
+  const add = renderer.locator('app-cedar-multi-pager button[aria-label="Add empty after current"]');
+  await add.click();
+
+  const name = renderer.locator('input[aria-label="Attribute Name"]');
+  const value = renderer.locator('input[aria-label="Attribute Value"]');
+  await expect(name).toHaveValue('');
+  await expect(name).toHaveAttribute('placeholder', 'Attribute Name');
+  await expect(value).toHaveValue('');
+  await expect(value).toHaveAttribute('placeholder', 'Attribute Value');
+});
+
 test('an expansion panel collapses and expands', async ({ page }) => {
   await open(page, '03-nested-multi');
   const header = page.locator('mat-expansion-panel-header').first();
