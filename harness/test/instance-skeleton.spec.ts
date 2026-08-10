@@ -200,7 +200,7 @@ describe('the XSD type a numeric or temporal slot declares', () => {
       configure: (b: unknown) => (b as any).withTemporalType(TemporalType.DATE),
     };
     const template = buildTemplate({ name: 'sk_tmp_date', children: [{ kind, name: 'f' }] });
-    expect(new CeeDriver(template).metadata._f['@type']).toBe('xsd:date');
+    expect(new CeeDriver(template).emitted._f['@type']).toBe('xsd:date');
   });
 });
 

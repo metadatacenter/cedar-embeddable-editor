@@ -22,6 +22,9 @@ import type { TemplateParser } from '@cee/factory/template-parser';
 import type { InstanceCardinalityReader } from '@cee/handler/instance-cardinality-reader';
 import type { FieldKind } from './axes';
 import { present } from './nodes';
+import { InstanceSerializer } from '@cee/util/instance-serializer';
+import { CedarTemplate } from '@cee/models/template/cedar-template.model';
+import type { Template } from 'cedar-model-typescript-library';
 
 /**
  * Captures CEE's log output instead of printing it.
@@ -142,9 +145,34 @@ export class CeeDriver {
     return present(this.dataContext.instanceExtractData, 'instanceExtractData');
   }
 
-  /** What the host page receives from `cee.currentMetadata`. */
+  /**
+   * A copy of the tree CEE is editing.
+   *
+   * Not what a host receives — that is `emitted`, and the difference is the
+   * point. This is CEE's working copy, taken as JSON so a spec can hold a value
+   * from one moment against another, and it is also what a spec feeds back in to
+   * load an instance. A claim about *what leaves CEE* does not belong here.
+   */
   get metadata(): any {
     return JSON.parse(JSON.stringify(this.dataContext.instanceFullData));
+  }
+
+  /**
+   * What the host page actually receives from `cee.currentMetadata`.
+   *
+   * The working tree read into the model, completed against its template and
+   * written back out by the library — the same path the wrapper's getter takes.
+   * A spec asserting what a saved instance looks like should use this: it is the
+   * document, and it does not move when CEE's internal shape does.
+   */
+  get emitted(): any {
+    return InstanceSerializer.toJson(this.dataContext.instanceFullData, this.parsedTemplate());
+  }
+
+  /** The template as the library parsed it, or null if none has been set. */
+  private parsedTemplate(): Template | null {
+    const representation = this.dataContext.templateRepresentation;
+    return representation instanceof CedarTemplate ? representation.parsed : null;
   }
 
   /**

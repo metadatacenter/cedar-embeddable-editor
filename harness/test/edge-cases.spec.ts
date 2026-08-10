@@ -278,7 +278,7 @@ describe('multi-instance elements', () => {
 
     driver.handlerContext.copyMultiInstance(reference);
 
-    expect(driver.metadata._reference.map((value: any) => value['@id'])).toEqual([
+    expect(driver.emitted._reference.map((value: any) => value['@id'])).toEqual([
       ELEMENT_INSTANCE_IRI,
       ELEMENT_INSTANCE_IRI,
     ]);

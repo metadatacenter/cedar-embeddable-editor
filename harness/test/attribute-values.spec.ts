@@ -237,7 +237,7 @@ describe('deleting an attribute', () => {
     driver.expectNoErrors('deleting an attribute');
 
     expect(driver.extract.colour).toBeUndefined();
-    expect(driver.metadata['@context'].colour, 'the @context entry outlived the attribute').toBeUndefined();
+    expect(driver.emitted['@context'].colour, 'the @context entry outlived the attribute').toBeUndefined();
   });
 
   it('leaves the other attributes alone', () => {
@@ -251,7 +251,7 @@ describe('deleting an attribute', () => {
 
     expect(driver.extract.colour).toBeUndefined();
     expect(valueOf(driver.extract, 'size')).toBe('large');
-    expect(driver.metadata['@context'].size).toBeTruthy();
+    expect(driver.emitted['@context'].size).toBeTruthy();
   });
 
   it('is a no-op when no name is given', () => {
@@ -282,7 +282,7 @@ describe('attribute values inside elements', () => {
 
     expect(valueOf(driver.extract._el, 'colour')).toBe('blue');
     expect(driver.extract.colour, 'the attribute leaked onto the template').toBeUndefined();
-    expect(driver.metadata._el['@context'].colour).toBeTruthy();
+    expect(driver.emitted._el['@context'].colour).toBeTruthy();
   });
 
   it('deletes from the enclosing element', () => {
@@ -297,7 +297,7 @@ describe('attribute values inside elements', () => {
     driver.expectNoErrors('deleting an attribute inside an element');
 
     expect(driver.extract._el.colour).toBeUndefined();
-    expect(driver.metadata._el['@context'].colour).toBeUndefined();
+    expect(driver.emitted._el['@context'].colour).toBeUndefined();
   });
 
   /**
@@ -315,7 +315,10 @@ describe('attribute values inside elements', () => {
           cardinality: 'multi',
           minItems: 1,
           maxItems: 5,
-          children: [{ kind: ATTR, name: 'av' }, { kind: TEXT, name: 'txt' }],
+          children: [
+            { kind: ATTR, name: 'av' },
+            { kind: TEXT, name: 'txt' },
+          ],
         },
       ],
     });

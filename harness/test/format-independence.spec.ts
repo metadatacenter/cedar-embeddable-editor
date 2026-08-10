@@ -154,7 +154,7 @@ describe('a template read from YAML', () => {
    * written in cannot reach it.
    */
   it.each(paired.map((p) => [p.id, p] as const))('template-%s builds the same @context', (_id, pair) => {
-    expect(stable(fromYaml(pair.yaml).metadata)['@context']).toEqual(stable(fromJson(pair.json).metadata)['@context']);
+    expect(stable(fromYaml(pair.yaml).emitted)['@context']).toEqual(stable(fromJson(pair.json).emitted)['@context']);
   });
 
   it.each(paired.map((p) => [p.id, p] as const))('template-%s reports the same validity', (_id, pair) => {

@@ -60,7 +60,12 @@ const rig = (fieldKind: FieldKind, startingSlot?: InstanceNode) => {
     startingSlot === undefined
       ? new CeeDriver(template)
       : new CeeDriver(template, {
-          instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: startingSlot },
+          instance: {
+            '@context': {},
+            '@id': 'https://example.org/i/1',
+            'schema:isBasedOn': TEMPLATE_IRI,
+            _f: startingSlot,
+          },
         });
   return { driver, component: driver.findOrThrow(['_f']) };
 };
@@ -205,7 +210,12 @@ describe('both copies of the instance stay in step', () => {
    */
   it.each([
     ['literal', TEXT, (d: CeeDriver, c: unknown) => d.handlerContext.changeValue(c as never, 'v'), 'v'],
-    ['link', LINK, (d: CeeDriver, c: unknown) => d.handlerContext.changeValue(c as never, 'https://x/1'), 'https://x/1'],
+    [
+      'link',
+      LINK,
+      (d: CeeDriver, c: unknown) => d.handlerContext.changeValue(c as never, 'https://x/1'),
+      'https://x/1',
+    ],
   ])('%s', (_label, fieldKind, write, expected) => {
     const { driver, component } = rig(fieldKind);
     write(driver, component);
@@ -218,6 +228,6 @@ describe('both copies of the instance stay in step', () => {
   it('a controlled term reaches both copies', () => {
     const { driver, component } = rig(CONTROLLED);
     driver.handlerContext.changeControlledValue(component, 'https://x/1', 'One');
-    expect(driver.metadata._f).toEqual({ '@id': 'https://x/1', 'rdfs:label': 'One' });
+    expect(driver.emitted._f).toEqual({ '@id': 'https://x/1', 'rdfs:label': 'One' });
   });
 });
