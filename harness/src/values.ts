@@ -19,13 +19,19 @@
  * would agree with it whether or not either was right.
  */
 import {
+  CedarWriters,
   InstanceDataControlledAtom,
+  InstanceDataEmptyAtom,
   InstanceDataLinkAtom,
   InstanceDataStringAtom,
   InstanceDataTypedAtom,
   JsonNode,
+  InstanceDataAtomType,
   JsonTemplateInstanceReader,
+  JsonTemplateInstanceWriter,
+  TemplateInstanceBuilder,
 } from 'cedar-model-typescript-library';
+import type { InstanceObject } from '@cee/models/instance-node.model';
 
 const atomOf = (node: unknown) => JsonTemplateInstanceReader.readValueNode(node as JsonNode);
 
@@ -79,3 +85,67 @@ export const termOf = (node: unknown): { iri: string | null | undefined; label: 
   iri: iriOf(node),
   label: labelOf(node),
 });
+
+/*
+ * The same rule for building a value as for reading one.
+ *
+ * A fixture written by hand as `{'@value': 'left over'}` was defended on the
+ * grounds that a host really does hand CEE CEDAR JSON. It does — and the library
+ * swallows it on arrival, before CEE sees any of it: `InstanceDeserializer.read`
+ * passes it straight to the reader. So a hand-written fixture does not describe
+ * CEE's interface, it describes the serialization, and it leaves the harness
+ * knowing something neither CEE nor its tests should.
+ *
+ * `writeValueNode` is the mirror of the `readValueNode` above, so a spec says
+ * what a field holds and the library decides how that is written down. The two
+ * cannot drift, which is the same reason CEE builds its own nodes this way.
+ */
+
+/** An instance node holding a literal, with an XSD type when the field declares one. */
+export const literalNode = (value: string | null, xsdType: string | null = null): InstanceObject =>
+  JsonTemplateInstanceWriter.writeValueNode(
+    xsdType === null ? new InstanceDataStringAtom(value) : new InstanceDataTypedAtom(value, xsdType),
+  ) as InstanceObject;
+
+/** An instance node holding an IRI and nothing else — a link, or an external authority. */
+export const linkNode = (iri: string): InstanceObject =>
+  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataLinkAtom(iri)) as InstanceObject;
+
+/** An instance node holding a controlled term: an IRI and the label it is shown by. */
+export const termNode = (iri: string, label: string): InstanceObject =>
+  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataControlledAtom(iri, label)) as InstanceObject;
+
+/** The node an unfilled IRI-valued slot holds, which is not an IRI of null. */
+export const emptyNode = (): InstanceObject =>
+  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataEmptyAtom()) as InstanceObject;
+
+/**
+ * A whole instance holding one named value, as a host would hand it over.
+ *
+ * The envelope was the last thing specs assembled by hand — `@context`, `@id`
+ * and `schema:isBasedOn` written out because an injected instance needs them.
+ * `TemplateInstanceBuilder` and the JSON writer produce the same document from
+ * the two facts a spec actually has: which template it is based on, and what is
+ * in the field.
+ */
+export const instanceWith = (
+  basedOn: string,
+  values: Record<string, InstanceDataAtomType>,
+  id: string | null = null,
+): InstanceObject => {
+  const builder = new TemplateInstanceBuilder().withSchemaIsBasedOn(basedOn);
+  if (id !== null) {
+    builder.withAtId(id);
+  }
+  Object.entries(values).forEach(([key, atom]) => builder.withDataValue(key, atom));
+  return CedarWriters.json()
+    .getFebruary2024()
+    .getTemplateInstanceWriter()
+    .getAsJsonNode(builder.build()) as unknown as InstanceObject;
+};
+
+/** The atoms `instanceWith` takes, so a spec names a value rather than a shape. */
+export const literalValue = (value: string | null): InstanceDataAtomType => new InstanceDataStringAtom(value);
+export const linkValue = (iri: string): InstanceDataAtomType => new InstanceDataLinkAtom(iri);
+export const termValue = (iri: string, label: string): InstanceDataAtomType =>
+  new InstanceDataControlledAtom(iri, label);

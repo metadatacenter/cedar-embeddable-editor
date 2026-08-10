@@ -18,7 +18,7 @@
  * instance.
  *
  * Reachable through an injected instance: a host page's copy can perfectly well
- * have `{'@value': null}` where CEE's own skeleton would leave `{}`.
+ * hold an empty literal where CEE's own skeleton would leave the slot unfilled.
  */
 import { describe, expect, it } from 'vitest';
 import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
@@ -26,7 +26,8 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import type { InstanceNode } from '@cee/models/instance-node.model';
-import { iriOf, isLiteral, literalOf, termOf } from '../src/values';
+import { instanceWith, iriOf, isLiteral, linkValue, literalOf, literalValue, termOf, termValue } from '../src/values';
+import type { InstanceDataAtomType } from 'cedar-model-typescript-library';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -55,18 +56,13 @@ const CONTROLLED = kind('controlled', 'controlled', () => CedarBuilders.controll
 });
 
 /** A one-field form, optionally starting from a slot a host page supplied. */
-const rig = (fieldKind: FieldKind, startingSlot?: InstanceNode) => {
+const rig = (fieldKind: FieldKind, startingSlot?: InstanceDataAtomType) => {
   const template = buildTemplate({ name: `vw_${fieldKind.key}`, children: [{ kind: fieldKind, name: 'f' }] });
   const driver =
     startingSlot === undefined
       ? new CeeDriver(template)
       : new CeeDriver(template, {
-          instance: {
-            '@context': {},
-            '@id': 'https://example.org/i/1',
-            'schema:isBasedOn': TEMPLATE_IRI,
-            _f: startingSlot,
-          },
+          instance: instanceWith(TEMPLATE_IRI, { _f: startingSlot }, 'https://example.org/i/1'),
         });
   return { driver, component: driver.findOrThrow(['_f']) };
 };
@@ -107,7 +103,7 @@ describe('writing over a slot that already holds something', () => {
    * everywhere while still sitting in the saved instance.
    */
   it('an IRI replaces a literal rather than joining it', () => {
-    const { driver, component } = rig(LINK, { '@value': 'left over' });
+    const { driver, component } = rig(LINK, literalValue('left over'));
     driver.handlerContext.changeValue(component, 'https://example.org/thing');
 
     expect(iriOf(driver.extract._f)).toBe('https://example.org/thing');
@@ -115,7 +111,7 @@ describe('writing over a slot that already holds something', () => {
   });
 
   it('a controlled term replaces a literal rather than joining it', () => {
-    const { driver, component } = rig(CONTROLLED, { '@value': 'left over' });
+    const { driver, component } = rig(CONTROLLED, literalValue('left over'));
     driver.handlerContext.changeControlledValue(component, 'https://x/1', 'One');
 
     expect(iriOf(driver.extract._f)).toBe('https://x/1');
@@ -123,13 +119,13 @@ describe('writing over a slot that already holds something', () => {
   });
 
   it('a new IRI replaces the previous one', () => {
-    const { driver, component } = rig(CONTROLLED, { '@id': 'https://x/1', 'rdfs:label': 'One' });
+    const { driver, component } = rig(CONTROLLED, termValue('https://x/1', 'One'));
     driver.handlerContext.changeControlledValue(component, 'https://x/2', 'Two');
     expect(termOf(driver.extract._f)).toEqual({ iri: 'https://x/2', label: 'Two' });
   });
 
   it('a new literal replaces the previous one', () => {
-    const { driver, component } = rig(TEXT, { '@value': 'first' });
+    const { driver, component } = rig(TEXT, literalValue('first'));
     driver.handlerContext.changeValue(component, 'second');
     expect(literalOf(driver.extract._f)).toBe('second');
   });
@@ -147,7 +143,7 @@ describe('writing over a slot that already holds something', () => {
    * direction it goes.
    */
   it('a literal replaces an IRI rather than joining it', () => {
-    const { driver, component } = rig(TEXT, { '@id': 'https://x/1', 'rdfs:label': 'One' });
+    const { driver, component } = rig(TEXT, termValue('https://x/1', 'One'));
     driver.handlerContext.changeValue(component, 'typed');
 
     expect(literalOf(driver.extract._f)).toBe('typed');
@@ -156,20 +152,20 @@ describe('writing over a slot that already holds something', () => {
 
 describe('clearing a value', () => {
   it('clearing a literal leaves the slot present and empty', () => {
-    const { driver, component } = rig(TEXT, { '@value': 'something' });
+    const { driver, component } = rig(TEXT, literalValue('something'));
     driver.handlerContext.changeValue(component, null);
     expect(literalOf(driver.extract._f)).toBeNull();
   });
 
   it('clearing a controlled term empties it without removing the slot', () => {
-    const { driver, component } = rig(CONTROLLED, { '@id': 'https://x/1', 'rdfs:label': 'One' });
+    const { driver, component } = rig(CONTROLLED, termValue('https://x/1', 'One'));
     driver.handlerContext.changeControlledValue(component, null, null);
     // `undefined` values do not survive serialisation, so the saved slot is `{}`.
     expect(JSON.parse(JSON.stringify(driver.extract._f))).toEqual({});
   });
 
   it('clearing a link removes the IRI', () => {
-    const { driver, component } = rig(LINK, { '@id': 'https://example.org/thing' });
+    const { driver, component } = rig(LINK, linkValue('https://example.org/thing'));
     driver.handlerContext.changeValue(component, null);
     expect(JSON.parse(JSON.stringify(driver.extract._f))).toEqual({});
   });
