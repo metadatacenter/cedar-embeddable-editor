@@ -3,21 +3,23 @@
     <input matInput [formControl]="selectedChoiceInputControl" style="display: none" />
     <mat-radio-group [formControl]="selectedChoiceInputControl">
       @for (choice of component.choiceInfo.choices; track choice) {
-        <div class="col-md-2">
-          <mat-radio-button [value]="choice.label" (change)="inputChanged($event)">{{ choice.label }}</mat-radio-button>
+        <div class="choice-option-row">
+          <mat-radio-button color="primary" [value]="choice.label" (change)="inputChanged($event)">{{
+            choice.label
+          }}</mat-radio-button>
+          @if (choice.label === selectedChoiceInputControl.value && !readOnlyMode) {
+            <button
+              class="choice-clear-button"
+              type="button"
+              mat-icon-button
+              [matTooltip]="'Generic.Clear' | translate"
+              attr.aria-label="{{ 'Generic.Clear' | translate }}"
+              (click)="clearValue()"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          }
         </div>
-      }
-      @if (selectedChoiceInputControl.value && !readOnlyMode) {
-        <button
-          type="button"
-          tabindex="0"
-          matSuffix
-          mat-icon-button
-          attr.aria-label="{{ 'Generic.Clear' | translate }}"
-          (click)="clearValue()"
-        >
-          <mat-icon>close</mat-icon>
-        </button>
       }
     </mat-radio-group>
     @if (selectedChoiceInputControl.getError('required') && !readOnlyMode) {

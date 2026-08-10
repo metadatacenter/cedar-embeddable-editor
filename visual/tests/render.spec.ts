@@ -578,6 +578,28 @@ test.describe('filled state', () => {
   });
 });
 
+test('radio selection uses primary color and keeps Clear on the selected row', async ({ page }) => {
+  await open(page, '02-choices');
+
+  const selected = page.getByRole('radio', { checked: true });
+  await expect(selected).toHaveAccessibleName('Beta');
+  const row = selected.locator('xpath=ancestor::div[contains(@class, "choice-option-row")]');
+  const clear = row.getByRole('button', { name: 'Clear', exact: true });
+  await expect(clear).toBeVisible();
+
+  const geometry = await row.evaluate((element) => {
+    const radio = element.querySelector('mat-radio-button')!.getBoundingClientRect();
+    const button = element.querySelector('button')!.getBoundingClientRect();
+    const radioButton = element.querySelector('mat-radio-button')!;
+    return {
+      centers: [radio.top + radio.height / 2, button.top + button.height / 2],
+      selectedColor: getComputedStyle(radioButton).getPropertyValue('--mat-radio-selected-icon-color').trim(),
+    };
+  });
+  expect(Math.abs(geometry.centers[0] - geometry.centers[1])).toBeLessThan(1);
+  expect(geometry.selectedColor).toBe('#00897b');
+});
+
 test.describe('config presets', () => {
   /**
    * The base preset hides the header, footer and preferences menu so diffs
