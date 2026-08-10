@@ -132,7 +132,11 @@ export class CeeDriver {
    * which is what the malformed-node specs are for.
    */
   get fullData(): InstanceObject {
-    return present(this.dataContext.instanceFullData, 'instanceFullData');
+    const instance = this.dataContext.instanceFullData;
+    if (instance === null) {
+      throw new Error('instanceFullData is null');
+    }
+    return instance.dataContainer;
   }
 
   /**
@@ -155,7 +159,7 @@ export class CeeDriver {
    * load an instance. A claim about *what leaves CEE* does not belong here.
    */
   get metadata(): any {
-    return JSON.parse(JSON.stringify(this.dataContext.instanceFullData));
+    return InstanceSerializer.toJson(this.dataContext.instanceFullData);
   }
 
   /**

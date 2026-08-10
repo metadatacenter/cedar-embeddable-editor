@@ -103,22 +103,22 @@ export const termOf = (node: unknown): { iri: string | null | undefined; label: 
  */
 
 /** An instance node holding a literal, with an XSD type when the field declares one. */
-export const literalNode = (value: string | null, xsdType: string | null = null): InstanceObject =>
+export const literalNode = (value: string | null, xsdType: string | null = null): JsonNode =>
   JsonTemplateInstanceWriter.writeValueNode(
     xsdType === null ? new InstanceDataStringAtom(value) : new InstanceDataTypedAtom(value, xsdType),
-  ) as InstanceObject;
+  ) as JsonNode;
 
 /** An instance node holding an IRI and nothing else — a link, or an external authority. */
-export const linkNode = (iri: string): InstanceObject =>
-  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataLinkAtom(iri)) as InstanceObject;
+export const linkNode = (iri: string): JsonNode =>
+  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataLinkAtom(iri)) as JsonNode;
 
 /** An instance node holding a controlled term: an IRI and the label it is shown by. */
-export const termNode = (iri: string, label: string): InstanceObject =>
-  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataControlledAtom(iri, label)) as InstanceObject;
+export const termNode = (iri: string, label: string): JsonNode =>
+  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataControlledAtom(iri, label)) as JsonNode;
 
 /** The node an unfilled IRI-valued slot holds, which is not an IRI of null. */
-export const emptyNode = (): InstanceObject =>
-  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataEmptyAtom()) as InstanceObject;
+export const emptyNode = (): JsonNode =>
+  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataEmptyAtom()) as JsonNode;
 
 /**
  * A whole instance holding one named value, as a host would hand it over.
@@ -133,16 +133,13 @@ export const instanceWith = (
   basedOn: string,
   values: Record<string, InstanceDataAtomType>,
   id: string | null = null,
-): InstanceObject => {
+): JsonNode => {
   const builder = new TemplateInstanceBuilder().withSchemaIsBasedOn(basedOn);
   if (id !== null) {
     builder.withAtId(id);
   }
   Object.entries(values).forEach(([key, atom]) => builder.withDataValue(key, atom));
-  return CedarWriters.json()
-    .getFebruary2024()
-    .getTemplateInstanceWriter()
-    .getAsJsonNode(builder.build()) as unknown as InstanceObject;
+  return CedarWriters.json().getFebruary2024().getTemplateInstanceWriter().getAsJsonNode(builder.build());
 };
 
 /** The atoms `instanceWith` takes, so a spec names a value rather than a shape. */
