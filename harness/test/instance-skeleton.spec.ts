@@ -24,7 +24,7 @@ import { CedarBuilders, NumberType, TemporalType } from 'cedar-model-typescript-
 import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { labelOf, xsdTypeOf } from '../src/values';
+import { labelOf, xsdTypeOf, heldValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 /** Every field type that takes a value; static content has no slot. */
@@ -49,8 +49,8 @@ describe('the slot a single field starts with', () => {
   it.each(VALUED.map((k) => [k.key, k] as const))('%s', (key, fieldKind) => {
     const driver = new CeeDriver(buildTemplate({ name: `sk_${key}`, children: [{ kind: fieldKind, name: 'f' }] }));
     expect({
-      extract: stable(driver.extract._f),
-      full: stable(driver.metadata._f),
+      holds: heldValue(driver.extract.values._f),
+      written: stable(driver.metadata._f),
     }).toMatchSnapshot();
   });
 });
@@ -64,8 +64,8 @@ describe('the slot a multi field starts with', () => {
       }),
     );
     expect({
-      extract: stable(driver.extract._f),
-      full: stable(driver.metadata._f),
+      holds: heldValue(driver.extract.values._f),
+      written: stable(driver.metadata._f),
     }).toMatchSnapshot();
   });
 });
@@ -90,7 +90,7 @@ describe('the shape of an element', () => {
       elements: [{ name: 'el', children: [{ kind: VALUED[0], name: 'f' }] }],
     });
     const driver = new CeeDriver(template);
-    expect({ extract: stable(driver.extract._el), full: stable(driver.metadata._el) }).toMatchSnapshot();
+    expect({ holds: heldValue(driver.extract.values._el), written: stable(driver.metadata._el) }).toMatchSnapshot();
   });
 
   it('a multi element starts at minItems', () => {
@@ -101,7 +101,7 @@ describe('the shape of an element', () => {
       ],
     });
     const driver = new CeeDriver(template);
-    expect(driver.extract._el).toHaveLength(3);
+    expect(driver.extract.values._el).toHaveLength(3);
     expect(stable(driver.metadata._el)).toMatchSnapshot();
   });
 
@@ -112,7 +112,7 @@ describe('the shape of an element', () => {
         { name: 'el', cardinality: 'multi', minItems: 0, maxItems: 9, children: [{ kind: VALUED[0], name: 'f' }] },
       ],
     });
-    expect(new CeeDriver(template).extract._el).toEqual([]);
+    expect(new CeeDriver(template).extract.values._el).toEqual([]);
   });
 
   it('gives every occurrence of a multi element its own @id', () => {
@@ -247,10 +247,10 @@ describe('the @context the full copy carries', () => {
   it('carries the property IRIs, and none of the envelope', () => {
     const template = buildTemplate({ name: 'sk_ctx_x', children: [{ kind: VALUED[0], name: 'a' }] });
     const extract = new CeeDriver(template).extract;
-    expect(Object.keys(extract[JsonSchema.atContext])).toEqual(['_a']);
-    for (const key of ['@id', 'schema:name', 'schema:description', 'pav:createdOn']) {
-      expect(extract[key], `${key} is envelope and does not belong on the extract`).toBeUndefined();
-    }
+    expect(Object.keys(extract.iris)).toEqual(['_a']);
+    // The envelope is not on the container at all — it is the instance's, and the
+    // container holds only what the fields hold.
+    expect(Object.keys(extract.values)).toEqual(['_a']);
   });
 
   it('gives a nested element its own @context', () => {

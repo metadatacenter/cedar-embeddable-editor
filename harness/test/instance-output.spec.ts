@@ -185,9 +185,10 @@ describe('the instance says which template it is an instance of', () => {
    * Not on the working copy CEE edits against — that has no envelope at all,
    * and `deleteContext` strips this along with `@id` and the provenance.
    */
-  it('is not on the extract copy', () => {
+  it('is not on the data container', () => {
     const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
-    expect((driver.extract as Record<string, unknown>)['schema:isBasedOn']).toBeUndefined();
+    // Which template an instance is based on is the instance's, not its data's.
+    expect(driver.extract.values['schema:isBasedOn']).toBeUndefined();
   });
 
   /**

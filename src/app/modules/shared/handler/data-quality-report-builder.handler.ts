@@ -1,3 +1,4 @@
+import { InstanceSerializer } from '../util/instance-serializer';
 import { DataQualityReport } from '../models/data-quality-report.model';
 import { DataContext } from '../util/data-context';
 import { CedarComponent } from '../models/component/cedar-component.model';
@@ -112,9 +113,9 @@ export class DataQualityReportBuilderHandler {
   buildReport(dataContext: DataContext, handlerContext: HandlerContext): DataQualityReport {
     const report = new DataQualityReport();
     report.templateRepresentation = dataContext.templateRepresentation;
-    // The envelope-free view, for the host page. Derived once here rather than
-    // maintained as a second tree — see `DataContext.instanceExtractData`.
-    report.instanceExtractData = dataContext.instanceExtractData;
+    // Written, because a host page reads this. The working tree is a model, and
+    // the model's container is CEE's business.
+    report.instance = InstanceSerializer.toJson(dataContext.instanceFullData);
 
     const valueTree: ReportContainer = {};
 

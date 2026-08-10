@@ -18,7 +18,8 @@ import { CedarBuilders } from 'cedar-model-typescript-library';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { literalNode } from '../src/values';
+import { arrayAt, objectAt } from '../src/nodes';
+import { literalNode, heldValue } from '../src/values';
 
 let seq = 0;
 const kindOf = (inputType: string, make: () => unknown, configure?: (b: unknown) => unknown): FieldKind =>
@@ -54,7 +55,7 @@ const templateWith = (kind: FieldKind, minItems: number, nested = false) => {
 
 const slots = (kind: FieldKind, minItems: number, nested = false): unknown[] => {
   const extract = new CeeDriver(templateWith(kind, minItems, nested)).extract;
-  return nested ? extract._el._f : extract._f;
+  return nested ? arrayAt(objectAt(extract, '_el'), '_f') : arrayAt(extract, '_f');
 };
 
 describe('a multi choice field with no default selection', () => {
@@ -71,7 +72,7 @@ describe('a multi choice field with no default selection', () => {
   });
 
   it('holds empty slots, not fabricated selections', () => {
-    expect(slots(checkboxNoDefaults(), 1)).toEqual([literalNode(null)]);
+    expect(heldValue(slots(checkboxNoDefaults(), 1))).toEqual([null]);
   });
 
   it('applies to a list field too', () => {
@@ -84,7 +85,7 @@ describe('a multi choice field with no default selection', () => {
   });
 
   it('leaves minItems 0 empty, as before', () => {
-    expect(slots(checkboxNoDefaults(), 0)).toEqual([]);
+    expect(heldValue(slots(checkboxNoDefaults(), 0))).toEqual([]);
   });
 });
 
@@ -99,7 +100,7 @@ describe('a multi choice field with defaults', () => {
     );
 
   it('starts with those defaults selected', () => {
-    expect(slots(withDefaults(), 1)).toEqual([literalNode('Alpha'), literalNode('Gamma')]);
+    expect(heldValue(slots(withDefaults(), 1))).toEqual(['Alpha', 'Gamma']);
   });
 
   /**
@@ -111,17 +112,12 @@ describe('a multi choice field with defaults', () => {
   });
 
   it('pads when the defaults fall short of minItems', () => {
-    expect(slots(withDefaults(), 4)).toEqual([
-      literalNode('Alpha'),
-      literalNode('Gamma'),
-      literalNode(null),
-      literalNode(null),
-    ]);
+    expect(heldValue(slots(withDefaults(), 4))).toEqual(['Alpha', 'Gamma', null, null]);
   });
 });
 
 describe('a plain multi field is unaffected', () => {
   it('still gets its minItems slots', () => {
-    expect(slots(TEXT, 2)).toEqual([literalNode(null), literalNode(null)]);
+    expect(heldValue(slots(TEXT, 2))).toEqual([null, null]);
   });
 });

@@ -34,16 +34,8 @@ exports[`the shape of an element > a multi element starts at minItems 1`] = `
 
 exports[`the shape of an element > a single element 1`] = `
 {
-  "extract": {
-    "@context": {
-      "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
-    },
-    "@id": "<minted>",
-    "_f": {
-      "@value": null,
-    },
-  },
-  "full": {
+  "holds": null,
+  "written": {
     "@context": {
       "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
     },
@@ -57,15 +49,11 @@ exports[`the shape of an element > a single element 1`] = `
 
 exports[`the slot a multi field starts with > attrValue 1`] = `
 {
-  "extract": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {
       "@value": null,
     },
@@ -78,15 +66,11 @@ exports[`the slot a multi field starts with > attrValue 1`] = `
 
 exports[`the slot a multi field starts with > checkbox 1`] = `
 {
-  "extract": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {
       "@value": null,
     },
@@ -99,11 +83,11 @@ exports[`the slot a multi field starts with > checkbox 1`] = `
 
 exports[`the slot a multi field starts with > controlled 1`] = `
 {
-  "extract": [
-    {},
-    {},
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {},
     {},
   ],
@@ -112,11 +96,11 @@ exports[`the slot a multi field starts with > controlled 1`] = `
 
 exports[`the slot a multi field starts with > doi 1`] = `
 {
-  "extract": [
-    {},
-    {},
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {},
     {},
   ],
@@ -125,15 +109,11 @@ exports[`the slot a multi field starts with > doi 1`] = `
 
 exports[`the slot a multi field starts with > email 1`] = `
 {
-  "extract": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {
       "@value": null,
     },
@@ -146,11 +126,11 @@ exports[`the slot a multi field starts with > email 1`] = `
 
 exports[`the slot a multi field starts with > link 1`] = `
 {
-  "extract": [
-    {},
-    {},
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {},
     {},
   ],
@@ -159,15 +139,11 @@ exports[`the slot a multi field starts with > link 1`] = `
 
 exports[`the slot a multi field starts with > listMulti 1`] = `
 {
-  "extract": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {
       "@value": null,
     },
@@ -180,10 +156,8 @@ exports[`the slot a multi field starts with > listMulti 1`] = `
 
 exports[`the slot a multi field starts with > listSingle 1`] = `
 {
-  "extract": {
-    "@value": null,
-  },
-  "full": {
+  "holds": null,
+  "written": {
     "@value": null,
   },
 }
@@ -191,11 +165,11 @@ exports[`the slot a multi field starts with > listSingle 1`] = `
 
 exports[`the slot a multi field starts with > nihGrant 1`] = `
 {
-  "extract": [
-    {},
-    {},
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {},
     {},
   ],
@@ -204,17 +178,11 @@ exports[`the slot a multi field starts with > nihGrant 1`] = `
 
 exports[`the slot a multi field starts with > numeric 1`] = `
 {
-  "extract": [
-    {
-      "@type": "xsd:decimal",
-      "@value": null,
-    },
-    {
-      "@type": "xsd:decimal",
-      "@value": null,
-    },
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {
       "@type": "xsd:decimal",
       "@value": null,
@@ -229,11 +197,11 @@ exports[`the slot a multi field starts with > numeric 1`] = `
 
 exports[`the slot a multi field starts with > orcid 1`] = `
 {
-  "extract": [
-    {},
-    {},
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {},
     {},
   ],
@@ -242,11 +210,11 @@ exports[`the slot a multi field starts with > orcid 1`] = `
 
 exports[`the slot a multi field starts with > pfas 1`] = `
 {
-  "extract": [
-    {},
-    {},
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {},
     {},
   ],
@@ -255,15 +223,11 @@ exports[`the slot a multi field starts with > pfas 1`] = `
 
 exports[`the slot a multi field starts with > phone 1`] = `
 {
-  "extract": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {
       "@value": null,
     },
@@ -276,11 +240,11 @@ exports[`the slot a multi field starts with > phone 1`] = `
 
 exports[`the slot a multi field starts with > pubmed 1`] = `
 {
-  "extract": [
-    {},
-    {},
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {},
     {},
   ],
@@ -289,10 +253,8 @@ exports[`the slot a multi field starts with > pubmed 1`] = `
 
 exports[`the slot a multi field starts with > radio 1`] = `
 {
-  "extract": {
-    "@value": null,
-  },
-  "full": {
+  "holds": null,
+  "written": {
     "@value": null,
   },
 }
@@ -300,11 +262,11 @@ exports[`the slot a multi field starts with > radio 1`] = `
 
 exports[`the slot a multi field starts with > ror 1`] = `
 {
-  "extract": [
-    {},
-    {},
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {},
     {},
   ],
@@ -313,11 +275,11 @@ exports[`the slot a multi field starts with > ror 1`] = `
 
 exports[`the slot a multi field starts with > rrid 1`] = `
 {
-  "extract": [
-    {},
-    {},
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {},
     {},
   ],
@@ -326,15 +288,11 @@ exports[`the slot a multi field starts with > rrid 1`] = `
 
 exports[`the slot a multi field starts with > temporal 1`] = `
 {
-  "extract": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {
       "@value": null,
     },
@@ -347,15 +305,11 @@ exports[`the slot a multi field starts with > temporal 1`] = `
 
 exports[`the slot a multi field starts with > text 1`] = `
 {
-  "extract": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {
       "@value": null,
     },
@@ -368,15 +322,11 @@ exports[`the slot a multi field starts with > text 1`] = `
 
 exports[`the slot a multi field starts with > textarea 1`] = `
 {
-  "extract": [
-    {
-      "@value": null,
-    },
-    {
-      "@value": null,
-    },
+  "holds": [
+    null,
+    null,
   ],
-  "full": [
+  "written": [
     {
       "@value": null,
     },
@@ -389,38 +339,36 @@ exports[`the slot a multi field starts with > textarea 1`] = `
 
 exports[`the slot a single field starts with > attrValue 1`] = `
 {
-  "extract": [],
-  "full": [],
+  "holds": [],
+  "written": [],
 }
 `;
 
 exports[`the slot a single field starts with > checkbox 1`] = `
 {
-  "extract": [],
-  "full": [],
+  "holds": [],
+  "written": [],
 }
 `;
 
 exports[`the slot a single field starts with > controlled 1`] = `
 {
-  "extract": {},
-  "full": {},
+  "holds": null,
+  "written": {},
 }
 `;
 
 exports[`the slot a single field starts with > doi 1`] = `
 {
-  "extract": {},
-  "full": {},
+  "holds": null,
+  "written": {},
 }
 `;
 
 exports[`the slot a single field starts with > email 1`] = `
 {
-  "extract": {
-    "@value": null,
-  },
-  "full": {
+  "holds": null,
+  "written": {
     "@value": null,
   },
 }
@@ -428,24 +376,22 @@ exports[`the slot a single field starts with > email 1`] = `
 
 exports[`the slot a single field starts with > link 1`] = `
 {
-  "extract": {},
-  "full": {},
+  "holds": null,
+  "written": {},
 }
 `;
 
 exports[`the slot a single field starts with > listMulti 1`] = `
 {
-  "extract": [],
-  "full": [],
+  "holds": [],
+  "written": [],
 }
 `;
 
 exports[`the slot a single field starts with > listSingle 1`] = `
 {
-  "extract": {
-    "@value": null,
-  },
-  "full": {
+  "holds": null,
+  "written": {
     "@value": null,
   },
 }
@@ -453,18 +399,15 @@ exports[`the slot a single field starts with > listSingle 1`] = `
 
 exports[`the slot a single field starts with > nihGrant 1`] = `
 {
-  "extract": {},
-  "full": {},
+  "holds": null,
+  "written": {},
 }
 `;
 
 exports[`the slot a single field starts with > numeric 1`] = `
 {
-  "extract": {
-    "@type": "xsd:decimal",
-    "@value": null,
-  },
-  "full": {
+  "holds": null,
+  "written": {
     "@type": "xsd:decimal",
     "@value": null,
   },
@@ -473,24 +416,22 @@ exports[`the slot a single field starts with > numeric 1`] = `
 
 exports[`the slot a single field starts with > orcid 1`] = `
 {
-  "extract": {},
-  "full": {},
+  "holds": null,
+  "written": {},
 }
 `;
 
 exports[`the slot a single field starts with > pfas 1`] = `
 {
-  "extract": {},
-  "full": {},
+  "holds": null,
+  "written": {},
 }
 `;
 
 exports[`the slot a single field starts with > phone 1`] = `
 {
-  "extract": {
-    "@value": null,
-  },
-  "full": {
+  "holds": null,
+  "written": {
     "@value": null,
   },
 }
@@ -498,17 +439,15 @@ exports[`the slot a single field starts with > phone 1`] = `
 
 exports[`the slot a single field starts with > pubmed 1`] = `
 {
-  "extract": {},
-  "full": {},
+  "holds": null,
+  "written": {},
 }
 `;
 
 exports[`the slot a single field starts with > radio 1`] = `
 {
-  "extract": {
-    "@value": null,
-  },
-  "full": {
+  "holds": null,
+  "written": {
     "@value": null,
   },
 }
@@ -516,24 +455,22 @@ exports[`the slot a single field starts with > radio 1`] = `
 
 exports[`the slot a single field starts with > ror 1`] = `
 {
-  "extract": {},
-  "full": {},
+  "holds": null,
+  "written": {},
 }
 `;
 
 exports[`the slot a single field starts with > rrid 1`] = `
 {
-  "extract": {},
-  "full": {},
+  "holds": null,
+  "written": {},
 }
 `;
 
 exports[`the slot a single field starts with > temporal 1`] = `
 {
-  "extract": {
-    "@value": null,
-  },
-  "full": {
+  "holds": null,
+  "written": {
     "@value": null,
   },
 }
@@ -541,10 +478,8 @@ exports[`the slot a single field starts with > temporal 1`] = `
 
 exports[`the slot a single field starts with > text 1`] = `
 {
-  "extract": {
-    "@value": null,
-  },
-  "full": {
+  "holds": null,
+  "written": {
     "@value": null,
   },
 }
@@ -552,10 +487,8 @@ exports[`the slot a single field starts with > text 1`] = `
 
 exports[`the slot a single field starts with > textarea 1`] = `
 {
-  "extract": {
-    "@value": null,
-  },
-  "full": {
+  "holds": null,
+  "written": {
     "@value": null,
   },
 }

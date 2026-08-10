@@ -282,7 +282,7 @@ describe('choice literals', () => {
     const template = buildTemplate({ name: 'vc_seed', children: [{ kind, name: 'f', required: true }] });
     const driver = new CeeDriver(template);
 
-    const seeded = driver.extract._f;
+    const seeded = driver.extract.values._f;
     expect(Array.isArray(seeded), 'field did not build as a multi field').toBe(true);
     expect(JSON.stringify(seeded)).toContain('Beta');
     expect(JSON.stringify(seeded), 'unselected literal should not be seeded').not.toContain('Alpha');
@@ -298,7 +298,7 @@ describe('choice literals', () => {
     const template = buildTemplate({ name: 'vc_noseed', children: [{ kind, name: 'f', required: true }] });
     const driver = new CeeDriver(template);
 
-    expect(JSON.stringify(driver.extract._f)).not.toContain('Beta');
+    expect(JSON.stringify(driver.extract.values._f)).not.toContain('Beta');
   });
 
   /**
@@ -315,7 +315,7 @@ describe('choice literals', () => {
       (b) => b.addCheckboxOption('Beta', true),
     );
     const driver = new CeeDriver(buildTemplate({ name: 'vc_nomin', children: [{ kind, name: 'f' }] }));
-    expect(driver.extract._f).toEqual([]);
+    expect(driver.extract.values._f).toEqual([]);
   });
 });
 

@@ -97,7 +97,6 @@ describe('a path inside a multi element resolves through the cursor', () => {
     expect(heldValue(before)).toBe('first');
     expect(after).not.toEqual(before);
   });
-
 });
 
 describe('a multi field resolves to the whole list', () => {
@@ -266,7 +265,6 @@ describe('resolving a specific occurrence, cursor ignored', () => {
     expect(answers[2]).toBe(answers[0]);
   });
 
-  
   it('resolves nothing for an occurrence that does not exist', () => {
     const { driver } = seeded();
     expect(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [99])).toBeFalsy();

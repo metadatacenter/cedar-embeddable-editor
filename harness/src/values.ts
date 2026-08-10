@@ -27,6 +27,8 @@ import {
   InstanceDataTypedAtom,
   JsonNode,
   InstanceDataAtomType,
+  InstanceDataAttributeValueField,
+  InstanceDataAttributeValueFieldName,
   InstanceDataContainer,
   JsonTemplateInstanceReader,
   JsonTemplateInstanceWriter,
@@ -34,7 +36,25 @@ import {
 } from 'cedar-model-typescript-library';
 import type { InstanceObject } from '@cee/models/instance-node.model';
 
-const atomOf = (node: unknown) => JsonTemplateInstanceReader.readValueNode(node as JsonNode);
+const isModelAtom = (node: unknown): node is InstanceDataAtomType =>
+  node instanceof InstanceDataAttributeValueField ||
+  node instanceof InstanceDataAttributeValueFieldName ||
+  node instanceof InstanceDataStringAtom ||
+  node instanceof InstanceDataTypedAtom ||
+  node instanceof InstanceDataLinkAtom ||
+  node instanceof InstanceDataControlledAtom ||
+  node instanceof InstanceDataEmptyAtom;
+
+/**
+ * The atom a node holds, whichever side of the boundary it came from.
+ *
+ * A fixture is a document and CEE's tree is a model, so these readers are handed
+ * both: `driver.emitted._f` is JSON a writer produced, `driver.extract.values._f`
+ * is the atom the instance holds. `readValueNode` classifies the first; the
+ * second is already the answer.
+ */
+const atomOf = (node: unknown): InstanceDataAtomType =>
+  isModelAtom(node) ? node : JsonTemplateInstanceReader.readValueNode((node ?? null) as unknown as JsonNode);
 
 /**
  * The literal a node holds.
@@ -203,12 +223,33 @@ export const heldValue = (node: unknown): unknown => {
   if (atom instanceof InstanceDataLinkAtom) {
     return { iri: atom.id };
   }
+  if (atom instanceof InstanceDataAttributeValueField) {
+    // A read-back attribute-value field: the reader folds the names and the
+    // values they point at into one node, so what the field holds is its names.
+    return Object.keys(atom.values);
+  }
+  if (atom instanceof InstanceDataAttributeValueFieldName) {
+    // An attribute-value slot holds a name rather than a value: what it "holds"
+    // is that name, which is what a spec comparing the field's list is after.
+    return atom.name;
+  }
   return null;
 };
 
-const isModelAtom = (node: unknown): node is InstanceDataAtomType =>
-  node instanceof InstanceDataStringAtom ||
-  node instanceof InstanceDataTypedAtom ||
-  node instanceof InstanceDataLinkAtom ||
-  node instanceof InstanceDataControlledAtom ||
-  node instanceof InstanceDataEmptyAtom;
+/**
+ * What the attribute named `name` holds on this container.
+ *
+ * Two places to look, and which one depends on how the instance got here. A
+ * field the user is editing keeps its names in a list and the values beside them
+ * on the container; one read back from a document has been folded by the reader
+ * into a single node holding both. Neither is wrong — the fold is what makes an
+ * attribute-value field legible as one — but a spec should not have to know
+ * which it is looking at.
+ */
+export const attributeValue = (container: InstanceObject, field: string, name: string): unknown => {
+  const held = container.values[field];
+  if (held instanceof InstanceDataAttributeValueField) {
+    return heldValue(held.values[name]);
+  }
+  return heldValue(container.values[name]);
+};

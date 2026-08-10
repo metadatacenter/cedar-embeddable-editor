@@ -328,7 +328,7 @@ describe('cardinality', () => {
     const driver = new CeeDriver(bounded());
     const el = driver.findOrThrow(['_el']);
     expect(driver.handlerContext.deleteMultiInstance(el)).toBe(false);
-    expect(driver.extract._el).toHaveLength(2);
+    expect(driver.extract.values._el).toHaveLength(2);
   });
 
   it('refuses to add past maxItems', () => {
@@ -336,7 +336,7 @@ describe('cardinality', () => {
     const el = driver.findOrThrow(['_el']);
     expect(driver.handlerContext.addMultiInstance(el)).toBe(true);
     expect(driver.handlerContext.addMultiInstance(el)).toBe(false);
-    expect(driver.extract._el).toHaveLength(3);
+    expect(driver.extract.values._el).toHaveLength(3);
   });
 
   it('refuses to copy past maxItems', () => {
@@ -344,7 +344,7 @@ describe('cardinality', () => {
     const el = driver.findOrThrow(['_el']);
     expect(driver.handlerContext.copyMultiInstance(el)).toBe(true);
     expect(driver.handlerContext.copyMultiInstance(el)).toBe(false);
-    expect(driver.extract._el).toHaveLength(3);
+    expect(driver.extract.values._el).toHaveLength(3);
   });
 
   it('reports too few instances in an injected instance', () => {

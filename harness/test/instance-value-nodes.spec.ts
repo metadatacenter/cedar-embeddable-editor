@@ -25,7 +25,7 @@ import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { emptyNode, instanceWith, linkNode, literalNode, termNode } from '../src/values';
+import { emptyNode, instanceWith, linkNode, literalNode, termNode, linkValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
@@ -126,7 +126,7 @@ describe('a labelless controlled term satisfies a requirement', () => {
       children: [{ kind: CONTROLLED, name: 'f', required: true }],
     });
     const driver = new CeeDriver(template, {
-      instance: { ...instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI), _f: linkNode('https://x/1') },
+      instance: instanceWith(TEMPLATE_IRI, { _f: linkValue('https://x/1') }, INSTANCE_IRI),
     });
     driver.handlerContext.buildQualityReport();
 

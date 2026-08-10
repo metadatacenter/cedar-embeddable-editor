@@ -1,4 +1,5 @@
 import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { InstanceSerializer } from '../../util/instance-serializer';
 import { DataContext } from '../../util/data-context';
 
 @Component({
@@ -11,6 +12,20 @@ import { DataContext } from '../../util/data-context';
 })
 export class SourcePanelsComponent {
   @Input({ required: true }) dataContext!: DataContext;
+
+  /**
+   * The instance as a document, which is what this panel shows and what its
+   * copy button puts on the clipboard.
+   *
+   * It used to render `dataContext.instanceExtractData` straight through the
+   * `json` pipe. That was the working tree without its envelope, and the working
+   * tree was a document, so piping it showed a user their instance. It is a
+   * model now, and piping a model shows `_values` and `_iris` — CEE's internals,
+   * offered to someone as their metadata.
+   */
+  get instanceJson(): object {
+    return InstanceSerializer.toJson(this.dataContext.instanceFullData) as object;
+  }
 
   /*
    * All twelve default to false — a panel nobody asked for is closed, and one the

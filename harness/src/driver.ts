@@ -202,8 +202,20 @@ export class CeeDriver {
    * assert against, because it is the instance's content with the bookkeeping
    * left out.
    */
-  get extract(): any {
-    return InstanceSerializer.toDataJson(this.dataContext.instanceFullData);
+  /**
+   * The instance without its envelope — which is the instance's own container.
+   *
+   * It answered a JSON document, produced by a writer method that existed for
+   * this accessor and nothing else. A test wanting to know what a field holds
+   * should read the model; a test wanting to know what a host receives should
+   * read `emitted`, which is the whole artifact. There was no third thing.
+   */
+  get extract(): InstanceObject {
+    const instance = this.dataContext.instanceFullData;
+    if (instance === null) {
+      throw new Error('instanceFullData is null');
+    }
+    return instance.dataContainer;
   }
 
   get qualityReport(): any {

@@ -21,7 +21,14 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at } from '../src/nodes';
-import { instanceWith as buildInstance, literalNode, literalOf, literalValue, heldValue } from '../src/values';
+import {
+  instanceWith as buildInstance,
+  literalNode,
+  literalOf,
+  literalValue,
+  heldValue,
+  attributeValue,
+} from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
@@ -76,7 +83,7 @@ describe('read-only mode', () => {
 
   it('still builds the instance skeleton', () => {
     const ro = new CeeDriver(template(), { readOnlyMode: true });
-    expect(ro.extract).toHaveProperty('_a');
+    expect(ro.extract.hasValue('_a')).toBe(true);
   });
 
   /**
@@ -160,15 +167,15 @@ describe('hideEmptyFields', () => {
         instance: seed.metadata,
       });
 
-      expect(viewer.extract._attributes).toEqual(['colour']);
-      expect(literalOf(viewer.extract.colour)).toBe('blue');
+      expect(heldValue(viewer.extract.values._attributes)).toEqual(['colour']);
+      expect(attributeValue(viewer.extract, '_attributes', 'colour')).toBe('blue');
       expect(viewer.findOrThrow(['_attributes']).hidden).toBe(false);
     });
 
     it('hides an attribute-value field whose dynamic-key array is empty', () => {
       const template = attributes();
       const seed = new CeeDriver(template);
-      expect(seed.extract._attributes).toEqual([]);
+      expect(heldValue(seed.extract.values._attributes)).toEqual([]);
 
       const viewer = new CeeDriver(template, {
         readOnlyMode: true,

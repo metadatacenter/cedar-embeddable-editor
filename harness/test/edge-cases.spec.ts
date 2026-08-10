@@ -128,7 +128,7 @@ describe('hidden fields', () => {
         ],
       }),
     );
-    expect(Object.keys(driver.extract)).toContain('_invisible');
+    expect(Object.keys(driver.extract.values)).toContain('_invisible');
   });
 });
 

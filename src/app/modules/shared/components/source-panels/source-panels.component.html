@@ -10,7 +10,7 @@
           &nbsp;
           <mat-icon
             matRipple
-            [cdkCopyToClipboard]="dataContext.instanceExtractData | json"
+            [cdkCopyToClipboard]="instanceJson | json"
             (click)="stopPropagation($event)"
             matTooltip="{{ 'Generic.Copy' | translate }}"
             >content_copy</mat-icon
@@ -19,7 +19,7 @@
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
         <mat-card appearance="outlined">
-          <pre>{{ dataContext.instanceExtractData | json }}</pre>
+          <pre>{{ instanceJson | json }}</pre>
         </mat-card>
       </ng-template>
     </mat-expansion-panel>

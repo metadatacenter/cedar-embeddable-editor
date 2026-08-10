@@ -44,7 +44,11 @@ const stable = (node: any): any => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const out: any = {};
     for (const key of Object.keys(node)) {
-      out[key] = key === JsonSchema.atId && typeof node[key] === 'string' ? '<minted>' : stable(node[key]);
+      // `_id` as well as `@id`: a container carries its occurrence IRI under its
+      // own name, and CEE mints a fresh one on every read, so comparing two
+      // readings means normalising it whichever side of the boundary it is on.
+      const isMintedId = (key === JsonSchema.atId || key === '_id') && typeof node[key] === 'string';
+      out[key] = isMintedId ? '<minted>' : stable(node[key]);
     }
     return out;
   }
@@ -140,8 +144,8 @@ describe('a template read from YAML', () => {
    * count normalised, which leaves every other field of every template exact.
    */
   it.each(paired.map((p) => [p.id, p] as const))('template-%s builds the same instance', (_id, pair) => {
-    const j = stable(fromJson(pair.json).extract);
-    const y = stable(fromYaml(pair.yaml).extract);
+    const j = stable(fromJson(pair.json).extract.values);
+    const y = stable(fromYaml(pair.yaml).extract.values);
     expect(Object.keys(y)).toEqual(Object.keys(j));
     for (const key of Object.keys(j)) {
       expect(withoutUnexpressibleSlots(y[key], j[key]), `${key} differs between the two readings`).toEqual(j[key]);

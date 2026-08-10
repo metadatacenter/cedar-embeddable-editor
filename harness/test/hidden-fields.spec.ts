@@ -54,8 +54,8 @@ describe('a hidden field stays in the document', () => {
     expect(Object.keys(emitted)).toContain('_concealed');
   });
 
-  it('gets a slot in the extract tree too', () => {
-    expect(Object.keys(new CeeDriver(withHidden()).extract)).toContain('_concealed');
+  it('gets a slot in the instance too', () => {
+    expect(Object.keys(new CeeDriver(withHidden()).extract.values)).toContain('_concealed');
   });
 
   it('is in the @context, like any other property', () => {
@@ -68,7 +68,7 @@ describe('a hidden field stays in the document', () => {
 
   it('a hidden multi field gets its list', () => {
     const extract = new CeeDriver(withHidden({ multi: true })).extract;
-    expect(Array.isArray(extract._concealed)).toBe(true);
+    expect(Array.isArray(extract.values._concealed)).toBe(true);
   });
 });
 

@@ -27,7 +27,10 @@ import { CedarBuilders } from 'cedar-model-typescript-library';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { literalOf } from '../src/values';
+import { InstanceObject } from '@cee/models/instance-node.model';
+import { arrayAt, objectAt } from '../src/nodes';
+import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
+import { literalOf, heldValue, attributeValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 const ATTR: FieldKind = {
@@ -53,7 +56,14 @@ const flat = () => buildTemplate({ name: 'av_flat', children: [{ kind: ATTR, nam
 
 /** The `@value` behind an attribute, or undefined when the key is absent. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const valueOf = (node: any, key: string) => literalOf(node?.[key]);
+/** The names an attribute-value field is holding, in page order. */
+const attributeNames = (slots: unknown): (string | null)[] =>
+  (Array.isArray(slots) ? slots : []).map((slot) =>
+    slot instanceof InstanceDataAttributeValueFieldName ? slot.name : null,
+  );
+
+/** What the attribute named `key` holds, wherever the field keeps it. */
+const valueOf = (container: InstanceObject, key: string) => attributeValue(container, '_av', key);
 
 /**
  * Add an attribute the way the UI does: make a slot, then name it.
@@ -80,7 +90,7 @@ describe('adding an attribute value', () => {
     expect(valueOf(driver.extract, 'colour')).toBe('blue');
     // The field's own slot holds the *name*, which is what makes this field
     // type unlike every other one.
-    expect(driver.extract._av).toContain('colour');
+    expect(heldValue(driver.extract.values._av)).toContain('colour');
   });
 
   /**
@@ -120,8 +130,8 @@ describe('renaming an attribute', () => {
     driver.expectNoErrors('renaming an attribute');
 
     expect(valueOf(driver.extract, 'hue')).toBe('blue');
-    expect(driver.extract.colour, 'the old attribute name survived the rename').toBeUndefined();
-    expect(driver.extract._av).toEqual(['hue']);
+    expect(driver.extract.values.colour, 'the old attribute name survived the rename').toBeUndefined();
+    expect(heldValue(driver.extract.values._av)).toEqual(['hue']);
   });
 
   /**
@@ -159,7 +169,7 @@ describe('names the user did not supply', () => {
     const names: string[] = driver.metadata._av;
     expect(names).toHaveLength(1);
     expect(names[0]).toBe('');
-    expect(valueOf(driver.extract, 'Attribute Value Field1')).toBeUndefined();
+    expect(driver.extract.hasValue('Attribute Value Field1'), 'a name was manufactured').toBe(false);
     // The row is held open in the emitted list, under an empty name, and no
     // property is invented for it. It used to come out as `[]` because the
     // projection that built this list dropped a nameless entry on the way; the
@@ -176,10 +186,10 @@ describe('names the user did not supply', () => {
 
     // The first value stands; the duplicate gets a generated name of its own.
     expect(valueOf(driver.extract, 'colour')).toBe('blue');
-    const names: string[] = driver.extract._av;
+    const names = heldValue(driver.extract.values._av) as (string | null)[];
     expect(names).toHaveLength(2);
     expect(names[1]).not.toBe('colour');
-    expect(valueOf(driver.extract, names[1])).toBe('red');
+    expect(valueOf(driver.extract, names[1] ?? '')).toBe('red');
   });
 
   /**
@@ -224,7 +234,7 @@ describe('names the user did not supply', () => {
     driver.handlerContext.changeAttributeValue(component, 'colour', 'blue');
     driver.expectNoErrors('naming a pending attribute');
 
-    expect(driver.extract._av).toEqual(['colour']);
+    expect(heldValue(driver.extract.values._av)).toEqual(['colour']);
     expect(valueOf(driver.extract, 'colour')).toBe('blue');
   });
 });
@@ -242,7 +252,7 @@ describe('deleting an attribute', () => {
     driver.handlerContext.deleteAttributeValue(component, 'colour');
     driver.expectNoErrors('deleting an attribute');
 
-    expect(driver.extract.colour).toBeUndefined();
+    expect(driver.extract.values.colour).toBeUndefined();
     expect(driver.emitted[JsonSchema.atContext].colour, 'the @context entry outlived the attribute').toBeUndefined();
   });
 
@@ -255,7 +265,7 @@ describe('deleting an attribute', () => {
     driver.handlerContext.deleteAttributeValue(component, 'colour');
     driver.expectNoErrors('deleting one of two attributes');
 
-    expect(driver.extract.colour).toBeUndefined();
+    expect(driver.extract.values.colour).toBeUndefined();
     expect(valueOf(driver.extract, 'size')).toBe('large');
     expect(driver.emitted[JsonSchema.atContext].size).toBeTruthy();
   });
@@ -286,8 +296,8 @@ describe('attribute values inside elements', () => {
     addAttribute(driver, driver.findOrThrow(['_el', '_av']), 'colour', 'blue');
     driver.expectNoErrors('adding an attribute inside an element');
 
-    expect(valueOf(driver.extract._el, 'colour')).toBe('blue');
-    expect(driver.extract.colour, 'the attribute leaked onto the template').toBeUndefined();
+    expect(valueOf(objectAt(driver.extract, '_el'), 'colour')).toBe('blue');
+    expect(driver.extract.values.colour, 'the attribute leaked onto the template').toBeUndefined();
     expect(driver.emitted._el[JsonSchema.atContext].colour).toBeTruthy();
   });
 
@@ -302,7 +312,7 @@ describe('attribute values inside elements', () => {
     driver.handlerContext.deleteAttributeValue(component, 'colour');
     driver.expectNoErrors('deleting an attribute inside an element');
 
-    expect(driver.extract._el.colour).toBeUndefined();
+    expect(objectAt(driver.extract, '_el').values.colour).toBeUndefined();
     expect(driver.emitted._el[JsonSchema.atContext].colour).toBeUndefined();
   });
 
@@ -337,13 +347,19 @@ describe('attribute values inside elements', () => {
     addAttribute(driver, component, 'second', 'two');
     driver.expectNoErrors('adding attributes across two element occurrences');
 
-    const occurrences = driver.extract._el;
+    const occurrences = arrayAt(driver.extract, '_el');
     expect(Array.isArray(occurrences), 'multi element did not build as an array').toBe(true);
     expect(occurrences).toHaveLength(2);
-    expect(valueOf(occurrences[0], 'first')).toBe('one');
-    expect(occurrences[0].second, 'the second attribute landed in the first occurrence').toBeUndefined();
-    expect(valueOf(occurrences[1], 'second')).toBe('two');
-    expect(occurrences[1].first, 'the first attribute leaked into the second occurrence').toBeUndefined();
+    expect(valueOf(objectAt(occurrences[0]), 'first')).toBe('one');
+    expect(
+      objectAt(occurrences[0]).values.second,
+      'the second attribute landed in the first occurrence',
+    ).toBeUndefined();
+    expect(valueOf(objectAt(occurrences[1]), 'second')).toBe('two');
+    expect(
+      objectAt(occurrences[1]).values.first,
+      'the first attribute leaked into the second occurrence',
+    ).toBeUndefined();
   });
 
   it('deletes from the occurrence the cursor is on', () => {
@@ -369,9 +385,9 @@ describe('attribute values inside elements', () => {
     driver.handlerContext.deleteAttributeValue(component, 'second');
     driver.expectNoErrors('deleting from the second occurrence');
 
-    const occurrences = driver.extract._el;
-    expect(valueOf(occurrences[0], 'first'), 'deleting from one occurrence cleared another').toBe('one');
-    expect(occurrences[1].second).toBeUndefined();
+    const occurrences = arrayAt(driver.extract, '_el');
+    expect(valueOf(objectAt(occurrences[0]), 'first'), 'deleting from one occurrence cleared another').toBe('one');
+    expect(objectAt(occurrences[1]).values.second).toBeUndefined();
   });
 });
 

@@ -13,7 +13,14 @@ import { buildTemplate, supportsMultiInstance } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { InstanceValueNode } from '@cee/util/instance-value-node';
 import { infoOf } from '../src/nodes';
-import { containerValue as occurrenceValue, instanceWith, labelOf, listValue, literalOf, heldValue } from '../src/values';
+import {
+  containerValue as occurrenceValue,
+  instanceWith,
+  labelOf,
+  listValue,
+  literalOf,
+  heldValue,
+} from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
@@ -49,7 +56,7 @@ describe('minItems seeds the initial instance count', () => {
         children: [{ kind: TEXT, name: 'f', cardinality: 'multi', minItems }],
       }),
     );
-    expect(driver.extract._f).toHaveLength(minItems);
+    expect(driver.extract.values._f).toHaveLength(minItems);
   });
 
   /**
@@ -324,7 +331,7 @@ describe('required values are page-independent', () => {
    * reader makes of it is the library's, not this suite's.
    */
   it('is invalid when an entry omits the field', () => {
-    const instance: any = { ...instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI), _el: [occurrenceValue({})] };
+    const instance: any = instanceWith(TEMPLATE_IRI, { _el: listValue(occurrenceValue({})) }, INSTANCE_IRI);
 
     const driver = new CeeDriver(threeInstances(), { instance });
     driver.handlerContext.buildQualityReport();

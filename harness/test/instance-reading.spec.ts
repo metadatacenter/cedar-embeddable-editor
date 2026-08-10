@@ -24,8 +24,17 @@ import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-t
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { infoOf } from '../src/nodes';
-import { instanceWith, literalNode, literalOf } from '../src/values';
+import { infoOf, objectAt, arrayAt } from '../src/nodes';
+import {
+  instanceWith,
+  literalNode,
+  literalOf,
+  heldValue,
+  attributeValue,
+  listValue,
+  containerValue,
+  literalValue,
+} from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
@@ -113,7 +122,7 @@ describe('an instance wider than its template', () => {
     first.setValue(['_author', '_name'], TEXT, 'Grace');
 
     const reloaded = new CeeDriver(template, { instance: first.metadata });
-    const names = reloaded.extract._author.map((o: Record<string, unknown>) => literalOf(o._name));
+    const names = arrayAt(reloaded.extract, '_author').map((o) => heldValue(objectAt(o).values._name));
     expect(names).toEqual(['Ada', 'Grace']);
   });
 
@@ -171,20 +180,25 @@ describe('occurrences that are not all alike', () => {
    */
   it('reconciles an occurrence that is missing a field the others have', () => {
     const template = multiElementTemplate(1);
-    const first = new CeeDriver(template);
-    const author = first.findOrThrow(['_author']);
-    first.setValue(['_author', '_name'], TEXT, 'Ada');
-    first.setValue(['_author', '_email'], TEXT, 'ada@example.org');
-    first.handlerContext.addMultiInstance(author);
-    first.setValue(['_author', '_name'], TEXT, 'Grace');
-
-    const instance = JSON.parse(JSON.stringify(first.metadata));
-    delete instance._author[1]._email;
+    // Built uneven rather than built even and then cut down. The second
+    // occurrence simply has no `_email`, which is the shape under test — a
+    // document saved before the field existed — and saying so directly beats
+    // deleting a property out of a document the editor produced.
+    const instance = instanceWith(
+      TEMPLATE_IRI,
+      {
+        _author: listValue(
+          containerValue({ _name: literalValue('Ada'), _email: literalValue('ada@example.org') }),
+          containerValue({ _name: literalValue('Grace') }),
+        ),
+      },
+      INSTANCE_IRI,
+    );
 
     const reloaded = new CeeDriver(template, { instance });
     reloaded.expectNoErrors('reloading an uneven instance');
     expect(countOf(reloaded, reloaded.findOrThrow(['_author']))).toBe(2);
-    expect(literalOf(reloaded.extract._author[0]._email)).toBe('ada@example.org');
+    expect(heldValue(objectAt(arrayAt(reloaded.extract, '_author')[0]).values._email)).toBe('ada@example.org');
   });
 
   it('survives an occurrence that is empty', () => {
@@ -415,7 +429,7 @@ describe('deleting occurrences', () => {
     driver.setValue(['_author', '_name'], TEXT, 'Katherine');
     driver.expectNoErrors('writing after a delete');
 
-    const names = driver.extract._author.map((o: Record<string, unknown>) => literalOf(o._name));
+    const names = arrayAt(driver.extract, '_author').map((o) => heldValue(objectAt(o).values._name));
     expect(names).toEqual(['Ada', 'Katherine']);
   });
 });
@@ -452,9 +466,9 @@ describe('attribute values, read back', () => {
     reloaded.expectNoErrors('reloading two attribute values');
 
     expect(countOf(reloaded, reloaded.findOrThrow(['_av']))).toBe(2);
-    expect(reloaded.extract._av).toEqual(['colour', 'size']);
-    expect(literalOf(reloaded.extract.colour)).toBe('blue');
-    expect(literalOf(reloaded.extract.size)).toBe('large');
+    expect(heldValue(reloaded.extract.values._av)).toEqual(['colour', 'size']);
+    expect(attributeValue(reloaded.extract, '_av', 'colour')).toBe('blue');
+    expect(attributeValue(reloaded.extract, '_av', 'size')).toBe('large');
   });
 
   it('restores attributes inside an element', () => {
@@ -470,7 +484,7 @@ describe('attribute values, read back', () => {
     const reloaded = new CeeDriver(template, { instance: first.metadata });
     reloaded.expectNoErrors('reloading an attribute inside an element');
     expect(countOf(reloaded, reloaded.findOrThrow(['_el', '_av']))).toBe(1);
-    expect(literalOf(reloaded.extract._el.colour)).toBe('blue');
+    expect(attributeValue(objectAt(reloaded.extract, '_el'), '_av', 'colour')).toBe('blue');
   });
 });
 

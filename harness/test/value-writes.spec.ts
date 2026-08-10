@@ -26,7 +26,17 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import type { InstanceNode } from '@cee/models/instance-node.model';
-import { instanceWith, iriOf, isLiteral, linkValue, literalOf, literalValue, termOf, termValue } from '../src/values';
+import {
+  instanceWith,
+  iriOf,
+  isLiteral,
+  linkValue,
+  literalOf,
+  literalValue,
+  termOf,
+  termValue,
+  heldValue,
+} from '../src/values';
 import type { InstanceDataAtomType } from 'cedar-model-typescript-library';
 
 /**
@@ -71,27 +81,27 @@ describe('writing a value for the first time', () => {
   it('a literal lands as @value', () => {
     const { driver, component } = rig(TEXT);
     driver.handlerContext.changeValue(component, 'typed');
-    expect(literalOf(driver.extract._f)).toBe('typed');
+    expect(literalOf(driver.extract.values._f)).toBe('typed');
   });
 
   it('a link lands as @id, not @value', () => {
     const { driver, component } = rig(LINK);
     driver.handlerContext.changeValue(component, 'https://example.org/thing');
-    expect(iriOf(driver.extract._f)).toBe('https://example.org/thing');
-    expect(isLiteral(driver.extract._f), 'a link was written as a literal').toBe(false);
+    expect(iriOf(driver.extract.values._f)).toBe('https://example.org/thing');
+    expect(isLiteral(driver.extract.values._f), 'a link was written as a literal').toBe(false);
   });
 
   it('an external authority value lands as @id', () => {
     const { driver, component } = rig(ORCID);
     driver.handlerContext.changeValue(component, 'https://orcid.org/0000-0002-1825-0097');
-    expect(iriOf(driver.extract._f)).toBe('https://orcid.org/0000-0002-1825-0097');
-    expect(isLiteral(driver.extract._f)).toBe(false);
+    expect(iriOf(driver.extract.values._f)).toBe('https://orcid.org/0000-0002-1825-0097');
+    expect(isLiteral(driver.extract.values._f)).toBe(false);
   });
 
   it('a controlled term lands as @id and label', () => {
     const { driver, component } = rig(CONTROLLED);
     driver.handlerContext.changeControlledValue(component, 'https://x/1', 'One');
-    expect(termOf(driver.extract._f)).toEqual({ iri: 'https://x/1', label: 'One' });
+    expect(termOf(driver.extract.values._f)).toEqual({ iri: 'https://x/1', label: 'One' });
   });
 });
 
@@ -106,28 +116,28 @@ describe('writing over a slot that already holds something', () => {
     const { driver, component } = rig(LINK, literalValue('left over'));
     driver.handlerContext.changeValue(component, 'https://example.org/thing');
 
-    expect(iriOf(driver.extract._f)).toBe('https://example.org/thing');
-    expect(isLiteral(driver.extract._f), 'the stale literal survived').toBe(false);
+    expect(iriOf(driver.extract.values._f)).toBe('https://example.org/thing');
+    expect(isLiteral(driver.extract.values._f), 'the stale literal survived').toBe(false);
   });
 
   it('a controlled term replaces a literal rather than joining it', () => {
     const { driver, component } = rig(CONTROLLED, literalValue('left over'));
     driver.handlerContext.changeControlledValue(component, 'https://x/1', 'One');
 
-    expect(iriOf(driver.extract._f)).toBe('https://x/1');
-    expect(isLiteral(driver.extract._f), 'the stale literal survived').toBe(false);
+    expect(iriOf(driver.extract.values._f)).toBe('https://x/1');
+    expect(isLiteral(driver.extract.values._f), 'the stale literal survived').toBe(false);
   });
 
   it('a new IRI replaces the previous one', () => {
     const { driver, component } = rig(CONTROLLED, termValue('https://x/1', 'One'));
     driver.handlerContext.changeControlledValue(component, 'https://x/2', 'Two');
-    expect(termOf(driver.extract._f)).toEqual({ iri: 'https://x/2', label: 'Two' });
+    expect(termOf(driver.extract.values._f)).toEqual({ iri: 'https://x/2', label: 'Two' });
   });
 
   it('a new literal replaces the previous one', () => {
     const { driver, component } = rig(TEXT, literalValue('first'));
     driver.handlerContext.changeValue(component, 'second');
-    expect(literalOf(driver.extract._f)).toBe('second');
+    expect(literalOf(driver.extract.values._f)).toBe('second');
   });
 
   /**
@@ -146,7 +156,7 @@ describe('writing over a slot that already holds something', () => {
     const { driver, component } = rig(TEXT, termValue('https://x/1', 'One'));
     driver.handlerContext.changeValue(component, 'typed');
 
-    expect(literalOf(driver.extract._f)).toBe('typed');
+    expect(literalOf(driver.extract.values._f)).toBe('typed');
   });
 });
 
@@ -154,20 +164,23 @@ describe('clearing a value', () => {
   it('clearing a literal leaves the slot present and empty', () => {
     const { driver, component } = rig(TEXT, literalValue('something'));
     driver.handlerContext.changeValue(component, null);
-    expect(literalOf(driver.extract._f)).toBeNull();
+    expect(literalOf(driver.extract.values._f)).toBeNull();
   });
 
   it('clearing a controlled term empties it without removing the slot', () => {
     const { driver, component } = rig(CONTROLLED, termValue('https://x/1', 'One'));
     driver.handlerContext.changeControlledValue(component, null, null);
-    // `undefined` values do not survive serialisation, so the saved slot is `{}`.
-    expect(JSON.parse(JSON.stringify(driver.extract._f))).toEqual({});
+    // Nothing at all — an IRI-valued field with no IRI holds an empty value, which
+    // is not the same as the slot being gone.
+    expect(heldValue(driver.extract.values._f)).toBeNull();
+    expect(driver.extract.hasValue('_f'), 'the slot went with the value').toBe(true);
   });
 
   it('clearing a link removes the IRI', () => {
     const { driver, component } = rig(LINK, linkValue('https://example.org/thing'));
     driver.handlerContext.changeValue(component, null);
-    expect(JSON.parse(JSON.stringify(driver.extract._f))).toEqual({});
+    expect(heldValue(driver.extract.values._f)).toBeNull();
+    expect(driver.extract.hasValue('_f'), 'the slot went with the value').toBe(true);
   });
 });
 
@@ -181,20 +194,20 @@ describe('multi-valued writes', () => {
   it('writes each selection as its own literal', () => {
     const { driver, component } = rig(CHECKBOX);
     driver.handlerContext.changeListValue(component, ['A', 'B']);
-    expect((driver.extract._f as unknown[]).map(literalOf)).toEqual(['A', 'B']);
+    expect((driver.extract.values._f as unknown[]).map(literalOf)).toEqual(['A', 'B']);
   });
 
   it('replaces the whole list rather than appending', () => {
     const { driver, component } = rig(CHECKBOX);
     driver.handlerContext.changeListValue(component, ['A', 'B']);
     driver.handlerContext.changeListValue(component, ['B']);
-    expect((driver.extract._f as unknown[]).map(literalOf)).toEqual(['B']);
+    expect((driver.extract.values._f as unknown[]).map(literalOf)).toEqual(['B']);
   });
 
   it('an empty selection writes one empty slot rather than none', () => {
     const { driver, component } = rig(CHECKBOX);
     driver.handlerContext.changeListValue(component, []);
-    expect((driver.extract._f as unknown[]).map(literalOf)).toEqual([null]);
+    expect((driver.extract.values._f as unknown[]).map(literalOf)).toEqual([null]);
   });
 });
 
@@ -216,7 +229,7 @@ describe('both copies of the instance stay in step', () => {
   ])('%s', (_label, fieldKind, write, expected) => {
     const { driver, component } = rig(fieldKind);
     write(driver, component);
-    const extract = driver.extract._f;
+    const extract = driver.extract.values._f;
     const full = driver.metadata._f;
     expect(literalOf(extract) ?? iriOf(extract)).toBe(expected);
     expect(literalOf(full) ?? iriOf(full), 'the full copy did not receive the write').toBe(expected);

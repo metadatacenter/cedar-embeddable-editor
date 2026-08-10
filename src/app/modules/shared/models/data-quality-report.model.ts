@@ -1,11 +1,20 @@
 import { TemplateComponent } from './template/template-component.model';
-import { InstanceExtractData } from './instance-extract-data.model';
+import { JsonNode } from 'cedar-model-typescript-library';
 import { ValidationProblem } from '../validation/validation-problem.model';
 
 export class DataQualityReport extends Object {
   /** Null when a report is built before a template is set, which produces an empty one. */
   templateRepresentation: TemplateComponent | null = null;
-  instanceExtractData: InstanceExtractData = null;
+  /**
+   * The instance the report describes, as the document a host page reads.
+   *
+   * This was the envelope-free *view* of the working tree, which was a document
+   * itself, so handing it out cost nothing. The tree is a model now: handing a
+   * host page the model's container would show it `_values` and `_iris`, and
+   * there is no reason a consumer of a report should see CEE's internals. A
+   * written instance is what one is.
+   */
+  instance: JsonNode | null = null;
   valueTree: object = {};
   requiredFieldValueCount = 0;
   nonNullRequiredFieldValueCount = 0;
