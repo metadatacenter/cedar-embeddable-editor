@@ -13,7 +13,7 @@ import { DataObjectBuilderHandler } from '../handler/data-object-builder.handler
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { PageBreakPaginatorService } from '../service/page-break-paginator.service';
 import { DataQualityReport } from '../models/data-quality-report.model';
-import { InstanceObject } from '../models/instance-node.model';
+import { InstanceNode, InstanceObject } from '../models/instance-node.model';
 
 export class DataContext {
   templateInput: CedarInputTemplate | null = null;
@@ -71,7 +71,7 @@ export class DataContext {
    * because there is no longer a second shape to build. Every mutation goes
    * through here so the derived view cannot go stale behind one.
    */
-  mutate(change: (instance: InstanceFullData) => void): void {
+  mutate(change: (instance: InstanceNode | null) => void): void {
     change(this.instanceFullData?.dataContainer ?? null);
     this.invalidateDerivedViews();
   }
@@ -125,7 +125,7 @@ export class DataContext {
     } else {
       this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
         this.templateRepresentation,
-        this.instanceFullData,
+        this.instanceFullData.dataContainer,
         instanceReader,
       );
     }

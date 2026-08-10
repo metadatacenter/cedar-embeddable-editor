@@ -32,7 +32,7 @@ export class ModelLibraryInstanceReader implements InstanceCardinalityReader {
       // from `InstanceObject` only in how it says a value may be anything JSON
       // holds. The second parameter is the path to read at, and is optional —
       // it was being passed `undefined as never` to satisfy the untyped call.
-      .readFromObject(instance as JsonNode);
+      .readFromObject(instance as unknown as JsonNode);
     ModelLibraryInstanceReader.walk(result.instance.dataContainer, [], emit);
   }
 

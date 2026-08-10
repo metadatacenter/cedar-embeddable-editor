@@ -208,7 +208,7 @@ export class DataQualityReportBuilderHandler {
       if (component.valueInfo.requiredValue) {
         isRequired = true;
       }
-      const dataValueObject: InstanceNode = handlerContext.getDataObjectNodeByPath(component.path);
+      const dataValueObject: InstanceNode | null = handlerContext.getDataObjectNodeByPath(component.path);
       // Whether a requirement is satisfied is asked of the whole instance, not
       // of the page currently on screen. See findAnyValue.
       const satisfiedBy = isRequired

@@ -416,7 +416,7 @@ export class DataObjectDataValueHandler {
     value: string[] | null,
   ): void {
     const path = component.path;
-    const valueArray: InstanceObject[] = [];
+    const valueArray: InstanceNode[] = [];
 
     // A cleared list is one empty slot, not no slots: the field still exists and
     // still has an occurrence to show. Held separately from `value` so the empty

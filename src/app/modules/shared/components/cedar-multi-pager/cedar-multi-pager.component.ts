@@ -14,6 +14,7 @@ import { MultiInstanceObjectInfo } from '../../models/info/multi-instance-object
 import { HandlerContext } from '../../util/handler-context';
 import { ComponentTypeHandler } from '../../handler/component-type.handler';
 import { InstanceValueNode } from '../../util/instance-value-node';
+import { InstanceNode } from '../../models/instance-node.model';
 import { valueIsIri } from '../../models/ext-auth-categories.model';
 import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
 import { InputType } from '../../models/input-type.model';
@@ -144,8 +145,12 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
         if (attributeName === null && typeof fieldName !== 'object') {
           return;
         }
-        const node =
-          attributeName !== null && isInstanceObject(parentNodeInfo) ? parentNodeInfo[attributeName] : fieldName;
+        // The name itself when there is no attribute to look up: a slot with no
+        // name shows the label the pager already has.
+        const node: InstanceNode | null =
+          attributeName !== null && isInstanceObject(parentNodeInfo)
+            ? parentNodeInfo.values[attributeName] ?? null
+            : InstanceValueNode.literalValue(typeof fieldName === 'string' ? fieldName : null);
         const shown = this.shortValue(inputType, InstanceValueNode.plainValue(node, iriValued));
         infoArray.push(numStr + (attributeName !== null ? attributeName + '=' : '') + (shown ?? 'null'));
       });

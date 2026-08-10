@@ -124,7 +124,7 @@ export class ActiveComponentRegistryService {
   }
   updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
     if (component instanceof SingleFieldComponent) {
-      const dataObject: InstanceNode = handlerContext.getDataObjectNodeByPath(component.path);
+      const dataObject: InstanceNode | null = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIDirective | null = this.getUIComponent(component);
       if (uiComponent != null && dataObject != null) {
         if (InstanceValueNode.isLiteral(dataObject)) {
@@ -136,7 +136,7 @@ export class ActiveComponentRegistryService {
         }
       }
     } else if (component instanceof MultiFieldComponent) {
-      const dataObject: InstanceNode = handlerContext.getDataObjectNodeByPath(component.path);
+      const dataObject: InstanceNode | null = handlerContext.getDataObjectNodeByPath(component.path);
       const parentDataObject = handlerContext.getParentDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIDirective | null = this.getUIComponent(component);
       const multiInstanceInfo: MultiInstanceObjectInfo | null =

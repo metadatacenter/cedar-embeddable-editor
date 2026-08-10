@@ -45,12 +45,22 @@ export class InstanceSerializer {
    * `currentMetadata` before a template has been parsed, and an instance written
    * from whatever the tree already carries is a better answer than none.
    */
-  private static parse(instance: InstanceFullData, template: Template | null): TemplateInstance {
-    const parsed = CedarReaders.json()
-      .getFebruary2024()
-      .getTemplateInstanceReader()
-      .readFromObject(instance as unknown as JsonNode).instance;
-    return template === null ? parsed : InstanceInflater.inflate(parsed, template);
+  /**
+   * The instance the writers are handed.
+   *
+   * A pass-through, plus the template contract when there is one. It used to
+   * *parse*: CEE's working tree was a CEDAR JSON document, so emitting it meant
+   * handing the library's reader the tree CEE had just been editing and letting
+   * it build a model. That round trip was the clearest evidence the tree was a
+   * document rather than a model — it is a `TemplateInstance` now, so there is
+   * nothing to read.
+   *
+   * Without a template the contract is skipped rather than failed. A host can
+   * read `currentMetadata` before a template has been parsed, and an instance
+   * written from what the tree carries is a better answer than none.
+   */
+  private static contracted(instance: TemplateInstance, template: Template | null): TemplateInstance {
+    return template === null ? instance : InstanceInflater.inflate(instance, template);
   }
 
   /**
@@ -61,24 +71,24 @@ export class InstanceSerializer {
    * test feeds this straight back into it. The library types its writer's output
    * as `JsonNode`, so the conversion is named here, once, at the boundary.
    */
-  static toJson(instance: InstanceFullData, template: Template | null = null): InstanceObject {
+  static toJson(instance: TemplateInstance | null, template: Template | null = null): JsonNode {
     if (instance == null) {
-      return {};
+      return {} as JsonNode;
     }
     return CedarWriters.json()
       .getFebruary2024()
       .getTemplateInstanceWriter()
-      .getAsJsonNode(InstanceSerializer.parse(instance, template)) as unknown as InstanceObject;
+      .getAsJsonNode(InstanceSerializer.contracted(instance, template));
   }
 
   /** The same instance as CEDAR YAML. */
-  static toYaml(instance: InstanceFullData, template: Template | null = null): string {
+  static toYaml(instance: TemplateInstance | null, template: Template | null = null): string {
     if (instance == null) {
       return '';
     }
     return CedarWriters.yaml()
       .getStrict()
       .getTemplateInstanceWriter()
-      .getAsYamlString(InstanceSerializer.parse(instance, template));
+      .getAsYamlString(InstanceSerializer.contracted(instance, template));
   }
 }
