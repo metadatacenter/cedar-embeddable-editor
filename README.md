@@ -15,11 +15,14 @@ see [*Author Once, Publish Everywhere: Portable Metadata Authoring with the CEDA
 Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002), published in the
 *Data Science Journal* (2026).
 
+This README covers building, testing and releasing the component. For embedding
+it in an application, the CEDAR documentation site carries a fuller guide:
+[CEDAR Embeddable Editor](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/intro/).
+
 ## Browser support
 
-CEE supports the browser targets selected for the Angular version used to build
-each release and by this repository's `.browserslistrc`. CEE requires native
-Custom Elements v1 and native Shadow DOM.
+CEE supports the browser targets of the Angular version each release is built
+with. It requires native Custom Elements v1 and native Shadow DOM.
 
 Automated compatibility tests run against current desktop Chromium, Firefox and
 WebKit engines. Firefox ESR and the configured Edge, Safari and iOS versions are
@@ -129,16 +132,41 @@ npm run test:ci
 
 It runs, in order:
 
-1. The unit tests, in Node under Vitest.
-2. The headless domain harness with V8 coverage.
-3. A production build of the web component.
-4. The raw and gzip size budgets for the packaged production bundle.
-5. The Playwright suite against that bundle: the full Chromium baseline at
-   desktop and narrow viewport sizes, plus focused Chromium, Firefox and WebKit
-   compatibility checks.
+1. `ng lint` over the sources and the ESLint configuration.
+2. A type check of the application and the domain harness, with `strict` on
+   throughout.
+3. The unit tests, in Node under Vitest.
+4. The headless domain harness with V8 coverage, and its per-directory coverage
+   floors.
+5. A production build, then the Playwright suite against that bundle: the full
+   Chromium baseline at desktop and narrow viewport sizes, plus focused
+   Chromium, Firefox and WebKit compatibility checks.
+6. Staging the npm package from the bundle the suite just exercised, which
+   checks the raw and gzip size budgets and verifies every staged byte against
+   its source.
 
 The domain corpora are checked into `harness/fixtures/`; running the tests does
 not require `cedar-artifact-library` or `cedar-test-artifacts` checkouts.
+
+`.github/workflows/test.yml` runs the same gate on every pull request and on
+pushes to `main`, `develop` and the `cee-angular-**` branches. Nothing is
+published from CI: releasing is a separate, manual procedure.
+
+### Auditing what ships
+
+```shell
+npm run audit:prod
+```
+
+Only runtime dependencies reach the file an embedder downloads, so this audit is
+the one that describes the shipped artifact, and it is deliberately not part of
+`test:ci` — it can fail on a disclosure rather than on a commit, which would
+break an unrelated pull request its author cannot fix.
+
+A root `npm audit` reports advisories against `@angular/cli` and the packages
+reached through it. **Never run `npm audit fix --force` here.** npm's idea of
+fixing that tree is to walk the toolchain years backwards, undoing the Angular
+march to silence warnings about build tooling an embedder never downloads.
 
 ### First-time setup
 
@@ -245,53 +273,65 @@ customElements.whenDefined('cedar-embeddable-editor').then(() => {
 
 ### Optional configuration parameters
 
-There are other optional configuration parameters available for controlling various aspects of the CEE user interface. Most of these are self-explanatory. The example below includes the default values in cases, where the parameter isn't explicitly declared.
+Every other key is optional. The defaults below are the component's own, read
+from `CedarEmbeddableMetadataEditorComponent` and its wrapper, not from the
+standalone developer app in `src/app/app.component.dev.ts`, whose values differ.
 
-```json
-{
-  "sampleTemplateLocationPrefix": "/assets/cee-demo/",
-  "loadSampleTemplateName": "demo",
-  "expandedSampleTemplateLinks": true,
-  "showTemplateDescription": false,
+What the user sees:
 
-  "showTemplateRenderingRepresentation": true,
-  "expandedTemplateRenderingRepresentation": false,
+| Key | Default |
+|---|---|
+| `showHeader` | `false` |
+| `showFooter` | `false` |
+| `showPreferencesMenu` | `true` |
+| `showTemplateDescription` | `false` |
+| `showStaticText` | `true` |
+| `collapseStaticComponents` | `false` |
+| `showAllMultiInstanceValues` | `true` |
+| `showSpinnerBeforeInit` | `true` |
 
-  "showInstanceDataCore": true,
-  "expandedInstanceDataCore": false,
+Editing behaviour and serialization:
 
-  "showMultiInstanceInfo": true,
-  "expandedMultiInstanceInfo": false,
+| Key | Default |
+|---|---|
+| `readOnlyMode` | `false` |
+| `hideEmptyFields` | `false` |
+| `trustTemplateMarkup` | `false` |
+| `inputSerialization` | `json` |
+| `outputSerialization` | `json` |
 
-  "showInstanceDataFull": false,
-  "expandedInstanceDataFull": false,
+The diagnostic panels. Each has a `show` key and an `expanded` key, and every
+`expanded` key defaults to `false`:
 
-  "showTemplateSourceData": true,
-  "expandedTemplateSourceData": false,
+| Panel | `show` key | Default |
+|---|---|---|
+| JSON Schema - Template | `showTemplateSourceData` | `true` |
+| JSON-LD - Instance | `showInstanceDataFull` | `true` |
+| JSON-LD - Instance - Core | `showInstanceDataCore` | `false` |
+| Template Rendering Data | `showTemplateRenderingRepresentation` | `false` |
+| Multi-Instance Information | `showMultiInstanceInfo` | `false` |
+| Data Quality Report | `showDataQualityReport` | `false` |
+| Sample templates | `showSampleTemplateLinks` | `false` |
 
-  "showDataQualityReport": false,
-  "expandedDataQualityReport": false,
+Two of those are on by default, which suits a developer and rarely suits a
+deployment. A production embedding usually sets both to `false`.
 
-  "showHeader": true,
-  "showFooter": true,
+Language, and the IRI prefixes CEE recognises or mints:
 
-  "languageMapPathPrefix": null,
-  "defaultLanguage": "en",
-  "fallbackLanguage": "en",
+| Key | Default |
+|---|---|
+| `defaultLanguage` | `en` |
+| `fallbackLanguage` | `en` |
+| `languageMapPathPrefix` | none |
+| `iriPrefix` | `https://repo.metadatacenter.org/` |
+| `bioPortalPrefix` | `https://bioportal.bioontology.org/ontologies/` |
+| `orcidPrefix` | `https://orcid.org/` |
+| `rorPrefix` | `https://ror.org/` |
 
-  "collapseStaticComponents": false,
-  "showStaticText": true,
-
-  "inputSerialization": "json",
-  "outputSerialization": "json",
-  
-  "readOnlyMode": false,
-  "hideEmptyFields": false,
-  "showPreferencesMenu": true,
-
-  "trustTemplateMarkup": false
-}
-```
+`sampleTemplateLocationPrefix` and `loadSampleTemplateName` have no defaults.
+Setting both has CEE fetch `<prefix><name>/template.json` and
+`<prefix><name>/metadata.json` itself, which serves demonstrations rather than
+production.
 
 `trustTemplateMarkup` decides whether a template author's rich text renders verbatim
 or is sanitized first. It defaults to `false` and should stay there unless your
@@ -698,11 +738,15 @@ CEE can be used as a viewer to display metadata instances. This can be achieved 
 When used in this mode, users won't be able to manipulate the metadata instance but can only read it.
 ## Example Applications
 
-There is a sample applications you can use to demonstrate how to embed and use CEE.
-Follow the links below to the demo application of your choice. The documentation for each demo application can be found in the README file of the corresponding application.
+[`cedar-component-demo`](https://github.com/metadatacenter/cedar-component-demo)
+holds small runnable applications that embed CEE, each with its own README:
 
-### CEE Demo Angular
+| Application | Framework |
+|---|---|
+| `cedar-cee-demo-angular-src` | Angular |
+| `cedar-cee-demo-react` | React |
+| `cedar-cee-demo-ember-src` | Ember |
+| `cedar-cee-docs-angular-src` | Angular, documenting the component |
 
-This demo is written in Angular 2 and requires that framework to run properly.
-
-https://github.com/metadatacenter/cedar-cee-demo/tree/main/cedar-cee-demo-angular-src
+`cedar-cee-demo-angular-src` needs `npm install --legacy-peer-deps`; the others
+do not.
