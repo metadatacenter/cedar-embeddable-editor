@@ -50,7 +50,7 @@ These are commitments. A diff that changes one of them is a regression.
 published on `:host`, where an embedder can override them. Element hierarchy is
 customizable in the same way through `--cee-element-heading-size`,
 `--cee-element-heading-weight`, and `--cee-element-content-gap`. Their defaults
-are `1rem`, `600`, and `1rem` respectively. Two of the color properties have no
+are `1.125rem`, `600`, and `0.75rem` respectively. Two of the color properties have no
 internal consumer, which is the point. Renaming or dropping any public property
 breaks embedders silently, so treat the set as versioned surface.
 

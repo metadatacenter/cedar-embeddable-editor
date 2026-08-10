@@ -753,7 +753,7 @@ test('element headings establish hierarchy without doubling the first content ga
       };
     });
 
-  expect(await readMetrics()).toEqual({ fontSize: '16px', fontWeight: '600', contentGap: 16 });
+  expect(await readMetrics()).toEqual({ fontSize: '18px', fontWeight: '600', contentGap: 12 });
 
   await page.locator('cedar-embeddable-editor').evaluate((host) => {
     const style = (host as HTMLElement).style;
