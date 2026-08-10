@@ -145,8 +145,14 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
         // An attribute-value occurrence carries its name; the value it names sits
         // on the parent container under that name. Every other kind of occurrence
         // is the value itself.
-        const attributeName =
-          fieldName instanceof InstanceDataAttributeValueFieldName && fieldName.name !== '' ? fieldName.name : null;
+        const isAttributeSlot = fieldName instanceof InstanceDataAttributeValueFieldName;
+        const attributeName = isAttributeSlot && fieldName.name !== '' ? fieldName.name : null;
+        // A slot the user has not named yet has nothing to summarise: there is no
+        // property to look up, and labelling it by the empty name it holds reads
+        // as "null" in the info line.
+        if (isAttributeSlot && attributeName === null) {
+          return;
+        }
         const node: InstanceNode | null =
           attributeName !== null
             ? isInstanceObject(parentNodeInfo)

@@ -50,6 +50,19 @@ export class InstanceSerializer {
    * read `currentMetadata` before a template has been parsed, and an instance
    * written from what the tree carries is a better answer than none.
    */
+  /**
+   * Whether there is an instance here a writer can be given.
+   *
+   * The null check is the ordinary case — a host can read `currentMetadata`
+   * before anything has been loaded. The data container is checked as well
+   * because a caller can hold a partially built instance: replacing a template
+   * writes the current one out and reads it back, and it does that on a timer,
+   * so what is in hand when the timer fires is not something this can assume.
+   */
+  private static isWritable(instance: TemplateInstance | null): instance is TemplateInstance {
+    return instance != null && instance.dataContainer != null;
+  }
+
   private static contracted(instance: TemplateInstance, template: Template | null): TemplateInstance {
     return template === null ? instance : InstanceInflater.inflate(instance, template);
   }
@@ -63,7 +76,7 @@ export class InstanceSerializer {
    * as `JsonNode`, so the conversion is named here, once, at the boundary.
    */
   static toJson(instance: TemplateInstance | null, template: Template | null = null): JsonNode {
-    if (instance == null) {
+    if (!InstanceSerializer.isWritable(instance)) {
       return {} as JsonNode;
     }
     return CedarWriters.json()
@@ -82,7 +95,7 @@ export class InstanceSerializer {
    * used to do by counting keys.
    */
   static toDataJson(instance: TemplateInstance | null): JsonNode {
-    if (instance == null) {
+    if (!InstanceSerializer.isWritable(instance)) {
       return {} as JsonNode;
     }
     return CedarWriters.json().getFebruary2024().getTemplateInstanceWriter().getDataAsJsonNode(instance);
@@ -90,7 +103,7 @@ export class InstanceSerializer {
 
   /** The same instance as CEDAR YAML. */
   static toYaml(instance: TemplateInstance | null, template: Template | null = null): string {
-    if (instance == null) {
+    if (!InstanceSerializer.isWritable(instance)) {
       return '';
     }
     return CedarWriters.yaml()
