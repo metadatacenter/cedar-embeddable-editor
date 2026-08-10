@@ -5,11 +5,21 @@
     </span>
   } @else {
     <mat-form-field>
-      <mat-label>{{ customPlaceholderText }}</mat-label>
+      <!--
+        A placeholder, not a `mat-label`. The date field beside it comments its
+        own label out and names itself through `aria-label`, and the clock uses
+        HH/MM — so the offset was the one control in the temporal row with a
+        floating label, and a floating label rests where Material's own 56px
+        field puts it. Against the 48px CEE renders, its text sat seven pixels
+        below the date's, which is the whole of "UTC aligned strangely". A
+        placeholder occupies the value slot, so it sits where the value it
+        stands in for will sit.
+      -->
       <mat-select
         formControlName="timezone"
         [compareWith]="compareZones"
         (closed)="markTouched()"
+        placeholder="{{ customPlaceholderText }}"
         attr.aria-label="{{ customPlaceholderText }}"
       >
         @for (zone of timeZones; track zone.id) {

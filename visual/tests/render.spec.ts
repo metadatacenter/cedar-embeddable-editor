@@ -1369,6 +1369,86 @@ test.describe('the time picker', () => {
     expect(slack, 'the colons are floating in air').toBeLessThan(12);
   });
 
+  /**
+   * A temporal field is one row of controls, so they line up.
+   *
+   * The offset did not. Editable, it was the row's only control with a floating
+   * label, and a floating label rests where Material's own 56px field puts it —
+   * seven pixels below the date's text in the 48px CEE renders. Read-only it was
+   * bare text, 36px tall and top-aligned against two 48px bordered boxes.
+   *
+   * Both are geometry rather than appearance, so both are measured. A clipped
+   * screenshot of this row would carry the diff too, but it would not say which
+   * of the three moved.
+   */
+  test.describe('a temporal row lines its controls up', () => {
+    const boxes = (page: import('@playwright/test').Page, selectors: Record<string, string>) =>
+      page
+        .locator('app-cedar-input-datetime')
+        .first()
+        .evaluate((host, wanted) => {
+          const out: Record<string, { top: number; height: number } | null> = {};
+          for (const [name, selector] of Object.entries(wanted)) {
+            const element = host.querySelector(selector);
+            const rect = element?.getBoundingClientRect();
+            out[name] = rect ? { top: Math.round(rect.top), height: Math.round(rect.height) } : null;
+          }
+          return out;
+        }, selectors);
+
+    /*
+     * The row stacks below 620px, by a container query — so `top` is only
+     * comparable in the desktop project, while the height each control takes is
+     * the claim at either width. Asserted separately rather than skipping the
+     * narrow project, because a 36px control among 48px ones is the read-only
+     * defect and it stacks just the same.
+     */
+    const inOneRow = (width: number) => width > 620;
+
+    test('editable: the offset reads at the same height as the date', async ({ page }) => {
+      await open(page, '07-timezone');
+
+      const row = await boxes(page, {
+        dateField: '.cee-temporal-date mat-form-field',
+        clock: '.cee-time-input-shell',
+        offsetField: '.cee-temporal-offset mat-form-field',
+        dateText: '.cee-temporal-date input',
+        offsetText: '.mat-mdc-select-value',
+      });
+      const width = page.viewportSize()!.width;
+
+      expect(row.offsetField!.height, 'every control in the row is one height').toBe(row.dateField!.height);
+      expect(row.clock!.height).toBe(row.dateField!.height);
+      expect(row.offsetText!.height, 'the offset text is as tall as the date text').toBe(row.dateText!.height);
+
+      if (inOneRow(width)) {
+        expect(row.offsetField!.top, 'the three controls are one row').toBe(row.dateField!.top);
+        expect(row.clock!.top).toBe(row.dateField!.top);
+        expect(row.offsetText!.top, 'the offset text sits where the date text sits').toBe(row.dateText!.top);
+      }
+    });
+
+    test('readonly: the offset is boxed like the clock beside it', async ({ page }) => {
+      await open(page, '07-timezone', 'readonly');
+
+      const row = await boxes(page, {
+        dateField: '.cee-temporal-date mat-form-field',
+        clock: '.cee-time-picker-readonly',
+        offset: '.cee-offset-readonly',
+      });
+
+      expect(row.clock!.height).toBe(row.dateField!.height);
+      expect(row.offset!.height, 'a read-only offset was bare text, 36px among 48px boxes').toBe(
+        row.dateField!.height,
+      );
+
+      if (inOneRow(page.viewportSize()!.width)) {
+        expect(row.clock!.top).toBe(row.dateField!.top);
+        expect(row.offset!.top).toBe(row.dateField!.top);
+      }
+    });
+  });
+
   test('the 12-hour fields show a meridian control and the others do not', async ({ page }) => {
     await open(page, '09-temporal');
     await expect(page.locator('.cee-time-meridian'), 'only the two 12h fields').toHaveCount(2);

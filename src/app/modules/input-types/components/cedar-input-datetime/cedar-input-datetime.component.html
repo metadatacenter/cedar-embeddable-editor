@@ -43,7 +43,7 @@
 }
 
 @if (showTimezonePicker()) {
-  <div class="cee-temporal-offset">
+  <div class="cee-temporal-offset" [class.cee-temporal-offset-readonly]="readOnlyMode">
     <app-timezone-picker
       [(ngModel)]="timezone"
       (ngModelChange)="timezoneInputChanged($event)"

@@ -40,6 +40,15 @@
   min-width: 14rem;
 }
 
+/*
+ * Read-only there is no dropdown to leave room for, only the offset itself, so
+ * the slot sizes to it — as the read-only clock's already does.
+ */
+.cee-temporal-offset-readonly {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
 .cee-temporal-clear {
   flex: 0 0 auto;
   margin: 0;
