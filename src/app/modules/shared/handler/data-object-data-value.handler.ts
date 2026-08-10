@@ -6,7 +6,7 @@ import { MultiElementComponent } from '../models/element/multi-element-component
 import { DataContext } from '../util/data-context';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
-import { JsonSchema } from 'cedar-model-typescript-library';
+import { InstanceDataAttributeValueFieldName, JsonSchema } from 'cedar-model-typescript-library';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
@@ -33,8 +33,8 @@ import { InputType } from '../models/input-type.model';
  * deletes all of it.
  */
 interface DownstreamObjects {
-  dataSubObject: InstanceNode;
-  parentDataSubObject: InstanceNode;
+  dataSubObject: InstanceNode | null;
+  parentDataSubObject: InstanceNode | null;
   /**
    * The key that got from the parent to this child.
    *
@@ -49,6 +49,30 @@ interface DownstreamObjects {
   childComponent: CedarComponent | null;
   remainingPath: string[];
 }
+
+/**
+ * One change to an attribute-value field: the attribute's name, and what it holds.
+ *
+ * A message, not a node. It travelled as a JSON fragment carrying two reserved
+ * keys — `__reserved__attribute_name` and `__reserved__attribute_value` — which
+ * every layer it passed through had to index and re-narrow, because the keys are
+ * declared as `string` rather than as literals. A pair says the same thing and
+ * the compiler can check it.
+ */
+interface AttributeWrite {
+  /** Null when the slot has no name yet, which is how one starts. */
+  name: string | null;
+  value: InstanceNode;
+}
+
+/**
+ * Whether this write names an attribute.
+ *
+ * The dispatch used to ask whether the JSON fragment carried a reserved key.
+ * A guard over a declared shape asks the same question of a value that has one.
+ */
+const isAttributeWrite = (write: InstanceNode | AttributeWrite): write is AttributeWrite =>
+  typeof write === 'object' && write !== null && !Array.isArray(write) && 'name' in write && 'value' in write;
 
 export class DataObjectDataValueHandler {
   private messageHandlerService: MessageHandlerService;
@@ -76,7 +100,7 @@ export class DataObjectDataValueHandler {
     parent: InstanceExtractData,
     key: string | number,
     target: InstanceExtractData,
-    valueObject: InstanceObject,
+    valueObject: InstanceNode,
     fullPath: string[],
   ): void {
     if (target === null || target === undefined) {
@@ -88,10 +112,18 @@ export class DataObjectDataValueHandler {
       return;
     }
     if (typeof key === 'string' && key.length > 0 && isInstanceObject(parent)) {
-      parent[key] = valueObject;
+      parent.setValue(key, valueObject);
       return;
     }
-    InstanceValueNode.overwrite(target, valueObject);
+    /*
+     * There used to be a third way: overwrite the node in place, reconciling the
+     * five keys a value may carry, because the widgets hold references into the
+     * tree and a node had to keep its identity. A value is an atom now — it has
+     * no identity to keep and nothing to reconcile — so a value that has nowhere
+     * to be put has genuinely nowhere to go, and saying so beats writing it
+     * where nobody will look.
+     */
+    this.messageHandlerService.error('No place to put a value at: ' + fullPath.join(' > '));
   }
 
   private injectArrayValue(target: InstanceExtractData, valueArray: InstanceNode[]): void {
@@ -104,29 +136,20 @@ export class DataObjectDataValueHandler {
   }
 
   /*
-   * Narrower than `InstanceExtractData` on both, because this is the one place that
-   * knows the shape: an attribute-value field keeps its *names* in an array and the
-   * values they name on the parent object. Saying so here is what lets everything
-   * below index without a cast.
+   * Narrower than `InstanceNode` on both, because this is the one place that
+   * knows the shape: an attribute-value field keeps its *names* in an array and
+   * the values they name on the parent container.
    */
   private injectAttributeValue(
     dataObject: InstanceArray,
     currentIndex: number,
     parentDataObject: InstanceObject,
     component: CedarComponent,
-    valueObject: InstanceObject,
+    write: AttributeWrite,
   ): void {
-    /*
-     * Narrowed rather than asserted. `JsonSchema.reservedAttributeName` is declared
-     * `static … : string` in the model library rather than as a literal, so indexing
-     * through it yields `InstanceNode` and no assertion could be checked. A `typeof`
-     * test is checkable: a name that is not a string is treated as absent, which is
-     * the same path a blank name already takes below.
-     */
     const oldNameNode = dataObject[currentIndex];
-    const oldName = typeof oldNameNode === 'string' ? oldNameNode : '';
-    const suppliedName = valueObject[JsonSchema.reservedAttributeName];
-    let newName = typeof suppliedName === 'string' ? suppliedName : '';
+    const oldName = oldNameNode instanceof InstanceDataAttributeValueFieldName ? oldNameNode.name : '';
+    let newName = write.name ?? '';
 
     /*
      * An attribute row is created before its user-defined name exists. Keep that
@@ -138,13 +161,12 @@ export class DataObjectDataValueHandler {
      * context entry rather than silently replacing it with another real name.
      */
     if (!newName) {
-      dataObject[currentIndex] = '';
+      dataObject[currentIndex] = new InstanceDataAttributeValueFieldName('');
       if (oldName) {
-        delete parentDataObject[oldName];
-        const context = parentDataObject[JsonSchema.atContext];
-        if (isInstanceObject(context)) {
-          delete context[oldName];
-        }
+        // One call, and it takes the property IRI with it. Two `delete`s stood
+        // here, on `values` and on the `@context` block, and forgetting the
+        // second left an entry naming a property that was gone.
+        parentDataObject.removeValue(oldName);
       }
       return;
     }
@@ -173,43 +195,34 @@ export class DataObjectDataValueHandler {
     dataObject[currentIndex] = newName;
     const needsDeleting = oldName && newName !== oldName && oldNameIndex === currentIndex;
 
+    // The property IRI moves with the name, so an attribute keeps its identity
+    // across a rename rather than being minted a new one.
+    let propertyIri = needsDeleting ? parentDataObject.iris[oldName] ?? '' : '';
     if (needsDeleting) {
-      // deleting parent old name entry
-      delete parentDataObject[oldName];
+      parentDataObject.removeValue(oldName);
     }
 
-    parentDataObject[newName] = valueObject[JsonSchema.reservedAttributeValue];
+    parentDataObject.setValue(newName, write.value);
 
-    const context = parentDataObject[JsonSchema.atContext];
-    if (isInstanceObject(context)) {
-      if (Object.hasOwn(context, component.name)) {
-        delete context[component.name];
+    // The field's own name is not a property of the instance — only the
+    // attributes it holds are — so it must not be left carrying an identity.
+    parentDataObject.removeIri(component.name);
+
+    if (!parentDataObject.hasIri(newName)) {
+      if (propertyIri.length === 0) {
+        propertyIri = CedarModel.propertyIriPrefix + DataObjectUtil.generateGUID();
       }
-
-      let elemId = '';
-
-      if (needsDeleting) {
-        const existing = context[oldName];
-        elemId = typeof existing === 'string' ? existing : '';
-        delete context[oldName];
-      }
-
-      if (!Object.hasOwn(context, newName)) {
-        if (!elemId || elemId.length === 0) {
-          elemId = CedarModel.propertyIriPrefix + DataObjectUtil.generateGUID();
-        }
-        context[newName] = elemId;
-      }
+      parentDataObject.setIri(newName, propertyIri);
     }
   }
 
   private setDataPathValueRecursively(
-    dataObject: InstanceExtractData,
-    parentDataObject: InstanceExtractData,
+    dataObject: InstanceNode | null,
+    parentDataObject: InstanceNode | null,
     component: CedarComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
     path: string[],
-    valueObject: InstanceNode,
+    valueObject: InstanceNode | AttributeWrite,
     fullPath: string[],
     /** Where `dataObject` sits in `parentDataObject`. Empty only at the root. */
     key = '',
@@ -230,11 +243,11 @@ export class DataObjectDataValueHandler {
         // single value wrapper destined for the current occurrence.
         if (isInstanceArray(valueObject)) {
           this.injectArrayValue(dataObject, valueObject);
-        } else if (isInstanceObject(valueObject) && Object.hasOwn(valueObject, JsonSchema.reservedAttributeName)) {
+        } else if (isAttributeWrite(valueObject)) {
           if (isInstanceArray(dataObject) && isInstanceObject(parentDataObject)) {
             this.injectAttributeValue(dataObject, currentIndex, parentDataObject, component, valueObject);
           }
-        } else if (isInstanceObject(valueObject) && isInstanceArray(dataObject)) {
+        } else if (isInstanceArray(dataObject)) {
           this.placeValue(dataObject, currentIndex, dataObject[currentIndex], valueObject, fullPath);
         }
       }
@@ -257,29 +270,22 @@ export class DataObjectDataValueHandler {
   }
 
   private deleteAttributeValueRecursively(
-    dataObject: InstanceExtractData,
-    parentDataObject: InstanceExtractData,
+    dataObject: InstanceNode | null,
+    parentDataObject: InstanceNode | null,
     component: CedarComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
     path: string[],
-    valueObject: InstanceObject,
+    write: AttributeWrite,
   ): void {
     if (path.length === 0) {
       if (!isInstanceObject(parentDataObject)) {
-        this.messageHandlerService.error('Expected an object to delete an attribute from, found something else');
+        this.messageHandlerService.error('Expected a container to delete an attribute from, found something else');
         return;
       }
-      const nameNode = valueObject[JsonSchema.reservedAttributeName];
-      if (typeof nameNode !== 'string') {
+      if (write.name === null) {
         return;
       }
-      const name = nameNode;
-      delete parentDataObject[name];
-
-      const context = parentDataObject[JsonSchema.atContext];
-      if (isInstanceObject(context)) {
-        delete context[name];
-      }
+      parentDataObject.removeValue(write.name);
     } else {
       const downstream = this.getDownstreamObjects(dataObject, component, multiInstanceObjectService, path);
       if (downstream.childComponent === null) {
@@ -305,15 +311,15 @@ export class DataObjectDataValueHandler {
     const firstPath = path[0];
     const remainingPath = path.slice(1);
     let childComponent: CedarComponent | null = null;
-    let dataSubObject: InstanceNode = null;
-    let parentDataSubObject: InstanceNode = null;
+    let dataSubObject: InstanceNode | null = null;
+    let parentDataSubObject: InstanceNode | null = null;
 
     // A single element and a template both hold their children directly; a multi
     // element holds a list of occurrences and the child sits inside the current one.
     if (component instanceof SingleElementComponent || component instanceof CedarTemplate) {
       childComponent = component.getChildByName(firstPath);
       if (isInstanceObject(dataObject)) {
-        dataSubObject = dataObject[firstPath];
+        dataSubObject = dataObject.values[firstPath] ?? null;
       }
       parentDataSubObject = dataObject;
     } else if (component instanceof MultiElementComponent) {
@@ -323,7 +329,7 @@ export class DataObjectDataValueHandler {
       childComponent = component.getChildByName(firstPath);
       const occurrence = isInstanceArray(dataObject) ? dataObject[currentIndex] : null;
       if (isInstanceObject(occurrence)) {
-        dataSubObject = occurrence[firstPath];
+        dataSubObject = occurrence.values[firstPath] ?? null;
       }
       parentDataSubObject = occurrence;
     }
@@ -447,18 +453,12 @@ export class DataObjectDataValueHandler {
     value: string | null,
   ): void {
     const path = component.path;
-    const valueObject: InstanceObject = {};
 
     if (value && value.length === 0) {
       value = null;
     }
 
-    // Through `InstanceValueNode` rather than assembled here. The shape of a
-    // literal is the library's to decide, and this was the last place in the
-    // handler that named `@value` itself.
-    const obj: InstanceObject = InstanceValueNode.literalValue(value);
-    valueObject[JsonSchema.reservedAttributeName] = key;
-    valueObject[JsonSchema.reservedAttributeValue] = obj;
+    const valueObject: AttributeWrite = { name: key, value: InstanceValueNode.literalValue(value) };
 
     const representation = dataContext.templateRepresentation;
     if (representation === null) {
@@ -488,8 +488,8 @@ export class DataObjectDataValueHandler {
     }
 
     const path = component.path;
-    const valueObject: InstanceObject = {};
-    valueObject[JsonSchema.reservedAttributeName] = key;
+    // The value is not read on this path; only the name says which property goes.
+    const valueObject: AttributeWrite = { name: key, value: InstanceValueNode.emptySlot(false) };
 
     const representation = dataContext.templateRepresentation;
     if (representation === null) {
