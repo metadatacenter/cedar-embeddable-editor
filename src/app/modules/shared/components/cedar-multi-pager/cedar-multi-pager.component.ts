@@ -15,6 +15,7 @@ import { HandlerContext } from '../../util/handler-context';
 import { ComponentTypeHandler } from '../../handler/component-type.handler';
 import { InstanceValueNode } from '../../util/instance-value-node';
 import { InstanceNode } from '../../models/instance-node.model';
+import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 import { valueIsIri } from '../../models/ext-auth-categories.model';
 import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
 import { InputType } from '../../models/input-type.model';
@@ -141,16 +142,17 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
         // Held as a nullable name rather than a boolean so the narrowing survives:
         // a separate `isAttributeValue` flag tells TypeScript nothing about
         // `fieldName`, and every use below would need a cast back to string.
-        const attributeName = typeof fieldName === 'string' && fieldName !== '' ? fieldName : null;
-        if (attributeName === null && typeof fieldName !== 'object') {
-          return;
-        }
-        // The name itself when there is no attribute to look up: a slot with no
-        // name shows the label the pager already has.
+        // An attribute-value occurrence carries its name; the value it names sits
+        // on the parent container under that name. Every other kind of occurrence
+        // is the value itself.
+        const attributeName =
+          fieldName instanceof InstanceDataAttributeValueFieldName && fieldName.name !== '' ? fieldName.name : null;
         const node: InstanceNode | null =
-          attributeName !== null && isInstanceObject(parentNodeInfo)
-            ? parentNodeInfo.values[attributeName] ?? null
-            : InstanceValueNode.literalValue(typeof fieldName === 'string' ? fieldName : null);
+          attributeName !== null
+            ? isInstanceObject(parentNodeInfo)
+              ? parentNodeInfo.values[attributeName] ?? null
+              : null
+            : (fieldName as InstanceNode);
         const shown = this.shortValue(inputType, InstanceValueNode.plainValue(node, iriValued));
         infoArray.push(numStr + (attributeName !== null ? attributeName + '=' : '') + (shown ?? 'null'));
       });
