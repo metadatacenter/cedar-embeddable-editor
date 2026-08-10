@@ -12,7 +12,7 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate, supportsMultiInstance } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { infoOf } from '../src/nodes';
-import { labelOf, literalOf } from '../src/values';
+import { instanceWith, labelOf, literalOf } from '../src/values';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -418,6 +418,8 @@ describe('required values are page-independent', () => {
    */
   it('reports a minItems violation when the element has no instances', () => {
     const driver = new CeeDriver(threeInstances(), {
+      // Hand-written on purpose: the point is a null where a list belongs, which is
+      // something the library will not produce and a host page can still send.
       instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _el: null },
     });
     driver.handlerContext.buildQualityReport();
@@ -487,7 +489,7 @@ describe('required values are page-independent', () => {
 
   it('is valid when no minItems is declared and the element is an empty array', () => {
     const driver = new CeeDriver(noFloorTemplate(), {
-      instance: { '@context': {}, '@id': 'https://example.org/i/2', 'schema:isBasedOn': TEMPLATE_IRI, _el: [] },
+      instance: instanceWith(TEMPLATE_IRI, { _el: [] }, 'https://example.org/i/2'),
     });
     driver.handlerContext.buildQualityReport();
 

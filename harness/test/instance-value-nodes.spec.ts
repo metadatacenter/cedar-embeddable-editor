@@ -25,7 +25,7 @@ import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { linkNode, literalNode, termNode } from '../src/values';
+import { instanceWith, linkNode, literalNode, termNode } from '../src/values';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -65,6 +65,8 @@ describe('what the quality report reads a node as', () => {
   const reportValue = (kind: FieldKind, node: InstanceNode) => {
     const template = buildTemplate({ name: `ivn_${kind.key}`, children: [{ kind, name: 'f' }] });
     const driver = new CeeDriver(template, {
+      // The node under test is supplied by the caller, including shapes the library
+      // would not write, so the envelope around it is written out here too.
       instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: node },
     });
     driver.handlerContext.buildQualityReport();

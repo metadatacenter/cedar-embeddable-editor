@@ -110,7 +110,7 @@ describe('a path inside a multi element resolves through the cursor', () => {
 
     // Against the tree itself, not `driver.extract` — that is a derived view now,
     // so a write through a resolved node would not show up in a fresh copy of it.
-    expect(at(driver.fullData, '_el', 0, '_inner', '@value')).toBe('written through the reference');
+    expect(literalOf(at(driver.fullData, '_el', 0, '_inner'))).toBe('written through the reference');
   });
 });
 
@@ -285,7 +285,7 @@ describe('resolving a specific occurrence, cursor ignored', () => {
     const node = driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [2]) as Record<string, unknown>;
     Object.assign(node, literalNode('written directly'));
 
-    expect(at(driver.fullData, '_el', 2, '_inner', '@value')).toBe('written directly');
+    expect(literalOf(at(driver.fullData, '_el', 2, '_inner'))).toBe('written directly');
   });
 
   it('resolves nothing for an occurrence that does not exist', () => {

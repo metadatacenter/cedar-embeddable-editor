@@ -10,6 +10,8 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at, infoOf } from '../src/nodes';
+import { linkNode, literalOf } from '../src/values';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
@@ -247,10 +249,10 @@ describe('multi-instance elements', () => {
     driver.handlerContext.changeValue(nameField, 'second');
 
     driver.handlerContext.setCurrentIndex(author, 0);
-    expect(at(driver.handlerContext.getDataObjectNodeByPath(['_author', '_name']), '@value')).toBe('first');
+    expect(literalOf(driver.handlerContext.getDataObjectNodeByPath(['_author', '_name']))).toBe('first');
 
     driver.handlerContext.setCurrentIndex(author, 1);
-    expect(at(driver.handlerContext.getDataObjectNodeByPath(['_author', '_name']), '@value')).toBe('second');
+    expect(literalOf(driver.handlerContext.getDataObjectNodeByPath(['_author', '_name']))).toBe('second');
 
     driver.expectNoErrors('per-page writes');
   });
@@ -262,7 +264,7 @@ describe('multi-instance elements', () => {
     driver.handlerContext.copyMultiInstance(author);
 
     const authors = driver.metadata['_author'];
-    const ids = authors.map((a: any) => a['@id']).filter(Boolean);
+    const ids = authors.map((a: any) => a[JsonSchema.atId]).filter(Boolean);
     expect(new Set(ids).size, 'copied instances share an @id').toBe(ids.length);
   });
 
@@ -278,7 +280,7 @@ describe('multi-instance elements', () => {
 
     driver.handlerContext.copyMultiInstance(reference);
 
-    expect(driver.emitted._reference.map((value: any) => value['@id'])).toEqual([
+    expect(driver.emitted._reference.map((value: any) => value[JsonSchema.atId])).toEqual([
       ELEMENT_INSTANCE_IRI,
       ELEMENT_INSTANCE_IRI,
     ]);
@@ -312,8 +314,8 @@ describe('multi-instance elements', () => {
     );
     driver.dataContext.mutate((instance: any) => {
       const outer = instance._outer[0];
-      outer._reference = { '@id': `${ELEMENT_INSTANCE_IRI}/outer-field` };
-      outer._inner._innerReference = { '@id': `${ELEMENT_INSTANCE_IRI}/inner-field` };
+      outer._reference = linkNode(`${ELEMENT_INSTANCE_IRI}/outer-field`);
+      outer._inner._innerReference = linkNode(`${ELEMENT_INSTANCE_IRI}/inner-field`);
       outer._manyInner.forEach((inner: any, index: number) => {
         inner._term = {
           '@id': `${ELEMENT_INSTANCE_IRI}/term-${index}`,
@@ -330,8 +332,8 @@ describe('multi-instance elements', () => {
     expect(source['@id']).toBe(before['@id']);
     expect(copy['@id']).not.toBe(source['@id']);
     expect(copy._inner['@id']).not.toBe(source._inner['@id']);
-    expect(copy._manyInner.map((inner: any) => inner['@id'])).not.toEqual(
-      source._manyInner.map((inner: any) => inner['@id']),
+    expect(copy._manyInner.map((inner: any) => inner[JsonSchema.atId])).not.toEqual(
+      source._manyInner.map((inner: any) => inner[JsonSchema.atId]),
     );
 
     expect(copy._reference['@id']).toBe(source._reference['@id']);

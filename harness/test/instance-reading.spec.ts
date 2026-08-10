@@ -25,7 +25,7 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { infoOf } from '../src/nodes';
-import { literalNode, literalOf } from '../src/values';
+import { instanceWith, literalNode, literalOf } from '../src/values';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -514,7 +514,7 @@ describe('an attribute name with nothing behind it', () => {
   it('is not counted as an attribute', () => {
     const template = buildTemplate({ name: 'ir_blank_attr', children: [{ kind: ATTR, name: 'f' }] });
     const driver = new CeeDriver(template, {
-      instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: [''] },
+      instance: instanceWith(TEMPLATE_IRI, { _f: [''] }, 'https://example.org/i/1'),
     });
     expect(countOf(driver, driver.findOrThrow(['_f']))).toBe(0);
   });

@@ -177,12 +177,17 @@ describe('the full tree', () => {
     const source = artifact.json as Record<string, unknown>;
     const full = InstanceDeserializer.read(artifact.json).full as Record<string, unknown>;
 
-    for (const key of ['@id', 'schema:isBasedOn', 'schema:name', 'schema:description']) {
+    for (const key of [
+      JsonSchema.atId,
+      JsonSchema.schemaIsBasedOn,
+      JsonSchema.schemaName,
+      JsonSchema.schemaDescription,
+    ]) {
       if (source[key] !== undefined) {
         expect(full[key], key).toEqual(source[key]);
       }
     }
-    expect(full['@context'], '@context').toBeDefined();
+    expect(full[JsonSchema.atContext], 'the @context block').toBeDefined();
   });
 
   /**
@@ -233,7 +238,7 @@ describe('what the old walk got wrong', () => {
     // does not declare is not indexable on its union — read it as the record it
     // is, which is also all this loop needs it to be.
     const declared = node as Record<string, string | undefined>;
-    for (const key of ['@value', '@id', 'rdfs:label']) {
+    for (const key of [JsonSchema.atValue, JsonSchema.atId, JsonSchema.rdfsLabel]) {
       if (declared[key] !== undefined) {
         expect(kept[key], key).toBe(declared[key]);
       }

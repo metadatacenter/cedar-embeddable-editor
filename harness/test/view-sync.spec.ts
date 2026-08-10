@@ -25,7 +25,7 @@ import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { linkNode, literalNode, termNode } from '../src/values';
+import { instanceWith, linkNode, literalNode, termNode } from '../src/values';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -531,7 +531,7 @@ describe('paged attribute-value fields', () => {
   it('accepts an empty attribute name without pushing anything', () => {
     const template = buildTemplate({ name: 'vs_attr_blank', children: [{ kind: ATTR, name: 'f' }] });
     const driver = new CeeDriver(template, {
-      instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: [''] },
+      instance: instanceWith(TEMPLATE_IRI, { _f: [''] }, 'https://example.org/i/1'),
     });
     const registry = new ActiveComponentRegistryService();
     const widget = new FakeWidget();
@@ -556,6 +556,8 @@ describe('a paged field the instance has nothing for', () => {
       children: [{ kind: TEXT, name: 'f', cardinality: 'multi', minItems: 1, maxItems: 9 }],
     });
     const driver = new CeeDriver(template, {
+      // Hand-written on purpose: a null where a value belongs is not something the
+      // library will emit, and is exactly what this asserts CEE survives.
       instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: null },
     });
     const registry = new ActiveComponentRegistryService();

@@ -89,7 +89,7 @@ describe('read-only mode', () => {
     const driver = new CeeDriver(template(), { readOnlyMode: true });
     driver.setValue(['_a'], TEXT, 'written anyway');
 
-    expect(at(driver.handlerContext.getDataObjectNodeByPath(['_a']), '@value')).toBe('written anyway');
+    expect(literalOf(driver.handlerContext.getDataObjectNodeByPath(['_a']))).toBe('written anyway');
     driver.expectNoErrors('write in read-only mode');
   });
 });
@@ -252,7 +252,7 @@ describe('element visibility is independent of sibling order', () => {
     const instance = instanceWith(t, [[path, 'a real value']]);
     const driver = new CeeDriver(t, { readOnlyMode: true, hideEmptyFields: true, instance });
     // The value really is in the instance either way.
-    expect(at(driver.handlerContext.getDataObjectNodeByPath(path), '@value')).toBe('a real value');
+    expect(literalOf(driver.handlerContext.getDataObjectNodeByPath(path))).toBe('a real value');
     return driver.findOrThrow(['_outer']).hidden;
   };
 

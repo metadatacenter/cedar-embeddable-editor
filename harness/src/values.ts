@@ -27,6 +27,7 @@ import {
   InstanceDataTypedAtom,
   JsonNode,
   InstanceDataAtomType,
+  InstanceDataContainer,
   JsonTemplateInstanceReader,
   JsonTemplateInstanceWriter,
   TemplateInstanceBuilder,
@@ -149,3 +150,34 @@ export const literalValue = (value: string | null): InstanceDataAtomType => new 
 export const linkValue = (iri: string): InstanceDataAtomType => new InstanceDataLinkAtom(iri);
 export const termValue = (iri: string, label: string): InstanceDataAtomType =>
   new InstanceDataControlledAtom(iri, label);
+
+/**
+ * An element occurrence, and a list of them.
+ *
+ * The instance fixtures that were left after the single-value sweep were the
+ * nested ones: an element carrying children, a multi element carrying several
+ * occurrences of one. `InstanceDataContainer` is what the library calls that,
+ * and `setValue` on it is how a child goes in — so a spec can describe the shape
+ * it wants without writing a nested document.
+ *
+ * `id` is the element instance's own IRI, which CEE mints when it builds one and
+ * a loaded instance carries. Left off where a spec does not care.
+ */
+export const containerValue = (
+  children: Record<string, InstanceDataAtomType>,
+  id: string | null = null,
+): InstanceDataAtomType => {
+  const container = new InstanceDataContainer();
+  Object.entries(children).forEach(([key, atom]) => container.setValue(key, atom));
+  if (id !== null) {
+    container.id = id;
+  }
+  return container;
+};
+
+/** The occurrences of a multi child, in order. */
+export const listValue = (...occurrences: InstanceDataAtomType[]): InstanceDataAtomType =>
+  occurrences as unknown as InstanceDataAtomType;
+
+/** The node a slot holds when nothing has been put in it. */
+export const emptyValue = (): InstanceDataAtomType => new InstanceDataEmptyAtom();
