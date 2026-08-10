@@ -9,11 +9,11 @@ import { defineConfig } from 'vitest/config';
  * the version march rather than during it — a suite that cannot run is a suite
  * that cannot tell you whether a hop broke something.
  *
- * The move is cheap because of what these specs are: seven files that construct
- * classes directly with stub collaborators. Not one uses `TestBed`, so nothing
- * here compiles a component, resolves a `templateUrl`, or needs Angular's JIT
- * compiler or a browser. `harness/` already runs on Vitest, so this is also one
- * runner for the repo instead of two.
+ * The move is cheap because of what these specs are: direct constructions of a
+ * subject with stub collaborators. Not one uses `TestBed`, so nothing here
+ * compiles a component, resolves a `templateUrl`, or needs Angular's JIT compiler
+ * or a browser. `harness/` already runs on Vitest, so this is also one runner for
+ * the repo instead of two.
  *
  * What this deliberately does not do is provide a route for `TestBed` specs. If
  * one is ever wanted, that needs an Angular-aware Vite plugin to inline component
@@ -24,7 +24,7 @@ export default defineConfig({
   test: {
     // Jasmine's `describe`/`it`/`expect` were globals under Karma, and keeping
     // them global is what makes this a runner change rather than a rewrite of
-    // seven files.
+    // every spec.
     globals: true,
     // Three specs touch `document`, `window` or `customElements`.
     environment: 'jsdom',
