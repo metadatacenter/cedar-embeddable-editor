@@ -293,7 +293,11 @@
       "description": "video description",
       "_ui": {
         "inputType": "youtube",
-        "_content": "https://www.youtube.com/watch?v=1NBYWOKo9qo"
+        "_content": "https://www.youtube.com/watch?v=1NBYWOKo9qo",
+        "_size": {
+          "width": 400,
+          "height": 300
+        }
       },
       "schema:name": "video",
       "schema:description": null,

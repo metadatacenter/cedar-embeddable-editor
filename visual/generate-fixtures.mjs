@@ -651,7 +651,11 @@ const writeRaw = (name, document) => {
   const video = field(
     'video',
     () => CedarBuilders.youtubeFieldBuilder(),
-    (b) => opt(b, 'withVideoId', 'https://www.youtube.com/watch?v=1NBYWOKo9qo'),
+    (b) => {
+      b = opt(b, 'withVideoId', 'https://www.youtube.com/watch?v=1NBYWOKo9qo');
+      b = opt(b, 'withWidth', 400);
+      return opt(b, 'withHeight', 300);
+    },
   );
   let tb = common(CedarBuilders.templateBuilder(), 'YouTube', 'templates').withSchemaDescription(
     'A native YouTube embed without the Player API',

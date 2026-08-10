@@ -125,6 +125,17 @@ test('renders YouTube content as a native iframe without the Player API', async 
   await expect(iframe).toHaveAttribute('src', 'https://www.youtube.com/embed/1NBYWOKo9qo');
   await expect(iframe).toHaveAttribute('title', /video/i);
   await expect(iframe).toHaveAttribute('loading', 'lazy');
+  const dimensions = await page.locator('app-cedar-static-youtube').evaluate((component) => {
+    const card = component.querySelector('mat-card')!.getBoundingClientRect();
+    const player = component.querySelector('iframe')!.getBoundingClientRect();
+    return {
+      card: { width: card.width },
+      player: { width: player.width, height: player.height },
+    };
+  });
+  expect(dimensions.card.width).toBeCloseTo(400, 0);
+  expect(dimensions.player.width).toBeCloseTo(398, 0);
+  expect(dimensions.player.width / dimensions.player.height).toBeCloseTo(4 / 3, 2);
   await expect(page.locator('youtube-player')).toHaveCount(0);
   expect(
     await page.locator('script[src="https://www.youtube.com/iframe_api"]').count(),

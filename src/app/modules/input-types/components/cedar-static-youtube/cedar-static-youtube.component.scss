@@ -1,5 +1,14 @@
-.youtube-player {
+.youtube-component {
+  box-sizing: border-box;
+  min-width: 0;
   max-width: 100%;
+}
+
+.youtube-player {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
   border: 0;
 }
 
