@@ -24,6 +24,8 @@ import { CedarBuilders, NumberType, TemporalType } from 'cedar-model-typescript-
 import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { labelOf, xsdTypeOf } from '../src/values';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 /** Every field type that takes a value; static content has no slot. */
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
@@ -161,7 +163,7 @@ describe('the XSD type a numeric or temporal slot declares', () => {
   };
 
   it('uses the declared numeric type', () => {
-    expect(numeric('xsd:int')['@type']).toBe('xsd:int');
+    expect(xsdTypeOf(numeric('xsd:int'))).toBe('xsd:int');
   });
 
   /**
@@ -170,8 +172,8 @@ describe('the XSD type a numeric or temporal slot declares', () => {
    */
   it('never writes a null type', () => {
     const slot = numeric();
-    expect(slot['@type'], 'a null @type was written into the instance').not.toBeNull();
-    expect(slot['@type']).toBe('xsd:decimal');
+    expect(xsdTypeOf(slot), 'a null @type was written into the instance').not.toBeNull();
+    expect(xsdTypeOf(slot)).toBe('xsd:decimal');
   });
 
   it('leaves the type off a temporal field that declares none', () => {
@@ -200,7 +202,7 @@ describe('the XSD type a numeric or temporal slot declares', () => {
       configure: (b: unknown) => (b as any).withTemporalType(TemporalType.DATE),
     };
     const template = buildTemplate({ name: 'sk_tmp_date', children: [{ kind, name: 'f' }] });
-    expect(new CeeDriver(template).emitted._f['@type']).toBe('xsd:date');
+    expect(xsdTypeOf(new CeeDriver(template).emitted._f)).toBe('xsd:date');
   });
 });
 
@@ -223,7 +225,9 @@ describe('the @context the full copy carries', () => {
 
     expect(context.rdfs).toBe('http://www.w3.org/2000/01/rdf-schema#');
     expect(context.xsd).toBe('http://www.w3.org/2001/XMLSchema#');
-    expect(context['rdfs:label']).toEqual({ '@type': 'xsd:string' });
+    expect(context[JsonSchema.rdfsLabel], 'the @context declares rdfs:label as a typed property').toEqual({
+      [JsonSchema.atType]: 'xsd:string',
+    });
     expect(context['pav:createdOn']).toEqual({ '@type': 'xsd:dateTime' });
     expect(typeof context._a).toBe('string');
     expect(typeof context._b).toBe('string');

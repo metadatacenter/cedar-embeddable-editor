@@ -23,12 +23,22 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 
-const kind = (key: string, inputType: string, make: () => unknown, sample: string, extra: Partial<FieldKind> = {}): FieldKind =>
-  ({ key, inputType, make, isStatic: false, write: 'value', sample, ...extra }) as FieldKind;
+const kind = (
+  key: string,
+  inputType: string,
+  make: () => unknown,
+  sample: string,
+  extra: Partial<FieldKind> = {},
+): FieldKind => ({ key, inputType, make, isStatic: false, write: 'value', sample, ...extra }) as FieldKind;
 
 const TEXT = kind('text', 'textfield', () => CedarBuilders.textFieldBuilder(), 'some text');
 const LINK = kind('link', 'link', () => CedarBuilders.linkFieldBuilder(), 'https://example.org/thing');
-const ORCID = kind('orcid', 'ext-orcid', () => CedarBuilders.extOrcidFieldBuilder(), 'https://orcid.org/0000-0002-1825-0097');
+const ORCID = kind(
+  'orcid',
+  'ext-orcid',
+  () => CedarBuilders.extOrcidFieldBuilder(),
+  'https://orcid.org/0000-0002-1825-0097',
+);
 const ROR = kind('ror', 'ext-ror', () => CedarBuilders.extRorFieldBuilder(), 'https://ror.org/00f54p054');
 const NUMERIC = kind('numeric', 'numeric', () => CedarBuilders.numericFieldBuilder(), '0');
 const CONTROLLED = kind('controlled', 'controlled', () => CedarBuilders.controlledTermFieldBuilder(), 'Homo sapiens', {
@@ -150,7 +160,10 @@ describe('what the pager shows for each kind of occurrence', () => {
 
   it('says nothing at all for a field with no occurrences', () => {
     const driver = new CeeDriver(
-      buildTemplate({ name: 'pl_empty', children: [{ kind: TEXT, name: 'f', cardinality: 'multi', minItems: 0, maxItems: 9 }] }),
+      buildTemplate({
+        name: 'pl_empty',
+        children: [{ kind: TEXT, name: 'f', cardinality: 'multi', minItems: 0, maxItems: 9 }],
+      }),
     );
     const component = driver.findOrThrow(['_f']);
     driver.handlerContext.deleteMultiInstance(component);

@@ -27,6 +27,7 @@ import { CedarBuilders } from 'cedar-model-typescript-library';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { literalOf } from '../src/values';
 
 const ATTR: FieldKind = {
   key: 'attr',
@@ -51,7 +52,7 @@ const flat = () => buildTemplate({ name: 'av_flat', children: [{ kind: ATTR, nam
 
 /** The `@value` behind an attribute, or undefined when the key is absent. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const valueOf = (node: any, key: string) => node?.[key]?.['@value'];
+const valueOf = (node: any, key: string) => literalOf(node?.[key]);
 
 /**
  * Add an attribute the way the UI does: make a slot, then name it.

@@ -20,6 +20,7 @@ import { InstanceValueNode } from '@cee/util/instance-value-node';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { corpusInstances } from '../src/corpus';
 import { JsonNode, JsonSchema, JsonTemplateInstanceReader } from 'cedar-model-typescript-library';
+import { linkNode, literalNode, termNode } from '../src/values';
 
 const instances = corpusInstances();
 
@@ -217,12 +218,12 @@ describe('what the old walk got wrong', () => {
   };
 
   it.each([
-    ['a controlled term', { '@id': 'https://x/1', 'rdfs:label': 'One' }],
+    ['a controlled term', termNode('https://x/1', 'One')],
     ['a controlled term with a @type', { '@id': 'https://x/1', 'rdfs:label': 'One', '@type': 'xsd:anyURI' }],
-    ['a link', { '@id': 'https://x/1' }],
+    ['a link', linkNode('https://x/1')],
     ['a link with a @type', { '@id': 'https://x/1', '@type': 'xsd:anyURI' }],
-    ['a literal', { '@value': 'text' }],
-    ['a typed literal', { '@value': '7', '@type': 'xsd:int' }],
+    ['a literal', literalNode('text')],
+    ['a typed literal', literalNode('7', 'xsd:int')],
   ])('keeps the value of %s', (_label, node) => {
     const extract = InstanceDeserializer.read({ ...envelope, _f: node }).extract as Record<string, unknown>;
     // The library normalises which keys a node carries; what must survive is
@@ -247,11 +248,11 @@ describe('what the old walk got wrong', () => {
         '@id': 'https://repo.metadatacenter.org/template-element-instances/1',
         'pav:createdOn': '2026-01-01T00:00:00-08:00',
         'oslc:modifiedBy': 'https://metadatacenter.org/users/1',
-        _child: { '@value': 'kept' },
+        _child: literalNode('kept'),
       },
     }).extract as Record<string, unknown>;
 
-    expect(extract._el).toEqual({ _child: { '@value': 'kept' } });
+    expect(extract._el).toEqual({ _child: literalNode('kept') });
   });
 
   it('strips it from every occurrence of a multi element', () => {
@@ -265,12 +266,12 @@ describe('what the old walk got wrong', () => {
       _el: [occurrence('a'), occurrence('b')],
     }).extract as Record<string, unknown>;
 
-    expect(extract._el).toEqual([{ _child: { '@value': 'a' } }, { _child: { '@value': 'b' } }]);
+    expect(extract._el).toEqual([{ _child: literalNode('a') }, { _child: literalNode('b') }]);
   });
 
   it('strips the instance root', () => {
-    const extract = InstanceDeserializer.read({ ...envelope, _f: { '@value': 'kept' } }).extract;
-    expect(extract).toEqual({ _f: { '@value': 'kept' } });
+    const extract = InstanceDeserializer.read({ ...envelope, _f: literalNode('kept') }).extract;
+    expect(extract).toEqual({ _f: literalNode('kept') });
   });
 });
 
@@ -289,13 +290,13 @@ describe('an attribute-value field comes back in two halves', () => {
       'schema:name': 'An instance with attributes',
       'schema:description': '',
       _av: ['alpha', 'beta'],
-      alpha: { '@value': 'first' },
-      beta: { '@value': 'second' },
+      alpha: literalNode('first'),
+      beta: literalNode('second'),
     }).extract as Record<string, unknown>;
 
     expect(extract._av).toEqual(['alpha', 'beta']);
-    expect(extract.alpha).toEqual({ '@value': 'first' });
-    expect(extract.beta).toEqual({ '@value': 'second' });
+    expect(extract.alpha).toEqual(literalNode('first'));
+    expect(extract.beta).toEqual(literalNode('second'));
   });
 
   it('a field with no attributes yet is an empty list, not absent', () => {
@@ -357,7 +358,7 @@ describe('content the read cannot make a value of', () => {
   it('reports each occurrence of a multi field separately', () => {
     const said = messagesFor({
       ...envelope,
-      _f: [{ 'rdfs:label': 'One' }, { '@value': 'fine' }, { 'rdfs:label': 'Three' }],
+      _f: [{ 'rdfs:label': 'One' }, literalNode('fine'), { 'rdfs:label': 'Three' }],
     });
     expect(said).toHaveLength(2);
     expect(said[0]).toContain('_f[0]');
@@ -365,11 +366,11 @@ describe('content the read cannot make a value of', () => {
   });
 
   it.each([
-    ['a literal', { '@value': 'text' }],
-    ['a link', { '@id': 'https://x/1' }],
-    ['a controlled term', { '@id': 'https://x/1', 'rdfs:label': 'One' }],
+    ['a literal', literalNode('text')],
+    ['a link', linkNode('https://x/1')],
+    ['a controlled term', termNode('https://x/1', 'One')],
     ['an empty field', {}],
-    ['an explicit null', { '@value': null }],
+    ['an explicit null', literalNode(null)],
   ])('says nothing about %s', (_label, node) => {
     expect(messagesFor({ ...envelope, _f: node })).toEqual([]);
   });

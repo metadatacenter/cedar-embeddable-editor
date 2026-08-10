@@ -18,6 +18,7 @@ import { CedarBuilders } from 'cedar-model-typescript-library';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { literalNode } from '../src/values';
 
 let seq = 0;
 const kindOf = (inputType: string, make: () => unknown, configure?: (b: unknown) => unknown): FieldKind =>
@@ -70,7 +71,7 @@ describe('a multi choice field with no default selection', () => {
   });
 
   it('holds empty slots, not fabricated selections', () => {
-    expect(slots(checkboxNoDefaults(), 1)).toEqual([{ '@value': null }]);
+    expect(slots(checkboxNoDefaults(), 1)).toEqual([literalNode(null)]);
   });
 
   it('applies to a list field too', () => {
@@ -98,7 +99,7 @@ describe('a multi choice field with defaults', () => {
     );
 
   it('starts with those defaults selected', () => {
-    expect(slots(withDefaults(), 1)).toEqual([{ '@value': 'Alpha' }, { '@value': 'Gamma' }]);
+    expect(slots(withDefaults(), 1)).toEqual([literalNode('Alpha'), literalNode('Gamma')]);
   });
 
   /**
@@ -111,16 +112,16 @@ describe('a multi choice field with defaults', () => {
 
   it('pads when the defaults fall short of minItems', () => {
     expect(slots(withDefaults(), 4)).toEqual([
-      { '@value': 'Alpha' },
-      { '@value': 'Gamma' },
-      { '@value': null },
-      { '@value': null },
+      literalNode('Alpha'),
+      literalNode('Gamma'),
+      literalNode(null),
+      literalNode(null),
     ]);
   });
 });
 
 describe('a plain multi field is unaffected', () => {
   it('still gets its minItems slots', () => {
-    expect(slots(TEXT, 2)).toEqual([{ '@value': null }, { '@value': null }]);
+    expect(slots(TEXT, 2)).toEqual([literalNode(null), literalNode(null)]);
   });
 });

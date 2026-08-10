@@ -25,6 +25,7 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { infoOf } from '../src/nodes';
+import { literalNode, literalOf } from '../src/values';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -110,7 +111,7 @@ describe('an instance wider than its template', () => {
     first.setValue(['_author', '_name'], TEXT, 'Grace');
 
     const reloaded = new CeeDriver(template, { instance: first.metadata });
-    const names = reloaded.extract._author.map((o: Record<string, { '@value': string }>) => o._name['@value']);
+    const names = reloaded.extract._author.map((o: Record<string, { '@value': string }>) => literalOf(o._name));
     expect(names).toEqual(['Ada', 'Grace']);
   });
 
@@ -181,7 +182,7 @@ describe('occurrences that are not all alike', () => {
     const reloaded = new CeeDriver(template, { instance });
     reloaded.expectNoErrors('reloading an uneven instance');
     expect(countOf(reloaded, reloaded.findOrThrow(['_author']))).toBe(2);
-    expect(reloaded.extract._author[0]._email['@value']).toBe('ada@example.org');
+    expect(literalOf(reloaded.extract._author[0]._email)).toBe('ada@example.org');
   });
 
   it('survives an occurrence that is empty', () => {
@@ -412,7 +413,7 @@ describe('deleting occurrences', () => {
     driver.setValue(['_author', '_name'], TEXT, 'Katherine');
     driver.expectNoErrors('writing after a delete');
 
-    const names = driver.extract._author.map((o: Record<string, { '@value': string }>) => o._name['@value']);
+    const names = driver.extract._author.map((o: Record<string, { '@value': string }>) => literalOf(o._name));
     expect(names).toEqual(['Ada', 'Katherine']);
   });
 });
@@ -450,8 +451,8 @@ describe('attribute values, read back', () => {
 
     expect(countOf(reloaded, reloaded.findOrThrow(['_av']))).toBe(2);
     expect(reloaded.extract._av).toEqual(['colour', 'size']);
-    expect(reloaded.extract.colour['@value']).toBe('blue');
-    expect(reloaded.extract.size['@value']).toBe('large');
+    expect(literalOf(reloaded.extract.colour)).toBe('blue');
+    expect(literalOf(reloaded.extract.size)).toBe('large');
   });
 
   it('restores attributes inside an element', () => {
@@ -467,7 +468,7 @@ describe('attribute values, read back', () => {
     const reloaded = new CeeDriver(template, { instance: first.metadata });
     reloaded.expectNoErrors('reloading an attribute inside an element');
     expect(countOf(reloaded, reloaded.findOrThrow(['_el', '_av']))).toBe(1);
-    expect(reloaded.extract._el.colour['@value']).toBe('blue');
+    expect(literalOf(reloaded.extract._el.colour)).toBe('blue');
   });
 });
 
@@ -526,7 +527,7 @@ describe('an attribute name with nothing behind it', () => {
         '@id': 'https://example.org/i/1',
         'schema:isBasedOn': TEMPLATE_IRI,
         _f: ['colour'],
-        colour: { '@value': 'blue' },
+        colour: literalNode('blue'),
       },
     });
     expect(countOf(driver, driver.findOrThrow(['_f']))).toBe(1);

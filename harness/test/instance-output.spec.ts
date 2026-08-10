@@ -26,6 +26,7 @@ import { CARDINALITIES, FIELD_KINDS } from '../src/axes';
 import { corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { literalNode } from '../src/values';
 
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
 
@@ -179,7 +180,7 @@ describe('the instance says which template it is an instance of', () => {
     >;
     template['@id'] = 'https://repo.metadatacenter.org/templates/injected';
     const driver = new CeeDriver(template, {
-      instance: { '@context': {}, '@id': 'https://example.org/i/9', _f: { '@value': 'loaded' } },
+      instance: { '@context': {}, '@id': 'https://example.org/i/9', _f: literalNode('loaded') },
     });
 
     const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
@@ -188,9 +189,7 @@ describe('the instance says which template it is an instance of', () => {
 
   it('survives into the YAML', () => {
     const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
-    expect(InstanceSerializer.toYaml(driver.fullData)).toContain(
-      'https://repo.metadatacenter.org/templates/abc',
-    );
+    expect(InstanceSerializer.toYaml(driver.fullData)).toContain('https://repo.metadatacenter.org/templates/abc');
   });
 });
 

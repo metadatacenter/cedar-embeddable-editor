@@ -16,6 +16,7 @@ import { JsonTemplateInstanceReader } from 'cedar-model-typescript-library';
 import { CARDINALITIES, FIELD_KINDS, NESTINGS } from '../src/axes';
 import { sweep } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { labelOf, literalOf } from '../src/values';
 
 const CASES = sweep(FIELD_KINDS, CARDINALITIES, NESTINGS);
 const VALUED = CASES.filter((c) => c.kind.write !== 'none');
@@ -39,8 +40,8 @@ const plainValue = (node: any): unknown => {
   if (node === null || node === undefined) return null;
   if (Array.isArray(node)) return node.map((n) => plainValue(n));
   if (typeof node !== 'object') return node;
-  if (node['@value'] !== undefined) return node['@value'];
-  if (node['rdfs:label'] !== undefined) return node['rdfs:label'];
+  if (literalOf(node) !== undefined) return literalOf(node);
+  if (labelOf(node) !== undefined) return labelOf(node);
   if (node['@id'] !== undefined) return node['@id'];
   return null;
 };

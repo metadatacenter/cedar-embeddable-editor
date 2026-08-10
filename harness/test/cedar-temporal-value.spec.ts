@@ -1,17 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import {
-  CedarTemporalConfiguration,
-  CedarTemporalParts,
-  CedarTemporalValue,
-} from '@cee/util/cedar-temporal-value';
+import { CedarTemporalConfiguration, CedarTemporalParts, CedarTemporalValue } from '@cee/util/cedar-temporal-value';
 import { Temporal } from '@cee/models/temporal.model';
 import { Xsd } from '@cee/models/xsd.model';
 
-const config = (
-  temporalType: string,
-  granularity: string,
-  timezoneEnabled = false,
-): CedarTemporalConfiguration => ({ temporalType, granularity, timezoneEnabled });
+const config = (temporalType: string, granularity: string, timezoneEnabled = false): CedarTemporalConfiguration => ({
+  temporalType,
+  granularity,
+  timezoneEnabled,
+});
 
 const parts = (values: Partial<CedarTemporalParts>): CedarTemporalParts => ({
   ...CedarTemporalValue.empty(),

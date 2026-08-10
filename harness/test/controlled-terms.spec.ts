@@ -15,6 +15,7 @@ import { CONSTRAINT_COMBINATIONS, MULTIPLICITY_COMBINATIONS, configureFor } from
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { labelOf } from '../src/values';
 
 const controlledKind = (configure: (b: any) => any): FieldKind => ({
   key: 'term',
@@ -82,7 +83,9 @@ describe('controlled terms across cardinality and nesting', () => {
     { name: 'multi/inMultiElement', cardinality: 'multi' as const, nested: true },
   ];
 
-  const cases = combos.flatMap((combo) => positions.map((pos) => [`${combo.label} @ ${pos.name}`, combo, pos] as const));
+  const cases = combos.flatMap((combo) =>
+    positions.map((pos) => [`${combo.label} @ ${pos.name}`, combo, pos] as const),
+  );
 
   it.each(cases)('%s round-trips a term value', (_label, combo, pos) => {
     const kind = controlledKind(configureFor(combo));
@@ -105,7 +108,7 @@ describe('controlled terms across cardinality and nesting', () => {
     const node: any = driver.handlerContext.getDataObjectNodeByPath(path);
     const one = Array.isArray(node) ? node[0] : node;
     // changeControlledValue writes the IRI plus its label; both must land.
-    expect(one['rdfs:label']).toBe(kind.sample);
+    expect(labelOf(one)).toBe(kind.sample);
     expect(one['@id']).toBe(`https://example.org/terms/${encodeURIComponent(kind.sample)}`);
   });
 });
@@ -129,7 +132,7 @@ describe('controlled term values survive a save/reload cycle', () => {
     const reloaded = new CeeDriver(template, { instance: saved });
     const node: any = reloaded.handlerContext.getDataObjectNodeByPath(['_term']);
 
-    expect(node['rdfs:label']).toBe(kind.sample);
+    expect(labelOf(node)).toBe(kind.sample);
     reloaded.expectNoErrors(`reload ${combo.label}`);
   });
 });

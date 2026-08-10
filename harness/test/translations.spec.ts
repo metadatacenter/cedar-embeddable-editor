@@ -103,7 +103,11 @@ describe('the translation files', () => {
   it.each(LANGUAGES)('%s covers every external authority', (lang) => {
     const authorities = ['Orcid', 'Ror', 'Pfas', 'Pmid', 'Rrid', 'NihGrant', 'Doi'];
     for (const authority of authorities) {
-      for (const key of [`Generic.Filter${authority}`, `Validation.${authority}Invalid`, `Validation.${authority}Reverted`]) {
+      for (const key of [
+        `Generic.Filter${authority}`,
+        `Validation.${authority}Invalid`,
+        `Validation.${authority}Reverted`,
+      ]) {
         expect(maps[lang][key], `${lang} is missing ${key}`).toBeTruthy();
       }
     }

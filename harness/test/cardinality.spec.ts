@@ -12,6 +12,7 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate, supportsMultiInstance } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { infoOf } from '../src/nodes';
+import { labelOf, literalOf } from '../src/values';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -195,7 +196,7 @@ describe('quality report value extraction', () => {
     // The IRI is stored as @id, with no @value...
     const node: any = driver.handlerContext.getDataObjectNodeByPath(['_f']);
     expect(node['@id']).toBe(k.sample);
-    expect(node['@value']).toBeUndefined();
+    expect(literalOf(node)).toBeUndefined();
 
     // ...and the report now reads it.
     expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(1);
@@ -301,7 +302,7 @@ describe('required values are page-independent', () => {
     driver.handlerContext.buildQualityReport();
 
     const node: any = driver.handlerContext.getDataObjectNodeByPath(['_el', '_f']);
-    expect(node['@value'] ?? null, 'page 0 is genuinely empty').toBeNull();
+    expect(literalOf(node) ?? null, 'page 0 is genuinely empty').toBeNull();
     expect(driver.qualityReport.isValid, 'but the instance as a whole satisfies it').toBe(true);
   });
 
@@ -587,7 +588,7 @@ describe('nesting depth', () => {
       for (const i of [0, 1]) {
         driver.handlerContext.setCurrentIndex(inner, i);
         const node: any = driver.handlerContext.getDataObjectNodeByPath(path);
-        expect(node['@value'], `coordinate o${o}i${i} collided`).toBe(`o${o}i${i}`);
+        expect(literalOf(node), `coordinate o${o}i${i} collided`).toBe(`o${o}i${i}`);
       }
     }
     driver.expectNoErrors('deep writes');
@@ -605,7 +606,7 @@ describe('nesting depth', () => {
 
     driver.handlerContext.setCurrentIndex(outer, 0);
     const node: any = driver.handlerContext.getDataObjectNodeByPath(['_outer', '_inner', '_inner_f']);
-    expect(node['@value']).toBe('original');
+    expect(literalOf(node)).toBe('original');
     driver.expectNoErrors('add outer');
   });
 });
@@ -643,7 +644,7 @@ describe('multi fields, every kind that supports it', () => {
       driver.handlerContext.setCurrentIndex(el, 1);
       const node: any = driver.handlerContext.getDataObjectNodeByPath(['_el', '_f']);
       const one = Array.isArray(node) ? node[0] : node;
-      const written = one?.['@value'] ?? one?.['@id'] ?? one?.['rdfs:label'];
+      const written = literalOf(one) ?? one?.['@id'] ?? labelOf(one);
       expect(written ?? null, `${k.key} leaked page 0's value into page 1`).toBeNull();
     },
   );

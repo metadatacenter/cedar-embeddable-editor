@@ -25,6 +25,7 @@ import {
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { FIELD_KINDS } from '../src/axes';
 import { CeeDriver } from '../src/driver';
+import { literalNode } from '../src/values';
 
 const TEMPORAL = FIELD_KINDS.find((k) => k.key === 'temporal')!;
 const NUMERIC = FIELD_KINDS.find((k) => k.key === 'numeric')!;
@@ -34,30 +35,39 @@ const TEXT = FIELD_KINDS.find((k) => k.key === 'text')!;
 const typedTemplate = (): object => {
   const dt = CedarBuilders.temporalFieldBuilder()
     .withAtId('https://repo.metadatacenter.org/template-fields/when')
-    .withTitle('When').withDescription('when').withSchemaName('When').withSchemaDescription('when')
+    .withTitle('When')
+    .withDescription('when')
+    .withSchemaName('When')
+    .withSchemaDescription('when')
     .withTemporalType(TemporalType.DATETIME)
     .withTemporalGranularity(TemporalGranularity.MINUTE)
     .withTimezoneEnabled(true)
     .build();
   const num = CedarBuilders.numericFieldBuilder()
     .withAtId('https://repo.metadatacenter.org/template-fields/count')
-    .withTitle('Count').withDescription('count').withSchemaName('Count').withSchemaDescription('count')
+    .withTitle('Count')
+    .withDescription('count')
+    .withSchemaName('Count')
+    .withSchemaDescription('count')
     .withNumberType(NumberType.DECIMAL)
     .build();
   const text = CedarBuilders.textFieldBuilder()
     .withAtId('https://repo.metadatacenter.org/template-fields/note')
-    .withTitle('Note').withDescription('note').withSchemaName('Note').withSchemaDescription('note')
+    .withTitle('Note')
+    .withDescription('note')
+    .withSchemaName('Note')
+    .withSchemaDescription('note')
     .build();
 
   const dep = (artifact: any, prop: string) =>
-    artifact.createDeploymentBuilder(prop)
-      .withIri(`https://schema.metadatacenter.org/properties/${prop}`)
-      .build();
+    artifact.createDeploymentBuilder(prop).withIri(`https://schema.metadatacenter.org/properties/${prop}`).build();
 
   const template = CedarBuilders.templateBuilder()
     .withAtId('https://repo.metadatacenter.org/templates/typed')
-    .withTitle('Typed').withDescription('typed')
-    .withSchemaName('Typed').withSchemaDescription('typed schema')
+    .withTitle('Typed')
+    .withDescription('typed')
+    .withSchemaName('Typed')
+    .withSchemaDescription('typed schema')
     .addChild(dt, dep(dt, '_when'))
     .addChild(num, dep(num, '_count'))
     .addChild(text, dep(text, '_note'))
@@ -81,22 +91,22 @@ const filled = (): CeeDriver => {
 
 describe('an edited typed value carries its @type in the full copy', () => {
   it('a temporal value carries @type xsd:dateTime', () => {
-    expect(json(filled())._when).toEqual({ '@value': '2026-08-01T13:30:00-07:00', '@type': 'xsd:dateTime' });
+    expect(json(filled())._when).toEqual(literalNode('2026-08-01T13:30:00-07:00', 'xsd:dateTime'));
   });
 
   it('a numeric value carries @type xsd:decimal', () => {
-    expect(json(filled())._count).toEqual({ '@value': '42', '@type': 'xsd:decimal' });
+    expect(json(filled())._count).toEqual(literalNode('42', 'xsd:decimal'));
   });
 
   it('a plain text value carries no @type', () => {
-    expect(json(filled())._note).toEqual({ '@value': 'plain' });
+    expect(json(filled())._note).toEqual(literalNode('plain'));
   });
 
   it('survives a save-then-reload round-trip', () => {
     const saved = json(filled());
     const reloaded = json(new CeeDriver(typedTemplate(), { instance: saved }));
-    expect(reloaded._when).toEqual({ '@value': '2026-08-01T13:30:00-07:00', '@type': 'xsd:dateTime' });
-    expect(reloaded._count).toEqual({ '@value': '42', '@type': 'xsd:decimal' });
+    expect(reloaded._when).toEqual(literalNode('2026-08-01T13:30:00-07:00', 'xsd:dateTime'));
+    expect(reloaded._count).toEqual(literalNode('42', 'xsd:decimal'));
   });
 });
 
@@ -110,17 +120,24 @@ describe('each temporal type stamps its own @type', () => {
   const temporalTemplate = (temporalType: TemporalType, granularity: TemporalGranularity): object => {
     const f = CedarBuilders.temporalFieldBuilder()
       .withAtId('https://repo.metadatacenter.org/template-fields/when')
-      .withTitle('When').withDescription('when').withSchemaName('When').withSchemaDescription('when')
+      .withTitle('When')
+      .withDescription('when')
+      .withSchemaName('When')
+      .withSchemaDescription('when')
       .withTemporalType(temporalType)
       .withTemporalGranularity(granularity)
       .withTimezoneEnabled(true)
       .build();
     const template = CedarBuilders.templateBuilder()
       .withAtId('https://repo.metadatacenter.org/templates/temporal')
-      .withTitle('Temporal').withDescription('temporal')
-      .withSchemaName('Temporal').withSchemaDescription('temporal schema')
-      .addChild(f, f.createDeploymentBuilder('_when')
-        .withIri('https://schema.metadatacenter.org/properties/_when').build())
+      .withTitle('Temporal')
+      .withDescription('temporal')
+      .withSchemaName('Temporal')
+      .withSchemaDescription('temporal schema')
+      .addChild(
+        f,
+        f.createDeploymentBuilder('_when').withIri('https://schema.metadatacenter.org/properties/_when').build(),
+      )
       .build();
     return JSON.parse(JSON.stringify(CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template)));
   };

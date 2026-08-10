@@ -28,6 +28,7 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at } from '../src/nodes';
+import { literalNode, literalOf } from '../src/values';
 
 const TEXT = {
   key: 'text',
@@ -74,7 +75,7 @@ describe('a path inside a multi element resolves through the cursor', () => {
       seen.push(driver.handlerContext.getDataObjectNodeByPath(['_el', '_inner']));
     }
 
-    expect(seen).toEqual([{ '@value': 'value 0' }, { '@value': 'value 1' }, { '@value': 'value 2' }]);
+    expect(seen).toEqual([literalNode('value 0'), literalNode('value 1'), literalNode('value 2')]);
   });
 
   /**
@@ -93,7 +94,7 @@ describe('a path inside a multi element resolves through the cursor', () => {
     driver.handlerContext.setCurrentIndex(element, 1);
     const after = driver.handlerContext.getDataObjectNodeByPath(['_el', '_inner']);
 
-    expect(before).toEqual({ '@value': 'first' });
+    expect(before).toEqual(literalNode('first'));
     expect(after).not.toEqual(before);
   });
 
@@ -105,7 +106,7 @@ describe('a path inside a multi element resolves through the cursor', () => {
   it('returns the live node, not a copy', () => {
     const driver = new CeeDriver(multiElement());
     const node = driver.handlerContext.getDataObjectNodeByPath(['_el', '_inner']) as Record<string, unknown>;
-    node['@value'] = 'written through the reference';
+    Object.assign(node, literalNode('written through the reference'));
 
     // Against the tree itself, not `driver.extract` — that is a derived view now,
     // so a write through a resolved node would not show up in a fresh copy of it.
@@ -262,8 +263,8 @@ describe('resolving a specific occurrence, cursor ignored', () => {
     const { driver, element } = seeded();
     driver.handlerContext.setCurrentIndex(element, 2);
 
-    expect(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [0])).toEqual({ '@value': 'value 0' });
-    expect(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [1])).toEqual({ '@value': 'value 1' });
+    expect(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [0])).toEqual(literalNode('value 0'));
+    expect(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [1])).toEqual(literalNode('value 1'));
   });
 
   it('gives the same answer whatever the cursor is doing', () => {
@@ -274,7 +275,7 @@ describe('resolving a specific occurrence, cursor ignored', () => {
       return driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [1]);
     });
 
-    expect(answers[0]).toEqual({ '@value': 'value 1' });
+    expect(answers[0]).toEqual(literalNode('value 1'));
     expect(answers[1]).toBe(answers[0]);
     expect(answers[2]).toBe(answers[0]);
   });
@@ -282,7 +283,7 @@ describe('resolving a specific occurrence, cursor ignored', () => {
   it('still returns the live node, so a caller can write through it', () => {
     const { driver } = seeded();
     const node = driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [2]) as Record<string, unknown>;
-    node['@value'] = 'written directly';
+    Object.assign(node, literalNode('written directly'));
 
     expect(at(driver.fullData, '_el', 2, '_inner', '@value')).toBe('written directly');
   });

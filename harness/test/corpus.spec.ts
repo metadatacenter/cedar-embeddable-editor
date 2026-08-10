@@ -19,12 +19,7 @@
  * diffed across exactly that change.
  */
 import { describe, expect, it } from 'vitest';
-import {
-  corpusInstances,
-  corpusTemplates,
-  describeTree,
-  hubmapTemplates,
-} from '../src/corpus';
+import { corpusInstances, corpusTemplates, describeTree, hubmapTemplates } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
 
 const templates = corpusTemplates();

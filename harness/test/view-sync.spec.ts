@@ -25,6 +25,7 @@ import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { linkNode, literalNode, termNode } from '../src/values';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -33,12 +34,22 @@ import { CeeDriver } from '../src/driver';
  */
 const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
 
-const kind = (key: string, inputType: string, make: () => unknown, sample: string, extra: Partial<FieldKind> = {}): FieldKind =>
-  ({ key, inputType, make, isStatic: false, write: 'value', sample, ...extra }) as FieldKind;
+const kind = (
+  key: string,
+  inputType: string,
+  make: () => unknown,
+  sample: string,
+  extra: Partial<FieldKind> = {},
+): FieldKind => ({ key, inputType, make, isStatic: false, write: 'value', sample, ...extra }) as FieldKind;
 
 const TEXT = kind('text', 'textfield', () => CedarBuilders.textFieldBuilder(), 'some text');
 const LINK = kind('link', 'link', () => CedarBuilders.linkFieldBuilder(), 'https://example.org/thing');
-const ORCID = kind('orcid', 'ext-orcid', () => CedarBuilders.extOrcidFieldBuilder(), 'https://orcid.org/0000-0002-1825-0097');
+const ORCID = kind(
+  'orcid',
+  'ext-orcid',
+  () => CedarBuilders.extOrcidFieldBuilder(),
+  'https://orcid.org/0000-0002-1825-0097',
+);
 const CONTROLLED = kind('controlled', 'controlled', () => CedarBuilders.controlledTermFieldBuilder(), 'Homo sapiens', {
   write: 'controlled',
   configure: (b: unknown) =>
@@ -101,7 +112,13 @@ const rig = (fieldKind: FieldKind, path: string[] = ['_f'], template?: object, o
   const component = driver.findOrThrow(path);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   registry.registerComponent(component, widget as any);
-  return { driver, registry, widget, component, sync: () => registry.updateViewToModel(component, driver.handlerContext) };
+  return {
+    driver,
+    registry,
+    widget,
+    component,
+    sync: () => registry.updateViewToModel(component, driver.handlerContext),
+  };
 };
 
 describe('single fields', () => {
@@ -387,7 +404,9 @@ describe('hiding empty fields in a repeated element', () => {
   const iriVisibility = (fieldKind: FieldKind, node: InstanceNode) => {
     const template = buildTemplate({
       name: `vs_vis_${fieldKind.key}`,
-      elements: [{ name: 'el', cardinality: 'multi', minItems: 1, maxItems: 9, children: [{ kind: fieldKind, name: 'f' }] }],
+      elements: [
+        { name: 'el', cardinality: 'multi', minItems: 1, maxItems: 9, children: [{ kind: fieldKind, name: 'f' }] },
+      ],
     });
     const driver = new CeeDriver(template, {
       instance: {
@@ -402,24 +421,24 @@ describe('hiding empty fields in a repeated element', () => {
   };
 
   it('shows a filled link', () => {
-    expect(iriVisibility(LINK, { '@id': 'https://example.org/thing' })).toBe(false);
+    expect(iriVisibility(LINK, linkNode('https://example.org/thing'))).toBe(false);
   });
 
   it('shows an EMPTY link too — the emptiness test is a tautology', () => {
-    expect(iriVisibility(LINK, { '@id': '' })).toBe(false);
+    expect(iriVisibility(LINK, linkNode(''))).toBe(false);
   });
 
   it('shows a filled controlled term', () => {
-    expect(iriVisibility(CONTROLLED, { '@id': 'https://x/1', 'rdfs:label': 'One' })).toBe(false);
+    expect(iriVisibility(CONTROLLED, termNode('https://x/1', 'One'))).toBe(false);
   });
 
   it('shows an EMPTY controlled term too — same tautology', () => {
-    expect(iriVisibility(CONTROLLED, { '@id': '', 'rdfs:label': '' })).toBe(false);
+    expect(iriVisibility(CONTROLLED, termNode('', ''))).toBe(false);
   });
 
   it('hides an empty literal, which is the branch that does work', () => {
-    expect(iriVisibility(TEXT, { '@value': '' })).toBe(true);
-    expect(iriVisibility(TEXT, { '@value': 'something' })).toBe(false);
+    expect(iriVisibility(TEXT, literalNode(''))).toBe(true);
+    expect(iriVisibility(TEXT, literalNode('something'))).toBe(false);
   });
 });
 

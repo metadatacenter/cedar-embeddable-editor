@@ -21,6 +21,7 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at } from '../src/nodes';
+import { literalNode, literalOf } from '../src/values';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
@@ -49,7 +50,7 @@ describe('read-only mode', () => {
   });
 
   it('validates an injected instance in a viewer', () => {
-    const bad = { '@context': {}, '@id': 'https://example.org/i/1', _a: { '@value': 'fine' } };
+    const bad = { '@context': {}, '@id': 'https://example.org/i/1', _a: literalNode('fine') };
     const viewer = new CeeDriver(template(), { readOnlyMode: true, hideEmptyFields: true, instance: bad });
     expect(viewer.dataContext.dataQualityReport).not.toBeNull();
     expect(viewer.qualityReport.isValid).toBe(true);
@@ -155,7 +156,7 @@ describe('hideEmptyFields', () => {
       });
 
       expect(viewer.extract._attributes).toEqual(['colour']);
-      expect(viewer.extract.colour['@value']).toBe('blue');
+      expect(literalOf(viewer.extract.colour)).toBe('blue');
       expect(viewer.findOrThrow(['_attributes']).hidden).toBe(false);
     });
 

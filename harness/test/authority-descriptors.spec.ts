@@ -15,10 +15,7 @@
  * side by side is what made that visible. See the PubMed block at the bottom.
  */
 import { describe, expect, it } from 'vitest';
-import {
-  AUTHORITY_DESCRIPTORS,
-  authorityDescriptorFor,
-} from '@cee/models/authority/authority-descriptor.model';
+import { AUTHORITY_DESCRIPTORS, authorityDescriptorFor } from '@cee/models/authority/authority-descriptor.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '@cee/models/ext-auth-categories.model';
 import { InputType } from '@cee/models/input-type.model';
 
@@ -140,12 +137,15 @@ describe('PubMed recognises PubMed identifiers', () => {
   const pmid = authorityDescriptorFor(InputType.pmid)!;
   const pfas = authorityDescriptorFor(InputType.pfas)!;
 
-  it.each(['12345678', 'PMID:12345678', 'PMID: 12345678', 'https://pubmed.ncbi.nlm.nih.gov/12345678', 'https://pubmed.ncbi.nlm.nih.gov/12345678/'])(
-    'accepts %s',
-    (text) => {
-      expect(pmid.looksLikeIdentifier(text)).toBe(true);
-    },
-  );
+  it.each([
+    '12345678',
+    'PMID:12345678',
+    'PMID: 12345678',
+    'https://pubmed.ncbi.nlm.nih.gov/12345678',
+    'https://pubmed.ncbi.nlm.nih.gov/12345678/',
+  ])('accepts %s', (text) => {
+    expect(pmid.looksLikeIdentifier(text)).toBe(true);
+  });
 
   it.each([
     ['a chemical identifier', 'DTXSID1234567'],

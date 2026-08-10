@@ -25,6 +25,7 @@ import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { linkNode, literalNode, termNode } from '../src/values';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -71,7 +72,7 @@ describe('what the quality report reads a node as', () => {
   };
 
   it('reads a controlled term by its label', () => {
-    expect(reportValue(CONTROLLED, { '@id': 'https://x/1', 'rdfs:label': 'One' })).toBe('One');
+    expect(reportValue(CONTROLLED, termNode('https://x/1', 'One'))).toBe('One');
   });
 
   /**
@@ -80,7 +81,7 @@ describe('what the quality report reads a node as', () => {
    * IRI on a link, and the instance carries nothing that distinguishes them.
    */
   it('reads a link by its IRI even when a label came with it', () => {
-    expect(reportValue(LINK, { '@id': 'https://x/1', 'rdfs:label': 'One' })).toBe('https://x/1');
+    expect(reportValue(LINK, termNode('https://x/1', 'One'))).toBe('https://x/1');
   });
 
   /**
@@ -91,16 +92,16 @@ describe('what the quality report reads a node as', () => {
    * instances against 45 carrying labels, so this is not a hypothetical shape.
    */
   it('reads a labelless controlled term by its IRI rather than as empty', () => {
-    expect(reportValue(CONTROLLED, { '@id': 'https://x/1' })).toBe('https://x/1');
+    expect(reportValue(CONTROLLED, linkNode('https://x/1'))).toBe('https://x/1');
   });
 
   it('reads a literal by its value', () => {
-    expect(reportValue(LINK, { '@value': 'plain' })).toBe('plain');
+    expect(reportValue(LINK, literalNode('plain'))).toBe('plain');
   });
 
   it('reads an empty value as nothing', () => {
-    expect(reportValue(CONTROLLED, { '@id': '' })).toBeNull();
-    expect(reportValue(LINK, { '@value': '' })).toBeNull();
+    expect(reportValue(CONTROLLED, linkNode(''))).toBeNull();
+    expect(reportValue(LINK, literalNode(''))).toBeNull();
   });
 });
 
@@ -119,7 +120,7 @@ describe('a labelless controlled term satisfies a requirement', () => {
         '@context': {},
         '@id': 'https://example.org/i/1',
         'schema:isBasedOn': TEMPLATE_IRI,
-        _f: { '@id': 'https://x/1' },
+        _f: linkNode('https://x/1'),
       },
     });
     driver.handlerContext.buildQualityReport();

@@ -39,12 +39,14 @@ const fromYaml = (spec: TemplateSpec) =>
   new CeeDriver(buildTemplateYaml(spec), { templateParser: new YamlTemplateParser() });
 
 /** A minted attribute-value property IRI, non-deterministic like an element-instance `@id`. */
-const MINTED_ATTR = /^https:\/\/schema\.metadatacenter\.org\/properties\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const MINTED_ATTR =
+  /^https:\/\/schema\.metadatacenter\.org\/properties\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const stripAttrIds = (value: unknown): unknown => {
   if (Array.isArray(value)) return value.map(stripAttrIds);
   if (value && typeof value === 'object') {
     const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value)) out[k] = typeof v === 'string' && MINTED_ATTR.test(v) ? '<attr>' : stripAttrIds(v);
+    for (const [k, v] of Object.entries(value))
+      out[k] = typeof v === 'string' && MINTED_ATTR.test(v) ? '<attr>' : stripAttrIds(v);
     return out;
   }
   return value;
@@ -55,8 +57,7 @@ const stripAttrIds = (value: unknown): unknown => {
 // Normalized away — the same treatment the corpus round-trip and snapshot specs
 // give minted ids — leaving everything else, including every written value,
 // compared exactly.
-const emitted = (driver: CeeDriver) =>
-  stripAttrIds(normalize(InstanceSerializer.toJson(driver.fullData)));
+const emitted = (driver: CeeDriver) => stripAttrIds(normalize(InstanceSerializer.toJson(driver.fullData)));
 
 const TEXT = FIELD_KINDS.find((k) => k.key === 'text')!;
 
@@ -74,28 +75,31 @@ describe('a generated template renders the same form whether read as JSON or YAM
   });
 
   it('a field nested in an element renders the same', () => {
-    const spec: TemplateSpec = { name: 'fi_el', elements: [{ name: 'addr', children: [{ kind: TEXT, name: 'city' }] }] };
+    const spec: TemplateSpec = {
+      name: 'fi_el',
+      elements: [{ name: 'addr', children: [{ kind: TEXT, name: 'city' }] }],
+    };
     expect(describeTree(fromYaml(spec).representation)).toEqual(describeTree(fromJson(spec).representation));
   });
 });
 
 describe('a filled field yields the same instance whether the template was JSON or YAML', () => {
-  it.each(writable.map((k) => [k.key, k] as const))(
-    '%s: same emitted instance after a write',
-    (_key, kind) => {
-      const spec: TemplateSpec = { name: `fv_${kind.key}`, children: [{ kind, name: 'f' }] };
-      const viaJson = fromJson(spec);
-      const viaYaml = fromYaml(spec);
-      viaJson.setValue(['_f'], kind, kind.sample);
-      viaYaml.setValue(['_f'], kind, kind.sample);
-      viaJson.expectNoErrors(`${kind.key} via JSON`);
-      viaYaml.expectNoErrors(`${kind.key} via YAML`);
-      expect(emitted(viaYaml)).toEqual(emitted(viaJson));
-    },
-  );
+  it.each(writable.map((k) => [k.key, k] as const))('%s: same emitted instance after a write', (_key, kind) => {
+    const spec: TemplateSpec = { name: `fv_${kind.key}`, children: [{ kind, name: 'f' }] };
+    const viaJson = fromJson(spec);
+    const viaYaml = fromYaml(spec);
+    viaJson.setValue(['_f'], kind, kind.sample);
+    viaYaml.setValue(['_f'], kind, kind.sample);
+    viaJson.expectNoErrors(`${kind.key} via JSON`);
+    viaYaml.expectNoErrors(`${kind.key} via YAML`);
+    expect(emitted(viaYaml)).toEqual(emitted(viaJson));
+  });
 
   it('a value written into a nested element matches across formats', () => {
-    const spec: TemplateSpec = { name: 'fv_el', elements: [{ name: 'addr', children: [{ kind: TEXT, name: 'city' }] }] };
+    const spec: TemplateSpec = {
+      name: 'fv_el',
+      elements: [{ name: 'addr', children: [{ kind: TEXT, name: 'city' }] }],
+    };
     const viaJson = fromJson(spec);
     const viaYaml = fromYaml(spec);
     viaJson.setValue(['_addr', '_city'], TEXT, 'Palo Alto');

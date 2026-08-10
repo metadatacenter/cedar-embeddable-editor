@@ -29,6 +29,7 @@ import { buildTemplate } from '../src/generate';
 import { InstanceValueNode } from '@cee/util/instance-value-node';
 import { CeeDriver, normalize } from '../src/driver';
 import { arrayAt, infoOf } from '../src/nodes';
+import { literalNode, literalOf } from '../src/values';
 
 const TEXT = {
   key: 'text',
@@ -330,11 +331,11 @@ describe('the derived view cannot go stale', () => {
     const driver = new CeeDriver(nested());
 
     const before = driver.extractData;
-    expect(before['_top']).toEqual({ '@value': null });
+    expect(before['_top']).toEqual(literalNode(null));
 
     driver.setValue(['_top'], TEXT, 'written after the first read');
 
-    expect(driver.extractData['_top']).toEqual({ '@value': 'written after the first read' });
+    expect(driver.extractData['_top']).toEqual(literalNode('written after the first read'));
   });
 
   it('reflects an occurrence added after it was first read', () => {
@@ -366,18 +367,18 @@ describe('the derived view cannot go stale', () => {
     void first.extractData;
 
     const second = new CeeDriver(nested(), { instance: first.metadata });
-    expect(second.extractData['_top']).toEqual({ '@value': 'from the first' });
+    expect(second.extractData['_top']).toEqual(literalNode('from the first'));
   });
 
   /** And it is a view, not the tree: writing to it changes nothing. */
   it('is a projection, so writing to it does not reach the instance', () => {
     const driver = new CeeDriver(nested());
     const view = driver.extractData as Record<string, Record<string, unknown>>;
-    view['_top']['@value'] = 'written to the view';
+    Object.assign(view['_top'], literalNode('written to the view'));
 
     driver.dataContext.invalidateDerivedViews();
-    expect(driver.extractData['_top']).toEqual({ '@value': null });
-    expect(driver.fullData['_top']).toEqual({ '@value': null });
+    expect(driver.extractData['_top']).toEqual(literalNode(null));
+    expect(driver.fullData['_top']).toEqual(literalNode(null));
   });
 });
 

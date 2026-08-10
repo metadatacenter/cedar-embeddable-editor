@@ -21,7 +21,10 @@ import { corpusTemplates } from '../src/corpus';
 const labelFor = (template: object): string | null => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const parsed = CedarReaders.json().getFebruary2024().getTemplateReader().readFromObject(template as any).template;
+    const parsed = CedarReaders.json()
+      .getFebruary2024()
+      .getTemplateReader()
+      .readFromObject(template as any).template;
     return parsed.schema_name || null;
   } catch {
     return null;
@@ -29,8 +32,7 @@ const labelFor = (template: object): string | null => {
 };
 
 /** What it used to do. */
-const labelByHand = (template: object): string | null =>
-  (template as Record<string, string>)['schema:name'] || null;
+const labelByHand = (template: object): string | null => (template as Record<string, string>)['schema:name'] || null;
 
 const templates = corpusTemplates();
 

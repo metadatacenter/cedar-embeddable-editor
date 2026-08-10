@@ -21,6 +21,7 @@ import { CedarBuilders, NumberType, TemporalGranularity, TemporalType } from 'ce
 import { FieldKind, FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { linkNode, literalNode, termNode } from '../src/values';
 
 const TEXT = FIELD_KINDS.find((k) => k.inputType === 'textfield')!;
 const CONTROLLED = FIELD_KINDS.find((k) => k.inputType === 'controlled')!;
@@ -377,7 +378,7 @@ describe('cardinality', () => {
     });
     const seed = new CeeDriver(template);
     const instance: any = seed.metadata;
-    instance._f = [{ '@value': 'only one' }];
+    instance._f = [literalNode('only one')];
 
     const driver = new CeeDriver(template, { instance });
     expect(driver.qualityReport.problems.map((p: any) => p.code)).toContain('minItems');
@@ -401,7 +402,7 @@ describe('controlled term structure', () => {
   };
 
   it('reports an @id with no label', () => {
-    expect(withNode({ '@id': 'https://example.org/t/1' })).toContain('controlledStructure');
+    expect(withNode(linkNode('https://example.org/t/1'))).toContain('controlledStructure');
   });
 
   /**
@@ -455,17 +456,17 @@ describe('controlled term structure', () => {
   });
 
   it('reports a malformed @id', () => {
-    expect(withNode({ '@id': 'banana', 'rdfs:label': 'Banana' })).toContain('iriMalformed');
+    expect(withNode(termNode('banana', 'Banana'))).toContain('iriMalformed');
   });
 
   it('accepts a well-formed pair', () => {
-    expect(withNode({ '@id': 'https://example.org/t/1', 'rdfs:label': 'Term' })).toEqual([]);
+    expect(withNode(termNode('https://example.org/t/1', 'Term'))).toEqual([]);
   });
 
   it('does not attempt membership, so an unrelated term passes', () => {
     // Pinned so the boundary is explicit rather than an accident: this term
     // belongs to no declared ontology and is still accepted.
-    expect(withNode({ '@id': 'https://example.org/not-in-any-ontology', 'rdfs:label': 'Elsewhere' })).toEqual([]);
+    expect(withNode(termNode('https://example.org/not-in-any-ontology', 'Elsewhere'))).toEqual([]);
   });
 });
 

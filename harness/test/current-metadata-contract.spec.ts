@@ -27,7 +27,7 @@ import { buildTemplate } from '../src/generate';
 import { FIELD_KINDS } from '../src/axes';
 import { CeeDriver } from '../src/driver';
 import { JsonSchema } from 'cedar-model-typescript-library';
-import { instanceWith, iriOf, literalValue } from '../src/values';
+import { instanceWith, iriOf, labelOf, literalValue } from '../src/values';
 
 const TEXT = FIELD_KINDS.find((k) => k.key === 'text')!;
 const CONTROLLED = FIELD_KINDS.find((k) => k.key === 'controlled')!;
@@ -105,7 +105,7 @@ describe('currentMetadata collects each field shape the host renders', () => {
     driver.setValue(['_organism'], CONTROLLED, 'Homo sapiens');
     driver.expectNoErrors('controlled collect');
     const value = currentMetadata(driver)['_organism'] as Record<string, unknown>;
-    expect(value['rdfs:label']).toBe('Homo sapiens');
+    expect(labelOf(value)).toBe('Homo sapiens');
     expect(typeof iriOf(value), 'a controlled term carries an IRI').toBe('string');
   });
 
