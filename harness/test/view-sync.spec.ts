@@ -26,6 +26,7 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { instanceWith, linkNode, literalNode, termNode } from '../src/values';
+import { arrayAt } from '../src/nodes';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
@@ -467,10 +468,15 @@ describe('paged attribute-value fields', () => {
   /**
    * Copying an occurrence leaves both pages pointing at the same attribute
    * name. The sync notices — the name at the cursor equals the one before it —
-   * and gives the copy a name of its own before showing it, so the two stop
-   * being the same attribute.
+   * and clears the copy's, so the two stop being the same attribute.
+   *
+   * The copy used to be given a manufactured name instead, `Attribute Value
+   * Field2`. Naming it is the user's to do: a property they never asked for
+   * would reach the instance and be saved, and there is nothing to distinguish
+   * it from one they meant. An unnamed slot is the same state a freshly added
+   * one is in, which is the case below.
    */
-  it('renames a copied attribute so the pages stop sharing one', () => {
+  it('unnames a copied attribute so the pages stop sharing one', () => {
     const r = attrRig();
     r.driver.handlerContext.addMultiInstance(r.component);
     r.driver.handlerContext.changeAttributeValue(r.component, 'colour', 'blue');
@@ -479,9 +485,10 @@ describe('paged attribute-value fields', () => {
     r.sync();
     r.driver.expectNoErrors('syncing a copied attribute');
 
-    const names: string[] = r.driver.extract._f;
-    expect(new Set(names).size, `copy left both pages on the same name: ${names.join(', ')}`).toBe(2);
-    expect(r.widget.last).toEqual({ [names[1]]: 'blue' });
+    // The working tree rather than the extract: an unnamed slot is not a
+    // property, so the extract has nothing to carry it as.
+    expect(arrayAt(r.driver.fullData, '_f'), 'the copy kept the name it was copied from').toEqual(['colour', '']);
+    expect(r.widget.last).toEqual({ '': null });
   });
 
   it('leaves a field with no attributes alone', () => {
@@ -493,19 +500,23 @@ describe('paged attribute-value fields', () => {
   /**
    * The pager's "+" makes a slot before the user has named anything, and it
    * makes the same empty value wrapper every other field type gets — so the
-   * slot holds `{'@value': null}` where an attribute name is expected. The
-   * sync spots that and names it, rather than showing the wrapper.
+   * slot holds `{'@value': null}` where an attribute name is expected. The sync
+   * spots that and replaces it with an empty name, rather than showing the
+   * wrapper.
+   *
+   * Empty, not manufactured. The slot used to become `Attribute Value Field1`
+   * on sight, so a user who clicked "+" and then stopped had a property in
+   * their instance that they never named and could not tell apart from one they
+   * had. It stays unnamed until they type.
    */
-  it('names a slot that was just added and has no name yet', () => {
+  it('leaves a slot that was just added unnamed', () => {
     const r = attrRig();
     r.driver.handlerContext.addMultiInstance(r.component);
     r.sync();
     r.driver.expectNoErrors('syncing a freshly added attribute slot');
 
-    const names: string[] = r.driver.extract._f;
-    expect(names).toHaveLength(1);
-    expect(names[0], 'the new slot was left unnamed').toBeTruthy();
-    expect(r.widget.last).toEqual({ [names[0]]: null });
+    expect(arrayAt(r.driver.fullData, '_f')).toEqual(['']);
+    expect(r.widget.last).toEqual({ '': null });
   });
 
   /**
