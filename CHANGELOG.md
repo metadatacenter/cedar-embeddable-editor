@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-dev.20260810.ab37f62] - 2026-08-10
+
+### Changed
+
+- CEE reads no key constant from the model library. It imported two — the name given to
+  an attribute whose name collides with another, which is CEE's own product decision and
+  now lives here, and the namespace property IRIs are minted in, which the library exposes
+  as `PropertyIri` along with both ways one is arrived at. Neither was a serialization key.
+- Requires `@org.metadatacenter/cedar-model-typescript-library@0.9.2-dev.20260810.b48728a`,
+  which stops exporting `JsonSchema`, `YamlKeys` and `CedarModel`. Those are the spelling
+  tables its readers and writers use to describe a document; a consumer works in artifacts
+  and asks for a serialization by name, at the edge, from a writer.
+- The external authority service no longer reads a response shape no authority sends. A
+  branch handled `results` arriving as a list of terms and named the keys such a term would
+  carry; it came from a guard in the widget one layer downstream, where the value being
+  tested was the service's own output. A response that is not the documented map now yields
+  no terms.
+
 ## [1.6.0-dev.20260810.e4b63f4] - 2026-08-10
 
 ### Changed
