@@ -10,7 +10,7 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at, infoOf } from '../src/nodes';
-import { linkNode, literalOf, termNode } from '../src/values';
+import { linkNode, literalOf, termNode, heldValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
@@ -249,10 +249,10 @@ describe('multi-instance elements', () => {
     driver.handlerContext.changeValue(nameField, 'second');
 
     driver.handlerContext.setCurrentIndex(author, 0);
-    expect(literalOf(driver.handlerContext.getDataObjectNodeByPath(['_author', '_name']))).toBe('first');
+    expect(heldValue(driver.handlerContext.getDataObjectNodeByPath(['_author', '_name']))).toBe('first');
 
     driver.handlerContext.setCurrentIndex(author, 1);
-    expect(literalOf(driver.handlerContext.getDataObjectNodeByPath(['_author', '_name']))).toBe('second');
+    expect(heldValue(driver.handlerContext.getDataObjectNodeByPath(['_author', '_name']))).toBe('second');
 
     driver.expectNoErrors('per-page writes');
   });
