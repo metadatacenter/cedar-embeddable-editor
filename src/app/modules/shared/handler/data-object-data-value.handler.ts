@@ -126,7 +126,7 @@ export class DataObjectDataValueHandler {
     this.messageHandlerService.error('No place to put a value at: ' + fullPath.join(' > '));
   }
 
-  private injectArrayValue(target: InstanceExtractData, valueArray: InstanceNode[]): void {
+  private injectArrayValue(target: InstanceNode | null, valueArray: InstanceNode[]): void {
     if (!isInstanceArray(target)) {
       this.messageHandlerService.error('Expected a list of occurrences to replace, found something else');
       return;
@@ -229,7 +229,7 @@ export class DataObjectDataValueHandler {
   ): void {
     if (path.length === 0) {
       if (component instanceof SingleFieldComponent) {
-        if (isInstanceObject(valueObject)) {
+        if (!isAttributeWrite(valueObject)) {
           this.placeValue(parentDataObject, key, dataObject, valueObject, fullPath);
         }
       } else {
@@ -241,14 +241,14 @@ export class DataObjectDataValueHandler {
         // Three shapes arrive here and the branch order is the discrimination: a
         // wrapper carrying a reserved attribute name, a list of occurrences, or a
         // single value wrapper destined for the current occurrence.
-        if (isInstanceArray(valueObject)) {
+        if (!isAttributeWrite(valueObject) && isInstanceArray(valueObject)) {
           this.injectArrayValue(dataObject, valueObject);
         } else if (isAttributeWrite(valueObject)) {
           if (isInstanceArray(dataObject) && isInstanceObject(parentDataObject)) {
             this.injectAttributeValue(dataObject, currentIndex, parentDataObject, component, valueObject);
           }
         } else if (isInstanceArray(dataObject)) {
-          this.placeValue(dataObject, currentIndex, dataObject[currentIndex], valueObject, fullPath);
+          this.placeValue(dataObject, currentIndex, dataObject[currentIndex] ?? null, valueObject, fullPath);
         }
       }
     } else {
@@ -297,7 +297,7 @@ export class DataObjectDataValueHandler {
         downstream.childComponent,
         multiInstanceObjectService,
         downstream.remainingPath,
-        valueObject,
+        write,
       );
     }
   }

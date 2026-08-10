@@ -1,13 +1,13 @@
 import { InstanceNode } from './instance-node.model';
 
 /**
- * A node in the extract view of an instance — the tree CEE hands out as
- * `currentMetadata`, without the `@context` and type machinery.
+ * A node reached by walking a path, which may not be there.
  *
- * An alias for `InstanceNode` rather than a type of its own: extract and full
- * differ in *what they contain*, not in the shape of a node, and giving them
- * distinct node types would claim a distinction the documents do not have. The
- * names are kept because they say which tree a value came from, which is a
- * genuine and frequently-confused difference at the call sites.
+ * Nullable, because every producer of one already answers null for a path that
+ * names nothing — a field on a page that has no occurrence, a child of an
+ * element the instance does not carry. The alias said `InstanceNode` and the
+ * nulls flowed anyway, hidden while a node was plain parsed JSON and `null` was
+ * one of the shapes it could be. A container or an atom is not null, so the
+ * declaration has to say what the walk actually returns.
  */
-export type InstanceExtractData = InstanceNode;
+export type InstanceExtractData = InstanceNode | null;

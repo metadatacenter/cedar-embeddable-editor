@@ -275,8 +275,8 @@ export class DataQualityReportBuilderHandler {
    */
   private static collectFieldProblems(
     component: FieldComponent,
-    displayedNode: InstanceNode,
-    instance: InstanceNode,
+    displayedNode: InstanceNode | null,
+    instance: InstanceNode | null,
     report: DataQualityReport,
   ): void {
     const nodes = DataQualityReportBuilderHandler.collectNodes(component.path, instance);
@@ -324,7 +324,7 @@ export class DataQualityReportBuilderHandler {
    */
   private static collectPresenceProblems(
     component: InspectedComponent,
-    instance: InstanceNode,
+    instance: InstanceNode | null,
     report: DataQualityReport,
   ): void {
     const path: string[] = component?.path ?? [];
@@ -341,7 +341,7 @@ export class DataQualityReportBuilderHandler {
 
     for (const parent of parents) {
       const present = isInstanceObject(parent) && Object.hasOwn(parent, name);
-      const value = present ? parent[name] : undefined;
+      const value = present ? parent.values[name] : undefined;
       // An array is the only shape that satisfies this, which is what the gate
       // asks for — `[]` included. Worth testing the shape rather than just
       // presence: an injected `null` does not survive as `null`. It is read into
@@ -419,7 +419,7 @@ export class DataQualityReportBuilderHandler {
   }
 
   /** Every node at `path`, branching into every array entry. Cursor-free, like findAnyValue. */
-  private static collectNodes(path: string[], node: InstanceNode, acc: InstanceNode[] = []): InstanceNode[] {
+  private static collectNodes(path: string[], node: InstanceNode | null, acc: InstanceNode[] = []): InstanceNode[] {
     if (node === null || node === undefined) {
       return acc;
     }
@@ -443,7 +443,7 @@ export class DataQualityReportBuilderHandler {
     if (!isInstanceObject(node) || !Object.hasOwn(node, head)) {
       return acc;
     }
-    return DataQualityReportBuilderHandler.collectNodes(rest, node[head], acc);
+    return DataQualityReportBuilderHandler.collectNodes(rest, node.values[head] ?? null, acc);
   }
 
   private static getEmptyValueWrapper(
@@ -480,7 +480,7 @@ export class DataQualityReportBuilderHandler {
    */
   private static findAnyValue(
     path: string[],
-    node: InstanceNode,
+    node: InstanceNode | null,
     component: SingleFieldComponent | MultiFieldComponent,
   ): unknown {
     if (node === null || node === undefined) {
@@ -505,7 +505,7 @@ export class DataQualityReportBuilderHandler {
     if (!isInstanceObject(node) || !Object.hasOwn(node, head)) {
       return null;
     }
-    return DataQualityReportBuilderHandler.findAnyValue(rest, node[head], component);
+    return DataQualityReportBuilderHandler.findAnyValue(rest, node.values[head] ?? null, component);
   }
 
   private static getEmptyList(): ReportList {
@@ -524,7 +524,7 @@ export class DataQualityReportBuilderHandler {
    * the template: `{@id, rdfs:label}` shows its label for a controlled term and
    * its IRI for a link, and the instance cannot tell those apart.
    */
-  private static extractPlainValue(dataObject: InstanceNode, component: SingleFieldComponent | MultiFieldComponent) {
+  private static extractPlainValue(dataObject: InstanceNode | null, component: SingleFieldComponent | MultiFieldComponent) {
     return InstanceValueNode.plainValue(dataObject, this.isIriValued(component));
   }
 

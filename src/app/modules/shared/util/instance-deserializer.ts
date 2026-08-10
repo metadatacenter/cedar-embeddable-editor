@@ -1,15 +1,12 @@
 import {
   CedarReaders,
-  CedarWriters,
   InstanceDataAtomType,
-  InstanceDataAttributeValueField,
-  InstanceDataEmptyAtom,
   InstanceDataContainer,
-  JsonTemplateInstanceWriter,
+  InstanceDataEmptyAtom,
   TemplateInstance,
   JsonNode,
 } from 'cedar-model-typescript-library';
-import { InstanceNode, InstanceObject } from '../models/instance-node.model';
+import { InstanceObject } from '../models/instance-node.model';
 
 /**
  * Take in an instance a host page handed us.
@@ -27,17 +24,15 @@ import { InstanceNode, InstanceObject } from '../models/instance-node.model';
  * deleted, so the field showed empty and saving wrote the loss back.
  *
  * Here the document is read once, by the library, which classifies every node
- * while parsing and records the answer in the node's type. The two trees CEE
- * works with are then *projections* of that model:
+ * while parsing and records the answer in the node's type — and what comes back
+ * is what CEE then edits. There is nothing to project.
  *
- * - `full` is what the library writes back — the whole artifact, envelope and
- *   all, normalised to what CEDAR says an instance looks like.
- * - `extract` is the same model with the envelope left off, which is what the
- *   handlers and the quality report read.
- *
- * Both stay plain mutable objects, because the widgets hold references into
- * them and edit them in place. The point is not that CEE stops using objects —
- * it is that no code here decides what a node means by looking at its keys.
+ * There was. The model was written straight back out to two JSON trees: `full`,
+ * the whole artifact, and `extract`, the same thing with the envelope left off.
+ * Four private methods walked the model rebuilding it as plain objects, because
+ * plain objects were what CEE's handlers knew how to edit. They edit the model
+ * now, so the walk is gone: `full` is the instance and `extract` is its data
+ * container, which *is* the instance without its envelope.
  */
 export class InstanceDeserializer {
   /**
@@ -48,9 +43,9 @@ export class InstanceDeserializer {
    * *can* report is the point — a silent discard is the thing being fixed.
    */
   static read(
-    instanceJson: InstanceObject,
+    instanceJson: object,
     report?: (message: string) => void,
-  ): { full: InstanceObject; extract: InstanceObject } {
+  ): { full: TemplateInstance; extract: InstanceObject } {
     const instance = CedarReaders.json()
       .getFebruary2024()
       .getTemplateInstanceReader()
@@ -60,10 +55,7 @@ export class InstanceDeserializer {
       InstanceDeserializer.reportDiscarded(instance.dataContainer, [], report);
     }
 
-    return {
-      full: InstanceDeserializer.writeFull(instance),
-      extract: InstanceDeserializer.container(instance.dataContainer),
-    };
+    return { full: instance, extract: instance.dataContainer };
   }
 
   /**
@@ -105,61 +97,6 @@ export class InstanceDeserializer {
         `The instance has no usable value for "${path.join(' > ')}": ${JSON.stringify(node.discarded)} is neither a ` +
           'literal nor an IRI, so the field is empty. A label with no @id names no term.',
       );
-    }
-  }
-
-  private static writeFull(instance: TemplateInstance): InstanceObject {
-    return CedarWriters.json().getFebruary2024().getTemplateInstanceWriter().getAsJsonNode(instance) as InstanceObject;
-  }
-
-  /**
-   * One element's worth of the extract: its children, and nothing of itself.
-   *
-   * An element occurrence carries an `@id` and provenance in the full tree. The
-   * extract has neither, at any depth — that is the whole difference between
-   * the two trees.
-   */
-  private static container(container: InstanceDataContainer): InstanceObject {
-    const out: InstanceObject = {};
-    for (const key of Object.keys(container.values)) {
-      const node = container.values[key];
-      if (node instanceof InstanceDataAttributeValueField) {
-        InstanceDeserializer.attributeValueField(node, key, out);
-      } else {
-        out[key] = InstanceDeserializer.node(node);
-      }
-    }
-    return out;
-  }
-
-  /** A value, an element, or a list of either — dispatched on type, not shape. */
-  private static node(node: InstanceDataAtomType): InstanceNode {
-    // The three arms are the three shapes an instance node has, which is why the
-    // return type can be `InstanceNode` rather than `unknown`: a list of children,
-    // a container, or the JSON a value node is written as.
-    if (Array.isArray(node)) {
-      return (node as InstanceDataAtomType[]).map((item) => InstanceDeserializer.node(item));
-    }
-    if (node instanceof InstanceDataContainer) {
-      return InstanceDeserializer.container(node);
-    }
-    return JsonTemplateInstanceWriter.writeValueNode(node) as InstanceObject;
-  }
-
-  /**
-   * An attribute-value field, unpicked into the two halves CEE keeps.
-   *
-   * The library pairs the field's attribute names with their values and holds
-   * both on one node. CEE's trees predate that and keep them apart: the field's
-   * own key holds the list of names, and each named attribute sits on the
-   * enclosing object as a value in its own right — which is also how it appears
-   * in the instance CEE writes back out.
-   */
-  private static attributeValueField(field: InstanceDataAttributeValueField, key: string, out: InstanceObject): void {
-    const names = Object.keys(field.values);
-    out[key] = names.slice();
-    for (const name of names) {
-      out[name] = JsonTemplateInstanceWriter.writeValueNode(field.values[name]) as InstanceObject;
     }
   }
 }

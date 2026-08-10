@@ -55,7 +55,7 @@ export class DataObjectStructureHandler {
       if (component instanceof SingleElementComponent || component instanceof CedarTemplate) {
         childComponent = component.getChildByName(firstPath);
         if (isInstanceObject(dataObject)) {
-          dataSubObject = dataObject[firstPath];
+          dataSubObject = dataObject.values[firstPath] ?? null;
         }
       } else if (component instanceof MultiElementComponent) {
         const occurrence = selectOccurrence(component);
@@ -67,7 +67,7 @@ export class DataObjectStructureHandler {
         if (isInstanceArray(dataObject)) {
           const node = dataObject[occurrence];
           if (isInstanceObject(node)) {
-            dataSubObject = node[firstPath];
+            dataSubObject = node.values[firstPath] ?? null;
           }
         }
       }
@@ -104,7 +104,7 @@ export class DataObjectStructureHandler {
       if (component instanceof SingleElementComponent || component instanceof CedarTemplate) {
         childComponent = component.getChildByName(firstPath);
         if (isInstanceObject(dataObject)) {
-          dataSubObject = dataObject[firstPath];
+          dataSubObject = dataObject.values[firstPath] ?? null;
         }
         parentDataSubObject = dataObject;
       } else if (component instanceof MultiElementComponent) {
@@ -116,7 +116,7 @@ export class DataObjectStructureHandler {
         childComponent = component.getChildByName(firstPath);
         const node = isInstanceArray(dataObject) ? dataObject[occurrence] : null;
         if (isInstanceObject(node)) {
-          dataSubObject = node[firstPath];
+          dataSubObject = node.values[firstPath] ?? null;
         }
         parentDataSubObject = node;
       }
@@ -177,8 +177,12 @@ export class DataObjectStructureHandler {
     DataObjectBuilderHandler.setCurrentCountToMinRecursively(cloneComponent, component.path);
     // The `@context` each new occurrence needs travels on the component, so
     // there is no sub-template to find first.
+    if (!isInstanceObject(dataObject)) {
+      messageHandlerService.error('Expected a container to build a new occurrence into');
+      return;
+    }
     this.dataObjectBuilderService.buildRecursively(cloneComponent, dataObject, buildingMode);
-    const built = isInstanceObject(dataObject) ? dataObject[component.name] : null;
+    const built = isInstanceObject(dataObject) ? dataObject.values[component.name] ?? null : null;
     const newDataObject = isInstanceArray(built) ? built[0] : null;
     const currentNodeAny = this.getDataPathNodeRecursively(
       instanceObject,
@@ -190,7 +194,7 @@ export class DataObjectStructureHandler {
     // and the check that followed only asked whether it was present — so a node
     // holding a non-empty string passed the test and threw on `.splice`. The guard
     // asks the question the assertion was pretending to answer.
-    if (isInstanceArray(currentNodeAny)) {
+    if (isInstanceArray(currentNodeAny) && newDataObject !== null) {
       currentNodeAny.splice(multiInstanceInfo.currentIndex + 1, 0, newDataObject);
     } else {
       messageHandlerService.error('missing data in instance:' + component.path);
@@ -294,11 +298,13 @@ export class DataObjectStructureHandler {
     }
 
     const occurrence = item;
-    delete occurrence[JsonSchema.atId];
+    // `id` on the container, not a property written into it: an occurrence's
+    // identity is the model's, and a copy must not inherit the original's.
+    occurrence.id = null;
     this.dataObjectBuilderService.addRandomAtId(occurrence);
 
     for (const childComponent of component.children) {
-      const childValue = occurrence[childComponent.name];
+      const childValue = occurrence.values[childComponent.name] ?? null;
       if (childComponent instanceof SingleElementComponent) {
         this.remintElementInstanceIds(childValue, childComponent);
       } else if (childComponent instanceof MultiElementComponent && Array.isArray(childValue)) {
