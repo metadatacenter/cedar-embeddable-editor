@@ -17,7 +17,7 @@ import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-libr
 const attributeNameOf = (node: InstanceNode | undefined): string | null =>
   node instanceof InstanceDataAttributeValueFieldName ? node.name : null;
 import { AuthorityTerm } from '../models/authority/authority-search-response.model';
-import { InstanceNode, InstanceObject, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
+import { InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
 @Injectable({
   providedIn: 'root',

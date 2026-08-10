@@ -1,13 +1,4 @@
-import {
-  CedarReaders,
-  CedarWriters,
-  InstanceInflater,
-  JsonNode,
-  Template,
-  TemplateInstance,
-} from 'cedar-model-typescript-library';
-import { InstanceFullData } from '../models/instance-full-data.model';
-import { InstanceObject } from '../models/instance-node.model';
+import { CedarWriters, InstanceInflater, JsonNode, Template, TemplateInstance } from 'cedar-model-typescript-library';
 
 /**
  * Hand the instance out in whatever serialisation is asked for.

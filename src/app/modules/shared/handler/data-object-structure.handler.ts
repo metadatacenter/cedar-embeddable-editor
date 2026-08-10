@@ -15,7 +15,6 @@ import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { TemplateComponent } from '../models/template/template-component.model';
 import { MessageHandlerService } from '../service/message-handler.service';
-import { JsonSchema } from 'cedar-model-typescript-library';
 import { InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
 export class DataObjectStructureHandler {

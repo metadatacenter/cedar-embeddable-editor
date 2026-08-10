@@ -5,12 +5,9 @@ import { TemplateRepresentationFactory } from '../factory/template-representatio
 import { TemplateParser } from '../factory/template-parser';
 import { InstanceCardinalityReader } from '../handler/instance-cardinality-reader';
 import { TemplateInstance } from 'cedar-model-typescript-library';
-import { InstanceDeserializer } from './instance-deserializer';
-import { InstanceFullData } from '../models/instance-full-data.model';
 import { HandlerContext } from './handler-context';
 import { MultiInstanceObjectHandler } from '../handler/multi-instance-object.handler';
 import { DataObjectBuilderHandler } from '../handler/data-object-builder.handler';
-import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { PageBreakPaginatorService } from '../service/page-break-paginator.service';
 import { DataQualityReport } from '../models/data-quality-report.model';
 import { InstanceNode, InstanceObject } from '../models/instance-node.model';
