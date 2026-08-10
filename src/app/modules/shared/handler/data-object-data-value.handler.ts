@@ -35,6 +35,16 @@ import { InputType } from '../models/input-type.model';
 interface DownstreamObjects {
   dataSubObject: InstanceNode;
   parentDataSubObject: InstanceNode;
+  /**
+   * The key that got from the parent to this child.
+   *
+   * Carried so the leaf can be written by *place* — parent plus key — rather
+   * than by mutating the node the walk happened to arrive at. The two are the
+   * same edit today, and only one of them survives the instance tree becoming
+   * the model library's, whose atoms expose getters and no setters: a value is
+   * replaced there, and replacing needs somewhere to put it.
+   */
+  key: string;
   /** Null when the path names a child the component does not have. */
   childComponent: CedarComponent | null;
   remainingPath: string[];
@@ -47,9 +57,38 @@ export class DataObjectDataValueHandler {
     this.messageHandlerService = messageHandlerService;
   }
 
-  private injectValue(target: InstanceExtractData, valueObject: InstanceObject, fullPath: string[]): void {
+  /**
+   * Put `valueObject` where `target` sits, rather than editing `target` itself.
+   *
+   * The distinction is the point. Writing to a *place* — a container and the key
+   * under it — is the only form of write the model library's instance supports:
+   * its atoms expose getters and no setters, so a value is replaced by calling
+   * `setValue` on the parent, never mutated where it stands. Doing the same here
+   * against the plain-object tree makes the two describe the same operation, so
+   * the tree underneath can change without every caller changing with it.
+   *
+   * The node is still overwritten in place when the place cannot be reached — a
+   * value at the root of the walk has no parent to be replaced within. That case
+   * keeps the older behaviour rather than failing, and it is the one the model
+   * cannot represent, so it is worth it being the one that stands out.
+   */
+  private placeValue(
+    parent: InstanceExtractData,
+    key: string | number,
+    target: InstanceExtractData,
+    valueObject: InstanceObject,
+    fullPath: string[],
+  ): void {
     if (target === null || target === undefined) {
       this.messageHandlerService.error('Unable to set missing data target:' + fullPath);
+      return;
+    }
+    if (typeof key === 'number' && isInstanceArray(parent)) {
+      parent[key] = valueObject;
+      return;
+    }
+    if (typeof key === 'string' && key.length > 0 && isInstanceObject(parent)) {
+      parent[key] = valueObject;
       return;
     }
     InstanceValueNode.overwrite(target, valueObject);
@@ -151,11 +190,13 @@ export class DataObjectDataValueHandler {
     path: string[],
     valueObject: InstanceNode,
     fullPath: string[],
+    /** Where `dataObject` sits in `parentDataObject`. Empty only at the root. */
+    key = '',
   ): void {
     if (path.length === 0) {
       if (component instanceof SingleFieldComponent) {
         if (isInstanceObject(valueObject)) {
-          this.injectValue(dataObject, valueObject, fullPath);
+          this.placeValue(parentDataObject, key, dataObject, valueObject, fullPath);
         }
       } else {
         const multiField = component as MultiFieldComponent;
@@ -173,7 +214,7 @@ export class DataObjectDataValueHandler {
             this.injectAttributeValue(dataObject, currentIndex, parentDataObject, component, valueObject);
           }
         } else if (isInstanceObject(valueObject) && isInstanceArray(dataObject)) {
-          this.injectValue(dataObject[currentIndex], valueObject, fullPath);
+          this.placeValue(dataObject, currentIndex, dataObject[currentIndex], valueObject, fullPath);
         }
       }
     } else {
@@ -189,6 +230,7 @@ export class DataObjectDataValueHandler {
         downstream.remainingPath,
         valueObject,
         fullPath,
+        downstream.key,
       );
     }
   }
@@ -265,7 +307,7 @@ export class DataObjectDataValueHandler {
       parentDataSubObject = occurrence;
     }
 
-    return { dataSubObject, parentDataSubObject, childComponent, remainingPath };
+    return { dataSubObject, parentDataSubObject, key: firstPath, childComponent, remainingPath };
   }
 
   private isDuplicateAttributeName(
