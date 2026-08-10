@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-dev.20260810.e4b63f4] - 2026-08-10
+
+### Changed
+
+- The instance CEE edits is a model rather than a CEDAR document. `DataContext.instanceFullData`
+  holds a `TemplateInstance`, so CEE no longer writes the `@context` block, the nine envelope
+  keys or a minted `@id` per occurrence — how any of that is written down is asked once, at the
+  edge, by the model library's writer. Gone with it: the five value keys CEE kept in order to
+  clear a stale one when a field changed kind, the in-place value overwrite the widgets needed
+  while nodes had identity, the round trip that handed the library's reader the tree CEE had
+  just edited, and the projections that rebuilt a parsed model as plain objects.
+- The data quality report hands a host page the instance as a document, under `instance`. It was
+  `instanceExtractData`, the envelope-free view of a tree that was itself a document; handing
+  out the model's container would have shown a host `_values` and `_iris`.
+- Requires `@org.metadatacenter/cedar-model-typescript-library@0.9.2-dev.20260810.cc9ff84`, which
+  refuses to construct a value that is not a value or a controlled-term constraint that points at
+  nothing, and which lets a container be edited through its own methods rather than through the
+  two dictionaries it exposes for reading.
+
+### Fixed
+
+- The source panel shows the instance as a document again. It rendered the working tree through
+  the `json` pipe, which showed a user their metadata while the tree was a document and CEE's
+  internals once it was not.
+- An attribute-value slot added with the pager, or produced by copying an occurrence, stays
+  unnamed until the user names it, and an unnamed slot is left out of the pager's summary.
+
 ## [1.6.0-dev.20260809.9755ad1] - 2026-08-09
 
 ### Changed
