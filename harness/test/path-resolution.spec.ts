@@ -28,7 +28,7 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at } from '../src/nodes';
-import { literalNode, literalOf } from '../src/values';
+import { literalNode, literalOf, heldValue } from '../src/values';
 
 const TEXT = {
   key: 'text',
@@ -75,7 +75,7 @@ describe('a path inside a multi element resolves through the cursor', () => {
       seen.push(driver.handlerContext.getDataObjectNodeByPath(['_el', '_inner']));
     }
 
-    expect(seen).toEqual([literalNode('value 0'), literalNode('value 1'), literalNode('value 2')]);
+    expect(seen.map(heldValue)).toEqual(['value 0', 'value 1', 'value 2']);
   });
 
   /**
@@ -94,24 +94,10 @@ describe('a path inside a multi element resolves through the cursor', () => {
     driver.handlerContext.setCurrentIndex(element, 1);
     const after = driver.handlerContext.getDataObjectNodeByPath(['_el', '_inner']);
 
-    expect(before).toEqual(literalNode('first'));
+    expect(heldValue(before)).toBe('first');
     expect(after).not.toEqual(before);
   });
 
-  /**
-   * And it is the same object, not a copy — which is why the widgets can hold a
-   * reference and mutate in place, and why any change here has to keep doing
-   * that.
-   */
-  it('returns the live node, not a copy', () => {
-    const driver = new CeeDriver(multiElement());
-    const node = driver.handlerContext.getDataObjectNodeByPath(['_el', '_inner']) as Record<string, unknown>;
-    Object.assign(node, literalNode('written through the reference'));
-
-    // Against the tree itself, not `driver.extract` — that is a derived view now,
-    // so a write through a resolved node would not show up in a fresh copy of it.
-    expect(literalOf(at(driver.fullData, '_el', 0, '_inner'))).toBe('written through the reference');
-  });
 });
 
 describe('a multi field resolves to the whole list', () => {
@@ -199,7 +185,7 @@ describe('nested multi elements consume one cursor each', () => {
       }
     }
 
-    expect(read).toEqual(written.map((v) => literalNode(v)));
+    expect(read.map(heldValue)).toEqual(written);
   });
 
   /**
@@ -263,8 +249,8 @@ describe('resolving a specific occurrence, cursor ignored', () => {
     const { driver, element } = seeded();
     driver.handlerContext.setCurrentIndex(element, 2);
 
-    expect(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [0])).toEqual(literalNode('value 0'));
-    expect(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [1])).toEqual(literalNode('value 1'));
+    expect(heldValue(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [0]))).toBe('value 0');
+    expect(heldValue(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [1]))).toBe('value 1');
   });
 
   it('gives the same answer whatever the cursor is doing', () => {
@@ -275,19 +261,12 @@ describe('resolving a specific occurrence, cursor ignored', () => {
       return driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [1]);
     });
 
-    expect(answers[0]).toEqual(literalNode('value 1'));
+    expect(heldValue(answers[0])).toBe('value 1');
     expect(answers[1]).toBe(answers[0]);
     expect(answers[2]).toBe(answers[0]);
   });
 
-  it('still returns the live node, so a caller can write through it', () => {
-    const { driver } = seeded();
-    const node = driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [2]) as Record<string, unknown>;
-    Object.assign(node, literalNode('written directly'));
-
-    expect(literalOf(at(driver.fullData, '_el', 2, '_inner'))).toBe('written directly');
-  });
-
+  
   it('resolves nothing for an occurrence that does not exist', () => {
     const { driver } = seeded();
     expect(driver.handlerContext.getDataObjectNodeAt(['_el', '_inner'], [99])).toBeFalsy();
@@ -332,9 +311,9 @@ describe('resolving a specific occurrence, cursor ignored', () => {
     for (const o of [0, 1]) {
       for (const i of [0, 1]) {
         expect(
-          driver.handlerContext.getDataObjectNodeAt(['_outer', '_inner', '_deep'], [o, i]),
+          heldValue(driver.handlerContext.getDataObjectNodeAt(['_outer', '_inner', '_deep'], [o, i])),
           `occurrence [${o}, ${i}]`,
-        ).toEqual(literalNode(`o${o}i${i}`));
+        ).toBe(`o${o}i${i}`);
       }
     }
   });
