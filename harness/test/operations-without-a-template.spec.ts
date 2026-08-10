@@ -128,10 +128,14 @@ describe('a path naming a child that does not exist', () => {
 
   it('resolves to nothing rather than throwing', () => {
     const driver = nested();
-    // The node is `undefined` — the walk reaches the element and reads a key that
-    // is not there — while the *parent* is the element itself, which exists whether
-    // or not the child does. Asserted as the two different answers they are.
-    expect(driver.handlerContext.getDataObjectNodeByPath(['_el', 'no_such_child'])).toBeUndefined();
+    // The node is null — the walk reaches the element and asks for a child it does
+    // not hold — while the *parent* is the element itself, which exists whether or
+    // not the child does. Asserted as the two different answers they are.
+    //
+    // It used to be `undefined`, which is what indexing a plain object for a
+    // missing key gives back. Asking a container answers null, and null is what
+    // the walk's own signature has always promised.
+    expect(driver.handlerContext.getDataObjectNodeByPath(['_el', 'no_such_child'])).toBeNull();
     expect(driver.handlerContext.getParentDataObjectNodeByPath(['_el', 'no_such_child'])).not.toBeNull();
   });
 

@@ -21,7 +21,7 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at } from '../src/nodes';
-import { instanceWith as buildInstance, literalNode, literalOf, literalValue } from '../src/values';
+import { instanceWith as buildInstance, literalNode, literalOf, literalValue, heldValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
@@ -94,7 +94,7 @@ describe('read-only mode', () => {
     const driver = new CeeDriver(template(), { readOnlyMode: true });
     driver.setValue(['_a'], TEXT, 'written anyway');
 
-    expect(literalOf(driver.handlerContext.getDataObjectNodeByPath(['_a']))).toBe('written anyway');
+    expect(heldValue(driver.handlerContext.getDataObjectNodeByPath(['_a']))).toBe('written anyway');
     driver.expectNoErrors('write in read-only mode');
   });
 });
@@ -257,7 +257,7 @@ describe('element visibility is independent of sibling order', () => {
     const instance = instanceWith(t, [[path, 'a real value']]);
     const driver = new CeeDriver(t, { readOnlyMode: true, hideEmptyFields: true, instance });
     // The value really is in the instance either way.
-    expect(literalOf(driver.handlerContext.getDataObjectNodeByPath(path))).toBe('a real value');
+    expect(heldValue(driver.handlerContext.getDataObjectNodeByPath(path))).toBe('a real value');
     return driver.findOrThrow(['_outer']).hidden;
   };
 

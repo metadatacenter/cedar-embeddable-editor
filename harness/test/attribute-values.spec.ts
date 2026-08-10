@@ -160,7 +160,12 @@ describe('names the user did not supply', () => {
     expect(names).toHaveLength(1);
     expect(names[0]).toBe('');
     expect(valueOf(driver.extract, 'Attribute Value Field1')).toBeUndefined();
-    expect(driver.emitted._av).toEqual([]);
+    // The row is held open in the emitted list, under an empty name, and no
+    // property is invented for it. It used to come out as `[]` because the
+    // projection that built this list dropped a nameless entry on the way; the
+    // list is written from the instance now, and the row is really there — the
+    // user made it, and it is waiting for a name.
+    expect(driver.emitted._av).toEqual(['']);
   });
 
   it('does not let a second attribute overwrite the first by reusing its name', () => {

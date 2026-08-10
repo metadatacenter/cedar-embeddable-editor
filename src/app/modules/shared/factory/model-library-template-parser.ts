@@ -11,7 +11,6 @@ import {
   ComparisonError,
   ControlledTermField,
   JsonNode,
-  JsonTemplateInstanceContent,
   ChildDeploymentInfo,
   MultipleChoiceListField,
   NumericField,
@@ -42,7 +41,6 @@ import { InputType } from '../models/input-type.model';
 import { LabelInfo } from '../models/info/label-info.model';
 import { HandlerContext } from '../util/handler-context';
 import { TemplateParser } from './template-parser';
-import { InstanceObject } from '../models/instance-node.model';
 import { MultiComponent } from '../models/component/multi-component.model';
 
 /**
@@ -195,7 +193,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     // it, which is how the `@context` stops being CEE's to assemble.
     template.parsed = parsed;
     ModelLibraryTemplateParser.wrap(parsed, template, []);
-    ModelLibraryTemplateParser.generateContext(parsed, template, true);
+    ModelLibraryTemplateParser.generatePropertyIris(parsed, template);
 
     template.labelInfo.label = parsed.schema_name;
     template.labelInfo.description = parsed.schema_description;
@@ -259,7 +257,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
         r = isMulti ? new MultiElementComponent() : new SingleElementComponent();
         ModelLibraryTemplateParser.extractLabels(element, childInfo, name, r as FieldComponent);
         ModelLibraryTemplateParser.wrap(element, r as ElementComponent, myPath);
-        ModelLibraryTemplateParser.generateContext(element, r as AbstractElementComponent, false);
+        ModelLibraryTemplateParser.generatePropertyIris(element, r as AbstractElementComponent);
       } else if (childInfo.atType === CedarArtifactType.STATIC_TEMPLATE_FIELD) {
         const staticField = child as TemplateField;
         const sfc = new StaticFieldComponent();
@@ -320,12 +318,13 @@ export class ModelLibraryTemplateParser implements TemplateParser {
   }
 
   /**
-   * Generate the container's `@context` block rather than copying it.
+   * Record each child's property IRI, rather than copying a `@context` block.
    *
-   * The standard prefixes and typed entries are fixed by the CEDAR model, and
-   * the library states them once; the child IRIs come from the same mapping the
-   * library uses when it writes a template, which takes each child's declared
-   * IRI and mints one where a template omits it.
+   * The IRIs come from the same mapping the library uses when it writes a
+   * template, which takes each child's declared IRI and mints one where a
+   * template omits it. The block those IRIs end up in is the instance writer's
+   * to build; the root used to be handed the standard prefixes here as well,
+   * and every container is the same now.
    *
    * Generating drops whatever a template happens to carry that is not one of
    * those things. Across the 94 templates in the shared corpora that is two
@@ -338,18 +337,14 @@ export class ModelLibraryTemplateParser implements TemplateParser {
    *
    * Every other container comes out identical.
    */
-  private static generateContext(
-    container: AbstractContainerArtifact,
-    component: AbstractElementComponent,
-    isRoot: boolean,
-  ): void {
-    // Only the instance root declares the prefixes; a nested element's
-    // `@context` is its child IRIs and nothing else, because the prefixes are
-    // already in scope. Repeating them would bloat every occurrence of every
-    // element and match nothing CEDAR writes.
-    const entries: InstanceObject = isRoot
-      ? ({ ...JsonTemplateInstanceContent.CONTEXT_VERBATIM } as InstanceObject)
-      : {};
+  private static generatePropertyIris(container: AbstractContainerArtifact, component: AbstractElementComponent): void {
+    // The standard prefixes and typed entries are not copied, at the root or
+    // anywhere else. They are the same for every CEDAR instance, and the JSON
+    // writer emits them; what a container carries is the property IRI of each of
+    // its children. Copying the verbatim block through here turned its typed
+    // entries — `{'@type': 'xsd:string'}` and the like — into the string
+    // "[object Object]", because a property IRI map holds IRIs.
+    const entries: Record<string, string> = {};
     // `getChildIriMap` rather than `getIRIMap`: the latter returns the shape
     // JSON Schema wants — `{ name: { enum: [iri] } }` — and reading an IRI out
     // of it meant reaching through `[JsonSchema.enum][0]`, which was the last

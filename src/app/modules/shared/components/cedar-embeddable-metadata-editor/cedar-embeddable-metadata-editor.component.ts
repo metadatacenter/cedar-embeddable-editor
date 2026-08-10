@@ -4,6 +4,7 @@ import { DataContext } from '../../util/data-context';
 import { HandlerContext } from '../../util/handler-context';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
+import { InstanceSerializer } from '../../util/instance-serializer';
 import { InstanceDeserializer } from '../../util/instance-deserializer';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
 import { AUTHORITY_DESCRIPTORS } from '../../models/authority/authority-descriptor.model';
@@ -322,7 +323,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    * free to set `templateJsonObject` before `handlerContextObject`. The early return
    * says that once instead of at each of the six reads below it.
    */
-  @Input() set templateJsonObject(value: InstanceObject | null) {
+  @Input() set templateJsonObject(value: object | null) {
     const { dataContext, handlerContext } = this;
     if (value == null || dataContext == null || handlerContext == null) {
       return;
@@ -335,7 +336,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     setTimeout(() => {
       const instance = dataContext.instanceFullData;
       if (instance !== null) {
-        this.initDataFromInstance(instance)
+        // Written out, then read back against the template that just replaced the
+        // old one. The instance in hand was read against the *previous* template,
+        // so re-reading is the point — and a document is what the read takes.
+        this.initDataFromInstance(InstanceSerializer.toJson(instance))
           .then(() => {})
           .catch(() => {});
       }
@@ -408,7 +412,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     this.activeComponentRegistry.clear();
   }
 
-  private async initDataFromInstance(instance: InstanceObject): Promise<void> {
+  private async initDataFromInstance(instance: object): Promise<void> {
     if (this.handlerContext) {
       this.setDataContextWithInstance(instance);
       const dataContext = this.handlerContext.dataContext;
@@ -436,7 +440,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    * a walk that had to guess from an untyped object which nodes were values,
    * and got it wrong for any IRI carrying a `@type`. See `InstanceDeserializer`.
    */
-  setDataContextWithInstance(instanceObject: InstanceObject): void {
+  setDataContextWithInstance(instanceObject: object): void {
     const handlerContext = this.handlerContext;
     if (handlerContext == null) {
       return;

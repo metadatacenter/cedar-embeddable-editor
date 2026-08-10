@@ -11,8 +11,13 @@ import { HandlerContext } from '../util/handler-context';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { InstanceValueNode } from '../util/instance-value-node';
+import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
+
+/** The name an attribute-value slot carries, or null when the slot holds something else. */
+const attributeNameOf = (node: InstanceNode | undefined): string | null =>
+  node instanceof InstanceDataAttributeValueFieldName ? node.name : null;
 import { AuthorityTerm } from '../models/authority/authority-search-response.model';
-import { InstanceNode, InstanceObject, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
+import { InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
 @Injectable({
   providedIn: 'root',
@@ -87,7 +92,7 @@ export class ActiveComponentRegistryService {
     node: InstanceNode,
     component: CedarComponent,
     readOnlyMode: boolean,
-  ): InstanceNode | AuthorityTerm {
+  ): string | AuthorityTerm | null {
     // `?? ''` so a field with no declared input type falls through the two tests
     // below to the label, which is what it did when the type was `any`.
     const inputType = (component as SingleFieldComponent).basicInfo.inputType ?? '';
@@ -119,7 +124,7 @@ export class ActiveComponentRegistryService {
   }
   updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
     if (component instanceof SingleFieldComponent) {
-      const dataObject: InstanceNode = handlerContext.getDataObjectNodeByPath(component.path);
+      const dataObject: InstanceNode | null = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIDirective | null = this.getUIComponent(component);
       if (uiComponent != null && dataObject != null) {
         if (InstanceValueNode.isLiteral(dataObject)) {
@@ -131,7 +136,7 @@ export class ActiveComponentRegistryService {
         }
       }
     } else if (component instanceof MultiFieldComponent) {
-      const dataObject: InstanceNode = handlerContext.getDataObjectNodeByPath(component.path);
+      const dataObject: InstanceNode | null = handlerContext.getDataObjectNodeByPath(component.path);
       const parentDataObject = handlerContext.getParentDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIDirective | null = this.getUIComponent(component);
       const multiInstanceInfo: MultiInstanceObjectInfo | null =
@@ -149,29 +154,30 @@ export class ActiveComponentRegistryService {
         // is no occurrence to push back into the widget.
         if (dataObject[multiInstanceInfo.currentIndex] != null) {
           if (component.basicInfo.inputType === InputType.attributeValue) {
-            let key = dataObject[multiInstanceInfo.currentIndex];
+            let keyName = attributeNameOf(dataObject[multiInstanceInfo.currentIndex]);
 
-            if (key instanceof Object && InstanceValueNode.literal(key) === null) {
+            if (keyName === null && InstanceValueNode.literal(dataObject[multiInstanceInfo.currentIndex]) === null) {
               handlerContext.changeAttributeValue(component, null, null);
             } else if (multiInstanceInfo.currentIndex > 0) {
-              const cloneSourceKey = dataObject[multiInstanceInfo.currentIndex - 1];
+              const cloneSourceKey = attributeNameOf(dataObject[multiInstanceInfo.currentIndex - 1]);
 
-              if (key === cloneSourceKey && isInstanceObject(parentDataObject) && typeof key === 'string') {
-                const val = InstanceValueNode.literal(parentDataObject[key]) as string;
+              if (keyName !== null && keyName === cloneSourceKey && isInstanceObject(parentDataObject)) {
+                const val = InstanceValueNode.literal(parentDataObject.values[keyName]) as string;
                 handlerContext.changeAttributeValue(component, null, val);
               }
-            } else if (typeof key === 'string' && key === '') {
+            } else if (keyName === '') {
               // if it is an empty string, we silently accept it
               return;
             }
             // This next line is actually needed, current index can change
-            key = dataObject[multiInstanceInfo.currentIndex];
-            if (typeof key !== 'string' || !isInstanceObject(parentDataObject)) {
+            keyName = attributeNameOf(dataObject[multiInstanceInfo.currentIndex]);
+            if (keyName === null || !isInstanceObject(parentDataObject)) {
               return;
             }
-            const value = InstanceValueNode.literal(parentDataObject[key]);
-            const obj: InstanceObject = {};
-            obj[key] = value ?? null;
+            const value = InstanceValueNode.literal(parentDataObject.values[keyName]);
+            // A widget model, not a node: the name/value pair the attribute
+            // widget's two boxes are driven from.
+            const obj: Record<string, string | null> = { [keyName]: value ?? null };
 
             if (uiComponent) {
               uiComponent.setCurrentValue(obj);

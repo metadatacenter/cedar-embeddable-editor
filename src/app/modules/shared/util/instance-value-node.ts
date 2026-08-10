@@ -1,79 +1,47 @@
 import {
-  CedarModel,
   InstanceDataAtomType,
+  InstanceDataContainer,
   InstanceDataControlledAtom,
   InstanceDataEmptyAtom,
   InstanceDataLinkAtom,
   InstanceDataStringAtom,
   InstanceDataTypedAtom,
-  JsonSchema,
-  JsonTemplateInstanceReader,
-  JsonTemplateInstanceWriter,
-  JsonNode,
 } from 'cedar-model-typescript-library';
-import { InstanceNode, InstanceObject, isInstanceObject } from '../models/instance-node.model';
+import { InstanceNode } from '../models/instance-node.model';
 
 /**
- * What a node in an instance is, and what it holds.
+ * What a node in an instance holds.
  *
  * CEE asked this in three places and answered it three ways: the quality report
  * sniffed `@value`, then `@id`, then `rdfs:label`; the validator checked `@id`
  * and `rdfs:label` independently; and `DataObjectUtil.deleteContext` matched on
  * exact key counts — two keys meaning a controlled term, one meaning a link,
  * anything else meaning a container to be stripped. That last rule destroyed
- * data: a controlled term or a link carrying a `@type`, which is ordinary
- * JSON-LD, has three keys and so had its `@id` deleted.
+ * data: a controlled term carrying a `@type`, which is ordinary JSON-LD, has
+ * three keys and so had its `@id` deleted.
  *
- * The model library already decides this while parsing an instance, and records
- * the answer in the node's type. Asking it here means one rule instead of
- * three, and the same rule CEE now uses to read cardinality.
+ * There is no sniffing left to do. A node is one of the library's atoms and its
+ * class *is* the answer, so these are `instanceof` tests over a value that
+ * arrived typed rather than guesses about a shape. The class used to run every
+ * read through `readValueNode` first, because the tree was JSON and the atom had
+ * to be recovered from it each time.
+ *
+ * Gone with that: `VALUE_KEYS`, the list of the five keys a value node may carry.
+ * CEE kept it in order to clear a stale one when a field's value changed kind,
+ * and could not derive it — the library's own set is private, and writing one of
+ * each atom yields four of the five because none carries a `skos:notation`. A
+ * value is replaced rather than edited now, so there is nothing to clear and
+ * nothing to keep in step.
  */
-/**
- * The keys a value node may carry, and the only ones `overwrite` disturbs.
- *
- * Named through the library's constants rather than written out, so the strings
- * themselves live in one place and CEE is not a second definition of what CEDAR
- * calls a value.
- *
- * It is still a list CEE maintains, which it should not have to be: the library
- * holds the authoritative set as `JsonTemplateInstanceReader.VALUE_ATOM_KEYS`
- * and keeps it private, so it cannot be asked for. Deriving it from the writers
- * instead — writing one of each atom and collecting the keys — gets four of the
- * five, because no atom carries a `skos:notation` even though the reader accepts
- * one. A derivation that quietly omitted it would stop `overwrite` clearing a
- * stale notation, which is worse than restating the set visibly. Exposing that
- * constant is the fix, and it is on the model library's items.
- */
-const VALUE_KEYS = [
-  JsonSchema.atValue,
-  JsonSchema.atId,
-  JsonSchema.rdfsLabel,
-  JsonSchema.atType,
-  CedarModel.skosNotation,
-];
-
 export class InstanceValueNode {
   /**
    * True when this node is a field's value rather than an element.
    *
-   * An element carries child properties; a value carries only value keys
-   * (`@value`, `@id`, `rdfs:label`, `@type`, `skos:notation`). Note that an
-   * element does not have to carry a `@context` to be one — CEE's extract copy
-   * of an instance strips them.
+   * An element is a container of named children; anything else is a value, or a
+   * list of them.
    */
   static isValue(node: unknown): boolean {
-    return JsonTemplateInstanceReader.isValueNode(node as JsonNode);
-  }
-
-  /**
-   * This node as the library's typed atom.
-   *
-   * For consumers that need more than the plain value — the widgets want the
-   * IRI and the label separately, and want to know which they are looking at.
-   * An element, or anything that is not a value, comes back as an empty node.
-   */
-  static atom(node: unknown): InstanceDataAtomType {
-    return JsonTemplateInstanceReader.readValueNode(node as JsonNode);
+    return !(node instanceof InstanceDataContainer) && !Array.isArray(node);
   }
 
   /**
@@ -83,18 +51,16 @@ export class InstanceValueNode {
    * label. A field's own type decides which of the two to show, so both are
    * offered rather than one chosen here.
    */
-  static iri(node: InstanceNode): string | null | undefined {
-    const atom = InstanceValueNode.atom(node);
-    if (atom instanceof InstanceDataLinkAtom || atom instanceof InstanceDataControlledAtom) {
-      return atom.id;
+  static iri(node: InstanceNode | null | undefined): string | null | undefined {
+    if (node instanceof InstanceDataLinkAtom || node instanceof InstanceDataControlledAtom) {
+      return node.id;
     }
     return undefined;
   }
 
   /** The label this node carries, if it carries one. */
-  static label(node: InstanceNode): string | null | undefined {
-    const atom = InstanceValueNode.atom(node);
-    return atom instanceof InstanceDataControlledAtom ? atom.label : undefined;
+  static label(node: InstanceNode | null | undefined): string | null | undefined {
+    return node instanceof InstanceDataControlledAtom ? node.label : undefined;
   }
 
   /**
@@ -104,128 +70,87 @@ export class InstanceValueNode {
    * as a literal of `''` or `null` — both of which are values a field can
    * legitimately hold and which a widget has to be shown.
    */
-  static literal(node: InstanceNode): string | null | undefined {
-    const atom = InstanceValueNode.atom(node);
-    if (atom instanceof InstanceDataStringAtom || atom instanceof InstanceDataTypedAtom) {
-      return atom.value;
+  static literal(node: InstanceNode | null | undefined): string | null | undefined {
+    if (node instanceof InstanceDataStringAtom || node instanceof InstanceDataTypedAtom) {
+      return node.value;
     }
     return undefined;
   }
 
   /** True when this node holds a literal, however empty. */
-  static isLiteral(node: InstanceNode): boolean {
-    const atom = InstanceValueNode.atom(node);
-    return atom instanceof InstanceDataStringAtom || atom instanceof InstanceDataTypedAtom;
+  static isLiteral(node: InstanceNode | null | undefined): boolean {
+    return node instanceof InstanceDataStringAtom || node instanceof InstanceDataTypedAtom;
   }
 
   /** True when this node carries an IRI — a link or a controlled term. */
-  static isIriBearing(node: InstanceNode): boolean {
-    const atom = InstanceValueNode.atom(node);
-    return atom instanceof InstanceDataLinkAtom || atom instanceof InstanceDataControlledAtom;
+  static isIriBearing(node: InstanceNode | null | undefined): boolean {
+    return node instanceof InstanceDataLinkAtom || node instanceof InstanceDataControlledAtom;
   }
 
   /**
    * The plain value a field holds, or null when it holds nothing.
    *
    * `iriValued` says whether this field's value *is* its IRI — links and the
-   * external authority types — which the instance alone cannot settle. A node
-   * of `{@id, rdfs:label}` is a term to be shown by its label if the field is a
-   * controlled term, and a resource to be shown by its IRI if the field is a
-   * link. Everything else the node's own type answers.
+   * external authority types — which the instance alone cannot settle. A term
+   * carrying an IRI and a label is shown by its label if the field is a
+   * controlled term, and by its IRI if the field is a link. Everything else the
+   * node's own type answers.
    *
-   * A node holding only `@id`, with no label, now reads as that IRI. It used to
+   * A node holding only an IRI, with no label, reads as that IRI. It used to
    * read as empty for any field that was not IRI-valued, because the label was
    * looked up and was not there — so a controlled term that arrived without one
    * reported as unfilled and could not satisfy a requirement.
    */
-  static plainValue(node: unknown, iriValued: boolean): string | null {
-    const atom = JsonTemplateInstanceReader.readValueNode(node as JsonNode);
-
-    if (atom instanceof InstanceDataStringAtom || atom instanceof InstanceDataTypedAtom) {
-      return InstanceValueNode.emptyToNull(atom.value);
+  static plainValue(node: InstanceNode | null | undefined, iriValued: boolean): string | null {
+    if (node instanceof InstanceDataStringAtom || node instanceof InstanceDataTypedAtom) {
+      return InstanceValueNode.emptyToNull(node.value);
     }
-    if (atom instanceof InstanceDataControlledAtom) {
-      return InstanceValueNode.emptyToNull(iriValued ? atom.id : atom.label);
+    if (node instanceof InstanceDataControlledAtom) {
+      return InstanceValueNode.emptyToNull(iriValued ? node.id : node.label);
     }
-    if (atom instanceof InstanceDataLinkAtom) {
-      return InstanceValueNode.emptyToNull(atom.id);
+    if (node instanceof InstanceDataLinkAtom) {
+      return InstanceValueNode.emptyToNull(node.id);
     }
     return null;
   }
 
   /**
-   * The JSON a literal value is stored as.
+   * The value a literal field holds, with the XSD type the field declares.
    *
-   * The shapes are the library's, not CEE's: `writeValueNode` is the mirror of
-   * the `readValueNode` used to interpret them, so what CEE writes and what it
-   * reads back cannot drift apart.
+   * These four were `…Json` and returned the JSON a value is written as. They
+   * return the value itself now: what a field holds is CEE's, how it is written
+   * down is the library's, and the two met here only because CEE's tree was a
+   * document.
    */
-  static literalJson(value: string | null, xsdType: string | null = null): InstanceObject {
-    const atom = xsdType === null ? new InstanceDataStringAtom(value) : new InstanceDataTypedAtom(value, xsdType);
-    return JsonTemplateInstanceWriter.writeValueNode(atom) as InstanceObject;
+  static literalValue(value: string | null, xsdType: string | null = null): InstanceDataAtomType {
+    return xsdType === null ? new InstanceDataStringAtom(value) : new InstanceDataTypedAtom(value, xsdType);
   }
 
   /**
-   * The JSON an *unfilled* slot is stored as.
+   * What an *unfilled* slot holds.
    *
-   * `{}` for an IRI-valued field — there is no `@id` of null, so it holds nothing
-   * at all — and `{'@value': null}` otherwise, carrying the XSD type when the
-   * field declares one.
-   *
-   * Here rather than assembled by hand in the builder, which is where it was:
-   * three methods writing `obj['@value'] = null` and `obj['@type'] = …` directly.
-   * The *filled* slots already came through this class, so the empty ones being
-   * hand-built was an inconsistency rather than a decision — and `writeValueNode`
-   * is the mirror of the `readValueNode` that interprets them, so what CEE writes
-   * and what it reads back cannot drift.
+   * Nothing at all for an IRI-valued field — there is no IRI of null, and the
+   * library refuses to build one — and an empty literal otherwise, carrying the
+   * XSD type when the field declares one.
    */
-  static emptySlotJson(iriValued: boolean, xsdType: string | null = null): InstanceObject {
+  static emptySlot(iriValued: boolean, xsdType: string | null = null): InstanceDataAtomType {
     if (iriValued) {
-      return JsonTemplateInstanceWriter.writeValueNode(new InstanceDataEmptyAtom()) as InstanceObject;
+      return new InstanceDataEmptyAtom();
     }
-    return InstanceValueNode.literalJson(null, xsdType);
+    return InstanceValueNode.literalValue(null, xsdType);
   }
 
-  /** The JSON an IRI value is stored as, with a label when there is one. */
-  static iriJson(iri: string, label?: string | null): InstanceObject {
-    const atom =
-      label === undefined || label === null
-        ? new InstanceDataLinkAtom(iri)
-        : new InstanceDataControlledAtom(iri, label);
-    return JsonTemplateInstanceWriter.writeValueNode(atom) as InstanceObject;
-  }
-
-  /**
-   * Overwrite `target` in place so it holds exactly `source`.
-   *
-   * In place because the widgets hold references into the instance, so a field's
-   * node is updated rather than replaced. "Exactly" because a node carrying both
-   * a leftover `@value` and a new `@id` reads back as the literal — the
-   * classifier checks `@value` first — so the value the user just chose would be
-   * invisible to the form and to the report while still sitting in the saved
-   * instance.
-   */
-  static overwrite(target: InstanceNode, source: InstanceObject): void {
-    // A leaf or a list has no value keys to reconcile; only a node can be overwritten
-    // in place, and the callers that reach here with anything else have already gone
-    // wrong somewhere earlier.
-    if (!isInstanceObject(target)) {
-      return;
-    }
-    for (const key of VALUE_KEYS) {
-      if (!Object.hasOwn(source, key)) {
-        delete target[key];
-      }
-    }
-    for (const key of Object.keys(source)) {
-      target[key] = source[key];
-    }
+  /** An IRI value, with a label when there is one. */
+  static iriValue(iri: string, label?: string | null): InstanceDataAtomType {
+    return label === undefined || label === null || label === ''
+      ? new InstanceDataLinkAtom(iri)
+      : new InstanceDataControlledAtom(iri, label);
   }
 
   /*
    * Every atom the library hands back exposes `string | null`, so that is what this
    * folds an empty string or an absent value into. `undefined` is checked as well as
-   * `''` because a missing key and an empty one are both the same unfilled slot.
+   * `''` because a missing value and an empty one are both the same unfilled slot.
    */
   private static emptyToNull(value: string | null | undefined): string | null {
     if (value === '' || value === undefined) {

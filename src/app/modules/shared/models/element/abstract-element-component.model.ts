@@ -2,7 +2,6 @@ import { CedarComponent } from '../component/cedar-component.model';
 import { ElementComponent } from '../component/element-component.model';
 import { LabelInfo } from '../info/label-info.model';
 import { StaticFieldComponent } from '../static/static-field-component.model';
-import { InstanceObject } from '../instance-node.model';
 
 export abstract class AbstractElementComponent implements ElementComponent {
   className = 'AbstractElementComponent';
@@ -12,6 +11,7 @@ export abstract class AbstractElementComponent implements ElementComponent {
   labelInfo: LabelInfo = new LabelInfo();
   linkedStaticFieldComponent: StaticFieldComponent | null = null;
   hidden = false;
+
   /**
    * The template said `_ui.hidden`, which is permanent.
    *
@@ -22,21 +22,15 @@ export abstract class AbstractElementComponent implements ElementComponent {
   hiddenInTemplate = false;
 
   /**
-   * The `@context` block an instance of this container carries: the standard
-   * CEDAR prefixes and typed entries, plus one IRI per child property.
+   * The property IRI of each child, which is what a CEDAR instance's `@context`
+   * block is made of.
    *
-   * A property of the template, so a parser supplies it — the same way it
-   * supplies the children. It used to be read out of the raw template's
-   * `properties/@context/properties` while the instance was being built, which
-   * meant the builder walked the template JSON alongside the component tree it
-   * was already walking.
+   * A name-to-IRI map, and now declared as one. It said `InstanceObject` while a
+   * container was a bag of instance nodes, so the builder could write it
+   * straight into the tree as the block itself. The block is the writer's to
+   * emit; these go on the container as `setIri`.
    */
-  /**
-   * The `@context` entries this element contributes, copied straight into an
-   * instance — so its values are instance nodes, not `unknown`. Saying so here is
-   * what lets the builder write them in without a cast.
-   */
-  contextEntries: InstanceObject = {};
+  contextEntries: Record<string, string> = {};
 
   getChildByName(childName: string): CedarComponent | null {
     for (const child of this.children) {

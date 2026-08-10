@@ -4,21 +4,19 @@ import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { TemplateRepresentationFactory } from '../factory/template-representation.factory';
 import { TemplateParser } from '../factory/template-parser';
 import { InstanceCardinalityReader } from '../handler/instance-cardinality-reader';
-import { InstanceDeserializer } from './instance-deserializer';
-import { InstanceFullData } from '../models/instance-full-data.model';
+import { TemplateInstance } from 'cedar-model-typescript-library';
 import { HandlerContext } from './handler-context';
 import { MultiInstanceObjectHandler } from '../handler/multi-instance-object.handler';
 import { DataObjectBuilderHandler } from '../handler/data-object-builder.handler';
-import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { PageBreakPaginatorService } from '../service/page-break-paginator.service';
 import { DataQualityReport } from '../models/data-quality-report.model';
-import { InstanceObject } from '../models/instance-node.model';
+import { InstanceNode, InstanceObject } from '../models/instance-node.model';
 
 export class DataContext {
   templateInput: CedarInputTemplate | null = null;
   templateRepresentation: TemplateComponent | null = null;
-  /** The instance root, which is a JSON-LD document and so always an object. */
-  instanceFullData: InstanceObject | null = null;
+  /** The instance CEE is editing. A model, not the document it will be written as. */
+  instanceFullData: TemplateInstance | null = null;
   multiInstanceData: MultiInstanceInfo | null = null;
   dataQualityReport: DataQualityReport | null = null;
   /** Null until a template is saved, and reset to null when one is replaced. */
@@ -58,7 +56,7 @@ export class DataContext {
    */
   get instanceExtractData(): InstanceObject | null {
     if (this.derivedExtract === null && this.instanceFullData !== null) {
-      this.derivedExtract = InstanceDeserializer.read(this.instanceFullData).extract;
+      this.derivedExtract = this.instanceFullData.dataContainer;
     }
     return this.derivedExtract;
   }
@@ -70,8 +68,8 @@ export class DataContext {
    * because there is no longer a second shape to build. Every mutation goes
    * through here so the derived view cannot go stale behind one.
    */
-  mutate(change: (instance: InstanceFullData) => void): void {
-    change(this.instanceFullData);
+  mutate(change: (instance: InstanceNode | null) => void): void {
+    change(this.instanceFullData?.dataContainer ?? null);
     this.invalidateDerivedViews();
   }
 
@@ -124,19 +122,15 @@ export class DataContext {
     } else {
       this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
         this.templateRepresentation,
-        this.instanceFullData,
+        this.instanceFullData.dataContainer,
         instanceReader,
       );
     }
-    // Whether the instance was just built or handed to us by the host page, it
-    // has to carry the envelope the template's own JSON Schema requires. An
-    // injected instance skips the builder entirely, so doing this only there
-    // left every loaded document failing validation against its own template.
-    DataObjectBuilderHandler.addEnvelope(
-      this.templateRepresentation,
-      this.instanceFullData,
-      DataObjectBuildingMode.INCLUDE_CONTEXT,
-    );
+    // The envelope used to be filled in here as well as in the builder, because
+    // an injected instance skips the builder and every loaded document was
+    // failing validation against its own template without it. A
+    // `TemplateInstance` carries those fields wherever it came from, and the
+    // writer emits them.
     this.invalidateDerivedViews();
 
     this.savedTemplateID = null;

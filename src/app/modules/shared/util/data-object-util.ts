@@ -3,7 +3,8 @@ import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
-import { InstanceArray, InstanceObject } from '../models/instance-node.model';
+import { InstanceArray, InstanceNode, InstanceObject } from '../models/instance-node.model';
+import { InstanceDataContainer } from 'cedar-model-typescript-library';
 
 export class DataObjectUtil {
   /**
@@ -21,8 +22,8 @@ export class DataObjectUtil {
    * walked the template JSON in step with the component tree it was already
    * walking, purely to re-derive things the tree had.
    */
-  static getEmptyValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode): InstanceObject {
-    return InstanceValueNode.emptySlotJson(
+  static getEmptyValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode): InstanceNode {
+    return InstanceValueNode.emptySlot(
       DataObjectUtil.isIriValued(component),
       DataObjectUtil.xsdTypeFor(component, buildingMode),
     );
@@ -32,13 +33,13 @@ export class DataObjectUtil {
     component: FieldComponent,
     buildingMode: DataObjectBuildingMode,
     value: string,
-  ): InstanceObject {
+  ): InstanceNode {
     // A controlled term's default is not a literal, so it gets no `@value` — and
     // no `@type` either, since only numeric and temporal fields have one.
     if (component?.basicInfo?.inputType === InputType.controlled) {
-      return InstanceValueNode.emptySlotJson(true);
+      return InstanceValueNode.emptySlot(true);
     }
-    return InstanceValueNode.literalJson(value, DataObjectUtil.xsdTypeFor(component, buildingMode));
+    return InstanceValueNode.literalValue(value, DataObjectUtil.xsdTypeFor(component, buildingMode));
   }
 
   static getMultiValueWrapper(
@@ -50,7 +51,7 @@ export class DataObjectUtil {
     if (component?.basicInfo?.inputType !== InputType.controlled) {
       for (const value of values) {
         // No XSD type on the elements, deliberately: see below.
-        obj.push(InstanceValueNode.literalJson(value));
+        obj.push(InstanceValueNode.literalValue(value));
       }
     }
     // A multi field's elements carry no XSD type, and nothing here sets one.
@@ -84,7 +85,7 @@ export class DataObjectUtil {
   }
 
   static getEmptyObject(): InstanceObject {
-    return {};
+    return new InstanceDataContainer();
   }
 
   static getEmptyList(): InstanceArray {

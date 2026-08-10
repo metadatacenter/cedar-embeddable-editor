@@ -14,6 +14,7 @@ import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-in
 import { InstanceObject } from '../models/instance-node.model';
 import { InstanceCardinalityReader } from './instance-cardinality-reader';
 import { ModelLibraryInstanceReader } from './model-library-instance-reader';
+import { InstanceDataAttributeValueField } from 'cedar-model-typescript-library';
 
 @Injectable({
   providedIn: 'root',
@@ -79,7 +80,21 @@ export class MultiInstanceObjectHandler {
       return 0;
     }
     const node = this.resolveInstanceNode(path);
-    return Array.isArray(node) ? node.length : 0;
+    if (Array.isArray(node)) {
+      return node.length;
+    }
+    /*
+     * An attribute-value field is the exception, and only once it has been read
+     * back: the reader folds a list of attribute names into a single node keyed
+     * by name, so the occurrences are its names rather than a list's length.
+     * While the tree was a document there was nothing to fold into and every
+     * field counted the same way, so a reloaded instance reported no attributes
+     * at all and the pager offered no pages.
+     */
+    if (node instanceof InstanceDataAttributeValueField) {
+      return Object.keys(node.values).length;
+    }
+    return 0;
   }
 
   buildNewOrFromMetadata(

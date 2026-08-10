@@ -11,8 +11,9 @@ import { describe, expect, it } from 'vitest';
 import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate, supportsMultiInstance } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { InstanceValueNode } from '@cee/util/instance-value-node';
 import { infoOf } from '../src/nodes';
-import { containerValue as occurrenceValue, instanceWith, labelOf, listValue, literalOf } from '../src/values';
+import { containerValue as occurrenceValue, instanceWith, labelOf, listValue, literalOf, heldValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
@@ -196,10 +197,10 @@ describe('quality report value extraction', () => {
 
     driver.setValue(['_f'], k);
 
-    // The IRI is stored as @id, with no @value...
+    // An IRI-valued field holds an IRI and no literal...
     const node: any = driver.handlerContext.getDataObjectNodeByPath(['_f']);
-    expect(node[JsonSchema.atId]).toBe(k.sample);
-    expect(literalOf(node)).toBeUndefined();
+    expect(heldValue(node)).toEqual({ iri: k.sample });
+    expect(InstanceValueNode.literal(node)).toBeUndefined();
 
     // ...and the report now reads it.
     expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(1);
@@ -590,7 +591,7 @@ describe('nesting depth', () => {
       for (const i of [0, 1]) {
         driver.handlerContext.setCurrentIndex(inner, i);
         const node: any = driver.handlerContext.getDataObjectNodeByPath(path);
-        expect(literalOf(node), `coordinate o${o}i${i} collided`).toBe(`o${o}i${i}`);
+        expect(heldValue(node), `coordinate o${o}i${i} collided`).toBe(`o${o}i${i}`);
       }
     }
     driver.expectNoErrors('deep writes');
@@ -608,7 +609,7 @@ describe('nesting depth', () => {
 
     driver.handlerContext.setCurrentIndex(outer, 0);
     const node: any = driver.handlerContext.getDataObjectNodeByPath(['_outer', '_inner', '_inner_f']);
-    expect(literalOf(node)).toBe('original');
+    expect(heldValue(node)).toBe('original');
     driver.expectNoErrors('add outer');
   });
 });

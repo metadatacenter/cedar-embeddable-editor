@@ -103,22 +103,22 @@ export const termOf = (node: unknown): { iri: string | null | undefined; label: 
  */
 
 /** An instance node holding a literal, with an XSD type when the field declares one. */
-export const literalNode = (value: string | null, xsdType: string | null = null): InstanceObject =>
+export const literalNode = (value: string | null, xsdType: string | null = null): JsonNode =>
   JsonTemplateInstanceWriter.writeValueNode(
     xsdType === null ? new InstanceDataStringAtom(value) : new InstanceDataTypedAtom(value, xsdType),
-  ) as InstanceObject;
+  ) as JsonNode;
 
 /** An instance node holding an IRI and nothing else — a link, or an external authority. */
-export const linkNode = (iri: string): InstanceObject =>
-  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataLinkAtom(iri)) as InstanceObject;
+export const linkNode = (iri: string): JsonNode =>
+  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataLinkAtom(iri)) as JsonNode;
 
 /** An instance node holding a controlled term: an IRI and the label it is shown by. */
-export const termNode = (iri: string, label: string): InstanceObject =>
-  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataControlledAtom(iri, label)) as InstanceObject;
+export const termNode = (iri: string, label: string): JsonNode =>
+  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataControlledAtom(iri, label)) as JsonNode;
 
 /** The node an unfilled IRI-valued slot holds, which is not an IRI of null. */
-export const emptyNode = (): InstanceObject =>
-  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataEmptyAtom()) as InstanceObject;
+export const emptyNode = (): JsonNode =>
+  JsonTemplateInstanceWriter.writeValueNode(new InstanceDataEmptyAtom()) as JsonNode;
 
 /**
  * A whole instance holding one named value, as a host would hand it over.
@@ -133,16 +133,13 @@ export const instanceWith = (
   basedOn: string,
   values: Record<string, InstanceDataAtomType>,
   id: string | null = null,
-): InstanceObject => {
+): JsonNode => {
   const builder = new TemplateInstanceBuilder().withSchemaIsBasedOn(basedOn);
   if (id !== null) {
     builder.withAtId(id);
   }
   Object.entries(values).forEach(([key, atom]) => builder.withDataValue(key, atom));
-  return CedarWriters.json()
-    .getFebruary2024()
-    .getTemplateInstanceWriter()
-    .getAsJsonNode(builder.build()) as unknown as InstanceObject;
+  return CedarWriters.json().getFebruary2024().getTemplateInstanceWriter().getAsJsonNode(builder.build());
 };
 
 /** The atoms `instanceWith` takes, so a spec names a value rather than a shape. */
@@ -181,3 +178,37 @@ export const listValue = (...occurrences: InstanceDataAtomType[]): InstanceDataA
 
 /** The node a slot holds when nothing has been put in it. */
 export const emptyValue = (): InstanceDataAtomType => new InstanceDataEmptyAtom();
+
+/**
+ * What a node holds, as plain data, whichever side of the boundary it came from.
+ *
+ * A spec that wants to say "the emitted document carries what the field held"
+ * has a model node on one side and a document node on the other. They are not
+ * comparable objects and should not be: that they *were* comparable is what the
+ * instance path is being moved off. Both reduce to the same plain value here —
+ * the literal, or the IRI and label — so the claim is about the value surviving
+ * rather than about two representations being identical.
+ */
+export const heldValue = (node: unknown): unknown => {
+  if (Array.isArray(node)) {
+    return node.map(heldValue);
+  }
+  const atom = isModelAtom(node) ? node : atomOf(node);
+  if (atom instanceof InstanceDataStringAtom || atom instanceof InstanceDataTypedAtom) {
+    return atom.value;
+  }
+  if (atom instanceof InstanceDataControlledAtom) {
+    return { iri: atom.id, label: atom.label };
+  }
+  if (atom instanceof InstanceDataLinkAtom) {
+    return { iri: atom.id };
+  }
+  return null;
+};
+
+const isModelAtom = (node: unknown): node is InstanceDataAtomType =>
+  node instanceof InstanceDataStringAtom ||
+  node instanceof InstanceDataTypedAtom ||
+  node instanceof InstanceDataLinkAtom ||
+  node instanceof InstanceDataControlledAtom ||
+  node instanceof InstanceDataEmptyAtom;

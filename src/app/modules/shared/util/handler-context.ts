@@ -161,7 +161,7 @@ export class HandlerContext {
       return null;
     }
     return this.dataObjectManipulationService.getDataPathNodeRecursively(
-      this.dataContext.instanceFullData,
+      this.dataContext.instanceFullData?.dataContainer ?? null,
       representation,
       path,
       OccurrenceSelectors.fromCursor(this.multiInstanceObjectService),
@@ -181,7 +181,7 @@ export class HandlerContext {
       return null;
     }
     return this.dataObjectManipulationService.getDataPathNodeRecursively(
-      this.dataContext.instanceFullData,
+      this.dataContext.instanceFullData?.dataContainer ?? null,
       representation,
       path,
       OccurrenceSelectors.at(occurrences),
@@ -195,7 +195,7 @@ export class HandlerContext {
       return null;
     }
     return this.dataObjectManipulationService.getParentDataPathNodeRecursively(
-      this.dataContext.instanceFullData,
+      this.dataContext.instanceFullData?.dataContainer ?? null,
       null,
       representation,
       path,
@@ -210,7 +210,7 @@ export class HandlerContext {
       return null;
     }
     return this.dataObjectManipulationService.getParentDataPathNodeRecursively(
-      this.dataContext.instanceFullData,
+      this.dataContext.instanceFullData?.dataContainer ?? null,
       null,
       representation,
       path,

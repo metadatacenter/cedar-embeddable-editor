@@ -163,7 +163,7 @@ export class TemplateRepresentationFactory {
     return false;
   }
 
-  private static getValueByPath(path: string[], json: InstanceNode): InstanceNode | undefined {
+  private static getValueByPath(path: string[], json: InstanceNode | null): string | InstanceNode | null | undefined {
     if (!json) {
       return null;
     }
@@ -185,8 +185,8 @@ export class TemplateRepresentationFactory {
     }
     const currentKey = path[0];
     const remainingPath = path.slice(1);
-    if (isInstanceObject(json) && Object.hasOwn(json, currentKey)) {
-      const value = json[currentKey];
+    if (isInstanceObject(json) && json.hasValue(currentKey)) {
+      const value = json.values[currentKey];
       if (value instanceof Array) {
         if (!value.length) {
           return null;

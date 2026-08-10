@@ -24,7 +24,7 @@ import type { FieldKind } from './axes';
 import { present } from './nodes';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { CedarTemplate } from '@cee/models/template/cedar-template.model';
-import type { Template } from 'cedar-model-typescript-library';
+import type { Template, TemplateInstance } from 'cedar-model-typescript-library';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
@@ -62,7 +62,11 @@ export interface DriverOptions {
   readOnlyMode?: boolean;
   hideEmptyFields?: boolean;
   /** Pre-load an existing instance, as the host page's `instanceObject` would. */
-  instance?: InstanceObject;
+  /**
+   * An instance a host page hands over: a document, not a node of CEE's tree.
+   * It goes to `InstanceDeserializer.read` exactly as `instanceObject` would.
+   */
+  instance?: object;
   /**
    * Which parser turns the template JSON into the component tree.
    *
@@ -131,8 +135,21 @@ export class CeeDriver {
    * wrong. The tree itself, not a copy: writing through it edits what CEE holds,
    * which is what the malformed-node specs are for.
    */
+  /** The instance CEE is editing, as the model it is. */
+  get instance(): TemplateInstance {
+    const instance = this.dataContext.instanceFullData;
+    if (instance === null) {
+      throw new Error('instanceFullData is null');
+    }
+    return instance;
+  }
+
   get fullData(): InstanceObject {
-    return present(this.dataContext.instanceFullData, 'instanceFullData');
+    const instance = this.dataContext.instanceFullData;
+    if (instance === null) {
+      throw new Error('instanceFullData is null');
+    }
+    return instance.dataContainer;
   }
 
   /**
@@ -155,7 +172,7 @@ export class CeeDriver {
    * load an instance. A claim about *what leaves CEE* does not belong here.
    */
   get metadata(): any {
-    return JSON.parse(JSON.stringify(this.dataContext.instanceFullData));
+    return InstanceSerializer.toJson(this.dataContext.instanceFullData);
   }
 
   /**
@@ -186,7 +203,7 @@ export class CeeDriver {
    * left out.
    */
   get extract(): any {
-    return JSON.parse(JSON.stringify(this.dataContext.instanceExtractData));
+    return InstanceSerializer.toDataJson(this.dataContext.instanceFullData);
   }
 
   get qualityReport(): any {

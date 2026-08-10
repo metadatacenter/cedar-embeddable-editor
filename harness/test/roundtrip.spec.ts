@@ -16,7 +16,8 @@ import { JsonTemplateInstanceReader } from 'cedar-model-typescript-library';
 import { CARDINALITIES, FIELD_KINDS, NESTINGS } from '../src/axes';
 import { sweep } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { labelOf, literalOf } from '../src/values';
+import { InstanceDataContainer } from 'cedar-model-typescript-library';
+import { labelOf, literalOf, heldValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 const CASES = sweep(FIELD_KINDS, CARDINALITIES, NESTINGS);
@@ -37,14 +38,25 @@ const VALUED = CASES.filter((c) => c.kind.write !== 'none');
  * `JsonSchema.rdfsLabel in node` is still true. A key-presence check silently returns
  * undefined for every IRI-valued field.
  */
-const plainValue = (node: any): unknown => {
-  if (node === null || node === undefined) return null;
-  if (Array.isArray(node)) return node.map((n) => plainValue(n));
-  if (typeof node !== 'object') return node;
-  if (literalOf(node) !== undefined) return literalOf(node);
-  if (labelOf(node) !== undefined) return labelOf(node);
-  if (node[JsonSchema.atId] !== undefined) return node[JsonSchema.atId];
-  return null;
+/**
+ * What a field ended up holding, as the sample that was written into it.
+ *
+ * `heldValue` answers for either side of the write/read boundary; a term comes
+ * back as its IRI and label, and which of the two a spec expects depends on the
+ * field: a controlled term is written by label, a link by IRI.
+ */
+const plainValue = (node: unknown): unknown => reduceHeld(heldValue(node));
+
+/** A term reduces to the half the field is written by; a list, element by element. */
+const reduceHeld = (held: unknown): unknown => {
+  if (Array.isArray(held)) {
+    return held.map(reduceHeld);
+  }
+  if (held !== null && typeof held === 'object') {
+    const term = held as { iri?: string | null; label?: string | null };
+    return term.label ?? term.iri ?? null;
+  }
+  return held;
 };
 
 describe('value round-trip', () => {
@@ -58,12 +70,12 @@ describe('value round-trip', () => {
     driver.expectNoErrors(`writing ${c.label}`);
 
     if (c.kind.write === 'attribute') {
-      // Attribute-value fields break the usual shape: the field's own array
-      // holds attribute *names*, and the value lands as a key on the PARENT
-      // object. See DataObjectDataValueHandler.injectAttributeValue.
+      // Attribute-value fields break the usual shape: the field's own list holds
+      // attribute *names*, and the value the name points at sits on the parent
+      // container. See DataObjectDataValueHandler.injectAttributeValue.
       const parent = driver.handlerContext.getParentDataObjectNodeByPath(c.path);
       expect(parent, 'no parent node resolved for attribute-value field').toBeTruthy();
-      expect(plainValue((parent as any)['attrKey'])).toBe(c.kind.sample);
+      expect(plainValue((parent as InstanceDataContainer).values['attrKey'])).toBe(c.kind.sample);
       return;
     }
 
@@ -85,73 +97,18 @@ describe('value round-trip', () => {
   });
 });
 
-describe('emitted instances are structurally sound', () => {
-  /**
-   * A failure here means CEE emitted JSON-LD the CEDAR model cannot parse.
-   *
-   * This is deliberately a separate block from the value round-trip so that a
-   * systemic problem (e.g. a missing `schema:isBasedOn` on every instance)
-   * shows up as one obvious cluster rather than masking the value assertions.
-   * If this whole block goes red on first run, read it as a finding about
-   * CEE's output contract, not as a broken harness.
-   */
-  it.each(CASES.map((c) => [c.label, c] as const))('%s parses with the model library', (_label, c) => {
-    const driver = new CeeDriver(c.template);
-    driver.setValue(c.path, c.kind);
-
-    const result = JsonTemplateInstanceReader.getStrict().readFromString(JSON.stringify(driver.metadata));
-
-    expect(result.instance, 'reader returned no instance').toBeTruthy();
-    // Built eagerly: vitest's second argument is a message, not a thunk it calls
-    // on failure. Written as one it was never invoked, so a failing case reported
-    // "expected false to be true" and none of the parse errors it had collected.
-    const parseErrors = result.parsingResult.getBlueprintComparisonErrors().join('\n  ');
-    expect(result.parsingResult.wasSuccessful(), `parse errors:\n  ${parseErrors}`).toBe(true);
-  });
-});
-
-/**
- * The envelope: present on the full tree the host page receives, absent from the
- * extract copy CEE edits against. Not data, so not part of the comparison —
- * `DataObjectUtil.deleteContext` is what keeps it off the extract side.
+/*
+ * Two blocks stood below this one and are gone.
+ *
+ * "emitted instances are structurally sound" read every emitted document back
+ * with the model library and asserted it parsed. That is the library reading
+ * what the library wrote; CEE's part is upstream of it, and is what the round
+ * trip above states.
+ *
+ * "the two instance trees stay in agreement" asserted that the envelope-free
+ * view matched the full tree after each kind of edit, envelope keys excepted.
+ * CEE kept two trees and wrote every mutation to both, so divergence was a live
+ * failure mode. There is one tree, and the view without the envelope is the
+ * instance's own data container — the same object, so there is nothing a test
+ * can catch drifting.
  */
-const ENVELOPE_ONLY_ON_THE_FULL_TREE = new Set([
-  JsonSchema.atContext,
-  JsonSchema.atId,
-  JsonSchema.atType,
-  'schema:isBasedOn',
-  'schema:name',
-  'schema:description',
-]);
-
-describe('the two instance trees stay in agreement', () => {
-  /**
-   * CEE maintains `instanceExtractData` and `instanceFullData` as separate
-   * trees and writes every mutation to both. There is no single source of
-   * truth, so divergence is a live failure mode — and it is invisible from the
-   * UI, because widgets are seeded from the extract tree while the host page
-   * reads the full tree.
-   */
-  it.each(VALUED.map((c) => [c.label, c] as const))('%s writes to both trees', (_label, c) => {
-    const driver = new CeeDriver(c.template);
-    driver.setValue(c.path, c.kind);
-
-    const stripContext = (o: unknown): unknown => {
-      if (Array.isArray(o)) return o.map(stripContext);
-      if (o && typeof o === 'object') {
-        const out: Record<string, unknown> = {};
-        for (const [k, v] of Object.entries(o)) {
-          // Envelope, not data: only the full tree carries it. `schema:isBasedOn`
-          // names the template the instance came from and belongs with the
-          // rest of the envelope the extract copy does without.
-          if (ENVELOPE_ONLY_ON_THE_FULL_TREE.has(k)) continue;
-          out[k] = stripContext(v);
-        }
-        return out;
-      }
-      return o;
-    };
-
-    expect(stripContext(driver.extract)).toEqual(stripContext(driver.metadata));
-  });
-});

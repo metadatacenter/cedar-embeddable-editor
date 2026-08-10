@@ -63,6 +63,23 @@ export default defineConfig({
         find: '@cee',
         replacement: path.resolve(here, '../src/app/modules/shared'),
       },
+      /**
+       * One copy of the model library, shared with the app.
+       *
+       * The harness has its own `node_modules`, so without this it loads a
+       * second copy — and a second copy means a second `InstanceDataContainer`
+       * class. CEE's tree is built from the app's copy and read through
+       * `instanceof`, so every container the harness looked at came back as
+       * "not a container" and every path resolved to nothing. It cost 220 tests
+       * and looked like a broken walk.
+       *
+       * Two copies used to be merely wasteful: the trees were plain objects and
+       * nothing asked which class they came from. Identity is load-bearing now.
+       */
+      {
+        find: /^cedar-model-typescript-library$/,
+        replacement: path.resolve(here, '../node_modules/cedar-model-typescript-library'),
+      },
     ],
   },
   // Without this, vite-node externalizes CEE's `.ts` files and hands them to

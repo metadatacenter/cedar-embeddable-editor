@@ -6,7 +6,7 @@ import { Xsd } from '../models/xsd.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { ValidationCode, ValidationProblem } from './validation-problem.model';
 import { InstanceValueNode } from '../util/instance-value-node';
-import { InstanceNode, isInstanceObject } from '../models/instance-node.model';
+import { InstanceNode } from '../models/instance-node.model';
 
 /**
  * Constraint checking for a single field value.
@@ -444,14 +444,14 @@ export class FieldValueValidator {
     if (component.basicInfo.inputType !== InputType.controlled) {
       return [];
     }
-    if (!isInstanceObject(node)) {
-      return [];
-    }
-    // Read the id and label through the value-node model rather than off the raw
-    // keys, so this validator sees a controlled term the same way everything else
-    // in CEE does. A node the model does not read as an id/label pair — a bare
-    // `rdfs:label` with no `@id`, say — is not a controlled value to it, and is
-    // left alone here too.
+    // Read the id and label through the value-node model, so this validator sees
+    // a controlled term the same way everything else in CEE does. A node the
+    // model does not read as an id/label pair is not a controlled value to it,
+    // and is left alone here too — which is what the two reads below answer.
+    //
+    // There was a container guard here, from when every node was a plain object
+    // and a value was one too. A value is an atom, so the guard rejected every
+    // node this validator exists to look at.
     const id = InstanceValueNode.iri(node);
     const label = InstanceValueNode.label(node);
     const hasId = typeof id === 'string' && id !== '';

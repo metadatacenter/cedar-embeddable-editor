@@ -1,9 +1,7 @@
 import {
-  CedarReaders,
   InstanceDataAttributeValueField,
   InstanceDataContainer,
   InstanceDataEmptyNode,
-  JsonNode,
 } from 'cedar-model-typescript-library';
 import { InstanceObject } from '../models/instance-node.model';
 import { indexSegment, InstanceCardinalityReader } from './instance-cardinality-reader';
@@ -24,16 +22,17 @@ import { indexSegment, InstanceCardinalityReader } from './instance-cardinality-
  * exactly, and did; that walk has since been removed.
  */
 export class ModelLibraryInstanceReader implements InstanceCardinalityReader {
-  read(instance: InstanceObject, emit: (path: string[], count: number) => void): void {
-    const result = CedarReaders.json()
-      .getFebruary2024()
-      .getTemplateInstanceReader()
-      // `JsonNode` is the library's name for a parsed JSON object, and differs
-      // from `InstanceObject` only in how it says a value may be anything JSON
-      // holds. The second parameter is the path to read at, and is optional —
-      // it was being passed `undefined as never` to satisfy the untyped call.
-      .readFromObject(instance as JsonNode);
-    ModelLibraryInstanceReader.walk(result.instance.dataContainer, [], emit);
+  /**
+   * Walked, not parsed.
+   *
+   * This used to hand the document to the library's reader and walk what came
+   * back, because CEE's tree was a document and a parsed model was the only
+   * place the cardinalities could be read from without guessing. The tree is the
+   * model, so the parse was a round trip through JSON to arrive at the container
+   * it was already given.
+   */
+  read(container: InstanceObject, emit: (path: string[], count: number) => void): void {
+    ModelLibraryInstanceReader.walk(container, [], emit);
   }
 
   private static walk(
