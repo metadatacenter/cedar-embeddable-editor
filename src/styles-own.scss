@@ -214,6 +214,10 @@
   gap: 4px;
 }
 
+.pager-action-tooltip {
+  display: inline-flex;
+}
+
 /* At embedding widths the pager becomes its own row instead of covering the title. */
 @container cee (max-width: 620px) {
   .pager-container,

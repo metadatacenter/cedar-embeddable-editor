@@ -36,36 +36,39 @@
     </div>
     @if (!readOnlyMode) {
       <div class="pager-actions">
-        <button
-          mat-icon-button
-          type="button"
-          [disabled]="!isEnabledAdd()"
-          [matTooltip]="'Multi.AddEmptyAfter' | translate"
-          [attr.aria-label]="'Multi.AddEmptyAfter' | translate"
-          (click)="clickedAdd($event)"
-        >
-          <mat-icon>note_add</mat-icon>
-        </button>
-        <button
-          mat-icon-button
-          type="button"
-          [disabled]="!isEnabledCopy()"
-          [matTooltip]="'Multi.AddCloneAfter' | translate"
-          [attr.aria-label]="'Multi.AddCloneAfter' | translate"
-          (click)="clickedCopy($event)"
-        >
-          <mat-icon>content_copy</mat-icon>
-        </button>
-        <button
-          mat-icon-button
-          type="button"
-          [disabled]="!isEnabledDelete()"
-          [matTooltip]="'Multi.DeleteCurrent' | translate"
-          [attr.aria-label]="'Multi.DeleteCurrent' | translate"
-          (click)="clickedDelete($event)"
-        >
-          <mat-icon>delete</mat-icon>
-        </button>
+        <span class="pager-action-tooltip" [matTooltip]="'Multi.AddEmptyAfter' | translate">
+          <button
+            mat-icon-button
+            type="button"
+            [disabled]="!isEnabledAdd()"
+            [attr.aria-label]="'Multi.AddEmptyAfter' | translate"
+            (click)="clickedAdd($event)"
+          >
+            <mat-icon>note_add</mat-icon>
+          </button>
+        </span>
+        <span class="pager-action-tooltip" [matTooltip]="'Multi.AddCloneAfter' | translate">
+          <button
+            mat-icon-button
+            type="button"
+            [disabled]="!isEnabledCopy()"
+            [attr.aria-label]="'Multi.AddCloneAfter' | translate"
+            (click)="clickedCopy($event)"
+          >
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </span>
+        <span class="pager-action-tooltip" [matTooltip]="'Multi.DeleteCurrent' | translate">
+          <button
+            mat-icon-button
+            type="button"
+            [disabled]="!isEnabledDelete()"
+            [attr.aria-label]="'Multi.DeleteCurrent' | translate"
+            (click)="clickedDelete($event)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </span>
       </div>
     }
     <div class="pager-pager">
