@@ -27,6 +27,11 @@ import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { instanceWith, linkNode, literalNode, termNode } from '../src/values';
 import { arrayAt } from '../src/nodes';
+import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
+
+/** The names an attribute-value field is holding, in page order. */
+const attributeNames = (slots: unknown[]): (string | null)[] =>
+  slots.map((slot) => (slot instanceof InstanceDataAttributeValueFieldName ? slot.name : null));
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
@@ -487,7 +492,10 @@ describe('paged attribute-value fields', () => {
 
     // The working tree rather than the extract: an unnamed slot is not a
     // property, so the extract has nothing to carry it as.
-    expect(arrayAt(r.driver.fullData, '_f'), 'the copy kept the name it was copied from').toEqual(['colour', '']);
+    expect(attributeNames(arrayAt(r.driver.fullData, '_f')), 'the copy kept the name it was copied from').toEqual([
+      'colour',
+      '',
+    ]);
     expect(r.widget.last).toEqual({ '': null });
   });
 
@@ -515,7 +523,7 @@ describe('paged attribute-value fields', () => {
     r.sync();
     r.driver.expectNoErrors('syncing a freshly added attribute slot');
 
-    expect(arrayAt(r.driver.fullData, '_f')).toEqual(['']);
+    expect(attributeNames(arrayAt(r.driver.fullData, '_f'))).toEqual(['']);
     expect(r.widget.last).toEqual({ '': null });
   });
 
