@@ -16,33 +16,24 @@ interface AuthorityEndpoints {
 }
 
 /**
- * A term as an authority writes one, for the endpoints that answer with a list.
- *
- * The one place in CEE that names a JSON-LD key on purpose, and it names it as
- * the wire format it is rather than through the model library's constants: this
- * is what an authority sends, and CEDAR's serialization has no say in it. The
- * conversion below is the boundary — past it, a term is an `AuthorityTerm` with
- * named properties and nothing knows how the authority spelled them.
- *
- * Every property optional because the shape is the authority's to decide.
- */
-interface AuthorityWireTerm {
-  '@id'?: string;
-  'rdfs:label'?: string;
-  _details?: string;
-}
-
-/**
  * What an authority's search endpoint answers with, before it becomes terms.
  *
- * Every field optional, and `results` in either of the two shapes seen in the
- * wild: an object keyed by IRI, or a list of terms already. This is the raw
- * document, not CEE's model of it — `toItems` is the conversion, and holding the
- * payload as `any` was what let that function read whatever it liked.
+ * `results` is a map keyed by IRI, whose values carry a name. Every field is
+ * optional because the document is the authority's; the shape is not.
+ *
+ * A second form was declared here — a list of terms already — and read by
+ * `toItems`. It was never a wire shape. The seven services this replaced each
+ * converted the map and nothing else, and the array guard came from the widget
+ * one layer downstream, where `resp.results` was the *service's own output*: an
+ * array, because the service had just built one with `Object.keys(...).map(...)`.
+ * Reading that guard as evidence about the endpoint turned a defence against
+ * CEE's own upstream into a claim about an authority, and typing it meant
+ * inventing the keys such a term would carry — `@id` and `rdfs:label`, copied
+ * from the converter rather than observed on any wire.
  */
 interface AuthoritySearchPayload {
   found?: boolean;
-  results?: Record<string, { name?: string; details?: string } | null | undefined> | AuthorityWireTerm[] | null;
+  results?: Record<string, { name?: string; details?: string } | null | undefined> | null;
 }
 
 /**
@@ -125,16 +116,12 @@ export class ExternalAuthorityLookupService {
     if (results === null || results === undefined) {
       return [];
     }
-    // Already a list of terms: some endpoints answer that way, and the widgets
-    // all guarded for it before passing results on. Read through `AuthorityWireTerm`
-    // rather than passed along, because a wire term and CEE's term no longer share
-    // a shape — the object form below never did.
-    if (Array.isArray(results)) {
-      return results.map((term) => ({
-        iri: term['@id'] ?? '',
-        label: term['rdfs:label'] ?? '',
-        detailsUrl: term._details,
-      }));
+    // A response that is not the map this describes yields no terms. The
+    // autocomplete shows its "no results" row, and a lookup that *failed* is
+    // already told apart from one that found nothing — the widgets record that
+    // separately, so an empty list here does not have to carry both meanings.
+    if (Array.isArray(results) || typeof results !== 'object') {
+      return [];
     }
     return Object.keys(results).map((key) => ({
       iri: key,
