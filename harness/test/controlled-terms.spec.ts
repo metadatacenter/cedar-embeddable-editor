@@ -15,7 +15,7 @@ import { CONSTRAINT_COMBINATIONS, MULTIPLICITY_COMBINATIONS, configureFor } from
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { labelOf } from '../src/values';
+import { labelOf, heldValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 const controlledKind = (configure: (b: any) => any): FieldKind => ({
@@ -109,18 +109,19 @@ describe('controlled terms across cardinality and nesting', () => {
     const node: any = driver.handlerContext.getDataObjectNodeByPath(path);
     const one = Array.isArray(node) ? node[0] : node;
     // changeControlledValue writes the IRI plus its label; both must land.
-    expect(labelOf(one)).toBe(kind.sample);
-    expect(one[JsonSchema.atId]).toBe(`https://example.org/terms/${encodeURIComponent(kind.sample)}`);
+    expect(heldValue(one)).toEqual({
+      iri: `https://example.org/terms/${encodeURIComponent(kind.sample)}`,
+      label: kind.sample,
+    });
   });
 });
 
 describe('controlled term values survive a save/reload cycle', () => {
   /**
-   * The reload path reconstructs everything from the instance alone. For a
-   * controlled term that means the `{@id, rdfs:label}` pair has to survive
-   * `DataObjectUtil.deleteContext`, which has an explicit carve-out for
-   * exactly this shape — a two-key object of `@id` + `rdfs:label` is left
-   * alone rather than stripped.
+   * The reload path reconstructs everything from the instance alone, so a
+   * controlled term has to survive being written out and read back: the IRI
+   * identifies it and the label is what the field shows, and losing either
+   * leaves the user looking at a blank box over a value that is still there.
    */
   it.each(CONSTRAINT_COMBINATIONS.map((c) => [c.label, c] as const))('%s', (_label, combo) => {
     const kind = controlledKind(configureFor(combo));
@@ -133,7 +134,10 @@ describe('controlled term values survive a save/reload cycle', () => {
     const reloaded = new CeeDriver(template, { instance: saved });
     const node: any = reloaded.handlerContext.getDataObjectNodeByPath(['_term']);
 
-    expect(labelOf(node)).toBe(kind.sample);
+    expect(heldValue(node)).toEqual({
+      iri: `https://example.org/terms/${encodeURIComponent(kind.sample)}`,
+      label: kind.sample,
+    });
     reloaded.expectNoErrors(`reload ${combo.label}`);
   });
 });
