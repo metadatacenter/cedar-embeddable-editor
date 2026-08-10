@@ -34,6 +34,7 @@ import { JsonSchema } from 'cedar-model-typescript-library';
  * injects have to be valid instances too.
  */
 const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
+const INSTANCE_IRI = 'https://example.org/i/1';
 
 const ATTR: FieldKind = {
   key: 'attr',
@@ -523,10 +524,11 @@ describe('an attribute name with nothing behind it', () => {
   it('is counted as soon as the name has a value behind it', () => {
     const template = buildTemplate({ name: 'ir_named_attr', children: [{ kind: ATTR, name: 'f' }] });
     const driver = new CeeDriver(template, {
+      // The name list and the value it points at are written by hand: an attribute
+      // value's property is minted from the user's text, which is not something a
+      // builder can be asked for.
       instance: {
-        [JsonSchema.atContext]: {},
-        '@id': 'https://example.org/i/1',
-        'schema:isBasedOn': TEMPLATE_IRI,
+        ...instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI),
         _f: ['colour'],
         colour: literalNode('blue'),
       },

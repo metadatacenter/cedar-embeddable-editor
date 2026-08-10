@@ -26,7 +26,7 @@ import { CARDINALITIES, FIELD_KINDS } from '../src/axes';
 import { corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { literalNode } from '../src/values';
+import { instanceWith, literalNode, literalValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
@@ -181,7 +181,11 @@ describe('the instance says which template it is an instance of', () => {
     >;
     template[JsonSchema.atId] = 'https://repo.metadatacenter.org/templates/injected';
     const driver = new CeeDriver(template, {
-      instance: { [JsonSchema.atContext]: {}, '@id': 'https://example.org/i/9', _f: literalNode('loaded') },
+      instance: instanceWith(
+        'https://repo.metadatacenter.org/templates/injected',
+        { _f: literalValue('loaded') },
+        'https://example.org/i/9',
+      ),
     });
 
     const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;

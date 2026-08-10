@@ -17,10 +17,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
  * which hands the spec files a second copy of `describe`/`it` that the runner
  * never sees — the suite then "passes" having collected zero tests.
  */
-const TRANSFORM = [
-  /cedar-embeddable-editor[\\/]src[\\/]/,
-  /cedar-embeddable-editor[\\/]harness[\\/](src|stubs)[\\/]/,
-];
+const TRANSFORM = [/cedar-embeddable-editor[\\/]src[\\/]/, /cedar-embeddable-editor[\\/]harness[\\/](src|stubs)[\\/]/];
 
 /**
  * Redirect two modules to local stubs.

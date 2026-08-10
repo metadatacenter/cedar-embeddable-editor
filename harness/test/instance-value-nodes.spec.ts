@@ -34,6 +34,7 @@ import { JsonSchema } from 'cedar-model-typescript-library';
  * injects have to be valid instances too.
  */
 const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
+const INSTANCE_IRI = 'https://example.org/i/1';
 
 const CONTROLLED: FieldKind = {
   key: 'ct',
@@ -66,14 +67,9 @@ describe('what the quality report reads a node as', () => {
   const reportValue = (kind: FieldKind, node: InstanceNode) => {
     const template = buildTemplate({ name: `ivn_${kind.key}`, children: [{ kind, name: 'f' }] });
     const driver = new CeeDriver(template, {
-      // The node under test is supplied by the caller, including shapes the library
-      // would not write, so the envelope around it is written out here too.
-      instance: {
-        [JsonSchema.atContext]: {},
-        '@id': 'https://example.org/i/1',
-        'schema:isBasedOn': TEMPLATE_IRI,
-        _f: node,
-      },
+      // Only `_f` is written by hand: the node under test is supplied by the caller,
+      // including shapes the library would not write.
+      instance: { ...instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI), _f: node },
     });
     driver.handlerContext.buildQualityReport();
     return driver.qualityReport.valueTree._f.value;
@@ -124,12 +120,7 @@ describe('a labelless controlled term satisfies a requirement', () => {
       children: [{ kind: CONTROLLED, name: 'f', required: true }],
     });
     const driver = new CeeDriver(template, {
-      instance: {
-        [JsonSchema.atContext]: {},
-        '@id': 'https://example.org/i/1',
-        'schema:isBasedOn': TEMPLATE_IRI,
-        _f: linkNode('https://x/1'),
-      },
+      instance: { ...instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI), _f: linkNode('https://x/1') },
     });
     driver.handlerContext.buildQualityReport();
 

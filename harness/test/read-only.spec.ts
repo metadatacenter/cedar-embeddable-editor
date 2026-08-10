@@ -21,7 +21,7 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at } from '../src/nodes';
-import { literalNode, literalOf } from '../src/values';
+import { instanceWith as buildInstance, literalNode, literalOf, literalValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
@@ -51,7 +51,11 @@ describe('read-only mode', () => {
   });
 
   it('validates an injected instance in a viewer', () => {
-    const bad = { [JsonSchema.atContext]: {}, '@id': 'https://example.org/i/1', _a: literalNode('fine') };
+    const bad = buildInstance(
+      'https://repo.metadatacenter.org/templates/ro',
+      { _a: literalValue('fine') },
+      'https://example.org/i/1',
+    );
     const viewer = new CeeDriver(template(), { readOnlyMode: true, hideEmptyFields: true, instance: bad });
     expect(viewer.dataContext.dataQualityReport).not.toBeNull();
     expect(viewer.qualityReport.isValid).toBe(true);

@@ -12,7 +12,7 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate, supportsMultiInstance } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { infoOf } from '../src/nodes';
-import { instanceWith, labelOf, literalOf } from '../src/values';
+import { containerValue as occurrenceValue, instanceWith, labelOf, listValue, literalOf } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
@@ -21,6 +21,8 @@ import { JsonSchema } from 'cedar-model-typescript-library';
  * injects have to be valid instances too.
  */
 const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
+const INSTANCE_IRI = 'https://example.org/i/1';
+const SECOND_INSTANCE_IRI = 'https://example.org/i/2';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
@@ -308,19 +310,20 @@ describe('required values are page-independent', () => {
   });
 
   /**
-   * Partial instances, which CEE itself never builds but a host page can inject.
+   * A partial instance, which CEE itself never builds but a host page can inject:
+   * an occurrence that is there and holds nothing.
    *
-   * `findAnyValue` guards against null and missing nodes. That guard is
-   * unreachable from an instance CEE constructed — it always writes
-   * `{'@value': null}` rather than a bare null — so without these cases the
-   * guard is untested, and a mutation making it return a value survives
-   * silently.
+   * `findAnyValue` guards against a missing node, and that guard is unreachable
+   * from an instance CEE constructed — it writes an empty value rather than
+   * leaving the property out — so without this case the guard is untested and a
+   * mutation making it return a value survives silently.
+   *
+   * The companion case held a null where the field belongs. That is an invalid
+   * artifact, so the library refuses to build one and the question of what the
+   * reader makes of it is the library's, not this suite's.
    */
-  it.each([
-    ['an entry holds a null field', [{ _f: null }]],
-    ['an entry omits the field', [{}]],
-  ])('is invalid when %s', (_label, elValue) => {
-    const instance: any = { [JsonSchema.atContext]: {}, '@id': 'https://example.org/i/1', _el: elValue };
+  it('is invalid when an entry omits the field', () => {
+    const instance: any = { ...instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI), _el: [occurrenceValue({})] };
 
     const driver = new CeeDriver(threeInstances(), { instance });
     driver.handlerContext.buildQualityReport();
@@ -348,7 +351,7 @@ describe('required values are page-independent', () => {
     ['the array is absent', undefined],
     ['the array is empty', []],
   ])('reports a minItems violation, not phantom required fields, when %s', (_label, elValue) => {
-    const instance: any = { [JsonSchema.atContext]: {}, '@id': 'https://example.org/i/1' };
+    const instance: any = instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI);
     if (elValue !== undefined) {
       instance._el = elValue;
     }
@@ -379,7 +382,7 @@ describe('required values are page-independent', () => {
    */
   it('an absent element and an empty one agree on the verdict but not on the reason', () => {
     const report = (elValue: unknown) => {
-      const instance: any = { [JsonSchema.atContext]: {}, '@id': 'https://example.org/i/1' };
+      const instance: any = instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI);
       if (elValue !== undefined) {
         instance._el = elValue;
       }
@@ -419,14 +422,7 @@ describe('required values are page-independent', () => {
    */
   it('reports a minItems violation when the element has no instances', () => {
     const driver = new CeeDriver(threeInstances(), {
-      // Hand-written on purpose: the point is a null where a list belongs, which is
-      // something the library will not produce and a host page can still send.
-      instance: {
-        [JsonSchema.atContext]: {},
-        '@id': 'https://example.org/i/1',
-        'schema:isBasedOn': TEMPLATE_IRI,
-        _el: null,
-      },
+      instance: instanceWith(TEMPLATE_IRI, { _el: listValue() }, INSTANCE_IRI),
     });
     driver.handlerContext.buildQualityReport();
 
@@ -474,18 +470,12 @@ describe('required values are page-independent', () => {
     return t;
   };
 
-  it.each([
-    ['null', null],
-    ['absent', undefined],
-  ])('is invalid when no minItems is declared and the element is %s', (_label, elValue) => {
-    const instance: any = {
-      [JsonSchema.atContext]: {},
-      '@id': 'https://example.org/i/2',
-      'schema:isBasedOn': TEMPLATE_IRI,
-    };
-    if (elValue !== undefined) {
-      instance._el = elValue;
-    }
+  /**
+   * Only the absent case. Its companion put a null where the list belongs, which
+   * is an invalid artifact the library will not build.
+   */
+  it('is invalid when no minItems is declared and the element is absent', () => {
+    const instance: any = instanceWith(TEMPLATE_IRI, {}, SECOND_INSTANCE_IRI);
 
     const driver = new CeeDriver(noFloorTemplate(), { instance });
     driver.handlerContext.buildQualityReport();

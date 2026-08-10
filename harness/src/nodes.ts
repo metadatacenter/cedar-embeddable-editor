@@ -47,7 +47,9 @@ export const at = (root: InstanceNode | null | undefined, ...path: PathStep[]): 
         throw new Error(`No list at ${pathLabel(walked)}, so [${step}] does not resolve.`);
       }
       if (step >= node.length) {
-        throw new Error(`The list at ${pathLabel(walked)} holds ${node.length} occurrence(s), so [${step}] is past it.`);
+        throw new Error(
+          `The list at ${pathLabel(walked)} holds ${node.length} occurrence(s), so [${step}] is past it.`,
+        );
       }
       node = node[step];
       continue;

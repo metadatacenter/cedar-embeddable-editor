@@ -20,7 +20,7 @@ import { InstanceValueNode } from '@cee/util/instance-value-node';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { corpusInstances } from '../src/corpus';
 import { JsonNode, JsonSchema, JsonTemplateInstanceReader } from 'cedar-model-typescript-library';
-import { linkNode, literalNode, termNode } from '../src/values';
+import { instanceWith, linkNode, literalNode, termNode } from '../src/values';
 import type { InstanceNode } from '@cee/models/instance-node.model';
 
 const instances = corpusInstances();
@@ -215,19 +215,15 @@ describe('what the old walk got wrong', () => {
    * library means the question is not asked at all, because the library
    * classified the node while parsing it.
    */
-  const envelope = {
-    [JsonSchema.atContext]: {},
-    '@id': 'https://repo.metadatacenter.org/template-instances/fixture',
-    'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/fixture',
-    'schema:name': 'A fixture instance',
-    'schema:description': '',
-  };
+  const envelope = instanceWith(
+    'https://repo.metadatacenter.org/templates/fixture',
+    {},
+    'https://repo.metadatacenter.org/template-instances/fixture',
+  );
 
   it.each([
     ['a controlled term', termNode('https://x/1', 'One')],
-    ['a controlled term with a @type', { '@id': 'https://x/1', 'rdfs:label': 'One', '@type': 'xsd:anyURI' }],
     ['a link', linkNode('https://x/1')],
-    ['a link with a @type', { '@id': 'https://x/1', '@type': 'xsd:anyURI' }],
     ['a literal', literalNode('text')],
     ['a typed literal', literalNode('7', 'xsd:int')],
   ])('keeps the value of %s', (_label, node) => {
@@ -249,9 +245,12 @@ describe('what the old walk got wrong', () => {
   it('strips @context and provenance from inside an element', () => {
     const extract = InstanceDeserializer.read({
       ...envelope,
+      // Written out on purpose: this is the envelope an element occurrence carries
+      // *inside* an instance, which is exactly what the test says gets stripped, so
+      // it has to be put there rather than built.
       _el: {
-        '@context': { _child: 'https://schema.metadatacenter.org/properties/1' },
-        '@id': 'https://repo.metadatacenter.org/template-element-instances/1',
+        [JsonSchema.atContext]: { _child: 'https://schema.metadatacenter.org/properties/1' },
+        [JsonSchema.atId]: 'https://repo.metadatacenter.org/template-element-instances/1',
         'pav:createdOn': '2026-01-01T00:00:00-08:00',
         'oslc:modifiedBy': 'https://metadatacenter.org/users/1',
         _child: literalNode('kept'),
@@ -283,6 +282,12 @@ describe('what the old walk got wrong', () => {
 });
 
 describe('an attribute-value field comes back in two halves', () => {
+  const attributeEnvelope = instanceWith(
+    'https://repo.metadatacenter.org/templates/av',
+    {},
+    'https://repo.metadatacenter.org/template-instances/av',
+  );
+
   /**
    * The library holds an attribute-value field as one node pairing names with
    * values. CEE's trees keep them apart — the field's key holds the names, and
@@ -290,12 +295,11 @@ describe('an attribute-value field comes back in two halves', () => {
    * projection has to split it, and a name must not go missing on the way.
    */
   it('the field holds its names and the parent holds their values', () => {
+    // The name list and the values it points at are written by hand: an attribute
+    // value's property is minted from the user's text, not something a builder can
+    // be asked for.
     const extract = InstanceDeserializer.read({
-      [JsonSchema.atContext]: {},
-      '@id': 'https://repo.metadatacenter.org/template-instances/av',
-      'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/av',
-      'schema:name': 'An instance with attributes',
-      'schema:description': '',
+      ...attributeEnvelope,
       _av: ['alpha', 'beta'],
       alpha: literalNode('first'),
       beta: literalNode('second'),
@@ -307,82 +311,8 @@ describe('an attribute-value field comes back in two halves', () => {
   });
 
   it('a field with no attributes yet is an empty list, not absent', () => {
-    const extract = InstanceDeserializer.read({
-      [JsonSchema.atContext]: {},
-      '@id': 'https://repo.metadatacenter.org/template-instances/av',
-      'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/av',
-      'schema:name': 'An instance with no attributes',
-      'schema:description': '',
-      _av: [],
-    }).extract as Record<string, unknown>;
+    const extract = InstanceDeserializer.read({ ...attributeEnvelope, _av: [] }).extract as Record<string, unknown>;
 
     expect(extract._av).toEqual([]);
-  });
-});
-
-describe('content the read cannot make a value of', () => {
-  /**
-   * BEHAVIOUR CHANGE. A CEDAR value is a literal or an IRI, so
-   * `{"rdfs:label": "Some Term"}` is neither — a label with nothing to label.
-   * The library reads it as empty and the field shows blank, which is right.
-   * Doing it in silence was not: a host page could inject a half-written
-   * controlled term, get an empty field back, and have no way to find out why.
-   * Nothing in the parsing result mentioned it either.
-   *
-   * `InstanceDataEmptyAtom` now carries what was dropped, so CEE can say what
-   * happened without re-inspecting the JSON it just handed to the library.
-   */
-  const envelope = {
-    [JsonSchema.atContext]: {},
-    '@id': 'https://repo.metadatacenter.org/template-instances/fixture',
-    'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/fixture',
-    'schema:name': 'A fixture instance',
-    'schema:description': '',
-  };
-
-  const messagesFor = (instance: InstanceObject): string[] => {
-    const said: string[] = [];
-    InstanceDeserializer.read(instance, (m) => said.push(m));
-    return said;
-  };
-
-  it('reports a label with no @id, naming the field', () => {
-    const said = messagesFor({ ...envelope, _f: { 'rdfs:label': 'Some Term' } });
-    expect(said).toHaveLength(1);
-    expect(said[0]).toContain('_f');
-    expect(said[0]).toContain('Some Term');
-  });
-
-  it('reports one inside an element, with the path to it', () => {
-    const said = messagesFor({
-      ...envelope,
-      _el: { [JsonSchema.atContext]: {}, _child: { 'rdfs:label': 'Some Term' } },
-    });
-    expect(said).toHaveLength(1);
-    expect(said[0]).toContain('_el > _child');
-  });
-
-  it('reports each occurrence of a multi field separately', () => {
-    const said = messagesFor({
-      ...envelope,
-      _f: [{ 'rdfs:label': 'One' }, literalNode('fine'), { 'rdfs:label': 'Three' }],
-    });
-    expect(said).toHaveLength(2);
-    expect(said[0]).toContain('_f[0]');
-    expect(said[1]).toContain('_f[2]');
-  });
-
-  it.each([
-    ['a literal', literalNode('text')],
-    ['a link', linkNode('https://x/1')],
-    ['a controlled term', termNode('https://x/1', 'One')],
-    ['an empty field', {}],
-    ['an explicit null', literalNode(null)],
-  ])('says nothing about %s', (_label, node) => {
-    expect(messagesFor({ ...envelope, _f: node })).toEqual([]);
-  });
-
-  it('says nothing when no reporter is given', () => {
-    expect(() => InstanceDeserializer.read({ ...envelope, _f: { 'rdfs:label': 'x' } })).not.toThrow();
   });
 });

@@ -113,7 +113,10 @@ const HUBMAP_ROOT = path.resolve(__dirname, '../fixtures/hubmap');
 
 export const hubmapTemplates = (): CorpusArtifact[] => {
   requireDirectory(HUBMAP_ROOT, 'HuBMAP corpus');
-  const files = fs.readdirSync(HUBMAP_ROOT).filter((f) => f.endsWith('.json')).sort();
+  const files = fs
+    .readdirSync(HUBMAP_ROOT)
+    .filter((f) => f.endsWith('.json'))
+    .sort();
   requireCount(files.length, EXPECTED_HUBMAP_COUNT, 'HuBMAP corpus');
   return files.map((f) => ({
     id: f.replace(/\.json$/, ''),

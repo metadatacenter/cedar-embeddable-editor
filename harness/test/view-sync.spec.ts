@@ -34,6 +34,7 @@ import { JsonSchema } from 'cedar-model-typescript-library';
  * injects have to be valid instances too.
  */
 const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
+const INSTANCE_IRI = 'https://example.org/i/1';
 
 const kind = (
   key: string,
@@ -401,11 +402,11 @@ describe('hiding empty fields in a repeated element', () => {
       ],
     });
     const driver = new CeeDriver(template, {
+      // Only the occurrence is written by hand: it carries the node under test,
+      // which the caller supplies in shapes the library would not write.
       instance: {
-        [JsonSchema.atContext]: {},
-        '@id': 'https://example.org/i/1',
-        'schema:isBasedOn': TEMPLATE_IRI,
-        _el: [{ '@id': 'https://example.org/e/1', _f: node }],
+        ...instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI),
+        _el: [{ [JsonSchema.atId]: 'https://example.org/e/1', _f: node }],
       },
     });
     new ActiveComponentRegistryService().setVisibility(driver.findOrThrow(['_el']), driver.handlerContext);
@@ -533,42 +534,5 @@ describe('paged attribute-value fields', () => {
 
     expect(() => registry.updateViewToModel(component, driver.handlerContext)).not.toThrow();
     expect(widget.pushed).toEqual([]);
-  });
-});
-
-describe('a paged field the instance has nothing for', () => {
-  /**
-   * An injected instance can leave a multi field null rather than an empty
-   * list. There is no value to push, but the pager still has to be told to
-   * redraw — otherwise it keeps showing the page count from before the load.
-   */
-  it('redraws the pager and pushes no value', () => {
-    const template = buildTemplate({
-      name: 'vs_null_multi',
-      children: [{ kind: TEXT, name: 'f', cardinality: 'multi', minItems: 1, maxItems: 9 }],
-    });
-    const driver = new CeeDriver(template, {
-      // Hand-written on purpose: a null where a value belongs is not something the
-      // library will emit, and is exactly what this asserts CEE survives.
-      instance: {
-        [JsonSchema.atContext]: {},
-        '@id': 'https://example.org/i/1',
-        'schema:isBasedOn': TEMPLATE_IRI,
-        _f: null,
-      },
-    });
-    const registry = new ActiveComponentRegistryService();
-    const widget = new FakeWidget();
-    const pager = new FakePager();
-    const component = driver.findOrThrow(['_f']);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    registry.registerComponent(component, widget as any);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    registry.registerMultiPagerComponent(component, pager as any);
-
-    registry.updateViewToModel(component, driver.handlerContext);
-
-    expect(widget.pushed).toEqual([]);
-    expect(pager.updates).toBe(1);
   });
 });

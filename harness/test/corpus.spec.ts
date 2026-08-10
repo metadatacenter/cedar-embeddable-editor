@@ -21,7 +21,7 @@
 import { describe, expect, it } from 'vitest';
 import { corpusInstances, corpusTemplates, describeTree, hubmapTemplates } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
-import { JsonSchema } from 'cedar-model-typescript-library';
+import { CedarArtifactType, JsonSchema } from 'cedar-model-typescript-library';
 
 const templates = corpusTemplates();
 const instances = corpusInstances();
@@ -147,7 +147,7 @@ describe('real corpus instances', () => {
     // A minimal template: the point is that instance loading does not throw on
     // shapes the generator never produces.
     const template = {
-      '@type': 'https://schema.metadatacenter.org/core/Template',
+      [JsonSchema.atType]: CedarArtifactType.TEMPLATE.getValue(),
       type: 'object',
       _ui: { order: [], propertyLabels: {}, propertyDescriptions: {} },
       // `@context` sits inside `properties`; that is where addContext looks.
@@ -170,13 +170,13 @@ describe('templates the generator would not produce', () => {
    */
   it('skips an _ui.order entry with no matching property', () => {
     const template = {
-      '@type': 'https://schema.metadatacenter.org/core/Template',
+      [JsonSchema.atType]: CedarArtifactType.TEMPLATE.getValue(),
       type: 'object',
       _ui: { order: ['Real', 'Orphan'], propertyLabels: {}, propertyDescriptions: {} },
       properties: {
         [JsonSchema.atContext]: { properties: {} },
         Real: {
-          '@type': 'https://schema.metadatacenter.org/core/TemplateField',
+          [JsonSchema.atType]: CedarArtifactType.TEMPLATE_FIELD.getValue(),
           type: 'object',
           _ui: { inputType: 'textfield' },
         },

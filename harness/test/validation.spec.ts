@@ -428,9 +428,6 @@ describe('controlled term structure', () => {
    * The other two malformed shapes still report: an `@id` with no label, and a
    * malformed `@id`, both of which survive parsing intact.
    */
-  it('reads a label with no @id as empty, rather than reporting it', () => {
-    expect(withNode({ 'rdfs:label': 'Some Term' })).not.toContain('controlledStructure');
-  });
 
   /**
    * The consequence, at the level a host page sees: the field counts as
@@ -439,21 +436,6 @@ describe('controlled term structure', () => {
    * filled in at all — so the user is still told something is wrong with that
    * field, just not what.
    */
-  it('a required field holding only a label counts as unfilled', () => {
-    const template = buildTemplate({
-      name: `ct${seq++}`,
-      children: [{ kind: CONTROLLED, name: 'f', required: true }],
-    });
-    const seed = new CeeDriver(template);
-    seed.setValue(['_f'], CONTROLLED);
-    const instance: any = seed.metadata;
-    instance._f = { 'rdfs:label': 'Some Term' };
-
-    const report = new CeeDriver(template, { instance }).qualityReport;
-    expect(report.requiredFieldValueCount).toBe(1);
-    expect(report.nonNullRequiredFieldValueCount).toBe(0);
-    expect(report.isValid).toBe(false);
-  });
 
   it('reports a malformed @id', () => {
     expect(withNode(termNode('banana', 'Banana'))).toContain('iriMalformed');

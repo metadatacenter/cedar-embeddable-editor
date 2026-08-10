@@ -25,6 +25,7 @@ import { present } from './nodes';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { CedarTemplate } from '@cee/models/template/cedar-template.model';
 import type { Template } from 'cedar-model-typescript-library';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
  * Captures CEE's log output instead of printing it.
@@ -306,7 +307,7 @@ export const normalize = (value: unknown): unknown => {
   if (value && typeof value === 'object') {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value)) {
-      if (k === '@id' && typeof v === 'string' && MINTED_ID.test(v)) {
+      if (k === JsonSchema.atId && typeof v === 'string' && MINTED_ID.test(v)) {
         out[k] = '<minted>';
       } else {
         out[k] = normalize(v);
