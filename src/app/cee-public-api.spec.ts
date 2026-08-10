@@ -129,6 +129,35 @@ describe('the published report types and the objects behind them', () => {
   });
 });
 
+/**
+ * The combined input's members against the names the editor destructures.
+ *
+ * The one input whose *shape* a host has to get right rather than its type: the
+ * other two take an artifact whole. A wrong member name here type-checks in the
+ * host, arrives as `undefined` in the editor, and comes back as "Template Object
+ * is missing." — which is how this interface was published for a while declaring
+ * `template` and `instance` against a setter reading `templateObject` and
+ * `instanceObject`.
+ */
+describe('the published combined input and the one the editor reads', () => {
+  it('name the same members', () => {
+    const source = fs.readFileSync(COMPONENT, 'utf8');
+    const destructured = source.match(/const \{([^}]+)\} = templateAndInstance;/);
+
+    expect(destructured, 'the templateAndInstanceObject setter no longer destructures').not.toBeNull();
+    const implemented = (destructured as RegExpMatchArray)[1]
+      .split(',')
+      .map((member) => member.trim())
+      .sort();
+
+    expect(implemented.length, 'the destructured members were not parsed').toBe(2);
+    expect(
+      interfaceMembers('CeeTemplateAndInstance'),
+      'CeeTemplateAndInstance names members the editor never reads',
+    ).toEqual(implemented);
+  });
+});
+
 describe('the published declarations', () => {
   /**
    * The bundle is an IIFE that registers a custom element and exports nothing, so a

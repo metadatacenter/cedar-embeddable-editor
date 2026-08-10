@@ -122,10 +122,19 @@ export interface CeeJsonObject {
   [key: string]: CeeJsonValue;
 }
 
-/** A template and an instance of it, supplied together. */
+/**
+ * A template and an instance of it, supplied together.
+ *
+ * The members are `templateObject` and `instanceObject`, the same names the two
+ * separate inputs carry. They were published here as `template` and `instance`,
+ * which read better and are not what the editor destructures — a host following
+ * the declaration got "Template Object is missing." at runtime. Nothing checked
+ * the two against each other, so the names could differ without either side
+ * looking wrong on its own.
+ */
 export interface CeeTemplateAndInstance {
-  template: CeeJsonObject;
-  instance: CeeJsonObject;
+  templateObject: CeeJsonObject;
+  instanceObject: CeeJsonObject;
 }
 
 /** One thing wrong with the instance, as the data quality report sees it. */
@@ -203,7 +212,7 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
   /** An existing instance to load into the form. */
   instanceObject: CeeJsonObject;
 
-  /** Both at once, as `{ template, instance }`. */
+  /** Both at once, as `{ templateObject, instanceObject }`. */
   templateAndInstanceObject: CeeTemplateAndInstance;
 
   /** Host callbacks. */
