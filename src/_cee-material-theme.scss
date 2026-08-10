@@ -125,7 +125,49 @@ $applied-theme: mat.m2-define-light-theme(
 }
 
 /// Color and typography for every Material component CEE uses.
+///
+/// Plus one density override, for the form field alone: **CEE's field box is
+/// 48px**, and this is where that is decided.
+///
+/// It was 36px, expressed as `min-height: auto` with 5/7 padding forced onto
+/// `.mat-mdc-form-field-infix` — and 36px is what an *empty* field measured.
+/// Material's clear action is a 48px icon button, and CEE renders one in every
+/// widget that can hold a value, shown `@if` the value is there. So a field grew
+/// as the user typed into it. Measured on `01-input-types`: text, email, link and
+/// phone each 36px empty and 48px filled, with the page going 1006px to 1054px
+/// over five fields, while numeric stayed 36px because its suffix is a unit label
+/// rather than a button. A form in use was never the compact form; it was a mix of
+/// both, reflowing field by field.
+///
+/// That is what made 36px indefensible rather than merely smaller. Choosing 48px
+/// costs vertical space on a blank form and buys a height that does not depend on
+/// whether a field has a value, whether that value came from an authority lookup,
+/// or which buttons a widget happens to draw.
+///
+/// `form-field-density(-2)` rather than another override, because 48px *is* a
+/// level on Material's density scale — `m2-form-field.scss` maps -2 to 48px and
+/// -5 to 36px, so both heights CEE has ever rendered were already named by the
+/// API it was reaching past. Going through it deletes four hand-rolled rules and
+/// their seventeen `!important` declarations: the global infix rule, the
+/// attribute-value pair's copy, the temporal row's copy, and the offset
+/// selector's. `.mat-mdc-form-field-infix` no longer appears in CEE's stylesheets
+/// at all, which takes the Material internals CEE depends on from 18 to 17.
+///
+/// Not the theme's own `density` key: that applies to every component, and the
+/// note beside it records what happened when the expansion panel header lost its
+/// height. This is per-component and emitted after `all-component-themes`, which
+/// is how Material's API composes.
+///
+/// One visible consequence, and it is Material's design rather than a side
+/// effect. `$hide-label` in `m2-form-field.scss` is `$height < 52px`, so below -1
+/// the floating label is not drawn. Only the offset selector uses `<mat-label>` —
+/// every other field has its label commented out and gets one from
+/// `app-cedar-component-header` instead — and it now renders as resting text
+/// inside the box, reading "Select UTC offset" where it previously straddled its
+/// own outline. Which is the misalignment the reviewer's screenshot showed, fixed
+/// by asking Material for a height it supports instead of forcing one it does not.
 @mixin component-themes() {
   @include mat.all-component-themes($applied-theme);
+  @include mat.form-field-density(-2);
   @include mat.strong-focus-indicators-theme($applied-theme);
 }

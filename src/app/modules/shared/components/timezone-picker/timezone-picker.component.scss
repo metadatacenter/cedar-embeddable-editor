@@ -31,34 +31,20 @@ mat-form-field {
 }
 
 /*
- * Temporal controls form one visual row. Date fields are 48px tall because the
- * calendar suffix is a 48px Material action; give the offset selector the same
- * action-row density instead of the global 36px compact-field density.
+ * No infix rule here either, and this is the file that earned the caution.
  *
- * Scoped by `.cee-offset-picker`, the class this component's own template emits,
- * and that scoping is the point. The selector was `::ng-deep
- * .mat-mdc-form-field-infix` — and Angular scopes the part of a selector *before*
- * `::ng-deep`, so with nothing before it the rule was emitted with no scoping
- * attribute at all. A stylesheet written for one selector therefore set the
- * height of every form field in the editor, beating `styles-own.scss`'s
- * compact rule from later in the cascade at equal specificity.
+ * The selector was `::ng-deep .mat-mdc-form-field-infix`, meaning to give the
+ * offset selector the height of the date field beside it. Angular scopes the part
+ * of a selector *before* `::ng-deep`, and there was nothing before it, so the rule
+ * was emitted unscoped and set the height of every form field in the editor.
+ * Because component styles are injected when the component is first instantiated,
+ * it only existed once a timezone picker did — so field height depended on whether
+ * the template contained a timezone-enabled temporal field: 36px on
+ * `01-input-types`, 48px on `17-real-flat`.
  *
- * Worse than a wrong height: an inconsistent one. Component styles are injected
- * when the component is first instantiated, so the rule only existed once a
- * timezone picker did. A template with a timezone-enabled temporal field rendered
- * all of its fields at 48px; a template without one rendered them at 36px.
- * Measured across the fixtures: `01-input-types` 36px, `07-timezone` 48px,
- * `17-real-flat` 48px. Field height depended on what the template happened to
- * contain, which no stylesheet in the repository claimed or could have been read
- * to mean.
- *
- * `::ng-deep` first in a selector is global. The other nine in CEE are each
- * nested under a class of their own or name a `panelClass`, so each is scoped by
- * something the component emits. This one named a bare Material class, with
- * nothing to scope it.
+ * The height is one number now, asked for through Material's density API in
+ * `_cee-material-theme.scss`, so this file has no reason to name a Material
+ * internal at all. `::ng-deep` first in a selector is global; the remaining ones
+ * in CEE are each scoped by a class their own component emits, or by a
+ * `panelClass`.
  */
-::ng-deep .cee-offset-picker .mat-mdc-form-field-infix {
-  min-height: 48px !important;
-  padding-top: 11px !important;
-  padding-bottom: 13px !important;
-}

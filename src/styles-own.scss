@@ -398,41 +398,21 @@ button.close {
 }
 
 /*
- * Compress the field box. CEDAR forms run to dozens of fields, so Material's
- * default density costs a screenful every ten of them.
+ * No `.mat-mdc-form-field-infix` rule, and no per-widget copies of one.
  *
- * MDC drives the height from `min-height` on the infix (56px) as well as its
- * padding, where the legacy component used padding alone — so porting only the
- * padding leaves the field its full height. Measured: infix 56px tall at 16px
- * top and bottom, against the 5/7 this asks for.
+ * The field box is 48px, asked for through `mat.form-field-density(-2)` in
+ * `_cee-material-theme.scss`, which is where the reasoning lives. Four rules used
+ * to compute that height by hand — a compact 36px here, then 48px again for the
+ * attribute-value pair, the temporal row and the offset selector, each because a
+ * 48px suffix action made the compact height wrong for that widget. All four are
+ * gone: with the height uniform, nothing needs correcting, and measuring confirms
+ * removing even `align-self: center` changes no box.
  *
- * Keep the compressed infix centred when Material adds a 48px suffix action.
- * Without this, the editable value sits seven pixels above info/clear icons.
- *
- * The migration schematic left the old selector in place under a TODO rather
- * than renaming it, which is the honest thing for it to have done: the rule does
- * not translate one-for-one, and a silent rename would have compressed nothing
- * while looking like it had.
+ * Worth keeping in mind if the height is ever revisited. Material's density scale
+ * names 36px too, at -5, so the compact form is still available through the same
+ * API — but 36px is only ever the height of an *empty* field, because CEE draws a
+ * clear action as soon as one holds a value, and that action is 48px.
  */
-.mat-mdc-form-field-infix {
-  align-self: center;
-  margin: 0 !important;
-  min-height: auto !important;
-  padding-top: 5px !important;
-  padding-bottom: 7px !important;
-}
-
-/*
- * Attribute-value controls are a visual pair. A populated half gains
- * Material's 48px clear action, so keeping the other half at the general 36px
- * compact height produces mismatched outlines. Give both halves the action-row
- * height while retaining the same two-pixel optical bias as the compact fields.
- */
-app-cedar-input-attribute-value .mat-mdc-form-field-infix {
-  min-height: 48px !important;
-  padding-top: 11px !important;
-  padding-bottom: 13px !important;
-}
 
 .mat-icon:hover {
   color: tokens.$cee-color-icon-hover;

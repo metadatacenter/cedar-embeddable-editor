@@ -179,6 +179,44 @@ test.describe('host style isolation', () => {
   });
 
   /**
+   * A field box is the same height empty and filled.
+   *
+   * It was not, and this is what settled the height question. CEE draws a clear
+   * action in every widget that can hold a value, shown `@if` the value is there,
+   * and Material's icon button is 48px — taller than the 36px compact infix the
+   * theme asked for, so the flex row grew the moment a user typed. Measured before
+   * the density change: text, email, link and phone each 36px empty and 48px
+   * filled, numeric 36px throughout because its suffix is a unit label rather than
+   * a button. The form reflowed field by field as it was completed, and the
+   * "compact" height was only ever the height of a blank form.
+   *
+   * Asserted on the page rather than on one widget, because the defect was the
+   * mix: a filled form held both heights at once.
+   */
+  test('a field box is the same height empty and filled', async ({ page }) => {
+    await open(page, '01-input-types');
+
+    const heights = () =>
+      page.locator('app-cedar-input-text, app-cedar-input-email, app-cedar-input-link').evaluateAll((widgets) =>
+        widgets.map((widget) => {
+          const input = widget.querySelector('input');
+          const box = input?.closest('.mat-mdc-text-field-wrapper');
+          return box ? Math.round(box.getBoundingClientRect().height) : null;
+        }),
+      );
+
+    const empty = await heights();
+
+    await page.locator('input[aria-label="text"]').fill('a filled value');
+    await page.locator('input[aria-label="email"]').fill('someone@example.org');
+    await page.locator('input[aria-label="link"]').fill('https://example.org/thing');
+    await page.locator('body').click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(300);
+
+    expect(await heights(), 'a field changed height when it gained a value').toEqual(empty);
+  });
+
+  /**
    * The guarantee, not the mechanism that used to deliver it.
    *
    * What matters is that overlay content renders inside the editor's shadow root

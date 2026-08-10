@@ -65,26 +65,15 @@
 }
 
 /*
- * The row is 48px, and says so.
+ * No infix rule for the date field or the decimal-seconds box.
  *
- * A temporal field is three controls side by side, and the tallest sets the row:
- * the clock shell is 48px, and so is the calendar toggle Material puts in the
- * date field. That made the date field 48px as a side effect of carrying an
- * action — and read-only it carries none, so it fell to the global 36px compact
- * height while the clock beside it stayed 48px. Stating the height for both parts
- * makes the row hold in either mode instead of depending on which buttons happen
- * to be on screen.
- *
- * `.cee-temporal-date` and `.cee-fraction-field` are classes this component's own
- * template emits, which is what scopes these rules — a `::ng-deep` with nothing
- * before it is emitted unscoped, as the timezone picker's stylesheet found out.
+ * Both had one, so that each would match the 48px clock shell beside it against a
+ * 36px compact default. The default is 48px now — `mat.form-field-density(-2)`,
+ * reasoned about in `_cee-material-theme.scss` — so the row holds without being
+ * told to, in read-only mode as well as read-write. That mattered here: the date
+ * field used to reach 48px only because Material gave it a 48px calendar toggle,
+ * and read-only it draws none.
  */
-::ng-deep .cee-temporal-date .mat-mdc-form-field-infix,
-::ng-deep .cee-fraction-field .mat-mdc-form-field-infix {
-  min-height: 48px !important;
-  padding-top: 11px !important;
-  padding-bottom: 13px !important;
-}
 
 @container cee (max-width: 620px) {
   :host {
