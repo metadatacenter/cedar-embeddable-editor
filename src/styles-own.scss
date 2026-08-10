@@ -17,9 +17,9 @@
   --cee-color-accent: #{tokens.$cee-color-accent};
   --cee-color-warn: #{tokens.$cee-color-warn};
   --cee-color-warning: #{tokens.$cee-color-warning};
-  --cee-element-heading-size: 1.125rem;
+  --cee-element-heading-size: 18px;
   --cee-element-heading-weight: 600;
-  --cee-element-content-gap: 0.75rem;
+  --cee-element-content-gap: 12px;
   display: block;
   box-sizing: border-box;
   width: 100%;
@@ -223,12 +223,12 @@
   .pager-container,
   .pager-container-ro {
     justify-content: flex-start;
-    margin-top: 0.5rem;
+    margin-top: 8px;
     margin-right: 0;
   }
 
   .pager-chips {
-    margin-right: 0.75rem;
+    margin-right: 12px;
   }
 }
 
@@ -283,7 +283,7 @@ app-sample-templates {
   background-color: rgba(0, 0, 0, 0.04);
   padding: 15px;
   border: 1px solid #d6d8db;
-  border-radius: 0.25rem;
+  border-radius: 4px;
   margin-top: 20px;
   margin-bottom: 10px;
 }
@@ -295,7 +295,7 @@ app-sample-templates {
 .notify-progress {
   padding: 15px;
   border: 1px solid transparent;
-  border-radius: 0.25rem;
+  border-radius: 4px;
 }
 
 .notify-info:before,
@@ -378,7 +378,7 @@ app-sample-templates {
 
 .close {
   float: right;
-  font-size: 1.5rem;
+  font-size: 24px;
   line-height: 0.9;
   text-shadow: 0 1px 0 #fff;
   opacity: 0.5;

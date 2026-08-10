@@ -14,14 +14,14 @@ mat-form-field {
  * an offset that looked pasted in above them.
  *
  * `inline-flex` so the box is the width of `UTC-07:00` rather than the width of
- * the row — the selector it replaces is `flex: 1 1 18rem` because a dropdown
+ * the row — the selector it replaces is `flex: 1 1 288px` because a dropdown
  * needs the room, and a nine-character value does not.
  */
 .cee-offset-readonly {
   display: inline-flex;
   align-items: center;
   box-sizing: border-box;
-  min-width: 6rem;
+  min-width: 96px;
   min-height: 48px;
   padding-inline: 10px;
   border: 1px solid #777;

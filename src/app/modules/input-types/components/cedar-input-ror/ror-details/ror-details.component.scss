@@ -11,7 +11,7 @@ $ror-logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAA
 .organization {
   width: 100%;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 16px;
   position: relative;
 }
 .close-button {
@@ -26,8 +26,8 @@ $ror-logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAA
 }
 .organization-header {
   border-bottom: 1px solid #ccc;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
 }
 .organization-header h1 {
   margin: 0;
@@ -35,21 +35,21 @@ $ror-logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAA
 .organization-name {
   font-size: 32px;
   font-weight: bold;
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
 }
 .organization-details h2 {
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
   font-weight: bold;
 }
 .organization-details section {
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 .organization-details ul {
   list-style: none;
   padding: 0;
 }
 .organization-details li {
-  margin-bottom: 0.3rem;
+  margin-bottom: 5px;
 }
 .organization-details p {
   text-transform: capitalize;
@@ -78,7 +78,7 @@ $ror-logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAA
 }
 .columns {
   display: flex;
-  gap: 1rem;
+  gap: 16px;
 }
 .column {
   flex: 1;
@@ -88,7 +88,7 @@ $ror-logo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAA
 }
 .relationships h3 {
   text-transform: capitalize;
-  margin-bottom: 0.2rem;
+  margin-bottom: 3px;
   font-weight: bold;
 }
 .relationships ul {

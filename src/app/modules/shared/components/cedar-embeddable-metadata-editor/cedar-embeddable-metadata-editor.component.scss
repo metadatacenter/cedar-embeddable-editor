@@ -1,4 +1,5 @@
 @use '../../../../../styles-common' as common;
+@use '../../../../../cee-tokens' as tokens;
 
 :host {
   display: block;
@@ -13,12 +14,12 @@
 }
 .template-header {
   display: grid;
-  grid-template-columns: 72px minmax(12rem, 1fr) auto;
+  grid-template-columns: 72px minmax(192px, 1fr) auto;
   grid-template-areas: 'logo title actions';
   align-items: center;
-  gap: 0.75rem 1rem;
+  gap: 12px 16px;
   min-width: 0;
-  padding: 1rem clamp(0.75rem, 2.5cqi, 1.5rem);
+  padding: 16px clamp(12px, 2.5cqi, 24px);
   background: #ffffff;
   border-bottom: 1px solid #d7e0df;
 }
@@ -29,7 +30,7 @@
  * This block and .cee-version were each declared twice in this file, and the
  * second of each pair silently won: the block ended up pinned to `flex: 0 0 40px`
  * while the stamp was capped at `max-width: 100%` of it. Forty pixels is about six
- * characters at 0.75rem, so every version rendered as "1.6.0-…" no matter what it
+ * characters at 12px, so every version rendered as "1.6.0-…" no matter what it
  * said — the ellipsis fell exactly where versions start to differ, which made the
  * stamp look present and current while telling you nothing.
  *
@@ -56,7 +57,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.75rem;
+  font-size: tokens.$cee-font-size-small;
   line-height: 1;
   color: #666;
   margin-top: 2px;
@@ -69,7 +70,8 @@
 .template-label {
   margin: 0;
   color: #173f3e;
-  font-size: clamp(1.2rem, 3cqi, 1.65rem);
+  /* The one fluid step in CEE: a title scales with the container, in px. */
+  font-size: clamp(19px, 3cqi, 26px);
   font-weight: 500;
   line-height: 1.25;
   overflow-wrap: anywhere;
@@ -77,9 +79,9 @@
 
 .template-description {
   max-width: 70ch;
-  margin: 0.35rem 0 0;
+  margin: 6px 0 0;
   color: #526260;
-  font-size: 0.95rem;
+  font-size: tokens.$cee-font-size-lead;
   line-height: 1.45;
 }
 
@@ -90,7 +92,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.5rem 1rem;
+  gap: 8px 16px;
 }
 
 .page-break-control {
@@ -101,7 +103,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.25rem;
+  gap: 4px;
 
   button {
     white-space: nowrap;
@@ -112,7 +114,7 @@
   display: grid;
   gap: 0;
   min-width: 0;
-  padding: 0 clamp(0.75rem, 3cqi, 2rem) 1.5rem;
+  padding: 0 clamp(12px, 3cqi, 32px) 24px;
 }
 
 @container cee (max-width: 1100px) {
@@ -124,8 +126,8 @@
   }
 
   .template-header-paged {
-    row-gap: 0.5rem;
-    padding-block: 0.75rem;
+    row-gap: 8px;
+    padding-block: 12px;
   }
 
   .logo-block {
@@ -135,11 +137,11 @@
   .template-actions {
     justify-content: space-between;
     border-top: 1px solid #e5ebea;
-    padding-top: 0.75rem;
+    padding-top: 12px;
   }
 
   .template-header-paged .template-actions {
-    padding-top: 0.5rem;
+    padding-top: 8px;
   }
 }
 
@@ -156,7 +158,8 @@
   }
 
   .cee-version {
-    font-size: 0.65rem;
+    /* One step below `$cee-font-size-small`, where the header has stacked. */
+    font-size: 10px;
   }
 
   .template-actions,

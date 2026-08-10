@@ -50,9 +50,17 @@ These are commitments. A diff that changes one of them is a regression.
 published on `:host`, where an embedder can override them. Element hierarchy is
 customizable in the same way through `--cee-element-heading-size`,
 `--cee-element-heading-weight`, and `--cee-element-content-gap`. Their defaults
-are `1.125rem`, `600`, and `0.75rem` respectively. Two of the color properties have no
+are `18px`, `600`, and `12px` respectively. Two of the color properties have no
 internal consumer, which is the point. Renaming or dropping any public property
 breaks embedders silently, so treat the set as versioned surface.
+
+The two lengths were `1.125rem` and `0.75rem`, and the same measurements in a
+page whose root element is 16px. An embedder may still override them with any
+unit; what changed is what CEE falls back to when nobody does. A default in `rem`
+was not a default — `rem` resolves against the host document's root, so a page
+carrying `html { font-size: 62.5% }` got 11.25px and 7.5px, and CEE could neither
+see that nor say it was wrong. The type scale in `_cee-tokens.scss` is absolute
+for the same reason.
 
 These layout properties deliberately customize presentation rather than
 structure. The template still decides which elements are nested and collapsible;

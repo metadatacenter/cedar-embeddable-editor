@@ -72,6 +72,72 @@ test.describe('host style isolation', () => {
   });
 
   /**
+   * The host's root font size, which is the one thing a shadow boundary does not
+   * keep out.
+   *
+   * `rem` resolves against the host document's root element, not the shadow root,
+   * so every rem in CEE was a ratio applied to a number the embedder chose —
+   * often without meaning to. `html { font-size: 62.5% }` is a common reset idiom,
+   * and under it a section-break heading declared at `1.25rem` rendered at
+   * 12.5px instead of 20px, and every rem-sized gap and column shrank with it.
+   * CEE could neither see that nor report it.
+   *
+   * Measured against 62.5% rather than a plausible-looking value, because it is
+   * the idiom that actually appears in host stylesheets.
+   *
+   * Scoped to what CEE states, which is what it can fix. Angular Material's own
+   * stylesheet still carries rem — a button's metrics among them — so under 62.5%
+   * an `Expand All` button narrows from 121px to 114px while its 14px label does
+   * not move. That is a residue in a dependency, not in CEE, and it is the reason
+   * the widths below are CEE's own boxes rather than every box on the page: the
+   * template title sits in a `1fr` grid column beside those buttons and inherits
+   * their shrinkage.
+   */
+  test('the host page cannot resize CEE by changing its root font size', async ({ page }) => {
+    // The description is off in `base`, and it is the only consumer of
+    // `$cee-font-size-lead` — so it is turned on rather than left uncovered.
+    await open(page, '17-real-flat', undefined, undefined, undefined, '&f=showTemplateDescription');
+
+    const measure = () =>
+      page.evaluate(() => {
+        const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+        const read = (selector: string, what: 'type' | 'box') => {
+          const element = root.querySelector(selector);
+          if (!element) return null;
+          if (what === 'type') return getComputedStyle(element).fontSize;
+          const rect = element.getBoundingClientRect();
+          return `${Math.round(rect.width)}x${Math.round(rect.height)}`;
+        };
+        return {
+          // Every size CEE states, which is the reviewer's symptom.
+          typeSectionBreak: read('.section-break-header', 'type'),
+          typeTemplateLabel: read('.template-label', 'type'),
+          typeTemplateDescription: read('.template-description', 'type'),
+          typeVersion: read('.cee-version', 'type'),
+          typeFieldLabel: read('app-cedar-component-header .title', 'type'),
+          typeValue: read('input[aria-label="Text Field"]', 'type'),
+          typeHint: read('mat-hint', 'type'),
+          typeClock: read('.cee-time-segment', 'type'),
+          // And the boxes CEE sizes itself.
+          boxSectionBreak: read('.section-break-header', 'box'),
+          boxVersion: read('.cee-version', 'box'),
+          boxDate: read('.cee-temporal-date', 'box'),
+          boxOffset: read('.cee-temporal-offset', 'box'),
+          boxClock: read('.cee-time-input-shell', 'box'),
+        };
+      });
+
+    const before = await measure();
+    // Every entry has to be present, or the comparison proves nothing.
+    expect(Object.entries(before).filter(([, value]) => value === null)).toEqual([]);
+
+    await page.addStyleTag({ content: 'html { font-size: 62.5% }' });
+    await page.waitForTimeout(200);
+
+    expect(await measure(), 'a host root font size must not resize the editor').toEqual(before);
+  });
+
+  /**
    * The guarantee, not the mechanism that used to deliver it.
    *
    * What matters is that overlay content renders inside the editor's shadow root

@@ -27,7 +27,32 @@ $cee-font-family: 'CEE Roboto', 'Helvetica Neue', sans-serif;
 // because quoting them differently is what makes each emit correctly.
 $cee-font-family-string: 'CEE Roboto, "Helvetica Neue", sans-serif';
 
+// The type scale, in px, and px is the point of it.
+//
+// CEE is a web component in someone else's page, and `rem` resolves against that
+// page's root element — which CEE neither sets nor can see. A host with
+// `html { font-size: 62.5% }`, a common reset idiom, renders every rem-sized
+// thing in CEE at 62.5% of the size it was drawn at. Type stated in rem is not
+// CEE's type; it is a ratio applied to a number the embedder chose, possibly by
+// accident.
+//
+// So the steps are absolute, and they are steps rather than one size and a set of
+// multipliers, because that is what a scale is. `$cee-font-size` is the body, and
+// Material's `body-1` and `subtitle-1` are built from it in
+// _cee-material-theme.scss, so a field's label and its value agree.
 $cee-font-size: 14px;
+
+/// Hints, and the version stamp under the template title.
+$cee-font-size-small: 12px;
+
+/// The template description, one step above the body.
+$cee-font-size-lead: 15px;
+
+/// A section break's heading — the largest thing in a form after its title.
+///
+/// Above `--cee-element-heading-size` (18px), which is what a nested element's
+/// heading takes, so the two do not read as the same level.
+$cee-font-size-heading: 20px;
 
 // ---------------------------------------------------------------------------
 // Brand palettes
