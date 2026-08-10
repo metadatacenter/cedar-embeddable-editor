@@ -138,6 +138,47 @@ test.describe('host style isolation', () => {
   });
 
   /**
+   * A text field is the same height in every template.
+   *
+   * It was not. `timezone-picker.component.scss` carried
+   * `::ng-deep .mat-mdc-form-field-infix`, and Angular scopes the part of a
+   * selector *before* `::ng-deep` — so with nothing before it the rule was
+   * emitted with no scoping attribute and applied to every form field in the
+   * editor, beating the compact rule in `styles-own.scss` from later in the
+   * cascade at equal specificity.
+   *
+   * What made it invisible is that component styles are injected when the
+   * component is first instantiated, so the rule only existed once a timezone
+   * picker did. A template with a timezone-enabled temporal field rendered all of
+   * its fields at 48px; a template without one rendered them at 36px. No
+   * stylesheet in the repository claimed that, and no screenshot could show it,
+   * because each fixture has only ever been compared against itself.
+   *
+   * Which is the general shape of the bug and the reason this test compares two
+   * fixtures rather than measuring one: a leaked rule looks completely normal
+   * anywhere it is the only rule.
+   */
+  test('a field box is the same height whatever else the template contains', async ({ page }) => {
+    const textFieldHeight = async (fixture: string) => {
+      await open(page, fixture);
+      return page
+        .locator('app-cedar-input-text .mat-mdc-form-field-infix')
+        .first()
+        .evaluate((infix) => {
+          const style = getComputedStyle(infix);
+          return `${style.minHeight} ${style.paddingTop}/${style.paddingBottom}`;
+        });
+    };
+
+    // `01-input-types` holds no temporal field with a timezone; `17-real-flat`
+    // holds two, and a text field to compare.
+    const withoutOffset = await textFieldHeight('01-input-types');
+    const withOffset = await textFieldHeight('17-real-flat');
+
+    expect(withOffset, 'a timezone picker elsewhere on the page resized this field').toBe(withoutOffset);
+  });
+
+  /**
    * The guarantee, not the mechanism that used to deliver it.
    *
    * What matters is that overlay content renders inside the editor's shadow root

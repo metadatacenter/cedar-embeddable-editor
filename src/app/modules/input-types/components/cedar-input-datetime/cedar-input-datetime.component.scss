@@ -64,7 +64,22 @@
   width: 100%;
 }
 
-/* Decimal seconds sit in the same row as the 48px clock shell. */
+/*
+ * The row is 48px, and says so.
+ *
+ * A temporal field is three controls side by side, and the tallest sets the row:
+ * the clock shell is 48px, and so is the calendar toggle Material puts in the
+ * date field. That made the date field 48px as a side effect of carrying an
+ * action — and read-only it carries none, so it fell to the global 36px compact
+ * height while the clock beside it stayed 48px. Stating the height for both parts
+ * makes the row hold in either mode instead of depending on which buttons happen
+ * to be on screen.
+ *
+ * `.cee-temporal-date` and `.cee-fraction-field` are classes this component's own
+ * template emits, which is what scopes these rules — a `::ng-deep` with nothing
+ * before it is emitted unscoped, as the timezone picker's stylesheet found out.
+ */
+::ng-deep .cee-temporal-date .mat-mdc-form-field-infix,
 ::ng-deep .cee-fraction-field .mat-mdc-form-field-infix {
   min-height: 48px !important;
   padding-top: 11px !important;
