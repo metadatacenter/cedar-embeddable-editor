@@ -35,6 +35,8 @@ import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loade
 import { CeeConfig, configFlag, configText } from '../../util/config-reader';
 import { validateCeeConfig } from '../../util/config-validation';
 import { InstanceObject } from '../../models/instance-node.model';
+import { Template } from 'cedar-model-typescript-library';
+import { CedarTemplate } from '../../models/template/cedar-template.model';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -175,7 +177,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    */
   @Input() get currentMetadata(): object {
     if (this.handlerContext) {
-      return InstanceSerializer.toJson(this.handlerContext.dataContext.instanceFullData);
+      return InstanceSerializer.toJson(this.handlerContext.dataContext.instanceFullData, this.parsedTemplate());
     }
     return {};
   }
@@ -188,7 +190,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    */
   @Input() get currentMetadataYaml(): string {
     if (this.handlerContext) {
-      return InstanceSerializer.toYaml(this.handlerContext.dataContext.instanceFullData);
+      return InstanceSerializer.toYaml(this.handlerContext.dataContext.instanceFullData, this.parsedTemplate());
     }
     return '';
   }
@@ -207,7 +209,19 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       return this.isYamlOutput() ? '' : {};
     }
     const instance = this.handlerContext.dataContext.instanceFullData;
-    return this.isYamlOutput() ? InstanceSerializer.toYaml(instance) : InstanceSerializer.toJson(instance);
+    const template = this.parsedTemplate();
+    return this.isYamlOutput()
+      ? InstanceSerializer.toYaml(instance, template)
+      : InstanceSerializer.toJson(instance, template);
+  }
+
+  /**
+   * The template as the library parsed it, for completing an instance on the way
+   * out. Null before a template has been set, which the serializer allows for.
+   */
+  private parsedTemplate(): Template | null {
+    const representation = this.handlerContext?.dataContext?.templateRepresentation;
+    return representation instanceof CedarTemplate ? representation.parsed : null;
   }
 
   private isYamlOutput(): boolean {

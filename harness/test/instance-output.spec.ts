@@ -21,6 +21,7 @@
 import { describe, expect, it } from 'vitest';
 import { parse as parseYaml } from 'yaml';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
+import { CedarTemplate } from '@cee/models/template/cedar-template.model';
 import { CARDINALITIES, FIELD_KINDS } from '../src/axes';
 import { corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
@@ -256,5 +257,53 @@ describe('the YAML a host page can ask for instead', () => {
     const yaml = InstanceSerializer.toYaml(filled(0, 'single').fullData);
     expect(yaml.trimStart().startsWith('{'), 'that is JSON').toBe(false);
     expect(yaml).toContain('_f:');
+  });
+});
+
+/**
+ * Completing the instance against its template changes nothing about what
+ * leaves.
+ *
+ * `InstanceSerializer` inflates before it writes, so the emitted `@context`
+ * comes from the template's own child IRI map rather than from the copy CEE
+ * assembled into its working tree. Both are built from `getChildIriMap`, so the
+ * document is the same either way — which is the claim, and the reason the
+ * change is safe: what moves is which side is authoritative, not the output.
+ *
+ * Worth a test of its own because the serializer's template argument is
+ * optional, and every other case here omits it. Without this, the inflating path
+ * would be the one nothing runs.
+ */
+describe('inflating against the template', () => {
+  const parsedOf = (driver: CeeDriver) => {
+    const representation = driver.dataContext.templateRepresentation;
+    if (!(representation instanceof CedarTemplate) || representation.parsed === null) {
+      throw new Error('the driver produced no parsed template to inflate against');
+    }
+    return representation.parsed;
+  };
+
+  it.each(cases)('%s emits the same document with the template as without', (_label, index, cardinality) => {
+    const driver = filled(index, cardinality);
+    expect(InstanceSerializer.toJson(driver.fullData, parsedOf(driver))).toEqual(
+      InstanceSerializer.toJson(driver.fullData),
+    );
+  });
+
+  it.each(corpusTemplates().map((t) => [t.id, t] as const))(
+    'template-%s emits the same document with the template as without',
+    (_id, artifact) => {
+      const driver = new CeeDriver(artifact.json);
+      expect(InstanceSerializer.toJson(driver.fullData, parsedOf(driver))).toEqual(
+        InstanceSerializer.toJson(driver.fullData),
+      );
+    },
+  );
+
+  it('does the same for YAML', () => {
+    const driver = filled(0, 'single');
+    expect(InstanceSerializer.toYaml(driver.fullData, parsedOf(driver))).toBe(
+      InstanceSerializer.toYaml(driver.fullData),
+    );
   });
 });

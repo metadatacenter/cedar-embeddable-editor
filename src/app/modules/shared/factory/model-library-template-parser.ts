@@ -191,6 +191,9 @@ export class ModelLibraryTemplateParser implements TemplateParser {
    * checks it against all 37 corpus templates in both serialisations.
    */
   static mapParsedTemplate(parsed: Template, template: CedarTemplate): void {
+    // Kept for the instance side: `InstanceInflater` completes an instance from
+    // it, which is how the `@context` stops being CEE's to assemble.
+    template.parsed = parsed;
     ModelLibraryTemplateParser.wrap(parsed, template, []);
     ModelLibraryTemplateParser.generateContext(parsed, template, true);
 
