@@ -491,7 +491,9 @@ test.describe('real templates', () => {
   }
 });
 
-test('multi-instance pager renders its chips without covering a narrow expansion header', async ({ page }, testInfo) => {
+test('multi-instance pager renders its chips without covering a narrow expansion header', async ({
+  page,
+}, testInfo) => {
   await open(page, '03-nested-multi');
   // The pager is the most Material-dependent control in the editor: chips,
   // ripples and an icon button row. Screenshot it in isolation so a diff here
@@ -576,9 +578,11 @@ test('attribute-value labels stay distinct and its pager aligns responsively', a
 
   const renderer = name.locator('xpath=ancestor::app-cedar-component-renderer');
   expect(
-    await renderer.locator('mat-form-field').evaluateAll((fields) =>
-      fields.slice(0, 2).map((field) => field.querySelector('.mdc-floating-label--float-above') !== null),
-    ),
+    await renderer
+      .locator('mat-form-field')
+      .evaluateAll((fields) =>
+        fields.slice(0, 2).map((field) => field.querySelector('.mdc-floating-label--float-above') !== null),
+      ),
     'Name and Value labels should occupy the same floating-label row',
   ).toEqual([true, true]);
 
@@ -598,9 +602,10 @@ test('attribute-value labels stay distinct and its pager aligns responsively', a
   if (testInfo.project.name === 'desktop') {
     expect(Math.abs(geometry.header.center - geometry.actionCenter)).toBeLessThan(1);
   } else {
-    expect(geometry.controls.top, 'the pager should form a separate row below a narrow field title').toBeGreaterThanOrEqual(
-      geometry.header.bottom,
-    );
+    expect(
+      geometry.controls.top,
+      'the pager should form a separate row below a narrow field title',
+    ).toBeGreaterThanOrEqual(geometry.header.bottom);
   }
 });
 
@@ -935,6 +940,76 @@ test('element headings establish hierarchy without doubling the first content ga
   });
 
   expect(await readMetrics()).toEqual({ fontSize: '18px', fontWeight: '700', contentGap: 8 });
+});
+
+/**
+ * What an embedder can do to the published properties, and what CEE does about it.
+ *
+ * These are public API, so a host page can put anything in them, and before this
+ * nothing bounded what happened next. `--cee-element-heading-size: 100px` left the
+ * expansion-panel header at its own 64px while the text escaped it — the heading
+ * clipped mid-word with no ellipsis, and a nested element's heading drew over the
+ * field list below. `999px` was accepted the same way.
+ *
+ * Two mechanisms answer two different mistakes, which is why both exist and why
+ * this test names both. `clamp()` bounds a value that is valid but ruinous.
+ * Registering the property with a `syntax` handles one of the wrong *type*: those
+ * used to make the declaration invalid at computed-value time, so `font-size`
+ * inherited and a typo rendered at the 14px body size rather than at the 18px
+ * default — the worst outcome, because it looks deliberate.
+ *
+ * Asserted through the real element rather than a probe: `registerCeeThemeProperties`
+ * runs from the bundle's entry point, so this is also the test that it ran at all.
+ */
+test('published theme properties are bounded, and a bad value falls back to the default', async ({ page }) => {
+  await open(page, '18-real-nested', 'readonly');
+  await page.locator('.page-break-paginator-container mat-chip-option', { hasText: '2' }).first().click();
+  await page.waitForTimeout(300);
+
+  const panel = page.locator('mat-expansion-panel', { hasText: 'Wrapper then Nested (single)' }).first();
+  const headingSize = () =>
+    panel.evaluate(
+      (element) =>
+        getComputedStyle(element.querySelector(':scope > mat-expansion-panel-header mat-panel-title')!).fontSize,
+    );
+  const set = (value: string | null) =>
+    page.locator('cedar-embeddable-editor').evaluate((host, v) => {
+      const style = (host as HTMLElement).style;
+      if (v === null) style.removeProperty('--cee-element-heading-size');
+      else style.setProperty('--cee-element-heading-size', v);
+    }, value);
+
+  expect(await headingSize(), 'the default should sit inside the clamp untouched').toBe('18px');
+
+  // Valid but ruinous: bounded rather than obeyed.
+  await set('100px');
+  expect(await headingSize()).toBe('32px');
+  await set('999px');
+  expect(await headingSize()).toBe('32px');
+  await set('1px');
+  expect(await headingSize()).toBe('12px');
+
+  // `rem` resolves against the host page's root, which is the dependence
+  // `_cee-tokens.scss` removed from CEE's own sizes. The clamp keeps an embedder
+  // from reintroducing it without bound.
+  await set('3rem');
+  expect(await headingSize()).toBe('32px');
+
+  // Wrong *type*: the registered `<length>` syntax discards it in favour of the
+  // initial value. Unregistered this gave 14px, the inherited body size, which is
+  // the failure worth preventing because it looks deliberate.
+  await set('banana');
+  expect(await headingSize(), 'a typo must fall back to the published default').toBe('18px');
+
+  // A negative length is a *valid* `<length>`, so registration passes it through
+  // and the clamp floors it — the same treatment `100px` gets at the other end.
+  // This is the seam between the two mechanisms, so it is asserted rather than
+  // assumed: unregistered and unclamped, this rendered at 14px.
+  await set('-20px');
+  expect(await headingSize(), 'a negative length must be floored by the clamp').toBe('12px');
+
+  await set(null);
+  expect(await headingSize()).toBe('18px');
 });
 
 test('page navigation keeps its controls in a compact row', async ({ page }) => {
@@ -1583,9 +1658,7 @@ test.describe('the time picker', () => {
       });
 
       expect(row.clock!.height).toBe(row.dateField!.height);
-      expect(row.offset!.height, 'a read-only offset was bare text, 36px among 48px boxes').toBe(
-        row.dateField!.height,
-      );
+      expect(row.offset!.height, 'a read-only offset was bare text, 36px among 48px boxes').toBe(row.dateField!.height);
 
       if (inOneRow(page.viewportSize()!.width)) {
         expect(row.clock!.top).toBe(row.dateField!.top);
@@ -1775,7 +1848,12 @@ test.describe('the time picker', () => {
       elements.map((element) => {
         const box = element.getBoundingClientRect();
         const style = getComputedStyle(element);
-        return { text: element.textContent?.trim(), width: box.width, height: box.height, borderStyle: style.borderStyle };
+        return {
+          text: element.textContent?.trim(),
+          width: box.width,
+          height: box.height,
+          borderStyle: style.borderStyle,
+        };
       }),
     );
     for (const shell of emptyShells) {
@@ -2081,10 +2159,7 @@ test.describe('a choice value reaches the widget by every load path', () => {
  * here is that the check is *wired to the boundary* at all.
  */
 test.describe('an unusable configuration', () => {
-  const errorsWhileLoading = async (
-    page: import('@playwright/test').Page,
-    extra: string,
-  ): Promise<string[]> => {
+  const errorsWhileLoading = async (page: import('@playwright/test').Page, extra: string): Promise<string[]> => {
     const errors: string[] = [];
     page.on('console', (message) => {
       if (message.type() === 'error' && message.text().includes('CEE ERROR')) {
@@ -2105,9 +2180,7 @@ test.describe('an unusable configuration', () => {
 
   test('says nothing about a configuration it can use', async ({ page }) => {
     const errors = await errorsWhileLoading(page, '&f=readOnlyMode');
-    expect(errors.join('\n'), 'a valid configuration must not be reported').not.toContain(
-      'configuration key',
-    );
+    expect(errors.join('\n'), 'a valid configuration must not be reported').not.toContain('configuration key');
   });
 });
 
@@ -2316,9 +2389,7 @@ test.describe('external authority endpoints', () => {
       await expect(option, 'the authority response did not become a selectable option').toBeVisible({ timeout: 5000 });
       await option.click();
 
-      await expect(field, 'clicking a suggestion must not clear the field it selects').toHaveValue(
-        `${label} - ${id}`,
-      );
+      await expect(field, 'clicking a suggestion must not clear the field it selects').toHaveValue(`${label} - ${id}`);
       const metadata = await page.evaluate(
         () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
       );
@@ -2843,7 +2914,10 @@ test('temporal controls share one action-row height and wide-screen baseline', a
       return { height: rect.height, top: rect.top };
     };
     return {
-      date: [measure(fields[0].querySelector('mat-form-field')), measure(fields[0].querySelector('.cee-temporal-clear'))],
+      date: [
+        measure(fields[0].querySelector('mat-form-field')),
+        measure(fields[0].querySelector('.cee-temporal-clear')),
+      ],
       fractionalTime: [
         measure(fields[4].querySelector('.cee-time-input-shell')),
         measure(fields[4].querySelector('.cee-fraction-field')),
@@ -2894,9 +2968,17 @@ test('temporal input text and boundaries meet WCAG 2.2 AA contrast', async ({ pa
     return (lighter + 0.05) / (darker + 0.05);
   };
 
-  expect(contrast(colors.text, colors.background), 'entered time text needs 4.5:1 contrast').toBeGreaterThanOrEqual(4.5);
-  expect(contrast(colors.placeholder, colors.background), 'time placeholders need 4.5:1 contrast').toBeGreaterThanOrEqual(4.5);
-  expect(contrast(colors.border, colors.background), 'the time control boundary needs 3:1 contrast').toBeGreaterThanOrEqual(3);
+  expect(contrast(colors.text, colors.background), 'entered time text needs 4.5:1 contrast').toBeGreaterThanOrEqual(
+    4.5,
+  );
+  expect(
+    contrast(colors.placeholder, colors.background),
+    'time placeholders need 4.5:1 contrast',
+  ).toBeGreaterThanOrEqual(4.5);
+  expect(
+    contrast(colors.border, colors.background),
+    'the time control boundary needs 3:1 contrast',
+  ).toBeGreaterThanOrEqual(3);
 });
 
 /**

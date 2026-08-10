@@ -3,13 +3,34 @@
   min-width: 0;
 }
 
+/*
+ * The three published properties an embedder can set, clamped to ranges CEE has
+ * rendered and can stand behind.
+ *
+ * Unclamped, these broke the form rather than merely restyling it.
+ * `--cee-element-heading-size: 100px` left the panel header at its own 64px while
+ * the text escaped it: the heading clipped mid-word with no ellipsis, and a nested
+ * element's heading drew over the top of the field list below it. `999px` was
+ * accepted just as readily, and `1px` rendered 1px.
+ *
+ * A clamp is the whole fix and costs nothing at the default, which sits inside
+ * every range. The bounds are judgements, not measurements: 32px is about where a
+ * heading stops fitting one line at the narrow layout width, and 12px is the hint
+ * size, below which a heading no longer reads as one.
+ *
+ * `clamp()` also absorbs the values that are wrong rather than extreme — a
+ * negative length, or a `rem` that would otherwise resolve against the host page's
+ * root and reintroduce exactly the dependence `_cee-tokens.scss` removed. It does
+ * not absorb a value of the wrong *type*; `register-theme-properties.ts` handles
+ * that, and the two are complementary rather than alternatives.
+ */
 .cee-element-heading {
-  font-size: var(--cee-element-heading-size);
-  font-weight: var(--cee-element-heading-weight);
+  font-size: clamp(12px, var(--cee-element-heading-size), 32px);
+  font-weight: clamp(400, var(--cee-element-heading-weight), 700);
 }
 
 .cee-element-content {
-  padding-top: var(--cee-element-content-gap);
+  padding-top: clamp(0px, var(--cee-element-content-gap), 32px);
 }
 
 .non-iterable-component {
