@@ -26,14 +26,13 @@ import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
-import { IntegratedSearchResponseItem } from '../../../shared/models/rest/integrated-search/integrated-search-response-item';
-import { JsonSchema } from 'cedar-model-typescript-library';
+import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
+import { isAuthorityTerm } from '../../../shared/models/authority/authority-term.guard';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { IriPrefix } from '../../../shared/util/iri-prefix';
-import { InstanceObject } from '../../../shared/models/instance-node.model';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -55,7 +54,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    * `!readOnlyMode` guard, which is the same fact stated less directly.
    */
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger?: MatAutocompleteTrigger;
-  selectedData: IntegratedSearchResponseItem | null = null;
+  selectedData: AuthorityTerm | null = null;
 
   /**
    * A press has begun on a suggestion, so the blur it causes is not the user
@@ -73,14 +72,14 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   inputValueControl = new FormControl<string | null>(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input({ required: true }) handlerContext!: HandlerContext;
-  model: IntegratedSearchResponseItem | null = null;
+  model: AuthorityTerm | null = null;
   bioPortalTermLink: string | null = null;
   /**
    * An empty list until `ngOnInit` builds the search pipeline, and for good in
    * read-only mode, where there is no autocomplete to feed. A real observable
    * rather than nothing, so the template's async pipe always has one to read.
    */
-  filteredOptions: Observable<IntegratedSearchResponseItem[]> = of([]);
+  filteredOptions: Observable<AuthorityTerm[]> = of([]);
   loading = false;
   /** Whether the last lookup failed, as opposed to matching nothing. */
   lookupFailed = false;
@@ -108,13 +107,9 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl<string | null>(null, validators);
 
-    if (
-      this.component.valueInfo.defaultValue &&
-      typeof this.component.valueInfo.defaultValue === 'object' &&
-      Object.hasOwn(this.component.valueInfo.defaultValue as object, JsonSchema.termUri)
-    ) {
-      const term = this.component.valueInfo.defaultValue as InstanceObject;
-      this.setValueUIAndModel(term[JsonSchema.termUri] as string, term[JsonSchema.rdfsLabel] as string);
+    const declaredDefault = this.component.valueInfo.defaultValue;
+    if (isAuthorityTerm(declaredDefault)) {
+      this.setValueUIAndModel(declaredDefault.iri, declaredDefault.label);
     }
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
@@ -132,7 +127,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
              * rest of the session and only a reload brought it back. Catching
              * here keeps the stream alive and records what happened.
              */
-            catchLookupFailure<IntegratedSearchResponseItem>((error) => {
+            catchLookupFailure<AuthorityTerm>((error) => {
               this.lookupFailed = true;
               this.messageHandlerService.errorObject(`terminology lookup failed for "${val}"`, error as object);
             }),
@@ -146,30 +141,22 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     if (!this.readOnlyMode) {
       this.trigger?.panelClosingActions.subscribe(() => {
         if (this.selectedData !== null) {
-          this.setCurrentValue(this.selectedData.prefLabel);
+          this.setCurrentValue(this.selectedData.label);
         }
       });
     }
   }
-  filter(val: string): Observable<IntegratedSearchResponseItem[]> {
-    return this.controlledFieldDataService.getData(val, this.component).pipe(
-      map((response) => {
-        if (response == null) {
-          return [];
-        } else if (response.collection && Array.isArray(response.collection)) {
-          return response.collection.filter((option) => {
-            if (!option || !option.prefLabel) {
-              return false;
-            }
-            return option.prefLabel.toLowerCase().indexOf(val.toLowerCase()) >= 0;
-          });
-        } else {
-          const errorVal = val || 'empty string';
-          this.messageHandlerService.errorObject(errorVal, response);
-          return [];
-        }
-      }),
-    );
+  /**
+   * The offered terms, narrowed to those whose label matches what was typed.
+   *
+   * The endpoint is inconsistent about honouring the query, so the widget
+   * narrows the results itself — the same rule the seven authority widgets
+   * apply. A term with no label is dropped rather than shown blank.
+   */
+  filter(val: string): Observable<AuthorityTerm[]> {
+    return this.controlledFieldDataService
+      .getData(val, this.component)
+      .pipe(map((terms) => terms.filter((term) => term.label.toLowerCase().includes(val.toLowerCase()))));
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
@@ -190,12 +177,12 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     this.selectionInProgress = true;
   }
 
-  onSelectionChange(option: IntegratedSearchResponseItem): void {
+  onSelectionChange(option: AuthorityTerm): void {
     this.selectionInProgress = false;
-    // `?? null` because a term arriving without a label is a state this component
+    // `|| null` because a term arriving without a label is a state this component
     // already handles — `filter` drops such items from the list — and null is what
-    // the model holds for a term whose label is unknown, rather than "undefined".
-    this.handlerContext.changeControlledValue(this.component, option['@id'], option.prefLabel ?? null);
+    // the model holds for a term whose label is unknown, rather than an empty string.
+    this.handlerContext.changeControlledValue(this.component, option.iri, option.label || null);
     if (option) {
       this.selectedData = option;
     }
@@ -222,10 +209,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     if (this.readOnlyMode || this.selectionInProgress) {
       return;
     }
-    const outcome = AuthoritySearchControl.reconcileOnBlur(
-      this.inputValueControl,
-      this.selectedData?.prefLabel ?? null,
-    );
+    const outcome = AuthoritySearchControl.reconcileOnBlur(this.inputValueControl, this.selectedData?.label ?? null);
     if (outcome === 'reverted') {
       this.showRevertHint();
     } else if (outcome === 'cleared') {
@@ -259,20 +243,14 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   }
   /*
    * `unknown`, matching what `setCurrentValue` is handed. A controlled value arrives
-   * as a node carrying an IRI and a label; anything else — a plain string on a field
-   * whose constraint was removed — falls through the last branch and is shown as-is.
-   *
-   * The reads are asserted because `JsonSchema.atId` is a `static atId: string`
-   * rather than a literal, so indexing through it tells TypeScript only that the key
-   * is some string. Both have always held strings.
+   * as a term; anything else — a plain string on a field whose constraint was
+   * removed — falls through the last branch and is shown as-is.
    */
   getBioPortalTermDisplayValue(value: unknown): string {
     const controlledInfo = this.component.controlledInfo;
-    const term = (value ?? {}) as Record<string, unknown>;
-    const rdfsLabel = term[JsonSchema.rdfsLabel] as string;
-    const atId = term[JsonSchema.atId] as string;
+    const term = isAuthorityTerm(value) ? value : { iri: '', label: '' };
     const midPart = '?p=classes&conceptid=';
-    const urlEncodedAtId = encodeURIComponent(atId);
+    const urlEncodedAtId = encodeURIComponent(term.iri);
 
     const branch = controlledInfo.branches[0];
     const _class = controlledInfo.classes[0];
@@ -287,8 +265,8 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       this.bioPortalTermLink = bioPortalPrefix + ontology.acronym + midPart + urlEncodedAtId;
     }
 
-    if (rdfsLabel && atId) {
-      return rdfsLabel + ' - (' + atId + ')';
+    if (term.label && term.iri) {
+      return term.label + ' - (' + term.iri + ')';
     } else return value as string;
   }
   clearValue(): void {
@@ -296,9 +274,9 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     this.inputValueControl.setValue(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
-  private setValueUIAndModel(atId: string, prefLabel: string): void {
-    this.inputValueControl.setValue(prefLabel);
-    this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
+  private setValueUIAndModel(iri: string, label: string): void {
+    this.inputValueControl.setValue(label);
+    this.handlerContext.changeControlledValue(this.component, iri, label);
   }
   goToBioPortalTerm() {
     if (this.bioPortalTermLink !== null) {

@@ -1,4 +1,4 @@
-import { InstanceObject } from '../instance-node.model';
+import { AuthorityTerm } from '../authority/authority-search-response.model';
 
 /**
  * A field's `_valueConstraints`, as far as CEE reads them.
@@ -13,20 +13,19 @@ export class ValueInfo {
   requiredValue = false;
   /**
    * A field's declared default. A literal field's is text; a controlled field's is
-   * the term node itself, carrying `@id` and `rdfs:label`; a boolean field's is
-   * `true` or `false`. It was declared `string` while three components indexed it
-   * as an object, and the boolean case arrived through the parser's untyped read
-   * of `valueConstraints` — so the declaration named one of the three shapes that
-   * reach it.
+   * a term; a boolean field's is `true` or `false`. It was declared `string` while
+   * three components indexed it as an object, and the boolean case arrived through
+   * the parser's untyped read of `valueConstraints` — so the declaration named one
+   * of the three shapes that reach it.
    *
    * Every consumer narrows before using it: the literal widgets test
-   * `typeof === 'string'`, and the term widgets test for the keys they need.
+   * `typeof === 'string'`, and the term widgets use `isAuthorityTerm`.
    *
    * Null for an ORCID or ROR field whatever the template declares. The model
    * library gives those kinds — and email, link and phone-number — an empty
    * constraint object, so a default declared on one never reaches here.
    */
-  defaultValue: string | boolean | InstanceObject | null = null;
+  defaultValue: string | boolean | AuthorityTerm | null = null;
   minLength: number | null = null;
   maxLength: number | null = null;
   temporalType: string | null = null;

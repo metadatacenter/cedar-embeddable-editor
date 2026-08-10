@@ -1,39 +1,31 @@
-import { JsonSchema } from 'cedar-model-typescript-library';
-
 /**
- * One result from an authority lookup: an IRI and a label.
+ * One term from an authority lookup: an IRI and the label it is shown by.
  *
  * Replaces seven `*SearchResponseItem` interfaces that declared exactly these
- * two keys, and five `*DetailResponse` classes that were byte-identical but for
- * their own name. The two rich detail models — ORCID's researcher record and
+ * two things, and five `*DetailResponse` classes that were byte-identical but
+ * for their own name. The two rich detail models — ORCID's researcher record and
  * ROR's organisation record — are genuinely different documents and keep their
- * own types; `details` carries whichever of those applies.
+ * own types, carried by `OrcidTerm` and `RorTerm`.
+ *
+ * The properties were `@id` and `rdfs:label` until CEE stopped speaking CEDAR's
+ * serialization anywhere but at its edges. Nothing about a term from ORCID or
+ * ROR is JSON-LD: the authority answers with `results[iri].name`, the value
+ * reaches the instance through `changeControlledValue`, and the model library
+ * decides how an IRI and a label are written down. Borrowing the two key
+ * constants for CEE's own model of a term put that decision in fifteen files.
+ *
+ * Naming the properties also makes them properties. `JsonSchema.atId` is
+ * declared `static atId: string` rather than as a literal, so `[JsonSchema.atId]:
+ * string` was an index signature over every string key — which is why `details`
+ * could not be typed here, why every read needed `as string`, and why the two
+ * enriched terms below could only widen the signature rather than extend it.
  */
-export interface AuthoritySearchResponseItem {
-  [JsonSchema.atId]: string;
-  [JsonSchema.rdfsLabel]: string;
+export interface AuthorityTerm {
+  iri: string;
+  label: string;
   /** ORCID's search results carry a details URL alongside the term. */
-  _details?: string;
+  detailsUrl?: string;
 }
-
-/*
- * Why there is no `details` here.
- *
- * There were two members, `details?: any` and `researcherDetails?: any`, and
- * nothing read either through this type: ORCID and ROR render their panels from
- * `OrcidSearchResponseItem.researcherDetails` and `RorSearchResponseItem.details`,
- * which are typed, and the five simple authorities never look at a record at all.
- * The base `filter` wrote `details` and no one collected it.
- *
- * They could not be typed where they stood, either. `JsonSchema.atId` is declared
- * `static atId: string` rather than as a literal, so `[JsonSchema.atId]: string`
- * above is an index signature over every string key instead of one named property
- * — see the note in `orcid-search-response-item.ts`. Every other member joins that
- * signature's type, and the two subtypes above stay interchangeable with this one
- * only while it stays `string`. `any` was what let an object sit under a signature
- * that says `string`; a real type here breaks the two subtypes instead. Literal key
- * constants in the model library remove the whole problem.
- */
 
 export interface AuthoritySearchResponse {
   /**
@@ -42,7 +34,7 @@ export interface AuthoritySearchResponse {
    * falsiness, which is what lets a terse endpoint answer with results alone.
    */
   found: boolean | undefined;
-  results: Array<AuthoritySearchResponseItem>;
+  results: Array<AuthorityTerm>;
 }
 
 /**

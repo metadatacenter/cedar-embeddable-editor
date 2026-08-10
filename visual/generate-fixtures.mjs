@@ -24,8 +24,12 @@ const {
   CedarBuilders,
   CedarWriters,
   ControlledTermOntologyBuilder,
+  InstanceDataContainer,
+  InstanceDataStringAtom,
+  InstanceDataTypedAtom,
   Iri,
   NumberType,
+  TemplateInstanceBuilder,
   TemporalGranularity,
   TemporalType,
   TimeFormat,
@@ -86,6 +90,50 @@ const write = (name, template) => {
   const json = CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template);
   writeFileSync(join(OUT, `${name}.json`), JSON.stringify(json, null, 2));
   console.log(`wrote fixtures/${name}.json`);
+};
+
+/**
+ * An instance a host would inject, built from what it holds.
+ *
+ * The instances here were written out as CEDAR JSON — envelope, `@context`,
+ * `@value` and `@type` on every field — which made this file the second place
+ * that had to know how an instance is spelled, and left the fixtures saying
+ * something no real host sends: an empty `@context`. The builder and the JSON
+ * writer are the same pair CEE reads the result with, so a fixture now says
+ * which template, what is in each field, and nothing about the serialization.
+ *
+ * `values` maps a field's property key to an atom, a container, or a list of
+ * either. `literal` and `typed` below are how a caller names one.
+ */
+const instance = (templateName, { id: instanceId, name, description, values }) => {
+  const builder = new TemplateInstanceBuilder()
+    .withSchemaIsBasedOn(`https://repo.metadatacenter.org/templates/${id(templateName)}`)
+    .withAtId(instanceId)
+    .withSchemaName(name)
+    .withSchemaDescription(description)
+    .withCreatedOn(FIXED_DATE)
+    .withCreatedBy(USER)
+    .withLastUpdatedOn(FIXED_DATE)
+    .withModifiedBy(USER);
+  for (const [key, value] of Object.entries(values)) {
+    builder.withDataValue(key, value);
+  }
+  return CedarWriters.json().getFebruary2024().getTemplateInstanceWriter().getAsJsonNode(builder.build());
+};
+
+/** A plain string value. */
+const literal = (value) => new InstanceDataStringAtom(value);
+
+/** A string value carrying the XSD type its field declares. */
+const typed = (value, xsdType) => new InstanceDataTypedAtom(value, xsdType);
+
+/** One occurrence of an element, holding its children. */
+const occurrence = (children) => {
+  const container = new InstanceDataContainer();
+  for (const [key, value] of Object.entries(children)) {
+    container.setValue(key, value);
+  }
+  return container;
 };
 
 /**
@@ -492,19 +540,15 @@ const writeRaw = (name, document) => {
   const template = tb.build();
   write('11-choice-default', template);
 
-  const templateId = `https://repo.metadatacenter.org/templates/${id('ChoiceDefault')}`;
-  writeRaw('11-choice-default-instance', {
-    '@context': {},
-    '@id': 'https://example.org/instances/choice-default-1',
-    'schema:isBasedOn': templateId,
-    'schema:name': 'ChoiceDefault instance',
-    'schema:description': 'Access already set to Private',
-    'pav:createdOn': FIXED_DATE,
-    'pav:createdBy': USER,
-    'pav:lastUpdatedOn': FIXED_DATE,
-    'oslc:modifiedBy': USER,
-    _access: { '@value': 'Private' },
-  });
+  writeRaw(
+    '11-choice-default-instance',
+    instance('ChoiceDefault', {
+      id: 'https://example.org/instances/choice-default-1',
+      name: 'ChoiceDefault instance',
+      description: 'Access already set to Private',
+      values: { _access: literal('Private') },
+    }),
+  );
 }
 
 // 12. The three branches of `shouldRenderContentOfNonIterable` — ported from
@@ -557,21 +601,19 @@ const writeRaw = (name, document) => {
   tb = tb.addChild(record, deploy(record, 'record', { multi: true, minItems: 2, maxItems: 4 }));
   write('13-paged-choice', tb.build());
 
-  const templateId = `https://repo.metadatacenter.org/templates/${id('PagedChoice')}`;
-  writeRaw('13-paged-choice-instance', {
-    '@context': {},
-    '@id': 'https://example.org/instances/paged-choice-1',
-    'schema:isBasedOn': templateId,
-    'schema:name': 'PagedChoice instance',
-    'schema:description': 'Two occurrences, Public then Private',
-    'pav:createdOn': FIXED_DATE,
-    'pav:createdBy': USER,
-    'pav:lastUpdatedOn': FIXED_DATE,
-    'oslc:modifiedBy': USER,
-    // Neither is the template's default (`Limited`), so a default leaking through
-    // is visible rather than coincidentally right.
-    _record: [{ _access: { '@value': 'Public' } }, { _access: { '@value': 'Private' } }],
-  });
+  writeRaw(
+    '13-paged-choice-instance',
+    instance('PagedChoice', {
+      id: 'https://example.org/instances/paged-choice-1',
+      name: 'PagedChoice instance',
+      description: 'Two occurrences, Public then Private',
+      // Neither is the template's default (`Limited`), so a default leaking through
+      // is visible rather than coincidentally right.
+      values: {
+        _record: [occurrence({ _access: literal('Public') }), occurrence({ _access: literal('Private') })],
+      },
+    }),
+  );
 }
 
 // 15. Two date fields of different granularity, both filled — the case that asks
@@ -587,28 +629,18 @@ const writeRaw = (name, document) => {
 //     reach the control, which is input handling rather than formatting — so the value
 //     here is `2019-01-01` and the field should render it as `2019`.
 {
-  const instanceOf = (templateName, values) => {
-    const templateId = `https://repo.metadatacenter.org/templates/${id(templateName)}`;
-    return {
-      '@context': {},
-      '@id': 'https://example.org/instances/date-formats-1',
-      'schema:isBasedOn': templateId,
-      'schema:name': `${templateName} instance`,
-      'schema:description': 'Two granularities, both filled',
-      'pav:createdOn': FIXED_DATE,
-      'pav:createdBy': USER,
-      'pav:lastUpdatedOn': FIXED_DATE,
-      'oslc:modifiedBy': USER,
-      ...values,
-    };
-  };
   writeRaw(
     '15-date-formats-instance',
-    instanceOf('TemporalGranularity', {
-      // Deliberately a different year from the day field, and a day-of-month that
-      // cannot be mistaken for a month.
-      _year_only: { '@value': '2019-01-01', '@type': 'xsd:date' },
-      _day_only: { '@value': '2026-03-04', '@type': 'xsd:date' },
+    instance('TemporalGranularity', {
+      id: 'https://example.org/instances/date-formats-1',
+      name: 'TemporalGranularity instance',
+      description: 'Two granularities, both filled',
+      values: {
+        // Deliberately a different year from the day field, and a day-of-month that
+        // cannot be mistaken for a month.
+        _year_only: typed('2019-01-01', 'xsd:date'),
+        _day_only: typed('2026-03-04', 'xsd:date'),
+      },
     }),
   );
 }
@@ -662,18 +694,12 @@ const writeRaw = (name, document) => {
   writeFileSync(
     join(sample, 'metadata.json'),
     JSON.stringify(
-      {
-        '@context': {},
-        '@id': 'https://example.org/instances/sample-loaded-1',
-        'schema:isBasedOn': `https://repo.metadatacenter.org/templates/${id('SampleLoaded')}`,
-        'schema:name': 'SampleLoaded instance',
-        'schema:description': 'Fetched alongside its template',
-        'pav:createdOn': FIXED_DATE,
-        'pav:createdBy': USER,
-        'pav:lastUpdatedOn': FIXED_DATE,
-        'oslc:modifiedBy': USER,
-        _title: { '@value': 'loaded from metadata.json' },
-      },
+      instance('SampleLoaded', {
+        id: 'https://example.org/instances/sample-loaded-1',
+        name: 'SampleLoaded instance',
+        description: 'Fetched alongside its template',
+        values: { _title: literal('loaded from metadata.json') },
+      }),
       null,
       2,
     ),
@@ -758,22 +784,21 @@ const writeRaw = (name, document) => {
   }
   write('21-temporal-normalization', tb.build());
 
-  writeRaw('21-temporal-normalization-instance', {
-    '@context': {},
-    '@id': 'https://example.org/instances/temporal-normalization-1',
-    'schema:isBasedOn': `https://repo.metadatacenter.org/templates/${id('TemporalNormalization')}`,
-    'schema:name': 'Temporal normalization instance',
-    'schema:description': 'Values deliberately finer than their template granularities',
-    'pav:createdOn': FIXED_DATE,
-    'pav:createdBy': USER,
-    'pav:lastUpdatedOn': FIXED_DATE,
-    'oslc:modifiedBy': USER,
-    _date_year: { '@value': '2026-08-09', '@type': 'xsd:date' },
-    _date_month: { '@value': '2026-08-09', '@type': 'xsd:date' },
-    // The offset is undeclared as well as the clock being too precise, so both
-    // disappear when the template contract is applied.
-    _datetime_day: { '@value': '2026-08-09T21:45:32.125-07:00', '@type': 'xsd:dateTime' },
-    _time_minute: { '@value': '21:45:32.125', '@type': 'xsd:time' },
-    _time_fraction: { '@value': '21:45:32.001', '@type': 'xsd:time' },
-  });
+  writeRaw(
+    '21-temporal-normalization-instance',
+    instance('TemporalNormalization', {
+      id: 'https://example.org/instances/temporal-normalization-1',
+      name: 'Temporal normalization instance',
+      description: 'Values deliberately finer than their template granularities',
+      values: {
+        _date_year: typed('2026-08-09', 'xsd:date'),
+        _date_month: typed('2026-08-09', 'xsd:date'),
+        // The offset is undeclared as well as the clock being too precise, so both
+        // disappear when the template contract is applied.
+        _datetime_day: typed('2026-08-09T21:45:32.125-07:00', 'xsd:dateTime'),
+        _time_minute: typed('21:45:32.125', 'xsd:time'),
+        _time_fraction: typed('21:45:32.001', 'xsd:time'),
+      },
+    }),
+  );
 }

@@ -8,6 +8,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { open } from './support/host';
+import { literalNode, valueOf } from './values';
 
 const errorsByPage = new WeakMap<Page, string[]>();
 
@@ -148,9 +149,9 @@ test('selects and records a fixed UTC offset', async ({ page }) => {
   // legacy widget used to expose.
   await expect
     .poll(() =>
-      page.evaluate(
-        () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata._sampled_at['@value'],
-      ),
+      page
+        .evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata)
+        .then((metadata) => valueOf(metadata, '_sampled_at')),
     )
     .toBeNull();
 
@@ -206,12 +207,12 @@ test('honors read-only mode', async ({ page }) => {
 
 test('replaces an instance and exposes JSON and YAML outputs', async ({ page }) => {
   await open(page, '11-choice-default', undefined, '11-choice-default-instance');
-  await page.evaluate(() => {
+  await page.evaluate((node) => {
     const editor = document.querySelector('cedar-embeddable-editor') as any;
     const replacement = structuredClone(editor.currentMetadata);
-    replacement._access['@value'] = 'Public';
+    replacement._access = node;
     editor.instanceObject = replacement;
-  });
+  }, literalNode('Public'));
 
   await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Public');
   const outputs = await page.evaluate(() => {

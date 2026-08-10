@@ -6,16 +6,15 @@ import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { HandlerContext } from '../../../shared/util/handler-context';
-import { JsonSchema } from 'cedar-model-typescript-library';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { ExternalAuthorityLookupService } from '../../../shared/service/external-authority-lookup.service';
 import { AuthoritySearchControl } from '../../../shared/util/authority-search-control';
 import { AuthorityDescriptor } from '../../../shared/models/authority/authority-descriptor.model';
-import { AuthoritySearchResponseItem } from '../../../shared/models/authority/authority-search-response.model';
+import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
-import { isInstanceObject } from '../../../shared/models/instance-node.model';
+import { isAuthorityTerm } from '../../../shared/models/authority/authority-term.guard';
 
 export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -78,8 +77,8 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    * read-only mode, where there is no autocomplete to feed. A real observable
    * rather than nothing, so the template's async pipe always has one to read.
    */
-  filteredOptions: Observable<AuthoritySearchResponseItem[]> = of([]);
-  selectedData: AuthoritySearchResponseItem | null = null;
+  filteredOptions: Observable<AuthorityTerm[]> = of([]);
+  selectedData: AuthorityTerm | null = null;
 
   /**
    * A press has begun on a suggestion, so the blur it causes is not the user
@@ -153,7 +152,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
           this.lookupFailed = false;
           if (!query) {
             this.loadingOptions = false;
-            return of<AuthoritySearchResponseItem[]>([]);
+            return of<AuthorityTerm[]>([]);
           }
           this.loadingOptions = true;
           return this.filter(query).pipe(
@@ -161,7 +160,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
             // so it is also the one place that can record that it happened.
             // `filter` therefore lets its errors through rather than catching
             // them itself.
-            catchLookupFailure<AuthoritySearchResponseItem>((error) => {
+            catchLookupFailure<AuthorityTerm>((error) => {
               this.lookupFailed = true;
               // Kept alongside the visible notice: the message tells a user the
               // search failed, the console tells a developer how.
@@ -196,26 +195,19 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     }
   }
 
-  /**
-   * A template may name a term to start with, as `{@id, rdfs:label}`.
-   */
+  /** A template may name a term to start with. */
   private applyDefaultValue(): void {
-    const defaultValue = this.component?.valueInfo?.defaultValue ?? null;
-    // A guard, not a cast: `isInstanceObject` is the same test the rest of CEE
-    // uses to tell a container from a leaf, and it is what makes the two reads
-    // below legitimate rather than asserted.
-    if (!isInstanceObject(defaultValue)) {
+    const declared = this.component?.valueInfo?.defaultValue ?? null;
+    // A guard, not a cast: the field's declared default is a term only for the
+    // kinds that take one, and a template naming a bare string here would
+    // otherwise read as a term with two undefined halves.
+    if (!isAuthorityTerm(declared)) {
       return;
     }
-    const atId = defaultValue[JsonSchema.atId];
-    const label = defaultValue[JsonSchema.rdfsLabel];
-    if (typeof atId !== 'string' || typeof label !== 'string') {
-      return;
-    }
-    // `|| null` as before: a term declaring an empty `@id` or label is not a
-    // term, and setting it would put an empty selection on the field.
-    this.inputValueControl.setValue(label || null);
-    this.handlerContext.changeControlledValue(this.component, atId || null, label || null);
+    // `|| null` as before: a term declaring an empty IRI or label is not a term,
+    // and setting it would put an empty selection on the field.
+    this.inputValueControl.setValue(declared.label || null);
+    this.handlerContext.changeControlledValue(this.component, declared.iri || null, declared.label || null);
   }
 
   /**
@@ -228,20 +220,13 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     this.selectionInProgress = true;
   }
 
-  onSelectionChange(option: AuthoritySearchResponseItem): void {
+  onSelectionChange(option: AuthorityTerm): void {
     if (!option) {
       return;
     }
     this.selectionInProgress = false;
     this.selectedData = option;
-    // `?? null`, because reading through `JsonSchema.atId` goes through the
-    // interface's implicit index signature rather than the named member, so it
-    // answers `string | undefined` however the member is declared.
-    this.handlerContext.changeControlledValue(
-      this.component,
-      option[JsonSchema.atId] ?? null,
-      option[JsonSchema.rdfsLabel] ?? null,
-    );
+    this.handlerContext.changeControlledValue(this.component, option.iri || null, option.label || null);
   }
 
   inputChanged(event: Event): void {
@@ -318,7 +303,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     }
   }
 
-  setCurrentValue(value: AuthoritySearchResponseItem): void {
+  setCurrentValue(value: AuthorityTerm): void {
     this.selectedData = value;
     this.inputValueControl.setValue(this.getCompoundValue(value), { emitEvent: true });
   }
@@ -331,20 +316,18 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
   }
 
   /** How a selected term reads in the box: "Label - https://iri". */
-  getCompoundValue(option: AuthoritySearchResponseItem | null): string {
-    const label = option?.[JsonSchema.rdfsLabel]?.trim() || '';
-    const id = option?.[JsonSchema.atId]?.trim() || '';
+  getCompoundValue(option: AuthorityTerm | null): string {
+    const label = option?.label?.trim() || '';
+    const id = option?.iri?.trim() || '';
     return label || id ? `${label} - ${id}` : '';
   }
 
   get detailsUrl(): string | null {
-    return this.selectedData?.[JsonSchema.atId] || null;
+    return this.selectedData?.iri || null;
   }
 
   get isEmpty(): boolean {
-    const raw = this.inputValueControl.value;
-    const query = (typeof raw === 'string' ? raw : raw?.[JsonSchema.rdfsLabel] ?? '').trim();
-    return !query;
+    return !(this.inputValueControl.value ?? '').trim();
   }
 
   /**
@@ -354,7 +337,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    * authorities: text that looks like an identifier is resolved directly, and
    * anything else is searched for by name.
    */
-  protected filter(query: string): Observable<AuthoritySearchResponseItem[]> {
+  protected filter(query: string): Observable<AuthorityTerm[]> {
     if (this.selectedData && this.getCompoundValue(this.selectedData) === query) {
       return of([this.selectedData]);
     }
@@ -368,12 +351,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
           // The resolved record itself is not carried on the term. It was, as
           // `details`, and nothing on this path ever read it — the two widgets
           // that show a record fetch it themselves into their own typed field.
-          return [
-            {
-              [JsonSchema.atId]: response.id,
-              [JsonSchema.rdfsLabel]: response.name,
-            } as AuthoritySearchResponseItem,
-          ];
+          return [{ iri: response.id, label: response.name }];
         }),
       );
     }
@@ -388,9 +366,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
         // narrowed the results themselves. Kept, because dropping it would widen
         // what a field offers rather than narrow it.
         const needle = (query || '').toLowerCase();
-        return needle
-          ? results.filter((option) => (option?.[JsonSchema.rdfsLabel] ?? '').toLowerCase().includes(needle))
-          : results;
+        return needle ? results.filter((option) => (option?.label ?? '').toLowerCase().includes(needle)) : results;
       }),
     );
   }
@@ -415,6 +391,4 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
       this.justCleared = false;
     }, 5000);
   }
-
-  protected readonly JsonSchema = JsonSchema;
 }

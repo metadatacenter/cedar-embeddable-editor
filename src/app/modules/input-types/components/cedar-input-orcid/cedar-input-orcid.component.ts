@@ -9,14 +9,13 @@ import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, switchMap, tap, catchError, finalize } from 'rxjs/operators';
-import { JsonSchema } from 'cedar-model-typescript-library';
 import { ExternalAuthorityLookupService } from '../../../shared/service/external-authority-lookup.service';
 import { authorityDescriptorFor } from '../../../shared/models/authority/authority-descriptor.model';
 import { InputType } from '../../../shared/models/input-type.model';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { OrcidSearchResponseItem } from '../../../shared/models/rest/orcid-search/orcid-search-response-item';
+import { OrcidTerm } from '../../../shared/models/authority/orcid-term.model';
 import { OrcidResolveResponse, ResearcherDetails } from '../../../shared/models/rest/orcid-detail/orcid-detail-person';
-import { isInstanceObject } from '../../../shared/models/instance-node.model';
+import { isAuthorityTerm } from '../../../shared/models/authority/authority-term.guard';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -42,13 +41,13 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
   @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger })
   trigger?: MatAutocompleteTrigger;
 
-  selectedData: OrcidSearchResponseItem | null = null;
+  selectedData: OrcidTerm | null = null;
   component!: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl<string | null>(null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input({ required: true }) handlerContext!: HandlerContext;
-  model: OrcidSearchResponseItem | null = null;
+  model: OrcidTerm | null = null;
   researcherDetails: ResearcherDetails | null = null;
   showDetails = false;
 
@@ -63,7 +62,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
    * read-only mode, where there is no autocomplete to feed. A real observable
    * rather than nothing, so the template's async pipe always has one to read.
    */
-  filteredOptions: Observable<OrcidSearchResponseItem[]> = of([]);
+  filteredOptions: Observable<OrcidTerm[]> = of([]);
   private researcherDetailsCache = new Map<string, ResearcherDetails>();
   justReverted = false;
   justCleared = false;
@@ -101,15 +100,12 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     // checked by the data quality report, which sees the value rather than the
     // search text; the discarded-edit error is raised explicitly on blur.
     this.inputValueControl = new FormControl<string | null>(null, validators);
-    if (this.component?.valueInfo?.defaultValue) {
-      // A default on one of these fields is the term node, not text. Guarded rather
-      // than asserted: a template declaring a bare string here would otherwise read
-      // as a term with two undefined halves.
-      const declared = this.component.valueInfo.defaultValue;
-      const defaultTerm = isInstanceObject(declared) ? declared : {};
-      const defaultAtId = (defaultTerm[JsonSchema.atId] as string) || null;
-      const defaultLabel = (defaultTerm[JsonSchema.rdfsLabel] as string) || null;
-      this.updateValue(defaultAtId, defaultLabel);
+    // A default on one of these fields is a term, not text. Guarded rather than
+    // asserted: a template declaring a bare string here would otherwise read as a
+    // term with two undefined halves.
+    const declaredDefault = this.component?.valueInfo?.defaultValue ?? null;
+    if (isAuthorityTerm(declaredDefault)) {
+      this.updateValue(declaredDefault.iri || null, declaredDefault.label || null);
     }
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
@@ -129,7 +125,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
             // A failed search and an empty one both used to arrive here as an
             // empty list, and the panel called both "No results found". Recorded
             // so the template can tell the user which of the two happened.
-            catchLookupFailure<OrcidSearchResponseItem>((error) => {
+            catchLookupFailure<OrcidTerm>((error) => {
               this.lookupFailed = true;
               console.error(`CEE ERROR: ORCID lookup failed for "${val}"`, error);
             }),
@@ -149,15 +145,15 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
       );
     }
   }
-  private getCompoundValue(option: OrcidSearchResponseItem | null): string {
+  private getCompoundValue(option: OrcidTerm | null): string {
     if (!option) {
       return '';
     }
-    const label = (option[JsonSchema.rdfsLabel] as string) ? (option[JsonSchema.rdfsLabel] as string).trim() : '';
-    const id = (option[JsonSchema.atId] as string) ? (option[JsonSchema.atId] as string).trim() : '';
+    const label = option.label ? option.label.trim() : '';
+    const id = option.iri ? option.iri.trim() : '';
     return `${label} - ${id}`;
   }
-  private filter(val: string): Observable<OrcidSearchResponseItem[]> {
+  private filter(val: string): Observable<OrcidTerm[]> {
     if (!val) {
       return of([]);
     }
@@ -168,11 +164,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
             return [];
           }
           const details = ResearcherDetails.fromJson(response);
-          const item: OrcidSearchResponseItem = {
-            [JsonSchema.atId]: response.id,
-            [JsonSchema.rdfsLabel]: response.name,
-            researcherDetails: details,
-          };
+          const item: OrcidTerm = { iri: response.id, label: response.name, researcherDetails: details };
           this.researcherDetailsCache.set(response.id, details);
           return [item];
         }),
@@ -195,14 +187,14 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     this.inputValueControl.setValue(prefLabel, { emitEvent: false });
     this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
   }
-  onSelectionChange(option: OrcidSearchResponseItem): void {
+  onSelectionChange(option: OrcidTerm): void {
     if (!option) return;
     this.selectionInProgress = false;
     this.selectedData = option;
 
-    const id = option[JsonSchema.atId] as string;
-    const rdfsLabel = option[JsonSchema.rdfsLabel] as string;
-    this.handlerContext.changeControlledValue(this.component, id, rdfsLabel);
+    const id = option.iri;
+    const label = option.label;
+    this.handlerContext.changeControlledValue(this.component, id, label);
 
     this.setCurrentValue(option);
   }
@@ -245,7 +237,7 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
       this.setCurrentValue(this.selectedData);
     }
   }
-  setCurrentValue(item: OrcidSearchResponseItem): void {
+  setCurrentValue(item: OrcidTerm): void {
     const display = this.getCompoundValue(item);
     if (this.inputValueControl.value !== display) {
       this.inputValueControl.setValue(display, { emitEvent: false });
@@ -277,11 +269,11 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
   private getDetails(): void {
-    if (!this.selectedData || !(this.selectedData[JsonSchema.atId] as string)) {
+    if (!this.selectedData || !this.selectedData.iri) {
       console.warn('No valid selected data to retrieve details.');
       return;
     }
-    const selectedId = this.selectedData[JsonSchema.atId] as string;
+    const selectedId = this.selectedData.iri;
     if (this.researcherDetailsCache.has(selectedId)) {
       this.researcherDetails = this.researcherDetailsCache.get(selectedId) ?? null;
       return;
@@ -321,6 +313,4 @@ export class CedarInputOrcidComponent extends CedarUIDirective implements OnInit
   get descriptor() {
     return authorityDescriptorFor(InputType.orcid)!;
   }
-
-  protected readonly JsonSchema = JsonSchema;
 }

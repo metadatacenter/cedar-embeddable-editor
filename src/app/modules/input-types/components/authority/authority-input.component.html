@@ -55,7 +55,7 @@ genuinely theirs.
             by leaving the field.
           -->
           <mat-option
-            [value]="option[JsonSchema.rdfsLabel] + ' - ' + option[JsonSchema.atId]"
+            [value]="option.label + ' - ' + option.iri"
             (mousedown)="selectionStarting()"
             (onSelectionChange)="onSelectionChange(option)"
             >{{ getCompoundValue(option) }}</mat-option

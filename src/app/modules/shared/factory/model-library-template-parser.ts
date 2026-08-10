@@ -455,12 +455,12 @@ export class ModelLibraryTemplateParser implements TemplateParser {
 
     if (vc.defaultValue != null) {
       fc.valueInfo.defaultValue = {
-        'rdfs:label': vc.defaultValue.rdfsLabel,
-        termUri: vc.defaultValue.termUri.getValue(),
+        iri: vc.defaultValue.termUri.getValue(),
+        label: vc.defaultValue.rdfsLabel,
       };
     } else {
       // Null, not undefined: a field with no declared default holds nothing, and
-      // `ValueInfo.defaultValue` says `string | InstanceObject | null`.
+      // `ValueInfo.defaultValue` says `string | boolean | AuthorityTerm | null`.
       fc.valueInfo.defaultValue = null;
     }
   }

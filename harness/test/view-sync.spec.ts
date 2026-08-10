@@ -146,7 +146,7 @@ describe('single fields', () => {
     const r = rig(ORCID);
     r.driver.handlerContext.changeControlledValue(r.component, 'https://orcid.org/0000-0002-1825-0097', 'Ada Lovelace');
     r.sync();
-    expect(r.widget.last).toEqual(termNode('https://orcid.org/0000-0002-1825-0097', 'Ada Lovelace'));
+    expect(r.widget.last).toEqual({ iri: 'https://orcid.org/0000-0002-1825-0097', label: 'Ada Lovelace' });
   });
 
   /**
@@ -169,7 +169,7 @@ describe('single fields', () => {
     const r = rig(CONTROLLED, ['_f'], template, { readOnlyMode: true });
     r.driver.handlerContext.changeControlledValue(r.component, 'https://example.org/terms/human', 'Homo sapiens');
     r.sync();
-    expect(r.widget.last).toEqual(termNode('https://example.org/terms/human', 'Homo sapiens'));
+    expect(r.widget.last).toEqual({ iri: 'https://example.org/terms/human', label: 'Homo sapiens' });
   });
 
   it('pushes nothing when no widget is registered', () => {
@@ -230,7 +230,7 @@ describe('paged multi fields', () => {
     const r = rig(ORCID, ['_f'], pagedTemplate(ORCID));
     r.driver.handlerContext.changeControlledValue(r.component, 'https://orcid.org/0000-0002-1825-0097', 'Ada Lovelace');
     r.sync();
-    expect(r.widget.last).toEqual(termNode('https://orcid.org/0000-0002-1825-0097', 'Ada Lovelace'));
+    expect(r.widget.last).toEqual({ iri: 'https://orcid.org/0000-0002-1825-0097', label: 'Ada Lovelace' });
   });
 
   it('pushes a paged controlled term as its label', () => {

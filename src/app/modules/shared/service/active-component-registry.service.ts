@@ -1,7 +1,6 @@
 import type { CedarUIDirective } from '../models/ui/cedar-ui-component.model';
 import { CedarComponent } from '../models/component/cedar-component.model';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
-import { JsonSchema } from 'cedar-model-typescript-library';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { SingleElementComponent } from '../models/element/single-element-component.model';
 import { MultiElementComponent } from '../models/element/multi-element-component.model';
@@ -12,6 +11,7 @@ import { HandlerContext } from '../util/handler-context';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { InstanceValueNode } from '../util/instance-value-node';
+import { AuthorityTerm } from '../models/authority/authority-search-response.model';
 import { InstanceNode, InstanceObject, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
 @Injectable({
@@ -77,7 +77,11 @@ export class ActiveComponentRegistryService {
    * value is the label, and both once read-only, where there is no
    * autocomplete and the viewer wants the IRI to link to.
    */
-  private static iriValueForWidget(node: InstanceNode, component: CedarComponent, readOnlyMode: boolean): InstanceNode {
+  private static iriValueForWidget(
+    node: InstanceNode,
+    component: CedarComponent,
+    readOnlyMode: boolean,
+  ): InstanceNode | AuthorityTerm {
     // `?? ''` so a field with no declared input type falls through the two tests
     // below to the label, which is what it did when the type was `any`.
     const inputType = (component as SingleFieldComponent).basicInfo.inputType ?? '';
@@ -88,10 +92,10 @@ export class ActiveComponentRegistryService {
     }
     const label = InstanceValueNode.label(node) ?? null;
     if (EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType) || readOnlyMode) {
-      const valueObject: InstanceObject = {};
-      valueObject[JsonSchema.rdfsLabel] = label;
-      valueObject[JsonSchema.atId] = iri;
-      return valueObject;
+      // `?? ''` on both: the widget wants a term, and a node that carries an IRI
+      // without a label — or a label the reader could not find — is still the
+      // term the field holds. The reads above answer null for either.
+      return { iri: iri ?? '', label: label ?? '' };
     }
     return label;
   }

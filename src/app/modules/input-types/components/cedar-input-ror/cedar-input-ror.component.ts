@@ -18,15 +18,14 @@ import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, switchMap, tap, finalize, catchError } from 'rxjs/operators';
-import { JsonSchema } from 'cedar-model-typescript-library';
 import { ExternalAuthorityLookupService } from '../../../shared/service/external-authority-lookup.service';
 import { authorityDescriptorFor } from '../../../shared/models/authority/authority-descriptor.model';
 import { InputType } from '../../../shared/models/input-type.model';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { RorSearchResponseItem } from '../../../shared/models/rest/ror-search/ror-search-response-item';
+import { RorTerm } from '../../../shared/models/authority/ror-term.model';
 import { RorDetailResponse } from '../../../shared/models/rest/ror-detail/ror-detail-response';
-import { isInstanceObject } from '../../../shared/models/instance-node.model';
+import { isAuthorityTerm } from '../../../shared/models/authority/authority-term.guard';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -57,12 +56,12 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  selectedData: RorSearchResponseItem | null = null;
+  selectedData: RorTerm | null = null;
   component!: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl<string | null>(null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
-  model: RorSearchResponseItem | null = null;
+  model: RorTerm | null = null;
   rorDetails: RorDetailResponse | null = null;
   showDetails: boolean = false;
   /**
@@ -70,7 +69,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
    * read-only mode, where there is no autocomplete to feed. A real observable
    * rather than nothing, so the template's async pipe always has one to read.
    */
-  filteredOptions: Observable<RorSearchResponseItem[]> = of([]);
+  filteredOptions: Observable<RorTerm[]> = of([]);
   loadingOptions = false;
   private rorDetailsCache = new Map<string, RorDetailResponse>();
   justReverted = false;
@@ -106,15 +105,12 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     // checked by the data quality report, which sees the value rather than the
     // search text; the discarded-edit error is raised explicitly on blur.
     this.inputValueControl = new FormControl<string | null>(null, validators);
-    if (this.component?.valueInfo?.defaultValue) {
-      // A default on one of these fields is the term node, not text. Guarded rather
-      // than asserted: a template declaring a bare string here would otherwise read
-      // as a term with two undefined halves.
-      const declared = this.component.valueInfo.defaultValue;
-      const defaultTerm = isInstanceObject(declared) ? declared : {};
-      const defaultAtId = (defaultTerm[JsonSchema.atId] as string) || null;
-      const defaultLabel = (defaultTerm[JsonSchema.rdfsLabel] as string) || null;
-      this.updateValue(defaultAtId, defaultLabel);
+    // A default on one of these fields is a term, not text. Guarded rather than
+    // asserted: a template declaring a bare string here would otherwise read as a
+    // term with two undefined halves.
+    const declaredDefault = this.component?.valueInfo?.defaultValue ?? null;
+    if (isAuthorityTerm(declaredDefault)) {
+      this.updateValue(declaredDefault.iri || null, declaredDefault.label || null);
     }
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
@@ -137,7 +133,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
             // A failed search and an empty one both used to arrive here as an
             // empty list, and the panel called both "No results found". Recorded
             // so the template can tell the user which of the two happened.
-            catchLookupFailure<RorSearchResponseItem>((error) => {
+            catchLookupFailure<RorTerm>((error) => {
               this.lookupFailed = true;
               console.error(`CEE ERROR: ROR lookup failed for "${val}"`, error);
             }),
@@ -183,15 +179,15 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
       this.cdr.markForCheck();
     }
   }
-  onSelectionChange(option: RorSearchResponseItem): void {
+  onSelectionChange(option: RorTerm): void {
     if (!option) return;
     this.selectionInProgress = false;
     this.selectedData = option;
-    const id = option[JsonSchema.atId] as string;
-    const rdfsLabel = option[JsonSchema.rdfsLabel] as string;
-    this.handlerContext.changeControlledValue(this.component, id, rdfsLabel);
+    const id = option.iri;
+    const label = option.label;
+    this.handlerContext.changeControlledValue(this.component, id, label);
   }
-  setCurrentValue(value: RorSearchResponseItem): void {
+  setCurrentValue(value: RorTerm): void {
     this.selectedData = value;
     const display = this.getCompoundValue(value);
     this.inputValueControl.setValue(display, { emitEvent: true });
@@ -231,13 +227,13 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
   setShowDetails = (setValue: boolean): void => {
     this.showDetails = setValue;
   };
-  getCompoundValue(option: RorSearchResponseItem | null): string {
+  getCompoundValue(option: RorTerm | null): string {
     if (!option) return '';
-    const label = (option[JsonSchema.rdfsLabel] as string) ? (option[JsonSchema.rdfsLabel] as string).trim() : '';
-    const id = (option[JsonSchema.atId] as string) ? (option[JsonSchema.atId] as string).trim() : '';
+    const label = option.label ? option.label.trim() : '';
+    const id = option.iri ? option.iri.trim() : '';
     return `${label} - ${id}`;
   }
-  private filter(val: string): Observable<RorSearchResponseItem[]> {
+  private filter(val: string): Observable<RorTerm[]> {
     if (this.getCompoundValue(this.selectedData) === val || val === undefined || val === '') {
       return of([]);
     }
@@ -253,13 +249,14 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
             return [];
           } else {
             const details = RorDetailResponse.fromJSON(response);
-            // Keyed by `response.id`, which is what reads it. It used to be keyed by
-            // `response[JsonSchema.atId]` — a `RorDetailResponse` has no `@id`, so every
-            // write went in under `undefined` and the lookup below never hit one.
+            // Keyed by `response.id`, which is what reads it. It used to be keyed by an
+            // IRI read through the model library's key constant — a `RorDetailResponse`
+            // has no such property, so every write went in under `undefined` and the
+            // lookup below never hit one.
             if (!this.rorDetailsCache.has(response.id)) {
               this.rorDetailsCache.set(response.id, details);
             }
-            return [{ [JsonSchema.atId]: response.id, [JsonSchema.rdfsLabel]: response.name, details: details }];
+            return [{ iri: response.id, label: response.name, details: details }];
           }
         }),
       );
@@ -270,8 +267,7 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
             return [];
           } else if (response.results) {
             return response.results.filter(
-              (option: RorSearchResponseItem) =>
-                (option[JsonSchema.rdfsLabel] as string)?.toLowerCase().includes(val.toLowerCase()),
+              (option: RorTerm) => option.label?.toLowerCase().includes(val.toLowerCase()),
             );
           } else {
             this.messageHandlerService.errorObject(val, response);
@@ -289,11 +285,11 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
     this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
   }
   private getDetails(): void {
-    if (!this.selectedData || !(this.selectedData[JsonSchema.atId] as string)) {
+    if (!this.selectedData || !this.selectedData.iri) {
       console.warn('No valid selected data to retrieve details.');
       return;
     }
-    const selectedId = this.selectedData[JsonSchema.atId] as string;
+    const selectedId = this.selectedData.iri;
     if (this.rorDetailsCache.has(selectedId)) {
       this.rorDetails = this.rorDetailsCache.get(selectedId) ?? null;
       return;
@@ -341,6 +337,4 @@ export class CedarInputRorComponent extends CedarUIDirective implements OnInit, 
   get descriptor() {
     return authorityDescriptorFor(InputType.ror)!;
   }
-
-  protected readonly JsonSchema = JsonSchema;
 }

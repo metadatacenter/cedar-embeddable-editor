@@ -2,18 +2,34 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { JsonSchema } from 'cedar-model-typescript-library';
 import { InputType } from '../models/input-type.model';
 import {
   AuthorityDetailResponse,
   AuthoritySearchResponse,
-  AuthoritySearchResponseItem,
+  AuthorityTerm,
 } from '../models/authority/authority-search-response.model';
 
 /** Where one authority's two endpoints live. Set from the host page's config. */
 interface AuthorityEndpoints {
   searchUrl: string;
   detailsUrl: string;
+}
+
+/**
+ * A term as an authority writes one, for the endpoints that answer with a list.
+ *
+ * The one place in CEE that names a JSON-LD key on purpose, and it names it as
+ * the wire format it is rather than through the model library's constants: this
+ * is what an authority sends, and CEDAR's serialization has no say in it. The
+ * conversion below is the boundary — past it, a term is an `AuthorityTerm` with
+ * named properties and nothing knows how the authority spelled them.
+ *
+ * Every property optional because the shape is the authority's to decide.
+ */
+interface AuthorityWireTerm {
+  '@id'?: string;
+  'rdfs:label'?: string;
+  _details?: string;
 }
 
 /**
@@ -26,10 +42,7 @@ interface AuthorityEndpoints {
  */
 interface AuthoritySearchPayload {
   found?: boolean;
-  results?:
-    | Record<string, { name?: string; details?: string } | null | undefined>
-    | AuthoritySearchResponseItem[]
-    | null;
+  results?: Record<string, { name?: string; details?: string } | null | undefined> | AuthorityWireTerm[] | null;
 }
 
 /**
@@ -103,28 +116,31 @@ export class ExternalAuthorityLookupService {
    * Every one of the seven services did this identically: the response's
    * `results` is an object keyed by IRI, whose values carry a `name`. ORCID also
    * copied a `details` link through, which is harmless for the others and is
-   * kept for all of them rather than special-cased — a `_details` nobody reads
+   * kept for all of them rather than special-cased — a `detailsUrl` nobody reads
    * costs nothing, and a branch on input type here would be the first crack in
    * the thing being removed.
    */
-  private static toItems(response: AuthoritySearchPayload | null): AuthoritySearchResponseItem[] {
+  private static toItems(response: AuthoritySearchPayload | null): AuthorityTerm[] {
     const results = response?.results;
     if (results === null || results === undefined) {
       return [];
     }
     // Already a list of terms: some endpoints answer that way, and the widgets
-    // all guarded for it before passing results on.
+    // all guarded for it before passing results on. Read through `AuthorityWireTerm`
+    // rather than passed along, because a wire term and CEE's term no longer share
+    // a shape — the object form below never did.
     if (Array.isArray(results)) {
-      return results;
+      return results.map((term) => ({
+        iri: term['@id'] ?? '',
+        label: term['rdfs:label'] ?? '',
+        detailsUrl: term._details,
+      }));
     }
-    return Object.keys(results).map(
-      (key) =>
-        ({
-          [JsonSchema.atId]: key,
-          [JsonSchema.rdfsLabel]: results[key]?.name,
-          _details: results[key]?.details,
-        }) as AuthoritySearchResponseItem,
-    );
+    return Object.keys(results).map((key) => ({
+      iri: key,
+      label: results[key]?.name ?? '',
+      detailsUrl: results[key]?.details,
+    }));
   }
 
   private searchUrlFor(inputType: InputType): string {

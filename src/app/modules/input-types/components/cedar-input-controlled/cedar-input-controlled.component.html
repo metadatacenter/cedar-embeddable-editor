@@ -37,10 +37,10 @@
         @for (option of filteredOptions | async; track option) {
           <!-- `mousedown` precedes the blur it causes: see `selectionStarting`. -->
           <mat-option
-            [value]="option.prefLabel"
+            [value]="option.label"
             (mousedown)="selectionStarting()"
             (onSelectionChange)="onSelectionChange(option)"
-            >{{ option.prefLabel }}</mat-option
+            >{{ option.label }}</mat-option
           >
         }
       </mat-autocomplete>

@@ -13,6 +13,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { elementIrisOf, literalNode, valueOf } from './values';
 import { fileURLToPath } from 'node:url';
 import {
   BUNDLE_VERSION,
@@ -167,24 +168,13 @@ test.describe('multiple editor instances', () => {
       .poll(() => languageRequests.some((request) => request.includes('/languages/second/en.json')))
       .toBe(true);
 
-    const ids = await page.evaluate(() => {
-      const collect = (value: unknown): string[] => {
-        if (Array.isArray(value)) return value.flatMap(collect);
-        if (value && typeof value === 'object') {
-          const record = value as Record<string, unknown>;
-          return [
-            typeof record['@id'] === 'string' ? record['@id'] : '',
-            ...Object.values(record).flatMap(collect),
-          ].filter(Boolean);
-        }
-        return [];
-      };
+    const instances = await page.evaluate(() => {
       const first = document.querySelector('#editor-first') as any;
       const second = document.querySelector('#editor-second') as any;
-      return { first: collect(first.currentMetadata), second: collect(second.currentMetadata) };
+      return { first: first.currentMetadata, second: second.currentMetadata };
     });
-    const firstElementIds = ids.first.filter((id) => id.includes('template-element-instances'));
-    const secondElementIds = ids.second.filter((id) => id.includes('template-element-instances'));
+    const firstElementIds = elementIrisOf(instances.first);
+    const secondElementIds = elementIrisOf(instances.second);
     expect(firstElementIds.length).toBeGreaterThan(0);
     expect(secondElementIds.length).toBeGreaterThan(0);
     expect(firstElementIds.every((id) => id.startsWith('https://first.example/'))).toBe(true);
@@ -1093,11 +1083,10 @@ test.describe('the time picker', () => {
 
   /** The instance CEE would hand a host page. */
   const storedValue = async (page: import('@playwright/test').Page, field: string): Promise<unknown> =>
-    page.evaluate((name) => {
-      const cee = document.querySelector('cedar-embeddable-editor') as unknown as Record<string, never>;
-      const instance = cee['currentMetadata'] as Record<string, { '@value'?: unknown }>;
-      return instance?.[name]?.['@value'];
-    }, field);
+    valueOf(
+      await page.evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata),
+      field,
+    );
 
   /**
    * Which boxes each granularity offers, asserted per field.
@@ -1352,17 +1341,15 @@ test('normalizes existing temporal values to their declared granularity', async 
 
   await expect
     .poll(() =>
-      page.evaluate(() => {
-        const editor = document.querySelector('cedar-embeddable-editor') as any;
-        const metadata = editor.currentMetadata;
-        return {
-          year: metadata._date_year?.['@value'],
-          month: metadata._date_month?.['@value'],
-          day: metadata._datetime_day?.['@value'],
-          minute: metadata._time_minute?.['@value'],
-          fraction: metadata._time_fraction?.['@value'],
-        };
-      }),
+      page
+        .evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata)
+        .then((metadata) => ({
+          year: valueOf(metadata, '_date_year'),
+          month: valueOf(metadata, '_date_month'),
+          day: valueOf(metadata, '_datetime_day'),
+          minute: valueOf(metadata, '_time_minute'),
+          fraction: valueOf(metadata, '_time_fraction'),
+        })),
     )
     .toEqual({
       year: '2026-01-01',
@@ -1878,6 +1865,8 @@ test.describe('controlled terminology selection', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
+        // The terminology server's own wire keys, which is what CEE reads at that
+        // boundary — `id` is a short identifier there and the IRI is under `@id`.
         body: JSON.stringify({ collection: [{ id, '@id': id, prefLabel: label }] }),
       });
     });
@@ -2032,19 +2021,19 @@ test.describe('host input timing', () => {
 
   test('replacing an instance updates both the rendered widget and host output', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance');
-    await page.evaluate(() => {
+    await page.evaluate((node) => {
       const cee = document.querySelector('cedar-embeddable-editor') as any;
       const replacement = structuredClone(cee.currentMetadata);
-      replacement._access['@value'] = 'Public';
+      replacement._access = node;
       cee.instanceObject = replacement;
-    });
+    }, literalNode('Public'));
 
     await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Public');
     await expect(async () => {
       const metadata = await page.evaluate(
         () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
       );
-      expect(metadata._access['@value']).toBe('Public');
+      expect(valueOf(metadata, '_access')).toBe('Public');
     }).toPass();
   });
 });
@@ -2366,11 +2355,10 @@ test('temporal input text and boundaries meet WCAG 2.2 AA contrast', async ({ pa
  */
 test.describe('date calendar selection', () => {
   const storedValue = async (page: import('@playwright/test').Page, field: string): Promise<unknown> =>
-    page.evaluate((name) => {
-      const cee = document.querySelector('cedar-embeddable-editor') as unknown as Record<string, never>;
-      const instance = cee['currentMetadata'] as Record<string, { '@value'?: unknown }>;
-      return instance?.[name]?.['@value'];
-    }, field);
+    valueOf(
+      await page.evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata),
+      field,
+    );
 
   const openCalendar = async (input: import('@playwright/test').Locator): Promise<void> => {
     await input.locator('xpath=ancestor::mat-form-field').locator('.mat-datepicker-toggle button').click();
