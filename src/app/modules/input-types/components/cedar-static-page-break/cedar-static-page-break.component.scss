@@ -34,8 +34,12 @@
   }
 }
 
+/*
+ * `Page:` beside the numbered chips, which are `$cee-font-size`. Weight
+ * distinguishes it, not size — 16px here was the one place CEE's own chrome
+ * stated a size of its own.
+ */
 .page-break-label {
-  font-size: 16px;
   font-weight: bold;
   margin-right: 20px;
 }

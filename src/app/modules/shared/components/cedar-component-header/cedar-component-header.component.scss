@@ -6,6 +6,19 @@
 }
 
 /*
+ * The asterisk beside a required field's label.
+ *
+ * Was an inline style setting `font-size: medium`, which is an absolute keyword
+ * — 16px whatever it sits in — so the mark was larger than the 14px label
+ * carrying it. `1em` keeps it the size of that label, and `sup` already raises
+ * it.
+ */
+.required-mark {
+  font-size: 1em;
+  color: red;
+}
+
+/*
  * Every field gets the same alignment slot. Generic type icons are deliberately
  * quiet; external-authority marks retain their identity, and controlled terms
  * receive the one emphasized semantic badge in the set.

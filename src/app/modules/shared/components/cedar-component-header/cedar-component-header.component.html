@@ -30,7 +30,7 @@
     {{ cds.getRenderingLabelForComponent(component) }}
     @if (shouldRenderRequiredMark) {
       <span>
-        <sup style="font-size: medium; color: red" aria-label="required"><b>*</b></sup>
+        <sup class="required-mark" aria-label="required"><b>*</b></sup>
       </span>
     }
     @if (component.isMultiPage() && !readOnlyMode && multiComponent) {

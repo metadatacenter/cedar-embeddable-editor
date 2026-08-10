@@ -849,6 +849,44 @@ test('numeric fields state their bounds in words', async ({ page }) => {
 });
 
 /**
+ * One type size for a field's label and for the value inside it.
+ *
+ * They were two. CEE's chrome is `$cee-font-size`, and Material's typography
+ * config named only a font family — so a form field took M2's `subtitle-1` and
+ * `body-1`, both 16px, for the text a user types. A temporal row showed a 14px
+ * label, a 16px date and a 14px clock in the same row.
+ *
+ * Asserted as an equality between the two rather than against a number, so it
+ * stays true if the size is ever changed and false if only one of them is. It
+ * needs to be a DOM assertion: this changed the type size of every field on the
+ * page and both corpus baselines still passed, because `maxDiffPixelRatio` is a
+ * ratio and those pages are thousands of pixels tall.
+ */
+test('a field states its label and its value at one size', async ({ page }) => {
+  await open(page, '17-real-flat');
+
+  const mismatched = await page.locator('input, textarea').evaluateAll((controls: HTMLInputElement[]) =>
+    controls
+      // Radio and checkbox inputs are Material's own, visually hidden behind a
+      // drawn control, and carry a size nobody sees.
+      .filter((control) => control.type !== 'radio' && control.type !== 'checkbox')
+      .map((control) => {
+        const renderer = control.closest('app-cedar-component-renderer');
+        const label = renderer?.querySelector(':scope > * > app-cedar-component-header .title');
+        if (!label) {
+          return null;
+        }
+        const labelSize = getComputedStyle(label).fontSize;
+        const valueSize = getComputedStyle(control).fontSize;
+        return labelSize === valueSize ? null : `${label.textContent!.trim()}: label ${labelSize}, value ${valueSize}`;
+      })
+      .filter((problem): problem is string => problem !== null),
+  );
+
+  expect(mismatched, 'a label and the value under it should be one size').toEqual([]);
+});
+
+/**
  * One clipped screenshot per widget.
  *
  * The twelve full-page fixtures above are the wrong instrument for a widget-level
