@@ -44,9 +44,14 @@ const VALUED = CASES.filter((c) => c.kind.write !== 'none');
  * back as its IRI and label, and which of the two a spec expects depends on the
  * field: a controlled term is written by label, a link by IRI.
  */
-const plainValue = (node: unknown): unknown => {
-  const held = heldValue(node);
-  if (held !== null && !Array.isArray(held) && typeof held === 'object') {
+const plainValue = (node: unknown): unknown => reduceHeld(heldValue(node));
+
+/** A term reduces to the half the field is written by; a list, element by element. */
+const reduceHeld = (held: unknown): unknown => {
+  if (Array.isArray(held)) {
+    return held.map(reduceHeld);
+  }
+  if (held !== null && typeof held === 'object') {
     const term = held as { iri?: string | null; label?: string | null };
     return term.label ?? term.iri ?? null;
   }
