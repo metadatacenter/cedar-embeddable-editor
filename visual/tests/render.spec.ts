@@ -626,21 +626,48 @@ test.describe('filled state', () => {
 test('temporal placeholders and decimal seconds fit without clipping', async ({ page }) => {
   await open(page, '09-temporal');
 
+  /*
+   * The shell, before its segments.
+   *
+   * Measuring each segment against its own box misses the failure that actually
+   * shipped: the boxes were the right size and the shell around them was not.
+   * It sat in a flex row that inherited `min-width: 0`, so a row a few pixels
+   * short took them from here and cut the right stroke off `MM` — recorded in a
+   * baseline as `HH:MN` and read by nobody as a defect.
+   */
+  const shells = page.locator('.cee-time-input-shell');
+  expect(await shells.count()).toBeGreaterThan(0);
+  const squeezed = await shells.evaluateAll((elements: HTMLElement[]) =>
+    elements
+      .filter((shell) => shell.scrollWidth > shell.clientWidth + 1)
+      .map((shell) => `${shell.scrollWidth}px of content in ${shell.clientWidth}px`),
+  );
+  expect(squeezed, 'a clock shell must not be shrunk below the boxes it holds').toEqual([]);
+
+  /*
+   * The placeholders, measured as text.
+   *
+   * `scrollWidth` was what this compared against, and `scrollWidth` cannot see a
+   * clipped placeholder: an empty input has nothing to scroll, so the assertion
+   * passed while `MM` — 24.4px of text in a 23.6px box — lost the right stroke of
+   * its second stem. Rendering the text on a canvas in the segment's own font is
+   * what makes the comparison the one intended.
+   */
   const segments = page.locator('.cee-time-segment');
   expect(await segments.count()).toBeGreaterThan(0);
-  const fit = await segments.evaluateAll((inputs: HTMLInputElement[]) =>
-    inputs.map((input) => ({
-      placeholder: input.placeholder,
-      clientWidth: input.clientWidth,
-      scrollWidth: input.scrollWidth,
-    })),
-  );
-  for (const measurement of fit) {
-    expect(
-      measurement.scrollWidth,
-      measurement.placeholder + ' is clipped in a ' + measurement.clientWidth + 'px segment',
-    ).toBeLessThanOrEqual(measurement.clientWidth + 1);
-  }
+  const clipped = await segments.evaluateAll((inputs: HTMLInputElement[]) => {
+    const measure = document.createElement('canvas').getContext('2d')!;
+    return inputs
+      .map((input) => {
+        const style = getComputedStyle(input);
+        measure.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        const available = input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        return { placeholder: input.placeholder, available, needed: measure.measureText(input.placeholder).width };
+      })
+      .filter((segment) => segment.needed > segment.available)
+      .map((segment) => `${segment.placeholder} needs ${segment.needed.toFixed(1)}px, has ${segment.available}px`);
+  });
+  expect(clipped, 'a placeholder is wider than the box that shows it').toEqual([]);
 
   const fraction = page.locator('input[aria-label="Select Decimal Seconds"]');
   await fraction.fill('999');
@@ -1258,6 +1285,50 @@ test.describe('the time picker', () => {
       await open(page, '09-temporal');
       await expect(page.locator('.cee-time-picker')).toHaveCount(PICKERS.length);
     });
+  });
+
+  /**
+   * How wide a clock holding a time is.
+   *
+   * The boxes have to fit `HH`, `MM` and `SS` when empty, and M is half again as
+   * wide as a digit — so a box sized once, for both states, leaves half a digit
+   * of air on either side of every colon and the clock reads `14 : 30 : 15`.
+   *
+   * Asserted against the width of the text itself rather than a pixel count, so
+   * it stays a statement about the two being close and survives a change of font
+   * or type size. The slack covers three boxes' 1px padding either side.
+   */
+  test('a filled clock is as wide as the time it shows', async ({ page }) => {
+    await open(page, '09-temporal');
+    const picker = pickerFor(page, 'to_the_second');
+
+    for (const [unit, value] of [
+      ['Hour', '14'],
+      ['Minute', '30'],
+      ['Second', '15'],
+    ]) {
+      await picker.locator(`input[aria-label="${unit}"]`).fill(value);
+    }
+    await page.waitForTimeout(300);
+
+    const slack = await picker.locator('.cee-time-input-shell').evaluate((shell) => {
+      const box = getComputedStyle(shell);
+      const inner =
+        shell.getBoundingClientRect().width -
+        parseFloat(box.paddingLeft) -
+        parseFloat(box.paddingRight) -
+        parseFloat(box.borderLeftWidth) -
+        parseFloat(box.borderRightWidth);
+
+      const segment = getComputedStyle(shell.querySelector('.cee-time-segment')!);
+      const measure = document.createElement('canvas').getContext('2d')!;
+      measure.font = `${segment.fontWeight} ${segment.fontSize} ${segment.fontFamily}`;
+
+      return inner - measure.measureText('14:30:15').width;
+    });
+
+    expect(slack, 'the boxes are clipping the time').toBeGreaterThan(-2);
+    expect(slack, 'the colons are floating in air').toBeLessThan(12);
   });
 
   test('the 12-hour fields show a meridian control and the others do not', async ({ page }) => {

@@ -1,8 +1,13 @@
 @if (!readOnlyMode) {
-  <div class="cee-time-picker" role="group" attr.aria-label="{{ 'Generic.Time' | translate }}">
+  <div
+    class="cee-time-picker"
+    [class.cee-time-picker-filled]="hasValue"
+    role="group"
+    attr.aria-label="{{ 'Generic.Time' | translate }}"
+  >
     <div class="cee-time-input-shell">
       <input
-        class="cee-time-segment"
+        class="cee-time-segment cee-time-segment-hour"
         type="text"
         inputmode="numeric"
         maxlength="2"
@@ -16,7 +21,7 @@
       @if (!disableMinute) {
         <span class="cee-time-separator" aria-hidden="true">:</span>
         <input
-          class="cee-time-segment"
+          class="cee-time-segment cee-time-segment-minute"
           type="text"
           inputmode="numeric"
           maxlength="2"
@@ -30,7 +35,7 @@
         @if (showSeconds) {
           <span class="cee-time-separator" aria-hidden="true">:</span>
           <input
-            class="cee-time-segment"
+            class="cee-time-segment cee-time-segment-second"
             type="text"
             inputmode="numeric"
             maxlength="2"
