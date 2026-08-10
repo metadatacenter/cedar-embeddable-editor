@@ -6,7 +6,7 @@ import { MultiElementComponent } from '../models/element/multi-element-component
 import { DataContext } from '../util/data-context';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
-import { InstanceDataAttributeValueFieldName, JsonSchema } from 'cedar-model-typescript-library';
+import { InstanceDataAttributeValueFieldName, PropertyIri } from 'cedar-model-typescript-library';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
@@ -17,7 +17,6 @@ import {
   isInstanceArray,
   isInstanceObject,
 } from '../models/instance-node.model';
-import { CedarModel } from 'cedar-model-typescript-library';
 import { DataObjectUtil } from '../util/data-object-util';
 import { valueIsIri } from '../models/ext-auth-categories.model';
 import { InstanceValueNode } from '../util/instance-value-node';
@@ -49,6 +48,16 @@ interface DownstreamObjects {
   childComponent: CedarComponent | null;
   remainingPath: string[];
 }
+
+/**
+ * The name a duplicate attribute is given, numbered until it is free.
+ *
+ * CEE's, not CEDAR's. It lived in the model library's `JsonSchema` alongside
+ * `@id` and `@value` — a product decision about what to call a property the user
+ * has just collided with, filed with the keys a CEDAR document is written in.
+ * Nothing in the library referred to it.
+ */
+const DEFAULT_ATTRIBUTE_NAME = 'Attribute Value Field';
 
 /**
  * One change to an attribute-value field: the attribute's name, and what it holds.
@@ -214,7 +223,7 @@ export class DataObjectDataValueHandler {
 
     if (!parentDataObject.hasIri(newName)) {
       if (propertyIri.length === 0) {
-        propertyIri = CedarModel.propertyIriPrefix + DataObjectUtil.generateGUID();
+        propertyIri = PropertyIri.forId(DataObjectUtil.generateGUID());
       }
       parentDataObject.setIri(newName, propertyIri);
     }
@@ -367,11 +376,11 @@ export class DataObjectDataValueHandler {
     currentIndex: number,
   ): string {
     let nameIndex = currentIndex + 1;
-    let defName = JsonSchema.reservedDefaultAttributeName + nameIndex;
+    let defName = DEFAULT_ATTRIBUTE_NAME + nameIndex;
 
     while (this.isDuplicateAttributeName(defName, dataObject, parentDataObject, currentIndex) && nameIndex < 1000) {
       nameIndex++;
-      defName = JsonSchema.reservedDefaultAttributeName + nameIndex;
+      defName = DEFAULT_ATTRIBUTE_NAME + nameIndex;
     }
 
     return defName;

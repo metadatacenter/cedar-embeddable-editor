@@ -12,13 +12,13 @@
  * rather than after.
  */
 import { describe, expect, it } from 'vitest';
+import { DocumentKey } from '../src/document-keys';
 import { JsonTemplateInstanceReader } from 'cedar-model-typescript-library';
 import { CARDINALITIES, FIELD_KINDS, NESTINGS } from '../src/axes';
 import { sweep } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { InstanceDataContainer } from 'cedar-model-typescript-library';
 import { labelOf, literalOf, heldValue } from '../src/values';
-import { JsonSchema } from 'cedar-model-typescript-library';
 
 const CASES = sweep(FIELD_KINDS, CARDINALITIES, NESTINGS);
 const VALUED = CASES.filter((c) => c.kind.write !== 'none');
@@ -35,7 +35,7 @@ const VALUED = CASES.filter((c) => c.kind.write !== 'none');
  * `{'@id': <iri>, 'rdfs:label': undefined}` — CEE's `injectValue` takes the
  * controlled-term path and assigns a label it was never given. `JSON.stringify`
  * drops undefined-valued keys, so the node *looks* like `{"@id": …}` while
- * `JsonSchema.rdfsLabel in node` is still true. A key-presence check silently returns
+ * `DocumentKey.rdfsLabel in node` is still true. A key-presence check silently returns
  * undefined for every IRI-valued field.
  */
 /**

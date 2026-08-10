@@ -19,6 +19,7 @@
  * pinned.
  */
 import { describe, expect, it } from 'vitest';
+import { DocumentKey } from '../src/document-keys';
 import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
 import { ActiveComponentRegistryService } from '@cee/service/active-component-registry.service';
 import type { InstanceNode } from '@cee/models/instance-node.model';
@@ -32,7 +33,6 @@ import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-libr
 /** The names an attribute-value field is holding, in page order. */
 const attributeNames = (slots: unknown[]): (string | null)[] =>
   slots.map((slot) => (slot instanceof InstanceDataAttributeValueFieldName ? slot.name : null));
-import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -412,7 +412,7 @@ describe('hiding empty fields in a repeated element', () => {
       // which the caller supplies in shapes the library would not write.
       instance: {
         ...instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI),
-        _el: [{ [JsonSchema.atId]: 'https://example.org/e/1', _f: node }],
+        _el: [{ [DocumentKey.atId]: 'https://example.org/e/1', _f: node }],
       },
     });
     new ActiveComponentRegistryService().setVisibility(driver.findOrThrow(['_el']), driver.handlerContext);

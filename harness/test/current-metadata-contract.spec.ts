@@ -22,11 +22,11 @@
  * pass through the writer, so it is deliberately not used here.)
  */
 import { describe, expect, it } from 'vitest';
+import { DocumentKey } from '../src/document-keys';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { buildTemplate } from '../src/generate';
 import { FIELD_KINDS } from '../src/axes';
 import { CeeDriver } from '../src/driver';
-import { JsonSchema } from 'cedar-model-typescript-library';
 import { instanceWith, iriOf, labelOf, literalNode, literalValue } from '../src/values';
 
 const TEXT = FIELD_KINDS.find((k) => k.key === 'text')!;
@@ -45,15 +45,15 @@ describe('currentMetadata for a not-yet-created instance', () => {
 
   it('carries @id as null — present, not omitted', () => {
     const md = currentMetadata(fresh());
-    expect(JsonSchema.atId in md, 'the identifier must be present in the emitted instance').toBe(true);
-    expect(md[JsonSchema.atId], 'a new instance has no IRI yet, so the identifier is null').toBeNull();
+    expect(DocumentKey.atId in md, 'the identifier must be present in the emitted instance').toBe(true);
+    expect(md[DocumentKey.atId], 'a new instance has no IRI yet, so the identifier is null').toBeNull();
   });
 
   it('is the shape the host reads as "create"', () => {
     // The host treats null OR undefined as "not yet created". The writer's choice
     // of null — rather than omitting the key — is exactly what a host that tested
     // `=== undefined` alone mishandled; pinned so it cannot drift back unnoticed.
-    expect(currentMetadata(fresh())[JsonSchema.atId] == null).toBe(true);
+    expect(currentMetadata(fresh())[DocumentKey.atId] == null).toBe(true);
   });
 
   it('carries the typed value back out', () => {
@@ -70,7 +70,7 @@ describe('currentMetadata for an instance the host loaded to edit', () => {
       string,
       unknown
     >;
-    template[JsonSchema.atId] = templateIri;
+    template[DocumentKey.atId] = templateIri;
     return new CeeDriver(template, {
       instance: instanceWith(templateIri, { _note: literalValue('loaded') }, EXISTING),
     });
@@ -78,13 +78,13 @@ describe('currentMetadata for an instance the host loaded to edit', () => {
 
   it('emits the existing @id unchanged — not nulled, not dropped', () => {
     expect(
-      currentMetadata(loaded())[JsonSchema.atId],
+      currentMetadata(loaded())[DocumentKey.atId],
       'a loaded instance keeps its IRI so the host updates in place',
     ).toBe(EXISTING);
   });
 
   it('is the shape the host reads as "update"', () => {
-    expect(currentMetadata(loaded())[JsonSchema.atId] != null).toBe(true);
+    expect(currentMetadata(loaded())[DocumentKey.atId] != null).toBe(true);
   });
 
   it('brings the loaded value back out', () => {

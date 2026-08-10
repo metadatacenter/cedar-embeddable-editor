@@ -13,8 +13,8 @@
  * comment.
  */
 import { describe, expect, it } from 'vitest';
+import { DocumentKey } from '../src/document-keys';
 import { corpusTemplates } from '../src/corpus';
-import { JsonSchema } from 'cedar-model-typescript-library';
 
 interface ChoiceField {
   template: string;
@@ -57,8 +57,8 @@ const collectChoiceFields = (): ChoiceField[] => {
           path: `${path}${key}`,
           inputType,
           hasLiterals: Array.isArray(constraints.literals) && constraints.literals.length > 0,
-          allowsAtValue: Object.hasOwn(own, JsonSchema.atValue),
-          allowsIri: Object.hasOwn(own, JsonSchema.atId),
+          allowsAtValue: Object.hasOwn(own, DocumentKey.atValue),
+          allowsIri: Object.hasOwn(own, DocumentKey.atId),
         });
       }
       walk(field, templateId, `${path}${key}/`);

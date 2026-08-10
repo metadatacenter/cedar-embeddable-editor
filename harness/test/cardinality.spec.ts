@@ -8,6 +8,7 @@
  * case from any of its parts.
  */
 import { describe, expect, it } from 'vitest';
+import { DocumentKey } from '../src/document-keys';
 import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate, supportsMultiInstance } from '../src/generate';
 import { CeeDriver } from '../src/driver';
@@ -21,7 +22,6 @@ import {
   literalOf,
   heldValue,
 } from '../src/values';
-import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -654,7 +654,7 @@ describe('multi fields, every kind that supports it', () => {
       driver.handlerContext.setCurrentIndex(el, 1);
       const node: any = driver.handlerContext.getDataObjectNodeByPath(['_el', '_f']);
       const one = Array.isArray(node) ? node[0] : node;
-      const written = literalOf(one) ?? one?.[JsonSchema.atId] ?? labelOf(one);
+      const written = literalOf(one) ?? one?.[DocumentKey.atId] ?? labelOf(one);
       expect(written ?? null, `${k.key} leaked page 0's value into page 1`).toBeNull();
     },
   );

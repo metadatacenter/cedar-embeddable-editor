@@ -6,12 +6,12 @@
  * These are the behaviours most likely to break silently under refactoring.
  */
 import { describe, expect, it } from 'vitest';
+import { DocumentKey } from '../src/document-keys';
 import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at, infoOf } from '../src/nodes';
 import { linkNode, literalOf, termNode, heldValue, linkValue, termValue } from '../src/values';
-import { JsonSchema } from 'cedar-model-typescript-library';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
@@ -264,7 +264,7 @@ describe('multi-instance elements', () => {
     driver.handlerContext.copyMultiInstance(author);
 
     const authors = driver.metadata['_author'];
-    const ids = authors.map((a: any) => a[JsonSchema.atId]).filter(Boolean);
+    const ids = authors.map((a: any) => a[DocumentKey.atId]).filter(Boolean);
     expect(new Set(ids).size, 'copied instances share an @id').toBe(ids.length);
   });
 
@@ -280,7 +280,7 @@ describe('multi-instance elements', () => {
 
     driver.handlerContext.copyMultiInstance(reference);
 
-    expect(driver.emitted._reference.map((value: any) => value[JsonSchema.atId])).toEqual([
+    expect(driver.emitted._reference.map((value: any) => value[DocumentKey.atId])).toEqual([
       ELEMENT_INSTANCE_IRI,
       ELEMENT_INSTANCE_IRI,
     ]);
@@ -326,15 +326,15 @@ describe('multi-instance elements', () => {
     driver.handlerContext.copyMultiInstance(outerComponent);
     const [source, copy] = driver.metadata._outer;
 
-    expect(source[JsonSchema.atId]).toBe(before[JsonSchema.atId]);
-    expect(copy[JsonSchema.atId]).not.toBe(source[JsonSchema.atId]);
-    expect(copy._inner[JsonSchema.atId]).not.toBe(source._inner[JsonSchema.atId]);
-    expect(copy._manyInner.map((inner: any) => inner[JsonSchema.atId])).not.toEqual(
-      source._manyInner.map((inner: any) => inner[JsonSchema.atId]),
+    expect(source[DocumentKey.atId]).toBe(before[DocumentKey.atId]);
+    expect(copy[DocumentKey.atId]).not.toBe(source[DocumentKey.atId]);
+    expect(copy._inner[DocumentKey.atId]).not.toBe(source._inner[DocumentKey.atId]);
+    expect(copy._manyInner.map((inner: any) => inner[DocumentKey.atId])).not.toEqual(
+      source._manyInner.map((inner: any) => inner[DocumentKey.atId]),
     );
 
-    expect(copy._reference[JsonSchema.atId]).toBe(source._reference[JsonSchema.atId]);
-    expect(copy._inner._innerReference[JsonSchema.atId]).toBe(source._inner._innerReference[JsonSchema.atId]);
+    expect(copy._reference[DocumentKey.atId]).toBe(source._reference[DocumentKey.atId]);
+    expect(copy._inner._innerReference[DocumentKey.atId]).toBe(source._inner._innerReference[DocumentKey.atId]);
     expect(copy._manyInner.map((inner: any) => inner._term)).toEqual(
       source._manyInner.map((inner: any) => inner._term),
     );

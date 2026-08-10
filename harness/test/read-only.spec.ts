@@ -29,7 +29,6 @@ import {
   heldValue,
   attributeValue,
 } from '../src/values';
-import { JsonSchema } from 'cedar-model-typescript-library';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');

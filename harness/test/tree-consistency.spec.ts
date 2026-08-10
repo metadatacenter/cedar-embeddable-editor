@@ -12,7 +12,8 @@
  * The minting is CEE's, and still worth stating.
  */
 import { describe, expect, it } from 'vitest';
-import { CedarBuilders, JsonSchema, NumberType } from 'cedar-model-typescript-library';
+import { DocumentKey } from '../src/document-keys';
+import { CedarBuilders, NumberType } from 'cedar-model-typescript-library';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
@@ -70,16 +71,16 @@ describe('the full tree still carries its @ids', () => {
   it('every element occurrence has one', () => {
     const full = new CeeDriver(nested()).metadata;
 
-    expect(full._single[JsonSchema.atId]).toBeTruthy();
+    expect(full._single[DocumentKey.atId]).toBeTruthy();
     expect(full._multi).toHaveLength(2);
     for (const occurrence of full._multi) {
-      expect(occurrence[JsonSchema.atId]).toBeTruthy();
+      expect(occurrence[DocumentKey.atId]).toBeTruthy();
     }
   });
 
   it('and they are distinct per occurrence', () => {
     const full = new CeeDriver(nested()).metadata;
-    const ids = full._multi.map((o: Record<string, string>) => o[JsonSchema.atId]);
+    const ids = full._multi.map((o: Record<string, string>) => o[DocumentKey.atId]);
     expect(new Set(ids).size).toBe(ids.length);
   });
 });

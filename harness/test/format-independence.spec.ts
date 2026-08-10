@@ -20,11 +20,11 @@
  * the model, the YAML side would differ here.
  */
 import { describe, expect, it } from 'vitest';
+import { DocumentKey } from '../src/document-keys';
 import { ModelLibraryTemplateParser } from '@cee/factory/model-library-template-parser';
 import { YamlTemplateParser } from '@cee/factory/yaml-template-parser';
 import { corpusTemplates, corpusTemplatesYaml, describeTree } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
-import { JsonSchema } from 'cedar-model-typescript-library';
 
 const json = corpusTemplates();
 const yaml = corpusTemplatesYaml();
@@ -47,7 +47,7 @@ const stable = (node: any): any => {
       // `_id` as well as `@id`: a container carries its occurrence IRI under its
       // own name, and CEE mints a fresh one on every read, so comparing two
       // readings means normalising it whichever side of the boundary it is on.
-      const isMintedId = (key === JsonSchema.atId || key === '_id') && typeof node[key] === 'string';
+      const isMintedId = (key === DocumentKey.atId || key === '_id') && typeof node[key] === 'string';
       out[key] = isMintedId ? '<minted>' : stable(node[key]);
     }
     return out;
@@ -159,8 +159,8 @@ describe('a template read from YAML', () => {
    * written in cannot reach it.
    */
   it.each(paired.map((p) => [p.id, p] as const))('template-%s builds the same @context', (_id, pair) => {
-    expect(stable(fromYaml(pair.yaml).emitted)[JsonSchema.atContext]).toEqual(
-      stable(fromJson(pair.json).emitted)[JsonSchema.atContext],
+    expect(stable(fromYaml(pair.yaml).emitted)[DocumentKey.atContext]).toEqual(
+      stable(fromJson(pair.json).emitted)[DocumentKey.atContext],
     );
   });
 

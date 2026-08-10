@@ -16,7 +16,6 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { labelOf, heldValue } from '../src/values';
-import { JsonSchema } from 'cedar-model-typescript-library';
 
 const controlledKind = (configure: (b: any) => any): FieldKind => ({
   key: 'term',

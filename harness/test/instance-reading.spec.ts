@@ -35,7 +35,6 @@ import {
   containerValue,
   literalValue,
 } from '../src/values';
-import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
  * An instance always names the template it is an instance of; there is no

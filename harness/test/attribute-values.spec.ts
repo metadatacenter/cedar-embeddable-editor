@@ -23,6 +23,7 @@
  * they are simultaneously the least tested and the most likely to break.
  */
 import { describe, expect, it } from 'vitest';
+import { DocumentKey } from '../src/document-keys';
 import { CedarBuilders } from 'cedar-model-typescript-library';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
@@ -31,7 +32,6 @@ import { InstanceObject } from '@cee/models/instance-node.model';
 import { arrayAt, objectAt } from '../src/nodes';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 import { literalOf, heldValue, attributeValue } from '../src/values';
-import { JsonSchema } from 'cedar-model-typescript-library';
 
 const ATTR: FieldKind = {
   key: 'attr',
@@ -102,7 +102,7 @@ describe('adding an attribute value', () => {
     const driver = new CeeDriver(flat());
     addAttribute(driver, driver.findOrThrow(['_av']), 'colour', 'blue');
 
-    const context = driver.metadata[JsonSchema.atContext];
+    const context = driver.metadata[DocumentKey.atContext];
     expect(context.colour, 'no @context entry minted for the attribute').toBeTruthy();
     // The field's own placeholder entry goes away — the property is now the
     // attribute, not the field.
@@ -144,10 +144,10 @@ describe('renaming an attribute', () => {
     const driver = new CeeDriver(flat());
     const component = driver.findOrThrow(['_av']);
     addAttribute(driver, component, 'colour', 'blue');
-    const original = driver.metadata[JsonSchema.atContext].colour;
+    const original = driver.metadata[DocumentKey.atContext].colour;
 
     driver.handlerContext.changeAttributeValue(component, 'hue', 'blue');
-    const context = driver.metadata[JsonSchema.atContext];
+    const context = driver.metadata[DocumentKey.atContext];
 
     expect(context.hue).toBe(original);
     expect(context.colour).toBeUndefined();
@@ -253,7 +253,7 @@ describe('deleting an attribute', () => {
     driver.expectNoErrors('deleting an attribute');
 
     expect(driver.extract.values.colour).toBeUndefined();
-    expect(driver.emitted[JsonSchema.atContext].colour, 'the @context entry outlived the attribute').toBeUndefined();
+    expect(driver.emitted[DocumentKey.atContext].colour, 'the @context entry outlived the attribute').toBeUndefined();
   });
 
   it('leaves the other attributes alone', () => {
@@ -267,7 +267,7 @@ describe('deleting an attribute', () => {
 
     expect(driver.extract.values.colour).toBeUndefined();
     expect(valueOf(driver.extract, 'size')).toBe('large');
-    expect(driver.emitted[JsonSchema.atContext].size).toBeTruthy();
+    expect(driver.emitted[DocumentKey.atContext].size).toBeTruthy();
   });
 
   it('is a no-op when no name is given', () => {
@@ -298,7 +298,7 @@ describe('attribute values inside elements', () => {
 
     expect(valueOf(objectAt(driver.extract, '_el'), 'colour')).toBe('blue');
     expect(driver.extract.values.colour, 'the attribute leaked onto the template').toBeUndefined();
-    expect(driver.emitted._el[JsonSchema.atContext].colour).toBeTruthy();
+    expect(driver.emitted._el[DocumentKey.atContext].colour).toBeTruthy();
   });
 
   it('deletes from the enclosing element', () => {
@@ -313,7 +313,7 @@ describe('attribute values inside elements', () => {
     driver.expectNoErrors('deleting an attribute inside an element');
 
     expect(objectAt(driver.extract, '_el').values.colour).toBeUndefined();
-    expect(driver.emitted._el[JsonSchema.atContext].colour).toBeUndefined();
+    expect(driver.emitted._el[DocumentKey.atContext].colour).toBeUndefined();
   });
 
   /**

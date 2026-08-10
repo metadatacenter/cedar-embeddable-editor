@@ -12,7 +12,7 @@
  * The question now has one answer, from the model library, which decides it
  * while parsing and records it in the node's type — and the library's own suite
  * is where that answer is held. What was here beside these, asserting that
- * `{JsonSchema.atId, 'rdfs:label'}` reads as a value and a container does not, tested the
+ * `{DocumentKey.atId, 'rdfs:label'}` reads as a value and a container does not, tested the
  * library through a one-line delegation and is gone.
  *
  * What stays is CEE's part: which half of a term a field shows, and whether a
@@ -20,13 +20,13 @@
  * field's own kind decides them — so neither is the library's to answer.
  */
 import { describe, expect, it } from 'vitest';
+import { DocumentKey } from '../src/document-keys';
 import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
 import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { emptyNode, instanceWith, linkNode, literalNode, termNode, linkValue } from '../src/values';
-import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
  * An instance always names the template it is an instance of; there is no

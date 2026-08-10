@@ -14,7 +14,8 @@
  * not generate — including the malformed one.
  */
 import { describe, expect, it } from 'vitest';
-import { CedarArtifactType, CedarReaders, JsonSchema } from 'cedar-model-typescript-library';
+import { DocumentKey } from '../src/document-keys';
+import { CedarArtifactType, CedarReaders } from 'cedar-model-typescript-library';
 import { corpusTemplates } from '../src/corpus';
 
 /** What the service does, minus the HTTP. */
@@ -64,7 +65,7 @@ describe('templates that cannot be read', () => {
    */
   it.each([
     ['an empty object', {}],
-    ['a document with no name', { [JsonSchema.atType]: CedarArtifactType.TEMPLATE.getValue() }],
+    ['a document with no name', { [DocumentKey.atType]: CedarArtifactType.TEMPLATE.getValue() }],
     ['something that is not a template at all', { hello: 'world' }],
   ])('%s yields no name rather than throwing', (_label, document) => {
     expect(() => labelFor(document)).not.toThrow();

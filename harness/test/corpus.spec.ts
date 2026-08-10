@@ -19,9 +19,10 @@
  * diffed across exactly that change.
  */
 import { describe, expect, it } from 'vitest';
+import { DocumentKey } from '../src/document-keys';
 import { corpusInstances, corpusTemplates, describeTree, hubmapTemplates } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
-import { CedarArtifactType, JsonSchema } from 'cedar-model-typescript-library';
+import { CedarArtifactType } from 'cedar-model-typescript-library';
 
 const templates = corpusTemplates();
 const instances = corpusInstances();
@@ -147,11 +148,11 @@ describe('real corpus instances', () => {
     // A minimal template: the point is that instance loading does not throw on
     // shapes the generator never produces.
     const template = {
-      [JsonSchema.atType]: CedarArtifactType.TEMPLATE.getValue(),
+      [DocumentKey.atType]: CedarArtifactType.TEMPLATE.getValue(),
       type: 'object',
       _ui: { order: [], propertyLabels: {}, propertyDescriptions: {} },
       // `@context` sits inside `properties`; that is where addContext looks.
-      properties: { [JsonSchema.atContext]: { properties: {} } },
+      properties: { [DocumentKey.atContext]: { properties: {} } },
       'schema:name': 'Minimal',
       'schema:description': '',
     };
@@ -170,13 +171,13 @@ describe('templates the generator would not produce', () => {
    */
   it('skips an _ui.order entry with no matching property', () => {
     const template = {
-      [JsonSchema.atType]: CedarArtifactType.TEMPLATE.getValue(),
+      [DocumentKey.atType]: CedarArtifactType.TEMPLATE.getValue(),
       type: 'object',
       _ui: { order: ['Real', 'Orphan'], propertyLabels: {}, propertyDescriptions: {} },
       properties: {
-        [JsonSchema.atContext]: { properties: {} },
+        [DocumentKey.atContext]: { properties: {} },
         Real: {
-          [JsonSchema.atType]: CedarArtifactType.TEMPLATE_FIELD.getValue(),
+          [DocumentKey.atType]: CedarArtifactType.TEMPLATE_FIELD.getValue(),
           type: 'object',
           _ui: { inputType: 'textfield' },
         },

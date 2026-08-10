@@ -19,6 +19,7 @@
  * CEE wrote none — has to be stated rather than discovered.
  */
 import { describe, expect, it } from 'vitest';
+import { DocumentKey } from '../src/document-keys';
 import { parse as parseYaml } from 'yaml';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { CedarTemplate } from '@cee/models/template/cedar-template.model';
@@ -27,7 +28,6 @@ import { corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { instanceWith, literalNode, literalValue, heldValue } from '../src/values';
-import { JsonSchema } from 'cedar-model-typescript-library';
 
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
 
@@ -79,7 +79,7 @@ describe('the JSON a host page receives', () => {
   it.each(cases)('%s keeps its @context', (_label, index, cardinality) => {
     const driver = filled(index, cardinality);
     const emitted = driver.emitted as Record<string, Record<string, unknown>>;
-    const context = emitted[JsonSchema.atContext];
+    const context = emitted[DocumentKey.atContext];
     for (const [name, iri] of Object.entries(driver.fullData.iris)) {
       expect(context[name], `${name} lost its property IRI`).toEqual(iri);
     }
@@ -108,7 +108,7 @@ describe('the JSON a host page receives', () => {
 
     const dictated = ['schema:name', 'schema:description', 'schema:isBasedOn'];
     const added = Object.keys(emitted).filter(
-      (k) => !held.includes(k) && k !== JsonSchema.atContext && !dictated.includes(k),
+      (k) => !held.includes(k) && k !== DocumentKey.atContext && !dictated.includes(k),
     );
     expect(added.length, 'the writer contributed nothing, so the checks below are vacuous').toBeGreaterThan(0);
     for (const key of added) {
@@ -142,9 +142,9 @@ describe('the instance says which template it is an instance of', () => {
       unknown
     >;
     if (atId === null) {
-      delete template[JsonSchema.atId];
+      delete template[DocumentKey.atId];
     } else {
-      template[JsonSchema.atId] = atId;
+      template[DocumentKey.atId] = atId;
     }
     return new CeeDriver(template);
   };
@@ -201,7 +201,7 @@ describe('the instance says which template it is an instance of', () => {
       string,
       unknown
     >;
-    template[JsonSchema.atId] = 'https://repo.metadatacenter.org/templates/injected';
+    template[DocumentKey.atId] = 'https://repo.metadatacenter.org/templates/injected';
     const driver = new CeeDriver(template, {
       instance: instanceWith(
         'https://repo.metadatacenter.org/templates/injected',
