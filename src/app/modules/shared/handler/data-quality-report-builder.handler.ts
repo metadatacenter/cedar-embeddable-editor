@@ -162,7 +162,7 @@ export class DataQualityReportBuilderHandler {
         const multiCount = asObjectInfo(multiInstanceInfo).currentCount;
         DataQualityReportBuilderHandler.collectPresenceProblems(
           component,
-          handlerContext.dataContext.instanceFullData,
+          handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
           report,
         );
         DataQualityReportBuilderHandler.collectCardinalityProblems(component, multiCount, report);
@@ -214,20 +214,20 @@ export class DataQualityReportBuilderHandler {
       const satisfiedBy = isRequired
         ? DataQualityReportBuilderHandler.findAnyValue(
             component.path,
-            handlerContext.dataContext.instanceFullData,
+            handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
             component,
           )
         : null;
       DataQualityReportBuilderHandler.collectFieldProblems(
         nonIterableComponent,
         dataValueObject,
-        handlerContext.dataContext.instanceFullData,
+        handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
         report,
       );
       if (component instanceof MultiFieldComponent) {
         DataQualityReportBuilderHandler.collectPresenceProblems(
           nonIterableComponent,
-          handlerContext.dataContext.instanceFullData,
+          handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
           report,
         );
         DataQualityReportBuilderHandler.collectCardinalityProblems(

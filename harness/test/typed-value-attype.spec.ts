@@ -78,7 +78,7 @@ const typedTemplate = (): object => {
 };
 
 const json = (driver: CeeDriver): Record<string, any> =>
-  InstanceSerializer.toJson(driver.fullData) as Record<string, any>;
+  InstanceSerializer.toJson(driver.instance) as Record<string, any>;
 
 const filled = (): CeeDriver => {
   const driver = new CeeDriver(typedTemplate());

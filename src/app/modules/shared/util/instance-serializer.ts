@@ -81,6 +81,22 @@ export class InstanceSerializer {
       .getAsJsonNode(InstanceSerializer.contracted(instance, template));
   }
 
+  /**
+   * The instance's data, without the envelope — what the source panel shows and
+   * what the quality report hands a host page.
+   *
+   * The library builds this tree on its way to the whole artifact; it is public
+   * now, so CEE asks for it instead of writing the artifact and deleting the
+   * envelope keys back out of it, which is what `DataObjectUtil.deleteContext`
+   * used to do by counting keys.
+   */
+  static toDataJson(instance: TemplateInstance | null): JsonNode {
+    if (instance == null) {
+      return {} as JsonNode;
+    }
+    return CedarWriters.json().getFebruary2024().getTemplateInstanceWriter().getDataAsJsonNode(instance);
+  }
+
   /** The same instance as CEDAR YAML. */
   static toYaml(instance: TemplateInstance | null, template: Template | null = null): string {
     if (instance == null) {

@@ -26,7 +26,7 @@ import { CARDINALITIES, FIELD_KINDS } from '../src/axes';
 import { corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { instanceWith, literalNode, literalValue } from '../src/values';
+import { instanceWith, literalNode, literalValue, heldValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
@@ -61,16 +61,28 @@ describe('the JSON a host page receives', () => {
    */
   it.each(cases)('%s keeps its value', (_label, index, cardinality) => {
     const driver = filled(index, cardinality);
-    const working = driver.fullData as Record<string, unknown>;
-    const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
-    expect(emitted._f).toEqual(working._f);
+    const emitted = driver.emitted as Record<string, unknown>;
+    // Compared through the library's reader on both sides: the field holds an
+    // atom and the document holds whatever the writer made of it, so the claim
+    // is that the value survived, not that the two are the same object.
+    expect(heldValue(emitted._f)).toEqual(heldValue(driver.fullData.values['_f']));
   });
 
+  /**
+   * The property IRIs the container carries reach the document as its
+   * `@context`, which is where a CEDAR instance keeps them.
+   *
+   * This used to compare the emitted block against the same block on the
+   * working tree, because CEE wrote one there itself. It carries the IRIs and
+   * the writer builds the block, so the comparison is between the two forms.
+   */
   it.each(cases)('%s keeps its @context', (_label, index, cardinality) => {
     const driver = filled(index, cardinality);
-    const working = driver.fullData as Record<string, unknown>;
-    const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
-    expect(emitted[JsonSchema.atContext]).toEqual(working[JsonSchema.atContext]);
+    const emitted = driver.emitted as Record<string, Record<string, unknown>>;
+    const context = emitted[JsonSchema.atContext];
+    for (const [name, iri] of Object.entries(driver.fullData.iris)) {
+      expect(context[name], `${name} lost its property IRI`).toEqual(iri);
+    }
   });
 
   /**
@@ -85,22 +97,22 @@ describe('the JSON a host page receives', () => {
    */
   it('adds only null placeholders, and drops nothing', () => {
     const driver = filled(0, 'single');
-    const working = driver.fullData as Record<string, unknown>;
-    const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
+    const emitted = driver.emitted as Record<string, unknown>;
+    const held = Object.keys(driver.fullData.values);
 
-    const added = Object.keys(emitted).filter((k) => !(k in working));
+    const added = Object.keys(emitted).filter((k) => !held.includes(k) && k !== JsonSchema.atContext);
     expect(added.length, 'the writer contributed nothing, so the checks below are vacuous').toBeGreaterThan(0);
     for (const key of added) {
       expect(emitted[key], `${key} should be null, not invented`).toBeNull();
     }
     expect(
-      Object.keys(working).filter((k) => !(k in emitted)),
-      'the emitter dropped something',
+      held.filter((k) => !(k in emitted)),
+      'the emitter dropped a field the instance was holding',
     ).toEqual([]);
   });
 
   it('is empty for an instance that does not exist', () => {
-    expect(InstanceSerializer.toJson(null as never)).toEqual({});
+    expect(InstanceSerializer.toJson(null)).toEqual({});
   });
 });
 
@@ -130,13 +142,13 @@ describe('the instance says which template it is an instance of', () => {
 
   it('names the template it came from', () => {
     const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
-    const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
+    const emitted = InstanceSerializer.toJson(driver.instance) as Record<string, unknown>;
     expect(emitted['schema:isBasedOn']).toBe('https://repo.metadatacenter.org/templates/abc');
   });
 
   it('reads it from whichever serialisation the template arrived in', () => {
     const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
-    expect((driver.fullData as Record<string, unknown>)['schema:isBasedOn']).toBe(
+    expect((driver.emitted as Record<string, unknown>)['schema:isBasedOn']).toBe(
       'https://repo.metadatacenter.org/templates/abc',
     );
   });
@@ -188,13 +200,13 @@ describe('the instance says which template it is an instance of', () => {
       ),
     });
 
-    const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
+    const emitted = InstanceSerializer.toJson(driver.instance) as Record<string, unknown>;
     expect(emitted['schema:isBasedOn']).toBe('https://repo.metadatacenter.org/templates/injected');
   });
 
   it('survives into the YAML', () => {
     const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
-    expect(InstanceSerializer.toYaml(driver.fullData)).toContain('https://repo.metadatacenter.org/templates/abc');
+    expect(InstanceSerializer.toYaml(driver.instance)).toContain('https://repo.metadatacenter.org/templates/abc');
   });
 });
 
@@ -207,11 +219,11 @@ describe('real instances survive the trip', () => {
     'template-%s emits its values unchanged',
     (_id, artifact) => {
       const driver = new CeeDriver(artifact.json);
-      const working = driver.fullData as Record<string, unknown>;
-      const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
+      const working = driver.fullData;
+      const emitted = driver.emitted as Record<string, unknown>;
 
-      for (const key of Object.keys(working)) {
-        expect(emitted[key], `${key} changed on the way out`).toEqual(working[key]);
+      for (const [key, held] of Object.entries(working.values)) {
+        expect(heldValue(emitted[key]), `${key} changed on the way out`).toEqual(heldValue(held));
       }
     },
   );
@@ -230,7 +242,7 @@ describe('the YAML a host page can ask for instead', () => {
    */
   it.each(cases)('%s survives as YAML', (_label, index, cardinality) => {
     const driver = filled(index, cardinality);
-    const yaml = InstanceSerializer.toYaml(driver.fullData);
+    const yaml = InstanceSerializer.toYaml(driver.instance);
     expect(yaml.length, 'no YAML was produced').toBeGreaterThan(0);
 
     const reparsed = parseYaml(yaml) as Record<string, any>;
@@ -249,7 +261,7 @@ describe('the YAML a host page can ask for instead', () => {
       VALUED.findIndex((k) => k.key === 'text'),
       'single',
     );
-    const reparsed = parseYaml(InstanceSerializer.toYaml(driver.fullData)) as Record<string, any>;
+    const reparsed = parseYaml(InstanceSerializer.toYaml(driver.instance)) as Record<string, any>;
     expect(reparsed.children._f.value).toBe('some text');
   });
 
@@ -258,7 +270,7 @@ describe('the YAML a host page can ask for instead', () => {
   });
 
   it('produces YAML, not JSON', () => {
-    const yaml = InstanceSerializer.toYaml(filled(0, 'single').fullData);
+    const yaml = InstanceSerializer.toYaml(filled(0, 'single').instance);
     expect(yaml.trimStart().startsWith('{'), 'that is JSON').toBe(false);
     expect(yaml).toContain('_f:');
   });
@@ -289,8 +301,8 @@ describe('inflating against the template', () => {
 
   it.each(cases)('%s emits the same document with the template as without', (_label, index, cardinality) => {
     const driver = filled(index, cardinality);
-    expect(InstanceSerializer.toJson(driver.fullData, parsedOf(driver))).toEqual(
-      InstanceSerializer.toJson(driver.fullData),
+    expect(InstanceSerializer.toJson(driver.instance, parsedOf(driver))).toEqual(
+      InstanceSerializer.toJson(driver.instance),
     );
   });
 
@@ -298,16 +310,16 @@ describe('inflating against the template', () => {
     'template-%s emits the same document with the template as without',
     (_id, artifact) => {
       const driver = new CeeDriver(artifact.json);
-      expect(InstanceSerializer.toJson(driver.fullData, parsedOf(driver))).toEqual(
-        InstanceSerializer.toJson(driver.fullData),
+      expect(InstanceSerializer.toJson(driver.instance, parsedOf(driver))).toEqual(
+        InstanceSerializer.toJson(driver.instance),
       );
     },
   );
 
   it('does the same for YAML', () => {
     const driver = filled(0, 'single');
-    expect(InstanceSerializer.toYaml(driver.fullData, parsedOf(driver))).toBe(
-      InstanceSerializer.toYaml(driver.fullData),
+    expect(InstanceSerializer.toYaml(driver.instance, parsedOf(driver))).toBe(
+      InstanceSerializer.toYaml(driver.instance),
     );
   });
 });

@@ -37,8 +37,8 @@ const pathLabel = (path: readonly PathStep[]): string => (path.length === 0 ? 't
  * `InstanceNode`, because the last step is as unknown as any other — pass it to
  * `asObject`, `asArray` or a matcher that does the narrowing itself.
  */
-export const at = (root: InstanceNode | null | undefined, ...path: PathStep[]): InstanceNode => {
-  let node: InstanceNode = root ?? null;
+export const at = (root: InstanceNode | null | undefined, ...path: PathStep[]): InstanceNode | null => {
+  let node: InstanceNode | null = root ?? null;
   for (let i = 0; i < path.length; i++) {
     const step = path[i];
     const walked = path.slice(0, i);
@@ -57,14 +57,14 @@ export const at = (root: InstanceNode | null | undefined, ...path: PathStep[]): 
     if (!isInstanceObject(node)) {
       throw new Error(`No container at ${pathLabel(walked)}, so "${step}" does not resolve.`);
     }
-    if (!(step in node)) {
+    if (!node.hasValue(step)) {
       throw new Error(
-        `The container at ${pathLabel(walked)} has no "${step}". It holds: ${Object.keys(node).join(', ')}`,
+        `The container at ${pathLabel(walked)} has no "${step}". It holds: ${Object.keys(node.values).join(', ')}`,
       );
     }
-    node = node[step];
+    node = node.values[step] ?? null;
   }
-  return node;
+  return node ?? null;
 };
 
 /** The container at `path`, or a failure saying what was there instead. */

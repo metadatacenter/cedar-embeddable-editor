@@ -3,7 +3,7 @@ import { DataContext } from '../../src/app/modules/shared/util/data-context';
 import { HandlerContext } from '../../src/app/modules/shared/util/handler-context';
 import { IriPrefix } from '../../src/app/modules/shared/util/iri-prefix';
 import type { InstanceObject } from '@cee/models/instance-node.model';
-import { JsonSchema } from 'cedar-model-typescript-library';
+import { InstanceDataContainer } from 'cedar-model-typescript-library';
 
 const messages = {
   trace: (): void => undefined,
@@ -35,14 +35,14 @@ describe('editor-instance configuration isolation', () => {
     firstPrefix.set('https://first.example/');
     secondPrefix.set('https://second.example/');
 
-    const firstElement: InstanceObject = {};
-    const secondElement: InstanceObject = {};
+    const firstElement: InstanceObject = new InstanceDataContainer();
+    const secondElement: InstanceObject = new InstanceDataContainer();
     // Build from the first context only after the second editor has changed its
     // configuration. A static prefix made both IDs use the second value.
     second.dataObjectBuilderService.addRandomAtId(secondElement);
     first.dataObjectBuilderService.addRandomAtId(firstElement);
 
-    expect(firstElement[JsonSchema.atId]).toMatch(/^https:\/\/first\.example\/template-element-instances\//);
-    expect(secondElement[JsonSchema.atId]).toMatch(/^https:\/\/second\.example\/template-element-instances\//);
+    expect(firstElement.id).toMatch(/^https:\/\/first\.example\/template-element-instances\//);
+    expect(secondElement.id).toMatch(/^https:\/\/second\.example\/template-element-instances\//);
   });
 });

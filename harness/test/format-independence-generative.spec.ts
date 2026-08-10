@@ -58,7 +58,7 @@ const stripAttrIds = (value: unknown): unknown => {
 // Normalized away — the same treatment the corpus round-trip and snapshot specs
 // give minted ids — leaving everything else, including every written value,
 // compared exactly.
-const emitted = (driver: CeeDriver) => stripAttrIds(normalize(InstanceSerializer.toJson(driver.fullData)));
+const emitted = (driver: CeeDriver) => stripAttrIds(normalize(InstanceSerializer.toJson(driver.instance)));
 
 const TEXT = FIELD_KINDS.find((k) => k.key === 'text')!;
 
@@ -176,8 +176,8 @@ describe("CEE's JSON and YAML output carry the same values", () => {
     const driver = new CeeDriver(buildTemplate({ name: `out_${kind.key}`, children: [{ kind, name: 'f' }] }));
     driver.setValue(['_f'], kind, kind.sample);
     driver.expectNoErrors(`${kind.key} output`);
-    const asJson = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
-    const asYaml = parseYaml(InstanceSerializer.toYaml(driver.fullData)) as {
+    const asJson = InstanceSerializer.toJson(driver.instance) as Record<string, unknown>;
+    const asYaml = parseYaml(InstanceSerializer.toYaml(driver.instance)) as {
       children: Record<string, unknown>;
     };
     expect(toJsonKeys(asYaml.children._f)).toEqual(asJson._f);

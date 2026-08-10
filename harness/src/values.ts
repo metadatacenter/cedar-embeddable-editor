@@ -178,3 +178,37 @@ export const listValue = (...occurrences: InstanceDataAtomType[]): InstanceDataA
 
 /** The node a slot holds when nothing has been put in it. */
 export const emptyValue = (): InstanceDataAtomType => new InstanceDataEmptyAtom();
+
+/**
+ * What a node holds, as plain data, whichever side of the boundary it came from.
+ *
+ * A spec that wants to say "the emitted document carries what the field held"
+ * has a model node on one side and a document node on the other. They are not
+ * comparable objects and should not be: that they *were* comparable is what the
+ * instance path is being moved off. Both reduce to the same plain value here —
+ * the literal, or the IRI and label — so the claim is about the value surviving
+ * rather than about two representations being identical.
+ */
+export const heldValue = (node: unknown): unknown => {
+  if (Array.isArray(node)) {
+    return node.map(heldValue);
+  }
+  const atom = isModelAtom(node) ? node : atomOf(node);
+  if (atom instanceof InstanceDataStringAtom || atom instanceof InstanceDataTypedAtom) {
+    return atom.value;
+  }
+  if (atom instanceof InstanceDataControlledAtom) {
+    return { iri: atom.id, label: atom.label };
+  }
+  if (atom instanceof InstanceDataLinkAtom) {
+    return { iri: atom.id };
+  }
+  return null;
+};
+
+const isModelAtom = (node: unknown): node is InstanceDataAtomType =>
+  node instanceof InstanceDataStringAtom ||
+  node instanceof InstanceDataTypedAtom ||
+  node instanceof InstanceDataLinkAtom ||
+  node instanceof InstanceDataControlledAtom ||
+  node instanceof InstanceDataEmptyAtom;
