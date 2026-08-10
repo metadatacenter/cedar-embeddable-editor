@@ -16,6 +16,7 @@ import { JsonTemplateInstanceReader } from 'cedar-model-typescript-library';
 import { CARDINALITIES, FIELD_KINDS, NESTINGS } from '../src/axes';
 import { sweep } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { InstanceDataContainer } from 'cedar-model-typescript-library';
 import { labelOf, literalOf, heldValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
@@ -69,12 +70,12 @@ describe('value round-trip', () => {
     driver.expectNoErrors(`writing ${c.label}`);
 
     if (c.kind.write === 'attribute') {
-      // Attribute-value fields break the usual shape: the field's own array
-      // holds attribute *names*, and the value lands as a key on the PARENT
-      // object. See DataObjectDataValueHandler.injectAttributeValue.
+      // Attribute-value fields break the usual shape: the field's own list holds
+      // attribute *names*, and the value the name points at sits on the parent
+      // container. See DataObjectDataValueHandler.injectAttributeValue.
       const parent = driver.handlerContext.getParentDataObjectNodeByPath(c.path);
       expect(parent, 'no parent node resolved for attribute-value field').toBeTruthy();
-      expect(plainValue((parent as any)['attrKey'])).toBe(c.kind.sample);
+      expect(plainValue((parent as InstanceDataContainer).values['attrKey'])).toBe(c.kind.sample);
       return;
     }
 
