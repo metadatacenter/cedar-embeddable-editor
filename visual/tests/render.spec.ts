@@ -2214,6 +2214,61 @@ test.describe('controlled terminology selection', () => {
   });
 
   /**
+   * What a chosen term looks like, which is where the two families disagreed.
+   *
+   * Choosing one used to swap the widget for a bordered `div` whose whole value
+   * was a hyperlink — the only value text in CEE that was one, so a controlled
+   * term read as clickable while the ORCID beside it did not. It also cost the
+   * field its Clear action and any way back to the search box.
+   *
+   * No baseline covered this: the substitute only appeared once a term had been
+   * chosen, and every screenshot of this fixture is of an empty form. Replacing
+   * it changed no pixel any baseline holds, which is the reason for asserting the
+   * shape here rather than trusting the suite to have noticed.
+   */
+  test('a chosen term keeps its field, and offers BioPortal as a suffix link', async ({ page }) => {
+    const id = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
+    const label = 'Homo sapiens';
+    await page.route('http://127.0.0.1:9/unused', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ collection: [{ id, '@id': id, prefLabel: label }] }),
+      });
+    });
+
+    await open(page, '04-controlled-terms');
+    const widget = page.locator('app-cedar-input-controlled').filter({
+      has: page.locator('input[aria-label="organism"]'),
+    });
+    await widget.locator('input').pressSequentially('Homo', { delay: 40 });
+    await passDebounceWindow(page);
+    await page.locator('mat-option').filter({ hasText: label }).click();
+    await page.waitForTimeout(300);
+
+    await expect(widget.locator('.fake-input'), 'the imitation field is gone').toHaveCount(0);
+    await expect(widget.locator('mat-form-field'), 'a chosen term stays in a real form field').toHaveCount(1);
+    await expect(widget.locator('input')).toHaveValue(label);
+
+    // The value is text, not a link. Nothing inside the field's own box is an
+    // anchor except the suffix action.
+    const link = widget.locator('a[mat-icon-button]');
+    await expect(link, 'the BioPortal record is one suffix action').toHaveCount(1);
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', 'noopener');
+    // The ontology constraint decides the path: NCBITAXON, under the configured prefix.
+    await expect(link).toHaveAttribute(
+      'href',
+      `https://bioportal.bioontology.org/ontologies/NCBITAXON?p=classes&conceptid=${encodeURIComponent(id)}`,
+    );
+
+    await expect(
+      widget.getByRole('button', { name: 'Clear', exact: true }),
+      'clearing a chosen term used to be impossible',
+    ).toHaveCount(1);
+  });
+
+  /**
    * REGRESSION: this widget searches BioPortal rather than an authority, and had
    * no blur handling at all — so text naming no term simply stayed in the box
    * over an instance holding nothing. It is the same defect the seven authority

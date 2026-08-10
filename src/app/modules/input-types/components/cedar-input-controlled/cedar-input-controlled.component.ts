@@ -73,7 +73,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input({ required: true }) handlerContext!: HandlerContext;
   model: AuthorityTerm | null = null;
-  bioPortalTermLink: string | null = null;
   /**
    * An empty list until `ngOnInit` builds the search pipeline, and for good in
    * read-only mode, where there is no autocomplete to feed. A real observable
@@ -234,6 +233,11 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   //   }
   // }
   setCurrentValue(currentValue: unknown): void {
+    // Remember the term itself, not only its rendering. It is what the BioPortal
+    // link is built from, and read-write selection records it the same way.
+    if (isAuthorityTerm(currentValue)) {
+      this.selectedData = currentValue;
+    }
     if (this.readOnlyMode) {
       const displayTerm = this.getBioPortalTermDisplayValue(currentValue);
       this.inputValueControl.setValue(displayTerm);
@@ -247,27 +251,42 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    * removed — falls through the last branch and is shown as-is.
    */
   getBioPortalTermDisplayValue(value: unknown): string {
-    const controlledInfo = this.component.controlledInfo;
     const term = isAuthorityTerm(value) ? value : { iri: '', label: '' };
-    const midPart = '?p=classes&conceptid=';
-    const urlEncodedAtId = encodeURIComponent(term.iri);
-
-    const branch = controlledInfo.branches[0];
-    const _class = controlledInfo.classes[0];
-    const ontology = controlledInfo.ontologies[0];
-    const bioPortalPrefix = this.iriPrefix.getBioPortalPrefix();
-
-    if (branch) {
-      this.bioPortalTermLink = branch.source + midPart + urlEncodedAtId;
-    } else if (_class) {
-      this.bioPortalTermLink = bioPortalPrefix + _class.source + midPart + urlEncodedAtId;
-    } else if (ontology) {
-      this.bioPortalTermLink = bioPortalPrefix + ontology.acronym + midPart + urlEncodedAtId;
-    }
-
     if (term.label && term.iri) {
       return term.label + ' - (' + term.iri + ')';
     } else return value as string;
+  }
+
+  /**
+   * The BioPortal page for the term the field holds, or null when it holds none.
+   *
+   * Derived rather than assigned. It used to be set as a side effect of the
+   * function that formats the display text, and that function only runs in
+   * read-only mode — so the link existed in one mode and not the other for no
+   * reason anyone chose. The constraint the term came through decides which
+   * BioPortal path names it: a branch carries its own source, a class and an
+   * ontology are named under the configured prefix.
+   */
+  get bioPortalTermLink(): string | null {
+    const iri = this.selectedData?.iri;
+    if (!iri) {
+      return null;
+    }
+
+    const { branches, classes, ontologies } = this.component.controlledInfo;
+    const term = '?p=classes&conceptid=' + encodeURIComponent(iri);
+    const prefix = this.iriPrefix.getBioPortalPrefix();
+
+    if (branches[0]) {
+      return branches[0].source + term;
+    }
+    if (classes[0]) {
+      return prefix + classes[0].source + term;
+    }
+    if (ontologies[0]) {
+      return prefix + ontologies[0].acronym + term;
+    }
+    return null;
   }
   clearValue(): void {
     this.selectedData = null;
@@ -277,10 +296,5 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   private setValueUIAndModel(iri: string, label: string): void {
     this.inputValueControl.setValue(label);
     this.handlerContext.changeControlledValue(this.component, iri, label);
-  }
-  goToBioPortalTerm() {
-    if (this.bioPortalTermLink !== null) {
-      window.open(this.bioPortalTermLink, '_blank');
-    }
   }
 }

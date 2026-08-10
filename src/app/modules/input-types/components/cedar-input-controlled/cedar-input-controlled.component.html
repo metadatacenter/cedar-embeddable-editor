@@ -1,13 +1,19 @@
+<!--
+One field, whatever it holds.
+
+A term used to replace this widget with a bordered `div` whose whole value was a
+hyperlink — the only value text in CEE that was one, which is what made a
+controlled term look clickable while an ORCID or a ROR beside it did not. It also
+cost the field its Clear action and any way back to the search box, nested a
+`<button>` inside an `<a>`, and opened two tabs on a click: the handler called
+`window.open` and then the event reached the anchor.
+
+The BioPortal record is a suffix link instead, which is what the seven external
+authority widgets do with theirs. The source stays branded in the component
+header, where every other authority's mark already lives.
+-->
 <form class="form-container" [formGroup]="options">
-  @if (bioPortalTermLink) {
-    <div class="mat-form-field-wrapper mat-form-field-flex mat-form-field-outline fake-input">
-      <a href="{{ bioPortalTermLink }}" target="_blank">
-        <button matPrefix class="bio-portal-icon" (click)="goToBioPortalTerm()"></button>
-        <span class="text-class">{{ inputValueControl.getRawValue() }}</span>
-      </a>
-    </div>
-  }
-  @if (!bioPortalTermLink) {
+  <ng-container>
     <mat-form-field class="full-width">
       <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
       <input
@@ -44,6 +50,19 @@
           >
         }
       </mat-autocomplete>
+      @if (bioPortalTermLink) {
+        <a
+          matSuffix
+          mat-icon-button
+          [href]="bioPortalTermLink"
+          target="_blank"
+          rel="noopener"
+          aria-label="View BioPortal page"
+          matTooltip="{{ 'Generic.Details' | translate }}"
+        >
+          <mat-icon>open_in_new</mat-icon>
+        </a>
+      }
       @if (inputValueControl.value && !readOnlyMode) {
         <button
           type="button"
@@ -51,6 +70,7 @@
           matSuffix
           mat-icon-button
           attr.aria-label="{{ 'Generic.Clear' | translate }}"
+          matTooltip="{{ 'Generic.Clear' | translate }}"
           (click)="clearValue()"
         >
           <mat-icon>close</mat-icon>
@@ -66,5 +86,5 @@
     @if (justReverted) {
       <div class="input-warning" role="status">{{ 'Validation.ControlledTermReverted' | translate }}</div>
     }
-  }
+  </ng-container>
 </form>
