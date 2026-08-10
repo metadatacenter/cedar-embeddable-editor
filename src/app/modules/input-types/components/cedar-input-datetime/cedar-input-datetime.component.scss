@@ -19,10 +19,28 @@
   min-width: 0;
 }
 
+/*
+ * The decimal point, matched to the colons it sits beside.
+ *
+ * It asked for 18px and took the default black, where `.cee-time-separator` — the
+ * `:` between hour, minute and second, inches away in the same control — is 14px
+ * and #555. Two glyphs doing one job, separating parts of a time, in two sizes and
+ * two colours. Nothing chose that: the size was a lone literal from before the type
+ * scale was settled, and it was the last size in the editor that belonged to no
+ * scale.
+ *
+ * The colour repeats the time picker's literal rather than reading a token, because
+ * no component stylesheet in CEE imports `_cee-tokens.scss` and this is not the
+ * change that should introduce the first one. `--cee-color-*` is published API and
+ * a separator glyph does not warrant growing it.
+ *
+ * `line-height` stays: it centres the glyph on the 48px control row and is layout
+ * rather than type.
+ */
 .cee-fraction-separator {
   align-self: center;
   margin-inline: 0 -1px;
-  font-size: 18px;
+  color: #555;
   line-height: 48px;
 }
 

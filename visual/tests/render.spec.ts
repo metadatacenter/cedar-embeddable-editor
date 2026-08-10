@@ -1665,6 +1665,45 @@ test.describe('the time picker', () => {
         expect(row.offset!.top).toBe(row.dateField!.top);
       }
     });
+
+    /**
+     * Both separators in the row are the same separator.
+     *
+     * The `.` before the decimal-seconds box asked for 18px and took the default
+     * black, while the `:` between hour, minute and second — inches away, inside
+     * the same control — is 14px and #555. Two glyphs doing one job in two sizes
+     * and two colours, and it was the last rendered size in the editor that
+     * belonged to no scale.
+     *
+     * A DOM assertion rather than a baseline, because a period is roughly thirty
+     * pixels and the change moved none of the 108 snapshots. That is the miss the
+     * budget comment above predicts in as many words — the smaller the thing that
+     * broke, the more slack a ratio gives it — so pixels cannot hold this and are
+     * not asked to.
+     */
+    test('the decimal point matches the colons beside it', async ({ page }) => {
+      await open(page, '09-temporal');
+
+      const separators = await page
+        .locator('app-cedar-input-datetime')
+        .filter({ has: page.locator('.cee-fraction-separator') })
+        .first()
+        .evaluate((host) => {
+          const read = (selector: string) => {
+            const element = host.querySelector(selector);
+            if (!element) return null;
+            const style = getComputedStyle(element);
+            return { fontSize: style.fontSize, color: style.color };
+          };
+          return { point: read('.cee-fraction-separator'), colon: read('.cee-time-separator') };
+        });
+
+      expect(separators.colon, 'no clock separator to compare against').not.toBeNull();
+      expect(separators.point, 'this fixture should hold a decimal-seconds field').not.toBeNull();
+      expect(separators.point, 'the decimal point diverged from the colons in the same control').toEqual(
+        separators.colon,
+      );
+    });
   });
 
   test('the 12-hour fields show a meridian control and the others do not', async ({ page }) => {
