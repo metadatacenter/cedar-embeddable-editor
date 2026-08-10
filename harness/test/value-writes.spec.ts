@@ -26,6 +26,7 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import type { InstanceNode } from '@cee/models/instance-node.model';
+import { iriOf, isLiteral, literalOf, termOf } from '../src/values';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -74,27 +75,27 @@ describe('writing a value for the first time', () => {
   it('a literal lands as @value', () => {
     const { driver, component } = rig(TEXT);
     driver.handlerContext.changeValue(component, 'typed');
-    expect(driver.extract._f).toEqual({ '@value': 'typed' });
+    expect(literalOf(driver.extract._f)).toBe('typed');
   });
 
   it('a link lands as @id, not @value', () => {
     const { driver, component } = rig(LINK);
     driver.handlerContext.changeValue(component, 'https://example.org/thing');
-    expect(driver.extract._f['@id']).toBe('https://example.org/thing');
-    expect(Object.hasOwn(driver.extract._f, '@value'), 'a link was written as a literal').toBe(false);
+    expect(iriOf(driver.extract._f)).toBe('https://example.org/thing');
+    expect(isLiteral(driver.extract._f), 'a link was written as a literal').toBe(false);
   });
 
   it('an external authority value lands as @id', () => {
     const { driver, component } = rig(ORCID);
     driver.handlerContext.changeValue(component, 'https://orcid.org/0000-0002-1825-0097');
-    expect(driver.extract._f['@id']).toBe('https://orcid.org/0000-0002-1825-0097');
-    expect(Object.hasOwn(driver.extract._f, '@value')).toBe(false);
+    expect(iriOf(driver.extract._f)).toBe('https://orcid.org/0000-0002-1825-0097');
+    expect(isLiteral(driver.extract._f)).toBe(false);
   });
 
   it('a controlled term lands as @id and label', () => {
     const { driver, component } = rig(CONTROLLED);
     driver.handlerContext.changeControlledValue(component, 'https://x/1', 'One');
-    expect(driver.extract._f).toEqual({ '@id': 'https://x/1', 'rdfs:label': 'One' });
+    expect(termOf(driver.extract._f)).toEqual({ iri: 'https://x/1', label: 'One' });
   });
 });
 
@@ -109,28 +110,28 @@ describe('writing over a slot that already holds something', () => {
     const { driver, component } = rig(LINK, { '@value': 'left over' });
     driver.handlerContext.changeValue(component, 'https://example.org/thing');
 
-    expect(driver.extract._f['@id']).toBe('https://example.org/thing');
-    expect(Object.hasOwn(driver.extract._f, '@value'), 'the stale literal survived').toBe(false);
+    expect(iriOf(driver.extract._f)).toBe('https://example.org/thing');
+    expect(isLiteral(driver.extract._f), 'the stale literal survived').toBe(false);
   });
 
   it('a controlled term replaces a literal rather than joining it', () => {
     const { driver, component } = rig(CONTROLLED, { '@value': 'left over' });
     driver.handlerContext.changeControlledValue(component, 'https://x/1', 'One');
 
-    expect(driver.extract._f['@id']).toBe('https://x/1');
-    expect(Object.hasOwn(driver.extract._f, '@value'), 'the stale literal survived').toBe(false);
+    expect(iriOf(driver.extract._f)).toBe('https://x/1');
+    expect(isLiteral(driver.extract._f), 'the stale literal survived').toBe(false);
   });
 
   it('a new IRI replaces the previous one', () => {
     const { driver, component } = rig(CONTROLLED, { '@id': 'https://x/1', 'rdfs:label': 'One' });
     driver.handlerContext.changeControlledValue(component, 'https://x/2', 'Two');
-    expect(driver.extract._f).toEqual({ '@id': 'https://x/2', 'rdfs:label': 'Two' });
+    expect(termOf(driver.extract._f)).toEqual({ iri: 'https://x/2', label: 'Two' });
   });
 
   it('a new literal replaces the previous one', () => {
     const { driver, component } = rig(TEXT, { '@value': 'first' });
     driver.handlerContext.changeValue(component, 'second');
-    expect(driver.extract._f).toEqual({ '@value': 'second' });
+    expect(literalOf(driver.extract._f)).toBe('second');
   });
 
   /**
@@ -149,7 +150,7 @@ describe('writing over a slot that already holds something', () => {
     const { driver, component } = rig(TEXT, { '@id': 'https://x/1', 'rdfs:label': 'One' });
     driver.handlerContext.changeValue(component, 'typed');
 
-    expect(driver.extract._f).toEqual({ '@value': 'typed' });
+    expect(literalOf(driver.extract._f)).toBe('typed');
   });
 });
 
@@ -157,7 +158,7 @@ describe('clearing a value', () => {
   it('clearing a literal leaves the slot present and empty', () => {
     const { driver, component } = rig(TEXT, { '@value': 'something' });
     driver.handlerContext.changeValue(component, null);
-    expect(driver.extract._f).toEqual({ '@value': null });
+    expect(literalOf(driver.extract._f)).toBeNull();
   });
 
   it('clearing a controlled term empties it without removing the slot', () => {
@@ -184,20 +185,20 @@ describe('multi-valued writes', () => {
   it('writes each selection as its own literal', () => {
     const { driver, component } = rig(CHECKBOX);
     driver.handlerContext.changeListValue(component, ['A', 'B']);
-    expect(driver.extract._f).toEqual([{ '@value': 'A' }, { '@value': 'B' }]);
+    expect((driver.extract._f as unknown[]).map(literalOf)).toEqual(['A', 'B']);
   });
 
   it('replaces the whole list rather than appending', () => {
     const { driver, component } = rig(CHECKBOX);
     driver.handlerContext.changeListValue(component, ['A', 'B']);
     driver.handlerContext.changeListValue(component, ['B']);
-    expect(driver.extract._f).toEqual([{ '@value': 'B' }]);
+    expect((driver.extract._f as unknown[]).map(literalOf)).toEqual(['B']);
   });
 
   it('an empty selection writes one empty slot rather than none', () => {
     const { driver, component } = rig(CHECKBOX);
     driver.handlerContext.changeListValue(component, []);
-    expect(driver.extract._f).toEqual([{ '@value': null }]);
+    expect((driver.extract._f as unknown[]).map(literalOf)).toEqual([null]);
   });
 });
 
@@ -221,13 +222,13 @@ describe('both copies of the instance stay in step', () => {
     write(driver, component);
     const extract = driver.extract._f;
     const full = driver.metadata._f;
-    expect(extract['@value'] ?? extract['@id']).toBe(expected);
-    expect(full['@value'] ?? full['@id'], 'the full copy did not receive the write').toBe(expected);
+    expect(literalOf(extract) ?? iriOf(extract)).toBe(expected);
+    expect(literalOf(full) ?? iriOf(full), 'the full copy did not receive the write').toBe(expected);
   });
 
   it('a controlled term reaches both copies', () => {
     const { driver, component } = rig(CONTROLLED);
     driver.handlerContext.changeControlledValue(component, 'https://x/1', 'One');
-    expect(driver.emitted._f).toEqual({ '@id': 'https://x/1', 'rdfs:label': 'One' });
+    expect(termOf(driver.emitted._f)).toEqual({ iri: 'https://x/1', label: 'One' });
   });
 });
