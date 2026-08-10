@@ -2,6 +2,7 @@
   @for (choice of component.choiceInfo.choices; track choice) {
     <div>
       <mat-checkbox
+        color="primary"
         (input)="inputChanged($event)"
         [formControlName]="getFormControlName(choice.label)"
         [value]="choice.label"

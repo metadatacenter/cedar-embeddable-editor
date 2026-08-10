@@ -1,5 +1,9 @@
 <div class="flex-container">
-  <mat-checkbox class="flex-item-checkbox" [checked]="loadMetadata" (change)="loadMetadataChanged($event.checked)"
+  <mat-checkbox
+    class="flex-item-checkbox"
+    color="primary"
+    [checked]="loadMetadata"
+    (change)="loadMetadataChanged($event.checked)"
     ><div>Load metadata</div>
   </mat-checkbox>
   <mat-form-field class="flex-item-select">

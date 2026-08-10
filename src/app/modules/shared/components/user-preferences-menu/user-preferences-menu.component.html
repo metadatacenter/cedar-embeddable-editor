@@ -22,6 +22,7 @@
     <button mat-menu-item (click)="toggleReadOnly(!readOnlyMode$)">
       <span>Readonly Mode</span>
       <mat-slide-toggle
+        color="primary"
         [checked]="readOnlyMode$"
         (click)="$event.stopPropagation()"
         (change)="toggleReadOnly($event.checked)"
