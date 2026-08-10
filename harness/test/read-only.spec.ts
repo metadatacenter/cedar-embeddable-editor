@@ -22,6 +22,7 @@ import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at } from '../src/nodes';
 import { literalNode, literalOf } from '../src/values';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
@@ -50,7 +51,7 @@ describe('read-only mode', () => {
   });
 
   it('validates an injected instance in a viewer', () => {
-    const bad = { '@context': {}, '@id': 'https://example.org/i/1', _a: literalNode('fine') };
+    const bad = { [JsonSchema.atContext]: {}, '@id': 'https://example.org/i/1', _a: literalNode('fine') };
     const viewer = new CeeDriver(template(), { readOnlyMode: true, hideEmptyFields: true, instance: bad });
     expect(viewer.dataContext.dataQualityReport).not.toBeNull();
     expect(viewer.qualityReport.isValid).toBe(true);

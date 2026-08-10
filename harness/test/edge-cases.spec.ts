@@ -10,7 +10,7 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at, infoOf } from '../src/nodes';
-import { linkNode, literalOf } from '../src/values';
+import { linkNode, literalOf, termNode } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
@@ -318,8 +318,7 @@ describe('multi-instance elements', () => {
       outer._inner._innerReference = linkNode(`${ELEMENT_INSTANCE_IRI}/inner-field`);
       outer._manyInner.forEach((inner: any, index: number) => {
         inner._term = {
-          '@id': `${ELEMENT_INSTANCE_IRI}/term-${index}`,
-          'rdfs:label': `Term ${index}`,
+          ...termNode(`${ELEMENT_INSTANCE_IRI}/term-${index}`, `Term ${index}`),
         };
       });
     });
@@ -329,15 +328,15 @@ describe('multi-instance elements', () => {
     driver.handlerContext.copyMultiInstance(outerComponent);
     const [source, copy] = driver.metadata._outer;
 
-    expect(source['@id']).toBe(before['@id']);
-    expect(copy['@id']).not.toBe(source['@id']);
-    expect(copy._inner['@id']).not.toBe(source._inner['@id']);
+    expect(source[JsonSchema.atId]).toBe(before[JsonSchema.atId]);
+    expect(copy[JsonSchema.atId]).not.toBe(source[JsonSchema.atId]);
+    expect(copy._inner[JsonSchema.atId]).not.toBe(source._inner[JsonSchema.atId]);
     expect(copy._manyInner.map((inner: any) => inner[JsonSchema.atId])).not.toEqual(
       source._manyInner.map((inner: any) => inner[JsonSchema.atId]),
     );
 
-    expect(copy._reference['@id']).toBe(source._reference['@id']);
-    expect(copy._inner._innerReference['@id']).toBe(source._inner._innerReference['@id']);
+    expect(copy._reference[JsonSchema.atId]).toBe(source._reference[JsonSchema.atId]);
+    expect(copy._inner._innerReference[JsonSchema.atId]).toBe(source._inner._innerReference[JsonSchema.atId]);
     expect(copy._manyInner.map((inner: any) => inner._term)).toEqual(
       source._manyInner.map((inner: any) => inner._term),
     );

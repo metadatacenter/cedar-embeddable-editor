@@ -154,6 +154,6 @@ describe('each temporal type stamps its own @type', () => {
     [TemporalType.DATE, TemporalGranularity.DAY, '2026-08-01', 'xsd:date'],
     [TemporalType.TIME, TemporalGranularity.MINUTE, '13:30:00', 'xsd:time'],
   ])('%s value carries @type %s', (temporalType, granularity, value, expectedType) => {
-    expect(emitted(temporalType, granularity, value)).toEqual({ '@value': value, '@type': expectedType });
+    expect(emitted(temporalType, granularity, value)).toEqual(literalNode(value, expectedType));
   });
 });

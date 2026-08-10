@@ -16,6 +16,7 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { labelOf } from '../src/values';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 const controlledKind = (configure: (b: any) => any): FieldKind => ({
   key: 'term',
@@ -109,7 +110,7 @@ describe('controlled terms across cardinality and nesting', () => {
     const one = Array.isArray(node) ? node[0] : node;
     // changeControlledValue writes the IRI plus its label; both must land.
     expect(labelOf(one)).toBe(kind.sample);
-    expect(one['@id']).toBe(`https://example.org/terms/${encodeURIComponent(kind.sample)}`);
+    expect(one[JsonSchema.atId]).toBe(`https://example.org/terms/${encodeURIComponent(kind.sample)}`);
   });
 });
 

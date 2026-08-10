@@ -17,6 +17,7 @@ import { CARDINALITIES, FIELD_KINDS, NESTINGS } from '../src/axes';
 import { sweep } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { labelOf, literalOf } from '../src/values';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 const CASES = sweep(FIELD_KINDS, CARDINALITIES, NESTINGS);
 const VALUED = CASES.filter((c) => c.kind.write !== 'none');
@@ -33,7 +34,7 @@ const VALUED = CASES.filter((c) => c.kind.write !== 'none');
  * `{'@id': <iri>, 'rdfs:label': undefined}` — CEE's `injectValue` takes the
  * controlled-term path and assigns a label it was never given. `JSON.stringify`
  * drops undefined-valued keys, so the node *looks* like `{"@id": …}` while
- * `'rdfs:label' in node` is still true. A key-presence check silently returns
+ * `JsonSchema.rdfsLabel in node` is still true. A key-presence check silently returns
  * undefined for every IRI-valued field.
  */
 const plainValue = (node: any): unknown => {
@@ -42,7 +43,7 @@ const plainValue = (node: any): unknown => {
   if (typeof node !== 'object') return node;
   if (literalOf(node) !== undefined) return literalOf(node);
   if (labelOf(node) !== undefined) return labelOf(node);
-  if (node['@id'] !== undefined) return node['@id'];
+  if (node[JsonSchema.atId] !== undefined) return node[JsonSchema.atId];
   return null;
 };
 
@@ -115,9 +116,9 @@ describe('emitted instances are structurally sound', () => {
  * `DataObjectUtil.deleteContext` is what keeps it off the extract side.
  */
 const ENVELOPE_ONLY_ON_THE_FULL_TREE = new Set([
-  '@context',
-  '@id',
-  '@type',
+  JsonSchema.atContext,
+  JsonSchema.atId,
+  JsonSchema.atType,
   'schema:isBasedOn',
   'schema:name',
   'schema:description',

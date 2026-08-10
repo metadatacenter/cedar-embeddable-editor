@@ -19,6 +19,7 @@ import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 const kind = (key: string, inputType: string, make: () => unknown, sample: string): FieldKind =>
   ({ key, inputType, make, isStatic: false, write: 'value', sample }) as FieldKind;
@@ -62,7 +63,7 @@ describe('a hidden field stays in the document', () => {
       string,
       Record<string, unknown>
     >;
-    expect(Object.keys(emitted['@context'])).toContain('_concealed');
+    expect(Object.keys(emitted[JsonSchema.atContext])).toContain('_concealed');
   });
 
   it('a hidden multi field gets its list', () => {

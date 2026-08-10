@@ -30,6 +30,7 @@ import { InstanceValueNode } from '@cee/util/instance-value-node';
 import { CeeDriver, normalize } from '../src/driver';
 import { arrayAt, infoOf } from '../src/nodes';
 import { literalNode, literalOf } from '../src/values';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 const TEXT = {
   key: 'text',
@@ -110,7 +111,7 @@ describe('a fresh instance and a loaded one have the same shape', () => {
         return;
       }
       for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
-        if (key === '@id') {
+        if (key === JsonSchema.atId) {
           found.push(path || '<root>');
         }
         walk(value, `${path}/${key}`);
@@ -131,16 +132,16 @@ describe('the full tree still carries its @ids', () => {
   it('every element occurrence has one', () => {
     const full = new CeeDriver(nested()).metadata;
 
-    expect(full._single['@id']).toBeTruthy();
+    expect(full._single[JsonSchema.atId]).toBeTruthy();
     expect(full._multi).toHaveLength(2);
     for (const occurrence of full._multi) {
-      expect(occurrence['@id']).toBeTruthy();
+      expect(occurrence[JsonSchema.atId]).toBeTruthy();
     }
   });
 
   it('and they are distinct per occurrence', () => {
     const full = new CeeDriver(nested()).metadata;
-    const ids = full._multi.map((o: Record<string, string>) => o['@id']);
+    const ids = full._multi.map((o: Record<string, string>) => o[JsonSchema.atId]);
     expect(new Set(ids).size).toBe(ids.length);
   });
 });
@@ -159,9 +160,9 @@ describe('the derived view tracks the tree', () => {
    * what belongs to the envelope from the full copy and the two are identical.
    */
   const ENVELOPE_KEYS = [
-    '@context',
-    '@id',
-    '@type',
+    JsonSchema.atContext,
+    JsonSchema.atId,
+    JsonSchema.atType,
     'oslc:modifiedBy',
     'pav:createdOn',
     'pav:lastUpdatedOn',

@@ -21,6 +21,7 @@
 import { describe, expect, it } from 'vitest';
 import { corpusInstances, corpusTemplates, describeTree, hubmapTemplates } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 const templates = corpusTemplates();
 const instances = corpusInstances();
@@ -150,7 +151,7 @@ describe('real corpus instances', () => {
       type: 'object',
       _ui: { order: [], propertyLabels: {}, propertyDescriptions: {} },
       // `@context` sits inside `properties`; that is where addContext looks.
-      properties: { '@context': { properties: {} } },
+      properties: { [JsonSchema.atContext]: { properties: {} } },
       'schema:name': 'Minimal',
       'schema:description': '',
     };
@@ -173,7 +174,7 @@ describe('templates the generator would not produce', () => {
       type: 'object',
       _ui: { order: ['Real', 'Orphan'], propertyLabels: {}, propertyDescriptions: {} },
       properties: {
-        '@context': { properties: {} },
+        [JsonSchema.atContext]: { properties: {} },
         Real: {
           '@type': 'https://schema.metadatacenter.org/core/TemplateField',
           type: 'object',

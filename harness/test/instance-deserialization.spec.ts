@@ -21,6 +21,7 @@ import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { corpusInstances } from '../src/corpus';
 import { JsonNode, JsonSchema, JsonTemplateInstanceReader } from 'cedar-model-typescript-library';
 import { linkNode, literalNode, termNode } from '../src/values';
+import type { InstanceNode } from '@cee/models/instance-node.model';
 
 const instances = corpusInstances();
 
@@ -215,7 +216,7 @@ describe('what the old walk got wrong', () => {
    * classified the node while parsing it.
    */
   const envelope = {
-    '@context': {},
+    [JsonSchema.atContext]: {},
     '@id': 'https://repo.metadatacenter.org/template-instances/fixture',
     'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/fixture',
     'schema:name': 'A fixture instance',
@@ -261,11 +262,12 @@ describe('what the old walk got wrong', () => {
   });
 
   it('strips it from every occurrence of a multi element', () => {
-    const occurrence = (value: string) => ({
-      '@context': {},
-      '@id': `https://repo.metadatacenter.org/template-element-instances/${value}`,
-      _child: { '@value': value },
-    });
+    const occurrence = (value: string) =>
+      ({
+        [JsonSchema.atContext]: {},
+        [JsonSchema.atId]: `https://repo.metadatacenter.org/template-element-instances/${value}`,
+        _child: literalNode(value),
+      }) as unknown as InstanceNode;
     const extract = InstanceDeserializer.read({
       ...envelope,
       _el: [occurrence('a'), occurrence('b')],
@@ -289,7 +291,7 @@ describe('an attribute-value field comes back in two halves', () => {
    */
   it('the field holds its names and the parent holds their values', () => {
     const extract = InstanceDeserializer.read({
-      '@context': {},
+      [JsonSchema.atContext]: {},
       '@id': 'https://repo.metadatacenter.org/template-instances/av',
       'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/av',
       'schema:name': 'An instance with attributes',
@@ -306,7 +308,7 @@ describe('an attribute-value field comes back in two halves', () => {
 
   it('a field with no attributes yet is an empty list, not absent', () => {
     const extract = InstanceDeserializer.read({
-      '@context': {},
+      [JsonSchema.atContext]: {},
       '@id': 'https://repo.metadatacenter.org/template-instances/av',
       'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/av',
       'schema:name': 'An instance with no attributes',
@@ -331,7 +333,7 @@ describe('content the read cannot make a value of', () => {
    * happened without re-inspecting the JSON it just handed to the library.
    */
   const envelope = {
-    '@context': {},
+    [JsonSchema.atContext]: {},
     '@id': 'https://repo.metadatacenter.org/template-instances/fixture',
     'schema:isBasedOn': 'https://repo.metadatacenter.org/templates/fixture',
     'schema:name': 'A fixture instance',
@@ -354,7 +356,7 @@ describe('content the read cannot make a value of', () => {
   it('reports one inside an element, with the path to it', () => {
     const said = messagesFor({
       ...envelope,
-      _el: { '@context': {}, _child: { 'rdfs:label': 'Some Term' } },
+      _el: { [JsonSchema.atContext]: {}, _child: { 'rdfs:label': 'Some Term' } },
     });
     expect(said).toHaveLength(1);
     expect(said[0]).toContain('_el > _child');

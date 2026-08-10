@@ -27,7 +27,7 @@ import { buildTemplate } from '../src/generate';
 import { FIELD_KINDS } from '../src/axes';
 import { CeeDriver } from '../src/driver';
 import { JsonSchema } from 'cedar-model-typescript-library';
-import { instanceWith, iriOf, labelOf, literalValue } from '../src/values';
+import { instanceWith, iriOf, labelOf, literalNode, literalValue } from '../src/values';
 
 const TEXT = FIELD_KINDS.find((k) => k.key === 'text')!;
 const CONTROLLED = FIELD_KINDS.find((k) => k.key === 'controlled')!;
@@ -57,7 +57,7 @@ describe('currentMetadata for a not-yet-created instance', () => {
   });
 
   it('carries the typed value back out', () => {
-    expect(currentMetadata(fresh())['_note']).toEqual({ '@value': 'hello' });
+    expect(currentMetadata(fresh())['_note']).toEqual(literalNode('hello'));
   });
 });
 
@@ -88,7 +88,7 @@ describe('currentMetadata for an instance the host loaded to edit', () => {
   });
 
   it('brings the loaded value back out', () => {
-    expect(currentMetadata(loaded())['_note']).toEqual({ '@value': 'loaded' });
+    expect(currentMetadata(loaded())['_note']).toEqual(literalNode('loaded'));
   });
 });
 
@@ -97,7 +97,7 @@ describe('currentMetadata collects each field shape the host renders', () => {
     const driver = new CeeDriver(buildTemplate({ name: 'cm_text', children: [{ kind: TEXT, name: 'note' }] }));
     driver.setValue(['_note'], TEXT, 'free text');
     driver.expectNoErrors('text collect');
-    expect(currentMetadata(driver)['_note']).toEqual({ '@value': 'free text' });
+    expect(currentMetadata(driver)['_note']).toEqual(literalNode('free text'));
   });
 
   it('a controlled-term field, as @id plus rdfs:label', () => {
@@ -119,6 +119,6 @@ describe('currentMetadata collects each field shape the host renders', () => {
     driver.setValue(['_address', '_city'], TEXT, 'Palo Alto');
     driver.expectNoErrors('element collect');
     const element = currentMetadata(driver)['_address'] as Record<string, unknown>;
-    expect(element['_city']).toEqual({ '@value': 'Palo Alto' });
+    expect(element['_city']).toEqual(literalNode('Palo Alto'));
   });
 });

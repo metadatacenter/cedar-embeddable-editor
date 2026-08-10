@@ -12,7 +12,7 @@
  * The question now has one answer, from the model library, which decides it
  * while parsing and records it in the node's type — and the library's own suite
  * is where that answer is held. What was here beside these, asserting that
- * `{'@id', 'rdfs:label'}` reads as a value and a container does not, tested the
+ * `{JsonSchema.atId, 'rdfs:label'}` reads as a value and a container does not, tested the
  * library through a one-line delegation and is gone.
  *
  * What stays is CEE's part: which half of a term a field shows, and whether a
@@ -26,6 +26,7 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { instanceWith, linkNode, literalNode, termNode } from '../src/values';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -67,7 +68,12 @@ describe('what the quality report reads a node as', () => {
     const driver = new CeeDriver(template, {
       // The node under test is supplied by the caller, including shapes the library
       // would not write, so the envelope around it is written out here too.
-      instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: node },
+      instance: {
+        [JsonSchema.atContext]: {},
+        '@id': 'https://example.org/i/1',
+        'schema:isBasedOn': TEMPLATE_IRI,
+        _f: node,
+      },
     });
     driver.handlerContext.buildQualityReport();
     return driver.qualityReport.valueTree._f.value;
@@ -119,7 +125,7 @@ describe('a labelless controlled term satisfies a requirement', () => {
     });
     const driver = new CeeDriver(template, {
       instance: {
-        '@context': {},
+        [JsonSchema.atContext]: {},
         '@id': 'https://example.org/i/1',
         'schema:isBasedOn': TEMPLATE_IRI,
         _f: linkNode('https://x/1'),

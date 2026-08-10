@@ -27,6 +27,7 @@ import { corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { literalNode } from '../src/values';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
 
@@ -69,7 +70,7 @@ describe('the JSON a host page receives', () => {
     const driver = filled(index, cardinality);
     const working = driver.fullData as Record<string, unknown>;
     const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;
-    expect(emitted['@context']).toEqual(working['@context']);
+    expect(emitted[JsonSchema.atContext]).toEqual(working[JsonSchema.atContext]);
   });
 
   /**
@@ -120,9 +121,9 @@ describe('the instance says which template it is an instance of', () => {
       unknown
     >;
     if (atId === null) {
-      delete template['@id'];
+      delete template[JsonSchema.atId];
     } else {
-      template['@id'] = atId;
+      template[JsonSchema.atId] = atId;
     }
     return new CeeDriver(template);
   };
@@ -178,9 +179,9 @@ describe('the instance says which template it is an instance of', () => {
       string,
       unknown
     >;
-    template['@id'] = 'https://repo.metadatacenter.org/templates/injected';
+    template[JsonSchema.atId] = 'https://repo.metadatacenter.org/templates/injected';
     const driver = new CeeDriver(template, {
-      instance: { '@context': {}, '@id': 'https://example.org/i/9', _f: literalNode('loaded') },
+      instance: { [JsonSchema.atContext]: {}, '@id': 'https://example.org/i/9', _f: literalNode('loaded') },
     });
 
     const emitted = InstanceSerializer.toJson(driver.fullData) as Record<string, unknown>;

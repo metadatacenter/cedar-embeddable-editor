@@ -13,6 +13,7 @@ import { buildTemplate, supportsMultiInstance } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { infoOf } from '../src/nodes';
 import { instanceWith, labelOf, literalOf } from '../src/values';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -195,7 +196,7 @@ describe('quality report value extraction', () => {
 
     // The IRI is stored as @id, with no @value...
     const node: any = driver.handlerContext.getDataObjectNodeByPath(['_f']);
-    expect(node['@id']).toBe(k.sample);
+    expect(node[JsonSchema.atId]).toBe(k.sample);
     expect(literalOf(node)).toBeUndefined();
 
     // ...and the report now reads it.
@@ -319,7 +320,7 @@ describe('required values are page-independent', () => {
     ['an entry holds a null field', [{ _f: null }]],
     ['an entry omits the field', [{}]],
   ])('is invalid when %s', (_label, elValue) => {
-    const instance: any = { '@context': {}, '@id': 'https://example.org/i/1', _el: elValue };
+    const instance: any = { [JsonSchema.atContext]: {}, '@id': 'https://example.org/i/1', _el: elValue };
 
     const driver = new CeeDriver(threeInstances(), { instance });
     driver.handlerContext.buildQualityReport();
@@ -347,7 +348,7 @@ describe('required values are page-independent', () => {
     ['the array is absent', undefined],
     ['the array is empty', []],
   ])('reports a minItems violation, not phantom required fields, when %s', (_label, elValue) => {
-    const instance: any = { '@context': {}, '@id': 'https://example.org/i/1' };
+    const instance: any = { [JsonSchema.atContext]: {}, '@id': 'https://example.org/i/1' };
     if (elValue !== undefined) {
       instance._el = elValue;
     }
@@ -378,7 +379,7 @@ describe('required values are page-independent', () => {
    */
   it('an absent element and an empty one agree on the verdict but not on the reason', () => {
     const report = (elValue: unknown) => {
-      const instance: any = { '@context': {}, '@id': 'https://example.org/i/1' };
+      const instance: any = { [JsonSchema.atContext]: {}, '@id': 'https://example.org/i/1' };
       if (elValue !== undefined) {
         instance._el = elValue;
       }
@@ -420,7 +421,12 @@ describe('required values are page-independent', () => {
     const driver = new CeeDriver(threeInstances(), {
       // Hand-written on purpose: the point is a null where a list belongs, which is
       // something the library will not produce and a host page can still send.
-      instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _el: null },
+      instance: {
+        [JsonSchema.atContext]: {},
+        '@id': 'https://example.org/i/1',
+        'schema:isBasedOn': TEMPLATE_IRI,
+        _el: null,
+      },
     });
     driver.handlerContext.buildQualityReport();
 
@@ -472,7 +478,11 @@ describe('required values are page-independent', () => {
     ['null', null],
     ['absent', undefined],
   ])('is invalid when no minItems is declared and the element is %s', (_label, elValue) => {
-    const instance: any = { '@context': {}, '@id': 'https://example.org/i/2', 'schema:isBasedOn': TEMPLATE_IRI };
+    const instance: any = {
+      [JsonSchema.atContext]: {},
+      '@id': 'https://example.org/i/2',
+      'schema:isBasedOn': TEMPLATE_IRI,
+    };
     if (elValue !== undefined) {
       instance._el = elValue;
     }
@@ -646,7 +656,7 @@ describe('multi fields, every kind that supports it', () => {
       driver.handlerContext.setCurrentIndex(el, 1);
       const node: any = driver.handlerContext.getDataObjectNodeByPath(['_el', '_f']);
       const one = Array.isArray(node) ? node[0] : node;
-      const written = literalOf(one) ?? one?.['@id'] ?? labelOf(one);
+      const written = literalOf(one) ?? one?.[JsonSchema.atId] ?? labelOf(one);
       expect(written ?? null, `${k.key} leaked page 0's value into page 1`).toBeNull();
     },
   );

@@ -26,6 +26,7 @@ import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { infoOf } from '../src/nodes';
 import { instanceWith, literalNode, literalOf } from '../src/values';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -111,7 +112,7 @@ describe('an instance wider than its template', () => {
     first.setValue(['_author', '_name'], TEXT, 'Grace');
 
     const reloaded = new CeeDriver(template, { instance: first.metadata });
-    const names = reloaded.extract._author.map((o: Record<string, { '@value': string }>) => literalOf(o._name));
+    const names = reloaded.extract._author.map((o: Record<string, unknown>) => literalOf(o._name));
     expect(names).toEqual(['Ada', 'Grace']);
   });
 
@@ -413,7 +414,7 @@ describe('deleting occurrences', () => {
     driver.setValue(['_author', '_name'], TEXT, 'Katherine');
     driver.expectNoErrors('writing after a delete');
 
-    const names = driver.extract._author.map((o: Record<string, { '@value': string }>) => literalOf(o._name));
+    const names = driver.extract._author.map((o: Record<string, unknown>) => literalOf(o._name));
     expect(names).toEqual(['Ada', 'Katherine']);
   });
 });
@@ -523,7 +524,7 @@ describe('an attribute name with nothing behind it', () => {
     const template = buildTemplate({ name: 'ir_named_attr', children: [{ kind: ATTR, name: 'f' }] });
     const driver = new CeeDriver(template, {
       instance: {
-        '@context': {},
+        [JsonSchema.atContext]: {},
         '@id': 'https://example.org/i/1',
         'schema:isBasedOn': TEMPLATE_IRI,
         _f: ['colour'],

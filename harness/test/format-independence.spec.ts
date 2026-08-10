@@ -24,6 +24,7 @@ import { ModelLibraryTemplateParser } from '@cee/factory/model-library-template-
 import { YamlTemplateParser } from '@cee/factory/yaml-template-parser';
 import { corpusTemplates, corpusTemplatesYaml, describeTree } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 const json = corpusTemplates();
 const yaml = corpusTemplatesYaml();
@@ -43,7 +44,7 @@ const stable = (node: any): any => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const out: any = {};
     for (const key of Object.keys(node)) {
-      out[key] = key === '@id' && typeof node[key] === 'string' ? '<minted>' : stable(node[key]);
+      out[key] = key === JsonSchema.atId && typeof node[key] === 'string' ? '<minted>' : stable(node[key]);
     }
     return out;
   }
@@ -154,7 +155,9 @@ describe('a template read from YAML', () => {
    * written in cannot reach it.
    */
   it.each(paired.map((p) => [p.id, p] as const))('template-%s builds the same @context', (_id, pair) => {
-    expect(stable(fromYaml(pair.yaml).emitted)['@context']).toEqual(stable(fromJson(pair.json).emitted)['@context']);
+    expect(stable(fromYaml(pair.yaml).emitted)[JsonSchema.atContext]).toEqual(
+      stable(fromJson(pair.json).emitted)[JsonSchema.atContext],
+    );
   });
 
   it.each(paired.map((p) => [p.id, p] as const))('template-%s reports the same validity', (_id, pair) => {

@@ -38,7 +38,7 @@ const stable = (node: any): any => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const out: any = {};
     for (const key of Object.keys(node)) {
-      out[key] = key === '@id' && typeof node[key] === 'string' ? '<minted>' : stable(node[key]);
+      out[key] = key === JsonSchema.atId && typeof node[key] === 'string' ? '<minted>' : stable(node[key]);
     }
     return out;
   }
@@ -122,7 +122,7 @@ describe('the shape of an element', () => {
         { name: 'el', cardinality: 'multi', minItems: 3, maxItems: 9, children: [{ kind: VALUED[0], name: 'f' }] },
       ],
     });
-    const ids = new CeeDriver(template).metadata._el.map((o: Record<string, string>) => o['@id']);
+    const ids = new CeeDriver(template).metadata._el.map((o: Record<string, string>) => o[JsonSchema.atId]);
     expect(new Set(ids).size, `occurrences share an @id: ${ids.join(', ')}`).toBe(3);
   });
 });
@@ -187,7 +187,7 @@ describe('the XSD type a numeric or temporal slot declares', () => {
     };
     const template = buildTemplate({ name: 'sk_tmp_none', children: [{ kind, name: 'f' }] });
     const slot = new CeeDriver(template).metadata._f;
-    expect(Object.hasOwn(slot, '@type'), 'a null @type was written into the instance').toBe(false);
+    expect(Object.hasOwn(slot, JsonSchema.atType), 'a null @type was written into the instance').toBe(false);
   });
 
   it('uses the declared temporal type', () => {
@@ -221,14 +221,14 @@ describe('the @context the full copy carries', () => {
         { kind: VALUED[0], name: 'b' },
       ],
     });
-    const context = new CeeDriver(template).metadata['@context'];
+    const context = new CeeDriver(template).metadata[JsonSchema.atContext];
 
     expect(context.rdfs).toBe('http://www.w3.org/2000/01/rdf-schema#');
     expect(context.xsd).toBe('http://www.w3.org/2001/XMLSchema#');
     expect(context[JsonSchema.rdfsLabel], 'the @context declares rdfs:label as a typed property').toEqual({
       [JsonSchema.atType]: 'xsd:string',
     });
-    expect(context['pav:createdOn']).toEqual({ '@type': 'xsd:dateTime' });
+    expect(context[JsonSchema.pavCreatedOn]).toEqual({ [JsonSchema.atType]: 'xsd:dateTime' });
     expect(typeof context._a).toBe('string');
     expect(typeof context._b).toBe('string');
     expect(context._a).not.toBe(context._b);
@@ -236,7 +236,7 @@ describe('the @context the full copy carries', () => {
 
   it('is absent from the extract copy', () => {
     const template = buildTemplate({ name: 'sk_ctx_x', children: [{ kind: VALUED[0], name: 'a' }] });
-    expect(new CeeDriver(template).extract['@context']).toBeUndefined();
+    expect(new CeeDriver(template).extract[JsonSchema.atContext]).toBeUndefined();
   });
 
   it('gives a nested element its own @context', () => {
@@ -244,7 +244,7 @@ describe('the @context the full copy carries', () => {
       name: 'sk_ctx_el',
       elements: [{ name: 'el', children: [{ kind: VALUED[0], name: 'f' }] }],
     });
-    const context = new CeeDriver(template).metadata._el['@context'];
+    const context = new CeeDriver(template).metadata._el[JsonSchema.atContext];
     expect(typeof context._f).toBe('string');
   });
 });

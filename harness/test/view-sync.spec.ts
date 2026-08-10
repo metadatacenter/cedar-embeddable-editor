@@ -26,6 +26,7 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { instanceWith, linkNode, literalNode, termNode } from '../src/values';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -145,10 +146,7 @@ describe('single fields', () => {
     const r = rig(ORCID);
     r.driver.handlerContext.changeControlledValue(r.component, 'https://orcid.org/0000-0002-1825-0097', 'Ada Lovelace');
     r.sync();
-    expect(r.widget.last).toEqual({
-      '@id': 'https://orcid.org/0000-0002-1825-0097',
-      'rdfs:label': 'Ada Lovelace',
-    });
+    expect(r.widget.last).toEqual(termNode('https://orcid.org/0000-0002-1825-0097', 'Ada Lovelace'));
   });
 
   /**
@@ -171,10 +169,7 @@ describe('single fields', () => {
     const r = rig(CONTROLLED, ['_f'], template, { readOnlyMode: true });
     r.driver.handlerContext.changeControlledValue(r.component, 'https://example.org/terms/human', 'Homo sapiens');
     r.sync();
-    expect(r.widget.last).toEqual({
-      '@id': 'https://example.org/terms/human',
-      'rdfs:label': 'Homo sapiens',
-    });
+    expect(r.widget.last).toEqual(termNode('https://example.org/terms/human', 'Homo sapiens'));
   });
 
   it('pushes nothing when no widget is registered', () => {
@@ -235,10 +230,7 @@ describe('paged multi fields', () => {
     const r = rig(ORCID, ['_f'], pagedTemplate(ORCID));
     r.driver.handlerContext.changeControlledValue(r.component, 'https://orcid.org/0000-0002-1825-0097', 'Ada Lovelace');
     r.sync();
-    expect(r.widget.last).toEqual({
-      '@id': 'https://orcid.org/0000-0002-1825-0097',
-      'rdfs:label': 'Ada Lovelace',
-    });
+    expect(r.widget.last).toEqual(termNode('https://orcid.org/0000-0002-1825-0097', 'Ada Lovelace'));
   });
 
   it('pushes a paged controlled term as its label', () => {
@@ -410,7 +402,7 @@ describe('hiding empty fields in a repeated element', () => {
     });
     const driver = new CeeDriver(template, {
       instance: {
-        '@context': {},
+        [JsonSchema.atContext]: {},
         '@id': 'https://example.org/i/1',
         'schema:isBasedOn': TEMPLATE_IRI,
         _el: [{ '@id': 'https://example.org/e/1', _f: node }],
@@ -558,7 +550,12 @@ describe('a paged field the instance has nothing for', () => {
     const driver = new CeeDriver(template, {
       // Hand-written on purpose: a null where a value belongs is not something the
       // library will emit, and is exactly what this asserts CEE survives.
-      instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: null },
+      instance: {
+        [JsonSchema.atContext]: {},
+        '@id': 'https://example.org/i/1',
+        'schema:isBasedOn': TEMPLATE_IRI,
+        _f: null,
+      },
     });
     const registry = new ActiveComponentRegistryService();
     const widget = new FakeWidget();

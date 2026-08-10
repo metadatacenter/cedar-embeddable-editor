@@ -32,6 +32,7 @@ import { buildTemplate, buildTemplateYaml, supportsMultiInstance, type TemplateS
 import { FIELD_KINDS } from '../src/axes';
 import { CeeDriver, normalize } from '../src/driver';
 import { describeTree } from '../src/corpus';
+import { JsonSchema } from 'cedar-model-typescript-library';
 
 const fromJson = (spec: TemplateSpec) =>
   new CeeDriver(buildTemplate(spec), { templateParser: new ModelLibraryTemplateParser() });
@@ -154,10 +155,10 @@ describe('a multiple-instance field renders and fills the same across formats', 
  */
 describe("CEE's JSON and YAML output carry the same values", () => {
   const YAML_TO_JSON: Record<string, string> = {
-    value: '@value',
-    id: '@id',
-    datatype: '@type',
-    label: 'rdfs:label',
+    value: JsonSchema.atValue,
+    id: JsonSchema.atId,
+    datatype: JsonSchema.atType,
+    label: JsonSchema.rdfsLabel,
   };
   const toJsonKeys = (node: unknown): unknown => {
     if (Array.isArray(node)) return node.map(toJsonKeys);

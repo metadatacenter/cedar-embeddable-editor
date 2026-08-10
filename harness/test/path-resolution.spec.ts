@@ -199,7 +199,7 @@ describe('nested multi elements consume one cursor each', () => {
       }
     }
 
-    expect(read).toEqual(written.map((v) => ({ '@value': v })));
+    expect(read).toEqual(written.map((v) => literalNode(v)));
   });
 
   /**
@@ -334,7 +334,7 @@ describe('resolving a specific occurrence, cursor ignored', () => {
         expect(
           driver.handlerContext.getDataObjectNodeAt(['_outer', '_inner', '_deep'], [o, i]),
           `occurrence [${o}, ${i}]`,
-        ).toEqual({ '@value': `o${o}i${i}` });
+        ).toEqual(literalNode(`o${o}i${i}`));
       }
     }
   });
