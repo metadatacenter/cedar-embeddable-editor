@@ -4,10 +4,9 @@ import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup } from 
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
-import { JsonSchema } from 'cedar-model-typescript-library';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
-import { isInstanceObject } from '../../../shared/models/instance-node.model';
 import { requireControl, requireFormArray } from '../../../shared/forms/form-control';
+import { InstanceValueNode } from '../../../shared/util/instance-value-node';
 
 @Component({
   selector: 'app-cedar-input-checkbox',
@@ -92,7 +91,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     const dataObject = this.handlerContext.getDataObjectNodeByPath(this.component.path);
     if (Array.isArray(dataObject)) {
       const loadedValues = dataObject
-        .map((d) => (isInstanceObject(d) ? d[JsonSchema.atValue] : null))
+        .map((d) => InstanceValueNode.literal(d))
         .filter((v) => v !== null && v !== undefined);
       if (loadedValues.length > 0) {
         this.setCurrentValue(loadedValues);

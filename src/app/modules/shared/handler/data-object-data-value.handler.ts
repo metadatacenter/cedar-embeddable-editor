@@ -385,13 +385,15 @@ export class DataObjectDataValueHandler {
   ): void {
     const path = component.path;
     const valueObject: InstanceObject = {};
-    const obj: InstanceObject = {};
 
     if (value && value.length === 0) {
       value = null;
     }
 
-    obj[JsonSchema.atValue] = value;
+    // Through `InstanceValueNode` rather than assembled here. The shape of a
+    // literal is the library's to decide, and this was the last place in the
+    // handler that named `@value` itself.
+    const obj: InstanceObject = InstanceValueNode.literalJson(value);
     valueObject[JsonSchema.reservedAttributeName] = key;
     valueObject[JsonSchema.reservedAttributeValue] = obj;
 

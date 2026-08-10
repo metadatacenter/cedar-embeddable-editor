@@ -1,10 +1,12 @@
 import {
+  CedarModel,
   InstanceDataAtomType,
   InstanceDataControlledAtom,
   InstanceDataEmptyAtom,
   InstanceDataLinkAtom,
   InstanceDataStringAtom,
   InstanceDataTypedAtom,
+  JsonSchema,
   JsonTemplateInstanceReader,
   JsonTemplateInstanceWriter,
   JsonNode,
@@ -26,8 +28,29 @@ import { InstanceNode, InstanceObject, isInstanceObject } from '../models/instan
  * the answer in the node's type. Asking it here means one rule instead of
  * three, and the same rule CEE now uses to read cardinality.
  */
-/** The keys a value node may carry, and the only ones `overwrite` disturbs. */
-const VALUE_KEYS = ['@value', '@id', 'rdfs:label', '@type', 'skos:notation'];
+/**
+ * The keys a value node may carry, and the only ones `overwrite` disturbs.
+ *
+ * Named through the library's constants rather than written out, so the strings
+ * themselves live in one place and CEE is not a second definition of what CEDAR
+ * calls a value.
+ *
+ * It is still a list CEE maintains, which it should not have to be: the library
+ * holds the authoritative set as `JsonTemplateInstanceReader.VALUE_ATOM_KEYS`
+ * and keeps it private, so it cannot be asked for. Deriving it from the writers
+ * instead — writing one of each atom and collecting the keys — gets four of the
+ * five, because no atom carries a `skos:notation` even though the reader accepts
+ * one. A derivation that quietly omitted it would stop `overwrite` clearing a
+ * stale notation, which is worse than restating the set visibly. Exposing that
+ * constant is the fix, and it is on the model library's items.
+ */
+const VALUE_KEYS = [
+  JsonSchema.atValue,
+  JsonSchema.atId,
+  JsonSchema.rdfsLabel,
+  JsonSchema.atType,
+  CedarModel.skosNotation,
+];
 
 export class InstanceValueNode {
   /**

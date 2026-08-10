@@ -1,4 +1,3 @@
-import { JsonSchema } from 'cedar-model-typescript-library';
 import { InstanceValueNode } from './instance-value-node';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
@@ -54,15 +53,18 @@ export class DataObjectUtil {
         obj.push(InstanceValueNode.literalJson(value));
       }
     }
-    if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-      // Transcribed as found. This sets `@type` as a *property of the array*,
-      // which `JSON.stringify` ignores — so it has never reached the emitted
-      // instance, and the elements have never carried a type. Kept because
-      // removing it and kept because adding the type to the elements are both
-      // behaviour changes to what a multi numeric field stores, and this commit
-      // is a refactor. Worth revisiting on its own.
-      this.injectAtTypeIfAvailable(obj as unknown as InstanceObject, component);
-    }
+    // A multi field's elements carry no XSD type, and nothing here sets one.
+    //
+    // What stood here set `@type` as a *property of the array* rather than on
+    // its elements. `JSON.stringify` ignores a property on an array, so it never
+    // reached an emitted instance — it was transcribed from the code this
+    // replaced and kept while the surrounding change was a refactor. Removing it
+    // changes no output, which the bundle-level suite confirms, and it was the
+    // last place outside `InstanceValueNode` that named a JSON-LD key here.
+    //
+    // Whether a multi numeric field's elements *should* carry a type is a real
+    // question and a real behaviour change; it is not answered by leaving a line
+    // that does nothing.
     return obj;
   }
 
@@ -115,14 +117,6 @@ export class DataObjectUtil {
       return null;
     }
     return DataObjectUtil.xsdTypeForFullCopy(component);
-  }
-
-  /** A numeric or temporal value declares its XSD type alongside itself. */
-  private static injectAtTypeIfAvailable(obj: InstanceObject, component: FieldComponent): void {
-    const xsdType = DataObjectUtil.xsdTypeForFullCopy(component);
-    if (xsdType != null) {
-      obj[JsonSchema.atType] = xsdType;
-    }
   }
 
   // Generating a RFC4122 version 4 compliant GUID
