@@ -3,7 +3,8 @@ import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
-import { InstanceArray, InstanceObject } from '../models/instance-node.model';
+import { InstanceArray, InstanceNode, InstanceObject } from '../models/instance-node.model';
+import { InstanceDataContainer } from 'cedar-model-typescript-library';
 
 export class DataObjectUtil {
   /**
@@ -21,7 +22,7 @@ export class DataObjectUtil {
    * walked the template JSON in step with the component tree it was already
    * walking, purely to re-derive things the tree had.
    */
-  static getEmptyValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode): InstanceObject {
+  static getEmptyValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode): InstanceNode {
     return InstanceValueNode.emptySlot(
       DataObjectUtil.isIriValued(component),
       DataObjectUtil.xsdTypeFor(component, buildingMode),
@@ -32,7 +33,7 @@ export class DataObjectUtil {
     component: FieldComponent,
     buildingMode: DataObjectBuildingMode,
     value: string,
-  ): InstanceObject {
+  ): InstanceNode {
     // A controlled term's default is not a literal, so it gets no `@value` — and
     // no `@type` either, since only numeric and temporal fields have one.
     if (component?.basicInfo?.inputType === InputType.controlled) {
@@ -84,7 +85,7 @@ export class DataObjectUtil {
   }
 
   static getEmptyObject(): InstanceObject {
-    return {};
+    return new InstanceDataContainer();
   }
 
   static getEmptyList(): InstanceArray {

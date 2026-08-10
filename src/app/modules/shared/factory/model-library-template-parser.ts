@@ -347,8 +347,10 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     // `@context` is its child IRIs and nothing else, because the prefixes are
     // already in scope. Repeating them would bloat every occurrence of every
     // element and match nothing CEDAR writes.
-    const entries: InstanceObject = isRoot
-      ? ({ ...JsonTemplateInstanceContent.CONTEXT_VERBATIM } as InstanceObject)
+    const entries: Record<string, string> = isRoot
+      ? Object.fromEntries(
+          Object.entries(JsonTemplateInstanceContent.CONTEXT_VERBATIM).map(([key, value]) => [key, String(value)]),
+        )
       : {};
     // `getChildIriMap` rather than `getIRIMap`: the latter returns the shape
     // JSON Schema wants — `{ name: { enum: [iri] } }` — and reading an IRI out
