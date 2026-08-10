@@ -1,5 +1,5 @@
 /**
- * What counts as a value, and what it holds.
+ * What CEE shows for a value, which is not the same as what a value is.
  *
  * Every instance node is either a field's value or an element, and CEE asked
  * that question in three places with three different answers: the quality
@@ -10,12 +10,17 @@
  * inject any valid CEDAR instance, not only one CEE produced.
  *
  * The question now has one answer, from the model library, which decides it
- * while parsing and records it in the node's type. These tests pin the two
- * places where the answer changed.
+ * while parsing and records it in the node's type — and the library's own suite
+ * is where that answer is held. What was here beside these, asserting that
+ * `{'@id', 'rdfs:label'}` reads as a value and a container does not, tested the
+ * library through a one-line delegation and is gone.
+ *
+ * What stays is CEE's part: which half of a term a field shows, and whether a
+ * term with no label counts as filled. Neither is derivable from the node — the
+ * field's own kind decides them — so neither is the library's to answer.
  */
 import { describe, expect, it } from 'vitest';
 import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
-import { InstanceValueNode } from '@cee/util/instance-value-node';
 import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
@@ -54,45 +59,6 @@ const LINK: FieldKind = {
   write: 'value',
   sample: 'https://example.org/resource',
 };
-
-describe('telling a value from a container', () => {
-  /**
-   * The classification on its own, without an instance around it.
-   *
-   * This used to test `DataObjectUtil.deleteContext`, the hand-written walk
-   * that made CEE's extract copy by deleting envelope keys. That walk decided
-   * what to leave alone by counting keys — two with an `@id` and an
-   * `rdfs:label` meant a controlled term, one with an `@id` meant a link,
-   * anything else was a container to be stripped — so a controlled term or a
-   * link that also carried a `@type` had its `@id` deleted, and the value that
-   * IRI *was* went with it.
-   *
-   * The walk is gone; `InstanceDeserializer` reads the document through the
-   * library instead, and `instance-deserialization.spec.ts` covers the same
-   * shapes end to end. What is left here is the predicate itself, because it is
-   * still consulted directly and the key-counting rule is what it must never
-   * go back to.
-   */
-  it.each([
-    ['a controlled term', { '@id': 'https://x/1', 'rdfs:label': 'One' }],
-    ['a controlled term with a @type', { '@id': 'https://x/1', 'rdfs:label': 'One', '@type': 'xsd:anyURI' }],
-    ['a controlled term with a notation', { '@id': 'https://x/1', 'rdfs:label': 'One', 'skos:notation': 'N1' }],
-    ['a link', { '@id': 'https://x/1' }],
-    ['a link with a @type', { '@id': 'https://x/1', '@type': 'xsd:anyURI' }],
-    ['a literal', { '@value': 'text' }],
-    ['a typed literal', { '@value': '7', '@type': 'xsd:int' }],
-  ])('reads %s as a value', (_label, node) => {
-    expect(InstanceValueNode.isValue(node)).toBe(true);
-  });
-
-  it.each([
-    ['an element occurrence', { '@id': 'https://repo.metadatacenter.org/template-element-instances/1', _child: { '@value': 'kept' } }],
-    ['an element with a @context', { '@context': {}, _child: { '@value': 'kept' } }],
-    ['an instance root', { '@context': {}, 'schema:isBasedOn': 'https://x/t', _f: { '@value': 'kept' } }],
-  ])('reads %s as a container', (_label, node) => {
-    expect(InstanceValueNode.isValue(node)).toBe(false);
-  });
-});
 
 describe('what the quality report reads a node as', () => {
   const reportValue = (kind: FieldKind, node: InstanceNode) => {
@@ -149,7 +115,12 @@ describe('a labelless controlled term satisfies a requirement', () => {
       children: [{ kind: CONTROLLED, name: 'f', required: true }],
     });
     const driver = new CeeDriver(template, {
-      instance: { '@context': {}, '@id': 'https://example.org/i/1', 'schema:isBasedOn': TEMPLATE_IRI, _f: { '@id': 'https://x/1' } },
+      instance: {
+        '@context': {},
+        '@id': 'https://example.org/i/1',
+        'schema:isBasedOn': TEMPLATE_IRI,
+        _f: { '@id': 'https://x/1' },
+      },
     });
     driver.handlerContext.buildQualityReport();
 

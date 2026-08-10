@@ -19,6 +19,7 @@ import type { InstanceObject } from '@cee/models/instance-node.model';
 import { InstanceValueNode } from '@cee/util/instance-value-node';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { corpusInstances } from '../src/corpus';
+import { JsonNode, JsonSchema, JsonTemplateInstanceReader } from 'cedar-model-typescript-library';
 
 const instances = corpusInstances();
 
@@ -36,49 +37,83 @@ const instances = corpusInstances();
  * ever got to correct. Diffing against the broken one would flatter the
  * replacement.
  */
-const ENVELOPE_KEYS = [
-  '@context',
-  '@id',
-  'oslc:modifiedBy',
-  'pav:createdOn',
-  'pav:lastUpdatedOn',
-  'pav:createdBy',
-  'schema:isBasedOn',
-  'schema:name',
-  'schema:description',
+/**
+ * The envelope, named by the library rather than listed here.
+ *
+ * A hand-written list is the same mistake as a hand-written stripper: it is the
+ * harness deciding what CEDAR calls the wrapping around an instance. The reader
+ * keeps the authoritative set private, so these are its own constants for the
+ * nine keys a complete instance carries.
+ */
+const ENVELOPE_KEYS: string[] = [
+  JsonSchema.atContext,
+  JsonSchema.atId,
+  JsonSchema.schemaIsBasedOn,
+  JsonSchema.schemaName,
+  JsonSchema.schemaDescription,
+  JsonSchema.pavCreatedOn,
+  JsonSchema.pavCreatedBy,
+  JsonSchema.pavLastUpdatedOn,
+  JsonSchema.oslcModifiedBy,
 ];
 
-const stripEnvelope = (obj: Record<string, unknown>): void => {
-  if (InstanceValueNode.isValue(obj)) {
-    return;
-  }
-  Object.keys(obj).forEach((key) => {
-    ENVELOPE_KEYS.forEach((envelopeKey) => delete obj[envelopeKey]);
-    const child = obj[key];
-    if (typeof child === 'object' && child !== null) {
-      stripEnvelope(child as Record<string, unknown>);
+/**
+ * Every key at every depth, skipping the values.
+ *
+ * A value node is not searched, and the reason is `@id`: it is an envelope key
+ * on a container and the whole value of a link or a controlled term. Walking
+ * into one would report a term's own IRI as an envelope key that survived. Which
+ * nodes are values is the library's answer, asked here rather than guessed —
+ * guessing it by counting keys is the defect this file exists to record.
+ */
+const keysAnywhere = (node: unknown, found: Set<string> = new Set()): Set<string> => {
+  if (Array.isArray(node)) {
+    node.forEach((child) => keysAnywhere(child, found));
+  } else if (node !== null && typeof node === 'object') {
+    if (JsonTemplateInstanceReader.isValueNode(node as JsonNode)) {
+      return found;
     }
-  });
+    for (const [key, child] of Object.entries(node)) {
+      found.add(key);
+      keysAnywhere(child, found);
+    }
+  }
+  return found;
 };
 
-const handBuiltExtract = (json: object): Record<string, unknown> => {
-  const extract = JSON.parse(JSON.stringify(json)) as Record<string, unknown>;
-  stripEnvelope(extract);
-  return extract;
-};
-
-describe('the extract tree, against the walk it replaces', () => {
+/**
+ * What the extract projection is, stated rather than compared.
+ *
+ * This used to assert that the projection equalled a walk written out in this
+ * file — the implementation it replaced, kept as an oracle. That walk is gone
+ * from CEE, so what remained was the harness maintaining a second CEDAR-JSON
+ * stripper in order to check the first, and knowing the envelope by heart to do
+ * it. The property itself needs neither: the envelope is absent at every depth,
+ * and everything else survives.
+ */
+describe('the extract tree', () => {
   it('there are instances to check', () => {
     expect(instances.length).toBeGreaterThan(15);
   });
 
-  /**
-   * The whole corpus, one case per fixture. One diverges, deliberately, and is
-   * checked on its own below; every other must agree key for key.
-   */
-  it.each(instances.filter((i) => i.id !== '021').map((i) => [i.id, i] as const))('instance-%s', (_id, artifact) => {
-    expect(InstanceDeserializer.read(artifact.json).extract).toEqual(handBuiltExtract(artifact.json));
-  });
+  it.each(instances.map((i) => [i.id, i] as const))(
+    'instance-%s drops the envelope at every depth',
+    (_id, artifact) => {
+      const extract = InstanceDeserializer.read(artifact.json).extract;
+      expect([...keysAnywhere(extract)].filter((key) => ENVELOPE_KEYS.includes(key))).toEqual([]);
+    },
+  );
+
+  it.each(instances.filter((i) => i.id !== '021').map((i) => [i.id, i] as const))(
+    'instance-%s keeps everything else',
+    (_id, artifact) => {
+      const extract = InstanceDeserializer.read(artifact.json).extract as Record<string, unknown>;
+      const source = artifact.json as Record<string, unknown>;
+      for (const key of Object.keys(source).filter((k) => !ENVELOPE_KEYS.includes(k))) {
+        expect(extract[key], `${key} did not survive the projection`).toBeDefined();
+      }
+    },
+  );
 });
 
 describe('instance annotations', () => {
@@ -103,7 +138,7 @@ describe('instance annotations', () => {
   it('are kept out of the tree the form edits', () => {
     const extract = InstanceDeserializer.read(annotated!.json).extract as Record<string, unknown>;
     expect(extract._annotations).toBeUndefined();
-    expect(handBuiltExtract(annotated!.json)['_annotations'], 'the walk this replaces kept them').toBeDefined();
+    expect((annotated!.json as Record<string, unknown>)._annotations, 'the fixture carries annotations').toBeDefined();
   });
 
   it('are handed back to the host page unchanged', () => {
@@ -119,10 +154,15 @@ describe('instance annotations', () => {
     expect(emitted._annotations).toEqual((annotated!.json as Record<string, unknown>)._annotations);
   });
 
-  it('everything else about that instance still matches the walk', () => {
-    const byHand = handBuiltExtract(annotated!.json);
-    delete byHand['_annotations'];
-    expect(InstanceDeserializer.read(annotated!.json).extract).toEqual(byHand);
+  it('are the only thing about that instance the extract drops', () => {
+    const extract = InstanceDeserializer.read(annotated!.json).extract as Record<string, unknown>;
+    const source = annotated!.json as Record<string, unknown>;
+    for (const key of Object.keys(source)) {
+      if (key === '_annotations' || ENVELOPE_KEYS.includes(key)) {
+        continue;
+      }
+      expect(extract[key], `${key} did not survive the projection`).toBeDefined();
+    }
   });
 });
 

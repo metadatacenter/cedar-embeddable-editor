@@ -26,6 +26,8 @@ import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { buildTemplate } from '../src/generate';
 import { FIELD_KINDS } from '../src/axes';
 import { CeeDriver } from '../src/driver';
+import { JsonSchema } from 'cedar-model-typescript-library';
+import { instanceWith, iriOf, literalValue } from '../src/values';
 
 const TEXT = FIELD_KINDS.find((k) => k.key === 'text')!;
 const CONTROLLED = FIELD_KINDS.find((k) => k.key === 'controlled')!;
@@ -43,15 +45,15 @@ describe('currentMetadata for a not-yet-created instance', () => {
 
   it('carries @id as null — present, not omitted', () => {
     const md = currentMetadata(fresh());
-    expect('@id' in md, '@id must be present in the emitted instance').toBe(true);
-    expect(md['@id'], 'a new instance has no IRI yet, so @id is null').toBeNull();
+    expect(JsonSchema.atId in md, 'the identifier must be present in the emitted instance').toBe(true);
+    expect(md[JsonSchema.atId], 'a new instance has no IRI yet, so the identifier is null').toBeNull();
   });
 
   it('is the shape the host reads as "create"', () => {
     // The host treats null OR undefined as "not yet created". The writer's choice
     // of null — rather than omitting the key — is exactly what a host that tested
     // `=== undefined` alone mishandled; pinned so it cannot drift back unnoticed.
-    expect(currentMetadata(fresh())['@id'] == null).toBe(true);
+    expect(currentMetadata(fresh())[JsonSchema.atId] == null).toBe(true);
   });
 
   it('carries the typed value back out', () => {
@@ -68,20 +70,21 @@ describe('currentMetadata for an instance the host loaded to edit', () => {
       string,
       unknown
     >;
-    template['@id'] = templateIri;
+    template[JsonSchema.atId] = templateIri;
     return new CeeDriver(template, {
-      instance: { '@context': {}, '@id': EXISTING, 'schema:isBasedOn': templateIri, _note: { '@value': 'loaded' } },
+      instance: instanceWith(templateIri, { _note: literalValue('loaded') }, EXISTING),
     });
   };
 
   it('emits the existing @id unchanged — not nulled, not dropped', () => {
-    expect(currentMetadata(loaded())['@id'], 'a loaded instance keeps its IRI so the host updates in place').toBe(
-      EXISTING,
-    );
+    expect(
+      currentMetadata(loaded())[JsonSchema.atId],
+      'a loaded instance keeps its IRI so the host updates in place',
+    ).toBe(EXISTING);
   });
 
   it('is the shape the host reads as "update"', () => {
-    expect(currentMetadata(loaded())['@id'] != null).toBe(true);
+    expect(currentMetadata(loaded())[JsonSchema.atId] != null).toBe(true);
   });
 
   it('brings the loaded value back out', () => {
@@ -103,7 +106,7 @@ describe('currentMetadata collects each field shape the host renders', () => {
     driver.expectNoErrors('controlled collect');
     const value = currentMetadata(driver)['_organism'] as Record<string, unknown>;
     expect(value['rdfs:label']).toBe('Homo sapiens');
-    expect(typeof value['@id'], 'a controlled term carries an IRI').toBe('string');
+    expect(typeof iriOf(value), 'a controlled term carries an IRI').toBe('string');
   });
 
   it('a field inside an element, as a nested object', () => {
