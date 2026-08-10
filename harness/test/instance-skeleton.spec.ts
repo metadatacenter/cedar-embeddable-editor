@@ -234,9 +234,23 @@ describe('the @context the full copy carries', () => {
     expect(context._a).not.toBe(context._b);
   });
 
-  it('is absent from the extract copy', () => {
+  /**
+   * The property IRIs travel with the data now.
+   *
+   * This asserted their absence, because CEE built the extract by walking the
+   * full document and deleting envelope keys, and `@context` was one of them.
+   * The extract is what the library writes for an instance's data, and a
+   * container's property IRIs are part of that — what it leaves off is the
+   * envelope proper: the instance's own IRI, its name and description, and the
+   * four provenance fields.
+   */
+  it('carries the property IRIs, and none of the envelope', () => {
     const template = buildTemplate({ name: 'sk_ctx_x', children: [{ kind: VALUED[0], name: 'a' }] });
-    expect(new CeeDriver(template).extract[JsonSchema.atContext]).toBeUndefined();
+    const extract = new CeeDriver(template).extract;
+    expect(Object.keys(extract[JsonSchema.atContext])).toEqual(['_a']);
+    for (const key of ['@id', 'schema:name', 'schema:description', 'pav:createdOn']) {
+      expect(extract[key], `${key} is envelope and does not belong on the extract`).toBeUndefined();
+    }
   });
 
   it('gives a nested element its own @context', () => {

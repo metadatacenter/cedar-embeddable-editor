@@ -93,14 +93,23 @@ describe('the JSON a host page receives', () => {
    * if the model changed, the copy went stale silently, and keeping it in step
    * is not CEE's job. Producing a valid instance is the model library's
    * responsibility, so what remains is the part that is genuinely about the
-   * emitter — it invents no values, and it loses nothing it was given.
+   * emitter — it loses nothing it was given, and the values it contributes are
+   * placeholders or the two the template dictates.
+   *
+   * `schema:name` and `schema:description` are not placeholders. CEDAR declares
+   * the first with a `minLength` of 1, so an instance carrying null for it does
+   * not validate against its own template; CEE fills both in when it builds an
+   * instance, from the template's own label.
    */
-  it('adds only null placeholders, and drops nothing', () => {
+  it('adds only placeholders and the name the template dictates, and drops nothing', () => {
     const driver = filled(0, 'single');
     const emitted = driver.emitted as Record<string, unknown>;
     const held = Object.keys(driver.fullData.values);
 
-    const added = Object.keys(emitted).filter((k) => !held.includes(k) && k !== JsonSchema.atContext);
+    const dictated = ['schema:name', 'schema:description', 'schema:isBasedOn'];
+    const added = Object.keys(emitted).filter(
+      (k) => !held.includes(k) && k !== JsonSchema.atContext && !dictated.includes(k),
+    );
     expect(added.length, 'the writer contributed nothing, so the checks below are vacuous').toBeGreaterThan(0);
     for (const key of added) {
       expect(emitted[key], `${key} should be null, not invented`).toBeNull();
