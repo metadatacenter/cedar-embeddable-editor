@@ -60,7 +60,13 @@ export class ActiveComponentRegistryService {
         // however empty it was, and the `else` that would have hidden it was
         // unreachable. Kept because it loses no data, only leaves a blank row
         // in the read-only viewer, and because "links always show" is a
-        // defensible thing to have decided on purpose. See view-sync.spec.ts.
+        // defensible thing to have decided on purpose.
+        //
+        // Nothing tests the empty half any more, because there is no longer an
+        // empty node that reaches here: an IRI-valued field holding nothing is
+        // written `{}`, which is not IRI-bearing, and the model library refuses
+        // to build the `{"@id": ""}` the old cases passed. What is left is a
+        // branch that only ever sees a filled node.
         fieldComponent.hidden = false;
       }
     }

@@ -417,16 +417,8 @@ describe('hiding empty fields in a repeated element', () => {
     expect(iriVisibility(LINK, linkNode('https://example.org/thing'))).toBe(false);
   });
 
-  it('shows an EMPTY link too — the emptiness test is a tautology', () => {
-    expect(iriVisibility(LINK, linkNode(''))).toBe(false);
-  });
-
   it('shows a filled controlled term', () => {
     expect(iriVisibility(CONTROLLED, termNode('https://x/1', 'One'))).toBe(false);
-  });
-
-  it('shows an EMPTY controlled term too — same tautology', () => {
-    expect(iriVisibility(CONTROLLED, termNode('', ''))).toBe(false);
   });
 
   it('hides an empty literal, which is the branch that does work', () => {

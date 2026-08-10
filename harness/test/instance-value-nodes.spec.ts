@@ -25,7 +25,7 @@ import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { instanceWith, linkNode, literalNode, termNode } from '../src/values';
+import { emptyNode, instanceWith, linkNode, literalNode, termNode } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 /**
@@ -103,8 +103,14 @@ describe('what the quality report reads a node as', () => {
     expect(reportValue(LINK, literalNode('plain'))).toBe('plain');
   });
 
+  /**
+   * `emptyNode()` rather than an IRI of `''`, which is what this used to pass.
+   * An IRI-valued field with nothing in it is written `{}`; the library refuses
+   * to build the other shape, so nothing can produce it and no test should
+   * describe CEE's behaviour on it.
+   */
   it('reads an empty value as nothing', () => {
-    expect(reportValue(CONTROLLED, linkNode(''))).toBeNull();
+    expect(reportValue(CONTROLLED, emptyNode())).toBeNull();
     expect(reportValue(LINK, literalNode(''))).toBeNull();
   });
 });
