@@ -10,7 +10,7 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at, infoOf } from '../src/nodes';
-import { linkNode, literalOf, termNode, heldValue } from '../src/values';
+import { linkNode, literalOf, termNode, heldValue, linkValue, termValue } from '../src/values';
 import { JsonSchema } from 'cedar-model-typescript-library';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
@@ -313,13 +313,11 @@ describe('multi-instance elements', () => {
       }),
     );
     driver.dataContext.mutate((instance: any) => {
-      const outer = instance._outer[0];
-      outer._reference = linkNode(`${ELEMENT_INSTANCE_IRI}/outer-field`);
-      outer._inner._innerReference = linkNode(`${ELEMENT_INSTANCE_IRI}/inner-field`);
-      outer._manyInner.forEach((inner: any, index: number) => {
-        inner._term = {
-          ...termNode(`${ELEMENT_INSTANCE_IRI}/term-${index}`, `Term ${index}`),
-        };
+      const outer = instance.values._outer[0];
+      outer.setValue('_reference', linkValue(`${ELEMENT_INSTANCE_IRI}/outer-field`));
+      outer.values._inner.setValue('_innerReference', linkValue(`${ELEMENT_INSTANCE_IRI}/inner-field`));
+      outer.values._manyInner.forEach((inner: any, index: number) => {
+        inner.setValue('_term', termValue(`${ELEMENT_INSTANCE_IRI}/term-${index}`, `Term ${index}`));
       });
     });
 

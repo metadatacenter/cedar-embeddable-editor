@@ -393,7 +393,7 @@ export class DataObjectDataValueHandler {
     // rejects the instance on save.
     const valueObject = iriValued
       ? value === null
-        ? {}
+        ? InstanceValueNode.emptySlot(true)
         : InstanceValueNode.iriValue(value)
       : InstanceValueNode.literalValue(value, DataObjectUtil.xsdTypeForFullCopy(component));
     const representation = dataContext.templateRepresentation;
@@ -519,7 +519,7 @@ export class DataObjectDataValueHandler {
     prefLabel: string | null,
   ): void {
     const path = component.path;
-    const valueObject = atId ? InstanceValueNode.iriValue(atId, prefLabel) : {};
+    const valueObject = atId ? InstanceValueNode.iriValue(atId, prefLabel) : InstanceValueNode.emptySlot(true);
 
     const representation = dataContext.templateRepresentation;
     if (representation === null) {
