@@ -48,7 +48,7 @@ export const supportsMultiInstance = (kind: FieldKind): boolean => {
   return typeof db?.withMultiInstance === 'function';
 };
 
-const buildField = (kind: FieldKind, name: string) => {
+const buildField = (kind: FieldKind, name: string, size?: { width: number; height: number }) => {
   let b = kind
     .make()
     .withAtId(`https://repo.metadatacenter.org/template-fields/${id(name)}`)
@@ -60,6 +60,10 @@ const buildField = (kind: FieldKind, name: string) => {
     .withLastUpdatedOn(FIXED_DATE)
     .withModifiedBy(USER);
   if (kind.configure) b = kind.configure(b);
+  if (size) {
+    b = opt(b, 'withWidth', size.width);
+    b = opt(b, 'withHeight', size.height);
+  }
   return b.build();
 };
 
@@ -72,6 +76,15 @@ export interface ChildSpec {
   hidden?: boolean;
   minItems?: number;
   maxItems?: number;
+  /**
+   * `_ui._size`, which only the two sizeable static kinds carry.
+   *
+   * Probed like everything else here rather than branched on: the library models
+   * `withWidth` and `withHeight` on the image and YouTube builders and nowhere
+   * else, so asking for a size on a text field silently does nothing, which is
+   * also what the template would mean.
+   */
+  size?: { width: number; height: number };
 }
 
 const deploy = (artifact: any, spec: ChildSpec) => {
@@ -128,7 +141,7 @@ const buildElement = (spec: ElementSpec) => {
   // Optional, like `elements` below: an element holding nothing but
   // sub-elements is a shape real templates use.
   for (const child of spec.children ?? []) {
-    const field = buildField(child.kind, child.name);
+    const field = buildField(child.kind, child.name, child.size);
     const { deployment } = deploy(field, child);
     eb = eb.addChild(field, deployment);
   }
@@ -177,7 +190,7 @@ export const buildTemplateModel = (spec: TemplateSpec): any => {
     .withModifiedBy(USER);
 
   for (const child of spec.children ?? []) {
-    const field = buildField(child.kind, child.name);
+    const field = buildField(child.kind, child.name, child.size);
     const { deployment } = deploy(field, child);
     tb = tb.addChild(field, deployment);
   }
@@ -235,7 +248,11 @@ export interface Case {
   template: object;
 }
 
-export const sweep = (kinds: FieldKind[], cardinalities: readonly Cardinality[], nestings: readonly Nesting[]): Case[] => {
+export const sweep = (
+  kinds: FieldKind[],
+  cardinalities: readonly Cardinality[],
+  nestings: readonly Nesting[],
+): Case[] => {
   const cases: Case[] = [];
 
   for (const kind of kinds) {
