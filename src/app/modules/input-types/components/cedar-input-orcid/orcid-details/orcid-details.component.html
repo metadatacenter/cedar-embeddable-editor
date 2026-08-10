@@ -10,8 +10,8 @@
       class="close-button"
       matSuffix
       mat-icon-button
-      attr.aria-label="{{ 'Generic.HideDetails' | translate }}"
-      matTooltip="{{ 'Generic.HideDetails' | translate }}"
+      attr.aria-label="{{ 'Generic.HideAuthorityRecord' | translate: { authority: 'ORCID' } }}"
+      matTooltip="{{ 'Generic.HideAuthorityRecord' | translate: { authority: 'ORCID' } }}"
       (click)="closeClicked()"
     >
       <mat-icon>close</mat-icon>

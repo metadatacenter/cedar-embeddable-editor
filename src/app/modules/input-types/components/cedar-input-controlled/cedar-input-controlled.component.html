@@ -57,8 +57,8 @@ header, where every other authority's mark already lives.
           [href]="bioPortalTermLink"
           target="_blank"
           rel="noopener"
-          aria-label="View BioPortal page"
-          matTooltip="{{ 'Generic.Details' | translate }}"
+          attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
+          matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
         >
           <mat-icon>open_in_new</mat-icon>
         </a>

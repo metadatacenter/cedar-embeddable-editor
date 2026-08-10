@@ -63,14 +63,21 @@ genuinely theirs.
         }
       </mat-autocomplete>
       @if (selectedData) {
+        <!--
+          One string for the tooltip and the accessible name, and one that names
+          what the control does. They used to disagree: the tooltip read "Show
+          Details" — of what, and nothing is shown, since this opens a page
+          elsewhere — while the accessible name read "View ORCID page" in English
+          regardless of the chosen language.
+        -->
         <a
           matSuffix
           mat-icon-button
           [href]="detailsUrl"
           target="_blank"
           rel="noopener"
-          attr.aria-label="View {{ descriptor.label }} page"
-          matTooltip="{{ 'Generic.Details' | translate }}"
+          attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
+          matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
         >
           <mat-icon>{{ linkIconName }}</mat-icon>
         </a>

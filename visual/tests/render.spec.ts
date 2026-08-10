@@ -2179,6 +2179,32 @@ test.describe('external authority endpoints', () => {
       );
       expect(JSON.stringify(metadata), 'the selected authority term did not reach currentMetadata').toContain(id);
       expect(JSON.stringify(metadata)).toContain(label);
+
+      /*
+       * What the suffix control says it does, now there is a value for it to act
+       * on. Every one of them read "Show Details" — which named no subject, and
+       * on the five that open a page elsewhere described the wrong action. The
+       * accessible name disagreed with the tooltip and was untranslated English.
+       *
+       * ORCID and ROR expand a panel in place, so they say show; the other five
+       * are links out, so they say open. Both name their authority, which is the
+       * part a reader was missing, and both strings are asserted to be the same
+       * one so they cannot drift apart again.
+       */
+      const expands = authority === 'orcid' || authority === 'ror';
+      const expected = expands ? `Show the ${name} record` : `Open the ${name} page`;
+      const suffix = page
+        .locator('mat-form-field')
+        .filter({ has: page.locator(`input[aria-label="${fieldName}"]`) })
+        .locator(expands ? 'button' : 'a[mat-icon-button]')
+        .first();
+
+      await expect(suffix, 'the record control names its authority').toHaveAttribute('aria-label', expected);
+      await suffix.hover();
+      await expect(
+        page.locator('.mat-mdc-tooltip-surface'),
+        'the tooltip and the accessible name are the same string',
+      ).toHaveText(expected);
     });
   }
 });

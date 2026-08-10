@@ -53,8 +53,8 @@
           tabindex="0"
           matSuffix
           mat-icon-button
-          attr.aria-label="{{ 'Generic.Details' | translate }}"
-          matTooltip="{{ 'Generic.Details' | translate }}"
+          attr.aria-label="{{ 'Generic.ShowAuthorityRecord' | translate: { authority: descriptor.label } }}"
+          matTooltip="{{ 'Generic.ShowAuthorityRecord' | translate: { authority: descriptor.label } }}"
           (click)="setShowDetails(true)"
           [disabled]="loadingDetails"
         >
