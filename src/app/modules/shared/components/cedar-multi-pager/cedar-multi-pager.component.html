@@ -10,19 +10,21 @@
   >
     <div class="pager-chips">
       @if (getInstanceCount() > 1) {
-        <mat-chip-listbox [tabIndex]="0" [hideSingleSelectionIndicator]="true" aria-label="Allows multi values.">
+        <mat-chip-listbox
+          [tabIndex]="0"
+          [hideSingleSelectionIndicator]="true"
+          [value]="currentMultiInfo.currentIndex"
+          aria-label="Allows multi values."
+        >
           @if (!hasMultiInstances()) {
             <mat-chip-option selectable="false" disabled="true" aria-label="No values yet">{{
               'Multi.NoInstancesYet' | translate
             }}</mat-chip-option>
           }
           @for (pageNumber of pageNumbers; track pageNumber) {
-            <mat-chip-option
-              [selected]="pageNumber === currentMultiInfo.currentIndex"
-              (click)="chipClicked(pageNumber)"
-              selectable="true"
-              >{{ pageNumber + 1 }}</mat-chip-option
-            >
+            <mat-chip-option [value]="pageNumber" (click)="chipClicked(pageNumber)" selectable="true">{{
+              pageNumber + 1
+            }}</mat-chip-option>
           }
         </mat-chip-listbox>
       }

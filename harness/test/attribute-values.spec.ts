@@ -293,8 +293,7 @@ describe('names the user did not supply', () => {
     driver.handlerContext.addMultiInstance(component);
     const error = driver.handlerContext.changeAttributeValue(component, 'colour', 'red');
 
-    expect(error).toContain('colour');
-    expect(error).toContain('already used');
+    expect(error).toBe('Attribute name "colour" is already used in this instance. Choose a unique name.');
     driver.expectNoErrors('the duplicate is explained next to its input');
   });
 

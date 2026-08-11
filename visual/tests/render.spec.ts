@@ -663,6 +663,17 @@ test('cloning an attribute value copies it and preserves the source page', async
   expect(emitted.a1['@value']).toBe('v1');
   expect(emitted['a1 copy']['@value']).toBe('v1');
 
+  const pages = renderer.getByRole('option');
+  await expect(pages.filter({ hasText: '2' })).toHaveAttribute('aria-selected', 'true');
+  await renderer.getByRole('option', { name: '1', exact: true }).click();
+  await renderer.getByRole('option', { name: '2', exact: true }).click();
+  await expect(name).toHaveValue('a1 copy');
+  await renderer.getByRole('button', { name: 'Add clone after current', exact: true }).click();
+  await expect(name).toHaveValue('a1 copy copy');
+  await expect(value).toHaveValue('v1');
+  await expect(pages.filter({ hasText: '2' })).toHaveAttribute('aria-selected', 'false');
+  await expect(pages.filter({ hasText: '3' })).toHaveAttribute('aria-selected', 'true');
+
   await renderer.getByRole('option', { name: '1', exact: true }).click();
   await expect(name).toHaveValue('a1');
   await expect(value).toHaveValue('v1');

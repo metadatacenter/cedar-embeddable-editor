@@ -215,7 +215,7 @@ export class DataObjectDataValueHandler {
       declaredSiblingNames.has(newName) ||
       this.isDuplicateAttributeName(newName, dataObject, parentDataObject, currentIndex)
     ) {
-      return `Attribute name "${newName}" is already used on this object. Choose a unique name.`;
+      return `Attribute name "${newName}" is already used in this instance. Choose a unique name.`;
     }
 
     const usedByAnotherSlot = this.isAttributeNameUsedElsewhere(dataObject, oldName, currentIndex);
