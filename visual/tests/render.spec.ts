@@ -560,6 +560,12 @@ test('multi-instance actions track cardinality and always expose tooltips', asyn
     [copy, 'Add clone after current'],
     [remove, 'Delete current'],
   ] as const) {
+    // Park the pointer away from the buttons before each hover. A tooltip opens
+    // on `mouseenter`, which does not fire for a pointer already inside the
+    // element — and the clicks above leave it on the first button, so hovering
+    // that one was a move within an element the pointer had never left. Later
+    // iterations were safe only because the previous one parked the pointer.
+    await page.mouse.move(0, 0);
     await button.locator('xpath=parent::span').hover();
     const surface = page.locator('.mat-mdc-tooltip-surface', { hasText: tooltip });
     await expect(surface).toBeVisible();
