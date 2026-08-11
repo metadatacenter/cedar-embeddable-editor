@@ -414,6 +414,44 @@ button.close {
  * clear action as soon as one holds a value, and that action is 48px.
  */
 
+/*
+ * The multi-instance occurrence chips, a fifth smaller than Material's default.
+ *
+ * They are 32px circles carrying one or two digits, sitting on a field's title row
+ * beside 14px text, where they read as the loudest thing in the row rather than as
+ * an index. 26px with a 12px label is the step down the type scale that hints take.
+ *
+ * Here rather than in `cedar-multi-pager.component.scss`, where it belongs, for one
+ * reason: the height is a Material design token, and Angular namespaces a custom
+ * property declared in a component stylesheet. `--mat-chip-container-height` emitted
+ * from there becomes `--%NS%mat-chip-container-height`, which Material never reads,
+ * so the rule looks right and does nothing. A token has to be set from a stylesheet
+ * that is not namespaced.
+ *
+ * Scoped to `app-cedar-multi-pager`, not to `.pager-chips` alone. The page-break
+ * component reuses that class for its page-number chips, and those are navigation
+ * in the form's header rather than an occurrence index — shrinking them was not
+ * asked for and they read fine at Material's size. The element selector is also
+ * what carries the specificity: Material's theme sets this token at
+ * `:host .mat-mdc-chip.mat-mdc-standard-chip`, so three classes is a tie and the
+ * element name breaks it.
+ *
+ * The action's inline padding is what makes a one-digit chip a circle rather than a
+ * 7px sliver — the label is the only thing in it with width — so it shrinks with the
+ * height rather than being removed.
+ */
+app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
+  --mat-chip-container-height: 26px;
+
+  .mdc-evolution-chip__text-label {
+    font-size: 12px;
+  }
+
+  .mat-mdc-chip-action {
+    padding-inline: 9px;
+  }
+}
+
 .mat-icon:hover {
   color: tokens.$cee-color-icon-hover;
   scale: 1.2;
