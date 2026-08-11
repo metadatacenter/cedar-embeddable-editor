@@ -1,5 +1,9 @@
 import { NgModule } from '@angular/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldModule } from '@angular/material/form-field';
+import { MAT_AUTOCOMPLETE_SCROLL_STRATEGY } from '@angular/material/autocomplete';
+import { MAT_SELECT_SCROLL_STRATEGY } from '@angular/material/select';
+import { DOCUMENT } from '@angular/common';
+import { RepositionOnAnyScrollStrategy } from './reposition-on-any-scroll.strategy';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -113,6 +117,26 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
   ],
   providers: [
     { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline', subscriptSizing: 'dynamic' } },
+    /*
+     * Both overlay kinds CEE opens, because both default to Material's reposition
+     * strategy and neither can see the container an embedding page scrolls — see
+     * `RepositionOnAnyScrollStrategy` for why. The autocomplete is where it was
+     * reported, on the authority and controlled-term fields; the select is the
+     * timezone picker and the choice lists, which had the same defect unreported.
+     *
+     * A factory rather than a value: a `ScrollStrategy` holds the overlay it is
+     * attached to, so every overlay needs its own.
+     */
+    {
+      provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY,
+      useFactory: (documentRef: Document) => () => new RepositionOnAnyScrollStrategy(documentRef),
+      deps: [DOCUMENT],
+    },
+    {
+      provide: MAT_SELECT_SCROLL_STRATEGY,
+      useFactory: (documentRef: Document) => () => new RepositionOnAnyScrollStrategy(documentRef),
+      deps: [DOCUMENT],
+    },
   ],
   exports: [
     // FooBar is needed because the first component gets exported without style otherwise
