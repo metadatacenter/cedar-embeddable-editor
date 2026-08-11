@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-dev.20260810.d579449] - 2026-08-10
+
+### Fixed
+
+- An attribute-value field the loaded instance carries no slot for can be filled in.
+  A template declares the property and an instance need not carry it, so a field
+  nobody has filled in arrives with nothing at that path. The add had no list to put
+  an occurrence into and turned the click away, leaving a field that could not be
+  used and reported it only in the console; the list the template implies is now
+  created. A node holding something other than a list is left alone. The "All
+  values" summary no longer reports the same absent node as an error on every
+  change-detection pass.
+
+### Changed
+
+- Every screenshot is judged by an absolute pixel budget rather than a ratio of the
+  page, so a localised change to a tall page is no longer forgiven in proportion to
+  the page's height.
+- Takes the model library build that inflates an omitted attribute-value field to an
+  empty list rather than an empty node, which is the other way a document reaches
+  CEE with nothing usable at that path.
+
 ## [1.6.0-dev.20260810.ab37f62] - 2026-08-10
 
 ### Changed
