@@ -15,6 +15,37 @@ const RENDERABLE_SCHEMES = ['http:', 'https:', 'data:'];
 const ABSOLUTE_URL = /^[a-zA-Z][a-zA-Z0-9+.-]*:/;
 
 /**
+ * A `data:` URL that declares an image, whatever the codec.
+ *
+ * The subtype is unconstrained, and deliberately so: CEE writes this `img` itself
+ * and the author supplies only the URL, so the question is whether the payload is
+ * an image at all, not which format it is. Enumerating codecs here would reject
+ * ones the browser decodes perfectly well, and no `image/` subtype can execute
+ * from an `img` `src` — including `svg+xml`, which is why an SVG diagram renders
+ * in this field.
+ *
+ * `template-markup-policy.ts` answers the same input differently, refusing
+ * `image/svg+xml`, and that asymmetry is intended rather than an oversight. There,
+ * the `img` is one entry in an allowlist over markup the author controls wholesale,
+ * and keeping the narrowest list the corpus justifies means a later edit widening
+ * the element list cannot combine with an SVG payload to produce a scripting
+ * context. Here there is no element list to widen.
+ */
+const IMAGE_DATA_URL = /^data:image\/[a-z0-9.+-]+\s*[;,]/i;
+
+/**
+ * Name a `data:` URL without quoting its payload.
+ *
+ * Every other message ends in the URL, because the URL is what an author edits. A
+ * `data:` URL is not: it can run to hundreds of kilobytes, and the part that says
+ * what went wrong is the media type before the comma.
+ */
+const nameDataUrl = (url: string): string => {
+  const comma = url.indexOf(',');
+  return comma === -1 ? url : `${url.slice(0, comma + 1)}…`;
+};
+
+/**
  * Decide what the field shows.
  *
  * A URL that cannot render is worth saying out loud, because the alternative is
@@ -47,6 +78,14 @@ export const resolveStaticImageView = (
     }
     if (!RENDERABLE_SCHEMES.includes(parsed.protocol.toLowerCase())) {
       return { src: null, error: `This image field holds a URL that cannot address an image: ${candidate}` };
+    }
+    if (parsed.protocol.toLowerCase() === 'data:' && !IMAGE_DATA_URL.test(candidate)) {
+      return {
+        src: null,
+        error: `This image field holds a data: URL that carries something other than an image: ${nameDataUrl(
+          candidate,
+        )}`,
+      };
     }
   }
 

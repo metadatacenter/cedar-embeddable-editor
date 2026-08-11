@@ -62,6 +62,35 @@ describe('resolveStaticImageView', () => {
       },
     );
 
+    /**
+     * `data:` used to pass on the scheme alone, so a payload that was not an image
+     * reached the browser and produced the empty card this whole function exists to
+     * replace. The subtype is not checked against a list of codecs: an `img` cannot
+     * execute any of them, and enumerating them would refuse formats that render.
+     */
+    it.each([
+      'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=',
+      'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E',
+      'data:image/avif;base64,AAAA',
+    ])('renders %s, whatever the codec', (content) => {
+      expect(resolveStaticImageView(content, false)).toEqual({ src: content, error: null });
+    });
+
+    it.each(['data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==', 'data:,hello', 'data:application/pdf,x'])(
+      'refuses %s, which declares something other than an image',
+      (content) => {
+        const view = resolveStaticImageView(content, false);
+        expect(view.src).toBeNull();
+        expect(view.error).toContain('other than an image');
+      },
+    );
+
+    it('names the media type of a rejected data URL without quoting the payload', () => {
+      const view = resolveStaticImageView(`data:text/html;base64,${'A'.repeat(500)}`, false);
+      expect(view.error).toContain('data:text/html;base64,');
+      expect(view.error).not.toContain('AAAA');
+    });
+
     it('reports a URL the browser cannot parse', () => {
       const view = resolveStaticImageView('http://[unclosed', false);
       expect(view.src).toBeNull();

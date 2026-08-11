@@ -243,7 +243,10 @@ const writeRaw = (name, document) => {
   );
   for (const [name, make, configure] of kinds) {
     const f = field(name, make, configure);
-    tb = tb.addChild(f, name === 'bounded_list' ? deploy(f, name, { multi: true, minItems: 0, maxItems: 2 }) : deploy(f, name));
+    tb = tb.addChild(
+      f,
+      name === 'bounded_list' ? deploy(f, name, { multi: true, minItems: 0, maxItems: 2 }) : deploy(f, name),
+    );
   }
   write('02-choices', tb.build());
 }
@@ -272,15 +275,18 @@ const writeRaw = (name, document) => {
 
 // 4. Controlled terms — the autocomplete widget with all four constraint kinds.
 {
-  const term = field('organism', () => CedarBuilders.controlledTermFieldBuilder(), (b) =>
-    b.addOntology(
-      new ControlledTermOntologyBuilder()
-        .withAcronym('NCBITAXON')
-        .withName('NCBI Taxonomy')
-        .withNumTerms(1000000)
-        .withUri(new Iri('https://data.bioontology.org/ontologies/NCBITAXON'))
-        .build(),
-    ),
+  const term = field(
+    'organism',
+    () => CedarBuilders.controlledTermFieldBuilder(),
+    (b) =>
+      b.addOntology(
+        new ControlledTermOntologyBuilder()
+          .withAcronym('NCBITAXON')
+          .withName('NCBI Taxonomy')
+          .withNumTerms(1000000)
+          .withUri(new Iri('https://data.bioontology.org/ontologies/NCBITAXON'))
+          .build(),
+      ),
   );
   const orcid = field('contributor', () => CedarBuilders.extOrcidFieldBuilder());
   const ror = field('institution', () => CedarBuilders.extRorFieldBuilder());
@@ -324,25 +330,28 @@ const writeRaw = (name, document) => {
  * vanish while all the security assertions still passed.
  */
 {
-  const dangerous = field('note', () => CedarBuilders.richTextFieldBuilder(), (b) =>
-    opt(
-      b,
-      'withContent',
-      // An image that cannot load, so its handler is a genuinely reachable path —
-      // `innerHTML` never runs a <script>, but it does run `onerror`.
-      '<img src="./does-not-exist.png" onerror="window.__templateMarkupRan = true" alt="broken">' +
-        '<a href="javascript:window.__templateMarkupRan = true">js link</a>' +
-        // Inert in CEE, which is Angular; executable in the AngularJS Template
-        // Designer that embeds it. Corpus template 009 carries exactly these.
-        '<a href="https://example.org/ok" ng-click="dc.goToMyWorkspace()">ng link</a>' +
-        '<iframe src="about:blank" title="frame"></iframe>' +
-        '<script>window.__templateMarkupRan = true;<\/script>' +
-        // Everything below must survive.
-        '<p style="color: rgb(12, 34, 56); font-size: 18px;">styled text</p>' +
-        '<table border="1"><tbody><tr><td colspan="2">cell</td></tr></tbody></table>' +
-        '<ul><li>listed</li></ul>' +
-        '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" alt="inline">',
-    ),
+  const dangerous = field(
+    'note',
+    () => CedarBuilders.richTextFieldBuilder(),
+    (b) =>
+      opt(
+        b,
+        'withContent',
+        // An image that cannot load, so its handler is a genuinely reachable path —
+        // `innerHTML` never runs a <script>, but it does run `onerror`.
+        '<img src="./does-not-exist.png" onerror="window.__templateMarkupRan = true" alt="broken">' +
+          '<a href="javascript:window.__templateMarkupRan = true">js link</a>' +
+          // Inert in CEE, which is Angular; executable in the AngularJS Template
+          // Designer that embeds it. Corpus template 009 carries exactly these.
+          '<a href="https://example.org/ok" ng-click="dc.goToMyWorkspace()">ng link</a>' +
+          '<iframe src="about:blank" title="frame"></iframe>' +
+          '<script>window.__templateMarkupRan = true;</script>' +
+          // Everything below must survive.
+          '<p style="color: rgb(12, 34, 56); font-size: 18px;">styled text</p>' +
+          '<table border="1"><tbody><tr><td colspan="2">cell</td></tr></tbody></table>' +
+          '<ul><li>listed</li></ul>' +
+          '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" alt="inline">',
+      ),
   );
   let tb = common(CedarBuilders.templateBuilder(), 'TemplateMarkup', 'templates').withSchemaDescription(
     'Static rich text carrying executable markup',
@@ -351,13 +360,83 @@ const writeRaw = (name, document) => {
   write('19-template-markup', tb.build());
 }
 
+/**
+ * 20. The template-authored strings that are not rich text.
+ *
+ * Rich text is the only one of these rendered as HTML, and 19 covers it. The rest
+ * of what a template author writes reaches the page as interpolated text or as a
+ * URL: a section break's label and help text, an image field's `src`, a video
+ * field's link, and the messages the image and video resolvers produce when they
+ * refuse one. Each is safe by a different mechanism — Angular's interpolation, a
+ * scheme check, an embed URL built from a fixed origin around a validated video ID
+ * — and each was an observation about the code rather than something a test held.
+ *
+ * So every string here is hostile, and the assertions are that the page shows them
+ * and does nothing else with them. Not in FIXTURES, for the same reason as 19: a
+ * screenshot would record what a refusal happens to look like.
+ */
+{
+  // A payload that runs if any of these strings is ever treated as markup. The
+  // `img` is what makes it reachable — `innerHTML` never runs a `<script>`, but a
+  // failed image load does fire `onerror`.
+  // `data-static-markup` is what an assertion counts: an element carrying it is one
+  // of these strings that became markup, whatever else the editor's own DOM holds.
+  const MARKUP =
+    '<img data-static-markup src="./does-not-exist.png" onerror="window.__staticMarkupRan = true">' +
+    '<b data-static-markup>bold</b>';
+
+  const section = field(
+    'section',
+    () => CedarBuilders.sectionBreakFieldBuilder(),
+    (b) => b.withSchemaName(`Heading ${MARKUP}`).withSchemaDescription(`Help ${MARKUP}`),
+  );
+  // The scheme check, and the case an author is most likely to have pasted.
+  const scripted = field(
+    'scripted',
+    () => CedarBuilders.imageFieldBuilder(),
+    (b) => opt(b, 'withContent', 'javascript:window.__staticMarkupRan = true'),
+  );
+  // A `data:` URL that declares something other than an image. Renders nothing in
+  // any browser, and used to pass on the strength of its scheme alone.
+  const inline = field(
+    'inline',
+    () => CedarBuilders.imageFieldBuilder(),
+    (b) =>
+      opt(
+        b,
+        'withContent',
+        `data:text/html;base64,${Buffer.from('<script>window.__staticMarkupRan = true</script>').toString('base64')}`,
+      ),
+  );
+  // A host that ends in the YouTube one rather than being it, carrying markup in
+  // the query so the refusal message is rendered as well as produced.
+  const video = field(
+    'video',
+    () => CedarBuilders.youtubeFieldBuilder(),
+    (b) => opt(b, 'withVideoId', `https://youtube.com.evil.example/watch?v=${MARKUP}`),
+  );
+
+  let tb = common(CedarBuilders.templateBuilder(), 'StaticMarkup', 'templates').withSchemaDescription(
+    'Static labels and URLs carrying executable markup',
+  );
+  tb = tb.addChild(section, deploy(section, 'section'));
+  tb = tb.addChild(scripted, deploy(scripted, 'scripted'));
+  tb = tb.addChild(inline, deploy(inline, 'inline'));
+  tb = tb.addChild(video, deploy(video, 'video'));
+  write('20-static-markup', tb.build());
+}
+
 // 5. Static content and page breaks — section headers, rich text, pagination.
 {
-  const section = field('section', () => CedarBuilders.sectionBreakFieldBuilder(), (b) =>
-    opt(b, 'withContent', 'Section One'),
+  const section = field(
+    'section',
+    () => CedarBuilders.sectionBreakFieldBuilder(),
+    (b) => opt(b, 'withContent', 'Section One'),
   );
-  const rich = field('note', () => CedarBuilders.richTextFieldBuilder(), (b) =>
-    opt(b, 'withContent', '<p>Some <strong>rich</strong> guidance text.</p>'),
+  const rich = field(
+    'note',
+    () => CedarBuilders.richTextFieldBuilder(),
+    (b) => opt(b, 'withContent', '<p>Some <strong>rich</strong> guidance text.</p>'),
   );
   const pb = field('pb', () => CedarBuilders.pageBreakFieldBuilder());
   const a = field('first', () => CedarBuilders.textFieldBuilder());
@@ -384,8 +463,10 @@ const writeRaw = (name, document) => {
     "<rect x='130' y='20' width='40' height='80' fill='rgb(249,168,37)'/>" +
     "<rect x='185' y='45' width='35' height='30' fill='rgb(2,119,189)'/>" +
     '</svg>';
-  const image = field('diagram', () => CedarBuilders.imageFieldBuilder(), (b) =>
-    opt(b, 'withContent', `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`),
+  const image = field(
+    'diagram',
+    () => CedarBuilders.imageFieldBuilder(),
+    (b) => opt(b, 'withContent', `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`),
   );
 
   let tb = common(CedarBuilders.templateBuilder(), 'StaticAndPaged', 'templates').withSchemaDescription(
@@ -482,13 +563,17 @@ const writeRaw = (name, document) => {
 //    entire reason for owning the component, were rendered by nothing.
 {
   const temporal = (name, type, granularity, timeFormat) =>
-    field(name, () => CedarBuilders.temporalFieldBuilder(), (b) => {
-      let out = b.withTemporalType(type).withTemporalGranularity(granularity);
-      if (timeFormat) {
-        out = opt(out, 'withInputTimeFormat', timeFormat);
-      }
-      return out;
-    });
+    field(
+      name,
+      () => CedarBuilders.temporalFieldBuilder(),
+      (b) => {
+        let out = b.withTemporalType(type).withTemporalGranularity(granularity);
+        if (timeFormat) {
+          out = opt(out, 'withInputTimeFormat', timeFormat);
+        }
+        return out;
+      },
+    );
 
   const fields = [
     temporal('year_only', TemporalType.DATE, TemporalGranularity.YEAR),
@@ -558,8 +643,10 @@ const writeRaw = (name, document) => {
 //     Only testable with an instance to inject, which is why `host.html` learned
 //     `?i=`. The template default is `Limited`; the instance says `Private`.
 {
-  const choice = field('access', () => CedarBuilders.radioFieldBuilder(), (b) =>
-    b.addRadioOption('Private', false).addRadioOption('Limited', true).addRadioOption('Public', false),
+  const choice = field(
+    'access',
+    () => CedarBuilders.radioFieldBuilder(),
+    (b) => b.addRadioOption('Private', false).addRadioOption('Limited', true).addRadioOption('Public', false),
   );
   let tb = common(CedarBuilders.templateBuilder(), 'ChoiceDefault', 'templates').withSchemaDescription(
     'A default-selected choice, to be overridden by an injected instance',
@@ -589,8 +676,10 @@ const writeRaw = (name, document) => {
 //     three fields on one page, and the assertion is whether `mat-card-content`
 //     exists inside each one's card.
 {
-  const list = field('list_no_values', () => CedarBuilders.multipleChoiceListFieldBuilder(), (b) =>
-    b.addListOption('North', false).addListOption('South', false),
+  const list = field(
+    'list_no_values',
+    () => CedarBuilders.multipleChoiceListFieldBuilder(),
+    (b) => b.addListOption('North', false).addListOption('South', false),
   );
   const pagedEmpty = field('paged_no_instances', () => CedarBuilders.textFieldBuilder());
   const pagedFilled = field('paged_one_instance', () => CedarBuilders.textFieldBuilder());
@@ -616,8 +705,10 @@ const writeRaw = (name, document) => {
 //     control, and reading the second page proves the value came from the model
 //     rather than from whatever the first page left behind.
 {
-  const choice = field('access', () => CedarBuilders.radioFieldBuilder(), (b) =>
-    b.addRadioOption('Private', false).addRadioOption('Limited', true).addRadioOption('Public', false),
+  const choice = field(
+    'access',
+    () => CedarBuilders.radioFieldBuilder(),
+    (b) => b.addRadioOption('Private', false).addRadioOption('Limited', true).addRadioOption('Public', false),
   );
   let el = common(CedarBuilders.templateElementBuilder(), 'record', 'template-elements');
   el = el.addChild(choice, deploy(choice, 'access'));
@@ -794,11 +885,15 @@ const writeRaw = (name, document) => {
 //     precision.
 {
   const temporal = (name, type, granularity, timezone = false) =>
-    field(name, () => CedarBuilders.temporalFieldBuilder(), (b) => {
-      let out = b.withTemporalType(type).withTemporalGranularity(granularity);
-      if (timezone) out = out.withTimezoneEnabled(true);
-      return out;
-    });
+    field(
+      name,
+      () => CedarBuilders.temporalFieldBuilder(),
+      (b) => {
+        let out = b.withTemporalType(type).withTemporalGranularity(granularity);
+        if (timezone) out = out.withTimezoneEnabled(true);
+        return out;
+      },
+    );
 
   const fields = [
     temporal('date_year', TemporalType.DATE, TemporalGranularity.YEAR),

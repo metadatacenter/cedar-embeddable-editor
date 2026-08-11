@@ -116,8 +116,13 @@ describe('executable content does not', () => {
   });
 
   /**
-   * An SVG document can carry script, so `data:image/svg+xml` is the one image type
-   * the policy refuses — a distinction `ADD_DATA_URI_TAGS` alone does not make.
+   * `data:image/svg+xml` is the one image type the policy refuses — a distinction
+   * `ADD_DATA_URI_TAGS` alone does not make. Not because an SVG in an `img` can
+   * execute, since it cannot, but to keep the allowlist as narrow as the corpus
+   * justifies: a later edit widening `ALLOWED_TAGS` to `object` or `embed` would
+   * otherwise inherit a scripting context from a payload already admitted. The
+   * static image field, which builds its own `img`, admits SVG for the same reason
+   * turned around.
    */
   it('drops an svg data URI while keeping the image element', () => {
     const svg = 'data:image/svg+xml;base64,PHN2Zz48c2NyaXB0Lz48L3N2Zz4=';

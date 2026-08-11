@@ -127,6 +127,19 @@ const ALLOWED_ATTR = [
  */
 const ALLOWED_URI_REGEXP = /^(?:https?:|mailto:|tel:|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i;
 
+/**
+ * The `data:` images an `<img>` may carry.
+ *
+ * `image/svg+xml` is absent, and the static image field admits it: the two paths
+ * answer the same input differently on purpose. An SVG reached through an `img`
+ * `src` cannot execute, so refusing it here buys nothing against the markup this
+ * policy sees today. What it buys is that the list stays the narrowest the corpus
+ * justifies, so a later edit widening `ALLOWED_TAGS` cannot combine with an SVG
+ * payload to produce a scripting context. The image field has no element list to
+ * widen — CEE writes that `img` itself and the author supplies only the URL, which
+ * is why an SVG diagram renders there. `static-image-view.ts` carries the other
+ * half of this reasoning.
+ */
 const DATA_IMAGE = /^data:image\/(?:png|jpeg|jpg|gif|webp|bmp);base64,[a-z0-9+/=\s]*$/i;
 
 let hooked = false;

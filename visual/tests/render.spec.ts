@@ -2337,6 +2337,88 @@ test.describe('template rich text', () => {
   });
 });
 
+/**
+ * The rest of what a template author writes.
+ *
+ * Rich text is the only string rendered as HTML, so it is the only one with a
+ * policy. Everything else an author controls reaches the page as interpolated text
+ * or as a URL — a section break's label and help text, an image field's `src`, a
+ * video field's link, and the messages the two resolvers produce when they refuse
+ * one. Each is safe by a different mechanism, and each was a property of the code
+ * that no test at render level held: the resolvers have unit coverage for hostile
+ * input, which says what they return and nothing about what is drawn.
+ *
+ * `20-static-markup` is absent from `FIXTURES` for the same reason as
+ * `19-template-markup`: a screenshot of a refusal records what a refusal happens to
+ * look like.
+ */
+test.describe('template-authored strings that are not rich text', () => {
+  const probes = (page: Page) =>
+    page.evaluate(() => {
+      const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+      return {
+        html: root.innerHTML,
+        heading: root.querySelector('.section-break-header')?.textContent ?? '',
+        // An element carrying the attribute is one of the fixture's strings that
+        // became markup. Counted page-wide, since a Material overlay can leave the
+        // shadow root.
+        becameMarkup: document.querySelectorAll('[data-static-markup]').length,
+        images: root.querySelectorAll('img').length,
+        frames: root.querySelectorAll('iframe').length,
+      };
+    });
+
+  test('are shown as text, and never become markup or a URL the browser follows', async ({ page }) => {
+    await open(page, '20-static-markup');
+    // Long enough for the broken image to have failed, which is what would fire the
+    // handler written into every one of these strings.
+    await page.waitForTimeout(500);
+
+    expect(
+      await page.evaluate(() => (window as any).__staticMarkupRan === true),
+      'a handler from a template-authored string executed',
+    ).toBe(false);
+
+    const { html, heading, becameMarkup, images, frames } = await probes(page);
+    expect(becameMarkup, 'a template-authored string was parsed as markup').toBe(0);
+    expect(images, 'an image element was built from a URL that cannot address an image').toBe(0);
+    expect(frames, 'an iframe was built from a host that merely ends in the YouTube one').toBe(0);
+
+    // The other half: refusing to render it must not amount to hiding it. An author
+    // fixes what they can see, so the label reads back exactly as it was typed.
+    expect(heading, 'the section-break label should render as the text it is').toContain(
+      'onerror="window.__staticMarkupRan = true"',
+    );
+
+    expect(html, 'the javascript: image URL should be refused by scheme').toContain('cannot address an image');
+    expect(html, 'the data: image URL should be refused for not carrying an image').toContain('other than an image');
+    expect(html, 'the lookalike host should be named').toContain('youtube.com.evil.example');
+    expect(html, 'and refused as a video').toContain('only YouTube videos can be embedded');
+    expect(html, 'a rejected data: URL should be named by media type, not quoted whole').not.toContain('PHNjcmlwdD');
+  });
+
+  /**
+   * The section break's help text is the one string here that is not in the page
+   * until it is asked for. It reaches the reader twice — as the tooltip Material
+   * shows on hover, and as the hidden element `aria-describedby` points at — so
+   * both are checked, the second because a screen reader is the only route to it.
+   */
+  test('reach the help tooltip as text too', async ({ page }) => {
+    await open(page, '20-static-markup');
+
+    const described = page.locator('[id^="cdk-describedby-message"]').first();
+    await expect(described).toContainText('onerror="window.__staticMarkupRan = true"');
+
+    await page.locator('mat-icon.icon-help').first().hover();
+    const tooltip = page.locator('.mat-mdc-tooltip-surface').first();
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toContainText('onerror="window.__staticMarkupRan = true"');
+
+    const { becameMarkup } = await probes(page);
+    expect(becameMarkup, 'the help text was parsed as markup').toBe(0);
+  });
+});
+
 test.describe('markup in an instance value', () => {
   test('is escaped, not rendered, while the field is editable', async ({ page }) => {
     await open(page, '01-input-types', undefined, '14-markup-in-a-value');
