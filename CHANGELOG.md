@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-dev.20260811.61ac9c2] - 2026-08-11
+
+### Fixed
+
+- An attribute-value field stays editable after a host saves an instance and injects it
+  back. The model reader pairs the wire form's list of names with their sibling values
+  into an `InstanceDataAttributeValueField`, which reads well and is not a list; the
+  pager treated it as one and crashed on the first change-detection pass. A loaded
+  instance is brought to the typed list shape CEE creates and edits, once, at the input
+  boundary.
+
 ## [1.6.0-dev.20260811.26630a1] - 2026-08-11
 
 ### Fixed
