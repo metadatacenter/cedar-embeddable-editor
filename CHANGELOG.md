@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-dev.20260811.563e8b6] - 2026-08-11
+
+### Fixed
+
+- The multi-instance pager marks the page it is actually showing. Selection was
+  declared on each chip with `[selected]`, which the chip listbox does not track, so
+  after cloning or paging the highlighted chip and the occurrence on screen could
+  disagree. The listbox now holds the selection and each chip declares its own value.
+
+### Changed
+
+- A duplicate attribute name is reported as already used "in this instance" rather
+  than "on this object", which is what a person filling in a form is looking at.
+
 ## [1.6.0-dev.20260811.72892c7] - 2026-08-11
 
 ### Changed
