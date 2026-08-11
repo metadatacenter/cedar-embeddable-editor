@@ -243,8 +243,8 @@ export class HandlerContext {
     this.buildQualityReport();
   }
 
-  changeAttributeValue(component: FieldComponent, key: string | null, value: string | null): void {
-    this.dataObjectDataValueHandler.changeAttributeValue(
+  changeAttributeValue(component: FieldComponent, key: string | null, value: string | null): string | null {
+    const validationError = this.dataObjectDataValueHandler.changeAttributeValue(
       this.dataContext,
       component,
       this.multiInstanceObjectService,
@@ -252,6 +252,7 @@ export class HandlerContext {
       value,
     );
     this.buildQualityReport();
+    return validationError;
   }
 
   deleteAttributeValue(component: FieldComponent, key: string | null): void {

@@ -47,4 +47,15 @@ describe('CedarInputAttributeValueComponent', () => {
     expect(component.nameInputControl.value).toBeNull();
     expect(component.valueInputControl.value).toBeNull();
   });
+
+  it('clears a stale attribute-name error when the model supplies a valid value', () => {
+    const component = makeComponent();
+    component.attributeNameError = 'Attribute name is already used';
+    component.nameInputControl.setErrors({ attributeName: true });
+
+    component.setCurrentValue({ colour: 'blue' });
+
+    expect(component.attributeNameError).toBeNull();
+    expect(component.nameInputControl.errors).toBeNull();
+  });
 });

@@ -22,6 +22,7 @@ import { valueIsIri } from '../models/ext-auth-categories.model';
 import { InstanceValueNode } from '../util/instance-value-node';
 import { MessageHandlerService } from '../service/message-handler.service';
 import { InputType } from '../models/input-type.model';
+import { StaticFieldComponent } from '../models/static/static-field-component.model';
 
 /**
  * One step of the walk down to the node a value belongs in.
@@ -49,15 +50,35 @@ interface DownstreamObjects {
   remainingPath: string[];
 }
 
-/**
- * The name a duplicate attribute is given, numbered until it is free.
- *
- * CEE's, not CEDAR's. It lived in the model library's `JsonSchema` alongside
- * `@id` and `@value` — a product decision about what to call a property the user
- * has just collided with, filed with the keys a CEDAR document is written in.
- * Nothing in the library referred to it.
+/*
+ * Kept in step with AttributeValueNamePolicy in the model library. CEE cannot
+ * consume that new export until the next model-library package is published,
+ * but it must reject the same names at the point of entry rather than relying
+ * on serialization to catch them later.
  */
-const DEFAULT_ATTRIBUTE_NAME = 'Attribute Value Field';
+const RESERVED_ATTRIBUTE_VALUE_NAMES = new Set([
+  '@context',
+  '@id',
+  '@type',
+  '@value',
+  '@language',
+  'schema:isBasedOn',
+  'schema:name',
+  'schema:description',
+  'pav:derivedFrom',
+  'pav:createdOn',
+  'pav:createdBy',
+  'pav:lastUpdatedOn',
+  'oslc:modifiedBy',
+  'rdfs:label',
+  'skos:prefLabel',
+  'skos:altLabel',
+  'skos:notation',
+  '_annotations',
+]);
+
+const isReservedAttributeValueName = (name: string): boolean =>
+  name.startsWith('@') || RESERVED_ATTRIBUTE_VALUE_NAMES.has(name);
 
 /**
  * One change to an attribute-value field: the attribute's name, and what it holds.
@@ -159,10 +180,11 @@ export class DataObjectDataValueHandler {
     parentDataObject: InstanceObject,
     component: CedarComponent,
     write: AttributeWrite,
-  ): void {
+    declaredSiblingNames: ReadonlySet<string>,
+  ): string | null {
     const oldNameNode = dataObject[currentIndex];
     const oldName = oldNameNode instanceof InstanceDataAttributeValueFieldName ? oldNameNode.name : '';
-    let newName = write.name ?? '';
+    const newName = write.name ?? '';
 
     /*
      * An attribute row is created before its user-defined name exists. Keep that
@@ -181,27 +203,18 @@ export class DataObjectDataValueHandler {
         // second left an entry naming a property that was gone.
         parentDataObject.removeValue(oldName);
       }
-      return;
+      return null;
     }
 
-    if (this.isDuplicateAttributeName(newName, dataObject, parentDataObject, currentIndex)) {
-      const supplied = newName;
-      newName = this.getDefaultAttributeName(dataObject, parentDataObject, currentIndex);
-      // A name the user actually typed has just been thrown away, because
-      // another attribute on this object already uses it and two properties
-      // cannot share a name. That is data loss, and it used to happen in
-      // silence — the box simply changed under them.
-      //
-      // A *blank* name is not reported. The widget calls this on every
-      // keystroke in either box, so empty is the state of every attribute the
-      // moment it is created; complaining about it would put an error under the
-      // field before the user had finished the first character.
-      if (supplied) {
-        this.messageHandlerService.error(
-          `Attribute name "${supplied}" is already used on this object, so this one was renamed to "${newName}". ` +
-            'Two attributes cannot share a name.',
-        );
-      }
+    if (isReservedAttributeValueName(newName)) {
+      return `Attribute name "${newName}" is reserved for instance metadata.`;
+    }
+
+    if (
+      declaredSiblingNames.has(newName) ||
+      this.isDuplicateAttributeName(newName, dataObject, parentDataObject, currentIndex)
+    ) {
+      return `Attribute name "${newName}" is already used on this object. Choose a unique name.`;
     }
 
     const oldNameIndex = indexOfName(dataObject, oldName);
@@ -227,6 +240,7 @@ export class DataObjectDataValueHandler {
       }
       parentDataObject.setIri(newName, propertyIri);
     }
+    return null;
   }
 
   private setDataPathValueRecursively(
@@ -239,7 +253,9 @@ export class DataObjectDataValueHandler {
     fullPath: string[],
     /** Where `dataObject` sits in `parentDataObject`. Empty only at the root. */
     key = '',
-  ): void {
+    /** Serializable template children sharing the attribute's JSON object. */
+    declaredSiblingNames: ReadonlySet<string> = new Set(),
+  ): string | null {
     if (path.length === 0) {
       if (component instanceof SingleFieldComponent) {
         if (!isAttributeWrite(valueObject)) {
@@ -258,7 +274,14 @@ export class DataObjectDataValueHandler {
           this.injectArrayValue(dataObject, valueObject);
         } else if (isAttributeWrite(valueObject)) {
           if (isInstanceArray(dataObject) && isInstanceObject(parentDataObject)) {
-            this.injectAttributeValue(dataObject, currentIndex, parentDataObject, component, valueObject);
+            return this.injectAttributeValue(
+              dataObject,
+              currentIndex,
+              parentDataObject,
+              component,
+              valueObject,
+              declaredSiblingNames,
+            );
           }
         } else if (isInstanceArray(dataObject)) {
           this.placeValue(dataObject, currentIndex, dataObject[currentIndex] ?? null, valueObject, fullPath);
@@ -267,9 +290,9 @@ export class DataObjectDataValueHandler {
     } else {
       const downstream = this.getDownstreamObjects(dataObject, component, multiInstanceObjectService, path);
       if (downstream.childComponent === null) {
-        return;
+        return null;
       }
-      this.setDataPathValueRecursively(
+      return this.setDataPathValueRecursively(
         downstream.dataSubObject,
         downstream.parentDataSubObject,
         downstream.childComponent,
@@ -278,8 +301,10 @@ export class DataObjectDataValueHandler {
         valueObject,
         fullPath,
         downstream.key,
+        declaredSiblingNames,
       );
     }
+    return null;
   }
 
   private deleteAttributeValueRecursively(
@@ -370,20 +395,39 @@ export class DataObjectDataValueHandler {
     return true;
   }
 
-  private getDefaultAttributeName(
-    dataObject: InstanceArray,
-    parentDataObject: InstanceObject,
-    currentIndex: number,
-  ): string {
-    let nameIndex = currentIndex + 1;
-    let defName = DEFAULT_ATTRIBUTE_NAME + nameIndex;
-
-    while (this.isDuplicateAttributeName(defName, dataObject, parentDataObject, currentIndex) && nameIndex < 1000) {
-      nameIndex++;
-      defName = DEFAULT_ATTRIBUTE_NAME + nameIndex;
+  /**
+   * Template children reserve their JSON property names even when a sparse
+   * instance currently omits them. Without this template-side check, an
+   * attribute could claim the missing child's name and the later first edit of
+   * that child would overwrite one of the two values.
+   */
+  private getDeclaredSiblingNames(component: FieldComponent, representation: CedarComponent): ReadonlySet<string> {
+    let parent = representation;
+    for (const segment of component.path.slice(0, -1)) {
+      if (
+        !(parent instanceof CedarTemplate) &&
+        !(parent instanceof SingleElementComponent) &&
+        !(parent instanceof MultiElementComponent)
+      ) {
+        return new Set();
+      }
+      const child = parent.getChildByName(segment);
+      if (child === null) {
+        return new Set();
+      }
+      parent = child;
     }
 
-    return defName;
+    if (
+      !(parent instanceof CedarTemplate) &&
+      !(parent instanceof SingleElementComponent) &&
+      !(parent instanceof MultiElementComponent)
+    ) {
+      return new Set();
+    }
+    return new Set(
+      parent.children.filter((child) => !(child instanceof StaticFieldComponent)).map((child) => child.name),
+    );
   }
 
   changeValue(
@@ -464,7 +508,7 @@ export class DataObjectDataValueHandler {
     multiInstanceObjectService: MultiInstanceObjectHandler,
     key: string | null,
     value: string | null,
-  ): void {
+  ): string | null {
     const path = component.path;
 
     if (value && value.length === 0) {
@@ -475,10 +519,12 @@ export class DataObjectDataValueHandler {
 
     const representation = dataContext.templateRepresentation;
     if (representation === null) {
-      return;
+      return null;
     }
-    dataContext.mutate((instance) =>
-      this.setDataPathValueRecursively(
+    const declaredSiblingNames = this.getDeclaredSiblingNames(component, representation);
+    let validationError: string | null = null;
+    dataContext.mutate((instance) => {
+      validationError = this.setDataPathValueRecursively(
         instance,
         null,
         representation,
@@ -486,8 +532,11 @@ export class DataObjectDataValueHandler {
         path,
         valueObject,
         path,
-      ),
-    );
+        '',
+        declaredSiblingNames,
+      );
+    });
+    return validationError;
   }
 
   deleteAttributeValue(

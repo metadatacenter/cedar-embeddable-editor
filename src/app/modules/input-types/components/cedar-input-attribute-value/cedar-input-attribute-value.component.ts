@@ -29,6 +29,7 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
   options: FormGroup;
   nameInputControl = new FormControl<string | null>(null, null);
   valueInputControl = new FormControl<string | null>(null, null);
+  attributeNameError: string | null = null;
   @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
@@ -55,8 +56,14 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
       name = this.nameInputControl.value;
     }
     const value = this.valueInputControl.value;
-    this.handlerContext.changeAttributeValue(this.component, name, value);
-    this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
+    this.attributeNameError = this.handlerContext.changeAttributeValue(this.component, name, value);
+    this.nameInputControl.setErrors(this.attributeNameError === null ? null : { attributeName: true });
+    if (this.attributeNameError !== null) {
+      this.nameInputControl.markAsTouched();
+    }
+    if (this.attributeNameError === null) {
+      this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
+    }
   }
 
   valueChanged($event: Event): void {
@@ -72,7 +79,11 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
       value = null;
     }
     const name = this.nameInputControl.value;
-    this.handlerContext.changeAttributeValue(this.component, name, value);
+    this.attributeNameError = this.handlerContext.changeAttributeValue(this.component, name, value);
+    this.nameInputControl.setErrors(this.attributeNameError === null ? null : { attributeName: true });
+    if (this.attributeNameError !== null) {
+      this.nameInputControl.markAsTouched();
+    }
   }
 
   /*
@@ -82,6 +93,8 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
    * pieces the widget needs from the model-library instance.
    */
   setCurrentValue(currentValue: unknown): void {
+    this.attributeNameError = null;
+    this.nameInputControl.setErrors(null);
     if (!isAttributeValueView(currentValue)) {
       this.nameInputControl.setValue(null);
       this.valueInputControl.setValue(null);
@@ -99,7 +112,12 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
 
   clearName(): void {
     this.nameInputControl.setValue(null);
-    this.handlerContext.changeAttributeValue(this.component, null, this.valueInputControl.value);
+    this.attributeNameError = this.handlerContext.changeAttributeValue(
+      this.component,
+      null,
+      this.valueInputControl.value,
+    );
+    this.nameInputControl.setErrors(null);
   }
 
   clearValue(): void {

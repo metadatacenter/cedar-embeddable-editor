@@ -11,9 +11,8 @@
  *
  * None of that had a test. Coverage over the domain layer put
  * `data-object-data-value.handler.ts` at 78% — the lowest of any handler — and
- * named three functions no test had ever called: `deleteAttributeValue`,
- * `deleteAttributeValueRecursively`, and `getDefaultAttributeName`, which is
- * what runs whenever the user leaves the name blank or reuses one. The
+ * named two functions no test had ever called: `deleteAttributeValue` and
+ * `deleteAttributeValueRecursively`. The
  * round-trip suite writes one attribute and reads it back; everything after
  * that first write was unexercised.
  *
@@ -237,29 +236,106 @@ describe('names the user did not supply', () => {
     const driver = new CeeDriver(flat());
     const component = driver.findOrThrow(['_av']);
     addAttribute(driver, component, 'colour', 'blue');
-    addAttribute(driver, component, 'colour', 'red');
+    driver.handlerContext.addMultiInstance(component);
+    const error = driver.handlerContext.changeAttributeValue(component, 'colour', 'red');
 
-    // The first value stands; the duplicate gets a generated name of its own.
+    // The first value stands; the duplicate row remains unnamed until the user
+    // chooses a name that can safely become a JSON property.
     expect(valueOf(driver.extract, 'colour')).toBe('blue');
-    const names = heldValue(driver.extract.values._av) as (string | null)[];
-    expect(names).toHaveLength(2);
-    expect(names[1]).not.toBe('colour');
-    expect(valueOf(driver.extract, names[1] ?? '')).toBe('red');
+    expect(heldValue(driver.extract.values._av)).toEqual(['colour', null]);
+    expect(error).toContain('already used');
   });
 
   /**
-   * BEHAVIOUR CHANGE: the rename above used to happen in silence. A name the
-   * user typed was discarded and the box changed under them with no
-   * explanation — data loss, small but real.
+   * The handler returns the explanation to the widget instead of emitting a
+   * global notification. The input can therefore keep the rejected text in
+   * view with a local error while the instance stays valid.
    */
-  it('says so when it discards a name the user typed', () => {
+  it('returns a local explanation without emitting a global error', () => {
     const driver = new CeeDriver(flat());
     const component = driver.findOrThrow(['_av']);
     addAttribute(driver, component, 'colour', 'blue');
-    addAttribute(driver, component, 'colour', 'red');
+    driver.handlerContext.addMultiInstance(component);
+    const error = driver.handlerContext.changeAttributeValue(component, 'colour', 'red');
 
-    expect(driver.messages.errors.join('\n')).toContain('colour');
-    expect(driver.messages.errors.join('\n')).toContain('already used');
+    expect(error).toContain('colour');
+    expect(error).toContain('already used');
+    driver.expectNoErrors('the duplicate is explained next to its input');
+  });
+
+  it('rejects a name already occupied by an ordinary field', () => {
+    const template = buildTemplate({
+      name: 'av_and_text',
+      children: [
+        { kind: TEXT, name: 'text' },
+        { kind: ATTR, name: 'av' },
+      ],
+    });
+    const driver = new CeeDriver(template);
+    const component = driver.findOrThrow(['_av']);
+    addAttribute(driver, component, null, 'would overwrite text');
+
+    const error = driver.handlerContext.changeAttributeValue(component, '_text', 'would overwrite text');
+
+    expect(error).toContain('already used');
+    expect(heldValue(driver.extract.values._av)).toEqual(['']);
+  });
+
+  it('reserves a declared field name even when a sparse instance omits that field', () => {
+    const template = buildTemplate({
+      name: 'av_and_sparse_text',
+      children: [
+        { kind: TEXT, name: 'text' },
+        { kind: ATTR, name: 'av' },
+      ],
+    });
+    const sparse = instanceWith('https://repo.metadatacenter.org/templates/av-and-sparse-text', {
+      _av: [],
+    });
+    const driver = new CeeDriver(template, { instance: sparse });
+    const component = driver.findOrThrow(['_av']);
+    addAttribute(driver, component, null, 'must not claim a declared property');
+
+    const error = driver.handlerContext.changeAttributeValue(component, '_text', 'must not claim a declared property');
+
+    expect(error).toContain('already used');
+    expect(driver.extract.hasValue('_text')).toBe(false);
+    expect(heldValue(driver.extract.values._av)).toEqual(['']);
+  });
+
+  it.each(['@context', '@anything', 'schema:name', '_annotations'])(
+    'rejects the reserved instance name %s',
+    (reservedName) => {
+      const driver = new CeeDriver(flat());
+      const component = driver.findOrThrow(['_av']);
+      addAttribute(driver, component, null, 'metadata must survive');
+
+      const error = driver.handlerContext.changeAttributeValue(component, reservedName, 'metadata must survive');
+
+      expect(error).toContain('reserved');
+      expect(heldValue(driver.extract.values._av)).toEqual(['']);
+      expect(driver.extract.hasValue(reservedName)).toBe(false);
+    },
+  );
+
+  it('rejects a name already used by another attribute-value field', () => {
+    const template = buildTemplate({
+      name: 'two_av_fields',
+      children: [
+        { kind: ATTR, name: 'first' },
+        { kind: ATTR, name: 'second' },
+      ],
+    });
+    const driver = new CeeDriver(template);
+    addAttribute(driver, driver.findOrThrow(['_first']), 'colour', 'blue');
+    const second = driver.findOrThrow(['_second']);
+    addAttribute(driver, second, null, 'red');
+
+    const error = driver.handlerContext.changeAttributeValue(second, 'colour', 'red');
+
+    expect(error).toContain('already used');
+    expect(valueOf(driver.extract, 'colour')).toBe('blue');
+    expect(heldValue(driver.extract.values._second)).toEqual(['']);
   });
 
   /**
@@ -354,6 +430,33 @@ describe('attribute values inside elements', () => {
     expect(valueOf(objectAt(driver.extract, '_el'), 'colour')).toBe('blue');
     expect(driver.extract.values.colour, 'the attribute leaked onto the template').toBeUndefined();
     expect(driver.emitted._el[DocumentKey.atContext].colour).toBeTruthy();
+  });
+
+  it('rejects a collision with an ordinary child in the enclosing element', () => {
+    const template = buildTemplate({
+      name: 'av_nested_collision',
+      elements: [
+        {
+          name: 'el',
+          children: [
+            { kind: TEXT, name: 'text' },
+            { kind: ATTR, name: 'av' },
+          ],
+        },
+      ],
+    });
+    const driver = new CeeDriver(template);
+    const component = driver.findOrThrow(['_el', '_av']);
+    addAttribute(driver, component, null, 'must not replace the nested text field');
+
+    const error = driver.handlerContext.changeAttributeValue(
+      component,
+      '_text',
+      'must not replace the nested text field',
+    );
+
+    expect(error).toContain('already used');
+    expect(heldValue(objectAt(driver.extract, '_el').values._av)).toEqual(['']);
   });
 
   it('deletes from the enclosing element', () => {

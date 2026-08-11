@@ -22,6 +22,9 @@
         <mat-icon>close</mat-icon>
       </button>
     }
+    @if (attributeNameError) {
+      <mat-error class="mat-error align-start">{{ attributeNameError }}</mat-error>
+    }
   </mat-form-field>
   <mat-form-field class="half-width" floatLabel="always">
     <mat-label>{{ 'Generic.Value' | translate }}</mat-label>

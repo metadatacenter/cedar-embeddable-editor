@@ -628,6 +628,21 @@ test('a new attribute-value row starts with placeholders, not a generated name',
   await expect(value).toHaveAttribute('placeholder', 'Attribute Value');
 });
 
+test('an unsafe attribute name stays visible with a local explanation', async ({ page }) => {
+  await open(page, '10-attribute-values');
+
+  const name = page.locator('input[aria-label="Attribute Name"]');
+  await name.fill('@context');
+
+  await expect(name).toHaveValue('@context');
+  await expect(name).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('mat-error')).toHaveText('Attribute name "@context" is reserved for instance metadata.');
+
+  await name.fill('safe attribute');
+  await expect(name).toHaveAttribute('aria-invalid', 'false');
+  await expect(page.locator('mat-error')).toHaveCount(0);
+});
+
 test('an attribute-value field survives save and reload', async ({ page }) => {
   await open(page, '10-attribute-values');
 
@@ -2493,9 +2508,7 @@ test.describe('an attribute-value field with no slot in the instance', () => {
 
     await page.getByRole('button', { name: 'Add empty after current' }).first().click();
 
-    await expect
-      .poll(() => attributeRows(page), { message: 'clicking add should produce an attribute row' })
-      .toBe(1);
+    await expect.poll(() => attributeRows(page), { message: 'clicking add should produce an attribute row' }).toBe(1);
     await expect(page.getByRole('textbox', { name: 'Attribute Name' }).first()).toBeVisible();
     expect(errors.join('\n'), 'adding should raise nothing').not.toContain('data in instance');
   });
