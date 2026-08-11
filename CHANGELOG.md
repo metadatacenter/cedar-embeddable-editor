@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-dev.20260811.c67ccae] - 2026-08-11
+
+### Fixed
+
+- The YAML source panel shows an attribute-value field the user has been editing. CEE
+  holds one as name slots plus sibling atoms, which is the shape the pager edits, and
+  the library's YAML writer understood only the packed form its own reader produces —
+  so the field name disappeared and its attributes were written as ordinary children.
+  The AV-only YAML output is asserted in the harness.
+
+### Changed
+
+- Requires `@org.metadatacenter/cedar-model-typescript-library@0.9.2-dev.20260811.d87b47c`,
+  which fixes that and exports `AttributeValueNamePolicy` — the library's own account of
+  the namespace an attribute name enters, which the reserved set CEE holds locally was
+  written to match, and which its `InstanceValidator` now enforces.
+
 ## [1.6.0-dev.20260811.feaebdb] - 2026-08-11
 
 ### Added
