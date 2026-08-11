@@ -1,5 +1,7 @@
 import {
   CedarReaders,
+  InstanceDataAttributeValueField,
+  InstanceDataAttributeValueFieldName,
   InstanceDataAtomType,
   InstanceDataContainer,
   InstanceDataEmptyAtom,
@@ -24,8 +26,11 @@ import { InstanceObject } from '../models/instance-node.model';
  * deleted, so the field showed empty and saving wrote the loss back.
  *
  * Here the document is read once, by the library, which classifies every node
- * while parsing and records the answer in the node's type — and what comes back
- * is what CEE then edits. There is nothing to project.
+ * while parsing and records the answer in the node's type. One classified node
+ * needs an editing projection: the reader packs an attribute-value field's names
+ * and sibling values into `InstanceDataAttributeValueField`, while CEE's pager
+ * edits those names as occurrences. `makeAttributeValuesEditable` unpacks that
+ * typed node into typed name slots and sibling atoms; it does not inspect JSON.
  *
  * There was. The model was written straight back out to two JSON trees: `full`,
  * the whole artifact, and `extract`, the same thing with the envelope left off.
@@ -51,11 +56,51 @@ export class InstanceDeserializer {
       .getTemplateInstanceReader()
       .readFromObject(instanceJson as JsonNode).instance;
 
+    InstanceDeserializer.makeAttributeValuesEditable(instance.dataContainer);
+
     if (report) {
       InstanceDeserializer.reportDiscarded(instance.dataContainer, [], report);
     }
 
     return { full: instance, extract: instance.dataContainer };
+  }
+
+  /**
+   * Convert the reader's packed attribute-value node into CEE's editable shape.
+   *
+   * The wire form is a list of names plus one sibling value per name. The model
+   * reader pairs those halves into `InstanceDataAttributeValueField`, which is a
+   * useful read model but is not a list: treating it as one crashed the pager on
+   * the first change-detection pass after a host saved and re-injected an
+   * instance. CEE creates and edits the equivalent typed list shape itself, so
+   * loaded instances are brought to that same shape once, at the input boundary.
+   */
+  private static makeAttributeValuesEditable(container: InstanceDataContainer): void {
+    for (const key of Object.keys(container.values)) {
+      const node = container.values[key];
+
+      if (node instanceof InstanceDataAttributeValueField) {
+        const names = Object.keys(node.values);
+        container.setValue(
+          key,
+          names.map((name) => new InstanceDataAttributeValueFieldName(name)),
+        );
+        for (const name of names) {
+          container.setValue(name, node.values[name]);
+        }
+        continue;
+      }
+
+      if (Array.isArray(node)) {
+        node.forEach((item) => {
+          if (item instanceof InstanceDataContainer) {
+            InstanceDeserializer.makeAttributeValuesEditable(item);
+          }
+        });
+      } else if (node instanceof InstanceDataContainer) {
+        InstanceDeserializer.makeAttributeValuesEditable(node);
+      }
+    }
   }
 
   /**

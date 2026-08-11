@@ -628,6 +628,24 @@ test('a new attribute-value row starts with placeholders, not a generated name',
   await expect(value).toHaveAttribute('placeholder', 'Attribute Value');
 });
 
+test('an attribute-value field survives save and reload', async ({ page }) => {
+  await open(page, '10-attribute-values');
+
+  const name = page.locator('input[aria-label="Attribute Name"]');
+  const value = page.locator('input[aria-label="Attribute Value"]');
+  await name.fill('colour');
+  await value.fill('blue');
+
+  await page.evaluate(() => {
+    const editor = document.querySelector('cedar-embeddable-editor') as any;
+    editor.instanceObject = structuredClone(editor.currentMetadata);
+  });
+
+  await expect(name).toHaveValue('colour');
+  await expect(value).toHaveValue('blue');
+  await expect(page.locator('app-cedar-embeddable-metadata-editor')).toBeVisible();
+});
+
 test('an expansion panel collapses and expands', async ({ page }) => {
   await open(page, '03-nested-multi');
   const header = page.locator('mat-expansion-panel-header').first();

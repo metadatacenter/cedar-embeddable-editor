@@ -442,9 +442,9 @@ describe('attribute values, read back', () => {
    * attributes there are, and each named attribute, so its own slot exists.
    *
    * The live editing path is covered in `attribute-values.spec.ts`. This is the
-   * reload path, which is what the model library's parsed instance has to
-   * reproduce: it pairs the names with their values and removes the values from
-   * the container, so both halves have to be put back.
+   * reload path: the model reader pairs names with their values, and the CEE
+   * deserializer restores the typed name list plus sibling values that its pager
+   * and mutation handlers edit.
    */
   const attributeTemplate = () => buildTemplate({ name: 'ir_av', children: [{ kind: ATTR, name: 'av' }] });
 
@@ -470,6 +470,28 @@ describe('attribute values, read back', () => {
     expect(attributeValue(reloaded.extract, '_av', 'size')).toBe('large');
   });
 
+  it('restores the occurrence list shape the pager iterates', () => {
+    const { template, instance } = withTwoAttributes();
+    const reloaded = new CeeDriver(template, { instance });
+
+    expect(arrayAt(reloaded.fullData, '_av').map(heldValue)).toEqual(['colour', 'size']);
+  });
+
+  it('can rename and edit an attribute after the instance is reloaded', () => {
+    const { template, instance } = withTwoAttributes();
+    const reloaded = new CeeDriver(template, { instance });
+    const component = reloaded.findOrThrow(['_av']);
+
+    reloaded.handlerContext.changeAttributeValue(component, 'hue', 'cyan');
+    reloaded.expectNoErrors('editing a reloaded attribute value');
+
+    expect(heldValue(reloaded.extract.values._av)).toEqual(['hue', 'size']);
+    expect(attributeValue(reloaded.extract, '_av', 'hue')).toBe('cyan');
+    expect(reloaded.emitted._av).toEqual(['hue', 'size']);
+    expect(reloaded.emitted.hue).toEqual({ '@value': 'cyan' });
+    expect(reloaded.emitted.colour).toBeUndefined();
+  });
+
   it('restores attributes inside an element', () => {
     const template = buildTemplate({
       name: 'ir_av_el',
@@ -483,7 +505,9 @@ describe('attribute values, read back', () => {
     const reloaded = new CeeDriver(template, { instance: first.metadata });
     reloaded.expectNoErrors('reloading an attribute inside an element');
     expect(countOf(reloaded, reloaded.findOrThrow(['_el', '_av']))).toBe(1);
-    expect(attributeValue(objectAt(reloaded.extract, '_el'), '_av', 'colour')).toBe('blue');
+    const element = objectAt(reloaded.extract, '_el');
+    expect(arrayAt(element, '_av').map(heldValue)).toEqual(['colour']);
+    expect(attributeValue(element, '_av', 'colour')).toBe('blue');
   });
 });
 
