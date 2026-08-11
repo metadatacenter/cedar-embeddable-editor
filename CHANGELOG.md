@@ -5,7 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.6.0-dev.20260810.d579449] - 2026-08-10
+## [1.6.0-dev.20260811.26630a1] - 2026-08-11
+
+### Fixed
+
+- An attribute-value field keeps the name the user typed. The widget is handed a
+  one-entry name/value view the active-component registry projects from the instance,
+  and it guarded that view with the model library's `isInstanceObject`, which tests
+  for an `InstanceDataContainer`. A plain projected object is never one, so the guard
+  rejected every payload and cleared both controls on each sync. The guard now
+  describes the view the registry actually sends, and accepts a name whose value is
+  not filled in yet. The visual test that fills a name asserts the name is still
+  there afterwards.
+- An open suggestion panel stays with its field while the host page scrolls, rather
+  than holding its original position over unrelated fields. It affected every
+  autocomplete — the seven authority fields and controlled terms — and every select.
+  Neither of Material's scroll strategies can reach this case: the default filters
+  scroll events to `cdkScrollable` ancestors, and the container CEE scrolls inside
+  belongs to the embedding page, while the close strategy listens on `document` in
+  the bubble phase, which a `scroll` event never reaches. The strategy here listens
+  in the capture phase and repositions from the origin's own rect. A scroll inside
+  the panel is ignored, so reading a long suggestion list does not move it.
+- A populated authority field no longer offers its own value back as its one
+  suggestion, and focusing one sends no lookup for the compound `Label - iri` string.
+  The autocomplete is disabled while the box shows the term already chosen, and
+  re-enables on the first keystroke.
+- A static image field is centred. `margin-left: auto` and `margin-right: auto` never
+  applied, because an `img` is inline and an inline element ignores auto margins;
+  `display: block` is what makes them mean anything.
+
+### Removed
+
+- The khaki background declared on the image field's card. Material sets the card
+  background at a higher specificity, so no one has ever seen it — the card has
+  always been white, like every other field.
 
 ### Fixed
 
