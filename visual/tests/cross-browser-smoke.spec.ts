@@ -171,6 +171,15 @@ test('selects and records a fixed UTC offset', async ({ page }) => {
   // the canonical minute-granularity value.
   await page.locator('mat-datepicker-toggle button').click();
   await page.getByRole('button', { name: '01/01/2026', exact: true }).click();
+
+  // Material hands focus back to the toggle when the calendar closes, and does
+  // it asynchronously. Typing into a time box before that lands loses the
+  // keystrokes: the box is focused, the restore takes focus away a millisecond
+  // later, and the text is inserted nowhere — no input event, so nothing tells
+  // the picker anything happened. Waiting for the restore is waiting for the
+  // form to be ready for the next thing a person would do.
+  await expect(page.locator('mat-datepicker-toggle button')).toBeFocused();
+
   const time = page.locator('.cee-time-picker');
   await time.locator('input[aria-label="Hour"]').fill('09');
   await time.locator('input[aria-label="Minute"]').fill('30');
