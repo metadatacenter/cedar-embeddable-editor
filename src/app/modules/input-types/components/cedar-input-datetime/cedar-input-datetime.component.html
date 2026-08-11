@@ -23,6 +23,20 @@
 
     @if (showDecimalSeconds()) {
       <span class="cee-fraction-separator" aria-hidden="true">.</span>
+      <!--
+        The placeholder is `sss`, not `000`, because a placeholder must not look
+        like a value.
+
+        At this granularity the fraction is a required part — `CedarTemporalValue.isComplete`
+        asks for it — so an empty box means the field records nothing at all. And
+        `000` is simultaneously a valid value, recording zero. The one state that
+        saves nothing therefore looked exactly like the state that saves zero, in
+        grey: date and time filled, a grey `000`, and a null value.
+
+        Every other placeholder in this control is letters for that reason: `HH`,
+        `MM`, `SS`. Lowercase here so it reads as sub-second beside the uppercase
+        `SS`, which is the usual notation for `HH:MM:SS.sss`.
+      -->
       <mat-form-field class="cee-fraction-field">
         <input
           matInput
@@ -32,7 +46,7 @@
           (input)="decimalSecondsChanged($event)"
           [(ngModel)]="decimalSeconds"
           name="decimalSeconds"
-          placeholder="000"
+          placeholder="sss"
           matTooltip="{{ 'Generic.DecimalSeconds' | translate }}"
           attr.aria-label="{{ 'Generic.SelectDecimalSeconds' | translate }}"
           [readonly]="readOnlyMode"

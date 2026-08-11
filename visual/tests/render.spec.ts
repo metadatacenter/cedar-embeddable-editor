@@ -1704,6 +1704,41 @@ test.describe('the time picker', () => {
         separators.colon,
       );
     });
+
+    /**
+     * No placeholder in the row is shaped like a value.
+     *
+     * The decimal-seconds box used to read `000`, which is both a placeholder and a
+     * valid value — and at this granularity the fraction is a *required* part, so an
+     * empty box means the field records nothing. Date and time filled with a grey
+     * `000` beside them therefore looked complete and stored `null`, while typing
+     * `000` stored `…T02:30:15.000`. The two opposite states differed only in text
+     * colour.
+     *
+     * Asserted as a rule about every placeholder rather than a check on one string,
+     * because the next digit-shaped placeholder would be the same bug. The clock's
+     * own `HH`/`MM`/`SS` already satisfy it, which is what made the fraction the
+     * odd one out.
+     *
+     * A DOM assertion for the same reason as the separator above: changing `000` to
+     * `sss` moved none of the 108 baselines, three grey glyphs being well under the
+     * budget.
+     */
+    test('no placeholder in the temporal row can be mistaken for a value', async ({ page }) => {
+      await open(page, '09-temporal');
+
+      const placeholders = await page
+        .locator('app-cedar-input-datetime')
+        .filter({ has: page.locator('.cee-fraction-separator') })
+        .first()
+        .evaluate((host) =>
+          [...host.querySelectorAll('input[placeholder]')].map((input) => (input as HTMLInputElement).placeholder),
+        );
+
+      expect(placeholders.length, 'expected the clock segments and the fraction box').toBeGreaterThan(1);
+      const valueShaped = placeholders.filter((text) => /^[\d\s.:]+$/.test(text));
+      expect(valueShaped, 'a placeholder made of digits is indistinguishable from data').toEqual([]);
+    });
   });
 
   test('the 12-hour fields show a meridian control and the others do not', async ({ page }) => {
