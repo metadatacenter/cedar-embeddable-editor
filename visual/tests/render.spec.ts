@@ -1328,6 +1328,34 @@ test.describe('the footer', () => {
  * No screenshot: this asserts behaviour rather than pixels, and a baseline
  * image would make it fail for unrelated styling changes.
  */
+/**
+ * A chosen controlled term reads the way a chosen authority term reads.
+ *
+ * It did not. The controlled widget composed `label - (iri)` while the seven
+ * authority fields compose `label - iri` through `getCompoundValue`, so two boxes
+ * one row apart showed the same kind of value in two forms.
+ *
+ * Reaching this state normally needs a live terminology server, which the visual
+ * suite deliberately cannot contact — which is why the display form had no test at
+ * all and was free to drift. An instance fixture supplies the selected term
+ * instead, through the same `instanceObject` input a host page uses, so no lookup
+ * happens and nothing is stubbed.
+ *
+ * Read-only, because that is the only mode the compound form is used in:
+ * `setCurrentValue` composes `label - iri` when the field is not editable, and
+ * otherwise puts the bare label in the box for typing. It is also the mode
+ * openview runs in, which is where this was reported from.
+ */
+test('a selected controlled term reads like a selected authority term', async ({ page }) => {
+  await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance');
+
+  const organism = page.locator('input[aria-label="organism"]');
+  await expect(organism).toHaveValue('disease - http://purl.obolibrary.org/obo/DOID_4');
+
+  const shown = await organism.inputValue();
+  expect(shown, 'the IRI must not be wrapped in parentheses').not.toContain('(');
+});
+
 test.describe('external authority fields', () => {
   test('typing does not raise an error', async ({ page }) => {
     await open(page, '04-controlled-terms');

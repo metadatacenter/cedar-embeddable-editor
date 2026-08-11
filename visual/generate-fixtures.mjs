@@ -25,6 +25,7 @@ const {
   CedarWriters,
   ControlledTermOntologyBuilder,
   InstanceDataContainer,
+  InstanceDataControlledAtom,
   InstanceDataStringAtom,
   InstanceDataTypedAtom,
   Iri,
@@ -126,6 +127,16 @@ const literal = (value) => new InstanceDataStringAtom(value);
 
 /** A string value carrying the XSD type its field declares. */
 const typed = (value, xsdType) => new InstanceDataTypedAtom(value, xsdType);
+
+/**
+ * A controlled term: an IRI and the label it resolves to.
+ *
+ * The IRI goes in as a plain string, not as the library's own `Iri`. Handed an
+ * `Iri`, the atom keeps the wrapper and the JSON writer emits
+ * `"@id": {"value": "http://…"}` — a document no reader accepts. Worth knowing
+ * because the typed argument is the one that looks right.
+ */
+const controlled = (iri, label) => new InstanceDataControlledAtom(iri, label);
 
 /** One occurrence of an element, holding its children. */
 const occurrence = (children) => {
@@ -281,6 +292,23 @@ const writeRaw = (name, document) => {
   tb = tb.addChild(orcid, deploy(orcid, 'contributor'));
   tb = tb.addChild(ror, deploy(ror, 'institution', { multi: true, minItems: 2 }));
   write('04-controlled-terms', tb.build());
+
+  /*
+   * The same template with a term already chosen, so a baseline can see how a
+   * selected controlled term reads. Every other route to that state needs a live
+   * terminology server, which the visual suite deliberately cannot reach — so
+   * without this the display form was rendered by no test at all, and it had
+   * drifted from the seven authority fields into `label - (iri)`.
+   */
+  writeRaw(
+    '04-controlled-terms-instance',
+    instance('ControlledTerms', {
+      id: 'https://example.org/instances/controlled-terms-1',
+      name: 'ControlledTerms instance',
+      description: 'A term already selected, so its display form is rendered',
+      values: { _organism: controlled('http://purl.obolibrary.org/obo/DOID_4', 'disease') },
+    }),
+  );
 }
 
 /**

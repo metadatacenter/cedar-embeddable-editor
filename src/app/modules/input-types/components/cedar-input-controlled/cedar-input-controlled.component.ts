@@ -250,10 +250,18 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    * as a term; anything else — a plain string on a field whose constraint was
    * removed — falls through the last branch and is shown as-is.
    */
+  /**
+   * How a selected term reads in the box: "Label - https://iri".
+   *
+   * No parentheses around the IRI. This wrapped it — `label - (iri)` — where the
+   * seven external-authority fields render `label - iri`, and they are the same
+   * kind of value shown in the same kind of box, one row apart. `getCompoundValue`
+   * in `abstract-authority-input.component.ts` is the form they use.
+   */
   getBioPortalTermDisplayValue(value: unknown): string {
     const term = isAuthorityTerm(value) ? value : { iri: '', label: '' };
     if (term.label && term.iri) {
-      return term.label + ' - (' + term.iri + ')';
+      return `${term.label} - ${term.iri}`;
     } else return value as string;
   }
 
