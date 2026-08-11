@@ -148,6 +148,16 @@ $cee-color-accent: map.get($cee-brand-accent, A200);
 // this one value depend on the framework for no benefit. Pinning it means the
 // upgrade cannot change it silently.
 $cee-color-warn: #f44336;
+
+// Advisory, not an error, and one letter away from the colour that is one.
+// `warn` is Material's word for its danger palette; `warning` is the ordinary
+// English one, and they carry opposite severities.
+//
+// This is the colour of `.input-warning`, which exists because Material's form
+// field projects a hint *or* an error and never both. A controlled-term field
+// that has just discarded what the user typed has to say so while a required
+// field's own error is still showing, so the notice sits outside that slot — and
+// in a colour unlike the error red, or the two read as one message.
 $cee-color-warning: #856404;
 
 // Brand colors used directly in component CSS rather than through the theme.
