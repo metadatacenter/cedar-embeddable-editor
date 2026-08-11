@@ -636,10 +636,18 @@ test('an attribute-value field survives save and reload', async ({ page }) => {
   await name.fill('colour');
   await value.fill('blue');
 
-  await page.evaluate(() => {
+  const saved = await page.evaluate(() => {
     const editor = document.querySelector('cedar-embeddable-editor') as any;
-    editor.instanceObject = structuredClone(editor.currentMetadata);
+    const instance = structuredClone(editor.currentMetadata);
+    editor.instanceObject = instance;
+    return instance;
   });
+
+  expect(saved).toHaveProperty('@context');
+  expect(saved).toHaveProperty('colour.@value', 'blue');
+  expect(saved).not.toHaveProperty('dataContainer');
+  expect(JSON.stringify(saved)).not.toContain('"_values"');
+  expect(JSON.stringify(saved)).not.toContain('"_iris"');
 
   await expect(name).toHaveValue('colour');
   await expect(value).toHaveValue('blue');
@@ -2879,6 +2887,28 @@ test.describe('what a host page reads back', () => {
     const { json, yaml } = await read(page);
     expect(json, 'an edit did not reach currentMetadata').toContain('typed into the form');
     expect(yaml, 'an edit did not reach currentMetadataYaml').toContain('typed into the form');
+  });
+
+  test('the full instance source panel shows CEDAR JSON-LD, not the internal model', async ({ page }) => {
+    await open(
+      page,
+      '10-attribute-values',
+      undefined,
+      undefined,
+      undefined,
+      '&f=showInstanceDataFull,expandedInstanceDataFull',
+    );
+
+    await page.locator('input[aria-label="Attribute Name"]').fill('colour');
+    await page.locator('input[aria-label="Attribute Value"]').fill('blue');
+
+    const source = page.getByRole('region', { name: 'JSON-LD - Instance' });
+    await expect(source).toContainText('"@context"');
+    await expect(source).toContainText('"colour"');
+    await expect(source).toContainText('"blue"');
+    await expect(source).not.toContainText('"dataContainer"');
+    await expect(source).not.toContainText('"_values"');
+    await expect(source).not.toContainText('"_iris"');
   });
 
   test('currentMetadataSerialized follows the configured format with real content', async ({ page }) => {
