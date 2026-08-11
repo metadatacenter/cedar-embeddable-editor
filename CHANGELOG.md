@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-dev.20260811.feaebdb] - 2026-08-11
+
+### Added
+
+- Two source panels showing the template and the live instance as CEDAR YAML, written
+  by the model library's YAML writer. Both are opt-in, through `showTemplateYaml` and
+  `showInstanceYaml`, and each expands independently through `expandedTemplateYaml` and
+  `expandedInstanceYaml`. The four keys are declared on `CeeConfig`, checked by the
+  config validator, and titled in the English and Hungarian language maps.
+
+### Changed
+
+- The instance panels are written with the source template in hand, which is what the
+  model library's writer needs to produce the document a host reads back.
+- The source panels' styling lives in the component's own stylesheet rather than in the
+  global sheet, and the panels are more compact. The visual baselines are re-recorded.
+
 ## [1.6.0-dev.20260811.563e8b6] - 2026-08-11
 
 ### Fixed
