@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-dev.20260811.72892c7] - 2026-08-11
+
+### Changed
+
+- An attribute name the user types is validated where they type it, and refused with a
+  message under the field: one already used by a sibling attribute or reserved by a
+  template child, and one reserved for instance metadata, which is any name starting
+  with `@` plus the envelope and label keys. A collision used to be renamed to
+  `Attribute Value Field<N>` and reported in a toast, so a name the user had typed was
+  thrown away. The model is left alone while the name is invalid, and the error clears
+  when the field is loaded again. The reserved set is held here in step with the model
+  library's `AttributeValueNamePolicy` until the next library package is published.
+
+### Fixed
+
+- Copying an attribute-value occurrence names the copy `<name> copy`, then `<name>
+  copy 2` and so on until the name is free, rather than producing a collision the
+  handler had to resolve. If no name is free the copy is left unnamed and the failure
+  is reported. The registry's guess at which occurrence was a clone — comparing a slot
+  with the one before it — is gone.
+- Renaming or clearing one occurrence no longer deletes the property while another
+  occurrence still carries that name. The old check compared the name's first index
+  against the slot being edited, which is not the same question.
+
 ## [1.6.0-dev.20260811.2db8763] - 2026-08-11
 
 ### Fixed
