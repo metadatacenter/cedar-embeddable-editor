@@ -115,10 +115,21 @@
   user-select: none;
 }
 
+/*
+ * AM/PM, weighted like the time it belongs to.
+ *
+ * It is a Material stroked button, and Material's button typography is 500 with
+ * 1.25px of tracking — so `PM` rendered bolder and wider than the `2:30:15` an
+ * inch to its left, which reads as emphasis nobody intended. The clock's segments
+ * and separators are 400 with normal tracking; this is a part of the same
+ * control, not a call to action.
+ */
 .cee-time-meridian {
   min-width: 52px;
   height: 48px;
   padding-inline: 10px;
+  font-weight: 400;
+  letter-spacing: normal;
 }
 
 .cee-time-picker-readonly {
