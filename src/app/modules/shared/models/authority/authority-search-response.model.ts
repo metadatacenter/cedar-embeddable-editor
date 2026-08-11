@@ -3,9 +3,10 @@
  *
  * Replaces seven `*SearchResponseItem` interfaces that declared exactly these
  * two things, and five `*DetailResponse` classes that were byte-identical but
- * for their own name. The two rich detail models — ORCID's researcher record and
- * ROR's organisation record — are genuinely different documents and keep their
- * own types, carried by `OrcidTerm` and `RorTerm`.
+ * for their own name. ORCID's researcher record and ROR's organisation record
+ * were the two genuinely different documents, and they went with the detail
+ * panels that were their only reader — so every authority is now this shape and
+ * nothing extends it.
  *
  * The properties were `@id` and `rdfs:label` until CEE stopped speaking CEDAR's
  * serialization anywhere but at its edges. Nothing about a term from ORCID or

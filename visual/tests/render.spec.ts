@@ -2541,9 +2541,9 @@ test.describe('external authority endpoints', () => {
    * while the defect sat in the base class behind five widgets, so it read as
    * one flaky test rather than a bug in all of them. The blur assertion beside
    * it has always run over every authority; this one now does too. ORCID and ROR
-   * are included although they carry their own copies of the flow — they are
-   * where the guard already existed, so they are exactly what would regress
-   * unnoticed.
+   * used to carry their own copies of the flow, kept for the record panels they
+   * alone had; with the panels gone all seven run the same base class, and this
+   * loop is what holds them to it.
    */
   for (const { label: fieldName, authority, name } of [
     { label: 'contributor_orcid', authority: 'orcid', name: 'ORCID' },
@@ -2582,21 +2582,21 @@ test.describe('external authority endpoints', () => {
 
       /*
        * What the suffix control says it does, now there is a value for it to act
-       * on. Every one of them read "Show Details" — which named no subject, and
-       * on the five that open a page elsewhere described the wrong action. The
-       * accessible name disagreed with the tooltip and was untranslated English.
+       * on. Every one of them read "Show Details" — which named no subject and did
+       * not say where it went. The accessible name disagreed with the tooltip and
+       * was untranslated English.
        *
-       * ORCID and ROR expand a panel in place, so they say show; the other five
-       * are links out, so they say open. Both name their authority, which is the
-       * part a reader was missing, and both strings are asserted to be the same
-       * one so they cannot drift apart again.
+       * All seven are links out now. ORCID and ROR used to expand a record panel in
+       * place instead, and said "show" rather than "open"; the panels are gone, so
+       * the branch that distinguished them is gone with them and this asserts one
+       * rule over the whole set. Both strings are asserted to be the same one so
+       * they cannot drift apart again.
        */
-      const expands = authority === 'orcid' || authority === 'ror';
-      const expected = expands ? `Show the ${name} record` : `Open the ${name} page`;
+      const expected = `Open the ${name} page`;
       const suffix = page
         .locator('mat-form-field')
         .filter({ has: page.locator(`input[aria-label="${fieldName}"]`) })
-        .locator(expands ? 'button' : 'a[mat-icon-button]')
+        .locator('a[mat-icon-button]')
         .first();
 
       await expect(suffix, 'the record control names its authority').toHaveAttribute('aria-label', expected);

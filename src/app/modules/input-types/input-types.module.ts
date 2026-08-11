@@ -35,7 +35,6 @@ import { CedarStaticImageComponent } from './components/cedar-static-image/cedar
 import { CedarStaticYoutubeComponent } from './components/cedar-static-youtube/cedar-static-youtube.component';
 import { CedarInputOrcidComponent } from './components/cedar-input-orcid/cedar-input-orcid.component';
 import { CedarInputRorComponent } from './components/cedar-input-ror/cedar-input-ror.component';
-import { RorDetailsComponent } from './components/cedar-input-ror/ror-details/ror-details.component';
 import { CedarFooBarComponent } from './components/cedar-foo-bar/cedar-foo-bar.component';
 import { CedarInputControlledComponent } from './components/cedar-input-controlled/cedar-input-controlled.component';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -45,7 +44,6 @@ import { DatePickerComponent } from '../shared/components/date-picker/date-picke
 import { TimezonePickerComponent } from '../shared/components/timezone-picker/timezone-picker.component';
 import { TimePickerComponent } from '../shared/components/time-picker/time-picker.component';
 import { TranslateModule } from '@ngx-translate/core';
-import { OrcidDetailsComponent } from './components/cedar-input-orcid/orcid-details/orcid-details.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { CedarInputPfasComponent } from './components/cedar-input-pfas/cedar-input-pfas.component';
@@ -97,7 +95,6 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     CedarInputLinkComponent,
     CedarInputOrcidComponent,
     CedarInputRorComponent,
-    RorDetailsComponent,
     CedarStaticRichTextComponent,
     CedarStaticSectionBreakComponent,
     CedarStaticPageBreakComponent,
@@ -108,7 +105,6 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     TimezonePickerComponent,
     TrustHtmlPipe,
     SafeHtmlPipe,
-    OrcidDetailsComponent,
     CedarInputPfasComponent,
     CedarInputRridComponent,
     CedarInputPmidComponent,
@@ -142,7 +138,6 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     CedarInputOrcidComponent,
     CedarInputRorComponent,
     CedarInputPfasComponent,
-    RorDetailsComponent,
     CedarInputPmidComponent,
     CedarInputRridComponent,
     CedarInputNihGrantComponent,
