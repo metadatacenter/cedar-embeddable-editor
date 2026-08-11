@@ -576,6 +576,7 @@ test('attribute-value labels stay distinct and its pager aligns responsively', a
   await expect(name).toHaveCount(1);
   await expect(value).toHaveCount(1);
   await name.fill('Attribute Value Field3');
+  await expect(name).toHaveValue('Attribute Value Field3');
 
   const renderer = name.locator('xpath=ancestor::app-cedar-component-renderer');
   expect(

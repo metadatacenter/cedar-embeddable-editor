@@ -4,7 +4,17 @@ import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
-import { InstanceNode, InstanceObject, isInstanceObject } from '../../../shared/models/instance-node.model';
+
+/** The one name/value pair the attribute-value widget displays at a time. */
+type AttributeValueView = Record<string, string | null>;
+
+function isAttributeValueView(value: unknown): value is AttributeValueView {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  const entries = Object.entries(value);
+  return entries.length === 1 && (typeof entries[0][1] === 'string' || entries[0][1] === null);
+}
 
 @Component({
   selector: 'app-cedar-input-attribute-value',
@@ -66,26 +76,20 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
   }
 
   /*
-   * An attribute-value occurrence arrives as a one-entry object: the attribute's
-   * name is the key and its value is the value. Guarded rather than indexed
-   * blind — `setCurrentValue` is declared `unknown` on the base, and a leaf or a
-   * list here means the instance disagrees with the template.
+   * An attribute-value occurrence arrives as a one-entry view object: the
+   * attribute's name is the key and its value is the value. This is deliberately
+   * not an `InstanceDataContainer`: the registry has already projected the two
+   * pieces the widget needs from the model-library instance.
    */
   setCurrentValue(currentValue: unknown): void {
-    if (!isInstanceObject(currentValue as InstanceNode)) {
+    if (!isAttributeValueView(currentValue)) {
       this.nameInputControl.setValue(null);
       this.valueInputControl.setValue(null);
       return;
     }
-    const entries = Object.entries(currentValue as InstanceObject);
-    if (entries.length === 0) {
-      this.nameInputControl.setValue(null);
-      this.valueInputControl.setValue(null);
-      return;
-    }
-    const [name, value] = entries[0];
+    const [name, value] = Object.entries(currentValue)[0];
     this.nameInputControl.setValue(name);
-    this.valueInputControl.setValue(typeof value === 'string' ? value : null);
+    this.valueInputControl.setValue(value);
   }
 
   override deleteCurrentValue(): void {
