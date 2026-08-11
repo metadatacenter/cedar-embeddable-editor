@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-dev.20260811.2db8763] - 2026-08-11
+
+### Fixed
+
+- The "JSON-LD - Instance" panel, and its copy button, show the instance as a CEDAR
+  document. Both rendered `instanceFullData` through the `json` pipe, which is a
+  `TemplateInstance` since the model move, so a user asking to see or copy their
+  metadata got `_values` and `_iris` — CEE's internals. They now render what the
+  model library's writer produces. The panel that leaves the envelope off was
+  corrected earlier; this is the one that keeps it.
+
 ## [1.6.0-dev.20260811.61ac9c2] - 2026-08-11
 
 ### Fixed
