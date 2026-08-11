@@ -257,13 +257,19 @@ describe('the YAML a host page can ask for instead', () => {
 
     const reparsed = parseYaml(yaml) as Record<string, any>;
     expect(reparsed.type).toBe('instance');
-    expect(reparsed.children, 'the YAML instance has no children block').toBeTruthy();
     // An attribute-value field is not a child in the YAML representation — its
     // attributes are named at the point of use, so it sits at the root with the
     // names as keys. One more thing about the serialisation that CEE has no
     // opinion on and no longer needs one.
-    const placed = Object.keys(reparsed.children).includes('_f') || Object.hasOwn(reparsed, '_f');
-    expect(placed, 'the field appears nowhere in the YAML').toBe(true);
+    if (VALUED[index].key === 'attrValue') {
+      expect(reparsed.children, 'an AV-only instance emitted an empty children block').toBeUndefined();
+      expect(reparsed._f?.attrKey?.value, 'the AV field lost its field name, attribute name, or value').toBe(
+        VALUED[index].sample,
+      );
+    } else {
+      expect(reparsed.children, 'the YAML instance has no children block').toBeTruthy();
+      expect(Object.hasOwn(reparsed.children, '_f'), 'the field appears nowhere in YAML children').toBe(true);
+    }
   });
 
   it('carries a literal through to the YAML', () => {
