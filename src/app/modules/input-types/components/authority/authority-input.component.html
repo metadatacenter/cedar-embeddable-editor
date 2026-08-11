@@ -14,6 +14,13 @@ genuinely theirs.
 <form class="form-container" [formGroup]="options">
   <ng-container>
     <mat-form-field class="full-width">
+      <!--
+        `matAutocompleteDisabled` on two conditions. Empty is Material's own case. The
+        second is a settled term: focusing a populated field re-emits its value to
+        reopen the panel, which offered a single suggestion mirroring what was already
+        in the box, and once that was an empty list instead it read "No results found"
+        over a value that had been found. It re-enables on the first keystroke.
+      -->
       <input
         matInput
         type="text"
@@ -22,7 +29,7 @@ genuinely theirs.
         [formControl]="inputValueControl"
         [errorStateMatcher]="errorStateMatcher"
         [matAutocomplete]="auto"
-        [matAutocompleteDisabled]="isEmpty"
+        [matAutocompleteDisabled]="isEmpty || showsSelectedTerm"
         (focus)="inputFocused()"
         (input)="inputChanged($event)"
         (blur)="onInputBlur()"

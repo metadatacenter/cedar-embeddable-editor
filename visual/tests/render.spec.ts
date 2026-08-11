@@ -2660,6 +2660,33 @@ test.describe('external authority endpoints', () => {
         page.locator('.mat-mdc-tooltip-surface'),
         'the tooltip and the accessible name are the same string',
       ).toHaveText(expected);
+
+      /*
+       * Clicking a field that already holds its term offers nothing.
+       *
+       * `inputFocused` re-emits the value to reopen the panel, so a populated field
+       * arrived at `filter` with its own compound `Label - iri` as the query, and the
+       * base returned `[selectedData]` — the panel opened with one suggestion that was
+       * the value already in the box. Returning an empty list instead only moved the
+       * problem: the template then read "No results found" over a term that had been
+       * found. So the autocomplete is disabled while the box shows its own term.
+       *
+       * Asserted per authority rather than once, because this lives in the shared base
+       * and the two widgets that used to hand-roll it are the ones a reader would
+       * expect to differ.
+       */
+      await field.click();
+      await passDebounceWindow(page);
+      await expect(
+        page.locator('mat-option'),
+        'a settled field must not offer its own value back, nor claim it was not found',
+      ).toHaveCount(0);
+
+      // Editing it makes suggestions useful again, so they come back.
+      await field.press('End');
+      await field.press('Backspace');
+      await passDebounceWindow(page);
+      await expect(page.locator('mat-option'), 'editing the value must reopen the search').not.toHaveCount(0);
     });
   }
 });

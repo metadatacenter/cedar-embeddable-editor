@@ -331,6 +331,17 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
   }
 
   /**
+   * Whether the box is showing exactly the term behind it, unedited.
+   *
+   * There is nothing to suggest in that state — the one candidate is already in the
+   * field — so the panel does not open and no lookup is made. It becomes false on the
+   * first keystroke, which is when suggestions become useful again.
+   */
+  get showsSelectedTerm(): boolean {
+    return !!this.selectedData && this.getCompoundValue(this.selectedData) === this.inputValueControl.value;
+  }
+
+  /**
    * Find terms for what the user typed.
    *
    * Two paths, and which one is taken is the only thing that differs between
@@ -338,8 +349,23 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    * anything else is searched for by name.
    */
   protected filter(query: string): Observable<AuthorityTerm[]> {
-    if (this.selectedData && this.getCompoundValue(this.selectedData) === query) {
-      return of([this.selectedData]);
+    /*
+     * Nothing to offer when the box already holds the term it would offer.
+     *
+     * `inputFocused` re-emits the current value to reopen the panel, so focusing a
+     * populated field arrives here with the compound `Label - iri` as the query.
+     * Returning `[this.selectedData]` for that answered it with the value itself:
+     * clicking a filled field produced a one-item list mirroring what was already in
+     * the box, on all seven authorities.
+     *
+     * `of([])` is what the two hand-written widgets did before they moved onto this
+     * base — ROR's filter opened with the same comparison and returned nothing — so
+     * this restores their behaviour rather than inventing one. An empty list means
+     * Material shows no panel at all, which is the right answer to "what else could
+     * this be?" when the answer is nothing.
+     */
+    if (this.showsSelectedTerm && query === this.inputValueControl.value) {
+      return of([]);
     }
 
     if (this.descriptor.looksLikeIdentifier(query)) {
