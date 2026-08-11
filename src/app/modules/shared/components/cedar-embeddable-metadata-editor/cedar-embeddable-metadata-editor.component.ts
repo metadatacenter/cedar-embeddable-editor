@@ -34,8 +34,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
   private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
   private static SHOW_TEMPLATE_SOURCE = 'showTemplateSourceData';
+  private static SHOW_TEMPLATE_YAML = 'showTemplateYaml';
   private static SHOW_INSTANCE_CORE = 'showInstanceDataCore';
   private static SHOW_INSTANCE_FULL = 'showInstanceDataFull';
+  private static SHOW_INSTANCE_YAML = 'showInstanceYaml';
   private static SHOW_DATA_QUALITY_REPORT = 'showDataQualityReport';
   private static SHOW_SAMPLE_TEMPLATE_LINKS = 'showSampleTemplateLinks';
 
@@ -45,8 +47,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   private static EXPANDED_TEMPLATE_RENDERING = 'expandedTemplateRenderingRepresentation';
   private static EXPANDED_MULTI_INSTANCE = 'expandedMultiInstanceInfo';
   private static EXPANDED_TEMPLATE_SOURCE = 'expandedTemplateSourceData';
+  private static EXPANDED_TEMPLATE_YAML = 'expandedTemplateYaml';
   private static EXPANDED_INSTANCE_CORE = 'expandedInstanceDataCore';
   private static EXPANDED_INSTANCE_FULL = 'expandedInstanceDataFull';
+  private static EXPANDED_INSTANCE_YAML = 'expandedInstanceYaml';
   private static EXPANDED_DATA_QUALITY_REPORT = 'expandedDataQualityReport';
   private static EXPANDED_SAMPLE_TEMPLATE_LINKS = 'expandedSampleTemplateLinks';
 
@@ -101,8 +105,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   showTemplateRenderingRepresentation = false;
   showMultiInstanceInfo = false;
   showTemplateSourceData = true;
+  showTemplateYaml = false;
   showInstanceDataCore = false;
   showInstanceDataFull = true;
+  showInstanceYaml = false;
   showDataQualityReport = false;
   showSampleTemplateLinks = false;
   showStaticText = true;
@@ -113,8 +119,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   expandedTemplateRenderingRepresentation = false;
   expandedMultiInstanceInfo = false;
   expandedTemplateSourceData = false;
+  expandedTemplateYaml = false;
   expandedInstanceDataCore = false;
   expandedInstanceDataFull = false;
+  expandedInstanceYaml = false;
   expandedDataQualityReport = false;
   expandedSampleTemplateLinks = false;
 
@@ -181,6 +189,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_SOURCE,
         this.showTemplateSourceData,
       );
+      this.showTemplateYaml = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_YAML,
+        this.showTemplateYaml,
+      );
       this.showInstanceDataCore = configFlag(
         value,
         CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_CORE,
@@ -190,6 +203,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         value,
         CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_FULL,
         this.showInstanceDataFull,
+      );
+      this.showInstanceYaml = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_YAML,
+        this.showInstanceYaml,
       );
       this.showDataQualityReport = configFlag(
         value,
@@ -218,6 +236,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_SOURCE,
         this.expandedTemplateSourceData,
       );
+      this.expandedTemplateYaml = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_YAML,
+        this.expandedTemplateYaml,
+      );
       this.expandedInstanceDataCore = configFlag(
         value,
         CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_CORE,
@@ -227,6 +250,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         value,
         CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_FULL,
         this.expandedInstanceDataFull,
+      );
+      this.expandedInstanceYaml = configFlag(
+        value,
+        CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_YAML,
+        this.expandedInstanceYaml,
       );
       this.expandedDataQualityReport = configFlag(
         value,

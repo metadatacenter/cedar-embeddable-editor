@@ -24,6 +24,10 @@ export class AppDevComponent {
 
     terminologyIntegratedSearchUrl: 'https://terminology.metadatacenter.orgx/bioportal/integrated-search',
     expandedInstanceDataFull: false,
+    showInstanceYaml: true,
+    expandedInstanceYaml: false,
+    showTemplateYaml: true,
+    expandedTemplateYaml: false,
     showInstanceDataCore: true,
     expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,

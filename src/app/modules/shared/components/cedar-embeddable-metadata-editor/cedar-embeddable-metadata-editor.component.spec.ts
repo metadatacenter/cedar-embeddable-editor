@@ -55,8 +55,10 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     'showTemplateRenderingRepresentation',
     'showMultiInstanceInfo',
     'showTemplateSourceData',
+    'showTemplateYaml',
     'showInstanceDataCore',
     'showInstanceDataFull',
+    'showInstanceYaml',
     'showDataQualityReport',
     'showSampleTemplateLinks',
     'showHeader',
@@ -64,8 +66,10 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     'expandedTemplateRenderingRepresentation',
     'expandedMultiInstanceInfo',
     'expandedTemplateSourceData',
+    'expandedTemplateYaml',
     'expandedInstanceDataCore',
     'expandedInstanceDataFull',
+    'expandedInstanceYaml',
     'expandedDataQualityReport',
     'expandedSampleTemplateLinks',
     'collapseStaticComponents',
@@ -103,6 +107,29 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       const component = make();
       component.config = { inputSerialization: 'yaml' };
       expect(component.templateParser instanceof YamlTemplateParser).toBe(true);
+    });
+  });
+
+  describe('YAML source-panel defaults', () => {
+    it('keeps the new YAML panels off unless the host opts in', () => {
+      const component = make();
+
+      expect(component.showTemplateYaml).toBe(false);
+      expect(component.showInstanceYaml).toBe(false);
+    });
+
+    it('can be configured independently of the corresponding JSON panel', () => {
+      const component = make();
+
+      component.config = {
+        showTemplateSourceData: false,
+        showTemplateYaml: true,
+        showInstanceDataFull: false,
+        showInstanceYaml: true,
+      };
+
+      expect(component.showTemplateYaml).toBe(true);
+      expect(component.showInstanceYaml).toBe(true);
     });
   });
 

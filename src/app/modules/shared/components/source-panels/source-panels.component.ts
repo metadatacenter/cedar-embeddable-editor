@@ -1,6 +1,8 @@
 import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { InstanceSerializer } from '../../util/instance-serializer';
 import { DataContext } from '../../util/data-context';
+import { CedarWriters, Template } from 'cedar-model-typescript-library';
+import { CedarTemplate } from '../../models/template/cedar-template.model';
 
 @Component({
   selector: 'app-source-panels',
@@ -24,7 +26,23 @@ export class SourcePanelsComponent {
    * offered to someone as their metadata.
    */
   get instanceJson(): object {
-    return InstanceSerializer.toJson(this.dataContext.instanceFullData) as object;
+    return InstanceSerializer.toJson(this.dataContext.instanceFullData, this.templateModel) as object;
+  }
+
+  /** The live instance, written as CEDAR YAML by the model library. */
+  get instanceYaml(): string {
+    return InstanceSerializer.toYaml(this.dataContext.instanceFullData, this.templateModel);
+  }
+
+  /** The source template, written as CEDAR YAML by the model library. */
+  get templateYaml(): string {
+    const template = this.templateModel;
+    return template === null ? '' : CedarWriters.yaml().getStrict().getTemplateWriter().getAsYamlString(template);
+  }
+
+  private get templateModel(): Template | null {
+    const representation = this.dataContext.templateRepresentation;
+    return representation instanceof CedarTemplate ? representation.parsed : null;
   }
 
   /*
@@ -37,15 +55,19 @@ export class SourcePanelsComponent {
   @Input() showTemplateRenderingRepresentation = false;
   @Input() showMultiInstanceInfo = false;
   @Input() showTemplateSourceData = false;
+  @Input() showTemplateYaml = false;
   @Input() showInstanceDataCore = false;
   @Input() showInstanceDataFull = false;
+  @Input() showInstanceYaml = false;
   @Input() showDataQualityReport = false;
 
   @Input() expandedInstanceDataCore = false;
   @Input() expandedInstanceDataFull = false;
   @Input() expandedTemplateSourceData = false;
+  @Input() expandedTemplateYaml = false;
   @Input() expandedTemplateRenderingRepresentation = false;
   @Input() expandedMultiInstanceInfo = false;
+  @Input() expandedInstanceYaml = false;
   @Input() expandedDataQualityReport = false;
 
   constructor() {}

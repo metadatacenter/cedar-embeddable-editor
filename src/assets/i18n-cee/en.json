@@ -71,6 +71,10 @@
       "Instance": "JSON-LD - Instance"
     },
     "JsonSchemaTemplate": "JSON Schema - Template",
+    "Yaml": {
+      "Instance": "YAML - Instance",
+      "Template": "YAML - Template"
+    },
     "TemplateRendering": "Template Rendering Data",
     "MultiInstance": "Multi-Instance Information",
     "DataQualityReport": "Data Quality Report"

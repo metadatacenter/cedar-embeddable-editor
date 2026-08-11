@@ -75,15 +75,19 @@ export interface CeeConfig {
   showTemplateRenderingRepresentation?: boolean;
   showMultiInstanceInfo?: boolean;
   showTemplateSourceData?: boolean;
+  showTemplateYaml?: boolean;
   showInstanceDataCore?: boolean;
   showInstanceDataFull?: boolean;
+  showInstanceYaml?: boolean;
   showDataQualityReport?: boolean;
   showSampleTemplateLinks?: boolean;
   expandedTemplateRenderingRepresentation?: boolean;
   expandedMultiInstanceInfo?: boolean;
   expandedTemplateSourceData?: boolean;
+  expandedTemplateYaml?: boolean;
   expandedInstanceDataCore?: boolean;
   expandedInstanceDataFull?: boolean;
+  expandedInstanceYaml?: boolean;
   expandedDataQualityReport?: boolean;
   expandedSampleTemplateLinks?: boolean;
 

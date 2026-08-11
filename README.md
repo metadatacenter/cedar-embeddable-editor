@@ -306,15 +306,20 @@ The diagnostic panels. Each has a `show` key and an `expanded` key, and every
 | Panel | `show` key | Default |
 |---|---|---|
 | JSON Schema - Template | `showTemplateSourceData` | `true` |
+| YAML - Template | `showTemplateYaml` | `false` |
 | JSON-LD - Instance | `showInstanceDataFull` | `true` |
+| YAML - Instance | `showInstanceYaml` | `false` |
 | JSON-LD - Instance - Core | `showInstanceDataCore` | `false` |
 | Template Rendering Data | `showTemplateRenderingRepresentation` | `false` |
 | Multi-Instance Information | `showMultiInstanceInfo` | `false` |
 | Data Quality Report | `showDataQualityReport` | `false` |
 | Sample templates | `showSampleTemplateLinks` | `false` |
 
-Two of those are on by default, which suits a developer and rarely suits a
-deployment. A production embedding usually sets both to `false`.
+The two JSON source panels are on by default, which suits a developer and rarely
+suits a deployment. A production embedding usually disables them. YAML is
+opt-in through `showTemplateYaml` and `showInstanceYaml`, and its expansion is
+controlled independently by `expandedTemplateYaml` and
+`expandedInstanceYaml`.
 
 Language, and the IRI prefixes CEE recognises or mints:
 

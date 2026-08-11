@@ -51,6 +51,31 @@
     </mat-expansion-panel>
   }
 
+  @if (showInstanceYaml) {
+    <mat-expansion-panel expanded="{{ expandedInstanceYaml }}">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>description</mat-icon>
+          {{ 'Extra.Yaml.Instance' | translate }}
+        </mat-panel-title>
+        <mat-panel-description>
+          <mat-icon
+            matRipple
+            [cdkCopyToClipboard]="instanceYaml"
+            (click)="stopPropagation($event)"
+            matTooltip="{{ 'Generic.Copy' | translate }}"
+            >content_copy</mat-icon
+          >
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <mat-card appearance="outlined">
+          <pre>{{ instanceYaml }}</pre>
+        </mat-card>
+      </ng-template>
+    </mat-expansion-panel>
+  }
+
   @if (showTemplateSourceData) {
     <mat-expansion-panel expanded="{{ expandedTemplateSourceData }}">
       <mat-expansion-panel-header>
@@ -72,6 +97,31 @@
       <ng-template matExpansionPanelContent>
         <mat-card appearance="outlined">
           <pre>{{ dataContext.templateInput | json }}</pre>
+        </mat-card>
+      </ng-template>
+    </mat-expansion-panel>
+  }
+
+  @if (showTemplateYaml) {
+    <mat-expansion-panel expanded="{{ expandedTemplateYaml }}">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>description</mat-icon>
+          {{ 'Extra.Yaml.Template' | translate }}
+        </mat-panel-title>
+        <mat-panel-description>
+          <mat-icon
+            matRipple
+            [cdkCopyToClipboard]="templateYaml"
+            (click)="stopPropagation($event)"
+            matTooltip="{{ 'Generic.Copy' | translate }}"
+            >content_copy</mat-icon
+          >
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <mat-card appearance="outlined">
+          <pre>{{ templateYaml }}</pre>
         </mat-card>
       </ng-template>
     </mat-expansion-panel>

@@ -2960,6 +2960,34 @@ test.describe('what a host page reads back', () => {
     await expect(source).not.toContainText('"_iris"');
   });
 
+  test('the YAML source panels use the model-library representations', async ({ page }) => {
+    await open(
+      page,
+      '10-attribute-values',
+      undefined,
+      undefined,
+      undefined,
+      '&f=showInstanceYaml,expandedInstanceYaml,showTemplateYaml,expandedTemplateYaml',
+    );
+
+    await page.locator('input[aria-label="Attribute Name"]').fill('colour');
+    await page.locator('input[aria-label="Attribute Value"]').fill('blue');
+
+    const instance = page.getByRole('region', { name: 'YAML - Instance' });
+    await expect(instance).toContainText('colour');
+    await expect(instance).toContainText('blue');
+    await expect(instance).not.toContainText('dataContainer');
+
+    const template = page.getByRole('region', { name: 'YAML - Template' });
+    await expect(template).toContainText('type: "attribute-value-field"');
+    await expect(template).not.toContainText('_values');
+
+    const header = page.getByRole('button', { name: /YAML - Instance/ });
+    const headerBox = await header.boundingBox();
+    expect(headerBox, 'the YAML instance header is not visible').not.toBeNull();
+    expect((headerBox as { height: number }).height, 'source-panel rows should stay compact').toBeLessThanOrEqual(40);
+  });
+
   test('currentMetadataSerialized follows the configured format with real content', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance');
     const json = await page.evaluate(
@@ -3111,13 +3139,17 @@ test.describe('config flags are wired to something', () => {
     { flag: 'showTemplateRenderingRepresentation' },
     { flag: 'showInstanceDataCore' },
     { flag: 'showInstanceDataFull' },
+    { flag: 'showInstanceYaml' },
     { flag: 'showTemplateSourceData' },
+    { flag: 'showTemplateYaml' },
     { flag: 'showDataQualityReport' },
     { flag: 'showMultiInstanceInfo', fixture: '03-nested-multi' },
     // Expanding a panel only shows when the panel itself is shown.
     { flag: 'expandedInstanceDataCore', withFlags: ['showInstanceDataCore'] },
     { flag: 'expandedInstanceDataFull', withFlags: ['showInstanceDataFull'] },
+    { flag: 'expandedInstanceYaml', withFlags: ['showInstanceYaml'] },
     { flag: 'expandedTemplateSourceData', withFlags: ['showTemplateSourceData'] },
+    { flag: 'expandedTemplateYaml', withFlags: ['showTemplateYaml'] },
     { flag: 'expandedDataQualityReport', withFlags: ['showDataQualityReport'] },
     { flag: 'expandedTemplateRenderingRepresentation', withFlags: ['showTemplateRenderingRepresentation'] },
     { flag: 'expandedSampleTemplateLinks', withFlags: ['showSampleTemplateLinks'] },
