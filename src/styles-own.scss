@@ -124,8 +124,24 @@
   margin-right: 1%;
 }
 
+/*
+ * A static image, centred in its card.
+ *
+ * Two declarations here did nothing for as long as they have existed.
+ *
+ * `background-color: #e5daa1` never rendered. Material's card background is set at
+ * `:host .mat-mdc-card`, two classes to this rule's one, so the card has always been
+ * white — which is also what every other field looks like, so the khaki is dropped
+ * rather than given the specificity to win. A comment in
+ * `cedar-static-image.component.scss` describing "the card's own khaki background"
+ * was describing something nobody has seen.
+ *
+ * `margin: auto` on the image never centred it, because an `img` is `display: inline`
+ * and an inline element ignores auto margins. Measured: a 240x120 image at
+ * `margin 0/0` sitting hard left in a 518px card, with 278px of dead space beside it.
+ * `display: block` is what makes the auto margins mean anything.
+ */
 .image-component {
-  background-color: #e5daa1;
   max-width: 50%;
   margin-left: auto;
   margin-right: auto;
@@ -135,6 +151,7 @@
     padding-top: 15px;
 
     img {
+      display: block;
       margin-left: auto;
       margin-right: auto;
       max-width: 100%;
