@@ -643,6 +643,31 @@ test('an unsafe attribute name stays visible with a local explanation', async ({
   await expect(page.locator('mat-error')).toHaveCount(0);
 });
 
+test('cloning an attribute value copies it and preserves the source page', async ({ page }) => {
+  await open(page, '10-attribute-values');
+
+  const renderer = page.locator('app-cedar-component-renderer').filter({
+    has: page.locator('input[aria-label="Attribute Name"]'),
+  });
+  const name = renderer.locator('input[aria-label="Attribute Name"]');
+  const value = renderer.locator('input[aria-label="Attribute Value"]');
+  await name.fill('a1');
+  await value.fill('v1');
+
+  await renderer.getByRole('button', { name: 'Add clone after current', exact: true }).click();
+  await expect(name).toHaveValue('a1 copy');
+  await expect(value).toHaveValue('v1');
+
+  const emitted = await page.evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata);
+  expect(emitted._attribute).toEqual(['a1', 'a1 copy']);
+  expect(emitted.a1['@value']).toBe('v1');
+  expect(emitted['a1 copy']['@value']).toBe('v1');
+
+  await renderer.getByRole('option', { name: '1', exact: true }).click();
+  await expect(name).toHaveValue('a1');
+  await expect(value).toHaveValue('v1');
+});
+
 test('an attribute-value field survives save and reload', async ({ page }) => {
   await open(page, '10-attribute-values');
 

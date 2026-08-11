@@ -158,13 +158,6 @@ export class ActiveComponentRegistryService {
 
             if (keyName === null && InstanceValueNode.literal(dataObject[multiInstanceInfo.currentIndex]) === null) {
               handlerContext.changeAttributeValue(component, null, null);
-            } else if (multiInstanceInfo.currentIndex > 0) {
-              const cloneSourceKey = attributeNameOf(dataObject[multiInstanceInfo.currentIndex - 1]);
-
-              if (keyName !== null && keyName === cloneSourceKey && isInstanceObject(parentDataObject)) {
-                const val = InstanceValueNode.literal(parentDataObject.values[keyName]) as string;
-                handlerContext.changeAttributeValue(component, null, val);
-              }
             } else if (keyName === '') {
               // if it is an empty string, we silently accept it
               return;

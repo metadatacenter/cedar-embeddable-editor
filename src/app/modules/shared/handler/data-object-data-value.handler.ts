@@ -196,8 +196,9 @@ export class DataObjectDataValueHandler {
      * context entry rather than silently replacing it with another real name.
      */
     if (!newName) {
+      const usedByAnotherSlot = this.isAttributeNameUsedElsewhere(dataObject, oldName, currentIndex);
       dataObject[currentIndex] = new InstanceDataAttributeValueFieldName('');
-      if (oldName) {
+      if (oldName && !usedByAnotherSlot) {
         // One call, and it takes the property IRI with it. Two `delete`s stood
         // here, on `values` and on the `@context` block, and forgetting the
         // second left an entry naming a property that was gone.
@@ -217,9 +218,9 @@ export class DataObjectDataValueHandler {
       return `Attribute name "${newName}" is already used on this object. Choose a unique name.`;
     }
 
-    const oldNameIndex = indexOfName(dataObject, oldName);
+    const usedByAnotherSlot = this.isAttributeNameUsedElsewhere(dataObject, oldName, currentIndex);
     dataObject[currentIndex] = new InstanceDataAttributeValueFieldName(newName);
-    const needsDeleting = oldName && newName !== oldName && oldNameIndex === currentIndex;
+    const needsDeleting = oldName && newName !== oldName && !usedByAnotherSlot;
 
     // The property IRI moves with the name, so an attribute keeps its identity
     // across a rename rather than being minted a new one.
@@ -393,6 +394,13 @@ export class DataObjectDataValueHandler {
     }
     // name changed but already exists in a different slot
     return true;
+  }
+
+  private isAttributeNameUsedElsewhere(dataObject: InstanceArray, name: string, currentIndex: number): boolean {
+    return dataObject.some(
+      (node, index) =>
+        index !== currentIndex && node instanceof InstanceDataAttributeValueFieldName && node.name === name,
+    );
   }
 
   /**

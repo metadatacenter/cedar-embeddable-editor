@@ -470,18 +470,7 @@ describe('paged attribute-value fields', () => {
     expect(r.widget.last).toEqual({ colour: 'blue' });
   });
 
-  /**
-   * Copying an occurrence leaves both pages pointing at the same attribute
-   * name. The sync notices — the name at the cursor equals the one before it —
-   * and clears the copy's, so the two stop being the same attribute.
-   *
-   * The copy used to be given a manufactured name instead, `Attribute Value
-   * Field2`. Naming it is the user's to do: a property they never asked for
-   * would reach the instance and be saved, and there is nothing to distinguish
-   * it from one they meant. An unnamed slot is the same state a freshly added
-   * one is in, which is the case below.
-   */
-  it('unnames a copied attribute so the pages stop sharing one', () => {
+  it('copies an attribute under a unique derived name', () => {
     const r = attrRig();
     r.driver.handlerContext.addMultiInstance(r.component);
     r.driver.handlerContext.changeAttributeValue(r.component, 'colour', 'blue');
@@ -490,13 +479,12 @@ describe('paged attribute-value fields', () => {
     r.sync();
     r.driver.expectNoErrors('syncing a copied attribute');
 
-    // The working tree rather than the extract: an unnamed slot is not a
-    // property, so the extract has nothing to carry it as.
-    expect(attributeNames(arrayAt(r.driver.fullData, '_f')), 'the copy kept the name it was copied from').toEqual([
-      'colour',
-      '',
-    ]);
-    expect(r.widget.last).toEqual({ '': null });
+    expect(attributeNames(arrayAt(r.driver.fullData, '_f'))).toEqual(['colour', 'colour copy']);
+    expect(r.widget.last).toEqual({ 'colour copy': 'blue' });
+
+    r.driver.handlerContext.setCurrentIndex(r.component, 0);
+    r.sync();
+    expect(r.widget.last).toEqual({ colour: 'blue' });
   });
 
   it('leaves a field with no attributes alone', () => {

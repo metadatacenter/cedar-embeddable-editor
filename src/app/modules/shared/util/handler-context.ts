@@ -10,6 +10,11 @@ import { MessageHandlerService } from '../service/message-handler.service';
 import { DataQualityReportBuilderHandler } from '../handler/data-quality-report-builder.handler';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { DEFAULT_IRI_PREFIX } from './iri-prefix';
+import { MultiFieldComponent } from '../models/field/multi-field-component.model';
+import { InputType } from '../models/input-type.model';
+import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
+import { isInstanceArray, isInstanceObject } from '../models/instance-node.model';
+import { InstanceValueNode } from './instance-value-node';
 // import { RdfBuilderService } from '../service/rdf-builder.service';
 
 export class HandlerContext {
@@ -121,12 +126,53 @@ export class HandlerContext {
     if (!this.withinAddBound(component)) {
       return false;
     }
+    let attributeToCopy: { name: string; value: string | null } | null = null;
+    let attributeFieldToCopy: MultiFieldComponent | null = null;
+    if (component instanceof MultiFieldComponent && component.basicInfo.inputType === InputType.attributeValue) {
+      const slots = this.getDataObjectNodeByPath(component.path);
+      const parent = this.getParentDataObjectNodeByPath(component.path);
+      const slot = isInstanceArray(slots) ? slots[multiInfo.currentIndex] : null;
+      if (slot instanceof InstanceDataAttributeValueFieldName && slot.name !== '' && isInstanceObject(parent)) {
+        attributeFieldToCopy = component;
+        attributeToCopy = {
+          name: slot.name,
+          value: InstanceValueNode.literal(parent.values[slot.name]) ?? null,
+        };
+      }
+    }
     this.dataObjectManipulationService.multiInstanceItemCopy(
       this.dataContext,
       component,
       this.multiInstanceObjectService,
     );
     this.multiInstanceObjectService.multiInstanceItemCopy(component);
+
+    if (attributeToCopy !== null && attributeFieldToCopy !== null) {
+      let copyNumber = 1;
+      let validationError: string | null;
+      do {
+        const suffix = copyNumber === 1 ? ' copy' : ` copy ${copyNumber}`;
+        validationError = this.dataObjectDataValueHandler.changeAttributeValue(
+          this.dataContext,
+          attributeFieldToCopy,
+          this.multiInstanceObjectService,
+          `${attributeToCopy.name}${suffix}`,
+          attributeToCopy.value,
+        );
+        copyNumber++;
+      } while (validationError !== null && copyNumber <= 1000);
+
+      if (validationError !== null) {
+        this.dataObjectDataValueHandler.changeAttributeValue(
+          this.dataContext,
+          attributeFieldToCopy,
+          this.multiInstanceObjectService,
+          null,
+          attributeToCopy.value,
+        );
+        this.messageHandlerService.error(`Unable to find a unique name for a copy of "${attributeToCopy.name}".`);
+      }
+    }
     this.buildQualityReport();
     return true;
   }

@@ -208,6 +208,41 @@ describe('renaming an attribute', () => {
   });
 });
 
+describe('copying an attribute', () => {
+  it('copies its name and value without changing the source', () => {
+    const driver = new CeeDriver(flat());
+    const component = driver.findOrThrow(['_av']);
+    addAttribute(driver, component, 'a1', 'v1');
+
+    driver.handlerContext.copyMultiInstance(component);
+
+    expect(heldValue(driver.extract.values._av)).toEqual(['a1', 'a1 copy']);
+    expect(valueOf(driver.extract, 'a1')).toBe('v1');
+    expect(valueOf(driver.extract, 'a1 copy')).toBe('v1');
+    expect(driver.emitted._av).toEqual(['a1', 'a1 copy']);
+    expect(driver.emitted.a1[DocumentKey.atValue]).toBe('v1');
+    expect(driver.emitted['a1 copy'][DocumentKey.atValue]).toBe('v1');
+    expect(driver.emitted[DocumentKey.atContext]['a1 copy']).not.toBe(driver.emitted[DocumentKey.atContext].a1);
+
+    driver.handlerContext.setCurrentIndex(component, 0);
+    expect(valueOf(driver.extract, 'a1')).toBe('v1');
+  });
+
+  it('numbers the derived name when that name is already occupied', () => {
+    const driver = new CeeDriver(flat());
+    const component = driver.findOrThrow(['_av']);
+    addAttribute(driver, component, 'a1', 'v1');
+    addAttribute(driver, component, 'a1 copy', 'existing');
+    driver.handlerContext.setCurrentIndex(component, 0);
+
+    driver.handlerContext.copyMultiInstance(component);
+
+    expect(heldValue(driver.extract.values._av)).toEqual(['a1', 'a1 copy 2', 'a1 copy']);
+    expect(valueOf(driver.extract, 'a1 copy 2')).toBe('v1');
+    expect(valueOf(driver.extract, 'a1 copy')).toBe('existing');
+  });
+});
+
 describe('names the user did not supply', () => {
   /**
    * REGRESSION SURFACE: `getDefaultAttributeName` had never been called by any
