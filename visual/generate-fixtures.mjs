@@ -628,6 +628,26 @@ const writeRaw = (name, document) => {
    */
   tb = tb.addChild(av, deploy(av, 'attribute', { multi: true, minItems: 1, maxItems: 4 }));
   write('10-attribute-values', tb.build());
+
+  /**
+   * An instance that says nothing about the attribute-value field.
+   *
+   * A template declares the property; an instance need not carry a slot for it, and
+   * one naming no attribute is what CEDAR produces for a field nobody has filled in.
+   * Loading that used to leave the field inert: the pager reported the missing node
+   * on every change-detection pass, and the add button had no list to add to and
+   * refused. Assertion-only, so it records no baseline — what it covers is behaviour,
+   * and the widget's appearance is already photographed from the template above.
+   */
+  writeRaw(
+    '10-attribute-values-unfilled-instance',
+    instance('AttributeValues', {
+      id: 'https://example.org/instances/attribute-values-1',
+      name: 'AttributeValues instance',
+      description: 'The attribute-value field carries no slot at all',
+      values: { _label: literal('a label') },
+    }),
+  );
 }
 
 // 11. A default-selected choice, plus an instance that already has a different

@@ -163,7 +163,17 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy, DoCheck {
         infoArray.push(numStr + (attributeName !== null ? attributeName + '=' : '') + (shown ?? 'null'));
       });
     } else {
-      this.messageHandlerService.error('Missing data in instance:' + this.component.path);
+      /*
+       * Nothing at that path is a field the instance does not carry a slot for, which
+       * an instance is free not to do — an attribute-value field naming no attribute
+       * is the ordinary case. There is nothing to summarise and nothing wrong, so the
+       * summary is empty.
+       *
+       * This reported an error instead, and did it from `ngDoCheck`, so a form holding
+       * one such field wrote a line to the console on every change-detection pass for
+       * as long as it stayed open. A genuine defect would be indistinguishable from
+       * that noise.
+       */
       return '';
     }
 

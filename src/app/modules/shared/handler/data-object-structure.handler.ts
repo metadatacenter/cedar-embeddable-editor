@@ -9,13 +9,13 @@ import { DataContext } from '../util/data-context';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { OccurrenceSelector, OccurrenceSelectors } from './occurrence-selector';
 import { DataObjectBuilderHandler } from './data-object-builder.handler';
-import { InstanceDataContainer } from 'cedar-model-typescript-library';
+import { InstanceDataContainer, InstanceDataEmptyNode } from 'cedar-model-typescript-library';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { TemplateComponent } from '../models/template/template-component.model';
 import { MessageHandlerService } from '../service/message-handler.service';
-import { InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
+import { InstanceArray, InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
 export class DataObjectStructureHandler {
   constructor(private readonly dataObjectBuilderService: DataObjectBuilderHandler = new DataObjectBuilderHandler()) {}
@@ -192,11 +192,57 @@ export class DataObjectStructureHandler {
     // and the check that followed only asked whether it was present — so a node
     // holding a non-empty string passed the test and threw on `.splice`. The guard
     // asks the question the assertion was pretending to answer.
-    if (isInstanceArray(currentNodeAny) && newDataObject !== null) {
-      currentNodeAny.splice(multiInstanceInfo.currentIndex + 1, 0, newDataObject);
+    const target = isInstanceArray(currentNodeAny)
+      ? currentNodeAny
+      : this.openListFor(instanceObject, templateRepresentation, component, multiInstanceObjectService, currentNodeAny);
+
+    if (target !== null && newDataObject !== null) {
+      target.splice(multiInstanceInfo.currentIndex + 1, 0, newDataObject);
     } else {
       messageHandlerService.error('missing data in instance:' + component.path);
     }
+  }
+
+  /**
+   * Give a child the template declares a list to be added to.
+   *
+   * An instance need not carry a slot for every property its template declares, and
+   * an attribute-value field naming no attribute is the case that reaches here: the
+   * document omits the key, or carries the empty node a sparse instance is inflated
+   * with. Either way the path resolves to nothing a new occurrence can go into, and
+   * the add used to be refused — the button did nothing, and said so only in the
+   * console. The template says the child is there, so the list it should already
+   * have had is created rather than the addition being turned away.
+   *
+   * @returns the list now at that path, or null when the node holds data instead —
+   *   which is a shape nobody should overwrite on the strength of an add.
+   */
+  private openListFor(
+    instanceObject: InstanceExtractData,
+    templateRepresentation: TemplateComponent,
+    component: MultiComponent,
+    multiInstanceObjectService: MultiInstanceObjectHandler,
+    currentNode: InstanceExtractData,
+  ): InstanceArray | null {
+    if (currentNode !== null && currentNode !== undefined && !(currentNode instanceof InstanceDataEmptyNode)) {
+      return null;
+    }
+
+    const parent = this.getParentDataPathNodeRecursively(
+      instanceObject,
+      null,
+      templateRepresentation,
+      component.path,
+      OccurrenceSelectors.fromCursor(multiInstanceObjectService),
+    );
+
+    if (!isInstanceObject(parent)) {
+      return null;
+    }
+
+    const list: InstanceArray = [];
+    parent.setValue(component.name, list as unknown as InstanceNode);
+    return list;
   }
 
   multiInstanceItemCopy(

@@ -31,7 +31,7 @@ import { CeeDriver } from '../src/driver';
 import { InstanceObject } from '@cee/models/instance-node.model';
 import { arrayAt, objectAt } from '../src/nodes';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
-import { literalOf, heldValue, attributeValue } from '../src/values';
+import { literalOf, heldValue, attributeValue, instanceWith } from '../src/values';
 
 const ATTR: FieldKind = {
   key: 'attr',
@@ -79,6 +79,61 @@ const addAttribute = (driver: CeeDriver, component: any, name: string | null, va
   driver.handlerContext.addMultiInstance(component);
   driver.handlerContext.changeAttributeValue(component, name, value);
 };
+
+/**
+ * A loaded instance that carries no slot for the field.
+ *
+ * Every test above starts from a template alone, so CEE builds the tree and every
+ * declared child has a slot in it before anything is added. A loaded instance is
+ * under no such obligation: the template declares the property, the document need
+ * not carry it, and an attribute-value field naming no attribute is what CEDAR
+ * writes when nobody has filled one in. There was nothing at that path to add an
+ * occurrence to, so the add was refused and the field could not be used at all.
+ */
+describe('an attribute-value field the instance says nothing about', () => {
+  const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/avflat';
+  const INSTANCE_IRI = 'https://example.org/i/1';
+
+  /** The instance a host hands over, with `_av` set to whatever a case needs. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const loaded = (slot?: unknown): any => {
+    const instance = instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI);
+    if (slot !== undefined) {
+      (instance as Record<string, unknown>)._av = slot;
+    }
+    return instance;
+  };
+
+  it.each([
+    ['the key is absent', undefined],
+    // What a sparse instance used to be inflated with before the model library
+    // learned that this field's empty slot is a list.
+    ['the key holds an empty node', {}],
+  ])('adds an attribute when %s', (_label, slot) => {
+    const driver = new CeeDriver(flat(), { instance: loaded(slot) });
+    const component = driver.findOrThrow(['_av']);
+
+    addAttribute(driver, component, 'colour', 'blue');
+    driver.expectNoErrors('adding to a field with no slot');
+
+    expect(attributeNames(driver.extract.values._av)).toEqual(['colour']);
+    expect(valueOf(driver.extract, 'colour')).toBe('blue');
+  });
+
+  /**
+   * The list is created for a slot that holds nothing. A slot holding something
+   * else is a disagreement between the template and the document, and replacing it
+   * on the strength of a click would discard whatever is there.
+   */
+  it('refuses, and says so, when the slot holds a value instead', () => {
+    const driver = new CeeDriver(flat(), { instance: loaded({ '@value': 'not a list' }) });
+    const component = driver.findOrThrow(['_av']);
+
+    driver.handlerContext.addMultiInstance(component);
+
+    expect(driver.messages.errors.join('\n')).toContain('missing data in instance');
+  });
+});
 
 describe('adding an attribute value', () => {
   it('writes the value onto the parent, under the name the user chose', () => {

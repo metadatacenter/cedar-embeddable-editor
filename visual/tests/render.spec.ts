@@ -2419,6 +2419,67 @@ test.describe('template-authored strings that are not rich text', () => {
   });
 });
 
+/**
+ * An attribute-value field the instance says nothing about.
+ *
+ * A template declares the property and an instance need not carry a slot for it, so
+ * a field nobody has filled in arrives with no node at that path at all. CEE treated
+ * that as data missing rather than as an unfilled field: the pager reported it from
+ * `ngDoCheck`, once per change-detection pass for as long as the form stayed open,
+ * and the add button had no list to splice into and turned the click away without
+ * anything reaching the screen.
+ *
+ * Driven through the real element rather than the handlers, because what broke was
+ * the whole path from the loaded document to the button — the handler tests would
+ * have passed on an instance built with the slot already there.
+ */
+test.describe('an attribute-value field with no slot in the instance', () => {
+  const ceeErrors = (page: Page): string[] => {
+    const errors: string[] = [];
+    page.on('console', (message) => {
+      if (message.type() === 'error' && message.text().includes('CEE ERROR')) {
+        errors.push(message.text());
+      }
+    });
+    return errors;
+  };
+
+  const attributeRows = (page: Page): Promise<number> =>
+    page.evaluate(
+      () =>
+        document
+          .querySelector('cedar-embeddable-editor')!
+          .shadowRoot!.querySelectorAll('app-cedar-input-attribute-value').length,
+    );
+
+  test('loads without reporting the absent slot as an error', async ({ page }) => {
+    const errors = ceeErrors(page);
+    await open(page, '10-attribute-values', undefined, '10-attribute-values-unfilled-instance');
+    // `ngDoCheck` runs on every pass, so a report would arrive repeatedly rather than
+    // once — long enough here for more than one.
+    await page.waitForTimeout(500);
+
+    expect(errors.join('\n'), 'an unfilled attribute-value field is not a missing instance').not.toContain(
+      'data in instance',
+    );
+  });
+
+  test('adds an attribute when asked, having had nowhere to add one', async ({ page }) => {
+    const errors = ceeErrors(page);
+    await open(page, '10-attribute-values', undefined, '10-attribute-values-unfilled-instance');
+
+    expect(await attributeRows(page), 'the field starts with no attributes').toBe(0);
+
+    await page.getByRole('button', { name: 'Add empty after current' }).first().click();
+
+    await expect
+      .poll(() => attributeRows(page), { message: 'clicking add should produce an attribute row' })
+      .toBe(1);
+    await expect(page.getByRole('textbox', { name: 'Attribute Name' }).first()).toBeVisible();
+    expect(errors.join('\n'), 'adding should raise nothing').not.toContain('data in instance');
+  });
+});
+
 test.describe('markup in an instance value', () => {
   test('is escaped, not rendered, while the field is editable', async ({ page }) => {
     await open(page, '01-input-types', undefined, '14-markup-in-a-value');
