@@ -434,11 +434,12 @@ test.describe('field type markers', () => {
  * generated fixture reaches least convincingly, and the one Material's MDC rewrite has
  * the most surface to disturb.
  *
- * Both pages are far taller than a screen, so the 1% `maxDiffPixelRatio` is a large
- * absolute budget here and a small localised change will not move it (the config
- * explains the measurement). That is the right trade for these two: what they are
- * watching for is a Material restyle or a layout collapse, both of which move far more
- * than 1%. Localised widget rendering is covered clipped, under `widgets, clipped`.
+ * Both pages are far taller than a screen, and they used to be judged by a 1% ratio —
+ * which on a 1280x4418 page is a budget of some 56,000 pixels, so a small localised
+ * change did not move it. Four such changes went green against these two baselines in a
+ * single day. Every screenshot now has the same absolute 120-pixel budget, and the config
+ * carries the measurements. Localised widget rendering is still covered clipped as well,
+ * under `widgets, clipped`, because a failure there names the widget.
  *
  * They omit NIH Grant ID and DOI because the Template Designer cannot render those two
  * (TEMPLATE-DESIGNER-ROADMAP item 1), not because CEE cannot — it does, and
@@ -1078,9 +1079,11 @@ test('numeric fields state their bounds in words', async ({ page }) => {
  *
  * Asserted as an equality between the two rather than against a number, so it
  * stays true if the size is ever changed and false if only one of them is. It
- * needs to be a DOM assertion: this changed the type size of every field on the
- * page and both corpus baselines still passed, because `maxDiffPixelRatio` is a
- * ratio and those pages are thousands of pixels tall.
+ * It had to be a DOM assertion: this changed the type size of every field on the
+ * page and both corpus baselines still passed, the budget then being a ratio on
+ * pages thousands of pixels tall. The budget is absolute now, so a repeat would be
+ * caught in pixels too — the assertion stays because it names the property that must
+ * hold, which a screenshot never does.
  */
 test('a field states its label and its value at one size', async ({ page }) => {
   await open(page, '17-real-flat');
@@ -1112,15 +1115,15 @@ test('a field states its label and its value at one size', async ({ page }) => {
  * The twelve full-page fixtures above are the wrong instrument for a widget-level
  * regression, and the footer rebrand proved it: a new logo, a new organisation
  * name and a new link changed 0.708% of the desktop page and 0.897% of the
- * narrow one, against a `maxDiffPixelRatio` of 1%, and `preset-chrome` reported
- * green. Nothing about that is specific to footers. A single widget is a small
- * fraction of any of these pages, so a widget that renders wrong after the
- * Material 15 MDC rewrite — the exact thing this suite exists to catch — can move
- * every pixel it owns and still come in under the page's budget.
+ * narrow one, against the 1% ratio the config applied at the time, and
+ * `preset-chrome` reported green. Nothing about that is specific to footers. A single
+ * widget is a small fraction of any of these pages, so a widget that rendered wrong
+ * after the Material 15 MDC rewrite could move every pixel it owned and still come in
+ * under the page's budget.
  *
- * So each widget also gets a screenshot clipped to its own host element, with an
- * absolute pixel budget rather than an inherited ratio. Two consequences worth
- * having beyond the sensitivity: a failure names the widget instead of handing
+ * The ratio is gone — every screenshot carries the same absolute budget now — so this
+ * is no longer the only sensitive instrument. Clipping still buys two things a page
+ * shot cannot: a failure names the widget instead of handing
  * over a full-page diff to search, and the baselines are small enough to review.
  *
  * Mutation-tested, because a claim like that is worth checking rather than
@@ -1185,25 +1188,15 @@ const WIDGETS = [
   { name: 'timezone-picker', selector: 'app-timezone-picker', fixture: '07-timezone', nth: 0 },
 ] as const;
 
-/**
- * An absolute budget, not a ratio.
+/*
+ * No budget of its own any more.
  *
- * A ratio is what let the footer through, and it fails worst exactly where it
- * matters most — the smaller the thing that broke, the more slack it gets. 120
- * pixels is a couple of glyphs' worth of rasterisation variance, and it is far
- * tighter than 1% of even the narrowest widget here (a 1142x61 field would get
- * 696). Within one machine the real figure is zero.
- *
- * This does override the config, rather than being softened by it: given both,
- * Playwright takes `Math.min` of the absolute budget and the ratio expanded
- * against the image's own area, so the stricter of the two governs.
- *
- * The trade-off, stated so it is not a surprise: these baselines are keyed to the
- * platform but not to the OS version, so an OS update that shifts font rendering
- * will fail them. Re-recording is the right response to that, and a full-page
- * baseline would very likely have gone with them anyway.
+ * These clipped shots carried `maxDiffPixels: 120` while the config allowed every
+ * other screenshot 1% of its own area — the absolute budget was introduced here,
+ * for the smallest images, and the tall pages that most needed it kept the ratio.
+ * The config now applies the same 120 to everything, so an override here would
+ * only restate it. `playwright.config.ts` holds the number and the reasoning.
  */
-const WIDGET_DIFF_BUDGET = 120;
 
 test.describe('widgets, clipped', () => {
   for (const widget of WIDGETS) {
@@ -1218,9 +1211,7 @@ test.describe('widgets, clipped', () => {
 
       const element = all.nth(widget.nth);
       await expect(element).toBeVisible();
-      await expect(element).toHaveScreenshot(`widget-${widget.name}.png`, {
-        maxDiffPixels: WIDGET_DIFF_BUDGET,
-      });
+      await expect(element).toHaveScreenshot(`widget-${widget.name}.png`);
     });
   }
 });
@@ -1232,13 +1223,16 @@ test.describe('widgets, clipped', () => {
  * catch the BMIR → Division of Computational Medicine rebrand: new logo, new
  * wordmark-free mark, new organisation name, new link. Measured against the
  * previous baselines, that whole change moved 0.708% of the desktop page and
- * 0.897% of the narrow one — under the 1% `maxDiffPixelRatio`, so both projects
- * reported green. Narrow cleared it by a tenth of a percentage point.
+ * 0.897% of the narrow one — under the 1% ratio the config applied at the time, so
+ * both projects reported green. Narrow cleared it by a tenth of a percentage point.
  *
- * The ratio is not the thing to fix; it is there to absorb cross-machine font
- * rasterisation, and tightening it globally trades one silent failure for a
- * noisy one. What was missing is that a *localised* change to a small region of
- * a tall page is exactly what a whole-page ratio cannot see. So:
+ * The conclusion drawn here was that the ratio should stay, on the grounds that it
+ * absorbs cross-machine font rasterisation and that tightening it globally would
+ * trade a silent failure for a noisy one. That was wrong, and four stale-but-green
+ * baselines in one day are what showed it: rasterisation variance does not scale with
+ * image area, so an absolute budget absorbs it just as well while staying sensitive on
+ * a tall page. The ratio is gone. What follows is still worth having for what it says
+ * when it fails. So:
  *
  *  - the mark is screenshotted clipped to the footer, where the same 1% is
  *    around a thousand pixels rather than sixteen thousand, and

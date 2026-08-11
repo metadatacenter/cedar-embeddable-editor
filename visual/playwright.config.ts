@@ -53,18 +53,36 @@ export default defineConfig({
 
   expect: {
     toHaveScreenshot: {
-      // Font rasterisation differs a little between machines and OS versions,
-      // and this ratio absorbs that. It catches what it was chosen to catch: a
-      // Material DOM rewrite moves far more than 1% of pixels.
-      //
-      // What it does NOT catch is a localised change to a small part of a tall
-      // page. Measured: rebranding the whole footer — logo, organisation name
-      // and link — moved 0.708% of the desktop page and 0.897% of the narrow
-      // one, and both reported green. Anything that matters within a region
-      // smaller than roughly 1% of its page needs a screenshot clipped to that
-      // region, where the same ratio is a much smaller absolute budget, or a
-      // DOM assertion. See `the footer` and `pager.png` in render.spec.ts.
-      maxDiffPixelRatio: 0.01,
+      /*
+       * An absolute budget, for every screenshot in the suite.
+       *
+       * 120 pixels is a couple of glyphs' worth of rasterisation variance. Within
+       * one machine the real figure is zero, and CI runs the same platform family
+       * as the baselines are keyed to.
+       *
+       * This was `maxDiffPixelRatio: 0.01`, and a ratio fails worst exactly where
+       * it matters most: the larger the image, the more it forgives, so a
+       * localised change to a tall page is what it hides. It was already known to
+       * have let a whole footer rebrand through at 0.708% of the desktop page, and
+       * the clipped widget shots were given this budget in response. Leaving the
+       * full pages on the ratio meant the fix stopped where the problem was
+       * smallest.
+       *
+       * Four changes in one day went green against a stale full-page baseline: a
+       * decimal separator's colour and size, a placeholder from `000` to `sss`,
+       * `AM` losing 100 of font weight, and an occurrence chip shrinking 32px to
+       * 26px. The last two sat in `17-real-flat` for two commits — 55 differing
+       * scanlines on a 1280x4418 page, 0.06% of it — while both the app and the
+       * baseline reported agreement. A baseline that passes while depicting the
+       * previous rendering is worse than no baseline, because the next real diff
+       * arrives carrying it.
+       *
+       * The trade-off, stated so it is not a surprise: these baselines are keyed
+       * to the platform but not to the OS version, so an OS update that shifts
+       * font rendering will now fail full pages loudly instead of quietly.
+       * Re-recording is the right response to that.
+       */
+      maxDiffPixels: 120,
       animations: 'disabled',
       caret: 'hide',
       // Neutralises content that differs between two builds of the same code —
