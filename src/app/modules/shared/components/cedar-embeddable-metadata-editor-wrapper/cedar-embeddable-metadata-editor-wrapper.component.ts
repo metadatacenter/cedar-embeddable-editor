@@ -19,7 +19,7 @@ import { ActiveComponentRegistryService } from '../../service/active-component-r
 import { TranslateLoader, TranslateService, USE_DEFAULT_LANG, USE_STORE } from '@ngx-translate/core';
 import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { DataContext } from '../../util/data-context';
-import { HttpClient, HttpStatusCode } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
@@ -37,6 +37,16 @@ import { validateCeeConfig } from '../../util/config-validation';
 import { InstanceObject } from '../../models/instance-node.model';
 import { Template } from 'cedar-model-typescript-library';
 import { CedarTemplate } from '../../models/template/cedar-template.model';
+
+/**
+ * One half of what an artifact input can supply.
+ *
+ * Two, rather than one claim per input, because the inputs overlap:
+ * `templateAndInstanceObject` supplies what `templateObject` and `instanceObject`
+ * supply between them, so a seal per input would let a host set the template
+ * twice through two different names.
+ */
+type ArtifactClaim = 'template' | 'instance';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -80,6 +90,23 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   innerConfig: CeeConfig | null = null;
   private initialized = false;
   private configSet = false;
+
+  /**
+   * Which artifact a host has already supplied.
+   *
+   * Every input on this element takes one assignment and keeps it. Before, the
+   * element only ever accumulated state: a second `config` patched the first for
+   * most keys and replaced it for `outputSerialization`, and three inputs could
+   * each supply an artifact with nothing saying which won. Neither lets a host
+   * say "here is what I want now" instead of "here is one more thing on top of
+   * whatever you already have", so a host could not return the editor to a known
+   * state, and the same assignments in a different order gave a different editor.
+   *
+   * A host wanting different configuration or a different artifact creates a new
+   * element. `templateAndInstanceObject` spends both claims, which is what makes
+   * it exclusive with the two separate inputs rather than merely redundant.
+   */
+  private readonly claimed = new Set<ArtifactClaim>();
 
   templateJson: InstanceObject | null = null;
   instanceJson: InstanceObject | null = null;
@@ -232,15 +259,78 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     );
   }
 
-  @Input() set templateObject(template: InstanceObject) {
+  /**
+   * The template to render.
+   *
+   * Takes one assignment. Either order works with `instanceObject`: the editor is
+   * not built until a template is present, so an instance supplied first waits
+   * rather than arriving early.
+   */
+  @Input() set templateObject(template: InstanceObject | null) {
+    if (template == null || !this.claim('templateObject', ['template'])) {
+      return;
+    }
+    this.applyTemplate(template);
+  }
+
+  /** An existing instance to load. Takes one assignment. */
+  @Input() set instanceObject(instance: InstanceObject | null) {
+    if (instance == null || !this.claim('instanceObject', ['instance'])) {
+      return;
+    }
+    this.applyInstance(instance);
+  }
+
+  /** Both at once. Spends the template claim and the instance claim together. */
+  @Input() set templateAndInstanceObject(templateAndInstance: object | null) {
+    if (templateAndInstance == null || !this.claim('templateAndInstanceObject', ['template', 'instance'])) {
+      return;
+    }
+    this.applyTemplateAndInstance(templateAndInstance);
+  }
+
+  /**
+   * Records that an input has been used, or reports that it already was.
+   *
+   * Reported and ignored rather than thrown. The setter runs inside a custom
+   * element, so an exception would surface in the host's own call stack and could
+   * break a code path with nothing to do with CEE. Silence was the other option
+   * and is worse: a host debugging why its second assignment did nothing would
+   * get no help at all.
+   */
+  private claim(input: string, parts: readonly ArtifactClaim[]): boolean {
+    const spent = parts.filter((part) => this.claimed.has(part));
+    if (spent.length > 0) {
+      const subject = spent.length > 1 ? 'template and instance are' : `${spent[0]} is`;
+      this.messageHandlerService.error(
+        `CEDAR Embeddable Editor: "${input}" ignored, because the ${subject} already set. Each input takes ` +
+          'one assignment; create a new editor element to load a different artifact.',
+      );
+      return false;
+    }
+    for (const part of parts) {
+      this.claimed.add(part);
+    }
+    return true;
+  }
+
+  /*
+   * The write, separated from the claim that guards it.
+   *
+   * The sample-template loader reaches these directly. It is CEE's own developer
+   * feature and loads a different sample on every click, which is exactly the
+   * reassignment a host may not perform — and it is internal, so the contract
+   * about what a host may do does not bind it.
+   */
+  private applyTemplate(template: InstanceObject): void {
     this.templateJson = template;
   }
 
-  @Input() set instanceObject(instance: InstanceObject) {
+  private applyInstance(instance: InstanceObject): void {
     this.instanceJson = instance;
   }
 
-  @Input() set templateAndInstanceObject(templateAndInstance: object) {
+  private applyTemplateAndInstance(templateAndInstance: object): void {
     this.templateAndInstanceJson = templateAndInstance;
   }
 
@@ -251,91 +341,47 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     return {};
   }
 
-  // TODO: revisit if this method is needed. The CEE should be agnostic of the environment, should expect the config to be injected
-  @Input() loadConfigFromURL(
-    jsonURL: string,
-    successHandler: ((config: unknown) => void) | null = null,
-    errorHandler: ((request: XMLHttpRequest) => void) | null = null,
-  ): void {
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status === HttpStatusCode.Ok) {
-          /**
-           * A 200 is not a promise of JSON.
-           *
-           * A misconfigured path, a login redirect or a proxy notice all answer 200 with
-           * HTML, and `JSON.parse` used to throw here — inside an XHR callback, so the
-           * exception went nowhere and *neither* handler was called. The host was told
-           * nothing and could not tell that from a request still in flight.
-           *
-           * A body that will not parse is a failure to load a config, which is what the
-           * error handler is for.
-           */
-          let jsonConfig = null;
-          try {
-            jsonConfig = JSON.parse(xhr.responseText);
-          } catch (e) {
-            /**
-             * Reported straight to the console, not through `MessageHandlerService`.
-             *
-             * When a host page calls this on the custom element, `this` is the element
-             * rather than this component: `that.config = ...` works because Angular
-             * Elements forwards it as an `@Input`, but injected services are not on the
-             * element and `that.messageHandlerService` is `undefined`. Reaching for it
-             * here threw, which is a worse failure than the one being handled.
-             */
-            console.error('CEE ERROR: config at ' + jsonURL + ' is not JSON: ' + e);
-            if (errorHandler) {
-              errorHandler(xhr);
-            }
-            return;
-          }
-          this.config = jsonConfig;
-
-          if (successHandler) {
-            successHandler(jsonConfig);
-          }
-        } else {
-          if (errorHandler) {
-            errorHandler(xhr);
-          }
-        }
-      }
-    };
-    xhr.open('GET', jsonURL, true);
-    xhr.send();
-  }
-
   ngOnDestroy(): void {
     this.onDestroySubject.next();
     this.onDestroySubject.complete();
     this.activeComponentRegistry.clear();
   }
 
-  @Input() set config(value: CeeConfig) {
+  /**
+   * The configuration, which takes one assignment and keeps it.
+   *
+   * A host wanting different settings creates a new element. That replaces two
+   * behaviours no host could reason about: an omitted key kept whatever the
+   * previous configuration installed, for the terminology endpoint, the IRI
+   * prefix and both languages among others, while `outputSerialization` reset
+   * instead — so what a missing key meant depended on which key it was.
+   */
+  @Input() set config(value: CeeConfig | null) {
+    if (value == null) {
+      return;
+    }
+    if (this.configSet) {
+      this.messageHandlerService.error(
+        'CEDAR Embeddable Editor: "config" ignored, because the editor is already configured. Configuration ' +
+          'takes one assignment; create a new editor element to configure it differently.',
+      );
+      return;
+    }
     this.messageHandlerService.trace('CEDAR Embeddable Editor config set to:' + JSON.stringify(value));
 
     /*
-     * Both ways in converge here: a host assigning `config`, and `loadConfigFromURL`
-     * assigning it after parsing. That matters, because the fetched one is the
-     * configuration nothing has type-checked — the shipped declarations catch a
-     * misspelled key for a TypeScript host writing a literal, and can say nothing
-     * about JSON off a URL.
-     *
      * Reported, not rejected. A bad key is ignored downstream exactly as before;
      * the change is that the host is told rather than left watching a setting do
-     * nothing.
+     * nothing. The shipped declarations catch a misspelled key for a TypeScript
+     * host writing a literal; this catches the same thing for a JavaScript one.
      */
     for (const problem of validateCeeConfig(value)) {
       this.messageHandlerService.error(problem);
     }
 
-    if (value != null) {
-      this.innerConfig = value;
-      this.configSet = true;
-      this.doInitialize();
-    }
+    this.innerConfig = value;
+    this.configSet = true;
+    this.doInitialize();
   }
 
   @Input() set eventHandler(value: CeeEventHandler) {
@@ -427,19 +473,19 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   private triggerUpdateOnInjectedSampleData(): void {
     if (this.loadedTemplateJson != null && this.loadedMetadata != null) {
-      this.templateAndInstanceObject = {
+      this.applyTemplateAndInstance({
         templateObject: this.loadedTemplateJson,
         instanceObject: this.loadedMetadata,
-      };
+      });
       return;
     }
     if (this.loadedTemplateJson != null) {
       this.handlerContext.dataContext.instanceFullData = null;
       this.handlerContext.dataContext.invalidateDerivedViews();
-      this.templateObject = this.loadedTemplateJson;
+      this.applyTemplate(this.loadedTemplateJson);
     }
     if (this.loadedMetadata !== null) {
-      this.instanceObject = this.loadedMetadata;
+      this.applyInstance(this.loadedMetadata);
     }
   }
 }

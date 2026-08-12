@@ -1,10 +1,9 @@
 /**
  * What CEE tells a host about a configuration it cannot use.
  *
- * The interesting cases are the ones a type system cannot reach: a JavaScript host,
- * and `loadConfigFromURL`, where the JSON has been checked by nobody. Both used to
- * be answered with silence, and a key that is silently ignored looks exactly like a
- * key that works.
+ * The interesting case is the one a type system cannot reach: a JavaScript host,
+ * whose configuration has been checked by nobody. It used to be answered with
+ * silence, and a key that is silently ignored looks exactly like a key that works.
  *
  * In the harness rather than beside the source, because the validator is plain
  * TypeScript that touches no framework and no DOM — which is exactly what this

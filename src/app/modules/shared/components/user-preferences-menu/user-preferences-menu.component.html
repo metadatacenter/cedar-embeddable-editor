@@ -19,11 +19,17 @@
   <mat-divider></mat-divider>
 
   <div class="menu-body" (click)="$event.stopPropagation()">
-    <button mat-menu-item (click)="toggleReadOnly(!readOnlyMode$)">
+    <button
+      mat-menu-item
+      [disabled]="locked"
+      [attr.title]="locked ? 'Read-only mode was set by the embedding application and cannot be changed here.' : null"
+      (click)="toggleReadOnly(!readOnlyMode$)"
+    >
       <span>Readonly Mode</span>
       <mat-slide-toggle
         color="primary"
         [checked]="readOnlyMode$"
+        [disabled]="locked"
         (click)="$event.stopPropagation()"
         (change)="toggleReadOnly($event.checked)"
       >

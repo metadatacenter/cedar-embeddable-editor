@@ -8,7 +8,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { open } from './support/host';
-import { literalNode, valueOf } from './values';
+import { valueOf } from './values';
 
 const errorsByPage = new WeakMap<Page, string[]>();
 
@@ -225,20 +225,24 @@ test('honors read-only mode', async ({ page }) => {
   await expect(page.locator('input[aria-label="email"]')).toHaveAttribute('readonly', 'true');
 });
 
-test('replaces an instance and exposes JSON and YAML outputs', async ({ page }) => {
+/**
+ * Both serializations, over a value only the host could have supplied.
+ *
+ * The template defaults this field to "Limited" and the instance carries
+ * "Private", so a form that ignored the instance, or an output built from the
+ * template rather than the document, reads "Limited" and fails. This replaced a
+ * test that reassigned `instanceObject` to get a distinguishable value; an input
+ * now takes one assignment, and the instance a host supplies at load is already
+ * distinguishable from the default.
+ */
+test('exposes JSON and YAML outputs for a host-supplied instance', async ({ page }) => {
   await open(page, '11-choice-default', undefined, '11-choice-default-instance');
-  await page.evaluate((node) => {
-    const editor = document.querySelector('cedar-embeddable-editor') as any;
-    const replacement = structuredClone(editor.currentMetadata);
-    replacement._access = node;
-    editor.instanceObject = replacement;
-  }, literalNode('Public'));
 
-  await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Public');
+  await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Private');
   const outputs = await page.evaluate(() => {
     const editor = document.querySelector('cedar-embeddable-editor') as any;
     return { json: JSON.stringify(editor.currentMetadata), yaml: editor.currentMetadataYaml };
   });
-  expect(outputs.json).toContain('Public');
-  expect(outputs.yaml).toContain('Public');
+  expect(outputs.json).toContain('Private');
+  expect(outputs.yaml).toContain('Private');
 });

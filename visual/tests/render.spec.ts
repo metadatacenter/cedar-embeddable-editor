@@ -1434,6 +1434,48 @@ test('a selected controlled term reads like a selected authority term', async ({
   expect(shown, 'the IRI must not be wrapped in parentheses').not.toContain('(');
 });
 
+/**
+ * `hideEmptyFields`, which until now did nothing at all.
+ *
+ * Both artifact setters cleared the flag, and on the one pass an artifact gets the
+ * clear ran after the configuration set it — so the key was live only on the
+ * combined input, whose setter did not clear. The clear is gone, and this is the
+ * behavioural coverage the key never had: the only test of it watched the flag being
+ * set on a wrapper with no child editor and no template, which is why nothing caught
+ * that the flag never reached a rendered form.
+ *
+ * The instance fills `organism` and leaves `contributor` empty, so a viewer that
+ * honours the key shows one and drops the other.
+ */
+test.describe('hiding fields the instance never filled', () => {
+  test('drops an empty field on the combined input', async ({ page }) => {
+    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance', 'combined', '&f=hideEmptyFields');
+
+    await expect(page.locator('input[aria-label="organism"]')).toBeVisible();
+    await expect(page.locator('input[aria-label="contributor"]')).toHaveCount(0);
+  });
+
+  /**
+   * The separate inputs do not honour the key, which is a build-ordering limit
+   * rather than the cleared flag: the form is built when the template arrives, and
+   * on that route the instance has not been read yet, so nothing knows which fields
+   * are empty. Asserted so the limit is recorded rather than rediscovered.
+   */
+  test('does not drop it on the separate inputs', async ({ page }) => {
+    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance', 'separate', '&f=hideEmptyFields');
+
+    await expect(page.locator('input[aria-label="organism"]')).toBeVisible();
+    await expect(page.locator('input[aria-label="contributor"]')).toBeVisible();
+  });
+
+  test('keeps both fields when the key is off', async ({ page }) => {
+    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance', 'combined');
+
+    await expect(page.locator('input[aria-label="organism"]')).toBeVisible();
+    await expect(page.locator('input[aria-label="contributor"]')).toBeVisible();
+  });
+});
+
 test.describe('external authority fields', () => {
   test('typing does not raise an error', async ({ page }) => {
     await open(page, '04-controlled-terms');
@@ -2329,10 +2371,9 @@ test.describe('a choice value reaches the widget by every load path', () => {
  * A configuration CEE cannot use is reported, not swallowed.
  *
  * The shipped declarations catch a misspelled key for a TypeScript host writing a
- * literal, and can say nothing about the two likelier routes in: a JavaScript host,
- * and `loadConfigFromURL`, whose JSON has been type-checked by nobody. Both used to
- * be answered with silence, and a key that is silently ignored looks exactly like
- * one that works.
+ * literal, and can say nothing about the likelier route in: a JavaScript host, whose
+ * configuration has been type-checked by nobody. That used to be answered with
+ * silence, and a key that is silently ignored looks exactly like one that works.
  *
  * Driven through the real custom element rather than the validator directly —
  * `config-validation.spec.ts` covers the rules — because what is being asserted
@@ -3040,22 +3081,124 @@ test.describe('host input timing', () => {
     expect(JSON.stringify(metadata)).toContain('Private');
   });
 
-  test('replacing an instance updates both the rendered widget and host output', async ({ page }) => {
+  /**
+   * REGRESSION, of a sort: this asserted the opposite until the host contract was
+   * settled. Replacing an instance worked, and so did replacing a template and
+   * reassigning `config`, which is what made the element impossible to reason
+   * about — it only ever accumulated state, so the same assignments in a different
+   * order gave a different editor and no host could return it to a known one.
+   * Every input now takes one assignment. A host wanting a different instance
+   * creates a new element.
+   */
+  test('replacing an instance is refused, and the first one stands', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance');
-    await page.evaluate((node) => {
+    const refused = await page.evaluate((node) => {
       const cee = document.querySelector('cedar-embeddable-editor') as any;
+      const errors: string[] = [];
+      cee.eventHandler = { error: (label: string) => errors.push(label) };
       const replacement = structuredClone(cee.currentMetadata);
       replacement._access = node;
       cee.instanceObject = replacement;
+      return errors;
     }, literalNode('Public'));
 
-    await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Public');
-    await expect(async () => {
-      const metadata = await page.evaluate(
-        () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
-      );
-      expect(valueOf(metadata, '_access')).toBe('Public');
-    }).toPass();
+    expect(refused.join('\n'), 'the host should be told its assignment was ignored').toContain(
+      '"instanceObject" ignored, because the instance is already set',
+    );
+    await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Private');
+    const metadata = await page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
+    );
+    expect(valueOf(metadata, '_access'), 'the first instance should still be the one loaded').toBe('Private');
+  });
+
+  test('reassigning a template is refused too', async ({ page }) => {
+    await open(page, '11-choice-default', undefined, '11-choice-default-instance');
+    const refused = await page.evaluate(async () => {
+      const cee = document.querySelector('cedar-embeddable-editor') as any;
+      const errors: string[] = [];
+      cee.eventHandler = { error: (label: string) => errors.push(label) };
+      cee.templateObject = await (await fetch('./fixtures/01-input-types.json')).json();
+      return errors;
+    });
+
+    expect(refused.join('\n')).toContain('"templateObject" ignored, because the template is already set');
+    await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Private');
+  });
+
+  /**
+   * The combined input against the two separate ones.
+   *
+   * `templateAndInstanceObject` supplies what both separate inputs supply, so it has
+   * to spend both claims rather than one of its own — otherwise a host could set the
+   * template twice by reaching it through two different names.
+   */
+  test('the combined input cannot be mixed with the separate ones', async ({ page }) => {
+    await open(page, '11-choice-default', undefined, '11-choice-default-instance', 'combined');
+    const refused = await page.evaluate(async () => {
+      const cee = document.querySelector('cedar-embeddable-editor') as any;
+      const errors: string[] = [];
+      cee.eventHandler = { error: (label: string) => errors.push(label) };
+      const template = await (await fetch('./fixtures/01-input-types.json')).json();
+      cee.templateObject = template;
+      cee.instanceObject = {};
+      cee.templateAndInstanceObject = { templateObject: template, instanceObject: {} };
+      return errors;
+    });
+
+    expect(refused.join('\n')).toContain('"templateObject" ignored, because the template is already set');
+    expect(refused.join('\n')).toContain('"instanceObject" ignored, because the instance is already set');
+    expect(refused.join('\n')).toContain(
+      '"templateAndInstanceObject" ignored, because the template and instance are already set',
+    );
+  });
+
+  test('configuration takes one assignment', async ({ page }) => {
+    await open(page, '01-input-types');
+    const refused = await page.evaluate(() => {
+      const cee = document.querySelector('cedar-embeddable-editor') as any;
+      const errors: string[] = [];
+      cee.eventHandler = { error: (label: string) => errors.push(label) };
+      cee.config = { showFooter: true };
+      return errors;
+    });
+
+    expect(refused.join('\n')).toContain('"config" ignored, because the editor is already configured');
+    await expect(page.locator('footer.main__footer'), 'the refused configuration must not take effect').toBeHidden();
+  });
+});
+
+/**
+ * Read-only as host policy rather than a starting position.
+ *
+ * The preferences menu's toggle wrote straight to the service the widgets read, so a
+ * host embedding a form as a viewer got a form the user could switch back to
+ * editable — and a host offering its own save button would then store the edits.
+ * With configuration immutable the host cannot take it back either, so the toggle
+ * had to become the thing that yields.
+ */
+test.describe('read-only as host policy', () => {
+  const toggle = (page: import('@playwright/test').Page) => page.locator('mat-slide-toggle button[role="switch"]');
+
+  test('locks the preferences toggle when the host configured read-only', async ({ page }) => {
+    await open(page, '01-input-types', 'readonly', undefined, undefined, '&f=showPreferencesMenu');
+    await page.getByRole('button', { name: 'Open preferences menu' }).click();
+
+    await expect(toggle(page)).toBeDisabled();
+    await expect(toggle(page), 'the state should still be visible, not hidden').toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await expect(page.locator('input[aria-label="text"]')).toHaveAttribute('readonly', 'true');
+  });
+
+  test('leaves the toggle live when the host did not set read-only', async ({ page }) => {
+    await open(page, '01-input-types', 'chrome');
+    await page.getByRole('button', { name: 'Open preferences menu' }).click();
+
+    await expect(toggle(page)).toBeEnabled();
+    await toggle(page).click();
+    await expect(page.locator('input[aria-label="text"]')).toHaveAttribute('readonly', 'true');
   });
 });
 
@@ -3482,34 +3625,44 @@ test.describe('the host event handler', () => {
     await expect(page.locator('input[aria-label="text"]')).toBeVisible();
   });
 
+  /**
+   * A fresh element, because the assignment under test has to be the first one.
+   *
+   * The combined input needs both members, and reaching that complaint means
+   * spending the artifact claim on a malformed object — which the element already
+   * loaded through `open` has spent. So this builds its own, which is also what a
+   * host now does to load anything a second time.
+   */
   test('receives a host-input error, not only startup traces', async ({ page }) => {
     await open(page, '01-input-types', undefined, undefined, undefined, '&e=1');
-    await page.evaluate(async () => {
-      (window as any).__ceeEvents = [];
+    const errors = await page.evaluate(async () => {
       const template = await (await fetch('./fixtures/01-input-types.json')).json();
-      (document.querySelector('cedar-embeddable-editor') as any).templateAndInstanceObject = {
-        templateObject: template,
-      };
+      const fresh = document.createElement('cedar-embeddable-editor') as any;
+      const seen: string[] = [];
+      fresh.eventHandler = { error: (label: string) => seen.push(label) };
+      document.querySelector('#frame').appendChild(fresh);
+      fresh.config = { showSampleTemplateLinks: false, defaultLanguage: 'en', fallbackLanguage: 'en' };
+      fresh.templateAndInstanceObject = { templateObject: template };
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      return seen;
     });
 
-    await expect(async () => {
-      const events = await page.evaluate(() => (window as any).__ceeEvents);
-      expect(
-        events.some((event: any) => event.kind === 'error' && event.label.includes('Instance Object is missing')),
-      ).toBe(true);
-    }).toPass();
+    expect(errors.join('\n')).toContain('Instance Object is missing');
   });
 });
 
 /**
- * The two host entry points that fetch.
+ * The one host entry point that fetches.
  *
- * `loadConfigFromURL` and the sample-template loader were the last inputs a host page
- * uses that no test touched, and both were untestable until the harness page served
- * something to fetch. Neither is a data input: in both cases CEE ends up with a
- * configuration or a template **without being handed one**, which is the whole point and
- * the reason they are worth covering — a host that relies on either has no other way to
- * find out it broke.
+ * The sample-template loader is not a data input: CEE ends up with a template
+ * **without being handed one**, which is the whole point and the reason it is worth
+ * covering — a host that relies on it has no other way to find out it broke.
+ *
+ * `loadConfigFromURL` used to sit beside it and is gone. It was the second way to
+ * spend the single configuration assignment, and it raced a host that also assigned
+ * `config` directly; the code carried a note saying CEE should not need to know how
+ * to fetch. A host that wants configuration from a URL fetches it and assigns the
+ * result.
  */
 test.describe('host inputs that fetch', () => {
   const openHost = async (page: import('@playwright/test').Page, query: string) => {
@@ -3520,69 +3673,6 @@ test.describe('host inputs that fetch', () => {
     });
     expect(await page.evaluate(() => (window as any).__ceeError)).toBeFalsy();
   };
-
-  const events = (page: import('@playwright/test').Page) =>
-    page.evaluate(() => (window as any).__ceeConfigEvents ?? []);
-
-  test('loadConfigFromURL applies the fetched config and calls the success handler', async ({ page }) => {
-    await openHost(page, 'host=config');
-
-    await expect(async () => {
-      expect((await events(page)).length, 'no handler was called').toBeGreaterThan(0);
-    }).toPass({ timeout: 5000 });
-
-    const seen = await events(page);
-    expect(seen[0].kind, `expected success, got ${JSON.stringify(seen[0])}`).toBe('success');
-    // The handler receives the parsed config, not the raw text.
-    expect(seen[0].config.showFooter, 'the parsed config should reach the handler').toBe(true);
-
-    /**
-     * And it was *applied*, not merely parsed — which needs a template, since CEE renders
-     * nothing at all without one. So hand it one now, in the order a host would: fetch the
-     * config, then supply the document. The footer is off in every preset here, so its
-     * appearance can only come from the fetched config.
-     */
-    await page.evaluate(async () => {
-      const template = await (await fetch('./fixtures/01-input-types.json')).json();
-      (document.querySelector('cedar-embeddable-editor') as any).templateObject = template;
-    });
-    await expect(page.locator('footer.main__footer'), 'the fetched config was parsed but not applied').toBeVisible({
-      timeout: 10_000,
-    });
-  });
-
-  test('loadConfigFromURL calls the error handler for a URL that is not there', async ({ page }) => {
-    await openHost(page, 'host=config&url=./served/does-not-exist.json');
-
-    await expect(async () => {
-      expect((await events(page)).length, 'no handler was called for a 404').toBeGreaterThan(0);
-    }).toPass({ timeout: 5000 });
-
-    const seen = await events(page);
-    expect(seen[0].kind).toBe('error');
-    expect(seen[0].status, 'the handler should receive the xhr, so a host can see the status').toBe(404);
-  });
-
-  /**
-   * A 200 carrying something that is not JSON.
-   *
-   * `loadConfigFromURL` calls `JSON.parse` on any 200 with no guard, so a URL that
-   * returns an HTML error page — a login redirect, a proxy notice, a misconfigured path —
-   * used to throw inside the XHR callback and call **neither** handler: the host was told
-   * nothing at all and could not distinguish it from a request still in flight. The parse
-   * is now guarded and the failure is reported as an error, which is what a host has an
-   * error handler for.
-   */
-  test('loadConfigFromURL reports a response that is not JSON as an error', async ({ page }) => {
-    await openHost(page, 'host=config&url=./served/not-json.json');
-
-    await expect(async () => {
-      expect((await events(page)).length, 'a non-JSON 200 told the host nothing').toBeGreaterThan(0);
-    }).toPass({ timeout: 5000 });
-
-    const seen = await events(page);
-    expect(seen[0].kind, 'a body that will not parse is an error, not a success').toBe('error');
-  });
 
   /**
    * The sample-template loader, which is the route the CEDAR demo pages use.

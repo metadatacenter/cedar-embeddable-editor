@@ -32,8 +32,8 @@ describe('a key the host did not send', () => {
   });
 
   /**
-   * Not a defensive flourish: `config` arrives from a host, and `loadConfigFromURL`
-   * can fail and hand back nothing.
+   * Not a defensive flourish. `config` arrives from a host, and a host binding it
+   * through a framework template can deliver null before it has anything to send.
    */
   it('is what a null or undefined configuration looks like', () => {
     expect(configFlag(null as unknown as Record<string, unknown>, 'showFooter', true)).toBe(true);

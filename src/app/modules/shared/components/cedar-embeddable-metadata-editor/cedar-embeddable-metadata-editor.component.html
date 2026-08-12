@@ -4,7 +4,7 @@
     [showSampleTemplateLinks]="showSampleTemplateLinks"
   ></app-static-header>
 }
-<user-preferences-menu [isVisible]="showPreferencesMenu" [readOnlyMode]="readOnlyMode"></user-preferences-menu>
+<user-preferences-menu [isVisible]="showPreferencesMenu" [hostReadOnly]="readOnlyMode"></user-preferences-menu>
 @if (dataAvailableForRender() && dataContext && handlerContext && pageBreakPaginatorService) {
   <mat-card appearance="outlined" class="template-card">
     <!--  <mat-card-header>-->

@@ -62,13 +62,12 @@
         const name = params.get('t');
 
         /**
-         * `?host=config` and `?host=sample` exercise the two entry points that fetch.
+         * `?host=sample` exercises the one entry point that fetches.
          *
-         * Both are host-page routes rather than data inputs, so neither loads a `?t=`
-         * fixture. `config` hands the component a URL and lets it fetch its own config;
-         * `sample` sets only the sample-template config keys and lets CEE's own loader
-         * fetch the template and its metadata. Deliberately no template is set in either
-         * case — the point is that CEE ends up with one without being handed it.
+         * A host-page route rather than a data input, so it loads no `?t=` fixture: it
+         * sets only the sample-template config keys and lets CEE's own loader fetch the
+         * template and its metadata. Deliberately no template is set — the point is that
+         * CEE ends up with one without being handed it.
          */
         const hostRoute = params.get('host');
         if (hostRoute) {
@@ -114,13 +113,6 @@
             second.config = configFor('second');
             first.templateObject = structuredClone(template);
             second.templateObject = structuredClone(template);
-          } else if (hostRoute === 'config') {
-            const url = params.get('url') || './served/host-config.json';
-            el.loadConfigFromURL(
-              url,
-              (config) => window.__ceeConfigEvents.push({ kind: 'success', config }),
-              (xhr) => window.__ceeConfigEvents.push({ kind: 'error', status: xhr && xhr.status }),
-            );
           } else if (hostRoute === 'lang') {
             /**
              * `?host=lang` drives translation through `languageMapPathPrefix`.

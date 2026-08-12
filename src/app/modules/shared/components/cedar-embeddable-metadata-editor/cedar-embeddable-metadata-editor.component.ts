@@ -350,15 +350,19 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    * Both artifact setters run before the contexts are guaranteed, because a host is
    * free to set `templateJsonObject` before `handlerContextObject`. The early return
    * says that once instead of at each of the six reads below it.
+   *
+   * Neither setter clears `hideEmptyFields` any more. Both used to, on the reasoning
+   * that a new artifact invalidates a hiding decision made against the old one — but
+   * an artifact now arrives once, and on that single pass the clear fired *after* the
+   * configuration set the flag, so `hideEmptyFields: true` never survived startup.
+   * Nothing caught it: the only test of the flag exercises the wrapper alone, with no
+   * child editor and no template, so it watched the flag being set and never saw
+   * either setter run. With configuration immutable the clear would be unrecoverable.
    */
   @Input() set templateJsonObject(value: object | null) {
     const { dataContext, handlerContext } = this;
     if (value == null || dataContext == null || handlerContext == null) {
       return;
-    }
-    if (handlerContext.hideEmptyFields) {
-      this.messageHandlerService.trace('HideEmptyFields can not be used and set to false');
-      handlerContext.hideEmptyFields = false;
     }
     this.replaceInputTemplate(value);
     setTimeout(() => {
@@ -375,21 +379,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   }
 
   @Input() set instanceJsonObject(value: InstanceObject | null) {
-    const handlerContext = this.handlerContext;
-    if (value == null || handlerContext == null) {
+    if (value == null || this.handlerContext == null) {
       return;
     }
-    {
-      if (handlerContext.hideEmptyFields) {
-        this.messageHandlerService.trace('HideEmptyFields can not be used and set to false');
-        handlerContext.hideEmptyFields = false;
-      }
-      setTimeout(() => {
-        this.initDataFromInstance(value)
-          .then(() => {})
-          .catch(() => {});
-      });
-    }
+    setTimeout(() => {
+      this.initDataFromInstance(value)
+        .then(() => {})
+        .catch(() => {});
+    });
   }
 
   @Input() set templateAndInstanceObject(templateAndInstance: object | null) {

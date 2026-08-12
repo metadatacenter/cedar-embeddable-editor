@@ -4,17 +4,16 @@ import { AUTHORITY_DESCRIPTORS } from '../models/authority/authority-descriptor.
  * What CEE will say about a configuration a host handed it.
  *
  * The declarations the package ships describe this surface, and a TypeScript host
- * gets a compile error for a misspelled key or a wrong value. That leaves two ways
- * in with no such protection, and they are the likelier ones: a JavaScript host,
- * and any configuration fetched through `loadConfigFromURL`, where the JSON has
- * been type-checked by nobody. Both used to be answered with silence — an unknown
- * key is simply never read, which looks exactly like a key that works.
+ * gets a compile error for a misspelled key or a wrong value. A JavaScript host
+ * has no such protection, and used to be answered with silence — an unknown key is
+ * simply never read, which looks exactly like a key that works.
  *
  * Reporting only. Nothing here rejects a configuration or changes what CEE does
  * with it: a key that fails this check is ignored by the reader downstream, as it
- * always was, and the host is now told so. Enforcing beyond that is part of the
- * decision about whether configuration is set-once or replaceable, which is not
- * settled.
+ * always was, and the host is now told so. Rejecting a whole configuration over
+ * one bad key would take an editor a host had configured acceptably and leave it
+ * with none, and configuration is applied once, so there is nothing to fall back
+ * to.
  */
 
 /** What a key's value has to be. */

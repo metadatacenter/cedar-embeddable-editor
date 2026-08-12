@@ -240,11 +240,11 @@ shipped bundle rather than the sources.
 The CEE configuration file format and storage location depends on the application and the mode in which CEE is being used.
 
 * When running CEE in the standalone mode (developer mode), the configuration parameters are stored in and read from the file: `src/app/app.component.dev.ts`.
-* When running CEE as a generic Webcomponent, the configuration parameters can be stored in any `.json` file that is visible to the application that embeds CEE Webcomponent. CEE Webcomponent API provides a method for loading the configuration file from its path at runtime. For example:
+* When running CEE as a generic Webcomponent, the configuration parameters can be stored in any `.json` file that is visible to the application that embeds CEE Webcomponent. Fetch it and assign the result:
 ```javascript
-customElements.whenDefined('cedar-embeddable-editor').then(() => {
+customElements.whenDefined('cedar-embeddable-editor').then(async () => {
   const cee = document.querySelector('cedar-embeddable-editor');
-  cee.loadConfigFromURL('assets/data/cee-config.json');
+  cee.config = await (await fetch('assets/data/cee-config.json')).json();
 });
 ```
 * The configuration can also be passed into the editor as a json map. In Angular this looks as follows:
@@ -388,11 +388,11 @@ The declarations are **types only**. The bundle is a script that registers a cus
 element and exports no values, so there is nothing to import at runtime — use
 `import type`, and let the interface rather than a constant catch a mistyped key.
 
-If you are not using TypeScript, or you load configuration with
-`loadConfigFromURL`, CEE checks it at runtime instead and reports what it cannot
-use. An unknown key is named, with the nearest real key suggested; a value of the
-wrong kind says what was expected; and settings that conflict are called out. The
-messages go to the console and to any `eventHandler` you registered:
+If you are not using TypeScript, or your configuration comes from a JSON file no
+compiler has seen, CEE checks it at runtime instead and reports what it cannot use.
+An unknown key is named, with the nearest real key suggested; a value of the wrong
+kind says what was expected; and settings that conflict are called out. The messages
+go to the console and to any `eventHandler` you registered:
 
 ```
 CEE ERROR: Unknown configuration key "readOnlyMod". It has no effect. Did you mean "readOnlyMode"?
@@ -403,14 +403,14 @@ CEE ERROR: Configuration key "hideEmptyFields" only takes effect in read-only mo
 Reporting only: a key CEE cannot use is ignored, exactly as before. The change is
 that you are told rather than left watching a setting do nothing.
 
-Two behaviours the types cannot express, and which are worth knowing before you
-reassign configuration:
+Every input on the element takes one assignment and keeps it. Assign `config` a
+second time, or an artifact input a second time, and CEE reports it and ignores it:
+the first value stands. Build the configuration you want, assign it once, and create
+a new element if it has to change.
 
-- Setting `config` a second time **patches** for most keys — one you omit keeps its
-  previous value — while `outputSerialization` follows the new object exactly. Treat
-  configuration as set-once until this is settled.
-- `readOnlyMode` and `hideEmptyFields` are one-way. Passing `false` after `true` does
-  not turn them back off.
+`readOnlyMode` is host policy rather than a starting position. While it is set, the
+preferences menu's read-only toggle is locked, so a user cannot make a form you
+embedded as a viewer editable.
 
 ## Embedding security
 
@@ -512,9 +512,9 @@ JSON serialization.
 In the example below, the metadata is sent to an external endpoint every 15 seconds:
 
 ```javascript
-customElements.whenDefined('cedar-embeddable-editor').then(() => {
+customElements.whenDefined('cedar-embeddable-editor').then(async () => {
   const cee = document.querySelector('cedar-embeddable-editor');
-  cee.loadConfigFromURL('assets/data/cee-config.json');
+  cee.config = await (await fetch('assets/data/cee-config.json')).json();
   const saveTime = 15000; // 15 seconds
 
   setInterval(() => {
@@ -546,37 +546,24 @@ You can inject your metadata into CEE, provided it matches the template currentl
 cee.instanceObject = yourCustomMetadataJson
 ```
 
-In the example below, the metadata is fetched from a remote URL and injected into CEE:
+`templateObject` and `instanceObject` are independent, and either may be assigned
+first: CEE does not build the form until a template is present, so an instance
+supplied ahead of one waits rather than loading against nothing.
+
+Each takes one assignment. Fetch the metadata before you assign it, rather than
+assigning a placeholder and correcting it once the fetch lands:
 
 ```javascript
-function restoreMetadataFromURL(metaUrl, cee, successHandler = null, errorHandler = null) {
-  const xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = () => {
-    if (xhr.readyState === XMLHttpRequest.DONE) {
-      if (xhr.status === 200) {
-        const jsonMeta = JSON.parse(xhr.responseText);
-        cee.instanceObject = jsonMeta;
-
-        if (successHandler) {
-          successHandler(jsonMeta);
-        }
-      } else {
-        if (errorHandler) {
-          errorHandler(xhr);
-        }
-      }
-    }
-  };
-  xhr.open('GET', metaUrl, true);
-  xhr.send();
-}
-
-customElements.whenDefined('cedar-embeddable-editor').then(() => {
+customElements.whenDefined('cedar-embeddable-editor').then(async () => {
   const cee = document.querySelector('cedar-embeddable-editor');
-  cee.loadConfigFromURL('assets/data/cee-config.json');
-  restoreMetadataFromURL('uploads/metadata-for-restore.json', cee);
+  cee.config = await (await fetch('assets/data/cee-config.json')).json();
+  cee.instanceObject = await (await fetch('uploads/metadata-for-restore.json')).json();
+  cee.templateObject = yourCustomTemplateJson;
 });
 ```
+
+To load a different instance, create a new element. Reassigning `instanceObject`
+reports an error and leaves the first instance in place.
 
 To reiterate, the metadata being injected **MUST** match the template currently being edited and open in your browser window.
 

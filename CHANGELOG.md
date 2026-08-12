@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **BREAKING.** Every input on the custom element takes one assignment and keeps it.
+  A second assignment to `config`, `templateObject`, `instanceObject` or
+  `templateAndInstanceObject` is reported through the event handler and ignored, and
+  the first value stands; a host wanting different configuration or a different
+  artifact creates a new element. The element previously only accumulated state — a
+  second `config` patched the first for most keys and replaced it for
+  `outputSerialization`, and three inputs could each supply an artifact with nothing
+  saying which won — so a host could not return it to a known state, and the same
+  assignments in a different order produced a different editor. `templateObject` and
+  `instanceObject` remain independent and may be assigned in either order;
+  `templateAndInstanceObject` supplies what both do and cannot be combined with
+  either.
+- **BREAKING.** `readOnlyMode` is host policy rather than an initial value. While it
+  is set, the preferences menu's read-only toggle is locked. The toggle wrote straight
+  to the state the widgets read, so a form embedded as a viewer could be switched back
+  to editable by the user — and a host offering its own save button would then store
+  the edits.
+
+### Removed
+
+- **BREAKING.** `loadConfigFromURL`. It was a second way to spend the single
+  configuration assignment and raced a host that also assigned `config` directly; the
+  method carried a note saying CEE should not need to know how to fetch. A host that
+  keeps configuration in a deployed file fetches it and assigns the result.
+
+### Fixed
+
+- `hideEmptyFields: true` never survived startup, so the key did nothing on the one
+  input that honours it. Both artifact setters cleared the flag, on the reasoning that
+  a new artifact invalidates a hiding decision made against the old one, and on the
+  single pass an artifact gets the clear ran after the configuration set it. Nothing
+  caught it because the only test of the key exercised the wrapper alone, with no child
+  editor and no template — it watched the flag being set and never saw either setter
+  run. The key now has behavioural coverage on the combined input, and the separate
+  inputs' failure to honour it is asserted as the build-ordering limit it is.
+
 ## [1.6.0-dev.20260811.c67ccae] - 2026-08-11
 
 ### Fixed

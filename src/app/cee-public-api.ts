@@ -6,12 +6,12 @@
  * `tsc --emitDeclarationOnly` turn this one file into the `.d.ts` the npm package
  * ships, without dragging in paths that exist only inside this repository.
  *
- * Additive. Nothing here changes what CEE does; it writes down what CEE already
- * accepts and returns, so a host's compiler can check it. The parts of the host
- * contract that need *deciding* rather than describing — whether reassigning
- * `config` replaces or patches, whether `readOnlyMode: false` turns read-only back
- * off, which of the three artifact inputs wins — are not settled here, and are
- * called out at the members they affect.
+ * Every input is set-once: the first assignment stands, and a later one is reported
+ * and ignored. A host wanting different configuration or a different artifact
+ * creates a new element. That is the whole of the contract's assignment
+ * semantics, and it replaces three behaviours that had no answer — a second
+ * `config` that patched some keys and replaced others, a read-only mode that could
+ * be turned on and not off, and three artifact inputs with no stated precedence.
  *
  * Types only, with no runtime values, and that is a constraint rather than a
  * style. The shipped bundle is an IIFE that registers a custom element and exports
@@ -42,11 +42,8 @@ export type CeeConfigKey = Exclude<keyof CeeConfig, number | symbol>;
 /**
  * The configuration CEE accepts.
  *
- * Every key is optional, and an omitted key does **not** reliably reset to its
- * default: reassigning `config` patches for most settings and replaces for
- * `outputSerialization`. That inconsistency is real, is not fixed by this type,
- * and is the substance of the host-contract work still outstanding. Until it is
- * settled, treat configuration as set-once.
+ * Every key is optional and an omitted key takes its default, because
+ * configuration is applied once and never merged with a previous assignment.
  */
 export interface CeeConfig {
   showHeader?: boolean;
@@ -58,9 +55,15 @@ export interface CeeConfig {
   collapseStaticComponents?: boolean;
   showSpinnerBeforeInit?: boolean;
 
-  /** Once enabled, passing `false` does not currently turn it off again. */
+  /**
+   * Renders the form without editing controls.
+   *
+   * Host policy rather than a starting position: the preferences menu's read-only
+   * toggle is locked while this is set, so a user cannot make an embedded viewer
+   * editable.
+   */
   readOnlyMode?: boolean;
-  /** Honoured only in read-only mode, and one-way like `readOnlyMode`. */
+  /** Honoured only in read-only mode, where an empty field is noise. */
   hideEmptyFields?: boolean;
 
   /**
@@ -202,18 +205,26 @@ export interface CeeEventHandler {
 /**
  * The custom element, as a host sees it.
  *
- * Registered as `cedar-embeddable-editor`. The three artifact inputs are
- * alternatives, and which one wins if more than one is set is not currently
- * defined — supply exactly one.
+ * Registered as `cedar-embeddable-editor`. Each member below takes one
+ * assignment; a second is reported through the event handler and ignored, and the
+ * first value stands. An artifact is a template and optionally an instance, so
+ * `templateAndInstanceObject` supplies between them what the two separate inputs
+ * do and cannot be combined with either.
  */
 export interface CedarEmbeddableEditorElement extends HTMLElement {
-  /** Configuration. See `CeeConfig` for the reassignment caveat. */
+  /** Configuration. Assign once, before or after the artifact. */
   config: CeeConfig;
 
   /** The template to render, as a parsed CEDAR artifact. */
   templateObject: CeeJsonObject;
 
-  /** An existing instance to load into the form. */
+  /**
+   * An existing instance to load into the form.
+   *
+   * Independent of `templateObject`, and either may be assigned first: the form is
+   * not built until a template is present, so an instance supplied ahead of one
+   * waits rather than loading against nothing.
+   */
   instanceObject: CeeJsonObject;
 
   /** Both at once, as `{ templateObject, instanceObject }`. */
@@ -233,18 +244,6 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
 
   /** What CEE thinks of the instance. Read-only. */
   readonly dataQualityReport: CeeDataQualityReport;
-
-  /**
-   * Fetch configuration from a URL and apply it.
-   *
-   * Present for hosts that cannot construct the object themselves. Prefer setting
-   * `config` directly; CEE should not need to know how to fetch.
-   */
-  loadConfigFromURL(
-    jsonURL: string,
-    successHandler?: ((config: CeeConfig) => void) | null,
-    errorHandler?: ((request: XMLHttpRequest) => void) | null,
-  ): void;
 }
 
 declare global {
