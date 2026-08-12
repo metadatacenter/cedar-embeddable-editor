@@ -30,9 +30,6 @@ import { InputTypesModule } from '../input-types/input-types.module';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import { SampleTemplatesComponent } from './components/sample-templates/sample-templates.component';
 import { SampleTemplateSelectComponent } from './components/sample-template-select/sample-template-select.component';
-import { UserPreferencesMenuComponent } from './components/user-preferences-menu/user-preferences-menu.component';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CedarComponentLinkedStaticFieldHeaderComponent } from './components/cedar-component-linked-static-field-header/cedar-component-linked-static-field-header.component';
@@ -61,8 +58,6 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     NgxMatSelectSearchModule,
     InputTypesModule,
     FormsModule,
-    MatMenuModule,
-    MatSlideToggleModule,
     TranslateModule,
     MatCheckboxModule,
   ],
@@ -80,7 +75,6 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     StaticHeaderComponent,
     SourcePanelsComponent,
     CedarMultiPagerComponent,
-    UserPreferencesMenuComponent,
   ],
   providers: [],
   exports: [RdfPipe, CedarEmbeddableMetadataEditorWrapperComponent],

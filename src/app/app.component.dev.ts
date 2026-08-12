@@ -46,7 +46,6 @@ export class AppDevComponent {
     // showStaticText: true,
     readOnlyMode: false,
     hideEmptyFields: false,
-    showPreferencesMenu: true,
 
     extAuthBaseUrl: 'https://bridge.metadatacenter.orgx/ext-auth/',
 

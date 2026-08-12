@@ -10,6 +10,7 @@ import { ExternalAuthorityLookupService } from '../../service/external-authority
 import { AUTHORITY_DESCRIPTORS } from '../../models/authority/authority-descriptor.model';
 import { IriPrefix } from '../../util/iri-prefix';
 import { TemplateTrustService } from '../../service/template-trust.service';
+import { UserPreferencesService } from '../../service/user-preferences.service';
 import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { TemplateParser } from '../../factory/template-parser';
@@ -81,7 +82,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   static READ_ONLY_MODE: string = 'readOnlyMode';
   static HIDE_EMPTY_FIELDS: string = 'hideEmptyFields';
-  static SHOW_PREFERENCES_MENU: string = 'showPreferencesMenu';
 
   private static IRI_PREFIX = 'iriPrefix';
   // Input and output serialization are configured independently: a host can hand
@@ -135,7 +135,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   showAllMultiInstanceValues = true;
   showTemplateDescription: boolean = false;
   readOnlyMode: boolean = false;
-  showPreferencesMenu: boolean = true;
 
   // Embedders work against CEDAR's production bridge unless they explicitly
   // point at another deployment. The standalone developer app overrides this
@@ -153,6 +152,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     private messageHandlerService: MessageHandlerService,
     private iriPrefix: IriPrefix,
     private templateTrustService: TemplateTrustService,
+    private userPreferencesService: UserPreferencesService,
   ) {
     this.ceeVersion = packageJson.version;
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
@@ -338,11 +338,18 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       );
 
       this.readOnlyMode = configFlag(value, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE, this.readOnlyMode);
-      this.showPreferencesMenu = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_PREFERENCES_MENU,
-        this.showPreferencesMenu,
-      );
+      /*
+       * The widgets read read-only from `UserPreferencesService`, and this is what
+       * puts it there.
+       *
+       * It used to travel through the preferences menu: the host's flag was an input
+       * on that component, whose setter wrote to the service. So a piece of host
+       * configuration reached the form only by passing through a UI control — which
+       * is how the control came to be able to override it, and why the menu had to
+       * stay instantiated even when configured invisible, or read-only never
+       * arrived at all.
+       */
+      this.userPreferencesService.setReadOnlyMode(this.readOnlyMode);
     }
   }
 

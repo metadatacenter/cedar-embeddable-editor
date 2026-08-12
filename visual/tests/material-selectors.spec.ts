@@ -79,12 +79,6 @@ test('every third-party selector CEE styles still matches an element', async ({ 
   await page.waitForTimeout(300);
   await sweep();
 
-  // The preferences menu, for the menu classes.
-  await open(page, '01-input-types', 'chrome');
-  await page.locator('user-preferences-menu button').first().click();
-  await page.waitForTimeout(300);
-  await sweep();
-
   const dead = declared.filter((s) => !seen.has(s) && !UNREACHABLE.has(s));
   expect(dead, 'these classes are styled by CEE but match nothing — the library renamed them').toEqual([]);
   expect(declared.length, 'no selectors were collected; the source scan is broken').toBeGreaterThan(10);

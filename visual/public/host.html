@@ -88,8 +88,13 @@
               const config = {
                 showHeader: false,
                 showFooter: false,
-                showPreferencesMenu: true,
                 showSampleTemplateLinks: false,
+                // Second read-only and first not, so the per-instance read-only state is
+                // observable: the service carrying it is provided on the element rather
+                // than shared, and this is what proves it. Second rather than first,
+                // because the endpoint-isolation test types into the first editor and a
+                // read-only field cannot be typed into.
+                readOnlyMode: owner === 'second',
                 showTemplateSourceData: false,
                 defaultLanguage: 'en',
                 fallbackLanguage: 'en',
@@ -124,7 +129,6 @@
             el.config = {
               showHeader: false,
               showFooter: true,
-              showPreferencesMenu: false,
               showSampleTemplateLinks: false,
               defaultLanguage: 'en',
               fallbackLanguage: 'en',
@@ -135,7 +139,6 @@
             el.config = {
               showHeader: false,
               showFooter: false,
-              showPreferencesMenu: false,
               showSampleTemplateLinks: false,
               defaultLanguage: 'en',
               fallbackLanguage: 'en',
@@ -181,10 +184,10 @@
          * Config presets, selected with ?c=<name>.
          *
          * `base` strips the surrounding chrome so a diff reflects the form
-         * itself. That is the right default, but it also means the header,
-         * footer and preferences menu — and with them mat-toolbar and
-         * mat-slide-toggle — render in no baseline at all. The `chrome` preset
-         * exists to cover them rather than leave that silently untested.
+         * itself. That is the right default, but it also means the header and
+         * footer — and with them mat-toolbar — render in no baseline at all. The
+         * `chrome` preset exists to cover them rather than leave that silently
+         * untested.
          */
         const base = {
           showSampleTemplateLinks: false,
@@ -195,7 +198,6 @@
           showTemplateSourceData: false,
           showDataQualityReport: false,
           showMultiInstanceInfo: false,
-          showPreferencesMenu: false,
           collapseStaticComponents: true,
           defaultLanguage: 'en',
           fallbackLanguage: 'en',
@@ -228,7 +230,7 @@
 
         const PRESETS = {
           base,
-          chrome: { ...base, showHeader: true, showFooter: true, showPreferencesMenu: true },
+          chrome: { ...base, showHeader: true, showFooter: true },
           readonly: { ...base, readOnlyMode: true },
           authority: { ...base, ...AUTHORITY_ENDPOINTS },
         };

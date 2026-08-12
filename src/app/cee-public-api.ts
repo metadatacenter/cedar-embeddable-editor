@@ -49,7 +49,6 @@ export interface CeeConfig {
   showHeader?: boolean;
   showFooter?: boolean;
   showTemplateDescription?: boolean;
-  showPreferencesMenu?: boolean;
   showStaticText?: boolean;
   showAllMultiInstanceValues?: boolean;
   collapseStaticComponents?: boolean;
@@ -58,9 +57,9 @@ export interface CeeConfig {
   /**
    * Renders the form without editing controls.
    *
-   * Host policy rather than a starting position: the preferences menu's read-only
-   * toggle is locked while this is set, so a user cannot make an embedded viewer
-   * editable.
+   * The only way in or out of read-only mode. CEE offered the user a toggle of its
+   * own, which wrote to the same state the widgets read, so a form embedded as a
+   * viewer could be made editable from inside it.
    */
   readOnlyMode?: boolean;
   /** Honoured only in read-only mode, where an empty field is noise. */

@@ -325,12 +325,19 @@ test.describe('multiple editor instances', () => {
     expect(firstElementIds.every((id) => id.startsWith('https://first.example/'))).toBe(true);
     expect(secondElementIds.every((id) => id.startsWith('https://second.example/'))).toBe(true);
 
+    /*
+     * Read-only is per instance, and configured rather than toggled. It used to be
+     * driven here by clicking the preferences menu's own switch; that switch is gone,
+     * because host configuration reaching the widgets through a UI control is what let
+     * the control override it. The harness configures the second editor read-only and
+     * the first not, which asks the same question of the service carrying it: it is
+     * provided on the element rather than shared, so one editor's mode must not be the
+     * other's.
+     */
     const firstInput = page.locator('#editor-first input').first();
     const secondInput = page.locator('#editor-second input').first();
-    await page.locator('#editor-first button[aria-label="Open preferences menu"]').click();
-    await page.getByText('Readonly Mode', { exact: true }).click();
-    await expect(firstInput).toHaveAttribute('readonly', 'true');
-    await expect(secondInput).not.toHaveAttribute('readonly', '');
+    await expect(secondInput).toHaveAttribute('readonly', 'true');
+    await expect(firstInput).not.toHaveAttribute('readonly', '');
   });
 
   test('keep terminology and authority endpoints isolated', async ({ page }) => {
@@ -937,11 +944,10 @@ test('radio selection uses primary color and keeps Clear on the selected row', a
 
 test.describe('config presets', () => {
   /**
-   * The base preset hides the header, footer and preferences menu so diffs
-   * reflect the form. This covers them, and with them `mat-toolbar` and
-   * `mat-slide-toggle`, which appear in no other baseline.
+   * The base preset hides the header and footer so diffs reflect the form. This
+   * covers them, and with them `mat-toolbar`, which appears in no other baseline.
    */
-  test('chrome: header, footer and preferences menu', async ({ page }) => {
+  test('chrome: header and footer', async ({ page }) => {
     await open(page, '01-input-types', 'chrome');
     await expect(page).toHaveScreenshot('preset-chrome.png', { fullPage: true });
   });
@@ -3169,36 +3175,35 @@ test.describe('host input timing', () => {
 });
 
 /**
- * Read-only as host policy rather than a starting position.
+ * Read-only is the host's alone.
  *
- * The preferences menu's toggle wrote straight to the service the widgets read, so a
- * host embedding a form as a viewer got a form the user could switch back to
- * editable — and a host offering its own save button would then store the edits.
- * With configuration immutable the host cannot take it back either, so the toggle
- * had to become the thing that yields.
+ * CEE offered the user a switch of its own, in a preferences menu, and it wrote
+ * straight to the state the widgets read — so a form embedded as a viewer could be
+ * made editable from inside it, and a host offering its own save button would then
+ * store the edits. Host configuration reached those widgets through that same
+ * control, which is why the control could override it, and why the menu had to stay
+ * instantiated even when configured invisible or read-only never arrived at all. Both
+ * the menu and the switch are gone, and `readOnlyMode` reaches the widgets directly.
  */
-test.describe('read-only as host policy', () => {
-  const toggle = (page: import('@playwright/test').Page) => page.locator('mat-slide-toggle button[role="switch"]');
+test.describe('read-only belongs to the host', () => {
+  test('renders read-only from configuration alone', async ({ page }) => {
+    await open(page, '01-input-types', 'readonly');
 
-  test('locks the preferences toggle when the host configured read-only', async ({ page }) => {
-    await open(page, '01-input-types', 'readonly', undefined, undefined, '&f=showPreferencesMenu');
-    await page.getByRole('button', { name: 'Open preferences menu' }).click();
-
-    await expect(toggle(page)).toBeDisabled();
-    await expect(toggle(page), 'the state should still be visible, not hidden').toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
     await expect(page.locator('input[aria-label="text"]')).toHaveAttribute('readonly', 'true');
   });
 
-  test('leaves the toggle live when the host did not set read-only', async ({ page }) => {
-    await open(page, '01-input-types', 'chrome');
-    await page.getByRole('button', { name: 'Open preferences menu' }).click();
+  test('offers the user nothing that leaves read-only', async ({ page }) => {
+    await open(page, '01-input-types', 'readonly');
 
-    await expect(toggle(page)).toBeEnabled();
-    await toggle(page).click();
-    await expect(page.locator('input[aria-label="text"]')).toHaveAttribute('readonly', 'true');
+    await expect(page.getByRole('button', { name: 'Open preferences menu' })).toHaveCount(0);
+    await expect(page.locator('mat-slide-toggle')).toHaveCount(0);
+    await expect(page.getByText('Readonly Mode')).toHaveCount(0);
+  });
+
+  test('leaves the form editable when the host does not ask for read-only', async ({ page }) => {
+    await open(page, '01-input-types');
+
+    await expect(page.locator('input[aria-label="text"]')).not.toHaveAttribute('readonly', '');
   });
 });
 
@@ -3283,7 +3288,6 @@ test.describe('config flags are wired to something', () => {
   const FLAGS: ReadonlyArray<{ flag: string; withFlags?: string[]; fixture?: string }> = [
     { flag: 'showHeader' },
     { flag: 'showFooter' },
-    { flag: 'showPreferencesMenu' },
     { flag: 'showSampleTemplateLinks' },
     { flag: 'showTemplateRenderingRepresentation' },
     { flag: 'showInstanceDataCore' },

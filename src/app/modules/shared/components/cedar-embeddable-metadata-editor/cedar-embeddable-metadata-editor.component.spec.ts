@@ -10,6 +10,7 @@ import { ExternalAuthorityLookupService } from '../../service/external-authority
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { HandlerContext } from '../../util/handler-context';
 import { DataContext } from '../../util/data-context';
+import { UserPreferencesService } from '../../service/user-preferences.service';
 import { InstanceDataContainer } from 'cedar-model-typescript-library';
 
 /**
@@ -39,6 +40,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       // A real one: it holds a boolean and nothing else, so a stub would be more
       // code than the thing it replaces.
       new TemplateTrustService(),
+      new UserPreferencesService(),
     );
 
   /**
@@ -78,7 +80,6 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     'showAllMultiInstanceValues',
     'showTemplateDescription',
     'readOnlyMode',
-    'showPreferencesMenu',
   ];
 
   describe('every boolean flag maps its config key to its field', () => {
@@ -151,6 +152,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
         { trace: (): void => undefined } as unknown as MessageHandlerService,
         prefixes,
         new TemplateTrustService(),
+        new UserPreferencesService(),
       );
 
       component.config = {
@@ -253,6 +255,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
         { trace: (): void => undefined } as unknown as MessageHandlerService,
         new IriPrefix(),
         new TemplateTrustService(),
+        new UserPreferencesService(),
       );
       component.handlerContext = { hideEmptyFields: false } as unknown as HandlerContext;
       component.dataContext = { setInputTemplate, instanceFullData: {} } as unknown as DataContext;
@@ -313,6 +316,7 @@ describe('CedarEmbeddableMetadataEditorComponent artifact setters and hideEmptyF
       { trace: (): void => undefined } as unknown as MessageHandlerService,
       new IriPrefix(),
       new TemplateTrustService(),
+      new UserPreferencesService(),
     );
     const handlerContext = { hideEmptyFields: true, readOnlyMode: true } as unknown as HandlerContext;
     component.handlerContext = handlerContext;
@@ -342,5 +346,48 @@ describe('CedarEmbeddableMetadataEditorComponent artifact setters and hideEmptyF
     component.instanceJsonObject = new InstanceDataContainer();
 
     expect(handlerContext.hideEmptyFields).toBe(true);
+  });
+});
+
+/**
+ * Read-only reaches the widgets from configuration, and from nothing else.
+ *
+ * The widgets subscribe to `UserPreferencesService`, and the only thing that ever
+ * wrote to it was the preferences menu — so the host's own flag reached the form by
+ * passing through a UI control. That is how the control came to be able to override
+ * host policy, and why the menu had to stay instantiated even when configured
+ * invisible, or read-only never arrived. The menu is gone and this is the wiring that
+ * replaced it.
+ */
+describe('CedarEmbeddableMetadataEditorComponent read-only wiring', () => {
+  const make = (): { component: CedarEmbeddableMetadataEditorComponent; modes: boolean[] } => {
+    const modes: boolean[] = [];
+    const preferences = new UserPreferencesService();
+    preferences.readOnlyMode$.subscribe((mode) => modes.push(mode));
+    const component = new CedarEmbeddableMetadataEditorComponent(
+      { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
+      { setEndpoints: (): void => undefined } as unknown as ExternalAuthorityLookupService,
+      { trace: (): void => undefined } as unknown as MessageHandlerService,
+      new IriPrefix(),
+      new TemplateTrustService(),
+      preferences,
+    );
+    return { component, modes };
+  };
+
+  it('publishes read-only to the widgets when the host asks for it', () => {
+    const { component, modes } = make();
+
+    component.config = { readOnlyMode: true };
+
+    expect(modes.at(-1)).toBe(true);
+  });
+
+  it('publishes an editable form when the host does not', () => {
+    const { component, modes } = make();
+
+    component.config = { showHeader: true };
+
+    expect(modes.at(-1)).toBe(false);
   });
 });

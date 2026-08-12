@@ -283,7 +283,6 @@ What the user sees:
 |---|---|
 | `showHeader` | `false` |
 | `showFooter` | `false` |
-| `showPreferencesMenu` | `true` |
 | `showTemplateDescription` | `false` |
 | `showStaticText` | `true` |
 | `collapseStaticComponents` | `false` |
@@ -408,9 +407,10 @@ second time, or an artifact input a second time, and CEE reports it and ignores 
 the first value stands. Build the configuration you want, assign it once, and create
 a new element if it has to change.
 
-`readOnlyMode` is host policy rather than a starting position. While it is set, the
-preferences menu's read-only toggle is locked, so a user cannot make a form you
-embedded as a viewer editable.
+`readOnlyMode` is the only way in or out of read-only mode. CEE used to offer the
+user a switch of its own, in a preferences menu, which wrote to the same state the
+widgets read — so a form you embedded as a viewer could be made editable from inside
+it. Both are gone, along with the `showPreferencesMenu` key that governed the menu.
 
 ## Embedding security
 

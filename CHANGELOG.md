@@ -21,14 +21,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `instanceObject` remain independent and may be assigned in either order;
   `templateAndInstanceObject` supplies what both do and cannot be combined with
   either.
-- **BREAKING.** `readOnlyMode` is host policy rather than an initial value. While it
-  is set, the preferences menu's read-only toggle is locked. The toggle wrote straight
-  to the state the widgets read, so a form embedded as a viewer could be switched back
-  to editable by the user — and a host offering its own save button would then store
-  the edits.
+- **BREAKING.** `readOnlyMode` is the only way in or out of read-only mode, and it
+  now reaches the widgets directly. It used to travel through the preferences menu:
+  the host's flag was an input on that component, whose setter wrote to the state the
+  widgets subscribe to. So host configuration reached the form only by passing through
+  a UI control, which is how that control came to be able to override it, and why the
+  menu had to stay instantiated even when configured invisible or read-only never
+  arrived at all.
 
 ### Removed
 
+- **BREAKING.** The preferences menu and its read-only switch, along with the
+  `showPreferencesMenu` key that governed the menu. The switch wrote to the same state
+  the widgets read, so a form embedded as a viewer could be made editable from inside
+  it — and a host offering its own save button would then store the edits. Read-only is
+  the host's decision, and the menu had nothing else in it.
 - **BREAKING.** `loadConfigFromURL`. It was a second way to spend the single
   configuration assignment and raced a host that also assigned `config` directly; the
   method carried a note saying CEE should not need to know how to fetch. A host that
