@@ -5,6 +5,104 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-08-13
+
+The first stable release since 1.5.2, published to npmjs as `cedar-embeddable-editor@1.6.0`.
+It carries the Angular 14 → 22 migration and a host contract that is now stated rather than
+implied. The dated `1.6.0-dev.*` sections below record how it was reached, one build at a
+time; this section is what changed between 1.5.2 and 1.6.0.
+
+### Added
+
+- TypeScript declarations for the host contract, shipped with the package: `CeeConfig`,
+  `CeeEventHandler`, `CeeDataQualityReport` and the artifact types. A host now gets a compile
+  error for a misspelled key or a wrong value.
+- Configuration validation where a configuration crosses the custom-element boundary. Unknown
+  keys, wrong value types and settings that contradict each other are reported through the
+  event handler. Reporting only: a bad key is ignored as it always was, and the host is told.
+- YAML as an artifact serialization, both directions. `inputSerialization` accepts a template
+  parsed from CEDAR YAML, `outputSerialization` selects the form `currentMetadataSerialized`
+  returns, and `currentMetadata` and `currentMetadataYaml` are always available regardless.
+- Source panels showing the template and the live instance as CEDAR YAML, through
+  `showTemplateYaml` and `showInstanceYaml`, each expanding independently.
+- `trustTemplateMarkup`, for hosts whose template authors are as trusted as their own code.
+- `--cee-element-heading-size`, `--cee-element-heading-weight` and `--cee-element-content-gap`
+  as host-settable custom properties.
+
+### Changed
+
+- **BREAKING.** Every input on the custom element takes one assignment and keeps it. A second
+  assignment to `config`, `templateObject`, `instanceObject` or `templateAndInstanceObject` is
+  reported through the event handler and ignored, and the first value stands. A host wanting
+  different configuration or a different artifact creates a new element. The element previously
+  only accumulated state, so it could not be returned to a known state and the same assignments
+  in a different order produced a different editor.
+- **BREAKING.** `readOnlyMode` is the only way in or out of read-only mode, and it reaches the
+  widgets directly rather than through a UI control.
+- **Angular 14.3 → 22.1.** Eight major versions. The build runs through
+  `@angular/build:application` and the webpack `browser` builder and
+  `@angular-devkit/build-angular` are gone; all 203 `*ngIf` and `*ngFor` sites moved to block
+  control flow; TypeScript `strict` is on throughout, including the domain harness. Building
+  CEE now requires Node `^24.15.0`. The published package declares no `engines` and no
+  dependencies, so this constrains building CEE, not embedding it.
+- **The instance CEE edits is a model rather than a CEDAR document.** CEE names no CEDAR
+  serialization key outside its two wire adapters, and reads no key constant from the model
+  library. Requires `cedar-model-typescript-library@1.0.0`.
+- Each editor owns its own services, endpoints, language settings, preferences and IRI
+  prefixes, and releases its registrations and its shadow-local overlay and accessibility nodes
+  when destroyed. Two editors on one page no longer interfere.
+- CEE and Angular Material styles are encapsulated in the custom element's shadow root.
+- The temporal editors are rebuilt around one temporal value, covering date, time and timezone.
+- A typed field reports its validation error on blur rather than on every keystroke.
+- Read-only mode hides the multi-instance pager for a group holding one instance or none.
+- An attribute name the user types is validated where they type it and refused with a message
+  under the field, rather than being renamed to `Attribute Value Field<N>` and reported in a
+  toast after the name had been thrown away.
+- Timezone data is current. `moment-timezone` was pinned to a release carrying stale tzdb.
+- The version names the commit whose content it carries.
+
+### Removed
+
+- **BREAKING.** The preferences menu and its read-only switch, along with the
+  `showPreferencesMenu` key. The switch wrote to the same state the widgets read, so a form
+  embedded as a viewer could be made editable from inside it.
+- **BREAKING.** `loadConfigFromURL`. It was a second way to spend the single configuration
+  assignment and raced a host that also assigned `config` directly. A host that keeps
+  configuration in a deployed file fetches it and assigns the result.
+- **BREAKING.** `BrowserAnimationsModule`, and with it the `@angular/animations` dependency.
+
+### Fixed
+
+- Attribute-value fields, across the whole surface: a field stays editable after a host saves
+  an instance and injects it back; it keeps the name the user typed; a copy is named
+  `<name> copy` and then `<name> copy 2` until the name is free; renaming or clearing one
+  occurrence no longer deletes a property another occurrence still carries; a slot the loaded
+  instance has no key for can be filled in; and the JSON-LD and YAML panels show the field as a
+  CEDAR document rather than CEE's internals.
+- `hideEmptyFields: true` never survived startup, so the key did nothing. Both artifact setters
+  cleared it after the configuration had set it. It is honoured on `templateAndInstanceObject`;
+  on the two separate inputs the form is built before the instance is read, so no field is
+  known to be empty, and that limit is asserted rather than hidden.
+- External authority fields distinguish a lookup that failed from one that matched nothing, no
+  longer read a response shape no authority sends, and no longer offer a populated field's own
+  value back as its one suggestion.
+- A failed terminology lookup no longer ends a controlled-term field's `valueChanges` pipeline.
+- An open suggestion panel stays with its field while the host page scrolls.
+- The multi-instance pager marks the page it is actually showing, and its actions align with
+  its chips and reflow beneath them below 620px.
+- Static fields: an image honours the width and height its template asks for and is centred, a
+  YouTube field renders at its declared size, an image URL that cannot be loaded is reported
+  instead of drawing an empty card, and a YouTube link that cannot be embedded explains why.
+- A numeric field renders its unit only when the template declares one.
+
+### Security
+
+- Static rich-text fields are sanitized by default. A template author's markup previously
+  rendered verbatim in the host's origin; `trustTemplateMarkup` opts back out.
+- Links in template rich text that open a new tab are given `rel="noopener noreferrer"`.
+- `lodash-es` moves to 4.18.1 and Vitest to 4.1.10, clearing the high-severity advisories a
+  production audit reported.
+
 ## [1.6.0-dev.20260812.b953153] - 2026-08-12
 
 ### Changed
