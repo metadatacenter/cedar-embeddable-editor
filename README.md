@@ -106,10 +106,17 @@ before `npm pack` or `npm publish`.
 
 ## Running as an `npm` package
 
-Stable releases remain available as
+Releases are published to npmjs.org as
 [`cedar-embeddable-editor`](https://www.npmjs.com/package/cedar-embeddable-editor)
-on npmjs.org. Development builds are published to the BMIR Nexus as the scoped
-package `cedar-embeddable-editor` under the `dev` tag:
+under the `latest` tag, so an embedder installs the current one by name:
+
+```shell
+npm install cedar-embeddable-editor
+```
+
+`1.6.0` is current. A dev-snapshot channel on the BMIR Nexus, published as the
+scoped `@org.metadatacenter/cedar-embeddable-editor` under a `dev` tag, is retired:
+`scripts/npm-package.mjs` emits the unscoped package for the default registry.
 
 ## Testing
 
