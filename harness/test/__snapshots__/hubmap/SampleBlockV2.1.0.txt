@@ -1,0 +1,22 @@
+source_id type=textfield single required
+sample_id type=textfield single required
+lab_id type=textfield single
+preparation_protocol_doi type=link single required
+source_storage_duration_value type=numeric single required num=xsd:decimal
+source_storage_duration_unit type=controlled single required branches=1
+tissue_weight_value type=numeric single num=xsd:decimal
+tissue_weight_unit type=controlled single branches=1
+volume_value type=numeric single num=xsd:decimal
+volume_unit type=controlled single branches=1
+pathology_distance_value type=numeric single num=xsd:decimal
+pathology_distance_unit type=controlled single branches=1
+preparation_medium type=controlled single required branches=1
+preparation_condition type=controlled single required branches=1
+processing_time_value type=numeric single num=xsd:decimal
+processing_time_unit type=controlled single branches=1
+storage_medium type=controlled single required branches=1
+storage_method type=controlled single required branches=1
+quality_criteria type=textfield single
+histological_report type=textfield single
+notes type=textfield single
+metadata_schema_id type=textfield single required

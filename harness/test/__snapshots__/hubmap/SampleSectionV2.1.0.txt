@@ -1,0 +1,22 @@
+source_id type=textfield single required
+sample_id type=textfield single required
+lab_id type=textfield single
+preparation_protocol_doi type=link single required
+source_storage_duration_value type=numeric single required num=xsd:decimal
+source_storage_duration_unit type=controlled single required branches=1
+preparation_medium type=controlled single required branches=1
+preparation_condition type=controlled single required branches=1
+processing_time_value type=numeric single num=xsd:decimal
+processing_time_unit type=controlled single branches=1
+storage_medium type=controlled single required branches=1
+storage_method type=controlled single required branches=1
+quality_criteria type=textfield single
+histological_report type=textfield single
+thickness_value type=numeric single required num=xsd:decimal
+thickness_unit type=controlled single required branches=1
+section_index_number type=numeric single required num=xsd:int
+area_value type=numeric single num=xsd:decimal
+area_unit type=controlled single branches=1
+is_rehydrated type=radio single choices=2
+notes type=textfield single
+metadata_schema_id type=textfield single required

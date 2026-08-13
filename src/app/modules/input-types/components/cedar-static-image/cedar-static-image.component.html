@@ -1,8 +1,20 @@
-<mat-card class="child-component-card image-component">
-  <div role="img" attr.aria-label="{{component.labelInfo.description}}">
-    <img mat-card-image src="{{component.contentInfo.content}}" alt="{{component.labelInfo.description}}" />
-  </div>
+<mat-card appearance="outlined" class="child-component-card image-component">
+  @if (view.src) {
+    <div role="img" attr.aria-label="{{ altText }}">
+      <img
+        mat-card-image
+        [src]="view.src"
+        [alt]="altText"
+        [attr.width]="size.width"
+        [attr.height]="size.height"
+        (error)="onImageError()"
+      />
+    </div>
+  }
+  @if (view.error) {
+    <p class="image-error" role="alert">{{ view.error }}</p>
+  }
   <mat-card-content>
-    <p>{{component.labelInfo.description}}</p>
+    <p>{{ component.labelInfo.description }}</p>
   </mat-card-content>
 </mat-card>

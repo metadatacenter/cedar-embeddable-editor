@@ -1,16 +1,17 @@
-import { enableProdMode } from '@angular/core';
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import { enableProdMode, provideZoneChangeDetection } from '@angular/core';
+import { platformBrowser } from '@angular/platform-browser';
 import { environment } from './environments/environment';
 import { AppModuleProd } from './app/app.module.prod';
 import { AppModuleDev } from './app/app.module.dev';
+import packageJson from 'package.json';
+import { bootstrapCedarEditorOnce, CedarEditorBootstrapState } from './app/bootstrap-once';
+import { registerCeeThemeProperties } from './app/register-theme-properties';
 
-declare global {
-  interface Window {
-    WebComponents: {
-      ready: boolean;
-    };
-  }
-}
+// Before Angular, because registration has to precede the first style resolution
+// to be the thing that types a host page's value. Idempotent and never throws, so
+// it needs no guard of its own and belongs outside the bootstrap slot: a second
+// copy of the bundle that loses the slot has still typed the properties correctly.
+registerCeeThemeProperties();
 
 // needed for jsonld js library
 // (window as any).global = window;
@@ -20,11 +21,21 @@ if (environment.production) {
 }
 
 if (environment.production) {
-  platformBrowserDynamic()
-    .bootstrapModule(AppModuleProd)
-    .catch((err) => console.error(err));
+  bootstrapCedarEditorOnce(
+    window as Window & CedarEditorBootstrapState,
+    () => {
+      // Assign the version only to the bundle that wins the bootstrap slot. If
+      // another version is loaded later, it must not claim to be the one running.
+      (window as Window & CedarEditorBootstrapState).cedarEmbeddableEditorVersion = packageJson.version;
+      return platformBrowser().bootstrapModule(AppModuleProd, {
+        applicationProviders: [provideZoneChangeDetection()],
+      });
+    },
+    (err) => console.error(err),
+  );
 } else {
-  platformBrowserDynamic()
-    .bootstrapModule(AppModuleDev)
+  (window as Window & CedarEditorBootstrapState).cedarEmbeddableEditorVersion = packageJson.version;
+  platformBrowser()
+    .bootstrapModule(AppModuleDev, { applicationProviders: [provideZoneChangeDetection()] })
     .catch((err) => console.error(err));
 }

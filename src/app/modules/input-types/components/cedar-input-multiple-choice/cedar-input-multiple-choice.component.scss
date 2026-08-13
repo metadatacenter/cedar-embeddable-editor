@@ -1,5 +1,10 @@
-.aligned-with-icon{
-  position: absolute;
-  margin-top: 5px;
-  margin-left: 5px;
+.choice-option-row {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+}
+
+.choice-clear-button {
+  flex: 0 0 auto;
+  margin-inline-start: 4px;
 }

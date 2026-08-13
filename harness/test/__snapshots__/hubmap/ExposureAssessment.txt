@@ -1,0 +1,46 @@
+6ae3b93e-fcf4-4389-a3ff-58da7ffe769b type=richtext single
+436a83b7-1ecc-4c1c-a5f0-af86307abd3f type=section-break single
+b819995c-2850-4402-a498-655c292a11e5 type=richtext single
+study_design type=controlled single branches=1
+study_country type=controlled single branches=1
+study_state_or_province type=controlled single branches=1
+study_start_year type=temporal single temporal=xsd:date gran=year
+study_end_year type=temporal single temporal=xsd:date gran=year
+study_sampling_method type=controlled single branches=1
+3a13fada-87f9-4fdd-a178-3a34657810fa type=section-break single
+7214f618-79fb-4c3b-aaef-f684c941c3a7 type=richtext single
+study_life_stage type=controlled single branches=1
+biological_sex type=controlled single branches=1
+gender_identity type=controlled single branches=1
+ethnicity type=controlled single branches=1
+race type=controlled single branches=1
+occupation type=controlled single branches=1
+2cbec0ad-3b0a-4f2b-8c0f-7365af674dfe type=section-break single
+d5161474-7c88-42de-a33d-753e23524de6 type=richtext single
+exposure_stressor type=controlled single branches=1
+environmental_measurement type=controlled single branches=1
+study_environmental_exposures_assessed type=controlled single branches=1
+exposure_route type=controlled single branches=1
+9694fe63-0b70-4776-8e6e-b00b5e704352 type=section-break single
+14657b65-2a52-434c-b858-acd86f271a40 type=richtext single
+survey_based_methods_used type=radio single choices=2
+survey_type type=controlled single branches=1
+8c050517-1655-4b05-a97b-c117f68a585b type=section-break single
+c237593c-5546-4ab2-bf55-f3a003f2e22d type=richtext single
+evnironmental_samples_collected_or_used type=checkbox multi min=0 choices=2
+sampled_media type=controlled single branches=1
+water_type type=controlled single branches=1
+air_sampling_location type=controlled single branches=1
+skin_sampling_method type=controlled single branches=1
+00b42c88-ba48-4c4c-a185-8b69e3d5cb31 type=section-break single
+4e841800-d5f6-4dcb-9418-3c8e408e5b8f type=richtext single
+biomarkers_of_exposure_used type=checkbox multi min=0 choices=2
+biological_media type=controlled single branches=1
+0d5f68f7-bb52-4206-ad38-661c236101e5 type=section-break single
+95ae6e7b-146a-41b1-82a0-47ae2b1e777c type=richtext single
+chemical_physical_biological_exposure_models_used type=checkbox multi min=0 choices=2
+exposure_model type=controlled single branches=1
+8fc56663-6c84-4921-a5dc-b511fcbafc20 type=section-break single
+c44d3199-b90c-4e64-9995-7a000a7739d6 type=richtext single
+quality_control_measures_reported type=checkbox multi min=0 choices=3
+limit_of_detection_reported type=checkbox multi min=0 choices=3

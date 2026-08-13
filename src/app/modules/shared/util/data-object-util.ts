@@ -1,96 +1,123 @@
-import { JsonSchema } from '../models/json-schema.model';
-import { CedarModel } from '../models/cedar-model.model';
-import { JavascriptTypes } from '../models/javascript-types.model';
-import { TemplateObjectUtil } from './template-object-util';
+import { InstanceValueNode } from './instance-value-node';
+import { FieldComponent } from '../models/component/field-component.model';
+import { InputType } from '../models/input-type.model';
+import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
-import { CedarEmbeddableMetadataEditorComponent } from '../components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
+import { InstanceArray, InstanceNode, InstanceObject } from '../models/instance-node.model';
+import { InstanceDataContainer } from 'cedar-model-typescript-library';
 
 export class DataObjectUtil {
-  static getEmptyValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode): object {
-    const obj = {};
-    if (TemplateObjectUtil.isLInk(templateJsonObj)) {
-      // do nothing, leave object empty
-    } else if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
-      obj[JsonSchema.atValue] = null;
-    }
-    if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-      this.injectAtTypeIfAvailable(obj, templateJsonObj);
-    }
-    return obj;
+  /**
+   * The slot a field's value will go in, before there is a value.
+   *
+   * Which slot depends only on what kind of field it is, and the parsed
+   * component already says: an IRI-valued field gets `{}`, because its value
+   * will be an `@id` and there is no `@value` to be null; a controlled term
+   * likewise; everything else gets `{'@value': null}`. Numeric and temporal
+   * fields carry their `@type` alongside in the full copy.
+   *
+   * These used to be answered by re-reading the field's own slice of the raw
+   * template — `isLInk`, `isExternalAuthorityField`, `hasControlledInfo`, and a
+   * dig into `_valueConstraints` for the `@type` — which meant the builder
+   * walked the template JSON in step with the component tree it was already
+   * walking, purely to re-derive things the tree had.
+   */
+  static getEmptyValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode): InstanceNode {
+    return InstanceValueNode.emptySlot(
+      DataObjectUtil.isIriValued(component),
+      DataObjectUtil.xsdTypeFor(component, buildingMode),
+    );
   }
 
-  static getSingleValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode, value: string): object {
-    const obj = {};
-    if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
-      obj[JsonSchema.atValue] = value;
+  static getSingleValueWrapper(
+    component: FieldComponent,
+    buildingMode: DataObjectBuildingMode,
+    value: string,
+  ): InstanceNode {
+    // A controlled term's default is not a literal, so it gets no `@value` — and
+    // no `@type` either, since only numeric and temporal fields have one.
+    if (component?.basicInfo?.inputType === InputType.controlled) {
+      return InstanceValueNode.emptySlot(true);
     }
-    if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-      this.injectAtTypeIfAvailable(obj, templateJsonObj);
-    }
-    return obj;
+    return InstanceValueNode.literalValue(value, DataObjectUtil.xsdTypeFor(component, buildingMode));
   }
 
-  static getMultiValueWrapper(templateJsonObj: object, buildingMode: DataObjectBuildingMode, values: string[]): object {
-    const obj = [];
-    if (!TemplateObjectUtil.hasControlledInfo(templateJsonObj)) {
+  static getMultiValueWrapper(
+    component: FieldComponent,
+    buildingMode: DataObjectBuildingMode,
+    values: string[],
+  ): InstanceArray {
+    const obj: InstanceArray = [];
+    if (component?.basicInfo?.inputType !== InputType.controlled) {
       for (const value of values) {
-        const subObj = {};
-        subObj[JsonSchema.atValue] = value;
-        obj.push(subObj);
+        // No XSD type on the elements, deliberately: see below.
+        obj.push(InstanceValueNode.literalValue(value));
       }
     }
-    if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-      this.injectAtTypeIfAvailable(obj, templateJsonObj);
-    }
+    // A multi field's elements carry no XSD type, and nothing here sets one.
+    //
+    // What stood here set `@type` as a *property of the array* rather than on
+    // its elements. `JSON.stringify` ignores a property on an array, so it never
+    // reached an emitted instance — it was transcribed from the code this
+    // replaced and kept while the surrounding change was a refactor. Removing it
+    // changes no output, which the bundle-level suite confirms, and it was the
+    // last place outside `InstanceValueNode` that named a JSON-LD key here.
+    //
+    // Whether a multi numeric field's elements *should* carry a type is a real
+    // question and a real behaviour change; it is not answered by leaving a line
+    // that does nothing.
     return obj;
   }
 
-  static getEmptyObject(): object {
-    return {};
+  /**
+   * True when the field's value is an IRI, so its empty slot is `{}`.
+   *
+   * Links and the external authority types store the IRI as `@id`; a controlled
+   * term stores `@id` plus a label. None of them has a `@value` to leave null.
+   */
+  private static isIriValued(component: FieldComponent): boolean {
+    const inputType = component?.basicInfo?.inputType;
+    return (
+      inputType === InputType.link ||
+      inputType === InputType.controlled ||
+      (inputType !== null && EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType))
+    );
   }
 
-  static getEmptyList(): [] {
+  static getEmptyObject(): InstanceObject {
+    return new InstanceDataContainer();
+  }
+
+  static getEmptyList(): InstanceArray {
     return [];
   }
 
-  private static injectAtTypeIfAvailable(obj: object, templateJsonObj: object): void {
-    if (templateJsonObj != null) {
-      if (Object.hasOwn(templateJsonObj, CedarModel.valueConstraints)) {
-        const vc = templateJsonObj[CedarModel.valueConstraints];
-        if (Object.hasOwn(vc, CedarModel.numberType)) {
-          obj[JsonSchema.atType] = vc[CedarModel.numberType];
-        } else if (Object.hasOwn(vc, CedarModel.temporalType)) {
-          obj[JsonSchema.atType] = vc[CedarModel.temporalType];
-        }
-      }
-    }
+  /**
+   * The XSD type a numeric or temporal value carries alongside itself in the
+   * full copy, or null for every other field.
+   *
+   * Public because it is needed in two places that must agree: the initial
+   * structure build, and an in-place value edit. `changeValue` rebuilds the
+   * value node from scratch, so without re-attaching this it drops the `@type`
+   * the build put there — and a temporal value with no `@type` is one the server
+   * rejects (its instance schema makes `@type` required), so the save the user
+   * just made fails and the value is lost.
+   */
+  static xsdTypeForFullCopy(component: FieldComponent): string | null {
+    return component?.numberInfo?.numberType ?? component?.valueInfo?.temporalType ?? null;
   }
 
-  static convertTemplateContextNode(propsContextProp: object): object {
-    let ret = null;
-    if (propsContextProp[CedarModel.type] === 'string' && propsContextProp[CedarModel.format] === 'uri') {
-      ret = propsContextProp[CedarModel.enum][0];
-    } else if (
-      propsContextProp[CedarModel.type] === 'object' &&
-      Object.hasOwn(propsContextProp, JsonSchema.properties)
-    ) {
-      ret = {};
-      ret[JsonSchema.atType] = propsContextProp[JsonSchema.properties][JsonSchema.atType][CedarModel.enum][0];
-    } else if (Object.hasOwn(propsContextProp, CedarModel.enum)) {
-      ret = propsContextProp[CedarModel.enum][0];
+  /**
+   * The XSD type a value carries alongside itself, if it carries one.
+   *
+   * Only numeric and temporal fields do, and only in the full copy — the type is
+   * part of the artifact rather than of the value the form is editing.
+   */
+  private static xsdTypeFor(component: FieldComponent, buildingMode: DataObjectBuildingMode): string | null {
+    if (buildingMode !== DataObjectBuildingMode.INCLUDE_CONTEXT) {
+      return null;
     }
-    return ret;
-  }
-
-  static getSafeSubTemplate(templateJsonObj: object, targetName: string): object {
-    let subTemplate: object = null;
-    if (templateJsonObj != null) {
-      subTemplate = templateJsonObj[JsonSchema.properties][targetName];
-      if (subTemplate[CedarModel.type] === JavascriptTypes.array) {
-        subTemplate = subTemplate[CedarModel.items];
-      }
-    }
-    return subTemplate;
+    return DataObjectUtil.xsdTypeForFullCopy(component);
   }
 
   // Generating a RFC4122 version 4 compliant GUID
@@ -103,7 +130,7 @@ export class DataObjectUtil {
     });
   }
 
-  static arraysEqual(arr1, arr2): boolean {
+  static arraysEqual(arr1: unknown[], arr2: unknown[]): boolean {
     // if the other array is a falsy value, return
     if (!arr2) {
       return false;
@@ -118,7 +145,7 @@ export class DataObjectUtil {
       // Check if we have nested arrays
       if (arr1[i] instanceof Array && arr2[i] instanceof Array) {
         // recurse into the nested arrays
-        if (!arr1[i].equals(arr2[i])) {
+        if (!DataObjectUtil.arraysEqual(arr1[i] as unknown[], arr2[i] as unknown[])) {
           return false;
         }
       } else if (arr1[i] !== arr2[i]) {
@@ -127,33 +154,5 @@ export class DataObjectUtil {
       }
     }
     return true;
-  }
-
-  static deleteContext(obj): void {
-    const keyCount = Object.keys(obj).length;
-    if (keyCount === 2 && Object.hasOwn(obj, JsonSchema.atId) && Object.hasOwn(obj, JsonSchema.rdfsLabel)) {
-      // do nothing, it is a controlled term
-    } else if (keyCount === 1 && Object.hasOwn(obj, JsonSchema.atId)) {
-      // do nothing, it is a link
-    } else {
-      Object.keys(obj).forEach((key) => {
-        delete obj[JsonSchema.atContext];
-        delete obj[JsonSchema.atId];
-        delete obj[JsonSchema.oslcModifiedBy];
-        delete obj[JsonSchema.pavCreatedOn];
-        delete obj[JsonSchema.pavLastUpdatedOn];
-        delete obj[JsonSchema.pavCreatedBy];
-        delete obj[JsonSchema.schemaIsBasedOn];
-        delete obj[JsonSchema.schemaName];
-        delete obj[JsonSchema.schemaDescription];
-        if (typeof obj[key] === 'object' && obj[key] !== null) {
-          DataObjectUtil.deleteContext(obj[key]);
-        }
-      });
-    }
-  }
-
-  static getIriPrefix(): string {
-    return CedarEmbeddableMetadataEditorComponent.iriPrefix;
   }
 }

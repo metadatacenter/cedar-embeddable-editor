@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CEE visual baseline host</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      /* Neutral, fixed chrome so the diff only ever reflects CEE's own output. */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        font-family: Roboto, system-ui, sans-serif;
+      }
+      #frame {
+        width: 100%;
+      }
+      /* Suppress the caret, which blinks and would make screenshots flaky. */
+      * {
+        caret-color: transparent !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="frame"><cedar-embeddable-editor></cedar-embeddable-editor></div>
+
+    <script>
+      /**
+       * Load the bundle at a URL that changes when the bundle does.
+       *
+       * `python3 -m http.server` sends no `Cache-Control`, and HTTP then permits
+       * a browser to reuse a cached response *heuristically* — without
+       * revalidating — for a fraction of its age. Right after a re-bundle that
+       * means a run can render the previous build: exactly one or two screenshots
+       * differ, and they pass on the next run once the cache has aged out. Which
+       * is what the intermittent failures looked like, and why they only appeared
+       * immediately after a fresh bundle.
+       *
+       * `?b=` comes from the test helper, which reads the bundle's mtime — stable
+       * for every test in a run, different once the file is rebuilt. Not
+       * `Date.now()`: the suite freezes the clock before navigating, so that
+       * would produce the same URL every time and bust nothing.
+       */
+      (function () {
+        var b = new URLSearchParams(location.search).get('b') || '';
+        document.write(
+          '<script src="./cedar-embeddable-editor.js' + (b ? '?b=' + encodeURIComponent(b) : '') + '"><\/script>',
+        );
+      })();
+    </script>
+    <script>
+      /**
+       * Load the fixture named by ?t=<name> into the web component.
+       *
+       * Sets window.__ceeReady once the editor has rendered, which the
+       * Playwright tests wait on. Waiting for a DOM signal rather than a fixed
+       * timeout is what keeps the screenshots stable.
+       */
+      (async () => {
+        const params = new URLSearchParams(location.search);
+        const name = params.get('t');
+
+        /**
+         * `?host=sample` exercises the one entry point that fetches.
+         *
+         * A host-page route rather than a data input, so it loads no `?t=` fixture: it
+         * sets only the sample-template config keys and lets CEE's own loader fetch the
+         * template and its metadata. Deliberately no template is set — the point is that
+         * CEE ends up with one without being handed it.
+         */
+        const hostRoute = params.get('host');
+        if (hostRoute) {
+          await customElements.whenDefined('cedar-embeddable-editor');
+          const el = document.querySelector('cedar-embeddable-editor');
+          window.__ceeConfigEvents = [];
+
+          if (hostRoute === 'multi') {
+            const fixture = params.get('t') || '03-nested-multi';
+            const template = await (await fetch(`./fixtures/${fixture}.json`)).json();
+            const first = el;
+            first.id = 'editor-first';
+            const second = document.createElement('cedar-embeddable-editor');
+            second.id = 'editor-second';
+            document.querySelector('#frame').appendChild(second);
+
+            const configFor = (owner) => {
+              const config = {
+                showHeader: false,
+                showFooter: false,
+                showSampleTemplateLinks: false,
+                // Second read-only and first not, so the per-instance read-only state is
+                // observable: the service carrying it is provided on the element rather
+                // than shared, and this is what proves it. Second rather than first,
+                // because the endpoint-isolation test types into the first editor and a
+                // read-only field cannot be typed into.
+                readOnlyMode: owner === 'second',
+                showTemplateSourceData: false,
+                defaultLanguage: 'en',
+                fallbackLanguage: 'en',
+                languageMapPathPrefix: `./served/languages/${owner}/`,
+                iriPrefix: `https://${owner}.example/`,
+                terminologyIntegratedSearchUrl: `http://127.0.0.1:9/isolation/${owner}/terminology`,
+                extAuthBaseUrl: '',
+              };
+              for (const authority of ['orcid', 'ror', 'pfas', 'pmid', 'rrid', 'nihGrant', 'doi']) {
+                config[`${authority}IntegratedExtAuthUrl`] =
+                  `http://127.0.0.1:9/isolation/${owner}/authority/${authority}/search`;
+                config[`${authority}IntegratedDetailsUrl`] =
+                  `http://127.0.0.1:9/isolation/${owner}/authority/${authority}/details`;
+              }
+              return config;
+            };
+
+            // Configure both before either builds. With global state, the
+            // second assignment wins and the first editor uses its values.
+            first.config = configFor('first');
+            second.config = configFor('second');
+            first.templateObject = structuredClone(template);
+            second.templateObject = structuredClone(template);
+          } else if (hostRoute === 'lang') {
+            /**
+             * `?host=lang` drives translation through `languageMapPathPrefix`.
+             *
+             * `?prefix=` chooses what the loader finds: a served directory holding
+             * `en.json`, or an unroutable one. The footer is on because that is where
+             * the translated string under test is rendered.
+             */
+            el.config = {
+              showHeader: false,
+              showFooter: true,
+              showSampleTemplateLinks: false,
+              defaultLanguage: 'en',
+              fallbackLanguage: 'en',
+              languageMapPathPrefix: params.get('prefix') || './served/languages/',
+              terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
+            };
+          } else if (hostRoute === 'sample') {
+            el.config = {
+              showHeader: false,
+              showFooter: false,
+              showSampleTemplateLinks: false,
+              defaultLanguage: 'en',
+              fallbackLanguage: 'en',
+              sampleTemplateLocationPrefix: params.get('prefix') || './served/sample/',
+              loadSampleTemplateName: params.get('sample') || 'demo',
+              terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
+            };
+          } else {
+            window.__ceeError = `unknown ?host= route: ${hostRoute}`;
+            return;
+          }
+
+          // These routes are asynchronous by nature, so readiness is whatever
+          // the test waits for rather than a settled DOM.
+          window.__ceeReady = true;
+          return;
+        }
+
+        if (!name) {
+          window.__ceeError = 'no ?t= fixture named';
+          return;
+        }
+
+        const template = await (await fetch(`./fixtures/${name}.json`)).json();
+
+        /**
+         * An optional instance to inject, named by ?i=<name>.
+         *
+         * Without this the suite could only ever see a template rendered empty,
+         * which misses every behaviour that depends on a document already having
+         * values — and the first of those is whether a template default is allowed
+         * to overwrite one. `instanceObject` is the same web-component input a host
+         * page uses, so this exercises the real entry point rather than a test seam.
+         */
+        const instanceName = params.get('i');
+        const instance = instanceName ? await (await fetch(`./fixtures/${instanceName}.json`)).json() : null;
+
+        // Wait for Angular Elements to define the custom element.
+        await customElements.whenDefined('cedar-embeddable-editor');
+        const cee = document.querySelector('cedar-embeddable-editor');
+
+        /**
+         * Config presets, selected with ?c=<name>.
+         *
+         * `base` strips the surrounding chrome so a diff reflects the form
+         * itself. That is the right default, but it also means the header and
+         * footer — and with them mat-toolbar — render in no baseline at all. The
+         * `chrome` preset exists to cover them rather than leave that silently
+         * untested.
+         */
+        const base = {
+          showSampleTemplateLinks: false,
+          showHeader: false,
+          showFooter: false,
+          showTemplateRenderingRepresentation: false,
+          showInstanceDataCore: false,
+          showTemplateSourceData: false,
+          showDataQualityReport: false,
+          showMultiInstanceInfo: false,
+          collapseStaticComponents: true,
+          defaultLanguage: 'en',
+          fallbackLanguage: 'en',
+          sampleTemplateLocationPrefix: './served/sample/',
+          // Deliberately unreachable: the visual baseline must never depend on
+          // a live terminology server. Lookup spinners are not screenshotted
+          // for the same reason — they only appear mid-request.
+          terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
+        };
+
+        /**
+         * A distinct, deliberately unroutable URL per authority.
+         *
+         * Each of the seven external authority fields reads its endpoint from its own
+         * config key, and nothing checked that a field ends up asking the endpoint it
+         * was configured with — a descriptor naming the wrong key, or a widget wired to
+         * the wrong descriptor, would send a field to another authority's service and
+         * fail only against something live. Giving each a unique path makes the
+         * question answerable by looking at the request.
+         *
+         * `127.0.0.1:9` is the discard port: nothing listens, so the requests are
+         * intercepted by the test and never leave the machine. Which is the same reason
+         * `base` points the terminology server there.
+         */
+        const AUTHORITY_ENDPOINTS = {};
+        for (const name of ['orcid', 'ror', 'pfas', 'pmid', 'rrid', 'nihGrant', 'doi']) {
+          AUTHORITY_ENDPOINTS[`${name}IntegratedExtAuthUrl`] = `http://127.0.0.1:9/authority/${name}/search`;
+          AUTHORITY_ENDPOINTS[`${name}IntegratedDetailsUrl`] = `http://127.0.0.1:9/authority/${name}/details`;
+        }
+
+        const PRESETS = {
+          base,
+          chrome: { ...base, showHeader: true, showFooter: true },
+          readonly: { ...base, readOnlyMode: true },
+          authority: { ...base, ...AUTHORITY_ENDPOINTS },
+        };
+
+        const preset = params.get('c') || 'base';
+        if (!PRESETS[preset]) {
+          window.__ceeError = `unknown config preset: ${preset}`;
+          return;
+        }
+
+        /**
+         * Turn individual boolean config flags on, with ?f=one,two.
+         *
+         * CEE takes 31 config keys and `base` deliberately turns most of them off so a
+         * diff reflects the form. That left two thirds of the config surface rendered in
+         * no test at all — and a config key that is silently ignored looks exactly like
+         * one that works. Not hypothetical: `eventHandler` was stored and never read, so
+         * a host page passing one got silence, which is what prompted this sweep.
+         *
+         * This exists so a test can ask the only question that catches that: does
+         * turning this flag on change anything?
+         */
+        const flags = (params.get('f') || '').split(',').filter(Boolean);
+        const overrides = {};
+        for (const flag of flags) {
+          overrides[flag] = true;
+        }
+        /*
+         * ?n= turns a flag explicitly off.
+         *
+         * `base` leaves most keys unset, so for a key whose component default is
+         * `true` the absence of ?f= is its *on* state, and the sweep below would
+         * compare a page with itself. Naming both ends is what makes the comparison
+         * a comparison, and it keeps the sweep from having to change `base` — which
+         * every screenshot baseline depends on.
+         */
+        for (const flag of (params.get('n') || '').split(',').filter(Boolean)) {
+          overrides[flag] = false;
+        }
+        if (params.get('s')) {
+          overrides.outputSerialization = params.get('s');
+        }
+
+        /**
+         * An event handler, when ?e=1, recording what CEE tells the host.
+         *
+         * `eventHandler` is the input a host page passes to hear CEE's diagnostics, and
+         * it now forwards `MessageHandlerService`'s traces and errors. This is that real
+         * route rather than a test seam — the service's own contract is covered in
+         * `harness/test/message-handler.spec.ts`.
+         */
+        window.__ceeEvents = [];
+        if (params.get('e') === '1') {
+          cee.eventHandler = {
+            trace: (label, value) => window.__ceeEvents.push({ kind: 'trace', label, value }),
+            error: (label, value) => window.__ceeEvents.push({ kind: 'error', label, value }),
+          };
+        }
+
+        cee.config = { ...PRESETS[preset], ...overrides };
+
+        /**
+         * Which input to load through, chosen with ?m=.
+         *
+         * `separate` (the default) sets `instanceObject` then `templateObject`, the
+         * two-input route a host page uses when it has them independently. Instance
+         * first because setting the template is what triggers the load.
+         *
+         * `combined` uses the single `templateAndInstanceObject` input instead. Worth
+         * covering separately: it takes a different branch in the editor, calling
+         * `setDataContextWithInstance` before `setInputTemplate` rather than after —
+         * and it is the route the sample-template loader funnels into, since
+         * `triggerUpdateOnInjectedSampleData` assembles exactly this object. So a test
+         * here covers the sample-template path's mechanism without needing the
+         * sample-template links and their network fetches.
+         */
+        const mode = params.get('m') || 'separate';
+        if (mode === 'combined') {
+          if (!instance) {
+            window.__ceeError = 'combined mode needs ?i=<instance fixture>';
+            return;
+          }
+          cee.templateAndInstanceObject = { templateObject: template, instanceObject: instance };
+        } else if (mode === 'template-first') {
+          cee.templateObject = template;
+          if (instance) {
+            cee.instanceObject = instance;
+          }
+        } else {
+          if (instance) {
+            cee.instanceObject = instance;
+          }
+          cee.templateObject = template;
+        }
+
+        // The editor renders asynchronously; consider the DOM settled once two
+        // consecutive samples show no further mutation.
+        const domSettled = () =>
+          new Promise((resolve) => {
+            let last = -1;
+            const tick = () => {
+              const now = document.body.innerHTML.length;
+              if (now === last && now > 0) return resolve();
+              last = now;
+              requestAnimationFrame(() => setTimeout(tick, 50));
+            };
+            tick();
+          });
+
+        await domSettled();
+
+        /**
+         * Wait for fonts before declaring ready.
+         *
+         * The bundle embeds Roboto at three weights plus Material Icons. Those
+         * load asynchronously, and when they land every text run re-measures —
+         * shifting layout *after* the DOM has stopped mutating. Without this
+         * the suite is intermittently off by a few pixels, which is the worst
+         * possible outcome for a screenshot baseline: it trains people to
+         * ignore red.
+         */
+        if (document.fonts && document.fonts.ready) {
+          await document.fonts.ready;
+          // Re-settle: font swap can reflow and re-render.
+          await domSettled();
+        }
+
+        window.__ceeReady = true;
+      })().catch((e) => {
+        window.__ceeError = String(e && e.message ? e.message : e);
+      });
+    </script>
+  </body>
+</html>

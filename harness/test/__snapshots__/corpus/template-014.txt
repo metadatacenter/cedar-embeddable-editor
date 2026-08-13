@@ -1,0 +1,5 @@
+Decimal type=numeric single num=xsd:decimal
+Long type=numeric single num=xsd:long
+Integer type=numeric single num=xsd:int
+Double type=numeric single num=xsd:double
+Float type=numeric single num=xsd:float

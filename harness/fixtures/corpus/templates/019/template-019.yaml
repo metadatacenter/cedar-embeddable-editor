@@ -1,0 +1,30 @@
+type: "template"
+name: "#019 Template with Pick from a list SingleSelect"
+id: "https://repo.metadatacenter.org/templates/35f02de3-11ff-43b1-ac9f-0b6ff47844cf"
+status: "draft"
+version: "0.0.1"
+modelVersion: "1.6.0"
+createdOn: "2024-03-07T13:35:07-08:00"
+createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+modifiedOn: "2024-03-07T13:44:58-08:00"
+modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+children:
+  - key: "Pick from"
+    type: "single-select-list-field"
+    name: "Pick from"
+    description: "Help Text"
+    id: "https://repo.metadatacenter.org/template-fields/74d1cdc6-dc3c-4acd-8305-a4ccf9abd9fb"
+    modelVersion: "1.6.0"
+    prefLabel: "Pick from a list"
+    values:
+      - label: "Option 1"
+      - label: "Option 2"
+        selected: true
+      - label: "Option 3"
+    createdOn: "2024-03-07T13:44:58-08:00"
+    createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+    modifiedOn: "2024-03-07T13:44:58-08:00"
+    modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+    configuration:
+      required: true
+      propertyIri: "https://schema.metadatacenter.org/properties/ea27696a-195b-4a90-a342-d8ba5524cfbe"

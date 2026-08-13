@@ -7,43 +7,36 @@ import { ElementComponent } from '../models/component/element-component.model';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
-import { JsonSchema } from '../models/json-schema.model';
+import { InstanceDataContainer, TemplateInstance, TemplateInstanceBuilder } from 'cedar-model-typescript-library';
 import * as _ from 'lodash-es';
-import { InstanceExtractData } from '../models/instance-extract-data.model';
-import { InstanceFullData } from '../models/instance-full-data.model';
 import { DataObjectUtil } from '../util/data-object-util';
-import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
-import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
+import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
+import { DEFAULT_IRI_PREFIX } from '../util/iri-prefix';
+import { InstanceArray, InstanceNode, InstanceObject, isInstanceObject } from '../models/instance-node.model';
 
+/**
+ * Builds an empty instance from a template.
+ *
+ * Stateless. It held five fields, and four of them were never read: `dataObject`
+ * was assigned nowhere, `templateJsonObj` and `multiInstanceObjectService` were
+ * assigned and read nowhere — the second through an `injectMultiInstanceService`
+ * call that therefore did nothing — and `dataObjectFull` was a local that a
+ * single method wrote and returned. Only the template was genuinely threaded, and
+ * it is now a parameter, which is what threading a value through two calls means.
+ */
 export class DataObjectBuilderHandler {
-  private dataObject: object;
-  private dataObjectFull: object;
-  private templateJsonObj: object;
-  private templateRepresentation: TemplateComponent;
-  private multiInstanceObjectService: MultiInstanceObjectHandler;
+  constructor(private readonly iriPrefix: () => string = () => DEFAULT_IRI_PREFIX) {}
 
-  static getSubTemplate(template: CedarInputTemplate, path: string[]): CedarInputTemplate {
-    if (path.length === 0) {
-      return template;
-    }
-    const firstPath = path[0];
-    const remainingPath = path.slice(1);
-    const subTemplate = DataObjectUtil.getSafeSubTemplate(template, firstPath);
-    return this.getSubTemplate(subTemplate, remainingPath);
-  }
-
-  public static buildRecursively(
+  /*
+   * A container, because that is all the builder ever writes into: every line
+   * below puts a named child on it.
+   */
+  public buildRecursively(
     component: CedarComponent,
-    dataObject: InstanceExtractData,
-    templateJsonObj: CedarInputTemplate,
+    dataObject: InstanceObject,
     buildingMode: DataObjectBuildingMode,
   ): void {
-    let ret = null;
-    if (templateJsonObj != null) {
-      DataObjectBuilderHandler.addContext(component, dataObject, templateJsonObj, buildingMode);
-    }
-
     if (
       component instanceof SingleElementComponent ||
       component instanceof MultiElementComponent ||
@@ -55,36 +48,40 @@ export class DataObjectBuilderHandler {
       if (component instanceof MultiElementComponent) {
         // MultiElement
         const multiElement: MultiElementComponent = component as MultiElementComponent;
-        dataObject[targetName] = DataObjectUtil.getEmptyList();
-        if (multiElement.multiInfo.minItems > 0) {
-          const dummyTargetObject: object = DataObjectUtil.getEmptyObject();
-          const subTemplate = DataObjectUtil.getSafeSubTemplate(templateJsonObj, targetName);
+        const occurrences: InstanceArray = [];
+        dataObject.setValue(targetName, occurrences as unknown as InstanceNode);
+        if (multiElement.multiInfo.getSafeMinItems() > 0) {
+          const dummyTargetObject = new InstanceDataContainer();
+          DataObjectBuilderHandler.addPropertyIris(component, dummyTargetObject, buildingMode);
           for (const childComponent of iterableComponent.children) {
-            DataObjectBuilderHandler.buildRecursively(childComponent, dummyTargetObject, subTemplate, buildingMode);
+            this.buildRecursively(childComponent, dummyTargetObject, buildingMode);
           }
-          for (let idx = 0; idx < multiElement.multiInfo.minItems; idx++) {
-            const clone = _.cloneDeep(dummyTargetObject as any);
-            dataObject[targetName].push(clone);
+          for (let idx = 0; idx < multiElement.multiInfo.getSafeMinItems(); idx++) {
+            occurrences.push(_.cloneDeep(dummyTargetObject));
           }
         }
-        if (component instanceof MultiElementComponent) {
-          dataObject[targetName].forEach((child) => {
-            DataObjectBuilderHandler.addRandomAtId(child);
-          });
+        // Only the full tree. An element occurrence needs an `@id` in the
+        // artifact — CEDAR requires one — but the extract tree is the same
+        // content with the envelope left off at every depth, and `@id` is
+        // envelope. Minting it into both meant a freshly built extract carried
+        // element @ids and one read back from an instance did not, so every
+        // consumer of the extract saw a different shape depending on how the
+        // user arrived at it.
+        if (component instanceof MultiElementComponent && buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
+          occurrences.forEach((child) => this.addRandomAtId(child));
         }
       } else {
         // Single Element || Template
-        dataObject[targetName] = DataObjectUtil.getEmptyObject();
-        const subTemplate = DataObjectUtil.getSafeSubTemplate(templateJsonObj, targetName);
+        const occurrence = new InstanceDataContainer();
+        dataObject.setValue(targetName, occurrence);
+        DataObjectBuilderHandler.addPropertyIris(component, occurrence, buildingMode);
         for (const childComponent of iterableComponent.children) {
-          DataObjectBuilderHandler.buildRecursively(childComponent, dataObject[targetName], subTemplate, buildingMode);
+          this.buildRecursively(childComponent, occurrence, buildingMode);
         }
-        if (component instanceof SingleElementComponent) {
-          DataObjectBuilderHandler.addRandomAtId(dataObject[targetName]);
+        if (component instanceof SingleElementComponent && buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
+          this.addRandomAtId(occurrence);
         }
       }
-
-      ret = dataObject[targetName];
     }
     if (component instanceof SingleFieldComponent || component instanceof MultiFieldComponent) {
       const nonIterableComponent = component as FieldComponent;
@@ -92,39 +89,46 @@ export class DataObjectBuilderHandler {
       if (component instanceof MultiFieldComponent) {
         // MultiFieldComponent
         const multiField: MultiFieldComponent = component as MultiFieldComponent;
-        dataObject[targetName] = DataObjectUtil.getEmptyList();
-        if (multiField.multiInfo.minItems > 0) {
-          const subTemplate = DataObjectUtil.getSafeSubTemplate(templateJsonObj, targetName);
-          for (let idx = 0; idx < multiField.multiInfo.minItems; idx++) {
-            dataObject[targetName].push(DataObjectUtil.getEmptyValueWrapper(subTemplate, buildingMode));
-          }
+        let occurrences: InstanceArray = [];
+        dataObject.setValue(targetName, occurrences as unknown as InstanceNode);
+        if (multiField.multiInfo.getSafeMinItems() > 0) {
           if (component?.choiceInfo?.choices?.length > 0) {
+            // A choice field starts holding whatever is selected by default.
+            // That used to *replace* the `minItems` skeleton outright, so a
+            // field with no default selection came out as `[]` against a schema
+            // demanding at least one item — invalid the moment it was built,
+            // and not something the user could correct, since the count is not
+            // theirs to change. Pad instead of replace.
             const values = [];
             for (const choice of component.choiceInfo.choices) {
               if (choice.selectedByDefault) {
                 values.push(choice.label);
               }
             }
-            dataObject[targetName] = DataObjectUtil.getMultiValueWrapper(subTemplate, buildingMode, values);
+            occurrences = DataObjectUtil.getMultiValueWrapper(nonIterableComponent, buildingMode, values);
+            dataObject.setValue(targetName, occurrences as unknown as InstanceNode);
+          }
+          for (let idx = occurrences.length; idx < multiField.multiInfo.getSafeMinItems(); idx++) {
+            occurrences.push(DataObjectUtil.getEmptyValueWrapper(nonIterableComponent, buildingMode));
           }
         }
       } else {
         // SingleFieldComponent
-        const subTemplate = DataObjectUtil.getSafeSubTemplate(templateJsonObj, targetName);
-        dataObject[targetName] = DataObjectUtil.getEmptyValueWrapper(subTemplate, buildingMode);
+        dataObject.setValue(targetName, DataObjectUtil.getEmptyValueWrapper(nonIterableComponent, buildingMode));
         if (component?.choiceInfo?.choices?.length > 0) {
-          let value = null;
+          let value: string | null = null;
           for (const choice of component.choiceInfo.choices) {
             if (choice.selectedByDefault) {
               value = choice.label;
             }
           }
-          dataObject[targetName] = DataObjectUtil.getSingleValueWrapper(subTemplate, buildingMode, value);
+          dataObject.setValue(
+            targetName,
+            DataObjectUtil.getSingleValueWrapper(nonIterableComponent, buildingMode, value ?? ''),
+          );
         }
       }
-      ret = dataObject[targetName];
     }
-    return ret;
   }
 
   public static setCurrentCountToMinRecursively(component: CedarComponent, path: string[]): void {
@@ -156,70 +160,92 @@ export class DataObjectBuilderHandler {
     }
   }
 
-  public static addContext(
+  /**
+   * Record the property IRI of each of this container's children.
+   *
+   * These are what a CEDAR instance's `@context` block is made of, and the
+   * container carries them: `iris` on `InstanceDataContainer`, which the writer
+   * turns into the block when it emits a document. This used to write the block
+   * itself, here, into a tree that was the document.
+   *
+   * The entries come off the component, where the template parser put them.
+   */
+  public static addPropertyIris(
     component: CedarComponent,
-    dataObject: InstanceExtractData,
-    templateJsonObj: CedarInputTemplate,
+    dataObject: InstanceObject,
     buildingMode: DataObjectBuildingMode,
   ): void {
-    if (buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-      const props = templateJsonObj[JsonSchema.properties];
-      const propsContext = props[JsonSchema.atContext];
-      const propsContextProps = propsContext[JsonSchema.properties];
-      const p: object = {};
-      for (const key of Object.keys(propsContextProps)) {
-        p[key] = DataObjectUtil.convertTemplateContextNode(propsContextProps[key]);
+    if (buildingMode !== DataObjectBuildingMode.INCLUDE_CONTEXT) {
+      return;
+    }
+    const container = component as unknown as AbstractElementComponent;
+    if (container?.contextEntries == null) {
+      return;
+    }
+    Object.entries(container.contextEntries).forEach(([key, iri]) => {
+      if (typeof iri === 'string') {
+        dataObject.setIri(key, iri);
       }
-      dataObject[JsonSchema.atContext] = p;
+    });
+  }
+
+  /**
+   * Give an element occurrence the IRI CEDAR requires of one.
+   *
+   * `id` on the container, rather than an `@id` property written into it. Which
+   * key that becomes is the writer's to decide — and the YAML writer calls it
+   * `id`.
+   */
+  public addRandomAtId(dataObject: InstanceNode): void {
+    if (!isInstanceObject(dataObject)) {
+      return;
+    }
+    if (dataObject.id == null) {
+      dataObject.id = this.getTemplateElementInstanceIRIPrefix() + DataObjectUtil.generateGUID();
     }
   }
 
-  public static addRandomAtId(dataObject: InstanceExtractData): void {
-    if (!Object.hasOwn(dataObject, JsonSchema.atId)) {
-      const iri = DataObjectBuilderHandler.getTemplateElementInstanceIRIPrefix() + DataObjectUtil.generateGUID();
-      dataObject[JsonSchema.atId] = iri;
+  public getTemplateElementInstanceIRIPrefix(): string {
+    return this.iriPrefix() + 'template-element-instances/';
+  }
+
+  /**
+   * A new instance of this template, holding nothing.
+   *
+   * The envelope is not written here any more. `schema:isBasedOn`, the name, the
+   * description and the four provenance fields are properties of a
+   * `TemplateInstance`, and the writer emits them — `addEnvelope` filled them in
+   * by hand, and had to know all nine keys to do it.
+   */
+  buildNewFullDataObject(templateRepresentation: TemplateComponent): TemplateInstance {
+    const template = templateRepresentation as CedarTemplate;
+    const builder = new TemplateInstanceBuilder();
+    if (template?.isBasedOn) {
+      builder.withSchemaIsBasedOn(template.isBasedOn);
     }
-  }
-
-  public static getTemplateElementInstanceIRIPrefix(): string {
-    return DataObjectUtil.getIriPrefix() + 'template-element-instances/';
-  }
-
-  injectMultiInstanceService(multiInstanceObjectService: MultiInstanceObjectHandler): void {
-    this.multiInstanceObjectService = multiInstanceObjectService;
-  }
-
-  buildNewExtractDataObject(
-    templateRepresentation: TemplateComponent,
-    templateJsonObj: CedarInputTemplate,
-  ): InstanceExtractData {
-    this.templateJsonObj = templateJsonObj;
-    this.templateRepresentation = templateRepresentation;
-    this.dataObject = new InstanceExtractData();
-    this.buildNewByIterating(this.dataObject, templateJsonObj, DataObjectBuildingMode.EXCLUDE_CONTEXT);
-    return this.dataObject;
-  }
-
-  buildNewFullDataObject(
-    templateRepresentation: TemplateComponent,
-    templateJsonObj: CedarInputTemplate,
-  ): InstanceFullData {
-    this.templateJsonObj = templateJsonObj;
-    this.templateRepresentation = templateRepresentation;
-    this.dataObjectFull = new InstanceFullData();
-    this.buildNewByIterating(this.dataObjectFull, templateJsonObj, DataObjectBuildingMode.INCLUDE_CONTEXT);
-    return this.dataObjectFull;
+    // The convention in every corpus instance: the template's name followed by
+    // "metadata", and an empty description. `schema:name` is declared with a
+    // `minLength` of 1, so an instance with none does not validate against the
+    // template it came from.
+    const templateName = template?.labelInfo?.label;
+    builder.withSchemaName(templateName ? `${templateName} metadata` : 'metadata');
+    builder.withSchemaDescription('');
+    const instance = builder.build();
+    this.buildNewByIterating(templateRepresentation, instance.dataContainer, DataObjectBuildingMode.INCLUDE_CONTEXT);
+    return instance;
   }
 
   private buildNewByIterating(
-    dataObject: InstanceExtractData,
-    templateJsonObj: CedarInputTemplate,
+    templateRepresentation: TemplateComponent,
+    dataObject: InstanceObject,
     buildingMode: DataObjectBuildingMode,
   ): void {
-    if (this.templateRepresentation != null && this.templateRepresentation.children != null) {
-      for (const childComponent of this.templateRepresentation.children) {
-        DataObjectBuilderHandler.buildRecursively(childComponent, dataObject, templateJsonObj, buildingMode);
-      }
+    if (templateRepresentation == null || templateRepresentation.children == null) {
+      return;
+    }
+    DataObjectBuilderHandler.addPropertyIris(templateRepresentation, dataObject, buildingMode);
+    for (const childComponent of templateRepresentation.children) {
+      this.buildRecursively(childComponent, dataObject, buildingMode);
     }
   }
 }

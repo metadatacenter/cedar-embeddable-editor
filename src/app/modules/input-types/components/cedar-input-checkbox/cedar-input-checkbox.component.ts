@@ -1,20 +1,25 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { requireControl, requireFormArray } from '../../../shared/forms/form-control';
+import { InstanceValueNode } from '../../../shared/util/instance-value-node';
 
 @Component({
   selector: 'app-cedar-input-checkbox',
   templateUrl: './cedar-input-checkbox.component.html',
   styleUrls: ['./cedar-input-checkbox.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CedarInputCheckboxComponent extends CedarUIDirective implements OnInit {
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
-  @Input() handlerContext: HandlerContext;
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
     fb: FormBuilder,
@@ -27,34 +32,42 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
     for (const choice of this.component.choiceInfo.choices) {
       const fc = new FormControl();
       this.options.addControl(this.getFormControlName(choice.label), fc);
     }
+    if (this.component.valueInfo.requiredValue) {
+      // The checkbox group installed no validators at all, so a required
+      // checkbox field could never report itself unsatisfied — the data quality
+      // report caught it while the widget stayed silent.
+      this.options.setValidators(CedarValidators.atLeastOneChecked());
+      this.options.updateValueAndValidity({ emitEvent: false });
+    }
     this.populateValuesOnLoad();
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  inputChanged(event): void {
+  inputChanged(event: Event): void {
     // If readOnly -> revert the change
     if (this.readOnlyMode) {
-      const name = event.target.value;
-      const val = this.options.get(this.getFormControlName(name)).value;
-      this.options.get(this.getFormControlName(name)).setValue(!val);
+      const name = (event.target as HTMLInputElement).value;
+      const val = requireControl(this.options, this.getFormControlName(name)).value;
+      requireControl(this.options, this.getFormControlName(name)).setValue(!val);
       event.preventDefault();
       event.stopPropagation();
       return;
     }
-    this.setInput(event.target.checked, event.target.value);
+    const checkbox = event.target as HTMLInputElement;
+    this.setInput(checkbox.checked, checkbox.value);
   }
 
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(currentValue: unknown): void {
     const arrVal = currentValue as Array<string>;
 
     for (const choice of this.component.choiceInfo.choices) {
@@ -66,18 +79,32 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     }
   }
 
-  getFormControlName(val): string {
+  getFormControlName(val: string): string {
     return val.replace(/\s+/g, '');
   }
 
   private populateValuesOnLoad(): void {
+    // If the instance already holds values for this field, populate the checkboxes from
+    // them rather than writing defaults. Writing defaults here would call changeListValue()
+    // with an empty list, overwriting the loaded instance data with [{'@value': null}]
+    // before the deferred updateViewToModel() has a chance to apply the real values.
+    const dataObject = this.handlerContext.getDataObjectNodeByPath(this.component.path);
+    if (Array.isArray(dataObject)) {
+      const loadedValues = dataObject
+        .map((d) => InstanceValueNode.literal(d))
+        .filter((v) => v !== null && v !== undefined);
+      if (loadedValues.length > 0) {
+        this.setCurrentValue(loadedValues);
+        return;
+      }
+    }
     for (const choice of this.component.choiceInfo.choices) {
       this.setInput(choice.selectedByDefault, choice.label);
     }
   }
 
-  private setInput(isChecked, val): void {
-    const formArray: FormArray = this.options.get('checkedChoices') as FormArray;
+  private setInput(isChecked: boolean, val: string): void {
+    const formArray: FormArray = requireFormArray(this.options, 'checkedChoices');
 
     /* Selected */
     if (isChecked) {
@@ -85,17 +112,17 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
       if (formArray.value.indexOf(val) < 0) {
         formArray.push(new FormControl(val));
       }
-      this.options.get(this.getFormControlName(val)).setValue('checked');
+      requireControl(this.options, this.getFormControlName(val)).setValue('checked');
     } else {
       /* unselected */
       // find the unselected element
       let i = 0;
 
-      formArray.controls.forEach((ctrl: FormControl) => {
+      formArray.controls.forEach((ctrl: AbstractControl) => {
         if (ctrl.value === val) {
           // Remove the unselected element from the arrayForm
           formArray.removeAt(i);
-          this.options.get(this.getFormControlName(val)).setValue(null);
+          requireControl(this.options, this.getFormControlName(val)).setValue(null);
           return;
         }
         i++;
@@ -104,7 +131,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
 
     // Keep the values in the original sort order
     const sortingArr = this.component.choiceInfo.choices.map((a) => a.label);
-    formArray.value.sort((a, b) => sortingArr.indexOf(a) - sortingArr.indexOf(b));
+    formArray.value.sort((a: string, b: string) => sortingArr.indexOf(a) - sortingArr.indexOf(b));
     this.handlerContext.changeListValue(this.component, formArray.value);
   }
 }

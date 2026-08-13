@@ -1,0 +1,478 @@
+{
+  "@id": "https://repo.metadatacenter.org/templates/eb761c15-0000-4000-8000-eb761c150000",
+  "@type": "https://schema.metadatacenter.org/core/Template",
+  "@context": {
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "bibo": "http://purl.org/ontology/bibo/",
+    "oslc": "http://open-services.net/ns/core#",
+    "schema": "http://schema.org/",
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    }
+  },
+  "type": "object",
+  "title": "AttributeValues title",
+  "description": "AttributeValues description",
+  "_ui": {
+    "order": [
+      "_label",
+      "_attribute"
+    ],
+    "propertyLabels": {
+      "_label": "label",
+      "_attribute": "attribute"
+    },
+    "propertyDescriptions": {
+      "_label": "label property description",
+      "_attribute": "attribute property description"
+    }
+  },
+  "properties": {
+    "@context": {
+      "type": "object",
+      "properties": {
+        "rdfs": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://www.w3.org/2000/01/rdf-schema#"
+          ]
+        },
+        "xsd": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://www.w3.org/2001/XMLSchema#"
+          ]
+        },
+        "pav": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://purl.org/pav/"
+          ]
+        },
+        "schema": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://schema.org/"
+          ]
+        },
+        "oslc": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://open-services.net/ns/core#"
+          ]
+        },
+        "skos": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://www.w3.org/2004/02/skos/core#"
+          ]
+        },
+        "rdfs:label": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:string"
+              ]
+            }
+          }
+        },
+        "schema:isBasedOn": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "@id"
+              ]
+            }
+          }
+        },
+        "schema:name": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:string"
+              ]
+            }
+          }
+        },
+        "schema:description": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:string"
+              ]
+            }
+          }
+        },
+        "pav:derivedFrom": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "@id"
+              ]
+            }
+          }
+        },
+        "pav:createdOn": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:dateTime"
+              ]
+            }
+          }
+        },
+        "pav:createdBy": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "@id"
+              ]
+            }
+          }
+        },
+        "pav:lastUpdatedOn": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:dateTime"
+              ]
+            }
+          }
+        },
+        "oslc:modifiedBy": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "@id"
+              ]
+            }
+          }
+        },
+        "skos:notation": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:string"
+              ]
+            }
+          }
+        },
+        "_label": {
+          "enum": [
+            "https://schema.metadatacenter.org/properties/b2261784-0000-4000-8000-b22617840000"
+          ]
+        }
+      },
+      "required": [
+        "xsd",
+        "pav",
+        "schema",
+        "oslc",
+        "schema:isBasedOn",
+        "schema:name",
+        "schema:description",
+        "pav:createdOn",
+        "pav:createdBy",
+        "pav:lastUpdatedOn",
+        "oslc:modifiedBy",
+        "_label"
+      ],
+      "additionalProperties": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "@id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "@type": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "uniqueItems": true
+        }
+      ]
+    },
+    "schema:isBasedOn": {
+      "type": "string",
+      "format": "uri"
+    },
+    "schema:name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema:description": {
+      "type": "string"
+    },
+    "pav:derivedFrom": {
+      "type": "string",
+      "format": "uri"
+    },
+    "pav:createdOn": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "pav:createdBy": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "pav:lastUpdatedOn": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "oslc:modifiedBy": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "_label": {
+      "@id": "https://repo.metadatacenter.org/template-fields/f69717fd-0000-4000-8000-f69717fd0000",
+      "@type": "https://schema.metadatacenter.org/core/TemplateField",
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "pav": "http://purl.org/pav/",
+        "bibo": "http://purl.org/ontology/bibo/",
+        "oslc": "http://open-services.net/ns/core#",
+        "schema": "http://schema.org/",
+        "skos": "http://www.w3.org/2004/02/skos/core#",
+        "schema:name": {
+          "@type": "xsd:string"
+        },
+        "schema:description": {
+          "@type": "xsd:string"
+        },
+        "skos:prefLabel": {
+          "@type": "xsd:string"
+        },
+        "skos:altLabel": {
+          "@type": "xsd:string"
+        },
+        "pav:createdOn": {
+          "@type": "xsd:dateTime"
+        },
+        "pav:createdBy": {
+          "@type": "@id"
+        },
+        "pav:lastUpdatedOn": {
+          "@type": "xsd:dateTime"
+        },
+        "oslc:modifiedBy": {
+          "@type": "@id"
+        }
+      },
+      "type": "object",
+      "title": "label title",
+      "description": "label description",
+      "_ui": {
+        "inputType": "textfield"
+      },
+      "_valueConstraints": {
+        "requiredValue": false
+      },
+      "properties": {
+        "@type": {
+          "type": "string",
+          "format": "uri"
+        },
+        "rdfs:label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "@value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "@language": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "required": [
+        "@value"
+      ],
+      "schema:name": "label",
+      "schema:description": null,
+      "pav:createdOn": "2026-01-01T00:00:00-08:00",
+      "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+      "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:version": "0.0.1",
+      "bibo:status": "bibo:draft",
+      "schema:schemaVersion": "1.6.0",
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-04/schema#"
+    },
+    "_attribute": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "@id": "https://repo.metadatacenter.org/template-fields/3e6d42ef-0000-4000-8000-3e6d42ef0000",
+        "@type": "https://schema.metadatacenter.org/core/TemplateField",
+        "@context": {
+          "xsd": "http://www.w3.org/2001/XMLSchema#",
+          "pav": "http://purl.org/pav/",
+          "bibo": "http://purl.org/ontology/bibo/",
+          "oslc": "http://open-services.net/ns/core#",
+          "schema": "http://schema.org/",
+          "skos": "http://www.w3.org/2004/02/skos/core#",
+          "schema:name": {
+            "@type": "xsd:string"
+          },
+          "schema:description": {
+            "@type": "xsd:string"
+          },
+          "skos:prefLabel": {
+            "@type": "xsd:string"
+          },
+          "skos:altLabel": {
+            "@type": "xsd:string"
+          },
+          "pav:createdOn": {
+            "@type": "xsd:dateTime"
+          },
+          "pav:createdBy": {
+            "@type": "@id"
+          },
+          "pav:lastUpdatedOn": {
+            "@type": "xsd:dateTime"
+          },
+          "oslc:modifiedBy": {
+            "@type": "@id"
+          }
+        },
+        "type": "string",
+        "title": "attribute title",
+        "description": "attribute description",
+        "_ui": {
+          "inputType": "attribute-value"
+        },
+        "schema:name": "attribute",
+        "schema:description": null,
+        "pav:createdOn": "2026-01-01T00:00:00-08:00",
+        "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+        "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+        "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+        "pav:version": "0.0.1",
+        "bibo:status": "bibo:draft",
+        "schema:schemaVersion": "1.6.0",
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-04/schema#"
+      }
+    }
+  },
+  "required": [
+    "@context",
+    "@id",
+    "schema:isBasedOn",
+    "schema:name",
+    "schema:description",
+    "pav:createdOn",
+    "pav:createdBy",
+    "pav:lastUpdatedOn",
+    "oslc:modifiedBy",
+    "_label"
+  ],
+  "additionalProperties": {
+    "type": "object",
+    "properties": {
+      "@value": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "@type": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "required": [
+      "@value"
+    ],
+    "additionalProperties": false
+  },
+  "schema:name": "AttributeValues",
+  "schema:description": "Attribute-value fields, whose names come from the user rather than the template",
+  "pav:createdOn": "2026-01-01T00:00:00-08:00",
+  "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "pav:version": "0.0.1",
+  "bibo:status": "bibo:draft",
+  "schema:schemaVersion": "1.6.0",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

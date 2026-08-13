@@ -3,8 +3,15 @@ import { ActiveComponentRegistryService } from './active-component-registry.serv
 import { HandlerContext } from '../util/handler-context';
 
 export class PageBreakPaginatorService {
-  currentPageBreakIndex: number;
-  pageBreakChildren: Array<CedarComponent[]>;
+  /*
+   * No pages until `reset` is given some, which is a state the editor is genuinely
+   * in: the service is constructed with the handler context, and the template
+   * renders from `getCurrentPage()` whether or not a template has arrived. Declared
+   * without initialisers, every read before the first `reset` was a crash — and the
+   * one the template makes is inside a `@for`, which throws rather than skipping.
+   */
+  currentPageBreakIndex = 0;
+  pageBreakChildren: Array<CedarComponent[]> = [];
 
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,
@@ -24,11 +31,12 @@ export class PageBreakPaginatorService {
     return this.pageBreakChildren.map((_, i) => i);
   }
 
+  /** An empty page when there are none, so the caller's `@for` renders nothing. */
   getCurrentPage(): CedarComponent[] {
-    return this.pageBreakChildren[this.currentPageBreakIndex];
+    return this.pageBreakChildren[this.currentPageBreakIndex] ?? [];
   }
 
-  setPageNumberAndGet(pageNum: number): CedarComponent[] {
+  setPageNumberAndGet(pageNum: number): CedarComponent[] | null {
     if (pageNum >= 0 && pageNum < this.pageBreakChildren.length) {
       this.currentPageBreakIndex = pageNum;
       setTimeout(() => {

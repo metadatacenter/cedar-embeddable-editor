@@ -1,0 +1,789 @@
+{
+  "@id": "https://repo.metadatacenter.org/templates/c81967f4-0000-4000-8000-c81967f40000",
+  "@type": "https://schema.metadatacenter.org/core/Template",
+  "@context": {
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "bibo": "http://purl.org/ontology/bibo/",
+    "oslc": "http://open-services.net/ns/core#",
+    "schema": "http://schema.org/",
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    }
+  },
+  "type": "object",
+  "title": "TemporalNormalization title",
+  "description": "TemporalNormalization description",
+  "_ui": {
+    "order": [
+      "_date_year",
+      "_date_month",
+      "_datetime_day",
+      "_time_minute",
+      "_time_fraction"
+    ],
+    "propertyLabels": {
+      "_date_year": "date_year",
+      "_date_month": "date_month",
+      "_datetime_day": "datetime_day",
+      "_time_minute": "time_minute",
+      "_time_fraction": "time_fraction"
+    },
+    "propertyDescriptions": {
+      "_date_year": "date_year property description",
+      "_date_month": "date_month property description",
+      "_datetime_day": "datetime_day property description",
+      "_time_minute": "time_minute property description",
+      "_time_fraction": "time_fraction property description"
+    }
+  },
+  "properties": {
+    "@context": {
+      "type": "object",
+      "properties": {
+        "rdfs": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://www.w3.org/2000/01/rdf-schema#"
+          ]
+        },
+        "xsd": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://www.w3.org/2001/XMLSchema#"
+          ]
+        },
+        "pav": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://purl.org/pav/"
+          ]
+        },
+        "schema": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://schema.org/"
+          ]
+        },
+        "oslc": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://open-services.net/ns/core#"
+          ]
+        },
+        "skos": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://www.w3.org/2004/02/skos/core#"
+          ]
+        },
+        "rdfs:label": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:string"
+              ]
+            }
+          }
+        },
+        "schema:isBasedOn": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "@id"
+              ]
+            }
+          }
+        },
+        "schema:name": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:string"
+              ]
+            }
+          }
+        },
+        "schema:description": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:string"
+              ]
+            }
+          }
+        },
+        "pav:derivedFrom": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "@id"
+              ]
+            }
+          }
+        },
+        "pav:createdOn": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:dateTime"
+              ]
+            }
+          }
+        },
+        "pav:createdBy": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "@id"
+              ]
+            }
+          }
+        },
+        "pav:lastUpdatedOn": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:dateTime"
+              ]
+            }
+          }
+        },
+        "oslc:modifiedBy": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "@id"
+              ]
+            }
+          }
+        },
+        "skos:notation": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:string"
+              ]
+            }
+          }
+        },
+        "_date_year": {
+          "enum": [
+            "https://schema.metadatacenter.org/properties/1ce31e4a-0000-4000-8000-1ce31e4a0000"
+          ]
+        },
+        "_date_month": {
+          "enum": [
+            "https://schema.metadatacenter.org/properties/47371b2b-0000-4000-8000-47371b2b0000"
+          ]
+        },
+        "_datetime_day": {
+          "enum": [
+            "https://schema.metadatacenter.org/properties/b4367ce6-0000-4000-8000-b4367ce60000"
+          ]
+        },
+        "_time_minute": {
+          "enum": [
+            "https://schema.metadatacenter.org/properties/28abdfb0-0000-4000-8000-28abdfb00000"
+          ]
+        },
+        "_time_fraction": {
+          "enum": [
+            "https://schema.metadatacenter.org/properties/122f9df2-0000-4000-8000-122f9df20000"
+          ]
+        }
+      },
+      "required": [
+        "xsd",
+        "pav",
+        "schema",
+        "oslc",
+        "schema:isBasedOn",
+        "schema:name",
+        "schema:description",
+        "pav:createdOn",
+        "pav:createdBy",
+        "pav:lastUpdatedOn",
+        "oslc:modifiedBy",
+        "_date_year",
+        "_date_month",
+        "_datetime_day",
+        "_time_minute",
+        "_time_fraction"
+      ],
+      "additionalProperties": false
+    },
+    "@id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "@type": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "uniqueItems": true
+        }
+      ]
+    },
+    "schema:isBasedOn": {
+      "type": "string",
+      "format": "uri"
+    },
+    "schema:name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema:description": {
+      "type": "string"
+    },
+    "pav:derivedFrom": {
+      "type": "string",
+      "format": "uri"
+    },
+    "pav:createdOn": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "pav:createdBy": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "pav:lastUpdatedOn": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "oslc:modifiedBy": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "_date_year": {
+      "@id": "https://repo.metadatacenter.org/template-fields/4c316daf-0000-4000-8000-4c316daf0000",
+      "@type": "https://schema.metadatacenter.org/core/TemplateField",
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "pav": "http://purl.org/pav/",
+        "bibo": "http://purl.org/ontology/bibo/",
+        "oslc": "http://open-services.net/ns/core#",
+        "schema": "http://schema.org/",
+        "skos": "http://www.w3.org/2004/02/skos/core#",
+        "schema:name": {
+          "@type": "xsd:string"
+        },
+        "schema:description": {
+          "@type": "xsd:string"
+        },
+        "skos:prefLabel": {
+          "@type": "xsd:string"
+        },
+        "skos:altLabel": {
+          "@type": "xsd:string"
+        },
+        "pav:createdOn": {
+          "@type": "xsd:dateTime"
+        },
+        "pav:createdBy": {
+          "@type": "@id"
+        },
+        "pav:lastUpdatedOn": {
+          "@type": "xsd:dateTime"
+        },
+        "oslc:modifiedBy": {
+          "@type": "@id"
+        }
+      },
+      "type": "object",
+      "title": "date_year title",
+      "description": "date_year description",
+      "_ui": {
+        "inputType": "temporal",
+        "temporalGranularity": "year"
+      },
+      "_valueConstraints": {
+        "temporalType": "xsd:date",
+        "requiredValue": false
+      },
+      "properties": {
+        "@type": {
+          "type": "string",
+          "format": "uri"
+        },
+        "rdfs:label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "@value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "@language": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "required": [
+        "@value",
+        "@type"
+      ],
+      "schema:name": "date_year",
+      "schema:description": null,
+      "pav:createdOn": "2026-01-01T00:00:00-08:00",
+      "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+      "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:version": "0.0.1",
+      "bibo:status": "bibo:draft",
+      "schema:schemaVersion": "1.6.0",
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-04/schema#"
+    },
+    "_date_month": {
+      "@id": "https://repo.metadatacenter.org/template-fields/40d761a4-0000-4000-8000-40d761a40000",
+      "@type": "https://schema.metadatacenter.org/core/TemplateField",
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "pav": "http://purl.org/pav/",
+        "bibo": "http://purl.org/ontology/bibo/",
+        "oslc": "http://open-services.net/ns/core#",
+        "schema": "http://schema.org/",
+        "skos": "http://www.w3.org/2004/02/skos/core#",
+        "schema:name": {
+          "@type": "xsd:string"
+        },
+        "schema:description": {
+          "@type": "xsd:string"
+        },
+        "skos:prefLabel": {
+          "@type": "xsd:string"
+        },
+        "skos:altLabel": {
+          "@type": "xsd:string"
+        },
+        "pav:createdOn": {
+          "@type": "xsd:dateTime"
+        },
+        "pav:createdBy": {
+          "@type": "@id"
+        },
+        "pav:lastUpdatedOn": {
+          "@type": "xsd:dateTime"
+        },
+        "oslc:modifiedBy": {
+          "@type": "@id"
+        }
+      },
+      "type": "object",
+      "title": "date_month title",
+      "description": "date_month description",
+      "_ui": {
+        "inputType": "temporal",
+        "temporalGranularity": "month"
+      },
+      "_valueConstraints": {
+        "temporalType": "xsd:date",
+        "requiredValue": false
+      },
+      "properties": {
+        "@type": {
+          "type": "string",
+          "format": "uri"
+        },
+        "rdfs:label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "@value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "@language": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "required": [
+        "@value",
+        "@type"
+      ],
+      "schema:name": "date_month",
+      "schema:description": null,
+      "pav:createdOn": "2026-01-01T00:00:00-08:00",
+      "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+      "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:version": "0.0.1",
+      "bibo:status": "bibo:draft",
+      "schema:schemaVersion": "1.6.0",
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-04/schema#"
+    },
+    "_datetime_day": {
+      "@id": "https://repo.metadatacenter.org/template-fields/c7071875-0000-4000-8000-c70718750000",
+      "@type": "https://schema.metadatacenter.org/core/TemplateField",
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "pav": "http://purl.org/pav/",
+        "bibo": "http://purl.org/ontology/bibo/",
+        "oslc": "http://open-services.net/ns/core#",
+        "schema": "http://schema.org/",
+        "skos": "http://www.w3.org/2004/02/skos/core#",
+        "schema:name": {
+          "@type": "xsd:string"
+        },
+        "schema:description": {
+          "@type": "xsd:string"
+        },
+        "skos:prefLabel": {
+          "@type": "xsd:string"
+        },
+        "skos:altLabel": {
+          "@type": "xsd:string"
+        },
+        "pav:createdOn": {
+          "@type": "xsd:dateTime"
+        },
+        "pav:createdBy": {
+          "@type": "@id"
+        },
+        "pav:lastUpdatedOn": {
+          "@type": "xsd:dateTime"
+        },
+        "oslc:modifiedBy": {
+          "@type": "@id"
+        }
+      },
+      "type": "object",
+      "title": "datetime_day title",
+      "description": "datetime_day description",
+      "_ui": {
+        "inputType": "temporal",
+        "temporalGranularity": "day"
+      },
+      "_valueConstraints": {
+        "temporalType": "xsd:dateTime",
+        "requiredValue": false
+      },
+      "properties": {
+        "@type": {
+          "type": "string",
+          "format": "uri"
+        },
+        "rdfs:label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "@value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "@language": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "required": [
+        "@value",
+        "@type"
+      ],
+      "schema:name": "datetime_day",
+      "schema:description": null,
+      "pav:createdOn": "2026-01-01T00:00:00-08:00",
+      "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+      "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:version": "0.0.1",
+      "bibo:status": "bibo:draft",
+      "schema:schemaVersion": "1.6.0",
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-04/schema#"
+    },
+    "_time_minute": {
+      "@id": "https://repo.metadatacenter.org/template-fields/758d620d-0000-4000-8000-758d620d0000",
+      "@type": "https://schema.metadatacenter.org/core/TemplateField",
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "pav": "http://purl.org/pav/",
+        "bibo": "http://purl.org/ontology/bibo/",
+        "oslc": "http://open-services.net/ns/core#",
+        "schema": "http://schema.org/",
+        "skos": "http://www.w3.org/2004/02/skos/core#",
+        "schema:name": {
+          "@type": "xsd:string"
+        },
+        "schema:description": {
+          "@type": "xsd:string"
+        },
+        "skos:prefLabel": {
+          "@type": "xsd:string"
+        },
+        "skos:altLabel": {
+          "@type": "xsd:string"
+        },
+        "pav:createdOn": {
+          "@type": "xsd:dateTime"
+        },
+        "pav:createdBy": {
+          "@type": "@id"
+        },
+        "pav:lastUpdatedOn": {
+          "@type": "xsd:dateTime"
+        },
+        "oslc:modifiedBy": {
+          "@type": "@id"
+        }
+      },
+      "type": "object",
+      "title": "time_minute title",
+      "description": "time_minute description",
+      "_ui": {
+        "inputType": "temporal",
+        "temporalGranularity": "minute",
+        "timezoneEnabled": false
+      },
+      "_valueConstraints": {
+        "temporalType": "xsd:time",
+        "requiredValue": false
+      },
+      "properties": {
+        "@type": {
+          "type": "string",
+          "format": "uri"
+        },
+        "rdfs:label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "@value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "@language": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "required": [
+        "@value",
+        "@type"
+      ],
+      "schema:name": "time_minute",
+      "schema:description": null,
+      "pav:createdOn": "2026-01-01T00:00:00-08:00",
+      "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+      "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:version": "0.0.1",
+      "bibo:status": "bibo:draft",
+      "schema:schemaVersion": "1.6.0",
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-04/schema#"
+    },
+    "_time_fraction": {
+      "@id": "https://repo.metadatacenter.org/template-fields/01c701ef-0000-4000-8000-01c701ef0000",
+      "@type": "https://schema.metadatacenter.org/core/TemplateField",
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "pav": "http://purl.org/pav/",
+        "bibo": "http://purl.org/ontology/bibo/",
+        "oslc": "http://open-services.net/ns/core#",
+        "schema": "http://schema.org/",
+        "skos": "http://www.w3.org/2004/02/skos/core#",
+        "schema:name": {
+          "@type": "xsd:string"
+        },
+        "schema:description": {
+          "@type": "xsd:string"
+        },
+        "skos:prefLabel": {
+          "@type": "xsd:string"
+        },
+        "skos:altLabel": {
+          "@type": "xsd:string"
+        },
+        "pav:createdOn": {
+          "@type": "xsd:dateTime"
+        },
+        "pav:createdBy": {
+          "@type": "@id"
+        },
+        "pav:lastUpdatedOn": {
+          "@type": "xsd:dateTime"
+        },
+        "oslc:modifiedBy": {
+          "@type": "@id"
+        }
+      },
+      "type": "object",
+      "title": "time_fraction title",
+      "description": "time_fraction description",
+      "_ui": {
+        "inputType": "temporal",
+        "temporalGranularity": "decimalSecond",
+        "timezoneEnabled": false
+      },
+      "_valueConstraints": {
+        "temporalType": "xsd:time",
+        "requiredValue": false
+      },
+      "properties": {
+        "@type": {
+          "type": "string",
+          "format": "uri"
+        },
+        "rdfs:label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "@value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "@language": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "required": [
+        "@value",
+        "@type"
+      ],
+      "schema:name": "time_fraction",
+      "schema:description": null,
+      "pav:createdOn": "2026-01-01T00:00:00-08:00",
+      "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+      "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:version": "0.0.1",
+      "bibo:status": "bibo:draft",
+      "schema:schemaVersion": "1.6.0",
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-04/schema#"
+    }
+  },
+  "required": [
+    "@context",
+    "@id",
+    "schema:isBasedOn",
+    "schema:name",
+    "schema:description",
+    "pav:createdOn",
+    "pav:createdBy",
+    "pav:lastUpdatedOn",
+    "oslc:modifiedBy",
+    "_date_year",
+    "_date_month",
+    "_datetime_day",
+    "_time_minute",
+    "_time_fraction"
+  ],
+  "additionalProperties": false,
+  "schema:name": "TemporalNormalization",
+  "schema:description": "Existing temporal values normalized to their declared granularity",
+  "pav:createdOn": "2026-01-01T00:00:00-08:00",
+  "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "pav:version": "0.0.1",
+  "bibo:status": "bibo:draft",
+  "schema:schemaVersion": "1.6.0",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

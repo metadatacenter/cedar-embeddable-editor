@@ -1,0 +1,46 @@
+parent_sample_id type=textfield single required
+lab_id type=textfield single
+preparation_protocol_doi type=link single required
+dataset_type type=controlled single required branches=1
+analyte_class type=controlled single required branches=1
+is_targeted type=radio single required choices=2
+acquisition_instrument_vendor type=controlled single required branches=1
+acquisition_instrument_model type=controlled single required branches=1
+source_storage_duration_value type=numeric single required num=xsd:decimal
+source_storage_duration_unit type=controlled single required branches=1
+time_since_acquisition_instrument_calibration_value type=numeric single num=xsd:decimal
+time_since_acquisition_instrument_calibration_unit type=controlled single branches=1
+contributors_path type=textfield single required
+data_path type=textfield single required
+ms_ionization_technique type=controlled single required branches=1
+ms_scan_mode type=controlled single required branches=1
+mass_analysis_polarity type=controlled single required branches=1
+mass_to_charge_range_low_value type=numeric single num=xsd:decimal
+mass_to_charge_range_high_value type=numeric single num=xsd:decimal
+mass_resolving_power type=numeric single num=xsd:decimal
+mass_to_charge_resolving_power type=numeric single num=xsd:decimal
+ion_mobility type=controlled single branches=1
+data_collection_mode type=controlled single branches=1
+label_name type=textfield single
+lc_instrument_vendor type=controlled single branches=1
+lc_instrument_model type=textfield single
+lc_column_vendor type=controlled single branches=1
+lc_column_model type=textfield single
+lc_resin type=textfield single
+lc_column_length_value type=numeric single num=xsd:decimal
+lc_column_length_unit type=controlled single branches=1
+lc_temperature_value type=numeric single num=xsd:decimal
+lc_temperature_unit type=controlled single branches=1
+lc_inner_diameter_value type=numeric single num=xsd:decimal
+lc_inner_diameter_unit type=controlled single branches=1
+lc_flow_rate_value type=numeric single num=xsd:decimal
+lc_flow_rate_unit type=controlled single branches=1
+lc_gradient_value type=numeric single num=xsd:decimal
+lc_gradient_unit type=controlled single branches=1
+lc_mobile_phase_a type=textfield single
+lc_mobile_phase_b type=textfield single
+spatial_sampling_technique type=controlled single branches=1
+spatial_sampling_target type=textfield single
+spatial_sampling_type type=controlled single branches=1
+analysis_protocol_doi type=link single required
+metadata_schema_id type=textfield single required

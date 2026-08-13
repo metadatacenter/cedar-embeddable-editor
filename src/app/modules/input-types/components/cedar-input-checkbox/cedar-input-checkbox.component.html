@@ -1,8 +1,13 @@
 <form class="form-container" [formGroup]="options">
-  <div *ngFor="let choice of component.choiceInfo.choices">
-    <mat-checkbox (input)="inputChanged($event)"
-                  [formControlName]="getFormControlName(choice.label)"
-                  [value]="choice.label"
-    >{{choice.label}}</mat-checkbox>
-  </div>
+  @for (choice of component.choiceInfo.choices; track choice) {
+    <div>
+      <mat-checkbox
+        color="primary"
+        (input)="inputChanged($event)"
+        [formControlName]="getFormControlName(choice.label)"
+        [value]="choice.label"
+        >{{ choice.label }}</mat-checkbox
+      >
+    </div>
+  }
 </form>

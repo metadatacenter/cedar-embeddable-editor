@@ -1,27 +1,31 @@
 import { Injectable } from '@angular/core';
-import { JsonSchema } from '../../models/json-schema.model';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, EMPTY, from, Observable, of, Subject } from 'rxjs';
-import { catchError, concatMap, map, takeUntil } from 'rxjs/operators';
+import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { MessageHandlerService } from '../../service/message-handler.service';
+import { InstanceObject } from '../../models/instance-node.model';
+
+/** One row of the sample-template registry: which template, and what to call it. */
+export interface SampleTemplateEntry {
+  num: string;
+  label: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class SampleTemplatesService {
-  private readonly MAX_CHECK = 500;
   readonly TEMPLATE_FILENAME = 'template.json';
   readonly METADATA_FILENAME = 'metadata.json';
   readonly TEMPLATE_REGISTRY_FILENAME = 'registry.json';
-  readonly TEMPLATE_NUMBER = 'num';
-  readonly TEMPLATE_LABEL = 'label';
-  private allTemplates: Observable<object[]>;
-  private templateJsonSubject = new BehaviorSubject<object>(null);
+  /** The registry, fetched once. Null until then — which is the state both readers already test for. */
+  private allTemplates: Observable<SampleTemplateEntry[]> | null = null;
+  private templateJsonSubject = new BehaviorSubject<Record<string, InstanceObject | null> | null>(null);
   templateJson$ = this.templateJsonSubject.asObservable();
-  private metadataJsonSubject = new BehaviorSubject<object>(null);
+  private metadataJsonSubject = new BehaviorSubject<Record<string, InstanceObject | null> | null>(null);
   metadataJson$ = this.metadataJsonSubject.asObservable();
-  private loadedTemplate = null;
-  private loadedMetadata = null;
+  private loadedTemplate: InstanceObject | null = null;
+  private loadedMetadata: InstanceObject | null = null;
   private attemptedFileCount = 0;
   private targetAttemptedFileCount = 0;
   private templateNum = '';
@@ -50,18 +54,15 @@ export class SampleTemplatesService {
     this.loadedTemplate = null;
     this.loadedMetadata = null;
     const templateUrl = this.templateLocationPrefix + this.templateNum + '/' + this.TEMPLATE_FILENAME;
-    this.loadTemplateFromURL(templateUrl, this.templateNum);
+    this.loadTemplateFromURL(templateUrl);
     if (this.doLoadMetadata) {
       const metadataUrl = this.templateLocationPrefix + this.templateNum + '/' + this.METADATA_FILENAME;
-      this.loadMetadataFromURL(metadataUrl, this.templateNum);
+      this.loadMetadataFromURL(metadataUrl);
     }
   }
 
-  loadTemplateFromURL(templateUrl: string, templateNum: string = null): void {
-    if (!templateNum) {
-      templateNum = this.templateNumberFromUrl(templateUrl);
-    }
-    this.http.get(templateUrl).subscribe(
+  private loadTemplateFromURL(templateUrl: string): void {
+    this.http.get<InstanceObject>(templateUrl).subscribe(
       (value) => {
         this.attemptedFileCount++;
         this.loadedTemplate = value;
@@ -70,7 +71,7 @@ export class SampleTemplatesService {
         );
         this.handleLoadedDataFiles();
       },
-      (error) => {
+      () => {
         this.attemptedFileCount++;
         this.loadedTemplate = null;
         this.messageHandlerService.error('Error while loading sample template from: ' + templateUrl);
@@ -79,11 +80,8 @@ export class SampleTemplatesService {
     );
   }
 
-  loadMetadataFromURL(metadataUrl: string, templateNum: string = null): void {
-    if (!templateNum) {
-      templateNum = this.templateNumberFromUrl(metadataUrl);
-    }
-    this.http.get(metadataUrl).subscribe(
+  private loadMetadataFromURL(metadataUrl: string): void {
+    this.http.get<InstanceObject>(metadataUrl).subscribe(
       (value) => {
         this.attemptedFileCount++;
         this.loadedMetadata = value;
@@ -92,7 +90,7 @@ export class SampleTemplatesService {
         );
         this.handleLoadedDataFiles();
       },
-      (error) => {
+      () => {
         this.attemptedFileCount++;
         this.loadedMetadata = null;
         this.messageHandlerService.error('Error while loading sample metadata from: ' + metadataUrl);
@@ -103,32 +101,31 @@ export class SampleTemplatesService {
 
   handleLoadedDataFiles(): void {
     if (this.attemptedFileCount === this.targetAttemptedFileCount) {
-      const templateObj = {};
+      // Only published once both files have arrived, which is what the count above
+      // waits for — but a fetch can fail, and the wrapper's subscriber already
+      // tests each half, so the maps admit the miss rather than claiming it cannot
+      // happen.
+      const templateObj: Record<string, InstanceObject | null> = {};
       templateObj[this.templateNum] = this.loadedTemplate;
       this.templateJsonSubject.next(templateObj);
 
-      const metadataObj = {};
+      const metadataObj: Record<string, InstanceObject | null> = {};
       metadataObj[this.templateNum] = this.loadedMetadata;
       this.metadataJsonSubject.next(metadataObj);
     }
   }
 
-  getSampleTemplatesFromRegistry(templateLocationPrefix: string): Observable<object[]> {
+  getSampleTemplatesFromRegistry(templateLocationPrefix: string): Observable<SampleTemplateEntry[]> {
     if (this.allTemplates) {
       return this.allTemplates;
     }
     templateLocationPrefix = this.fixedLocationPrefix(templateLocationPrefix);
     const registryUrl = templateLocationPrefix + this.TEMPLATE_REGISTRY_FILENAME;
-    this.allTemplates = this.http.get(registryUrl).pipe(
-      map((resp: object) => {
+    this.allTemplates = this.http.get<Record<string, string>>(registryUrl).pipe(
+      map((resp) => {
         return Object.keys(resp)
           .sort()
-          .map((key, index) => {
-            const entry = {};
-            entry[this.TEMPLATE_NUMBER] = key;
-            entry[this.TEMPLATE_LABEL] = resp[key];
-            return entry;
-          });
+          .map((key): SampleTemplateEntry => ({ num: key, label: resp[key] }));
       }),
       catchError((error) => {
         this.messageHandlerService.errorObject(error.message, error);
@@ -136,87 +133,6 @@ export class SampleTemplatesService {
       }),
     );
     return this.allTemplates;
-  }
-
-  getSampleTemplatesDynamically(templateLocationPrefix: string): Observable<object> {
-    if (!this.allTemplates) {
-      templateLocationPrefix = this.fixedLocationPrefix(templateLocationPrefix);
-      this.buildAllTemplatesDynamically(templateLocationPrefix);
-    }
-    return this.allTemplates;
-  }
-
-  private buildAllTemplatesDynamically(templateLocationPrefix: string): void {
-    const allTemplates = [];
-    this.getAllTemplatesSubscription(templateLocationPrefix).subscribe((resp) => {
-      const entry = {};
-      entry[this.TEMPLATE_NUMBER] = Object.keys(resp)[0];
-      entry[this.TEMPLATE_LABEL] = Object.values(resp)[0];
-      allTemplates.push(entry);
-    });
-    this.allTemplates = of(allTemplates);
-  }
-
-  private getAllTemplatesSubscription(templateLocationPrefix: string): Observable<object> {
-    const singleUrls: string[] = [];
-    const closeRequest$ = new Subject<void>();
-    let errorIndex = 0;
-
-    for (let i = 1; i <= this.MAX_CHECK; i++) {
-      const templateName = i < 10 ? '0' + i.toString() : i.toString();
-      const templateUrl = templateLocationPrefix + templateName + '/' + this.TEMPLATE_FILENAME;
-      singleUrls.push(templateUrl);
-    }
-    return from(singleUrls).pipe(
-      concatMap((singleUrl) => {
-        const templateNum = this.templateNumberFromUrl(singleUrl);
-        return this.getSingleTemplateLabel(singleUrl).pipe(
-          map((templateLabel) => {
-            errorIndex = 0;
-            const templateEntry = {};
-            templateEntry[templateNum] = 'Template ' + templateNum + ' - ' + templateLabel;
-            return templateEntry;
-          }),
-          // if encounter two consecutive error requests, finish polling
-          catchError((error) => {
-            if (error.status === 0) {
-              errorIndex++;
-            } else {
-              this.messageHandlerService.errorObject(error['message'], error);
-            }
-
-            if (errorIndex > 1) {
-              closeRequest$.next();
-              closeRequest$.complete();
-            }
-            return EMPTY;
-          }),
-        );
-      }),
-      takeUntil(closeRequest$),
-    );
-  }
-
-  private getSingleTemplateLabel(templateUrl: string): Observable<string> {
-    return this.http.get(templateUrl).pipe(
-      map((response) => {
-        if (response == null || !response[JsonSchema.schemaName]) {
-          return null;
-        }
-        return response[JsonSchema.schemaName];
-      }),
-    );
-  }
-
-  private templateNumberFromUrl(url): string {
-    const templateNumPatternStr = '\\/(\\d+)\\/' + this.TEMPLATE_FILENAME;
-    const templateNumPattern = new RegExp(templateNumPatternStr);
-    const templateNumMatch = url.match(templateNumPattern);
-
-    if (templateNumMatch && templateNumMatch.length > 1) {
-      return templateNumMatch[1];
-    }
-    return '-1';
   }
 
   private fixedLocationPrefix(locationPrefix: string): string {

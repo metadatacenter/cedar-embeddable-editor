@@ -2,19 +2,81 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
+    /*
+     * `paths` rather than `baseUrl`, which TypeScript 6.0 deprecates and 7.0 will
+     * stop honouring. The only thing that ever needed it is `import packageJson
+     * from 'package.json'` — every other non-relative import in CEE resolves from
+     * node_modules — so naming that one mapping is both the migration and an
+     * honest description of the dependency. Without `baseUrl`, `paths` resolves
+     * relative to the file declaring it, which is this one, at the repo root.
+     */
+    "paths": {
+      "package.json": ["./package.json"]
+    },
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
-    "downlevelIteration": true,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    /*
+     * "bundler", not "node". Angular 21 ships its subpath entry points through an
+     * `exports` map — `@angular/common/http`, `@angular/core/primitives/di` — which
+     * classic node resolution cannot see, so the build fails to find modules that
+     * are plainly there. This is how the Angular CLI resolves them, and the app is
+     * bundled rather than run through node's resolver, so it is also the honest
+     * description of what happens.
+     */
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "es2022",
+    /*
+     * Angular requires this false, and TypeScript defaults it to true whenever the
+     * target is ES2022 or higher. With it true, a class field declaration is emitted
+     * as a constructor-time Object.defineProperty, which overwrites what Angular has
+     * already assigned to an @Input — so a bound input silently reverts to whatever
+     * the field declares, which is how read-only mode stopped being read-only.
+     *
+     * `ng update` to 15 carries a migration that sets exactly this, and it reported
+     * "No changes made": it edits tsconfig.json, and CEE keeps its compilerOptions
+     * here in tsconfig.base.json instead. The migration is not wrong, it just could
+     * not see this file. Anything reading its output would conclude it was handled.
+     */
+    "useDefineForClassFields": false,
+    /*
+     * On, and all of it. The Angular 22 hop measured 659 errors under `strict` and
+     * left it off, because rewriting null handling across a codebase is not a
+     * framework hop. That work is now done, taken one flag at a time in the order
+     * they depend on each other: `noImplicitAny` (242 errors), then
+     * `strictNullChecks` (279), then `strictPropertyInitialization` (179).
+     *
+     * Those three are what `strict` costs here. With them satisfied the rest —
+     * `strictFunctionTypes`, `strictBindCallApply`, `noImplicitThis`,
+     * `useUnknownInCatchVariables`, `alwaysStrict` — came for nothing, so the flag
+     * is set whole rather than as a list of the parts that happened to be needed.
+     *
+     * Set explicitly rather than left to TypeScript 6's default, so a later major
+     * cannot move it without someone deciding to.
+     */
+    "strict": true,
     "module": "es2022",
     "lib": [
       "es2022",
       "dom"
-    ]
+    ],
+    /*
+     * What the `use-application-builder` migration sets, added by hand because the
+     * schematic could not reach this file: it edits `tsconfig.json`, and CEE keeps
+     * its compilerOptions here — the same blind spot that made the Angular 15
+     * `useDefineForClassFields` migration report "No changes made" above.
+     *
+     * Not load-bearing for the build, which succeeds without it and emits an
+     * artifact 27 bytes different. What it settles is `moment` and
+     * `moment-timezone`, the two CommonJS dependencies: with only
+     * `allowSyntheticDefaultImports` the default-import syntax type-checks while
+     * the interop is left to the bundler, and the two can disagree about what a
+     * CommonJS module's default is. Set so they cannot.
+     */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true
   }
 }

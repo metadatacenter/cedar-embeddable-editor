@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { MatListOption } from '@angular/material/list';
 import { HttpClient } from '@angular/common/http';
 import { SampleTemplatesService } from './sample-templates.service';
@@ -6,19 +6,30 @@ import { Subject } from 'rxjs';
 import { FormControl } from '@angular/forms';
 import { takeUntil } from 'rxjs/operators';
 import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
+import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
+import { SampleTemplateEntry } from './sample-templates.service';
+import { configText } from '../../util/config-reader';
 
 @Component({
   selector: 'app-sample-templates',
   templateUrl: './sample-templates.component.html',
   styleUrls: ['./sample-templates.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class SampleTemplatesComponent implements OnInit, OnDestroy {
-  @Input() callbackOwnerObject: any = null;
-  @Input() expandedSampleTemplateLinks: boolean;
-  templateLocationPrefix: string;
-  templateCtrl: FormControl = new FormControl();
-  sampleTemplates: object[] = [];
+  @Input() callbackOwnerObject: SampleTemplateLoaderOwner | null = null;
+  @Input() expandedSampleTemplateLinks = false;
+  /** Empty until the config supplies one, which is also what `configText` falls back to. */
+  templateLocationPrefix = '';
+  /*
+   * `string[]`, not `string`: this is bound to a `mat-selection-list`, whose value
+   * is the list of selected options even with `[multiple]="false"` — which is why
+   * the one place that sets it wraps the template number in an array.
+   */
+  templateCtrl: FormControl<string[] | null> = new FormControl<string[] | null>(null);
+  sampleTemplates: SampleTemplateEntry[] = [];
   protected _onDestroy = new Subject<void>();
 
   constructor(
@@ -27,17 +38,26 @@ export class SampleTemplatesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.templateLocationPrefix =
-      this.callbackOwnerObject.innerConfig[CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX];
+    const config = this.callbackOwnerObject?.innerConfig;
+    if (config == null) {
+      return;
+    }
+    this.templateLocationPrefix = configText(
+      config,
+      CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX,
+      '',
+    );
     this.sampleTemplateService
       .getSampleTemplatesFromRegistry(this.templateLocationPrefix)
       .pipe(takeUntil(this._onDestroy))
-      .subscribe((templates: object[]) => {
+      .subscribe((templates: SampleTemplateEntry[]) => {
         this.sampleTemplates.push(...templates);
       });
 
     this.sampleTemplateService.templateJson$.pipe(takeUntil(this._onDestroy)).subscribe((templateJson) => {
-      this.templateCtrl.setValue([Object.keys(templateJson)[0]]);
+      if (templateJson) {
+        this.templateCtrl.setValue([Object.keys(templateJson)[0]]);
+      }
     });
   }
 

@@ -8,17 +8,38 @@
 }
 
 .page-break-pager {
-  .mat-paginator {
+  .mat-mdc-paginator {
     background-color: transparent;
   }
 
-  .mat-paginator-range-label {
+  /*
+   * The range is represented by the numbered chips, so Material's empty range
+   * label is hidden. Its default inline margins still occupied 64px, however,
+   * and made this small previous/next control look much wider than it is.
+   */
+  ::ng-deep .mat-mdc-paginator-range-label {
     display: none;
+    margin: 0;
+  }
+
+  ::ng-deep .mat-mdc-paginator-container {
+    min-height: 48px;
+    padding-inline: 4px;
+  }
+
+  ::ng-deep .mat-mdc-icon-button {
+    width: 44px;
+    height: 44px;
+    padding: 10px;
   }
 }
 
+/*
+ * `Page:` beside the numbered chips, which are `$cee-font-size`. Weight
+ * distinguishes it, not size — 16px here was the one place CEE's own chrome
+ * stated a size of its own.
+ */
 .page-break-label {
-  font-size: 16px;
   font-weight: bold;
   margin-right: 20px;
 }

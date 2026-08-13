@@ -1,58 +1,178 @@
-@import '../../../../../styles-common.scss';
+@use '../../../../../styles-common' as common;
+@use '../../../../../cee-tokens' as tokens;
 
-.mat-card {
-  padding: 5px;
-  margin-bottom: 5px;
+:host {
+  display: block;
+  min-width: 0;
 }
-.header-flex-child {
-  flex: auto;
-}
-.mat-card-header {
-  margin-bottom: 5px;
-  vertical-align: middle;
-}
+
 .header-image {
-  background-image: url($cedar-logo-80x80);
+  background-image: url(common.$cedar-logo-80x80);
   background-size: cover;
   background-color: #0B3938;
   cursor: pointer;
 }
+.template-header {
+  display: grid;
+  grid-template-columns: 72px minmax(192px, 1fr) auto;
+  grid-template-areas: 'logo title actions';
+  align-items: center;
+  gap: 12px 16px;
+  min-width: 0;
+  padding: 16px clamp(12px, 2.5cqi, 24px);
+  background: #ffffff;
+  border-bottom: 1px solid #d7e0df;
+}
+
+/*
+ * The logo and the version stamp beneath it.
+ *
+ * This block and .cee-version were each declared twice in this file, and the
+ * second of each pair silently won: the block ended up pinned to `flex: 0 0 40px`
+ * while the stamp was capped at `max-width: 100%` of it. Forty pixels is about six
+ * characters at 12px, so every version rendered as "1.6.0-…" no matter what it
+ * said — the ellipsis fell exactly where versions start to differ, which made the
+ * stamp look present and current while telling you nothing.
+ *
+ * Widened to a fixed 72px, which fits a version at this font size with room to
+ * spare. Fixed rather than sized to its content on purpose: content sizing would
+ * make the header's width depend on how many characters the version happens to
+ * have, so every hop that renamed it would shift the whole header and move the
+ * baselines — which is the thing screenshot.css was added to prevent. It hides the
+ * text, not the box. A version longer than the box still ellipses, and costs no
+ * layout.
+ */
 .logo-block {
+  grid-area: logo;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-right: 8px;
+  flex: 0 0 72px;
+  min-width: 0;
 }
+
 .cee-version {
-  font-size: 0.75rem;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: tokens.$cee-font-size-small;
   line-height: 1;
   color: #666;
   margin-top: 2px;
 }
-.template-header {
+.template-title-block {
+  grid-area: title;
+  min-width: 0;
+}
+
+.template-label {
+  margin: 0;
+  color: #173f3e;
+  /* The one fluid step in CEE: a title scales with the container, in px. */
+  font-size: clamp(19px, 3cqi, 26px);
+  font-weight: 500;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.template-description {
+  max-width: 70ch;
+  margin: 6px 0 0;
+  color: #526260;
+  font-size: tokens.$cee-font-size-lead;
+  line-height: 1.45;
+}
+
+.template-actions {
+  grid-area: actions;
   display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
+  justify-content: flex-end;
+  gap: 8px 16px;
 }
-.logo-block {
-  display: flex;
-  align-items: center;
-  margin-right: 1rem;
+
+.page-break-control {
+  min-width: 0;
 }
-.cee-version {
-  margin-left: 0.5rem;
-  font-size: 0.75rem;
-  line-height: 1;
-  color: #666;
-}
-.header-flex-child {
-  display: flex;
-  align-items: center;
-  flex: auto;
-}
+
 .expand-buttons {
   display: flex;
   align-items: center;
-  gap: 0.5rem;                
+  justify-content: flex-end;
+  gap: 4px;
+
+  button {
+    white-space: nowrap;
+  }
+}
+
+.template-content {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+  padding: 0 clamp(12px, 3cqi, 32px) 24px;
+}
+
+@container cee (max-width: 1100px) {
+  .template-header {
+    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-areas:
+      'logo title'
+      'actions actions';
+  }
+
+  .template-header-paged {
+    row-gap: 8px;
+    padding-block: 12px;
+  }
+
+  .logo-block {
+    flex-basis: 64px;
+  }
+
+  .template-actions {
+    justify-content: space-between;
+    border-top: 1px solid #e5ebea;
+    padding-top: 12px;
+  }
+
+  .template-header-paged .template-actions {
+    padding-top: 8px;
+  }
+}
+
+@container cee (max-width: 520px) {
+  .template-header {
+    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-areas:
+      'logo title'
+      'actions actions';
+  }
+
+  .logo-block {
+    flex-basis: 52px;
+  }
+
+  .cee-version {
+    /* One step below `$cee-font-size-small`, where the header has stacked. */
+    font-size: 10px;
+  }
+
+  .template-actions,
+  .expand-buttons {
+    width: 100%;
+  }
+
+  .template-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .expand-buttons button {
+    flex: 1 1 0;
+  }
 }

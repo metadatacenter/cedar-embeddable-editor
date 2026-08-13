@@ -26,9 +26,18 @@
   font-size: 18px;
 }
 
-.small-chip {
-  height:24px;
-}
+/*
+ * The occurrence chips are sized in `styles-own.scss`, not here.
+ *
+ * Their height comes from `--mat-chip-container-height`, a Material design token,
+ * and Angular namespaces a custom property declared in a component stylesheet —
+ * `--mat-chip-container-height` is emitted as `--%NS%mat-chip-container-height`,
+ * a different property that Material never reads. A token has to be set from a
+ * stylesheet that is not namespaced, which is the global one.
+ *
+ * Replaces a `.small-chip { height: 24px }` rule that no template ever used, so
+ * the intent was here and had never rendered.
+ */
 
 .aligned-up {
   display: flex;
@@ -37,5 +46,12 @@
   align-items: center;
   margin-right: 10px;
   margin-bottom: 15px;
-  margin-top: -50px;
+  margin-top: -56px;
+}
+
+@container cee (max-width: 620px) {
+  .aligned-up {
+    justify-content: flex-start;
+    margin: 8px 0 12px;
+  }
 }

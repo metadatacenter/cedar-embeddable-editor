@@ -3,8 +3,8 @@ import { AbstractElementComponent } from '../element/abstract-element-component.
 import { CedarComponent } from '../component/cedar-component.model';
 
 export class NullTemplate extends AbstractElementComponent implements TemplateComponent {
-  className = 'NullTemplate';
-  pageBreakChildren: Array<CedarComponent[]>;
+  override className = 'NullTemplate';
+  pageBreakChildren: Array<CedarComponent[]> = [];
 
   hasPageBreaks(): boolean {
     return false;

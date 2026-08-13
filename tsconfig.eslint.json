@@ -1,0 +1,29 @@
+/*
+  The one TSConfig whose program contains every source file.
+
+  The root tsconfig.json is a "solution style" file that includes no sources of its own, and
+  tsconfig.app.json lists just the build entry points. Neither one puts every file under src/
+  into a program, which type-aware lint rules require. This config includes them all.
+
+  Named for ESLint because that is what first needed it; `npm run typecheck` uses it too, for
+  the same reason. The build checks what the app reaches and vitest checks nothing, so a file
+  that is neither reachable from main.ts nor executed by a test — and there are such files —
+  is only ever checked here.
+*/
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // No `skipLibCheck`. It was set because Vitest's declarations needed TypeScript
+    // 5.2 while Angular 14 pinned ~4.8; TypeScript is 6.0 and Vitest is 4, so the
+    // declarations in node_modules are checked again rather than trusted.
+    // Both are set by tsconfig.app.json and needed by src/ (moment's default export,
+    // and the package.json import in cedar-embeddable-metadata-editor.component.ts).
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    // The spec files under src/ use the globals vitest.config.mts exposes, so this must
+    // track tsconfig.spec.json's `types`.
+    "types": ["vitest/globals", "node"]
+  },
+  "include": ["src/**/*.ts"]
+}

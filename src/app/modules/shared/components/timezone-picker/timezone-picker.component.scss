@@ -1,0 +1,50 @@
+:host,
+.cee-offset-picker,
+mat-form-field {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+/*
+ * Read-only, the offset gets the same box as the read-only clock beside it.
+ *
+ * It was bare text, 36px tall and top-aligned in a row of 48px bordered
+ * controls, so a read-only temporal field showed a boxed date, a boxed time and
+ * an offset that looked pasted in above them.
+ *
+ * `inline-flex` so the box is the width of `UTC-07:00` rather than the width of
+ * the row — the selector it replaces is `flex: 1 1 288px` because a dropdown
+ * needs the room, and a nine-character value does not.
+ */
+.cee-offset-readonly {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-width: 96px;
+  min-height: 48px;
+  padding-inline: 10px;
+  border: 1px solid #777;
+  border-radius: 4px;
+  background: white;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * No infix rule here either, and this is the file that earned the caution.
+ *
+ * The selector was `::ng-deep .mat-mdc-form-field-infix`, meaning to give the
+ * offset selector the height of the date field beside it. Angular scopes the part
+ * of a selector *before* `::ng-deep`, and there was nothing before it, so the rule
+ * was emitted unscoped and set the height of every form field in the editor.
+ * Because component styles are injected when the component is first instantiated,
+ * it only existed once a timezone picker did — so field height depended on whether
+ * the template contained a timezone-enabled temporal field: 36px on
+ * `01-input-types`, 48px on `17-real-flat`.
+ *
+ * The height is one number now, asked for through Material's density API in
+ * `_cee-material-theme.scss`, so this file has no reason to name a Material
+ * internal at all. `::ng-deep` first in a selector is global; the remaining ones
+ * in CEE are each scoped by a class their own component emits, or by a
+ * `panelClass`.
+ */

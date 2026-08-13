@@ -1,0 +1,32 @@
+type: "template"
+name: "#020 Template with Pick from a list MultiSelect"
+id: "https://repo.metadatacenter.org/templates/17953945-2ff3-4eaa-ad52-f1dc41228b65"
+status: "draft"
+version: "0.0.1"
+modelVersion: "1.6.0"
+createdOn: "2024-03-07T13:40:29-08:00"
+createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+modifiedOn: "2024-03-07T13:41:19-08:00"
+modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+children:
+  - key: "MultiSelect"
+    type: "multi-select-list-field"
+    name: "MultiSelect"
+    description: "Help Text"
+    id: "https://repo.metadatacenter.org/template-fields/dd01ffec-ab1a-4ae9-b882-d57254d07b57"
+    modelVersion: "1.6.0"
+    prefLabel: "MultiSelect Pick from a list"
+    default: "Option 11"
+    values:
+      - label: "Option 1"
+        selected: true
+      - label: "Option 2"
+      - label: "Option 3"
+        selected: true
+      - label: "Option 4"
+    createdOn: "2024-03-07T13:41:19-08:00"
+    createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+    modifiedOn: "2024-03-07T13:41:19-08:00"
+    modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+    configuration:
+      propertyIri: "https://schema.metadatacenter.org/properties/5b4abdec-7775-494c-8257-c04661805fc6"

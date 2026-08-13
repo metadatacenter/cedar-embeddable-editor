@@ -1,0 +1,495 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the shape of an element > a multi element starts at minItems 1`] = `
+[
+  {
+    "@context": {
+      "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
+    },
+    "@id": "<minted>",
+    "_f": {
+      "@value": null,
+    },
+  },
+  {
+    "@context": {
+      "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
+    },
+    "@id": "<minted>",
+    "_f": {
+      "@value": null,
+    },
+  },
+  {
+    "@context": {
+      "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
+    },
+    "@id": "<minted>",
+    "_f": {
+      "@value": null,
+    },
+  },
+]
+`;
+
+exports[`the shape of an element > a single element 1`] = `
+{
+  "holds": null,
+  "written": {
+    "@context": {
+      "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
+    },
+    "@id": "<minted>",
+    "_f": {
+      "@value": null,
+    },
+  },
+}
+`;
+
+exports[`the slot a multi field starts with > attrValue 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {
+      "@value": null,
+    },
+    {
+      "@value": null,
+    },
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > checkbox 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {
+      "@value": null,
+    },
+    {
+      "@value": null,
+    },
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > controlled 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {},
+    {},
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > doi 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {},
+    {},
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > email 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {
+      "@value": null,
+    },
+    {
+      "@value": null,
+    },
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > link 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {},
+    {},
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > listMulti 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {
+      "@value": null,
+    },
+    {
+      "@value": null,
+    },
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > listSingle 1`] = `
+{
+  "holds": null,
+  "written": {
+    "@value": null,
+  },
+}
+`;
+
+exports[`the slot a multi field starts with > nihGrant 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {},
+    {},
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > numeric 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {
+      "@type": "xsd:decimal",
+      "@value": null,
+    },
+    {
+      "@type": "xsd:decimal",
+      "@value": null,
+    },
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > orcid 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {},
+    {},
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > pfas 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {},
+    {},
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > phone 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {
+      "@value": null,
+    },
+    {
+      "@value": null,
+    },
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > pubmed 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {},
+    {},
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > radio 1`] = `
+{
+  "holds": null,
+  "written": {
+    "@value": null,
+  },
+}
+`;
+
+exports[`the slot a multi field starts with > ror 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {},
+    {},
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > rrid 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {},
+    {},
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > temporal 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {
+      "@value": null,
+    },
+    {
+      "@value": null,
+    },
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > text 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {
+      "@value": null,
+    },
+    {
+      "@value": null,
+    },
+  ],
+}
+`;
+
+exports[`the slot a multi field starts with > textarea 1`] = `
+{
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {
+      "@value": null,
+    },
+    {
+      "@value": null,
+    },
+  ],
+}
+`;
+
+exports[`the slot a single field starts with > attrValue 1`] = `
+{
+  "holds": [],
+  "written": [],
+}
+`;
+
+exports[`the slot a single field starts with > checkbox 1`] = `
+{
+  "holds": [],
+  "written": [],
+}
+`;
+
+exports[`the slot a single field starts with > controlled 1`] = `
+{
+  "holds": null,
+  "written": {},
+}
+`;
+
+exports[`the slot a single field starts with > doi 1`] = `
+{
+  "holds": null,
+  "written": {},
+}
+`;
+
+exports[`the slot a single field starts with > email 1`] = `
+{
+  "holds": null,
+  "written": {
+    "@value": null,
+  },
+}
+`;
+
+exports[`the slot a single field starts with > link 1`] = `
+{
+  "holds": null,
+  "written": {},
+}
+`;
+
+exports[`the slot a single field starts with > listMulti 1`] = `
+{
+  "holds": [],
+  "written": [],
+}
+`;
+
+exports[`the slot a single field starts with > listSingle 1`] = `
+{
+  "holds": null,
+  "written": {
+    "@value": null,
+  },
+}
+`;
+
+exports[`the slot a single field starts with > nihGrant 1`] = `
+{
+  "holds": null,
+  "written": {},
+}
+`;
+
+exports[`the slot a single field starts with > numeric 1`] = `
+{
+  "holds": null,
+  "written": {
+    "@type": "xsd:decimal",
+    "@value": null,
+  },
+}
+`;
+
+exports[`the slot a single field starts with > orcid 1`] = `
+{
+  "holds": null,
+  "written": {},
+}
+`;
+
+exports[`the slot a single field starts with > pfas 1`] = `
+{
+  "holds": null,
+  "written": {},
+}
+`;
+
+exports[`the slot a single field starts with > phone 1`] = `
+{
+  "holds": null,
+  "written": {
+    "@value": null,
+  },
+}
+`;
+
+exports[`the slot a single field starts with > pubmed 1`] = `
+{
+  "holds": null,
+  "written": {},
+}
+`;
+
+exports[`the slot a single field starts with > radio 1`] = `
+{
+  "holds": null,
+  "written": {
+    "@value": null,
+  },
+}
+`;
+
+exports[`the slot a single field starts with > ror 1`] = `
+{
+  "holds": null,
+  "written": {},
+}
+`;
+
+exports[`the slot a single field starts with > rrid 1`] = `
+{
+  "holds": null,
+  "written": {},
+}
+`;
+
+exports[`the slot a single field starts with > temporal 1`] = `
+{
+  "holds": null,
+  "written": {
+    "@value": null,
+  },
+}
+`;
+
+exports[`the slot a single field starts with > text 1`] = `
+{
+  "holds": null,
+  "written": {
+    "@value": null,
+  },
+}
+`;
+
+exports[`the slot a single field starts with > textarea 1`] = `
+{
+  "holds": null,
+  "written": {
+    "@value": null,
+  },
+}
+`;

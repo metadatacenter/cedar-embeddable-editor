@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -9,11 +9,13 @@ import { StaticFieldComponent } from '../../../shared/models/static/static-field
   selector: 'app-cedar-foo-bar',
   templateUrl: './cedar-foo-bar.component.html',
   styleUrls: ['./cedar-foo-bar.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CedarFooBarComponent extends CedarUIDirective implements OnInit {
-  component: StaticFieldComponent;
-  @Input() handlerContext: HandlerContext;
+  component!: StaticFieldComponent;
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
     fb: FormBuilder,
@@ -23,15 +25,16 @@ export class CedarFooBarComponent extends CedarUIDirective implements OnInit {
     this.activeComponentRegistry = activeComponentRegistry;
   }
 
-  ngOnInit(): void {}
+  override ngOnInit(): void {
+    super.ngOnInit();
+  }
 
-  @Input() set componentToRender(componentToRender: StaticFieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(_currentValue: unknown): void {
     // DO NOTHING
   }
 }

@@ -1,5 +1,6 @@
 <h1 class="section-break-header">
-  {{cds.getRenderingLabelForComponent(component)}}
-  <mat-icon *ngIf="hasHelpText" matTooltip="{{component.labelInfo.description}}" class="icon-help">help</mat-icon>
+  {{ cds.getRenderingLabelForComponent(component) }}
+  @if (hasHelpText) {
+    <mat-icon matTooltip="{{ component.labelInfo.description }}" class="icon-help">help</mat-icon>
+  }
 </h1>
-

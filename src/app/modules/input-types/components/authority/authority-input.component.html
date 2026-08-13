@@ -1,0 +1,120 @@
+<!--
+One template for every external authority field.
+
+Angular lets several components share a `templateUrl`, so the five simple
+authority widgets render from this file and differ only in their descriptor.
+Everything that used to be baked into seven near-identical templates — the
+placeholder, the aria-label on the details link, the error key, the two message
+keys — comes off `descriptor` instead.
+
+ORCID and ROR keep their own templates: each renders a panel built from a
+detail document with its own shape, which is the one part of them that is
+genuinely theirs.
+-->
+<form class="form-container" [formGroup]="options">
+  <ng-container>
+    <mat-form-field class="full-width">
+      <!--
+        `matAutocompleteDisabled` on two conditions. Empty is Material's own case. The
+        second is a settled term: focusing a populated field re-emits its value to
+        reopen the panel, which offered a single suggestion mirroring what was already
+        in the box, and once that was an empty list instead it read "No results found"
+        over a value that had been found. It re-enables on the first keystroke.
+      -->
+      <input
+        matInput
+        type="text"
+        placeholder="{{ descriptor.placeholderKey | translate }}"
+        #autoCompleteInput="matAutocompleteTrigger"
+        [formControl]="inputValueControl"
+        [errorStateMatcher]="errorStateMatcher"
+        [matAutocomplete]="auto"
+        [matAutocompleteDisabled]="isEmpty || showsSelectedTerm"
+        (focus)="inputFocused()"
+        (input)="inputChanged($event)"
+        (blur)="onInputBlur()"
+        [readonly]="readOnlyMode"
+        attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
+      />
+      <mat-autocomplete #auto="matAutocomplete">
+        @if (loadingOptions) {
+          <mat-option disabled class="spinner-container">
+            <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+          </mat-option>
+        }
+        @if (lookupFailed && !loadingOptions) {
+          <mat-option disabled class="lookup-failed">
+            {{ 'Error.LookupFailed' | translate }}
+          </mat-option>
+        }
+        @if (
+          !lookupFailed &&
+          (inputValueControl.value?.trim()?.length ?? 0) > 0 &&
+          ((filteredOptions | async)?.length ?? 0) === 0
+        ) {
+          <mat-option disabled> No results found </mat-option>
+        }
+        @for (option of filteredOptions | async; track option) {
+          <!--
+            `mousedown` rather than `click`: it is the event that precedes the
+            blur, which is the whole point. It tells the blur handler that the
+            blur it is about to see was caused by reaching for this option, not
+            by leaving the field.
+          -->
+          <mat-option
+            [value]="option.label + ' - ' + option.iri"
+            (mousedown)="selectionStarting()"
+            (onSelectionChange)="onSelectionChange(option)"
+            >{{ getCompoundValue(option) }}</mat-option
+          >
+        }
+      </mat-autocomplete>
+      @if (selectedData) {
+        <!--
+          One string for the tooltip and the accessible name, and one that names
+          what the control does. They used to disagree: the tooltip read "Show
+          Details" — of what, and nothing is shown, since this opens a page
+          elsewhere — while the accessible name read "View ORCID page" in English
+          regardless of the chosen language.
+        -->
+        <a
+          matSuffix
+          mat-icon-button
+          [href]="detailsUrl"
+          target="_blank"
+          rel="noopener"
+          attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
+          matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
+        >
+          <mat-icon>{{ linkIconName }}</mat-icon>
+        </a>
+      }
+      @if (inputValueControl.value && !readOnlyMode) {
+        <button
+          type="button"
+          tabindex="0"
+          matSuffix
+          mat-icon-button
+          attr.aria-label="{{ 'Generic.Clear' | translate }}"
+          matTooltip="{{ 'Generic.Clear' | translate }}"
+          (click)="clearValue()"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+      @if (inputValueControl.getError('required') && !readOnlyMode) {
+        <mat-error tabindex="0" class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
+      }
+    </mat-form-field>
+    @if (justCleared) {
+      <div class="input-warning" role="status">
+        {{ descriptor.invalidMessageKey | translate }}
+      </div>
+    }
+    @if (justReverted) {
+      <div class="input-warning" role="status">
+        {{ descriptor.revertedMessageKey | translate }}
+      </div>
+    }
+  </ng-container>
+</form>

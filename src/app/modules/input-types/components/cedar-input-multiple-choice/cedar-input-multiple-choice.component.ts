@@ -1,13 +1,23 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormGroupDirective,
+  NgForm,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ErrorStateMatcher } from '@angular/material/core';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { MatRadioChange } from '@angular/material/radio';
 
 export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
@@ -16,15 +26,18 @@ export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
   selector: 'app-cedar-input-multiple-choice',
   templateUrl: './cedar-input-multiple-choice.component.html',
   styleUrls: ['./cedar-input-multiple-choice.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CedarInputMultipleChoiceComponent extends CedarUIDirective implements OnInit {
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
-  selectedChoiceInputControl = new FormControl(null, null);
+  selectedChoiceInputControl = new FormControl<string | null>(null, null);
   errorStateMatcher = new MultipleChoiceErrorStateMatcher();
-  @Input() handlerContext: HandlerContext;
-  selected;
+  @Input({ required: true }) handlerContext!: HandlerContext;
+  /** The last value pushed in by `setCurrentValue`, which is typed `unknown` there. */
+  selected: unknown;
 
   constructor(
     fb: FormBuilder,
@@ -36,24 +49,25 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
     });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
-    this.populateItemsOnLoad();
-    const validators: any[] = [];
+    const validators: ValidatorFn[] = [];
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
-    this.selectedChoiceInputControl = new FormControl(null, validators);
+    validators.push(CedarValidators.forComponent(this.component));
+    this.selectedChoiceInputControl.setValidators(validators);
+    this.selectedChoiceInputControl.updateValueAndValidity();
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  inputChanged(event): void {
+  inputChanged(event: MatRadioChange): void {
     if (this.readOnlyMode) {
-      this.selectedChoiceInputControl.setValue(this.selected);
+      this.selectedChoiceInputControl.setValue(typeof this.selected === 'string' ? this.selected : null);
       return;
     }
     this.handlerContext.changeValue(this.component, event.value);
@@ -63,24 +77,13 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
     this.setValueUIAndModel(null);
   }
 
-  private setValueUIAndModel(value: string): void {
+  private setValueUIAndModel(value: string | null): void {
     this.selectedChoiceInputControl.setValue(value);
     this.handlerContext.changeValue(this.component, value);
   }
 
-  setCurrentValue(currentValue: any): void {
-    this.selectedChoiceInputControl.setValue(currentValue);
+  setCurrentValue(currentValue: unknown): void {
+    this.selectedChoiceInputControl.setValue(typeof currentValue === 'string' ? currentValue : null);
     this.selected = currentValue;
-  }
-
-  private populateItemsOnLoad(): void {
-    for (const choice of this.component.choiceInfo.choices) {
-      if (choice.selectedByDefault) {
-        this.handlerContext.changeValue(this.component, choice.label);
-        this.selected = choice.label;
-        return;
-      }
-    }
-    this.handlerContext.changeValue(this.component, null);
   }
 }

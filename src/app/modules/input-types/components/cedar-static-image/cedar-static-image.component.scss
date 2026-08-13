@@ -1,0 +1,18 @@
+/**
+ * The failure notice, boxed so it reads as a message rather than as part of the
+ * field. It used to say it sat on the card's khaki background; that background was
+ * declared in `styles-own.scss` and never rendered, because Material's own card
+ * selector outranked it. The card is white, as every other field's is.
+ */
+.image-error {
+  margin: 15px;
+  padding: 10px 12px;
+  border: 1px solid #8a6d3b;
+  border-radius: 4px;
+  background-color: #fffaf0;
+  color: #6b4e1e;
+  font-size: 0.9em;
+  line-height: 1.4;
+  /* URLs are long and have no spaces to break on. */
+  overflow-wrap: anywhere;
+}

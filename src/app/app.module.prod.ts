@@ -1,11 +1,10 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { Injector, NgModule } from '@angular/core';
+import { DoBootstrap, Injector, NgModule } from '@angular/core';
 import { createCustomElement } from '@angular/elements';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { AppComponentProd } from './app.component.prod';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { AppProdComponent } from './app.component.prod';
 import { SharedModule } from './modules/shared/shared.module';
 import { JsonPipe } from '@angular/common';
-import { InputTypesModule } from './modules/input-types/input-types.module';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './modules/shared/components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import * as fallbackMapEN from '../assets/i18n-cee/en.json';
@@ -13,14 +12,15 @@ import * as fallbackMapHU from '../assets/i18n-cee/hu.json';
 import { MessageHandlerService } from './modules/shared/service/message-handler.service';
 import { FallbackTranslateLoaderFactory } from './modules/shared/util/fallback-translate-loader-factory';
 import { GlobalSettingsContextService } from './modules/shared/service/global-settings-context.service';
+import { defineCustomElementOnce } from './custom-element';
 
 @NgModule({
-  declarations: [AppComponentProd],
+  declarations: [AppProdComponent],
+  bootstrap: [],
+  exports: [],
   imports: [
     BrowserModule,
-    HttpClientModule,
     SharedModule,
-    InputTypesModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -37,18 +37,16 @@ import { GlobalSettingsContextService } from './modules/shared/service/global-se
       },
     }),
   ],
-  providers: [JsonPipe],
-  bootstrap: [],
-  exports: [],
-  entryComponents: [CedarEmbeddableMetadataEditorWrapperComponent],
+  providers: [JsonPipe, provideHttpClient(withXhr(), withInterceptorsFromDi())],
 })
-export class AppModuleProd {
+export class AppModuleProd implements DoBootstrap {
   constructor(private injector: Injector) {}
 
   ngDoBootstrap(): void {
-    const cedarCustomElement = createCustomElement(CedarEmbeddableMetadataEditorWrapperComponent, {
-      injector: this.injector,
-    });
-    customElements.define('cedar-embeddable-editor', cedarCustomElement);
+    defineCustomElementOnce(() =>
+      createCustomElement(CedarEmbeddableMetadataEditorWrapperComponent, {
+        injector: this.injector,
+      }),
+    );
   }
 }

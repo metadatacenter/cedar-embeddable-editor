@@ -7,21 +7,42 @@ import { CedarTemplate } from '../models/template/cedar-template.model';
 import { MultiElementComponent } from '../models/element/multi-element-component.model';
 import { DataContext } from '../util/data-context';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
+import { OccurrenceSelector, OccurrenceSelectors } from './occurrence-selector';
 import { DataObjectBuilderHandler } from './data-object-builder.handler';
+import { InstanceDataContainer, InstanceDataEmptyNode } from 'cedar-model-typescript-library';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { TemplateComponent } from '../models/template/template-component.model';
-import { DataObjectUtil } from '../util/data-object-util';
 import { MessageHandlerService } from '../service/message-handler.service';
-import { JsonSchema } from '../models/json-schema.model';
+import { InstanceArray, InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
 export class DataObjectStructureHandler {
+  constructor(private readonly dataObjectBuilderService: DataObjectBuilderHandler = new DataObjectBuilderHandler()) {}
+
+  /**
+   * The node a component path points at, given a choice of occurrence at each
+   * multi ancestor.
+   *
+   * `selectOccurrence` makes that choice. It used to be made here, by reading
+   * each ancestor's `currentIndex` off the multi-instance service — so this
+   * returned different nodes at different times with nothing in the signature
+   * saying so, and every caller was silently order-dependent on a cursor
+   * mutation. See `OccurrenceSelector`.
+   */
   public getDataPathNodeRecursively(
     dataObject: InstanceExtractData,
-    component: CedarComponent,
+    /*
+     * Nullable, and deliberately so. None of the three `instanceof` branches below
+     * matches a field, so a path that continues past one recurses with a null
+     * component — which is how the walk says "the rest of this resolves to
+     * nothing" and lets the `path.length === 0` case above answer. Guarding it
+     * instead of admitting it is a real behaviour change: it emptied the external
+     * authority field on selection, and five visual tests said so.
+     */
+    component: CedarComponent | null,
     path: string[],
-    multiInstanceObjectService: MultiInstanceObjectHandler,
+    selectOccurrence: OccurrenceSelector,
     depth = 0,
   ): InstanceExtractData {
     if (path.length === 0) {
@@ -29,87 +50,82 @@ export class DataObjectStructureHandler {
     } else {
       const firstPath = path[0];
       const remainingPath = path.slice(1);
-      let childComponent: CedarComponent = null;
+      let childComponent: CedarComponent | null = null;
       let dataSubObject = null;
-      if (component instanceof SingleElementComponent) {
-        childComponent = (component as SingleElementComponent).getChildByName(firstPath);
-        if (dataObject !== null && dataObject !== undefined) {
-          dataSubObject = dataObject[firstPath];
-        }
-      } else if (component instanceof CedarTemplate) {
-        childComponent = (component as CedarTemplate).getChildByName(firstPath);
-        if (dataObject !== null && dataObject !== undefined) {
-          dataSubObject = dataObject[firstPath];
+      if (component instanceof SingleElementComponent || component instanceof CedarTemplate) {
+        childComponent = component.getChildByName(firstPath);
+        if (isInstanceObject(dataObject)) {
+          dataSubObject = dataObject.values[firstPath] ?? null;
         }
       } else if (component instanceof MultiElementComponent) {
-        const multiElement = component as MultiElementComponent;
-        const multiInstanceInfo: MultiInstanceObjectInfo =
-          multiInstanceObjectService.getMultiInstanceInfoForComponent(multiElement);
+        const occurrence = selectOccurrence(component);
 
-        if (!multiInstanceInfo) {
+        if (occurrence === null) {
           return null;
         }
-        const currentIndex = multiInstanceInfo.currentIndex;
-        childComponent = multiElement.getChildByName(firstPath);
-        if (dataObject !== null && dataObject !== undefined) {
-          if (Object.hasOwn(dataObject, currentIndex)) {
-            dataSubObject = dataObject[currentIndex][firstPath];
+        childComponent = component.getChildByName(firstPath);
+        if (isInstanceArray(dataObject)) {
+          const node = dataObject[occurrence];
+          if (isInstanceObject(node)) {
+            dataSubObject = node.values[firstPath] ?? null;
           }
         }
       }
-      return this.getDataPathNodeRecursively(
-        dataSubObject,
-        childComponent,
-        remainingPath,
-        multiInstanceObjectService,
-        depth + 1,
-      );
+      return this.getDataPathNodeRecursively(dataSubObject, childComponent, remainingPath, selectOccurrence, depth + 1);
     }
   }
 
+  /**
+   * The object *containing* the node a path points at, same rules.
+   *
+   * The attribute-value widget and the pager need this: an attribute's value
+   * lives on the enclosing object under the attribute's own name, not under the
+   * field's. It walks the same occurrences, so it takes the same selector — the
+   * two had to change together or they would disagree about which occurrence a
+   * path meant.
+   */
   public getParentDataPathNodeRecursively(
     dataObject: InstanceExtractData,
     parentDataObject: InstanceExtractData,
-    component: CedarComponent,
+    /** Nullable for the same reason as the walk above. */
+    component: CedarComponent | null,
     path: string[],
-    multiInstanceObjectService: MultiInstanceObjectHandler,
+    selectOccurrence: OccurrenceSelector,
   ): InstanceExtractData {
     if (path.length === 0) {
       return parentDataObject;
     } else {
       const firstPath = path[0];
       const remainingPath = path.slice(1);
-      let childComponent: CedarComponent = null;
+      let childComponent: CedarComponent | null = null;
       let dataSubObject = null;
       let parentDataSubObject = null;
 
-      if (component instanceof SingleElementComponent) {
-        childComponent = (component as SingleElementComponent).getChildByName(firstPath);
-        dataSubObject = dataObject[firstPath];
-        parentDataSubObject = dataObject;
-      } else if (component instanceof CedarTemplate) {
-        childComponent = (component as CedarTemplate).getChildByName(firstPath);
-        dataSubObject = dataObject[firstPath];
+      if (component instanceof SingleElementComponent || component instanceof CedarTemplate) {
+        childComponent = component.getChildByName(firstPath);
+        if (isInstanceObject(dataObject)) {
+          dataSubObject = dataObject.values[firstPath] ?? null;
+        }
         parentDataSubObject = dataObject;
       } else if (component instanceof MultiElementComponent) {
-        const multiElement = component as MultiElementComponent;
-        const multiInstanceInfo: MultiInstanceObjectInfo =
-          multiInstanceObjectService.getMultiInstanceInfoForComponent(multiElement);
-        const currentIndex = multiInstanceInfo.currentIndex;
+        const occurrence = selectOccurrence(component);
 
-        if (currentIndex < 0) {
+        if (occurrence === null || occurrence < 0) {
           return null;
         }
-        childComponent = multiElement.getChildByName(firstPath);
-        dataSubObject = dataObject[currentIndex][firstPath];
-        parentDataSubObject = dataObject[currentIndex];
+        childComponent = component.getChildByName(firstPath);
+        const node = isInstanceArray(dataObject) ? dataObject[occurrence] : null;
+        if (isInstanceObject(node)) {
+          dataSubObject = node.values[firstPath] ?? null;
+        }
+        parentDataSubObject = node;
       }
       return this.getParentDataPathNodeRecursively(
         dataSubObject,
         parentDataSubObject,
         childComponent,
         remainingPath,
-        multiInstanceObjectService,
+        selectOccurrence,
       );
     }
   }
@@ -120,31 +136,29 @@ export class DataObjectStructureHandler {
     multiInstanceObjectService: MultiInstanceObjectHandler,
     messageHandlerService: MessageHandlerService,
   ): void {
-    const multiInstanceInfo: MultiInstanceObjectInfo =
+    const multiInstanceInfo: MultiInstanceObjectInfo | null =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
-    const instanceExtractData: object = dataContext.instanceExtractData;
-    const instanceFullData: object = dataContext.instanceFullData;
-    const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
-    const templateInput: CedarInputTemplate = dataContext.templateInput;
+    const templateRepresentation = dataContext.templateRepresentation;
+    const templateInput = dataContext.templateInput;
+    if (templateRepresentation === null || templateInput === null || multiInstanceInfo === null) {
+      return;
+    }
 
-    this.performItemAdd(
-      instanceExtractData,
-      templateRepresentation,
-      component,
-      multiInstanceObjectService,
-      multiInstanceInfo,
-      templateInput,
-      messageHandlerService,
-    );
-    DataObjectUtil.deleteContext(instanceExtractData);
-    this.performItemAdd(
-      instanceFullData,
-      templateRepresentation,
-      component,
-      multiInstanceObjectService,
-      multiInstanceInfo,
-      templateInput,
-      messageHandlerService,
+    // The new occurrence is built with the envelope, because the instance is the
+    // artifact and that is what an occurrence in one looks like. There used to be
+    // a second, envelope-free copy of the whole instance to build it into as
+    // well — see `DataContext.instanceExtractData`, now a derived view.
+    dataContext.mutate((instance) =>
+      this.performItemAdd(
+        instance,
+        templateRepresentation,
+        component,
+        multiInstanceObjectService,
+        multiInstanceInfo,
+        templateInput,
+        messageHandlerService,
+        DataObjectBuildingMode.INCLUDE_CONTEXT,
+      ),
     );
   }
 
@@ -156,34 +170,79 @@ export class DataObjectStructureHandler {
     multiInstanceInfo: MultiInstanceObjectInfo,
     templateInput: CedarInputTemplate,
     messageHandlerService: MessageHandlerService,
+    buildingMode: DataObjectBuildingMode,
   ): void {
-    const dataObject = {};
+    // Somewhere to build one occurrence, thrown away once it has been taken out
+    // again. A bare `{}` while a container was a plain object.
+    const dataObject = new InstanceDataContainer();
     const cloneComponent = _.cloneDeep(component);
     DataObjectBuilderHandler.setCurrentCountToMinRecursively(cloneComponent, component.path);
-    let subTemplate = null;
-    if (templateInput != null) {
-      const shorterPath = component.path.slice(0, component.path.length - 1);
-      subTemplate = DataObjectBuilderHandler.getSubTemplate(templateInput, shorterPath);
-    }
-    DataObjectBuilderHandler.buildRecursively(
-      cloneComponent,
-      dataObject,
-      subTemplate,
-      DataObjectBuildingMode.INCLUDE_CONTEXT,
-    );
-    const newDataObject = dataObject[component.name][0];
+    // The property IRIs each new occurrence needs travel on the component, so
+    // there is no sub-template to find first.
+    this.dataObjectBuilderService.buildRecursively(cloneComponent, dataObject, buildingMode);
+    const built = dataObject.values[component.name] ?? null;
+    const newDataObject = isInstanceArray(built) ? built[0] : null;
     const currentNodeAny = this.getDataPathNodeRecursively(
       instanceObject,
       templateRepresentation,
       component.path,
-      multiInstanceObjectService,
+      OccurrenceSelectors.fromCursor(multiInstanceObjectService),
     );
-    const currentNodeArray = currentNodeAny as [];
-    if (currentNodeArray) {
-      currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, newDataObject as never);
+    // `isInstanceArray`, not truthiness. `currentNodeAny as []` asserted the shape
+    // and the check that followed only asked whether it was present — so a node
+    // holding a non-empty string passed the test and threw on `.splice`. The guard
+    // asks the question the assertion was pretending to answer.
+    const target = isInstanceArray(currentNodeAny)
+      ? currentNodeAny
+      : this.openListFor(instanceObject, templateRepresentation, component, multiInstanceObjectService, currentNodeAny);
+
+    if (target !== null && newDataObject !== null) {
+      target.splice(multiInstanceInfo.currentIndex + 1, 0, newDataObject);
     } else {
       messageHandlerService.error('missing data in instance:' + component.path);
     }
+  }
+
+  /**
+   * Give a child the template declares a list to be added to.
+   *
+   * An instance need not carry a slot for every property its template declares, and
+   * an attribute-value field naming no attribute is the case that reaches here: the
+   * document omits the key, or carries the empty node a sparse instance is inflated
+   * with. Either way the path resolves to nothing a new occurrence can go into, and
+   * the add used to be refused — the button did nothing, and said so only in the
+   * console. The template says the child is there, so the list it should already
+   * have had is created rather than the addition being turned away.
+   *
+   * @returns the list now at that path, or null when the node holds data instead —
+   *   which is a shape nobody should overwrite on the strength of an add.
+   */
+  private openListFor(
+    instanceObject: InstanceExtractData,
+    templateRepresentation: TemplateComponent,
+    component: MultiComponent,
+    multiInstanceObjectService: MultiInstanceObjectHandler,
+    currentNode: InstanceExtractData,
+  ): InstanceArray | null {
+    if (currentNode !== null && currentNode !== undefined && !(currentNode instanceof InstanceDataEmptyNode)) {
+      return null;
+    }
+
+    const parent = this.getParentDataPathNodeRecursively(
+      instanceObject,
+      null,
+      templateRepresentation,
+      component.path,
+      OccurrenceSelectors.fromCursor(multiInstanceObjectService),
+    );
+
+    if (!isInstanceObject(parent)) {
+      return null;
+    }
+
+    const list: InstanceArray = [];
+    parent.setValue(component.name, list as unknown as InstanceNode);
+    return list;
   }
 
   multiInstanceItemCopy(
@@ -191,45 +250,34 @@ export class DataObjectStructureHandler {
     component: MultiComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
   ): void {
-    const multiInstanceInfo: MultiInstanceObjectInfo =
+    const multiInstanceInfo: MultiInstanceObjectInfo | null =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
-    const instanceExtractData: object = dataContext.instanceExtractData;
-    const instanceFullData: object = dataContext.instanceFullData;
-    const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
-    this.performItemCopy(
-      instanceExtractData,
-      templateRepresentation,
-      component.path,
-      multiInstanceObjectService,
-      multiInstanceInfo,
-    );
-    this.performItemCopy(
-      instanceFullData,
-      templateRepresentation,
-      component.path,
-      multiInstanceObjectService,
-      multiInstanceInfo,
+    const templateRepresentation = dataContext.templateRepresentation;
+    if (templateRepresentation === null || multiInstanceInfo === null) {
+      return;
+    }
+    dataContext.mutate((instance) =>
+      this.performItemCopy(instance, templateRepresentation, component, multiInstanceObjectService, multiInstanceInfo),
     );
   }
 
   private performItemCopy(
     instanceObject: InstanceExtractData,
     templateRepresentation: TemplateComponent,
-    path: string[],
+    component: MultiComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
     multiInstanceInfo: MultiInstanceObjectInfo,
   ): void {
     const currentNodeAny = this.getDataPathNodeRecursively(
       instanceObject,
       templateRepresentation,
-      path,
-      multiInstanceObjectService,
+      component.path,
+      OccurrenceSelectors.fromCursor(multiInstanceObjectService),
     );
     const currentNodeArray = currentNodeAny as [];
     const sourceItem = currentNodeArray[multiInstanceInfo.currentIndex];
     const cloneItem = _.cloneDeep(sourceItem);
-    // TODO: Refactor this
-    this.cleanUpAtIdsRecursively(cloneItem);
+    this.remintElementInstanceIds(cloneItem, component);
     currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, cloneItem as never);
   }
 
@@ -238,24 +286,20 @@ export class DataObjectStructureHandler {
     component: MultiComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
   ): void {
-    const multiInstanceInfo: MultiInstanceObjectInfo =
+    const multiInstanceInfo: MultiInstanceObjectInfo | null =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
-    const instanceExtractData: object = dataContext.instanceExtractData;
-    const instanceFullData: object = dataContext.instanceFullData;
-    const templateRepresentation: TemplateComponent = dataContext.templateRepresentation;
-    this.performItemDelete(
-      instanceExtractData,
-      templateRepresentation,
-      component.path,
-      multiInstanceObjectService,
-      multiInstanceInfo,
-    );
-    this.performItemDelete(
-      instanceFullData,
-      templateRepresentation,
-      component.path,
-      multiInstanceObjectService,
-      multiInstanceInfo,
+    const templateRepresentation = dataContext.templateRepresentation;
+    if (templateRepresentation === null || multiInstanceInfo === null) {
+      return;
+    }
+    dataContext.mutate((instance) =>
+      this.performItemDelete(
+        instance,
+        templateRepresentation,
+        component.path,
+        multiInstanceObjectService,
+        multiInstanceInfo,
+      ),
     );
   }
 
@@ -270,27 +314,46 @@ export class DataObjectStructureHandler {
       instanceObject,
       templateRepresentation,
       path,
-      multiInstanceObjectService,
+      OccurrenceSelectors.fromCursor(multiInstanceObjectService),
     );
     const currentNodeArray = currentNodeAny as [];
     currentNodeArray.splice(multiInstanceInfo.currentIndex, 1);
   }
 
-  // TODO: refactor this. This is a naive approach.
-  // Implement this as a recursive iterator taking into account the component, the multi-info, the template, and the data object
-  private cleanUpAtIdsRecursively(item: object) {
-    if (Object.hasOwn(item, JsonSchema.atId)) {
-      const atIdValue = item[JsonSchema.atId];
-      if (atIdValue.startsWith(DataObjectBuilderHandler.getTemplateElementInstanceIRIPrefix())) {
-        delete item[JsonSchema.atId];
-        DataObjectBuilderHandler.addRandomAtId(item);
-      }
+  /**
+   * Give every element occurrence in a copied subtree a new identity.
+   *
+   * An `@id` cannot identify its role by its string value. A field is allowed to
+   * hold an IRI under the same namespace CEE uses for element occurrences, so a
+   * prefix-based object walk can silently replace legitimate link or controlled-
+   * term values. The component tree does carry that distinction: only element
+   * components own occurrence-envelope IDs, while field components own data that
+   * must be copied verbatim.
+   */
+  private remintElementInstanceIds(item: InstanceNode, component: CedarComponent): void {
+    if (!(component instanceof SingleElementComponent || component instanceof MultiElementComponent)) {
+      return;
     }
-    if (item instanceof Object) {
-      for (const key in item) {
-        const child = item[key];
-        if (child instanceof Object) {
-          this.cleanUpAtIdsRecursively(child);
+    // The hand-rolled shape test this replaces — `typeof item !== 'object' ||
+    // Array.isArray(item)` — is exactly what the guard means, and the guard tells
+    // the compiler as well as the reader.
+    if (!isInstanceObject(item)) {
+      return;
+    }
+
+    const occurrence = item;
+    // `id` on the container, not a property written into it: an occurrence's
+    // identity is the model's, and a copy must not inherit the original's.
+    occurrence.id = null;
+    this.dataObjectBuilderService.addRandomAtId(occurrence);
+
+    for (const childComponent of component.children) {
+      const childValue = occurrence.values[childComponent.name] ?? null;
+      if (childComponent instanceof SingleElementComponent) {
+        this.remintElementInstanceIds(childValue, childComponent);
+      } else if (childComponent instanceof MultiElementComponent && Array.isArray(childValue)) {
+        for (const childOccurrence of childValue) {
+          this.remintElementInstanceIds(childOccurrence, childComponent);
         }
       }
     }

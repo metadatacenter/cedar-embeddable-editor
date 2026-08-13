@@ -1,0 +1,33 @@
+parent_sample_id type=textfield single required
+lab_id type=textfield single
+preparation_protocol_doi type=link single required
+dataset_type type=controlled single required branches=1
+analyte_class type=controlled single required branches=1
+is_targeted type=radio single required choices=2
+acquisition_instrument_vendor type=controlled single required branches=1
+acquisition_instrument_model type=controlled single required branches=1
+source_storage_duration_value type=numeric single required num=xsd:decimal
+source_storage_duration_unit type=controlled single required branches=1
+time_since_acquisition_instrument_calibration_value type=numeric single num=xsd:decimal
+time_since_acquisition_instrument_calibration_unit type=controlled single branches=1
+contributors_path type=textfield single required
+data_path type=textfield single required
+mapped_area_value type=numeric single num=xsd:decimal
+mapped_area_unit type=controlled single branches=1
+slide_id type=textfield single required
+target_retrieval_incubation_temperature type=numeric single num=xsd:int
+target_retrieval_incubation_time_value type=numeric single num=xsd:decimal
+target_retrieval_incubation_time_unit type=controlled single branches=1
+proteinasek_concentration type=numeric single num=xsd:decimal
+proteinasek_incubation_time_value type=numeric single num=xsd:decimal
+proteinasek_incubation_time_unit type=controlled single branches=1
+probe_hybridization_time_value type=numeric single num=xsd:decimal
+probe_hybridization_time_unit type=controlled single branches=1
+oligo_probe_panel type=controlled single required branches=1
+is_custom_probes_used type=radio single required choices=2
+number_of_panel_targets type=numeric single required num=xsd:int
+roi_label type=textfield single
+anatomical_structure_label type=textfield single
+anatomical_structure_id type=textfield single
+non_global_files type=textfield single
+metadata_schema_id type=textfield single required

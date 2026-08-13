@@ -8,6 +8,11 @@ export class InputType {
   static link = 'link';
   static orcid = 'ext-orcid';
   static ror = 'ext-ror';
+  static pfas = 'ext-pfas';
+  static pmid = 'ext-pubmed';
+  static rrid = 'ext-rrid';
+  static nihGrant = 'ext-nih-grant-id';
+  static doi = 'ext-doi';
   static phoneNumber = 'phone-number';
   static list = 'list';
   static checkbox = 'checkbox';

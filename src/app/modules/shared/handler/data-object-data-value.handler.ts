@@ -6,14 +6,107 @@ import { MultiElementComponent } from '../models/element/multi-element-component
 import { DataContext } from '../util/data-context';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
-import { JsonSchema } from '../models/json-schema.model';
+import { InstanceDataAttributeValueFieldName, PropertyIri } from 'cedar-model-typescript-library';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
-import { CedarModel } from '../models/cedar-model.model';
+import {
+  InstanceArray,
+  InstanceNode,
+  InstanceObject,
+  isInstanceArray,
+  isInstanceObject,
+} from '../models/instance-node.model';
 import { DataObjectUtil } from '../util/data-object-util';
-import { InputType } from '../models/input-type.model';
+import { valueIsIri } from '../models/ext-auth-categories.model';
+import { InstanceValueNode } from '../util/instance-value-node';
 import { MessageHandlerService } from '../service/message-handler.service';
+import { InputType } from '../models/input-type.model';
+import { StaticFieldComponent } from '../models/static/static-field-component.model';
+
+/**
+ * One step of the walk down to the node a value belongs in.
+ *
+ * This was an untyped `{}` with four `readonly *_KEY` constants existing only to
+ * index it, and four local `const`s at each call site to hold those constants. The
+ * keys were never referenced anywhere else. An interface says the same thing and
+ * deletes all of it.
+ */
+interface DownstreamObjects {
+  dataSubObject: InstanceNode | null;
+  parentDataSubObject: InstanceNode | null;
+  /**
+   * The key that got from the parent to this child.
+   *
+   * Carried so the leaf can be written by *place* — parent plus key — rather
+   * than by mutating the node the walk happened to arrive at. The two are the
+   * same edit today, and only one of them survives the instance tree becoming
+   * the model library's, whose atoms expose getters and no setters: a value is
+   * replaced there, and replacing needs somewhere to put it.
+   */
+  key: string;
+  /** Null when the path names a child the component does not have. */
+  childComponent: CedarComponent | null;
+  remainingPath: string[];
+}
+
+/*
+ * Kept in step with AttributeValueNamePolicy in the model library. CEE cannot
+ * consume that new export until the next model-library package is published,
+ * but it must reject the same names at the point of entry rather than relying
+ * on serialization to catch them later.
+ */
+const RESERVED_ATTRIBUTE_VALUE_NAMES = new Set([
+  '@context',
+  '@id',
+  '@type',
+  '@value',
+  '@language',
+  'schema:isBasedOn',
+  'schema:name',
+  'schema:description',
+  'pav:derivedFrom',
+  'pav:createdOn',
+  'pav:createdBy',
+  'pav:lastUpdatedOn',
+  'oslc:modifiedBy',
+  'rdfs:label',
+  'skos:prefLabel',
+  'skos:altLabel',
+  'skos:notation',
+  '_annotations',
+]);
+
+const isReservedAttributeValueName = (name: string): boolean =>
+  name.startsWith('@') || RESERVED_ATTRIBUTE_VALUE_NAMES.has(name);
+
+/**
+ * One change to an attribute-value field: the attribute's name, and what it holds.
+ *
+ * A message, not a node. It travelled as a JSON fragment carrying two reserved
+ * keys — `__reserved__attribute_name` and `__reserved__attribute_value` — which
+ * every layer it passed through had to index and re-narrow, because the keys are
+ * declared as `string` rather than as literals. A pair says the same thing and
+ * the compiler can check it.
+ */
+interface AttributeWrite {
+  /** Null when the slot has no name yet, which is how one starts. */
+  name: string | null;
+  value: InstanceNode;
+}
+
+/**
+ * Whether this write names an attribute.
+ *
+ * The dispatch used to ask whether the JSON fragment carried a reserved key.
+ * A guard over a declared shape asks the same question of a value that has one.
+ */
+/** Where an attribute name sits in the field's list of them, or -1. */
+const indexOfName = (names: InstanceArray, name: string): number =>
+  names.findIndex((n) => n instanceof InstanceDataAttributeValueFieldName && n.name === name);
+
+const isAttributeWrite = (write: InstanceNode | AttributeWrite): write is AttributeWrite =>
+  typeof write === 'object' && write !== null && !Array.isArray(write) && 'name' in write && 'value' in write;
 
 export class DataObjectDataValueHandler {
   private messageHandlerService: MessageHandlerService;
@@ -22,148 +115,228 @@ export class DataObjectDataValueHandler {
     this.messageHandlerService = messageHandlerService;
   }
 
-  readonly DATA_SUBOBJECT_KEY = 'dataSubObject';
-  readonly CHILD_COMPONENT_KEY = 'childComponent';
-  readonly PARENT_DATA_SUBOBJECT_KEY = 'parentDataSubObject';
-  readonly REMAINING_PATH_KEY = 'remainingPath';
-
-  private injectValue(target: InstanceExtractData, valueObject: object, fullPath: string[]): void {
+  /**
+   * Put `valueObject` where `target` sits, rather than editing `target` itself.
+   *
+   * The distinction is the point. Writing to a *place* — a container and the key
+   * under it — is the only form of write the model library's instance supports:
+   * its atoms expose getters and no setters, so a value is replaced by calling
+   * `setValue` on the parent, never mutated where it stands. Doing the same here
+   * against the plain-object tree makes the two describe the same operation, so
+   * the tree underneath can change without every caller changing with it.
+   *
+   * The node is still overwritten in place when the place cannot be reached — a
+   * value at the root of the walk has no parent to be replaced within. That case
+   * keeps the older behaviour rather than failing, and it is the one the model
+   * cannot represent, so it is worth it being the one that stands out.
+   */
+  private placeValue(
+    parent: InstanceExtractData,
+    key: string | number,
+    target: InstanceExtractData,
+    valueObject: InstanceNode,
+    fullPath: string[],
+  ): void {
     if (target === null || target === undefined) {
       this.messageHandlerService.error('Unable to set missing data target:' + fullPath);
-    } else {
-      if (Object.hasOwn(valueObject, JsonSchema.atValue)) {
-        target[JsonSchema.atValue] = valueObject[JsonSchema.atValue];
-      } else {
-        delete target[JsonSchema.atValue];
-        target[JsonSchema.atId] = valueObject[JsonSchema.atId];
-        target[JsonSchema.rdfsLabel] = valueObject[JsonSchema.rdfsLabel];
-      }
+      return;
     }
+    if (typeof key === 'number' && isInstanceArray(parent)) {
+      parent[key] = valueObject;
+      return;
+    }
+    if (typeof key === 'string' && key.length > 0 && isInstanceObject(parent)) {
+      parent.setValue(key, valueObject);
+      return;
+    }
+    /*
+     * There used to be a third way: overwrite the node in place, reconciling the
+     * five keys a value may carry, because the widgets hold references into the
+     * tree and a node had to keep its identity. A value is an atom now — it has
+     * no identity to keep and nothing to reconcile — so a value that has nowhere
+     * to be put has genuinely nowhere to go, and saying so beats writing it
+     * where nobody will look.
+     */
+    this.messageHandlerService.error('No place to put a value at: ' + fullPath.join(' > '));
   }
 
-  private injectArrayValue(target: InstanceExtractData, valueArray: object[]): void {
-    (target as Array<object>).length = 0;
-    (target as Array<object>).push(...valueArray);
+  private injectArrayValue(target: InstanceNode | null, valueArray: InstanceNode[]): void {
+    if (!isInstanceArray(target)) {
+      this.messageHandlerService.error('Expected a list of occurrences to replace, found something else');
+      return;
+    }
+    target.length = 0;
+    target.push(...valueArray);
   }
 
+  /*
+   * Narrower than `InstanceNode` on both, because this is the one place that
+   * knows the shape: an attribute-value field keeps its *names* in an array and
+   * the values they name on the parent container.
+   */
   private injectAttributeValue(
-    dataObject: InstanceExtractData,
+    dataObject: InstanceArray,
     currentIndex: number,
-    parentDataObject: InstanceExtractData,
+    parentDataObject: InstanceObject,
     component: CedarComponent,
-    valueObject: object,
-  ): void {
-    const oldName = dataObject[currentIndex];
-    let newName = valueObject[JsonSchema.reservedAttributeName];
+    write: AttributeWrite,
+    declaredSiblingNames: ReadonlySet<string>,
+  ): string | null {
+    const oldNameNode = dataObject[currentIndex];
+    const oldName = oldNameNode instanceof InstanceDataAttributeValueFieldName ? oldNameNode.name : '';
+    const newName = write.name ?? '';
 
-    if (!newName || this.isDuplicateAttributeName(newName, dataObject, parentDataObject, currentIndex)) {
-      newName = this.getDefaultAttributeName(dataObject, parentDataObject, currentIndex);
+    /*
+     * An attribute row is created before its user-defined name exists. Keep that
+     * row as an empty-name slot instead of manufacturing a real property such as
+     * "Attribute Value Field1". The value control retains anything the user has
+     * typed; once a name arrives the regular path below writes both halves.
+     *
+     * This also makes clearing a name honest: remove the old property and its
+     * context entry rather than silently replacing it with another real name.
+     */
+    if (!newName) {
+      const usedByAnotherSlot = this.isAttributeNameUsedElsewhere(dataObject, oldName, currentIndex);
+      dataObject[currentIndex] = new InstanceDataAttributeValueFieldName('');
+      if (oldName && !usedByAnotherSlot) {
+        // One call, and it takes the property IRI with it. Two `delete`s stood
+        // here, on `values` and on the `@context` block, and forgetting the
+        // second left an entry naming a property that was gone.
+        parentDataObject.removeValue(oldName);
+      }
+      return null;
     }
 
-    const oldNameIndex = (dataObject as Array<string>).indexOf(oldName);
-    dataObject[currentIndex] = newName;
-    const needsDeleting = oldName && newName !== oldName && oldNameIndex === currentIndex;
+    if (isReservedAttributeValueName(newName)) {
+      return `Attribute name "${newName}" is reserved for instance metadata.`;
+    }
 
+    if (
+      declaredSiblingNames.has(newName) ||
+      this.isDuplicateAttributeName(newName, dataObject, parentDataObject, currentIndex)
+    ) {
+      return `Attribute name "${newName}" is already used in this instance. Choose a unique name.`;
+    }
+
+    const usedByAnotherSlot = this.isAttributeNameUsedElsewhere(dataObject, oldName, currentIndex);
+    dataObject[currentIndex] = new InstanceDataAttributeValueFieldName(newName);
+    const needsDeleting = oldName && newName !== oldName && !usedByAnotherSlot;
+
+    // The property IRI moves with the name, so an attribute keeps its identity
+    // across a rename rather than being minted a new one.
+    let propertyIri = needsDeleting ? parentDataObject.iris[oldName] ?? '' : '';
     if (needsDeleting) {
-      // deleting parent old name entry
-      delete parentDataObject[oldName];
+      parentDataObject.removeValue(oldName);
     }
 
-    parentDataObject[newName] = valueObject[JsonSchema.reservedAttributeValue];
+    parentDataObject.setValue(newName, write.value);
 
-    if (Object.hasOwn(parentDataObject, JsonSchema.atContext)) {
-      if (Object.hasOwn(parentDataObject[JsonSchema.atContext], component.name)) {
-        delete parentDataObject[JsonSchema.atContext][component.name];
+    // The field's own name is not a property of the instance — only the
+    // attributes it holds are — so it must not be left carrying an identity.
+    parentDataObject.removeIri(component.name);
+
+    if (!parentDataObject.hasIri(newName)) {
+      if (propertyIri.length === 0) {
+        propertyIri = PropertyIri.forId(DataObjectUtil.generateGUID());
       }
-
-      let elemId = '';
-
-      if (needsDeleting) {
-        elemId = parentDataObject[JsonSchema.atContext][oldName];
-        delete parentDataObject[JsonSchema.atContext][oldName];
-      }
-
-      if (!Object.hasOwn(parentDataObject[JsonSchema.atContext], newName)) {
-        if (!elemId || elemId.length === 0) {
-          elemId = CedarModel.baseTemplateURL + '/' + JsonSchema.properties + '/' + DataObjectUtil.generateGUID();
-        }
-        parentDataObject[JsonSchema.atContext][newName] = elemId;
-      }
+      parentDataObject.setIri(newName, propertyIri);
     }
+    return null;
   }
 
   private setDataPathValueRecursively(
-    dataObject: InstanceExtractData,
-    parentDataObject: InstanceExtractData,
+    dataObject: InstanceNode | null,
+    parentDataObject: InstanceNode | null,
     component: CedarComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
     path: string[],
-    valueObject: object,
+    valueObject: InstanceNode | AttributeWrite,
     fullPath: string[],
-  ): void {
+    /** Where `dataObject` sits in `parentDataObject`. Empty only at the root. */
+    key = '',
+    /** Serializable template children sharing the attribute's JSON object. */
+    declaredSiblingNames: ReadonlySet<string> = new Set(),
+  ): string | null {
     if (path.length === 0) {
       if (component instanceof SingleFieldComponent) {
-        this.injectValue(dataObject, valueObject, fullPath);
+        if (!isAttributeWrite(valueObject)) {
+          this.placeValue(parentDataObject, key, dataObject, valueObject, fullPath);
+        }
       } else {
         const multiField = component as MultiFieldComponent;
-        const multiInstanceInfo: MultiInstanceObjectInfo =
+        const multiInstanceInfo: MultiInstanceObjectInfo | null =
           multiInstanceObjectService.getMultiInstanceInfoForComponent(multiField);
-        const currentIndex = multiInstanceInfo.currentIndex;
+        const currentIndex = multiInstanceInfo?.currentIndex ?? 0;
 
-        if (Object.hasOwn(valueObject, JsonSchema.reservedAttributeName)) {
-          this.injectAttributeValue(dataObject, currentIndex, parentDataObject, component, valueObject);
-        } else if (valueObject instanceof Array) {
+        // Three shapes arrive here and the branch order is the discrimination: a
+        // wrapper carrying a reserved attribute name, a list of occurrences, or a
+        // single value wrapper destined for the current occurrence.
+        if (!isAttributeWrite(valueObject) && isInstanceArray(valueObject)) {
           this.injectArrayValue(dataObject, valueObject);
-        } else {
-          this.injectValue(dataObject[currentIndex], valueObject, fullPath);
+        } else if (isAttributeWrite(valueObject)) {
+          if (isInstanceArray(dataObject) && isInstanceObject(parentDataObject)) {
+            return this.injectAttributeValue(
+              dataObject,
+              currentIndex,
+              parentDataObject,
+              component,
+              valueObject,
+              declaredSiblingNames,
+            );
+          }
+        } else if (isInstanceArray(dataObject)) {
+          this.placeValue(dataObject, currentIndex, dataObject[currentIndex] ?? null, valueObject, fullPath);
         }
       }
     } else {
-      const downstreamObjects = this.getDownstreamObjects(dataObject, component, multiInstanceObjectService, path);
-      const dataSubObjectKey = this.DATA_SUBOBJECT_KEY;
-      const childComponentKey = this.CHILD_COMPONENT_KEY;
-      const parentDataSubObjectKey = this.PARENT_DATA_SUBOBJECT_KEY;
-      const remainingPathKey = this.REMAINING_PATH_KEY;
-      this.setDataPathValueRecursively(
-        downstreamObjects[dataSubObjectKey],
-        downstreamObjects[parentDataSubObjectKey],
-        downstreamObjects[childComponentKey],
+      const downstream = this.getDownstreamObjects(dataObject, component, multiInstanceObjectService, path);
+      if (downstream.childComponent === null) {
+        return null;
+      }
+      return this.setDataPathValueRecursively(
+        downstream.dataSubObject,
+        downstream.parentDataSubObject,
+        downstream.childComponent,
         multiInstanceObjectService,
-        downstreamObjects[remainingPathKey],
+        downstream.remainingPath,
         valueObject,
         fullPath,
+        downstream.key,
+        declaredSiblingNames,
       );
     }
+    return null;
   }
 
   private deleteAttributeValueRecursively(
-    dataObject: InstanceExtractData,
-    parentDataObject: InstanceExtractData,
+    dataObject: InstanceNode | null,
+    parentDataObject: InstanceNode | null,
     component: CedarComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
     path: string[],
-    valueObject: object,
+    write: AttributeWrite,
   ): void {
     if (path.length === 0) {
-      const name = valueObject[JsonSchema.reservedAttributeName];
-      delete parentDataObject[name];
-
-      if (Object.hasOwn(parentDataObject, JsonSchema.atContext)) {
-        delete parentDataObject[JsonSchema.atContext][name];
+      if (!isInstanceObject(parentDataObject)) {
+        this.messageHandlerService.error('Expected a container to delete an attribute from, found something else');
+        return;
       }
+      if (write.name === null) {
+        return;
+      }
+      parentDataObject.removeValue(write.name);
     } else {
-      const downstreamObjects = this.getDownstreamObjects(dataObject, component, multiInstanceObjectService, path);
-      const dataSubObjectKey = this.DATA_SUBOBJECT_KEY;
-      const childComponentKey = this.CHILD_COMPONENT_KEY;
-      const parentDataSubObjectKey = this.PARENT_DATA_SUBOBJECT_KEY;
-      const remainingPathKey = this.REMAINING_PATH_KEY;
+      const downstream = this.getDownstreamObjects(dataObject, component, multiInstanceObjectService, path);
+      if (downstream.childComponent === null) {
+        return;
+      }
       this.deleteAttributeValueRecursively(
-        downstreamObjects[dataSubObjectKey],
-        downstreamObjects[parentDataSubObjectKey],
-        downstreamObjects[childComponentKey],
+        downstream.dataSubObject,
+        downstream.parentDataSubObject,
+        downstream.childComponent,
         multiInstanceObjectService,
-        downstreamObjects[remainingPathKey],
-        valueObject,
+        downstream.remainingPath,
+        write,
       );
     }
   }
@@ -173,54 +346,47 @@ export class DataObjectDataValueHandler {
     component: CedarComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
     path: string[],
-  ): object {
-    const obj = {};
+  ): DownstreamObjects {
     const firstPath = path[0];
     const remainingPath = path.slice(1);
-    let childComponent: CedarComponent = null;
-    let dataSubObject = null;
-    let parentDataSubObject = null;
+    let childComponent: CedarComponent | null = null;
+    let dataSubObject: InstanceNode | null = null;
+    let parentDataSubObject: InstanceNode | null = null;
 
-    if (component instanceof SingleElementComponent) {
-      childComponent = (component as SingleElementComponent).getChildByName(firstPath);
-      dataSubObject = dataObject[firstPath];
-      parentDataSubObject = dataObject;
-    } else if (component instanceof CedarTemplate) {
-      childComponent = (component as CedarTemplate).getChildByName(firstPath);
-      dataSubObject = dataObject[firstPath];
+    // A single element and a template both hold their children directly; a multi
+    // element holds a list of occurrences and the child sits inside the current one.
+    if (component instanceof SingleElementComponent || component instanceof CedarTemplate) {
+      childComponent = component.getChildByName(firstPath);
+      if (isInstanceObject(dataObject)) {
+        dataSubObject = dataObject.values[firstPath] ?? null;
+      }
       parentDataSubObject = dataObject;
     } else if (component instanceof MultiElementComponent) {
-      const multiElement = component as MultiElementComponent;
-      const multiInstanceInfo: MultiInstanceObjectInfo =
-        multiInstanceObjectService.getMultiInstanceInfoForComponent(multiElement);
-      const currentIndex = multiInstanceInfo.currentIndex;
-      childComponent = multiElement.getChildByName(firstPath);
-      dataSubObject = dataObject[currentIndex][firstPath];
-      parentDataSubObject = dataObject[currentIndex];
+      const multiInstanceInfo: MultiInstanceObjectInfo | null =
+        multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
+      const currentIndex = multiInstanceInfo?.currentIndex ?? 0;
+      childComponent = component.getChildByName(firstPath);
+      const occurrence = isInstanceArray(dataObject) ? dataObject[currentIndex] : null;
+      if (isInstanceObject(occurrence)) {
+        dataSubObject = occurrence.values[firstPath] ?? null;
+      }
+      parentDataSubObject = occurrence;
     }
-    const dataSubObjectKey = this.DATA_SUBOBJECT_KEY;
-    const childComponentKey = this.CHILD_COMPONENT_KEY;
-    const parentDataSubObjectKey = this.PARENT_DATA_SUBOBJECT_KEY;
-    const remainingPathKey = this.REMAINING_PATH_KEY;
-    obj[dataSubObjectKey] = dataSubObject;
-    obj[childComponentKey] = childComponent;
-    obj[parentDataSubObjectKey] = parentDataSubObject;
-    obj[remainingPathKey] = remainingPath;
 
-    return obj;
+    return { dataSubObject, parentDataSubObject, key: firstPath, childComponent, remainingPath };
   }
 
   private isDuplicateAttributeName(
     name: string,
-    dataObject: InstanceExtractData,
-    parentDataObject: InstanceExtractData,
+    dataObject: InstanceArray,
+    parentDataObject: InstanceObject,
     currentIndex: number,
   ): boolean {
-    const ind = (dataObject as Array<string>).indexOf(name);
+    const ind = indexOfName(dataObject, name);
 
     // completely new name, check if parent object's names conflict
     if (ind < 0) {
-      return Object.hasOwn(parentDataObject, name);
+      return parentDataObject.hasValue(name);
     }
     // name has not changed
     else if (ind === currentIndex) {
@@ -230,58 +396,81 @@ export class DataObjectDataValueHandler {
     return true;
   }
 
-  private getDefaultAttributeName(
-    dataObject: InstanceExtractData,
-    parentDataObject: InstanceExtractData,
-    currentIndex: number,
-  ): string {
-    let nameIndex = currentIndex + 1;
-    let defName = JsonSchema.reservedDefaultAttributeName + nameIndex;
+  private isAttributeNameUsedElsewhere(dataObject: InstanceArray, name: string, currentIndex: number): boolean {
+    return dataObject.some(
+      (node, index) =>
+        index !== currentIndex && node instanceof InstanceDataAttributeValueFieldName && node.name === name,
+    );
+  }
 
-    while (this.isDuplicateAttributeName(defName, dataObject, parentDataObject, currentIndex) && nameIndex < 1000) {
-      nameIndex++;
-      defName = JsonSchema.reservedDefaultAttributeName + nameIndex;
+  /**
+   * Template children reserve their JSON property names even when a sparse
+   * instance currently omits them. Without this template-side check, an
+   * attribute could claim the missing child's name and the later first edit of
+   * that child would overwrite one of the two values.
+   */
+  private getDeclaredSiblingNames(component: FieldComponent, representation: CedarComponent): ReadonlySet<string> {
+    let parent = representation;
+    for (const segment of component.path.slice(0, -1)) {
+      if (
+        !(parent instanceof CedarTemplate) &&
+        !(parent instanceof SingleElementComponent) &&
+        !(parent instanceof MultiElementComponent)
+      ) {
+        return new Set();
+      }
+      const child = parent.getChildByName(segment);
+      if (child === null) {
+        return new Set();
+      }
+      parent = child;
     }
 
-    return defName;
+    if (
+      !(parent instanceof CedarTemplate) &&
+      !(parent instanceof SingleElementComponent) &&
+      !(parent instanceof MultiElementComponent)
+    ) {
+      return new Set();
+    }
+    return new Set(
+      parent.children.filter((child) => !(child instanceof StaticFieldComponent)).map((child) => child.name),
+    );
   }
 
   changeValue(
     dataContext: DataContext,
     component: FieldComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
-    value: string,
+    value: string | null,
   ): void {
     const path = component.path;
-    const valueObject = {};
-    if (
-      component.basicInfo.inputType === InputType.link ||
-      component.basicInfo.inputType === InputType.orcid ||
-      component.basicInfo.inputType === InputType.ror
-    ) {
-      if (value !== null) {
-        valueObject[JsonSchema.atId] = value;
-      }
-    } else {
-      valueObject[JsonSchema.atValue] = value;
+    const inputType = component.basicInfo.inputType;
+    const iriValued = inputType !== null && valueIsIri(inputType as InputType);
+    // An IRI-valued field cleared to null holds nothing at all, rather than an
+    // `@id` of null — there is no such IRI. A literal carries the field's XSD
+    // type in this full-copy tree, the same as the initial build attaches: a
+    // numeric or temporal value keeps its `@type`, without which the server
+    // rejects the instance on save.
+    const valueObject = iriValued
+      ? value === null
+        ? InstanceValueNode.emptySlot(true)
+        : InstanceValueNode.iriValue(value)
+      : InstanceValueNode.literalValue(value, DataObjectUtil.xsdTypeForFullCopy(component));
+    const representation = dataContext.templateRepresentation;
+    if (representation === null) {
+      return;
     }
-    this.setDataPathValueRecursively(
-      dataContext.instanceExtractData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-      path,
-    );
-    this.setDataPathValueRecursively(
-      dataContext.instanceFullData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-      path,
+    dataContext.mutate((instance) =>
+      this.setDataPathValueRecursively(
+        instance,
+        null,
+        representation,
+        multiInstanceObjectService,
+        path,
+        valueObject,
+        path,
+      ),
     );
   }
 
@@ -289,38 +478,35 @@ export class DataObjectDataValueHandler {
     dataContext: DataContext,
     component: FieldComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
-    value: string[],
+    value: string[] | null,
   ): void {
     const path = component.path;
-    const valueArray = [];
+    const valueArray: InstanceNode[] = [];
 
-    if (value.length === 0) {
-      value = [null];
+    // A cleared list is one empty slot, not no slots: the field still exists and
+    // still has an occurrence to show. Held separately from `value` so the empty
+    // case is a list of one null rather than a reassignment that widens the
+    // parameter for everything below it.
+    const values: (string | null)[] = !value || value.length === 0 ? [null] : value;
+
+    for (const val of values) {
+      valueArray.push(InstanceValueNode.literalValue(val));
     }
 
-    for (const val of value) {
-      const obj = {};
-      obj[JsonSchema.atValue] = val;
-      valueArray.push(obj);
+    const representation = dataContext.templateRepresentation;
+    if (representation === null) {
+      return;
     }
-
-    this.setDataPathValueRecursively(
-      dataContext.instanceExtractData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueArray,
-      path,
-    );
-    this.setDataPathValueRecursively(
-      dataContext.instanceFullData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueArray,
-      path,
+    dataContext.mutate((instance) =>
+      this.setDataPathValueRecursively(
+        instance,
+        null,
+        representation,
+        multiInstanceObjectService,
+        path,
+        valueArray,
+        path,
+      ),
     );
   }
 
@@ -328,70 +514,66 @@ export class DataObjectDataValueHandler {
     dataContext: DataContext,
     component: FieldComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
-    key: string,
-    value: string,
-  ): void {
+    key: string | null,
+    value: string | null,
+  ): string | null {
     const path = component.path;
-    const valueObject = {};
-    const obj = {};
 
     if (value && value.length === 0) {
       value = null;
     }
 
-    obj[JsonSchema.atValue] = value;
-    valueObject[JsonSchema.reservedAttributeName] = key;
-    valueObject[JsonSchema.reservedAttributeValue] = obj;
+    const valueObject: AttributeWrite = { name: key, value: InstanceValueNode.literalValue(value) };
 
-    this.setDataPathValueRecursively(
-      dataContext.instanceExtractData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-      path,
-    );
-    this.setDataPathValueRecursively(
-      dataContext.instanceFullData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-      path,
-    );
+    const representation = dataContext.templateRepresentation;
+    if (representation === null) {
+      return null;
+    }
+    const declaredSiblingNames = this.getDeclaredSiblingNames(component, representation);
+    let validationError: string | null = null;
+    dataContext.mutate((instance) => {
+      validationError = this.setDataPathValueRecursively(
+        instance,
+        null,
+        representation,
+        multiInstanceObjectService,
+        path,
+        valueObject,
+        path,
+        '',
+        declaredSiblingNames,
+      );
+    });
+    return validationError;
   }
 
   deleteAttributeValue(
     dataContext: DataContext,
     component: FieldComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
-    key: string,
+    key: string | null,
   ): void {
     if (!key) {
       return;
     }
 
     const path = component.path;
-    const valueObject = {};
-    valueObject[JsonSchema.reservedAttributeName] = key;
+    // The value is not read on this path; only the name says which property goes.
+    const valueObject: AttributeWrite = { name: key, value: InstanceValueNode.emptySlot(false) };
 
-    this.deleteAttributeValueRecursively(
-      dataContext.instanceExtractData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-    );
-    this.deleteAttributeValueRecursively(
-      dataContext.instanceFullData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
+    const representation = dataContext.templateRepresentation;
+    if (representation === null) {
+      return;
+    }
+    dataContext.mutate((instance) =>
+      this.deleteAttributeValueRecursively(
+        instance,
+        null,
+        representation,
+        multiInstanceObjectService,
+        path,
+        valueObject,
+      ),
     );
   }
 
@@ -399,34 +581,26 @@ export class DataObjectDataValueHandler {
     dataContext: DataContext,
     component: FieldComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
-    atId: string,
-    prefLabel: string,
+    atId: string | null,
+    prefLabel: string | null,
   ): void {
     const path = component.path;
-    const valueObject = {};
+    const valueObject = atId ? InstanceValueNode.iriValue(atId, prefLabel) : InstanceValueNode.emptySlot(true);
 
-    if (atId) {
-      valueObject[JsonSchema.atId] = atId;
-      valueObject[JsonSchema.rdfsLabel] = prefLabel;
+    const representation = dataContext.templateRepresentation;
+    if (representation === null) {
+      return;
     }
-
-    this.setDataPathValueRecursively(
-      dataContext.instanceExtractData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-      path,
-    );
-    this.setDataPathValueRecursively(
-      dataContext.instanceFullData,
-      null,
-      dataContext.templateRepresentation,
-      multiInstanceObjectService,
-      path,
-      valueObject,
-      path,
+    dataContext.mutate((instance) =>
+      this.setDataPathValueRecursively(
+        instance,
+        null,
+        representation,
+        multiInstanceObjectService,
+        path,
+        valueObject,
+        path,
+      ),
     );
   }
 }

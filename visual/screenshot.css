@@ -1,0 +1,26 @@
+/*
+ * Injected into every screenshot, and into no other kind of assertion.
+ *
+ * Only for content that is legitimately different between two builds of the same
+ * code. Anything CEE renders because of what a template says belongs in the
+ * baseline; keep this file small, and prefer a clipped screenshot or a DOM
+ * assertion over hiding something here.
+ */
+
+/*
+ * The version stamp in the header.
+ *
+ * It is deliberately different on every build — during the Angular march it names
+ * the framework version, so it changes at each hop by design. Left visible, every
+ * page that shows the header would go red at every hop for a reason no diff image
+ * could distinguish from a real one, which is exactly the noise that teaches people
+ * to reach for --update-snapshots.
+ *
+ * `visibility: hidden` rather than `display: none` so the element keeps its box and
+ * the header still lays out as users see it. What is dropped is the text, which is
+ * the only part that varies. No test asserts it; `window.cedarEmbeddableEditorVersion`
+ * is where a test should read the version, not a screenshot.
+ */
+.cee-version {
+  visibility: hidden;
+}

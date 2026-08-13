@@ -1,0 +1,9 @@
+parent_dataset_id type=textfield single required
+lab_id type=textfield single
+derived_dataset_protocol_doi type=link single required
+derived_dataset_type type=controlled single required branches=1
+program_url type=textfield single
+contributors_path type=textfield single required
+data_path type=textfield single required
+is_cell_type_annotation_included type=radio single required choices=2
+metadata_schema_id type=textfield single required

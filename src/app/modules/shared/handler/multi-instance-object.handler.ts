@@ -11,118 +11,111 @@ import { CedarTemplate } from '../models/template/cedar-template.model';
 import * as _ from 'lodash-es';
 import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
-import { InstanceExtractData } from '../models/instance-extract-data.model';
-import { JavascriptTypes } from '../models/javascript-types.model';
-import { JsonSchema } from '../models/json-schema.model';
+import { InstanceObject } from '../models/instance-node.model';
+import { InstanceCardinalityReader } from './instance-cardinality-reader';
+import { ModelLibraryInstanceReader } from './model-library-instance-reader';
+import { InstanceDataAttributeValueField } from 'cedar-model-typescript-library';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MultiInstanceObjectHandler {
-  public multiInstanceObject: MultiInstanceInfo;
-  private templateRepresentation: TemplateComponent;
+  private static readonly defaultInstanceReader: InstanceCardinalityReader = new ModelLibraryInstanceReader();
+
+  /** An empty info tree until a template is built into one, which is CEE's starting state. */
+  public multiInstanceObject: MultiInstanceInfo = new MultiInstanceInfo();
+  private templateRepresentation: TemplateComponent | null = null;
+
+  /**
+   * Resolves a component path in the live instance, through the current cursors.
+   *
+   * Installed by `HandlerContext`, which owns both the instance and the path
+   * resolver. It is how `currentCount` stops being a number this handler
+   * maintains and becomes a fact about the document — see
+   * `MultiInstanceObjectInfo`.
+   *
+   * There is no cycle to worry about: resolving a path reads each multi
+   * ancestor's `currentIndex`, never its count.
+   */
+  private resolveInstanceNode: ((path: string[]) => unknown) | null = null;
   private indexRegEx = new RegExp(/@#index\[(\d+)\]#@/);
 
-  private static getNodeByPath(obj, arrPath: string[]): object {
-    let val: object;
+  /**
+   * Walk the multi-instance info tree by component path.
+   *
+   * The tree is keyed by component name at every level, so a step is a lookup on
+   * whatever the previous step returned. Typed as the record it is rather than as
+   * `object`, which is what let the two callers below assert their way to a result.
+   */
+  private static getNodeByPath(obj: MultiInstanceInfo, arrPath: string[]): unknown {
+    let val: unknown = obj;
 
-    for (let i = 0; i < arrPath.length; i++) {
-      if (val) {
-        val = val[arrPath[i]];
-      } else {
-        val = obj[arrPath[i]];
+    for (const step of arrPath) {
+      if (val === null || typeof val !== 'object') {
+        return undefined;
       }
+      val = (val as Record<string, unknown>)[step];
     }
     return val;
   }
 
-  private static getMultiInstanceInfoNodeByPath(obj, arrPath: string[]): MultiInstanceInfo {
+  private static getMultiInstanceInfoNodeByPath(obj: MultiInstanceInfo, arrPath: string[]): MultiInstanceInfo {
     return MultiInstanceObjectHandler.getNodeByPath(obj, arrPath) as MultiInstanceInfo;
   }
 
-  private static getMultiInstanceObjectInfoNodeByPath(obj, arrPath: string[]): MultiInstanceObjectInfo {
+  private static getMultiInstanceObjectInfoNodeByPath(
+    obj: MultiInstanceInfo,
+    arrPath: string[],
+  ): MultiInstanceObjectInfo {
     return MultiInstanceObjectHandler.getNodeByPath(obj, arrPath) as MultiInstanceObjectInfo;
+  }
+
+  setInstanceResolver(resolve: (path: string[]) => unknown): void {
+    this.resolveInstanceNode = resolve;
+  }
+
+  /** How many occurrences the instance actually holds at this path. */
+  private countInInstance(path: string[]): number {
+    if (!this.resolveInstanceNode) {
+      return 0;
+    }
+    const node = this.resolveInstanceNode(path);
+    if (Array.isArray(node)) {
+      return node.length;
+    }
+    /*
+     * An attribute-value field is the exception, and only once it has been read
+     * back: the reader folds a list of attribute names into a single node keyed
+     * by name, so the occurrences are its names rather than a list's length.
+     * While the tree was a document there was nothing to fold into and every
+     * field counted the same way, so a reloaded instance reported no attributes
+     * at all and the pager offered no pages.
+     */
+    if (node instanceof InstanceDataAttributeValueField) {
+      return Object.keys(node.values).length;
+    }
+    return 0;
   }
 
   buildNewOrFromMetadata(
     templateRepresentation: TemplateComponent,
-    instanceExtractData: InstanceExtractData = null,
+    /** The instance root, which is a JSON-LD document and so always an object. */
+    instance: InstanceObject | null = null,
+    instanceReader: InstanceCardinalityReader = MultiInstanceObjectHandler.defaultInstanceReader,
   ): MultiInstanceInfo {
+    instanceReader = instanceReader ?? MultiInstanceObjectHandler.defaultInstanceReader;
     this.templateRepresentation = templateRepresentation;
     this.multiInstanceObject = new MultiInstanceInfo();
     this.buildRecursively(templateRepresentation, this.multiInstanceObject);
 
-    if (instanceExtractData) {
-      this.updateFromInstanceExtractData(instanceExtractData, [], this.multiInstanceObject);
+    if (instance) {
+      // The template gave us a skeleton at each component's `minItems`; the
+      // instance says what is actually there, and wins.
+      instanceReader.read(instance, (path, count) =>
+        this.setSingleMultiInstance(path, count, this.multiInstanceObject),
+      );
     }
     return this.multiInstanceObject;
-  }
-
-  private updateFromInstanceExtractData(
-    instanceExtractDataIn: InstanceExtractData,
-    parentPath: string[],
-    multiInstanceObject: MultiInstanceInfo,
-  ): void {
-    const instanceExtractData = JSON.parse(JSON.stringify(instanceExtractDataIn));
-    // this.deleteAttributeValueFields(instanceExtractData, 0);
-
-    for (const key in instanceExtractData) {
-      const myPath: string[] = parentPath.slice();
-      myPath.push(key);
-
-      // multi-page element or multi-page field
-      if (Array.isArray(instanceExtractData[key]) && instanceExtractData[key].length > 0) {
-        this.setSingleMultiInstance(myPath.slice(), instanceExtractData[key].length, multiInstanceObject);
-
-        // field component with values or attribute-value field
-        const isField =
-          // field component with values (text or controlled)
-          (typeof instanceExtractData[key][0] === JavascriptTypes.object &&
-            (Object.hasOwn(instanceExtractData[key][0], JsonSchema.atValue) ||
-              Object.hasOwn(instanceExtractData[key][0], JsonSchema.atId))) ||
-          // attribute-value field
-          (typeof instanceExtractData[key][0] === JavascriptTypes.string && instanceExtractData[key].length > 0);
-
-        // not a field, so it is a multi-page element component
-        if (!isField) {
-          for (let i = 0; i < instanceExtractData[key].length; i++) {
-            if (i > 0) {
-              myPath.pop();
-            }
-            myPath.push(this.indexRegEx.source.replace('(\\d+)', i.toString()).replace(/\\/g, ''));
-            this.updateFromInstanceExtractData(instanceExtractData[key][i], myPath, multiInstanceObject);
-          }
-        }
-        // it's an object, can be a single-page element or a single-page field
-      } else if (
-        typeof instanceExtractData[key] === JavascriptTypes.object &&
-        instanceExtractData[key] !== null &&
-        Object.keys(instanceExtractData[key]).length > 0
-      ) {
-        // single-page field (it's never paginated, so not required for pagination,
-        // but still need to have an entry for it in multiInstanceObject)
-        if (
-          Object.hasOwn(instanceExtractData[key], JsonSchema.atValue) ||
-          Object.hasOwn(instanceExtractData[key], JsonSchema.atId)
-        ) {
-          this.setSingleMultiInstance(myPath, 1, multiInstanceObject);
-        } else {
-          // single-page element component
-          // push a dummy 0 array element for a consistent multi-paging logic
-          // multi-page structure does not differentiate between single- and multi-page components
-          myPath.push(this.indexRegEx.source.replace('(\\d+)', '0').replace(/\\/g, ''));
-          this.updateFromInstanceExtractData(instanceExtractData[key], myPath, multiInstanceObject);
-        }
-      } else {
-        if (key === JsonSchema.atId || key === JsonSchema.rdfsLabel) {
-          // DO NOTHING, we came too deep into a controlled term
-        } else {
-          // empty fields
-          // need to record the component in multiInstanceObject even if it's empty
-          this.setSingleMultiInstance(myPath, 0, multiInstanceObject);
-        }
-      }
-    }
   }
 
   private setSingleMultiInstance(path: string[], count: number, multiInstanceObject: MultiInstanceInfo): void {
@@ -183,34 +176,6 @@ export class MultiInstanceObjectHandler {
     }
   }
 
-  private deleteAttributeValueFields(instanceExtractData: InstanceExtractData, depth: number): void {
-    for (const key in instanceExtractData) {
-      if (Array.isArray(instanceExtractData[key]) && instanceExtractData[key].length > 0) {
-        if (typeof instanceExtractData[key][0] === JavascriptTypes.string) {
-          for (let i = 0; i < instanceExtractData[key].length; i++) {
-            delete instanceExtractData[instanceExtractData[key][i]];
-          }
-        } else {
-          if (
-            !Object.hasOwn(instanceExtractData[key][0], JsonSchema.atValue) &&
-            !Object.hasOwn(instanceExtractData[key][0], JsonSchema.atId)
-          ) {
-            for (let i = 0; i < instanceExtractData[key].length; i++) {
-              this.deleteAttributeValueFields(instanceExtractData[key][i], depth + 1);
-            }
-          }
-        }
-      } else {
-        if (
-          !Object.hasOwn(instanceExtractData[key], JsonSchema.atValue) &&
-          !Object.hasOwn(instanceExtractData[key], JsonSchema.atId)
-        ) {
-          this.deleteAttributeValueFields(instanceExtractData[key], depth + 1);
-        }
-      }
-    }
-  }
-
   private buildRecursively(cedarComponent: CedarComponent, multiInstanceObject: MultiInstanceInfo): void {
     if (
       !(
@@ -226,11 +191,18 @@ export class MultiInstanceObjectHandler {
       const name = child.name;
       const multiInfo = new MultiInstanceObjectInfo();
       multiInfo.componentName = name;
+      // The count comes from the instance from here on. Only multi components
+      // have an array to count; a single field or element is always one, and
+      // stays a stored number.
+      if (child instanceof MultiFieldComponent || child instanceof MultiElementComponent) {
+        const childPath = child.path;
+        multiInfo.countSupplier = () => this.countInInstance(childPath);
+      }
       multiInstanceObject.addChild(multiInfo);
       let count = 0;
       let currentIndex = -1;
       if (child instanceof MultiFieldComponent) {
-        count = (child as MultiComponent).multiInfo.minItems;
+        count = (child as MultiComponent).multiInfo.getSafeMinItems();
         currentIndex = count > 0 ? 0 : -1;
         /// delete multiInfo.children;
       } else if (child instanceof SingleFieldComponent) {
@@ -238,7 +210,7 @@ export class MultiInstanceObjectHandler {
         currentIndex = -1;
         /// delete multiInfo.children;
       } else if (child instanceof MultiElementComponent) {
-        count = (child as MultiComponent).multiInfo.minItems;
+        count = (child as MultiComponent).multiInfo.getSafeMinItems();
         currentIndex = count > 0 ? 0 : -1;
         for (let i = 0; i < count; i++) {
           const mc = new MultiInstanceInfo();
@@ -258,68 +230,93 @@ export class MultiInstanceObjectHandler {
   }
 
   setCurrentIndex(component: MultiComponent, currentIdx: number): void {
-    const multiInstanceInfo: MultiInstanceObjectInfo = this.getDataPathNode(component.path);
+    const multiInstanceInfo = this.getDataPathNode(component.path);
+    if (multiInstanceInfo === null) {
+      return;
+    }
     multiInstanceInfo.currentIndex = currentIdx;
   }
 
   multiInstanceItemAdd(component: MultiComponent): void {
-    const multiInstanceInfo: MultiInstanceObjectInfo = this.getDataPathNode(component.path);
+    const multiInstanceInfo = this.getDataPathNode(component.path);
+    if (multiInstanceInfo === null) {
+      return;
+    }
 
     if (component instanceof MultiElementComponent) {
       const newMultiInstanceObject: MultiInstanceInfo = new MultiInstanceInfo();
       this.buildRecursively(component, newMultiInstanceObject);
       multiInstanceInfo.children.splice(multiInstanceInfo.currentIndex + 1, 0, newMultiInstanceObject as never);
     }
+    // No `currentCount++`: the instance was spliced before this ran, and the
+    // count is read from it.
     multiInstanceInfo.currentIndex++;
-    multiInstanceInfo.currentCount++;
   }
 
   multiInstanceItemCopy(component: MultiComponent): void {
     const multiInstanceInfo = this.getDataPathNode(component.path);
+    if (multiInstanceInfo === null) {
+      return;
+    }
 
     if (component instanceof MultiElementComponent) {
       const currentIdx = multiInstanceInfo.currentIndex;
       const sourceItem = multiInstanceInfo.children[currentIdx];
-      const cloneItem = _.cloneDeep(sourceItem as any);
+      const cloneItem = _.cloneDeep(sourceItem);
       multiInstanceInfo.children.splice(currentIdx + 1, 0, cloneItem as never);
     }
     multiInstanceInfo.currentIndex++;
-    multiInstanceInfo.currentCount++;
   }
 
   multiInstanceItemDelete(component: MultiComponent): void {
     const multiInstanceInfo = this.getDataPathNode(component.path);
+    if (multiInstanceInfo === null) {
+      return;
+    }
 
     if (component instanceof MultiElementComponent) {
       const currentIdx = multiInstanceInfo.currentIndex;
       multiInstanceInfo.children.splice(currentIdx, 1);
     }
-    multiInstanceInfo.currentCount--;
+    // The cursor may now point past the end. `currentCount` already reflects the
+    // splice, because it reads the instance and the instance was spliced first.
     if (multiInstanceInfo.currentIndex > multiInstanceInfo.currentCount - 1) {
       multiInstanceInfo.currentIndex = multiInstanceInfo.currentCount - 1;
     }
   }
 
-  getMultiInstanceInfoForComponent(component: MultiComponent): MultiInstanceObjectInfo {
+  /*
+   * Both return null for a component the info tree has no node for — a path into a
+   * template that has since been replaced, say. Every caller already tests the
+   * result, which is what the declaration now says.
+   */
+  getMultiInstanceInfoForComponent(component: MultiComponent): MultiInstanceObjectInfo | null {
     return this.getDataPathNode(component.path);
   }
 
-  public getDataPathNode(path: string[]): MultiInstanceObjectInfo {
+  public getDataPathNode(path: string[]): MultiInstanceObjectInfo | null {
     return this.getDataPathNodeRecursively(this.multiInstanceObject, this.templateRepresentation, path);
   }
 
   private getDataPathNodeRecursively(
     multiInstanceObject: MultiInstanceInfo,
-    component: CedarComponent,
+    /*
+     * Nullable, as in the matching walk in `DataObjectStructureHandler`. It is null
+     * before a template is set, which is the state CEE starts in and the state a
+     * host can return it to. None of the three `instanceof` branches below matches
+     * null, so `childComponent` stays null and the walk ends where it stands —
+     * which is the answer, not an oversight to guard against at the top.
+     */
+    component: CedarComponent | null,
     path: string[],
-  ): MultiInstanceObjectInfo {
+  ): MultiInstanceObjectInfo | null {
     if (!multiInstanceObject) {
       return null;
     }
     const firstPath = path[0];
     const remainingPath = path.slice(1);
-    let childComponent: CedarComponent = null;
-    let childMultiInfo: MultiInstanceObjectInfo = null;
+    let childComponent: CedarComponent | null = null;
+    let childMultiInfo: MultiInstanceObjectInfo | null = null;
     if (component instanceof SingleElementComponent) {
       childComponent = (component as SingleElementComponent).getChildByName(firstPath);
       childMultiInfo = multiInstanceObject.getChildByName(firstPath);
@@ -333,17 +330,19 @@ export class MultiInstanceObjectHandler {
 
     if (remainingPath.length === 0) {
       return childMultiInfo;
-    } else {
-      let goIdx = 0;
-      if (childMultiInfo.currentIndex > 0) {
-        goIdx = childMultiInfo.currentIndex;
-      }
-      return this.getDataPathNodeRecursively(childMultiInfo.children[goIdx], childComponent, remainingPath);
     }
+    // A path step naming a child that the component or the info tree does not have
+    // ends the walk, which is the same `null` the empty-tree case above returns.
+    if (childMultiInfo === null || childComponent === null) {
+      return null;
+    }
+    const goIdx = childMultiInfo.currentIndex > 0 ? childMultiInfo.currentIndex : 0;
+    return this.getDataPathNodeRecursively(childMultiInfo.children[goIdx], childComponent, remainingPath);
   }
 
   hasMultiInstances(multiComponent: MultiComponent): boolean {
-    const multiInstanceObjectInfo: MultiInstanceObjectInfo = this.getMultiInstanceInfoForComponent(multiComponent);
-    return multiInstanceObjectInfo.currentCount > 0;
+    // A component with no node in the info tree has no occurrences, which is the
+    // same answer as a node reporting a count of zero.
+    return (this.getMultiInstanceInfoForComponent(multiComponent)?.currentCount ?? 0) > 0;
   }
 }

@@ -1,4 +1,4 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
@@ -10,11 +10,13 @@ import { StaticFieldComponent } from '../../../shared/models/static/static-field
   selector: 'app-cedar-static-section-break',
   templateUrl: './cedar-static-section-break.component.html',
   styleUrls: ['./cedar-static-section-break.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CedarStaticSectionBreakComponent extends CedarUIDirective {
-  @Input() handlerContext: HandlerContext;
-  component: StaticFieldComponent;
+  @Input({ required: true }) handlerContext!: HandlerContext;
+  component!: StaticFieldComponent;
   hasHelpText: boolean = false;
 
   constructor(
@@ -25,7 +27,7 @@ export class CedarStaticSectionBreakComponent extends CedarUIDirective {
     super();
   }
 
-  @Input() set componentToRender(componentToRender: StaticFieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
     const helpText = componentToRender.labelInfo.description;
@@ -34,7 +36,7 @@ export class CedarStaticSectionBreakComponent extends CedarUIDirective {
     }
   }
 
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(_currentValue: unknown): void {
     // DO NOTHING
   }
 }

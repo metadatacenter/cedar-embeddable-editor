@@ -1,11 +1,11 @@
-@import '../../../../../styles-common.scss';
+@use '../../../../../styles-common' as common;
 
 mat-toolbar {
   height: 60px;
 }
 
 .cedar-logo {
-  background-image: url($cedar-logo-80x80);
+  background-image: url(common.$cedar-logo-80x80);
   background-repeat: no-repeat;
   background-size: cover;
   width: 80px;

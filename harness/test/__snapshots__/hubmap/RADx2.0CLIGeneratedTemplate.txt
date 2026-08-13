@@ -1,0 +1,111 @@
+File Name type=textfield single required
+Title type=textfield single required
+Version type=textfield single required
+SHA256 digest type=textfield single
+Description type=textarea single
+Identifier type=textfield single
+Primary Language type=list single choices=2 choice=single
+Other Languages type=list single choices=2 choice=single
+Subjects type=controlled multi min=0 ontologies=1
+Keywords type=textfield multi min=0
+Data Dictionary File Name type=textfield single required
+Data File Creators multi min=0
+  Creator Type type=controlled single branches=1
+  Creator Name type=textfield single required
+  Creator Given Name type=textfield single
+  Creator Family Name type=textfield single
+  Creator Identifier type=textfield multi required min=0
+  Creator Email type=email single
+  Creator Affiliation type=textfield single
+  Creator Affiliation Identifier type=textfield single
+  Creator Role type=controlled single branches=1
+Data File Related Resources multi min=0
+  Related Resource Identifier type=textfield single
+  Related Resource Identifier Type type=controlled single branches=1
+  Related Resource File Name type=textfield single
+  Related Resource Type Category type=controlled single branches=1
+  Related Resource Relation type=textfield single
+Data File Contributors multi min=0
+  Contributor Type type=controlled single branches=1
+  Contributor Name type=textfield single required
+  Contributor Given Name type=textfield single
+  Contributor Family Name type=textfield single
+  Contributor Identifier type=textfield multi required min=0
+  Contributor Affiliation type=textfield single
+  Contributor Affiliation Identifier type=textfield single
+  Contributor Email type=email single
+  Contributor Role type=controlled single branches=1
+Data File Rights multi min=0
+  License Name type=controlled single branches=1
+  License Text type=textfield single
+Data File Dates multi min=0
+  Event Type type=controlled single branches=1
+  Date type=temporal single temporal=xsd:date gran=day
+Data File Parent Studies multi min=0
+  PHS Identifier type=textfield single required
+  Study Identifier type=textfield single
+  Study Name type=textfield single
+  Study Start Date type=temporal single temporal=xsd:date gran=day
+  Study End Date type=temporal single temporal=xsd:date gran=day
+Data File Funding Sources multi min=0
+  Award Title type=textfield single
+  Award Page URL type=link single
+  Award Local Identifier type=textfield single
+  Funder Name type=textfield single
+  Funder Identifier type=textfield single
+Data File Distributions multi min=0
+  Distribution Publisher type=textfield single
+  Distribution Publisher Identifier type=controlled single branches=1
+  Distribution Identifier type=textfield single
+  Distribution Identifier Type type=controlled single branches=1
+  Distribution Format type=textfield single
+  Distribution Media Type type=controlled single branches=1
+  Distribution Size type=textfield single
+  Distribution Access Protocol type=textfield single
+  Distribution Access Configuration type=textfield single
+  Distribution Query Statement type=textfield single
+  Data File Publication Date type=temporal single temporal=xsd:date gran=day
+  Publication Date Type type=textfield single hidden
+Data Characteristics Summary single
+  Data Characteristics Table in HTML type=textarea single
+  Data Characteristics Table in CSV type=textarea single
+  Data Characteristics Table in TSV type=textfield single
+  Data Characteristics Table in Key-Value Pairs type=attribute-value multi min=0
+Data Sources multi min=0
+  Data Source Name type=textfield single
+  Data Source Identifier type=textfield single
+Data Streams multi min=0
+  Data Stream Name type=textfield single
+  Data Stream Identifier type=textfield single
+  Data Stream Variable Names type=textfield multi min=0
+  Data Stream Data Source Identifier type=textfield single
+Data File Creation Processes multi min=0
+  Process Name type=textfield single
+  Process IRI type=textfield single
+  Process Version type=textfield single
+  Process Execution Identifier type=textfield single
+Data File Temporal Coverage multi min=0
+  Temporal Extent Minimum Value type=temporal single temporal=xsd:date gran=day
+  Temporal Extent Maximum Value type=temporal single temporal=xsd:date gran=day
+  Temporal Resolution type=textfield single
+  Duration type=textfield single
+Data File Spatial Coverage multi min=0
+  Bounding Boxes multi min=0
+    Maximum Latitude type=textfield single
+    Minimum Latitude type=textfield single
+    Minimum Longitude type=textfield single
+    Maximum Longitude type=textfield single
+  Bounding Shapes multi min=0
+    Point Number type=numeric single num=xsd:int
+    Latitude type=numeric single num=xsd:float
+    Longitude type=numeric single num=xsd:float
+  Data File Geopolitical Coverage multi min=0
+    Geopolitical region type=textfield multi min=0
+Data File Elevation Coverage multi min=0
+  Vertical Extent Minimum Value type=numeric single num=xsd:float
+  Vertical Extent Maximum Value type=numeric single num=xsd:float
+  Vertical Extent Datum type=textfield single
+  Vertical Extent Datum IRI type=link single
+Auxiliary Metadata single
+  Data File Descriptive Key-Value Pairs type=attribute-value multi min=0
+  Additional Commentary type=textarea multi min=0

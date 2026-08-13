@@ -1,30 +1,25 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
-import { ErrorStateMatcher } from '@angular/material/core';
+import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
-
-export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
-    return !!(control && control.invalid && (control.dirty || control.touched));
-  }
-}
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
 
 @Component({
   selector: 'app-cedar-input-link',
   templateUrl: './cedar-input-link.component.html',
   styleUrls: ['./cedar-input-link.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CedarInputLinkComponent extends CedarUIDirective implements OnInit {
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
-  inputValueControl = new FormControl(null, null);
-  errorStateMatcher = new TextFieldErrorStateMatcher();
-  @Input() handlerContext: HandlerContext;
+  inputValueControl = new FormControl<string | null>(null, null);
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
     fb: FormBuilder,
@@ -37,49 +32,45 @@ export class CedarInputLinkComponent extends CedarUIDirective implements OnInit 
     });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
-    const validators: any[] = [];
-
-    const reg = /(https?:\/\/)([\da-z.-]+)\.([a-z.]{2,6})[/\w .-]*\/?/i;
-    validators.push(Validators.pattern(reg));
+    const validators: ValidatorFn[] = [];
 
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
 
-    this.inputValueControl = new FormControl(null, validators);
+    validators.push(CedarValidators.forComponent(this.component));
+    this.inputValueControl = new FormControl<string | null>(null, validators);
 
-    if (this.component.valueInfo.defaultValue != null) {
-      if (this.inputValueControl.getRawValue() == '') {
-        this.setValueUIAndModel(this.component.valueInfo.defaultValue);
-      }
+    // `typeof`, not a cast: on a literal field the declared default is text, and a
+    // template that puts a term node here is declaring something this field cannot
+    // hold — which is now skipped rather than assigned as `[object Object]`.
+    const declaredDefault = this.component.valueInfo.defaultValue;
+    if (typeof declaredDefault === 'string' && this.inputValueControl.getRawValue() == '') {
+      this.setValueUIAndModel(declaredDefault);
     }
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
   inputChanged($event: Event): void {
-    let val = ($event.target as HTMLTextAreaElement).value;
-
-    if (val.length === 0) {
-      val = null;
-    }
-    this.handlerContext.changeValue(this.component, val);
+    const typed = ($event.target as HTMLTextAreaElement).value;
+    this.handlerContext.changeValue(this.component, typed.length === 0 ? null : typed);
   }
 
-  setCurrentValue(currentValue: any): void {
-    this.inputValueControl.setValue(currentValue);
+  setCurrentValue(currentValue: unknown): void {
+    this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
   }
 
   clearValue(): void {
     this.setValueUIAndModel(null);
   }
 
-  private setValueUIAndModel(value: string): void {
+  private setValueUIAndModel(value: string | null): void {
     this.inputValueControl.setValue(value);
     this.handlerContext.changeValue(this.component, value);
   }

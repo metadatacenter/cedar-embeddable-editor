@@ -1,3 +1,4 @@
-import { InstanceExtractData } from './instance-extract-data.model';
+import { InstanceNode } from './instance-node.model';
 
-export class InstanceFullData extends InstanceExtractData {}
+/** A node in the full view of an instance — the tree that carries `@context` and `@type`. */
+export type InstanceFullData = InstanceNode;

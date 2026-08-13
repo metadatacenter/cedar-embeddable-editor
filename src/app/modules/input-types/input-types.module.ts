@@ -1,8 +1,10 @@
 import { NgModule } from '@angular/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldModule } from '@angular/material/form-field';
-import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MAT_AUTOCOMPLETE_SCROLL_STRATEGY } from '@angular/material/autocomplete';
+import { MAT_SELECT_SCROLL_STRATEGY } from '@angular/material/select';
+import { DOCUMENT } from '@angular/common';
+import { RepositionOnAnyScrollStrategy } from './reposition-on-any-scroll.strategy';
+import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -20,12 +22,6 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatSelectModule } from '@angular/material/select';
-import {
-  NgxMatDatetimePickerModule,
-  NgxMatNativeDateModule,
-  NgxMatTimepickerModule,
-} from '@angular-material-components/datetime-picker';
-import { NgSelectModule } from '@ng-select/ng-select';
 import { CedarInputEmailComponent } from './components/cedar-input-email/cedar-input-email.component';
 import { CedarInputCheckboxComponent } from './components/cedar-input-checkbox/cedar-input-checkbox.component';
 import { CedarInputSelectComponent } from './components/cedar-input-select/cedar-input-select.component';
@@ -43,28 +39,28 @@ import { CedarStaticImageComponent } from './components/cedar-static-image/cedar
 import { CedarStaticYoutubeComponent } from './components/cedar-static-youtube/cedar-static-youtube.component';
 import { CedarInputOrcidComponent } from './components/cedar-input-orcid/cedar-input-orcid.component';
 import { CedarInputRorComponent } from './components/cedar-input-ror/cedar-input-ror.component';
-import { RorDetailsComponent } from './components/cedar-input-ror/ror-details/ror-details.component';
-import { YouTubePlayerModule } from '@angular/youtube-player';
 import { CedarFooBarComponent } from './components/cedar-foo-bar/cedar-foo-bar.component';
 import { CedarInputControlledComponent } from './components/cedar-input-controlled/cedar-input-controlled.component';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { EscapeHtmlPipe } from '../shared/pipe/keep-html.pipe';
+import { TrustHtmlPipe } from '../shared/pipe/keep-html.pipe';
+import { SafeHtmlPipe } from '../shared/pipe/safe-html.pipe';
 import { DatePickerComponent } from '../shared/components/date-picker/date-picker.component';
 import { TimezonePickerComponent } from '../shared/components/timezone-picker/timezone-picker.component';
+import { TimePickerComponent } from '../shared/components/time-picker/time-picker.component';
 import { TranslateModule } from '@ngx-translate/core';
-import { NgOptimizedImage } from '@angular/common';
-import { OrcidDetailsComponent } from './components/cedar-input-orcid/orcid-details/orcid-details.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
+import { CedarInputPfasComponent } from './components/cedar-input-pfas/cedar-input-pfas.component';
+import { CedarInputRridComponent } from './components/cedar-input-rrid/cedar-input-rrid.component';
+import { CedarInputPmidComponent } from './components/cedar-input-pmid/cedar-input-pmid.component';
+import { CedarInputNihGrantComponent } from './components/cedar-input-nih-grant/cedar-input-nih-grant.component';
+import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input-doi.component';
 
 @NgModule({
   imports: [
-    BrowserModule,
-    HttpClientModule,
-    BrowserAnimationsModule,
+    CommonModule,
     MatAutocompleteModule,
     MatCardModule,
-    MatFormFieldModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -82,15 +78,9 @@ import { MatDividerModule } from '@angular/material/divider';
     MatGridListModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    NgxMatDatetimePickerModule,
-    NgxMatTimepickerModule,
-    NgxMatNativeDateModule,
-    NgSelectModule,
-    YouTubePlayerModule,
     FormsModule,
     MatSelectModule,
     TranslateModule,
-    NgOptimizedImage,
     MatProgressSpinnerModule,
     MatDividerModule,
   ],
@@ -109,21 +99,44 @@ import { MatDividerModule } from '@angular/material/divider';
     CedarInputLinkComponent,
     CedarInputOrcidComponent,
     CedarInputRorComponent,
-    RorDetailsComponent,
     CedarStaticRichTextComponent,
     CedarStaticSectionBreakComponent,
     CedarStaticPageBreakComponent,
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
     DatePickerComponent,
+    TimePickerComponent,
     TimezonePickerComponent,
-    EscapeHtmlPipe,
-    OrcidDetailsComponent,
+    TrustHtmlPipe,
+    SafeHtmlPipe,
+    CedarInputPfasComponent,
+    CedarInputRridComponent,
+    CedarInputPmidComponent,
+    CedarInputNihGrantComponent,
+    CedarInputDoiComponent,
   ],
   providers: [
-    MatDatepickerModule,
-    MatNativeDateModule,
-    { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } },
+    { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline', subscriptSizing: 'dynamic' } },
+    /*
+     * Both overlay kinds CEE opens, because both default to Material's reposition
+     * strategy and neither can see the container an embedding page scrolls — see
+     * `RepositionOnAnyScrollStrategy` for why. The autocomplete is where it was
+     * reported, on the authority and controlled-term fields; the select is the
+     * timezone picker and the choice lists, which had the same defect unreported.
+     *
+     * A factory rather than a value: a `ScrollStrategy` holds the overlay it is
+     * attached to, so every overlay needs its own.
+     */
+    {
+      provide: MAT_AUTOCOMPLETE_SCROLL_STRATEGY,
+      useFactory: (documentRef: Document) => () => new RepositionOnAnyScrollStrategy(documentRef),
+      deps: [DOCUMENT],
+    },
+    {
+      provide: MAT_SELECT_SCROLL_STRATEGY,
+      useFactory: (documentRef: Document) => () => new RepositionOnAnyScrollStrategy(documentRef),
+      deps: [DOCUMENT],
+    },
   ],
   exports: [
     // FooBar is needed because the first component gets exported without style otherwise
@@ -144,10 +157,15 @@ import { MatDividerModule } from '@angular/material/divider';
     CedarStaticPageBreakComponent,
     CedarStaticImageComponent,
     CedarStaticYoutubeComponent,
-    EscapeHtmlPipe,
+    TrustHtmlPipe,
+    SafeHtmlPipe,
     CedarInputOrcidComponent,
     CedarInputRorComponent,
-    RorDetailsComponent,
+    CedarInputPfasComponent,
+    CedarInputPmidComponent,
+    CedarInputRridComponent,
+    CedarInputNihGrantComponent,
+    CedarInputDoiComponent,
   ],
 })
 export class InputTypesModule {}

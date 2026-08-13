@@ -1,24 +1,31 @@
-<div class="wrapper" [formGroup]="form">
-  <ng-container *ngIf="readOnlyMode">
-    <input matInput type="text"
-           [formControl]="readOnlyTimezoneControl"
-           readonly>
-<!--           attr.aria-label="{{cds.getRenderingLabelForComponent(component)}}">-->
-  </ng-container>
-  <ng-container *ngIf="!readOnlyMode">
-    <ng-select formControlName="timezone"
-               [items]="timeZones"
-               [clearable]="clearable"
-               [virtualScroll]="virtualScroll"
-               bindLabel="label"
-               [placeholder]="customPlaceholderText"
-               [notFoundText]="customNotFoundText"
-               [appearance]="config.appearance"
-               [appendTo]="config.appendTo"
-               [clearOnBackspace]="config.clearOnBackspace"
-               [closeOnSelect]="config.closeOnSelect"
-               [dropdownPosition]="config.dropdownPosition"
-               [hideSelected]="config.hideSelected">
-    </ng-select>
-  </ng-container>
+<div class="cee-offset-picker" [formGroup]="form">
+  @if (readOnlyMode) {
+    <span class="cee-offset-readonly" attr.aria-label="{{ customPlaceholderText }}">
+      {{ displayValue() }}
+    </span>
+  } @else {
+    <mat-form-field>
+      <!--
+        A placeholder, not a `mat-label`. The date field beside it comments its
+        own label out and names itself through `aria-label`, and the clock uses
+        HH/MM — so the offset was the one control in the temporal row with a
+        floating label, and a floating label rests where Material's own 56px
+        field puts it. Against the 48px CEE renders, its text sat seven pixels
+        below the date's, which is the whole of "UTC aligned strangely". A
+        placeholder occupies the value slot, so it sits where the value it
+        stands in for will sit.
+      -->
+      <mat-select
+        formControlName="timezone"
+        [compareWith]="compareZones"
+        (closed)="markTouched()"
+        placeholder="{{ customPlaceholderText }}"
+        attr.aria-label="{{ customPlaceholderText }}"
+      >
+        @for (zone of timeZones; track zone.id) {
+          <mat-option [value]="zone">{{ zone.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
 </div>

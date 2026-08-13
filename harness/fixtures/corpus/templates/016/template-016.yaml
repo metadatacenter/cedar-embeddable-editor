@@ -1,0 +1,26 @@
+type: "template"
+name: "#016 Template with Paragraph"
+id: "https://repo.metadatacenter.org/templates/63a90e2a-eb03-40b8-a588-676909f45823"
+status: "draft"
+version: "0.0.1"
+modelVersion: "1.6.0"
+createdOn: "2024-03-07T11:45:47-08:00"
+createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+modifiedOn: "2024-03-07T11:45:47-08:00"
+modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+children:
+  - key: "Paragraph"
+    type: "text-area-field"
+    name: "Paragraph"
+    id: "https://repo.metadatacenter.org/template-fields/b0960b65-d625-4154-92c0-826def9d2dbd"
+    modelVersion: "1.6.0"
+    createdOn: "2024-03-07T11:45:47-08:00"
+    createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+    modifiedOn: "2024-03-07T11:45:47-08:00"
+    modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+    configuration:
+      required: true
+      propertyIri: "https://schema.metadatacenter.org/properties/6e6e69b6-10eb-4236-bdee-ff077e283583"
+      multiple: true
+      minItems: 2
+      maxItems: 2

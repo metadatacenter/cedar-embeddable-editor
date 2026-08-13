@@ -5,8 +5,8 @@ import { AbstractFieldComponent } from './abstract-field-component.model';
 import { InputType } from '../input-type.model';
 
 export class MultiFieldComponent extends AbstractFieldComponent implements MultiComponent, FieldComponent {
-  className = 'MultiFieldComponent';
-  multiInfo: MultiInfo = new MultiInfo();
+  override className = 'MultiFieldComponent';
+  override multiInfo: MultiInfo = new MultiInfo();
 
   isMulti(): boolean {
     return true;

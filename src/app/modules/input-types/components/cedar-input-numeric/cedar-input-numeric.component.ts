@@ -1,33 +1,38 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { Numbers } from '../../../shared/models/numbers.model';
 import { Xsd } from '../../../shared/models/xsd.model';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-cedar-input-numeric',
   templateUrl: './cedar-input-numeric.component.html',
   styleUrls: ['./cedar-input-numeric.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CedarInputNumericComponent extends CedarUIDirective implements OnInit {
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
-  inputValueControl = new FormControl(null, Validators.min(10));
-  unitOfMeasure: string = null;
-  constraintMinValue = null;
-  constraintMaxValue = null;
-  patternErrorMessage = null;
-  @Input() handlerContext: HandlerContext;
+  inputValueControl = new FormControl<string | null>(null, Validators.min(10));
+  unitOfMeasure: string | null = null;
+  constraintMinValue: number | null = null;
+  constraintMaxValue: number | null = null;
+  patternErrorMessage: string | null = null;
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
     fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
+    private translateService: TranslateService,
   ) {
     super();
     this.options = fb.group({
@@ -35,11 +40,11 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
     });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
     this.unitOfMeasure = this.component.numberInfo.unitOfMeasure;
 
-    const validators: any[] = [];
+    const validators: ValidatorFn[] = [];
 
     this.constraintMinValue = this.component.numberInfo.minValue;
     this.constraintMaxValue = this.component.numberInfo.maxValue;
@@ -48,120 +53,84 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
       validators.push(Validators.required);
     }
 
+    // Type patterns, the type's own range, min/max and decimalPlace all come
+    // from FieldValueValidator now, so the widget and the data quality report
+    // cannot disagree about what a valid number is. The displayed bounds below
+    // are still resolved here because the template shows them as hints.
     const numberType = this.component.numberInfo.numberType;
-    const decimalPlace = this.component.numberInfo.decimalPlace;
-    let maxDecimalError = '';
-
-    if (numberType === Xsd.int) {
-      validators.push(Validators.pattern(Numbers.PATTERN_XSD_INT_AND_LONG));
-      this.patternErrorMessage = ' The value should be an integer.';
-
-      if (this.constraintMinValue == null) {
-        this.constraintMinValue = Numbers.NUMBER_INT_MIN;
-      }
-
-      if (this.constraintMaxValue == null) {
-        this.constraintMaxValue = Numbers.NUMBER_INT_MAX;
-      }
-    }
-
-    if (numberType === Xsd.long) {
-      validators.push(Validators.pattern(Numbers.PATTERN_XSD_INT_AND_LONG));
-      this.patternErrorMessage = ' The value should be a long integer.';
-
-      if (this.constraintMinValue == null) {
-        this.constraintMinValue = Numbers.NUMBER_LONG_MIN;
-      }
-
-      if (this.constraintMaxValue == null) {
-        this.constraintMaxValue = Numbers.NUMBER_LONG_MAX;
+    if (this.constraintMinValue == null || this.constraintMaxValue == null) {
+      // A field declaring no numeric type has no implicit bounds to take, so the
+      // table is not consulted at all rather than indexed by nothing.
+      const implicitBounds =
+        numberType == null
+          ? undefined
+          : {
+              [Xsd.int]: [Numbers.NUMBER_INT_MIN, Numbers.NUMBER_INT_MAX],
+              [Xsd.long]: [Numbers.NUMBER_LONG_MIN, Numbers.NUMBER_LONG_MAX],
+              [Xsd.byte]: [Numbers.NUMBER_BYTE_MIN, Numbers.NUMBER_BYTE_MAX],
+              [Xsd.short]: [Numbers.NUMBER_SHORT_MIN, Numbers.NUMBER_SHORT_MAX],
+            }[numberType];
+      if (implicitBounds) {
+        // `Number(...)` because the table carries `bigint` for `xsd:long`, whose
+        // bounds exceed the safe integer range. The control compares as a number
+        // either way; this states the narrowing instead of leaving it implicit.
+        this.constraintMinValue = this.constraintMinValue ?? Number(implicitBounds[0]);
+        this.constraintMaxValue = this.constraintMaxValue ?? Number(implicitBounds[1]);
       }
     }
+    this.patternErrorMessage = CedarValidators.describeNumberType(this.component);
 
-    if (numberType === Xsd.float || numberType === Xsd.double) {
-      let pattern: string = Numbers.PATTERN_XSD_FLOAT_AND_DOUBLE;
-      let maxDig = '';
-
-      if (decimalPlace != null) {
-        maxDig = '' + decimalPlace;
-        maxDecimalError = ' maximum ' + decimalPlace + ' decimals.';
-      }
-      pattern = pattern.replace(new RegExp('maxDig', 'g'), maxDig);
-      validators.push(Validators.pattern(pattern));
-    }
-
-    if (numberType === Xsd.float) {
-      this.patternErrorMessage = ' The value should be a float,' + maxDecimalError;
-    }
-
-    if (numberType === Xsd.double) {
-      this.patternErrorMessage = ' The value should be a double,' + maxDecimalError;
-    }
-
-    if (this.constraintMinValue != null) {
-      validators.push(Validators.min(this.constraintMinValue));
-    }
-
-    if (this.constraintMaxValue != null) {
-      validators.push(Validators.max(this.constraintMaxValue));
-    }
-    this.inputValueControl = new FormControl(null, validators);
+    validators.push(CedarValidators.forComponent(this.component));
+    this.inputValueControl = new FormControl<string | null>(null, validators);
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
   inputChanged($event: Event): void {
-    let val = ($event.target as HTMLTextAreaElement).value;
-
-    if (val.length === 0) {
-      val = null;
-    }
-    this.handlerContext.changeValue(this.component, val);
+    const typed = ($event.target as HTMLTextAreaElement).value;
+    this.handlerContext.changeValue(this.component, typed.length === 0 ? null : typed);
   }
 
-  setCurrentValue(currentValue: any): void {
-    this.inputValueControl.setValue(currentValue);
+  setCurrentValue(currentValue: unknown): void {
+    this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
   }
 
   clearValue(): void {
     this.setValueUIAndModel(null);
   }
 
-  private setValueUIAndModel(value: string): void {
+  private setValueUIAndModel(value: string | null): void {
     this.inputValueControl.setValue(value);
     this.handlerContext.changeValue(this.component, value);
   }
 
-  getMinMaxValueHint(): string {
-    let s = '';
-    let min = null;
-    let max = null;
+  /**
+   * The bounds the template declares, as a hint under the input.
+   *
+   * Each bound is a translated label rather than an abbreviation assembled
+   * here, so the hint reads the way the validation messages beside it do and a
+   * language bundle can change it. Only the bounds the template actually
+   * declares appear; the implicit range a numeric type carries is resolved in
+   * `ngOnInit` for validation and is deliberately not advertised, because a
+   * field inherits it whether or not its author thought about it.
+   */
+  boundsHint(): string {
+    const { minValue, maxValue, decimalPlace } = this.component.numberInfo;
+    const parts: string[] = [];
 
-    if (this.component.numberInfo.minValue != null) {
-      min = this.component.numberInfo.minValue;
+    if (minValue != null) {
+      parts.push(this.translateService.instant('Hint.Numeric.Minimum', { minValue }));
     }
-
-    if (this.component.numberInfo.maxValue != null) {
-      max = this.component.numberInfo.maxValue;
+    if (maxValue != null) {
+      parts.push(this.translateService.instant('Hint.Numeric.Maximum', { maxValue }));
     }
-
-    if (min != null || max != null) {
-      if (min != null) {
-        s += 'min: ' + min + '; ';
-      }
-
-      if (max != null) {
-        s += 'max: ' + max + ';';
-      }
-    }
-    const decimalPlace = this.component.numberInfo.decimalPlace;
-
     if (decimalPlace != null) {
-      s += ' max ' + decimalPlace + ' decimals;';
+      parts.push(this.translateService.instant('Hint.Numeric.DecimalPlaces', { decimalPlace }));
     }
-    return s;
+
+    return parts.join(', ');
   }
 }

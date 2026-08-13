@@ -1,0 +1,24 @@
+parent_sample_id type=textfield single required
+lab_id type=textfield single
+preparation_protocol_doi type=link single required
+dataset_type type=controlled single required branches=1
+analyte_class type=controlled single required branches=1
+is_targeted type=radio single required choices=2
+acquisition_instrument_vendor type=controlled single required branches=1
+acquisition_instrument_model type=controlled single required branches=1
+source_storage_duration_value type=numeric single required num=xsd:decimal
+source_storage_duration_unit type=controlled single required branches=1
+time_since_acquisition_instrument_calibration_value type=numeric single num=xsd:decimal
+time_since_acquisition_instrument_calibration_unit type=controlled single branches=1
+contributors_path type=textfield single required
+data_path type=textfield single required
+total_run_time_value type=numeric single required num=xsd:decimal
+total_run_time_unit type=controlled single required branches=1
+number_of_antibodies type=numeric single required num=xsd:int
+number_of_channels type=numeric single required num=xsd:int
+slide_id type=textfield single required
+data_precision_bytes type=numeric single required num=xsd:int
+ablation_frequency_value type=numeric single required num=xsd:int
+ablation_frequency_unit type=controlled single required branches=1
+antibodies_path type=textfield single required
+metadata_schema_id type=textfield single required

@@ -1,32 +1,70 @@
 <div class="flex-container">
-  <ng-container class="component-title">
-    <i *ngIf="isRor" class="ai ai-ror"></i>
-    <i *ngIf="isOrcid" class="ai ai-orcid"></i>
-    &nbsp;
-  {{cds.getRenderingLabelForComponent(component)}}
-
-  <span *ngIf="shouldRenderRequiredMark">
-    <sup style="font-size: medium; color: red" aria-label="required"><b>*</b></sup>
-  </span>
-  <span class="flex-child" *ngIf="component.isMultiPage() && !readOnlyMode">
-    &nbsp;({{multiComponent.multiInfo.getSafeMinItems()}}
-     ..
-    <span *ngIf="multiComponent.multiInfo.maxItems">
-      {{multiComponent.multiInfo.maxItems}}
+  @if (isRor) {
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="ror-icon"></i></span>
+  }
+  @if (isOrcid) {
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="orcid-icon"></i></span>
+  }
+  @if (isPfas) {
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="pfas-icon"></i></span>
+  }
+  @if (isPmid) {
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="pmid-icon"></i></span>
+  }
+  @if (isRrid) {
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="rrid-icon"></i></span>
+  }
+  @if (isNihGrant) {
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="nih-grant-icon"></i></span>
+  }
+  @if (isDoi) {
+    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="doi-icon"></i></span>
+  }
+  @if (fieldTypeIcon) {
+    <span class="field-icon-slot" [class.ontology-icon-slot]="isOntologyField" aria-hidden="true" data-field-type-icon>
+      <span class="material-icons field-type-icon">{{ fieldTypeIcon }}</span>
     </span>
-    <span *ngIf="!multiComponent.multiInfo.maxItems" matTooltip="{{'Generic.Infinite' | translate}}">
-      ∞
-    </span>)
+  }
+
+  <span class="title">
+    {{ cds.getRenderingLabelForComponent(component) }}
+    @if (shouldRenderRequiredMark) {
+      <span>
+        <sup class="required-mark" aria-label="required"><b>*</b></sup>
+      </span>
+    }
+    @if (component.isMultiPage() && !readOnlyMode && multiComponent) {
+      <span class="flex-child">
+        &nbsp;({{ multiComponent.multiInfo.getSafeMinItems() }}
+        ..
+        @if (multiComponent.multiInfo.maxItems) {
+          <span>
+            {{ multiComponent.multiInfo.maxItems }}
+          </span>
+        }
+        @if (!multiComponent.multiInfo.maxItems) {
+          <span matTooltip="{{ 'Generic.Infinite' | translate }}"> ∞ </span>
+        }
+        )
+      </span>
+    }
   </span>
-  <mat-icon *ngIf="component.labelInfo.description && component.labelInfo.description !== 'Help Text'"
-            matTooltip="{{component.labelInfo.description}}"
-            matTooltipClass="tooltip"
-            matTooltipPosition="right"
-            aria-hidden="false"
-            aria-labelledby="description"
-            class="icon-help icon-questionmark"
-            role="tooltip"
-            inline="false">help</mat-icon>
-  </ng-container>
-  <span id="Description of {{cds.getRenderingLabelForComponent(component)}}" class="cdk-visually-hidden">{{component.labelInfo.description}}</span>
+
+  @if (component.labelInfo.description && component.labelInfo.description !== 'Help Text') {
+    <mat-icon
+      matTooltip="{{ component.labelInfo.description }}"
+      matTooltipClass="tooltip"
+      matTooltipPosition="right"
+      aria-hidden="false"
+      aria-labelledby="description"
+      class="icon-help icon-questionmark"
+      role="tooltip"
+      inline="false"
+      >help</mat-icon
+    >
+  }
+
+  <span id="Description of {{ cds.getRenderingLabelForComponent(component) }}" class="cdk-visually-hidden">{{
+    component.labelInfo.description
+  }}</span>
 </div>

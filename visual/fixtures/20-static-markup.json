@@ -1,0 +1,425 @@
+{
+  "@id": "https://repo.metadatacenter.org/templates/e8a922c3-0000-4000-8000-e8a922c30000",
+  "@type": "https://schema.metadatacenter.org/core/Template",
+  "@context": {
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "bibo": "http://purl.org/ontology/bibo/",
+    "oslc": "http://open-services.net/ns/core#",
+    "schema": "http://schema.org/",
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    }
+  },
+  "type": "object",
+  "title": "StaticMarkup title",
+  "description": "StaticMarkup description",
+  "_ui": {
+    "order": [
+      "_section",
+      "_scripted",
+      "_inline",
+      "_video"
+    ],
+    "propertyLabels": {
+      "_section": "section",
+      "_scripted": "scripted",
+      "_inline": "inline",
+      "_video": "video"
+    },
+    "propertyDescriptions": {
+      "_section": "section property description",
+      "_scripted": "scripted property description",
+      "_inline": "inline property description",
+      "_video": "video property description"
+    }
+  },
+  "properties": {
+    "@context": {
+      "type": "object",
+      "properties": {
+        "rdfs": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://www.w3.org/2000/01/rdf-schema#"
+          ]
+        },
+        "xsd": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://www.w3.org/2001/XMLSchema#"
+          ]
+        },
+        "pav": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://purl.org/pav/"
+          ]
+        },
+        "schema": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://schema.org/"
+          ]
+        },
+        "oslc": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://open-services.net/ns/core#"
+          ]
+        },
+        "skos": {
+          "type": "string",
+          "format": "uri",
+          "enum": [
+            "http://www.w3.org/2004/02/skos/core#"
+          ]
+        },
+        "rdfs:label": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:string"
+              ]
+            }
+          }
+        },
+        "schema:isBasedOn": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "@id"
+              ]
+            }
+          }
+        },
+        "schema:name": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:string"
+              ]
+            }
+          }
+        },
+        "schema:description": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:string"
+              ]
+            }
+          }
+        },
+        "pav:derivedFrom": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "@id"
+              ]
+            }
+          }
+        },
+        "pav:createdOn": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:dateTime"
+              ]
+            }
+          }
+        },
+        "pav:createdBy": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "@id"
+              ]
+            }
+          }
+        },
+        "pav:lastUpdatedOn": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:dateTime"
+              ]
+            }
+          }
+        },
+        "oslc:modifiedBy": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "@id"
+              ]
+            }
+          }
+        },
+        "skos:notation": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "type": "string",
+              "enum": [
+                "xsd:string"
+              ]
+            }
+          }
+        }
+      },
+      "required": [
+        "xsd",
+        "pav",
+        "schema",
+        "oslc",
+        "schema:isBasedOn",
+        "schema:name",
+        "schema:description",
+        "pav:createdOn",
+        "pav:createdBy",
+        "pav:lastUpdatedOn",
+        "oslc:modifiedBy"
+      ],
+      "additionalProperties": false
+    },
+    "@id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "@type": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "uniqueItems": true
+        }
+      ]
+    },
+    "schema:isBasedOn": {
+      "type": "string",
+      "format": "uri"
+    },
+    "schema:name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema:description": {
+      "type": "string"
+    },
+    "pav:derivedFrom": {
+      "type": "string",
+      "format": "uri"
+    },
+    "pav:createdOn": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "pav:createdBy": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "pav:lastUpdatedOn": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "oslc:modifiedBy": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uri"
+    },
+    "_section": {
+      "@id": "https://repo.metadatacenter.org/template-fields/fcdd0ccc-0000-4000-8000-fcdd0ccc0000",
+      "@type": "https://schema.metadatacenter.org/core/StaticTemplateField",
+      "@context": {
+        "schema": "http://schema.org/",
+        "pav": "http://purl.org/pav/",
+        "bibo": "http://purl.org/ontology/bibo/",
+        "oslc": "http://open-services.net/ns/core#"
+      },
+      "type": "object",
+      "title": "section title",
+      "description": "section description",
+      "_ui": {
+        "inputType": "section-break"
+      },
+      "schema:name": "Heading <img data-static-markup src=\"./does-not-exist.png\" onerror=\"window.__staticMarkupRan = true\"><b data-static-markup>bold</b>",
+      "schema:description": "Help <img data-static-markup src=\"./does-not-exist.png\" onerror=\"window.__staticMarkupRan = true\"><b data-static-markup>bold</b>",
+      "pav:createdOn": "2026-01-01T00:00:00-08:00",
+      "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+      "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "schema:schemaVersion": "1.6.0",
+      "additionalProperties": false,
+      "pav:version": "0.0.1",
+      "bibo:status": "bibo:draft",
+      "$schema": "http://json-schema.org/draft-04/schema#"
+    },
+    "_scripted": {
+      "@id": "https://repo.metadatacenter.org/template-fields/7082493b-0000-4000-8000-7082493b0000",
+      "@type": "https://schema.metadatacenter.org/core/StaticTemplateField",
+      "@context": {
+        "schema": "http://schema.org/",
+        "pav": "http://purl.org/pav/",
+        "bibo": "http://purl.org/ontology/bibo/",
+        "oslc": "http://open-services.net/ns/core#"
+      },
+      "type": "object",
+      "title": "scripted title",
+      "description": "scripted description",
+      "_ui": {
+        "inputType": "image",
+        "_content": "javascript:window.__staticMarkupRan = true"
+      },
+      "schema:name": "scripted",
+      "schema:description": null,
+      "pav:createdOn": "2026-01-01T00:00:00-08:00",
+      "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+      "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "schema:schemaVersion": "1.6.0",
+      "additionalProperties": false,
+      "pav:version": "0.0.1",
+      "bibo:status": "bibo:draft",
+      "$schema": "http://json-schema.org/draft-04/schema#"
+    },
+    "_inline": {
+      "@id": "https://repo.metadatacenter.org/template-fields/c2cb5034-0000-4000-8000-c2cb50340000",
+      "@type": "https://schema.metadatacenter.org/core/StaticTemplateField",
+      "@context": {
+        "schema": "http://schema.org/",
+        "pav": "http://purl.org/pav/",
+        "bibo": "http://purl.org/ontology/bibo/",
+        "oslc": "http://open-services.net/ns/core#"
+      },
+      "type": "object",
+      "title": "inline title",
+      "description": "inline description",
+      "_ui": {
+        "inputType": "image",
+        "_content": "data:text/html;base64,PHNjcmlwdD53aW5kb3cuX19zdGF0aWNNYXJrdXBSYW4gPSB0cnVlPC9zY3JpcHQ+"
+      },
+      "schema:name": "inline",
+      "schema:description": null,
+      "pav:createdOn": "2026-01-01T00:00:00-08:00",
+      "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+      "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "schema:schemaVersion": "1.6.0",
+      "additionalProperties": false,
+      "pav:version": "0.0.1",
+      "bibo:status": "bibo:draft",
+      "$schema": "http://json-schema.org/draft-04/schema#"
+    },
+    "_video": {
+      "@id": "https://repo.metadatacenter.org/template-fields/cef90b6c-0000-4000-8000-cef90b6c0000",
+      "@type": "https://schema.metadatacenter.org/core/StaticTemplateField",
+      "@context": {
+        "schema": "http://schema.org/",
+        "pav": "http://purl.org/pav/",
+        "bibo": "http://purl.org/ontology/bibo/",
+        "oslc": "http://open-services.net/ns/core#"
+      },
+      "type": "object",
+      "title": "video title",
+      "description": "video description",
+      "_ui": {
+        "inputType": "youtube",
+        "_content": "https://youtube.com.evil.example/watch?v=<img data-static-markup src=\"./does-not-exist.png\" onerror=\"window.__staticMarkupRan = true\"><b data-static-markup>bold</b>"
+      },
+      "schema:name": "video",
+      "schema:description": null,
+      "pav:createdOn": "2026-01-01T00:00:00-08:00",
+      "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+      "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+      "schema:schemaVersion": "1.6.0",
+      "additionalProperties": false,
+      "pav:version": "0.0.1",
+      "bibo:status": "bibo:draft",
+      "$schema": "http://json-schema.org/draft-04/schema#"
+    }
+  },
+  "required": [
+    "@context",
+    "@id",
+    "schema:isBasedOn",
+    "schema:name",
+    "schema:description",
+    "pav:createdOn",
+    "pav:createdBy",
+    "pav:lastUpdatedOn",
+    "oslc:modifiedBy"
+  ],
+  "additionalProperties": false,
+  "schema:name": "StaticMarkup",
+  "schema:description": "Static labels and URLs carrying executable markup",
+  "pav:createdOn": "2026-01-01T00:00:00-08:00",
+  "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "pav:version": "0.0.1",
+  "bibo:status": "bibo:draft",
+  "schema:schemaVersion": "1.6.0",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

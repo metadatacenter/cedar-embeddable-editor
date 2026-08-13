@@ -1,0 +1,26 @@
+type: "template"
+name: "Template with multi field"
+id: "https://repo.metadatacenter.org/templates/a4b6bc3a-dc47-4af1-9b7b-61fbdf1c4dce"
+status: "draft"
+version: "0.0.1"
+modelVersion: "1.6.0"
+createdOn: "2024-02-29T00:03:54-08:00"
+createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+modifiedOn: "2024-02-29T00:03:54-08:00"
+modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+children:
+  - key: "Textfield"
+    type: "text-field"
+    name: "Textfield"
+    description: "Help Text"
+    id: "https://repo.metadatacenter.org/template-fields/16ae272a-364c-4770-a6d2-f9c2685de5c4"
+    modelVersion: "1.6.0"
+    createdOn: "2024-02-29T00:03:54-08:00"
+    createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+    modifiedOn: "2024-02-29T00:03:54-08:00"
+    modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
+    configuration:
+      propertyIri: "https://schema.metadatacenter.org/properties/40db89ca-fe47-4756-ad4d-5519697d2827"
+      multiple: true
+      minItems: 0
+      maxItems: 7

@@ -1,0 +1,56 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    /*
+     * On, like the root projects. This declares its own options rather than
+     * extending `tsconfig.base.json`, for the `paths` reason given below — which
+     * meant the claim that the repository is strict throughout had a hole in the
+     * one project written to outlive framework upgrades.
+     *
+     * Turning it on reported 94 errors: 57 possibly-null or possibly-undefined,
+     * 28 implicit-`any` index reads, and 9 argument and overload mismatches.
+     * Almost all of them were one shape — a spec reaching into
+     * `driver.dataContext.instanceFullData`, which is `InstanceObject | null`,
+     * and then indexing an `InstanceNode` union that a key cannot address. The
+     * fix is `harness/src/nodes.ts`, which navigates through the model's own
+     * guards and fails with the path when the shape is not what the spec claims.
+     */
+    "strict": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    /*
+     * Kept here, unlike in the root projects, and for a reason that does not
+     * expire: `paths` below points `@angular/core` at a local stub. Every `.d.ts`
+     * in node_modules that imports from `@angular/core` — `@ngx-translate` first
+     * among them — then resolves against the stub and reports missing exports it
+     * was never meant to have. Checking those declarations would measure the stub
+     * against Angular's API, which is the opposite of the point.
+     */
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "types": ["node", "vitest/globals"],
+    /*
+     * No `baseUrl`: TypeScript 6 deprecates it and 7 stops honouring it, and the
+     * mappings below are already written relative to this file, which is where
+     * `paths` resolves from without it.
+     *
+     * Removing it made this project type-check for the first time. TS5101 is a
+     * configuration error, and tsc reports those instead of checking the program —
+     * so `tsc -p harness/tsconfig.json` reported one problem and looked clean. It
+     * now reports the 25 real ones underneath, most of them the Angular stub in
+     * `stubs/` not exporting what the shared code imports. Those are fixed, and
+     * `npm run typecheck` runs this project in the gate — vitest itself never
+     * type-checks, so without that step none of this would be enforced.
+     */
+    "paths": {
+      "@cee/*": ["../src/app/modules/shared/*"],
+      "@angular/core": ["./stubs/angular-core.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts", "stubs/**/*.ts", "vitest.config.ts"]
+}

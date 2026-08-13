@@ -1,0 +1,2 @@
+My checkbox 1 type=checkbox multi required min=1 choices=4
+My checkbox 2 type=checkbox multi min=0 choices=3

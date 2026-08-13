@@ -1,11 +1,10 @@
 {
   "App": {
     "Title": "CEDAR Beágyazható Szerkesztő",
-    "Maintained": "A CEDAR-t a Stanford Biomedikai Informatikai Kutatási Központ működteti.",
+    "Maintained": "A CEDAR-t a Stanford Számítógépes Medicina Osztály működteti.",
     "Contact": "Kapcsolat"
   },
   "Generic": {
-    "BMIR": "BMIR",
     "SAVE": "MENTÉS",
     "Infinite": "Végtelen",
     "ExpandAll": "Mindet kinyit",
@@ -19,15 +18,33 @@
     "AllValues": "Minden érték",
     "Clear": "Törlés",
     "SelectDecimalSeconds": "Tizedes másodpercek kiválasztása",
-    "SelectTimeZone": "Időzóna kiválasztása",
-    "NoTimeZoneFound": "Nem található időzóna",
+    "SelectUtcOffset": "UTC-eltolás kiválasztása",
     "SelectYear": "Év kiválasztása",
     "SelectYearAndMonth": "Év és hónap kiválasztása",
     "SelectDate": "Dátum kiválasztása",
     "NumberOnly": "Csak szám",
     "CedarLogo": "CEDAR logó",
     "DecimalSeconds": "tizedmásodpercek",
-    "Szűrés": "Kezdjen el írni a szűréshez"
+    "Filter": "Kezdjen el írni a szűréshez",
+    "OpenAuthorityPage": "A {{authority}} oldal megnyitása",
+    "FilterOrcid": "Kezdjen el írni kutatónevet vagy ORCID-ot",
+    "FilterRor": "Kezdjen el írni intézménynevet vagy ROR-t",
+    "FilterPfas": "Kezdjen el írni vegyszernevet vagy PFAS azonosítót",
+    "FilterPmid": "Kezdjen el írni publikációnevet vagy PubMed azonosítót",
+    "FilterRrid": "Kezdjen el írni kutatási erőforrás nevet vagy RRID-t",
+    "FilterNihGrant": "Kezdjen el írni támogatási adatokat vagy NIH Grant azonosítót",
+    "FilterDoi": "Kezdjen el írni publikációnevet vagy DOI-t",
+    "Time": "Idő",
+    "Hour": "Óra",
+    "Minute": "Perc",
+    "Second": "Másodperc",
+    "IncrementHour": "Óra növelése",
+    "DecrementHour": "Óra csökkentése",
+    "IncrementMinute": "Perc növelése",
+    "DecrementMinute": "Perc csökkentése",
+    "IncrementSecond": "Másodperc növelése",
+    "DecrementSecond": "Másodperc csökkentése",
+    "ToggleMeridian": "Váltás AM és PM között"
   },
   "Process": {
     "Initializing": "A CEDAR Beágyazható Szerkesztő inicializálása..."
@@ -39,7 +56,8 @@
     "DeleteCurrent": "Aktuális törlése"
   },
   "Error": {
-    "ValueRequired": "A mező kitöltése kötelező"
+    "ValueRequired": "A mező kitöltése kötelező",
+    "LookupFailed": "A keresés sikertelen: a szolgáltatás nem érhető el"
   },
   "Extra": {
     "SampleTemplate": {
@@ -53,9 +71,20 @@
       "Instance": "JSON-LD - Példány"
     },
     "JsonSchemaTemplate": "JSON Séma - Sablon",
+    "Yaml": {
+      "Instance": "YAML - Példány",
+      "Template": "YAML - Sablon"
+    },
     "TemplateRendering": "Sablon megjelenítési adatok",
     "MultiInstance": "Multi-példány információ",
     "DataQualityReport": "Adatminőségi riport"
+  },
+  "Hint": {
+    "Numeric": {
+      "Minimum": "Minimum: {{minValue}}",
+      "Maximum": "Maximum: {{maxValue}}",
+      "DecimalPlaces": "Tizedesjegyek: {{decimalPlace}}"
+    }
   },
   "Validation": {
     "Required": "Az érték megadása kötelező.",
@@ -72,9 +101,34 @@
     "Link": {
       "Invalid": "Az érték érvényes webcímnek (URL-nek) kell lennie."
     },
+    "Phone": {
+      "Invalid": "Az értéknek érvényes telefonszámnak kell lennie."
+    },
     "Numeric": {
       "MinValue": "Az érték legalább {{constraintMinValue}} kell legyen.",
       "MaxValue": "Az érték legfeljebb {{constraintMaxValue}} lehet."
-    }
+    },
+    "Time": {
+      "InvalidHour24": "Adjon meg egy órát 00 és 23 között. Az előző érték visszaállítva.",
+      "InvalidHour12": "Adjon meg egy órát 1 és 12 között. Az előző érték visszaállítva.",
+      "InvalidMinute": "Adjon meg egy percet 00 és 59 között. Az előző érték visszaállítva.",
+      "InvalidSecond": "Adjon meg egy másodpercet 00 és 59 között. Az előző érték visszaállítva."
+    },
+    "OrcidInvalid": "A megadott érték nem érvényes ORCID, ezért törlésre került.",
+    "OrcidReverted": "Érvénytelen ORCID, a módosítás elvetve; az utolsó érvényes ORCID visszaállítva.",
+    "RorInvalid": "A megadott érték nem érvényes ROR, ezért törlésre került.",
+    "RorReverted": "Érvénytelen ROR, a módosítás elvetve; az utolsó érvényes ROR visszaállítva.",
+    "PfasInvalid": "A megadott érték nem érvényes PFAS azonosító, ezért törlésre került.",
+    "PfasReverted": "Érvénytelen PFAS, a módosítás elvetve; az utolsó érvényes PFAS azonosító visszaállítva.",
+    "PmidInvalid": "A megadott érték nem érvényes PubMed azonosító, ezért törlésre került.",
+    "PmidReverted": "Érvénytelen PubMed azonosító, a módosítás elvetve; az utolsó érvényes PubMed azonosító visszaállítva.",
+    "RridInvalid": "A megadott érték nem érvényes RRID, ezért törlésre került.",
+    "RridReverted": "Érvénytelen RRID, a módosítás elvetve; az utolsó érvényes RRID visszaállítva.",
+    "NihGrantInvalid": "A megadott érték nem érvényes NIH Grant azonosító, ezért törlésre került.",
+    "NihGrantReverted": "Érvénytelen NIH Grant azonosító, a módosítás elvetve; az utolsó érvényes NIH Grant azonosító visszaállítva.",
+    "ControlledTermInvalid": "A megadott érték nem a megengedett halmaz eleme, ezért törölve lett.",
+    "ControlledTermReverted": "Nem a megengedett halmaz eleme, a szerkesztés elvetve; visszaállítva az utolsó érvényes érték.",
+    "DoiInvalid": "A megadott érték nem érvényes DOI, ezért törlésre került.",
+    "DoiReverted": "Érvénytelen DOI, a módosítás elvetve; az utolsó érvényes DOI visszaállítva."
   }
 }

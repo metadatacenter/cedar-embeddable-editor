@@ -1,47 +1,43 @@
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
-import { ErrorStateMatcher } from '@angular/material/core';
 import { InputType } from '../../../shared/models/input-type.model';
-import { CedarEmbeddableMetadataEditorComponent } from '../../../shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { HtmlDetectService } from '../../../shared/service/html-detect.service';
-
-export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
-    return !!(control && control.invalid && (control.dirty || control.touched));
-  }
-}
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { IriPrefix } from '../../../shared/util/iri-prefix';
 
 @Component({
   selector: 'app-cedar-input-text',
   templateUrl: './cedar-input-text.component.html',
   styleUrls: ['./cedar-input-text.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CedarInputTextComponent extends CedarUIDirective implements OnInit {
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
-  inputValueControl = new FormControl(null, null);
-  errorStateMatcher = new TextFieldErrorStateMatcher();
-  constraintMinLength = null;
-  constraintMaxLength = null;
-  @Input() handlerContext: HandlerContext;
+  inputValueControl = new FormControl<string | null>(null, null);
+  constraintMinLength: number | null = null;
+  constraintMaxLength: number | null = null;
+  @Input({ required: true }) handlerContext!: HandlerContext;
   inputText = InputType.text;
   inputTextarea = InputType.textarea;
   isRichText: boolean = false;
   isOrcid: boolean = false;
   isRor: boolean = false;
-  originalValue = null;
+  originalValue: string | null = null;
 
   constructor(
     fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private htmlDetectService: HtmlDetectService,
+    private iriPrefix: IriPrefix,
   ) {
     super();
     this.options = fb.group({
@@ -49,81 +45,79 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     });
   }
 
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
-    const validators: any[] = [];
+    const validators: ValidatorFn[] = [];
     this.constraintMinLength = this.component.valueInfo.minLength;
 
-    if (this.constraintMinLength != null) {
-      validators.push(Validators.minLength(this.constraintMinLength));
-    }
     this.constraintMaxLength = this.component.valueInfo.maxLength;
-
-    if (this.constraintMaxLength != null) {
-      validators.push(Validators.maxLength(this.constraintMaxLength));
-    }
 
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
-    this.inputValueControl = new FormControl(null, validators);
+    validators.push(CedarValidators.forComponent(this.component));
+    this.inputValueControl = new FormControl<string | null>(null, validators);
 
-    if (this.component.valueInfo.defaultValue != null) {
-      if (this.inputValueControl.getRawValue() == '') {
-        this.setValueUIAndModel(this.component.valueInfo.defaultValue);
-      }
+    // `typeof`, not a cast: on a literal field the declared default is text, and a
+    // template that puts a term node here is declaring something this field cannot
+    // hold — which is now skipped rather than assigned as `[object Object]`.
+    const declaredDefault = this.component.valueInfo.defaultValue;
+    if (typeof declaredDefault === 'string' && this.inputValueControl.getRawValue() == '') {
+      this.setValueUIAndModel(declaredDefault);
     }
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  checkHTMLContent(value) {
+  checkHTMLContent(value: string): void {
     if (this.htmlDetectService.isHtmlString(value)) {
       this.isRichText = true;
     }
   }
   protected override onReadOnlyModeChange(mode: boolean): void {
     if (mode) {
-      this.checkHTMLContent(this.inputValueControl.value);
+      this.checkHTMLContent(this.inputValueControl.value ?? '');
     } else {
       this.isRichText = false;
     }
   }
   inputChanged($event: Event): void {
-    let val = ($event.target as HTMLTextAreaElement).value;
-    if (val.length === 0) {
-      val = null;
-    }
-    this.handlerContext.changeValue(this.component, val);
+    // An emptied box clears the field rather than storing '', which is what the
+    // instance means by an unfilled slot.
+    const typed = ($event.target as HTMLTextAreaElement).value;
+    this.handlerContext.changeValue(this.component, typed.length === 0 ? null : typed);
   }
 
-  setCurrentValue(currentValue: any): void {
-    if (this.readOnlyMode) {
+  setCurrentValue(currentValue: unknown): void {
+    // Narrowed once, at the top. Everything in here reads the value as text — the
+    // HTML sniff and both IRI patterns — so proving it is a string here replaces the
+    // two `as string` casts that used to state the same fact twice.
+    if (this.readOnlyMode && typeof currentValue === 'string') {
       this.checkHTMLContent(currentValue);
       if (this.checkOrcid(currentValue)) {
         this.isOrcid = true;
-        this.originalValue = currentValue as string;
+        this.originalValue = currentValue;
         currentValue = currentValue.split('/').pop();
       } else if (this.checkRor(currentValue)) {
         this.isRor = true;
-        this.originalValue = currentValue as string;
+        this.originalValue = currentValue;
         currentValue = currentValue.split('/').pop();
       }
     }
-    this.inputValueControl.setValue(currentValue);
+    this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
   }
 
-  checkOrcid(value): boolean {
-    const pattern = CedarEmbeddableMetadataEditorComponent.orcidPrefix;
+  checkOrcid(value: string): boolean {
+    const pattern = this.iriPrefix.getOrcidPrefix();
     const orcidReg = new RegExp(`^${pattern}`);
     return orcidReg.test(value);
   }
 
-  checkRor(value): boolean {
-    const pattern = CedarEmbeddableMetadataEditorComponent.rorPrefix;
+  checkRor(value: string): boolean {
+    const pattern = this.iriPrefix.getRorPrefix();
     const orcidReg = new RegExp(`^${pattern}`);
     return orcidReg.test(value);
   }
@@ -131,7 +125,7 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     this.setValueUIAndModel(null);
   }
 
-  private setValueUIAndModel(value: string): void {
+  private setValueUIAndModel(value: string | null): void {
     this.inputValueControl.setValue(value);
     this.handlerContext.changeValue(this.component, value);
   }
@@ -164,7 +158,9 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
   }
 
   goToLink() {
-    window.open(this.originalValue, '_blank');
+    if (this.originalValue !== null) {
+      window.open(this.originalValue, '_blank');
+    }
   }
 
   protected readonly window = window;

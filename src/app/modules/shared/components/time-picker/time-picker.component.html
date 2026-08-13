@@ -1,0 +1,87 @@
+@if (!readOnlyMode) {
+  <div
+    class="cee-time-picker"
+    [class.cee-time-picker-filled]="hasValue"
+    role="group"
+    attr.aria-label="{{ 'Generic.Time' | translate }}"
+  >
+    <div class="cee-time-input-shell">
+      <input
+        class="cee-time-segment cee-time-segment-hour"
+        type="text"
+        inputmode="numeric"
+        maxlength="2"
+        [value]="hasValue ? hourText : ''"
+        placeholder="HH"
+        (input)="hourChanged($any($event.target).value)"
+        (keydown)="segmentKeydown($event, 'hour')"
+        (blur)="segmentBlur($event, 'hour')"
+        attr.aria-label="{{ 'Generic.Hour' | translate }}"
+      />
+      @if (!disableMinute) {
+        <span class="cee-time-separator" aria-hidden="true">:</span>
+        <input
+          class="cee-time-segment cee-time-segment-minute"
+          type="text"
+          inputmode="numeric"
+          maxlength="2"
+          [value]="hasValue ? minuteText : ''"
+          placeholder="MM"
+          (input)="minuteChanged($any($event.target).value)"
+          (keydown)="segmentKeydown($event, 'minute')"
+          (blur)="segmentBlur($event, 'minute')"
+          attr.aria-label="{{ 'Generic.Minute' | translate }}"
+        />
+        @if (showSeconds) {
+          <span class="cee-time-separator" aria-hidden="true">:</span>
+          <input
+            class="cee-time-segment cee-time-segment-second"
+            type="text"
+            inputmode="numeric"
+            maxlength="2"
+            [value]="hasValue ? secondText : ''"
+            placeholder="SS"
+            (input)="secondChanged($any($event.target).value)"
+            (keydown)="segmentKeydown($event, 'second')"
+            (blur)="segmentBlur($event, 'second')"
+            attr.aria-label="{{ 'Generic.Second' | translate }}"
+          />
+        }
+      }
+    </div>
+    @if (enableMeridian) {
+      <button
+        type="button"
+        mat-stroked-button
+        class="cee-time-meridian"
+        (click)="toggleMeridian()"
+        attr.aria-label="{{ 'Generic.ToggleMeridian' | translate }}"
+      >
+        {{ meridian }}
+      </button>
+    }
+    @if (restoredSegment === 'hour') {
+      <div class="cee-time-validation" role="alert">
+        {{ (enableMeridian ? 'Validation.Time.InvalidHour12' : 'Validation.Time.InvalidHour24') | translate }}
+      </div>
+    }
+    @if (restoredSegment === 'minute') {
+      <div class="cee-time-validation" role="alert">{{ 'Validation.Time.InvalidMinute' | translate }}</div>
+    }
+    @if (restoredSegment === 'second') {
+      <div class="cee-time-validation" role="alert">{{ 'Validation.Time.InvalidSecond' | translate }}</div>
+    }
+  </div>
+}
+
+@if (readOnlyMode) {
+  <span
+    class="cee-time-picker-readonly"
+    [class.cee-time-picker-readonly-hour-only]="disableMinute"
+    [class.cee-time-picker-readonly-seconds]="showSeconds"
+    [class.cee-time-picker-readonly-meridian]="enableMeridian"
+    attr.aria-label="{{ 'Generic.Time' | translate }}"
+  >
+    {{ hasValue ? displayValue : '' }}
+  </span>
+}

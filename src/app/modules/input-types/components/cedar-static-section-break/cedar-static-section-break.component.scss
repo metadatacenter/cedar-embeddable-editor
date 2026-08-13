@@ -1,10 +1,20 @@
-h1 {
-  margin-bottom:0 !important;
-}
+@use '../../../../../cee-tokens' as tokens;
+
 .section-break-header {
+  box-sizing: border-box;
   background-color: silver;
-  padding: 3px 3px 3px 10px;
+  padding: 6px 12px;
   border-radius: 5px;
-  margin-bottom: 5px !important;
-  margin-top: 5px !important;
+  margin: 5px 0;
+  /*
+   * 20px, from the scale, rather than 1.25rem.
+   *
+   * Same size in a page whose root is 16px, and the same size in one whose root
+   * is not — which is the whole difference. A reviewer reading this heading as
+   * small is what a rem-sized heading looks like in a host that shrinks its root,
+   * and CEE cannot see that it happened.
+   */
+  font-size: tokens.$cee-font-size-heading;
+  font-weight: 600;
+  line-height: 1.4;
 }

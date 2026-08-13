@@ -1,43 +1,87 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  Input,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormGroupDirective,
+  NgForm,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
+import { AuthoritySearchControl } from '../../../shared/util/authority-search-control';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
+import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { Observable, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
-import { IntegratedSearchResponseItem } from '../../../shared/models/rest/integrated-search/integrated-search-response-item';
-import { JsonSchema } from '../../../shared/models/json-schema.model';
+import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
+import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
+import { isAuthorityTerm } from '../../../shared/models/authority/authority-term.guard';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { CedarEmbeddableMetadataEditorComponent } from '../../../shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
+import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { IriPrefix } from '../../../shared/util/iri-prefix';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 }
-
 @Component({
   selector: 'app-cedar-input-controlled',
   templateUrl: './cedar-input-controlled.component.html',
   styleUrls: ['./cedar-input-controlled.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CedarInputControlledComponent extends CedarUIDirective implements OnInit, AfterViewInit {
-  @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger: MatAutocompleteTrigger;
-  selectedData: IntegratedSearchResponseItem;
-  component: FieldComponent;
-  options: FormGroup;
-  inputValueControl = new FormControl(null, null);
-  errorStateMatcher = new TextFieldErrorStateMatcher();
-  @Input() handlerContext: HandlerContext;
-  model: IntegratedSearchResponseItem = null;
-  bioPortalTermLink: string = null;
+  /**
+   * Undefined until the view exists, and for good in read-only mode — the
+   * autocomplete input the trigger reads sits behind an `@if` on it. ORCID and
+   * ROR already tested for that; the other two reached through it inside a
+   * `!readOnlyMode` guard, which is the same fact stated less directly.
+   */
+  @ViewChild('autoCompleteInput', { static: false, read: MatAutocompleteTrigger }) trigger?: MatAutocompleteTrigger;
+  selectedData: AuthorityTerm | null = null;
 
-  filteredOptions: Observable<IntegratedSearchResponseItem[]>;
+  /**
+   * A press has begun on a suggestion, so the blur it causes is not the user
+   * leaving the field. The same name and rule the seven authority widgets carry
+   * — added here with the blur handling, because a blur that reconciles without
+   * this guard clears the very term being clicked.
+   */
+  private selectionInProgress = false;
+
+  /** Shown once free text has actually been discarded, not before. */
+  justReverted = false;
+  justCleared = false;
+  component!: FieldComponent;
+  options: FormGroup;
+  inputValueControl = new FormControl<string | null>(null, null);
+  errorStateMatcher = new TextFieldErrorStateMatcher();
+  @Input({ required: true }) handlerContext!: HandlerContext;
+  model: AuthorityTerm | null = null;
+  /**
+   * An empty list until `ngOnInit` builds the search pipeline, and for good in
+   * read-only mode, where there is no autocomplete to feed. A real observable
+   * rather than nothing, so the template's async pipe always has one to read.
+   */
+  filteredOptions: Observable<AuthorityTerm[]> = of([]);
+  loading = false;
+  /** Whether the last lookup failed, as opposed to matching nothing. */
+  lookupFailed = false;
 
   constructor(
     fb: FormBuilder,
@@ -45,149 +89,220 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     private activeComponentRegistry: ActiveComponentRegistryService,
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
+    private iriPrefix: IriPrefix,
   ) {
     super();
     this.options = fb.group({
       inputValue: this.inputValueControl,
     });
   }
-
-  ngOnInit(): void {
+  override ngOnInit(): void {
     super.ngOnInit();
-    const validators: any[] = [];
+    const validators: ValidatorFn[] = [];
 
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
     }
-    this.inputValueControl = new FormControl(null, validators);
+    validators.push(CedarValidators.forComponent(this.component));
+    this.inputValueControl = new FormControl<string | null>(null, validators);
 
-    if (
-      this.component.valueInfo.defaultValue &&
-      typeof this.component.valueInfo.defaultValue === 'object' &&
-      Object.hasOwn(this.component.valueInfo.defaultValue as object, JsonSchema.termUri)
-    ) {
-      this.setValueUIAndModel(
-        this.component.valueInfo.defaultValue ? this.component.valueInfo.defaultValue[JsonSchema.termUri] : null,
-        this.component.valueInfo.defaultValue ? this.component.valueInfo.defaultValue[JsonSchema.rdfsLabel] : null,
-      );
+    const declaredDefault = this.component.valueInfo.defaultValue;
+    if (isAuthorityTerm(declaredDefault)) {
+      this.setValueUIAndModel(declaredDefault.iri, declaredDefault.label);
     }
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
         startWith(''),
         debounceTime(400),
         distinctUntilChanged(),
+        tap(() => (this.loading = true)),
         switchMap((val) => {
-          return this.filter(val || '');
+          this.lookupFailed = false;
+          return this.filter(val || '').pipe(
+            /**
+             * Without this, a failing terminology server did not merely go
+             * unreported: the error reached `valueChanges`, which ends the
+             * observable, so the field's autocomplete stopped working for the
+             * rest of the session and only a reload brought it back. Catching
+             * here keeps the stream alive and records what happened.
+             */
+            catchLookupFailure<AuthorityTerm>((error) => {
+              this.lookupFailed = true;
+              this.messageHandlerService.errorObject(`terminology lookup failed for "${val}"`, error as object);
+            }),
+            finalize(() => (this.loading = false)),
+          );
         }),
       );
     }
   }
-
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
-      this.trigger.panelClosingActions.subscribe((e) => {
-        this.setCurrentValue(this.selectedData.prefLabel);
+      this.trigger?.panelClosingActions.subscribe(() => {
+        if (this.selectedData !== null) {
+          this.setCurrentValue(this.selectedData.label);
+        }
       });
     }
   }
-
-  filter(val: string): Observable<IntegratedSearchResponseItem[]> {
-    // if (!val) {
-    //   return of([]);
-    // }
-    return this.controlledFieldDataService.getData(val, this.component).pipe(
-      map((response) => {
-        if (response == null) {
-          return [];
-        } else if (response.collection && Array.isArray(response.collection)) {
-          return response.collection.filter((option) => {
-            if (!option || !option.prefLabel) {
-              return false;
-            }
-            return option.prefLabel.toLowerCase().indexOf(val.toLowerCase()) >= 0;
-          });
-        } else {
-          const errorVal = val || 'empty string';
-          this.messageHandlerService.errorObject(errorVal, response);
-          return [];
-        }
-      }),
-    );
+  /**
+   * The offered terms, narrowed to those whose label matches what was typed.
+   *
+   * The endpoint is inconsistent about honouring the query, so the widget
+   * narrows the results itself — the same rule the seven authority widgets
+   * apply. A term with no label is dropped rather than shown blank.
+   */
+  filter(val: string): Observable<AuthorityTerm[]> {
+    return this.controlledFieldDataService
+      .getData(val, this.component)
+      .pipe(map((terms) => terms.filter((term) => term.label.toLowerCase().includes(val.toLowerCase()))));
   }
 
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  onSelectionChange(option: IntegratedSearchResponseItem): void {
-    this.handlerContext.changeControlledValue(this.component, option[JsonSchema.atId], option.prefLabel);
+  /** The hint stands for a few seconds, matching the authority widgets. */
+  private showRevertHint(): void {
+    this.justReverted = true;
+    setTimeout(() => {
+      this.justReverted = false;
+    }, 5000);
+  }
+
+  /** Bound to the option's `mousedown`, which precedes the blur it causes. */
+  selectionStarting(): void {
+    this.selectionInProgress = true;
+  }
+
+  onSelectionChange(option: AuthorityTerm): void {
+    this.selectionInProgress = false;
+    // `|| null` because a term arriving without a label is a state this component
+    // already handles — `filter` drops such items from the list — and null is what
+    // the model holds for a term whose label is unknown, rather than an empty string.
+    this.handlerContext.changeControlledValue(this.component, option.iri, option.label || null);
     if (option) {
       this.selectedData = option;
     }
   }
-
-  inputChanged(event): void {
+  inputChanged(event: Event): void {
     if (!(event.target as HTMLTextAreaElement).value) {
       this.clearValue();
     }
   }
 
-  inputFocused(): void {
-    if (!this.readOnlyMode) {
-      const currentValue = this.inputValueControl.value || '';
-      console.log('inputFocused=>filter', currentValue);
-      this.filteredOptions = this.filter(currentValue);
-      setTimeout(() => this.trigger.openPanel(), 0);
+  /**
+   * Reconcile the box with the term behind it when the user leaves.
+   *
+   * This widget had no blur handling at all, so text naming no term simply
+   * stayed in the field over an instance holding nothing — the field looked
+   * filled and read back blank. That is the defect the seven external-authority
+   * widgets were fixed for; this one searches BioPortal rather than an
+   * authority, and was never part of that pass.
+   *
+   * The rule itself is `AuthoritySearchControl.reconcileOnBlur`, unchanged and
+   * shared, so the two families cannot drift apart on what a blur means.
+   */
+  onInputBlur(): void {
+    if (this.readOnlyMode || this.selectionInProgress) {
+      return;
+    }
+    const outcome = AuthoritySearchControl.reconcileOnBlur(this.inputValueControl, this.selectedData?.label ?? null);
+    if (outcome === 'reverted') {
+      this.showRevertHint();
+    } else if (outcome === 'cleared') {
+      this.selectedData = null;
+      this.handlerContext.changeControlledValue(this.component, null, null);
+      this.showClearedWarning();
     }
   }
 
-  setCurrentValue(currentValue: any): void {
+  /** Explain a discarded value without leaving an already-cleared field invalid. */
+  private showClearedWarning(): void {
+    this.justCleared = true;
+    setTimeout(() => {
+      this.justCleared = false;
+    }, 5000);
+  }
+  // inputFocused(): void {
+  //   if (!this.readOnlyMode) {
+  //     const currentValue = this.inputValueControl.value || '';
+  //     this.filteredOptions = this.filter(currentValue);
+  //     setTimeout(() => this.trigger.openPanel(), 0);
+  //   }
+  // }
+  setCurrentValue(currentValue: unknown): void {
+    // Remember the term itself, not only its rendering. It is what the BioPortal
+    // link is built from, and read-write selection records it the same way.
+    if (isAuthorityTerm(currentValue)) {
+      this.selectedData = currentValue;
+    }
     if (this.readOnlyMode) {
       const displayTerm = this.getBioPortalTermDisplayValue(currentValue);
       this.inputValueControl.setValue(displayTerm);
     } else {
-      this.inputValueControl.setValue(currentValue);
+      this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
     }
   }
-
-  getBioPortalTermDisplayValue(value: any): string {
-    const controlledInfo = this.component.controlledInfo;
-    const rdfsLabel = value[JsonSchema?.rdfsLabel];
-    const atId = value[JsonSchema.atId];
-    const midPart = '?p=classes&conceptid=';
-    const urlEncodedAtId = encodeURIComponent(atId);
-
-    const branch = controlledInfo.branches[0];
-    const _class = controlledInfo.classes[0];
-    const ontology = controlledInfo.ontologies[0];
-    const bioPortalPrefix = CedarEmbeddableMetadataEditorComponent.bioPortalPrefix;
-
-    if (branch) {
-      this.bioPortalTermLink = branch['source'] + midPart + urlEncodedAtId;
-    } else if (_class) {
-      this.bioPortalTermLink = bioPortalPrefix + _class['source'] + midPart + urlEncodedAtId;
-    } else if (ontology) {
-      this.bioPortalTermLink = bioPortalPrefix + ontology['acronym'] + midPart + urlEncodedAtId;
-    }
-
-    if (rdfsLabel && atId) {
-      return rdfsLabel + ' - (' + atId + ')';
-    } else return value;
+  /*
+   * `unknown`, matching what `setCurrentValue` is handed. A controlled value arrives
+   * as a term; anything else — a plain string on a field whose constraint was
+   * removed — falls through the last branch and is shown as-is.
+   */
+  /**
+   * How a selected term reads in the box: "Label - https://iri".
+   *
+   * No parentheses around the IRI. This wrapped it — `label - (iri)` — where the
+   * seven external-authority fields render `label - iri`, and they are the same
+   * kind of value shown in the same kind of box, one row apart. `getCompoundValue`
+   * in `abstract-authority-input.component.ts` is the form they use.
+   */
+  getBioPortalTermDisplayValue(value: unknown): string {
+    const term = isAuthorityTerm(value) ? value : { iri: '', label: '' };
+    if (term.label && term.iri) {
+      return `${term.label} - ${term.iri}`;
+    } else return value as string;
   }
 
+  /**
+   * The BioPortal page for the term the field holds, or null when it holds none.
+   *
+   * Derived rather than assigned. It used to be set as a side effect of the
+   * function that formats the display text, and that function only runs in
+   * read-only mode — so the link existed in one mode and not the other for no
+   * reason anyone chose. The constraint the term came through decides which
+   * BioPortal path names it: a branch carries its own source, a class and an
+   * ontology are named under the configured prefix.
+   */
+  get bioPortalTermLink(): string | null {
+    const iri = this.selectedData?.iri;
+    if (!iri) {
+      return null;
+    }
+
+    const { branches, classes, ontologies } = this.component.controlledInfo;
+    const term = '?p=classes&conceptid=' + encodeURIComponent(iri);
+    const prefix = this.iriPrefix.getBioPortalPrefix();
+
+    if (branches[0]) {
+      return branches[0].source + term;
+    }
+    if (classes[0]) {
+      return prefix + classes[0].source + term;
+    }
+    if (ontologies[0]) {
+      return prefix + ontologies[0].acronym + term;
+    }
+    return null;
+  }
   clearValue(): void {
     this.selectedData = null;
     this.inputValueControl.setValue(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
-
-  private setValueUIAndModel(atId: string, prefLabel: string): void {
-    this.inputValueControl.setValue(prefLabel);
-    this.handlerContext.changeControlledValue(this.component, atId, prefLabel);
-  }
-
-  goToBioPortalTerm() {
-    window.open(this.bioPortalTermLink, '_blank');
+  private setValueUIAndModel(iri: string, label: string): void {
+    this.inputValueControl.setValue(label);
+    this.handlerContext.changeControlledValue(this.component, iri, label);
   }
 }

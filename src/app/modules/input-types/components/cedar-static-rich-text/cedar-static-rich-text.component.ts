@@ -1,4 +1,4 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -8,22 +8,24 @@ import { HandlerContext } from '../../../shared/util/handler-context';
   selector: 'app-cedar-static-rich-text',
   templateUrl: './cedar-static-rich-text.component.html',
   styleUrls: ['./cedar-static-rich-text.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CedarStaticRichTextComponent extends CedarUIDirective {
-  component: StaticFieldComponent;
-  @Input() handlerContext: HandlerContext;
+  component!: StaticFieldComponent;
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(private activeComponentRegistry: ActiveComponentRegistryService) {
     super();
   }
 
-  @Input() set componentToRender(componentToRender: StaticFieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: StaticFieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  setCurrentValue(currentValue: any): void {
+  setCurrentValue(_currentValue: unknown): void {
     // not applicable to rich text component
   }
 }

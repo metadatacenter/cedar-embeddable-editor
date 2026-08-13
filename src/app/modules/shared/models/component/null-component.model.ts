@@ -4,10 +4,12 @@ import { StaticFieldComponent } from '../static/static-field-component.model';
 
 export class NullComponent implements CedarComponent {
   className = 'NullComponent';
-  labelInfo: LabelInfo;
-  name: string;
-  path: string[];
-  linkedStaticFieldComponent: StaticFieldComponent;
+  labelInfo: LabelInfo = new LabelInfo();
+  name = '';
+  path: string[] = [];
+  linkedStaticFieldComponent: StaticFieldComponent | null = null;
+  hidden = false;
+  hiddenInTemplate = false;
 
   isMulti(): boolean {
     return false;

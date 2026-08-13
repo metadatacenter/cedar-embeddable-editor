@@ -1,37 +1,9 @@
-@import '../../../../../styles-common.scss';
-.fake-input {
-  padding: 4px;
-  width: 100%;
-  border-style: solid;
-  border-color: black;
-  border-width: thin;
-  border-radius: 5px;
-  text-decoration: none;
-  margin-top: 3px;
-  margin-bottom: 20px;
-  min-height: 20px;
-}
-
-.fake-input:hover {
-  border: 2px solid black;
-}
-
-.bio-portal-icon {
-  background-image: url($bio-portal-icon);
-  background-repeat: no-repeat;
-  background-size: 60px 20px;
-  display: inline-flex;
-  height: 20px;
-  width: 60px;
-  border: none;
-  cursor: pointer;
-  margin-right: 5px;
-  margin-top: 5px;
-  line-height: 20px;
-}
-
-.text-class {
-  padding: 5px;
-  vertical-align: super;
-  color: black;
-}
+/*
+ * Nothing of its own.
+ *
+ * This file held `.fake-input`, `.bio-portal-icon` and `.text-class`: a
+ * hand-built imitation of an outlined Material field, complete with legacy
+ * `mat-form-field-*` class names that MDC no longer emits, which the widget
+ * swapped itself for once a term was chosen. The field is a real
+ * `mat-form-field` in both states now, so the imitation and its styles are gone.
+ */

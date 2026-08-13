@@ -22,8 +22,17 @@
   font-size: 0.8em;
 }
 
-.flex-item-select .mat-form-field-appearance-outline .mat-form-field-outline {
-  color: white;
+/*
+ * A white outline, because this select sits on the dark header bar.
+ *
+ * The same shape as the black outline in styles-own.scss: legacy drew one SVG
+ * that inherited `color`, MDC draws three bordered boxes that take `border-color`,
+ * and MDC's own three-class selector outranks this one.
+ */
+.flex-item-select .mat-form-field-appearance-outline .mdc-notched-outline__leading,
+.flex-item-select .mat-form-field-appearance-outline .mdc-notched-outline__notch,
+.flex-item-select .mat-form-field-appearance-outline .mdc-notched-outline__trailing {
+  border-color: white !important;
 }
 
 

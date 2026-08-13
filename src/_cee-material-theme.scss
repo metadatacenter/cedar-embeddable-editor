@@ -1,0 +1,173 @@
+// The only file in CEE that touches Angular Material's theming API.
+//
+// Everything Material's theming vocabulary is needed for lives here, so a
+// version hop that renames or removes part of that vocabulary is a change to one
+// file instead of a change to the brand. That is exactly how it played out:
+//
+//   * v18 renamed the M2 helpers — `define-palette` → `m2-define-palette`,
+//     `define-light-theme` → `m2-define-light-theme`,
+//     `define-typography-config` → `m2-define-typography-config`,
+//     `$teal-palette` → `$m2-teal-palette`. **Done**, applied by
+//     `ng update @angular/material@18` and confined to this file, which is the
+//     whole point of it existing.
+//
+// Still ahead:
+//
+//   * The M2 helpers are slated to go entirely in favour of M3's token-based
+//     `theme()` API, which is a different model rather than a renamed one. That
+//     one is a rewrite of the `$applied-theme` construction below, not a
+//     search-and-replace, and it will change what CEE looks like — so it is a
+//     decision, in the sense THEMING.md means, and not a migration step.
+//
+// Do not reach for _cee-tokens.scss when that happens: those are CEDAR's values
+// and are not Material's to restate.
+//
+// Emission order is deliberate. This file defines mixins and does not include
+// anything at the top level, because `@use` would then hoist Material's CSS
+// above the rules that override it in styles-own.scss and quietly change the
+// cascade. The call sites stay where they are; only the vocabulary moved.
+
+@use '@angular/material' as mat;
+@use 'cee-tokens' as tokens;
+
+// ---------------------------------------------------------------------------
+// The applied theme
+// ---------------------------------------------------------------------------
+//
+// NOTE, and read this before the Material 15 hop: these are Angular's stock teal
+// and deep-orange palettes, not CEDAR's brand palettes from _cee-tokens.scss.
+// That is what CEE renders today — stock teal 600 (#00897b) accounts for 35 of
+// the color values in the shipped bundle, while CEDAR's own #0f7686 appears
+// twice, both times outside the Material theme.
+//
+// This looks like an accident rather than a decision: the brand palettes are
+// fully specified and then applied to nothing but three custom properties. It is
+// recorded here as-is because changing it would be a visual change, and the
+// upgrade is not the place to make one silently. THEMING.md sets out the choice.
+$_applied-primary: mat.m2-define-palette(mat.$m2-teal-palette, 600);
+$_applied-accent: mat.m2-define-palette(mat.$m2-deep-orange-palette, A200, A100, A400);
+
+// Typography. Two levels are named because two levels were wrong.
+//
+// This config used to set a font family and nothing else, so every size came
+// from M2's defaults — and M2 puts `subtitle-1` and `body-1` at 16px, which is
+// what a Material form field uses for the text a user types and for its label.
+// CEE's own chrome is `$cee-font-size`, so a field's label rendered at 14px and
+// the value inside it at 16px. A temporal row showed three sizes at once: a 14px
+// label, a 16px date, a 14px clock.
+//
+// Nobody chose 16px. It is M2's default, in the same way stock teal is M2's
+// default palette, and the fix is the same shape: name the value CEDAR already
+// declares. Measured across the flat corpus fixture before this, 121 elements
+// rendered at 14px against 36 at 16px, so this moves the minority to the
+// majority rather than picking a third number.
+//
+// The line-heights stay at M2's absolute values rather than scaling with the
+// size. This is a change to glyph size, not to density: the 48px form-field
+// infix that the temporal row, the attribute-value widget and the offset
+// selector each override is measured against those line-heights, and shrinking
+// them would move every row while nothing asked for that.
+//
+// The letter-spacings are M2's, restated. They are `em`, so they follow the
+// size — but a level built without one gets `normal`, which would drop
+// Material's tracking as a side effect of naming a size.
+$_typography: mat.m2-define-typography-config(
+  $font-family: tokens.$cee-font-family-string,
+  $subtitle-1: mat.m2-define-typography-level(tokens.$cee-font-size, 28px, 400, null, 0.009375em),
+  $body-1: mat.m2-define-typography-level(tokens.$cee-font-size, 24px, 400, null, 0.03125em),
+);
+
+$applied-theme: mat.m2-define-light-theme(
+  (
+    color: (
+      primary: $_applied-primary,
+      accent: $_applied-accent,
+    ),
+    typography: $_typography,
+    /*
+     * Density is not optional, even at the default of 0.
+     *
+     * `all-component-themes` emits density styles only when the theme config
+     * carries the key, and from Material 16 several components take their size
+     * from those tokens rather than from a fixed rule. Omitted, the expansion
+     * panel header had no height at all: it collapsed to its text, 16px instead
+     * of 48px, and the panel body then overlapped it — which showed up not as a
+     * visual oddity but as clicks on the header timing out, because the body was
+     * intercepting them.
+     *
+     * 0 is the default, so this changes nothing about the intended appearance. It
+     * only makes the theme say so.
+     */
+    density: 0,
+  )
+);
+
+// ---------------------------------------------------------------------------
+// Emission points
+// ---------------------------------------------------------------------------
+
+/// Material's base styles. Must come before any component theme.
+///
+/// No `all-component-typographies()`. The Angular 15 migration left a note here
+/// asking whether it was needed, and it was carried unanswered to 22; the answer
+/// is no, on both of the conditions that note set out. CEE specifies typography
+/// in `$_typography`, which `$applied-theme` carries and `all-component-themes`
+/// emits, so the component styles were being written twice. And the hierarchy
+/// classes the call also brings — `.mat-headline-1` and its siblings — are used
+/// nowhere: the only mention of one in this repository was inside that note.
+///
+/// Removing it is invisible and not merely believed to be: the build is 13,678
+/// bytes smaller and all 356 bundle-level checks pass, every pixel snapshot
+/// among them.
+@mixin core() {
+  @include mat.elevation-classes();
+  @include mat.app-background();
+}
+
+/// Color and typography for every Material component CEE uses.
+///
+/// Plus one density override, for the form field alone: **CEE's field box is
+/// 48px**, and this is where that is decided.
+///
+/// It was 36px, expressed as `min-height: auto` with 5/7 padding forced onto
+/// `.mat-mdc-form-field-infix` — and 36px is what an *empty* field measured.
+/// Material's clear action is a 48px icon button, and CEE renders one in every
+/// widget that can hold a value, shown `@if` the value is there. So a field grew
+/// as the user typed into it. Measured on `01-input-types`: text, email, link and
+/// phone each 36px empty and 48px filled, with the page going 1006px to 1054px
+/// over five fields, while numeric stayed 36px because its suffix is a unit label
+/// rather than a button. A form in use was never the compact form; it was a mix of
+/// both, reflowing field by field.
+///
+/// That is what made 36px indefensible rather than merely smaller. Choosing 48px
+/// costs vertical space on a blank form and buys a height that does not depend on
+/// whether a field has a value, whether that value came from an authority lookup,
+/// or which buttons a widget happens to draw.
+///
+/// `form-field-density(-2)` rather than another override, because 48px *is* a
+/// level on Material's density scale — `m2-form-field.scss` maps -2 to 48px and
+/// -5 to 36px, so both heights CEE has ever rendered were already named by the
+/// API it was reaching past. Going through it deletes four hand-rolled rules and
+/// their seventeen `!important` declarations: the global infix rule, the
+/// attribute-value pair's copy, the temporal row's copy, and the offset
+/// selector's. `.mat-mdc-form-field-infix` no longer appears in CEE's stylesheets
+/// at all, which takes the Material internals CEE depends on from 18 to 17.
+///
+/// Not the theme's own `density` key: that applies to every component, and the
+/// note beside it records what happened when the expansion panel header lost its
+/// height. This is per-component and emitted after `all-component-themes`, which
+/// is how Material's API composes.
+///
+/// One visible consequence, and it is Material's design rather than a side
+/// effect. `$hide-label` in `m2-form-field.scss` is `$height < 52px`, so below -1
+/// the floating label is not drawn. Only the offset selector uses `<mat-label>` —
+/// every other field has its label commented out and gets one from
+/// `app-cedar-component-header` instead — and it now renders as resting text
+/// inside the box, reading "Select UTC offset" where it previously straddled its
+/// own outline. Which is the misalignment the reviewer's screenshot showed, fixed
+/// by asking Material for a height it supports instead of forcing one it does not.
+@mixin component-themes() {
+  @include mat.all-component-themes($applied-theme);
+  @include mat.form-field-density(-2);
+  @include mat.strong-focus-indicators-theme($applied-theme);
+}

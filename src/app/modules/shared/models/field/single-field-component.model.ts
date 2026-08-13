@@ -3,7 +3,7 @@ import { SingleComponent } from '../component/single-component.model';
 import { AbstractFieldComponent } from './abstract-field-component.model';
 
 export class SingleFieldComponent extends AbstractFieldComponent implements SingleComponent, FieldComponent {
-  className = 'SingleFieldComponent';
+  override className = 'SingleFieldComponent';
 
   isMulti(): boolean {
     return false;

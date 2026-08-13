@@ -1,58 +1,95 @@
-<app-static-header *ngIf="dataAvailableForRender() && showHeader"
-                   [callbackOwnerObject]="sampleTemplateLoaderObject"
-                   [showSampleTemplateLinks]="showSampleTemplateLinks"></app-static-header>
-<user-preferences-menu [isVisible]="showPreferencesMenu" [readOnlyMode]="readOnlyMode"></user-preferences-menu>
-<mat-card class="template-card" *ngIf="dataAvailableForRender()">
-<!--  <mat-card-header>-->
-  <div class="template-header">
-    <div class="logo-block">
-      <div mat-card-avatar class="header-image" (click)="launchMetadataCenter()" role="link" aria-label="Cedar logo - https://metadatacenter.org"></div>
-      <span class="cee-version">{{ceeVersion}}</span>
+@if (dataAvailableForRender() && showHeader) {
+  <app-static-header
+    [callbackOwnerObject]="sampleTemplateLoaderObject"
+    [showSampleTemplateLinks]="showSampleTemplateLinks"
+  ></app-static-header>
+}
+@if (dataAvailableForRender() && dataContext && handlerContext && pageBreakPaginatorService) {
+  <mat-card appearance="outlined" class="template-card">
+    <!--  <mat-card-header>-->
+    <div
+      class="template-header"
+      [class.template-header-paged]="dataContext.templateRepresentation?.hasPageBreaks()"
+    >
+      <div class="logo-block">
+        <div
+          mat-card-avatar
+          class="header-image"
+          (click)="launchMetadataCenter()"
+          role="link"
+          aria-label="Cedar logo - https://metadatacenter.org"
+        ></div>
+        <span class="cee-version" [title]="ceeVersion">{{ ceeVersion }}</span>
+      </div>
+      <div class="template-title-block">
+        <h1 class="template-label">{{ dataContext.templateRepresentation?.labelInfo?.label }}</h1>
+        @if (dataContext.templateRepresentation?.labelInfo?.description && showTemplateDescription) {
+          <p class="template-description">{{ dataContext.templateRepresentation?.labelInfo?.description }}</p>
+        }
+      </div>
+      <div class="template-actions">
+        @if (dataContext.templateRepresentation?.hasPageBreaks()) {
+          <div class="page-break-control">
+            <app-cedar-static-page-break
+              [dataContext]="dataContext"
+              [pageBreakPaginatorService]="pageBreakPaginatorService"
+            ></app-cedar-static-page-break>
+          </div>
+        }
+        <div class="expand-buttons">
+          <button mat-button (click)="openAll()">
+            <mat-icon>unfold_more</mat-icon>{{ 'Generic.ExpandAll' | translate }}
+          </button>
+          <button mat-button (click)="closeAll()">
+            <mat-icon>unfold_less</mat-icon>{{ 'Generic.CollapseAll' | translate }}
+          </button>
+        </div>
+      </div>
     </div>
-    <h1 class="template-label">{{dataContext.templateRepresentation.labelInfo.label}}</h1>
-    <h2 *ngIf="dataContext.templateRepresentation.labelInfo.description && showTemplateDescription">&nbsp;{{dataContext.templateRepresentation.labelInfo.description}}</h2>
-    <div *ngIf="dataContext.templateRepresentation.hasPageBreaks()" class="header-flex-child">
-      <app-cedar-static-page-break
-        [dataContext]="dataContext"
-        [pageBreakPaginatorService]="pageBreakPaginatorService"
-      ></app-cedar-static-page-break>
-    </div>
-    <div class="expand-buttons">
-      <button mat-button (click)="openAll()"><mat-icon>unfold_more</mat-icon>{{'Generic.ExpandAll' | translate}}</button>
-      <button mat-button (click)="closeAll()"><mat-icon>unfold_less</mat-icon>{{'Generic.CollapseAll' | translate}}</button>
-    </div>
-  </div>
-<!--  </mat-card-header>-->
-  <mat-card-content>
-    <ng-container *ngFor="let childComponent of this.pageBreakPaginatorService.getCurrentPage()">
-      <app-cedar-component-renderer *ngIf="!childComponent.hidden"
-                                    [componentToRender]="childComponent"
-                                    [handlerContext]="handlerContext"
-                                    [allExpanded]="allExpanded"
-                                    [showStaticText]="showStaticText"
-                                    [showAllMultiInstanceValues]="showAllMultiInstanceValues"
-                                    [pageBreakPaginatorService]="pageBreakPaginatorService"
-      ></app-cedar-component-renderer>
-    </ng-container>
-  </mat-card-content>
-</mat-card>
-<app-source-panels *ngIf="dataAvailableForRender()"
-                   [dataContext]="dataContext"
-                   [showTemplateRenderingRepresentation]="showTemplateRenderingRepresentation"
-                   [showMultiInstanceInfo]="showMultiInstanceInfo"
-                   [showTemplateSourceData]="showTemplateSourceData"
-                   [showInstanceDataCore]="showInstanceDataCore"
-                   [showInstanceDataFull]="showInstanceDataFull"
-                   [showDataQualityReport]="showDataQualityReport"
-                   [expandedTemplateRenderingRepresentation]="expandedTemplateRenderingRepresentation"
-                   [expandedMultiInstanceInfo]="expandedMultiInstanceInfo"
-                   [expandedTemplateSourceData]="expandedTemplateSourceData"
-                   [expandedInstanceDataCore]="expandedInstanceDataCore"
-                   [expandedInstanceDataFull]="expandedInstanceDataFull"
-                   [expandedDataQualityReport]="expandedDataQualityReport"
-></app-source-panels>
-<app-sample-templates *ngIf="dataAvailableForRender() && showSampleTemplateLinks"
-                      [callbackOwnerObject]="sampleTemplateLoaderObject"
-                      [expandedSampleTemplateLinks]="expandedSampleTemplateLinks"
-></app-sample-templates>
-<app-static-footer *ngIf="dataAvailableForRender() && showFooter"></app-static-footer>
+    <!--  </mat-card-header>-->
+    <mat-card-content class="template-content">
+      @for (childComponent of pageBreakPaginatorService.getCurrentPage(); track childComponent) {
+        @if (!childComponent.hidden) {
+          <app-cedar-component-renderer
+            [componentToRender]="childComponent"
+            [handlerContext]="handlerContext"
+            [allExpanded]="allExpanded"
+            [showStaticText]="showStaticText"
+            [showAllMultiInstanceValues]="showAllMultiInstanceValues"
+            [pageBreakPaginatorService]="pageBreakPaginatorService"
+          ></app-cedar-component-renderer>
+        }
+      }
+    </mat-card-content>
+  </mat-card>
+}
+@if (dataAvailableForRender() && dataContext) {
+  <app-source-panels
+    [dataContext]="dataContext"
+    [showTemplateRenderingRepresentation]="showTemplateRenderingRepresentation"
+    [showMultiInstanceInfo]="showMultiInstanceInfo"
+    [showTemplateSourceData]="showTemplateSourceData"
+    [showTemplateYaml]="showTemplateYaml"
+    [showInstanceDataCore]="showInstanceDataCore"
+    [showInstanceDataFull]="showInstanceDataFull"
+    [showInstanceYaml]="showInstanceYaml"
+    [showDataQualityReport]="showDataQualityReport"
+    [expandedTemplateRenderingRepresentation]="expandedTemplateRenderingRepresentation"
+    [expandedMultiInstanceInfo]="expandedMultiInstanceInfo"
+    [expandedTemplateSourceData]="expandedTemplateSourceData"
+    [expandedTemplateYaml]="expandedTemplateYaml"
+    [expandedInstanceDataCore]="expandedInstanceDataCore"
+    [expandedInstanceDataFull]="expandedInstanceDataFull"
+    [expandedInstanceYaml]="expandedInstanceYaml"
+    [expandedDataQualityReport]="expandedDataQualityReport"
+  ></app-source-panels>
+}
+@if (dataAvailableForRender() && showSampleTemplateLinks) {
+  <app-sample-templates
+    [callbackOwnerObject]="sampleTemplateLoaderObject"
+    [expandedSampleTemplateLinks]="expandedSampleTemplateLinks"
+  ></app-sample-templates>
+}
+@if (dataAvailableForRender() && showFooter) {
+  <app-static-footer></app-static-footer>
+}

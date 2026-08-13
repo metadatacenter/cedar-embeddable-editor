@@ -1,127 +1,77 @@
-@use '@angular/material' as mat;
-@use '@angular/material/theming';
-@import "./styles-Material-Icons.scss";
-@import "./styles-Roboto-300";
-@import "./styles-Roboto-400";
-@import "./styles-Roboto-500";
+// Brand values live in _cee-tokens.scss; the Material theming API is reached
+// only through _cee-material-theme.scss. Neither emits CSS on its own, so the
+// `@include` call sites below still control emission order.
+@use 'cee-tokens' as tokens;
+@use 'cee-material-theme' as theme;
+@use '@angular/cdk' as cdk;
 
-@include mat.core();
+@include theme.core();
 
-// Palette generated using http://mcg.mbitson.com/
-// Also helpful: https://www.colorhexa.com/, https://www.colorbook.io/
-/* For use in src/lib/core/theming/_palette.scss */
-$md-cedarpalette: (
-  50 : #e2eff0,
-  100 : #b7d6db,
-  200 : #87bbc3,
-  300 : #579faa,
-  400 : #338b98,
-  500 : #0f7686,
-  600 : #0d6e7e,
-  700 : #0b6373,
-  800 : #085969,
-  900 : #044656,
-  A100 : #88e4ff,
-  A200 : #55d8ff,
-  A400 : #22ccff,
-  A700 : #08c7ff,
-  contrast: (
-    50 : #000000,
-    100 : #000000,
-    200 : #000000,
-    300 : #000000,
-    400 : #ffffff,
-    500 : #ffffff,
-    600 : #ffffff,
-    700 : #ffffff,
-    800 : #ffffff,
-    900 : #ffffff,
-    A100 : #000000,
-    A200 : #000000,
-    A400 : #000000,
-    A700 : #000000,
-  )
-);
-
-$md-cedaraccent: (
-  50 : #f0e4e2,
-  100 : #dbbcb7,
-  200 : #c38f87,
-  300 : #aa6257,
-  400 : #984133,
-  500 : #861f0f,
-  600 : #7e1b0d,
-  700 : #73170b,
-  800 : #691208,
-  900 : #560a04,
-  A100 : #ff8d88,
-  A200 : #ff5c55,
-  A400 : #ff2b22,
-  A700 : #ff1308,
-  contrast: (
-    50 : #000000,
-    100 : #000000,
-    200 : #000000,
-    300 : #ffffff,
-    400 : #ffffff,
-    500 : #ffffff,
-    600 : #ffffff,
-    700 : #ffffff,
-    800 : #ffffff,
-    900 : #ffffff,
-    A100 : #000000,
-    A200 : #000000,
-    A400 : #ffffff,
-    A700 : #ffffff,
-  )
-);
-
-// Define the palettes for your theme using the Material Design palettes available in palette.scss
-// (imported above). For each palette, you can optionally specify a default, lighter, and darker
-// hue. Available color palettes: https://material.io/design/color/
-$cedar-embeddable-editor-primary: mat.define-palette($md-cedarpalette);
-$cedar-embeddable-editor-accent: mat.define-palette($md-cedaraccent, A200, A100, A400);
-
-// The warn palette is optional (defaults to red).
-$cedar-embeddable-editor-warn: mat.define-palette(mat.$red-palette);
-
-// Create the theme object. A theme consists of configurations for individual
-// theming systems such as "color" or "typography".
-$cedar-embeddable-editor-theme: mat.define-light-theme((
-  color: (
-    primary: $cedar-embeddable-editor-primary,
-    accent: $cedar-embeddable-editor-accent,
-    warn: $cedar-embeddable-editor-warn,
-  )
-));
-
-$primary: map-get($cedar-embeddable-editor-theme, primary);
-$accent: map-get($cedar-embeddable-editor-theme, accent);
-
-:root {
-  --color-primary: #{mat.get-color-from-palette($cedar-embeddable-editor-primary, default)};
-  --color-text-primary: #{mat.get-color-from-palette($cedar-embeddable-editor-primary, default-contrast)};
-  --color-accent: #{mat.get-color-from-palette($cedar-embeddable-editor-accent)};
-  --color-warn: #{mat.get-color-from-palette($cedar-embeddable-editor-warn)};
+// CEE's public theming surface. An embedder can override these on the custom
+// element, so the names are API — do not rename or drop one without treating it
+// as a breaking change. `--cee-color-accent` remains for embedders; warn also
+// supplies CEE's validation feedback.
+:host {
+  --cee-color-primary: #{tokens.$cee-color-primary};
+  --cee-color-text-primary: #{tokens.$cee-color-on-primary};
+  --cee-color-accent: #{tokens.$cee-color-accent};
+  --cee-color-warn: #{tokens.$cee-color-warn};
+  --cee-color-warning: #{tokens.$cee-color-warning};
+  --cee-element-heading-size: 18px;
+  --cee-element-heading-weight: 600;
+  --cee-element-content-gap: 12px;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  container: cee / inline-size;
+  font-family: tokens.$cee-font-family;
+  font-size: tokens.$cee-font-size;
+  line-height: normal;
 }
 
-@import "@ng-select/ng-select/themes/material.theme.css";
 
-$my-primary: mat.define-palette(mat.$teal-palette, 600);
-$my-accent: mat.define-palette(mat.$deep-orange-palette, A200, A100, A400);
+:host {
+  @include theme.component-themes();
 
-$my-theme: mat.define-light-theme((
-  color: (
-    primary: $my-primary,
-    accent: $my-accent,
-  )
-));
+  /*
+   * The CDK's own visually-hidden rule, emitted where the shadow root can see it.
+   *
+   * From Angular 19 the CDK injects this at runtime through a private style loader
+   * rather than shipping it in the compiled stylesheet, and what it injects is
+   * scoped to `html` — which matches nothing inside a shadow root. The class then
+   * styles nothing, and content meant for screen readers alone becomes content
+   * everyone sees: each `cdk-visually-hidden` span went from 1px to 16px tall and
+   * the describedby container from 1px to 128px, adding a block of announcement
+   * text to the middle of the form.
+   *
+   * `cdk.a11y-visually-hidden()` is the CDK's supported mixin for emitting it
+   * yourself, so this is the intended escape hatch rather than a copied rule, and
+   * it stays correct if the CDK changes what "visually hidden" means.
+   *
+   * Same shape as the Material token re-rooting above it: a library that assumes
+   * it is styling a document has to be told, once, that it is styling a shadow
+   * root.
+   */
+  @include cdk.a11y-visually-hidden();
 
-@include mat.all-component-themes($my-theme);
-@include mat.strong-focus-indicators-theme($my-theme);
+  /*
+   * The CDK's autosize measuring styles, for the same reason.
+   *
+   * `cdkTextareaAutosize` sizes a textarea by cloning it, measuring the clone and
+   * reading the result back. The clone is styled by rules the CDK injects at
+   * runtime from Angular 19, scoped to `html`, so inside the shadow root it is
+   * unstyled and measures wrong: the Text Area Field came out 54px taller than it
+   * should be, and every page holding one grew with it.
+   *
+   * `text-field-autosize()` rather than the deprecated `text-field()`, which also
+   * pulls in autofill styling CEE does not use.
+   */
+  @include cdk.text-field-autosize();
+}
 
 .material-icons {
-  font-family: 'Material Icons';
+  font-family: 'CEE Material Icons';
   font-weight: normal;
   font-style: normal;
   font-size: 24px; /* Preferred icon size */
@@ -145,13 +95,10 @@ $my-theme: mat.define-light-theme((
   font-feature-settings: 'liga';
 }
 
-html, body.cee-body {
-  height: 100%;
-}
-
-body.cee-body {
-  margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+.cdk-overlay-container {
+  font-family: tokens.$cee-font-family;
+  font-size: tokens.$cee-font-size;
+  line-height: normal;
 }
 
 .allow-cr {
@@ -177,8 +124,24 @@ body.cee-body {
   margin-right: 1%;
 }
 
+/*
+ * A static image, centred in its card.
+ *
+ * Two declarations here did nothing for as long as they have existed.
+ *
+ * `background-color: #e5daa1` never rendered. Material's card background is set at
+ * `:host .mat-mdc-card`, two classes to this rule's one, so the card has always been
+ * white — which is also what every other field looks like, so the khaki is dropped
+ * rather than given the specificity to win. A comment in
+ * `cedar-static-image.component.scss` describing "the card's own khaki background"
+ * was describing something nobody has seen.
+ *
+ * `margin: auto` on the image never centred it, because an `img` is `display: inline`
+ * and an inline element ignores auto margins. Measured: a 240x120 image at
+ * `margin 0/0` sitting hard left in a 518px card, with 278px of dead space beside it.
+ * `display: block` is what makes the auto margins mean anything.
+ */
 .image-component {
-  background-color: #e5daa1;
   max-width: 50%;
   margin-left: auto;
   margin-right: auto;
@@ -188,6 +151,7 @@ body.cee-body {
     padding-top: 15px;
 
     img {
+      display: block;
       margin-left: auto;
       margin-right: auto;
       max-width: 100%;
@@ -202,8 +166,6 @@ body.cee-body {
 
 .youtube-component {
   background-color: #ff0000;
-  min-width: 400px;
-  max-width: 640px;
   margin-left: auto;
   margin-right: auto;
   margin-bottom: 20px;
@@ -218,7 +180,7 @@ body.cee-body {
   margin-left: 10px;
 }
 
-.mat-card {
+.mat-mdc-card {
   margin-top: 5px;
 }
 
@@ -231,9 +193,12 @@ body.cee-body {
 }
 
 .template-card {
-  max-width: 90%;
-  background-color: #f8f8f8;
-  margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  background-color: #ffffff;
+  margin: 0;
   border: none !important;
 }
 
@@ -243,7 +208,8 @@ body.cee-body {
   justify-content: right;
   align-items: center;
   margin-right: 10px;
-  margin-top: -20px;
+  /* Centre the 48px pager actions on the compact field-title row. */
+  margin-top: -33px;
 }
 
 .pager-container-ro {
@@ -259,30 +225,28 @@ body.cee-body {
   margin-right: 20px;
 }
 
-.pager-pager {
+.pager-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-app-source-panels {
-  .mat-expansion-panel-header-description {
-    justify-content: space-between;
-    align-items: center;
+.pager-action-tooltip {
+  display: inline-flex;
+}
+
+/* At embedding widths the pager becomes its own row instead of covering the title. */
+@container cee (max-width: 620px) {
+  .pager-container,
+  .pager-container-ro {
+    justify-content: flex-start;
+    margin-top: 8px;
+    margin-right: 0;
   }
 
-  .mat-expansion-panel {
-    max-width: 90%;
-    margin: 0 auto;
-    background-color: #f5f5f5;
-
-    pre {
-      font-size: 12px;
-      line-height: 1.1;
-    }
+  .pager-chips {
+    margin-right: 12px;
   }
-
-  .mat-expansion-panel-header-title .mat-icon {
-    margin-right: 15px;
-  }
-
 }
 
 app-sample-templates {
@@ -303,7 +267,7 @@ app-sample-templates {
   justify-content: center;
   margin-top: 30px;
 
-  .mat-progress-spinner {
+  .mat-mdc-progress-spinner {
     float: left;
     margin-right: 20px;
   }
@@ -314,19 +278,27 @@ app-sample-templates {
   background-color: rgba(0, 0, 0, 0.04);
   padding: 15px;
   border: 1px solid #d6d8db;
-  border-radius: 0.25rem;
+  border-radius: 4px;
   margin-top: 20px;
   margin-bottom: 10px;
 }
 
-.notify-info, .notify-success, .notify-error, .notify-warning, .notify-progress {
+.notify-info,
+.notify-success,
+.notify-error,
+.notify-warning,
+.notify-progress {
   padding: 15px;
   border: 1px solid transparent;
-  border-radius: 0.25rem;
+  border-radius: 4px;
 }
 
-.notify-info:before, .notify-success:before, .notify-error:before, .notify-warning:before, .notify-progress:before {
-  font-family: 'Material Icons';
+.notify-info:before,
+.notify-success:before,
+.notify-error:before,
+.notify-warning:before,
+.notify-progress:before {
+  font-family: 'CEE Material Icons';
   font-style: normal;
   font-weight: 400;
   font-size: 18px;
@@ -335,18 +307,18 @@ app-sample-templates {
   display: inline-block;
   text-decoration: inherit;
   width: 1em;
-  margin-right: .8em;
+  margin-right: 0.8em;
   text-align: center;
   font-variant: normal;
   text-transform: none;
   line-height: 1em;
-  margin-left: .2em;
+  margin-left: 0.2em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .notify-info:before {
-  content: "\e88e";
+  content: '\e88e';
 }
 
 .notify-success:before {
@@ -362,9 +334,9 @@ app-sample-templates {
 }
 
 .notify-progress-icon {
-  margin-right: .8em;
+  margin-right: 0.8em;
   line-height: 1em;
-  margin-left: .2em;
+  margin-left: 0.2em;
   float: left;
   margin-top: 2px;
 }
@@ -401,10 +373,10 @@ app-sample-templates {
 
 .close {
   float: right;
-  font-size: 1.5rem;
-  line-height: .9;
+  font-size: 24px;
+  line-height: 0.9;
   text-shadow: 0 1px 0 #fff;
-  opacity: .5;
+  opacity: 0.5;
   color: inherit;
 }
 
@@ -420,27 +392,67 @@ button.close {
   -webkit-appearance: none;
 }
 
-.ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
-  background: var(--color-primary);
-  color: var(--color-text-primary);
-}
+/*
+ * No `.mat-mdc-form-field-infix` rule, and no per-widget copies of one.
+ *
+ * The field box is 48px, asked for through `mat.form-field-density(-2)` in
+ * `_cee-material-theme.scss`, which is where the reasoning lives. Four rules used
+ * to compute that height by hand — a compact 36px here, then 48px again for the
+ * attribute-value pair, the temporal row and the offset selector, each because a
+ * 48px suffix action made the compact height wrong for that widget. All four are
+ * gone: with the height uniform, nothing needs correcting, and measuring confirms
+ * removing even `align-self: center` changes no box.
+ *
+ * Worth keeping in mind if the height is ever revisited. Material's density scale
+ * names 36px too, at -5, so the compact form is still available through the same
+ * API — but 36px is only ever the height of an *empty* field, because CEE draws a
+ * clear action as soon as one holds a value, and that action is 48px.
+ */
 
-.ng-select.ng-select-multiple .ng-value-icon {
-  color: var(--color-text-primary) !important;
-}
+/*
+ * The multi-instance occurrence chips, a fifth smaller than Material's default.
+ *
+ * They are 32px circles carrying one or two digits, sitting on a field's title row
+ * beside 14px text, where they read as the loudest thing in the row rather than as
+ * an index. 26px with a 12px label is the step down the type scale that hints take.
+ *
+ * Here rather than in `cedar-multi-pager.component.scss`, where it belongs, for one
+ * reason: the height is a Material design token, and Angular namespaces a custom
+ * property declared in a component stylesheet. `--mat-chip-container-height` emitted
+ * from there becomes `--%NS%mat-chip-container-height`, which Material never reads,
+ * so the rule looks right and does nothing. A token has to be set from a stylesheet
+ * that is not namespaced.
+ *
+ * Scoped to `app-cedar-multi-pager`, not to `.pager-chips` alone. The page-break
+ * component reuses that class for its page-number chips, and those are navigation
+ * in the form's header rather than an occurrence index — shrinking them was not
+ * asked for and they read fine at Material's size. The element selector is also
+ * what carries the specificity: Material's theme sets this token at
+ * `:host .mat-mdc-chip.mat-mdc-standard-chip`, so three classes is a tie and the
+ * element name breaks it.
+ *
+ * The action's inline padding is what makes a one-digit chip a circle rather than a
+ * 7px sliver — the label is the only thing in it with width — so it shrinks with the
+ * height rather than being removed.
+ */
+app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
+  --mat-chip-container-height: 26px;
 
-.mat-form-field-infix {
-  margin: 0 !important;
-  padding-top: 5px !important;
-  padding-bottom: 7px !important;
+  .mdc-evolution-chip__text-label {
+    font-size: 12px;
+  }
+
+  .mat-mdc-chip-action {
+    padding-inline: 9px;
+  }
 }
 
 .mat-icon:hover {
-  color: #0f7686;
+  color: tokens.$cee-color-icon-hover;
   scale: 1.2;
 }
 
-.mat-tooltip.tooltip {
+.mat-mdc-tooltip.tooltip {
   font-size: 12px;
 }
 
@@ -451,19 +463,48 @@ button.close {
 .align-end {
   text-align: end;
 }
+
+/*
+ * Non-blocking feedback, outside Material's mutually-exclusive hint/error
+ * projection so a required field can still show its genuine validation error.
+ */
+.input-warning {
+  display: block;
+  color: var(--cee-color-warning);
+  margin-inline: 16px;
+  font-size: 12px;
+  line-height: 22px;
+  text-align: start;
+}
 .cdk-overlay-container {
   z-index: 9999 !important;
 }
 
-.mat-form-field-appearance-outline .mat-form-field-outline {
-  color: black;
+/*
+ * A black outline rather than Material's default.
+ *
+ * Legacy drew the outline as an SVG that inherited `color`, so one declaration
+ * did it. MDC draws it as three bordered boxes — leading, notch and trailing —
+ * and takes their colour from `border-color`, so the same intent needs all three
+ * named. Left at the default they render rgba(0, 0, 0, 0.38), which is visibly
+ * grey against the black the rest of the form uses.
+ *
+ * `!important` because MDC sets the same property from a three-class selector
+ * (`.mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__leading`)
+ * that outranks this one. Measured, not assumed: without it the computed colour
+ * stays rgba(0, 0, 0, 0.38).
+ */
+.mat-form-field-appearance-outline .mdc-notched-outline__leading,
+.mat-form-field-appearance-outline .mdc-notched-outline__notch,
+.mat-form-field-appearance-outline .mdc-notched-outline__trailing {
+  border-color: black !important;
 }
 
 .mat-expansion-panel {
   border: 1px solid #777777;
   box-shadow: none !important;
 }
-.mat-card{
+.mat-mdc-card {
   //border: 1px solid #777777;
   box-shadow: none !important;
   margin-bottom: 0;
@@ -471,22 +512,21 @@ button.close {
 .tooltip {
   background-color: black;
 }
-.template-header {
-  display: flex;
-  background-color: white !important;
-  padding-top: 10px !important;
-  min-height: fit-content !important;
-}
-.expand-buttons {
-  margin-left: auto;
-  margin-right: 20px;
-  padding-top: 6px;
-  vertical-align: center;
-}
 .component-title {
-  color: #0B3938 !important;
+  color: tokens.$cee-color-component-title !important;
 }
-.template-label {
-  padding-left: 10px;
-  padding-top: 6px;
+
+/**
+ * The "search failed" row in an autocomplete panel.
+ *
+ * Global rather than component-scoped because Material renders the panel into an
+ * overlay container, outside the emulated encapsulation of the field that owns
+ * it. It sits next to "No results found", and the whole point is that the two
+ * do not read alike — so this one is coloured as the fault it reports.
+ */
+.mat-mdc-option.lookup-failed {
+  color: #a1332b;
+  font-style: italic;
+  white-space: normal;
+  line-height: 1.3;
 }

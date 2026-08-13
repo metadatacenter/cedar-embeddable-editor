@@ -1,11 +1,10 @@
 {
   "App": {
     "Title": "CEDAR Embeddable Editor",
-    "Maintained": "CEDAR is maintained by the Stanford Center for Biomedical Informatics Research.",
+    "Maintained": "CEDAR is maintained by the Stanford Division of Computational Medicine.",
     "Contact": "Contact CEDAR"
   },
   "Generic": {
-    "BMIR": "BMIR",
     "SAVE": "SAVE",
     "Infinite": "Infinite",
     "ExpandAll": "Expand All",
@@ -19,8 +18,7 @@
     "AllValues": "All Values",
     "Clear": "Clear",
     "SelectDecimalSeconds": "Select Decimal Seconds",
-    "SelectTimeZone": "Select Time Zone",
-    "NoTimeZoneFound": "No Time Zone Found",
+    "SelectUtcOffset": "Select UTC offset",
     "SelectYear": "Select Year",
     "SelectYearAndMonth": "Select Year and Month",
     "SelectDate": "Select Date",
@@ -28,12 +26,25 @@
     "CedarLogo": "Cedar Logo",
     "DecimalSeconds": "decimal seconds",
     "Filter": "Start typing to filter",
-    "Details": "Show Details",
-    "HideDetails": "Hide Details",
-    "OpenOrcidProfile": "Open ORCID Profile",
-    "OpenRorProfile": "Open ROR Profile",
+    "OpenAuthorityPage": "Open the {{authority}} page",
     "FilterOrcid": "Start typing researcher name or ORCID",
-    "FilterRor": "Start typing institution name or ROR"
+    "FilterRor": "Start typing institution name or ROR",
+    "FilterPfas": "Start typing chemical name or PFAS ID",
+    "FilterPmid": "Start typing publication name or PubMed ID",
+    "FilterRrid": "Start typing research resource name or RRID",
+    "FilterNihGrant": "Start typing grant details or NIH Grant ID",
+    "FilterDoi": "Start typing publication name or DOI",
+    "Time": "Time",
+    "Hour": "Hour",
+    "Minute": "Minute",
+    "Second": "Second",
+    "IncrementHour": "Increment hour",
+    "DecrementHour": "Decrement hour",
+    "IncrementMinute": "Increment minute",
+    "DecrementMinute": "Decrement minute",
+    "IncrementSecond": "Increment second",
+    "DecrementSecond": "Decrement second",
+    "ToggleMeridian": "Switch between AM and PM"
   },
   "Process": {
     "Initializing": "CEDAR Embeddable Editor initializing..."
@@ -45,7 +56,8 @@
     "DeleteCurrent": "Delete current"
   },
   "Error": {
-    "ValueRequired": "The value is required"
+    "ValueRequired": "The value is required",
+    "LookupFailed": "Search failed: the service could not be reached"
   },
   "Extra": {
     "SampleTemplate": {
@@ -59,9 +71,20 @@
       "Instance": "JSON-LD - Instance"
     },
     "JsonSchemaTemplate": "JSON Schema - Template",
+    "Yaml": {
+      "Instance": "YAML - Instance",
+      "Template": "YAML - Template"
+    },
     "TemplateRendering": "Template Rendering Data",
     "MultiInstance": "Multi-Instance Information",
     "DataQualityReport": "Data Quality Report"
+  },
+  "Hint": {
+    "Numeric": {
+      "Minimum": "Minimum: {{minValue}}",
+      "Maximum": "Maximum: {{maxValue}}",
+      "DecimalPlaces": "Decimal places: {{decimalPlace}}"
+    }
   },
   "Validation": {
     "Required": "The value is required.",
@@ -78,13 +101,34 @@
     "Link": {
       "Invalid": "Value should be a valid URL."
     },
+    "Phone": {
+      "Invalid": "Value should be a valid phone number."
+    },
     "Numeric": {
       "MinValue": "Value should be at least {{constraintMinValue}}.",
       "MaxValue": "Value should be at most {{constraintMaxValue}}."
     },
-    "OrcidInvalid":"Entered value is not a valid ORCID and has been cleared.",
+    "Time": {
+      "InvalidHour24": "Enter an hour from 00 to 23. The previous value was restored.",
+      "InvalidHour12": "Enter an hour from 1 to 12. The previous value was restored.",
+      "InvalidMinute": "Enter a minute from 00 to 59. The previous value was restored.",
+      "InvalidSecond": "Enter a second from 00 to 59. The previous value was restored."
+    },
+    "OrcidInvalid": "Entered value is not a valid ORCID and has been cleared.",
     "OrcidReverted": "Invalid ORCID, edit was discarded; restored last valid ORCID.",
-    "RorInvalid":"Entered value is not a valid ROR and has been cleared.",
-    "RorReverted": "Invalid ROR, edit was discarded; restored last valid ROR."
+    "RorInvalid": "Entered value is not a valid ROR and has been cleared.",
+    "RorReverted": "Invalid ROR, edit was discarded; restored last valid ROR.",
+    "PfasInvalid": "Entered value is not a valid PFAS Id and has been cleared.",
+    "PfasReverted": "Invalid PFAS, edit was discarded; restored last valid PFAS Id.",
+    "PmidInvalid": "Entered value is not a valid PubMed Id and has been cleared.",
+    "PmidReverted": "Invalid PubMed Id, edit was discarded; restored last valid PubMed Id.",
+    "RridInvalid": "Entered value is not a valid RRID and has been cleared.",
+    "RridReverted": "Invalid RRID, edit was discarded; restored last valid RRID Id.",
+    "NihGrantInvalid": "Entered value is not a valid NIH Grant ID and has been cleared.",
+    "NihGrantReverted": "Invalid NIH Grant ID, edit was discarded; restored last valid NIH Grant ID.",
+    "ControlledTermInvalid": "Entered value is not a term from the allowed set and has been cleared.",
+    "ControlledTermReverted": "Not a term from the allowed set, edit was discarded; restored last valid term.",
+    "DoiInvalid": "Entered value is not a valid DOI and has been cleared.",
+    "DoiReverted": "Invalid DOI, edit was discarded; restored last valid DOI."
   }
 }

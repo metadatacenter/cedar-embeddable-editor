@@ -1,11 +1,11 @@
-import { Component, Injectable, Input, ViewEncapsulation } from '@angular/core';
+import { Component, Injectable, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { DataContext } from '../../../shared/util/data-context';
-import { MatPaginatorIntl } from '@angular/material/paginator';
+import { MatPaginatorIntl, PageEvent } from '@angular/material/paginator';
 import { PageBreakPaginatorService } from '../../../shared/service/page-break-paginator.service';
 
 @Injectable()
 export class CustomMatPaginatorIntl extends MatPaginatorIntl {
-  getRangeLabel = (page: number, pageSize: number, length: number) => {
+  override getRangeLabel = (_page: number, _pageSize: number, _length: number) => {
     return '';
   };
 }
@@ -14,16 +14,18 @@ export class CustomMatPaginatorIntl extends MatPaginatorIntl {
   selector: 'app-cedar-static-page-break',
   templateUrl: './cedar-static-page-break.component.html',
   styleUrls: ['./cedar-static-page-break.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
   providers: [{ provide: MatPaginatorIntl, useClass: CustomMatPaginatorIntl }],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CedarStaticPageBreakComponent {
-  @Input() dataContext: DataContext;
-  @Input() pageBreakPaginatorService: PageBreakPaginatorService;
+  @Input({ required: true }) dataContext!: DataContext;
+  @Input({ required: true }) pageBreakPaginatorService!: PageBreakPaginatorService;
 
   constructor() {}
 
-  paginatorChanged(event): void {
+  paginatorChanged(event: PageEvent): void {
     this.pageBreakPaginatorService.setPageNumberAndGet(event.pageIndex);
   }
 }

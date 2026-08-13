@@ -1,0 +1,8 @@
+parent_sample_id type=textfield single required
+lab_id type=textfield single
+preparation_protocol_doi type=link single required
+dataset_type type=controlled single required branches=1
+contributors_path type=textfield single required
+data_path type=textfield single required
+number_of_pre_amplification_pcr_cycles type=numeric single num=xsd:int
+metadata_schema_id type=textfield single required

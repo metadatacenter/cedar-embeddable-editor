@@ -4,7 +4,6 @@ import { RdfPipe } from './pipe/rdf.pipe';
 import { CedarComponentHeaderComponent } from './components/cedar-component-header/cedar-component-header.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -21,7 +20,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
-import { NgSelectModule } from '@ng-select/ng-select';
 import { CedarEmbeddableMetadataEditorComponent } from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { CedarComponentRendererComponent } from './components/cedar-component-renderer/cedar-component-renderer.component';
 import { StaticFooterComponent } from './components/static-footer/static-footer.component';
@@ -32,20 +30,16 @@ import { InputTypesModule } from '../input-types/input-types.module';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import { SampleTemplatesComponent } from './components/sample-templates/sample-templates.component';
 import { SampleTemplateSelectComponent } from './components/sample-template-select/sample-template-select.component';
-import { UserPreferencesMenu } from './components/user-preferences-menu/user-preferences-menu.component';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CedarComponentLinkedStaticFieldHeaderComponent } from './components/cedar-component-linked-static-field-header/cedar-component-linked-static-field-header.component';
+import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/cedar-font-registrar.component';
 
 @NgModule({
   imports: [
     CommonModule,
     MatCardModule,
     MatIconModule,
-    BrowserAnimationsModule,
-    MatFormFieldModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -62,11 +56,8 @@ import { CedarComponentLinkedStaticFieldHeaderComponent } from './components/ced
     MatListModule,
     MatSelectModule,
     NgxMatSelectSearchModule,
-    NgSelectModule,
     InputTypesModule,
     FormsModule,
-    MatMenuModule,
-    MatSlideToggleModule,
     TranslateModule,
     MatCheckboxModule,
   ],
@@ -76,6 +67,7 @@ import { CedarComponentLinkedStaticFieldHeaderComponent } from './components/ced
     CedarComponentLinkedStaticFieldHeaderComponent,
     CedarEmbeddableMetadataEditorComponent,
     CedarEmbeddableMetadataEditorWrapperComponent,
+    CedarFontRegistrarComponent,
     SampleTemplatesComponent,
     SampleTemplateSelectComponent,
     CedarComponentRendererComponent,
@@ -83,7 +75,6 @@ import { CedarComponentLinkedStaticFieldHeaderComponent } from './components/ced
     StaticHeaderComponent,
     SourcePanelsComponent,
     CedarMultiPagerComponent,
-    UserPreferencesMenu,
   ],
   providers: [],
   exports: [RdfPipe, CedarEmbeddableMetadataEditorWrapperComponent],

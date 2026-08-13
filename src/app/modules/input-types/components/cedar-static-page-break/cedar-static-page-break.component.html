@@ -1,20 +1,25 @@
 <div class="pager-container page-break-paginator-container">
-  <span class="page-break-label">{{'Generic.Page' | translate}}:</span>
+  <span class="page-break-label">{{ 'Generic.Page' | translate }}:</span>
   <div class="pager-chips">
-    <mat-chip-list>
-      <mat-chip *ngFor="let pageNumber of pageBreakPaginatorService.allPageIndices()"
-                [selected]="pageNumber == pageBreakPaginatorService.currentPageBreakIndex"
-                (click)="pageBreakPaginatorService.setPageNumberAndGet(pageNumber)"
-                selectable="true"
-      >{{pageNumber + 1}}</mat-chip>
-    </mat-chip-list>
+    <mat-chip-listbox [hideSingleSelectionIndicator]="true">
+      @for (pageNumber of pageBreakPaginatorService.allPageIndices(); track pageNumber) {
+        <mat-chip-option
+          [selected]="pageNumber === pageBreakPaginatorService.currentPageBreakIndex"
+          (click)="pageBreakPaginatorService.setPageNumberAndGet(pageNumber)"
+          selectable="true"
+          >{{ pageNumber + 1 }}</mat-chip-option
+        >
+      }
+    </mat-chip-listbox>
   </div>
   <div class="page-break-pager">
-    <mat-paginator [length]="pageBreakPaginatorService.numPages()"
-                   [hidePageSize]="true"
-                   [pageSize]="1"
-                   [pageIndex]="pageBreakPaginatorService.currentPageBreakIndex"
-                   (page)="paginatorChanged($event)">
+    <mat-paginator
+      [length]="pageBreakPaginatorService.numPages()"
+      [hidePageSize]="true"
+      [pageSize]="1"
+      [pageIndex]="pageBreakPaginatorService.currentPageBreakIndex"
+      (page)="paginatorChanged($event)"
+    >
     </mat-paginator>
   </div>
 </div>

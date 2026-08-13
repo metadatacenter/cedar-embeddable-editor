@@ -20,8 +20,6 @@ export class ComponentDataService {
     ) {
       return component.labelInfo.label;
     }
-    if (component.name !== null) {
-      return component.name;
-    }
+    return component.name ?? '';
   }
 }

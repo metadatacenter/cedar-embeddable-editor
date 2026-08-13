@@ -1,22 +1,36 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 
+/** The one name/value pair the attribute-value widget displays at a time. */
+type AttributeValueView = Record<string, string | null>;
+
+function isAttributeValueView(value: unknown): value is AttributeValueView {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  const entries = Object.entries(value);
+  return entries.length === 1 && (typeof entries[0][1] === 'string' || entries[0][1] === null);
+}
+
 @Component({
   selector: 'app-cedar-input-attribute-value',
   templateUrl: './cedar-input-attribute-value.component.html',
   styleUrls: ['./cedar-input-attribute-value.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CedarInputAttributeValueComponent extends CedarUIDirective {
-  component: FieldComponent;
+  component!: FieldComponent;
   options: FormGroup;
-  nameInputControl = new FormControl(null, null);
-  valueInputControl = new FormControl(null, null);
-  @Input() handlerContext: HandlerContext;
+  nameInputControl = new FormControl<string | null>(null, null);
+  valueInputControl = new FormControl<string | null>(null, null);
+  attributeNameError: string | null = null;
+  @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
     fb: FormBuilder,
@@ -28,13 +42,13 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
       valueInputValue: this.valueInputControl,
     });
   }
-  @Input() set componentToRender(componentToRender: FieldComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
     this.component = componentToRender;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
   nameChanged($event: Event): void {
-    let name: string = null;
+    let name: string | null = null;
 
     if ($event) {
       name = ($event.target as HTMLTextAreaElement).value;
@@ -42,12 +56,18 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
       name = this.nameInputControl.value;
     }
     const value = this.valueInputControl.value;
-    this.handlerContext.changeAttributeValue(this.component, name, value);
-    this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
+    this.attributeNameError = this.handlerContext.changeAttributeValue(this.component, name, value);
+    this.nameInputControl.setErrors(this.attributeNameError === null ? null : { attributeName: true });
+    if (this.attributeNameError !== null) {
+      this.nameInputControl.markAsTouched();
+    }
+    if (this.attributeNameError === null) {
+      this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
+    }
   }
 
   valueChanged($event: Event): void {
-    let value: string = null;
+    let value: string | null = null;
 
     if ($event) {
       value = ($event.target as HTMLTextAreaElement).value;
@@ -59,22 +79,45 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
       value = null;
     }
     const name = this.nameInputControl.value;
-    this.handlerContext.changeAttributeValue(this.component, name, value);
+    this.attributeNameError = this.handlerContext.changeAttributeValue(this.component, name, value);
+    this.nameInputControl.setErrors(this.attributeNameError === null ? null : { attributeName: true });
+    if (this.attributeNameError !== null) {
+      this.nameInputControl.markAsTouched();
+    }
   }
 
-  setCurrentValue(currentValue: any): void {
-    this.nameInputControl.setValue(Object.keys(currentValue)[0]);
-    this.valueInputControl.setValue(Object.values(currentValue)[0]);
+  /*
+   * An attribute-value occurrence arrives as a one-entry view object: the
+   * attribute's name is the key and its value is the value. This is deliberately
+   * not an `InstanceDataContainer`: the registry has already projected the two
+   * pieces the widget needs from the model-library instance.
+   */
+  setCurrentValue(currentValue: unknown): void {
+    this.attributeNameError = null;
+    this.nameInputControl.setErrors(null);
+    if (!isAttributeValueView(currentValue)) {
+      this.nameInputControl.setValue(null);
+      this.valueInputControl.setValue(null);
+      return;
+    }
+    const [name, value] = Object.entries(currentValue)[0];
+    this.nameInputControl.setValue(name);
+    this.valueInputControl.setValue(value);
   }
 
-  deleteCurrentValue(): void {
+  override deleteCurrentValue(): void {
     const name = this.nameInputControl.value;
     this.handlerContext.deleteAttributeValue(this.component, name);
   }
 
   clearName(): void {
     this.nameInputControl.setValue(null);
-    this.handlerContext.changeAttributeValue(this.component, null, this.valueInputControl.value);
+    this.attributeNameError = this.handlerContext.changeAttributeValue(
+      this.component,
+      null,
+      this.valueInputControl.value,
+    );
+    this.nameInputControl.setErrors(null);
   }
 
   clearValue(): void {

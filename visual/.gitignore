@@ -1,0 +1,13 @@
+node_modules/
+test-results/
+playwright-report/
+
+# Build artifact: regenerate with `npm run bundle` from ../dist.
+public/cedar-embeddable-editor.js
+# Attribution for the file above, written by the same step.
+public/bundle-manifest.json
+
+# Served copy of fixtures/; regenerate with `npm run fixtures`.
+public/fixtures/
+# Same story: a copy of fixtures/served/, produced by `npm run fixtures`.
+public/served/

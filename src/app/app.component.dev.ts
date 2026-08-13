@@ -1,18 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-component-dev',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
-export class AppComponentDev implements OnInit {
+export class AppDevComponent {
   ceeConfig = {
-    sampleTemplateLocationPrefix: 'http://localhost:4240/cedar-embeddable-editor-sample-templates/',
-    loadSampleTemplateName: '88',
-    showSampleTemplateLinks: true,
+    // The standalone developer app carries one local sample so it starts from
+    // this repository alone. Embedded hosts still provide their own templates.
+    sampleTemplateLocationPrefix: '/assets/cee-demo/',
+    loadSampleTemplateName: 'demo',
+    showSampleTemplateLinks: false,
     expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
-    showAllMultiInstanceValues: false,
+    showAllMultiInstanceValues: true,
     showDataQualityReport: true,
     showHeader: true,
     showFooter: true,
@@ -20,6 +24,10 @@ export class AppComponentDev implements OnInit {
 
     terminologyIntegratedSearchUrl: 'https://terminology.metadatacenter.orgx/bioportal/integrated-search',
     expandedInstanceDataFull: false,
+    showInstanceYaml: true,
+    expandedInstanceYaml: false,
+    showTemplateYaml: true,
+    expandedTemplateYaml: false,
     showInstanceDataCore: true,
     expandedInstanceDataCore: false,
     showMultiInstanceInfo: true,
@@ -38,12 +46,23 @@ export class AppComponentDev implements OnInit {
     // showStaticText: true,
     readOnlyMode: false,
     hideEmptyFields: false,
-    showPreferencesMenu: true,
 
-    orcidIntegratedExtAuthUrl: 'https://bridge.metadatacenter.orgx/ext-auth/orcid/search-by-name',
-    orcidIntegratedDetailsUrl: 'https://bridge.metadatacenter.orgx/ext-auth/orcid',
-    rorIntegratedExtAuthUrl: 'https://bridge.metadatacenter.orgx/ext-auth/ror/search-by-name',
-    rorIntegratedDetailsUrl: 'https://bridge.metadatacenter.orgx/ext-auth/ror',
+    extAuthBaseUrl: 'https://bridge.metadatacenter.orgx/ext-auth/',
+
+    orcidIntegratedExtAuthUrl: 'orcid/search-by-name',
+    orcidIntegratedDetailsUrl: 'orcid',
+    rorIntegratedExtAuthUrl: 'ror/search-by-name',
+    rorIntegratedDetailsUrl: 'ror',
+    pfasIntegratedExtAuthUrl: 'comp-tox/search-by-name',
+    pfasIntegratedDetailsUrl: 'comp-tox',
+    pmidIntegratedExtAuthUrl: 'pmid/search-by-name',
+    pmidIntegratedDetailsUrl: 'pmid',
+    rridIntegratedExtAuthUrl: 'rrid/search-by-name',
+    rridIntegratedDetailsUrl: 'rrid',
+    nihGrantIntegratedExtAuthUrl: 'nih-grant/search-by-name',
+    nihGrantIntegratedDetailsUrl: 'nih-grant',
+    doiIntegratedExtAuthUrl: 'doi/search-by-name',
+    doiIntegratedDetailsUrl: 'doi',
   };
 
   languages = {
@@ -55,6 +74,4 @@ export class AppComponentDev implements OnInit {
   };
 
   constructor() {}
-
-  ngOnInit(): void {}
 }

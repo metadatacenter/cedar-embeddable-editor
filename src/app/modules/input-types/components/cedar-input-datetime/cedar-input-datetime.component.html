@@ -1,52 +1,87 @@
-<app-date-picker *ngIf="showDatePicker()"
-                 [dateFormat]="dateFormat()"
-                 (dateChangedEvent)="dateInputChanged($event)"
-                 [dateMonthYear]="dateMonthYearControl"
-                 [required]="required"
-                 xmlns="http://www.w3.org/1999/html"></app-date-picker>
-<ng-container *ngIf="showTimePicker()">
-  <div *ngIf="readOnlyMode">
-    <input matInput type="text"
-           [(ngModel)]="timePickerTime"
-           readonly>
+@if (showDatePicker()) {
+  <div class="cee-temporal-date">
+    <app-date-picker
+      [dateFormat]="dateFormat()"
+      (dateChangedEvent)="dateInputChanged($event)"
+      [dateMonthYear]="dateMonthYearControl"
+      [required]="required"
+      xmlns="http://www.w3.org/1999/html"
+    ></app-date-picker>
   </div>
-  <div *ngIf="!readOnlyMode">
-<!--    <mat-label>Select Time</mat-label>-->
-    <ngx-mat-timepicker
-      (ngModelChange)="timeInputChanged($event)"
-      (input)="timeInputChanged($event)"
+}
+
+@if (showTimePicker()) {
+  <div class="cee-temporal-time">
+    <app-time-picker
       [(ngModel)]="timePickerTime"
-      [showSpinners]="true"
+      (ngModelChange)="timeInputChanged($event)"
       [enableMeridian]="enableMeridian()"
       [disableMinute]="disableMinute()"
-      [showSeconds]="showSeconds()">
-    </ngx-mat-timepicker>
+      [showSeconds]="showSeconds()"
+    >
+    </app-time-picker>
+
+    @if (showDecimalSeconds()) {
+      <span class="cee-fraction-separator" aria-hidden="true">.</span>
+      <!--
+        The placeholder is `sss`, not `000`, because a placeholder must not look
+        like a value.
+
+        At this granularity the fraction is a required part — `CedarTemporalValue.isComplete`
+        asks for it — so an empty box means the field records nothing at all. And
+        `000` is simultaneously a valid value, recording zero. The one state that
+        saves nothing therefore looked exactly like the state that saves zero, in
+        grey: date and time filled, a grey `000`, and a null value.
+
+        Every other placeholder in this control is letters for that reason: `HH`,
+        `MM`, `SS`. Lowercase here so it reads as sub-second beside the uppercase
+        `SS`, which is the usual notation for `HH:MM:SS.sss`.
+      -->
+      <mat-form-field class="cee-fraction-field">
+        <input
+          matInput
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          (input)="decimalSecondsChanged($event)"
+          [(ngModel)]="decimalSeconds"
+          name="decimalSeconds"
+          placeholder="sss"
+          matTooltip="{{ 'Generic.DecimalSeconds' | translate }}"
+          attr.aria-label="{{ 'Generic.SelectDecimalSeconds' | translate }}"
+          [readonly]="readOnlyMode"
+        />
+      </mat-form-field>
+    }
   </div>
-</ng-container>
-<ng-container *ngIf="showDecimalSeconds()">
-  <mat-form-field>
-<!--    <mat-label>Select Decimal Seconds</mat-label>-->
-    <input matInput type="number"
-           (input)="decimalSecondsChanged($event)"
-           [(ngModel)]="decimalSeconds"
-           name="decimalSeconds"
-           placeholder="{{'Generic.DecimalSeconds' | translate}}"
-           matTooltip="{{'Generic.DecimalSeconds' | translate}}"
-           attr.aria-label="{{'Generic.SelectDecimalSeconds' | translate}}"
-          [readonly]="readOnlyMode">
-  </mat-form-field>
-</ng-container>
-<ng-container *ngIf="showTimezonePicker()">
-  <app-timezone-picker
-    [(ngModel)]="timezone"
-    (ngModelChange)="timezoneInputChanged($event)"
-    customPlaceholderText="{{'Generic.SelectTimeZone' | translate}}"
-    customNotFoundText="{{'Generic.NoTimeZoneFound' | translate}}"
-    [getUserZone]="setDefaultZone"
-    [clearable]="false"
-  ></app-timezone-picker>
-</ng-container>
-<!--<p class="info-box">-->
-<!--  DateTime is:&nbsp;&nbsp;&nbsp;{{datetimeParsed.toDateRepresentation()}}<br/>-->
-<!--  Stored as:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{datetimeParsed.toStorageRepresentation()}}-->
-<!--</p>-->
+}
+
+@if (showTimezonePicker()) {
+  <div class="cee-temporal-offset" [class.cee-temporal-offset-readonly]="readOnlyMode">
+    <app-timezone-picker
+      [(ngModel)]="timezone"
+      (ngModelChange)="timezoneInputChanged($event)"
+      customPlaceholderText="{{ 'Generic.SelectUtcOffset' | translate }}"
+      [getUserZone]="setDefaultZone"
+    ></app-timezone-picker>
+  </div>
+}
+
+@if (hasTemporalValue() && !readOnlyMode) {
+  <button
+    type="button"
+    mat-icon-button
+    class="cee-temporal-clear"
+    attr.aria-label="{{ 'Generic.Clear' | translate }}"
+    matTooltip="{{ 'Generic.Clear' | translate }}"
+    (click)="clearValue()"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+}
+
+@if (valueControl.invalid && userEdited && !readOnlyMode) {
+  <mat-error class="mat-error align-start cee-temporal-error">
+    {{ validationMessage() }}
+  </mat-error>
+}

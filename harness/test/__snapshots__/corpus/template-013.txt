@@ -1,0 +1,1 @@
+Numeric field type=numeric single num=xsd:decimal

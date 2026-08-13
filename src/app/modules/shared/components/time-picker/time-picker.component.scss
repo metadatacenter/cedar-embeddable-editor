@@ -1,0 +1,166 @@
+@use '../../../../../cee-tokens' as tokens;
+
+.cee-time-picker {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+/*
+ * One clock-shaped control rather than an outlined Material field per unit.
+ *
+ * `flex-shrink: 0` because the shell holds a fixed number of fixed-width
+ * digits. Without it the shell is a shrinkable flex item with `min-width: 0`
+ * inherited from the temporal row, and a row a few pixels short of its content
+ * took those pixels from here: the minute placeholder lost the right stroke of
+ * its second M and read `HH:MN`. The row wraps below 620px, which is where a
+ * genuinely narrow viewport is meant to be handled.
+ */
+.cee-time-input-shell {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  min-height: 48px;
+  padding-inline: 8px;
+  border: 1px solid #777;
+  border-radius: 4px;
+  background: white;
+  color: inherit;
+
+  &:focus-within {
+    border-color: var(--cee-color-primary);
+    box-shadow: inset 0 0 0 1px var(--cee-color-primary);
+  }
+}
+
+.cee-time-segment {
+  box-sizing: content-box;
+  flex: 0 0 auto;
+  padding: 12px 1px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 22px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+
+  &::placeholder {
+    color: #6f6f6f;
+    opacity: 1;
+  }
+
+  &:focus {
+    background: color-mix(in srgb, var(--cee-color-primary) 9%, transparent);
+    border-radius: 2px;
+  }
+}
+
+/*
+ * Each box is sized to what it displays, and the two states display different
+ * things.
+ *
+ * Empty, a box shows HH, MM or SS, and those are three different widths: at
+ * 14px Roboto, MM measures 24.4px against SS's 16.6px, because M is 0.87em
+ * where a digit is 0.56em. One width for all three has to be MM's, and MM's
+ * width around SS is what made an empty clock read `HH :MM: SS`.
+ *
+ * So em, not ch: ch measures a digit, and what these have to fit is letters.
+ * The values leave about a pixel of slack over the measured text, which
+ * `a clock's boxes fit their placeholders` asserts rather than assumes — the
+ * width was 3ch for all three before this, and 3ch is 23.6px, so MM had been
+ * losing the right stroke of its second stem in every baseline that shows one.
+ */
+.cee-time-segment-hour {
+  width: 1.5em;
+}
+
+.cee-time-segment-minute {
+  width: 1.8em;
+}
+
+.cee-time-segment-second {
+  width: 1.3em;
+}
+
+/*
+ * Filled, a box shows two digits, and 2ch is exactly two digits — so the colons
+ * sit against them and the clock reads `14:30:15`.
+ *
+ * One flag for the whole picker rather than one per box, because that is how the
+ * values are bound: accepting any segment gives the picker a value, and every
+ * box then shows a padded number instead of its placeholder. The two states are
+ * the picker's, not each box's, so no box is ever asked to fit a placeholder at
+ * the narrower width.
+ *
+ * The hour is right-aligned rather than centred, because a 12-hour face writes
+ * it unpadded — `2:30`, not `02:30` — and a single digit centred in a two-digit
+ * box would put the gap back for that one case.
+ */
+.cee-time-picker-filled .cee-time-segment {
+  width: 2ch;
+}
+
+.cee-time-picker-filled .cee-time-segment-hour {
+  text-align: end;
+}
+
+.cee-time-separator {
+  line-height: 22px;
+  color: #555;
+  user-select: none;
+}
+
+/*
+ * AM/PM, weighted like the time it belongs to.
+ *
+ * It is a Material stroked button, and Material's button typography is 500 with
+ * 1.25px of tracking — so `PM` rendered bolder and wider than the `2:30:15` an
+ * inch to its left, which reads as emphasis nobody intended. The clock's segments
+ * and separators are 400 with normal tracking; this is a part of the same
+ * control, not a call to action.
+ */
+.cee-time-meridian {
+  min-width: 52px;
+  height: 48px;
+  padding-inline: 10px;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+
+.cee-time-picker-readonly {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-width: 96px;
+  min-height: 48px;
+  padding-inline: 10px;
+  border: 1px solid #777;
+  border-radius: 4px;
+  background: white;
+  font-variant-numeric: tabular-nums;
+}
+
+.cee-time-picker-readonly-hour-only {
+  min-width: 64px;
+}
+
+.cee-time-picker-readonly-seconds {
+  min-width: 120px;
+}
+
+.cee-time-picker-readonly-meridian {
+  min-width: 128px;
+}
+
+.cee-time-validation {
+  flex-basis: 100%;
+  margin-inline-start: 4px;
+  color: var(--cee-color-warn);
+  font-size: tokens.$cee-font-size;
+  line-height: 1.35;
+}

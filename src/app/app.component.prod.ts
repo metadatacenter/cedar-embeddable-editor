@@ -1,17 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-component-prod',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
-export class AppComponentProd implements OnInit {
+export class AppProdComponent {
   ceeConfig = {
     // Do not remove this even if unused
     // The prod build needs it
   };
 
   constructor() {}
-
-  ngOnInit(): void {}
 }

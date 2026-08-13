@@ -1,0 +1,8 @@
+Work Title single
+  has Preferred Title type=textfield single
+Activity single
+  typeOfActivity type=controlled single branches=1
+  agent type=textfield single
+hasInstance type=textfield multi min=1
+GenreForm single
+  genreForm type=textfield multi min=1

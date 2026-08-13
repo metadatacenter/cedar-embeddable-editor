@@ -1,0 +1,90 @@
+@use '../../../../../cee-tokens' as tokens;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+/* These are inspection tools, not another section of the form. */
+.source-accordion {
+  display: block;
+}
+
+.source-accordion .mat-expansion-panel {
+  max-width: 90%;
+  margin: 0 auto;
+  border: 1px solid #777;
+  border-radius: 0;
+  box-shadow: none;
+  background: #f5f5f5;
+}
+
+.source-accordion .mat-expansion-panel:not(:last-child) {
+  border-bottom: 0;
+}
+
+.source-accordion .mat-expansion-panel:first-child {
+  border-radius: 4px 4px 0 0;
+}
+
+.source-accordion .mat-expansion-panel:last-child {
+  border-radius: 0 0 4px 4px;
+}
+
+.source-accordion .mat-expansion-panel:only-child {
+  border-radius: 4px;
+}
+
+.source-accordion .mat-expansion-panel-header,
+.source-accordion .mat-expansion-panel-header.mat-expanded {
+  height: 38px;
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: tokens.$cee-font-size;
+}
+
+.source-accordion mat-panel-title {
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-weight: 500;
+}
+
+.source-accordion mat-panel-title > mat-icon,
+.source-accordion mat-panel-description mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  line-height: 18px;
+}
+
+.source-accordion mat-panel-description {
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  margin-right: 8px;
+}
+
+.source-accordion mat-panel-description mat-icon {
+  padding: 5px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.source-accordion mat-card {
+  margin: 0 10px 10px;
+  border-color: #d7e0df;
+  border-radius: 3px;
+  background: #fff;
+}
+
+.source-accordion pre {
+  max-height: 360px;
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.4;
+}

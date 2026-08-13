@@ -1,49 +1,64 @@
-<ng-container *ngIf="dateFormat === yearFormat">
+@if (dateFormat === yearFormat) {
   <mat-form-field>
-<!--    <mat-label>Select Year</mat-label>-->
-    <input matInput
-           readonly
-           [matDatepicker]="dp"
-           [formControl]="dateMonthYear"
-           attr.aria-label="{{'Generic.SelectYear' | translate}}">
-    <mat-error *ngIf="dateMonthYear.getError('required')" class="mat-error align-start">{{'Error.ValueRequired' | translate}}</mat-error>
+    <!--    <mat-label>Select Year</mat-label>-->
+    <input
+      matInput
+      readonly
+      [matDatepicker]="dp"
+      [formControl]="dateMonthYear"
+      attr.aria-label="{{ 'Generic.SelectYear' | translate }}"
+    />
+    @if (dateMonthYear.getError('required')) {
+      <mat-error class="mat-error align-start">{{ 'Error.ValueRequired' | translate }}</mat-error>
+    }
     <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
-    <mat-datepicker #dp
-                    (yearSelected)="chosenYearHandler($event, dp)"
-                    startView="multi-year"
-                    panelClass="year-month-picker"
+    <mat-datepicker
+      #dp
+      (yearSelected)="chosenYearHandler($event, dp)"
+      startView="multi-year"
+      panelClass="year-month-picker"
     ></mat-datepicker>
   </mat-form-field>
-</ng-container>
-<ng-container *ngIf="dateFormat === yearMonthFormat">
+}
+@if (dateFormat === yearMonthFormat) {
   <mat-form-field>
-<!--    <mat-label>Select Year and Month</mat-label>-->
-    <input matInput
-           readonly
-           [matDatepicker]="dp"
-           [formControl]="dateMonthYear"
-           attr.aria-label="{{'Generic.SelectYearAndMonth' | translate}}">
-    <mat-datepicker-toggle *ngIf="!readOnlyMode" matSuffix [for]="dp"></mat-datepicker-toggle>
-    <mat-datepicker #dp
-                    (yearSelected)="chosenYearHandler($event, dp)"
-                    (monthSelected)="chosenMonthHandler($event, dp)"
-                    startView="multi-year"
-                    panelClass="year-month-picker"
+    <!--    <mat-label>Select Year and Month</mat-label>-->
+    <input
+      matInput
+      readonly
+      [matDatepicker]="dp"
+      [formControl]="dateMonthYear"
+      attr.aria-label="{{ 'Generic.SelectYearAndMonth' | translate }}"
+    />
+    @if (!readOnlyMode) {
+      <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+    }
+    <mat-datepicker
+      #dp
+      (yearSelected)="chosenYearHandler($event, dp)"
+      (monthSelected)="chosenMonthHandler($event, dp)"
+      startView="multi-year"
+      panelClass="year-month-picker"
     ></mat-datepicker>
   </mat-form-field>
-</ng-container>
-<ng-container *ngIf="dateFormat === yearMonthDayFormat">
+}
+@if (dateFormat === yearMonthDayFormat) {
   <mat-form-field>
-<!--    <mat-label>Select Date</mat-label>-->
-    <input matInput
-           readonly
-           [matDatepicker]="dp"
-           [formControl]="dateMonthYear"
-           (dateChange)="chosenDateHandler($event)"
-           attr.aria-label="{{'Generic.SelectDate' | translate}}">
-    <mat-datepicker-toggle *ngIf="!readOnlyMode" matSuffix [for]="dp"></mat-datepicker-toggle>
-    <mat-datepicker #dp
-                    (opened)="chosenDateHandler($event)"
-    ></mat-datepicker>
+    <!--    <mat-label>Select Date</mat-label>-->
+    <input
+      matInput
+      readonly
+      [matDatepicker]="dp"
+      [formControl]="dateMonthYear"
+      (dateChange)="chosenDateHandler($event)"
+      attr.aria-label="{{ 'Generic.SelectDate' | translate }}"
+    />
+    @if (!readOnlyMode) {
+      <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+    }
+    <!-- `(dateChange)` above is what carries the chosen date. `(opened)` emits
+    nothing, so binding the same handler to it passed `undefined` and the body
+    never ran; removed rather than left looking live. -->
+    <mat-datepicker #dp></mat-datepicker>
   </mat-form-field>
-</ng-container>
+}

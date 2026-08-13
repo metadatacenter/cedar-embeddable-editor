@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ComponentDataService } from '../../service/component-data.service';
 import { MultiComponent } from '../../models/component/multi-component.model';
@@ -14,16 +14,46 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
   selector: 'app-cedar-component-header',
   templateUrl: './cedar-component-header.component.html',
   styleUrls: ['./cedar-component-header.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.Emulated,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
-  component: CedarComponent;
-  multiComponent: MultiComponent;
+  private static readonly FIELD_TYPE_ICONS: Readonly<Record<string, string>> = {
+    [InputType.numeric]: 'dialpad',
+    [InputType.text]: 'short_text',
+    [InputType.textarea]: 'notes',
+    [InputType.richText]: 'format_align_left',
+    [InputType.controlled]: 'device_hub',
+    [InputType.email]: 'email',
+    [InputType.link]: 'link',
+    [InputType.phoneNumber]: 'phone',
+    [InputType.list]: 'arrow_drop_down_circle',
+    [InputType.checkbox]: 'check_box',
+    [InputType.radio]: 'radio_button_checked',
+    [InputType.temporal]: 'event',
+    [InputType.image]: 'image',
+    [InputType.youtube]: 'play_circle_filled',
+    [InputType.sectionBreak]: 'remove',
+    [InputType.pageBreak]: 'insert_drive_file',
+    [InputType.attributeValue]: 'list_alt',
+  };
+
+  component!: CedarComponent;
+  /** Null for a component that is not multi-instance, which is most of them. */
+  multiComponent: MultiComponent | null = null;
   shouldRenderRequiredMark = false;
   isOrcid = false;
   isRor = false;
-  readOnlyMode: boolean;
-  readOnlyModeSubscription: Subscription;
+  isPfas = false;
+  isPmid = false;
+  isRrid = false;
+  isNihGrant = false;
+  isDoi = false;
+  fieldTypeIcon: string | null = null;
+  isOntologyField = false;
+  readOnlyMode = false;
+  readOnlyModeSubscription: Subscription = Subscription.EMPTY;
   userPreferencesService: UserPreferencesService;
 
   constructor(
@@ -42,8 +72,19 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
     this.readOnlyModeSubscription.unsubscribe();
   }
 
-  @Input() set componentToRender(componentToRender: CedarComponent) {
+  @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;
+    this.shouldRenderRequiredMark = false;
+    this.isOrcid = false;
+    this.isRor = false;
+    this.isPfas = false;
+    this.isPmid = false;
+    this.isRrid = false;
+    this.isNihGrant = false;
+    this.isDoi = false;
+    this.fieldTypeIcon = null;
+    this.isOntologyField = false;
+
     if (ComponentTypeHandler.isMulti(componentToRender)) {
       this.multiComponent = componentToRender as MultiComponent;
       if (this.multiComponent instanceof MultiFieldComponent) {
@@ -55,12 +96,26 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
     } else {
       this.multiComponent = null;
     }
-    if (this.component instanceof SingleFieldComponent) {
+    if (this.component instanceof SingleFieldComponent || this.component instanceof MultiFieldComponent) {
       const fieldComp = this.component as unknown as FieldComponent;
-      if (fieldComp.basicInfo.inputType === InputType.orcid) {
+      const inputType = fieldComp.basicInfo.inputType;
+      if (inputType === InputType.orcid) {
         this.isOrcid = true;
-      } else if (fieldComp.basicInfo.inputType === InputType.ror) {
+      } else if (inputType === InputType.ror) {
         this.isRor = true;
+      } else if (inputType === InputType.pfas) {
+        this.isPfas = true;
+      } else if (inputType === InputType.pmid) {
+        this.isPmid = true;
+      } else if (inputType === InputType.rrid) {
+        this.isRrid = true;
+      } else if (inputType === InputType.nihGrant) {
+        this.isNihGrant = true;
+      } else if (inputType === InputType.doi) {
+        this.isDoi = true;
+      } else if (inputType) {
+        this.fieldTypeIcon = CedarComponentHeaderComponent.FIELD_TYPE_ICONS[inputType] ?? 'edit';
+        this.isOntologyField = inputType === InputType.controlled;
       }
       if (fieldComp.valueInfo.requiredValue) {
         this.shouldRenderRequiredMark = true;

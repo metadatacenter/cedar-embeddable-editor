@@ -1,0 +1,182 @@
+/**
+ * Tests for the packaging layer — the part of the harness that turns a build into
+ * the single file an embedder downloads.
+ *
+ * This exists because the packaging step is about to be the thing that breaks.
+ * The Angular upgrade replaces the webpack builder with esbuild, which changes
+ * the output directory, the filenames, and — the part that actually matters —
+ * whether the emitted files can be concatenated at all. Those are exactly the
+ * conditions no current build can reproduce, so they are synthesized here: each
+ * test writes a fake `dist` in the shape a given builder produces and asserts
+ * that packaging still yields one self-contained classic script.
+ *
+ * Run: npm --prefix visual run test:packaging
+ */
+import { strict as assert } from 'node:assert';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { after, describe, it } from 'node:test';
+import { produceBundle } from './make-bundle.mjs';
+import { resolveBuildOutput } from './resolve-build-output.mjs';
+
+const temps = [];
+const scratch = () => {
+  const dir = mkdtempSync(join(tmpdir(), 'cee-packaging-'));
+  temps.push(dir);
+  return dir;
+};
+after(() => temps.forEach((dir) => rmSync(dir, { recursive: true, force: true })));
+
+/** A `dist` in the shape the webpack `browser` builder emits: flat, unhashed, IIFEs. */
+const webpackDist = () => {
+  const dist = scratch();
+  writeFileSync(join(dist, 'runtime.js'), '(function(){window.__runtime=1})();\n');
+  // The directive prologue is verbatim from a real build: webpack emits it ahead
+  // of the wrapper in polyfills.js and nowhere else. A self-containment test that
+  // does not skip it reads this shape as unjoinable and silently re-bundles.
+  writeFileSync(join(dist, 'polyfills.js'), '"use strict";(function(){window.__polyfills=1})();\n');
+  writeFileSync(join(dist, 'main.js'), '(function(){window.__main=1})();\n');
+  writeFileSync(join(dist, 'index.html'), '<html></html>');
+  return dist;
+};
+
+/**
+ * A `dist` in the shape the esbuild `application` builder emits: nested under
+ * `browser/`, hashed filenames, no runtime, and an entry that imports chunks.
+ */
+const esbuildDist = () => {
+  const dist = scratch();
+  const browser = join(dist, 'browser');
+  mkdirSync(browser);
+  writeFileSync(join(browser, 'chunk-4WYQ2LJ6.js'), 'export const shared = 41;\n');
+  writeFileSync(
+    join(browser, 'main-7BQ3XKZA.js'),
+    'import{shared as s}from"./chunk-4WYQ2LJ6.js";window.__main=s+1;\n',
+  );
+  writeFileSync(join(browser, 'polyfills-FVDXCUW7.js'), 'window.__polyfills=1;\n');
+  writeFileSync(join(browser, 'index.html'), '<html></html>');
+  return dist;
+};
+
+/**
+ * The shape the `application` builder turned out to emit, which is not the one
+ * predicted above: a single self-contained entry importing nothing, beside a
+ * separate polyfills entry — but both ES modules, declaring top-level names that
+ * only module scope keeps apart.
+ *
+ * This is the case that shipped a broken artifact. The entry imports no sibling,
+ * so the old "does it import siblings?" test said concatenate; concatenating put
+ * `polyfills`' and `main`'s minified top-level names in one global scope, where
+ * they collided and Angular died on `Cannot read properties of undefined
+ * (reading 'lFrame')`. The names below are the real ones from that build.
+ */
+const esbuildFlatDist = () => {
+  const dist = scratch();
+  const browser = join(dist, 'browser');
+  mkdirSync(browser);
+  writeFileSync(join(browser, 'polyfills.js'), 'var ce=globalThis;ce.__polyfills=1;\n');
+  writeFileSync(join(browser, 'main.js'), 'var ce=Object.create;window.__main=typeof ce;\n');
+  writeFileSync(join(browser, 'index.html'), '<html></html>');
+  return dist;
+};
+
+describe('resolveBuildOutput', () => {
+  it('reads the webpack shape as a concatenation, in load order', () => {
+    const { strategy, inputs } = resolveBuildOutput(webpackDist());
+    assert.equal(strategy, 'concat');
+    assert.deepEqual(
+      inputs.map((p) => p.split('/').pop()),
+      ['runtime.js', 'polyfills.js', 'main.js'],
+      'runtime must load before polyfills before the entry',
+    );
+  });
+
+  it('reads the esbuild shape as a bundle, from the nested output directory', () => {
+    const { strategy, dir, entry, inputs } = resolveBuildOutput(esbuildDist());
+    assert.equal(strategy, 'bundle', 'an entry that imports siblings cannot be concatenated');
+    assert.ok(dir.endsWith('/browser'));
+    assert.ok(entry.endsWith('main-7BQ3XKZA.js'), 'the hashed entry must still be found');
+    assert.ok(
+      inputs.some((p) => p.includes('chunk-')),
+      'lazy chunks belong to the freshness set even though esbuild resolves them itself',
+    );
+  });
+
+  it('reads an import-free ES module entry as a bundle, because scope is the question', () => {
+    const { strategy } = resolveBuildOutput(esbuildFlatDist());
+    assert.equal(
+      strategy,
+      'bundle',
+      'nothing here imports a sibling, so only the sharing of top-level scope rules concatenation out',
+    );
+  });
+
+  it('refuses to guess when stale output shadows the current build', () => {
+    const dist = webpackDist();
+    writeFileSync(join(dist, 'main-7BQ3XKZA.js'), 'window.__stale=1;\n');
+    assert.throws(() => resolveBuildOutput(dist), /ambiguous entry/);
+  });
+
+  it('names the remedy when there is no build at all', () => {
+    assert.throws(() => resolveBuildOutput(scratch()), /Run: npm run build:production/);
+  });
+});
+
+describe('produceBundle', () => {
+  it('concatenates the webpack shape verbatim', async () => {
+    const { bundle, manifest } = await produceBundle(webpackDist());
+    assert.equal(
+      bundle.toString(),
+      '(function(){window.__runtime=1})();\n' +
+        '"use strict";(function(){window.__polyfills=1})();\n' +
+        '(function(){window.__main=1})();\n',
+    );
+    assert.equal(manifest.strategy, 'concat');
+    assert.equal(manifest.bytes, bundle.byteLength);
+  });
+
+  it('flattens the esbuild shape into one script with no dangling imports', async () => {
+    const { bundle, manifest } = await produceBundle(esbuildDist());
+    const text = bundle.toString();
+    assert.equal(manifest.strategy, 'bundle');
+    assert.ok(
+      !/(^|[;}\s])import\s*[{*"']/.test(text),
+      'a concatenation would have left an import statement here, and the artifact would not load',
+    );
+    assert.ok(text.includes('window.__polyfills'), 'polyfills must survive, and come first');
+    assert.ok(text.indexOf('window.__polyfills') < text.indexOf('window.__main'));
+  });
+
+  /**
+   * The failure this whole predicate exists for, asserted on behaviour rather
+   * than on strategy: both files declare `ce`, and only a wrapper keeps the
+   * second from overwriting the first.
+   */
+  it('keeps two entries that share a top-level name from colliding', async () => {
+    const { bundle } = await produceBundle(esbuildFlatDist());
+    const text = bundle.toString();
+    assert.ok(
+      !/^var ce=globalThis/m.test(text),
+      'a bare top-level declaration means the files share a scope, which is how they clobber each other',
+    );
+    assert.ok(/^\(\s*\(\s*\)\s*=>|^\(function/.test(text.trimStart()), 'the artifact must be wrapped');
+  });
+
+  it('produces an esbuild-shaped artifact that actually evaluates', async () => {
+    const { bundle } = await produceBundle(esbuildDist());
+    // The chunk contributes 41 and the entry adds 1. If the import graph were
+    // mishandled, this either throws or yields the wrong value.
+    const window = {};
+    new Function('window', bundle.toString())(window);
+    assert.equal(window.__main, 42);
+    assert.equal(window.__polyfills, 1);
+  });
+
+  it('records a digest that changes with the bytes', async () => {
+    const a = await produceBundle(webpackDist());
+    const b = await produceBundle(esbuildDist());
+    assert.match(a.manifest.sha256, /^[0-9a-f]{64}$/);
+    assert.notEqual(a.manifest.sha256, b.manifest.sha256);
+  });
+});

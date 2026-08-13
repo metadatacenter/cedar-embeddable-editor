@@ -1,0 +1,4 @@
+#002 Element with three fields single
+  Text field type=textfield single
+  Email type=email single
+  Numeric type=numeric single num=xsd:decimal

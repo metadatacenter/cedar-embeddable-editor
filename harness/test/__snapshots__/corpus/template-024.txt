@@ -1,0 +1,1 @@
+Controlled type=controlled multi required min=4 max=7 classes=1
