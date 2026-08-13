@@ -36,10 +36,9 @@ export const packageMetadata = () => {
       'README.md',
       'CHANGELOG.md',
     ],
-    publishConfig: {
-      registry: rootPackage.publishConfig.registry,
-      tag: 'dev',
-    },
+    // No publishConfig: the stable package publishes to the default registry
+    // (registry.npmjs.org) under the default `latest` tag. The Nexus registry and
+    // the `dev` tag belonged to the scoped dev-snapshot channel.
     repository: {
       type: 'git',
       url: 'git+https://github.com/metadatacenter/cedar-embeddable-editor.git',
