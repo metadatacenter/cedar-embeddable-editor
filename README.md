@@ -727,7 +727,9 @@ holds small runnable applications that embed CEE, each with its own README:
 | `cedar-cee-demo-angular-src` | Angular |
 | `cedar-cee-demo-react` | React |
 | `cedar-cee-demo-ember-src` | Ember |
-| `cedar-cee-docs-angular-src` | Angular, documenting the component |
+
+Each edits the same template, `eDNA ECT Demonstration`, kept as a file inside the
+application rather than fetched from a server.
 
 `cedar-cee-demo-angular-src` needs `npm install --legacy-peer-deps`; the others
 do not.
