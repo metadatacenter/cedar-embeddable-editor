@@ -1,10 +1,7 @@
 {
   "name": "cedar-embeddable-editor",
   "description": "A reusable Web Component for creating and editing CEDAR metadata instances.",
-  "version": "1.6.0-dev.20260812.b953153",
-  "publishConfig": {
-    "registry": "https://nexus.bmir.stanford.edu/repository/npm-cedar/"
-  },
+  "version": "1.6.0",
   "engines": {
     "node": "^24.15.0"
   },
@@ -42,7 +39,7 @@
     "@angular/platform-browser": "~22.1.1",
     "@ngx-translate/core": "^14.0.0",
     "@ngx-translate/http-loader": "^7.0.0",
-    "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@0.9.2-dev.20260811.d87b47c",
+    "cedar-model-typescript-library": "1.0.0",
     "dompurify": "^3.4.13",
     "lodash-es": "^4.18.1",
     "ngx-mat-select-search": "^8.0.6",

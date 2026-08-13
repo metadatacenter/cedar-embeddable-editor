@@ -20,7 +20,7 @@ export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex'
 export const packageMetadata = () => {
   const rootPackage = readJson(resolve(ROOT, 'package.json'));
   return {
-    name: '@org.metadatacenter/cedar-embeddable-editor',
+    name: 'cedar-embeddable-editor',
     version: rootPackage.version,
     description: rootPackage.description,
     main: 'cedar-embeddable-editor.js',
