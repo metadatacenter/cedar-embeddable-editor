@@ -30,9 +30,6 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
   showHeader: 'boolean',
   showFooter: 'boolean',
   showTemplateDescription: 'boolean',
-  showStaticText: 'boolean',
-  showAllMultiInstanceValues: 'boolean',
-  collapseStaticComponents: 'boolean',
   showSpinnerBeforeInit: 'boolean',
 
   readOnlyMode: 'boolean',

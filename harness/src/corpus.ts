@@ -162,7 +162,6 @@ export const describeTree = (node: any, depth = 0): string[] => {
       const n = child.controlledInfo?.[kind]?.length;
       if (n) bits.push(`${kind}=${n}`);
     }
-    if (child.linkedStaticFieldComponent) bits.push('hasLinkedStatic');
     lines.push(bits.join(' '));
     lines.push(...describeTree(child, depth + 1));
   }

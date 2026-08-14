@@ -11,7 +11,6 @@ export class StaticFieldComponent implements SingleComponent {
   labelInfo: LabelInfo = new LabelInfo();
   basicInfo: BasicInfo = new BasicInfo();
   contentInfo: ContentInfo = new ContentInfo();
-  linkedStaticFieldComponent: StaticFieldComponent | null = null;
   hidden = false;
   hiddenInTemplate = false;
 

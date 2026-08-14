@@ -49,9 +49,6 @@ export interface CeeConfig {
   showHeader?: boolean;
   showFooter?: boolean;
   showTemplateDescription?: boolean;
-  showStaticText?: boolean;
-  showAllMultiInstanceValues?: boolean;
-  collapseStaticComponents?: boolean;
   showSpinnerBeforeInit?: boolean;
 
   /**

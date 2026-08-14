@@ -47,10 +47,7 @@
  * a 32px blank band at every nesting level. Keep the field's bottom rhythm but
  * do not count its top spacing twice.
  */
-::ng-deep
-  .cee-element-content:not(.cee-element-content-with-static)
-  > app-cedar-component-renderer:first-of-type
-  > .non-iterable-component {
+::ng-deep .cee-element-content > app-cedar-component-renderer:first-of-type > .non-iterable-component {
   padding-top: 0;
 }
 

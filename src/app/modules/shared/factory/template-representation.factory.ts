@@ -10,7 +10,6 @@ import { SingleElementComponent } from '../models/element/single-element-compone
 import { ElementComponent } from '../models/component/element-component.model';
 import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { StaticFieldComponent } from '../models/static/static-field-component.model';
-import { ComponentTypeHandler } from '../handler/component-type.handler';
 import { InputType } from '../models/input-type.model';
 import { HandlerContext } from '../util/handler-context';
 import { TemplateParser } from './template-parser';
@@ -25,17 +24,15 @@ import { isInstanceObject } from '../models/instance-node.model';
  * Two stages, and the split is load-bearing. A `TemplateParser` turns the
  * template's JSON into the tree; everything below that depends on the
  * surrounding runtime rather than on the template — which fields are empty in
- * the loaded instance, whether the host asked for static-field collapsing,
- * where the page breaks fall — and is applied here, identically, whichever
- * parser ran. That is what lets the parser be swapped without the rendered
- * form moving.
+ * the loaded instance, where the page breaks fall — and is applied here,
+ * identically, whichever parser ran. That is what lets the parser be swapped
+ * without the rendered form moving.
  */
 export class TemplateRepresentationFactory {
   private static readonly defaultParser: TemplateParser = new ModelLibraryTemplateParser();
 
   static create(
     inputTemplate: CedarInputTemplate,
-    collapseStaticComponents: boolean,
     handlerContext: HandlerContext,
     parser: TemplateParser = TemplateRepresentationFactory.defaultParser,
   ): TemplateComponent {
@@ -45,9 +42,6 @@ export class TemplateRepresentationFactory {
       const template = new CedarTemplate();
       parser.parse(inputTemplate, template, handlerContext);
       TemplateRepresentationFactory.applyEmptyFieldHiding(template, handlerContext);
-      if (collapseStaticComponents) {
-        TemplateRepresentationFactory.collapseStaticFields(template);
-      }
       TemplateRepresentationFactory.extractPageBreakPages(template);
       return template;
     }
@@ -130,16 +124,6 @@ export class TemplateRepresentationFactory {
     }
   }
 
-  /** Apply static-field collapsing to every container, innermost first. */
-  private static collapseStaticFields(container: ElementComponent): void {
-    for (const child of container.children) {
-      if (ComponentTypeHandler.isContainerComponent(child)) {
-        this.collapseStaticFields(child as ElementComponent);
-      }
-    }
-    this.collapseStaticFieldsIntoNextFieldOrElement(container);
-  }
-
   /**
    * True when any descendant of this element holds a value.
    *
@@ -198,48 +182,5 @@ export class TemplateRepresentationFactory {
     }
     // The path names a child this node does not have.
     return undefined;
-  }
-
-  // Group RTF/image/video fields into consecutive pairs. Any pair gets combined
-  // and displayed inline wherever it's located.
-  // If the RTF/image/video field is odd (not paired with another RTF/image/video),
-  // wrap this field into the next dynamic field/element
-  private static collapseStaticFieldsIntoNextFieldOrElement(component: CedarComponent): void {
-    // re-iterate, inject static components (images) into the next dynamic components
-    // but only if they aren't paired with other like fields
-    if (ComponentTypeHandler.isContainerComponent(component)) {
-      const elementComponent = component as ElementComponent;
-      let prevChild: CedarComponent | null = null;
-      const newChildren: CedarComponent[] = [];
-      let isStaticPair = false;
-
-      for (let i = 0; i < elementComponent.children.length; i++) {
-        const currentChild: CedarComponent = elementComponent.children[i];
-
-        if (
-          ComponentTypeHandler.isFieldOrElement(currentChild) &&
-          ComponentTypeHandler.isStaticContentComponent(prevChild) &&
-          !isStaticPair
-        ) {
-          currentChild.linkedStaticFieldComponent = prevChild as StaticFieldComponent;
-          newChildren.pop();
-          newChildren.push(currentChild);
-        } else {
-          newChildren.push(currentChild);
-        }
-
-        if (
-          !isStaticPair &&
-          ComponentTypeHandler.isStaticContentComponent(currentChild) &&
-          ComponentTypeHandler.isStaticContentComponent(prevChild)
-        ) {
-          isStaticPair = true;
-        } else if (isStaticPair) {
-          isStaticPair = false;
-        }
-        prevChild = currentChild;
-      }
-      elementComponent.children = newChildren;
-    }
   }
 }

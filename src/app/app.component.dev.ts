@@ -16,11 +16,10 @@ export class AppDevComponent {
     showSampleTemplateLinks: false,
     expandedSampleTemplateLinks: false,
     showTemplateRenderingRepresentation: true,
-    showAllMultiInstanceValues: true,
     showDataQualityReport: true,
     showHeader: true,
     showFooter: true,
-    showTemplateDescription: false,
+    showTemplateDescription: true,
 
     terminologyIntegratedSearchUrl: 'https://terminology.metadatacenter.orgx/bioportal/integrated-search',
     expandedInstanceDataFull: false,
@@ -42,8 +41,6 @@ export class AppDevComponent {
     orcidPrefix: 'https://orcid.org/',
     rorPrefix: 'https://ror.org/',
 
-    collapseStaticComponents: true,
-    // showStaticText: true,
     readOnlyMode: false,
     hideEmptyFields: false,
 

@@ -89,6 +89,3 @@
   </div>
 }
 <!-- Built from instance values, so sanitized rather than trusted. See `safe-html.pipe.ts`. -->
-@if (component && currentMultiInfo && multiInstanceValue && showAllMultiInstanceValues) {
-  <div class="info-box" [innerHTML]="multiInstanceValue | safeHtml"></div>
-}

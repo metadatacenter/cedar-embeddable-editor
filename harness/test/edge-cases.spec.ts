@@ -132,47 +132,34 @@ describe('hidden fields', () => {
   });
 });
 
-describe('static component collapsing', () => {
+describe('static content components', () => {
   /**
-   * With `collapseStaticComponents`, a static content component immediately
-   * preceding a field is removed from `children` and re-attached as that
-   * field's `linkedStaticFieldComponent`, so the renderer draws them as one
-   * unit. Off by default; the dev config turns it on.
+   * A static content component stays where the template put it.
+   *
+   * `collapseStaticComponents` used to remove a lone static that immediately preceded
+   * a field or element and re-attach it inside that successor, which for an element
+   * also replaced the element's own heading with the static's label. The key and the
+   * collapsing are both gone, so a static is a sibling wherever it appears. These
+   * assert the shapes that used to collapse.
    */
-  it('leaves statics as siblings when disabled', () => {
+  it('leaves a static as a sibling of the field that follows it', () => {
     const driver = new CeeDriver(
       buildTemplate({
-        name: 'collapse_off',
+        name: 'static_sibling',
         children: [
           { kind: IMAGE, name: 'img' },
           { kind: TEXT, name: 'field' },
         ],
       }),
-      { collapseStaticComponents: false },
     );
     expect(driver.find(['_img'])).toBeTruthy();
-    expect(driver.findOrThrow(['_field']).linkedStaticFieldComponent).toBeFalsy();
+    expect(driver.find(['_field'])).toBeTruthy();
   });
 
-  it('attaches the static to the following field when enabled', () => {
+  it('leaves a static inside a nested element as a sibling too', () => {
     const driver = new CeeDriver(
       buildTemplate({
-        name: 'collapse_on',
-        children: [
-          { kind: IMAGE, name: 'img' },
-          { kind: TEXT, name: 'field' },
-        ],
-      }),
-      { collapseStaticComponents: true },
-    );
-    expect(driver.find(['_img']), 'the static should have been absorbed').toBeNull();
-    expect(driver.findOrThrow(['_field']).linkedStaticFieldComponent).toBeTruthy();
-  });
-
-  it('collapses static content inside nested elements too', () => {
-    const driver = new CeeDriver(
-      buildTemplate({
-        name: 'collapse_nested',
+        name: 'static_sibling_nested',
         elements: [
           {
             name: 'details',
@@ -183,11 +170,9 @@ describe('static component collapsing', () => {
           },
         ],
       }),
-      { collapseStaticComponents: true },
     );
-
-    expect(driver.find(['_details', '_img']), 'the nested static should have been absorbed').toBeNull();
-    expect(driver.findOrThrow(['_details', '_field']).linkedStaticFieldComponent).toBeTruthy();
+    expect(driver.find(['_details', '_img'])).toBeTruthy();
+    expect(driver.find(['_details', '_field'])).toBeTruthy();
   });
 });
 

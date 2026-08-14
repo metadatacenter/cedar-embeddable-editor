@@ -1455,7 +1455,14 @@ test('a selected controlled term reads like a selected authority term', async ({
  */
 test.describe('hiding fields the instance never filled', () => {
   test('drops an empty field on the combined input', async ({ page }) => {
-    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance', 'combined', '&f=hideEmptyFields');
+    await open(
+      page,
+      '04-controlled-terms',
+      'readonly',
+      '04-controlled-terms-instance',
+      'combined',
+      '&f=hideEmptyFields',
+    );
 
     await expect(page.locator('input[aria-label="organism"]')).toBeVisible();
     await expect(page.locator('input[aria-label="contributor"]')).toHaveCount(0);
@@ -1468,7 +1475,14 @@ test.describe('hiding fields the instance never filled', () => {
    * are empty. Asserted so the limit is recorded rather than rediscovered.
    */
   test('does not drop it on the separate inputs', async ({ page }) => {
-    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance', 'separate', '&f=hideEmptyFields');
+    await open(
+      page,
+      '04-controlled-terms',
+      'readonly',
+      '04-controlled-terms-instance',
+      'separate',
+      '&f=hideEmptyFields',
+    );
 
     await expect(page.locator('input[aria-label="organism"]')).toBeVisible();
     await expect(page.locator('input[aria-label="contributor"]')).toBeVisible();
@@ -3268,7 +3282,7 @@ test.describe('host change notifications', () => {
 /**
  * Every boolean config flag does something.
  *
- * CEE takes 31 config keys and two thirds of them appeared in no test. Breadth is the
+ * Most of CEE's config keys appeared in no test at all. Breadth is the
  * point rather than depth: the failure this catches is a key that is silently ignored,
  * which is indistinguishable from a working one until someone relies on it. That is
  * not hypothetical — `eventHandler` is a documented input whose value is stored in
@@ -3343,39 +3357,6 @@ test.describe('config flags are wired to something', () => {
     );
     return normaliseAngularIds(html);
   };
-
-  /**
-   * Wired, but to something no fixture in the corpus produces.
-   *
-   * Each of these gates on a second condition as well as the flag, and the corpus
-   * never satisfies it — so the flag cannot change anything here whatever it is set
-   * to. They were "passing" until Angular 16 made ids deterministic, at which point
-   * it became clear they were comparing a page with itself.
-   *
-   * `fixme` rather than deletion or a silent skip: the run reports them, so the gap
-   * stays visible until a fixture reaches the condition. Adding one is tracked
-   * separately; both conditions are named here so whoever builds it knows the shape.
-   */
-  const UNREACHABLE = new Map([
-    [
-      'showStaticText',
-      'gates on `linkedStaticFieldComponent`, which template-representation.factory only ' +
-        'sets for a lone static component immediately preceding a field or element. Every ' +
-        'static run in the corpus is a pair, so nothing is ever linked.',
-    ],
-    [
-      'showAllMultiInstanceValues',
-      'gates on `multiInstanceValue`, and getMultiInstanceDataValueInfo returns "" unless ' +
-        'the paged component is a *field* holding values. The corpus pages elements, so the ' +
-        'summary is always empty. Needs a multi-instance field plus an instance to fill it.',
-    ],
-  ]);
-
-  for (const [flag, why] of UNREACHABLE) {
-    test.fixme(`${flag} changes what renders`, () => {
-      throw new Error(`no fixture reaches this flag: ${why}`);
-    });
-  }
 
   for (const { flag, withFlags = [], fixture = '01-input-types' } of FLAGS) {
     test(`${flag} changes what renders`, async ({ page }) => {

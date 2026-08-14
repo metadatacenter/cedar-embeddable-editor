@@ -55,11 +55,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   private static EXPANDED_DATA_QUALITY_REPORT = 'expandedDataQualityReport';
   private static EXPANDED_SAMPLE_TEMPLATE_LINKS = 'expandedSampleTemplateLinks';
 
-  private static COLLAPSE_STATIC_COMPONENTS = 'collapseStaticComponents';
-  private static SHOW_ALL_MULTI_INSTANCE_VALUES = 'showAllMultiInstanceValues';
-
-  private static SHOW_STATIC_TEXT = 'showStaticText';
-
   static TEMPLATE_LOCATION_PREFIX = 'sampleTemplateLocationPrefix';
   static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
   static TERMINOLOGY_INTEGRATED_SEARCH_URL = 'terminologyIntegratedSearchUrl';
@@ -111,7 +106,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   showInstanceYaml = false;
   showDataQualityReport = false;
   showSampleTemplateLinks = false;
-  showStaticText = true;
 
   showHeader = false;
   showFooter = false;
@@ -126,13 +120,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   expandedDataQualityReport = false;
   expandedSampleTemplateLinks = false;
 
-  collapseStaticComponents = false;
   // Which parser turns the template a host hands in into the component tree.
   // JSON by default; a host reading its templates as CEDAR YAML sets
   // `inputSerialization: 'yaml'` in the config to switch it, and passes the
   // YAML-parsed object. Input and output serialization are independent.
   templateParser: TemplateParser = new ModelLibraryTemplateParser();
-  showAllMultiInstanceValues = true;
   showTemplateDescription: boolean = false;
   readOnlyMode: boolean = false;
 
@@ -266,11 +258,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         CedarEmbeddableMetadataEditorComponent.EXPANDED_SAMPLE_TEMPLATE_LINKS,
         this.expandedSampleTemplateLinks,
       );
-      this.collapseStaticComponents = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.COLLAPSE_STATIC_COMPONENTS,
-        this.collapseStaticComponents,
-      );
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.INPUT_SERIALIZATION)) {
         const inputSerialization = value[CedarEmbeddableMetadataEditorComponent.INPUT_SERIALIZATION];
         this.templateParser =
@@ -278,19 +265,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
             ? new YamlTemplateParser()
             : new ModelLibraryTemplateParser();
       }
-      this.showStaticText = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_STATIC_TEXT,
-        this.showStaticText,
-      );
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.IRI_PREFIX)) {
         this.iriPrefix.set(String(value[CedarEmbeddableMetadataEditorComponent.IRI_PREFIX]));
       }
-      this.showAllMultiInstanceValues = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_ALL_MULTI_INSTANCE_VALUES,
-        this.showAllMultiInstanceValues,
-      );
       this.showTemplateDescription = configFlag(
         value,
         CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_DESCRIPTION,
@@ -432,13 +409,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     if (dataContext == null || handlerContext == null) {
       return;
     }
-    dataContext.setInputTemplate(
-      templateObject,
-      handlerContext,
-      pageBreakPaginatorService,
-      this.collapseStaticComponents,
-      this.templateParser,
-    );
+    dataContext.setInputTemplate(templateObject, handlerContext, pageBreakPaginatorService, this.templateParser);
     // The old component tree remains alive until Angular's next render pass.
     // Drop its strong references immediately after the replacement succeeds.
     this.activeComponentRegistry.clear();

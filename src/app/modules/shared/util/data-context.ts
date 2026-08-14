@@ -89,7 +89,6 @@ export class DataContext {
      * paginator is told about the template, not the other way about.
      */
     pageBreakPaginatorService: PageBreakPaginatorService | null,
-    collapseStaticComponents: boolean,
     // Which parser turns the template's JSON into the component tree. Left
     // unset in production; the parity suite passes both in turn to check they
     // agree. See `factory/template-parser.ts`.
@@ -102,7 +101,6 @@ export class DataContext {
     this.templateInput = value as CedarInputTemplate;
     this.templateRepresentation = TemplateRepresentationFactory.create(
       this.templateInput,
-      collapseStaticComponents,
       handlerContext,
       templateParser,
     );

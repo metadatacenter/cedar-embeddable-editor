@@ -198,7 +198,6 @@
           showTemplateSourceData: false,
           showDataQualityReport: false,
           showMultiInstanceInfo: false,
-          collapseStaticComponents: true,
           defaultLanguage: 'en',
           fallbackLanguage: 'en',
           sampleTemplateLocationPrefix: './served/sample/',
@@ -244,11 +243,11 @@
         /**
          * Turn individual boolean config flags on, with ?f=one,two.
          *
-         * CEE takes 31 config keys and `base` deliberately turns most of them off so a
-         * diff reflects the form. That left two thirds of the config surface rendered in
-         * no test at all — and a config key that is silently ignored looks exactly like
-         * one that works. Not hypothetical: `eventHandler` was stored and never read, so
-         * a host page passing one got silence, which is what prompted this sweep.
+         * `base` deliberately turns most of CEE's config keys off so a diff reflects the
+         * form. That left much of the config surface rendered in no test at all — and a
+         * config key that is silently ignored looks exactly like one that works. Not
+         * hypothetical: `eventHandler` was stored and never read, so a host page passing
+         * one got silence, which is what prompted this sweep.
          *
          * This exists so a test can ask the only question that catches that: does
          * turning this flag on change anything?

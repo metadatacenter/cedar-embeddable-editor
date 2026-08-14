@@ -7,14 +7,7 @@
     >
       <mat-expansion-panel-header>
         <mat-panel-title class="cee-element-heading">
-          @if (!iterableComponent.linkedStaticFieldComponent) {
-            <app-cedar-component-header [componentToRender]="iterableComponent"></app-cedar-component-header>
-          }
-          @if (iterableComponent.linkedStaticFieldComponent) {
-            <app-cedar-component-linked-static-field-header
-              [componentToRender]="iterableComponent.linkedStaticFieldComponent"
-            ></app-cedar-component-linked-static-field-header>
-          }
+          <app-cedar-component-header [componentToRender]="iterableComponent"></app-cedar-component-header>
         </mat-panel-title>
       </mat-expansion-panel-header>
       @if (iterableComponent.isMulti() && iterableAsMultiComponent) {
@@ -22,45 +15,18 @@
           [componentToRender]="iterableAsMultiComponent"
           [handlerContext]="handlerContext"
           [isAlignedUp]="true"
-          [showAllMultiInstanceValues]="showAllMultiInstanceValues"
           [pageBreakPaginatorService]="pageBreakPaginatorService"
         >
         </app-cedar-multi-pager>
       }
       @if (shouldRenderContentOfIterable(iterableComponent)) {
-        <mat-card-content
-          class="cee-element-content"
-          [class.cee-element-content-with-static]="!!iterableComponent.linkedStaticFieldComponent"
-        >
-          @if (iterableComponent.linkedStaticFieldComponent) {
-            <!-- These are the collapsed static components before elements -->
-            @if (iterableComponent.linkedStaticFieldComponent.basicInfo.inputType === InputType.image) {
-              <app-cedar-static-image
-                [componentToRender]="iterableComponent.linkedStaticFieldComponent"
-                [handlerContext]="handlerContext"
-              ></app-cedar-static-image>
-            }
-            @if (iterableComponent.linkedStaticFieldComponent.basicInfo.inputType === InputType.youtube) {
-              <app-cedar-static-youtube
-                [componentToRender]="iterableComponent.linkedStaticFieldComponent"
-                [handlerContext]="handlerContext"
-              ></app-cedar-static-youtube>
-            }
-            @if (iterableComponent.linkedStaticFieldComponent.basicInfo.inputType === InputType.richText) {
-              <app-cedar-static-rich-text
-                [componentToRender]="iterableComponent.linkedStaticFieldComponent"
-                [handlerContext]="handlerContext"
-              ></app-cedar-static-rich-text>
-            }
-          }
+        <mat-card-content class="cee-element-content">
           @for (childComponent of iterableComponent.children; track childComponent) {
             @if (!childComponent.hidden) {
               <app-cedar-component-renderer
                 [componentToRender]="childComponent"
                 [handlerContext]="handlerContext"
                 [allExpanded]="allExpanded"
-                [showStaticText]="showStaticText"
-                [showAllMultiInstanceValues]="showAllMultiInstanceValues"
                 [pageBreakPaginatorService]="pageBreakPaginatorService"
               >
                 ></app-cedar-component-renderer
@@ -80,36 +46,12 @@
         [componentToRender]="nonIterableComponent"
         [handlerContext]="handlerContext"
         [isAlignedUp]="false"
-        [showAllMultiInstanceValues]="showAllMultiInstanceValues"
         [pageBreakPaginatorService]="pageBreakPaginatorService"
       >
       </app-cedar-multi-pager>
     }
     @if (shouldRenderContentOfNonIterable(nonIterableComponent)) {
       <div class="child-component-content">
-        @if (nonIterableComponent.linkedStaticFieldComponent && showStaticText) {
-          <ng-container tabIndex="0">
-            <!-- These are the collapsed static components before fields-->
-            @if (nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType === InputType.image) {
-              <app-cedar-static-image
-                [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
-                [handlerContext]="handlerContext"
-              ></app-cedar-static-image>
-            }
-            @if (nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType === InputType.youtube) {
-              <app-cedar-static-youtube
-                [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
-                [handlerContext]="handlerContext"
-              ></app-cedar-static-youtube>
-            }
-            @if (nonIterableComponent.linkedStaticFieldComponent.basicInfo.inputType === InputType.richText) {
-              <app-cedar-static-rich-text
-                [componentToRender]="nonIterableComponent.linkedStaticFieldComponent"
-                [handlerContext]="handlerContext"
-              ></app-cedar-static-rich-text>
-            }
-          </ng-container>
-        }
         <!-- These are the regular components -->
         @if (nonIterableComponent.basicInfo.inputType === InputType.numeric) {
           <app-cedar-input-numeric

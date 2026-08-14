@@ -32,7 +32,6 @@ import { SampleTemplatesComponent } from './components/sample-templates/sample-t
 import { SampleTemplateSelectComponent } from './components/sample-template-select/sample-template-select.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { CedarComponentLinkedStaticFieldHeaderComponent } from './components/cedar-component-linked-static-field-header/cedar-component-linked-static-field-header.component';
 import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/cedar-font-registrar.component';
 
 @NgModule({
@@ -64,7 +63,6 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
   declarations: [
     RdfPipe,
     CedarComponentHeaderComponent,
-    CedarComponentLinkedStaticFieldHeaderComponent,
     CedarEmbeddableMetadataEditorComponent,
     CedarEmbeddableMetadataEditorWrapperComponent,
     CedarFontRegistrarComponent,

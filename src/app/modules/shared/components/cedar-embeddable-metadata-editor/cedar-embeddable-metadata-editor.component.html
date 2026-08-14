@@ -7,10 +7,7 @@
 @if (dataAvailableForRender() && dataContext && handlerContext && pageBreakPaginatorService) {
   <mat-card appearance="outlined" class="template-card">
     <!--  <mat-card-header>-->
-    <div
-      class="template-header"
-      [class.template-header-paged]="dataContext.templateRepresentation?.hasPageBreaks()"
-    >
+    <div class="template-header" [class.template-header-paged]="dataContext.templateRepresentation?.hasPageBreaks()">
       <div class="logo-block">
         <div
           mat-card-avatar
@@ -54,8 +51,6 @@
             [componentToRender]="childComponent"
             [handlerContext]="handlerContext"
             [allExpanded]="allExpanded"
-            [showStaticText]="showStaticText"
-            [showAllMultiInstanceValues]="showAllMultiInstanceValues"
             [pageBreakPaginatorService]="pageBreakPaginatorService"
           ></app-cedar-component-renderer>
         }

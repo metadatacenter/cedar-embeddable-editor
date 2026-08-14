@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Removed
+
+- **BREAKING.** `showAllMultiInstanceValues`, and the "All Values" summary it switched on.
+  The summary listed every occurrence of a multi-instance field above that field, and had
+  never once rendered as designed. Its occurrence numbers were meant to be the grey chips the
+  pager itself uses — `.multiinfo-index` styles them, and `.not-first-multiinfo-index` puts a
+  15px gap before each one — but the strip was built as an HTML string and injected through
+  `[innerHTML]`, and Angular's emulated encapsulation scopes component styles by an
+  `_ngcontent-*` attribute that injected nodes never receive. So none of it applied: the
+  numbers rendered as bare text with no gap, and `1 Alpha2 Beta3 Gamma` read as four values
+  rather than three. An occurrence with no value printed the literal word `null` on top of
+  that. Gone with it: `getMultiInstanceDataValueInfo`, `shortValue` and the 30-character cap,
+  the pager's `ngDoCheck`, the `Generic.AllValues` translation in both language maps, the
+  three `multiinfo-index` rules, and the global `.info-box` style they used.
+
+- **BREAKING.** `collapseStaticComponents`, and the collapsing it switched on. A lone image,
+  video or rich-text static immediately before a field or element was removed from the sibling
+  list and re-attached inside that successor, recursively through nested elements. For an
+  element it went further and replaced the element's own heading with the static's label, so a
+  group of questions could lose its name to a decorative video: in the `18-real-nested` fixture
+  the panel titled "All Field Types (single)" rendered as "YouTube Video". Static content now
+  renders where the template puts it, which is what the key's own default already did. Gone with
+  it: `linkedStaticFieldComponent` from the component model, the
+  `CedarComponentLinkedStaticFieldHeaderComponent` that drew the substituted heading, and the
+  `cee-element-content-with-static` spacing rule.
+
+- **BREAKING.** `showStaticText`. The key read as a switch over a template's static content
+  and was never that. It could hide only a lone image, video or rich-text block that the
+  renderer had absorbed into the item following it; section breaks, page breaks and any static
+  paired with another static were untouched. It was also consulted on only one of the two
+  branches that draw an absorbed static, the one where the item is a field rather than an
+  element, so whether the key did anything depended on what a template author happened to put
+  after the static. It defaulted to on, and removing it leaves rendering unchanged for every
+  template in the fixture corpus. A host still passing the key is told it is unknown, by the
+  same configuration validator that reports any other unrecognised key.
+
 ## [1.6.0] - 2026-08-13
 
 The first stable release since 1.5.2, published to npmjs as `cedar-embeddable-editor@1.6.0`.

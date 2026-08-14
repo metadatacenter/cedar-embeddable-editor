@@ -280,9 +280,6 @@ What the user sees:
 | `showHeader` | `false` |
 | `showFooter` | `false` |
 | `showTemplateDescription` | `false` |
-| `showStaticText` | `true` |
-| `collapseStaticComponents` | `false` |
-| `showAllMultiInstanceValues` | `true` |
 | `showSpinnerBeforeInit` | `true` |
 
 Editing behaviour and serialization:

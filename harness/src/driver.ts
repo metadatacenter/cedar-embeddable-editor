@@ -58,7 +58,6 @@ export class RecordingMessageHandler extends MessageHandlerService {
 }
 
 export interface DriverOptions {
-  collapseStaticComponents?: boolean;
   readOnlyMode?: boolean;
   hideEmptyFields?: boolean;
   /** Pre-load an existing instance, as the host page's `instanceObject` would. */
@@ -114,7 +113,6 @@ export class CeeDriver {
       template,
       this.handlerContext,
       this.paginator,
-      opts.collapseStaticComponents ?? false,
       opts.templateParser,
       opts.instanceReader,
     );

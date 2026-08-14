@@ -32,14 +32,6 @@ export class CedarComponentRendererComponent {
   staticComponent: StaticFieldComponent | null = null;
   panelOpenState = false;
   @Input({ required: true }) handlerContext!: HandlerContext;
-  /*
-   * True, matching what the editor above declares. Both are bound at every use
-   * site, so the default is never the value that renders — but a child defaulting
-   * to the opposite of its parent is a trap set for whoever stops binding one, and
-   * these two default to on in CEE.
-   */
-  @Input() showStaticText = true;
-  @Input() showAllMultiInstanceValues = true;
   @Input({ required: true }) pageBreakPaginatorService!: PageBreakPaginatorService;
   // tslint:disable-next-line:variable-name
   private _allExpanded = false;

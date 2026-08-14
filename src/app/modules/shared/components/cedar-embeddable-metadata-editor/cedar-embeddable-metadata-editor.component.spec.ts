@@ -75,9 +75,6 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     'expandedInstanceYaml',
     'expandedDataQualityReport',
     'expandedSampleTemplateLinks',
-    'collapseStaticComponents',
-    'showStaticText',
-    'showAllMultiInstanceValues',
     'showTemplateDescription',
     'readOnlyMode',
   ];
