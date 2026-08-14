@@ -17,7 +17,7 @@ import { AUTHORITY_DESCRIPTORS } from '../models/authority/authority-descriptor.
  */
 
 /** What a key's value has to be. */
-type ExpectedType = 'boolean' | 'string' | 'serialization';
+type ExpectedType = 'boolean' | 'string';
 
 /**
  * Every key CEE reads, and what it expects.
@@ -42,7 +42,6 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
   showInstanceDataFull: 'boolean',
   showInstanceYaml: 'boolean',
   showDataQualityReport: 'boolean',
-  showSampleTemplateLinks: 'boolean',
   expandedTemplateRenderingRepresentation: 'boolean',
   expandedMultiInstanceInfo: 'boolean',
   expandedTemplateSourceData: 'boolean',
@@ -51,10 +50,6 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
   expandedInstanceDataFull: 'boolean',
   expandedInstanceYaml: 'boolean',
   expandedDataQualityReport: 'boolean',
-  expandedSampleTemplateLinks: 'boolean',
-
-  inputSerialization: 'serialization',
-  outputSerialization: 'serialization',
 
   terminologyIntegratedSearchUrl: 'string',
   extAuthBaseUrl: 'string',
@@ -66,9 +61,6 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
   defaultLanguage: 'string',
   fallbackLanguage: 'string',
   languageMapPathPrefix: 'string',
-
-  sampleTemplateLocationPrefix: 'string',
-  loadSampleTemplateName: 'string',
 };
 
 /**
@@ -80,8 +72,6 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
 const AUTHORITY_KEYS: ReadonlySet<string> = new Set(
   AUTHORITY_DESCRIPTORS.flatMap((descriptor) => [descriptor.searchUrlConfigKey, descriptor.detailsUrlConfigKey]),
 );
-
-const SERIALIZATIONS: ReadonlySet<string> = new Set(['json', 'yaml']);
 
 /** Levenshtein distance, capped: only used to suggest a key the host probably meant. */
 const distance = (a: string, b: string): number => {
@@ -145,13 +135,6 @@ export const validateCeeConfig = (config: unknown): string[] => {
       problems.push(
         `Unknown configuration key "${key}". It has no effect.` + (suggestion ? ` Did you mean "${suggestion}"?` : ''),
       );
-      continue;
-    }
-
-    if (expected === 'serialization') {
-      if (typeof value !== 'string' || !SERIALIZATIONS.has(value)) {
-        problems.push(`Configuration key "${key}" expects "json" or "yaml", but was ${JSON.stringify(value)}.`);
-      }
       continue;
     }
 

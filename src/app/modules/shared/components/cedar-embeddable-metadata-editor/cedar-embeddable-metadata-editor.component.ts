@@ -13,11 +13,7 @@ import { TemplateTrustService } from '../../service/template-trust.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
 import { MessageHandlerService } from '../../service/message-handler.service';
-import { TemplateParser } from '../../factory/template-parser';
-import { ModelLibraryTemplateParser } from '../../factory/model-library-template-parser';
-import { YamlTemplateParser } from '../../factory/yaml-template-parser';
 import packageJson from 'package.json';
-import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
 import { InstanceObject } from '../../models/instance-node.model';
 import { CeeConfig, configFlag, configText } from '../../util/config-reader';
 
@@ -40,7 +36,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   private static SHOW_INSTANCE_FULL = 'showInstanceDataFull';
   private static SHOW_INSTANCE_YAML = 'showInstanceYaml';
   private static SHOW_DATA_QUALITY_REPORT = 'showDataQualityReport';
-  private static SHOW_SAMPLE_TEMPLATE_LINKS = 'showSampleTemplateLinks';
 
   private static SHOW_HEADER = 'showHeader';
   private static SHOW_FOOTER = 'showFooter';
@@ -53,10 +48,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   private static EXPANDED_INSTANCE_FULL = 'expandedInstanceDataFull';
   private static EXPANDED_INSTANCE_YAML = 'expandedInstanceYaml';
   private static EXPANDED_DATA_QUALITY_REPORT = 'expandedDataQualityReport';
-  private static EXPANDED_SAMPLE_TEMPLATE_LINKS = 'expandedSampleTemplateLinks';
 
-  static TEMPLATE_LOCATION_PREFIX = 'sampleTemplateLocationPrefix';
-  static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
   static TERMINOLOGY_INTEGRATED_SEARCH_URL = 'terminologyIntegratedSearchUrl';
 
   static FALLBACK_LANGUAGE = 'fallbackLanguage';
@@ -77,11 +69,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   static READ_ONLY_MODE: string = 'readOnlyMode';
 
   private static IRI_PREFIX = 'iriPrefix';
-  // Input and output serialization are configured independently: a host can hand
-  // CEE a JSON template and read its instance back as YAML, or the reverse.
-  static INPUT_SERIALIZATION = 'inputSerialization';
-  static OUTPUT_SERIALIZATION = 'outputSerialization';
-  static SERIALIZATION_YAML = 'yaml';
   private static BIO_PORTAL_PREFIX = 'bioPortalPrefix';
   private static ORCID_PREFIX = 'orcidPrefix';
   private static ROR_PREFIX = 'rorPrefix';
@@ -93,8 +80,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   pageBreakPaginatorService: PageBreakPaginatorService | null = null;
 
-  @Input() sampleTemplateLoaderObject: SampleTemplateLoaderOwner | null = null;
-
   showTemplateRenderingRepresentation = false;
   showMultiInstanceInfo = false;
   showTemplateSourceData = true;
@@ -103,7 +88,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   showInstanceDataFull = true;
   showInstanceYaml = false;
   showDataQualityReport = false;
-  showSampleTemplateLinks = false;
 
   showHeader = false;
   showFooter = false;
@@ -116,13 +100,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   expandedInstanceDataFull = false;
   expandedInstanceYaml = false;
   expandedDataQualityReport = false;
-  expandedSampleTemplateLinks = false;
 
-  // Which parser turns the template a host hands in into the component tree.
-  // JSON by default; a host reading its templates as CEDAR YAML sets
-  // `inputSerialization: 'yaml'` in the config to switch it, and passes the
-  // YAML-parsed object. Input and output serialization are independent.
-  templateParser: TemplateParser = new ModelLibraryTemplateParser();
   showTemplateDescription: boolean = false;
   readOnlyMode: boolean = false;
 
@@ -204,11 +182,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         CedarEmbeddableMetadataEditorComponent.SHOW_DATA_QUALITY_REPORT,
         this.showDataQualityReport,
       );
-      this.showSampleTemplateLinks = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_SAMPLE_TEMPLATE_LINKS,
-        this.showSampleTemplateLinks,
-      );
       this.showFooter = configFlag(value, CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER, this.showFooter);
       this.showHeader = configFlag(value, CedarEmbeddableMetadataEditorComponent.SHOW_HEADER, this.showHeader);
       this.expandedTemplateRenderingRepresentation = configFlag(
@@ -251,18 +224,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         CedarEmbeddableMetadataEditorComponent.EXPANDED_DATA_QUALITY_REPORT,
         this.expandedDataQualityReport,
       );
-      this.expandedSampleTemplateLinks = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.EXPANDED_SAMPLE_TEMPLATE_LINKS,
-        this.expandedSampleTemplateLinks,
-      );
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.INPUT_SERIALIZATION)) {
-        const inputSerialization = value[CedarEmbeddableMetadataEditorComponent.INPUT_SERIALIZATION];
-        this.templateParser =
-          inputSerialization === CedarEmbeddableMetadataEditorComponent.SERIALIZATION_YAML
-            ? new YamlTemplateParser()
-            : new ModelLibraryTemplateParser();
-      }
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.IRI_PREFIX)) {
         this.iriPrefix.set(String(value[CedarEmbeddableMetadataEditorComponent.IRI_PREFIX]));
       }
@@ -399,7 +360,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     if (dataContext == null || handlerContext == null) {
       return;
     }
-    dataContext.setInputTemplate(templateObject, handlerContext, pageBreakPaginatorService, this.templateParser);
+    dataContext.setInputTemplate(templateObject, handlerContext, pageBreakPaginatorService);
     // The old component tree remains alive until Angular's next render pass.
     // Drop its strong references immediately after the replacement succeeds.
     this.activeComponentRegistry.clear();

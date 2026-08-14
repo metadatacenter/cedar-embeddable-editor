@@ -61,14 +61,6 @@
         const params = new URLSearchParams(location.search);
         const name = params.get('t');
 
-        /**
-         * `?host=sample` exercises the one entry point that fetches.
-         *
-         * A host-page route rather than a data input, so it loads no `?t=` fixture: it
-         * sets only the sample-template config keys and lets CEE's own loader fetch the
-         * template and its metadata. Deliberately no template is set — the point is that
-         * CEE ends up with one without being handed it.
-         */
         const hostRoute = params.get('host');
         if (hostRoute) {
           await customElements.whenDefined('cedar-embeddable-editor');
@@ -88,7 +80,6 @@
               const config = {
                 showHeader: false,
                 showFooter: false,
-                showSampleTemplateLinks: false,
                 // Second read-only and first not, so the per-instance read-only state is
                 // observable: the service carrying it is provided on the element rather
                 // than shared, and this is what proves it. Second rather than first,
@@ -129,21 +120,9 @@
             el.config = {
               showHeader: false,
               showFooter: true,
-              showSampleTemplateLinks: false,
               defaultLanguage: 'en',
               fallbackLanguage: 'en',
               languageMapPathPrefix: params.get('prefix') || './served/languages/',
-              terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
-            };
-          } else if (hostRoute === 'sample') {
-            el.config = {
-              showHeader: false,
-              showFooter: false,
-              showSampleTemplateLinks: false,
-              defaultLanguage: 'en',
-              fallbackLanguage: 'en',
-              sampleTemplateLocationPrefix: params.get('prefix') || './served/sample/',
-              loadSampleTemplateName: params.get('sample') || 'demo',
               terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
             };
           } else {
@@ -190,7 +169,6 @@
          * untested.
          */
         const base = {
-          showSampleTemplateLinks: false,
           showHeader: false,
           showFooter: false,
           showTemplateRenderingRepresentation: false,
@@ -200,7 +178,6 @@
           showMultiInstanceInfo: false,
           defaultLanguage: 'en',
           fallbackLanguage: 'en',
-          sampleTemplateLocationPrefix: './served/sample/',
           // Deliberately unreachable: the visual baseline must never depend on
           // a live terminology server. Lookup spinners are not screenshotted
           // for the same reason — they only appear mid-request.
@@ -269,9 +246,6 @@
         for (const flag of (params.get('n') || '').split(',').filter(Boolean)) {
           overrides[flag] = false;
         }
-        if (params.get('s')) {
-          overrides.outputSerialization = params.get('s');
-        }
 
         /**
          * An event handler, when ?e=1, recording what CEE tells the host.
@@ -300,11 +274,7 @@
          *
          * `combined` uses the single `templateAndInstanceObject` input instead. Worth
          * covering separately: it takes a different branch in the editor, calling
-         * `setDataContextWithInstance` before `setInputTemplate` rather than after —
-         * and it is the route the sample-template loader funnels into, since
-         * `triggerUpdateOnInjectedSampleData` assembles exactly this object. So a test
-         * here covers the sample-template path's mechanism without needing the
-         * sample-template links and their network fetches.
+         * `setDataContextWithInstance` before `setInputTemplate` rather than after.
          */
         const mode = params.get('m') || 'separate';
         if (mode === 'combined') {

@@ -11,8 +11,6 @@ import { ControlledFieldDataService } from '../../service/controlled-field-data.
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { CeeEventHandler } from '../../../../cee-public-api';
 import { Subject } from 'rxjs';
-import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
-import { map, takeUntil, withLatestFrom } from 'rxjs/operators';
 import { HandlerContext } from '../../util/handler-context';
 import { InstanceSerializer } from '../../util/instance-serializer';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
@@ -31,7 +29,6 @@ import { Overlay, OverlayContainer, OverlayPositionBuilder } from '@angular/cdk/
 import { CedarOverlayContainer } from '../../service/cedar-overlay-container.service';
 import { AriaDescriber } from '@angular/cdk/a11y';
 import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
-import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
 import { CeeConfig, configFlag, configText } from '../../util/config-reader';
 import { validateCeeConfig } from '../../util/config-validation';
 import { InstanceObject } from '../../models/instance-node.model';
@@ -64,7 +61,6 @@ type ArtifactClaim = 'template' | 'instance';
     GlobalSettingsContextService,
     { provide: IriPrefix, useFactory: () => new IriPrefix() },
     MessageHandlerService,
-    SampleTemplatesService,
     UserPreferencesService,
     {
       provide: TranslateLoader,
@@ -111,7 +107,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   templateJson: InstanceObject | null = null;
   instanceJson: InstanceObject | null = null;
   templateAndInstanceJson: object | null = null;
-  sampleTemplateLoaderObject: SampleTemplateLoaderOwner | null = null;
   protected onDestroySubject = new Subject<void>();
   private loadedTemplateJson: InstanceObject | null = null;
   private loadedMetadata: InstanceObject | null = null;
@@ -129,14 +124,12 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private readonly wrapper: ElementRef<HTMLElement>,
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
-    private sampleTemplateService: SampleTemplatesService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private translateService: TranslateService,
     private messagingService: MessageHandlerService,
     private globalSettingsContextService: GlobalSettingsContextService,
     private iriPrefix: IriPrefix,
   ) {
-    this.sampleTemplateLoaderObject = this;
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext, this.messagingService, () => this.iriPrefix.get());
   }
@@ -156,39 +149,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   ngOnInit(): void {
-    const { templateJson$, metadataJson$ } = this.sampleTemplateService;
-
-    const metadataAndTemplate = metadataJson$.pipe(
-      withLatestFrom(templateJson$),
-      map(([metadataJson, templateJson]) => {
-        return { metadataJson, templateJson };
-      }),
-      takeUntil(this.onDestroySubject),
-    );
-
-    metadataAndTemplate.subscribe((values) => {
-      const { templateJson: templateByNum, metadataJson: metadataByNum } = values;
-      if (templateByNum && metadataByNum) {
-        // Separate bindings rather than reassigning the same two: what arrives is a
-        // `{ templateNum: artifact }` map, and what is wanted is the artifact inside
-        // it. The old code put both through one name and the types disagreed.
-        const templateJson = Object.values(templateByNum)[0];
-        const metadataJson = Object.values(metadataByNum)[0];
-        if (templateJson && metadataJson) {
-          this.loadedTemplateJson = templateJson;
-          this.loadedMetadata = metadataJson;
-        } else if (templateJson) {
-          this.loadedTemplateJson = templateJson;
-          this.loadedMetadata = null;
-        } else if (metadataJson) {
-          this.loadedMetadata = metadataJson;
-        } else {
-          this.templateJson = null;
-          this.loadedMetadata = null;
-        }
-        this.triggerUpdateOnInjectedSampleData();
-      }
-    });
     this.initialized = true;
     this.doInitialize();
   }
@@ -222,40 +182,12 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   /**
-   * The instance in whichever serialization the config selected — a JSON object
-   * by default, or a YAML string when `outputSerialization: 'yaml'` is set.
-   *
-   * The typed getters above stay for a host that always wants one or the other;
-   * this is for a host that configures the format once and reads a single
-   * accessor. Output serialization is independent of input: the template can be
-   * handed in as JSON and the instance asked for as YAML.
-   */
-  @Input() get currentMetadataSerialized(): object | string {
-    if (!this.handlerContext) {
-      return this.isYamlOutput() ? '' : {};
-    }
-    const instance = this.handlerContext.dataContext.instanceFullData;
-    const template = this.parsedTemplate();
-    return this.isYamlOutput()
-      ? InstanceSerializer.toYaml(instance, template)
-      : InstanceSerializer.toJson(instance, template);
-  }
-
-  /**
    * The template as the library parsed it, for completing an instance on the way
    * out. Null before a template has been set, which the serializer allows for.
    */
   private parsedTemplate(): Template | null {
     const representation = this.handlerContext?.dataContext?.templateRepresentation;
     return representation instanceof CedarTemplate ? representation.parsed : null;
-  }
-
-  private isYamlOutput(): boolean {
-    return (
-      this.innerConfig != null &&
-      this.innerConfig[CedarEmbeddableMetadataEditorComponent.OUTPUT_SERIALIZATION] ===
-        CedarEmbeddableMetadataEditorComponent.SERIALIZATION_YAML
-    );
   }
 
   /**
@@ -395,12 +327,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     const config = this.innerConfig;
     if (!this.initialized || !this.configSet || config === null) {
       return;
-    }
-    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
-      this.sampleTemplateService.loadTemplate(
-        configText(config, CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX, ''),
-        configText(config, CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME, ''),
-      );
     }
     if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
       const integratedSearchUrl = configText(

@@ -24,9 +24,6 @@
  * contract cannot drift from the code by being edited in only one place.
  */
 
-/** How an artifact is serialised on the way in or out. */
-export type CeeSerialization = 'json' | 'yaml';
-
 /**
  * The external authorities CEE can look terms up in.
  *
@@ -76,7 +73,6 @@ export interface CeeConfig {
   showInstanceDataFull?: boolean;
   showInstanceYaml?: boolean;
   showDataQualityReport?: boolean;
-  showSampleTemplateLinks?: boolean;
   expandedTemplateRenderingRepresentation?: boolean;
   expandedMultiInstanceInfo?: boolean;
   expandedTemplateSourceData?: boolean;
@@ -85,10 +81,6 @@ export interface CeeConfig {
   expandedInstanceDataFull?: boolean;
   expandedInstanceYaml?: boolean;
   expandedDataQualityReport?: boolean;
-  expandedSampleTemplateLinks?: boolean;
-
-  inputSerialization?: CeeSerialization;
-  outputSerialization?: CeeSerialization;
 
   terminologyIntegratedSearchUrl?: string;
   /** Base for authority lookups. Must end in a slash. */
@@ -101,9 +93,6 @@ export interface CeeConfig {
   defaultLanguage?: string;
   fallbackLanguage?: string;
   languageMapPathPrefix?: string;
-
-  sampleTemplateLocationPrefix?: string;
-  loadSampleTemplateName?: string;
 
   /**
    * Per-authority endpoint overrides, `orcidIntegratedExtAuthUrl` and the like.
@@ -231,9 +220,6 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
 
   /** The instance as CEDAR YAML. Read-only. */
   readonly currentMetadataYaml: string;
-
-  /** The instance in whichever form `outputSerialization` selected. Read-only. */
-  readonly currentMetadataSerialized: CeeJsonObject | string;
 
   /** What CEE thinks of the instance. Read-only. */
   readonly dataQualityReport: CeeDataQualityReport;

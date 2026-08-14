@@ -8,7 +8,7 @@ import { StaticFieldComponent } from '../models/static/static-field-component.mo
 import { InputType } from '../models/input-type.model';
 import { HandlerContext } from '../util/handler-context';
 import { TemplateParser } from './template-parser';
-import { ModelLibraryTemplateParser } from './model-library-template-parser';
+import { selectTemplateParser } from './select-template-parser';
 
 /**
  * Builds the component tree CEE renders.
@@ -20,18 +20,21 @@ import { ModelLibraryTemplateParser } from './model-library-template-parser';
  * without the rendered form moving.
  */
 export class TemplateRepresentationFactory {
-  private static readonly defaultParser: TemplateParser = new ModelLibraryTemplateParser();
-
+  /**
+   * `parser` is left unset in production, where the reader is chosen from the
+   * template's own shape. The parity suite passes one explicitly, to run the same
+   * artifact through both and compare.
+   */
   static create(
     inputTemplate: CedarInputTemplate,
     handlerContext: HandlerContext,
-    parser: TemplateParser = TemplateRepresentationFactory.defaultParser,
+    parser?: TemplateParser,
   ): TemplateComponent {
     if (inputTemplate === null) {
       return new NullTemplate();
     } else {
       const template = new CedarTemplate();
-      parser.parse(inputTemplate, template, handlerContext);
+      (parser ?? selectTemplateParser(inputTemplate)).parse(inputTemplate, template, handlerContext);
       TemplateRepresentationFactory.extractPageBreakPages(template);
       return template;
     }

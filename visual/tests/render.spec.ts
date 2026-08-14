@@ -2999,22 +2999,6 @@ test.describe('what a host page reads back', () => {
     expect((headerBox as { height: number }).height, 'source-panel rows should stay compact').toBeLessThanOrEqual(40);
   });
 
-  test('currentMetadataSerialized follows the configured format with real content', async ({ page }) => {
-    await open(page, '11-choice-default', undefined, '11-choice-default-instance');
-    const json = await page.evaluate(
-      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadataSerialized,
-    );
-    expect(typeof json).toBe('object');
-    expect(JSON.stringify(json)).toContain('Private');
-
-    await open(page, '11-choice-default', undefined, '11-choice-default-instance', undefined, '&s=yaml');
-    const yaml = await page.evaluate(
-      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadataSerialized,
-    );
-    expect(typeof yaml).toBe('string');
-    expect(yaml).toContain('Private');
-  });
-
   test('dataQualityReport follows an invalid value and its correction', async ({ page }) => {
     await open(page, '06-validation');
     const email = page.locator('input[aria-label="an_email"]');
@@ -3246,7 +3230,6 @@ test.describe('config flags are wired to something', () => {
   const FLAGS: ReadonlyArray<{ flag: string; withFlags?: string[]; fixture?: string }> = [
     { flag: 'showHeader' },
     { flag: 'showFooter' },
-    { flag: 'showSampleTemplateLinks' },
     { flag: 'showTemplateRenderingRepresentation' },
     { flag: 'showInstanceDataCore' },
     { flag: 'showInstanceDataFull' },
@@ -3263,7 +3246,6 @@ test.describe('config flags are wired to something', () => {
     { flag: 'expandedTemplateYaml', withFlags: ['showTemplateYaml'] },
     { flag: 'expandedDataQualityReport', withFlags: ['showDataQualityReport'] },
     { flag: 'expandedTemplateRenderingRepresentation', withFlags: ['showTemplateRenderingRepresentation'] },
-    { flag: 'expandedSampleTemplateLinks', withFlags: ['showSampleTemplateLinks'] },
     { flag: 'expandedMultiInstanceInfo', withFlags: ['showMultiInstanceInfo'], fixture: '03-nested-multi' },
   ];
 
@@ -3568,7 +3550,7 @@ test.describe('the host event handler', () => {
       const seen: string[] = [];
       fresh.eventHandler = { error: (label: string) => seen.push(label) };
       document.querySelector('#frame').appendChild(fresh);
-      fresh.config = { showSampleTemplateLinks: false, defaultLanguage: 'en', fallbackLanguage: 'en' };
+      fresh.config = { defaultLanguage: 'en', fallbackLanguage: 'en' };
       fresh.templateAndInstanceObject = { templateObject: template };
       await new Promise((resolve) => setTimeout(resolve, 500));
       return seen;
@@ -3600,43 +3582,6 @@ test.describe('host inputs that fetch', () => {
     });
     expect(await page.evaluate(() => (window as any).__ceeError)).toBeFalsy();
   };
-
-  /**
-   * The sample-template loader, which is the route the CEDAR demo pages use.
-   *
-   * Given only `sampleTemplateLocationPrefix` and `loadSampleTemplateName`, CEE builds
-   * `<prefix><name>/template.json` and `<prefix><name>/metadata.json` itself, fetches
-   * both, and assembles them into `templateAndInstanceObject`. So this covers the
-   * filename convention, the fetch, and the hand-off in one — and the metadata's value is
-   * something the template does not default to, so a form that renders with an empty
-   * field would fail rather than look right.
-   */
-  test('the sample-template loader fetches a template and its metadata', async ({ page }) => {
-    await openHost(page, 'host=sample');
-
-    const field = page.locator('input[aria-label="title"]');
-    await expect(field, 'no template was loaded from the sample location').toBeVisible({ timeout: 10_000 });
-    await expect(field, 'the template loaded but its metadata did not').toHaveValue('loaded from metadata.json');
-  });
-
-  test('a missing sample template leaves CEE standing and says so', async ({ page }) => {
-    const errors: string[] = [];
-    page.on('console', (m) => {
-      if (m.type() === 'error') errors.push(m.text());
-    });
-
-    await openHost(page, 'host=sample&sample=nonexistent');
-
-    await expect(async () => {
-      expect(
-        errors.some((e) => e.includes('Error while loading sample template')),
-        `expected a load error on the console; got ${JSON.stringify(errors.slice(0, 3))}`,
-      ).toBe(true);
-    }).toPass({ timeout: 10_000 });
-
-    // The failure is reported rather than thrown: no form, but nothing broken either.
-    await expect(page.locator('input[aria-label="title"]')).toHaveCount(0);
-  });
 
   /**
    * Translation is a third entry point that fetches, and the least covered.

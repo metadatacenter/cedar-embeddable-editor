@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **BREAKING.** `inputSerialization`, `outputSerialization` and the
+  `currentMetadataSerialized` accessor that existed for the second of them. CEE now picks the
+  template reader from the template. The two CEDAR serialisations do not resemble each other,
+  and it is measured rather than assumed: across the 37 corpus templates, each shipped in both
+  forms, eighteen top-level keys appear in every JSON template and in no YAML one — `@context`,
+  `@type`, `properties`, `$schema`, `_ui` and the `pav:` and `schema:` families among them —
+  while `modelVersion`, `name`, `status` and `version` appear in every YAML template and in no
+  JSON one, with no key shared between the sets. All 94 JSON templates the harness carries,
+  including vendored HuBMAP production artifacts, have both `@context` and `properties`. So
+  `inputSerialization` asked a host to declare what the artifact already states.
+  `outputSerialization` only chose what a third output accessor returned; `currentMetadata` and
+  `currentMetadataYaml` are unconditional and unchanged, so a host reads whichever it wants and
+  the call site now says which format it expects. YAML template support is untouched:
+  `parser-selection.spec.ts` asserts every corpus template in both forms selects the reader that
+  can read it, and `format-independence.spec.ts` still requires both readers to produce identical
+  trees.
+
+- **BREAKING.** CEE no longer fetches artifacts. The sample-template loader took
+  `sampleTemplateLocationPrefix` and `loadSampleTemplateName`, built
+  `<prefix><name>/template.json` and `<prefix><name>/metadata.json`, fetched both and
+  assembled them into `templateAndInstanceObject`. It was the only path where CEE reached
+  the network for an artifact, and the only one that could reassign one — it bypassed the
+  assign-once claims deliberately, because it loaded a different sample on every click.
+  A host supplies its artifact by assigning a parsed object, which is what every route
+  now does. Removed with it: `showSampleTemplateLinks` and `expandedSampleTemplateLinks`,
+  which showed the picker listing what had been fetched; `SampleTemplatesService`, the
+  two picker components and the `SampleTemplateLoaderOwner` model; and the
+  sample-registry fixtures the visual suite served. The standalone developer app now
+  fetches its own demo from `src/assets/cee-demo` and assigns it, like any other host.
+
 ### Changed
 
 - **BREAKING.** `trustTemplateMarkup` is renamed `trustTemplateRichText`, with no alias. The old

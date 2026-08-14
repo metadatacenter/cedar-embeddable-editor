@@ -18,7 +18,6 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
-import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { CedarEmbeddableMetadataEditorComponent } from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { CedarComponentRendererComponent } from './components/cedar-component-renderer/cedar-component-renderer.component';
 import { StaticFooterComponent } from './components/static-footer/static-footer.component';
@@ -27,8 +26,6 @@ import { SourcePanelsComponent } from './components/source-panels/source-panels.
 import { CedarMultiPagerComponent } from './components/cedar-multi-pager/cedar-multi-pager.component';
 import { InputTypesModule } from '../input-types/input-types.module';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
-import { SampleTemplatesComponent } from './components/sample-templates/sample-templates.component';
-import { SampleTemplateSelectComponent } from './components/sample-template-select/sample-template-select.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/cedar-font-registrar.component';
@@ -52,7 +49,6 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     MatGridListModule,
     MatListModule,
     MatSelectModule,
-    NgxMatSelectSearchModule,
     InputTypesModule,
     FormsModule,
     TranslateModule,
@@ -64,8 +60,6 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     CedarEmbeddableMetadataEditorComponent,
     CedarEmbeddableMetadataEditorWrapperComponent,
     CedarFontRegistrarComponent,
-    SampleTemplatesComponent,
-    SampleTemplateSelectComponent,
     CedarComponentRendererComponent,
     StaticFooterComponent,
     StaticHeaderComponent,

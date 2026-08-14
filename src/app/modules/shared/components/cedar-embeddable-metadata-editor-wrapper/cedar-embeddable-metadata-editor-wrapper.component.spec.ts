@@ -1,11 +1,9 @@
 import { type Mock, vi } from 'vitest';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper.component';
 import { ElementRef } from '@angular/core';
-import { Subject } from 'rxjs';
 import { IriPrefix } from '../../util/iri-prefix';
 import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
-import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -24,47 +22,6 @@ import { InstanceObject } from '../../models/instance-node.model';
  * The one contract that must not move: `currentMetadata` is always a JSON object,
  * whatever `outputSerialization` says, because that is what the host saves.
  */
-describe('CedarEmbeddableMetadataEditorWrapperComponent output serialization', () => {
-  const make = (): CedarEmbeddableMetadataEditorWrapperComponent =>
-    // `as unknown as T` throughout, for the reason given on the lifecycle suite's
-    // own doubles below: naming the service each stands in for keeps the
-    // constructor's shape under test, which `as any` would have hidden.
-    new CedarEmbeddableMetadataEditorWrapperComponent(
-      new ElementRef(document.createElement('cedar-embeddable-editor')),
-      {} as unknown as ControlledFieldDataService,
-      { trace: (): void => undefined } as unknown as MessageHandlerService,
-      {} as unknown as SampleTemplatesService,
-      {} as unknown as ActiveComponentRegistryService,
-      {} as unknown as TranslateService,
-      { trace: (): void => undefined } as unknown as MessageHandlerService, // messagingService (HandlerContext)
-      {} as unknown as GlobalSettingsContextService,
-      new IriPrefix(),
-    );
-
-  it('serializes output as a YAML string when outputSerialization is "yaml"', () => {
-    const component = make();
-    component.innerConfig = { outputSerialization: 'yaml' };
-    expect(typeof component.currentMetadataSerialized).toBe('string');
-  });
-
-  it('serializes output as a JSON object by default', () => {
-    expect(typeof make().currentMetadataSerialized).toBe('object');
-  });
-
-  it('serializes output as a JSON object when outputSerialization is "json"', () => {
-    const component = make();
-    component.innerConfig = { outputSerialization: 'json' };
-    expect(typeof component.currentMetadataSerialized).toBe('object');
-  });
-
-  it('keeps currentMetadata a JSON object regardless of outputSerialization', () => {
-    const component = make();
-    component.innerConfig = { outputSerialization: 'yaml' };
-    expect(typeof component.currentMetadata).toBe('object');
-    expect(typeof component.currentMetadataYaml).toBe('string');
-  });
-});
-
 /**
  * Jasmine's `toHaveBeenCalledOnceWith`, in the two assertions it stood for.
  *
@@ -80,9 +37,6 @@ const expectCalledOnceWith = (spy: Mock, ...args: unknown[]): void => {
 
 describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
   interface Mocks {
-    templateJson$: Subject<object>;
-    metadataJson$: Subject<object>;
-    loadTemplate: Mock;
     setTerminologyIntegratedSearchUrl: Mock;
     setDefaultLang: Mock;
     use: Mock;
@@ -92,9 +46,6 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
 
   const make = (): { component: CedarEmbeddableMetadataEditorWrapperComponent; mocks: Mocks } => {
     const mocks: Mocks = {
-      templateJson$: new Subject<object>(),
-      metadataJson$: new Subject<object>(),
-      loadTemplate: vi.fn(),
       setTerminologyIntegratedSearchUrl: vi.fn(),
       setDefaultLang: vi.fn(),
       use: vi.fn(),
@@ -113,11 +64,6 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
         setTerminologyIntegratedSearchUrl: mocks.setTerminologyIntegratedSearchUrl,
       } as unknown as ControlledFieldDataService,
       messaging as unknown as MessageHandlerService,
-      {
-        templateJson$: mocks.templateJson$,
-        metadataJson$: mocks.metadataJson$,
-        loadTemplate: mocks.loadTemplate,
-      } as unknown as SampleTemplatesService,
       { clear: mocks.clearRegistry } as unknown as ActiveComponentRegistryService,
       { setDefaultLang: mocks.setDefaultLang, use: mocks.use } as unknown as TranslateService,
       messaging as unknown as MessageHandlerService,
@@ -127,28 +73,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     return { component, mocks };
   };
 
-  it('stops reacting to sample-template streams after destruction', () => {
-    const { component, mocks } = make();
-    const first = { title: 'first template' };
-    const firstMetadata = { title: 'first metadata' };
-    component.ngOnInit();
-
-    mocks.templateJson$.next({ first });
-    mocks.metadataJson$.next({ first: firstMetadata });
-    expect(component.templateAndInstanceJson).toEqual({ templateObject: first, instanceObject: firstMetadata });
-
-    component.ngOnDestroy();
-    expect(mocks.clearRegistry).toHaveBeenCalledTimes(1);
-    mocks.templateJson$.next({ second: { title: 'second template' } });
-    mocks.metadataJson$.next({ second: { title: 'second metadata' } });
-
-    expect(component.templateAndInstanceJson).toEqual({ templateObject: first, instanceObject: firstMetadata });
-  });
-
   it('applies config identically whether Angular supplies it before or after ngOnInit', () => {
     const config = {
-      sampleTemplateLocationPrefix: '/samples/',
-      loadSampleTemplateName: 'example',
       terminologyIntegratedSearchUrl: '/terminology/search',
       languageMapPathPrefix: '/languages/',
       fallbackLanguage: 'fr',
@@ -164,7 +90,6 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     after.component.config = config;
 
     for (const candidate of [before, after]) {
-      expectCalledOnceWith(candidate.mocks.loadTemplate, '/samples/', 'example');
       expectCalledOnceWith(candidate.mocks.setTerminologyIntegratedSearchUrl, '/terminology/search');
       expect(candidate.mocks.globalSettings.languageMapPathPrefix).toBe('/languages/');
       expectCalledOnceWith(candidate.mocks.setDefaultLang, 'fr');
@@ -189,25 +114,20 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
   const make = (): {
     component: CedarEmbeddableMetadataEditorWrapperComponent;
     errors: Mock;
-    templateJson$: Subject<object>;
-    metadataJson$: Subject<object>;
   } => {
     const errors = vi.fn();
-    const templateJson$ = new Subject<object>();
-    const metadataJson$ = new Subject<object>();
     const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined, error: errors };
     const component = new CedarEmbeddableMetadataEditorWrapperComponent(
       new ElementRef(document.createElement('cedar-embeddable-editor')),
       { setTerminologyIntegratedSearchUrl: vi.fn() } as unknown as ControlledFieldDataService,
       messaging as unknown as MessageHandlerService,
-      { templateJson$, metadataJson$, loadTemplate: vi.fn() } as unknown as SampleTemplatesService,
       { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
       { setDefaultLang: vi.fn(), use: vi.fn() } as unknown as TranslateService,
       messaging as unknown as MessageHandlerService,
       {} as unknown as GlobalSettingsContextService,
       new IriPrefix(),
     );
-    return { component, errors, templateJson$, metadataJson$ };
+    return { component, errors };
   };
 
   /**
@@ -324,26 +244,5 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     expect(reported(errors)).toContain(
       '"templateAndInstanceObject" ignored, because the template and instance are already set',
     );
-  });
-
-  /**
-   * The sample-template loader is CEE's own developer feature and loads a different
-   * sample on every click, which is exactly the reassignment a host may not perform.
-   * It writes through the internal path, so the claims do not bind it.
-   */
-  it('lets the sample-template loader load one sample after another', () => {
-    const { component, errors, templateJson$, metadataJson$ } = make();
-    component.ngOnInit();
-
-    templateJson$.next({ first: { title: 'first template' } });
-    metadataJson$.next({ first: { title: 'first metadata' } });
-    templateJson$.next({ second: { title: 'second template' } });
-    metadataJson$.next({ second: { title: 'second metadata' } });
-
-    expect(component.templateAndInstanceJson).toEqual({
-      templateObject: { title: 'second template' },
-      instanceObject: { title: 'second metadata' },
-    });
-    expect(errors).not.toHaveBeenCalled();
   });
 });

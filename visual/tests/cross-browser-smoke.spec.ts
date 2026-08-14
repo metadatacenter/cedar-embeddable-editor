@@ -83,38 +83,6 @@ test('keeps a Material overlay inside the custom element', async ({ page }) => {
   expect(placement.outside).toBe(0);
 });
 
-test('filters and loads a sample template through the Material select', async ({ page }) => {
-  await open(page, '01-input-types', 'chrome', undefined, undefined, '&f=showSampleTemplateLinks');
-
-  await page.locator('app-sample-template-select mat-select').click();
-
-  // Reachable by role again, and asserted that way deliberately.
-  //
-  // ngx-mat-select-search v6 put aria-hidden="true" on the mat-option it lives in,
-  // taking its own input out of the accessibility tree; that was pinned here as a
-  // known defect so the suite would say when it stopped being true. The MDC
-  // migration moved this to v7, which sets no such attribute, and the pin fired.
-  // Querying by role is what makes this a check on whether a screen-reader user can
-  // find the filter, rather than merely on whether the input exists.
-  const search = page.getByRole('textbox', { name: 'dropdown search' });
-  await expect(search).toBeVisible();
-
-  // ngx-mat-select-search deliberately lives inside a disabled mat-option so
-  // Material cannot select the search row. Browsers still focus its input, but
-  // Playwright inherits aria-disabled from the option unless the actionability
-  // check is bypassed.
-  await search.fill('Demo', { force: true });
-  await expect(page.getByRole('option', { name: 'Demo template' })).toBeVisible();
-  await expect(page.getByRole('option', { name: 'Unrelated template' })).toHaveCount(0);
-
-  await search.fill('', { force: true });
-  await expect(page.getByRole('option', { name: 'Unrelated template' })).toBeVisible();
-  await search.fill('Demo', { force: true });
-  await page.getByRole('option', { name: 'Demo template' }).click();
-
-  await expect(page.locator('input[aria-label="title"]')).toHaveValue('loaded from metadata.json');
-});
-
 test('renders YouTube content as a native iframe without the Player API', async ({ page }) => {
   await page.route('https://www.youtube.com/embed/**', (route) =>
     route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>YouTube stub</title>' }),

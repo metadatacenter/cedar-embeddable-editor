@@ -804,58 +804,15 @@ const writeRaw = (name, document) => {
 }
 
 /**
- * 17. Files for the two host inputs that fetch.
+ * 17. Files for the host input that fetches.
  *
- * `loadConfigFromURL(url, onSuccess, onError)` and the sample-template loader are the
- * last two entry points a host page uses that no test touched, and both are untestable
- * without something to fetch. So this writes what they fetch, under
- * `fixtures/served/`, which the harness page copies into place.
- *
- * The sample-template loader wants a fixed layout it builds itself:
- * `<prefix><name>/template.json` and `<prefix><name>/metadata.json`. Encoded here rather
- * than in the test, so a change to `TEMPLATE_FILENAME` breaks in one obvious place.
- *
- * The metadata carries a value the template does not default to, so a test can tell
- * "the sample template loaded" from "the sample template *and its metadata* loaded" —
- * the second being the path that assembles `templateAndInstanceObject` and is easy to
- * half-implement.
+ * `loadConfigFromURL(url, onSuccess, onError)` is an entry point a host page uses that
+ * no test touched, and it is untestable without something to fetch. So this writes what
+ * it fetches, under `fixtures/served/`, which the harness page copies into place.
  */
 {
   const served = join(OUT, 'served');
-  const sample = join(served, 'sample', 'demo');
-  mkdirSync(sample, { recursive: true });
-
-  const text = field('title', () => CedarBuilders.textFieldBuilder());
-  let tb = common(CedarBuilders.templateBuilder(), 'SampleLoaded', 'templates').withSchemaDescription(
-    'A template fetched through the sample-template loader',
-  );
-  tb = tb.addChild(text, deploy(text, 'title'));
-  const template = tb.build();
-  const json = CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template);
-  writeFileSync(join(sample, 'template.json'), JSON.stringify(json, null, 2));
-
-  writeFileSync(
-    join(sample, 'metadata.json'),
-    JSON.stringify(
-      instance('SampleLoaded', {
-        id: 'https://example.org/instances/sample-loaded-1',
-        name: 'SampleLoaded instance',
-        description: 'Fetched alongside its template',
-        values: { _title: literal('loaded from metadata.json') },
-      }),
-      null,
-      2,
-    ),
-  );
-
-  // The toolbar's sample-template select fetches this registry before it can
-  // filter or load a choice. The second entry need not be selected; it exists
-  // to prove filtering removes and restores alternatives.
-  writeFileSync(
-    join(served, 'sample', 'registry.json'),
-    JSON.stringify({ demo: 'Demo template', other: 'Unrelated template' }, null, 2),
-  );
-
+  mkdirSync(served, { recursive: true });
   // A config a host would fetch. `showFooter` is the observable part: it is off in the
   // harness's base preset, so seeing a footer means this config was applied rather than
   // the preset's.
@@ -890,9 +847,7 @@ const writeRaw = (name, document) => {
     JSON.stringify({ App: { Maintained: 'Maintained per an externally served language map.' } }, null, 2),
   );
 
-  console.log(
-    'wrote fixtures/served/ (sample registry + template + metadata, host config, malformed config, language map)',
-  );
+  console.log('wrote fixtures/served/ (host config, malformed config, language map)');
 }
 
 // 21. Existing temporal values that carry more information than their declared

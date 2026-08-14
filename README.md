@@ -38,9 +38,10 @@ loading CEE.
 
 You can run CEE as a standalone application. This is helpful for developers to
 see changes to the code reflected immediately in the application. The standalone
-app loads a small sample template and instance from `src/assets/cee-demo`, so it
-does not require a separate sample-template server or a
-`cedar-component-distribution` checkout.
+app fetches a small template and instance from `src/assets/cee-demo` and assigns
+them to `templateAndInstanceObject`, the same way any host supplies an artifact,
+so it needs no separate template server and no `cedar-component-distribution`
+checkout.
 
 Proceed with the following steps:
 
@@ -255,15 +256,15 @@ customElements.whenDefined('cedar-embeddable-editor').then(async () => {
 
 ### Required configuration parameters
 
-* **showSampleTemplateLinks:** Wether the sample links are shown or not.
-  * For production this should be false, the template should be injected into the component by the embedding application
-* **terminologyIntegratedSearchUrl:** The URL of the CEDAR integrated search endpoint that communicates with BioPortal.
-  * The value `https://terminology.metadatacenter.org/bioportal/integrated-search` should work for the majority of applications.
+One key has no useful default:
+
+* **terminologyIntegratedSearchUrl:** the URL of the CEDAR integrated search endpoint
+  that communicates with BioPortal. `https://terminology.metadatacenter.org/bioportal/integrated-search`
+  works for most applications.
 
 ```json
 {
-  "showSampleTemplateLinks": false,
-  "terminologyIntegratedSearchUrl": 'https://terminology.metadatacenter.org/bioportal/integrated-search',
+  "terminologyIntegratedSearchUrl": "https://terminology.metadatacenter.org/bioportal/integrated-search"
 }
 ```
 
@@ -287,8 +288,6 @@ Editing behaviour and serialization:
 |---|---|
 | `readOnlyMode` | `false` |
 | `trustTemplateRichText` | `false` |
-| `inputSerialization` | `json` |
-| `outputSerialization` | `json` |
 
 The diagnostic panels. Each has a `show` key and an `expanded` key, and every
 `expanded` key defaults to `false`:
@@ -303,7 +302,6 @@ The diagnostic panels. Each has a `show` key and an `expanded` key, and every
 | Template Rendering Data | `showTemplateRenderingRepresentation` | `false` |
 | Multi-Instance Information | `showMultiInstanceInfo` | `false` |
 | Data Quality Report | `showDataQualityReport` | `false` |
-| Sample templates | `showSampleTemplateLinks` | `false` |
 
 The two JSON source panels are on by default, which suits a developer and rarely
 suits a deployment. A production embedding usually disables them. YAML is
@@ -322,11 +320,6 @@ Language, and the IRI prefixes CEE recognises or mints:
 | `bioPortalPrefix` | `https://bioportal.bioontology.org/ontologies/` |
 | `orcidPrefix` | `https://orcid.org/` |
 | `rorPrefix` | `https://ror.org/` |
-
-`sampleTemplateLocationPrefix` and `loadSampleTemplateName` have no defaults.
-Setting both has CEE fetch `<prefix><name>/template.json` and
-`<prefix><name>/metadata.json` itself, which serves demonstrations rather than
-production.
 
 `trustTemplateRichText` decides whether a template author's rich text renders verbatim
 or is sanitized first. It defaults to `false` and should stay there unless your
@@ -366,7 +359,7 @@ object and a typed element:
 ```ts
 import type { CeeConfig, CedarEmbeddableEditorElement } from 'cedar-embeddable-editor';
 
-const config: CeeConfig = { readOnlyMode: true, outputSerialization: 'yaml' };
+const config: CeeConfig = { readOnlyMode: true, showTemplateYaml: true };
 
 // Typed by the package, with no cast: it declares the tag in HTMLElementTagNameMap.
 const cee = document.querySelector('cedar-embeddable-editor');
@@ -386,7 +379,6 @@ go to the console and to any `eventHandler` you registered:
 
 ```
 CEE ERROR: Unknown configuration key "readOnlyMod". It has no effect. Did you mean "readOnlyMode"?
-CEE ERROR: Configuration key "outputSerialization" expects "json" or "yaml", but was "xml".
 ```
 
 Reporting only: a key CEE cannot use is ignored, exactly as before. The change is
@@ -463,40 +455,21 @@ The metadata currently being edited inside CEE can be exported at anytime by mak
 const meta = cee.currentMetadata;
 ```
 
-`currentMetadata` always returns a CEDAR JSON object. CEE also exposes two
-format-specific alternatives:
+`currentMetadata` always returns a CEDAR JSON object. For YAML, read the
+companion accessor instead:
 
 ```javascript
-const yaml = cee.currentMetadataYaml;             // always a YAML string
-const selected = cee.currentMetadataSerialized;   // JSON object or YAML string
+const yaml = cee.currentMetadataYaml;   // always a YAML string
 ```
 
-`currentMetadataSerialized` follows the `outputSerialization` configuration
-value. It returns a JSON object by default and a YAML string when configured as
-follows:
-
-```json
-{
-  "outputSerialization": "yaml"
-}
-```
-
-Input and output serialization are independent. Setting
-`inputSerialization` to `"yaml"` selects the model library's YAML template
-reader; the value assigned to `templateObject` must be the parsed YAML object,
-not the YAML source string:
+Either accessor works whatever form the template arrived in. A template written
+as CEDAR YAML is assigned to `templateObject` like any other, as the parsed YAML
+object rather than the YAML source string, and CEE picks the reader from the
+template's own shape:
 
 ```javascript
-cee.config = {
-  // Include the other settings required by the embedding application.
-  inputSerialization: 'yaml',
-  outputSerialization: 'yaml'
-};
 cee.templateObject = parsedTemplateYaml;
 ```
-
-Any value other than `"yaml"`, including an omitted value or `"json"`, selects
-JSON serialization.
 
 In the example below, the metadata is sent to an external endpoint every 15 seconds:
 

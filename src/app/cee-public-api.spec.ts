@@ -53,7 +53,7 @@ describe('the published config keys and the ones the editor reads', () => {
     const declared = declaredKeys();
     const implemented = componentKeys();
 
-    expect(declared.length, 'the CeeConfig properties were not parsed').toBeGreaterThan(30);
+    expect(declared.length, 'the CeeConfig properties were not parsed').toBeGreaterThan(20);
     expect(
       implemented.filter((key) => !declared.includes(key)),
       'the editor reads a key that CeeConfig does not declare',

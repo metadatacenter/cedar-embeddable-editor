@@ -1,8 +1,5 @@
 @if (dataAvailableForRender() && showHeader) {
-  <app-static-header
-    [callbackOwnerObject]="sampleTemplateLoaderObject"
-    [showSampleTemplateLinks]="showSampleTemplateLinks"
-  ></app-static-header>
+  <app-static-header></app-static-header>
 }
 @if (dataAvailableForRender() && dataContext && handlerContext && pageBreakPaginatorService) {
   <mat-card appearance="outlined" class="template-card">
@@ -78,12 +75,6 @@
     [expandedInstanceYaml]="expandedInstanceYaml"
     [expandedDataQualityReport]="expandedDataQualityReport"
   ></app-source-panels>
-}
-@if (dataAvailableForRender() && showSampleTemplateLinks) {
-  <app-sample-templates
-    [callbackOwnerObject]="sampleTemplateLoaderObject"
-    [expandedSampleTemplateLinks]="expandedSampleTemplateLinks"
-  ></app-sample-templates>
 }
 @if (dataAvailableForRender() && showFooter) {
   <app-static-footer></app-static-footer>

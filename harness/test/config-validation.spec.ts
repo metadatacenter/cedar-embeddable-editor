@@ -29,8 +29,6 @@ describe('a configuration CEE can use', () => {
     expect(
       problemsFor({
         readOnlyMode: true,
-        outputSerialization: 'yaml',
-        inputSerialization: 'json',
         extAuthBaseUrl: 'https://bridge.metadatacenter.org/ext-auth/',
         orcidIntegratedExtAuthUrl: 'orcid/search-by-name',
         nihGrantIntegratedDetailsUrl: 'nih-grant',
@@ -75,12 +73,6 @@ describe('a key set to the wrong kind of value', () => {
     expect(oneProblem({ iriPrefix: null })).toContain('but was null');
   });
 
-  it('restricts serialization to the two CEE writes', () => {
-    expect(oneProblem({ outputSerialization: 'xml' })).toBe(
-      'Configuration key "outputSerialization" expects "json" or "yaml", but was "xml".',
-    );
-  });
-
   it('checks authority endpoints are strings', () => {
     expect(oneProblem({ rorIntegratedDetailsUrl: 7 })).toContain('expects a string, but was number');
   });
@@ -98,8 +90,8 @@ describe('a configuration that is not an object at all', () => {
 
 describe('settings that are each valid and wrong together', () => {
   /**
-   * Both of these are how CEE already behaves. They were discoverable only by
-   * setting something and watching nothing happen.
+   * How CEE already behaves, discoverable only by setting something and watching
+   * nothing happen.
    */
   it('reports an authority base URL with no trailing slash', () => {
     expect(oneProblem({ extAuthBaseUrl: 'https://bridge.metadatacenter.org/ext-auth' })).toContain(
@@ -114,7 +106,7 @@ describe('settings that are each valid and wrong together', () => {
 
 describe('several problems at once', () => {
   it('reports every one, rather than stopping at the first', () => {
-    const problems = problemsFor({ readOnlyMode: 'yes', notAKey: 1, outputSerialization: 'xml' });
+    const problems = problemsFor({ readOnlyMode: 'yes', notAKey: 1, iriPrefix: 7 });
     expect(problems).toHaveLength(3);
   });
 });

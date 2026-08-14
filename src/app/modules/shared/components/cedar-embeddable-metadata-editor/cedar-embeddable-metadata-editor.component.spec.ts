@@ -2,8 +2,6 @@ import { type Mock, vi } from 'vitest';
 import { CedarEmbeddableMetadataEditorComponent } from './cedar-embeddable-metadata-editor.component';
 import { TemplateTrustService } from '../../service/template-trust.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
-import { ModelLibraryTemplateParser } from '../../factory/model-library-template-parser';
-import { YamlTemplateParser } from '../../factory/yaml-template-parser';
 import { AUTHORITY_DESCRIPTORS } from '../../models/authority/authority-descriptor.model';
 import { IriPrefix } from '../../util/iri-prefix';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
@@ -62,7 +60,6 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     'showInstanceDataFull',
     'showInstanceYaml',
     'showDataQualityReport',
-    'showSampleTemplateLinks',
     'showHeader',
     'showFooter',
     'expandedTemplateRenderingRepresentation',
@@ -73,7 +70,6 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     'expandedInstanceDataFull',
     'expandedInstanceYaml',
     'expandedDataQualityReport',
-    'expandedSampleTemplateLinks',
     'showTemplateDescription',
     'readOnlyMode',
   ];
@@ -87,24 +83,6 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
         component.config = { [flag]: false };
         expect(field(component, flag)).toBe(false);
       });
-    });
-  });
-
-  describe('inputSerialization selects the template parser', () => {
-    it('defaults to the JSON parser when unset', () => {
-      expect(make().templateParser instanceof ModelLibraryTemplateParser).toBe(true);
-    });
-
-    it('keeps the JSON parser when set to "json"', () => {
-      const component = make();
-      component.config = { inputSerialization: 'json' };
-      expect(component.templateParser instanceof ModelLibraryTemplateParser).toBe(true);
-    });
-
-    it('switches to the YAML parser when set to "yaml"', () => {
-      const component = make();
-      component.config = { inputSerialization: 'yaml' };
-      expect(component.templateParser instanceof YamlTemplateParser).toBe(true);
     });
   });
 
@@ -213,26 +191,22 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
   });
 
   describe('config keys do not interfere with one another', () => {
-    it('setting one key leaves the other fields and the parser untouched', () => {
+    it('setting one key leaves the other fields untouched', () => {
       const component = make();
       const untouchedFlag = component.showInstanceDataFull;
-      const parser = component.templateParser;
 
       component.config = { showHeader: true };
 
       expect(component.showHeader).toBe(true);
       expect(component.showInstanceDataFull).toBe(untouchedFlag);
-      expect(component.templateParser).toBe(parser);
     });
 
     it('an empty config changes nothing', () => {
       const component = make();
-      const parser = component.templateParser;
       const sourceData = component.showTemplateSourceData;
 
       component.config = {};
 
-      expect(component.templateParser).toBe(parser);
       expect(component.showTemplateSourceData).toBe(sourceData);
     });
   });
