@@ -53,7 +53,15 @@ describe('the published config keys and the ones the editor reads', () => {
     const declared = declaredKeys();
     const implemented = componentKeys();
 
-    expect(declared.length, 'the CeeConfig properties were not parsed').toBeGreaterThan(20);
+    /*
+     * Both sides are read by regex, so the comparison below would pass vacuously
+     * if either parse returned nothing. Named keys rather than a count: a count is
+     * a second thing to maintain, and it has already had to move three times as
+     * the surface shrank — each time saying nothing about whether the parse worked.
+     * These two are the last keys that would ever be removed.
+     */
+    expect(declared, 'the CeeConfig properties were not parsed').toContain('readOnlyMode');
+    expect(implemented, 'the component key constants were not parsed').toContain('readOnlyMode');
     expect(
       implemented.filter((key) => !declared.includes(key)),
       'the editor reads a key that CeeConfig does not declare',

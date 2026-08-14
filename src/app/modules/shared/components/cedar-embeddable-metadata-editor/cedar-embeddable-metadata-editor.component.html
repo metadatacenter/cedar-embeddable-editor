@@ -37,6 +37,9 @@
           <button mat-button (click)="closeAll()">
             <mat-icon>unfold_less</mat-icon>{{ 'Generic.CollapseAll' | translate }}
           </button>
+          @if (showDownloadMenu) {
+            <app-download-menu (downloadRequested)="download($event)"></app-download-menu>
+          }
         </div>
       </div>
     </div>
@@ -54,27 +57,6 @@
       }
     </mat-card-content>
   </mat-card>
-}
-@if (dataAvailableForRender() && dataContext) {
-  <app-source-panels
-    [dataContext]="dataContext"
-    [showTemplateRenderingRepresentation]="showTemplateRenderingRepresentation"
-    [showMultiInstanceInfo]="showMultiInstanceInfo"
-    [showTemplateSourceData]="showTemplateSourceData"
-    [showTemplateYaml]="showTemplateYaml"
-    [showInstanceDataCore]="showInstanceDataCore"
-    [showInstanceDataFull]="showInstanceDataFull"
-    [showInstanceYaml]="showInstanceYaml"
-    [showDataQualityReport]="showDataQualityReport"
-    [expandedTemplateRenderingRepresentation]="expandedTemplateRenderingRepresentation"
-    [expandedMultiInstanceInfo]="expandedMultiInstanceInfo"
-    [expandedTemplateSourceData]="expandedTemplateSourceData"
-    [expandedTemplateYaml]="expandedTemplateYaml"
-    [expandedInstanceDataCore]="expandedInstanceDataCore"
-    [expandedInstanceDataFull]="expandedInstanceDataFull"
-    [expandedInstanceYaml]="expandedInstanceYaml"
-    [expandedDataQualityReport]="expandedDataQualityReport"
-  ></app-source-panels>
 }
 @if (dataAvailableForRender() && showFooter) {
   <app-static-footer></app-static-footer>

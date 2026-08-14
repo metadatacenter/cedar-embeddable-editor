@@ -2906,6 +2906,34 @@ test.describe('controlled terminology selection', () => {
  * should be. A structural check on agreement catches a serializer that has stopped
  * working; it does not need to re-verify YAML grammar the library already tests.
  */
+/**
+ * Take one download the way a developer does, and read what arrived.
+ *
+ * What each download *contains* is asserted in the domain harness, against every
+ * shape the corpus has and without a browser. What only a browser can answer is
+ * whether the click reaches the editor at all and whether a file comes back with
+ * the right name — a page-initiated download is refusable, and there is no event
+ * to observe when it is refused.
+ */
+const takeDownload = async (
+  page: import('@playwright/test').Page,
+  id: string,
+): Promise<{ filename: string; body: string }> => {
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    (async () => {
+      await page.locator('.download-trigger').click();
+      await page.locator(`[data-download="${id}"]`).click();
+    })(),
+  ]);
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk as Buffer);
+  }
+  return { filename: download.suggestedFilename(), body: Buffer.concat(chunks).toString('utf8') };
+};
+
 test.describe('what a host page reads back', () => {
   const read = (page: import('@playwright/test').Page) =>
     page.evaluate(() => {
@@ -2949,54 +2977,35 @@ test.describe('what a host page reads back', () => {
     expect(yaml, 'an edit did not reach currentMetadataYaml').toContain('typed into the form');
   });
 
-  test('the full instance source panel shows CEDAR JSON-LD, not the internal model', async ({ page }) => {
-    await open(
-      page,
-      '10-attribute-values',
-      undefined,
-      undefined,
-      undefined,
-      '&f=showInstanceDataFull,expandedInstanceDataFull',
-    );
+  test('the instance download is a CEDAR document carrying what was typed', async ({ page }) => {
+    await open(page, '10-attribute-values', undefined, undefined, undefined, '&f=showDownloadMenu');
 
     await page.locator('input[aria-label="Attribute Name"]').fill('colour');
     await page.locator('input[aria-label="Attribute Value"]').fill('blue');
 
-    const source = page.getByRole('region', { name: 'JSON-LD - Instance' });
-    await expect(source).toContainText('"@context"');
-    await expect(source).toContainText('"colour"');
-    await expect(source).toContainText('"blue"');
-    await expect(source).not.toContainText('"dataContainer"');
-    await expect(source).not.toContainText('"_values"');
-    await expect(source).not.toContainText('"_iris"');
+    const { filename, body } = await takeDownload(page, 'instance');
+
+    expect(filename).toBe('AttributeValues-instance.json');
+    expect(body).toContain('"@context"');
+    expect(body).toContain('"colour"');
+    expect(body).toContain('"blue"');
+    expect(body, "CEE's working tree reached the file").not.toContain('"_values"');
   });
 
-  test('the YAML source panels use the model-library representations', async ({ page }) => {
-    await open(
-      page,
-      '10-attribute-values',
-      undefined,
-      undefined,
-      undefined,
-      '&f=showInstanceYaml,expandedInstanceYaml,showTemplateYaml,expandedTemplateYaml',
-    );
+  test('a YAML download arrives as YAML, under its own extension', async ({ page }) => {
+    await open(page, '10-attribute-values', undefined, undefined, undefined, '&f=showDownloadMenu');
 
+    // Both, as the JSON case does: filling the value is what takes focus off the
+    // name and commits it. Filling the name alone downloads a form that has not
+    // yet been told about it.
     await page.locator('input[aria-label="Attribute Name"]').fill('colour');
     await page.locator('input[aria-label="Attribute Value"]').fill('blue');
 
-    const instance = page.getByRole('region', { name: 'YAML - Instance' });
-    await expect(instance).toContainText('colour');
-    await expect(instance).toContainText('blue');
-    await expect(instance).not.toContainText('dataContainer');
+    const { filename, body } = await takeDownload(page, 'instanceYaml');
 
-    const template = page.getByRole('region', { name: 'YAML - Template' });
-    await expect(template).toContainText('type: "attribute-value-field"');
-    await expect(template).not.toContainText('_values');
-
-    const header = page.getByRole('button', { name: /YAML - Instance/ });
-    const headerBox = await header.boundingBox();
-    expect(headerBox, 'the YAML instance header is not visible').not.toBeNull();
-    expect((headerBox as { height: number }).height, 'source-panel rows should stay compact').toBeLessThanOrEqual(40);
+    expect(filename).toBe('AttributeValues-instance.yaml');
+    expect(body).toContain('colour');
+    expect(body, 'a YAML download must not be a JSON object').not.toMatch(/^\s*\{/);
   });
 
   test('dataQualityReport follows an invalid value and its correction', async ({ page }) => {
@@ -3223,30 +3232,12 @@ test.describe('host change notifications', () => {
  * flag is wired to something, which is the question that was unanswered for nineteen
  * of them.
  *
- * `expanded*` flags are paired with the panel they expand, since expanding a panel that
- * is not shown changes nothing and would read as a dead flag.
  */
 test.describe('config flags are wired to something', () => {
   const FLAGS: ReadonlyArray<{ flag: string; withFlags?: string[]; fixture?: string }> = [
     { flag: 'showHeader' },
     { flag: 'showFooter' },
-    { flag: 'showTemplateRenderingRepresentation' },
-    { flag: 'showInstanceDataCore' },
-    { flag: 'showInstanceDataFull' },
-    { flag: 'showInstanceYaml' },
-    { flag: 'showTemplateSourceData' },
-    { flag: 'showTemplateYaml' },
-    { flag: 'showDataQualityReport' },
-    { flag: 'showMultiInstanceInfo', fixture: '03-nested-multi' },
-    // Expanding a panel only shows when the panel itself is shown.
-    { flag: 'expandedInstanceDataCore', withFlags: ['showInstanceDataCore'] },
-    { flag: 'expandedInstanceDataFull', withFlags: ['showInstanceDataFull'] },
-    { flag: 'expandedInstanceYaml', withFlags: ['showInstanceYaml'] },
-    { flag: 'expandedTemplateSourceData', withFlags: ['showTemplateSourceData'] },
-    { flag: 'expandedTemplateYaml', withFlags: ['showTemplateYaml'] },
-    { flag: 'expandedDataQualityReport', withFlags: ['showDataQualityReport'] },
-    { flag: 'expandedTemplateRenderingRepresentation', withFlags: ['showTemplateRenderingRepresentation'] },
-    { flag: 'expandedMultiInstanceInfo', withFlags: ['showMultiInstanceInfo'], fixture: '03-nested-multi' },
+    { flag: 'showDownloadMenu' },
   ];
 
   /**
@@ -3508,6 +3499,44 @@ test.describe('date calendar selection', () => {
  * No trigger is needed: CEE traces its config and its language-map choice on every load,
  * which is a real message from a real path rather than something contrived.
  */
+/**
+ * Every icon CEE names has a glyph in the font CEE ships.
+ *
+ * The icon font is subsetted, and a ligature that is not in the subset does not
+ * fail — it renders as the literal word. `download` did exactly that: the menu
+ * trigger measured 192px of invisible text and looked like an empty button, and
+ * nothing failed, because no test looks at a glyph and the trigger appears in no
+ * baseline.
+ *
+ * Measuring is what makes this answerable. A resolved ligature collapses to about
+ * one em; an unresolved one is as wide as the word, so anything much wider than
+ * its own font size is a missing glyph whatever it is called.
+ */
+test.describe('the subsetted icon font', () => {
+  test('has a glyph for every icon the download menu names', async ({ page }) => {
+    await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
+    await page.locator('.download-trigger').click();
+
+    const wide = await page.evaluate(() => {
+      const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+      return [...root.querySelectorAll('mat-icon')]
+        .map((icon) => {
+          const size = parseFloat(getComputedStyle(icon).fontSize);
+          const probe = document.createElement('span');
+          probe.style.cssText = `position:absolute;left:-9999px;font-family:${getComputedStyle(icon).fontFamily};font-size:${size}px`;
+          probe.textContent = icon.textContent!.trim();
+          root.appendChild(probe);
+          const width = probe.getBoundingClientRect().width;
+          probe.remove();
+          return { name: icon.textContent!.trim(), width, size };
+        })
+        .filter((entry) => entry.width > entry.size * 1.6);
+    });
+
+    expect(wide, `these icon names have no glyph and render as text: ${JSON.stringify(wide)}`).toEqual([]);
+  });
+});
+
 test.describe('the host event handler', () => {
   test('receives CEE diagnostics through the web component input', async ({ page }) => {
     await open(page, '01-input-types', undefined, undefined, undefined, '&e=1');

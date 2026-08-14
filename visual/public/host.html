@@ -86,7 +86,6 @@
                 // because the endpoint-isolation test types into the first editor and a
                 // read-only field cannot be typed into.
                 readOnlyMode: owner === 'second',
-                showTemplateSourceData: false,
                 defaultLanguage: 'en',
                 fallbackLanguage: 'en',
                 languageMapPathPrefix: `./served/languages/${owner}/`,
@@ -171,11 +170,6 @@
         const base = {
           showHeader: false,
           showFooter: false,
-          showTemplateRenderingRepresentation: false,
-          showInstanceDataCore: false,
-          showTemplateSourceData: false,
-          showDataQualityReport: false,
-          showMultiInstanceInfo: false,
           defaultLanguage: 'en',
           fallbackLanguage: 'en',
           // Deliberately unreachable: the visual baseline must never depend on

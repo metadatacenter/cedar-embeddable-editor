@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING.** The eight diagnostic panels become a download menu, behind one key.
+  `showDownloadMenu` replaces sixteen: eight `show…` keys and their eight `expanded…`
+  partners. It defaults to `false`, where `showTemplateSourceData` and `showInstanceDataFull`
+  defaulted to `true` — so an embedder who configured nothing used to get a JSON Schema dump
+  and a JSON-LD dump under every form. The visual suite had been documenting that: its base
+  preset switched five panels off and never the sixth, so all 48 fixture baselines carried a
+  collapsed JSON-LD panel, which is the 40px every one of them lost. CEE now renders no dumps
+  at all; each view is saved as a file named from the template, `AttributeValues-instance.yaml`
+  rather than `instance.yaml`, so several open forms do not collide. `SourcePanelsComponent`
+  and its 207-line template are gone, replaced by a descriptor list, a pure
+  `downloadContentFor` the harness can ask without a browser, and a menu that holds no state.
+  Downloads are page-initiated and a sandboxed host can refuse one with no observable event,
+  so each attempt is traced through the event handler.
+
+- **BREAKING.** `trustTemplateMarkup` is renamed `trustTemplateRichText`, with no alias. The old
+  name claimed a surface far wider than the one it has: a reader could reasonably expect it to
+  govern field descriptions, help text or labels, none of which render as HTML. CEE renders HTML
+  in exactly two places — the body of a static rich-text field, from the template, and a field
+  value in the read-only view, from the instance — and this key governs the first and can never
+  govern the second. The new name states both the provenance that makes the trust decision the
+  host's to make, and the single surface it applies to. `TemplateTrustService` renames its
+  members to match. A host still passing the old key is told the key is unknown and falls back
+  to sanitizing, which is the safe direction but a visible change: rich text styled beyond the
+  sanitizer's policy will render flattened until the key is renamed.
+
 ### Removed
 
 - **BREAKING.** `inputSerialization`, `outputSerialization` and the
@@ -38,21 +65,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   two picker components and the `SampleTemplateLoaderOwner` model; and the
   sample-registry fixtures the visual suite served. The standalone developer app now
   fetches its own demo from `src/assets/cee-demo` and assigns it, like any other host.
-
-### Changed
-
-- **BREAKING.** `trustTemplateMarkup` is renamed `trustTemplateRichText`, with no alias. The old
-  name claimed a surface far wider than the one it has: a reader could reasonably expect it to
-  govern field descriptions, help text or labels, none of which render as HTML. CEE renders HTML
-  in exactly two places — the body of a static rich-text field, from the template, and a field
-  value in the read-only view, from the instance — and this key governs the first and can never
-  govern the second. The new name states both the provenance that makes the trust decision the
-  host's to make, and the single surface it applies to. `TemplateTrustService` renames its
-  members to match. A host still passing the old key is told the key is unknown and falls back
-  to sanitizing, which is the safe direction but a visible change: rich text styled beyond the
-  sanitizer's policy will render flattened until the key is renamed.
-
-### Removed
 
 - **BREAKING.** `hideEmptyFields`, and the empty-field hiding it switched on. In read-only mode
   it dropped every field the loaded instance had no value for. It worked only when the artifact

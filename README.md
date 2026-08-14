@@ -289,25 +289,32 @@ Editing behaviour and serialization:
 | `readOnlyMode` | `false` |
 | `trustTemplateRichText` | `false` |
 
-The diagnostic panels. Each has a `show` key and an `expanded` key, and every
-`expanded` key defaults to `false`:
+`showDownloadMenu` offers a menu that saves CEE's views of the artifact as files.
+It defaults to `false`, and nothing is rendered under the form either way:
 
-| Panel | `show` key | Default |
+| Menu entry | Saves | As |
 |---|---|---|
-| JSON Schema - Template | `showTemplateSourceData` | `true` |
-| YAML - Template | `showTemplateYaml` | `false` |
-| JSON-LD - Instance | `showInstanceDataFull` | `true` |
-| YAML - Instance | `showInstanceYaml` | `false` |
-| JSON-LD - Instance - Core | `showInstanceDataCore` | `false` |
-| Template Rendering Data | `showTemplateRenderingRepresentation` | `false` |
-| Multi-Instance Information | `showMultiInstanceInfo` | `false` |
-| Data Quality Report | `showDataQualityReport` | `false` |
+| JSON-LD - Instance - Core | The instance without its envelope | `<name>-instance-core.json` |
+| JSON-LD - Instance | The instance as a CEDAR document | `<name>-instance.json` |
+| YAML - Instance | The same instance, as CEDAR YAML | `<name>-instance.yaml` |
+| JSON Schema - Template | The template as the host supplied it | `<name>-template.json` |
+| YAML - Template | The same template, as CEDAR YAML | `<name>-template.yaml` |
+| Template Rendering Data | The component tree CEE built | `<name>-rendering.json` |
+| Multi-Instance Information | Occurrence counts and current indices | `<name>-multi-instance.json` |
+| Data Quality Report | Required-field tally and constraint violations | `<name>-data-quality.json` |
 
-The two JSON source panels are on by default, which suits a developer and rarely
-suits a deployment. A production embedding usually disables them. YAML is
-opt-in through `showTemplateYaml` and `showInstanceYaml`, and its expansion is
-controlled independently by `expandedTemplateYaml` and
-`expandedInstanceYaml`.
+`<name>` is the template's own `schema:name`, reduced to file-name-safe
+characters, so a developer with several forms open can tell the files apart.
+
+These were eight panels once, each printing a dump under the form, and each
+costing two keys — one to show it and one to expand it. Two of the sixteen were
+on by default, so an embedder who configured nothing got a JSON Schema dump and
+a JSON-LD dump beneath every form.
+
+A download is started by the page, which a host running under a restrictive
+sandbox can refuse, with no event to observe when it does. CEE traces each
+attempt through the event handler, so a developer seeing the trace and no file
+knows to look at their own sandbox.
 
 Language, and the IRI prefixes CEE recognises or mints:
 

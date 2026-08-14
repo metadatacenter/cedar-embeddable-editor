@@ -20,23 +20,12 @@ export class AppDevComponent implements OnInit {
   artifact: CeeTemplateAndInstance | null = null;
 
   ceeConfig = {
-    showTemplateRenderingRepresentation: true,
-    showDataQualityReport: true,
     showHeader: true,
     showFooter: true,
     showTemplateDescription: true,
+    showDownloadMenu: true,
 
     terminologyIntegratedSearchUrl: 'https://terminology.metadatacenter.orgx/bioportal/integrated-search',
-    expandedInstanceDataFull: false,
-    showInstanceYaml: true,
-    expandedInstanceYaml: false,
-    showTemplateYaml: true,
-    expandedTemplateYaml: false,
-    showInstanceDataCore: true,
-    expandedInstanceDataCore: false,
-    showMultiInstanceInfo: true,
-    expandedMultiInstanceInfo: false,
-    expandedDataQualityReport: false,
     languageMapPathPrefix: '/assets/i18n-cee/',
     defaultLanguage: 'en',
     fallbackLanguage: 'en',

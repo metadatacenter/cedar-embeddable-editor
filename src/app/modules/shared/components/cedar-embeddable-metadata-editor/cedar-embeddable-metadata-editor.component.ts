@@ -15,6 +15,9 @@ import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.
 import { MessageHandlerService } from '../../service/message-handler.service';
 import packageJson from 'package.json';
 import { InstanceObject } from '../../models/instance-node.model';
+import { DOWNLOAD_ITEMS, DownloadItemId } from '../../models/ui/download-item.model';
+import { downloadContentFor, downloadFilenameFor } from '../../util/download-content';
+import { triggerDownload } from '../../util/trigger-download';
 import { CeeConfig, configFlag, configText } from '../../util/config-reader';
 
 @Component({
@@ -28,26 +31,17 @@ import { CeeConfig, configFlag, configText } from '../../util/config-reader';
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   private static INNER_VERSION = '2026-08-12 17:12';
 
-  private static SHOW_TEMPLATE_RENDERING = 'showTemplateRenderingRepresentation';
-  private static SHOW_MULTI_INSTANCE = 'showMultiInstanceInfo';
-  private static SHOW_TEMPLATE_SOURCE = 'showTemplateSourceData';
-  private static SHOW_TEMPLATE_YAML = 'showTemplateYaml';
-  private static SHOW_INSTANCE_CORE = 'showInstanceDataCore';
-  private static SHOW_INSTANCE_FULL = 'showInstanceDataFull';
-  private static SHOW_INSTANCE_YAML = 'showInstanceYaml';
-  private static SHOW_DATA_QUALITY_REPORT = 'showDataQualityReport';
-
   private static SHOW_HEADER = 'showHeader';
   private static SHOW_FOOTER = 'showFooter';
 
-  private static EXPANDED_TEMPLATE_RENDERING = 'expandedTemplateRenderingRepresentation';
-  private static EXPANDED_MULTI_INSTANCE = 'expandedMultiInstanceInfo';
-  private static EXPANDED_TEMPLATE_SOURCE = 'expandedTemplateSourceData';
-  private static EXPANDED_TEMPLATE_YAML = 'expandedTemplateYaml';
-  private static EXPANDED_INSTANCE_CORE = 'expandedInstanceDataCore';
-  private static EXPANDED_INSTANCE_FULL = 'expandedInstanceDataFull';
-  private static EXPANDED_INSTANCE_YAML = 'expandedInstanceYaml';
-  private static EXPANDED_DATA_QUALITY_REPORT = 'expandedDataQualityReport';
+  /**
+   * Whether the download menu exists.
+   *
+   * One key where there were sixteen: eight `show…` panels and their eight
+   * `expanded…` partners, each rendering a dump under the form. The host decides
+   * whether the menu is offered; what it offers is fixed.
+   */
+  private static SHOW_DOWNLOAD_MENU = 'showDownloadMenu';
 
   static TERMINOLOGY_INTEGRATED_SEARCH_URL = 'terminologyIntegratedSearchUrl';
 
@@ -80,26 +74,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   pageBreakPaginatorService: PageBreakPaginatorService | null = null;
 
-  showTemplateRenderingRepresentation = false;
-  showMultiInstanceInfo = false;
-  showTemplateSourceData = true;
-  showTemplateYaml = false;
-  showInstanceDataCore = false;
-  showInstanceDataFull = true;
-  showInstanceYaml = false;
-  showDataQualityReport = false;
-
   showHeader = false;
   showFooter = false;
-
-  expandedTemplateRenderingRepresentation = false;
-  expandedMultiInstanceInfo = false;
-  expandedTemplateSourceData = false;
-  expandedTemplateYaml = false;
-  expandedInstanceDataCore = false;
-  expandedInstanceDataFull = false;
-  expandedInstanceYaml = false;
-  expandedDataQualityReport = false;
+  showDownloadMenu = false;
 
   showTemplateDescription: boolean = false;
   readOnlyMode: boolean = false;
@@ -126,6 +103,27 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
 
+  /**
+   * Save one of CEE's views of the artifact as a file.
+   *
+   * Traced rather than silent: a page-initiated download can be refused by a
+   * sandboxed host with no event to observe, so a developer seeing the trace and
+   * no file knows where to look.
+   */
+  download(id: DownloadItemId): void {
+    const { dataContext } = this;
+    if (dataContext === null) {
+      return;
+    }
+    const filename = downloadFilenameFor(id, dataContext);
+    const item = DOWNLOAD_ITEMS.find((candidate) => candidate.id === id);
+    if (item === undefined) {
+      return;
+    }
+    this.messageHandlerService.trace('CEDAR Embeddable Editor: downloading ' + filename);
+    triggerDownload(filename, item.mediaType, downloadContentFor(id, dataContext));
+  }
+
   ngOnDestroy(): void {
     this.activeComponentRegistry.clear();
   }
@@ -142,87 +140,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   @Input() set config(value: CeeConfig | null) {
     if (value != null) {
-      this.showTemplateRenderingRepresentation = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_RENDERING,
-        this.showTemplateRenderingRepresentation,
-      );
-      this.showMultiInstanceInfo = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_MULTI_INSTANCE,
-        this.showMultiInstanceInfo,
-      );
-      this.showTemplateSourceData = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_SOURCE,
-        this.showTemplateSourceData,
-      );
-      this.showTemplateYaml = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_YAML,
-        this.showTemplateYaml,
-      );
-      this.showInstanceDataCore = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_CORE,
-        this.showInstanceDataCore,
-      );
-      this.showInstanceDataFull = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_FULL,
-        this.showInstanceDataFull,
-      );
-      this.showInstanceYaml = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_INSTANCE_YAML,
-        this.showInstanceYaml,
-      );
-      this.showDataQualityReport = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_DATA_QUALITY_REPORT,
-        this.showDataQualityReport,
-      );
       this.showFooter = configFlag(value, CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER, this.showFooter);
       this.showHeader = configFlag(value, CedarEmbeddableMetadataEditorComponent.SHOW_HEADER, this.showHeader);
-      this.expandedTemplateRenderingRepresentation = configFlag(
+      this.showDownloadMenu = configFlag(
         value,
-        CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_RENDERING,
-        this.expandedTemplateRenderingRepresentation,
-      );
-      this.expandedMultiInstanceInfo = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.EXPANDED_MULTI_INSTANCE,
-        this.expandedMultiInstanceInfo,
-      );
-      this.expandedTemplateSourceData = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_SOURCE,
-        this.expandedTemplateSourceData,
-      );
-      this.expandedTemplateYaml = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.EXPANDED_TEMPLATE_YAML,
-        this.expandedTemplateYaml,
-      );
-      this.expandedInstanceDataCore = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_CORE,
-        this.expandedInstanceDataCore,
-      );
-      this.expandedInstanceDataFull = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_FULL,
-        this.expandedInstanceDataFull,
-      );
-      this.expandedInstanceYaml = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.EXPANDED_INSTANCE_YAML,
-        this.expandedInstanceYaml,
-      );
-      this.expandedDataQualityReport = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.EXPANDED_DATA_QUALITY_REPORT,
-        this.expandedDataQualityReport,
+        CedarEmbeddableMetadataEditorComponent.SHOW_DOWNLOAD_MENU,
+        this.showDownloadMenu,
       );
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.IRI_PREFIX)) {
         this.iriPrefix.set(String(value[CedarEmbeddableMetadataEditorComponent.IRI_PREFIX]));

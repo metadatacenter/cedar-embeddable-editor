@@ -43,7 +43,8 @@
     "DecrementMinute": "Perc csökkentése",
     "IncrementSecond": "Másodperc növelése",
     "DecrementSecond": "Másodperc csökkentése",
-    "ToggleMeridian": "Váltás AM és PM között"
+    "ToggleMeridian": "Váltás AM és PM között",
+    "Download": "Letöltés"
   },
   "Multi": {
     "NoInstancesYet": "Még nincsenek példányok",

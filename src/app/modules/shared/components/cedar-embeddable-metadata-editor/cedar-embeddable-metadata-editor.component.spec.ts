@@ -51,28 +51,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
 
   // For every boolean display flag the config key and the field it sets share a
   // name, so one list drives both sides of the assertion.
-  const BOOLEAN_FLAGS = [
-    'showTemplateRenderingRepresentation',
-    'showMultiInstanceInfo',
-    'showTemplateSourceData',
-    'showTemplateYaml',
-    'showInstanceDataCore',
-    'showInstanceDataFull',
-    'showInstanceYaml',
-    'showDataQualityReport',
-    'showHeader',
-    'showFooter',
-    'expandedTemplateRenderingRepresentation',
-    'expandedMultiInstanceInfo',
-    'expandedTemplateSourceData',
-    'expandedTemplateYaml',
-    'expandedInstanceDataCore',
-    'expandedInstanceDataFull',
-    'expandedInstanceYaml',
-    'expandedDataQualityReport',
-    'showTemplateDescription',
-    'readOnlyMode',
-  ];
+  const BOOLEAN_FLAGS = ['showDownloadMenu', 'showHeader', 'showFooter', 'showTemplateDescription', 'readOnlyMode'];
 
   describe('every boolean flag maps its config key to its field', () => {
     BOOLEAN_FLAGS.forEach((flag) => {
@@ -83,29 +62,6 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
         component.config = { [flag]: false };
         expect(field(component, flag)).toBe(false);
       });
-    });
-  });
-
-  describe('YAML source-panel defaults', () => {
-    it('keeps the new YAML panels off unless the host opts in', () => {
-      const component = make();
-
-      expect(component.showTemplateYaml).toBe(false);
-      expect(component.showInstanceYaml).toBe(false);
-    });
-
-    it('can be configured independently of the corresponding JSON panel', () => {
-      const component = make();
-
-      component.config = {
-        showTemplateSourceData: false,
-        showTemplateYaml: true,
-        showInstanceDataFull: false,
-        showInstanceYaml: true,
-      };
-
-      expect(component.showTemplateYaml).toBe(true);
-      expect(component.showInstanceYaml).toBe(true);
     });
   });
 
@@ -193,21 +149,21 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
   describe('config keys do not interfere with one another', () => {
     it('setting one key leaves the other fields untouched', () => {
       const component = make();
-      const untouchedFlag = component.showInstanceDataFull;
+      const untouchedFlag = component.showFooter;
 
       component.config = { showHeader: true };
 
       expect(component.showHeader).toBe(true);
-      expect(component.showInstanceDataFull).toBe(untouchedFlag);
+      expect(component.showFooter).toBe(untouchedFlag);
     });
 
     it('an empty config changes nothing', () => {
       const component = make();
-      const sourceData = component.showTemplateSourceData;
+      const description = component.showTemplateDescription;
 
       component.config = {};
 
-      expect(component.showTemplateSourceData).toBe(sourceData);
+      expect(component.showTemplateDescription).toBe(description);
     });
   });
 

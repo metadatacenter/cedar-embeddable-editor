@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatMenuModule } from '@angular/material/menu';
 import { RdfPipe } from './pipe/rdf.pipe';
 import { CedarComponentHeaderComponent } from './components/cedar-component-header/cedar-component-header.component';
 import { MatCardModule } from '@angular/material/card';
@@ -22,7 +23,7 @@ import { CedarEmbeddableMetadataEditorComponent } from './components/cedar-embed
 import { CedarComponentRendererComponent } from './components/cedar-component-renderer/cedar-component-renderer.component';
 import { StaticFooterComponent } from './components/static-footer/static-footer.component';
 import { StaticHeaderComponent } from './components/static-header/static-header.component';
-import { SourcePanelsComponent } from './components/source-panels/source-panels.component';
+import { DownloadMenuComponent } from './components/download-menu/download-menu.component';
 import { CedarMultiPagerComponent } from './components/cedar-multi-pager/cedar-multi-pager.component';
 import { InputTypesModule } from '../input-types/input-types.module';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
@@ -33,6 +34,7 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
 @NgModule({
   imports: [
     CommonModule,
+    MatMenuModule,
     MatCardModule,
     MatIconModule,
     ReactiveFormsModule,
@@ -63,7 +65,7 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     CedarComponentRendererComponent,
     StaticFooterComponent,
     StaticHeaderComponent,
-    SourcePanelsComponent,
+    DownloadMenuComponent,
     CedarMultiPagerComponent,
   ],
   providers: [],

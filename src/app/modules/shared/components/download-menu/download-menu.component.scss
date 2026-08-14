@@ -1,0 +1,28 @@
+/*
+ * An icon button, where Expand All and Collapse All beside it are text buttons.
+ *
+ * Deliberate: those two act on the form the developer is reading, and this one
+ * takes a copy away. The label lives in a tooltip and on `aria-label`, so the
+ * control still names itself to anyone not looking at the icon.
+ *
+ * `file_download` rather than `download`, which is not in the subsetted icon
+ * font this build ships — a missing ligature renders as the literal word, so the
+ * button appeared empty while measuring 192px of invisible text.
+ *
+ * The class is doubled with Material's own so this wins: `.mat-mdc-icon-button`
+ * sets a 40px control in a 48px touch target, which towers over the text buttons
+ * it sits beside.
+ */
+.download-trigger.mat-mdc-icon-button {
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  margin-left: 4px;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+  }
+}

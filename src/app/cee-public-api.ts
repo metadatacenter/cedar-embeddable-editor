@@ -65,22 +65,15 @@ export interface CeeConfig {
    */
   trustTemplateRichText?: boolean;
 
-  showTemplateRenderingRepresentation?: boolean;
-  showMultiInstanceInfo?: boolean;
-  showTemplateSourceData?: boolean;
-  showTemplateYaml?: boolean;
-  showInstanceDataCore?: boolean;
-  showInstanceDataFull?: boolean;
-  showInstanceYaml?: boolean;
-  showDataQualityReport?: boolean;
-  expandedTemplateRenderingRepresentation?: boolean;
-  expandedMultiInstanceInfo?: boolean;
-  expandedTemplateSourceData?: boolean;
-  expandedTemplateYaml?: boolean;
-  expandedInstanceDataCore?: boolean;
-  expandedInstanceDataFull?: boolean;
-  expandedInstanceYaml?: boolean;
-  expandedDataQualityReport?: boolean;
+  /**
+   * Offers a menu that saves CEE's views of the artifact as files — the instance
+   * and the template as JSON-LD, JSON Schema and YAML, plus the rendering data,
+   * the multi-instance information and the data quality report.
+   *
+   * Off by default, so an embedded form offers nothing of the sort unless a host
+   * asks. Nothing is rendered under the form either way.
+   */
+  showDownloadMenu?: boolean;
 
   terminologyIntegratedSearchUrl?: string;
   /** Base for authority lookups. Must end in a slash. */
