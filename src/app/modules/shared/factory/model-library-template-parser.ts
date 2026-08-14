@@ -2,7 +2,6 @@ import {
   AbstractChildDeploymentInfo,
   AbstractContainerArtifact,
   AbstractDynamicChildDeploymentInfo,
-  BooleanField,
   CedarArtifactType,
   CedarFieldType,
   CedarReaders,
@@ -73,8 +72,6 @@ const isNumericField = (field: TemplateField): field is NumericField => field.ce
 
 const isTemporalField = (field: TemplateField): field is TemporalField =>
   field.cedarFieldType === CedarFieldType.TEMPORAL;
-
-const isBooleanField = (field: TemplateField): field is BooleanField => field.cedarFieldType === CedarFieldType.BOOLEAN;
 
 const isControlledTermField = (field: TemplateField): field is ControlledTermField =>
   field.cedarFieldType === CedarFieldType.CONTROLLED_TERM;
@@ -390,10 +387,10 @@ export class ModelLibraryTemplateParser implements TemplateParser {
      * ask what the bound is.
      *
      * Each read sits under the guard for the kind that declares it. That is not a
-     * narrowing of what CEE reads: the four kinds below are the only ones the
-     * library gives a constraint object carrying these at all.
+     * narrowing of what CEE reads: the kinds below are the only ones the library
+     * gives a constraint object carrying these at all.
      */
-    if (isTextField(field) || isTextArea(field) || isListField(field) || isBooleanField(field)) {
+    if (isTextField(field) || isTextArea(field) || isListField(field)) {
       fc.valueInfo.defaultValue = field.valueConstraints.defaultValue ?? null;
     }
 
