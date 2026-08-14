@@ -11,10 +11,4 @@
       [sampleTemplateLoaderObject]="sampleTemplateLoaderObject"
     ></app-cedar-embeddable-metadata-editor>
   }
-  @if (!editorDataReady() && showSpinnerBeforeInit) {
-    <div class="spinner-wrapper">
-      <mat-progress-spinner diameter="24" mode="indeterminate"> </mat-progress-spinner>
-      <h1>{{ 'Process.Initializing' | translate }}</h1>
-    </div>
-  }
 </div>

@@ -153,9 +153,6 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
       return;
     }
     this.handlerContext.setCurrentIndex(this.component, chipIdx);
-    if (this.handlerContext.hideEmptyFields) {
-      this.activeComponentRegistry.setVisibility(this.component, this.handlerContext);
-    }
     this.recomputeNumbers();
     setTimeout(() => {
       this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);

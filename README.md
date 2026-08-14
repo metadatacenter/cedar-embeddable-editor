@@ -280,15 +280,13 @@ What the user sees:
 | `showHeader` | `false` |
 | `showFooter` | `false` |
 | `showTemplateDescription` | `false` |
-| `showSpinnerBeforeInit` | `true` |
 
 Editing behaviour and serialization:
 
 | Key | Default |
 |---|---|
 | `readOnlyMode` | `false` |
-| `hideEmptyFields` | `false` |
-| `trustTemplateMarkup` | `false` |
+| `trustTemplateRichText` | `false` |
 | `inputSerialization` | `json` |
 | `outputSerialization` | `json` |
 
@@ -330,7 +328,7 @@ Setting both has CEE fetch `<prefix><name>/template.json` and
 `<prefix><name>/metadata.json` itself, which serves demonstrations rather than
 production.
 
-`trustTemplateMarkup` decides whether a template author's rich text renders verbatim
+`trustTemplateRichText` decides whether a template author's rich text renders verbatim
 or is sanitized first. It defaults to `false` and should stay there unless your
 application controls which templates load — see [Embedding security](#embedding-security).
 
@@ -389,7 +387,6 @@ go to the console and to any `eventHandler` you registered:
 ```
 CEE ERROR: Unknown configuration key "readOnlyMod". It has no effect. Did you mean "readOnlyMode"?
 CEE ERROR: Configuration key "outputSerialization" expects "json" or "yaml", but was "xml".
-CEE ERROR: Configuration key "hideEmptyFields" only takes effect in read-only mode, which is not enabled.
 ```
 
 Reporting only: a key CEE cannot use is ignored, exactly as before. The change is
@@ -433,7 +430,7 @@ as written:
 
 ```json
 {
-  "trustTemplateMarkup": true
+  "trustTemplateRichText": true
 }
 ```
 
@@ -450,10 +447,9 @@ CEE will render the formatting without the risk.
 
 | Content | Origin | Treatment |
 |---|---|---|
-| Static rich-text field body | Template author | Sanitized, unless `trustTemplateMarkup` is on |
+| Static rich-text field body | Template author | Sanitized, unless `trustTemplateRichText` is on |
 | Static section break, image, YouTube | Template author | Not rendered as HTML; content is used as text or a URL |
 | Field values, in the form and in read-only view | Instance data | Always sanitized. Not configurable |
-| Multi-instance value summaries | Instance data | Always sanitized. Not configurable |
 
 ## Metadata API
 

@@ -27,7 +27,7 @@ import { sanitizeTemplateMarkup } from '../util/template-markup-policy';
  * corpus's 271 static content blocks carry one, so using it would silently flatten
  * the colours, sizes and margins the field exists to show. Verbatim rendering is
  * still available, but only to a host that asks for it by name, through the
- * `trustTemplateMarkup` configuration key.
+ * `trustTemplateRichText` configuration key.
  *
  * Covered from both sides in the visual suite: `template rich text` asserts that a
  * malicious template cannot execute under the default and that supported formatting
@@ -46,7 +46,7 @@ export class TrustHtmlPipe implements PipeTransform {
   ) {}
 
   transform(content: string): SafeHtml {
-    if (this.templateTrust.trustTemplateMarkup) {
+    if (this.templateTrust.trustTemplateRichText) {
       return this.sanitizer.bypassSecurityTrustHtml(content);
     }
     /*

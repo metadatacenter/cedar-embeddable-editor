@@ -1440,62 +1440,6 @@ test('a selected controlled term reads like a selected authority term', async ({
   expect(shown, 'the IRI must not be wrapped in parentheses').not.toContain('(');
 });
 
-/**
- * `hideEmptyFields`, which until now did nothing at all.
- *
- * Both artifact setters cleared the flag, and on the one pass an artifact gets the
- * clear ran after the configuration set it — so the key was live only on the
- * combined input, whose setter did not clear. The clear is gone, and this is the
- * behavioural coverage the key never had: the only test of it watched the flag being
- * set on a wrapper with no child editor and no template, which is why nothing caught
- * that the flag never reached a rendered form.
- *
- * The instance fills `organism` and leaves `contributor` empty, so a viewer that
- * honours the key shows one and drops the other.
- */
-test.describe('hiding fields the instance never filled', () => {
-  test('drops an empty field on the combined input', async ({ page }) => {
-    await open(
-      page,
-      '04-controlled-terms',
-      'readonly',
-      '04-controlled-terms-instance',
-      'combined',
-      '&f=hideEmptyFields',
-    );
-
-    await expect(page.locator('input[aria-label="organism"]')).toBeVisible();
-    await expect(page.locator('input[aria-label="contributor"]')).toHaveCount(0);
-  });
-
-  /**
-   * The separate inputs do not honour the key, which is a build-ordering limit
-   * rather than the cleared flag: the form is built when the template arrives, and
-   * on that route the instance has not been read yet, so nothing knows which fields
-   * are empty. Asserted so the limit is recorded rather than rediscovered.
-   */
-  test('does not drop it on the separate inputs', async ({ page }) => {
-    await open(
-      page,
-      '04-controlled-terms',
-      'readonly',
-      '04-controlled-terms-instance',
-      'separate',
-      '&f=hideEmptyFields',
-    );
-
-    await expect(page.locator('input[aria-label="organism"]')).toBeVisible();
-    await expect(page.locator('input[aria-label="contributor"]')).toBeVisible();
-  });
-
-  test('keeps both fields when the key is off', async ({ page }) => {
-    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance', 'combined');
-
-    await expect(page.locator('input[aria-label="organism"]')).toBeVisible();
-    await expect(page.locator('input[aria-label="contributor"]')).toBeVisible();
-  });
-});
-
 test.describe('external authority fields', () => {
   test('typing does not raise an error', async ({ page }) => {
     await open(page, '04-controlled-terms');
@@ -2460,7 +2404,7 @@ test.describe('template rich text', () => {
   });
 
   /**
-   * `trustTemplateMarkup` renders the author's markup as written.
+   * `trustTemplateRichText` renders the author's markup as written.
    *
    * Asserted through an attribute the policy would have removed rather than by
    * letting a handler fire: the proof needed is that the key reaches the pipe, and
@@ -2468,10 +2412,10 @@ test.describe('template rich text', () => {
    * flakier way to learn the same thing.
    */
   test('renders verbatim when the host asks for it by name', async ({ page }) => {
-    await open(page, '19-template-markup', undefined, undefined, undefined, '&f=trustTemplateMarkup');
+    await open(page, '19-template-markup', undefined, undefined, undefined, '&f=trustTemplateRichText');
 
     const html = await shadowHtml(page);
-    expect(html, 'trustTemplateMarkup did not reach the rich-text pipe').toContain('ng-click');
+    expect(html, 'trustTemplateRichText did not reach the rich-text pipe').toContain('ng-click');
     expect(html, 'trusted markup should be verbatim').toContain('<iframe');
   });
 });
@@ -3580,9 +3524,7 @@ test.describe('date calendar selection', () => {
  * whether the input is actually wired to it.
  *
  * No trigger is needed: CEE traces its config and its language-map choice on every load,
- * which is a real message from a real path rather than something contrived. The first
- * version of this test reached for a `hideEmptyFields` warning that turned out not to
- * fire from a config flag — the handler had been receiving four traces all along.
+ * which is a real message from a real path rather than something contrived.
  */
 test.describe('the host event handler', () => {
   test('receives CEE diagnostics through the web component input', async ({ page }) => {

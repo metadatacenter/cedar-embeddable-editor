@@ -58,7 +58,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   static TEMPLATE_LOCATION_PREFIX = 'sampleTemplateLocationPrefix';
   static LOAD_SAMPLE_TEMPLATE_NAME = 'loadSampleTemplateName';
   static TERMINOLOGY_INTEGRATED_SEARCH_URL = 'terminologyIntegratedSearchUrl';
-  static SHOW_SPINNER_BEFORE_INIT = 'showSpinnerBeforeInit';
 
   static FALLBACK_LANGUAGE = 'fallbackLanguage';
   static DEFAULT_LANGUAGE = 'defaultLanguage';
@@ -66,17 +65,16 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   static SHOW_TEMPLATE_DESCRIPTION: string = 'showTemplateDescription';
 
   /**
-   * Whether the host vouches for its template's markup.
+   * Whether the host vouches for its template's rich text.
    *
    * A static rich-text field's body renders as HTML in the host's own origin. CEE
    * sanitizes it unless this says otherwise, so an embedder that loads templates
    * chosen by its own users is safe without having to know that. See the embedding
    * security section of the README.
    */
-  static TRUST_TEMPLATE_MARKUP: string = 'trustTemplateMarkup';
+  static TRUST_TEMPLATE_RICH_TEXT: string = 'trustTemplateRichText';
 
   static READ_ONLY_MODE: string = 'readOnlyMode';
-  static HIDE_EMPTY_FIELDS: string = 'hideEmptyFields';
 
   private static IRI_PREFIX = 'iriPrefix';
   // Input and output serialization are configured independently: a host can hand
@@ -306,11 +304,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         );
       }
 
-      this.templateTrustService.setTrustTemplateMarkup(
+      this.templateTrustService.setTrustTemplateRichText(
         configFlag(
           value,
-          CedarEmbeddableMetadataEditorComponent.TRUST_TEMPLATE_MARKUP,
-          this.templateTrustService.trustTemplateMarkup,
+          CedarEmbeddableMetadataEditorComponent.TRUST_TEMPLATE_RICH_TEXT,
+          this.templateTrustService.trustTemplateRichText,
         ),
       );
 
@@ -334,14 +332,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    * Both artifact setters run before the contexts are guaranteed, because a host is
    * free to set `templateJsonObject` before `handlerContextObject`. The early return
    * says that once instead of at each of the six reads below it.
-   *
-   * Neither setter clears `hideEmptyFields` any more. Both used to, on the reasoning
-   * that a new artifact invalidates a hiding decision made against the old one — but
-   * an artifact now arrives once, and on that single pass the clear fired *after* the
-   * configuration set the flag, so `hideEmptyFields: true` never survived startup.
-   * Nothing caught it: the only test of the flag exercises the wrapper alone, with no
-   * child editor and no template, so it watched the flag being set and never saw
-   * either setter run. With configuration immutable the clear would be unrecoverable.
    */
   @Input() set templateJsonObject(value: object | null) {
     const { dataContext, handlerContext } = this;

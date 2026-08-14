@@ -85,7 +85,7 @@ change.
 | `test/cardinality.spec.ts` | minItems, required values, two-level multi nesting |
 | `test/value-constraints.spec.ts` | Text/numeric/temporal constraints, choice literals, defaults |
 | `test/edge-cases.spec.ts` | Page breaks, static collapse, hidden fields, multi-instance, reload |
-| `test/read-only.spec.ts` | Read-only mode, `hideEmptyFields`, element visibility |
+| `test/read-only.spec.ts` | Read-only mode |
 | `test/corpus.spec.ts` | 37 corpus + 57 HuBMAP production templates, with tree snapshots |
 
 ## Dimensions covered
@@ -101,7 +101,7 @@ change.
 | Choice literals | list (single + multiple), radio, checkbox; `selectedByDefault` and its instance pre-seeding |
 | Instance lifecycle | build → write → save → reload, across the controlled-term matrix |
 | Static content | image, youtube, richtext, section break, page break; collapsing on/off |
-| Operating modes | edit vs read-only; `hideEmptyFields` over fields, elements and nesting |
+| Operating modes | edit vs read-only |
 
 Constraint frequencies were taken from the HuBMAP corpus shipped with
 `cedar-artifact-library` (`src/test/resources/templates-yaml/`) so the emphasis
@@ -133,8 +133,6 @@ it go red. Every fix below was mutation-tested, and the mutations were reverted.
 | `computeValidity`: `<=` → `<` | 1 |
 | `multiInstanceItemAdd`: second write targets the extract tree, not the full tree | 1 |
 | `extractPlainValue`: drop `EXTERNAL_AUTHORITY_INPUT_TYPES`, compare to `link` only | 14 |
-| `hasNonEmptyChild`: invert to last-child-wins | 5 |
-| `hasNonEmptyChild`: always report non-empty | 3 |
 | `findAnyValue`: revert to cursor-based satisfaction | 7 |
 | `findAnyValue`: null guard returns a value | 1 |
 | `configFlag`/`configText`: `Object.hasOwn` → a truthiness test | 2 |
@@ -227,6 +225,11 @@ early exit on `true`, which makes it strictly monotonic toward visible — it
 cannot hide anything that previously rendered. Regression tests cover both
 orderings, a populated sibling between two empty ones, and the case that guards
 the other direction: an all-empty subtree must still be hidden.
+
+`hasNonEmptyChild` and the empty-field hiding it served have since been removed
+with the `hideEmptyFields` config key, so this entry is a record of the defect
+rather than a description of code that still runs. Its regression tests went with
+it.
 
 Related, and worth knowing rather than fixing: writing to an IRI-valued field
 leaves `rdfs:label: undefined` on the node. `JSON.stringify` drops

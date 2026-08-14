@@ -42,7 +42,6 @@ export class AppDevComponent {
     rorPrefix: 'https://ror.org/',
 
     readOnlyMode: false,
-    hideEmptyFields: false,
 
     extAuthBaseUrl: 'https://bridge.metadatacenter.orgx/ext-auth/',
 

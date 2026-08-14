@@ -112,7 +112,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   instanceJson: InstanceObject | null = null;
   templateAndInstanceJson: object | null = null;
   sampleTemplateLoaderObject: SampleTemplateLoaderOwner | null = null;
-  showSpinnerBeforeInit = true;
   protected onDestroySubject = new Subject<void>();
   private loadedTemplateJson: InstanceObject | null = null;
   private loadedMetadata: InstanceObject | null = null;
@@ -411,13 +410,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       );
       this.controlledFieldDataService.setTerminologyIntegratedSearchUrl(integratedSearchUrl);
     }
-    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT)) {
-      this.showSpinnerBeforeInit = configFlag(
-        config,
-        CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT,
-        this.showSpinnerBeforeInit,
-      );
-    }
     if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX)) {
       const languageMapPathPrefix = configText(
         config,
@@ -454,13 +446,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       const mode = configFlag(config, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE, false);
       if (mode) {
         this.handlerContext.enableReadOnlyMode();
-      }
-    }
-    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS)) {
-      // Hiding empty fields is only allowed in ReadOnly Mode
-      const hideEmptyFields = configFlag(config, CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS, false);
-      if (this.handlerContext.readOnlyMode && hideEmptyFields) {
-        this.handlerContext.enableEmptyFieldHiding();
       }
     }
     this.translateService.setDefaultLang(this.fallbackLanguage);

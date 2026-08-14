@@ -32,7 +32,6 @@ export class HandlerContext {
   // readonly rdfService: RdfBuilderService = null;
 
   readOnlyMode: boolean = false;
-  hideEmptyFields: boolean = false;
 
   public constructor(
     dataContext: DataContext,
@@ -332,8 +331,5 @@ export class HandlerContext {
   }
   enableReadOnlyMode() {
     this.readOnlyMode = true;
-  }
-  enableEmptyFieldHiding() {
-    this.hideEmptyFields = true;
   }
 }

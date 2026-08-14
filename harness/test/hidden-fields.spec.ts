@@ -87,43 +87,6 @@ describe('a hidden field is still not rendered', () => {
     const driver = new CeeDriver(withHidden());
     expect(driver.findOrThrow(['_shown']).hidden).toBeFalsy();
   });
-
-  /**
-   * `hideEmptyFields` writes the same flag, for a different reason. A field the
-   * template hides must stay hidden when it happens to hold a value, and a
-   * field hidden only because it is empty must reappear when it is filled —
-   * so the two reasons cannot share one boolean without the display mode
-   * unhiding what the template concealed.
-   */
-  it('stays hidden in read-only mode even when it holds a value', () => {
-    const template = withHidden();
-    const seed = new CeeDriver(template);
-    seed.setValue(['_concealed'], TEXT, 'a value nobody should see');
-
-    const driver = new CeeDriver(template, {
-      instance: seed.metadata,
-      readOnlyMode: true,
-      hideEmptyFields: true,
-    });
-    driver.registryForVisibility();
-
-    expect(driver.findOrThrow(['_concealed']).hidden).toBe(true);
-  });
-
-  it('a shown field holding a value is visible under hideEmptyFields', () => {
-    const template = withHidden();
-    const seed = new CeeDriver(template);
-    seed.setValue(['_shown'], TEXT, 'visible');
-
-    const driver = new CeeDriver(template, {
-      instance: seed.metadata,
-      readOnlyMode: true,
-      hideEmptyFields: true,
-    });
-    driver.registryForVisibility();
-
-    expect(driver.findOrThrow(['_shown']).hidden).toBe(false);
-  });
 });
 
 describe('a required hidden field', () => {

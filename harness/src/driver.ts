@@ -59,7 +59,6 @@ export class RecordingMessageHandler extends MessageHandlerService {
 
 export interface DriverOptions {
   readOnlyMode?: boolean;
-  hideEmptyFields?: boolean;
   /** Pre-load an existing instance, as the host page's `instanceObject` would. */
   /**
    * An instance a host page hands over: a document, not a node of CEE's tree.
@@ -89,9 +88,6 @@ export class CeeDriver {
 
     if (opts.readOnlyMode) this.handlerContext.enableReadOnlyMode();
     // Mirrors the wrapper: empty-field hiding is only honoured in read-only mode.
-    if (opts.hideEmptyFields && this.handlerContext.readOnlyMode) {
-      this.handlerContext.enableEmptyFieldHiding();
-    }
 
     // The paginator only touches ActiveComponentRegistryService inside
     // setPageNumberAndGet(), which schedules a setTimeout to push model values
@@ -220,17 +216,6 @@ export class CeeDriver {
     return JSON.parse(JSON.stringify(this.dataContext.dataQualityReport));
   }
 
-  /**
-   * Run the empty-field visibility pass, as `hideEmptyFields` does on screen.
-   *
-   * `ActiveComponentRegistryService.setVisibility` is what decides which
-   * components a read-only viewer draws. It needs no registered widgets — it
-   * reads the instance and writes `hidden` on the components — so the harness
-   * can ask for it directly.
-   */
-  registryForVisibility(): void {
-    new ActiveComponentRegistryService().setVisibility(this.representation, this.handlerContext);
-  }
 
   /** Locate a component by its template path, e.g. `['_element', '_field']`. */
   find(path: string[]): any {

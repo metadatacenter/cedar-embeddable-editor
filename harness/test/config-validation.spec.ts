@@ -29,7 +29,6 @@ describe('a configuration CEE can use', () => {
     expect(
       problemsFor({
         readOnlyMode: true,
-        hideEmptyFields: true,
         outputSerialization: 'yaml',
         inputSerialization: 'json',
         extAuthBaseUrl: 'https://bridge.metadatacenter.org/ext-auth/',
@@ -102,14 +101,6 @@ describe('settings that are each valid and wrong together', () => {
    * Both of these are how CEE already behaves. They were discoverable only by
    * setting something and watching nothing happen.
    */
-  it('reports hiding empty fields without read-only mode', () => {
-    expect(oneProblem({ hideEmptyFields: true })).toContain('only takes effect in read-only mode');
-  });
-
-  it('accepts the pair when read-only is on', () => {
-    expect(problemsFor({ hideEmptyFields: true, readOnlyMode: true })).toEqual([]);
-  });
-
   it('reports an authority base URL with no trailing slash', () => {
     expect(oneProblem({ extAuthBaseUrl: 'https://bridge.metadatacenter.org/ext-auth' })).toContain(
       'must end in a slash',

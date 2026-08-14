@@ -42,41 +42,6 @@ export class ActiveComponentRegistryService {
     return this.modelToMultiPagerUI.get(component) ?? null;
   }
 
-  setVisibility(component: CedarComponent, handlerContext: HandlerContext): void {
-    const fieldComponents = this.getFieldComponents(component);
-    for (const fieldComponent of fieldComponents) {
-      const dataObject = handlerContext.getDataObjectNodeByPath(fieldComponent.path);
-      if (dataObject == null) {
-        continue;
-      }
-      // A field the template hid stays hidden whatever it holds. This pass
-      // writes the same flag for a different reason — the field is empty and
-      // the viewer is configured not to show empty fields — and without the
-      // guard a template-hidden field carrying a value would be revealed by it.
-      if (fieldComponent.hiddenInTemplate) {
-        fieldComponent.hidden = true;
-      } else if (InstanceValueNode.isLiteral(dataObject)) {
-        const value = InstanceValueNode.literal(dataObject);
-        fieldComponent.hidden = value === '' || value === null;
-      } else if (InstanceValueNode.isIriBearing(dataObject)) {
-        // CHARACTERISED, NOT INTENDED. The original asked
-        // `value != '' || value != null`, which is true of every value there
-        // is — nothing equals both — so an IRI-valued field was never hidden
-        // however empty it was, and the `else` that would have hidden it was
-        // unreachable. Kept because it loses no data, only leaves a blank row
-        // in the read-only viewer, and because "links always show" is a
-        // defensible thing to have decided on purpose.
-        //
-        // Nothing tests the empty half any more, because there is no longer an
-        // empty node that reaches here: an IRI-valued field holding nothing is
-        // written `{}`, which is not IRI-bearing, and the model library refuses
-        // to build the `{"@id": ""}` the old cases passed. What is left is a
-        // branch that only ever sees a filled node.
-        fieldComponent.hidden = false;
-      }
-    }
-  }
-
   /**
    * What an IRI-valued node should look like to the widget showing it.
    *
@@ -111,17 +76,6 @@ export class ActiveComponentRegistryService {
     return label;
   }
 
-  getFieldComponents(component: CedarComponent): SingleFieldComponent[] {
-    const fieldComponents = [] as SingleFieldComponent[];
-    if (component instanceof MultiElementComponent) {
-      for (const child of component.children) {
-        if (child instanceof SingleFieldComponent) {
-          fieldComponents.push(child);
-        }
-      }
-    }
-    return fieldComponents;
-  }
   updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
     if (component instanceof SingleFieldComponent) {
       const dataObject: InstanceNode | null = handlerContext.getDataObjectNodeByPath(component.path);

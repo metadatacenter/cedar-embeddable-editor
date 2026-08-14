@@ -45,9 +45,6 @@
     "DecrementSecond": "Másodperc csökkentése",
     "ToggleMeridian": "Váltás AM és PM között"
   },
-  "Process": {
-    "Initializing": "A CEDAR Beágyazható Szerkesztő inicializálása..."
-  },
   "Multi": {
     "NoInstancesYet": "Még nincsenek példányok",
     "AddEmptyAfter": "Üres hozzáadása az aktuális után",

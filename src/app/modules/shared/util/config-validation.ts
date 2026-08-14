@@ -30,11 +30,9 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
   showHeader: 'boolean',
   showFooter: 'boolean',
   showTemplateDescription: 'boolean',
-  showSpinnerBeforeInit: 'boolean',
 
   readOnlyMode: 'boolean',
-  hideEmptyFields: 'boolean',
-  trustTemplateMarkup: 'boolean',
+  trustTemplateRichText: 'boolean',
 
   showTemplateRenderingRepresentation: 'boolean',
   showMultiInstanceInfo: 'boolean',
@@ -169,15 +167,10 @@ export const validateCeeConfig = (config: unknown): string[] => {
 /**
  * Settings that are individually valid and wrong together.
  *
- * Both of these are already true of CEE and were discoverable only by watching
- * nothing happen.
+ * Already true of CEE, and discoverable only by watching nothing happen.
  */
 const combinationProblems = (config: Record<string, unknown>): string[] => {
   const problems: string[] = [];
-
-  if (config['hideEmptyFields'] === true && config['readOnlyMode'] !== true) {
-    problems.push('Configuration key "hideEmptyFields" only takes effect in read-only mode, which is not enabled.');
-  }
 
   // The reader appends an authority path to this, so a base without a trailing
   // slash silently produces `…/ext-authorcid/search-by-name`.

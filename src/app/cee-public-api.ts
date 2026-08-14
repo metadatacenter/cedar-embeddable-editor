@@ -49,7 +49,6 @@ export interface CeeConfig {
   showHeader?: boolean;
   showFooter?: boolean;
   showTemplateDescription?: boolean;
-  showSpinnerBeforeInit?: boolean;
 
   /**
    * Renders the form without editing controls.
@@ -59,17 +58,15 @@ export interface CeeConfig {
    * viewer could be made editable from inside it.
    */
   readOnlyMode?: boolean;
-  /** Honoured only in read-only mode, where an empty field is noise. */
-  hideEmptyFields?: boolean;
 
   /**
-   * Whether a template author's rich-text markup renders verbatim.
+   * Whether a template author's rich text renders verbatim.
    *
    * Defaults to false, which sanitizes. Set true only if template authors are as
    * trusted as your own application code — see the README's embedding-security
    * section.
    */
-  trustTemplateMarkup?: boolean;
+  trustTemplateRichText?: boolean;
 
   showTemplateRenderingRepresentation?: boolean;
   showMultiInstanceInfo?: boolean;

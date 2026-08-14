@@ -11,7 +11,6 @@ import { MessageHandlerService } from '../../service/message-handler.service';
 import { HandlerContext } from '../../util/handler-context';
 import { DataContext } from '../../util/data-context';
 import { UserPreferencesService } from '../../service/user-preferences.service';
-import { InstanceDataContainer } from 'cedar-model-typescript-library';
 
 /**
  * The `config` object is the CEE's host-facing API, and its setter is the one
@@ -254,7 +253,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
         new TemplateTrustService(),
         new UserPreferencesService(),
       );
-      component.handlerContext = { hideEmptyFields: false } as unknown as HandlerContext;
+      component.handlerContext = {} as unknown as HandlerContext;
       component.dataContext = { setInputTemplate, instanceFullData: {} } as unknown as DataContext;
       return { component, clear, setInputTemplate };
     };
@@ -287,62 +286,6 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
 
       expect(clear).toHaveBeenCalledTimes(1);
     });
-  });
-});
-
-/**
- * REGRESSION: `hideEmptyFields: true` never survived startup.
- *
- * Both artifact setters cleared the flag, on the reasoning that a new artifact
- * invalidates a hiding decision made against the old one. But an artifact arrives
- * once, and on that single pass the clear ran *after* the configuration set the
- * flag — the wrapper applies configuration before the child editor exists, and the
- * child's template setter then cleared it. So the one config key that depends on
- * read-only mode did nothing at all.
- *
- * Nothing caught it because the only test of the flag exercised the wrapper alone,
- * with no child editor and no template: it watched the flag being set and never saw
- * either setter run. With configuration now immutable the clear would have been
- * unrecoverable, where before a host could at least reassign.
- */
-describe('CedarEmbeddableMetadataEditorComponent artifact setters and hideEmptyFields', () => {
-  const make = (): { component: CedarEmbeddableMetadataEditorComponent; handlerContext: HandlerContext } => {
-    const component = new CedarEmbeddableMetadataEditorComponent(
-      { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
-      { setEndpoints: (): void => undefined } as unknown as ExternalAuthorityLookupService,
-      { trace: (): void => undefined } as unknown as MessageHandlerService,
-      new IriPrefix(),
-      new TemplateTrustService(),
-      new UserPreferencesService(),
-    );
-    const handlerContext = { hideEmptyFields: true, readOnlyMode: true } as unknown as HandlerContext;
-    component.handlerContext = handlerContext;
-    component.dataContext = {
-      setInputTemplate: vi.fn(),
-      instanceFullData: null,
-    } as unknown as DataContext;
-    // The setters defer instance initialization; keep it inert in a unit test.
-    vi.spyOn(
-      component as unknown as { initDataFromInstance: () => Promise<void> },
-      'initDataFromInstance',
-    ).mockReturnValue(Promise.resolve());
-    return { component, handlerContext };
-  };
-
-  it('leaves hideEmptyFields alone when a template arrives', () => {
-    const { component, handlerContext } = make();
-
-    component.templateJsonObject = { title: 'a template' };
-
-    expect(handlerContext.hideEmptyFields).toBe(true);
-  });
-
-  it('leaves hideEmptyFields alone when an instance arrives', () => {
-    const { component, handlerContext } = make();
-
-    component.instanceJsonObject = new InstanceDataContainer();
-
-    expect(handlerContext.hideEmptyFields).toBe(true);
   });
 });
 

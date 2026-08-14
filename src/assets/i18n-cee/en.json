@@ -45,9 +45,6 @@
     "DecrementSecond": "Decrement second",
     "ToggleMeridian": "Switch between AM and PM"
   },
-  "Process": {
-    "Initializing": "CEDAR Embeddable Editor initializing..."
-  },
   "Multi": {
     "NoInstancesYet": "No instances yet",
     "AddEmptyAfter": "Add empty after current",

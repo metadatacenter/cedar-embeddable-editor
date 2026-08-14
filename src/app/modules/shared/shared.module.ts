@@ -16,7 +16,6 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatGridListModule } from '@angular/material/grid-list';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
@@ -51,7 +50,6 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     MatPaginatorModule,
     MatChipsModule,
     MatGridListModule,
-    MatProgressSpinnerModule,
     MatListModule,
     MatSelectModule,
     NgxMatSelectSearchModule,

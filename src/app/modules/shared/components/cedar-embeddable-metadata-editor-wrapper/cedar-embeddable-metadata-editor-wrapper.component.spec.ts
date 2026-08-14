@@ -150,12 +150,10 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       sampleTemplateLocationPrefix: '/samples/',
       loadSampleTemplateName: 'example',
       terminologyIntegratedSearchUrl: '/terminology/search',
-      showSpinnerBeforeInit: false,
       languageMapPathPrefix: '/languages/',
       fallbackLanguage: 'fr',
       defaultLanguage: 'hu',
       readOnlyMode: true,
-      hideEmptyFields: true,
     };
     const before = make();
     const after = make();
@@ -168,12 +166,10 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     for (const candidate of [before, after]) {
       expectCalledOnceWith(candidate.mocks.loadTemplate, '/samples/', 'example');
       expectCalledOnceWith(candidate.mocks.setTerminologyIntegratedSearchUrl, '/terminology/search');
-      expect(candidate.component.showSpinnerBeforeInit).toBe(false);
       expect(candidate.mocks.globalSettings.languageMapPathPrefix).toBe('/languages/');
       expectCalledOnceWith(candidate.mocks.setDefaultLang, 'fr');
       expectCalledOnceWith(candidate.mocks.use, 'hu');
       expect(candidate.component.handlerContext.readOnlyMode).toBe(true);
-      expect(candidate.component.handlerContext.hideEmptyFields).toBe(true);
     }
   });
 });
