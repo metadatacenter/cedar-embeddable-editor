@@ -78,8 +78,6 @@
 
             const configFor = (owner) => {
               const config = {
-                showHeader: false,
-                showFooter: false,
                 // Second read-only and first not, so the per-instance read-only state is
                 // observable: the service carrying it is provided on the element rather
                 // than shared, and this is what proves it. Second rather than first,
@@ -113,12 +111,10 @@
              * `?host=lang` drives translation through `languageMapPathPrefix`.
              *
              * `?prefix=` chooses what the loader finds: a served directory holding
-             * `en.json`, or an unroutable one. The footer is on because that is where
-             * the translated string under test is rendered.
+             * `en.json`, or an unroutable one. The string under test is the form's own
+             * Expand All label, which renders on every template.
              */
             el.config = {
-              showHeader: false,
-              showFooter: true,
               defaultLanguage: 'en',
               fallbackLanguage: 'en',
               languageMapPathPrefix: params.get('prefix') || './served/languages/',
@@ -161,15 +157,11 @@
         /**
          * Config presets, selected with ?c=<name>.
          *
-         * `base` strips the surrounding chrome so a diff reflects the form
-         * itself. That is the right default, but it also means the header and
-         * footer — and with them mat-toolbar — render in no baseline at all. The
-         * `chrome` preset exists to cover them rather than leave that silently
-         * untested.
+         * `base` is the form and nothing else. CEE draws no page chrome of its own
+         * any more — a header and a footer belong to the host — so there is no
+         * surrounding furniture for a preset to switch on.
          */
         const base = {
-          showHeader: false,
-          showFooter: false,
           defaultLanguage: 'en',
           fallbackLanguage: 'en',
           // Deliberately unreachable: the visual baseline must never depend on
@@ -200,7 +192,6 @@
 
         const PRESETS = {
           base,
-          chrome: { ...base, showHeader: true, showFooter: true },
           readonly: { ...base, readOnlyMode: true },
           authority: { ...base, ...AUTHORITY_ENDPOINTS },
         };

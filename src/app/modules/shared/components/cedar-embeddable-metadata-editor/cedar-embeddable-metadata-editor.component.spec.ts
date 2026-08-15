@@ -51,7 +51,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
 
   // For every boolean display flag the config key and the field it sets share a
   // name, so one list drives both sides of the assertion.
-  const BOOLEAN_FLAGS = ['showDownloadMenu', 'showHeader', 'showFooter', 'showTemplateDescription', 'readOnlyMode'];
+  const BOOLEAN_FLAGS = ['showDownloadMenu', 'showTemplateDescription', 'readOnlyMode'];
 
   describe('every boolean flag maps its config key to its field', () => {
     BOOLEAN_FLAGS.forEach((flag) => {
@@ -149,12 +149,12 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
   describe('config keys do not interfere with one another', () => {
     it('setting one key leaves the other fields untouched', () => {
       const component = make();
-      const untouchedFlag = component.showFooter;
+      const untouchedFlag = component.showTemplateDescription;
 
-      component.config = { showHeader: true };
+      component.config = { showDownloadMenu: true };
 
-      expect(component.showHeader).toBe(true);
-      expect(component.showFooter).toBe(untouchedFlag);
+      expect(component.showDownloadMenu).toBe(true);
+      expect(component.showTemplateDescription).toBe(untouchedFlag);
     });
 
     it('an empty config changes nothing', () => {

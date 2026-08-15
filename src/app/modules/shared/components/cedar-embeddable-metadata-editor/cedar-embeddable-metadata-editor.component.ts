@@ -31,9 +31,6 @@ import { CeeConfig, configFlag, configText } from '../../util/config-reader';
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   private static INNER_VERSION = '2026-08-12 17:12';
 
-  private static SHOW_HEADER = 'showHeader';
-  private static SHOW_FOOTER = 'showFooter';
-
   /**
    * Whether the download menu exists.
    *
@@ -74,8 +71,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   pageBreakPaginatorService: PageBreakPaginatorService | null = null;
 
-  showHeader = false;
-  showFooter = false;
   showDownloadMenu = false;
 
   showTemplateDescription: boolean = false;
@@ -140,8 +135,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   @Input() set config(value: CeeConfig | null) {
     if (value != null) {
-      this.showFooter = configFlag(value, CedarEmbeddableMetadataEditorComponent.SHOW_FOOTER, this.showFooter);
-      this.showHeader = configFlag(value, CedarEmbeddableMetadataEditorComponent.SHOW_HEADER, this.showHeader);
       this.showDownloadMenu = configFlag(
         value,
         CedarEmbeddableMetadataEditorComponent.SHOW_DOWNLOAD_MENU,

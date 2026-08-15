@@ -27,8 +27,6 @@ type ExpectedType = 'boolean' | 'string';
  * component's own key constants, so the three cannot drift.
  */
 export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
-  showHeader: 'boolean',
-  showFooter: 'boolean',
   showTemplateDescription: 'boolean',
 
   readOnlyMode: 'boolean',

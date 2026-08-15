@@ -1,6 +1,3 @@
-@if (dataAvailableForRender() && showHeader) {
-  <app-static-header></app-static-header>
-}
 @if (dataAvailableForRender() && dataContext && handlerContext && pageBreakPaginatorService) {
   <mat-card appearance="outlined" class="template-card">
     <!--  <mat-card-header>-->
@@ -57,7 +54,4 @@
       }
     </mat-card-content>
   </mat-card>
-}
-@if (dataAvailableForRender() && showFooter) {
-  <app-static-footer></app-static-footer>
 }

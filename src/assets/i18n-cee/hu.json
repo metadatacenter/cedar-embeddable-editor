@@ -1,9 +1,4 @@
 {
-  "App": {
-    "Title": "CEDAR Beágyazható Szerkesztő",
-    "Maintained": "A CEDAR-t a Stanford Számítógépes Medicina Osztály működteti.",
-    "Contact": "Kapcsolat"
-  },
   "Generic": {
     "SAVE": "MENTÉS",
     "Infinite": "Végtelen",

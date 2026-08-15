@@ -20,8 +20,6 @@ export class AppDevComponent implements OnInit {
   artifact: CeeTemplateAndInstance | null = null;
 
   ceeConfig = {
-    showHeader: true,
-    showFooter: true,
     showTemplateDescription: true,
     showDownloadMenu: true,
 

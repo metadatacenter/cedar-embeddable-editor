@@ -1,6 +1,5 @@
 {
-  "showHeader": false,
-  "showFooter": true,
+  "showDownloadMenu": true,
   "defaultLanguage": "en",
   "fallbackLanguage": "en"
 }

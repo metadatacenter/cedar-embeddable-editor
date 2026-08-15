@@ -43,8 +43,6 @@ export type CeeConfigKey = Exclude<keyof CeeConfig, number | symbol>;
  * configuration is applied once and never merged with a previous assignment.
  */
 export interface CeeConfig {
-  showHeader?: boolean;
-  showFooter?: boolean;
   showTemplateDescription?: boolean;
 
   /**

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **BREAKING.** `showHeader` and `showFooter`, and the header and footer they gated. CEE drew
+  a `mat-toolbar` carrying the CEDAR logo and the title "CEDAR Embeddable Editor", and a footer
+  carrying the Stanford Division of Computational Medicine mark, the maintainer line and a
+  contact link. Every string and every destination was hardcoded, so an embedder could take
+  CEDAR's identity or nothing, and the key names said "header" and "footer" as though a host
+  could put its own there. An embedded component has no business drawing the page around
+  itself: a host renders its own, and the standalone developer app now does exactly that as a
+  worked example. The CEDAR mark and the version stamp stay, inside the form's own title block,
+  which is a component naming itself rather than dressing someone else's page. Gone with them:
+  the `App.Title`, `App.Maintained` and `App.Contact` translations from both language maps, and
+  the visual suite's `chrome` preset and its two baselines. The suite's only rendered surface
+  for an externally served translation was the footer, so that coverage moves onto the form's
+  own Expand All label, which renders on every template behind no key.
+
 ### Changed
 
 - **BREAKING.** The eight diagnostic panels become a download menu, behind one key.

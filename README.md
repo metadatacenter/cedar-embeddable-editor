@@ -278,9 +278,17 @@ What the user sees:
 
 | Key | Default |
 |---|---|
-| `showHeader` | `false` |
-| `showFooter` | `false` |
 | `showTemplateDescription` | `false` |
+
+CEE draws no page chrome of its own. It used to render a header carrying the CEDAR
+logo and title, and a footer carrying the Stanford Division of Computational
+Medicine mark and a contact link, behind `showHeader` and `showFooter`. Every string
+and destination was hardcoded, so an embedder took CEDAR's branding or nothing.
+A host renders its own header and footer around the element; the standalone app in
+`src/app/app.component.dev.html` is a worked example.
+
+What CEE keeps is the CEDAR mark and the version stamp inside the form's own title
+block, which is a component naming itself rather than dressing someone else's page.
 
 Editing behaviour and serialization:
 

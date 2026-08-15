@@ -45,7 +45,7 @@ describe('a key CEE does not know', () => {
 
   it('suggests the key that was probably meant', () => {
     expect(oneProblem({ readOnlyMod: true })).toContain('Did you mean "readOnlyMode"?');
-    expect(oneProblem({ showheader: true })).toContain('Did you mean "showHeader"?');
+    expect(oneProblem({ showdownloadmenu: true })).toContain('Did you mean "showDownloadMenu"?');
   });
 
   it('offers no suggestion when nothing is close', () => {

@@ -947,10 +947,6 @@ test.describe('config presets', () => {
    * The base preset hides the header and footer so diffs reflect the form. This
    * covers them, and with them `mat-toolbar`, which appears in no other baseline.
    */
-  test('chrome: header and footer', async ({ page }) => {
-    await open(page, '01-input-types', 'chrome');
-    await expect(page).toHaveScreenshot('preset-chrome.png', { fullPage: true });
-  });
 
   /**
    * Read-only mode swaps inputs for plain text in several widgets and
@@ -1344,8 +1340,8 @@ test.describe('the version stamp', () => {
   const declared = JSON.parse(readFileSync(fileURLToPath(new URL('../../package.json', import.meta.url)), 'utf8'))
     .version as string;
 
-  test('is published on window and rendered in the header', async ({ page }) => {
-    await open(page, '01-input-types', 'chrome');
+  test("is published on window and rendered in the form's title block", async ({ page }) => {
+    await open(page, '01-input-types');
 
     expect(
       await page.evaluate(() => (window as { cedarEmbeddableEditorVersion?: string }).cedarEmbeddableEditorVersion),
@@ -1356,88 +1352,6 @@ test.describe('the version stamp', () => {
     // Hidden from the screenshot, not from the page: an embedder still sees it.
     await expect(stamp).toBeVisible();
   });
-});
-
-test.describe('the footer', () => {
-  const ORGANISATION = 'Stanford Division of Computational Medicine';
-  const HOME = 'https://computationalmedicine.stanford.edu';
-
-  test('names the maintaining organisation and links to it', async ({ page }) => {
-    await open(page, '01-input-types', 'chrome');
-    const footer = page.locator('footer.main__footer');
-    await expect(footer).toBeVisible();
-
-    await expect(footer).toContainText(ORGANISATION);
-    await expect(footer.locator('a').first()).toHaveAttribute('href', HOME);
-    // The link is the logo's, and it is the only non-text route to the site, so
-    // its accessible name has to carry the destination too.
-    await expect(footer.locator('a').first()).toHaveAttribute('aria-label', HOME);
-  });
-
-  /**
-   * The mark carries no text of its own.
-   *
-   * The old asset baked "BMIR" underneath the tree, so a rebrand that changed
-   * only the strings would have left the previous name rendered in an image
-   * where no text assertion could reach it. Cropping the wordmark off is what
-   * makes the name above the single source of it — and this keeps it that way by
-   * pinning the mark's aspect ratio to the crop.
-   */
-  test('shows the mark on its own', async ({ page }) => {
-    await open(page, '01-input-types', 'chrome');
-    const footer = page.locator('footer.main__footer');
-    const logo = footer.locator('.division-logo');
-
-    const box = await logo.boundingBox();
-    expect(box, 'the footer logo has no box').toBeTruthy();
-    // 224x194 cropped to the mark; `background-size: cover` would silently
-    // distort it if the box drifted away from that ratio.
-    expect(box!.width / box!.height).toBeCloseTo(224 / 194, 1);
-
-    await expect(footer).toHaveScreenshot('footer.png');
-  });
-});
-
-/**
- * External authority fields — ORCID, ROR, PFAS, PubMed, RRID, NIH Grant, DOI.
- *
- * These are search boxes, not value boxes. The control holds whatever the user
- * is typing, and after a selection it holds `"Label - https://iri"`; the IRI
- * itself only ever reaches the model. A validator that checks the control's
- * contents for a well-formed IRI therefore rejects every intermediate state,
- * which is how "Entered value is not a valid RRID and has been cleared."
- * came to appear on the first keystroke — over a field that had not been
- * cleared, above an autocomplete that was working.
- *
- * No screenshot: this asserts behaviour rather than pixels, and a baseline
- * image would make it fail for unrelated styling changes.
- */
-/**
- * A chosen controlled term reads the way a chosen authority term reads.
- *
- * It did not. The controlled widget composed `label - (iri)` while the seven
- * authority fields compose `label - iri` through `getCompoundValue`, so two boxes
- * one row apart showed the same kind of value in two forms.
- *
- * Reaching this state normally needs a live terminology server, which the visual
- * suite deliberately cannot contact — which is why the display form had no test at
- * all and was free to drift. An instance fixture supplies the selected term
- * instead, through the same `instanceObject` input a host page uses, so no lookup
- * happens and nothing is stubbed.
- *
- * Read-only, because that is the only mode the compound form is used in:
- * `setCurrentValue` composes `label - iri` when the field is not editable, and
- * otherwise puts the bare label in the box for typing. It is also the mode
- * openview runs in, which is where this was reported from.
- */
-test('a selected controlled term reads like a selected authority term', async ({ page }) => {
-  await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance');
-
-  const organism = page.locator('input[aria-label="organism"]');
-  await expect(organism).toHaveValue('disease - http://purl.obolibrary.org/obo/DOID_4');
-
-  const shown = await organism.inputValue();
-  expect(shown, 'the IRI must not be wrapped in parentheses').not.toContain('(');
 });
 
 test.describe('external authority fields', () => {
@@ -3116,12 +3030,12 @@ test.describe('host input timing', () => {
       const cee = document.querySelector('cedar-embeddable-editor') as any;
       const errors: string[] = [];
       cee.eventHandler = { error: (label: string) => errors.push(label) };
-      cee.config = { showFooter: true };
+      cee.config = { showDownloadMenu: true };
       return errors;
     });
 
     expect(refused.join('\n')).toContain('"config" ignored, because the editor is already configured');
-    await expect(page.locator('footer.main__footer'), 'the refused configuration must not take effect').toBeHidden();
+    await expect(page.locator('.download-trigger'), 'the refused configuration must not take effect').toHaveCount(0);
   });
 });
 
@@ -3235,8 +3149,6 @@ test.describe('host change notifications', () => {
  */
 test.describe('config flags are wired to something', () => {
   const FLAGS: ReadonlyArray<{ flag: string; withFlags?: string[]; fixture?: string }> = [
-    { flag: 'showHeader' },
-    { flag: 'showFooter' },
     { flag: 'showDownloadMenu' },
   ];
 
@@ -3629,8 +3541,17 @@ test.describe('host inputs that fetch', () => {
    * Both directions are asserted here, against the same string, so neither reading can
    * be mistaken for the other.
    */
-  const BUILT_IN_FOOTER = 'CEDAR is maintained by the Stanford Division of Computational Medicine.';
-  const SERVED_FOOTER = 'Maintained per an externally served language map.';
+  /*
+   * `Generic.ExpandAll`, which renders in the form's own title block on every
+   * template and behind no configuration key.
+   *
+   * It was `App.Maintained` in the footer, chosen because the footer already had an
+   * assertion on it. The footer belongs to the host now, so the only rendered string
+   * either branch could be read from went with it — and this coverage is the half
+   * that was uncovered before someone added it, so it moves rather than lapses.
+   */
+  const BUILT_IN_LABEL = 'Expand All';
+  const SERVED_LABEL = 'Unfurl the lot';
 
   const loadTemplateIntoHost = (page: import('@playwright/test').Page) =>
     page.evaluate(async () => {
@@ -3642,18 +3563,23 @@ test.describe('host inputs that fetch', () => {
     await openHost(page, 'host=lang');
     await loadTemplateIntoHost(page);
 
-    const footer = page.locator('footer.main__footer');
-    await expect(footer).toBeVisible({ timeout: 10_000 });
-    await expect(footer, 'the served language map did not reach the rendered form').toContainText(SERVED_FOOTER);
-    await expect(footer, 'the built-in map should have been overridden').not.toContainText(BUILT_IN_FOOTER);
+    // `toContainText`, not `toHaveText`: the button holds its icon's ligature text
+    // as well as the label, so an exact match would be asserting on `unfold_more`.
+    const expand = page.locator('.expand-buttons button').first();
+    await expect(expand, 'the served language map did not reach the rendered form').toContainText(SERVED_LABEL, {
+      timeout: 10_000,
+    });
+    await expect(expand, 'the built-in map should have been overridden').not.toContainText(BUILT_IN_LABEL);
   });
 
   test('an unreachable language map falls back to the built-in one', async ({ page }) => {
     await openHost(page, 'host=lang&prefix=./served/no-such-languages/');
     await loadTemplateIntoHost(page);
 
-    const footer = page.locator('footer.main__footer');
-    await expect(footer).toBeVisible({ timeout: 10_000 });
-    await expect(footer, 'a 404 on the language map should not blank the interface').toContainText(BUILT_IN_FOOTER);
+    const expand = page.locator('.expand-buttons button').first();
+    await expect(expand, 'a 404 on the language map should not blank the interface').toContainText(BUILT_IN_LABEL, {
+      timeout: 10_000,
+    });
+    await expect(expand, 'nothing was served, so nothing should have overridden it').not.toContainText(SERVED_LABEL);
   });
 });

@@ -813,12 +813,17 @@ const writeRaw = (name, document) => {
 {
   const served = join(OUT, 'served');
   mkdirSync(served, { recursive: true });
-  // A config a host would fetch. `showFooter` is the observable part: it is off in the
-  // harness's base preset, so seeing a footer means this config was applied rather than
-  // the preset's.
+  // A config a host would fetch. `showDownloadMenu` is the observable part: it is off
+  // in the harness's base preset, so seeing the trigger means this config was applied
+  // rather than the preset's.
+  //
+  // Nothing reads this today. `loadConfigFromURL` was the entry point it was written
+  // for, and that is gone — a host that wants configuration from a URL fetches it and
+  // assigns the result. Kept rather than deleted because the fixture is what a test
+  // would need if that route ever returns.
   writeFileSync(
     join(served, 'host-config.json'),
-    JSON.stringify({ showHeader: false, showFooter: true, defaultLanguage: 'en', fallbackLanguage: 'en' }, null, 2),
+    JSON.stringify({ showDownloadMenu: true, defaultLanguage: 'en', fallbackLanguage: 'en' }, null, 2),
   );
 
   // Deliberately not JSON. `loadConfigFromURL` calls `JSON.parse` on any 200 response
@@ -836,15 +841,16 @@ const writeRaw = (name, document) => {
    * in no test, which is the wrong half to leave untested when the loader is a
    * third-party package on its own release schedule.
    *
-   * `App.Maintained` is the override because it already has an assertion on it, in
-   * the footer, so the two readings sit side by side: built-in text without a prefix,
+   * `Generic.ExpandAll` is the override because it renders in the form's own title
+   * block on every template and behind no config key, so the two readings sit side
+   * by side: built-in text without a prefix,
    * this text with one.
    */
   const languages = join(served, 'languages');
   mkdirSync(languages, { recursive: true });
   writeFileSync(
     join(languages, 'en.json'),
-    JSON.stringify({ App: { Maintained: 'Maintained per an externally served language map.' } }, null, 2),
+    JSON.stringify({ Generic: { ExpandAll: 'Unfurl the lot' } }, null, 2),
   );
 
   console.log('wrote fixtures/served/ (host config, malformed config, language map)');

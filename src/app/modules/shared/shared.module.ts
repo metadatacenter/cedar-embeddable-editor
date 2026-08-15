@@ -21,8 +21,6 @@ import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { CedarEmbeddableMetadataEditorComponent } from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { CedarComponentRendererComponent } from './components/cedar-component-renderer/cedar-component-renderer.component';
-import { StaticFooterComponent } from './components/static-footer/static-footer.component';
-import { StaticHeaderComponent } from './components/static-header/static-header.component';
 import { DownloadMenuComponent } from './components/download-menu/download-menu.component';
 import { CedarMultiPagerComponent } from './components/cedar-multi-pager/cedar-multi-pager.component';
 import { InputTypesModule } from '../input-types/input-types.module';
@@ -63,8 +61,6 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     CedarEmbeddableMetadataEditorWrapperComponent,
     CedarFontRegistrarComponent,
     CedarComponentRendererComponent,
-    StaticFooterComponent,
-    StaticHeaderComponent,
     DownloadMenuComponent,
     CedarMultiPagerComponent,
   ],

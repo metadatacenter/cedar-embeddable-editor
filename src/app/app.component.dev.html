@@ -1,6 +1,40 @@
+<!--
+  The standalone app's own chrome.
+
+  CEE used to render a header and a footer of its own, behind `showHeader` and
+  `showFooter`. Both carried CEDAR's identity in hardcoded strings and links, so an
+  embedder took CEDAR's branding or nothing, and the key names said "header" and
+  "footer" as though a host could put its own there. An embedded component has no
+  business drawing the page around itself, so the markup moved out here — to a host,
+  which is what this app is.
+
+  Plain HTML rather than components: it is a page's chrome, it is not reused, and
+  every other host writes its own in whatever its own framework is. CEE keeps the
+  CEDAR mark and the version stamp inside the form's own title block, which is where
+  a component may name itself.
+-->
+<header class="app-header">
+  <span class="app-logo"></span>
+  <span class="app-title">CEDAR Embeddable Editor</span>
+</header>
+
 <main>
   <app-cedar-embeddable-metadata-editor-wrapper
     [config]="ceeConfig"
     [templateAndInstanceObject]="artifact"
   ></app-cedar-embeddable-metadata-editor-wrapper>
 </main>
+
+<footer class="app-footer">
+  <a href="https://computationalmedicine.stanford.edu" target="_blank" rel="noreferrer" aria-label="Stanford Division of Computational Medicine">
+    <span class="app-footer-logo"></span>
+  </a>
+  <div>
+    <p>CEDAR is maintained by the Stanford Division of Computational Medicine.</p>
+    <p>
+      <a href="https://more.metadatacenter.org/tools-training/support/#contact" target="_blank" rel="noreferrer">
+        Contact CEDAR
+      </a>
+    </p>
+  </div>
+</footer>

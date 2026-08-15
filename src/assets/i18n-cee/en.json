@@ -1,9 +1,4 @@
 {
-  "App": {
-    "Title": "CEDAR Embeddable Editor",
-    "Maintained": "CEDAR is maintained by the Stanford Division of Computational Medicine.",
-    "Contact": "Contact CEDAR"
-  },
   "Generic": {
     "SAVE": "SAVE",
     "Infinite": "Infinite",
