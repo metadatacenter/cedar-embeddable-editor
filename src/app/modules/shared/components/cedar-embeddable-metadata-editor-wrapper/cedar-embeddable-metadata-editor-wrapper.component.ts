@@ -255,6 +255,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    */
   private applyTemplate(template: InstanceObject): void {
     this.templateJson = template;
+    // The template can be the last thing to arrive, and now renders without a
+    // config, so it is one of the three things that can complete the picture.
+    this.doInitialize();
   }
 
   private applyInstance(instance: InstanceObject): void {
@@ -263,6 +266,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   private applyTemplateAndInstance(templateAndInstance: object): void {
     this.templateAndInstanceJson = templateAndInstance;
+    this.doInitialize();
   }
 
   @Input() get dataQualityReport(): object {
@@ -319,15 +323,42 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.messageHandlerService.injectEventHandler(value);
   }
 
+  /**
+   * Apply the configuration, once there is a reason to.
+   *
+   * Called from three places, because three things can be the last to arrive: the
+   * component's own `ngOnInit`, a `config` assignment, and a template. Whichever
+   * completes the picture does the work, and the guard below is what keeps the
+   * others from doing it early or twice.
+   *
+   * "A reason to" means a host has said something — a configuration — or there is
+   * an editor about to be rendered that needs the defaults installed. Neither yet,
+   * and there is nothing to apply: settling on defaults at `ngOnInit` would install
+   * a language a `config` arriving a moment later immediately replaces.
+   *
+   * A template followed by a `config` does run this twice, and has to: the editor
+   * is rendered with the defaults and then reconfigured. That is visible only as a
+   * second call to the translation service, and the settings a late config carries
+   * reach already-built widgets through services they subscribe to.
+   */
   private doInitialize(): void {
-    // Narrowed once. Every read below went through `this.innerConfig`, which is
-    // nullable until a host sets it, so each of the sixteen would otherwise have
-    // to restate that. `configSet` already implies it is there; this makes the
-    // implication something the compiler can see.
-    const config = this.innerConfig;
-    if (!this.initialized || !this.configSet || config === null) {
+    if (!this.initialized || (!this.configSet && !this.editorDataReady())) {
       return;
     }
+    /*
+     * A host that sets nothing is a host that wants every default, so no
+     * configuration reads as the empty one.
+     *
+     * This used to return unless `config` had been assigned, which left the
+     * translation service uninitialized and — with `editorDataReady` also
+     * requiring a config — meant an element given a template and nothing else
+     * never rendered at all. Every key on `CeeConfig` is optional and documents a
+     * default, so `{}` and "not assigned" have to mean the same thing.
+     *
+     * Each `Object.hasOwn` below is then false, and each else-branch traces the
+     * default it fell back to, which is what a host reading the console needs.
+     */
+    const config = this.innerConfig ?? {};
     if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
       const integratedSearchUrl = configText(
         config,
@@ -378,8 +409,17 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.translateService.use(this.defaultLanguage);
   }
 
+  /**
+   * Whether there is something to render, which is a question about the artifact.
+   *
+   * A template. Configuration was required too, so an element assigned a template
+   * and nothing else stayed blank for good: both getters answered empty — `{}` and
+   * `''` — with no error, no warning and nothing in the console to connect the
+   * blank frame to a key the host had not set. Since every key is optional and
+   * documents a default, a host with nothing to say had no way to say it.
+   */
   editorDataReady(): boolean {
-    return this.innerConfig != null && (this.templateJson != null || this.templateAndInstanceJson != null);
+    return this.templateJson != null || this.templateAndInstanceJson != null;
   }
 
   private triggerUpdateOnInjectedSampleData(): void {

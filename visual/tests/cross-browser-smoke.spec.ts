@@ -214,3 +214,56 @@ test('exposes JSON and YAML outputs for a host-supplied instance', async ({ page
   expect(outputs.json).toContain('Private');
   expect(outputs.yaml).toContain('Private');
 });
+
+/**
+ * A host with nothing to configure.
+ *
+ * Every key on `CeeConfig` is optional and documents a default, so assigning no
+ * configuration and assigning `{}` have to mean the same thing. They did not: the
+ * editor rendered only once `config` had been assigned, so an element given a
+ * template and nothing else stayed blank for good, with both getters answering
+ * empty — `{}` and `''` — and nothing said so. No error, no warning, and no way to
+ * connect a blank frame to a key nobody had set.
+ *
+ * Built here rather than through the harness page, which always assigns a config
+ * and so could never have caught this. The element is created, given a template,
+ * and read — the smallest thing a host can do.
+ */
+test('renders from a template alone, with no configuration at all', async ({ page }) => {
+  await open(page, '01-input-types');
+
+  const template = await page.evaluate(async () => (await fetch('./fixtures/01-input-types.json')).json());
+
+  const result = await page.evaluate(async (fixture) => {
+    const editor = document.createElement('cedar-embeddable-editor') as HTMLElement & {
+      templateObject: unknown;
+      currentMetadata: object;
+      currentMetadataYaml: string;
+    };
+    document.body.appendChild(editor);
+    editor.templateObject = fixture;
+
+    const deadline = Date.now() + 15_000;
+    while (Date.now() < deadline) {
+      if (editor.shadowRoot?.querySelector('app-cedar-embeddable-metadata-editor')) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    const rendered = editor.shadowRoot?.querySelector('app-cedar-embeddable-metadata-editor') !== null;
+    const fields = editor.shadowRoot?.querySelectorAll('input').length ?? 0;
+    const json = editor.currentMetadata;
+    const yaml = editor.currentMetadataYaml;
+    editor.remove();
+
+    return {
+      rendered,
+      hasFields: fields > 0,
+      jsonKeys: Object.keys(json ?? {}).length > 0,
+      yamlLength: typeof yaml === 'string' && yaml.length > 0,
+    };
+  }, template);
+
+  expect(result).toEqual({ rendered: true, hasFields: true, jsonKeys: true, yamlLength: true });
+});

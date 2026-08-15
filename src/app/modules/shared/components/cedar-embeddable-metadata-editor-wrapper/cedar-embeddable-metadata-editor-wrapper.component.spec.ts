@@ -11,18 +11,6 @@ import { InstanceDataContainer } from 'cedar-model-typescript-library';
 import { InstanceObject } from '../../models/instance-node.model';
 
 /**
- * `outputSerialization` drives the host-facing `currentMetadataSerialized`
- * getter, while the typed getters and the save-path getter stay put.
- *
- * The instance is empty here (no template loaded), so YAML output is the empty
- * string and JSON output the empty object — enough to prove which branch the
- * config selects. `innerConfig` is set directly rather than through the `config`
- * setter, which would run the full initialise path; the getter only reads it.
- *
- * The one contract that must not move: `currentMetadata` is always a JSON object,
- * whatever `outputSerialization` says, because that is what the host saves.
- */
-/**
  * Jasmine's `toHaveBeenCalledOnceWith`, in the two assertions it stood for.
  *
  * Vitest 1.x has no single matcher for "called exactly once, and with these
@@ -96,6 +84,47 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       expectCalledOnceWith(candidate.mocks.use, 'hu');
       expect(candidate.component.handlerContext.readOnlyMode).toBe(true);
     }
+  });
+
+  /**
+   * A host with nothing to say must be able to say it.
+   *
+   * Every key on `CeeConfig` is optional and documents a default, so an unset
+   * configuration and `{}` have to mean the same thing. They did not: the editor
+   * rendered only once `config` had been assigned, so an element given a template
+   * and nothing else stayed blank for good — `currentMetadata` answering `{}` and
+   * `currentMetadataYaml` answering `''`, with no error and nothing in the console
+   * tying the blank frame to a key nobody set.
+   */
+  it('renders on a template alone, taking every default', () => {
+    const { component, mocks } = make();
+
+    component.ngOnInit();
+    component.templateObject = new InstanceDataContainer();
+
+    expect(component.editorDataReady(), 'a template alone did not build the editor').toBe(true);
+    // The languages a host did not choose, which is what a blank editor never reached.
+    expectCalledOnceWith(mocks.setDefaultLang, 'en');
+    expectCalledOnceWith(mocks.use, 'en');
+    expect(component.handlerContext.readOnlyMode).toBe(false);
+  });
+
+  /**
+   * Rendering no longer waits for configuration, so for the first time the two can
+   * arrive in either order around the render. Config assigned second must still
+   * apply — the settings it carries reach already-built widgets through services
+   * they subscribe to, rather than by being read once at construction.
+   */
+  it('applies configuration assigned after the template', () => {
+    const { component, mocks } = make();
+
+    component.ngOnInit();
+    component.templateObject = new InstanceDataContainer();
+    component.config = { defaultLanguage: 'hu', readOnlyMode: true };
+
+    expect(component.editorDataReady()).toBe(true);
+    expect(mocks.use).toHaveBeenLastCalledWith('hu');
+    expect(component.handlerContext.readOnlyMode).toBe(true);
   });
 });
 

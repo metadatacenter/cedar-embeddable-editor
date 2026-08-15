@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- An element assigned a template and no `config` now renders. It did not: the editor waited for a
+  configuration before building, so a host that wanted every default — which every key on
+  `CeeConfig` documents, all of them optional — had no way to say so. The element stayed blank for
+  good, `currentMetadata` answering `{}` and `currentMetadataYaml` answering `''`, with no error, no
+  warning, and nothing tying an empty frame to a key nobody had set. An unset configuration and `{}`
+  now mean the same thing.
+
+  Rendering therefore no longer waits for configuration, so for the first time a `config` can arrive
+  after the editor is built. It still applies: what it carries reaches already-built widgets through
+  services they subscribe to, rather than being read once at construction. The visible cost is that
+  a template followed by a config initialises twice, the second time replacing the defaults the
+  first installed.
+
+  The gap was invisible to the suites because every test host assigned a configuration — the visual
+  harness page always sets one, so nothing ever exercised the smallest thing a host can do. It
+  surfaced from the e2e smoke, whose own check had been passing vacuously: it asserted that the
+  metadata "is an object", and `{}` is one.
+
 ### Changed
 
 - **BREAKING.** The eight diagnostic panels become a download menu, behind one key.
