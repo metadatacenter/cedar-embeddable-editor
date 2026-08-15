@@ -10,6 +10,11 @@ import { HtmlDetectService } from '../../../shared/service/html-detect.service';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { IriPrefix } from '../../../shared/util/iri-prefix';
 
+/** Where an ORCID iD lives, which is not a deployment's choice. */
+const ORCID_IRI_PREFIX = 'https://orcid.org/';
+/** Where a ROR identifier lives, likewise. */
+const ROR_IRI_PREFIX = 'https://ror.org/';
+
 @Component({
   selector: 'app-cedar-input-text',
   templateUrl: './cedar-input-text.component.html',
@@ -110,16 +115,27 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
   }
 
+  /**
+   * Whether a read-only text field is holding a persistent identifier.
+   *
+   * Fixed strings, and a `startsWith` rather than a regex. These were two host
+   * configuration keys, `orcidPrefix` and `rorPrefix`, interpolated straight into
+   * `new RegExp('^' + prefix)` — so every `.` in the configured URL matched any
+   * character, and a prefix carrying a regex metacharacter matched something else
+   * again or threw. They were also prefixes in name only: nothing here mints or
+   * builds a URL, it recognises one. And they existed for two of the seven
+   * authorities CEE knows, so the same value in a DOI or RRID field got none of
+   * this.
+   *
+   * A registry's own IRI is not a deployment's to configure — orcid.org is
+   * orcid.org wherever CEE is embedded — so what is left is a constant.
+   */
   checkOrcid(value: string): boolean {
-    const pattern = this.iriPrefix.getOrcidPrefix();
-    const orcidReg = new RegExp(`^${pattern}`);
-    return orcidReg.test(value);
+    return value.startsWith(ORCID_IRI_PREFIX);
   }
 
   checkRor(value: string): boolean {
-    const pattern = this.iriPrefix.getRorPrefix();
-    const orcidReg = new RegExp(`^${pattern}`);
-    return orcidReg.test(value);
+    return value.startsWith(ROR_IRI_PREFIX);
   }
   clearValue(): void {
     this.setValueUIAndModel(null);

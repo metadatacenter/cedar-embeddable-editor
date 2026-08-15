@@ -17,13 +17,13 @@ describe('editor-instance configuration isolation', () => {
 
     first.setBioPortalPrefix('https://first.example/bioportal/');
     second.setBioPortalPrefix('https://second.example/bioportal/');
-    first.setOrcidPrefix('https://first.example/orcid/');
-    second.setRorPrefix('https://second.example/ror/');
+    first.set('https://first.example/artifacts/');
+    second.set('https://second.example/artifacts/');
 
     expect(first.getBioPortalPrefix()).toBe('https://first.example/bioportal/');
     expect(second.getBioPortalPrefix()).toBe('https://second.example/bioportal/');
-    expect(first.getOrcidPrefix()).toBe('https://first.example/orcid/');
-    expect(second.getRorPrefix()).toBe('https://second.example/ror/');
+    expect(first.get()).toBe('https://first.example/artifacts/');
+    expect(second.get()).toBe('https://second.example/artifacts/');
   });
 
   it('mints element IDs from the owning handler context after another editor is configured', () => {

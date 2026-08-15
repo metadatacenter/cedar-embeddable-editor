@@ -78,8 +78,6 @@ export interface CeeConfig {
   extAuthBaseUrl?: string;
   iriPrefix?: string;
   bioPortalPrefix?: string;
-  orcidPrefix?: string;
-  rorPrefix?: string;
 
   defaultLanguage?: string;
   fallbackLanguage?: string;

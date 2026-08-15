@@ -333,8 +333,6 @@ Language, and the IRI prefixes CEE recognises or mints:
 | `languageMapPathPrefix` | none |
 | `iriPrefix` | `https://repo.metadatacenter.org/` |
 | `bioPortalPrefix` | `https://bioportal.bioontology.org/ontologies/` |
-| `orcidPrefix` | `https://orcid.org/` |
-| `rorPrefix` | `https://ror.org/` |
 
 `trustTemplateRichText` decides whether a template author's rich text renders verbatim
 or is sanitized first. It defaults to `false` and should stay there unless your

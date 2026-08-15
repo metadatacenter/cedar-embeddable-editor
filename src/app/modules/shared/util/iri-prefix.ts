@@ -1,7 +1,5 @@
 export const DEFAULT_IRI_PREFIX = 'https://repo.metadatacenter.org/';
 export const DEFAULT_BIO_PORTAL_PREFIX = 'https://bioportal.bioontology.org/ontologies/';
-export const DEFAULT_ORCID_PREFIX = 'https://orcid.org/';
-export const DEFAULT_ROR_PREFIX = 'https://ror.org/';
 
 /**
  * All host-configurable IRI prefixes for one embedded editor.
@@ -13,8 +11,6 @@ export const DEFAULT_ROR_PREFIX = 'https://ror.org/';
 export class IriPrefix {
   private iriPrefix = DEFAULT_IRI_PREFIX;
   private bioPortalPrefix = DEFAULT_BIO_PORTAL_PREFIX;
-  private orcidPrefix = DEFAULT_ORCID_PREFIX;
-  private rorPrefix = DEFAULT_ROR_PREFIX;
 
   get(): string {
     return this.iriPrefix;
@@ -30,21 +26,5 @@ export class IriPrefix {
 
   setBioPortalPrefix(value: string): void {
     this.bioPortalPrefix = value;
-  }
-
-  getOrcidPrefix(): string {
-    return this.orcidPrefix;
-  }
-
-  setOrcidPrefix(value: string): void {
-    this.orcidPrefix = value;
-  }
-
-  getRorPrefix(): string {
-    return this.rorPrefix;
-  }
-
-  setRorPrefix(value: string): void {
-    this.rorPrefix = value;
   }
 }

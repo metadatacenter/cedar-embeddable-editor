@@ -61,8 +61,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   private static IRI_PREFIX = 'iriPrefix';
   private static BIO_PORTAL_PREFIX = 'bioPortalPrefix';
-  private static ORCID_PREFIX = 'orcidPrefix';
-  private static ROR_PREFIX = 'rorPrefix';
 
   static EXT_AUTH_BASE_URL = 'extAuthBaseUrl';
 
@@ -150,12 +148,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       );
       if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.BIO_PORTAL_PREFIX)) {
         this.iriPrefix.setBioPortalPrefix(String(value[CedarEmbeddableMetadataEditorComponent.BIO_PORTAL_PREFIX]));
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ORCID_PREFIX)) {
-        this.iriPrefix.setOrcidPrefix(String(value[CedarEmbeddableMetadataEditorComponent.ORCID_PREFIX]));
-      }
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.ROR_PREFIX)) {
-        this.iriPrefix.setRorPrefix(String(value[CedarEmbeddableMetadataEditorComponent.ROR_PREFIX]));
       }
 
       this.extAuthBaseUrl = configText(

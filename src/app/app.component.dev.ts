@@ -30,8 +30,6 @@ export class AppDevComponent implements OnInit {
 
     iriPrefix: 'https://repo.metadatacenter.orgx/',
     bioPortalPrefix: 'https://bioportal.bioontology.org/ontologies/',
-    orcidPrefix: 'https://orcid.org/',
-    rorPrefix: 'https://ror.org/',
 
     readOnlyMode: false,
 

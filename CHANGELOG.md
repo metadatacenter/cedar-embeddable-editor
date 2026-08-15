@@ -7,22 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Removed
-
-- **BREAKING.** `showHeader` and `showFooter`, and the header and footer they gated. CEE drew
-  a `mat-toolbar` carrying the CEDAR logo and the title "CEDAR Embeddable Editor", and a footer
-  carrying the Stanford Division of Computational Medicine mark, the maintainer line and a
-  contact link. Every string and every destination was hardcoded, so an embedder could take
-  CEDAR's identity or nothing, and the key names said "header" and "footer" as though a host
-  could put its own there. An embedded component has no business drawing the page around
-  itself: a host renders its own, and the standalone developer app now does exactly that as a
-  worked example. The CEDAR mark and the version stamp stay, inside the form's own title block,
-  which is a component naming itself rather than dressing someone else's page. Gone with them:
-  the `App.Title`, `App.Maintained` and `App.Contact` translations from both language maps, and
-  the visual suite's `chrome` preset and its two baselines. The suite's only rendered surface
-  for an externally served translation was the footer, so that coverage moves onto the form's
-  own Expand All label, which renders on every template behind no key.
-
 ### Changed
 
 - **BREAKING.** The eight diagnostic panels become a download menu, behind one key.
@@ -51,6 +35,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sanitizer's policy will render flattened until the key is renamed.
 
 ### Removed
+
+- **BREAKING.** `orcidPrefix` and `rorPrefix`. Neither was a prefix: nothing minted or built a
+  URL from them, they recognised one. Each was interpolated straight into
+  `new RegExp('^' + prefix)`, so every `.` in the configured URL matched any character and a
+  prefix carrying a regex metacharacter matched something else again or threw. They also existed
+  for two of the seven authorities CEE knows, so the same value in a DOI, PubMed, RRID, PFAS or
+  NIH Grant field got none of the treatment. What they gated stays: a read-only text field holding
+  an `https://orcid.org/` or `https://ror.org/` value still renders as a link with the registry's
+  icon, showing the identifier rather than the whole IRI. It now tests fixed constants with
+  `startsWith` and builds no regex at all, because a registry's own IRI is not a deployment's to
+  configure. `iriPrefix` and `bioPortalPrefix` are unaffected and remain host-configurable: one
+  mints IRIs into the instance, the other builds a link out to BioPortal's web UI.
+
+- **BREAKING.** `showHeader` and `showFooter`, and the header and footer they gated. CEE drew
+  a `mat-toolbar` carrying the CEDAR logo and the title "CEDAR Embeddable Editor", and a footer
+  carrying the Stanford Division of Computational Medicine mark, the maintainer line and a
+  contact link. Every string and every destination was hardcoded, so an embedder could take
+  CEDAR's identity or nothing, and the key names said "header" and "footer" as though a host
+  could put its own there. An embedded component has no business drawing the page around
+  itself: a host renders its own, and the standalone developer app now does exactly that as a
+  worked example. The CEDAR mark and the version stamp stay, inside the form's own title block,
+  which is a component naming itself rather than dressing someone else's page. Gone with them:
+  the `App.Title`, `App.Maintained` and `App.Contact` translations from both language maps, and
+  the visual suite's `chrome` preset and its two baselines. The suite's only rendered surface
+  for an externally served translation was the footer, so that coverage moves onto the form's
+  own Expand All label, which renders on every template behind no key.
 
 - **BREAKING.** `inputSerialization`, `outputSerialization` and the
   `currentMetadataSerialized` accessor that existed for the second of them. CEE now picks the
