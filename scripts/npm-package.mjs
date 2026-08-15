@@ -17,10 +17,28 @@ export const TARGET = resolve(ROOT, 'dist-npm/cedar-embeddable-editor');
 export const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
+/**
+ * The two channels CEE publishes on, and which one a version selects.
+ *
+ * A dev snapshot goes to the CEDAR Nexus as `@org.metadatacenter/…` under the `dev`
+ * tag; a release goes to public npmjs unscoped under `latest`. The channel is
+ * derived from the version rather than passed at publish time, so a snapshot cannot
+ * be published as a release by forgetting a flag — the manifest that reaches the
+ * registry names the registry it belongs to.
+ *
+ * The scope is what makes selective resolution possible: npm routes by scope, not
+ * by package name, so an embedding app can take this one package from Nexus while
+ * everything else still comes from npmjs. The unscoped name also exists on Nexus,
+ * carrying a 2023 lineage whose 2.6.x versions sort above anything published now.
+ */
+const NEXUS_REGISTRY = 'https://nexus.bmir.stanford.edu/repository/npm-cedar/';
+const DEV_VERSION = /-dev\./;
+
 export const packageMetadata = () => {
   const rootPackage = readJson(resolve(ROOT, 'package.json'));
+  const isDev = DEV_VERSION.test(rootPackage.version);
   return {
-    name: 'cedar-embeddable-editor',
+    name: isDev ? '@org.metadatacenter/cedar-embeddable-editor' : 'cedar-embeddable-editor',
     version: rootPackage.version,
     description: rootPackage.description,
     main: 'cedar-embeddable-editor.js',
@@ -36,9 +54,15 @@ export const packageMetadata = () => {
       'README.md',
       'CHANGELOG.md',
     ],
-    // No publishConfig: the stable package publishes to the default registry
-    // (registry.npmjs.org) under the default `latest` tag. The Nexus registry and
-    // the `dev` tag belonged to the scoped dev-snapshot channel.
+    // A release carries no publishConfig, so it goes to the default registry
+    // (registry.npmjs.org) under the default `latest` tag. A dev snapshot names the
+    // Nexus registry here, so the destination cannot be lost by forgetting a flag.
+    //
+    // The tag is stated too, but is NOT load-bearing: npm 11 reports `tag latest`
+    // for a dry run of this manifest, so `--tag dev` has to be passed at the command
+    // line. Publishing a snapshot without it would point the scoped package's
+    // `latest` at a prerelease — a tag it does not currently have at all.
+    ...(isDev ? { publishConfig: { registry: NEXUS_REGISTRY, tag: 'dev' } } : {}),
     repository: {
       type: 'git',
       url: 'git+https://github.com/metadatacenter/cedar-embeddable-editor.git',
