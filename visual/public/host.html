@@ -89,14 +89,11 @@
                 languageMapPathPrefix: `./served/languages/${owner}/`,
                 iriPrefix: `https://${owner}.example/`,
                 terminologyIntegratedSearchUrl: `http://127.0.0.1:9/isolation/${owner}/terminology`,
-                // Both authority endpoints hang off this, so pointing it at the discard
-                // port is what keeps every authority request on the machine. The search
-                // paths below are relative to it, and the details path is CEE's own.
+                // Every authority endpoint hangs off this, so pointing it at the discard
+                // port is what keeps every authority request on the machine — and what
+                // makes them per-owner, which is what the isolation test reads.
                 extAuthBaseUrl: `http://127.0.0.1:9/isolation/${owner}/authority/`,
               };
-              for (const authority of ['orcid', 'ror', 'pfas', 'pmid', 'rrid', 'nihGrant', 'doi']) {
-                config[`${authority}IntegratedExtAuthUrl`] = `${authority}/search`;
-              }
               return config;
             };
 
@@ -171,23 +168,19 @@
         };
 
         /**
-         * A distinct, deliberately unroutable URL per authority.
+         * A deliberately unroutable base for the seven authority endpoints.
          *
-         * Each of the seven external authority fields reads its endpoint from its own
-         * config key, and nothing checked that a field ends up asking the endpoint it
-         * was configured with — a descriptor naming the wrong key, or a widget wired to
-         * the wrong descriptor, would send a field to another authority's service and
-         * fail only against something live. Giving each a unique path makes the
-         * question answerable by looking at the request.
+         * Each field derives its own path under this, and nothing checked that a field
+         * ends up asking for the authority it renders — a widget wired to the wrong
+         * descriptor would send a field to another authority's service and fail only
+         * against something live. The paths differ per authority, so the question is
+         * answerable by looking at the request.
          *
          * `127.0.0.1:9` is the discard port: nothing listens, so the requests are
          * intercepted by the test and never leave the machine. Which is the same reason
          * `base` points the terminology server there.
          */
         const AUTHORITY_ENDPOINTS = { extAuthBaseUrl: 'http://127.0.0.1:9/authority/' };
-        for (const name of ['orcid', 'ror', 'pfas', 'pmid', 'rrid', 'nihGrant', 'doi']) {
-          AUTHORITY_ENDPOINTS[`${name}IntegratedExtAuthUrl`] = `${name}/search`;
-        }
 
         const PRESETS = {
           base,

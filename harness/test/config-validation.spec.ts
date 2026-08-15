@@ -30,8 +30,7 @@ describe('a configuration CEE can use', () => {
       problemsFor({
         readOnlyMode: true,
         extAuthBaseUrl: 'https://bridge.metadatacenter.org/ext-auth/',
-        orcidIntegratedExtAuthUrl: 'orcid/search-by-name',
-        nihGrantIntegratedExtAuthUrl: 'nih-grant/search-by-name',
+        iriPrefix: 'https://repo.metadatacenter.org/',
         defaultLanguage: 'en',
       }),
     ).toEqual([]);
@@ -53,24 +52,17 @@ describe('a key CEE does not know', () => {
   });
 
   /**
-   * Taken from the descriptors rather than matched by shape, so a misspelled
-   * authority is caught. A pattern like `/Integrated(ExtAuth|Details)Url$/` would
-   * have accepted this.
+   * The fourteen per-authority endpoint keys are gone: seven search paths and
+   * seven details paths, each of which every host set to the value CEE already
+   * uses. Both now hang off `extAuthBaseUrl`, so a host still naming one is told
+   * it is no longer read rather than left to assume it works.
    */
-  it('catches a misspelled authority endpoint', () => {
-    expect(oneProblem({ orkidIntegratedExtAuthUrl: 'x' })).toContain('Unknown configuration key');
-  });
-
-  /**
-   * The seven `<name>IntegratedDetailsUrl` keys are gone. Every host that set one
-   * set the path CEE already uses, so nothing moves for them — but a host still
-   * naming the key is told it is no longer read rather than left to assume it is.
-   */
-  it('reports a retired details endpoint key', () => {
-    expect(oneProblem({ orcidIntegratedDetailsUrl: 'orcid' })).toContain(
-      'Unknown configuration key "orcidIntegratedDetailsUrl"',
-    );
-  });
+  it.each([['orcidIntegratedExtAuthUrl'], ['orcidIntegratedDetailsUrl'], ['nihGrantIntegratedExtAuthUrl']])(
+    'reports the retired key %s',
+    (key) => {
+      expect(oneProblem({ [key]: 'orcid' })).toContain(`Unknown configuration key "${key}"`);
+    },
+  );
 });
 
 describe('a key set to the wrong kind of value', () => {
@@ -84,8 +76,8 @@ describe('a key set to the wrong kind of value', () => {
     expect(oneProblem({ iriPrefix: null })).toContain('but was null');
   });
 
-  it('checks authority endpoints are strings', () => {
-    expect(oneProblem({ rorIntegratedExtAuthUrl: 7 })).toContain('expects a string, but was number');
+  it('checks the authority base URL is a string', () => {
+    expect(oneProblem({ extAuthBaseUrl: 7 })).toContain('expects a string, but was number');
   });
 });
 

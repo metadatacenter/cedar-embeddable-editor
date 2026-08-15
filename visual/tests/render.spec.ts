@@ -358,11 +358,11 @@ test.describe('multiple editor instances', () => {
 
     await openTwoEditors(page, '08-authority');
     const authorityRequest = page.waitForRequest((request) =>
-      request.url().includes('/isolation/first/authority/pfas/search'),
+      request.url().includes('/isolation/first/authority/comp-tox/search-by-name'),
     );
     await page.locator('#editor-first input[aria-label="chemical_pfas"]').pressSequentially('chemical', { delay: 40 });
     await passDebounceWindow(page);
-    expect((await authorityRequest).url()).toContain('/isolation/first/authority/pfas/search');
+    expect((await authorityRequest).url()).toContain('/isolation/first/authority/comp-tox/search-by-name');
   });
 });
 
@@ -2521,16 +2521,16 @@ test.describe('markup in an instance value', () => {
  *
  * `ExternalAuthorityLookupService` replaced seven near-identical services with one,
  * which is a clear win and moved a per-field decision into a table: each descriptor
- * names the config keys its endpoints come from. The table had no test. A descriptor
- * naming another authority's key, or a widget wired to the wrong descriptor, would
- * send a field to the wrong service — and because every one of them answers the same
- * shape, the field would keep working against something live and fail only in ways
- * nobody would attribute to a config key.
+ * names the two paths its endpoints hang off. The table had no test. A descriptor
+ * carrying another authority's path, or a widget wired to the wrong descriptor,
+ * would send a field to the wrong service — and because every one of them answers
+ * the same shape, the field would keep working against something live and fail only
+ * in ways nobody would attribute to a table of paths.
  *
- * The `authority` preset gives each of the seven a unique unroutable URL, and this
- * intercepts the requests, so the assertion is on what CEE *asked for*. That covers
- * the descriptor table, the wiring, and the query parameter, without a live service
- * and without leaving the machine.
+ * The `authority` preset points the base at an unroutable host, and this intercepts
+ * the requests, so the assertion is on what CEE *asked for*. That covers the
+ * descriptor table, the wiring, and the query parameter, without a live service and
+ * without leaving the machine.
  *
  * Requests are fulfilled with an empty result rather than aborted: aborting surfaces
  * as a lookup error in the widget, which is a different behaviour from a search that
@@ -2538,12 +2538,16 @@ test.describe('markup in an instance value', () => {
  */
 test.describe('external authority endpoints', () => {
   const FIELDS = [
+    // The path segment, not the authority's name: PFAS is served under `comp-tox`
+    // and NIH Grant under `nih-grant`. These are the bridge server's own routes,
+    // which CEE now derives rather than being handed by a host, so asserting on
+    // them is asserting on the real thing rather than on a harness invention.
     { label: 'contributor_orcid', authority: 'orcid' },
     { label: 'institution_ror', authority: 'ror' },
-    { label: 'chemical_pfas', authority: 'pfas' },
+    { label: 'chemical_pfas', authority: 'comp-tox' },
     { label: 'citation_pmid', authority: 'pmid' },
     { label: 'resource_rrid', authority: 'rrid' },
-    { label: 'award_nih', authority: 'nihGrant' },
+    { label: 'award_nih', authority: 'nih-grant' },
     { label: 'dataset_doi', authority: 'doi' },
   ] as const;
 
@@ -2601,13 +2605,16 @@ test.describe('external authority endpoints', () => {
    * alone had; with the panels gone all seven run the same base class, and this
    * loop is what holds them to it.
    */
+  // `authority` is the path segment the bridge server serves that authority under,
+  // which is what the route below has to match: PFAS is `comp-tox` and NIH Grant is
+  // `nih-grant`.
   for (const { label: fieldName, authority, name } of [
     { label: 'contributor_orcid', authority: 'orcid', name: 'ORCID' },
     { label: 'institution_ror', authority: 'ror', name: 'ROR' },
-    { label: 'chemical_pfas', authority: 'pfas', name: 'PFAS' },
+    { label: 'chemical_pfas', authority: 'comp-tox', name: 'PFAS' },
     { label: 'citation_pmid', authority: 'pmid', name: 'PubMed' },
     { label: 'resource_rrid', authority: 'rrid', name: 'RRID' },
-    { label: 'award_nih', authority: 'nihGrant', name: 'NIH Grant' },
+    { label: 'award_nih', authority: 'nih-grant', name: 'NIH Grant' },
     { label: 'dataset_doi', authority: 'doi', name: 'DOI' },
   ] as const) {
     test(`${name}: a returned term can be selected and reaches the host metadata`, async ({ page }) => {
@@ -3148,9 +3155,7 @@ test.describe('host change notifications', () => {
  *
  */
 test.describe('config flags are wired to something', () => {
-  const FLAGS: ReadonlyArray<{ flag: string; withFlags?: string[]; fixture?: string }> = [
-    { flag: 'showDownloadMenu' },
-  ];
+  const FLAGS: ReadonlyArray<{ flag: string; withFlags?: string[]; fixture?: string }> = [{ flag: 'showDownloadMenu' }];
 
   /**
    * Strip the identifiers Angular generates, which say nothing about a config key.
@@ -3435,7 +3440,9 @@ test.describe('the subsetted icon font', () => {
         .map((icon) => {
           const size = parseFloat(getComputedStyle(icon).fontSize);
           const probe = document.createElement('span');
-          probe.style.cssText = `position:absolute;left:-9999px;font-family:${getComputedStyle(icon).fontFamily};font-size:${size}px`;
+          probe.style.cssText = `position:absolute;left:-9999px;font-family:${
+            getComputedStyle(icon).fontFamily
+          };font-size:${size}px`;
           probe.textContent = icon.textContent!.trim();
           root.appendChild(probe);
           const width = probe.getBoundingClientRect().width;

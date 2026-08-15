@@ -347,19 +347,21 @@ can override the base URL; it must include a trailing slash:
 }
 ```
 
-CEE appends an authority-specific path to this base: a search path for a name
-typed into the field, and a details path for an identifier pasted into it. The
-search path can be overridden per authority; the details path is fixed.
+That base is the whole of the surface. CEE appends the path for the authority a
+field is bound to: a search path for a name typed into it, and a details path
+for an identifier pasted into it. The paths are the bridge server's own routes,
+so they are not configurable — a deployment moves all fourteen endpoints by
+moving the base, or none of them.
 
-| Authority | Search path key | Default search path | Details path |
-|---|---|---|---|
-| ORCID | `orcidIntegratedExtAuthUrl` | `orcid/search-by-name` | `orcid` |
-| ROR | `rorIntegratedExtAuthUrl` | `ror/search-by-name` | `ror` |
-| PFAS | `pfasIntegratedExtAuthUrl` | `comp-tox/search-by-name` | `comp-tox` |
-| PubMed | `pmidIntegratedExtAuthUrl` | `pmid/search-by-name` | `pmid` |
-| RRID | `rridIntegratedExtAuthUrl` | `rrid/search-by-name` | `rrid` |
-| NIH Grant | `nihGrantIntegratedExtAuthUrl` | `nih-grant/search-by-name` | `nih-grant` |
-| DOI | `doiIntegratedExtAuthUrl` | `doi/search-by-name` | `doi` |
+| Authority | Search path | Details path |
+|---|---|---|
+| ORCID | `orcid/search-by-name` | `orcid` |
+| ROR | `ror/search-by-name` | `ror` |
+| PFAS | `comp-tox/search-by-name` | `comp-tox` |
+| PubMed | `pmid/search-by-name` | `pmid` |
+| RRID | `rrid/search-by-name` | `rrid` |
+| NIH Grant | `nih-grant/search-by-name` | `nih-grant` |
+| DOI | `doi/search-by-name` | `doi` |
 
 ### TypeScript types
 

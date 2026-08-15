@@ -50,15 +50,14 @@ export interface AuthorityDescriptor {
    * authority's own service — one per authority per endpoint. An eighth
    * authority meant two more blocks and a new service to hand them to.
    *
-   * Only the search path can be overridden by a host. The details path was
-   * configurable too, and every host that set it set the value below: `orcid`,
-   * `ror`, `comp-tox`, `pmid`, `rrid`, with the remaining two never named at
-   * all. Seven keys existed so a deployment could move a path that no
-   * deployment has moved, and the paths belong to the ext-auth service the base
-   * URL already identifies.
+   * Neither is configurable. Both were, through fourteen host keys, and every
+   * host that set one set the value below — CEE's own default, restated. The
+   * paths are the bridge server's, and `extAuthBaseUrl` already identifies that
+   * service: `/ext-auth/<authority>/search-by-name` and `/ext-auth/<authority>/<id>`
+   * are how it is addressed, so a host free to move them could only move them
+   * somewhere nothing answers.
    */
-  readonly searchUrlConfigKey: string;
-  readonly defaultSearchPath: string;
+  readonly searchPath: string;
   readonly detailsPath: string;
 }
 
@@ -85,8 +84,7 @@ const byPattern =
 export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   {
     inputType: InputType.orcid,
-    searchUrlConfigKey: 'orcidIntegratedExtAuthUrl',
-    defaultSearchPath: 'orcid/search-by-name',
+    searchPath: 'orcid/search-by-name',
     detailsPath: 'orcid',
     label: 'ORCID',
     placeholderKey: 'Generic.FilterOrcid',
@@ -96,8 +94,7 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   },
   {
     inputType: InputType.ror,
-    searchUrlConfigKey: 'rorIntegratedExtAuthUrl',
-    defaultSearchPath: 'ror/search-by-name',
+    searchPath: 'ror/search-by-name',
     detailsPath: 'ror',
     label: 'ROR',
     placeholderKey: 'Generic.FilterRor',
@@ -107,8 +104,7 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   },
   {
     inputType: InputType.pfas,
-    searchUrlConfigKey: 'pfasIntegratedExtAuthUrl',
-    defaultSearchPath: 'comp-tox/search-by-name',
+    searchPath: 'comp-tox/search-by-name',
     detailsPath: 'comp-tox',
     label: 'PFAS',
     placeholderKey: 'Generic.FilterPfas',
@@ -118,8 +114,7 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   },
   {
     inputType: InputType.pmid,
-    searchUrlConfigKey: 'pmidIntegratedExtAuthUrl',
-    defaultSearchPath: 'pmid/search-by-name',
+    searchPath: 'pmid/search-by-name',
     detailsPath: 'pmid',
     label: 'PubMed',
     placeholderKey: 'Generic.FilterPmid',
@@ -141,8 +136,7 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   },
   {
     inputType: InputType.rrid,
-    searchUrlConfigKey: 'rridIntegratedExtAuthUrl',
-    defaultSearchPath: 'rrid/search-by-name',
+    searchPath: 'rrid/search-by-name',
     detailsPath: 'rrid',
     label: 'RRID',
     placeholderKey: 'Generic.FilterRrid',
@@ -152,8 +146,7 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   },
   {
     inputType: InputType.nihGrant,
-    searchUrlConfigKey: 'nihGrantIntegratedExtAuthUrl',
-    defaultSearchPath: 'nih-grant/search-by-name',
+    searchPath: 'nih-grant/search-by-name',
     detailsPath: 'nih-grant',
     label: 'NIH Grant',
     placeholderKey: 'Generic.FilterNihGrant',
@@ -165,8 +158,7 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   },
   {
     inputType: InputType.doi,
-    searchUrlConfigKey: 'doiIntegratedExtAuthUrl',
-    defaultSearchPath: 'doi/search-by-name',
+    searchPath: 'doi/search-by-name',
     detailsPath: 'doi',
     label: 'DOI',
     placeholderKey: 'Generic.FilterDoi',

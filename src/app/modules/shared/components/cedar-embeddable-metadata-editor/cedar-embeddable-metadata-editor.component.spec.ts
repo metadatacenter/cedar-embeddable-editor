@@ -98,7 +98,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       expect(component.extAuthBaseUrl).toBe('https://example.org/ext-auth/');
     });
 
-    it('configures the default search and details endpoints for every authority', () => {
+    it('configures both endpoints for every authority, from the base URL alone', () => {
       const setEndpoints = vi.fn();
       const component = make(setEndpoints);
 
@@ -108,31 +108,27 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       for (const descriptor of AUTHORITY_DESCRIPTORS) {
         expect(setEndpoints).toHaveBeenCalledWith(
           descriptor.inputType,
-          component.extAuthBaseUrl + descriptor.defaultSearchPath,
+          component.extAuthBaseUrl + descriptor.searchPath,
           component.extAuthBaseUrl + descriptor.detailsPath,
         );
       }
     });
 
-    it('honours a custom search path per authority, leaving the details path where it is', () => {
+    it('moves all fourteen endpoints when the base URL moves', () => {
       const setEndpoints = vi.fn();
       const component = make(setEndpoints);
       const base = 'https://example.org/ext-auth/';
-      const config = AUTHORITY_DESCRIPTORS.reduce(
-        (value, descriptor, index) => ({ ...value, [descriptor.searchUrlConfigKey]: `search-${index}` }),
-        { extAuthBaseUrl: base },
-      );
 
-      component.config = config;
+      component.config = { extAuthBaseUrl: base };
 
       expect(setEndpoints).toHaveBeenCalledTimes(AUTHORITY_DESCRIPTORS.length);
-      AUTHORITY_DESCRIPTORS.forEach((descriptor, index) => {
+      for (const descriptor of AUTHORITY_DESCRIPTORS) {
         expect(setEndpoints).toHaveBeenCalledWith(
           descriptor.inputType,
-          `${base}search-${index}`,
+          `${base}${descriptor.searchPath}`,
           `${base}${descriptor.detailsPath}`,
         );
-      });
+      }
     });
   });
 

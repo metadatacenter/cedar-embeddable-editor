@@ -1,5 +1,3 @@
-import { AUTHORITY_DESCRIPTORS } from '../models/authority/authority-descriptor.model';
-
 /**
  * What CEE will say about a configuration a host handed it.
  *
@@ -43,16 +41,6 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
   languageMapPathPrefix: 'string',
 };
 
-/**
- * The per-authority search endpoint overrides, one per authority.
- *
- * Taken from the descriptors rather than matched by pattern, so `orcidIntegrated…`
- * is accepted and `orkidIntegrated…` is not. A pattern would have accepted both.
- */
-const AUTHORITY_KEYS: ReadonlySet<string> = new Set(
-  AUTHORITY_DESCRIPTORS.map((descriptor) => descriptor.searchUrlConfigKey),
-);
-
 /** Levenshtein distance, capped: only used to suggest a key the host probably meant. */
 const distance = (a: string, b: string): number => {
   const previous = Array.from({ length: b.length + 1 }, (_, i) => i);
@@ -70,7 +58,7 @@ const distance = (a: string, b: string): number => {
 
 /** The known key closest to an unknown one, when there is a plausible candidate. */
 const didYouMean = (key: string): string | null => {
-  const known = [...Object.keys(CONFIG_SCHEMA), ...AUTHORITY_KEYS];
+  const known = Object.keys(CONFIG_SCHEMA);
   let best: string | null = null;
   let bestDistance = Number.POSITIVE_INFINITY;
   for (const candidate of known) {
@@ -102,13 +90,6 @@ export const validateCeeConfig = (config: unknown): string[] => {
   const entries = Object.entries(config as Record<string, unknown>);
 
   for (const [key, value] of entries) {
-    if (AUTHORITY_KEYS.has(key)) {
-      if (typeof value !== 'string') {
-        problems.push(`Configuration key "${key}" expects a string, but was ${describe(value)}. Ignored.`);
-      }
-      continue;
-    }
-
     const expected = CONFIG_SCHEMA[key];
     if (expected === undefined) {
       const suggestion = didYouMean(key);

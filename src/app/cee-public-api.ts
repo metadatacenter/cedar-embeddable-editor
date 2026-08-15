@@ -25,15 +25,15 @@
  */
 
 /**
- * The external authorities CEE can look terms up in.
+ * A configuration key, as a type.
  *
- * Each contributes one configuration key, `<name>IntegratedExtAuthUrl`, which
- * overrides the search path appended to `extAuthBaseUrl`.
+ * Every key of `CeeConfig`, now that the interface is closed. It was
+ * `Exclude<keyof CeeConfig, number | symbol>`, which is what an index signature
+ * costs: `keyof` on an open interface is `string | number | symbol`, so the type
+ * of a key had to be narrowed back down by hand and named nothing more precise
+ * than "a string".
  */
-export type CeeAuthority = 'orcid' | 'ror' | 'pfas' | 'pmid' | 'rrid' | 'nihGrant' | 'doi';
-
-/** A configuration key, as a type. */
-export type CeeConfigKey = Exclude<keyof CeeConfig, number | symbol>;
+export type CeeConfigKey = keyof CeeConfig;
 
 /**
  * The configuration CEE accepts.
@@ -73,23 +73,23 @@ export interface CeeConfig {
   showDownloadMenu?: boolean;
 
   terminologyIntegratedSearchUrl?: string;
-  /** Base for authority lookups. Must end in a slash. */
+
+  /**
+   * Base for every external authority lookup. Must end in a slash.
+   *
+   * The whole of the authority surface. Each authority's search and details paths
+   * hang off this and are CEE's own — they address the bridge server, which this
+   * key identifies — so a deployment moves all fourteen endpoints by moving this,
+   * or none of them. Fourteen keys used to offer the paths one at a time, and
+   * every host that set one restated the default.
+   */
   extAuthBaseUrl?: string;
+
   iriPrefix?: string;
 
   defaultLanguage?: string;
   fallbackLanguage?: string;
   languageMapPathPrefix?: string;
-
-  /**
-   * Per-authority search endpoint overrides, `orcidIntegratedExtAuthUrl` and the
-   * like — seven of them, one per authority.
-   *
-   * An index signature rather than seven declarations, and it is the one place
-   * this interface stops catching typos. That is a deliberate trade: closing it
-   * would mean a host adding a future authority's key could not compile.
-   */
-  [authorityEndpoint: string]: unknown;
 }
 
 /** A JSON-serialisable value, as it appears in a CEDAR artifact. */
