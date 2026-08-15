@@ -37,7 +37,6 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
   terminologyIntegratedSearchUrl: 'string',
   extAuthBaseUrl: 'string',
   iriPrefix: 'string',
-  bioPortalPrefix: 'string',
 
   defaultLanguage: 'string',
   fallbackLanguage: 'string',

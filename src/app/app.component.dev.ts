@@ -29,7 +29,6 @@ export class AppDevComponent implements OnInit {
     fallbackLanguage: 'en',
 
     iriPrefix: 'https://repo.metadatacenter.orgx/',
-    bioPortalPrefix: 'https://bioportal.bioontology.org/ontologies/',
 
     readOnlyMode: false,
 

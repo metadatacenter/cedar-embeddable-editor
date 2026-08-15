@@ -77,7 +77,6 @@ export interface CeeConfig {
   /** Base for authority lookups. Must end in a slash. */
   extAuthBaseUrl?: string;
   iriPrefix?: string;
-  bioPortalPrefix?: string;
 
   defaultLanguage?: string;
   fallbackLanguage?: string;

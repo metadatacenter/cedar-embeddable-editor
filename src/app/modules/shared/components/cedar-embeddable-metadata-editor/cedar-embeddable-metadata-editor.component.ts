@@ -60,7 +60,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   static READ_ONLY_MODE: string = 'readOnlyMode';
 
   private static IRI_PREFIX = 'iriPrefix';
-  private static BIO_PORTAL_PREFIX = 'bioPortalPrefix';
 
   static EXT_AUTH_BASE_URL = 'extAuthBaseUrl';
 
@@ -146,9 +145,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_DESCRIPTION,
         this.showTemplateDescription,
       );
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.BIO_PORTAL_PREFIX)) {
-        this.iriPrefix.setBioPortalPrefix(String(value[CedarEmbeddableMetadataEditorComponent.BIO_PORTAL_PREFIX]));
-      }
 
       this.extAuthBaseUrl = configText(
         value,

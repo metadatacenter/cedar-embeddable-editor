@@ -36,6 +36,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **BREAKING.** `bioPortalPrefix`, and a broken link it half-governed. It was named as a prefix
+  and used as a base for the "read about this term" link out to BioPortal's web UI, which is
+  BioPortal's address rather than a deployment's to set. It governed only two of the three
+  constraint kinds that reach that link: a branch was linked through its own `source`, and
+  `source` is not a URL. Across the corpus a branch carries `"Medical Subject Headings (MESH)"`,
+  or the FDC-GDMT ontology's full name, or occasionally a bioportal.bioontology.org URL — so two
+  shapes out of three produced `Medical Subject Headings (MESH)?p=classes&conceptid=…`, a
+  relative link resolved against whatever page CEE was embedded in. Every kind is now built the
+  same way, from the acronym each reliably carries, and the acronym is escaped rather than
+  concatenated. The link moves to `bioPortalTermLink`, a plain function the harness covers
+  against the real constraint shapes, where nothing covered it before. `IriPrefix` is left
+  holding the one prefix that is genuinely a prefix.
+
 - **BREAKING.** `orcidPrefix` and `rorPrefix`. Neither was a prefix: nothing minted or built a
   URL from them, they recognised one. Each was interpolated straight into
   `new RegExp('^' + prefix)`, so every `.` in the configured URL matched any character and a

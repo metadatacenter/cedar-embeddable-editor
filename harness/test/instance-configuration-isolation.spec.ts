@@ -11,17 +11,13 @@ const messages = {
 };
 
 describe('editor-instance configuration isolation', () => {
-  it('keeps host-configurable link prefixes on separate instances', () => {
+  it('keeps the minting prefix on separate instances', () => {
     const first = new IriPrefix();
     const second = new IriPrefix();
 
-    first.setBioPortalPrefix('https://first.example/bioportal/');
-    second.setBioPortalPrefix('https://second.example/bioportal/');
     first.set('https://first.example/artifacts/');
     second.set('https://second.example/artifacts/');
 
-    expect(first.getBioPortalPrefix()).toBe('https://first.example/bioportal/');
-    expect(second.getBioPortalPrefix()).toBe('https://second.example/bioportal/');
     expect(first.get()).toBe('https://first.example/artifacts/');
     expect(second.get()).toBe('https://second.example/artifacts/');
   });

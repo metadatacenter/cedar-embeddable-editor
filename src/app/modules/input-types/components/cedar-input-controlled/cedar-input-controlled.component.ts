@@ -32,7 +32,7 @@ import { ControlledFieldDataService } from '../../../shared/service/controlled-f
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
-import { IriPrefix } from '../../../shared/util/iri-prefix';
+import { bioPortalTermLink } from '../../../shared/util/bioportal-term-link';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -89,7 +89,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     private activeComponentRegistry: ActiveComponentRegistryService,
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
-    private iriPrefix: IriPrefix,
   ) {
     super();
     this.options = fb.group({
@@ -272,29 +271,10 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    * function that formats the display text, and that function only runs in
    * read-only mode — so the link existed in one mode and not the other for no
    * reason anyone chose. The constraint the term came through decides which
-   * BioPortal path names it: a branch carries its own source, a class and an
-   * ontology are named under the configured prefix.
+   * Built from the constraint's acronym, in `bioPortalTermLink`.
    */
   get bioPortalTermLink(): string | null {
-    const iri = this.selectedData?.iri;
-    if (!iri) {
-      return null;
-    }
-
-    const { branches, classes, ontologies } = this.component.controlledInfo;
-    const term = '?p=classes&conceptid=' + encodeURIComponent(iri);
-    const prefix = this.iriPrefix.getBioPortalPrefix();
-
-    if (branches[0]) {
-      return branches[0].source + term;
-    }
-    if (classes[0]) {
-      return prefix + classes[0].source + term;
-    }
-    if (ontologies[0]) {
-      return prefix + ontologies[0].acronym + term;
-    }
-    return null;
+    return bioPortalTermLink(this.component.controlledInfo, this.selectedData?.iri);
   }
   clearValue(): void {
     this.selectedData = null;

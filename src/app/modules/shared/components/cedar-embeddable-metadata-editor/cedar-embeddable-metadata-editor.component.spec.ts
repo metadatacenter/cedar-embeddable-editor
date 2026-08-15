@@ -70,7 +70,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       expect(make().extAuthBaseUrl).toBe('https://bridge.metadatacenter.org/ext-auth/');
     });
 
-    it('keeps both IRI prefixes on this editor instance', () => {
+    it('keeps the IRI prefix on this editor instance', () => {
       const prefixes = new IriPrefix();
       const component = new CedarEmbeddableMetadataEditorComponent(
         null as unknown as ActiveComponentRegistryService,
@@ -87,11 +87,9 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
 
       component.config = {
         iriPrefix: 'https://example.org/artifacts/',
-        bioPortalPrefix: 'https://example.org/bioportal/',
       };
 
       expect(prefixes.get()).toBe('https://example.org/artifacts/');
-      expect(prefixes.getBioPortalPrefix()).toBe('https://example.org/bioportal/');
     });
 
     it('extAuthBaseUrl overrides the external-authority base URL', () => {
