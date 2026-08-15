@@ -32,8 +32,8 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
 
   showDownloadMenu: 'boolean',
 
-  terminologyIntegratedSearchUrl: 'string',
-  extAuthBaseUrl: 'string',
+  terminologyBaseUrl: 'string',
+  bridgeBaseUrl: 'string',
   iriPrefix: 'string',
 
   defaultLanguage: 'string',
@@ -116,11 +116,14 @@ export const validateCeeConfig = (config: unknown): string[] => {
 const combinationProblems = (config: Record<string, unknown>): string[] => {
   const problems: string[] = [];
 
-  // The reader appends an authority path to this, so a base without a trailing
-  // slash silently produces `…/ext-authorcid/search-by-name`.
-  const base = config['extAuthBaseUrl'];
-  if (typeof base === 'string' && base !== '' && !base.endsWith('/')) {
-    problems.push(`Configuration key "extAuthBaseUrl" must end in a slash, but was "${base}".`);
+  // Both keys name a CEDAR server and nothing below it, and CEE appends the path
+  // it knows. A base without a trailing slash silently produces
+  // `…/bridgeext-auth/orcid/…` or `…/terminologybioportal/integrated-search`.
+  for (const key of ['bridgeBaseUrl', 'terminologyBaseUrl']) {
+    const base = config[key];
+    if (typeof base === 'string' && base !== '' && !base.endsWith('/')) {
+      problems.push(`Configuration key "${key}" must end in a slash, but was "${base}".`);
+    }
   }
 
   return problems;

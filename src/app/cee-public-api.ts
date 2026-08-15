@@ -72,18 +72,37 @@ export interface CeeConfig {
    */
   showDownloadMenu?: boolean;
 
-  terminologyIntegratedSearchUrl?: string;
+  /**
+   * Base for controlled-term search. Must end in a slash.
+   *
+   * Identifies the CEDAR terminology server, and nothing below it: the search
+   * path hangs off this and is CEE's own. Unset, controlled fields offer no
+   * terms, and CEE says so once.
+   *
+   * This was `terminologyIntegratedSearchUrl` and took the endpoint whole, so
+   * every host spelled out `bioportal/integrated-search` — a route belonging to
+   * the terminology server, restated in four deployment configs that would all
+   * have to change together if it ever moved.
+   */
+  terminologyBaseUrl?: string;
 
   /**
    * Base for every external authority lookup. Must end in a slash.
    *
-   * The whole of the authority surface. Each authority's search and details paths
-   * hang off this and are CEE's own — they address the bridge server, which this
-   * key identifies — so a deployment moves all fourteen endpoints by moving this,
-   * or none of them. Fourteen keys used to offer the paths one at a time, and
-   * every host that set one restated the default.
+   * Identifies the CEDAR bridge server, and nothing below it: the fourteen
+   * endpoints behind the seven authority fields hang off this and are CEE's own,
+   * so a deployment moves all of them by moving this, or none of them. Fourteen
+   * keys used to offer the paths one at a time, and every host that set one
+   * restated the default.
+   *
+   * Unset, authority fields offer no terms and resolve no identifiers, and CEE
+   * says so once. There was a default — the production bridge — which a host
+   * embedding CEE anywhere else reached without asking and without knowing.
+   *
+   * This was `extAuthBaseUrl` and took the bridge server's `ext-auth/` resource
+   * root, the one path segment a host was still left spelling.
    */
-  extAuthBaseUrl?: string;
+  bridgeBaseUrl?: string;
 
   iriPrefix?: string;
 

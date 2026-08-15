@@ -7,7 +7,7 @@ import { ActiveComponentRegistryService } from '../../service/active-component-r
 import { InstanceSerializer } from '../../util/instance-serializer';
 import { InstanceDeserializer } from '../../util/instance-deserializer';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
-import { AUTHORITY_DESCRIPTORS } from '../../models/authority/authority-descriptor.model';
+import { AUTHORITY_DESCRIPTORS, EXTERNAL_AUTHORITY_PATH } from '../../models/authority/authority-descriptor.model';
 import { IriPrefix } from '../../util/iri-prefix';
 import { TemplateTrustService } from '../../service/template-trust.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
@@ -18,7 +18,7 @@ import { InstanceObject } from '../../models/instance-node.model';
 import { DOWNLOAD_ITEMS, DownloadItemId } from '../../models/ui/download-item.model';
 import { downloadContentFor, downloadFilenameFor } from '../../util/download-content';
 import { triggerDownload } from '../../util/trigger-download';
-import { CeeConfig, configFlag, configText } from '../../util/config-reader';
+import { baseUrl, CeeConfig, configFlag } from '../../util/config-reader';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -40,7 +40,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    */
   private static SHOW_DOWNLOAD_MENU = 'showDownloadMenu';
 
-  static TERMINOLOGY_INTEGRATED_SEARCH_URL = 'terminologyIntegratedSearchUrl';
+  static TERMINOLOGY_BASE_URL = 'terminologyBaseUrl';
 
   static FALLBACK_LANGUAGE = 'fallbackLanguage';
   static DEFAULT_LANGUAGE = 'defaultLanguage';
@@ -61,7 +61,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   private static IRI_PREFIX = 'iriPrefix';
 
-  static EXT_AUTH_BASE_URL = 'extAuthBaseUrl';
+  static BRIDGE_BASE_URL = 'bridgeBaseUrl';
 
   dataContext: DataContext | null = null;
   handlerContext: HandlerContext | null = null;
@@ -73,10 +73,16 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   showTemplateDescription: boolean = false;
   readOnlyMode: boolean = false;
 
-  // Embedders work against CEDAR's production bridge unless they explicitly
-  // point at another deployment. The standalone developer app overrides this
-  // with the local `.orgx` host in app.component.dev.ts.
-  extAuthBaseUrl: string = 'https://bridge.metadatacenter.org/ext-auth/';
+  /**
+   * Where the bridge server is, which only the host knows.
+   *
+   * No default, because every candidate is wrong somewhere: this held a `.orgx`
+   * hostname for a year, which resolved nowhere outside the machine it was
+   * written on, and then the production bridge, which a `.orgx` stack reached
+   * without asking. Unset means the lookups are off and CEE says so, rather than
+   * a deployment quietly talking to another one.
+   */
+  bridgeBaseUrl: string | null = null;
 
   private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
 
@@ -146,11 +152,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         this.showTemplateDescription,
       );
 
-      this.extAuthBaseUrl = configText(
-        value,
-        CedarEmbeddableMetadataEditorComponent.EXT_AUTH_BASE_URL,
-        this.extAuthBaseUrl,
-      );
+      this.bridgeBaseUrl = baseUrl(value, CedarEmbeddableMetadataEditorComponent.BRIDGE_BASE_URL);
 
       // Every external authority's two endpoints, in one loop.
       //
@@ -159,13 +161,22 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       // authority's own service. An eighth authority cost two more blocks, a new
       // service, and a new injected dependency here. Both paths now come from the
       // descriptor, so a host moves all fourteen endpoints together by moving
-      // `extAuthBaseUrl`, or none of them.
-      for (const descriptor of AUTHORITY_DESCRIPTORS) {
-        this.externalAuthorityLookupService.setEndpoints(
-          descriptor.inputType,
-          this.extAuthBaseUrl + descriptor.searchPath,
-          this.extAuthBaseUrl + descriptor.detailsPath,
-        );
+      // `bridgeBaseUrl`, or none of them — and the resource root they hang off is
+      // CEE's too, so what the host names is the server and nothing below it.
+      //
+      // Nothing is registered when the host names no bridge server, which is what
+      // makes an unconfigured lookup answer with no terms rather than with a
+      // request to whichever deployment the default happened to name.
+      const bridgeBaseUrl = this.bridgeBaseUrl;
+      if (bridgeBaseUrl !== null) {
+        const authorityRoot = bridgeBaseUrl + EXTERNAL_AUTHORITY_PATH;
+        for (const descriptor of AUTHORITY_DESCRIPTORS) {
+          this.externalAuthorityLookupService.setEndpoints(
+            descriptor.inputType,
+            authorityRoot + descriptor.searchPath,
+            authorityRoot + descriptor.detailsPath,
+          );
+        }
       }
 
       this.templateTrustService.setTrustTemplateRichText(

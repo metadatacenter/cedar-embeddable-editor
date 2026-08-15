@@ -7,7 +7,7 @@ import {
   ViewEncapsulation,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
+import { ControlledFieldDataService, INTEGRATED_SEARCH_PATH } from '../../service/controlled-field-data.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { CeeEventHandler } from '../../../../cee-public-api';
 import { Subject } from 'rxjs';
@@ -29,7 +29,7 @@ import { Overlay, OverlayContainer, OverlayPositionBuilder } from '@angular/cdk/
 import { CedarOverlayContainer } from '../../service/cedar-overlay-container.service';
 import { AriaDescriber } from '@angular/cdk/a11y';
 import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
-import { CeeConfig, configFlag, configText } from '../../util/config-reader';
+import { baseUrl, CeeConfig, configFlag, configText } from '../../util/config-reader';
 import { validateCeeConfig } from '../../util/config-validation';
 import { InstanceObject } from '../../models/instance-node.model';
 import { Template } from 'cedar-model-typescript-library';
@@ -359,13 +359,18 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
      * default it fell back to, which is what a host reading the console needs.
      */
     const config = this.innerConfig ?? {};
-    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
-      const integratedSearchUrl = configText(
-        config,
-        CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL,
-        '',
-      );
-      this.controlledFieldDataService.setTerminologyIntegratedSearchUrl(integratedSearchUrl);
+    /*
+     * The terminology server's base, with CEE appending the path it knows —
+     * the same shape `bridgeBaseUrl` takes in the editor component.
+     *
+     * The key used to carry the endpoint whole, so every host spelled out
+     * `bioportal/integrated-search`: the terminology server's own route,
+     * restated in four deployment configs. Unset, nothing is installed and the
+     * service reports that controlled-term search is off.
+     */
+    const terminologyBaseUrl = baseUrl(config, CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_BASE_URL);
+    if (terminologyBaseUrl !== null) {
+      this.controlledFieldDataService.setIntegratedSearchUrl(terminologyBaseUrl + INTEGRATED_SEARCH_PATH);
     }
     if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX)) {
       const languageMapPathPrefix = configText(

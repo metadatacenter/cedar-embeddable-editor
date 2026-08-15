@@ -29,7 +29,8 @@ describe('a configuration CEE can use', () => {
     expect(
       problemsFor({
         readOnlyMode: true,
-        extAuthBaseUrl: 'https://bridge.metadatacenter.org/ext-auth/',
+        bridgeBaseUrl: 'https://bridge.metadatacenter.org/',
+        terminologyBaseUrl: 'https://terminology.metadatacenter.org/',
         iriPrefix: 'https://repo.metadatacenter.org/',
         defaultLanguage: 'en',
       }),
@@ -54,7 +55,7 @@ describe('a key CEE does not know', () => {
   /**
    * The fourteen per-authority endpoint keys are gone: seven search paths and
    * seven details paths, each of which every host set to the value CEE already
-   * uses. Both now hang off `extAuthBaseUrl`, so a host still naming one is told
+   * uses. Both now hang off `bridgeBaseUrl`, so a host still naming one is told
    * it is no longer read rather than left to assume it works.
    */
   it.each([['orcidIntegratedExtAuthUrl'], ['orcidIntegratedDetailsUrl'], ['nihGrantIntegratedExtAuthUrl']])(
@@ -76,8 +77,9 @@ describe('a key set to the wrong kind of value', () => {
     expect(oneProblem({ iriPrefix: null })).toContain('but was null');
   });
 
-  it('checks the authority base URL is a string', () => {
-    expect(oneProblem({ extAuthBaseUrl: 7 })).toContain('expects a string, but was number');
+  it('checks a server base URL is a string', () => {
+    expect(oneProblem({ bridgeBaseUrl: 7 })).toContain('expects a string, but was number');
+    expect(oneProblem({ terminologyBaseUrl: 7 })).toContain('expects a string, but was number');
   });
 });
 
@@ -96,14 +98,19 @@ describe('settings that are each valid and wrong together', () => {
    * How CEE already behaves, discoverable only by setting something and watching
    * nothing happen.
    */
-  it('reports an authority base URL with no trailing slash', () => {
-    expect(oneProblem({ extAuthBaseUrl: 'https://bridge.metadatacenter.org/ext-auth' })).toContain(
-      'must end in a slash',
-    );
+  it.each([['bridgeBaseUrl'], ['terminologyBaseUrl']])('reports %s with no trailing slash', (key) => {
+    expect(oneProblem({ [key]: 'https://bridge.metadatacenter.org/ext-auth' })).toContain('must end in a slash');
   });
 
-  it('accepts an empty base URL, which means "use the default"', () => {
-    expect(problemsFor({ extAuthBaseUrl: '' })).toEqual([]);
+  /**
+   * Empty means the host named no server, which turns that lookup off.
+   *
+   * Not a problem to report here: the service that would have used it says so
+   * once, when a field actually asks, and names the key. This used to mean "use
+   * the default", back when there was one to fall back to.
+   */
+  it.each([['bridgeBaseUrl'], ['terminologyBaseUrl']])('accepts an empty %s', (key) => {
+    expect(problemsFor({ [key]: '' })).toEqual([]);
   });
 });
 

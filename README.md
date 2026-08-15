@@ -256,15 +256,23 @@ customElements.whenDefined('cedar-embeddable-editor').then(async () => {
 
 ### Required configuration parameters
 
-One key has no useful default:
+Two keys name the CEDAR services CEE calls, and neither has a default. CEE cannot
+know which deployment it is embedded in, and a default would name one — so a key
+left unset turns its lookups off and CEE reports which key is missing, rather than
+sending a host's users' keystrokes to somebody else's server.
 
-* **terminologyIntegratedSearchUrl:** the URL of the CEDAR integrated search endpoint
-  that communicates with BioPortal. `https://terminology.metadatacenter.org/bioportal/integrated-search`
-  works for most applications.
+Both are bases and both must end in a slash. Every path below them is CEE's own.
+
+* **terminologyBaseUrl:** the CEDAR terminology server, which searches BioPortal.
+  Unset, controlled fields offer no terms.
+* **bridgeBaseUrl:** the CEDAR bridge server, which reaches the external
+  authorities. Unset, the seven authority fields offer no terms and resolve no
+  identifiers.
 
 ```json
 {
-  "terminologyIntegratedSearchUrl": "https://terminology.metadatacenter.org/bioportal/integrated-search"
+  "terminologyBaseUrl": "https://terminology.metadatacenter.org/",
+  "bridgeBaseUrl": "https://bridge.metadatacenter.org/"
 }
 ```
 
@@ -337,21 +345,13 @@ Language, and the IRI prefixes CEE recognises or mints:
 or is sanitized first. It defaults to `false` and should stay there unless your
 application controls which templates load — see [Embedding security](#embedding-security).
 
-External-authority fields (ORCID, ROR, PFAS, PubMed, RRID, NIH Grant and DOI)
-use CEDAR's production bridge by default. A host using another CEDAR deployment
-can override the base URL; it must include a trailing slash:
-
-```json
-{
-  "extAuthBaseUrl": "https://bridge.metadatacenter.org/ext-auth/"
-}
-```
-
-That base is the whole of the surface. CEE appends the path for the authority a
-field is bound to: a search path for a name typed into it, and a details path
-for an identifier pasted into it. The paths are the bridge server's own routes,
-so they are not configurable — a deployment moves all fourteen endpoints by
-moving the base, or none of them.
+`bridgeBaseUrl` is the whole of the external-authority surface, covering the
+seven authorities: ORCID, ROR, PFAS, PubMed, RRID, NIH Grant and DOI. CEE appends
+the bridge server's `ext-auth/` resource, then the path for the authority a field
+is bound to — a search path for a name typed into it, and a details path for an
+identifier pasted into it. All of that is the bridge server's own route shape, so
+none of it is configurable: a deployment moves all fourteen endpoints by moving
+the base, or none of them.
 
 | Authority | Search path | Details path |
 |---|---|---|

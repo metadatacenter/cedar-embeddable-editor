@@ -23,7 +23,7 @@ export class AppDevComponent implements OnInit {
     showTemplateDescription: true,
     showDownloadMenu: true,
 
-    terminologyIntegratedSearchUrl: 'https://terminology.metadatacenter.orgx/bioportal/integrated-search',
+    terminologyBaseUrl: 'https://terminology.metadatacenter.orgx/',
     languageMapPathPrefix: '/assets/i18n-cee/',
     defaultLanguage: 'en',
     fallbackLanguage: 'en',
@@ -32,7 +32,7 @@ export class AppDevComponent implements OnInit {
 
     readOnlyMode: false,
 
-    extAuthBaseUrl: 'https://bridge.metadatacenter.orgx/ext-auth/',
+    bridgeBaseUrl: 'https://bridge.metadatacenter.orgx/',
   };
 
   languages = {

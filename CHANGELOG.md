@@ -29,6 +29,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING.** A host names two CEDAR servers and nothing below them. `terminologyIntegratedSearchUrl`
+  becomes `terminologyBaseUrl` and `extAuthBaseUrl` becomes `bridgeBaseUrl`, each taking a server
+  alone, with CEE appending the routes: `bioportal/integrated-search` on one side, `ext-auth/` and
+  the seven authorities' fourteen paths on the other. Those routes belong to the servers they
+  address, and hosts had been spelling them out — the terminology endpoint whole, and the bridge's
+  `ext-auth/` segment — so they stood written in four deployment configs that would have had to
+  change together.
+
+  Neither key has a default now. `extAuthBaseUrl` held a `.orgx` hostname for a year, which resolved
+  nowhere off the machine it was written on, and then the production bridge, which the two frontends
+  that never set the key reached from a local stack without asking or knowing.
+
+  Both bases must end in a slash, and both are validated for it. Unset, each turns its lookups off
+  and CEE reports which key is missing, once, rather than a form of working-looking fields that find
+  nothing. That replaces two different silences: controlled-term search returned an empty result
+  indistinguishable from a term nobody has, and an authority field threw on every keystroke — right
+  while endpoints were always registered from a default, and wrong once their absence became the
+  ordinary case of a host that configured no lookups.
+
 - **BREAKING.** The eight diagnostic panels become a download menu, behind one key.
   `showDownloadMenu` replaces sixteen: eight `show…` keys and their eight `expanded…`
   partners. It defaults to `false`, where `showTemplateSourceData` and `showInstanceDataFull`
@@ -57,11 +76,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - **BREAKING.** All fourteen per-authority endpoint keys, `<name>IntegratedExtAuthUrl` and
-  `<name>IntegratedDetailsUrl`. Each named a path appended to `extAuthBaseUrl` — the search
+  `<name>IntegratedDetailsUrl`. Each named a path appended to the bridge server's base — the search
   path for a name typed into the field, the details path for an identifier pasted into it —
   and every host that set one set the value CEE already uses, with NIH Grant's and DOI's
   never named by any host at all. The paths are the bridge server's routes, which
-  `extAuthBaseUrl` already identifies, so a host free to move them could only move them
+  `bridgeBaseUrl` already identifies, so a host free to move them could only move them
   somewhere nothing answers. Both endpoints are unchanged and still used: pasting an ORCID,
   a DOI or a PubMed ID resolves through the details path rather than running a name search.
   A deployment now moves all fourteen endpoints by moving the base URL, or none of them, and

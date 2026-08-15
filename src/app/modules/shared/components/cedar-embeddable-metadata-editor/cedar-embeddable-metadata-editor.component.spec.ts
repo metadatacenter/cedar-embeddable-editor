@@ -66,8 +66,16 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
   });
 
   describe('typed (non-boolean) config values', () => {
-    it('defaults external-authority lookups to the production CEDAR bridge', () => {
-      expect(make().extAuthBaseUrl).toBe('https://bridge.metadatacenter.org/ext-auth/');
+    /**
+     * No default, because CEE cannot know which deployment it is embedded in.
+     *
+     * This field held a `.orgx` hostname for a year and then the production
+     * bridge, and both were wrong for somebody: the first resolved nowhere off
+     * the machine it was written on, and the second sent a local stack's
+     * authority lookups to production without the host asking or knowing.
+     */
+    it('names no bridge server of its own', () => {
+      expect(make().bridgeBaseUrl).toBeNull();
     });
 
     it('keeps the IRI prefix on this editor instance', () => {
@@ -92,41 +100,63 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       expect(prefixes.get()).toBe('https://example.org/artifacts/');
     });
 
-    it('extAuthBaseUrl overrides the external-authority base URL', () => {
+    it('bridgeBaseUrl names the bridge server, and nothing below it', () => {
       const component = make();
-      component.config = { extAuthBaseUrl: 'https://example.org/ext-auth/' };
-      expect(component.extAuthBaseUrl).toBe('https://example.org/ext-auth/');
+      component.config = { bridgeBaseUrl: 'https://example.org/' };
+      expect(component.bridgeBaseUrl).toBe('https://example.org/');
     });
 
-    it('configures both endpoints for every authority, from the base URL alone', () => {
+    /**
+     * A host that names no bridge server gets no endpoints, rather than fourteen
+     * relative ones.
+     *
+     * Concatenating an absent base would leave `orcid/search-by-name`, which
+     * `HttpClient` resolves against the embedding page — so an unconfigured
+     * lookup would fire a request per keystroke at the host's own origin. Both
+     * frontends that never set this key are served from origins that answer such
+     * a path with a 404.
+     */
+    it('registers no endpoints when the host names no bridge server', () => {
       const setEndpoints = vi.fn();
       const component = make(setEndpoints);
 
       component.config = {};
 
-      expect(setEndpoints).toHaveBeenCalledTimes(AUTHORITY_DESCRIPTORS.length);
-      for (const descriptor of AUTHORITY_DESCRIPTORS) {
-        expect(setEndpoints).toHaveBeenCalledWith(
-          descriptor.inputType,
-          component.extAuthBaseUrl + descriptor.searchPath,
-          component.extAuthBaseUrl + descriptor.detailsPath,
-        );
-      }
+      expect(setEndpoints).not.toHaveBeenCalled();
+      expect(component.bridgeBaseUrl).toBeNull();
     });
 
-    it('moves all fourteen endpoints when the base URL moves', () => {
+    it('treats an empty base URL as no base URL', () => {
       const setEndpoints = vi.fn();
       const component = make(setEndpoints);
-      const base = 'https://example.org/ext-auth/';
 
-      component.config = { extAuthBaseUrl: base };
+      component.config = { bridgeBaseUrl: '' };
+
+      expect(setEndpoints).not.toHaveBeenCalled();
+      expect(component.bridgeBaseUrl).toBeNull();
+    });
+
+    /**
+     * The host names a server; CEE builds all fourteen URLs under it.
+     *
+     * Both segments below the base are CEE's own — the bridge server's
+     * external-authority resource, and then the authority's own two paths — so
+     * the assertion spells the whole URL rather than trusting the constants that
+     * built it. A host that had to supply `…/ext-auth/` was still restating one
+     * of them, in four deployment configs.
+     */
+    it('builds every endpoint under the base the host named', () => {
+      const setEndpoints = vi.fn();
+      const component = make(setEndpoints);
+
+      component.config = { bridgeBaseUrl: 'https://example.org/' };
 
       expect(setEndpoints).toHaveBeenCalledTimes(AUTHORITY_DESCRIPTORS.length);
       for (const descriptor of AUTHORITY_DESCRIPTORS) {
         expect(setEndpoints).toHaveBeenCalledWith(
           descriptor.inputType,
-          `${base}${descriptor.searchPath}`,
-          `${base}${descriptor.detailsPath}`,
+          `https://example.org/ext-auth/${descriptor.searchPath}`,
+          `https://example.org/ext-auth/${descriptor.detailsPath}`,
         );
       }
     });

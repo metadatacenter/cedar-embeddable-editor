@@ -200,7 +200,7 @@ one stable:
 3. **A DOM-settled poll, then a re-settle after fonts.** The host page sets
    `window.__ceeReady` only once both have quiesced; tests wait on that flag
    rather than a fixed timeout.
-4. **No network.** `terminologyIntegratedSearchUrl` points at an unreachable
+4. **No network.** `terminologyBaseUrl` points at an unreachable
    port on purpose. The baseline must never depend on a live terminology
    server, and autocomplete panels are not screenshotted.
 

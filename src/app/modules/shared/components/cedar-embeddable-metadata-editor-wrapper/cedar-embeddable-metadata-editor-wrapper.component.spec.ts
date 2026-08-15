@@ -2,7 +2,7 @@ import { type Mock, vi } from 'vitest';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper.component';
 import { ElementRef } from '@angular/core';
 import { IriPrefix } from '../../util/iri-prefix';
-import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
+import { ControlledFieldDataService, INTEGRATED_SEARCH_PATH } from '../../service/controlled-field-data.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
@@ -25,7 +25,7 @@ const expectCalledOnceWith = (spy: Mock, ...args: unknown[]): void => {
 
 describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
   interface Mocks {
-    setTerminologyIntegratedSearchUrl: Mock;
+    setIntegratedSearchUrl: Mock;
     setDefaultLang: Mock;
     use: Mock;
     clearRegistry: Mock;
@@ -34,7 +34,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
 
   const make = (): { component: CedarEmbeddableMetadataEditorWrapperComponent; mocks: Mocks } => {
     const mocks: Mocks = {
-      setTerminologyIntegratedSearchUrl: vi.fn(),
+      setIntegratedSearchUrl: vi.fn(),
       setDefaultLang: vi.fn(),
       use: vi.fn(),
       clearRegistry: vi.fn(),
@@ -49,7 +49,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     const component = new CedarEmbeddableMetadataEditorWrapperComponent(
       new ElementRef(document.createElement('cedar-embeddable-editor')),
       {
-        setTerminologyIntegratedSearchUrl: mocks.setTerminologyIntegratedSearchUrl,
+        setIntegratedSearchUrl: mocks.setIntegratedSearchUrl,
       } as unknown as ControlledFieldDataService,
       messaging as unknown as MessageHandlerService,
       { clear: mocks.clearRegistry } as unknown as ActiveComponentRegistryService,
@@ -63,7 +63,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
 
   it('applies config identically whether Angular supplies it before or after ngOnInit', () => {
     const config = {
-      terminologyIntegratedSearchUrl: '/terminology/search',
+      terminologyBaseUrl: '/terminology/',
       languageMapPathPrefix: '/languages/',
       fallbackLanguage: 'fr',
       defaultLanguage: 'hu',
@@ -78,7 +78,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     after.component.config = config;
 
     for (const candidate of [before, after]) {
-      expectCalledOnceWith(candidate.mocks.setTerminologyIntegratedSearchUrl, '/terminology/search');
+      expectCalledOnceWith(candidate.mocks.setIntegratedSearchUrl, '/terminology/' + INTEGRATED_SEARCH_PATH);
       expect(candidate.mocks.globalSettings.languageMapPathPrefix).toBe('/languages/');
       expectCalledOnceWith(candidate.mocks.setDefaultLang, 'fr');
       expectCalledOnceWith(candidate.mocks.use, 'hu');
@@ -148,7 +148,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined, error: errors };
     const component = new CedarEmbeddableMetadataEditorWrapperComponent(
       new ElementRef(document.createElement('cedar-embeddable-editor')),
-      { setTerminologyIntegratedSearchUrl: vi.fn() } as unknown as ControlledFieldDataService,
+      { setIntegratedSearchUrl: vi.fn() } as unknown as ControlledFieldDataService,
       messaging as unknown as MessageHandlerService,
       { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
       { setDefaultLang: vi.fn(), use: vi.fn() } as unknown as TranslateService,

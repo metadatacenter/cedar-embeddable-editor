@@ -358,11 +358,11 @@ test.describe('multiple editor instances', () => {
 
     await openTwoEditors(page, '08-authority');
     const authorityRequest = page.waitForRequest((request) =>
-      request.url().includes('/isolation/first/authority/comp-tox/search-by-name'),
+      request.url().includes('/isolation/first/ext-auth/comp-tox/search-by-name'),
     );
     await page.locator('#editor-first input[aria-label="chemical_pfas"]').pressSequentially('chemical', { delay: 40 });
     await passDebounceWindow(page);
-    expect((await authorityRequest).url()).toContain('/isolation/first/authority/comp-tox/search-by-name');
+    expect((await authorityRequest).url()).toContain('/isolation/first/ext-auth/comp-tox/search-by-name');
   });
 });
 
@@ -2554,7 +2554,7 @@ test.describe('external authority endpoints', () => {
   for (const { label, authority } of FIELDS) {
     test(`${label} searches the ${authority} endpoint`, async ({ page }) => {
       const asked: string[] = [];
-      await page.route('**/authority/**', async (route) => {
+      await page.route('**/ext-auth/**', async (route) => {
         asked.push(route.request().url());
         await route.fulfill({
           status: 200,
@@ -2579,7 +2579,7 @@ test.describe('external authority endpoints', () => {
         expect(asked.length, `${label} issued no search request`).toBeGreaterThan(0);
       }).toPass({ timeout: 5000 });
 
-      const wrong = asked.filter((u) => !u.includes(`/authority/${authority}/`));
+      const wrong = asked.filter((u) => !u.includes(`/ext-auth/${authority}/`));
       expect(wrong, `${label} asked another authority's endpoint`).toEqual([]);
       expect(
         asked.some((u) => u.includes('q=probe')),
@@ -2620,7 +2620,7 @@ test.describe('external authority endpoints', () => {
     test(`${name}: a returned term can be selected and reaches the host metadata`, async ({ page }) => {
       const id = `https://example.org/${authority}/DETERMINISTIC-1`;
       const label = `Deterministic ${name} result`;
-      await page.route(`**/authority/${authority}/search**`, async (route) => {
+      await page.route(`**/ext-auth/${authority}/search**`, async (route) => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -2703,7 +2703,9 @@ test.describe('controlled terminology selection', () => {
   test('a returned term can be selected and reaches the host metadata', async ({ page }) => {
     const id = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
     const label = 'Homo sapiens';
-    await page.route('http://127.0.0.1:9/unused', async (route) => {
+    // The harness sets `terminologyBaseUrl` to the discard port; CEE appends the
+    // search path, which is its own and not the host's to move.
+    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -2745,7 +2747,7 @@ test.describe('controlled terminology selection', () => {
   test('a chosen term keeps its field, and offers BioPortal as a suffix link', async ({ page }) => {
     const id = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
     const label = 'Homo sapiens';
-    await page.route('http://127.0.0.1:9/unused', async (route) => {
+    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',

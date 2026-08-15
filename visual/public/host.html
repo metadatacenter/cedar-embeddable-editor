@@ -88,11 +88,11 @@
                 fallbackLanguage: 'en',
                 languageMapPathPrefix: `./served/languages/${owner}/`,
                 iriPrefix: `https://${owner}.example/`,
-                terminologyIntegratedSearchUrl: `http://127.0.0.1:9/isolation/${owner}/terminology`,
+                terminologyBaseUrl: `http://127.0.0.1:9/isolation/${owner}/terminology/`,
                 // Every authority endpoint hangs off this, so pointing it at the discard
                 // port is what keeps every authority request on the machine — and what
                 // makes them per-owner, which is what the isolation test reads.
-                extAuthBaseUrl: `http://127.0.0.1:9/isolation/${owner}/authority/`,
+                bridgeBaseUrl: `http://127.0.0.1:9/isolation/${owner}/`,
               };
               return config;
             };
@@ -115,7 +115,7 @@
               defaultLanguage: 'en',
               fallbackLanguage: 'en',
               languageMapPathPrefix: params.get('prefix') || './served/languages/',
-              terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
+              terminologyBaseUrl: 'http://127.0.0.1:9/unused/',
             };
           } else {
             window.__ceeError = `unknown ?host= route: ${hostRoute}`;
@@ -164,7 +164,7 @@
           // Deliberately unreachable: the visual baseline must never depend on
           // a live terminology server. Lookup spinners are not screenshotted
           // for the same reason — they only appear mid-request.
-          terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
+          terminologyBaseUrl: 'http://127.0.0.1:9/unused/',
         };
 
         /**
@@ -180,7 +180,7 @@
          * intercepted by the test and never leave the machine. Which is the same reason
          * `base` points the terminology server there.
          */
-        const AUTHORITY_ENDPOINTS = { extAuthBaseUrl: 'http://127.0.0.1:9/authority/' };
+        const AUTHORITY_ENDPOINTS = { bridgeBaseUrl: 'http://127.0.0.1:9/' };
 
         const PRESETS = {
           base,

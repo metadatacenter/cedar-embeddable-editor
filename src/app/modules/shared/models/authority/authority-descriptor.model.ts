@@ -42,8 +42,8 @@ export interface AuthorityDescriptor {
   looksLikeIdentifier(text: string): boolean;
 
   /**
-   * This authority's two endpoints under `extAuthBaseUrl`: the search path, and
-   * the path an identifier is resolved through.
+   * This authority's two endpoints under `EXTERNAL_AUTHORITY_PATH`: the search
+   * path, and the path an identifier is resolved through.
    *
    * Here because the editor component had fourteen identical blocks — read the
    * key, fall back to a default, prepend the base URL, hand it to that
@@ -52,14 +52,24 @@ export interface AuthorityDescriptor {
    *
    * Neither is configurable. Both were, through fourteen host keys, and every
    * host that set one set the value below — CEE's own default, restated. The
-   * paths are the bridge server's, and `extAuthBaseUrl` already identifies that
-   * service: `/ext-auth/<authority>/search-by-name` and `/ext-auth/<authority>/<id>`
-   * are how it is addressed, so a host free to move them could only move them
-   * somewhere nothing answers.
+   * paths are the bridge server's, and `bridgeBaseUrl` identifies that server, so
+   * a host free to move them could only move them somewhere nothing answers.
    */
   readonly searchPath: string;
   readonly detailsPath: string;
 }
+
+/**
+ * The bridge server's external-authority resource, under whatever base a host
+ * names.
+ *
+ * CEE's, like the paths below it. It reached CEE inside the host's own key for as
+ * long as that key was `extAuthBaseUrl` and had to be given as
+ * `https://bridge.<domain>/ext-auth/` — one segment of the bridge server's own
+ * route shape, spelled out in every deployment config, which is what
+ * `bioportal/integrated-search` was on the terminology side.
+ */
+export const EXTERNAL_AUTHORITY_PATH = 'ext-auth/';
 
 /**
  * Recognise an identifier by pattern, which is how all seven do it.

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, timer } from 'rxjs';
+import { EMPTY, Observable, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { InputType } from '../models/input-type.model';
 import {
@@ -8,6 +8,7 @@ import {
   AuthoritySearchResponse,
   AuthorityTerm,
 } from '../models/authority/authority-search-response.model';
+import { MessageHandlerService } from './message-handler.service';
 
 /** Where one authority's two endpoints live. Set from the host page's config. */
 interface AuthorityEndpoints {
@@ -55,8 +56,12 @@ interface AuthoritySearchPayload {
 })
 export class ExternalAuthorityLookupService {
   private endpoints = new Map<InputType, AuthorityEndpoints>();
+  private reportedUnconfigured = false;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private messageHandlerService: MessageHandlerService,
+  ) {}
 
   setEndpoints(inputType: InputType, searchUrl: string, detailsUrl: string): void {
     this.endpoints.set(inputType, { searchUrl, detailsUrl });
@@ -72,6 +77,9 @@ export class ExternalAuthorityLookupService {
    */
   search(inputType: InputType, query: string): Observable<AuthoritySearchResponse> {
     const url = this.searchUrlFor(inputType);
+    if (url === null) {
+      return EMPTY;
+    }
     const params = new HttpParams().set('q', query);
     const randomDelay = Math.floor(Math.random() * 500);
 
@@ -98,6 +106,9 @@ export class ExternalAuthorityLookupService {
    */
   resolve<T = AuthorityDetailResponse>(inputType: InputType, id: string): Observable<T> {
     const url = this.detailsUrlFor(inputType);
+    if (url === null) {
+      return EMPTY;
+    }
     return this.http.get<T>(`${url}/${encodeURIComponent(id)}`, {});
   }
 
@@ -130,22 +141,43 @@ export class ExternalAuthorityLookupService {
     }));
   }
 
-  private searchUrlFor(inputType: InputType): string {
-    return this.endpointsFor(inputType).searchUrl;
+  private searchUrlFor(inputType: InputType): string | null {
+    return this.endpointsFor(inputType)?.searchUrl ?? null;
   }
 
-  private detailsUrlFor(inputType: InputType): string {
-    return this.endpointsFor(inputType).detailsUrl;
+  private detailsUrlFor(inputType: InputType): string | null {
+    return this.endpointsFor(inputType)?.detailsUrl ?? null;
   }
 
-  private endpointsFor(inputType: InputType): AuthorityEndpoints {
+  /**
+   * One authority's endpoints, or nothing when the host named no bridge server.
+   *
+   * This threw, which was right while the base URL had a default: endpoints
+   * were always registered, so their absence could only mean a widget had asked
+   * for an input type that is not an authority. With no default the same absence
+   * is the ordinary case of a host that did not configure the lookups, and an
+   * exception per keystroke is not how CEE reports a missing key — the
+   * controlled-term search has answered the same situation with no terms and one
+   * message all along.
+   */
+  private endpointsFor(inputType: InputType): AuthorityEndpoints | null {
     const found = this.endpoints.get(inputType);
     if (!found) {
-      // A widget rendering with no endpoints is a configuration mistake, and it
-      // used to surface as a request to `undefined`. Naming the type is more use
-      // than a 404.
-      throw new Error(`No external authority endpoints configured for input type "${inputType}"`);
+      this.reportUnconfigured(inputType);
+      return null;
     }
     return found;
+  }
+
+  /** Say once that the authority lookups are off, and why. */
+  private reportUnconfigured(inputType: InputType): void {
+    if (this.reportedUnconfigured) {
+      return;
+    }
+    this.reportedUnconfigured = true;
+    this.messageHandlerService.error(
+      `CEDAR Embeddable Editor: external authority lookups are off, so the "${inputType}" field offers no terms, ` +
+        'because "bridgeBaseUrl" is not configured. Set it to the CEDAR bridge server, ending in a slash.',
+    );
   }
 }
