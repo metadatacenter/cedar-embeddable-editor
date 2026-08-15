@@ -89,13 +89,13 @@
                 languageMapPathPrefix: `./served/languages/${owner}/`,
                 iriPrefix: `https://${owner}.example/`,
                 terminologyIntegratedSearchUrl: `http://127.0.0.1:9/isolation/${owner}/terminology`,
-                extAuthBaseUrl: '',
+                // Both authority endpoints hang off this, so pointing it at the discard
+                // port is what keeps every authority request on the machine. The search
+                // paths below are relative to it, and the details path is CEE's own.
+                extAuthBaseUrl: `http://127.0.0.1:9/isolation/${owner}/authority/`,
               };
               for (const authority of ['orcid', 'ror', 'pfas', 'pmid', 'rrid', 'nihGrant', 'doi']) {
-                config[`${authority}IntegratedExtAuthUrl`] =
-                  `http://127.0.0.1:9/isolation/${owner}/authority/${authority}/search`;
-                config[`${authority}IntegratedDetailsUrl`] =
-                  `http://127.0.0.1:9/isolation/${owner}/authority/${authority}/details`;
+                config[`${authority}IntegratedExtAuthUrl`] = `${authority}/search`;
               }
               return config;
             };
@@ -184,10 +184,9 @@
          * intercepted by the test and never leave the machine. Which is the same reason
          * `base` points the terminology server there.
          */
-        const AUTHORITY_ENDPOINTS = {};
+        const AUTHORITY_ENDPOINTS = { extAuthBaseUrl: 'http://127.0.0.1:9/authority/' };
         for (const name of ['orcid', 'ror', 'pfas', 'pmid', 'rrid', 'nihGrant', 'doi']) {
-          AUTHORITY_ENDPOINTS[`${name}IntegratedExtAuthUrl`] = `http://127.0.0.1:9/authority/${name}/search`;
-          AUTHORITY_ENDPOINTS[`${name}IntegratedDetailsUrl`] = `http://127.0.0.1:9/authority/${name}/details`;
+          AUTHORITY_ENDPOINTS[`${name}IntegratedExtAuthUrl`] = `${name}/search`;
         }
 
         const PRESETS = {

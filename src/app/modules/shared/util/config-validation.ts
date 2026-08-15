@@ -44,13 +44,13 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
 };
 
 /**
- * The per-authority endpoint overrides.
+ * The per-authority search endpoint overrides, one per authority.
  *
  * Taken from the descriptors rather than matched by pattern, so `orcidIntegrated…`
  * is accepted and `orkidIntegrated…` is not. A pattern would have accepted both.
  */
 const AUTHORITY_KEYS: ReadonlySet<string> = new Set(
-  AUTHORITY_DESCRIPTORS.flatMap((descriptor) => [descriptor.searchUrlConfigKey, descriptor.detailsUrlConfigKey]),
+  AUTHORITY_DESCRIPTORS.map((descriptor) => descriptor.searchUrlConfigKey),
 );
 
 /** Levenshtein distance, capped: only used to suggest a key the host probably meant. */

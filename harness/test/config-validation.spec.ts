@@ -31,7 +31,7 @@ describe('a configuration CEE can use', () => {
         readOnlyMode: true,
         extAuthBaseUrl: 'https://bridge.metadatacenter.org/ext-auth/',
         orcidIntegratedExtAuthUrl: 'orcid/search-by-name',
-        nihGrantIntegratedDetailsUrl: 'nih-grant',
+        nihGrantIntegratedExtAuthUrl: 'nih-grant/search-by-name',
         defaultLanguage: 'en',
       }),
     ).toEqual([]);
@@ -60,6 +60,17 @@ describe('a key CEE does not know', () => {
   it('catches a misspelled authority endpoint', () => {
     expect(oneProblem({ orkidIntegratedExtAuthUrl: 'x' })).toContain('Unknown configuration key');
   });
+
+  /**
+   * The seven `<name>IntegratedDetailsUrl` keys are gone. Every host that set one
+   * set the path CEE already uses, so nothing moves for them — but a host still
+   * naming the key is told it is no longer read rather than left to assume it is.
+   */
+  it('reports a retired details endpoint key', () => {
+    expect(oneProblem({ orcidIntegratedDetailsUrl: 'orcid' })).toContain(
+      'Unknown configuration key "orcidIntegratedDetailsUrl"',
+    );
+  });
 });
 
 describe('a key set to the wrong kind of value', () => {
@@ -74,7 +85,7 @@ describe('a key set to the wrong kind of value', () => {
   });
 
   it('checks authority endpoints are strings', () => {
-    expect(oneProblem({ rorIntegratedDetailsUrl: 7 })).toContain('expects a string, but was number');
+    expect(oneProblem({ rorIntegratedExtAuthUrl: 7 })).toContain('expects a string, but was number');
   });
 });
 

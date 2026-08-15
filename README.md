@@ -347,21 +347,19 @@ can override the base URL; it must include a trailing slash:
 }
 ```
 
-CEE appends an authority-specific search or details path to this base. Those
-paths can also be overridden independently with the following configuration
-keys:
+CEE appends an authority-specific path to this base: a search path for a name
+typed into the field, and a details path for an identifier pasted into it. The
+search path can be overridden per authority; the details path is fixed.
 
-| Authority | Search path key | Details path key | Default paths |
+| Authority | Search path key | Default search path | Details path |
 |---|---|---|---|
-| ORCID | `orcidIntegratedExtAuthUrl` | `orcidIntegratedDetailsUrl` | `orcid/search-by-name`, `orcid` |
-| ROR | `rorIntegratedExtAuthUrl` | `rorIntegratedDetailsUrl` | `ror/search-by-name`, `ror` |
-| PFAS | `pfasIntegratedExtAuthUrl` | `pfasIntegratedDetailsUrl` | `comp-tox/search-by-name`, `comp-tox` |
-| PubMed | `pmidIntegratedExtAuthUrl` | `pmidIntegratedDetailsUrl` | `pmid/search-by-name`, `pmid` |
-| RRID | `rridIntegratedExtAuthUrl` | `rridIntegratedDetailsUrl` | `rrid/search-by-name`, `rrid` |
-| NIH Grant | `nihGrantIntegratedExtAuthUrl` | `nihGrantIntegratedDetailsUrl` | `nih-grant/search-by-name`, `nih-grant` |
-| DOI | `doiIntegratedExtAuthUrl` | `doiIntegratedDetailsUrl` | `doi/search-by-name`, `doi` |
-
-Enabling of hiding empty fields is only possible in read-only mode.
+| ORCID | `orcidIntegratedExtAuthUrl` | `orcid/search-by-name` | `orcid` |
+| ROR | `rorIntegratedExtAuthUrl` | `ror/search-by-name` | `ror` |
+| PFAS | `pfasIntegratedExtAuthUrl` | `comp-tox/search-by-name` | `comp-tox` |
+| PubMed | `pmidIntegratedExtAuthUrl` | `pmid/search-by-name` | `pmid` |
+| RRID | `rridIntegratedExtAuthUrl` | `rrid/search-by-name` | `rrid` |
+| NIH Grant | `nihGrantIntegratedExtAuthUrl` | `nih-grant/search-by-name` | `nih-grant` |
+| DOI | `doiIntegratedExtAuthUrl` | `doi/search-by-name` | `doi` |
 
 ### TypeScript types
 

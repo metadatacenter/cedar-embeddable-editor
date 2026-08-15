@@ -157,15 +157,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       // This was fourteen near-identical blocks — read a config key, fall back to
       // a default path, prepend the base URL, hand the result to that
       // authority's own service. An eighth authority cost two more blocks, a new
-      // service, and a new injected dependency here. The keys and defaults now
-      // live on the descriptor, so it costs a descriptor.
+      // service, and a new injected dependency here. The paths now live on the
+      // descriptor, so it costs a descriptor.
       for (const descriptor of AUTHORITY_DESCRIPTORS) {
         const searchPath = configText(value, descriptor.searchUrlConfigKey, descriptor.defaultSearchPath);
-        const detailsPath = configText(value, descriptor.detailsUrlConfigKey, descriptor.defaultDetailsPath);
         this.externalAuthorityLookupService.setEndpoints(
           descriptor.inputType,
           this.extAuthBaseUrl + searchPath,
-          this.extAuthBaseUrl + detailsPath,
+          this.extAuthBaseUrl + descriptor.detailsPath,
         );
       }
 

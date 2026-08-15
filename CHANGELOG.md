@@ -36,6 +36,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **BREAKING.** The seven `<name>IntegratedDetailsUrl` keys. Each named the path an external
+  authority resolves a pasted identifier through, appended to `extAuthBaseUrl`, and every host
+  that set one set the path CEE already uses: `orcid`, `ror`, `comp-tox`, `pmid`, `rrid`, with
+  NIH Grant and DOI never named by any host at all. Seven keys existed so a deployment could
+  move a path that no deployment has moved, and the paths belong to the ext-auth service the
+  base URL already identifies. The endpoint itself is unchanged and still used — pasting an
+  ORCID, a DOI or a PubMed ID resolves through it rather than running a name search — so
+  nothing a user can do behaves differently. Only the search path stays configurable, which
+  halves the per-authority surface from fourteen keys to seven. A host still passing a
+  retired key is told it is unknown and ignored.
+
 - **BREAKING.** `bioPortalPrefix`, and a broken link it half-governed. It was named as a prefix
   and used as a base for the "read about this term" link out to BioPortal's web UI, which is
   BioPortal's address rather than a deployment's to set. It governed only two of the three

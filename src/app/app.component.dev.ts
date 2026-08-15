@@ -35,19 +35,12 @@ export class AppDevComponent implements OnInit {
     extAuthBaseUrl: 'https://bridge.metadatacenter.orgx/ext-auth/',
 
     orcidIntegratedExtAuthUrl: 'orcid/search-by-name',
-    orcidIntegratedDetailsUrl: 'orcid',
     rorIntegratedExtAuthUrl: 'ror/search-by-name',
-    rorIntegratedDetailsUrl: 'ror',
     pfasIntegratedExtAuthUrl: 'comp-tox/search-by-name',
-    pfasIntegratedDetailsUrl: 'comp-tox',
     pmidIntegratedExtAuthUrl: 'pmid/search-by-name',
-    pmidIntegratedDetailsUrl: 'pmid',
     rridIntegratedExtAuthUrl: 'rrid/search-by-name',
-    rridIntegratedDetailsUrl: 'rrid',
     nihGrantIntegratedExtAuthUrl: 'nih-grant/search-by-name',
-    nihGrantIntegratedDetailsUrl: 'nih-grant',
     doiIntegratedExtAuthUrl: 'doi/search-by-name',
-    doiIntegratedDetailsUrl: 'doi',
   };
 
   languages = {

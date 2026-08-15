@@ -27,9 +27,8 @@
 /**
  * The external authorities CEE can look terms up in.
  *
- * Each contributes two configuration keys, `<name>IntegratedExtAuthUrl` and
- * `<name>IntegratedDetailsUrl`, which override the path appended to
- * `extAuthBaseUrl`.
+ * Each contributes one configuration key, `<name>IntegratedExtAuthUrl`, which
+ * overrides the search path appended to `extAuthBaseUrl`.
  */
 export type CeeAuthority = 'orcid' | 'ror' | 'pfas' | 'pmid' | 'rrid' | 'nihGrant' | 'doi';
 
@@ -83,9 +82,10 @@ export interface CeeConfig {
   languageMapPathPrefix?: string;
 
   /**
-   * Per-authority endpoint overrides, `orcidIntegratedExtAuthUrl` and the like.
+   * Per-authority search endpoint overrides, `orcidIntegratedExtAuthUrl` and the
+   * like — seven of them, one per authority.
    *
-   * An index signature rather than fourteen declarations, and it is the one place
+   * An index signature rather than seven declarations, and it is the one place
    * this interface stops catching typos. That is a deliberate trade: closing it
    * would mean a host adding a future authority's key could not compile.
    */

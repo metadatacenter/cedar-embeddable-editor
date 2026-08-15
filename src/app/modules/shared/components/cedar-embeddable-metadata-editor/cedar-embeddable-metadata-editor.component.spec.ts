@@ -109,21 +109,17 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
         expect(setEndpoints).toHaveBeenCalledWith(
           descriptor.inputType,
           component.extAuthBaseUrl + descriptor.defaultSearchPath,
-          component.extAuthBaseUrl + descriptor.defaultDetailsPath,
+          component.extAuthBaseUrl + descriptor.detailsPath,
         );
       }
     });
 
-    it('honours custom search and details paths independently for every authority', () => {
+    it('honours a custom search path per authority, leaving the details path where it is', () => {
       const setEndpoints = vi.fn();
       const component = make(setEndpoints);
       const base = 'https://example.org/ext-auth/';
       const config = AUTHORITY_DESCRIPTORS.reduce(
-        (value, descriptor, index) => ({
-          ...value,
-          [descriptor.searchUrlConfigKey]: `search-${index}`,
-          [descriptor.detailsUrlConfigKey]: `details-${index}`,
-        }),
+        (value, descriptor, index) => ({ ...value, [descriptor.searchUrlConfigKey]: `search-${index}` }),
         { extAuthBaseUrl: base },
       );
 
@@ -134,7 +130,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
         expect(setEndpoints).toHaveBeenCalledWith(
           descriptor.inputType,
           `${base}search-${index}`,
-          `${base}details-${index}`,
+          `${base}${descriptor.detailsPath}`,
         );
       });
     });
