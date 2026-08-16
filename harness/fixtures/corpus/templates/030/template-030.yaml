@@ -18,22 +18,20 @@ children:
     datatype: "iri"
     values:
       - type: "ontology"
-        acronym: "HOME"
-        ontologyName: "Health Ontology for Minority Equity"
-        iri: "https://data.bioontology.org/ontologies/HOME"
-        numTerms: 82
+        sourceAcronym: "HOME"
+        sourceName: "Health Ontology for Minority Equity"
+        termCount: 82
       - type: "class"
-        label: "Verbal_Abuse"
-        acronym: "HOME"
+        sourceAcronym: "HOME"
+        termIri: "http://www.semanticweb.org/navyarenjith/ontologies/2021/3/untitled-ontology-5#Verbal_Abuse"
         termType: "class"
         termLabel: "Verbal_Abuse"
-        iri: "http://www.semanticweb.org/navyarenjith/ontologies/2021/3/untitled-ontology-5#Verbal_Abuse"
       - type: "branch"
-        ontologyName: "undefined (CWD)"
-        acronym: "CWD"
-        termLabel: "calories"
-        iri: "http://www.semanticweb.org/jbagwell/ontologies/2017/9/untitled-ontology-6#calories"
-        maxDepth: 0
+        sourceAcronym: "CWD"
+        sourceName: "undefined (CWD)"
+        termBaseIri: "http://www.semanticweb.org/jbagwell/ontologies/2017/9/untitled-ontology-6#calories"
+        termBaseLabel: "calories"
+        termMaxDepth: 0
     actions:
       - action: "delete"
         termIri: "http://www.semanticweb.org/navyarenjith/ontologies/2021/3/untitled-ontology-5#At_Elderly_Home"

@@ -67,7 +67,7 @@
   "oslc:modifiedBy": null,
   "Data File Titles": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Title": "http://purl.org/radx-terms/metadata-terms/title",
         "Language": "http://purl.org/radx-terms/metadata-terms/language"
@@ -81,7 +81,7 @@
     }
   ],
   "Data File Identity": {
-    "@id": "",
+    "@id": null,
     "@context": {
       "Identifier": "http://purl.org/radx-terms/metadata-terms/identifier",
       "Identifier Type": "http://purl.org/radx-terms/metadata-terms/identifierType",
@@ -104,7 +104,7 @@
     }
   },
   "Data File Language": {
-    "@id": "",
+    "@id": null,
     "@context": {
       "Primary Language": "http://purl.org/radx-terms/metadata-terms/primaryLanguage",
       "Other Languages": "http://purl.org/radx-terms/metadata-terms/otherLanguage"
@@ -120,7 +120,7 @@
   },
   "Data File Subjects": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Subject Identifier": "http://purl.org/radx-terms/metadata-terms/subjectIdentifier",
         "Subject Identifier Scheme": "http://purl.org/radx-terms/metadata-terms/subjectIdentifierScheme",
@@ -140,7 +140,7 @@
   ],
   "Data File Descriptions": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Description": "http://purl.org/radx-terms/metadata-terms/description",
         "Description Language": "http://purl.org/radx-terms/metadata-terms/language",
@@ -159,7 +159,7 @@
     }
   ],
   "Data File Data Dictionary": {
-    "@id": "",
+    "@id": null,
     "@context": {
       "Data Dictionary File Name": "http://purl.org/radx-terms/metadata-terms/dataDictionaryFileName"
     },
@@ -169,7 +169,7 @@
   },
   "Data File Creators": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Creator Type": "http://purl.org/radx-terms/metadata-terms/creatorType",
         "Creator Name": "http://purl.org/radx-terms/metadata-terms/creatorName",
@@ -216,7 +216,7 @@
       }
     },
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Creator Type": "http://purl.org/radx-terms/metadata-terms/creatorType",
         "Creator Name": "http://purl.org/radx-terms/metadata-terms/creatorName",
@@ -263,7 +263,7 @@
       }
     },
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Creator Type": "http://purl.org/radx-terms/metadata-terms/creatorType",
         "Creator Name": "http://purl.org/radx-terms/metadata-terms/creatorName",
@@ -312,7 +312,7 @@
   ],
   "Data File Related Resources": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Related Resource Identifier": "http://purl.org/radx-terms/metadata-terms/relatedResourceIdentifier",
         "Related Resource Identifier Type": "http://purl.org/radx-terms/metadata-terms/relatedResourceIdentifierType",
@@ -335,7 +335,7 @@
   ],
   "Data File Contributors": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Contributor Type": "http://purl.org/radx-terms/metadata-terms/contributorType",
         "Contributor Name": "http://purl.org/radx-terms/metadata-terms/contributorName",
@@ -381,7 +381,7 @@
   ],
   "Data File Rights": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "License Name": "http://purl.org/radx-terms/metadata-terms/licenseName",
         "License Text": "http://purl.org/radx-terms/metadata-terms/licenseText"
@@ -394,7 +394,7 @@
   ],
   "Data File Dates": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Event Type": "http://purl.org/radx-terms/metadata-terms/eventType",
         "Date": "http://purl.org/radx-terms/metadata-terms/eventDate"
@@ -408,7 +408,7 @@
   ],
   "Data File Parent Studies": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "PHS Identifier": "http://purl.org/radx-terms/metadata-terms/parentStudyPhsIdentifier",
         "Study Identifier": "http://purl.org/radx-terms/metadata-terms/ParentStudyIdentifier",
@@ -442,7 +442,7 @@
   ],
   "Data File Funding Sources": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Award Title": "http://purl.org/radx-terms/metadata-terms/awardTitle",
         "Award Page URL": "http://purl.org/radx-terms/metadata-terms/awardPageUrl",
@@ -472,7 +472,7 @@
   ],
   "Data File Distributions": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Distribution Publisher": "http://purl.org/radx-terms/metadata-terms/distributionPublisher",
         "Distribution Publisher Identifier": "http://purl.org/radx-terms/metadata-terms/distributionPublisherIdentifier",
@@ -513,7 +513,7 @@
         "@value": null
       },
       "Data File Publication Date": {
-        "@id": "",
+        "@id": null,
         "@context": {
           "Data File Publication Date": "http://purl.org/radx-terms/metadata-terms/distributionPublicationDate",
           "Publication Date Type": "http://purl.org/radx-terms/metadata-terms/distributionPublicationDateType"
@@ -529,7 +529,7 @@
     }
   ],
   "Data Characteristics Summary": {
-    "@id": "",
+    "@id": null,
     "@context": {
       "Data Characteristics Table in HTML": "http://purl.org/radx-terms/metadata-terms/dataCharacteristicsTableInHtml",
       "Data Characteristics Table in CSV": "http://purl.org/radx-terms/metadata-terms/dataCharacteristicsTableInCsv",
@@ -549,7 +549,7 @@
   },
   "Data Sources": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Data Source Name": "http://purl.org/radx-terms/metadata-terms/dataSourceName",
         "Data Source Identifier": "http://purl.org/radx-terms/metadata-terms/dataSourceIdentifier",
@@ -566,7 +566,7 @@
   ],
   "Data Streams": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Data Stream Name": "http://purl.org/radx-terms/metadata-terms/dataStreamName",
         "Data Stream Identifier": "http://purl.org/radx-terms/metadata-terms/dataStreamIdentifier",
@@ -593,7 +593,7 @@
   ],
   "Data File Creation Processes": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Process Name": "http://purl.org/radx-terms/metadata-terms/creationProcessName",
         "Process IRI": "http://purl.org/radx-terms/metadata-terms/creationProcessIri",
@@ -616,7 +616,7 @@
   ],
   "Data File Temporal Coverage": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Temporal Extent Minimum Value": "http://purl.org/radx-terms/metadata-terms/temporalExtentMinimumValue",
         "Temporal Extent Maximum Value": "http://purl.org/radx-terms/metadata-terms/temporalExtentMaximumValue",
@@ -641,7 +641,7 @@
   ],
   "Data File Spatial Coverage": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Bounding Boxes": "http://purl.org/radx-terms/metadata-terms/boundingBoxDescriptor",
         "Bounding Shapes": "http://purl.org/radx-terms/metadata-terms/boundingShapeDescriptor",
@@ -649,7 +649,7 @@
       },
       "Bounding Boxes": [
         {
-          "@id": "",
+          "@id": null,
           "@context": {
             "Maximum Latitude": "http://purl.org/radx-terms/metadata-terms/maxLatitude",
             "Minimum Latitude": "http://purl.org/radx-terms/metadata-terms/minLatitude",
@@ -672,7 +672,7 @@
       ],
       "Bounding Shapes": [
         {
-          "@id": "",
+          "@id": null,
           "@context": {
             "Point Number": "http://purl.org/radx-terms/metadata-terms/pointNumber",
             "Latitude": "http://purl.org/radx-terms/metadata-terms/latitude",
@@ -694,7 +694,7 @@
       ],
       "Data File Geopolitical Coverage": [
         {
-          "@id": "",
+          "@id": null,
           "@context": {
             "Geopolitical region": "http://purl.org/radx-terms/metadata-terms/geographicalPlaceName"
           },
@@ -709,7 +709,7 @@
   ],
   "Data File Elevation Coverage": [
     {
-      "@id": "",
+      "@id": null,
       "@context": {
         "Vertical Extent Minimum Value": "http://purl.org/radx-terms/metadata-terms/minElevation",
         "Vertical Extent Maximum Value": "http://purl.org/radx-terms/metadata-terms/maxElevation",
@@ -731,7 +731,7 @@
     }
   ],
   "Auxiliary Metadata": {
-    "@id": "",
+    "@id": null,
     "@context": {
       "Data File Descriptive Key-Value Pairs": "http://purl.org/radx-terms/metadata-terms/auxiliaryMetadataKeyValuePair",
       "Additional Commentary": "http://purl.org/radx-terms/metadata-terms/auxiliaryMetadataCommentary"

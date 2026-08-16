@@ -332,8 +332,7 @@
           {
             "name": "Neoplasm",
             "vsCollection": "CADSR-VS",
-            "uri": "https://cadsr.nci.nih.gov/metadata/CADSR-VS/20c76e5a73776dc5af1d26329ccb712f42e0e255",
-            "numTerms": 0
+            "uri": "https://cadsr.nci.nih.gov/metadata/CADSR-VS/20c76e5a73776dc5af1d26329ccb712f42e0e255"
           }
         ],
         "classes": [

@@ -6,6 +6,7 @@ id: "https://repo.metadatacenter.org/templates/2df0a567-a52c-4df2-aa41-2458b911d
 status: "draft"
 version: "0.0.1"
 modelVersion: "1.6.0"
+instanceType: "http://purl.bioontology.org/ontology/SNOMEDCT/224699009"
 header: "Template header"
 footer: "Template footer"
 createdOn: "2024-02-29T14:25:48-08:00"

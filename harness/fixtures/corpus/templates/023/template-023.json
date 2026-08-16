@@ -339,8 +339,7 @@
           {
             "name": "Progressive Disease",
             "vsCollection": "CADSR-VS",
-            "uri": "https://cadsr.nci.nih.gov/metadata/CADSR-VS/ad5886076616ec6c35558648aca5abf942d6147a",
-            "numTerms": 0
+            "uri": "https://cadsr.nci.nih.gov/metadata/CADSR-VS/ad5886076616ec6c35558648aca5abf942d6147a"
           }
         ],
         "classes": [

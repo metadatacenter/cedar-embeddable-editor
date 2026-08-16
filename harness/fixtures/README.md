@@ -12,7 +12,7 @@ workspace.
 - 21 JSON instances
 
 Source: `metadatacenter/cedar-test-artifacts`, branch `develop`, commit
-`bcf02db`.
+`7dadf91`.
 
 To refresh it, copy `template-NNN.json`, `template-NNN.yaml`, and
 `instance-NNN.json` from that repository's `artifacts/templates/` and

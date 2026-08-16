@@ -18,11 +18,10 @@ children:
     datatype: "iri"
     values:
       - type: "class"
-        label: "Music"
-        acronym: "MESH"
+        sourceAcronym: "MESH"
+        termIri: "http://purl.bioontology.org/ontology/MESH/D009146"
         termType: "class"
         termLabel: "Music"
-        iri: "http://purl.bioontology.org/ontology/MESH/D009146"
     createdOn: "2024-03-11T16:27:51-07:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
     modifiedOn: "2024-03-11T16:27:51-07:00"

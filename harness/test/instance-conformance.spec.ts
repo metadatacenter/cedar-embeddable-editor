@@ -98,8 +98,15 @@ describe('a populated template', () => {
    * raises `minItems` on the same field, which is the answer a user sees; the
    * validator raises `missingIndexInRealObject` on the same path, which is the
    * answer the document gets. Two implementations, one verdict.
+   *
+   * `listSingle/multi` joined them when the model library stopped inferring
+   * `multipleChoice` from cardinality and read it from `_valueConstraints`
+   * instead. A single-choice list that repeats is a multi-instance field like
+   * the others, so it starts with `minItems` slots and one written value leaves
+   * the rest empty — the same part-filled state, reached by a field whose choice
+   * is single.
    */
-  const PART_FILLED_CHOICE = ['checkbox/multi', 'listMulti/multi'];
+  const PART_FILLED_CHOICE = ['checkbox/multi', 'listMulti/multi', 'listSingle/multi'];
 
   it.each(cases)('%s still satisfies it once a value is written', (label, index, cardinality) => {
     const kind = VALUED[index];

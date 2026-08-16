@@ -18,16 +18,14 @@ children:
     datatype: "iri"
     values:
       - type: "class"
-        label: "Malignant Neoplasm"
-        acronym: "CADSR-VS"
+        sourceAcronym: "CADSR-VS"
+        termIri: "https://cadsr.nci.nih.gov/metadata/CADSR-VS/78d215b4d52d89ab6f485206f41d5bc1aac23770"
         termType: "class"
         termLabel: "Malignant Neoplasm"
-        iri: "https://cadsr.nci.nih.gov/metadata/CADSR-VS/78d215b4d52d89ab6f485206f41d5bc1aac23770"
       - type: "valueSet"
-        acronym: "CADSR-VS"
-        valueSetName: "Neoplasm"
-        iri: "https://cadsr.nci.nih.gov/metadata/CADSR-VS/20c76e5a73776dc5af1d26329ccb712f42e0e255"
-        numTerms: 0
+        sourceAcronym: "CADSR-VS"
+        termBaseIri: "https://cadsr.nci.nih.gov/metadata/CADSR-VS/20c76e5a73776dc5af1d26329ccb712f42e0e255"
+        termBaseLabel: "Neoplasm"
     actions:
       - action: "move"
         to: 0

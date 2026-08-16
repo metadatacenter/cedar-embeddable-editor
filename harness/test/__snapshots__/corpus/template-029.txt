@@ -11,7 +11,7 @@ Data File Version single
   Version type=textfield single
 Data File Language single
   Primary Language type=list single choices=246 choice=single
-  Other Language type=list multi min=1 choices=246 choice=multi
+  Other Language type=list multi min=1 choices=246 choice=single
 Data File Subjects multi min=1
   Subject Identifier type=controlled single ontologies=1
   Subject Identifier Scheme type=textfield single hidden
