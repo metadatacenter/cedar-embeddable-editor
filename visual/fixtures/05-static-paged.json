@@ -319,7 +319,8 @@
       "title": "section title",
       "description": "section description",
       "_ui": {
-        "inputType": "section-break"
+        "inputType": "section-break",
+        "_content": null
       },
       "schema:name": "section",
       "schema:description": null,
@@ -486,7 +487,8 @@
       "title": "pb title",
       "description": "pb description",
       "_ui": {
-        "inputType": "page-break"
+        "inputType": "page-break",
+        "_content": null
       },
       "schema:name": "pb",
       "schema:description": null,

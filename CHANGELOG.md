@@ -29,6 +29,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The ROR mark is inlined instead of fetched. It was pulled from
+  `raw.githubusercontent.com/ror-community/ror-logos/main/…` while a form rendered, so every
+  embedding told GitHub that someone was looking at a ROR field, from the host application's origin
+  — in a component whose fonts and stylesheets travel inside the bundle precisely so nothing is
+  fetched. An offline deployment drew no icon, and the URL named a branch rather than a commit, so
+  the asset could change without a release. It also decoded late often enough to move two visual
+  baselines by 91 pixels a run, which is what surfaced it.
+
 - **BREAKING.** A host names two CEDAR servers and nothing below them. `terminologyIntegratedSearchUrl`
   becomes `terminologyBaseUrl` and `extAuthBaseUrl` becomes `bridgeBaseUrl`, each taking a server
   alone, with CEE appending the routes: `bioportal/integrated-search` on one side, `ext-auth/` and

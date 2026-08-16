@@ -301,7 +301,8 @@
       "title": "section title",
       "description": "section description",
       "_ui": {
-        "inputType": "section-break"
+        "inputType": "section-break",
+        "_content": null
       },
       "schema:name": "Heading <img data-static-markup src=\"./does-not-exist.png\" onerror=\"window.__staticMarkupRan = true\"><b data-static-markup>bold</b>",
       "schema:description": "Help <img data-static-markup src=\"./does-not-exist.png\" onerror=\"window.__staticMarkupRan = true\"><b data-static-markup>bold</b>",

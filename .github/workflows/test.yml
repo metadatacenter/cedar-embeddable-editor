@@ -18,15 +18,24 @@ concurrency:
 
 jobs:
   test:
-    # The committed Playwright snapshots are macOS baselines, so this label is pinned
-    # rather than tracking macos-latest: a runner bump would move them underneath us.
+    # arm64 Linux, because the visual suite runs inside Playwright's own container
+    # and the runner must not emulate it: `visual/run-in-container.sh` asks for
+    # linux/arm64, and a runner that resolves to x86_64 would rasterise text
+    # differently and put the baselines quietly back where they were.
     #
-    # Not macos-14. Playwright no longer builds WebKit for mac14-arm64 and serves a
-    # frozen v2251 there, while 1.62.1 drives v2336. The driver sends
-    # `Page.overrideSetting: PushAPIEnabled`, v2251 does not implement it, and every
-    # newPage() in the webkit-smoke project fails. Playwright's own install warning is
-    # "please update to the latest version of your operating system".
-    runs-on: macos-15
+    # This was macos-15, pinned because the snapshots were macOS baselines and a
+    # runner bump would have moved them underneath us. That pin protected the
+    # wrong thing: the baselines were recorded on a laptop and checked here, and
+    # the two machines never agreed — 7 of 106 differed by 124 to 393 pixels, a
+    # budget of 120 papering over the gap. The container removes the boundary, so
+    # the runner no longer has a rendering of its own to defend.
+    #
+    # macOS also cannot host a Linux container, so this label is what the container
+    # requires rather than a preference. A side effect: Playwright's WebKit build
+    # for mac14-arm64 was frozen at v2251 against a driver expecting v2336, which
+    # broke every newPage() in the webkit-smoke project and forced macos-15. Linux
+    # builds are current, so that constraint is gone with the runner.
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 30
 
     steps:
@@ -71,12 +80,13 @@ jobs:
 
       # The root `npm ci` is already done above; only the two test workspaces are
       # left, now that the runner no longer changes Node underneath them.
+      # Only the harness installs here. The visual suite installs inside the
+      # container, against a `node_modules` volume, because the browsers it drives
+      # and the fonts they rasterise with come from the image rather than from this
+      # runner — which is the whole point of running it there.
       - name: Install CEE test dependencies
         working-directory: cedar-embeddable-editor
-        run: |
-          npm --prefix harness ci
-          npm --prefix visual ci
-          ./visual/node_modules/.bin/playwright install chromium firefox webkit
+        run: npm --prefix harness ci
 
       - name: Test the production artifact built above
         working-directory: cedar-embeddable-editor

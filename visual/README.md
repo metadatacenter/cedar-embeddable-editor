@@ -72,8 +72,9 @@ Two viewports: `desktop` (1280×900) and `narrow` (480×900).
 
 ## Cross-browser smoke coverage
 
-The pixel baselines remain Chromium/macOS-only. Repeating screenshots for each
-engine would mostly version font rasterisation and triple the review burden.
+The pixel baselines remain Chromium-only, recorded in Playwright's container so
+that a laptop and a CI runner see the same rasterisation. Repeating screenshots
+for each engine would mostly version font rendering and triple the review burden.
 Instead, `cross-browser-smoke.spec.ts` runs seven semantic checks in Chromium,
 Firefox and WebKit against the same production bundle:
 
