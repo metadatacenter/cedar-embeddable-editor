@@ -1,7 +1,6 @@
 import { type Mock, vi } from 'vitest';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper.component';
 import { ElementRef } from '@angular/core';
-import { IriPrefix } from '../../util/iri-prefix';
 import { ControlledFieldDataService, INTEGRATED_SEARCH_PATH } from '../../service/controlled-field-data.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
@@ -56,7 +55,6 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       { setDefaultLang: mocks.setDefaultLang, use: mocks.use } as unknown as TranslateService,
       messaging as unknown as MessageHandlerService,
       mocks.globalSettings as unknown as GlobalSettingsContextService,
-      new IriPrefix(),
     );
     return { component, mocks };
   };
@@ -154,7 +152,6 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
       { setDefaultLang: vi.fn(), use: vi.fn() } as unknown as TranslateService,
       messaging as unknown as MessageHandlerService,
       {} as unknown as GlobalSettingsContextService,
-      new IriPrefix(),
     );
     return { component, errors };
   };

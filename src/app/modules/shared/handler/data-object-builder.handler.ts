@@ -12,8 +12,7 @@ import * as _ from 'lodash-es';
 import { DataObjectUtil } from '../util/data-object-util';
 import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
-import { DEFAULT_IRI_PREFIX } from '../util/iri-prefix';
-import { InstanceArray, InstanceNode, InstanceObject, isInstanceObject } from '../models/instance-node.model';
+import { InstanceArray, InstanceNode, InstanceObject } from '../models/instance-node.model';
 
 /**
  * Builds an empty instance from a template.
@@ -26,8 +25,6 @@ import { InstanceArray, InstanceNode, InstanceObject, isInstanceObject } from '.
  * it is now a parameter, which is what threading a value through two calls means.
  */
 export class DataObjectBuilderHandler {
-  constructor(private readonly iriPrefix: () => string = () => DEFAULT_IRI_PREFIX) {}
-
   /*
    * A container, because that is all the builder ever writes into: every line
    * below puts a named child on it.
@@ -60,16 +57,6 @@ export class DataObjectBuilderHandler {
             occurrences.push(_.cloneDeep(dummyTargetObject));
           }
         }
-        // Only the full tree. An element occurrence needs an `@id` in the
-        // artifact — CEDAR requires one — but the extract tree is the same
-        // content with the envelope left off at every depth, and `@id` is
-        // envelope. Minting it into both meant a freshly built extract carried
-        // element @ids and one read back from an instance did not, so every
-        // consumer of the extract saw a different shape depending on how the
-        // user arrived at it.
-        if (component instanceof MultiElementComponent && buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-          occurrences.forEach((child) => this.addRandomAtId(child));
-        }
       } else {
         // Single Element || Template
         const occurrence = new InstanceDataContainer();
@@ -77,9 +64,6 @@ export class DataObjectBuilderHandler {
         DataObjectBuilderHandler.addPropertyIris(component, occurrence, buildingMode);
         for (const childComponent of iterableComponent.children) {
           this.buildRecursively(childComponent, occurrence, buildingMode);
-        }
-        if (component instanceof SingleElementComponent && buildingMode === DataObjectBuildingMode.INCLUDE_CONTEXT) {
-          this.addRandomAtId(occurrence);
         }
       }
     }
@@ -187,26 +171,6 @@ export class DataObjectBuilderHandler {
         dataObject.setIri(key, iri);
       }
     });
-  }
-
-  /**
-   * Give an element occurrence the IRI CEDAR requires of one.
-   *
-   * `id` on the container, rather than an `@id` property written into it. Which
-   * key that becomes is the writer's to decide — and the YAML writer calls it
-   * `id`.
-   */
-  public addRandomAtId(dataObject: InstanceNode): void {
-    if (!isInstanceObject(dataObject)) {
-      return;
-    }
-    if (dataObject.id == null) {
-      dataObject.id = this.getTemplateElementInstanceIRIPrefix() + DataObjectUtil.generateGUID();
-    }
-  }
-
-  public getTemplateElementInstanceIRIPrefix(): string {
-    return this.iriPrefix() + 'template-element-instances/';
   }
 
   /**

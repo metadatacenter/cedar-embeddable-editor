@@ -78,7 +78,6 @@ change.
 | `src/controlled.ts` | Controlled-term constraint construction and subset enumeration |
 | `src/driver.ts` | Headless CEE — reproduces the wrapper's startup path without Angular |
 | `stubs/angular-core.ts` | No-op decorators, so the harness never loads Angular |
-| `stubs/editor-component.ts` | Breaks the `DataObjectUtil` → editor-component circular import |
 | `test/coverage.spec.ts` | Drift detection: does the generator still cover every `InputType`? |
 | `test/roundtrip.spec.ts` | The oracle, swept across the cross-product |
 | `test/controlled-terms.spec.ts` | All 15 constraint-kind subsets × cardinality × nesting × reload |
@@ -292,13 +291,11 @@ were found.
 
 ## A note on the stubs
 
-`stubs/editor-component.ts` exists because
-[`data-object-util.ts:157`](../src/app/modules/shared/util/data-object-util.ts)
-reads a single static (`iriPrefix`) off the top-level Angular component. That
-one read pulls the whole component subtree — HttpClient services, a
-`package.json` import, and a circular edge back into `DataObjectUtil` — into
-anything that touches the data-object builder.
+`stubs/editor-component.ts` existed because `data-object-util.ts` read a single
+static off the top-level Angular component. That one read pulled the whole
+component subtree — HttpClient services, a `package.json` import, and a circular
+edge back into `DataObjectUtil` — into anything touching the data-object builder.
 
-Moving `iriPrefix` onto a plain constant would let both the stub and its alias
-be deleted, and would remove a real circular import that currently survives only
-because webpack tolerates it. Worth doing independently of this harness.
+The value is now `INSTANCE_IRI_PREFIX`, a constant in `util/iri-prefix.ts` that
+imports nothing, so the stub and its alias are gone and so is the circular
+import. `test/import-boundaries.spec.ts` keeps both from returning.

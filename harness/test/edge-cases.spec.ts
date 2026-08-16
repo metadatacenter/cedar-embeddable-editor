@@ -11,7 +11,7 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at, infoOf } from '../src/nodes';
-import { linkNode, literalOf, termNode, heldValue, linkValue, termValue } from '../src/values';
+import { linkNode, literalOf, termNode, heldValue, identityOf, linkValue, termValue } from '../src/values';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
@@ -242,15 +242,27 @@ describe('multi-instance elements', () => {
     driver.expectNoErrors('per-page writes');
   });
 
-  it('copying an instance mints fresh @ids rather than duplicating them', () => {
+  /**
+   * A copy does not inherit the identity of what it was copied from.
+   *
+   * CEE mints nothing, so the identity a copied occurrence must not carry is one
+   * that arrived with a loaded instance — which is what is set up here. The copy
+   * comes back with a null `@id`, the shape the writer emits for a container
+   * that has no identity, and the original keeps the one it had.
+   */
+  it('copying an instance clears the identity rather than duplicating it', () => {
     const driver = new CeeDriver(multiElementTemplate());
     const author = driver.findOrThrow(['_author']);
+    const assigned = `${ELEMENT_INSTANCE_IRI}/loaded-author`;
+    driver.dataContext.mutate((instance: any) => {
+      instance.values._author[0].id = assigned;
+    });
 
     driver.handlerContext.copyMultiInstance(author);
 
     const authors = driver.metadata['_author'];
-    const ids = authors.map((a: any) => a[DocumentKey.atId]).filter(Boolean);
-    expect(new Set(ids).size, 'copied instances share an @id').toBe(ids.length);
+    expect(authors[0][DocumentKey.atId]).toBe(assigned);
+    expect(identityOf(authors[1]), 'the copy carries an identity').toBeNull();
   });
 
   it('copies a repeatable IRI field verbatim even when its value uses the element-instance namespace', () => {
@@ -271,7 +283,7 @@ describe('multi-instance elements', () => {
     ]);
   });
 
-  it('remints only element envelopes throughout a copied subtree', () => {
+  it('clears only element envelopes throughout a copied subtree', () => {
     const driver = new CeeDriver(
       buildTemplate({
         name: 'copy_nested_elements',
@@ -304,19 +316,26 @@ describe('multi-instance elements', () => {
       outer.values._manyInner.forEach((inner: any, index: number) => {
         inner.setValue('_term', termValue(`${ELEMENT_INSTANCE_IRI}/term-${index}`, `Term ${index}`));
       });
+      // Identities as a loaded instance would carry them, since CEE mints none.
+      outer.id = `${ELEMENT_INSTANCE_IRI}/outer`;
+      outer.values._inner.id = `${ELEMENT_INSTANCE_IRI}/inner`;
+      outer.values._manyInner.forEach((inner: any, index: number) => {
+        inner.id = `${ELEMENT_INSTANCE_IRI}/many-${index}`;
+      });
     });
 
     const outerComponent = driver.findOrThrow(['_outer']);
-    const before = driver.metadata._outer[0];
     driver.handlerContext.copyMultiInstance(outerComponent);
     const [source, copy] = driver.metadata._outer;
 
-    expect(source[DocumentKey.atId]).toBe(before[DocumentKey.atId]);
-    expect(copy[DocumentKey.atId]).not.toBe(source[DocumentKey.atId]);
-    expect(copy._inner[DocumentKey.atId]).not.toBe(source._inner[DocumentKey.atId]);
-    expect(copy._manyInner.map((inner: any) => inner[DocumentKey.atId])).not.toEqual(
-      source._manyInner.map((inner: any) => inner[DocumentKey.atId]),
-    );
+    // The source keeps every identity it was loaded with, at every depth.
+    expect(source[DocumentKey.atId]).toBe(`${ELEMENT_INSTANCE_IRI}/outer`);
+    expect(source._inner[DocumentKey.atId]).toBe(`${ELEMENT_INSTANCE_IRI}/inner`);
+
+    // The copy has none of them, at any depth.
+    expect(identityOf(copy)).toBeNull();
+    expect(identityOf(copy._inner)).toBeNull();
+    expect(copy._manyInner.map(identityOf)).toEqual([null, null]);
 
     expect(copy._reference[DocumentKey.atId]).toBe(source._reference[DocumentKey.atId]);
     expect(copy._inner._innerReference[DocumentKey.atId]).toBe(source._inner._innerReference[DocumentKey.atId]);

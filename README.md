@@ -332,14 +332,13 @@ sandbox can refuse, with no event to observe when it does. CEE traces each
 attempt through the event handler, so a developer seeing the trace and no file
 knows to look at their own sandbox.
 
-Language, and the IRI prefixes CEE recognises or mints:
+Language:
 
 | Key | Default |
 |---|---|
 | `defaultLanguage` | `en` |
 | `fallbackLanguage` | `en` |
 | `languageMapPathPrefix` | none |
-| `iriPrefix` | `https://repo.metadatacenter.org/` |
 
 `trustTemplateRichText` decides whether a template author's rich text renders verbatim
 or is sanitized first. It defaults to `false` and should stay there unless your

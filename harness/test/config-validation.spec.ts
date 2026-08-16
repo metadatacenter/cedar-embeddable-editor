@@ -31,7 +31,7 @@ describe('a configuration CEE can use', () => {
         readOnlyMode: true,
         bridgeBaseUrl: 'https://bridge.metadatacenter.org/',
         terminologyBaseUrl: 'https://terminology.metadatacenter.org/',
-        iriPrefix: 'https://repo.metadatacenter.org/',
+        languageMapPathPrefix: '/assets/i18n-cee/',
         defaultLanguage: 'en',
       }),
     ).toEqual([]);
@@ -74,7 +74,7 @@ describe('a key set to the wrong kind of value', () => {
   });
 
   it('describes null as null rather than as an object', () => {
-    expect(oneProblem({ iriPrefix: null })).toContain('but was null');
+    expect(oneProblem({ languageMapPathPrefix: null })).toContain('but was null');
   });
 
   it('checks a server base URL is a string', () => {
@@ -116,7 +116,7 @@ describe('settings that are each valid and wrong together', () => {
 
 describe('several problems at once', () => {
   it('reports every one, rather than stopping at the first', () => {
-    const problems = problemsFor({ readOnlyMode: 'yes', notAKey: 1, iriPrefix: 7 });
+    const problems = problemsFor({ readOnlyMode: 'yes', notAKey: 1, languageMapPathPrefix: 7 });
     expect(problems).toHaveLength(3);
   });
 });

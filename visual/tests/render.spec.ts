@@ -298,7 +298,7 @@ test.describe('host style isolation', () => {
 });
 
 test.describe('multiple editor instances', () => {
-  test('keep language paths, IRI prefixes and preferences isolated', async ({ page }) => {
+  test('keep language paths and preferences isolated, and mint distinct element IRIs', async ({ page }) => {
     const languageRequests: string[] = [];
     await page.route('**/served/languages/**', async (route) => {
       languageRequests.push(route.request().url());
@@ -320,10 +320,16 @@ test.describe('multiple editor instances', () => {
     });
     const firstElementIds = elementIrisOf(instances.first);
     const secondElementIds = elementIrisOf(instances.second);
-    expect(firstElementIds.length).toBeGreaterThan(0);
-    expect(secondElementIds.length).toBeGreaterThan(0);
-    expect(firstElementIds.every((id) => id.startsWith('https://first.example/'))).toBe(true);
-    expect(secondElementIds.every((id) => id.startsWith('https://second.example/'))).toBe(true);
+    /*
+     * Neither editor invents an identity for an occurrence.
+     *
+     * This asserted that the two minted under the prefixes their host had configured.
+     * CEE mints nothing now — an `@id` on an element occurrence only ever arrives in a
+     * loaded instance — so what the two editors have in common here is that they add
+     * none, which is the property a per-editor prefix existed to keep apart.
+     */
+    expect(firstElementIds).toEqual([]);
+    expect(secondElementIds).toEqual([]);
 
     /*
      * Read-only is per instance, and configured rather than toggled. It used to be

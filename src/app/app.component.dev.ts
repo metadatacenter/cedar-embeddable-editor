@@ -28,8 +28,6 @@ export class AppDevComponent implements OnInit {
     defaultLanguage: 'en',
     fallbackLanguage: 'en',
 
-    iriPrefix: 'https://repo.metadatacenter.orgx/',
-
     readOnlyMode: false,
 
     bridgeBaseUrl: 'https://bridge.metadatacenter.orgx/',

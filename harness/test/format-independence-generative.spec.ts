@@ -31,7 +31,7 @@ import { ModelLibraryTemplateParser } from '@cee/factory/model-library-template-
 import { YamlTemplateParser } from '@cee/factory/yaml-template-parser';
 import { buildTemplate, buildTemplateYaml, supportsMultiInstance, type TemplateSpec } from '../src/generate';
 import { FIELD_KINDS } from '../src/axes';
-import { CeeDriver, normalize } from '../src/driver';
+import { CeeDriver } from '../src/driver';
 import { describeTree } from '../src/corpus';
 
 const fromJson = (spec: TemplateSpec) =>
@@ -53,12 +53,12 @@ const stripAttrIds = (value: unknown): unknown => {
   return value;
 };
 
-// CEE mints a fresh GUID onto every element instance it builds and onto every
-// attribute-value property, so the two drivers' ids never match literally.
-// Normalized away — the same treatment the corpus round-trip and snapshot specs
-// give minted ids — leaving everything else, including every written value,
-// compared exactly.
-const emitted = (driver: CeeDriver) => stripAttrIds(normalize(InstanceSerializer.toJson(driver.instance)));
+// An attribute-value property IRI is minted from a GUID when the user names an
+// attribute, so the two drivers' never match literally. Normalized away, leaving
+// everything else — including every written value — compared exactly. Element
+// occurrences need no such treatment any more: CEE mints no identity for one, so
+// two builds of the same template are the same document.
+const emitted = (driver: CeeDriver) => stripAttrIds(InstanceSerializer.toJson(driver.instance));
 
 const TEXT = FIELD_KINDS.find((k) => k.key === 'text')!;
 

@@ -21,7 +21,6 @@ import { HttpClient } from '@angular/common/http';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
-import { IriPrefix } from '../../util/iri-prefix';
 import { FallbackTranslateLoaderFactory } from '../../util/fallback-translate-loader-factory';
 import * as fallbackMapEN from '../../../../../assets/i18n-cee/en.json';
 import * as fallbackMapHU from '../../../../../assets/i18n-cee/hu.json';
@@ -59,7 +58,6 @@ type ArtifactClaim = 'template' | 'instance';
     ControlledFieldDataService,
     ExternalAuthorityLookupService,
     GlobalSettingsContextService,
-    { provide: IriPrefix, useFactory: () => new IriPrefix() },
     MessageHandlerService,
     UserPreferencesService,
     {
@@ -128,10 +126,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private translateService: TranslateService,
     private messagingService: MessageHandlerService,
     private globalSettingsContextService: GlobalSettingsContextService,
-    private iriPrefix: IriPrefix,
   ) {
     this.dataContext = new DataContext();
-    this.handlerContext = new HandlerContext(this.dataContext, this.messagingService, () => this.iriPrefix.get());
+    this.handlerContext = new HandlerContext(this.dataContext, this.messagingService);
   }
 
   /** Re-publishes CEE's existing change contract across the shadow boundary. */

@@ -1,21 +1,28 @@
 /**
- * The IRI an element occurrence is identified by.
+ * The identity an element occurrence has, and where it comes from.
  *
- * CEDAR requires one on every occurrence, and CEE mints it — from the IRI prefix
- * the host configured, which is why it cannot come from the library. Three
- * claims, all of which used to be made about an `@id` property written into a
- * plain object and are now about `id` on the container: which key that becomes
- * is the writer's business, and the YAML writer calls it `id`.
+ * Not from CEE. It minted one — `https://repo.metadatacenter.org/template-element-instances/<guid>`
+ * — into every occurrence it built, on the stated grounds that CEDAR requires an
+ * `@id` there. A template's element sub-schema does name `@id` in its `required`
+ * list, but the validator does not enforce a value for it: an occurrence
+ * validates with the key null and with the key absent, and rejects only a string
+ * that is not a URI. So the requirement CEE was meeting did not exist, and what
+ * it minted was an identity the artifact does not have — different on every build
+ * of the same form, and naming a repository that has never heard of it.
+ *
+ * An identity now only ever arrives from outside, in a loaded instance. CEE's job
+ * is to leave that one alone, and to put it on nothing else.
+ *
+ * This replaces `tree-consistency.spec.ts`, which was what remained of a file
+ * about CEE's two instance trees once there was one tree, and had nothing left in
+ * it but the minting.
  */
 import { describe, expect, it } from 'vitest';
-import { InstanceDataContainer } from 'cedar-model-typescript-library';
 import { CedarBuilders } from 'cedar-model-typescript-library';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { FieldKind } from '../src/axes';
-import { DataObjectBuilderHandler } from '@cee/handler/data-object-builder.handler';
-import { InstanceNode, isInstanceObject } from '@cee/models/instance-node.model';
-import { literalValue } from '../src/values';
+import { identityOf } from '../src/values';
 
 const TEXT = {
   key: 'text',
@@ -32,49 +39,45 @@ const withOccurrences = () =>
     elements: [{ name: 'el', cardinality: 'multi', minItems: 2, maxItems: 5, children: [{ kind: TEXT, name: 'f' }] }],
   });
 
-describe('minting an occurrence IRI', () => {
-  it('gives one to a container that has none', () => {
-    const builder = new DataObjectBuilderHandler(() => 'https://example.org/');
-    const container = new InstanceDataContainer();
+describe('a built instance', () => {
+  it('invents no identity for an occurrence', () => {
+    const occurrences = new CeeDriver(withOccurrences()).metadata._el;
 
-    builder.addRandomAtId(container);
-
-    expect(container.id).toMatch(/^https:\/\/example\.org\/template-element-instances\//);
+    expect(occurrences).toHaveLength(2);
+    expect(occurrences.map(identityOf)).toEqual([null, null]);
   });
 
   /**
-   * An occurrence that arrived with an IRI keeps it. A loaded instance carries
-   * identities the host assigned, and minting over them would rewrite the user's
-   * data on load.
+   * Two builds of the same empty form are the same document.
+   *
+   * The minted GUIDs made every rendering differ from the last, which is why the
+   * harness carried a `normalize` that rewrote them to `<minted>` before any
+   * comparison, and why a snapshot of a freshly built instance recorded a value
+   * that meant nothing.
    */
-  it('leaves an existing one alone', () => {
-    const builder = new DataObjectBuilderHandler(() => 'https://example.org/');
-    const container = new InstanceDataContainer();
-    container.id = 'https://elsewhere.example/instances/kept';
+  it('is identical to another build of the same template', () => {
+    const template = withOccurrences();
 
-    builder.addRandomAtId(container);
-
-    expect(container.id).toBe('https://elsewhere.example/instances/kept');
-  });
-
-  /** Anything that is not a container has no identity to give it. */
-  it('does nothing to a value', () => {
-    const builder = new DataObjectBuilderHandler(() => 'https://example.org/');
-    expect(() => builder.addRandomAtId(literalValue('a value'))).not.toThrow();
+    expect(new CeeDriver(template).metadata).toEqual(new CeeDriver(template).metadata);
   });
 });
 
-describe('a built instance', () => {
-  it('gives every occurrence an IRI of its own', () => {
+describe('an identity that arrived with the instance', () => {
+  /**
+   * The one case where an occurrence has an identity worth keeping: a repository
+   * assigned it, and it names something real.
+   */
+  it('survives an edit elsewhere in the form', () => {
     const driver = new CeeDriver(withOccurrences());
-    const occurrences = driver.fullData.values['_el'];
-    expect(Array.isArray(occurrences)).toBe(true);
+    const assigned = 'https://repo.metadatacenter.org/template-element-instances/loaded';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    driver.dataContext.mutate((instance: any) => {
+      instance.values._el[0].id = assigned;
+    });
 
-    const ids = (occurrences as InstanceNode[]).map((o) => (isInstanceObject(o) ? o.id : null));
-    expect(
-      ids.every((id) => typeof id === 'string' && id.length > 0),
-      'an occurrence has no IRI',
-    ).toBe(true);
-    expect(new Set(ids).size, 'two occurrences share an IRI').toBe(ids.length);
+    driver.setValue(['_el', '_f'], TEXT, 'edited');
+
+    expect(identityOf(driver.metadata._el[0])).toBe(assigned);
+    expect(identityOf(driver.metadata._el[1])).toBeNull();
   });
 });

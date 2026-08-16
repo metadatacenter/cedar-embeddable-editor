@@ -75,6 +75,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **BREAKING.** CEE mints no element-occurrence identifiers. It stamped a fresh GUID onto every
+  occurrence it built, under `https://repo.metadatacenter.org/template-element-instances/`, on the
+  grounds that CEDAR requires an `@id` there. A template's element sub-schema does name `@id` in its
+  `required` list, but the validator does not enforce a value for it: measured against the canonical
+  `CedarValidator`, an occurrence validates with the key null and with the key absent, and is
+  rejected only for a string that is not a URI. The requirement being met did not exist, and what
+  was minted was an identity the artifact does not have — different on every build of the same form,
+  naming a repository that has never heard of it. An `@id` on an occurrence now only ever arrives in
+  a loaded instance, and CEE leaves that one alone: duplicating an occurrence clears the copy's
+  rather than reminting it.
+
+  Two builds of the same template are now the same document, which they never were. The harness
+  carried a `normalize` that rewrote every minted identifier to `<minted>` before any comparison, so
+  that instance snapshots recorded a value meaning nothing; it and four such recordings are gone.
+  `addRandomAtId`, `getTemplateElementInstanceIRIPrefix` and `util/iri-prefix.ts` go with them.
+
+- **BREAKING.** `iriPrefix`. It set the prefix CEE mints an element occurrence's identifier under,
+  and what identifies an occurrence is the GUID appended to it — so the prefix carried nothing a
+  host could usefully vary, and every host that set it named its own deployment's repository, which
+  nothing resolves and the identifier does not otherwise mention. Occurrences are now minted under
+  `https://repo.metadatacenter.org/template-element-instances/` everywhere. Instances already saved
+  are untouched: CEE mints only where `@id` is absent.
+
+  The key was the only reason `IriPrefix` was a class provided per element rather than a constant,
+  so its provider, its three injections — one of which, in the text widget, read it nowhere — and
+  the function threaded through `HandlerContext` into `DataObjectBuilderHandler` all go with it.
+  `util/iri-prefix.ts` keeps the value as `INSTANCE_IRI_PREFIX` and still imports nothing, which is
+  what `import-boundaries.spec.ts` guards: this value once lived on the editor component, and
+  reading it from the domain layer dragged the whole Angular subtree in behind it.
+
 - **BREAKING.** All fourteen per-authority endpoint keys, `<name>IntegratedExtAuthUrl` and
   `<name>IntegratedDetailsUrl`. Each named a path appended to the bridge server's base — the search
   path for a name typed into the field, the details path for an identifier pasted into it —
@@ -115,8 +145,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   an `https://orcid.org/` or `https://ror.org/` value still renders as a link with the registry's
   icon, showing the identifier rather than the whole IRI. It now tests fixed constants with
   `startsWith` and builds no regex at all, because a registry's own IRI is not a deployment's to
-  configure. `iriPrefix` and `bioPortalPrefix` are unaffected and remain host-configurable: one
-  mints IRIs into the instance, the other builds a link out to BioPortal's web UI.
+  configure. The two prefixes that were genuinely a deployment's — `iriPrefix`, which minted IRIs
+  into the instance, and `bioPortalPrefix`, which built the link out to BioPortal's web UI — are
+  retired in their own right, above and below.
 
 - **BREAKING.** `showHeader` and `showFooter`, and the header and footer they gated. CEE drew
   a `mat-toolbar` carrying the CEDAR logo and the title "CEDAR Embeddable Editor", and a footer

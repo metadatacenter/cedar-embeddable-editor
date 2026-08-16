@@ -34,7 +34,6 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
 
   terminologyBaseUrl: 'string',
   bridgeBaseUrl: 'string',
-  iriPrefix: 'string',
 
   defaultLanguage: 'string',
   fallbackLanguage: 'string',

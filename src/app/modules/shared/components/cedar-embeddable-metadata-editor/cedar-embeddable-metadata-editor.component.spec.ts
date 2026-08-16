@@ -3,7 +3,6 @@ import { CedarEmbeddableMetadataEditorComponent } from './cedar-embeddable-metad
 import { TemplateTrustService } from '../../service/template-trust.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { AUTHORITY_DESCRIPTORS } from '../../models/authority/authority-descriptor.model';
-import { IriPrefix } from '../../util/iri-prefix';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { HandlerContext } from '../../util/handler-context';
@@ -33,7 +32,6 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       null as unknown as ActiveComponentRegistryService, // untouched by the config setter
       { setEndpoints } as unknown as ExternalAuthorityLookupService,
       { trace: (): void => undefined } as unknown as MessageHandlerService,
-      new IriPrefix(),
       // A real one: it holds a boolean and nothing else, so a stub would be more
       // code than the thing it replaces.
       new TemplateTrustService(),
@@ -76,28 +74,6 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
      */
     it('names no bridge server of its own', () => {
       expect(make().bridgeBaseUrl).toBeNull();
-    });
-
-    it('keeps the IRI prefix on this editor instance', () => {
-      const prefixes = new IriPrefix();
-      const component = new CedarEmbeddableMetadataEditorComponent(
-        null as unknown as ActiveComponentRegistryService,
-        // `as unknown as T`, not `as any`. A stub only needs the members this test
-        // exercises, but naming the target type keeps the constructor's shape in the
-        // test: change a parameter and the double stops compiling, which `any` would
-        // have hidden.
-        { setEndpoints: (): void => undefined } as unknown as ExternalAuthorityLookupService,
-        { trace: (): void => undefined } as unknown as MessageHandlerService,
-        prefixes,
-        new TemplateTrustService(),
-        new UserPreferencesService(),
-      );
-
-      component.config = {
-        iriPrefix: 'https://example.org/artifacts/',
-      };
-
-      expect(prefixes.get()).toBe('https://example.org/artifacts/');
     });
 
     it('bridgeBaseUrl names the bridge server, and nothing below it', () => {
@@ -195,7 +171,6 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
         { clear } as unknown as ActiveComponentRegistryService,
         { setEndpoints: (): void => undefined } as unknown as ExternalAuthorityLookupService,
         { trace: (): void => undefined } as unknown as MessageHandlerService,
-        new IriPrefix(),
         new TemplateTrustService(),
         new UserPreferencesService(),
       );
@@ -254,7 +229,6 @@ describe('CedarEmbeddableMetadataEditorComponent read-only wiring', () => {
       { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
       { setEndpoints: (): void => undefined } as unknown as ExternalAuthorityLookupService,
       { trace: (): void => undefined } as unknown as MessageHandlerService,
-      new IriPrefix(),
       new TemplateTrustService(),
       preferences,
     );

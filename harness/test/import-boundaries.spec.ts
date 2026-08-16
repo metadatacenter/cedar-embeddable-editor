@@ -13,10 +13,10 @@
  * because webpack tolerates one, and it cost this harness a stub of the entire
  * editor component to cut.
  *
- * The value now lives in `util/iri-prefix.ts`, which imports nothing. This test
- * is here because that is a property worth keeping rather than a one-off fix: a
- * single convenient `import` would put it back, and nothing else would complain
- * until the framework moved.
+ * That value is gone — CEE mints no identifiers, so there is no prefix to read —
+ * but the property is worth keeping rather than treating as a one-off fix: a
+ * single convenient `import` would put the cycle back, and nothing else would
+ * complain until the framework moved.
  */
 import { describe, expect, it } from 'vitest';
 import * as fs from 'node:fs';
@@ -71,7 +71,7 @@ describe('the domain layer is framework-free', () => {
       expect(
         offending,
         `${name} imports the top-level editor component, which drags the Angular subtree into the domain layer. ` +
-          'If you need a config value, put it in a module of its own — see util/iri-prefix.ts.',
+          'If you need a config value, put it in a module of its own, importing nothing.',
       ).toEqual([]);
     },
   );
@@ -126,15 +126,5 @@ describe('the domain layer is framework-free', () => {
     for (const dir of DOMAIN_DIRS) {
       expect(fs.existsSync(path.join(SHARED, dir)), `${dir} is missing — has it been renamed?`).toBe(true);
     }
-  });
-});
-
-describe('the iri prefix holder', () => {
-  /**
-   * It exists to be importable from anywhere, which it only is if it imports
-   * nothing itself.
-   */
-  it('imports nothing at all', () => {
-    expect(importsOf(path.join(SHARED, 'util/iri-prefix.ts'))).toEqual([]);
   });
 });

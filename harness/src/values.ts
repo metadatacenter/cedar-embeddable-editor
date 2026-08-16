@@ -253,3 +253,15 @@ export const attributeValue = (container: InstanceObject, field: string, name: s
   }
   return heldValue(container.values[name]);
 };
+
+/**
+ * An element occurrence's identity, however the writer spells its absence.
+ *
+ * CEE mints none, so what the writer does with a container that has no `id` is
+ * the library's business: the version CEE consumes omits the key, and the one it
+ * is moving to writes `"@id": null`. Both are an absent identity, and both
+ * validate — a template's element sub-schema names `@id` in `required`, but the
+ * validator does not enforce a value for it.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const identityOf = (occurrence: any): string | null => occurrence?.['@id'] ?? null;

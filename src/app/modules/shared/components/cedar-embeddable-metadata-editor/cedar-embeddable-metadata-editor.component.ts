@@ -8,7 +8,6 @@ import { InstanceSerializer } from '../../util/instance-serializer';
 import { InstanceDeserializer } from '../../util/instance-deserializer';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
 import { AUTHORITY_DESCRIPTORS, EXTERNAL_AUTHORITY_PATH } from '../../models/authority/authority-descriptor.model';
-import { IriPrefix } from '../../util/iri-prefix';
 import { TemplateTrustService } from '../../service/template-trust.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
@@ -59,8 +58,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   static READ_ONLY_MODE: string = 'readOnlyMode';
 
-  private static IRI_PREFIX = 'iriPrefix';
-
   static BRIDGE_BASE_URL = 'bridgeBaseUrl';
 
   dataContext: DataContext | null = null;
@@ -93,7 +90,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     private activeComponentRegistry: ActiveComponentRegistryService,
     private externalAuthorityLookupService: ExternalAuthorityLookupService,
     private messageHandlerService: MessageHandlerService,
-    private iriPrefix: IriPrefix,
     private templateTrustService: TemplateTrustService,
     private userPreferencesService: UserPreferencesService,
   ) {
@@ -143,9 +139,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         CedarEmbeddableMetadataEditorComponent.SHOW_DOWNLOAD_MENU,
         this.showDownloadMenu,
       );
-      if (Object.hasOwn(value, CedarEmbeddableMetadataEditorComponent.IRI_PREFIX)) {
-        this.iriPrefix.set(String(value[CedarEmbeddableMetadataEditorComponent.IRI_PREFIX]));
-      }
       this.showTemplateDescription = configFlag(
         value,
         CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_DESCRIPTION,

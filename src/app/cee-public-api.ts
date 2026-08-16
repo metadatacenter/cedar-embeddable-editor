@@ -104,8 +104,6 @@ export interface CeeConfig {
    */
   bridgeBaseUrl?: string;
 
-  iriPrefix?: string;
-
   defaultLanguage?: string;
   fallbackLanguage?: string;
   languageMapPathPrefix?: string;

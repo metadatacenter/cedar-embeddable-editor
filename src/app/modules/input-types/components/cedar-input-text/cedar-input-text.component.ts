@@ -8,7 +8,6 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { InputType } from '../../../shared/models/input-type.model';
 import { HtmlDetectService } from '../../../shared/service/html-detect.service';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
-import { IriPrefix } from '../../../shared/util/iri-prefix';
 
 /** Where an ORCID iD lives, which is not a deployment's choice. */
 const ORCID_IRI_PREFIX = 'https://orcid.org/';
@@ -42,7 +41,6 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private htmlDetectService: HtmlDetectService,
-    private iriPrefix: IriPrefix,
   ) {
     super();
     this.options = fb.group({

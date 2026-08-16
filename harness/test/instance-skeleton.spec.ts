@@ -6,8 +6,8 @@
  * field type. A literal gets `{'@value': null}`, an IRI-valued field gets `{}`
  * because there is no `@value` to be null, a numeric or temporal field gets an
  * `@type` alongside, and a choice field with a default selection is not empty
- * at all. It does this twice, once with `@context` and `@id` for the copy the
- * host page gets back and once without for the copy CEE works against.
+ * at all. It does this twice, once with `@context` for the copy the host page
+ * gets back and once without for the copy CEE works against.
  *
  * The shapes are pinned here per field type and per building mode. Nothing
  * asserted them directly before: the round-trip suite writes a value and reads
@@ -30,27 +30,12 @@ import { labelOf, xsdTypeOf, heldValue } from '../src/values';
 /** Every field type that takes a value; static content has no slot. */
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
 
-/** `@id`s are minted per run, so normalise them out of any comparison. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const stable = (node: any): any => {
-  if (Array.isArray(node)) return node.map(stable);
-  if (node && typeof node === 'object') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const out: any = {};
-    for (const key of Object.keys(node)) {
-      out[key] = key === DocumentKey.atId && typeof node[key] === 'string' ? '<minted>' : stable(node[key]);
-    }
-    return out;
-  }
-  return node;
-};
-
 describe('the slot a single field starts with', () => {
   it.each(VALUED.map((k) => [k.key, k] as const))('%s', (key, fieldKind) => {
     const driver = new CeeDriver(buildTemplate({ name: `sk_${key}`, children: [{ kind: fieldKind, name: 'f' }] }));
     expect({
       holds: heldValue(driver.extract.values._f),
-      written: stable(driver.metadata._f),
+      written: driver.metadata._f,
     }).toMatchSnapshot();
   });
 });
@@ -65,24 +50,20 @@ describe('the slot a multi field starts with', () => {
     );
     expect({
       holds: heldValue(driver.extract.values._f),
-      written: stable(driver.metadata._f),
+      written: driver.metadata._f,
     }).toMatchSnapshot();
   });
 });
 
 describe('the shape of an element', () => {
   /**
-   * A single element is one object carrying a minted `@id`; a multi element is
-   * a list of `minItems` of them, each with its own. The `@id` only appears in
-   * the full copy — the extract form drops it, which is why the reader had to
-   * stop relying on `@context` to recognise an element.
+   * A single element is one object; a multi element is a list of `minItems` of
+   * them. Neither carries an `@id`: CEE mints no identities, so a freshly built
+   * occurrence has none until a loaded instance gives it one.
    *
-   * That last sentence was in this comment before it was true. The snapshot
-   * below recorded an `@id` in the extract for months, because the builder
-   * minted one into whichever tree it was filling, and a snapshot records
-   * whatever happens rather than whatever was meant. `tree-consistency.spec.ts`
-   * now asserts the property directly, in both directions, instead of leaving it
-   * to a comment and a recording that disagreed.
+   * The snapshots below recorded a minted `@id` for months — a fresh GUID per
+   * run, normalised to `<minted>` before comparison so that a value meaning
+   * nothing could be recorded as though it meant something.
    */
   it('a single element', () => {
     const template = buildTemplate({
@@ -90,7 +71,7 @@ describe('the shape of an element', () => {
       elements: [{ name: 'el', children: [{ kind: VALUED[0], name: 'f' }] }],
     });
     const driver = new CeeDriver(template);
-    expect({ holds: heldValue(driver.extract.values._el), written: stable(driver.metadata._el) }).toMatchSnapshot();
+    expect({ holds: heldValue(driver.extract.values._el), written: driver.metadata._el }).toMatchSnapshot();
   });
 
   it('a multi element starts at minItems', () => {
@@ -102,7 +83,7 @@ describe('the shape of an element', () => {
     });
     const driver = new CeeDriver(template);
     expect(driver.extract.values._el).toHaveLength(3);
-    expect(stable(driver.metadata._el)).toMatchSnapshot();
+    expect(driver.metadata._el).toMatchSnapshot();
   });
 
   it('a multi element with no floor starts empty', () => {
@@ -115,16 +96,6 @@ describe('the shape of an element', () => {
     expect(new CeeDriver(template).extract.values._el).toEqual([]);
   });
 
-  it('gives every occurrence of a multi element its own @id', () => {
-    const template = buildTemplate({
-      name: 'sk_el_ids',
-      elements: [
-        { name: 'el', cardinality: 'multi', minItems: 3, maxItems: 9, children: [{ kind: VALUED[0], name: 'f' }] },
-      ],
-    });
-    const ids = new CeeDriver(template).metadata._el.map((o: Record<string, string>) => o[DocumentKey.atId]);
-    expect(new Set(ids).size, `occurrences share an @id: ${ids.join(', ')}`).toBe(3);
-  });
 });
 
 describe('the XSD type a numeric or temporal slot declares', () => {

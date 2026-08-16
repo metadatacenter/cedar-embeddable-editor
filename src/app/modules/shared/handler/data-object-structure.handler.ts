@@ -277,7 +277,7 @@ export class DataObjectStructureHandler {
     const currentNodeArray = currentNodeAny as [];
     const sourceItem = currentNodeArray[multiInstanceInfo.currentIndex];
     const cloneItem = _.cloneDeep(sourceItem);
-    this.remintElementInstanceIds(cloneItem, component);
+    this.clearElementInstanceIds(cloneItem, component);
     currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, cloneItem as never);
   }
 
@@ -321,16 +321,20 @@ export class DataObjectStructureHandler {
   }
 
   /**
-   * Give every element occurrence in a copied subtree a new identity.
+   * Take every element occurrence's identity off a copied subtree.
    *
-   * An `@id` cannot identify its role by its string value. A field is allowed to
-   * hold an IRI under the same namespace CEE uses for element occurrences, so a
-   * prefix-based object walk can silently replace legitimate link or controlled-
-   * term values. The component tree does carry that distinction: only element
-   * components own occurrence-envelope IDs, while field components own data that
-   * must be copied verbatim.
+   * A duplicated occurrence is not the one it was copied from, and an identity a
+   * repository assigned belongs to the original. Nothing is minted to put back:
+   * the writer emits a null `@id` for a container that has none, which is what an
+   * absent identity looks like, and which validates.
+   *
+   * The walk follows the component tree rather than the document, because an
+   * `@id` cannot be recognised by its string value. A field may legitimately hold
+   * an IRI under any namespace, so a prefix-based object walk silently rewrites
+   * link and controlled-term values; only element components own an occurrence
+   * envelope.
    */
-  private remintElementInstanceIds(item: InstanceNode, component: CedarComponent): void {
+  private clearElementInstanceIds(item: InstanceNode, component: CedarComponent): void {
     if (!(component instanceof SingleElementComponent || component instanceof MultiElementComponent)) {
       return;
     }
@@ -342,18 +346,16 @@ export class DataObjectStructureHandler {
     }
 
     const occurrence = item;
-    // `id` on the container, not a property written into it: an occurrence's
-    // identity is the model's, and a copy must not inherit the original's.
+    // `id` on the container, not a property written into it.
     occurrence.id = null;
-    this.dataObjectBuilderService.addRandomAtId(occurrence);
 
     for (const childComponent of component.children) {
       const childValue = occurrence.values[childComponent.name] ?? null;
       if (childComponent instanceof SingleElementComponent) {
-        this.remintElementInstanceIds(childValue, childComponent);
+        this.clearElementInstanceIds(childValue, childComponent);
       } else if (childComponent instanceof MultiElementComponent && Array.isArray(childValue)) {
         for (const childOccurrence of childValue) {
-          this.remintElementInstanceIds(childOccurrence, childComponent);
+          this.clearElementInstanceIds(childOccurrence, childComponent);
         }
       }
     }

@@ -6,7 +6,6 @@ exports[`the shape of an element > a multi element starts at minItems 1`] = `
     "@context": {
       "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
     },
-    "@id": "<minted>",
     "_f": {
       "@value": null,
     },
@@ -15,7 +14,6 @@ exports[`the shape of an element > a multi element starts at minItems 1`] = `
     "@context": {
       "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
     },
-    "@id": "<minted>",
     "_f": {
       "@value": null,
     },
@@ -24,7 +22,6 @@ exports[`the shape of an element > a multi element starts at minItems 1`] = `
     "@context": {
       "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
     },
-    "@id": "<minted>",
     "_f": {
       "@value": null,
     },
@@ -39,7 +36,6 @@ exports[`the shape of an element > a single element 1`] = `
     "@context": {
       "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
     },
-    "@id": "<minted>",
     "_f": {
       "@value": null,
     },

@@ -301,31 +301,3 @@ export class CeeDriver {
   }
 }
 
-/** Every `@id` CEE mints at build time, so they can be normalized away. */
-const MINTED_ID = /^https:\/\/repo\.metadatacenter\.org\/template-element-instances\//;
-
-/**
- * Replace nondeterministic values with stable placeholders.
- *
- * CEE stamps a fresh RFC4122 GUID onto every element instance it builds
- * (`DataObjectUtil.generateGUID`, which uses `Date.now()` and `Math.random()`).
- * Without this, no two runs produce the same instance and snapshots are
- * worthless. Only CEE-minted IRIs are touched — externally supplied `@id`s are
- * meaningful data and must survive, which is also what
- * `cleanUpAtIdsRecursively` relies on when copying a multi-instance.
- */
-export const normalize = (value: unknown): unknown => {
-  if (Array.isArray(value)) return value.map(normalize);
-  if (value && typeof value === 'object') {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value)) {
-      if (k === DocumentKey.atId && typeof v === 'string' && MINTED_ID.test(v)) {
-        out[k] = '<minted>';
-      } else {
-        out[k] = normalize(v);
-      }
-    }
-    return out;
-  }
-  return value;
-};

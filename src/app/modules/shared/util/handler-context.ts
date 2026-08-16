@@ -9,7 +9,6 @@ import { DataObjectStructureHandler } from '../handler/data-object-structure.han
 import { MessageHandlerService } from '../service/message-handler.service';
 import { DataQualityReportBuilderHandler } from '../handler/data-quality-report-builder.handler';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
-import { DEFAULT_IRI_PREFIX } from './iri-prefix';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { InputType } from '../models/input-type.model';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
@@ -33,12 +32,8 @@ export class HandlerContext {
 
   readOnlyMode: boolean = false;
 
-  public constructor(
-    dataContext: DataContext,
-    messageHandlerService: MessageHandlerService,
-    iriPrefix: () => string = () => DEFAULT_IRI_PREFIX,
-  ) {
-    this.dataObjectBuilderService = new DataObjectBuilderHandler(iriPrefix);
+  public constructor(dataContext: DataContext, messageHandlerService: MessageHandlerService) {
+    this.dataObjectBuilderService = new DataObjectBuilderHandler();
     this.multiInstanceObjectService = new MultiInstanceObjectHandler();
     this.dataObjectManipulationService = new DataObjectStructureHandler(this.dataObjectBuilderService);
     this.dataObjectDataValueHandler = new DataObjectDataValueHandler(messageHandlerService);
