@@ -28,7 +28,7 @@ import { baseUrl, CeeConfig, configFlag } from '../../util/config-reader';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
-  private static INNER_VERSION = '2026-08-15 08:49 0e283ce';
+  private static INNER_VERSION = '2026-08-16 08:45 5e7dca6';
 
   /**
    * Whether the download menu exists.
