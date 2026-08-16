@@ -115,9 +115,26 @@ under the `latest` tag, so an embedder installs the current one by name:
 npm install cedar-embeddable-editor
 ```
 
-`1.6.0` is current. A dev-snapshot channel on the BMIR Nexus, published as the
-scoped `@org.metadatacenter/cedar-embeddable-editor` under a `dev` tag, is retired:
-`scripts/npm-package.mjs` emits the unscoped package for the default registry.
+`1.6.0` is current on npmjs.org.
+
+Dev snapshots go somewhere else: the BMIR Nexus, as the scoped
+`@org.metadatacenter/cedar-embeddable-editor` under a `dev` tag. `scripts/npm-package.mjs`
+derives which from the version — a `-dev.` in it selects the scoped name and the Nexus
+registry, and anything else the unscoped name and the default one — so the two channels
+cannot be confused by a flag someone forgets to pass. npm routes by scope rather than by
+package name, which is what lets one package come from Nexus while everything else resolves
+from npmjs.org.
+
+A CEDAR frontend names a snapshot through an npm alias:
+
+```json
+"cedar-embeddable-editor": "npm:@org.metadatacenter/cedar-embeddable-editor@2.0.0-dev.20260816.5e7dca6"
+```
+
+Cutting one is in
+[CEE-RUNBOOK.md](https://github.com/metadatacenter/cedar-development/blob/develop/ops/CEE-RUNBOOK.md),
+including the version convention and which host needs what afterwards. Publishing needs the
+Nexus credential; reads are anonymous.
 
 ## Testing
 
@@ -135,9 +152,11 @@ It runs, in order:
 3. The unit tests, in Node under Vitest.
 4. The headless domain harness with V8 coverage, and its per-directory coverage
    floors.
-5. A production build, then the Playwright suite against that bundle: the full
-   Chromium baseline at desktop and narrow viewport sizes, plus focused
-   Chromium, Firefox and WebKit compatibility checks.
+5. A production build, then the Playwright suite against that bundle, in a
+   container: the full Chromium baseline at desktop and narrow viewport sizes,
+   plus focused Chromium, Firefox and WebKit compatibility checks. The container
+   is what makes a screenshot baseline mean the same thing on a laptop and on CI,
+   so the pixel budget is zero — see `visual/run-in-container.sh`.
 6. Staging the npm package from the bundle the suite just exercised, which
    checks the raw and gzip size budgets and verifies every staged byte against
    its source.
@@ -173,9 +192,11 @@ published to the BMIR Nexus, so no sibling checkout is needed:
 ```shell
 npm ci
 npm --prefix harness ci
-npm --prefix visual ci
-./visual/node_modules/.bin/playwright install chromium firefox webkit
 ```
+
+The visual suite installs nothing here. It runs inside Playwright's own container,
+which carries the browsers it drives, and installs its dependencies there against a
+named volume — so it needs Docker running and no `playwright install` of its own.
 
 ### Node versions during the Angular migration
 
