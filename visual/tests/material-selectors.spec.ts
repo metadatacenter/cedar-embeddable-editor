@@ -87,29 +87,18 @@ test('every third-party selector CEE styles still matches an element', async ({ 
 /**
  * The commitments THEMING.md calls load-bearing, checked rather than grepped.
  *
- * The `--cee-*` properties are published on `:host` for embedders to override, and
- * two have no internal consumer — which is the point, and also what makes them easy
- * to drop by accident during a Material migration. The font faces are namespaced so
- * an embedding page cannot collide with them, and the status colours are plain CSS
- * that should survive any Material change untouched; if one of them moves, something
- * reached into it.
+ * The font faces are namespaced so an embedding page cannot collide with them, and
+ * the status colours are plain CSS that should survive any Material change
+ * untouched; if one of them moves, something reached into it.
+ *
+ * Eight `--cee-*` custom properties were asserted here too, as published API — two
+ * of them precisely because nothing read them. They are gone: the five colours
+ * never reached a Material component, no embedder set any of the eight, and a test
+ * that a property is *published* passes just as well when the property does
+ * nothing. Theming is on CEE-ROADMAP.md, to be designed rather than accumulated.
  */
-test('the public custom properties and namespaced faces survive', async ({ page }) => {
+test('the namespaced font faces survive', async ({ page }) => {
   await open(page, '01-input-types');
-
-  const host = page.locator('cedar-embeddable-editor');
-  for (const prop of [
-    '--cee-color-primary',
-    '--cee-color-text-primary',
-    '--cee-color-accent',
-    '--cee-color-warn',
-    '--cee-element-heading-size',
-    '--cee-element-heading-weight',
-    '--cee-element-content-gap',
-  ]) {
-    const value = await host.evaluate((n, p) => getComputedStyle(n).getPropertyValue(p).trim(), prop);
-    expect(value, `${prop} is public API and must stay published on :host`).not.toBe('');
-  }
 
   const fonts = await page.evaluate(() => {
     const faces: string[] = [];

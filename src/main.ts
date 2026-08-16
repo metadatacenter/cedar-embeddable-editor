@@ -5,13 +5,6 @@ import { AppModuleProd } from './app/app.module.prod';
 import { AppModuleDev } from './app/app.module.dev';
 import packageJson from 'package.json';
 import { bootstrapCedarEditorOnce, CedarEditorBootstrapState } from './app/bootstrap-once';
-import { registerCeeThemeProperties } from './app/register-theme-properties';
-
-// Before Angular, because registration has to precede the first style resolution
-// to be the thing that types a host page's value. Idempotent and never throws, so
-// it needs no guard of its own and belongs outside the bootstrap slot: a second
-// copy of the bundle that loses the slot has still typed the properties correctly.
-registerCeeThemeProperties();
 
 // needed for jsonld js library
 // (window as any).global = window;

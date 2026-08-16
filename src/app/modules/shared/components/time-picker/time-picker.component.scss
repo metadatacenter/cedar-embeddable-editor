@@ -31,8 +31,8 @@
   color: inherit;
 
   &:focus-within {
-    border-color: var(--cee-color-primary);
-    box-shadow: inset 0 0 0 1px var(--cee-color-primary);
+    border-color: tokens.$cee-color-primary;
+    box-shadow: inset 0 0 0 1px tokens.$cee-color-primary;
   }
 }
 
@@ -55,7 +55,7 @@
   }
 
   &:focus {
-    background: color-mix(in srgb, var(--cee-color-primary) 9%, transparent);
+    background: color-mix(in srgb, #{tokens.$cee-color-primary} 9%, transparent);
     border-radius: 2px;
   }
 }
@@ -160,7 +160,7 @@
 .cee-time-validation {
   flex-basis: 100%;
   margin-inline-start: 4px;
-  color: var(--cee-color-warn);
+  color: tokens.$cee-color-warn;
   font-size: tokens.$cee-font-size;
   line-height: 1.35;
 }

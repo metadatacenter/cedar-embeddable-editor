@@ -88,19 +88,19 @@ $ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/m
   border: none;
 }
 
-/* ORCID — inline SVG (host can override via CSS var if desired) */
+/* ORCID — inline SVG. */
 .orcid-icon {
-  background-image: var(--cee-orcid-icon, url("data:image/svg+xml;utf8,\
+  background-image: url("data:image/svg+xml;utf8,\
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' aria-hidden='true' focusable='false'>\
       <circle cx='128' cy='128' r='120' fill='%23A6CE39'/>\
       <text x='50%' y='170' text-anchor='middle' font-family='Arial, sans-serif' \
             font-weight='bold' font-size='120' fill='%23ffffff'>iD</text>\
-    </svg>"));
+    </svg>");
 }
 
-/* ROR — official icon (host can override path via CSS var) */
+/* ROR — official icon. */
 .ror-icon {
-  background-image: var(--cee-ror-icon, url(#{$ror-icon-official}));
+  background-image: url(#{$ror-icon-official});
 }
 
 .pfas-icon {
@@ -127,21 +127,21 @@ $ror-icon-official: "https://raw.githubusercontent.com/ror-community/ror-logos/m
 }
 
 .nih-grant-icon {
-  background-image: var(--cee-nih-grant-icon, url("data:image/svg+xml;utf8,\
+  background-image: url("data:image/svg+xml;utf8,\
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' aria-hidden='true' focusable='false'>\
       <rect width='256' height='256' rx='40' fill='%23003366'/>\
       <text x='50%' y='165' text-anchor='middle' font-family='Arial, sans-serif' \
             font-weight='bold' font-size='100' fill='%23ffffff'>NIH</text>\
-    </svg>"));
+    </svg>");
 }
 
 .doi-icon {
-  background-image: var(--cee-doi-icon, url("data:image/svg+xml;utf8,\
+  background-image: url("data:image/svg+xml;utf8,\
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' aria-hidden='true' focusable='false'>\
       <rect width='256' height='256' rx='40' fill='%234A90E2'/>\
       <text x='50%' y='165' text-anchor='middle' font-family='Arial, sans-serif' \
             font-weight='bold' font-size='110' fill='%23ffffff'>DOI</text>\
-    </svg>"));
+    </svg>");
 }
 
 .pmid-icon {

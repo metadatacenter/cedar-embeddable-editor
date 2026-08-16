@@ -7,19 +7,13 @@
 
 @include theme.core();
 
-// CEE's public theming surface. An embedder can override these on the custom
-// element, so the names are API — do not rename or drop one without treating it
-// as a breaking change. `--cee-color-accent` remains for embedders; warn also
-// supplies CEE's validation feedback.
+// CEE publishes no theming surface. Eight `--cee-*` custom properties stood here,
+// described as versioned API; two were read nowhere, and the five colours never
+// reached a Material component, because the theme is compiled from Sass and no
+// override could touch it. What an embedder could actually move was the time
+// picker's focus colour and three element-heading metrics, and no embedder moved
+// any of them. Revisiting theming properly is on CEE-ROADMAP.md.
 :host {
-  --cee-color-primary: #{tokens.$cee-color-primary};
-  --cee-color-text-primary: #{tokens.$cee-color-on-primary};
-  --cee-color-accent: #{tokens.$cee-color-accent};
-  --cee-color-warn: #{tokens.$cee-color-warn};
-  --cee-color-warning: #{tokens.$cee-color-warning};
-  --cee-element-heading-size: 18px;
-  --cee-element-heading-weight: 600;
-  --cee-element-content-gap: 12px;
   display: block;
   box-sizing: border-box;
   width: 100%;
@@ -448,7 +442,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  */
 .input-warning {
   display: block;
-  color: var(--cee-color-warning);
+  color: tokens.$cee-color-warning;
   margin-inline: 16px;
   font-size: 12px;
   line-height: 22px;

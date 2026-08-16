@@ -25,12 +25,12 @@
  * that, and the two are complementary rather than alternatives.
  */
 .cee-element-heading {
-  font-size: clamp(12px, var(--cee-element-heading-size), 32px);
-  font-weight: clamp(400, var(--cee-element-heading-weight), 700);
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .cee-element-content {
-  padding-top: clamp(0px, var(--cee-element-content-gap), 32px);
+  padding-top: 12px;
 }
 
 .non-iterable-component {
