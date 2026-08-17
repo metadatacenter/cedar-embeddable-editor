@@ -29,8 +29,21 @@ export class MessageHandlerService {
 
   constructor() {}
 
+  /**
+   * Install the host's handler, replacing any handler already installed.
+   *
+   * Replaceable on purpose, unlike the inputs that decide what the editor is — the
+   * reasoning is on `eventHandler` in the public API. Traced *after* the swap, so the
+   * message reaches the handler now listening rather than the one just displaced: a
+   * page whose diagnostics stopped arriving can see that something took the slot,
+   * which is the only symptom a silent replacement leaves.
+   */
   injectEventHandler(value: CeeEventHandler): void {
+    const replaced = this.eventHandler !== null;
     this.eventHandler = value;
+    if (replaced) {
+      this.trace('CEDAR Embeddable Editor: "eventHandler" replaced; this handler receives from now on.');
+    }
   }
 
   /**

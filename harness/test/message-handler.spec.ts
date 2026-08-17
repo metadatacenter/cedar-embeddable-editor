@@ -59,6 +59,40 @@ describe('the injected event handler', () => {
     ]);
   });
 
+  /**
+   * The handler slot is replaceable, which the published contract once denied of it
+   * while the setter replaced silently anyway. Two things are pinned here: the new
+   * handler receives, and the swap is announced to it — the displaced handler simply
+   * going quiet is otherwise the only evidence a page gets.
+   */
+  it('replaces a handler already installed, and tells the new one', () => {
+    silence();
+    const first: string[] = [];
+    const second: string[] = [];
+    const service = new MessageHandlerService();
+
+    service.injectEventHandler({ trace: (label: string) => first.push(label) });
+    service.trace('before the swap');
+    service.injectEventHandler({ trace: (label: string) => second.push(label) });
+    service.trace('after the swap');
+
+    expect(first).toEqual(['before the swap']);
+    expect(second).toEqual([
+      'CEDAR Embeddable Editor: "eventHandler" replaced; this handler receives from now on.',
+      'after the swap',
+    ]);
+  });
+
+  it('says nothing about a replacement when there was no handler to replace', () => {
+    silence();
+    const seen: string[] = [];
+    const service = new MessageHandlerService();
+
+    service.injectEventHandler({ trace: (label: string) => seen.push(label) });
+
+    expect(seen).toEqual([]);
+  });
+
   it('flattens a trace group into one label', () => {
     silence();
     const seen: string[] = [];

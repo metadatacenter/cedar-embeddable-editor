@@ -192,11 +192,15 @@ export interface CeeEventHandler {
 /**
  * The custom element, as a host sees it.
  *
- * Registered as `cedar-embeddable-editor`. Each member below takes one
- * assignment; a second is reported through the event handler and ignored, and the
- * first value stands. An artifact is a template and optionally an instance, so
- * `templateAndInstanceObject` supplies between them what the two separate inputs
- * do and cannot be combined with either.
+ * Registered as `cedar-embeddable-editor`. Configuration and the artifact inputs
+ * each take one assignment; a second is reported through the event handler and
+ * ignored, and the first value stands. An artifact is a template and optionally an
+ * instance, so `templateAndInstanceObject` supplies between them what the two
+ * separate inputs do and cannot be combined with either.
+ *
+ * `eventHandler` is the exception, and deliberately: it may be replaced. The
+ * sentence above used to be written of every member, which was false for the
+ * handler and meaningless for the three read-only getters below.
  */
 export interface CedarEmbeddableEditorElement extends HTMLElement {
   /** Configuration. Assign once, before or after the artifact. */
@@ -217,7 +221,21 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
   /** Both at once, as `{ templateObject, instanceObject }`. */
   templateAndInstanceObject: CeeTemplateAndInstance;
 
-  /** Host callbacks. */
+  /**
+   * Host callbacks, which may be replaced: the last one assigned receives.
+   *
+   * Set-once protects the inputs that decide what the editor *is*, because the same
+   * assignments in a different order used to give a different editor. A handler
+   * decides nothing about the form, so nothing here needs an order to reason about,
+   * and sealing it would answer a host's second assignment by reporting the refusal
+   * *to the handler being replaced*. Replacing a callback slot is also what the DOM
+   * does everywhere else.
+   *
+   * Assign it before the configuration and the artifact if the diagnostics from those
+   * matter. A handler hears what CEE emits after it arrives, and CEE has already
+   * reported on a configuration by the time a handler assigned later is installed.
+   * Replacing one is traced, so a page whose messages stop arriving can see why.
+   */
   eventHandler: CeeEventHandler;
 
   /** The instance as CEDAR JSON. Read-only. */
