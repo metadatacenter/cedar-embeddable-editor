@@ -40,7 +40,7 @@
     "@angular/platform-browser": "~22.1.1",
     "@ngx-translate/core": "^14.0.0",
     "@ngx-translate/http-loader": "^7.0.0",
-    "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@1.0.0-dev.20260816.4d7c6a9",
+    "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@1.0.0-dev.20260816.b077ca5",
     "dompurify": "^3.4.13",
     "lodash-es": "^4.18.1",
     "rxjs": "^7.8.2",
