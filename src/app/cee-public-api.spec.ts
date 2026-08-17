@@ -125,14 +125,29 @@ describe('the published report types and the objects behind them', () => {
     ).toEqual([]);
   });
 
-  it('declare only members a problem really has', () => {
+  /**
+   * A problem is checked in both directions, where the report is checked in one.
+   *
+   * The report withholds members deliberately, because it carries CEE's internal
+   * working views alongside the contract. A problem carries nothing of the sort — it
+   * is a value class that exists to be read by a host — so a member present at
+   * runtime and absent here is not a choice but an omission. `field` and `inputType`
+   * were exactly that: the validation guide taught both, every problem carried both,
+   * and a TypeScript host reading either needed a cast to get at them.
+   */
+  it('declare every member a problem has, and only those', () => {
     const problem = new ValidationProblem([], 'field', null, 'code', 'message') as unknown as Record<string, unknown>;
+    const carried = Object.getOwnPropertyNames(problem);
     const declared = interfaceMembers('CeeValidationProblem');
 
     expect(declared.length, 'the CeeValidationProblem members were not parsed').toBeGreaterThan(3);
     expect(
       declared.filter((member) => !(member in problem)),
       'CeeValidationProblem declares a member ValidationProblem does not have',
+    ).toEqual([]);
+    expect(
+      carried.filter((member) => !declared.includes(member)),
+      'ValidationProblem carries a member CeeValidationProblem does not declare, so a host needs a cast to read it',
     ).toEqual([]);
   });
 });

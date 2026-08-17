@@ -132,12 +132,25 @@ export interface CeeTemplateAndInstance {
   instanceObject: CeeJsonObject;
 }
 
-/** One thing wrong with the instance, as the data quality report sees it. */
+/**
+ * One thing wrong with the instance, as the data quality report sees it.
+ *
+ * Every member the runtime object carries, unlike `CeeDataQualityReport`, which
+ * declares a subset because the report also holds CEE's internal working views. A
+ * problem has no internals — it exists to be read by a host — so anything missing
+ * here is missing by mistake, which `field` and `inputType` were: documented in the
+ * validation guide, present at runtime, and absent from this interface, so a
+ * TypeScript host could not read either without a cast.
+ */
 export interface CeeValidationProblem {
   /** Machine-readable code, e.g. `numberType` or `temporalGranularity`. */
   code: string;
   /** Path to the offending value, outermost first. */
   path: string[];
+  /** The field's property name, which is the last path segment. */
+  field: string;
+  /** The field's declared `_ui.inputType`, or null where it declares none. */
+  inputType: string | null;
   /** Human-readable explanation. */
   message: string;
   /** The value that failed, when there is one. */
