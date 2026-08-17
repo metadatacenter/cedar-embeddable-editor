@@ -261,16 +261,12 @@ describe('names the user did not supply', () => {
     addAttribute(driver, driver.findOrThrow(['_av']), null, 'blue');
     driver.expectNoErrors('adding an unnamed attribute');
 
-    const names: string[] = driver.metadata._av;
-    expect(names).toHaveLength(1);
-    expect(names[0]).toBe('');
+    expect(heldValue(driver.extract.values._av)).toEqual(['']);
     expect(driver.extract.hasValue('Attribute Value Field1'), 'a name was manufactured').toBe(false);
-    // The row is held open in the emitted list, under an empty name, and no
-    // property is invented for it. It used to come out as `[]` because the
-    // projection that built this list dropped a nameless entry on the way; the
-    // list is written from the instance now, and the row is really there — the
-    // user made it, and it is waiting for a name.
-    expect(driver.emitted._av).toEqual(['']);
+    // The row stays in CEE's editing model, where the user can finish it, but it
+    // is not an attribute until it has a name and must not leave CEE as one.
+    expect(driver.metadata._av).toEqual([]);
+    expect(driver.emitted._av).toEqual([]);
   });
 
   it('does not let a second attribute overwrite the first by reusing its name', () => {
