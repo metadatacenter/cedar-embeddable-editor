@@ -40,7 +40,7 @@ export class DataContext {
    * navigates by *component path* — and no envelope key is a component name, so
    * the envelope is never visited — or goes through the model library's parsed
    * container, which excludes the envelope by construction. The only walk that
-   * enumerated raw keys was the one that re-mints element `@id`s when copying an
+   * enumerated raw keys was the one that clears element `@id`s when copying an
    * occurrence, and that wants to see them.
    *
    * So the second tree existed to spare consumers a problem none of them had.

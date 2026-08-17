@@ -298,7 +298,7 @@ test.describe('host style isolation', () => {
 });
 
 test.describe('multiple editor instances', () => {
-  test('keep language paths and preferences isolated, and mint distinct element IRIs', async ({ page }) => {
+  test('keep language paths and preferences isolated, and invent no element IRIs', async ({ page }) => {
     const languageRequests: string[] = [];
     await page.route('**/served/languages/**', async (route) => {
       languageRequests.push(route.request().url());

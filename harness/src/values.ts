@@ -177,8 +177,9 @@ export const termValue = (iri: string, label: string): InstanceDataAtomType =>
  * and `setValue` on it is how a child goes in — so a spec can describe the shape
  * it wants without writing a nested document.
  *
- * `id` is the element instance's own IRI, which CEE mints when it builds one and
- * a loaded instance carries. Left off where a spec does not care.
+ * `id` is the element instance's own IRI, which a loaded instance carries and CEE
+ * does not invent — so a spec passing one is describing a document that came from
+ * somewhere, and most leave it off.
  */
 export const containerValue = (
   children: Record<string, InstanceDataAtomType>,

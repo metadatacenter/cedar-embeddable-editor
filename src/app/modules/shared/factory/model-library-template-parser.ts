@@ -318,8 +318,10 @@ export class ModelLibraryTemplateParser implements TemplateParser {
    * Record each child's property IRI, rather than copying a `@context` block.
    *
    * The IRIs come from the same mapping the library uses when it writes a
-   * template, which takes each child's declared IRI and mints one where a
-   * template omits it. The block those IRIs end up in is the instance writer's
+   * template, which takes each child's declared IRI and records nothing for a child
+   * that declares none — the repository assigns one on upload. It used to build an
+   * IRI out of the child's name, asserting an identity nobody had assigned and
+   * deriving it from the one thing an author can rename. The block those IRIs end up in is the instance writer's
    * to build; the root used to be handed the standard prefixes here as well,
    * and every container is the same now.
    *
