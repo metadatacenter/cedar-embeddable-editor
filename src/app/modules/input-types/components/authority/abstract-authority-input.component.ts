@@ -13,6 +13,7 @@ import { ExternalAuthorityLookupService } from '../../../shared/service/external
 import { AuthoritySearchControl } from '../../../shared/util/authority-search-control';
 import { AuthorityDescriptor } from '../../../shared/models/authority/authority-descriptor.model';
 import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
+import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { isAuthorityTerm } from '../../../shared/models/authority/authority-term.guard';
 
@@ -388,11 +389,10 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
         if (!results.length) {
           return [];
         }
-        // The endpoints are inconsistent about honouring `q`, so the widgets all
-        // narrowed the results themselves. Kept, because dropping it would widen
-        // what a field offers rather than narrow it.
-        const needle = (query || '').toLowerCase();
-        return needle ? results.filter((option) => (option?.label ?? '').toLowerCase().includes(needle)) : results;
+        // The endpoints are inconsistent about honouring `q`, so the results are
+        // narrowed here too. See `narrowByQuery` for why it matches every word
+        // rather than the query as one substring.
+        return narrowByQuery(results, query);
       }),
     );
   }
