@@ -6,12 +6,13 @@
  * `tsc --emitDeclarationOnly` turn this one file into the `.d.ts` the npm package
  * ships, without dragging in paths that exist only inside this repository.
  *
- * Every input is set-once: the first assignment stands, and a later one is reported
- * and ignored. A host wanting different configuration or a different artifact
- * creates a new element. That is the whole of the contract's assignment
- * semantics, and it replaces three behaviours that had no answer — a second
- * `config` that patched some keys and replaced others, a read-only mode that could
- * be turned on and not off, and three artifact inputs with no stated precedence.
+ * Configuration and the artifact inputs are set-once: the first assignment stands,
+ * and a later one is reported and ignored. A host wanting different configuration or
+ * a different artifact creates a new element. That replaces three behaviours which
+ * had no answer — a second `config` that patched some keys and replaced others, a
+ * read-only mode that could be turned on and not off, and three artifact inputs with
+ * no stated precedence. `eventHandler` is deliberately outside it and may be
+ * replaced, for the reasons given where it is declared.
  *
  * Types only, with no runtime values, and that is a constraint rather than a
  * style. The shipped bundle is an IIFE that registers a custom element and exports

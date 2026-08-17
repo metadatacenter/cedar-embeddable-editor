@@ -391,7 +391,7 @@ object and a typed element:
 ```ts
 import type { CeeConfig, CedarEmbeddableEditorElement } from 'cedar-embeddable-editor';
 
-const config: CeeConfig = { readOnlyMode: true, showTemplateYaml: true };
+const config: CeeConfig = { readOnlyMode: true, showDownloadMenu: true };
 
 // Typed by the package, with no cast: it declares the tag in HTMLElementTagNameMap.
 const cee = document.querySelector('cedar-embeddable-editor');
@@ -413,13 +413,22 @@ go to the console and to any `eventHandler` you registered:
 CEE ERROR: Unknown configuration key "readOnlyMod". It has no effect. Did you mean "readOnlyMode"?
 ```
 
-Reporting only: a key CEE cannot use is ignored, exactly as before. The change is
-that you are told rather than left watching a setting do nothing.
+A key CEE cannot use is reported *and* refused: it reads as unset, so the setting
+keeps the default it documents. One bad key costs only that key — every other key in
+the same configuration applies. CEE does not repair a value either, so a base URL
+missing its trailing slash is dropped rather than completed, since appending CEE's
+own path to it would name an endpoint nobody chose.
 
-Every input on the element takes one assignment and keeps it. Assign `config` a
-second time, or an artifact input a second time, and CEE reports it and ignores it:
-the first value stands. Build the configuration you want, assign it once, and create
-a new element if it has to change.
+An assignment that is not an object at all configures nothing and does not spend the
+one assignment there is, so your next attempt is still your first.
+
+Configuration and the artifact inputs take one assignment each and keep it. Assign
+`config` a second time, or an artifact input a second time, and CEE reports it and
+ignores it: the first value stands. Build the configuration you want, assign it once,
+and create a new element if it has to change. `eventHandler` is the exception and may
+be replaced, with the last handler assigned receiving — register it before the
+configuration and the artifact if you want the diagnostics from those, since a
+handler hears only what follows it.
 
 `readOnlyMode` is the only way in or out of read-only mode. CEE used to offer the
 user a switch of its own, in a preferences menu, which wrote to the same state the
@@ -708,7 +717,7 @@ An example in Angular is:
 ```
 
 - `component.ts`:
-```typescript
+```typescript fragment
   logChange(event) {
     console.log('CHANGE', event);
   }
