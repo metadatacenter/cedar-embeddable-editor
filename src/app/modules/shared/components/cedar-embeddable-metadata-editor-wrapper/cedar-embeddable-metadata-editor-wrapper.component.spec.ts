@@ -5,9 +5,18 @@ import { ControlledFieldDataService, INTEGRATED_SEARCH_PATH } from '../../servic
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
-import { TranslateService } from '@ngx-translate/core';
+import {
+  FakeMissingTranslationHandler,
+  TranslateDefaultParser,
+  TranslateFakeCompiler,
+  TranslateService,
+  TranslateStore,
+} from '@ngx-translate/core';
 import { InstanceDataContainer } from 'cedar-model-typescript-library';
 import { InstanceObject } from '../../models/instance-node.model';
+import { HttpClient } from '@angular/common/http';
+import { of } from 'rxjs';
+import { FallbackTranslateLoader } from '../../util/fallback-translate-loader';
 
 /**
  * Jasmine's `toHaveBeenCalledOnceWith`, in the two assertions it stood for.
@@ -27,6 +36,9 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     setIntegratedSearchUrl: Mock;
     setDefaultLang: Mock;
     use: Mock;
+    getLangs: Mock;
+    reloadLang: Mock;
+    setTranslation: Mock;
     clearRegistry: Mock;
     globalSettings: { languageMapPathPrefix?: string };
   }
@@ -36,6 +48,13 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       setIntegratedSearchUrl: vi.fn(),
       setDefaultLang: vi.fn(),
       use: vi.fn(),
+      // No language loaded yet, which is every case in this describe: the doubles
+      // below record calls and load nothing. What happens once a map *is* loaded from
+      // one source and the host names another is the subject of the real-service test
+      // at the end of this file, which a double of `use` cannot answer.
+      getLangs: vi.fn(() => []),
+      reloadLang: vi.fn(),
+      setTranslation: vi.fn(),
       clearRegistry: vi.fn(),
       globalSettings: {},
     };
@@ -52,7 +71,13 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       } as unknown as ControlledFieldDataService,
       messaging as unknown as MessageHandlerService,
       { clear: mocks.clearRegistry } as unknown as ActiveComponentRegistryService,
-      { setDefaultLang: mocks.setDefaultLang, use: mocks.use } as unknown as TranslateService,
+      {
+        setDefaultLang: mocks.setDefaultLang,
+        use: mocks.use,
+        getLangs: mocks.getLangs,
+        reloadLang: mocks.reloadLang,
+        setTranslation: mocks.setTranslation,
+      } as unknown as TranslateService,
       messaging as unknown as MessageHandlerService,
       mocks.globalSettings as unknown as GlobalSettingsContextService,
     );
@@ -149,7 +174,13 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
       { setIntegratedSearchUrl: vi.fn() } as unknown as ControlledFieldDataService,
       messaging as unknown as MessageHandlerService,
       { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
-      { setDefaultLang: vi.fn(), use: vi.fn() } as unknown as TranslateService,
+      {
+        setDefaultLang: vi.fn(),
+        use: vi.fn(),
+        getLangs: vi.fn(() => []),
+        reloadLang: vi.fn(),
+        setTranslation: vi.fn(),
+      } as unknown as TranslateService,
       messaging as unknown as MessageHandlerService,
       {} as unknown as GlobalSettingsContextService,
     );
@@ -270,5 +301,138 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     expect(reported(errors)).toContain(
       '"templateAndInstanceObject" ignored, because the template and instance are already set',
     );
+  });
+});
+
+/**
+ * Language configuration arriving after the artifact, against the real translation
+ * service.
+ *
+ * A double of `TranslateService` cannot answer this, and the ordering test above is
+ * the demonstration: it asserts `use` was called with the language the late config
+ * named, which a double always records. The real service has two guards behind that
+ * call — `use()` returns at once when the language asked for is already current, and
+ * `retrieveTranslations` reaches the loader only when it holds no map for the
+ * language — so a host that rendered a template first and then named a
+ * `languageMapPathPrefix` got no fetch at all, and kept the built-in labels. That
+ * went out in a shipped bundle with a green suite.
+ *
+ * So this wires up what production wires up: the real `TranslateService`, the real
+ * `FallbackTranslateLoader` reading the prefix at load time, and an `HttpClient`
+ * standing in for the network and counting what was asked of it. `of(...)` makes
+ * every load synchronous, so the assertions need no waiting.
+ */
+describe('CedarEmbeddableMetadataEditorWrapperComponent late language configuration', () => {
+  const BUILT_IN = { Generic: { ExpandAll: 'Expand All' } };
+  const EXTERNAL = { Generic: { ExpandAll: 'Alles Aufklappen' } };
+  const PREFIX = '/languages/';
+
+  interface Wired {
+    component: CedarEmbeddableMetadataEditorWrapperComponent;
+    translate: TranslateService;
+    fetched: string[];
+  }
+
+  const wire = (): Wired => {
+    const fetched: string[] = [];
+    const http = {
+      get: (url: string) => {
+        fetched.push(url);
+        return of(EXTERNAL);
+      },
+    } as unknown as HttpClient;
+    const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined, error: vi.fn() };
+    const globalSettings = new GlobalSettingsContextService();
+    const loader = new FallbackTranslateLoader(http, messaging as unknown as MessageHandlerService, globalSettings, {
+      en: BUILT_IN,
+    });
+    // The empty default language matters: a language passed here would be loaded by
+    // the constructor, before the component has said anything.
+    const translate = new TranslateService(
+      new TranslateStore(),
+      loader,
+      new TranslateFakeCompiler(),
+      new TranslateDefaultParser(),
+      new FakeMissingTranslationHandler(),
+      true,
+      false,
+      false,
+      '',
+    );
+    const component = new CedarEmbeddableMetadataEditorWrapperComponent(
+      new ElementRef(document.createElement('cedar-embeddable-editor')),
+      { setIntegratedSearchUrl: vi.fn() } as unknown as ControlledFieldDataService,
+      messaging as unknown as MessageHandlerService,
+      { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
+      translate,
+      messaging as unknown as MessageHandlerService,
+      globalSettings,
+    );
+    return { component, translate, fetched };
+  };
+
+  it('loads the named language map when the template arrived first', () => {
+    const { component, translate, fetched } = wire();
+    /*
+     * The event an already-rendered editor depends on, and the half of the repair
+     * that a loaded map does not evidence. `reloadLang` alone puts the new labels
+     * where `instant` finds them while every rendered widget goes on showing the old
+     * ones, because the fetch stores its result silently. `onTranslationChange` is
+     * what the pipes are subscribed to, so this is how the test sees what a reader
+     * would see.
+     */
+    const announced: string[] = [];
+    translate.onTranslationChange.subscribe((event) => announced.push(event.lang));
+
+    component.ngOnInit();
+    component.templateObject = new InstanceDataContainer();
+
+    // The built-in map, since the host has named no source yet.
+    expect(translate.instant('Generic.ExpandAll')).toBe('Expand All');
+    expect(fetched).toEqual([]);
+
+    component.config = { languageMapPathPrefix: PREFIX };
+
+    expect(fetched, 'the late prefix reached no loader').toEqual([PREFIX + 'en.json']);
+    expect(translate.instant('Generic.ExpandAll'), 'the editor kept the built-in label').toBe('Alles Aufklappen');
+    expect(announced, 'nothing told the rendered widgets to re-read their labels').toEqual(['en']);
+  });
+
+  it('loads it once when the host configures before supplying the template', () => {
+    const { component, translate, fetched } = wire();
+
+    component.ngOnInit();
+    component.config = { languageMapPathPrefix: PREFIX };
+    component.templateObject = new InstanceDataContainer();
+
+    expect(fetched).toEqual([PREFIX + 'en.json']);
+    expect(translate.instant('Generic.ExpandAll')).toBe('Alles Aufklappen');
+  });
+
+  /**
+   * A late config naming a different language gets past both guards on its own, so
+   * the repair must not add a second fetch of the map `use()` has just loaded. Only
+   * `en`, loaded from the built-in map before the prefix existed, is stale.
+   */
+  it('fetches each language once when the late config also changes the language', () => {
+    const { component, fetched } = wire();
+
+    component.ngOnInit();
+    component.templateObject = new InstanceDataContainer();
+    component.config = { languageMapPathPrefix: PREFIX, defaultLanguage: 'de' };
+
+    expect(fetched.filter((url) => url === PREFIX + 'de.json')).toHaveLength(1);
+    expect(fetched.filter((url) => url === PREFIX + 'en.json')).toHaveLength(1);
+  });
+
+  it('leaves the built-in map alone when the host names no source', () => {
+    const { component, translate, fetched } = wire();
+
+    component.ngOnInit();
+    component.templateObject = new InstanceDataContainer();
+    component.config = { readOnlyMode: true };
+
+    expect(fetched).toEqual([]);
+    expect(translate.instant('Generic.ExpandAll')).toBe('Expand All');
   });
 });

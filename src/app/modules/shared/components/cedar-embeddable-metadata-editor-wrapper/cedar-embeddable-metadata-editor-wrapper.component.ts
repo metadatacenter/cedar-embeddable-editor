@@ -22,6 +22,7 @@ import { GlobalSettingsContextService } from '../../service/global-settings-cont
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { FallbackTranslateLoaderFactory } from '../../util/fallback-translate-loader-factory';
+import { TranslationMap } from '../../util/fallback-translate-loader';
 import * as fallbackMapEN from '../../../../../assets/i18n-cee/en.json';
 import * as fallbackMapHU from '../../../../../assets/i18n-cee/hu.json';
 import { Overlay, OverlayContainer, OverlayPositionBuilder } from '@angular/cdk/overlay';
@@ -342,6 +343,12 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     if (!this.initialized || (!this.configSet && !this.editorDataReady())) {
       return;
     }
+    // Where the language map came from, and which languages had been loaded from
+    // there, before this configuration has its say. Both are read at the end, to
+    // tell a first installation from a host moving the map under an editor that has
+    // already rendered. `getLangs` hands back its own array, so this copies it.
+    const previousPathPrefix = this.globalSettingsContextService.languageMapPathPrefix;
+    const languagesLoadedBefore = [...this.translateService.getLangs()];
     /*
      * A host that sets nothing is a host that wants every default, so no
      * configuration reads as the empty one.
@@ -409,6 +416,46 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     }
     this.translateService.setDefaultLang(this.fallbackLanguage);
     this.translateService.use(this.defaultLanguage);
+    this.reloadLanguageMapsIfSourceMoved(previousPathPrefix, languagesLoadedBefore);
+  }
+
+  /**
+   * Fetch the language maps again when the host changed where they come from.
+   *
+   * `use()` above is what installs a language, and it is where a late
+   * `languageMapPathPrefix` used to be lost. ngx-translate guards the work twice:
+   * `use()` returns immediately when the language asked for is already current, and
+   * behind that `retrieveTranslations` consults the loader only when it holds no map
+   * for the language. A host that renders a template first and configures second
+   * hits both — the built-in map is already loaded under `en`, the late config names
+   * `en` again, and the new prefix reaches a loader nothing calls. Measured against
+   * the shipped bundle before this repair: no request for the external map at all,
+   * and every built-in label left standing.
+   *
+   * Getting past both guards takes `reloadLang`, which drops the cached map and the
+   * memoised request and then goes back to the loader. That alone would leave the
+   * editor showing the old text, because the fetch stores its result without
+   * announcing it. `setTranslation` is the one method that emits
+   * `onTranslationChange`, which is what the rendered pipes subscribe to. Hence the
+   * pair.
+   *
+   * Only the maps that predate this call are reloaded, which is what keeps the
+   * ordinary paths free of a second fetch: a first configuration finds nothing
+   * loaded, and a configuration naming a *different* language gets that one past
+   * both guards on its own. A map left over from the old source is reloaded whether
+   * it is the current language or the fallback, since the fallback answers the keys
+   * the current language is missing and a half-migrated pair would serve some labels
+   * from each source.
+   */
+  private reloadLanguageMapsIfSourceMoved(previousPathPrefix: string | null, languagesLoadedBefore: string[]): void {
+    if (this.globalSettingsContextService.languageMapPathPrefix === previousPathPrefix) {
+      return;
+    }
+    for (const language of languagesLoadedBefore) {
+      this.translateService
+        .reloadLang(language)
+        .subscribe((translations: TranslationMap) => this.translateService.setTranslation(language, translations));
+    }
   }
 
   /**
