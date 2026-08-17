@@ -80,4 +80,24 @@ describe('an identity that arrived with the instance', () => {
     expect(identityOf(driver.metadata._el[0])).toBe(assigned);
     expect(identityOf(driver.metadata._el[1])).toBeNull();
   });
+
+  /**
+   * CEDAR itself stored this spelling before occurrence identity became
+   * server-owned. Refusing it here strands a production instance before the
+   * artifact server's inherited-defect repair can see it. CEE's compatibility
+   * reader opens it and its writer changes only the invalid placeholder to the
+   * canonical request for server assignment.
+   */
+  it('opens a legacy blank occurrence id and emits null for server assignment', () => {
+    const template = withOccurrences();
+    const legacy = new CeeDriver(template).metadata;
+    legacy._el[0]['@id'] = '';
+
+    const loaded = new CeeDriver(template, { instance: legacy });
+
+    expect(identityOf(loaded.metadata._el[0])).toBeNull();
+    expect(identityOf(loaded.metadata._el[1])).toBeNull();
+    expect(identityOf(legacy._el[0])).toBe('');
+    loaded.expectNoErrors('legacy occurrence load');
+  });
 });
