@@ -53,6 +53,7 @@ export const packageMetadata = () => {
       'bundle-manifest.json',
       'README.md',
       'CHANGELOG.md',
+      'license.txt',
     ],
     // A release carries no publishConfig, so it goes to the default registry
     // (registry.npmjs.org) under the default `latest` tag. A dev snapshot names the
@@ -69,7 +70,24 @@ export const packageMetadata = () => {
     },
     keywords: ['metadata', 'CEDAR', 'embeddable editor', 'Web Component'],
     author: 'Metadata Center',
-    license: 'ISC',
+    /*
+     * The licence the repository actually carries, which for a while this did not say.
+     *
+     * `license.txt` is BSD 2-Clause, byte-identical to the file in `cedar-parent`,
+     * `cedar-template-editor`, `cedar-development` and the rest, and the documentation
+     * has always said so. This field said `ISC`, which nothing anywhere supported: the
+     * root `package.json` declares no licence, so the value came from an `npm init`
+     * default and was published as an assertion about someone else's software. The text
+     * is shipped now too — a package naming a licence it does not include leaves a
+     * consumer nothing to read.
+     *
+     * `BSD-2-Clause` rather than `BSD-2-Clause-Views`, which is what the trailing
+     * "views and conclusions" paragraph makes the text in SPDX's terms. The shorter id
+     * is what the documentation and every sibling repository call it, and it is the one
+     * a reader recognises. That paragraph is also why GitHub reports the file as
+     * `NOASSERTION`: its detector will not match the variant.
+     */
+    license: 'BSD-2-Clause',
     bugs: {
       url: 'https://github.com/metadatacenter/cedar-embeddable-editor/issues',
     },
@@ -120,6 +138,7 @@ export const expectedFiles = () => ({
   'bundle-manifest.json': readFileSync(SOURCE_MANIFEST),
   'README.md': readFileSync(resolve(ROOT, 'README.md')),
   'CHANGELOG.md': readFileSync(resolve(ROOT, 'CHANGELOG.md')),
+  'license.txt': readFileSync(resolve(ROOT, 'license.txt')),
   'package.json': Buffer.from(`${JSON.stringify(packageMetadata(), null, 2)}\n`),
   'package-lock.json': Buffer.from(`${JSON.stringify(packageLock(), null, 2)}\n`),
 });
