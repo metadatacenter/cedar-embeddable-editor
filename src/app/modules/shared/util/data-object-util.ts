@@ -120,16 +120,6 @@ export class DataObjectUtil {
     return DataObjectUtil.xsdTypeForFullCopy(component);
   }
 
-  // Generating a RFC4122 version 4 compliant GUID
-  static generateGUID(): string {
-    let d = Date.now();
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = (d + Math.random() * 16) % 16 | 0;
-      d = Math.floor(d / 16);
-      return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-    });
-  }
-
   static arraysEqual(arr1: unknown[], arr2: unknown[]): boolean {
     // if the other array is a falsy value, return
     if (!arr2) {

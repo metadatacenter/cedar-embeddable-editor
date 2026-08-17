@@ -148,16 +148,20 @@ describe('adding an attribute value', () => {
   });
 
   /**
-   * The attribute is a new property of the instance, so it needs a term IRI
-   * like any other. CEE mints one; only `instanceFullData` carries `@context`,
-   * since the extract form drops it.
+   * The attribute is a new property of the instance and CEE does not name it.
+   *
+   * It minted `https://schema.metadatacenter.org/properties/<guid>` here, which
+   * is an identity nothing assigned. The model library states the shape a draft
+   * takes — the value sits at the instance root with no `@context` term, and the
+   * server fills the term on upload — and dropped `PropertyIri.forId` so the
+   * minting had nowhere to come from.
    */
-  it('mints an @context entry for the new property', () => {
+  it('names the new property nowhere, leaving the term to the server', () => {
     const driver = new CeeDriver(flat());
     addAttribute(driver, driver.findOrThrow(['_av']), 'colour', 'blue');
 
     const context = driver.metadata[DocumentKey.atContext];
-    expect(context.colour, 'no @context entry minted for the attribute').toBeTruthy();
+    expect(context.colour, 'an invented @context entry for the attribute').toBeUndefined();
     // The field's own placeholder entry goes away — the property is now the
     // attribute, not the field.
     expect(context._av).toBeUndefined();
@@ -222,7 +226,9 @@ describe('copying an attribute', () => {
     expect(driver.emitted._av).toEqual(['a1', 'a1 copy']);
     expect(driver.emitted.a1[DocumentKey.atValue]).toBe('v1');
     expect(driver.emitted['a1 copy'][DocumentKey.atValue]).toBe('v1');
-    expect(driver.emitted[DocumentKey.atContext]['a1 copy']).not.toBe(driver.emitted[DocumentKey.atContext].a1);
+    // Neither carries a term, so neither can carry the other's.
+    expect(driver.emitted[DocumentKey.atContext]['a1 copy']).toBeUndefined();
+    expect(driver.emitted[DocumentKey.atContext].a1).toBeUndefined();
 
     driver.handlerContext.setCurrentIndex(component, 0);
     expect(valueOf(driver.extract, 'a1')).toBe('v1');
@@ -432,7 +438,8 @@ describe('deleting an attribute', () => {
 
     expect(driver.extract.values.colour).toBeUndefined();
     expect(valueOf(driver.extract, 'size')).toBe('large');
-    expect(driver.emitted[DocumentKey.atContext].size).toBeTruthy();
+    // The surviving attribute keeps its value; neither ever carried a term.
+    expect(driver.emitted[DocumentKey.atContext].size).toBeUndefined();
   });
 
   it('is a no-op when no name is given', () => {
@@ -463,7 +470,7 @@ describe('attribute values inside elements', () => {
 
     expect(valueOf(objectAt(driver.extract, '_el'), 'colour')).toBe('blue');
     expect(driver.extract.values.colour, 'the attribute leaked onto the template').toBeUndefined();
-    expect(driver.emitted._el[DocumentKey.atContext].colour).toBeTruthy();
+    expect(driver.emitted._el[DocumentKey.atContext].colour).toBeUndefined();
   });
 
   it('rejects a collision with an ordinary child in the enclosing element', () => {

@@ -1,10 +1,11 @@
 /**
  * Template generation, driven by the CEDAR Model TypeScript Library.
  *
- * Everything here is deterministic: fixed IRIs, fixed timestamps, no randomness.
- * That matters because CEE itself mints random `@id`s at instance-build time
- * (`DataObjectUtil.generateGUID`), so the *only* nondeterminism in a test run
- * should come from the code under test — never from the fixtures.
+ * Everything here is deterministic: fixed IRIs, fixed timestamps, no randomness,
+ * so the only nondeterminism in a test run comes from the code under test rather
+ * than from the fixtures. CEE used to supply some of its own, minting a random
+ * `@id` into every element occurrence it built; it mints nothing now, and two
+ * builds of one template are the same document.
  */
 import { CedarBuilders, CedarWriters } from 'cedar-model-typescript-library';
 import { parse as parseYaml } from 'yaml';
