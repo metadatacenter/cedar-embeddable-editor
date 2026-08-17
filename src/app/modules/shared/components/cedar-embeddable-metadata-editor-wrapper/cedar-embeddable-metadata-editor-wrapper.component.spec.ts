@@ -17,6 +17,7 @@ import { InstanceObject } from '../../models/instance-node.model';
 import { HttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 import { FallbackTranslateLoader } from '../../util/fallback-translate-loader';
+import { CeeConfig } from '../../util/config-reader';
 
 /**
  * Jasmine's `toHaveBeenCalledOnceWith`, in the two assertions it stood for.
@@ -434,5 +435,113 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
 
     expect(fetched).toEqual([]);
     expect(translate.instant('Generic.ExpandAll')).toBe('Expand All');
+  });
+});
+
+/**
+ * A configuration value CEE refuses reaches nothing.
+ *
+ * The check reported these and the reader coerced them anyway, so the console said
+ * "Ignored." while the setting took effect. Each case below is one that behaved that
+ * way, asserted on the effect rather than on the message: a message is what was
+ * already right.
+ */
+describe('CedarEmbeddableMetadataEditorWrapperComponent invalid configuration values', () => {
+  interface Wired {
+    component: CedarEmbeddableMetadataEditorWrapperComponent;
+    reported: string[];
+    integratedSearchUrls: Mock;
+    globalSettings: GlobalSettingsContextService;
+  }
+
+  const wire = (): Wired => {
+    const reported: string[] = [];
+    const integratedSearchUrls = vi.fn();
+    const messaging = {
+      trace: (): void => undefined,
+      traceGroup: (): void => undefined,
+      error: (message: string): void => {
+        reported.push(message);
+      },
+    };
+    const globalSettings = new GlobalSettingsContextService();
+    const component = new CedarEmbeddableMetadataEditorWrapperComponent(
+      new ElementRef(document.createElement('cedar-embeddable-editor')),
+      { setIntegratedSearchUrl: integratedSearchUrls } as unknown as ControlledFieldDataService,
+      messaging as unknown as MessageHandlerService,
+      { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
+      {
+        setDefaultLang: vi.fn(),
+        use: vi.fn(),
+        getLangs: vi.fn(() => []),
+        reloadLang: vi.fn(),
+        setTranslation: vi.fn(),
+      } as unknown as TranslateService,
+      messaging as unknown as MessageHandlerService,
+      globalSettings,
+    );
+    component.ngOnInit();
+    return { component, reported, integratedSearchUrls, globalSettings };
+  };
+
+  /**
+   * The one that locked a form nobody asked to lock: `Boolean('false')` is true, so
+   * the host asking for the opposite of read-only got read-only.
+   */
+  it('leaves read-only off when the host sends the string "false"', () => {
+    const { component, reported } = wire();
+
+    component.config = { readOnlyMode: 'false' } as unknown as CeeConfig;
+
+    expect(component.handlerContext.readOnlyMode).toBe(false);
+    expect(reported.join(' ')).toContain('expects a boolean');
+  });
+
+  it('installs no terminology endpoint built out of a number', () => {
+    const { component, integratedSearchUrls } = wire();
+
+    component.config = { terminologyBaseUrl: 7 } as unknown as CeeConfig;
+
+    expect(integratedSearchUrls, 'CEE built an endpoint from "7"').not.toHaveBeenCalled();
+  });
+
+  it('installs no terminology endpoint from a base URL missing its slash', () => {
+    const { component, integratedSearchUrls } = wire();
+
+    component.config = { terminologyBaseUrl: 'https://terminology.example.org/x' } as unknown as CeeConfig;
+
+    expect(integratedSearchUrls).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Configuration takes one assignment, and something that is not a configuration
+   * must not be the one. A host that handed over a string used to be left holding an
+   * element it could never configure, its correct second attempt refused as a repeat.
+   */
+  it('still accepts a configuration after one that was not an object', () => {
+    const { component, reported, globalSettings } = wire();
+
+    component.config = 'nonsense' as unknown as CeeConfig;
+    expect(reported.join(' ')).toContain('Configuration must be an object');
+
+    component.config = { languageMapPathPrefix: '/languages/' } as unknown as CeeConfig;
+
+    expect(globalSettings.languageMapPathPrefix, 'the second, valid configuration was refused').toBe('/languages/');
+    expect(reported.join(' ')).not.toContain('already configured');
+  });
+
+  /**
+   * An object still spends the assignment, however little of it survives: it asks for
+   * the defaults, which is what an empty configuration asks for, and a host must not
+   * have to know which of its keys were refused to know whether it may try again.
+   */
+  it('spends the assignment on an object whose every key was refused', () => {
+    const { component, reported } = wire();
+
+    component.config = { readOnlyMode: 'false' } as unknown as CeeConfig;
+    component.config = { readOnlyMode: true } as unknown as CeeConfig;
+
+    expect(component.handlerContext.readOnlyMode).toBe(false);
+    expect(reported.join(' ')).toContain('already configured');
   });
 });

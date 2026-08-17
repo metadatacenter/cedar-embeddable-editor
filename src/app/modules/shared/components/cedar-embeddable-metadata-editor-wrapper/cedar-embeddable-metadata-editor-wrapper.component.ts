@@ -30,7 +30,7 @@ import { CedarOverlayContainer } from '../../service/cedar-overlay-container.ser
 import { AriaDescriber } from '@angular/cdk/a11y';
 import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
 import { baseUrl, CeeConfig, configFlag, configText } from '../../util/config-reader';
-import { validateCeeConfig } from '../../util/config-validation';
+import { checkCeeConfig } from '../../util/config-validation';
 import { InstanceObject } from '../../models/instance-node.model';
 import { Template } from 'cedar-model-typescript-library';
 import { CedarTemplate } from '../../models/template/cedar-template.model';
@@ -303,16 +303,29 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.messageHandlerService.trace('CEDAR Embeddable Editor config set to:' + JSON.stringify(value));
 
     /*
-     * Reported, not rejected. A bad key is ignored downstream exactly as before;
-     * the change is that the host is told rather than left watching a setting do
-     * nothing. The shipped declarations catch a misspelled key for a TypeScript
-     * host writing a literal; this catches the same thing for a JavaScript one.
+     * Reported *and* refused, which for a while it was only the first of. What the
+     * host is told and what CEE stores come from the same pass, so a key called
+     * ignored is a key nothing reads — where before the message said "Ignored." and
+     * the reader coerced the value: `readOnlyMode: 'false'` locked the form.
      */
-    for (const problem of validateCeeConfig(value)) {
+    const { problems, usable } = checkCeeConfig(value);
+    for (const problem of problems) {
       this.messageHandlerService.error(problem);
     }
 
-    this.innerConfig = value;
+    /*
+     * Nothing that is not a configuration spends the one assignment there is. A host
+     * that handed over a string has said nothing yet, and used to be left with an
+     * element it could never configure — the next, correct assignment was refused as
+     * a second one. An object counts however little of it survives: a configuration
+     * whose every key was refused still asks for the defaults, which is what `{}`
+     * asks for, and the two must not differ in what a host may do next.
+     */
+    if (usable === null) {
+      return;
+    }
+
+    this.innerConfig = usable;
     this.configSet = true;
     this.doInitialize();
   }
