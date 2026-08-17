@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A language map named after the artifact now loads. `languageMapPathPrefix` arriving in a `config`
+  assigned after the template was lost outright: no request for the map, and every built-in label
+  left in place. ngx-translate guards the work twice — `use()` returns at once when the language
+  asked for is already current, and behind it the loader is consulted only for a language it holds no
+  map for — and a host that renders first and configures second hits both, because the built-in map
+  is already loaded under `en` and the late config names `en` again. The map is now refetched and
+  republished, which is what makes already-rendered labels re-read it. Only maps loaded before the
+  configuration are refetched, so a first config and one naming a different language each fetch once.
+
+- A configuration value CEE cannot use is refused rather than merely reported. The check said
+  "Ignored." and the reader then coerced the value: `readOnlyMode: 'false'` locked the form, since a
+  non-empty string is truthy, and `terminologyBaseUrl: 7` built the endpoint
+  `7bioportal/integrated-search`. A base URL missing its trailing slash was used as well, producing
+  `…/terminologybioportal/…`. Every such value now reads as unset, so the setting keeps the default
+  it documents, and one bad key costs only that key. CEE does not repair a value either: appending
+  its own path to a URL nobody wrote would name an endpoint nobody chose.
+
+- A `config` that is not an object no longer spends the one assignment there is. A host that handed
+  over a string was told the configuration was ignored and then had its next, correct assignment
+  refused as a second one, leaving an element that could never be configured.
+
 - An element assigned a template and no `config` now renders. It did not: the editor waited for a
   configuration before building, so a host that wanted every default — which every key on
   `CeeConfig` documents, all of them optional — had no way to say so. The element stayed blank for
@@ -27,7 +48,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   surfaced from the e2e smoke, whose own check had been passing vacuously: it asserted that the
   metadata "is an object", and `{}` is one.
 
+### Added
+
+- `CeeValidationProblem` declares `field` and `inputType`. Every problem has carried both and the
+  validation guide documents both, so the one kind of consumer the declarations exist for was the
+  only one that could not read them without a cast.
+
 ### Changed
+
+- `eventHandler` is documented as replaceable, and replacing one is traced. The published contract
+  said every member of the element keeps its first assignment, which was false for the handler and
+  meaningless for the three read-only getters. Set-once protects the inputs that decide what the
+  editor is; a callback slot decides nothing about the form, and sealing it would have answered a
+  host's second assignment by reporting the refusal to the handler being replaced. A handler still
+  hears only what follows it, so a page wanting the diagnostics from configuration registers it
+  first.
 
 - The ROR mark is inlined instead of fetched. It was pulled from
   `raw.githubusercontent.com/ror-community/ror-logos/main/…` while a form rendered, so every
