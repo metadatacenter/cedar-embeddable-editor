@@ -296,6 +296,8 @@ static off the top-level Angular component. That one read pulled the whole
 component subtree — HttpClient services, a `package.json` import, and a circular
 edge back into `DataObjectUtil` — into anything touching the data-object builder.
 
-The value is now `INSTANCE_IRI_PREFIX`, a constant in `util/iri-prefix.ts` that
-imports nothing, so the stub and its alias are gone and so is the circular
-import. `test/import-boundaries.spec.ts` keeps both from returning.
+The read went first, moving the value to a constant that imported nothing, and then
+the value went too, when CEE stopped minting occurrence identifiers at all. So the
+stub, its alias and the circular import are gone, and there is no longer a value for
+the domain layer to reach the component for. `test/import-boundaries.spec.ts` keeps
+that class of import from returning.

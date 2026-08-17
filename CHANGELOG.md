@@ -99,19 +99,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that instance snapshots recorded a value meaning nothing; it and four such recordings are gone.
   `addRandomAtId`, `getTemplateElementInstanceIRIPrefix` and `util/iri-prefix.ts` go with them.
 
-- **BREAKING.** `iriPrefix`. It set the prefix CEE mints an element occurrence's identifier under,
-  and what identifies an occurrence is the GUID appended to it — so the prefix carried nothing a
-  host could usefully vary, and every host that set it named its own deployment's repository, which
-  nothing resolves and the identifier does not otherwise mention. Occurrences are now minted under
-  `https://repo.metadatacenter.org/template-element-instances/` everywhere. Instances already saved
-  are untouched: CEE mints only where `@id` is absent.
+- **BREAKING.** `iriPrefix`. It set the prefix an element occurrence's minted identifier was built
+  under, and what identified an occurrence was the GUID appended to it — so the prefix carried
+  nothing a host could usefully vary, and every host that set it named its own deployment's
+  repository, which nothing resolves and the identifier did not otherwise mention. The key went
+  first and the minting followed, so nothing is built under any prefix now; the entry above is the
+  whole of the current behaviour.
 
   The key was the only reason `IriPrefix` was a class provided per element rather than a constant,
   so its provider, its three injections — one of which, in the text widget, read it nowhere — and
-  the function threaded through `HandlerContext` into `DataObjectBuilderHandler` all go with it.
-  `util/iri-prefix.ts` keeps the value as `INSTANCE_IRI_PREFIX` and still imports nothing, which is
-  what `import-boundaries.spec.ts` guards: this value once lived on the editor component, and
-  reading it from the domain layer dragged the whole Angular subtree in behind it.
+  the function threaded through `HandlerContext` into `DataObjectBuilderHandler` all went with it.
+  Removing the minting then took the constant and `util/iri-prefix.ts` too. What that file existed
+  to prove outlives it and is still guarded by `import-boundaries.spec.ts`: the value once lived on
+  the editor component, and reading it from the domain layer dragged the whole Angular subtree in
+  behind it.
 
 - **BREAKING.** All fourteen per-authority endpoint keys, `<name>IntegratedExtAuthUrl` and
   `<name>IntegratedDetailsUrl`. Each named a path appended to the bridge server's base — the search
