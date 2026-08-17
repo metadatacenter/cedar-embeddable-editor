@@ -1,7 +1,7 @@
 {
   "name": "cedar-embeddable-editor",
   "description": "A reusable Web Component for creating and editing CEDAR metadata instances.",
-  "version": "2.0.0-dev.20260817.6fe81f5",
+  "version": "2.0.0-dev.20260817.abbb64d",
   "engines": {
     "node": "^24.15.0"
   },
