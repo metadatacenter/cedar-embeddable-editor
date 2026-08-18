@@ -226,8 +226,9 @@ Each manifest depends on it under an alias:
 
 The alias keeps the local import name, so source files import
 `cedar-model-typescript-library` regardless of the published name. To move to a
-newer build, publish it to Nexus and bump the version in the root, `harness/`,
-and `visual/` manifests together.
+newer build, publish it to Nexus and bump the version in the root and `visual/`
+manifests together. The harness declares no separate copy; it resolves the root
+installation.
 
 ### Focused test commands
 
