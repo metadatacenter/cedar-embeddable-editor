@@ -43,6 +43,10 @@ export const downloadContentFor = (id: DownloadItemId, dataContext: DataContext)
       return asJson(dataContext.templateInput);
     case 'templateYaml':
       return template === null ? '' : CedarWriters.yaml().getStrict().getTemplateWriter().getAsYamlString(template);
+    case 'templateYamlCompact':
+      return template === null
+        ? ''
+        : CedarWriters.yaml().getStrict().getTemplateWriter().getAsYamlString(template, true);
     case 'dataQuality':
       return asJson(dataContext.dataQualityReport);
   }

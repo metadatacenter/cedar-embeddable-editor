@@ -56,6 +56,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `Compact YAML - Template` in the download menu writes the model library's
+  compact template form to `<name>-template-compact.yaml`, alongside the full
+  YAML document rather than replacing it.
+
 - `CeeValidationProblem` declares `field` and `inputType`. Every problem has carried both and the
   validation guide documents both, so the one kind of consumer the declarations exist for was the
   only one that could not read them without a cast.

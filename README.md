@@ -336,6 +336,7 @@ It defaults to `false`, and nothing is rendered under the form either way:
 | YAML - Instance | The same instance, as CEDAR YAML | `<name>-instance.yaml` |
 | JSON Schema - Template | The template as the host supplied it | `<name>-template.json` |
 | YAML - Template | The same template, as CEDAR YAML | `<name>-template.yaml` |
+| Compact YAML - Template | Its compact authoring form, without repository-managed metadata | `<name>-template-compact.yaml` |
 | Data Quality Report | Required-field tally and constraint violations | `<name>-data-quality.json` |
 
 `<name>` is the template's own `schema:name`, reduced to file-name-safe

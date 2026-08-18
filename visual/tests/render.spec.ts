@@ -2823,14 +2823,16 @@ test('the download menu exposes only its supported artifact views', async ({ pag
   await page.locator('.download-trigger').click();
 
   const items = page.locator('[data-download]');
-  await expect(items).toHaveCount(5);
+  await expect(items).toHaveCount(6);
   expect(await items.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-download')))).toEqual([
     'instance',
     'instanceYaml',
     'templateSource',
     'templateYaml',
+    'templateYamlCompact',
     'dataQuality',
   ]);
+  await expect(page.getByText('Compact YAML - Template', { exact: true })).toBeVisible();
   await expect(page.getByText('JSON-LD - Instance - Core', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Template Rendering Data', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Multi-Instance Information', { exact: true })).toHaveCount(0);
@@ -2908,6 +2910,17 @@ test.describe('what a host page reads back', () => {
     expect(filename).toBe('AttributeValues-instance.yaml');
     expect(body).toContain('colour');
     expect(body, 'a YAML download must not be a JSON object').not.toMatch(/^\s*\{/);
+  });
+
+  test('compact template YAML downloads under its own name without repository metadata', async ({ page }) => {
+    await open(page, '10-attribute-values', undefined, undefined, undefined, '&f=showDownloadMenu');
+
+    const { filename, body } = await takeDownload(page, 'templateYamlCompact');
+
+    expect(filename).toBe('AttributeValues-template-compact.yaml');
+    expect(body).toContain('type: template');
+    expect(body).toContain('children:');
+    expect(body).not.toContain('modelVersion:');
   });
 
   test('dataQualityReport follows an invalid value and its correction', async ({ page }) => {

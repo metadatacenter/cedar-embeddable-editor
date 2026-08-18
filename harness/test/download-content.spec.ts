@@ -34,6 +34,7 @@ describe('the download menu', () => {
       'instanceYaml',
       'templateSource',
       'templateYaml',
+      'templateYamlCompact',
       'dataQuality',
     ]);
   });
@@ -67,10 +68,26 @@ describe('the instance downloads', () => {
   });
 });
 
+describe('the template YAML downloads', () => {
+  it('offers the model library compact form as a distinct, smaller document', () => {
+    const context = driverWithValue().dataContext;
+    const full = downloadContentFor('templateYaml', context);
+    const compact = downloadContentFor('templateYamlCompact', context);
+
+    expect(compact.length).toBeLessThan(full.length);
+    expect(full).toContain('modelVersion:');
+    expect(compact).not.toContain('modelVersion:');
+    expect(compact).toContain('children:');
+  });
+});
+
 describe('the file name', () => {
   it('is built from the template name, so two forms do not collide', () => {
     expect(downloadFilenameFor('instanceYaml', driverWithValue().dataContext)).toBe('dl-instance.yaml');
     expect(downloadFilenameFor('templateSource', driverWithValue().dataContext)).toBe('dl-template.json');
+    expect(downloadFilenameFor('templateYamlCompact', driverWithValue().dataContext)).toBe(
+      'dl-template-compact.yaml',
+    );
   });
 
   /**

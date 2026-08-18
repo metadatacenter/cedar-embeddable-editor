@@ -64,7 +64,8 @@
     "JsonSchemaTemplate": "JSON Schema - Template",
     "Yaml": {
       "Instance": "YAML - Instance",
-      "Template": "YAML - Template"
+      "Template": "YAML - Template",
+      "TemplateCompact": "Compact YAML - Template"
     },
     "DataQualityReport": "Data Quality Report"
   },
