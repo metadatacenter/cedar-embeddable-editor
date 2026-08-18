@@ -2823,15 +2823,17 @@ test('the download menu exposes only its supported artifact views', async ({ pag
   await page.locator('.download-trigger').click();
 
   const items = page.locator('[data-download]');
-  await expect(items).toHaveCount(6);
+  await expect(items).toHaveCount(7);
   expect(await items.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-download')))).toEqual([
     'instance',
     'instanceYaml',
+    'instanceYamlCompact',
     'templateSource',
     'templateYaml',
     'templateYamlCompact',
     'dataQuality',
   ]);
+  await expect(page.getByText('Compact YAML - Instance', { exact: true })).toBeVisible();
   await expect(page.getByText('Compact YAML - Template', { exact: true })).toBeVisible();
   await expect(page.getByText('JSON-LD - Instance - Core', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Template Rendering Data', { exact: true })).toHaveCount(0);
@@ -2910,6 +2912,18 @@ test.describe('what a host page reads back', () => {
     expect(filename).toBe('AttributeValues-instance.yaml');
     expect(body).toContain('colour');
     expect(body, 'a YAML download must not be a JSON object').not.toMatch(/^\s*\{/);
+  });
+
+  test('compact instance YAML downloads without root identity or provenance', async ({ page }) => {
+    await open(page, '11-choice-default', undefined, '11-choice-default-instance', undefined, '&f=showDownloadMenu');
+
+    const { filename, body } = await takeDownload(page, 'instanceYamlCompact');
+
+    expect(filename).toBe('ChoiceDefault-instance-compact.yaml');
+    expect(body).toContain('Private');
+    expect(body).toContain('isBasedOn:');
+    expect(body).not.toContain('id: "https://example.org/instances/choice-default-1"');
+    expect(body).not.toContain('createdOn:');
   });
 
   test('compact template YAML downloads under its own name without repository metadata', async ({ page }) => {

@@ -56,6 +56,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `Compact YAML - Instance` in the download menu writes the model library's
+  compact instance form to `<name>-instance-compact.yaml`, omitting root identity
+  and provenance metadata while retaining the instance data.
+
 - `Compact YAML - Template` in the download menu writes the model library's
   compact template form to `<name>-template-compact.yaml`, alongside the full
   YAML document rather than replacing it.

@@ -334,6 +334,7 @@ It defaults to `false`, and nothing is rendered under the form either way:
 |---|---|---|
 | JSON-LD - Instance | The instance as a CEDAR document | `<name>-instance.json` |
 | YAML - Instance | The same instance, as CEDAR YAML | `<name>-instance.yaml` |
+| Compact YAML - Instance | The same instance without root identity and provenance metadata | `<name>-instance-compact.yaml` |
 | JSON Schema - Template | The template as the host supplied it | `<name>-template.json` |
 | YAML - Template | The same template, as CEDAR YAML | `<name>-template.yaml` |
 | Compact YAML - Template | Its compact authoring form, without repository-managed metadata | `<name>-template-compact.yaml` |

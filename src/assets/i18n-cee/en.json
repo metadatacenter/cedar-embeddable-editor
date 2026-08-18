@@ -64,6 +64,7 @@
     "JsonSchemaTemplate": "JSON Schema - Template",
     "Yaml": {
       "Instance": "YAML - Instance",
+      "InstanceCompact": "Compact YAML - Instance",
       "Template": "YAML - Template",
       "TemplateCompact": "Compact YAML - Template"
     },

@@ -12,8 +12,8 @@
  * else's interface, and the content was already the right shape for it: every
  * panel resolved to exactly one string, which is what a download needs.
  *
- * The descriptor is what keeps that a list rather than six near-identical
- * blocks. A seventh download costs an entry here and a case in `downloadContentFor`.
+ * The descriptor is what keeps that a list rather than seven near-identical
+ * blocks. An eighth download costs an entry here and a case in `downloadContentFor`.
  */
 export interface DownloadItemDescriptor {
   /** Stable across renames of the label: the menu's key, and what a test names. */
@@ -33,6 +33,7 @@ export interface DownloadItemDescriptor {
 export type DownloadItemId =
   | 'instance'
   | 'instanceYaml'
+  | 'instanceYamlCompact'
   | 'templateSource'
   | 'templateYaml'
   | 'templateYamlCompact'
@@ -63,6 +64,14 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
     labelKey: 'Extra.Yaml.Instance',
     icon: 'description',
     suffix: 'instance',
+    extension: 'yaml',
+    mediaType: YAML_TYPE,
+  },
+  {
+    id: 'instanceYamlCompact',
+    labelKey: 'Extra.Yaml.InstanceCompact',
+    icon: 'description',
+    suffix: 'instance-compact',
     extension: 'yaml',
     mediaType: YAML_TYPE,
   },

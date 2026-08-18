@@ -32,6 +32,7 @@ describe('the download menu', () => {
     expect(DOWNLOAD_ITEMS.map((item) => item.id)).toEqual([
       'instance',
       'instanceYaml',
+      'instanceYamlCompact',
       'templateSource',
       'templateYaml',
       'templateYamlCompact',
@@ -66,6 +67,14 @@ describe('the instance downloads', () => {
     expect(yaml, 'a YAML download must not be a JSON object').not.toMatch(/^\s*\{/);
     expect(yaml).not.toContain('dataContainer');
   });
+
+  it('offers the model library compact YAML form as a separate download', () => {
+    const yaml = downloadContentFor('instanceYamlCompact', driverWithValue().dataContext);
+
+    expect(yaml).toContain('a stored value');
+    expect(yaml, 'a YAML download must not be a JSON object').not.toMatch(/^\s*\{/);
+    expect(yaml).not.toContain('dataContainer');
+  });
 });
 
 describe('the template YAML downloads', () => {
@@ -84,6 +93,9 @@ describe('the template YAML downloads', () => {
 describe('the file name', () => {
   it('is built from the template name, so two forms do not collide', () => {
     expect(downloadFilenameFor('instanceYaml', driverWithValue().dataContext)).toBe('dl-instance.yaml');
+    expect(downloadFilenameFor('instanceYamlCompact', driverWithValue().dataContext)).toBe(
+      'dl-instance-compact.yaml',
+    );
     expect(downloadFilenameFor('templateSource', driverWithValue().dataContext)).toBe('dl-template.json');
     expect(downloadFilenameFor('templateYamlCompact', driverWithValue().dataContext)).toBe(
       'dl-template-compact.yaml',

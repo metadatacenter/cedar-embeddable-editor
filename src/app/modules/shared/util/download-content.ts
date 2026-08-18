@@ -39,6 +39,8 @@ export const downloadContentFor = (id: DownloadItemId, dataContext: DataContext)
       return asJson(InstanceSerializer.toJson(dataContext.instanceFullData, template));
     case 'instanceYaml':
       return InstanceSerializer.toYaml(dataContext.instanceFullData, template);
+    case 'instanceYamlCompact':
+      return InstanceSerializer.toYaml(dataContext.instanceFullData, template, true);
     case 'templateSource':
       return asJson(dataContext.templateInput);
     case 'templateYaml':

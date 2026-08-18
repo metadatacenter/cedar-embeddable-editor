@@ -64,6 +64,7 @@
     "JsonSchemaTemplate": "JSON Séma - Sablon",
     "Yaml": {
       "Instance": "YAML - Példány",
+      "InstanceCompact": "Tömör YAML - Példány",
       "Template": "YAML - Sablon",
       "TemplateCompact": "Tömör YAML - Sablon"
     },
