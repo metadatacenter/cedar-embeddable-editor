@@ -4,7 +4,7 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 2,262 tests, all passing** on Node 24.19.0 / Vitest 4.1.
+> **Status: 2,560 tests, all passing** on Node 24.19.0 / Vitest 4.1.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
 > Four CEE defects found, all four fixed. See [What it found](#what-it-found).
 
@@ -58,7 +58,7 @@ cardinality, nesting position, required, hidden, static collapsing, page-break
 shape — and [`src/generate.ts`](src/generate.ts) builds templates across their
 cross-product using the **CEDAR Model TypeScript Library**.
 
-The oracle is a round-trip, not a golden file:
+The ordinary oracle is a round-trip, not a golden file:
 
 ```
 generate template → CEE builds an instance → write a value
@@ -69,6 +69,12 @@ generate template → CEE builds an instance → write a value
 Properties don't rot. There are no snapshots to regenerate when unrelated things
 change.
 
+Saveability has a deliberately independent oracle. The populated-instance
+matrix writes a value through CEE and validates the resulting JSON-LD both with
+the TypeScript model and against the **untouched Draft-04 template** using ajv.
+The latter catches contradictions that disappear when a reader helpfully
+normalizes a legacy template before validating it.
+
 ## Layout
 
 | Path                               | Purpose                                                                        |
@@ -77,11 +83,14 @@ change.
 | `src/generate.ts`                  | Deterministic template generation via `CedarBuilders`                          |
 | `src/controlled.ts`                | Controlled-term constraint construction and subset enumeration                 |
 | `src/driver.ts`                    | Headless CEE — reproduces the wrapper's startup path without Angular           |
+| `src/instance-conformance.ts`      | TypeScript-model and untouched Draft-04 instance validators                    |
 | `stubs/angular-core.ts`            | No-op decorators, so the harness never loads Angular                           |
 | `test/coverage.spec.ts`            | Drift detection: does the generator still cover every `InputType`?             |
 | `test/roundtrip.spec.ts`           | The oracle, swept across the cross-product                                     |
 | `test/controlled-terms.spec.ts`    | All 15 constraint-kind subsets × cardinality × nesting × reload                |
 | `test/cardinality.spec.ts`         | minItems, required values, two-level multi nesting                             |
+| `test/instance-schema-population.spec.ts` | Every value-bearing field × field cardinality × seven element placements, populated and validated against its template |
+| `test/template-consistency.spec.ts` | Raw-template contradictions, including object-shaped inherently multiple fields |
 | `test/value-constraints.spec.ts`   | Text/numeric/temporal constraints, choice literals, defaults                   |
 | `test/edge-cases.spec.ts`          | Page breaks, static collapse, hidden fields, multi-instance, reload            |
 | `test/read-only.spec.ts`           | Read-only mode                                                                 |
@@ -94,7 +103,7 @@ change.
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
 | Input type         | all 24 of CEE's input types                                                                                                     |
 | Cardinality        | single / multi, `minItems` ∈ {0, 1, 2, 3, 5}                                                                                    |
-| Nesting            | root, in element, in multi element, multi-in-multi (two cursors)                                                                |
+| Nesting            | root; one-level single/multi elements; all four outer/inner single/multi combinations through two levels                       |
 | Required           | every non-static kind, single and inside multi elements                                                                         |
 | Controlled terms   | all 15 non-empty subsets of {ontologies, classes, branches, valueSets}, plus multiplicity                                       |
 | Value constraints  | min/maxLength, default, numberType × 5, min/maxValue, decimalPlaces, unitOfMeasure, temporalType × 3, granularity × 7, timezone |

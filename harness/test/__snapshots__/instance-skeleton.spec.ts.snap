@@ -302,9 +302,11 @@ exports[`the slot a multi field starts with > temporal 1`] = `
   ],
   "written": [
     {
+      "@type": "xsd:date",
       "@value": null,
     },
     {
+      "@type": "xsd:date",
       "@value": null,
     },
   ],
@@ -479,6 +481,7 @@ exports[`the slot a single field starts with > temporal 1`] = `
 {
   "holds": null,
   "written": {
+    "@type": "xsd:date",
     "@value": null,
   },
 }

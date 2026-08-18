@@ -62,7 +62,7 @@
     "propertyDescriptions" : {
       "parent_sample_id" : "Unique HuBMAP or SenNet identifier of the sample (i.e., block, section or suspension) used to perform this assay. For example, for a RNAseq assay, the parent would be the suspension, whereas, for one of the imaging assays, the parent would be the tissue section. If an assay comes from multiple parent samples then this should be a comma separated list. Example: HBM386.ZGKG.235, HBM672.MKPK.442 or SNT232.UBHJ.322, SNT329.ALSK.102",
       "lab_id" : "An internal field labs can use it to add whatever ID(s) they want or need for dataset validation and tracking. This could be a single ID (e.g., \"Visium_9OLC_A4_S1\") or a delimited list of IDs (e.g., “9OL; 9OLC.A2; Visium_9OLC_A4_S1”). This field will not be accessible to anyone outside of the consortium and no effort will be made to check if IDs provided by one data provider are also used by another.",
-      "preparation_protocol_doi" : "DOI for the protocols.io page that describes the assay or sample procurement and preparation. For example for an imaging assay, the protocol might begin with staining of a section and finalize with the creation of an OME-TIFF file. In this case the protocol would include any image processing steps required to create the OME-TIFF file. Example: https://dx.doi.org/10.17504/protocols.io.eq2lyno9qvx9/v1.",
+      "preparation_protocol_doi" : "DOI for the protocols.io page that describes the assay or sample procurment and preparation. For example for an imaging assay, the protocol might include staining of a section through the creation of an OME-TIFF file. In this case the protocol would include any image processing steps required to create the OME-TIFF file. Example: https://dx.doi.org/10.17504/protocols.io.eq2lyno9qvx9/v1",
       "dataset_type" : "The specific type of dataset being produced.",
       "analyte_class" : "Analytes are the target molecules being measured with the assay.",
       "is_targeted" : "Specifies whether or not a specific molecule(s) is/are targeted for detection/measurement by the assay (\"Yes\" or \"No\"). The CODEX analyte is protein.",
@@ -70,16 +70,16 @@
       "acquisition_instrument_model" : "Manufacturers of an acquisition instrument may offer various versions (models) of that instrument with different features or sensitivities. Differences in features or sensitivities may be relevant to processing or interpretation of the data.",
       "source_storage_duration_value" : "How long was the source material (parent) stored, prior to this sample being processed.",
       "source_storage_duration_unit" : "The time duration unit of measurement",
-      "time_since_acquisition_instrument_calibration_value" : "The amount of time since the acquisition instrument was last serviced or calibrated. This provides a metric for assessing drift in data capture.",
+      "time_since_acquisition_instrument_calibration_value" : "The amount of time since the acqusition instrument was last serviced by the vendor. This provides a metric for assessing drift in data capture.",
       "time_since_acquisition_instrument_calibration_unit" : "The time unit of measurement",
       "contributors_path" : "The path to the file with the ORCID IDs for all contributors of this dataset (e.g., \"extras/contributors.tsv\" or \"./contributors.tsv\"). This is an internal metadata field that is just used for ingest.",
       "data_path" : "The top level directory containing the raw and/or processed data. For a single dataset upload this might be \".\" where as for a data upload containing multiple datasets, this would be the directory name for the respective dataset. For instance, if the data is within a directory called \"TEST001-RK\" use syntax \"/TEST001-RK/\" for this field. If there are multiple directory levels, use the format \"/TEST001-RK/Run1/Pass2\" in which \"Pass2\" is the subdirectory where the single dataset's data is stored. This is an internal metadata field that is just used for ingest.",
       "antibodies_path" : "This is the location of the antibodies.tsv file relative to the root of the top level of the upload directory structure. This path should begin with \".\" and would likely be something like \"./extras/antibodies.tsv\".",
-      "total_run_time_value" : "How long did the instrument take to fully complete all imaging rounds on the loaded slide.",
+      "total_run_time_value" : "How long the tissue was on the acquisition instrument.",
       "total_run_time_unit" : "The units for the total run time unit field.",
       "number_of_antibodies" : "Number of antibodies",
       "number_of_channels" : "Number of fluorescent channels imaged during each cycle.",
-      "number_of_biomarker_imaging_rounds" : "Number of imaging rounds to capture the tagged biomarkers. For CODEX a biomarker imaging round consists of 1. oligo and fluor application, 2. imaging, 3. removal of oligo and fluor along washes. For Cell DIVE a biomarker imaging round consists of 1. staining of a biomarker via secondary detection or direct conjugate and 2. dye inactivation.",
+      "number_of_biomarker_imaging_rounds" : "Number of imaging rounds to capture the tagged biomarkers. For CODEX a biomarker imaging round consists of 1. oligo application, 2. fluor application, 3. washes. For Cell DIVE a biomarker imaging round consists of 1. staining of a biomarker via secondary detection or direct conjugate and 2. dye inactivation.",
       "number_of_total_imaging_rounds" : "The total number of acquisitions performed on microscope to collect autofluorescence/background or stained signal (e.g., histology).",
       "slide_id" : "A unique ID denoting the slide used. This allows users the ability to determine which tissue sections were processed together on the same slide. It is recommended that data providers prefix the ID with the center name, to prevent values overlapping across centers.",
       "cell_boundary_marker_or_stain" : "If a marker or stain was used to identify all cell boundaries in the tissue, then the name of the marker or stain should be included here. The name of the antibody-targeted molecule marker or non-antibody targeted molecule stain included here must be identical to what is found in the imaging data. For example, with the PhenoCycler, this name must match the value found in the XPD output file. If multiple marker or stains are used to identify all cell boundaries, then a comma separated list should be used here.",
@@ -267,7 +267,7 @@
           "enum" : [ "https://schema.metadatacenter.org/properties/80354076-43af-432d-b0b5-9a7ba719f1f5" ]
         },
         "number_of_channels" : {
-          "enum" : [ "https://schema.metadatacenter.org/properties/9218c502-6b63-454d-961d-639dfe46e835" ]
+          "enum" : [ "https://schema.metadatacenter.org/properties/eb3650a7-9ad7-4b7b-b9c9-c3e7855f6bc2" ]
         },
         "number_of_biomarker_imaging_rounds" : {
           "enum" : [ "https://schema.metadatacenter.org/properties/9e88d272-f2cd-468b-a7e9-aaf35eef9fce" ]
@@ -279,10 +279,10 @@
           "enum" : [ "https://schema.metadatacenter.org/properties/ba0261ca-37d2-4dff-846f-c000feec020d" ]
         },
         "cell_boundary_marker_or_stain" : {
-          "enum" : [ "https://schema.metadatacenter.org/properties/2b3d325e-7385-41c8-8700-fafa0c64a8a7" ]
+          "enum" : [ "https://schema.metadatacenter.org/properties/ffb3248e-6512-4a34-804e-04243a0150a6" ]
         },
         "nuclear_marker_or_stain" : {
-          "enum" : [ "https://schema.metadatacenter.org/properties/53c0ec41-142d-49fc-8c38-a6551edc341f" ]
+          "enum" : [ "https://schema.metadatacenter.org/properties/564e282c-d3e8-4adb-b781-9a715500c4a3" ]
         },
         "non_global_files" : {
           "enum" : [ "https://schema.metadatacenter.org/properties/aba9ed55-5de7-4cd1-8d9e-866de1dfc384" ]
@@ -407,9 +407,9 @@
       "required" : [ "@value" ],
       "schema:name" : "parent_sample_id",
       "schema:description" : "Unique HuBMAP or SenNet identifier of the sample (i.e., block, section or suspension) used to perform this assay. For example, for a RNAseq assay, the parent would be the suspension, whereas, for one of the imaging assays, the parent would be the tissue section. If an assay comes from multiple parent samples then this should be a comma separated list. Example: HBM386.ZGKG.235, HBM672.MKPK.442 or SNT232.UBHJ.322, SNT329.ALSK.102",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Parent sample ID",
       "pav:version" : "0.0.1",
@@ -481,9 +481,9 @@
       "required" : [ "@value" ],
       "schema:name" : "lab_id",
       "schema:description" : "An internal field labs can use it to add whatever ID(s) they want or need for dataset validation and tracking. This could be a single ID (e.g., \"Visium_9OLC_A4_S1\") or a delimited list of IDs (e.g., “9OL; 9OLC.A2; Visium_9OLC_A4_S1”). This field will not be accessible to anyone outside of the consortium and no effort will be made to check if IDs provided by one data provider are also used by another.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Lab ID",
       "pav:version" : "0.0.1",
@@ -553,10 +553,10 @@
         }
       },
       "schema:name" : "preparation_protocol_doi",
-      "schema:description" : "DOI for the protocols.io page that describes the assay or sample procurement and preparation. For example for an imaging assay, the protocol might begin with staining of a section and finalize with the creation of an OME-TIFF file. In this case the protocol would include any image processing steps required to create the OME-TIFF file. Example: https://dx.doi.org/10.17504/protocols.io.eq2lyno9qvx9/v1.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "schema:description" : "DOI for the protocols.io page that describes the assay or sample procurment and preparation. For example for an imaging assay, the protocol might include staining of a section through the creation of an OME-TIFF file. In this case the protocol would include any image processing steps required to create the OME-TIFF file. Example: https://dx.doi.org/10.17504/protocols.io.eq2lyno9qvx9/v1",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Preparation protocol DOI",
       "pav:version" : "0.0.1",
@@ -641,9 +641,9 @@
       },
       "schema:name" : "dataset_type",
       "schema:description" : "The specific type of dataset being produced.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Dataset type",
       "pav:version" : "0.0.1",
@@ -724,9 +724,9 @@
       },
       "schema:name" : "analyte_class",
       "schema:description" : "Analytes are the target molecules being measured with the assay.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Analyte class",
       "pav:version" : "0.0.1",
@@ -805,9 +805,9 @@
       "required" : [ "@value" ],
       "schema:name" : "is_targeted",
       "schema:description" : "Specifies whether or not a specific molecule(s) is/are targeted for detection/measurement by the assay (\"Yes\" or \"No\"). The CODEX analyte is protein.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Is targeted?",
       "pav:version" : "0.0.1",
@@ -888,9 +888,9 @@
       },
       "schema:name" : "acquisition_instrument_vendor",
       "schema:description" : "An acquisition instrument is the device that contains the signal detection hardware and signal processing software. Assays generate signals such as light of various intensities or color or signals representing the molecular mass.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Acquisition instrument vendor",
       "pav:version" : "0.0.1",
@@ -971,9 +971,9 @@
       },
       "schema:name" : "acquisition_instrument_model",
       "schema:description" : "Manufacturers of an acquisition instrument may offer various versions (models) of that instrument with different features or sensitivities. Differences in features or sensitivities may be relevant to processing or interpretation of the data.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Acquisition instrument model",
       "pav:version" : "0.0.1",
@@ -1047,9 +1047,9 @@
       "required" : [ "@value", "@type" ],
       "schema:name" : "source_storage_duration_value",
       "schema:description" : "How long was the source material (parent) stored, prior to this sample being processed.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Source storage duration value",
       "pav:version" : "0.0.1",
@@ -1130,9 +1130,9 @@
       },
       "schema:name" : "source_storage_duration_unit",
       "schema:description" : "The time duration unit of measurement",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Source storage duration unit",
       "pav:version" : "0.0.1",
@@ -1205,10 +1205,10 @@
       },
       "required" : [ "@value", "@type" ],
       "schema:name" : "time_since_acquisition_instrument_calibration_value",
-      "schema:description" : "The amount of time since the acquisition instrument was last serviced or calibrated. This provides a metric for assessing drift in data capture.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "schema:description" : "The amount of time since the acqusition instrument was last serviced by the vendor. This provides a metric for assessing drift in data capture.",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Time since acquisition instrument calibration value",
       "pav:version" : "0.0.1",
@@ -1289,9 +1289,9 @@
       },
       "schema:name" : "time_since_acquisition_instrument_calibration_unit",
       "schema:description" : "The time unit of measurement",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Time since acquisition instrument calibration unit",
       "pav:version" : "0.0.1",
@@ -1343,7 +1343,7 @@
       },
       "_valueConstraints" : {
         "requiredValue" : true,
-        "regex" : "^(?:\\.\\/.*|\\w.*)\\.tsv$"
+        "regex" : "^\\.(?:\\/[a-zA-Z0-9-_]+)*\\.tsv$"
       },
       "properties" : {
         "@type" : {
@@ -1364,9 +1364,9 @@
       "required" : [ "@value" ],
       "schema:name" : "contributors_path",
       "schema:description" : "The path to the file with the ORCID IDs for all contributors of this dataset (e.g., \"extras/contributors.tsv\" or \"./contributors.tsv\"). This is an internal metadata field that is just used for ingest.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Contributors path",
       "pav:version" : "0.0.1",
@@ -1418,7 +1418,7 @@
       },
       "_valueConstraints" : {
         "requiredValue" : true,
-        "regex" : "^(?:\\.|\\.\\/.+|\\w.*)$"
+        "regex" : "^\\.(?:\\/[a-zA-Z0-9-_]+)*\\/?$"
       },
       "properties" : {
         "@type" : {
@@ -1439,9 +1439,9 @@
       "required" : [ "@value" ],
       "schema:name" : "data_path",
       "schema:description" : "The top level directory containing the raw and/or processed data. For a single dataset upload this might be \".\" where as for a data upload containing multiple datasets, this would be the directory name for the respective dataset. For instance, if the data is within a directory called \"TEST001-RK\" use syntax \"/TEST001-RK/\" for this field. If there are multiple directory levels, use the format \"/TEST001-RK/Run1/Pass2\" in which \"Pass2\" is the subdirectory where the single dataset's data is stored. This is an internal metadata field that is just used for ingest.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Data path",
       "pav:version" : "0.0.1",
@@ -1493,7 +1493,7 @@
       },
       "_valueConstraints" : {
         "requiredValue" : true,
-        "regex" : "^(?:\\.\\/.*|\\w.*)\\.tsv$"
+        "regex" : "^\\.(?:\\/[a-zA-Z0-9-_]+)*\\.tsv$"
       },
       "properties" : {
         "@type" : {
@@ -1514,9 +1514,9 @@
       "required" : [ "@value" ],
       "schema:name" : "antibodies_path",
       "schema:description" : "This is the location of the antibodies.tsv file relative to the root of the top level of the upload directory structure. This path should begin with \".\" and would likely be something like \"./extras/antibodies.tsv\".",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Antibodies path",
       "pav:version" : "0.0.1",
@@ -1589,10 +1589,10 @@
       },
       "required" : [ "@value", "@type" ],
       "schema:name" : "total_run_time_value",
-      "schema:description" : "How long did the instrument take to fully complete all imaging rounds on the loaded slide.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "schema:description" : "How long the tissue was on the acquisition instrument.",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Total run time value",
       "pav:version" : "0.0.1",
@@ -1673,9 +1673,9 @@
       },
       "schema:name" : "total_run_time_unit",
       "schema:description" : "The units for the total run time unit field.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Total run time unit",
       "pav:version" : "0.0.1",
@@ -1749,9 +1749,9 @@
       "required" : [ "@value", "@type" ],
       "schema:name" : "number_of_antibodies",
       "schema:description" : "Number of antibodies",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Number of antibodies",
       "pav:version" : "0.0.1",
@@ -1825,9 +1825,9 @@
       "required" : [ "@value", "@type" ],
       "schema:name" : "number_of_channels",
       "schema:description" : "Number of fluorescent channels imaged during each cycle.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Number of channels",
       "pav:version" : "0.0.1",
@@ -1900,10 +1900,10 @@
       },
       "required" : [ "@value", "@type" ],
       "schema:name" : "number_of_biomarker_imaging_rounds",
-      "schema:description" : "Number of imaging rounds to capture the tagged biomarkers. For CODEX a biomarker imaging round consists of 1. oligo and fluor application, 2. imaging, 3. removal of oligo and fluor along washes. For Cell DIVE a biomarker imaging round consists of 1. staining of a biomarker via secondary detection or direct conjugate and 2. dye inactivation.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "schema:description" : "Number of imaging rounds to capture the tagged biomarkers. For CODEX a biomarker imaging round consists of 1. oligo application, 2. fluor application, 3. washes. For Cell DIVE a biomarker imaging round consists of 1. staining of a biomarker via secondary detection or direct conjugate and 2. dye inactivation.",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Number of biomarker imaging rounds",
       "pav:version" : "0.0.1",
@@ -1977,9 +1977,9 @@
       "required" : [ "@value", "@type" ],
       "schema:name" : "number_of_total_imaging_rounds",
       "schema:description" : "The total number of acquisitions performed on microscope to collect autofluorescence/background or stained signal (e.g., histology).",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Number of total imaging rounds",
       "pav:version" : "0.0.1",
@@ -2051,9 +2051,9 @@
       "required" : [ "@value" ],
       "schema:name" : "slide_id",
       "schema:description" : "A unique ID denoting the slide used. This allows users the ability to determine which tissue sections were processed together on the same slide. It is recommended that data providers prefix the ID with the center name, to prevent values overlapping across centers.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Slide ID",
       "pav:version" : "0.0.1",
@@ -2101,10 +2101,18 @@
       "title" : "cell_boundary_marker_or_stain field schema",
       "description" : "cell_boundary_marker_or_stain field schema generated by the CEDAR Artifact Library",
       "_ui" : {
-        "inputType" : "textfield"
+        "inputType" : "radio"
       },
       "_valueConstraints" : {
-        "requiredValue" : false
+        "literals" : [ {
+          "label" : "NAKATPASE"
+        }, {
+          "label" : "CD298"
+        }, {
+          "label" : "Not applicable"
+        } ],
+        "requiredValue" : true,
+        "multipleChoice" : false
       },
       "properties" : {
         "@type" : {
@@ -2125,9 +2133,9 @@
       "required" : [ "@value" ],
       "schema:name" : "cell_boundary_marker_or_stain",
       "schema:description" : "If a marker or stain was used to identify all cell boundaries in the tissue, then the name of the marker or stain should be included here. The name of the antibody-targeted molecule marker or non-antibody targeted molecule stain included here must be identical to what is found in the imaging data. For example, with the PhenoCycler, this name must match the value found in the XPD output file. If multiple marker or stains are used to identify all cell boundaries, then a comma separated list should be used here.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Cell boundary marker or stain",
       "pav:version" : "0.0.1",
@@ -2175,10 +2183,16 @@
       "title" : "nuclear_marker_or_stain field schema",
       "description" : "nuclear_marker_or_stain field schema generated by the CEDAR Artifact Library",
       "_ui" : {
-        "inputType" : "textfield"
+        "inputType" : "radio"
       },
       "_valueConstraints" : {
-        "requiredValue" : false
+        "literals" : [ {
+          "label" : "DAPI"
+        }, {
+          "label" : "Not applicable"
+        } ],
+        "requiredValue" : true,
+        "multipleChoice" : false
       },
       "properties" : {
         "@type" : {
@@ -2199,9 +2213,9 @@
       "required" : [ "@value" ],
       "schema:name" : "nuclear_marker_or_stain",
       "schema:description" : "For markers, an antibody-targetted molecule present in or around the cell nucleus, the protein or gene symbol that identifies the antibody target that is used as the nuclear marker. This symbol must match the antibody target that is either generated from the panel used or entered with custom panels. Preferably, if using a custom antibody marker, this symbol should be the HGNC symbol (https://www.genenames.org/).   For non-protein targets this is the stain name (e.g., DAPI) and, when appropriate, associated staining kit and vendor. For the PhenoCycler, this symbol must match the value found in the XPD output file.",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Nuclear marker or stain",
       "pav:version" : "0.0.1",
@@ -2252,8 +2266,7 @@
         "inputType" : "textfield"
       },
       "_valueConstraints" : {
-        "requiredValue" : false,
-        "regex" : "^(?:\\.\\/[^;]+|\\w[^;]+)(?:;\\s*(?:\\.\\/[^;]+|\\w[^;]+))*$"
+        "requiredValue" : false
       },
       "properties" : {
         "@type" : {
@@ -2274,9 +2287,9 @@
       "required" : [ "@value" ],
       "schema:name" : "non_global_files",
       "schema:description" : "A semicolon separated list of non-shared files to be included in the dataset. The path assumes the files are located in the \"TOP/non-global/\" directory. For example, for the file is TOP/non-global/lab_processed/images/1-tissue-boundary.geojson the value of this field would be \"./lab_processed/images/1-tissue-boundary.geojson\". After ingest, these files will be copied to the appropriate locations within the respective dataset directory tree. This field is used for internal HuBMAP processing. Examples for GeoMx and PhenoCycler are provided in the File Locations documentation: https://docs.google.com/document/d/1n2McSs9geA9Eli4QWQaB3c9R3wo5d5U1Xd57DWQfN5Q/edit#heading=h.1u82i4axggee",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Non global files",
       "pav:version" : "0.0.1",
@@ -2349,9 +2362,9 @@
       "required" : [ "@value" ],
       "schema:name" : "metadata_schema_id",
       "schema:description" : "The string that serves as the definitive identifier for the metadata schema version and is readily interpretable by computers for data validation and processing. Example: 22bc762a-5020-419d-b170-24253ed9e8d9",
-      "pav:createdOn" : "2025-06-04T13:51:02-07:00",
+      "pav:createdOn" : "2024-01-09T12:03:42-08:00",
       "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-      "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+      "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
       "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
       "skos:prefLabel" : "Metadata schema ID",
       "pav:version" : "0.0.1",
@@ -2367,7 +2380,7 @@
   "schema:description" : "The PhenoCycler dataset metadata specification provides a framework for organizing and documenting key information related to assay analysis, enabling efficient and standardized data interpretation in multiplex imaging studies.",
   "pav:createdOn" : "2024-01-05T09:35:09-08:00",
   "pav:createdBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
-  "pav:lastUpdatedOn" : "2025-06-04T13:51:02-07:00",
+  "pav:lastUpdatedOn" : "2024-01-09T12:03:42-08:00",
   "oslc:modifiedBy" : "https://metadatacenter.org/users/70417c1c-ffa6-49b2-9ddf-e4a2d73fe1e9",
   "pav:version" : "2.2.0",
   "bibo:status" : "bibo:draft",

@@ -13,8 +13,10 @@
  * comment.
  */
 import { describe, expect, it } from 'vitest';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { DocumentKey } from '../src/document-keys';
-import { corpusTemplates } from '../src/corpus';
+import { corpusTemplates, hubmapTemplates } from '../src/corpus';
 
 interface ChoiceField {
   template: string;
@@ -72,6 +74,75 @@ const collectChoiceFields = (): ChoiceField[] => {
 };
 
 const choiceFields = collectChoiceFields();
+
+interface InherentlyMultipleField {
+  template: string;
+  path: string;
+  inputType: string;
+  isArray: boolean;
+}
+
+/**
+ * Fields whose widget semantics always emit an array.  Traverse only declared
+ * template children: walking every object would encounter the inner `items`
+ * schema of a correct array and falsely judge that inner object as the child.
+ */
+const collectInherentlyMultipleFields = (): InherentlyMultipleField[] => {
+  const visualRoot = path.resolve(__dirname, '../../visual/fixtures');
+  const artifacts = [
+    ...corpusTemplates().map((artifact) => ({ name: `corpus-${artifact.id}`, json: artifact.json })),
+    ...hubmapTemplates().map((artifact) => ({ name: `hubmap-${artifact.id}`, json: artifact.json })),
+    ...['17-real-flat.json', '18-real-nested.json'].map((name) => ({
+      name: `visual-${name}`,
+      json: JSON.parse(fs.readFileSync(path.join(visualRoot, name), 'utf8')) as object,
+    })),
+  ];
+  const found: InherentlyMultipleField[] = [];
+
+  const walk = (container: unknown, template: string, parentPath: string): void => {
+    if (container === null || typeof container !== 'object') return;
+    const properties = (container as Record<string, unknown>).properties;
+    if (properties === null || typeof properties !== 'object') return;
+
+    for (const [key, declared] of Object.entries(properties as Record<string, unknown>)) {
+      if (declared === null || typeof declared !== 'object') continue;
+      const outer = declared as Record<string, unknown>;
+      const field = (outer.type === 'array' && outer.items ? outer.items : outer) as Record<string, unknown>;
+      const ui = (field._ui ?? {}) as Record<string, unknown>;
+      const constraints = (field._valueConstraints ?? {}) as Record<string, unknown>;
+      const inputType = ui.inputType as string | undefined;
+      const inherent =
+        inputType === 'checkbox' ||
+        inputType === 'attribute-value' ||
+        (inputType === 'list' && constraints.multipleChoice === true);
+      const fieldPath = `${parentPath}/${key}`;
+      if (inherent) {
+        found.push({ template, path: fieldPath, inputType, isArray: outer.type === 'array' });
+      }
+      if (ui.order !== undefined) {
+        walk(field, template, fieldPath);
+      }
+    }
+  };
+
+  for (const artifact of artifacts) walk(artifact.json, artifact.name, '');
+  return found;
+};
+
+const inherentlyMultipleFields = collectInherentlyMultipleFields();
+
+describe('an inherently multiple field is declared as an array', () => {
+  it('has independent and real-world fields to check', () => {
+    expect(inherentlyMultipleFields.length).toBeGreaterThan(20);
+  });
+
+  it.each(inherentlyMultipleFields.map((field) => [`${field.template}:${field.path}`, field] as const))(
+    '%s',
+    (id, field) => {
+      expect(field.isArray, `${id} (${field.inputType}) would emit an array into a non-array schema`).toBe(true);
+    },
+  );
+});
 
 /**
  * The four fields in `template-029` that cannot hold any of their own values.

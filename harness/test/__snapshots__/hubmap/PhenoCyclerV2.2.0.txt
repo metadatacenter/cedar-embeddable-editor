@@ -20,7 +20,7 @@ number_of_channels type=numeric single required num=xsd:int
 number_of_biomarker_imaging_rounds type=numeric single required num=xsd:int
 number_of_total_imaging_rounds type=numeric single required num=xsd:int
 slide_id type=textfield single
-cell_boundary_marker_or_stain type=textfield single
-nuclear_marker_or_stain type=textfield single
+cell_boundary_marker_or_stain type=radio single required choices=3
+nuclear_marker_or_stain type=radio single required choices=2
 non_global_files type=textfield single
 metadata_schema_id type=textfield single required

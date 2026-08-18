@@ -253,6 +253,7 @@ export const sweep = (
   kinds: FieldKind[],
   cardinalities: readonly Cardinality[],
   nestings: readonly Nesting[],
+  options: { multiElementMinItems?: number; multiFieldMinItems?: number } = {},
 ): Case[] => {
   const cases: Case[] = [];
 
@@ -264,7 +265,12 @@ export const sweep = (
 
       for (const nesting of nestings) {
         const fieldName = `${kind.key}_${cardinality}`;
-        const child: ChildSpec = { kind, name: fieldName, cardinality };
+        const child: ChildSpec = {
+          kind,
+          name: fieldName,
+          cardinality,
+          minItems: cardinality === 'multi' ? options.multiFieldMinItems ?? 2 : undefined,
+        };
         const label = `${kind.inputType}/${cardinality}/${nesting}`;
         let template: object;
         let path: string[];
@@ -272,7 +278,7 @@ export const sweep = (
         if (nesting === 'root') {
           template = buildTemplate({ name: `t_${kind.key}_${cardinality}_root`, children: [child] });
           path = [`_${fieldName}`];
-        } else {
+        } else if (nesting === 'inElement' || nesting === 'inMultiElement') {
           const elMulti = nesting === 'inMultiElement';
           const elName = elMulti ? 'multi_el' : 'single_el';
           template = buildTemplate({
@@ -281,12 +287,36 @@ export const sweep = (
               {
                 name: elName,
                 cardinality: elMulti ? 'multi' : ('single' as Cardinality),
-                minItems: elMulti ? 2 : undefined,
+                minItems: elMulti ? options.multiElementMinItems ?? 2 : undefined,
                 children: [child],
               },
             ],
           });
           path = [`_${elName}`, `_${fieldName}`];
+        } else {
+          const outerMulti = nesting === 'inNestedOuterMultiElement' || nesting === 'inNestedMultiElements';
+          const innerMulti = nesting === 'inNestedInnerMultiElement' || nesting === 'inNestedMultiElements';
+          const outerName = outerMulti ? 'outer_multi_el' : 'outer_single_el';
+          const innerName = innerMulti ? 'inner_multi_el' : 'inner_single_el';
+          template = buildTemplate({
+            name: `t_${kind.key}_${cardinality}_${outerName}_${innerName}`,
+            elements: [
+              {
+                name: outerName,
+                cardinality: outerMulti ? 'multi' : ('single' as Cardinality),
+                minItems: outerMulti ? options.multiElementMinItems ?? 2 : undefined,
+                elements: [
+                  {
+                    name: innerName,
+                    cardinality: innerMulti ? 'multi' : ('single' as Cardinality),
+                    minItems: innerMulti ? options.multiElementMinItems ?? 2 : undefined,
+                    children: [child],
+                  },
+                ],
+              },
+            ],
+          });
+          path = [`_${outerName}`, `_${innerName}`, `_${fieldName}`];
         }
 
         cases.push({ label, kind, cardinality, nesting, path, template });

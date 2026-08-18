@@ -259,10 +259,10 @@ describe('HuBMAP production templates', () => {
     driver.expectNoErrors(`parsing ${artifact.id}`);
   });
 
-  it.each(hubmap.map((t) => [t.id, t] as const))('%s has a stable component tree', (id, artifact) => {
+  it.each(hubmap.map((t) => [t.id, t] as const))('%s has a stable component tree', async (id, artifact) => {
     const driver = new CeeDriver(artifact.json);
     const tree = describeTree(driver.representation).join('\n') || '(no rendered children)';
-    expect(tree).toMatchFileSnapshot(`./__snapshots__/hubmap/${id}.txt`);
+    await expect(tree).toMatchFileSnapshot(`./__snapshots__/hubmap/${id}.txt`);
   });
 
   it.each(hubmap.map((t) => [t.id, t] as const))('%s builds an instance and a report', (_id, artifact) => {

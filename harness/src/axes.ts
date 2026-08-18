@@ -12,7 +12,13 @@
  * feature: it is what surfaced the five input types CEE could render but the
  * model library could not build, all since added upstream.
  */
-import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
+import {
+  CedarBuilders,
+  ControlledTermOntologyBuilder,
+  Iri,
+  TemporalGranularity,
+  TemporalType,
+} from 'cedar-model-typescript-library';
 
 /** How a value gets written into a field of this kind via HandlerContext. */
 export type WriteMode = 'value' | 'controlled' | 'attribute' | 'none';
@@ -78,7 +84,15 @@ export const FIELD_KINDS: FieldKind[] = [
   f('numeric', 'numeric', () => CedarBuilders.numericFieldBuilder(), '42'),
   f('email', 'email', () => CedarBuilders.emailFieldBuilder(), 'someone@example.org'),
   f('phone', 'phone-number', () => CedarBuilders.phoneNumberFieldBuilder(), '+1-650-555-0100'),
-  f('temporal', 'temporal', () => CedarBuilders.temporalFieldBuilder(), '2026-08-01'),
+  f(
+    'temporal',
+    'temporal',
+    () => CedarBuilders.temporalFieldBuilder(),
+    '2026-08-01',
+    'value',
+    false,
+    (builder) => builder.withTemporalType(TemporalType.DATE).withTemporalGranularity(TemporalGranularity.DAY),
+  ),
   f('link', 'link', () => CedarBuilders.linkFieldBuilder(), 'https://example.org/thing'),
   f('orcid', 'ext-orcid', () => CedarBuilders.extOrcidFieldBuilder(), 'https://orcid.org/0000-0002-1825-0097'),
   f('ror', 'ext-ror', () => CedarBuilders.extRorFieldBuilder(), 'https://ror.org/00f54p054'),
@@ -148,4 +162,23 @@ export type Cardinality = (typeof CARDINALITIES)[number];
  * where path resolution is order-dependent.
  */
 export const NESTINGS = ['root', 'inElement', 'inMultiElement'] as const;
-export type Nesting = (typeof NESTINGS)[number];
+
+/**
+ * Every element-placement shape used by the saveability population matrix.
+ *
+ * The one-level cases exercise a field directly inside a single- or
+ * multi-instance element.  The four two-level cases are the full Cartesian
+ * product of outer and inner element cardinality.  Keeping those four explicit
+ * matters: every multi ancestor contributes an independent occurrence cursor,
+ * and the production failure that motivated this matrix occurred in all five
+ * root/wrapper placements of the same field kind.
+ */
+export const POPULATION_NESTINGS = [
+  ...NESTINGS,
+  'inNestedElements',
+  'inNestedInnerMultiElement',
+  'inNestedOuterMultiElement',
+  'inNestedMultiElements',
+] as const;
+
+export type Nesting = (typeof POPULATION_NESTINGS)[number];

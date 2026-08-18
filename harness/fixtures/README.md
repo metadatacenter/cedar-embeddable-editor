@@ -34,7 +34,7 @@ Source: `metadatacenter/cedar-test-artifacts`, branch `develop`, commit
 `hubmap/` contains 57 production template JSON files.
 
 Source: `metadatacenter/cedar-artifact-library`, branch `develop`, commit
-`98fe90ca25c9b6e79619488cb7ad100d34c2cd99`, directory
+`aad2e8a6be35403d8831ddf300e94e0cb6f81660`, directory
 `src/test/resources/templates-json/`.
 
 These snapshots are mandatory test inputs. `harness/src/corpus.ts` checks the
