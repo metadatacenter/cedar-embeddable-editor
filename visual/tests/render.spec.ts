@@ -1499,47 +1499,39 @@ test.describe('the time picker', () => {
   });
 
   /**
-   * How wide a clock holding a time is.
+   * Typing the first segment must not reflow the rest of a temporal row.
    *
-   * The boxes have to fit `HH`, `MM` and `SS` when empty, and M is half again as
-   * wide as a digit — so a box sized once, for both states, leaves half a digit
-   * of air on either side of every colon and the clock reads `14 : 30 : 15`.
-   *
-   * Asserted against the width of the text itself rather than a pixel count, so
-   * it stays a statement about the two being close and survives a change of font
-   * or type size. The slack covers three boxes' 1px padding either side.
+   * The picker used to change every segment from a placeholder-sized width to
+   * `2ch` as soon as any segment was valid. That narrowed the entire control and,
+   * while the other segments were still empty, put `MM` and `SS` into boxes sized
+   * for digits. The row visibly jumped and the placeholders clipped.
    */
-  test('a filled clock is as wide as the time it shows', async ({ page }) => {
+  test('typing the first segment does not resize the clock', async ({ page }) => {
     await open(page, '09-temporal');
     const picker = pickerFor(page, 'to_the_second');
+    const shell = picker.locator('.cee-time-input-shell');
+    const emptyWidth = await shell.evaluate((element) => element.getBoundingClientRect().width);
 
-    for (const [unit, value] of [
-      ['Hour', '14'],
-      ['Minute', '30'],
-      ['Second', '15'],
-    ]) {
-      await picker.locator(`input[aria-label="${unit}"]`).fill(value);
-    }
-    await page.waitForTimeout(300);
+    await picker.locator('input[aria-label="Hour"]').fill('14');
+    const partialWidth = await shell.evaluate((element) => element.getBoundingClientRect().width);
 
-    const slack = await picker.locator('.cee-time-input-shell').evaluate((shell) => {
-      const box = getComputedStyle(shell);
-      const inner =
-        shell.getBoundingClientRect().width -
-        parseFloat(box.paddingLeft) -
-        parseFloat(box.paddingRight) -
-        parseFloat(box.borderLeftWidth) -
-        parseFloat(box.borderRightWidth);
+    expect(partialWidth, 'the clock moved the controls beside it').toBeCloseTo(emptyWidth, 1);
 
-      const segment = getComputedStyle(shell.querySelector('.cee-time-segment')!);
-      const measure = document.createElement('canvas').getContext('2d')!;
-      measure.font = `${segment.fontWeight} ${segment.fontSize} ${segment.fontFamily}`;
-
-      return inner - measure.measureText('14:30:15').width;
-    });
-
-    expect(slack, 'the boxes are clipping the time').toBeGreaterThan(-2);
-    expect(slack, 'the colons are floating in air').toBeLessThan(12);
+    const clipped = await picker
+      .locator('input[placeholder="MM"], input[placeholder="SS"]')
+      .evaluateAll((inputs: HTMLInputElement[]) => {
+        const measure = document.createElement('canvas').getContext('2d')!;
+        return inputs
+          .map((input) => {
+            const style = getComputedStyle(input);
+            measure.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+            const available = input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+            return { placeholder: input.placeholder, available, needed: measure.measureText(input.placeholder).width };
+          })
+          .filter((segment) => segment.needed > segment.available)
+          .map((segment) => `${segment.placeholder} needs ${segment.needed.toFixed(1)}px, has ${segment.available}px`);
+      });
+    expect(clipped, 'an unfilled segment is clipping its placeholder').toEqual([]);
   });
 
   /**

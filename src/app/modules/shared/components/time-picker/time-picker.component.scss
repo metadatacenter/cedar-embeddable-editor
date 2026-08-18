@@ -61,8 +61,8 @@
 }
 
 /*
- * Each box is sized to what it displays, and the two states display different
- * things.
+ * Each box is sized for its placeholder and keeps that width while it is being
+ * filled.
  *
  * Empty, a box shows HH, MM or SS, and those are three different widths: at
  * 14px Roboto, MM measures 24.4px against SS's 16.6px, because M is 0.87em
@@ -70,7 +70,9 @@
  * width around SS is what made an empty clock read `HH :MM: SS`.
  *
  * So em, not ch: ch measures a digit, and what these have to fit is letters.
- * The values leave about a pixel of slack over the measured text, which
+ * Keeping these dimensions in both states also keeps the whole clock still as
+ * the user moves through its segments. The values leave about a pixel of slack
+ * over the measured text, which
  * `a clock's boxes fit their placeholders` asserts rather than assumes — the
  * width was 3ch for all three before this, and 3ch is 23.6px, so MM had been
  * losing the right stroke of its second stem in every baseline that shows one.
@@ -85,28 +87,6 @@
 
 .cee-time-segment-second {
   width: 1.3em;
-}
-
-/*
- * Filled, a box shows two digits, and 2ch is exactly two digits — so the colons
- * sit against them and the clock reads `14:30:15`.
- *
- * One flag for the whole picker rather than one per box, because that is how the
- * values are bound: accepting any segment gives the picker a value, and every
- * box then shows a padded number instead of its placeholder. The two states are
- * the picker's, not each box's, so no box is ever asked to fit a placeholder at
- * the narrower width.
- *
- * The hour is right-aligned rather than centred, because a 12-hour face writes
- * it unpadded — `2:30`, not `02:30` — and a single digit centred in a two-digit
- * box would put the gap back for that one case.
- */
-.cee-time-picker-filled .cee-time-segment {
-  width: 2ch;
-}
-
-.cee-time-picker-filled .cee-time-segment-hour {
-  text-align: end;
 }
 
 .cee-time-separator {
