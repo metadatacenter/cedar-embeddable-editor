@@ -332,17 +332,19 @@ It defaults to `false`, and nothing is rendered under the form either way:
 
 | Menu entry | Saves | As |
 |---|---|---|
-| JSON-LD - Instance - Core | The instance without its envelope | `<name>-instance-core.json` |
+| JSON-LD - Instance - Core | Legacy alias of JSON-LD - Instance | `<name>-instance-core.json` |
 | JSON-LD - Instance | The instance as a CEDAR document | `<name>-instance.json` |
 | YAML - Instance | The same instance, as CEDAR YAML | `<name>-instance.yaml` |
 | JSON Schema - Template | The template as the host supplied it | `<name>-template.json` |
 | YAML - Template | The same template, as CEDAR YAML | `<name>-template.yaml` |
-| Template Rendering Data | The component tree CEE built | `<name>-rendering.json` |
-| Multi-Instance Information | Occurrence counts and current indices | `<name>-multi-instance.json` |
 | Data Quality Report | Required-field tally and constraint violations | `<name>-data-quality.json` |
 
 `<name>` is the template's own `schema:name`, reduced to file-name-safe
 characters, so a developer with several forms open can tell the files apart.
+
+The two JSON-LD instance entries currently contain the same canonical CEDAR
+document; only their file-name suffix differs. `Core` is retained as a legacy
+menu name.
 
 These were eight panels once, each printing a dump under the form, and each
 costing two keys — one to show it and one to expand it. Two of the sixteen were

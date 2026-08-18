@@ -67,8 +67,6 @@
       "Instance": "YAML - Instance",
       "Template": "YAML - Template"
     },
-    "TemplateRendering": "Template Rendering Data",
-    "MultiInstance": "Multi-Instance Information",
     "DataQualityReport": "Data Quality Report"
   },
   "Hint": {

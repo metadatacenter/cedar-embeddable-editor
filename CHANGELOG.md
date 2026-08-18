@@ -118,6 +118,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `Template Rendering Data` and `Multi-Instance Information` are no longer in
+  the download menu. Both exposed CEE's private working state rather than a
+  portable CEDAR artifact; removing the exports does not remove the internal
+  rendering tree or occurrence tracking that the editor itself still uses.
+
 - **BREAKING.** CEE mints no element-occurrence identifiers. It stamped a fresh GUID onto every
   occurrence it built, under `https://repo.metadatacenter.org/template-element-instances/`, on the
   grounds that CEDAR requires an `@id` there. A template's element sub-schema does name `@id` in its

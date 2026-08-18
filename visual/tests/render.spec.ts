@@ -2776,6 +2776,24 @@ const takeDownload = async (
   return { filename: download.suggestedFilename(), body: Buffer.concat(chunks).toString('utf8') };
 };
 
+test('the download menu exposes only its supported artifact views', async ({ page }) => {
+  await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
+  await page.locator('.download-trigger').click();
+
+  const items = page.locator('[data-download]');
+  await expect(items).toHaveCount(6);
+  expect(await items.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-download')))).toEqual([
+    'instanceCore',
+    'instance',
+    'instanceYaml',
+    'templateSource',
+    'templateYaml',
+    'dataQuality',
+  ]);
+  await expect(page.getByText('Template Rendering Data', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Multi-Instance Information', { exact: true })).toHaveCount(0);
+});
+
 test.describe('what a host page reads back', () => {
   const read = (page: import('@playwright/test').Page) =>
     page.evaluate(() => {

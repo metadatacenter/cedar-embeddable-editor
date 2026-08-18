@@ -12,8 +12,8 @@
  * else's interface, and the content was already the right shape for it: every
  * panel resolved to exactly one string, which is what a download needs.
  *
- * The descriptor is what keeps that a list rather than eight near-identical
- * blocks. A ninth download costs an entry here and a case in `downloadContentFor`.
+ * The descriptor is what keeps that a list rather than six near-identical
+ * blocks. A seventh download costs an entry here and a case in `downloadContentFor`.
  */
 export interface DownloadItemDescriptor {
   /** Stable across renames of the label: the menu's key, and what a test names. */
@@ -36,8 +36,6 @@ export type DownloadItemId =
   | 'instanceYaml'
   | 'templateSource'
   | 'templateYaml'
-  | 'templateRendering'
-  | 'multiInstance'
   | 'dataQuality';
 
 const JSON_TYPE = 'application/json';
@@ -48,7 +46,8 @@ const YAML_TYPE = 'application/yaml';
  *
  * Instance before template, because a developer looking at a form is usually
  * asking what it produced rather than what defined it. Within each, JSON before
- * YAML. The three views that are neither artifact nor serialisation come last.
+ * YAML. The data-quality report, which is neither artifact nor serialisation,
+ * comes last.
  */
 export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
   {
@@ -90,22 +89,6 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
     suffix: 'template',
     extension: 'yaml',
     mediaType: YAML_TYPE,
-  },
-  {
-    id: 'templateRendering',
-    labelKey: 'Extra.TemplateRendering',
-    icon: 'list_alt',
-    suffix: 'rendering',
-    extension: 'json',
-    mediaType: JSON_TYPE,
-  },
-  {
-    id: 'multiInstance',
-    labelKey: 'Extra.MultiInstance',
-    icon: 'list_alt',
-    suffix: 'multi-instance',
-    extension: 'json',
-    mediaType: JSON_TYPE,
   },
   {
     id: 'dataQuality',

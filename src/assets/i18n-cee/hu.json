@@ -67,8 +67,6 @@
       "Instance": "YAML - Példány",
       "Template": "YAML - Sablon"
     },
-    "TemplateRendering": "Sablon megjelenítési adatok",
-    "MultiInstance": "Multi-példány információ",
     "DataQualityReport": "Adatminőségi riport"
   },
   "Hint": {
