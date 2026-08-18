@@ -59,7 +59,6 @@
       "FindNoMatch": "Nincs egyező sablon"
     },
     "JsonLD": {
-      "InstanceCore": "JSON-LD - Példány - Alap",
       "Instance": "JSON-LD - Példány"
     },
     "JsonSchemaTemplate": "JSON Séma - Sablon",

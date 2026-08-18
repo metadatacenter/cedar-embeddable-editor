@@ -35,7 +35,6 @@ const asJson = (value: unknown): string => JSON.stringify(value ?? null, null, 2
 export const downloadContentFor = (id: DownloadItemId, dataContext: DataContext): string => {
   const template = templateModel(dataContext);
   switch (id) {
-    case 'instanceCore':
     case 'instance':
       return asJson(InstanceSerializer.toJson(dataContext.instanceFullData, template));
     case 'instanceYaml':

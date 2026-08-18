@@ -12,8 +12,8 @@
  * else's interface, and the content was already the right shape for it: every
  * panel resolved to exactly one string, which is what a download needs.
  *
- * The descriptor is what keeps that a list rather than six near-identical
- * blocks. A seventh download costs an entry here and a case in `downloadContentFor`.
+ * The descriptor is what keeps that a list rather than five near-identical
+ * blocks. A sixth download costs an entry here and a case in `downloadContentFor`.
  */
 export interface DownloadItemDescriptor {
   /** Stable across renames of the label: the menu's key, and what a test names. */
@@ -30,13 +30,7 @@ export interface DownloadItemDescriptor {
   mediaType: string;
 }
 
-export type DownloadItemId =
-  | 'instanceCore'
-  | 'instance'
-  | 'instanceYaml'
-  | 'templateSource'
-  | 'templateYaml'
-  | 'dataQuality';
+export type DownloadItemId = 'instance' | 'instanceYaml' | 'templateSource' | 'templateYaml' | 'dataQuality';
 
 const JSON_TYPE = 'application/json';
 const YAML_TYPE = 'application/yaml';
@@ -50,14 +44,6 @@ const YAML_TYPE = 'application/yaml';
  * comes last.
  */
 export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
-  {
-    id: 'instanceCore',
-    labelKey: 'Extra.JsonLD.InstanceCore',
-    icon: 'device_hub',
-    suffix: 'instance-core',
-    extension: 'json',
-    mediaType: JSON_TYPE,
-  },
   {
     id: 'instance',
     labelKey: 'Extra.JsonLD.Instance',

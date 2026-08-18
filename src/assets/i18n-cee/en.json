@@ -59,7 +59,6 @@
       "FindNoMatch": "No matching templates found"
     },
     "JsonLD": {
-      "InstanceCore": "JSON-LD - Instance - Core",
       "Instance": "JSON-LD - Instance"
     },
     "JsonSchemaTemplate": "JSON Schema - Template",

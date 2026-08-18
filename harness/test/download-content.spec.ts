@@ -30,7 +30,6 @@ const driverWithValue = (name = 'dl'): CeeDriver => {
 describe('the download menu', () => {
   it('offers only portable artifacts and the data-quality report', () => {
     expect(DOWNLOAD_ITEMS.map((item) => item.id)).toEqual([
-      'instanceCore',
       'instance',
       'instanceYaml',
       'templateSource',
@@ -49,14 +48,6 @@ describe('every download produces something', () => {
 });
 
 describe('the instance downloads', () => {
-  it('keeps Core only as a legacy alias of the canonical JSON-LD instance', () => {
-    const driver = driverWithValue();
-
-    expect(downloadContentFor('instanceCore', driver.dataContext)).toBe(
-      downloadContentFor('instance', driver.dataContext),
-    );
-  });
-
   it('are a CEDAR document, not CEE working tree', () => {
     const json = downloadContentFor('instance', driverWithValue().dataContext);
 
