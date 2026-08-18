@@ -948,6 +948,48 @@ test('radio selection uses primary color and keeps Clear on the selected row', a
   expect(geometry.selectedColor).toBe('#00897b');
 });
 
+test('a populated multi-select uses the focus color rather than the error color', async ({ page }) => {
+  await open(page, '02-choices');
+
+  const multi = page.locator('mat-select[aria-label="multi_list"]');
+  await multi.click();
+  await page.locator('mat-option').filter({ hasText: 'North' }).click();
+  await page.locator('mat-option').filter({ hasText: 'South' }).click();
+  await page.keyboard.press('Escape');
+
+  const state = await page.evaluate(() => {
+    const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+    const resolvedColor = (value: string) => {
+      const probe = document.createElement('span');
+      probe.style.color = value;
+      root.appendChild(probe);
+      const resolved = getComputedStyle(probe).color;
+      probe.remove();
+      return resolved;
+    };
+    const read = (label: string) => {
+      const select = root.querySelector(`mat-select[aria-label="${label}"]`)!;
+      const field = select.closest('mat-form-field')!;
+      const arrow = select.querySelector('.mat-mdc-select-arrow')!;
+      const style = getComputedStyle(select);
+      return {
+        invalid: field.classList.contains('mat-form-field-invalid'),
+        arrowColor: getComputedStyle(arrow).color,
+        focusColor: resolvedColor(style.getPropertyValue('--mat-select-focused-arrow-color').trim()),
+        errorColor: resolvedColor(style.getPropertyValue('--mat-select-invalid-arrow-color').trim()),
+      };
+    };
+    return { single: read('single_list'), multi: read('multi_list') };
+  });
+
+  expect(state.multi.invalid, 'two declared options made the multi-select invalid').toBe(false);
+  expect(state.multi.arrowColor, 'the focused multi-select did not use the primary focus color').toBe(
+    state.multi.focusColor,
+  );
+  expect(state.multi.arrowColor, 'the valid multi-select used Material\'s error color').not.toBe(state.multi.errorColor);
+  expect(state.single.invalid).toBe(false);
+});
+
 test.describe('config presets', () => {
   /**
    * The base preset hides the header and footer so diffs reflect the form. This

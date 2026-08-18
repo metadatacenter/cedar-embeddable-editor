@@ -129,6 +129,17 @@ describe('the adapter reports the same problems as the report', () => {
     expect(errorsFor(kind, 'someone@example.org')).toBeNull();
   });
 
+  it('validates each multi-select label rather than their comma-joined display text', () => {
+    const kind = kindOf(
+      'list',
+      () => CedarBuilders.multipleChoiceListFieldBuilder(),
+      (b) => b.addListOption('Alpha').addListOption('Beta').addListOption('Gamma'),
+    );
+
+    expect(errorsFor(kind, ['Alpha', 'Beta'])).toBeNull();
+    expect(Object.keys(failuresFor(kind, ['Alpha', 'Zeta']))).toContain('choiceMembership');
+  });
+
   /**
    * Absence is `Validators.required`'s job, which the widgets keep. If the
    * adapter also complained about empty values, every untouched field on a

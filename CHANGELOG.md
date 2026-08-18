@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A populated multi-select no longer shows a red dropdown arrow. Its Angular
+  control holds an array, and shared choice validation coerced that array to one
+  comma-joined string before checking membership, so two valid selections were
+  rejected as one nonexistent option. Each selected label is now validated
+  independently; genuine undeclared values remain invalid.
+
 - A language map named after the artifact now loads. `languageMapPathPrefix` arriving in a `config`
   assigned after the template was lost outright: no request for the map, and every built-in label
   left in place. ngx-translate guards the work twice — `use()` returns at once when the language
