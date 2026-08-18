@@ -140,17 +140,12 @@ test('selects and records a fixed UTC offset', async ({ page }) => {
   await page.locator('mat-datepicker-toggle button').click();
   await page.getByRole('button', { name: '01/01/2026', exact: true }).click();
 
-  // Material hands focus back to the toggle when the calendar closes, and does
-  // it asynchronously. Typing into a time box before that lands loses the
-  // keystrokes: the box is focused, the restore takes focus away a millisecond
-  // later, and the text is inserted nowhere — no input event, so nothing tells
-  // the picker anything happened. Waiting for the restore is waiting for the
-  // form to be ready for the next thing a person would do.
-  await expect(page.locator('mat-datepicker-toggle button')).toBeFocused();
-
   const time = page.locator('.cee-time-picker');
-  await time.locator('input[aria-label="Hour"]').fill('09');
-  await time.locator('input[aria-label="Minute"]').fill('30');
+  // Send separate input events with a real pause between them. `fill('09')`
+  // delivers the complete segment at once and used to hide the widget padding
+  // the first `0` into `00` before the `9` arrived.
+  await time.locator('input[aria-label="Hour"]').pressSequentially('09', { delay: 40 });
+  await time.locator('input[aria-label="Minute"]').pressSequentially('30', { delay: 40 });
 
   await expect
     .poll(() =>
@@ -159,10 +154,20 @@ test('selects and records a fixed UTC offset', async ({ page }) => {
     .toContain('2026-01-01T09:30:00+05:30');
 });
 
+test('returns calendar focus to its toggle when the user has not moved on', async ({ page }) => {
+  await open(page, '07-timezone');
+  const toggle = page.locator('mat-datepicker-toggle button');
+
+  await toggle.click();
+  await page.getByRole('button', { name: '01/01/2026', exact: true }).click();
+
+  await expect(toggle).toBeFocused();
+});
+
 test('updates temporal data through the custom time picker', async ({ page }) => {
   await open(page, '09-temporal');
   const seconds = page.locator('.cee-time-picker').nth(2).locator('input[aria-label="Second"]');
-  await seconds.fill('42');
+  await seconds.pressSequentially('42', { delay: 40 });
   await seconds.blur();
 
   await expect

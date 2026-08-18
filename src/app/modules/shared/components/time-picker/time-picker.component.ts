@@ -65,10 +65,16 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   minute = 0;
   second = 0;
   meridian: Meridian = 'AM';
+  /** Raw text remains unpadded until the user leaves the segment. */
+  hourDraft = '';
+  minuteDraft = '';
+  secondDraft = '';
   /** The segment whose rejected edit was most recently restored on blur. */
   restoredSegment: 'hour' | 'minute' | 'second' | null = null;
 
   private invalidSegment: 'hour' | 'minute' | 'second' | null = null;
+  private editingSegment: 'hour' | 'minute' | 'second' | null = null;
+  private replaceOnNextKey: 'hour' | 'minute' | 'second' | null = null;
 
   /**
    * Not editable, for either of the two independent reasons it can be true.
@@ -126,20 +132,36 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   // swapping this in changed one element and no logic.
 
   writeValue(value: Date | null): void {
-    this.value = value ? new Date(value.getTime()) : null;
-    this.invalidSegment = null;
-    this.restoredSegment = null;
+    const incoming = value ? new Date(value.getTime()) : null;
+    this.value = incoming;
     const hour24 = this.value ? this.value.getHours() : 0;
 
-    if (this.enableMeridian) {
-      const shown = ClockTime.toTwelveHour(hour24);
-      this.hour = shown.hour;
-      this.meridian = shown.meridian;
-    } else {
-      this.hour = hour24;
+    /*
+     * `[(ngModel)]` and the parent temporal normalizer both write an emitted
+     * value back through this method. Let that update inactive segments, but
+     * never replace the segment currently receiving keystrokes. Otherwise the
+     * first digit is padded before the second digit arrives.
+     */
+    if (this.editingSegment !== 'hour') {
+      if (this.enableMeridian) {
+        const shown = ClockTime.toTwelveHour(hour24);
+        this.hour = shown.hour;
+        this.meridian = shown.meridian;
+      } else {
+        this.hour = hour24;
+      }
     }
-    this.minute = this.value ? this.value.getMinutes() : 0;
-    this.second = this.value ? this.value.getSeconds() : 0;
+    if (this.editingSegment !== 'minute') {
+      this.minute = this.value ? this.value.getMinutes() : 0;
+    }
+    if (this.editingSegment !== 'second') {
+      this.second = this.value ? this.value.getSeconds() : 0;
+    }
+    if (this.editingSegment === null) {
+      this.invalidSegment = null;
+      this.restoredSegment = null;
+      this.syncDrafts();
+    }
   }
 
   registerOnChange(fn: (value: Date) => void): void {
@@ -158,6 +180,8 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
 
   /** Accept a typed hour only when it is valid on the face being shown. */
   hourChanged(raw: unknown): void {
+    this.replaceOnNextKey = null;
+    this.hourDraft = String(raw ?? '');
     const value = TimePickerComponent.typedSegment(raw, this.enableMeridian ? 1 : 0, this.enableMeridian ? 12 : 23);
     if (value === null) {
       this.invalidSegment = 'hour';
@@ -169,6 +193,8 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   }
 
   minuteChanged(raw: unknown): void {
+    this.replaceOnNextKey = null;
+    this.minuteDraft = String(raw ?? '');
     const value = TimePickerComponent.typedSegment(raw, 0, 59);
     if (value === null) {
       this.invalidSegment = 'minute';
@@ -180,6 +206,8 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   }
 
   secondChanged(raw: unknown): void {
+    this.replaceOnNextKey = null;
+    this.secondDraft = String(raw ?? '');
     const value = TimePickerComponent.typedSegment(raw, 0, 59);
     if (value === null) {
       this.invalidSegment = 'second';
@@ -208,16 +236,36 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       this.second = ClockTime.wrap(this.second + by, 0, 59);
     }
     this.acceptSegment(field);
+    this.setDraft(field, this.segmentText(field));
     this.emit();
   }
 
   /** Keep clock stepping available from the keyboard without permanent button towers. */
   segmentKeydown(event: KeyboardEvent, field: 'hour' | 'minute' | 'second'): void {
+    if (/^\d$/.test(event.key) && this.replaceOnNextKey === field) {
+      event.preventDefault();
+      this.replaceOnNextKey = null;
+      if (field === 'hour') {
+        this.hourChanged(event.key);
+      } else if (field === 'minute') {
+        this.minuteChanged(event.key);
+      } else {
+        this.secondChanged(event.key);
+      }
+      return;
+    }
     if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
       return;
     }
     event.preventDefault();
+    this.replaceOnNextKey = null;
     this.step(field, event.key === 'ArrowUp' ? 1 : -1);
+  }
+
+  segmentFocus(event: FocusEvent, field: 'hour' | 'minute' | 'second'): void {
+    this.editingSegment = field;
+    this.replaceOnNextKey = field;
+    (event.target as HTMLInputElement).select();
   }
 
   /**
@@ -227,11 +275,21 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
    * `25` should never silently become `01`.
    */
   segmentBlur(event: FocusEvent, field: 'hour' | 'minute' | 'second'): void {
+    const input = event.target as HTMLInputElement;
+    const canonical = this.hasValue ? this.segmentText(field) : '';
     if (this.invalidSegment === field) {
-      const input = event.target as HTMLInputElement;
-      input.value = this.hasValue ? this.segmentText(field) : '';
       this.invalidSegment = null;
       this.restoredSegment = field;
+    }
+    this.setDraft(field, canonical);
+    input.value = canonical;
+    const next = event.relatedTarget;
+    const movingWithinClock = next instanceof HTMLElement && next.classList.contains('cee-time-segment');
+    if (!movingWithinClock && this.editingSegment === field) {
+      this.editingSegment = null;
+    }
+    if (this.replaceOnNextKey === field) {
+      this.replaceOnNextKey = null;
     }
     this.onTouched();
   }
@@ -311,6 +369,22 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       return this.hourText;
     }
     return field === 'minute' ? this.minuteText : this.secondText;
+  }
+
+  private syncDrafts(): void {
+    this.hourDraft = this.hasValue ? this.hourText : '';
+    this.minuteDraft = this.hasValue ? this.minuteText : '';
+    this.secondDraft = this.hasValue ? this.secondText : '';
+  }
+
+  private setDraft(field: 'hour' | 'minute' | 'second', value: string): void {
+    if (field === 'hour') {
+      this.hourDraft = value;
+    } else if (field === 'minute') {
+      this.minuteDraft = value;
+    } else {
+      this.secondDraft = value;
+    }
   }
 
   private static typedSegment(raw: unknown, min: number, max: number): number | null {

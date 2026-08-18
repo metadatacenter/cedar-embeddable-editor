@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { DateAdapter } from '@angular/material/core';
 import { MatDatepicker } from '@angular/material/datepicker';
@@ -42,6 +42,7 @@ export class DatePickerComponent implements OnInit {
   public constructor(
     private _dateTimeService: DateTimeService,
     userPreferenceService: UserPreferencesService,
+    private elementRef: ElementRef<HTMLElement>,
   ) {
     this.userPreferencesService = userPreferenceService;
   }
@@ -82,6 +83,27 @@ export class DatePickerComponent implements OnInit {
     if (event.value !== null) {
       this.dateChangedEvent.emit(event.value);
     }
+  }
+
+  /** Restore the toggle only when focus did not move out of the closing calendar. */
+  datepickerClosed(): void {
+    const root = this.elementRef.nativeElement.getRootNode();
+    const closedFrom = DatePickerComponent.activeElement(root);
+    if (closedFrom instanceof HTMLElement && closedFrom.closest('.cdk-overlay-container') === null) {
+      return;
+    }
+
+    queueMicrotask(() => {
+      const active = DatePickerComponent.activeElement(root);
+      if (active instanceof HTMLElement && active.isConnected && active !== closedFrom) {
+        return;
+      }
+      this.elementRef.nativeElement.querySelector<HTMLButtonElement>('mat-datepicker-toggle button')?.focus();
+    });
+  }
+
+  private static activeElement(root: Node): Element | null {
+    return root instanceof Document || root instanceof ShadowRoot ? root.activeElement : null;
   }
 
   private static localDate(year: number, month: number, day: number): Date {
