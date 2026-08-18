@@ -1,21 +1,21 @@
-type: "template"
+type: template
 name: "#013 Template with Numeric Field"
 id: "https://repo.metadatacenter.org/templates/bd1b5602-ffd1-4696-885d-d727dba8a644"
-status: "draft"
-version: "0.0.1"
-modelVersion: "1.6.0"
+status: draft
+version: 0.0.1
+modelVersion: 1.6.0
 createdOn: "2024-03-06T16:48:49-08:00"
 createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 modifiedOn: "2024-03-06T16:49:50-08:00"
 modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 children:
   - key: "Numeric field"
-    type: "numeric-field"
+    type: numeric-field
     name: "Numeric field"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/66140bb4-8165-463a-8399-ea7d516cd0cd"
-    modelVersion: "1.6.0"
-    datatype: "xsd:decimal"
+    modelVersion: 1.6.0
+    datatype: xsd:decimal
     createdOn: "2024-03-06T16:49:50-08:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
     modifiedOn: "2024-03-06T16:49:50-08:00"

@@ -1,20 +1,20 @@
-type: "template"
+type: template
 name: "#017 Template with phone"
 id: "https://repo.metadatacenter.org/templates/76896fff-f2a9-4c68-ae98-0e506e398cc7"
-status: "draft"
-version: "0.0.1"
-modelVersion: "1.6.0"
+status: draft
+version: 0.0.1
+modelVersion: 1.6.0
 createdOn: "2024-03-07T13:09:55-08:00"
 createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 modifiedOn: "2024-03-07T13:09:55-08:00"
 modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 children:
   - key: "Phone number"
-    type: "phone-number-field"
+    type: phone-number-field
     name: "Phone number"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/18ebc951-238b-4ee0-ac75-a4bbf53efc18"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "Phone number preferred label"
     createdOn: "2024-03-07T13:09:55-08:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"

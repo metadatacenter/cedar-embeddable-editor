@@ -1,76 +1,76 @@
-type: "template"
+type: template
 name: "#030 Template with actions"
 id: "https://repo.metadatacenter.org/templates/7563ef7a-c390-4a31-bcab-bb6ea27bfb7b"
-status: "draft"
-version: "0.0.1"
-modelVersion: "1.6.0"
+status: draft
+version: 0.0.1
+modelVersion: 1.6.0
 createdOn: "2024-03-26T13:22:10-07:00"
 createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 modifiedOn: "2024-03-26T13:22:10-07:00"
 modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 children:
   - key: "Untitled"
-    type: "controlled-term-field"
+    type: controlled-term-field
     name: "Untitled"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/ded5aa1e-b665-4897-b5b3-2084eff12a0c"
-    modelVersion: "1.6.0"
-    datatype: "iri"
+    modelVersion: 1.6.0
+    datatype: iri
     values:
-      - type: "ontology"
+      - type: ontology
         sourceAcronym: "HOME"
         sourceName: "Health Ontology for Minority Equity"
         termCount: 82
-      - type: "class"
+      - type: class
         sourceAcronym: "HOME"
         termIri: "http://www.semanticweb.org/navyarenjith/ontologies/2021/3/untitled-ontology-5#Verbal_Abuse"
-        termType: "class"
+        termType: class
         termLabel: "Verbal_Abuse"
-      - type: "branch"
+      - type: branch
         sourceAcronym: "CWD"
         sourceName: "undefined (CWD)"
         termBaseIri: "http://www.semanticweb.org/jbagwell/ontologies/2017/9/untitled-ontology-6#calories"
         termBaseLabel: "calories"
         termMaxDepth: 0
     actions:
-      - action: "delete"
+      - action: delete
         termIri: "http://www.semanticweb.org/navyarenjith/ontologies/2021/3/untitled-ontology-5#At_Elderly_Home"
         sourceIri: "https://data.bioontology.org/ontologies/HOME"
         sourceAcronym: "HOME"
-        type: "class"
-      - action: "delete"
+        type: class
+      - action: delete
         termIri: "http://www.semanticweb.org/jbagwell/ontologies/2017/9/untitled-ontology-6#basalMetabolicRate"
         sourceIri: "http://www.semanticweb.org/jbagwell/ontologies/2017/9/untitled-ontology-6#calories"
         sourceAcronym: "CWD"
-        type: "class"
-      - action: "delete"
+        type: class
+      - action: delete
         termIri: "http://www.semanticweb.org/navyarenjith/ontologies/2021/3/untitled-ontology-5#Baton"
         sourceIri: "https://data.bioontology.org/ontologies/HOME"
         sourceAcronym: "HOME"
-        type: "class"
-      - action: "move"
+        type: class
+      - action: move
         to: 0
         termIri: "http://www.semanticweb.org/navyarenjith/ontologies/2021/3/untitled-ontology-5#Denial_Of_Counseling_Preventive_Service"
         sourceIri: "https://data.bioontology.org/ontologies/HOME"
         sourceAcronym: "HOME"
-        type: "class"
-      - action: "move"
+        type: class
+      - action: move
         to: 0
         termIri: "http://www.semanticweb.org/navyarenjith/ontologies/2021/3/untitled-ontology-5#Excessive_Use_Of_Physical_Force"
         sourceIri: "https://data.bioontology.org/ontologies/HOME"
         sourceAcronym: "HOME"
-        type: "class"
-      - action: "move"
+        type: class
+      - action: move
         to: 4
         termIri: "http://www.semanticweb.org/navyarenjith/ontologies/2021/3/untitled-ontology-5#Exposure_To_Harmful_Chemicals"
         sourceIri: "https://data.bioontology.org/ontologies/HOME"
         sourceAcronym: "HOME"
-        type: "class"
-      - action: "delete"
+        type: class
+      - action: delete
         termIri: "http://www.semanticweb.org/navyarenjith/ontologies/2021/3/untitled-ontology-5#Denial_Of_Ambulatory_Service"
         sourceIri: "https://data.bioontology.org/ontologies/HOME"
         sourceAcronym: "HOME"
-        type: "class"
+        type: class
     createdOn: "2024-03-26T13:22:10-07:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
     modifiedOn: "2024-03-26T13:22:10-07:00"

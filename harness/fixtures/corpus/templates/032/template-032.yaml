@@ -1,9 +1,9 @@
-type: "template"
+type: template
 name: "#032 Template with previous version"
 id: "https://repo.metadatacenter.org/templates/e14f48e1-de0c-4263-b450-e791b10d2734"
-status: "draft"
-version: "0.0.2"
-modelVersion: "1.6.0"
+status: draft
+version: 0.0.2
+modelVersion: 1.6.0
 previousVersion: "https://repo.metadatacenter.org/templates/a3b03fab-f5f1-49e1-8517-3c0eab1669f3"
 createdOn: "2024-04-23T10:50:22-07:00"
 createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
@@ -11,11 +11,11 @@ modifiedOn: "2024-04-23T10:51:00-07:00"
 modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 children:
   - key: "Field name"
-    type: "text-field"
+    type: text-field
     name: "Field name"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/13f188c6-7a9a-441f-9c69-027321f983f0"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "preferred label"
     createdOn: "2024-04-23T10:51:00-07:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"

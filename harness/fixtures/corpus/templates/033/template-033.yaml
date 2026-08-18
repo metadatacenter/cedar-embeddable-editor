@@ -1,21 +1,21 @@
-type: "template"
+type: template
 name: "Test Template"
 identifier: "e0ef7a86-8a58-485b-ab7f-3e4fffcba6f1"
 id: "https://repo.metadatacenter.org/templates/65c97bd4-1fb2-4355-8007-4edfe4370362"
-status: "published"
-version: "0.0.2"
-modelVersion: "1.6.0"
+status: published
+version: 0.0.2
+modelVersion: 1.6.0
 previousVersion: "0.0.1"
 children:
   - key: "Title"
-    type: "text-field"
+    type: text-field
     language: "en"
     name: "Title"
     description: "A title or descriptive name by which the Data File being described is known. This is a presentation name (i.e. title case with appropriate spacing) and is typically different from the actual file name of the data file.\n\nMultiple titles and different languages may be specified by repeating this element. The language for a given title is specified with the Language field."
     id: "https://repo.metadatacenter.org/template-fields/c46fe191-8567-4598-9195-9db37f0a077a"
-    status: "draft"
-    version: "0.0.1"
-    modelVersion: "1.6.0"
+    status: draft
+    version: 0.0.1
+    modelVersion: 1.6.0
     createdOn: "2024-04-23T10:51:00-07:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
     modifiedOn: "2024-04-23T10:51:00-07:00"

@@ -1,26 +1,26 @@
-type: "template"
+type: template
 name: "#024 Template with simple controlled field"
 id: "https://repo.metadatacenter.org/templates/d942c27c-8c5f-420d-b540-a6e9400d5f55"
-status: "draft"
-version: "0.0.1"
-modelVersion: "1.6.0"
+status: draft
+version: 0.0.1
+modelVersion: 1.6.0
 createdOn: "2024-03-11T16:27:51-07:00"
 createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 modifiedOn: "2024-03-11T16:27:51-07:00"
 modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 children:
   - key: "Controlled"
-    type: "controlled-term-field"
+    type: controlled-term-field
     name: "Controlled"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/8fbf3e19-5c8a-4b72-9463-c1769fc73f96"
-    modelVersion: "1.6.0"
-    datatype: "iri"
+    modelVersion: 1.6.0
+    datatype: iri
     values:
-      - type: "class"
+      - type: class
         sourceAcronym: "MESH"
         termIri: "http://purl.bioontology.org/ontology/MESH/D009146"
-        termType: "class"
+        termType: class
         termLabel: "Music"
     createdOn: "2024-03-11T16:27:51-07:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"

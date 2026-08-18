@@ -1,20 +1,20 @@
-type: "template"
+type: template
 name: "Template with page breaks"
 id: "https://repo.metadatacenter.org/templates/96e25233-2b5a-42a2-a78b-65921f7ef308"
-status: "draft"
-version: "0.0.1"
-modelVersion: "1.6.0"
+status: draft
+version: 0.0.1
+modelVersion: 1.6.0
 createdOn: "2024-02-27T11:42:36-08:00"
 createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 modifiedOn: "2024-02-27T11:42:36-08:00"
 modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 children:
   - key: "Field 1"
-    type: "text-field"
+    type: text-field
     name: "Field 1"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/60314dfd-fbe6-43ad-8e94-bc6263b5ac8a"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     createdOn: "2024-02-27T11:42:36-08:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
     modifiedOn: "2024-02-27T11:42:36-08:00"
@@ -22,21 +22,21 @@ children:
     configuration:
       propertyIri: "https://schema.metadatacenter.org/properties/2bf4be45-b5d9-48b9-8c2e-b311b9a8e79e"
   - key: "Page break 1"
-    type: "static-page-break"
+    type: static-page-break
     name: "Page break 1"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/f5b6e0a6-d7f5-456c-a622-2c083fa240ec"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     createdOn: "2024-02-27T11:42:36-08:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
     modifiedOn: "2024-02-27T11:42:36-08:00"
     modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
   - key: "Field 2"
-    type: "text-field"
+    type: text-field
     name: "Field 2"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/77930e4a-2f45-4552-a2d3-4e8dbd3b0883"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     createdOn: "2024-02-27T11:42:36-08:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
     modifiedOn: "2024-02-27T11:42:36-08:00"
@@ -44,21 +44,21 @@ children:
     configuration:
       propertyIri: "https://schema.metadatacenter.org/properties/01001499-580e-4f64-a1ac-2a1a5d48e921"
   - key: "Page break 2"
-    type: "static-page-break"
+    type: static-page-break
     name: "Page break 2"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/df0b0bfb-f262-49dd-8b99-30cc00701af8"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     createdOn: "2024-02-27T11:42:36-08:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
     modifiedOn: "2024-02-27T11:42:36-08:00"
     modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
   - key: "Field 3"
-    type: "text-field"
+    type: text-field
     name: "Field 3"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/cbfb3c2a-e1a9-44c8-a97a-186a558a02a5"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     createdOn: "2024-02-27T11:42:36-08:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
     modifiedOn: "2024-02-27T11:42:36-08:00"

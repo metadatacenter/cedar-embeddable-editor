@@ -1,22 +1,22 @@
-type: "template"
+type: template
 name: "Template with Text Field 1"
 id: "https://repo.metadatacenter.org/templates/725246e2-346e-4d34-be49-43c110a30a7b"
-status: "draft"
-version: "0.0.1"
-modelVersion: "1.6.0"
+status: draft
+version: 0.0.1
+modelVersion: 1.6.0
 createdOn: "2024-03-01T13:44:25-08:00"
 createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 modifiedOn: "2024-03-01T13:44:25-08:00"
 modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 children:
   - key: "Text Field 1"
-    type: "text-field"
+    type: text-field
     name: "Text Field 1"
     description: "Help text for this field"
     id: "https://repo.metadatacenter.org/template-fields/e8a18dda-c0ba-443a-9fb9-18fa3f08c7bc"
-    status: "draft"
-    version: "0.0.1"
-    modelVersion: "1.6.0"
+    status: draft
+    version: 0.0.1
+    modelVersion: 1.6.0
     prefLabel: "Preferred label value"
     altLabels:
       - "Alternate label 1"
