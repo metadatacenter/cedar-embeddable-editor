@@ -1,0 +1,1252 @@
+{
+    "@id": "https://repo.metadatacenter.org/templates/4af9bd9e-8d72-4699-88c9-f4ff3bb655e5",
+    "_ui": {
+      "order": [
+        "bioCADDIEDatasetIsh",
+        "Injury Type",
+        "dataset",
+        "Cell Type"
+      ],
+      "pages": [],
+      "propertyLabels": {
+        "dataset": "Dataset",
+        "Cell Type": "Cell Type",
+        "Injury Type": "Injury Type",
+        "bioCADDIEDatasetIsh": "Dataset names"
+      }
+    },
+    "type": "object",
+    "@type": "https://schema.metadatacenter.org/core/Template",
+    "title": "Testing record template schema",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "@context": {
+      "pav": "http://purl.org/pav/",
+      "xsd": "http://www.w3.org/2001/XMLSchema#",
+      "bibo": "http://purl.org/ontology/bibo/",
+      "oslc": "http://open-services.net/ns/core#",
+      "schema": "http://schema.org/",
+      "schema:name": {
+        "@type": "xsd:string"
+      },
+      "pav:createdBy": {
+        "@type": "@id"
+      },
+      "pav:createdOn": {
+        "@type": "xsd:dateTime"
+      },
+      "oslc:modifiedBy": {
+        "@type": "@id"
+      },
+      "pav:lastUpdatedOn": {
+        "@type": "xsd:dateTime"
+      },
+      "schema:description": {
+        "@type": "xsd:string"
+      }
+    },
+    "required": [
+      "@context",
+      "@id",
+      "schema:isBasedOn",
+      "schema:name",
+      "schema:description",
+      "pav:createdOn",
+      "pav:createdBy",
+      "pav:lastUpdatedOn",
+      "oslc:modifiedBy",
+      "bioCADDIEDatasetIsh",
+      "Cell Type",
+      "Injury Type",
+      "dataset"
+    ],
+    "properties": {
+      "@id": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "uri"
+      },
+      "@type": {
+        "oneOf": [
+          {
+            "type": "string",
+            "format": "uri"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        ]
+      },
+      "dataset": {
+        "@id": "https://repo.metadatacenter.net/template-elements/6e64fb01-2315-4887-8b55-dfc3d65b4df9",
+        "_ui": {
+          "order": [
+            "datasetName",
+            "dataLevel"
+          ],
+          "propertyLabels": {
+            "dataLevel": "Data Level",
+            "datasetName": "Dataset Name"
+          }
+        },
+        "type": "object",
+        "@type": "https://schema.metadatacenter.org/core/TemplateElement",
+        "title": "Dataset element schema",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "@context": {
+          "pav": "http://purl.org/pav/",
+          "xsd": "http://www.w3.org/2001/XMLSchema#",
+          "bibo": "http://purl.org/ontology/bibo/",
+          "oslc": "http://open-services.net/ns/core#",
+          "schema": "http://schema.org/",
+          "schema:name": {
+            "@type": "xsd:string"
+          },
+          "pav:createdBy": {
+            "@type": "@id"
+          },
+          "pav:createdOn": {
+            "@type": "xsd:dateTime"
+          },
+          "oslc:modifiedBy": {
+            "@type": "@id"
+          },
+          "pav:lastUpdatedOn": {
+            "@type": "xsd:dateTime"
+          },
+          "schema:description": {
+            "@type": "xsd:string"
+          }
+        },
+        "required": [
+          "@context",
+          "@id",
+          "datasetName",
+          "dataLevel"
+        ],
+        "properties": {
+          "@id": {
+            "type": [ "string", "null" ],
+            "format": "uri"
+          },
+          "@type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            ]
+          },
+          "@context": {
+            "type": "object",
+            "required": [
+              "datasetName",
+              "dataLevel"
+            ],
+            "properties": {
+              "dataLevel": {
+                "enum": [
+                  "https://schema.metadatacenter.net/properties/dataLevel"
+                ]
+              },
+              "datasetName": {
+                "enum": [
+                  "https://schema.metadatacenter.net/properties/datasetName"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "dataLevel": {
+            "type": "array",
+            "items": {
+              "@id": "https://repo.metadatacenter.net/template-fields/196af886-bb63-4be1-be20-50af3e55d023",
+              "_ui": {
+                "inputType": "checkbox"
+              },
+              "type": "object",
+              "@type": "https://schema.metadatacenter.org/core/TemplateField",
+              "title": "Data Level field schema",
+              "$schema": "http://json-schema.org/draft-04/schema#",
+              "@context": {
+                "pav": "http://purl.org/pav/",
+                "xsd": "http://www.w3.org/2001/XMLSchema#",
+                "oslc": "http://open-services.net/ns/core#",
+                "skos": "http://www.w3.org/2004/02/skos/core#",
+                "schema": "http://schema.org/",
+                "schema:name": {
+                  "@type": "xsd:string"
+                },
+                "pav:createdBy": {
+                  "@type": "@id"
+                },
+                "pav:createdOn": {
+                  "@type": "xsd:dateTime"
+                },
+                "skos:altLabel": {
+                  "@type": "xsd:string"
+                },
+                "skos:prefLabel": {
+                  "@type": "xsd:string"
+                },
+                "oslc:modifiedBy": {
+                  "@type": "@id"
+                },
+                "pav:lastUpdatedOn": {
+                  "@type": "xsd:dateTime"
+                },
+                "schema:description": {
+                  "@type": "xsd:string"
+                }
+              },
+              "required": [
+                "@value"
+              ],
+              "properties": {
+                "@type": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "minItems": 1,
+                      "uniqueItems": true
+                    }
+                  ]
+                },
+                "@value": {
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "rdfs:label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "description": "Data Level field schema generated by the CEDAR Template Editor 2.6.49",
+              "schema:name": "Data Level",
+              "pav:createdBy": "https://repo.metadatacenter.net/users/1a2624ed-7d03-4aac-bf6c-fe57aed5498a",
+              "pav:createdOn": "2016-10-04T13:04:34-07:00",
+              "oslc:modifiedBy": "https://repo.metadatacenter.net/users/1a2624ed-7d03-4aac-bf6c-fe57aed5498a",
+              "_valueConstraints": {
+                "literals": [
+                  {
+                    "label": "0"
+                  },
+                  {
+                    "label": "1"
+                  },
+                  {
+                    "label": "2"
+                  },
+                  {
+                    "label": "3"
+                  },
+                  {
+                    "label": "4"
+                  }
+                ],
+                "requiredValue": false,
+                "multipleChoice": true
+              },
+              "pav:lastUpdatedOn": "2016-10-04T13:04:34-07:00",
+              "schema:description": "",
+              "additionalProperties": false,
+              "schema:schemaVersion": "1.6.0"
+            },
+            "minItems": 1
+          },
+          "datasetName": {
+            "@id": "https://repo.metadatacenter.net/template-fields/693cb0ee-1667-462c-94bf-50b430a609c9",
+            "_ui": {
+              "inputType": "textfield"
+            },
+            "type": "object",
+            "@type": "https://schema.metadatacenter.org/core/TemplateField",
+            "title": "Dataset Name field schema",
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "@context": {
+              "pav": "http://purl.org/pav/",
+              "xsd": "http://www.w3.org/2001/XMLSchema#",
+              "oslc": "http://open-services.net/ns/core#",
+              "skos": "http://www.w3.org/2004/02/skos/core#",
+              "schema": "http://schema.org/",
+              "schema:name": {
+                "@type": "xsd:string"
+              },
+              "pav:createdBy": {
+                "@type": "@id"
+              },
+              "pav:createdOn": {
+                "@type": "xsd:dateTime"
+              },
+              "skos:altLabel": {
+                "@type": "xsd:string"
+              },
+              "skos:prefLabel": {
+                "@type": "xsd:string"
+              },
+              "oslc:modifiedBy": {
+                "@type": "@id"
+              },
+              "pav:lastUpdatedOn": {
+                "@type": "xsd:dateTime"
+              },
+              "schema:description": {
+                "@type": "xsd:string"
+              }
+            },
+            "required": [
+              "@value"
+            ],
+            "properties": {
+              "@type": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  }
+                ]
+              },
+              "@value": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "rdfs:label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "Dataset Name field schema generated by the CEDAR Template Editor 2.6.49",
+            "schema:name": "Dataset Name",
+            "pav:createdBy": "https://repo.metadatacenter.net/users/1a2624ed-7d03-4aac-bf6c-fe57aed5498a",
+            "pav:createdOn": "2016-10-04T13:04:34-07:00",
+            "oslc:modifiedBy": "https://repo.metadatacenter.net/users/1a2624ed-7d03-4aac-bf6c-fe57aed5498a",
+            "_valueConstraints": {
+              "requiredValue": false
+            },
+            "pav:lastUpdatedOn": "2016-10-04T13:04:34-07:00",
+            "schema:description": "",
+            "additionalProperties": false,
+            "schema:schemaVersion": "1.6.0"
+          }
+        },
+        "bibo:status": "bibo:draft",
+        "description": "Dataset element schema autogenerated by the CEDAR Template Editor",
+        "pav:version": "0.0.1",
+        "schema:name": "Dataset",
+        "pav:createdBy": "https://metadatacenter.org/users/dc97235e-b510-4f0c-b416-c9e76b280f74",
+        "pav:createdOn": "2024-02-05T10:35:11-08:00",
+        "oslc:modifiedBy": "https://metadatacenter.org/users/dc97235e-b510-4f0c-b416-c9e76b280f74",
+        "_valueConstraints": {
+          "requiredValue": false
+        },
+        "pav:lastUpdatedOn": "2024-02-05T10:35:11-08:00",
+        "schema:description": "Dataset description",
+        "additionalProperties": false,
+        "schema:schemaVersion": "1.6.0"
+      },
+      "@context": {
+        "type": "object",
+        "required": [
+          "xsd",
+          "rdfs",
+          "pav",
+          "schema",
+          "oslc",
+          "bioCADDIEDatasetIsh",
+          "Injury Type",
+          "dataset",
+          "Cell Type",
+          "schema:isBasedOn",
+          "schema:description",
+          "schema:name",
+          "rdfs:label",
+          "oslc:modifiedBy",
+          "pav:createdBy",
+          "pav:createdOn",
+          "pav:lastUpdatedOn",
+          "skos",
+          "skos:notation"
+        ],
+        "properties": {
+          "pav": {
+            "enum": [
+              "http://purl.org/pav/"
+            ],
+            "type": "string",
+            "format": "uri"
+          },
+          "xsd": {
+            "enum": [
+              "http://www.w3.org/2001/XMLSchema#"
+            ],
+            "type": "string",
+            "format": "uri"
+          },
+          "oslc": {
+            "enum": [
+              "http://open-services.net/ns/core#"
+            ],
+            "type": "string",
+            "format": "uri"
+          },
+          "rdfs": {
+            "enum": [
+              "http://www.w3.org/2000/01/rdf-schema#"
+            ],
+            "type": "string",
+            "format": "uri"
+          },
+          "skos": {
+            "enum": [
+              "http://www.w3.org/2004/02/skos/core#"
+            ],
+            "type": "string",
+            "format": "uri"
+          },
+          "schema": {
+            "enum": [
+              "http://schema.org/"
+            ],
+            "type": "string",
+            "format": "uri"
+          },
+          "dataset": {
+            "enum": [
+              "https://schema.metadatacenter.net/properties/dataset"
+            ]
+          },
+          "Cell Type": {
+            "enum": [
+              "https://schema.metadatacenter.net/properties/cellType"
+            ]
+          },
+          "rdfs:label": {
+            "type": "object",
+            "properties": {
+              "@type": {
+                "enum": [
+                  "xsd:string"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "Injury Type": {
+            "enum": [
+              "https://schema.metadatacenter.net/properties/injuryType"
+            ]
+          },
+          "schema:name": {
+            "type": "object",
+            "properties": {
+              "@type": {
+                "enum": [
+                  "xsd:string"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "pav:createdBy": {
+            "type": "object",
+            "properties": {
+              "@type": {
+                "enum": [
+                  "@id"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "pav:createdOn": {
+            "type": "object",
+            "properties": {
+              "@type": {
+                "enum": [
+                  "xsd:dateTime"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "skos:notation": {
+            "type": "object",
+            "properties": {
+              "@type": {
+                "enum": [
+                  "xsd:string"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "oslc:modifiedBy": {
+            "type": "object",
+            "properties": {
+              "@type": {
+                "enum": [
+                  "@id"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "pav:derivedFrom": {
+            "type": "object",
+            "properties": {
+              "@type": {
+                "enum": [
+                  "@id"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "schema:isBasedOn": {
+            "type": "object",
+            "properties": {
+              "@type": {
+                "enum": [
+                  "@id"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "pav:lastUpdatedOn": {
+            "type": "object",
+            "properties": {
+              "@type": {
+                "enum": [
+                  "xsd:dateTime"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "schema:description": {
+            "type": "object",
+            "properties": {
+              "@type": {
+                "enum": [
+                  "xsd:string"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "bioCADDIEDatasetIsh": {
+            "enum": [
+              "https://schema.metadatacenter.net/properties/bioCADDIEDatasetIsh"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Cell Type": {
+        "@id": "https://repo.metadatacenter.net/template-fields/d26e3210-fd34-42e9-9dd3-7e8afa831ead",
+        "_ui": {
+          "inputType": "textfield"
+        },
+        "type": "object",
+        "@type": "https://schema.metadatacenter.org/core/TemplateField",
+        "title": "Cell type field schema",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "@context": {
+          "pav": "http://purl.org/pav/",
+          "xsd": "http://www.w3.org/2001/XMLSchema#",
+          "oslc": "http://open-services.net/ns/core#",
+          "skos": "http://www.w3.org/2004/02/skos/core#",
+          "schema": "http://schema.org/",
+          "schema:name": {
+            "@type": "xsd:string"
+          },
+          "pav:createdBy": {
+            "@type": "@id"
+          },
+          "pav:createdOn": {
+            "@type": "xsd:dateTime"
+          },
+          "skos:altLabel": {
+            "@type": "xsd:string"
+          },
+          "skos:prefLabel": {
+            "@type": "xsd:string"
+          },
+          "oslc:modifiedBy": {
+            "@type": "@id"
+          },
+          "pav:lastUpdatedOn": {
+            "@type": "xsd:dateTime"
+          },
+          "schema:description": {
+            "@type": "xsd:string"
+          }
+        },
+        "required": [
+          "@id"
+        ],
+        "properties": {
+          "@id": {
+            "type": "string",
+            "format": "uri"
+          },
+          "@type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            ]
+          },
+          "rdfs:label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "Cell type field schema autogenerated by the CEDAR Template Editor ",
+        "schema:name": "Cell Type",
+        "pav:createdBy": "https://metadatacenter.org/users/dc97235e-b510-4f0c-b416-c9e76b280f74",
+        "pav:createdOn": "2024-02-05T10:35:11-08:00",
+        "oslc:modifiedBy": "https://metadatacenter.org/users/dc97235e-b510-4f0c-b416-c9e76b280f74",
+        "_valueConstraints": {
+          "classes": [],
+          "branches": [
+            {
+              "uri": "http://www.ebi.ac.uk/efo/EFO_0000324",
+              "name": "cell type",
+              "source": "Experimental Factor Ontology (EFO)",
+              "acronym": "EFO",
+              "maxDepth": 0
+            }
+          ],
+          "valueSets": [],
+          "ontologies": [],
+          "requiredValue": true,
+          "multipleChoice": false
+        },
+        "pav:lastUpdatedOn": "2024-02-05T10:35:11-08:00",
+        "schema:description": "Type of the cell",
+        "additionalProperties": false,
+        "schema:schemaVersion": "1.6.0"
+      },
+      "Injury Type": {
+        "@id": "https://repo.metadatacenter.net/template-fields/06294f54-d1fa-440e-b014-7330f4644193",
+        "_ui": {
+          "inputType": "textfield"
+        },
+        "type": "object",
+        "@type": "https://schema.metadatacenter.org/core/TemplateField",
+        "title": "Injury type field schema",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "@context": {
+          "pav": "http://purl.org/pav/",
+          "xsd": "http://www.w3.org/2001/XMLSchema#",
+          "oslc": "http://open-services.net/ns/core#",
+          "skos": "http://www.w3.org/2004/02/skos/core#",
+          "schema": "http://schema.org/",
+          "schema:name": {
+            "@type": "xsd:string"
+          },
+          "pav:createdBy": {
+            "@type": "@id"
+          },
+          "pav:createdOn": {
+            "@type": "xsd:dateTime"
+          },
+          "skos:altLabel": {
+            "@type": "xsd:string"
+          },
+          "skos:prefLabel": {
+            "@type": "xsd:string"
+          },
+          "oslc:modifiedBy": {
+            "@type": "@id"
+          },
+          "pav:lastUpdatedOn": {
+            "@type": "xsd:dateTime"
+          },
+          "schema:description": {
+            "@type": "xsd:string"
+          }
+        },
+        "properties": {
+          "@id": {
+            "type": "string",
+            "format": "uri"
+          },
+          "@type": {
+            "oneOf": [
+              {
+                "enum": [
+                  "http://data.bioontology.org/ontologies/LOINC/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FLNC%2FLA17713-1",
+                  "http://data.bioontology.org/ontologies/NCIT/classes/http%3A%2F%2Fncicb.nci.nih.gov%2Fxml%2Fowl%2FEVS%2FThesaurus.owl%23C3671"
+                ],
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "http://data.bioontology.org/ontologies/LOINC/classes/http%3A%2F%2Fpurl.bioontology.org%2Fontology%2FLNC%2FLA17713-1",
+                    "http://data.bioontology.org/ontologies/NCIT/classes/http%3A%2F%2Fncicb.nci.nih.gov%2Fxml%2Fowl%2FEVS%2FThesaurus.owl%23C3671"
+                  ],
+                  "type": "string",
+                  "format": "uri"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            ]
+          },
+          "rdfs:label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "Injury type field schema autogenerated by the CEDAR Template Editor",
+        "schema:name": "Injury Type",
+        "pav:createdBy": "https://metadatacenter.org/users/dc97235e-b510-4f0c-b416-c9e76b280f74",
+        "pav:createdOn": "2024-02-05T10:35:11-08:00",
+        "oslc:modifiedBy": "https://metadatacenter.org/users/dc97235e-b510-4f0c-b416-c9e76b280f74",
+        "_valueConstraints": {
+          "classes": [],
+          "branches": [
+            {
+              "uri": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C3671",
+              "name": "Injury",
+              "source": "National Cancer Institute Thesaurus (NCIT)",
+              "acronym": "NCIT",
+              "maxDepth": 0
+            }
+          ],
+          "valueSets": [],
+          "ontologies": [],
+          "requiredValue": true,
+          "multipleChoice": false
+        },
+        "pav:lastUpdatedOn": "2024-02-05T10:35:11-08:00",
+        "schema:description": "Type of injury associated with the field",
+        "additionalProperties": false,
+        "schema:schemaVersion": "1.6.0"
+      },
+      "schema:name": {
+        "type": "string",
+        "minLength": 1
+      },
+      "pav:createdBy": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "uri"
+      },
+      "pav:createdOn": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      },
+      "oslc:modifiedBy": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "uri"
+      },
+      "pav:derivedFrom": {
+        "type": "string",
+        "format": "uri"
+      },
+      "schema:isBasedOn": {
+        "type": "string",
+        "format": "uri"
+      },
+      "pav:lastUpdatedOn": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      },
+      "schema:description": {
+        "type": "string"
+      },
+      "bioCADDIEDatasetIsh": {
+        "@id": "https://repo.metadatacenter.net/template-elements/2ddd6ffe-3db9-482c-aeb8-796767e9b0a1",
+        "_ui": {
+          "order": [
+            "resolvableDatasetID",
+            "datasetTitle",
+            "dataType"
+          ],
+          "propertyLabels": {
+            "dataType": "Data Type",
+            "datasetTitle": "Dataset Title",
+            "resolvableDatasetID": "Resolvable Dataset Id"
+          }
+        },
+        "type": "object",
+        "@type": "https://schema.metadatacenter.org/core/TemplateElement",
+        "title": "Biocaddie dataset (ish) element schema",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "@context": {
+          "pav": "http://purl.org/pav/",
+          "xsd": "http://www.w3.org/2001/XMLSchema#",
+          "bibo": "http://purl.org/ontology/bibo/",
+          "oslc": "http://open-services.net/ns/core#",
+          "schema": "http://schema.org/",
+          "schema:name": {
+            "@type": "xsd:string"
+          },
+          "pav:createdBy": {
+            "@type": "@id"
+          },
+          "pav:createdOn": {
+            "@type": "xsd:dateTime"
+          },
+          "oslc:modifiedBy": {
+            "@type": "@id"
+          },
+          "pav:lastUpdatedOn": {
+            "@type": "xsd:dateTime"
+          },
+          "schema:description": {
+            "@type": "xsd:string"
+          }
+        },
+        "required": [
+          "@context",
+          "@id",
+          "resolvableDatasetID",
+          "datasetTitle",
+          "dataType"
+        ],
+        "properties": {
+          "@id": {
+            "type": [ "string", "null" ],
+            "format": "uri"
+          },
+          "@type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            ]
+          },
+          "@context": {
+            "type": "object",
+            "required": [
+              "resolvableDatasetID",
+              "datasetTitle",
+              "dataType"
+            ],
+            "properties": {
+              "dataType": {
+                "enum": [
+                  "https://schema.metadatacenter.net/properties/dataType"
+                ]
+              },
+              "datasetTitle": {
+                "enum": [
+                  "https://schema.metadatacenter.net/properties/datasetTitle"
+                ]
+              },
+              "resolvableDatasetID": {
+                "enum": [
+                  "https://schema.metadatacenter.net/properties/resolvableDatasetID"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "dataType": {
+            "@id": "https://repo.metadatacenter.net/template-fields/ce7bd634-c22c-4d4c-9c34-44d97fa60ff1",
+            "_ui": {
+              "inputType": "radio"
+            },
+            "type": "object",
+            "@type": "https://schema.metadatacenter.org/core/TemplateField",
+            "title": "Data type field schema",
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "@context": {
+              "pav": "http://purl.org/pav/",
+              "xsd": "http://www.w3.org/2001/XMLSchema#",
+              "oslc": "http://open-services.net/ns/core#",
+              "skos": "http://www.w3.org/2004/02/skos/core#",
+              "schema": "http://schema.org/",
+              "schema:name": {
+                "@type": "xsd:string"
+              },
+              "pav:createdBy": {
+                "@type": "@id"
+              },
+              "pav:createdOn": {
+                "@type": "xsd:dateTime"
+              },
+              "skos:altLabel": {
+                "@type": "xsd:string"
+              },
+              "skos:prefLabel": {
+                "@type": "xsd:string"
+              },
+              "oslc:modifiedBy": {
+                "@type": "@id"
+              },
+              "pav:lastUpdatedOn": {
+                "@type": "xsd:dateTime"
+              },
+              "schema:description": {
+                "@type": "xsd:string"
+              }
+            },
+            "required": [
+              "@value"
+            ],
+            "properties": {
+              "@type": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  }
+                ]
+              },
+              "@value": {
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "rdfs:label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "Data type field schema autogenerated by the CEDAR Template Editor",
+            "schema:name": "Data Type",
+            "pav:createdBy": "https://repo.metadatacenter.net/users/1adf5ee5-cee0-47d1-9769-efbe00cdebee",
+            "pav:createdOn": "2016-09-14T22:00:46-07:00",
+            "oslc:modifiedBy": "https://repo.metadatacenter.net/users/1adf5ee5-cee0-47d1-9769-efbe00cdebee",
+            "_valueConstraints": {
+              "literals": [
+                {
+                  "label": "Protein Structure"
+                },
+                {
+                  "label": "Physiological Signals"
+                },
+                {
+                  "label": "Morphology"
+                },
+                {
+                  "label": "Nucleotide Sequence"
+                },
+                {
+                  "label": "Phenotype"
+                },
+                {
+                  "label": "Clinical Trials"
+                },
+                {
+                  "label": "Proteomics Data"
+                },
+                {
+                  "label": "Gene Expression"
+                },
+                {
+                  "label": "Imaging Data"
+                },
+                {
+                  "label": "Unspecified"
+                }
+              ],
+              "requiredValue": false
+            },
+            "pav:lastUpdatedOn": "2016-09-14T22:00:46-07:00",
+            "schema:description": "What kind of data is represented in this dataset?",
+            "additionalProperties": false,
+            "schema:schemaVersion": "1.6.0"
+          },
+          "datasetTitle": {
+            "@id": "https://repo.metadatacenter.net/template-fields/10860e85-0156-4f6d-9b11-9af58f1692e9",
+            "_ui": {
+              "inputType": "textfield"
+            },
+            "type": "object",
+            "@type": "https://schema.metadatacenter.org/core/TemplateField",
+            "title": "Dataset title field schema",
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "@context": {
+              "pav": "http://purl.org/pav/",
+              "xsd": "http://www.w3.org/2001/XMLSchema#",
+              "oslc": "http://open-services.net/ns/core#",
+              "skos": "http://www.w3.org/2004/02/skos/core#",
+              "schema": "http://schema.org/",
+              "schema:name": {
+                "@type": "xsd:string"
+              },
+              "pav:createdBy": {
+                "@type": "@id"
+              },
+              "pav:createdOn": {
+                "@type": "xsd:dateTime"
+              },
+              "skos:altLabel": {
+                "@type": "xsd:string"
+              },
+              "skos:prefLabel": {
+                "@type": "xsd:string"
+              },
+              "oslc:modifiedBy": {
+                "@type": "@id"
+              },
+              "pav:lastUpdatedOn": {
+                "@type": "xsd:dateTime"
+              },
+              "schema:description": {
+                "@type": "xsd:string"
+              }
+            },
+            "required": [
+              "@value"
+            ],
+            "properties": {
+              "@type": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  }
+                ]
+              },
+              "@value": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "rdfs:label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "Dataset title field schema autogenerated by the CEDAR Template Editor",
+            "schema:name": "Dataset Title",
+            "pav:createdBy": "https://repo.metadatacenter.net/users/1adf5ee5-cee0-47d1-9769-efbe00cdebee",
+            "pav:createdOn": "2016-09-14T22:00:46-07:00",
+            "oslc:modifiedBy": "https://repo.metadatacenter.net/users/1adf5ee5-cee0-47d1-9769-efbe00cdebee",
+            "_valueConstraints": {
+              "requiredValue": false
+            },
+            "pav:lastUpdatedOn": "2016-09-14T22:00:46-07:00",
+            "schema:description": "Name of the data set",
+            "additionalProperties": false,
+            "schema:schemaVersion": "1.6.0"
+          },
+          "resolvableDatasetID": {
+            "@id": "https://repo.metadatacenter.net/template-fields/71507660-0f94-4eca-88c2-7d4469f5f3a1",
+            "_ui": {
+              "inputType": "textfield"
+            },
+            "type": "object",
+            "@type": "https://schema.metadatacenter.org/core/TemplateField",
+            "title": "Resolvable Dataset Id field schema",
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "@context": {
+              "pav": "http://purl.org/pav/",
+              "xsd": "http://www.w3.org/2001/XMLSchema#",
+              "oslc": "http://open-services.net/ns/core#",
+              "skos": "http://www.w3.org/2004/02/skos/core#",
+              "schema": "http://schema.org/",
+              "schema:name": {
+                "@type": "xsd:string"
+              },
+              "pav:createdBy": {
+                "@type": "@id"
+              },
+              "pav:createdOn": {
+                "@type": "xsd:dateTime"
+              },
+              "skos:altLabel": {
+                "@type": "xsd:string"
+              },
+              "skos:prefLabel": {
+                "@type": "xsd:string"
+              },
+              "oslc:modifiedBy": {
+                "@type": "@id"
+              },
+              "pav:lastUpdatedOn": {
+                "@type": "xsd:dateTime"
+              },
+              "schema:description": {
+                "@type": "xsd:string"
+              }
+            },
+            "required": [
+              "@value"
+            ],
+            "properties": {
+              "@type": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                  }
+                ]
+              },
+              "@value": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "rdfs:label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "Resolvable Dataset Id field schema generated by the CEDAR Template Editor 2.6.49",
+            "schema:name": "Resolvable Dataset Id",
+            "pav:createdBy": "https://repo.metadatacenter.net/users/1adf5ee5-cee0-47d1-9769-efbe00cdebee",
+            "pav:createdOn": "2016-09-14T22:00:46-07:00",
+            "oslc:modifiedBy": "https://repo.metadatacenter.net/users/1adf5ee5-cee0-47d1-9769-efbe00cdebee",
+            "_valueConstraints": {
+              "requiredValue": true
+            },
+            "pav:lastUpdatedOn": "2016-09-14T22:00:46-07:00",
+            "schema:description": "",
+            "additionalProperties": false,
+            "schema:schemaVersion": "1.6.0"
+          }
+        },
+        "bibo:status": "bibo:draft",
+        "description": "Biocaddie dataset (ish) element schema autogenerated by the CEDAR Template Editor",
+        "pav:version": "0.0.1",
+        "schema:name": "BioCADDIE Dataset Ish",
+        "pav:createdBy": "https://metadatacenter.org/users/dc97235e-b510-4f0c-b416-c9e76b280f74",
+        "pav:createdOn": "2024-02-05T10:35:11-08:00",
+        "skos:prefLabel": "Dataset name",
+        "oslc:modifiedBy": "https://metadatacenter.org/users/dc97235e-b510-4f0c-b416-c9e76b280f74",
+        "_valueConstraints": {
+          "requiredValue": false
+        },
+        "pav:lastUpdatedOn": "2024-02-05T10:35:11-08:00",
+        "schema:description": "Dataset components used by BioCADDIE",
+        "additionalProperties": false,
+        "schema:schemaVersion": "1.6.0"
+      }
+    },
+    "bibo:status": "bibo:draft",
+    "description": "Testing record template schema generated by the CEDAR Template Editor 2.6.49",
+    "pav:version": "0.0.1",
+    "schema:name": "Testing Record",
+    "pav:createdBy": "https://metadatacenter.org/users/dc97235e-b510-4f0c-b416-c9e76b280f74",
+    "pav:createdOn": "2024-02-05T09:07:50-08:00",
+    "oslc:modifiedBy": "https://metadatacenter.org/users/dc97235e-b510-4f0c-b416-c9e76b280f74",
+    "pav:derivedFrom": "https://repo.metadatacenter.net/templates/5a7470be-6003-4d1d-b4cc-3af47494ae72",
+    "pav:lastUpdatedOn": "2024-02-05T10:35:11-08:00",
+    "schema:description": "unique demo template for testing on OSF",
+    "additionalProperties": false,
+    "schema:schemaVersion": "1.6.0"
+}

@@ -1,0 +1,57 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Optional": "https://schema.metadatacenter.org/properties/dd315d4d-33fe-4102-8d16-7dd0615b2a2c",
+    "Required": "https://schema.metadatacenter.org/properties/05b97bcb-890a-4857-bea2-feb41aafaa0e",
+    "Multiple": "https://schema.metadatacenter.org/properties/9b98341b-b945-4de9-bf03-afe6444e3615"
+  },
+  "Optional": {
+    "@value": "postmaster@post.com"
+  },
+  "Required": {
+    "@value": "postmaster@metadatacenter.org"
+  },
+  "Multiple": [
+    {
+      "@value": "user1@metadatacenter.org"
+    },
+    {
+      "@value": "user2@metadatacenter.org"
+    }
+  ]
+}

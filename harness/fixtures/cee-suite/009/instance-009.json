@@ -1,0 +1,104 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Checkbox Standalone": "https://schema.metadatacenter.org/properties/70975964-ec7f-4d90-9a22-8afb74ab9963",
+    "Checkbox Element": "https://schema.metadatacenter.org/properties/8de74d7f-aa17-466f-a2b4-b19db6eb6a46"
+  },
+  "Checkbox Element": [
+    {
+      "@context": {
+        "Checkbox in Element": "https://schema.metadatacenter.org/properties/97ff4997-8092-4230-8581-e26abf5d5ceb"
+      },
+      "Checkbox in Element": [
+        {
+          "@value": "Option 1"
+        }
+      ]
+    },
+    {
+      "@context": {
+        "Checkbox in Element": "https://schema.metadatacenter.org/properties/97ff4997-8092-4230-8581-e26abf5d5ceb"
+      },
+      "Checkbox in Element": [
+        {
+          "@value": "Option 1"
+        },
+        {
+          "@value": "Option 2"
+        }
+      ]
+    },
+    {
+      "@context": {
+        "Checkbox in Element": "https://schema.metadatacenter.org/properties/97ff4997-8092-4230-8581-e26abf5d5ceb"
+      },
+      "Checkbox in Element": [
+        {
+          "@value": "Option 3"
+        },
+        {
+          "@value": "Option 4"
+        },
+        {
+          "@value": "Option 5"
+        }
+      ]
+    },
+    {
+      "@context": {
+        "Checkbox in Element": "https://schema.metadatacenter.org/properties/97ff4997-8092-4230-8581-e26abf5d5ceb"
+      },
+      "Checkbox in Element": [
+        {
+          "@value": null
+        }
+      ]
+    }
+  ],
+  "Checkbox Standalone": [
+    {
+      "@value": "Option 1"
+    },
+    {
+      "@value": "Option 3"
+    },
+    {
+      "@value": "Option 5"
+    }
+  ]
+}

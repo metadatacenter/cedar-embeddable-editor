@@ -1,0 +1,66 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Datetime Field 2 (time)": "https://schema.metadatacenter.org/properties/2047eba8-6958-47de-b168-dfb8f6faf861",
+    "Datetime Field 1 (month/year)": "https://schema.metadatacenter.org/properties/8a8ece1e-4328-46df-84c8-c92f1bf0a071",
+    "Datetime Field 4 (datetime multiple)": "https://schema.metadatacenter.org/properties/eb3c0942-3dba-4464-91ab-d7221f342de0",
+    "Datetime Field 3 (datetime no timezone)": "https://schema.metadatacenter.org/properties/b9625bd5-a9ab-4360-a1f1-5eaaf81695ba"
+  },
+  "Datetime Field 1 (month/year)": {
+    "@value": "2023-08-31",
+    "@type": "xsd:date"
+  },
+  "Datetime Field 2 (time)": {
+    "@value": "13:02:03.456+04:00",
+    "@type": "xsd:time"
+  },
+  "Datetime Field 3 (datetime no timezone)": {
+    "@value": "2023-08-31T22:11:12.1314",
+    "@type": "xsd:dateTime"
+  },
+  "Datetime Field 4 (datetime multiple)": [
+    {
+      "@value": "2023-08-30T13:02:03-10:00",
+      "@type": "xsd:dateTime"
+    },
+    {
+      "@value": "2023-08-31T16:05:06-09:00",
+      "@type": "xsd:dateTime"
+    }
+  ]
+}

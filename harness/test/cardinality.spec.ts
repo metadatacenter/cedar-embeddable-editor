@@ -21,6 +21,7 @@ import {
   listValue,
   literalOf,
   heldValue,
+  templateIdOf,
 } from '../src/values';
 
 /**
@@ -28,7 +29,6 @@ import {
  * valid CEDAR instance without one. Fixtures that stand in for what a host page
  * injects have to be valid instances too.
  */
-const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
 const INSTANCE_IRI = 'https://example.org/i/1';
 const SECOND_INSTANCE_IRI = 'https://example.org/i/2';
 
@@ -331,9 +331,10 @@ describe('required values are page-independent', () => {
    * reader makes of it is the library's, not this suite's.
    */
   it('is invalid when an entry omits the field', () => {
-    const instance: any = instanceWith(TEMPLATE_IRI, { _el: listValue(occurrenceValue({})) }, INSTANCE_IRI);
+    const template = threeInstances();
+    const instance: any = instanceWith(templateIdOf(template), { _el: listValue(occurrenceValue({})) }, INSTANCE_IRI);
 
-    const driver = new CeeDriver(threeInstances(), { instance });
+    const driver = new CeeDriver(template, { instance });
     driver.handlerContext.buildQualityReport();
 
     expect(driver.qualityReport.requiredFieldValueCount).toBeGreaterThan(0);
@@ -359,12 +360,13 @@ describe('required values are page-independent', () => {
     ['the array is absent', undefined],
     ['the array is empty', []],
   ])('reports a minItems violation, not phantom required fields, when %s', (_label, elValue) => {
-    const instance: any = instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI);
+    const template = threeInstances();
+    const instance: any = instanceWith(templateIdOf(template), {}, INSTANCE_IRI);
     if (elValue !== undefined) {
       instance._el = elValue;
     }
 
-    const driver = new CeeDriver(threeInstances(), { instance });
+    const driver = new CeeDriver(template, { instance });
     driver.handlerContext.buildQualityReport();
 
     expect(driver.qualityReport.isValid, 'still invalid').toBe(false);
@@ -389,12 +391,13 @@ describe('required values are page-independent', () => {
    * regression in ours. Collapsing it was hiding information the gate reports.
    */
   it('an absent element and an empty one agree on the verdict but not on the reason', () => {
+    const template = threeInstances();
     const report = (elValue: unknown) => {
-      const instance: any = instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI);
+      const instance: any = instanceWith(templateIdOf(template), {}, INSTANCE_IRI);
       if (elValue !== undefined) {
         instance._el = elValue;
       }
-      const driver = new CeeDriver(threeInstances(), { instance });
+      const driver = new CeeDriver(template, { instance });
       driver.handlerContext.buildQualityReport();
       const r = driver.qualityReport;
       return {
@@ -429,8 +432,9 @@ describe('required values are page-independent', () => {
    * required field is unfilled, it is that the element is not there.
    */
   it('reports a minItems violation when the element has no instances', () => {
-    const driver = new CeeDriver(threeInstances(), {
-      instance: instanceWith(TEMPLATE_IRI, { _el: listValue() }, INSTANCE_IRI),
+    const template = threeInstances();
+    const driver = new CeeDriver(template, {
+      instance: instanceWith(templateIdOf(template), { _el: listValue() }, INSTANCE_IRI),
     });
     driver.handlerContext.buildQualityReport();
 
@@ -483,9 +487,10 @@ describe('required values are page-independent', () => {
    * is an invalid artifact the library will not build.
    */
   it('is invalid when no minItems is declared and the element is absent', () => {
-    const instance: any = instanceWith(TEMPLATE_IRI, {}, SECOND_INSTANCE_IRI);
+    const template = noFloorTemplate();
+    const instance: any = instanceWith(templateIdOf(template), {}, SECOND_INSTANCE_IRI);
 
-    const driver = new CeeDriver(noFloorTemplate(), { instance });
+    const driver = new CeeDriver(template, { instance });
     driver.handlerContext.buildQualityReport();
 
     expect(driver.qualityReport.problems.map((p: any) => p.code)).toContain('missingProperty');
@@ -496,8 +501,9 @@ describe('required values are page-independent', () => {
   });
 
   it('is valid when no minItems is declared and the element is an empty array', () => {
-    const driver = new CeeDriver(noFloorTemplate(), {
-      instance: instanceWith(TEMPLATE_IRI, { _el: [] }, 'https://example.org/i/2'),
+    const template = noFloorTemplate();
+    const driver = new CeeDriver(template, {
+      instance: instanceWith(templateIdOf(template), { _el: [] }, 'https://example.org/i/2'),
     });
     driver.handlerContext.buildQualityReport();
 

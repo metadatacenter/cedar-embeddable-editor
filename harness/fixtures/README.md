@@ -16,8 +16,18 @@ Source: `metadatacenter/cedar-test-artifacts`, branch `develop`, commit
 
 To refresh it, copy `template-NNN.json`, `template-NNN.yaml`, and
 `instance-NNN.json` from that repository's `artifacts/templates/` and
-`artifacts/instances/` trees. Do not copy generated library outputs or the
-larger `cee-suite` corpus unless a test is added for them.
+`artifacts/instances/` trees. Do not copy generated library outputs.
+
+## CEE production-derived compatibility corpus
+
+`cee-suite/` contains all 85 case directories from the shared corpus: 86
+template files (including the retained `template-001-original.json`) and 57
+paired instances. Case 086 intentionally contains malformed template JSON and
+is declared as such by the loader; its instance remains part of the inventory.
+
+Source: `metadatacenter/cedar-test-artifacts`, branch `develop`, commit
+`51581826f047ba4b17a1a6464c41c14c468ee3cb`, directory
+`artifacts/cee-suite/`.
 
 ## HuBMAP corpus
 

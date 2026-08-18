@@ -1,0 +1,74 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Element with attribute-value": "https://schema.metadatacenter.orgx/properties/bbd2e7ca-88bb-4dbe-958c-06ec81b6ee2d"
+  },
+  "Element with attribute-value": [
+    {
+      "@context": {
+        "Attribute Value Field 1": "https://schema.metadatacenter.org/properties/f9718e72-4d7e-4659-a7c5-ce87499c2bc0"
+      },
+      "Attribute-Value": [
+        "Attribute Value Field 1"
+      ],
+      "Attribute Value Field 1": {
+        "@value": null
+      }
+    },
+    {
+      "@context": {
+        "Attribute Value Field 2": "https://schema.metadatacenter.org/properties/d5c5eab3-03fb-468c-8e51-4edc2f3ff07f",
+        "Attribute Value Field 3": "https://schema.metadatacenter.org/properties/16e8e481-171a-4dec-9a71-04c3f166bc29"
+      },
+      "Attribute-Value": [
+        "Attribute Value Field 2",
+        "Attribute Value Field 3"
+      ],
+      "Attribute Value Field 2": {
+        "@value": null
+      },
+      "Attribute Value Field 3": {
+        "@value": null
+      }
+    },
+    {
+      "@context": {},
+      "Attribute-Value": []
+    }
+  ]
+}

@@ -30,7 +30,7 @@ import { CeeDriver } from '../src/driver';
 import { InstanceObject } from '@cee/models/instance-node.model';
 import { arrayAt, objectAt } from '../src/nodes';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
-import { literalOf, heldValue, attributeValue, instanceWith } from '../src/values';
+import { literalOf, heldValue, attributeValue, instanceWith, templateIdOf } from '../src/values';
 
 const ATTR: FieldKind = {
   key: 'attr',
@@ -90,13 +90,12 @@ const addAttribute = (driver: CeeDriver, component: any, name: string | null, va
  * occurrence to, so the add was refused and the field could not be used at all.
  */
 describe('an attribute-value field the instance says nothing about', () => {
-  const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/avflat';
   const INSTANCE_IRI = 'https://example.org/i/1';
 
   /** The instance a host hands over, with `_av` set to whatever a case needs. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const loaded = (slot?: unknown): any => {
-    const instance = instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI);
+  const loaded = (template: object, slot?: unknown): any => {
+    const instance = instanceWith(templateIdOf(template), {}, INSTANCE_IRI);
     if (slot !== undefined) {
       (instance as Record<string, unknown>)._av = slot;
     }
@@ -109,7 +108,8 @@ describe('an attribute-value field the instance says nothing about', () => {
     // learned that this field's empty slot is a list.
     ['the key holds an empty node', {}],
   ])('adds an attribute when %s', (_label, slot) => {
-    const driver = new CeeDriver(flat(), { instance: loaded(slot) });
+    const template = flat();
+    const driver = new CeeDriver(template, { instance: loaded(template, slot) });
     const component = driver.findOrThrow(['_av']);
 
     addAttribute(driver, component, 'colour', 'blue');
@@ -125,7 +125,8 @@ describe('an attribute-value field the instance says nothing about', () => {
    * on the strength of a click would discard whatever is there.
    */
   it('refuses, and says so, when the slot holds a value instead', () => {
-    const driver = new CeeDriver(flat(), { instance: loaded({ '@value': 'not a list' }) });
+    const template = flat();
+    const driver = new CeeDriver(template, { instance: loaded(template, { '@value': 'not a list' }) });
     const component = driver.findOrThrow(['_av']);
 
     driver.handlerContext.addMultiInstance(component);

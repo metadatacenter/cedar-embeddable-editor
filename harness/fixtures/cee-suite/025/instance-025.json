@@ -1,0 +1,162 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Element of Element": "https://schema.metadatacenter.org/properties/6fc7f493-4a20-4167-965d-7310b06efddf"
+  },
+  "Element of Element": [
+    {
+      "@context": {
+        "Texf Field 1": "https://schema.metadatacenter.org/properties/124f71ba-9032-4101-959d-8b38136387ff",
+        "Single Text Element": "https://schema.metadatacenter.org/properties/379c83c0-819d-4f03-8720-8f0fc9d1d8a8"
+      },
+      "Texf Field 1": {
+        "@value": "1st val"
+      },
+      "Single Text Element": {
+        "@context": {
+          "Text Field in Element": "https://schema.metadatacenter.org/properties/5bf90d05-c337-4dda-b52e-648bcb731162"
+        },
+        "Text Field in Element": {
+          "@value": null
+        }
+      }
+    },
+    {
+      "@context": {
+        "Texf Field 1": "https://schema.metadatacenter.org/properties/124f71ba-9032-4101-959d-8b38136387ff",
+        "Single Text Element": "https://schema.metadatacenter.org/properties/379c83c0-819d-4f03-8720-8f0fc9d1d8a8"
+      },
+      "Texf Field 1": {
+        "@value": null
+      },
+      "Single Text Element": {
+        "@context": {
+          "Text Field in Element": "https://schema.metadatacenter.org/properties/5bf90d05-c337-4dda-b52e-648bcb731162"
+        },
+        "Text Field in Element": {
+          "@value": null
+        }
+      }
+    },
+    {
+      "@context": {
+        "Texf Field 1": "https://schema.metadatacenter.org/properties/124f71ba-9032-4101-959d-8b38136387ff",
+        "Single Text Element": "https://schema.metadatacenter.org/properties/379c83c0-819d-4f03-8720-8f0fc9d1d8a8"
+      },
+      "Texf Field 1": {
+        "@value": "3rd val"
+      },
+      "Single Text Element": {
+        "@context": {
+          "Text Field in Element": "https://schema.metadatacenter.org/properties/5bf90d05-c337-4dda-b52e-648bcb731162"
+        },
+        "Text Field in Element": {
+          "@value": null
+        }
+      }
+    },
+    {
+      "@context": {
+        "Texf Field 1": "https://schema.metadatacenter.org/properties/124f71ba-9032-4101-959d-8b38136387ff",
+        "Single Text Element": "https://schema.metadatacenter.org/properties/379c83c0-819d-4f03-8720-8f0fc9d1d8a8"
+      },
+      "Texf Field 1": {
+        "@value": null
+      },
+      "Single Text Element": {
+        "@context": {
+          "Text Field in Element": "https://schema.metadatacenter.org/properties/5bf90d05-c337-4dda-b52e-648bcb731162"
+        },
+        "Text Field in Element": {
+          "@value": null
+        }
+      }
+    },
+    {
+      "@context": {
+        "Texf Field 1": "https://schema.metadatacenter.org/properties/124f71ba-9032-4101-959d-8b38136387ff",
+        "Single Text Element": "https://schema.metadatacenter.org/properties/379c83c0-819d-4f03-8720-8f0fc9d1d8a8"
+      },
+      "Texf Field 1": {
+        "@value": "5th val"
+      },
+      "Single Text Element": {
+        "@context": {
+          "Text Field in Element": "https://schema.metadatacenter.org/properties/5bf90d05-c337-4dda-b52e-648bcb731162"
+        },
+        "Text Field in Element": {
+          "@value": "text field"
+        }
+      }
+    },
+    {
+      "@context": {
+        "Texf Field 1": "https://schema.metadatacenter.org/properties/124f71ba-9032-4101-959d-8b38136387ff",
+        "Single Text Element": "https://schema.metadatacenter.org/properties/379c83c0-819d-4f03-8720-8f0fc9d1d8a8"
+      },
+      "Texf Field 1": {
+        "@value": null
+      },
+      "Single Text Element": {
+        "@context": {
+          "Text Field in Element": "https://schema.metadatacenter.org/properties/5bf90d05-c337-4dda-b52e-648bcb731162"
+        },
+        "Text Field in Element": {
+          "@value": null
+        }
+      }
+    },
+    {
+      "@context": {
+        "Texf Field 1": "https://schema.metadatacenter.org/properties/124f71ba-9032-4101-959d-8b38136387ff",
+        "Single Text Element": "https://schema.metadatacenter.org/properties/379c83c0-819d-4f03-8720-8f0fc9d1d8a8"
+      },
+      "Texf Field 1": {
+        "@value": "7th val"
+      },
+      "Single Text Element": {
+        "@context": {
+          "Text Field in Element": "https://schema.metadatacenter.org/properties/5bf90d05-c337-4dda-b52e-648bcb731162"
+        },
+        "Text Field in Element": {
+          "@value": null
+        }
+      }
+    }
+  ]
+}

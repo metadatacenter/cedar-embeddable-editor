@@ -214,6 +214,43 @@ describe('the instance says which template it is an instance of', () => {
     expect(emitted['schema:isBasedOn']).toBe('https://repo.metadatacenter.org/templates/injected');
   });
 
+  it('repairs a missing template link on an injected legacy instance', () => {
+    const template = buildTemplate({
+      name: 'io_injected_missing',
+      children: [{ kind: VALUED[0], name: 'f' }],
+    }) as Record<string, unknown>;
+    const templateId = 'https://repo.metadatacenter.org/templates/injected-missing';
+    template[DocumentKey.atId] = templateId;
+    const instance = instanceWith(
+      templateId,
+      { _f: literalValue('loaded') },
+      'https://example.org/i/10',
+    ) as unknown as Record<string, unknown>;
+    delete instance['schema:isBasedOn'];
+
+    const driver = new CeeDriver(template, { instance });
+    expect((driver.emitted as Record<string, unknown>)['schema:isBasedOn']).toBe(templateId);
+    driver.expectNoErrors('repairing a missing template link');
+  });
+
+  it('reports a mismatched template link without silently rewriting it', () => {
+    const template = buildTemplate({
+      name: 'io_injected_mismatch',
+      children: [{ kind: VALUED[0], name: 'f' }],
+    }) as Record<string, unknown>;
+    const loadedTemplateId = 'https://repo.metadatacenter.org/templates/loaded';
+    const claimedTemplateId = 'https://repo.metadatacenter.org/templates/claimed';
+    template[DocumentKey.atId] = loadedTemplateId;
+    const driver = new CeeDriver(template, {
+      instance: instanceWith(claimedTemplateId, { _f: literalValue('loaded') }, 'https://example.org/i/11'),
+    });
+
+    expect((driver.emitted as Record<string, unknown>)['schema:isBasedOn']).toBe(claimedTemplateId);
+    expect(driver.messages.errors).toEqual([
+      `Instance schema:isBasedOn is ${claimedTemplateId}, but the loaded template is ${loadedTemplateId}.`,
+    ]);
+  });
+
   it('survives into the YAML', () => {
     const driver = withTemplateId('https://repo.metadatacenter.org/templates/abc');
     expect(InstanceSerializer.toYaml(driver.instance)).toContain('https://repo.metadatacenter.org/templates/abc');

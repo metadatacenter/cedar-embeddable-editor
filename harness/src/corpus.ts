@@ -27,6 +27,9 @@ const CORPUS_ROOT = path.resolve(__dirname, '../fixtures/corpus');
 const EXPECTED_TEMPLATE_COUNT = 37;
 const EXPECTED_INSTANCE_COUNT = 21;
 const EXPECTED_HUBMAP_COUNT = 57;
+const EXPECTED_CEE_CASE_COUNT = 85;
+const EXPECTED_CEE_TEMPLATE_FILE_COUNT = 86;
+const EXPECTED_CEE_INSTANCE_COUNT = 57;
 
 const requireDirectory = (dir: string, label: string): void => {
   if (!fs.existsSync(dir)) {
@@ -55,6 +58,13 @@ export interface CorpusArtifact {
 export interface CorpusInstance {
   id: string;
   json: InstanceObject;
+}
+
+export interface CeeSuiteCase {
+  id: string;
+  /** Null only for the one deliberately malformed source document, case 086. */
+  template: object | null;
+  instance: InstanceObject | null;
 }
 
 const load = <T extends object = object>(
@@ -122,6 +132,68 @@ export const hubmapTemplates = (): CorpusArtifact[] => {
     id: f.replace(/\.json$/, ''),
     json: JSON.parse(fs.readFileSync(path.join(HUBMAP_ROOT, f), 'utf8')),
   }));
+};
+
+/**
+ * The production-derived CEE compatibility suite, paired exactly as it was
+ * captured. Unlike the older numbered corpus, not every template has an
+ * instance. Case 086 deliberately carries malformed template JSON; keeping it
+ * in the inventory makes that limitation explicit without letting one bad file
+ * make the other 84 cases disappear at test collection.
+ */
+const CEE_SUITE_ROOT = path.resolve(__dirname, '../fixtures/cee-suite');
+const MALFORMED_CEE_TEMPLATE_IDS = new Set(['086']);
+
+export const ceeSuiteCases = (): CeeSuiteCase[] => {
+  requireDirectory(CEE_SUITE_ROOT, 'CEE compatibility corpus');
+  const ids = fs
+    .readdirSync(CEE_SUITE_ROOT, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+  requireCount(ids.length, EXPECTED_CEE_CASE_COUNT, 'CEE compatibility cases');
+
+  const allFiles = ids.flatMap((id) =>
+    fs
+      .readdirSync(path.join(CEE_SUITE_ROOT, id))
+      .filter((name) => name.endsWith('.json'))
+      .map((name) => path.join(CEE_SUITE_ROOT, id, name)),
+  );
+  requireCount(
+    allFiles.filter((file) => path.basename(file).startsWith('template-')).length,
+    EXPECTED_CEE_TEMPLATE_FILE_COUNT,
+    'CEE compatibility template files',
+  );
+  requireCount(
+    allFiles.filter((file) => path.basename(file).startsWith('instance-')).length,
+    EXPECTED_CEE_INSTANCE_COUNT,
+    'CEE compatibility instance files',
+  );
+
+  return ids.map((id) => {
+    const templateFile = path.join(CEE_SUITE_ROOT, id, `template-${id}.json`);
+    if (!fs.existsSync(templateFile)) throw new Error(`Required CEE template fixture is missing: ${templateFile}`);
+
+    let template: object | null = null;
+    let templateError: unknown = null;
+    try {
+      template = JSON.parse(fs.readFileSync(templateFile, 'utf8')) as object;
+    } catch (error) {
+      templateError = error;
+    }
+    if (MALFORMED_CEE_TEMPLATE_IDS.has(id)) {
+      if (templateError === null)
+        throw new Error(`CEE template ${id} is now valid JSON; remove its malformed declaration`);
+    } else if (templateError !== null) {
+      throw new Error(`CEE template ${id} is not valid JSON: ${String(templateError)}`);
+    }
+
+    const instanceFile = path.join(CEE_SUITE_ROOT, id, `instance-${id}.json`);
+    const instance = fs.existsSync(instanceFile)
+      ? (JSON.parse(fs.readFileSync(instanceFile, 'utf8')) as InstanceObject)
+      : null;
+    return { id, template, instance };
+  });
 };
 
 /**

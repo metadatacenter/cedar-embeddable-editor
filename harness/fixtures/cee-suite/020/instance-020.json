@@ -1,0 +1,103 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Sample Standalone Text": "https://schema.metadatacenter.org/properties/0475b8c4-c4e4-432c-9f49-60e13fe29d70",
+    "Sample Email": "https://schema.metadatacenter.org/properties/2343581b-6074-451f-8fd8-0e06a31f95ba",
+    "Sample Element": "https://schema.metadatacenter.org/properties/a9fb27b0-c198-41ed-800e-d98a99546f89",
+    "Link Field": "https://schema.metadatacenter.org/properties/4607d58f-f7dc-4c79-afa0-249deb1ea651"
+  },
+  "Sample Standalone Text": [
+    {
+      "@value": "My sample default value"
+    }
+  ],
+  "Sample Element": {
+    "@context": {
+      "Sample Text": "https://schema.metadatacenter.org/properties/90136184-431a-415e-bc97-ff541683f55e",
+      "Sample Datetime": "https://schema.metadatacenter.org/properties/a6488127-223c-46c3-9684-210d0f1dff61",
+      "Sample Checkbox": "https://schema.metadatacenter.org/properties/6467a2f6-c6d3-4775-a63c-54aa66e2a371",
+      "Attribute name 1": "https://schema.metadatacenter.org/properties/d6b2e884-9791-4aca-b412-5d7947fed203"
+    },
+    "Sample Text": [
+      {
+        "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C140659",
+        "rdfs:label": "Choroidal and Ciliary Body Melanoma by AJCC v8 Stage"
+      },
+      {
+        "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C137649",
+        "rdfs:label": "Clinical Stage IA Cutaneous Melanoma AJCC v8"
+      }
+    ],
+    "Sample Datetime": [
+      {
+        "@value": "2023-08-01T16:32:59",
+        "@type": "xsd:dateTime"
+      },
+      {
+        "@value": "2023-08-02T16:33:22",
+        "@type": "xsd:dateTime"
+      },
+      {
+        "@value": "2023-08-03T16:33:26",
+        "@type": "xsd:dateTime"
+      }
+    ],
+    "Sample Checkbox": [
+      {
+        "@value": "Option 1"
+      }
+    ],
+    "Sample Attribute Value": [
+      "Attribute name 1"
+    ],
+    "Attribute name 1": {
+      "@value": "value 1"
+    }
+  },
+  "Sample Email": {
+    "@value": "email@domain.com"
+  },
+  "Link Field": [
+    {
+      "@id": "https://metadatacenter.org"
+    },
+    {
+      "@id": "https://bioportal.bioontology.org/"
+    }
+  ]
+}

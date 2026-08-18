@@ -1,0 +1,163 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "prefix": "https://schema.metadatacenter.org/properties/c5c19810-b058-48cf-b0ae-de2e9f82a95e",
+    "publicationYear": "https://schema.metadatacenter.org/properties/7fe11cba-9053-42b6-aa8e-3ed25e951600",
+    "publisher": "https://schema.metadatacenter.org/properties/0bc8215e-6b07-42c0-9613-9209f5393b08",
+    "title": "https://schema.metadatacenter.org/properties/4fffaeb2-416c-45b9-87d2-b6c1455ec896",
+    "subject": "https://schema.metadatacenter.org/properties/bb0781d6-ef8c-4760-a5e9-00eaf9d16c63",
+    "creator": "https://schema.metadatacenter.org/properties/cc36ca34-bc4d-4afc-9eb8-06512f052086",
+    "contributor": "https://schema.metadatacenter.org/properties/dc039c7c-04d1-4fa1-bf93-9edc5a817d6e",
+    "date": "https://schema.metadatacenter.org/properties/ead63a8f-4995-4f78-84b7-696c03489966",
+    "alternateIdentifier": "https://schema.metadatacenter.org/properties/d18a391b-c0af-47da-b188-afe5c97e50ab",
+    "relatedIdentifier": "https://schema.metadatacenter.org/properties/eab1d09a-4235-4863-bbd5-4f43d273da85",
+    "size": "https://schema.metadatacenter.org/properties/9d4bb27e-e036-4e90-8c00-3629943f1d7b",
+    "format": "https://schema.metadatacenter.org/properties/77e2965e-26d7-4a57-a9dc-6f98b59eefab",
+    "version": "https://schema.metadatacenter.org/properties/c19a0cb5-a3e0-4deb-abf8-c3042dedefa4",
+    "rights": "https://schema.metadatacenter.org/properties/10ff1a36-73b8-4364-9edb-c30f8de4c7fe",
+    "description": "https://schema.metadatacenter.org/properties/4eec3604-47d3-4d19-b976-459945630c4a",
+    "geoLocation": "https://schema.metadatacenter.org/properties/0477e239-366c-4ba2-8f55-fe4611fbf58b",
+    "fundingReference": "https://schema.metadatacenter.org/properties/18bca250-d1fb-48e2-ab7b-915e43d80bcb",
+    "language": "https://schema.metadatacenter.org/properties/7dd35493-fdfb-4c50-8d06-7844d4df3039",
+    "url": "https://schema.metadatacenter.org/properties/b9751716-653d-4e28-a0dc-ae0db993db01",
+    "resourceType": "https://schema.metadatacenter.org/properties/db8a76bc-f148-4cbf-b577-cd2dd4f3bbfe",
+    "relatedItem": "https://schema.metadatacenter.org/properties/9454a8c9-9e97-4707-a816-76bafa70bacc"
+  },
+  "prefix": {
+    "@value": "10.82658"
+  },
+  "url": {
+    "@value": "http://localhost:4400/"
+  },
+  "creator": [
+    {
+      "@context": {
+        "creatorName": "https://schema.metadatacenter.org/properties/8acde937-9aac-4830-901d-18827533d9ee",
+        "givenName": "https://schema.metadatacenter.org/properties/6f29b11a-2c3e-4ebd-92f5-8b6ca863c484",
+        "familyName": "https://schema.metadatacenter.org/properties/8a8c322b-7f15-4a7a-b687-ad969e71defe",
+        "nameType": "https://schema.metadatacenter.org/properties/c5257a64-69a4-4262-93ff-b7624fd00900",
+        "affiliation": "https://schema.metadatacenter.org/properties/2a2341d0-4936-4dce-bdf4-deb6a6544fa2",
+        "nameIdentifier": "https://schema.metadatacenter.org/properties/54d8ce77-6c50-4e77-b2b7-8bd33c846d1d"
+      },
+      "creatorName": {
+        "@value": "Creator 1"
+      },
+      "nameType": {},
+      "givenName": {
+        "@value": null
+      },
+      "familyName": {
+        "@value": null
+      },
+      "affiliation": [],
+      "nameIdentifier": []
+    },
+    {
+      "@context": {
+        "creatorName": "https://schema.metadatacenter.org/properties/8acde937-9aac-4830-901d-18827533d9ee",
+        "givenName": "https://schema.metadatacenter.org/properties/6f29b11a-2c3e-4ebd-92f5-8b6ca863c484",
+        "familyName": "https://schema.metadatacenter.org/properties/8a8c322b-7f15-4a7a-b687-ad969e71defe",
+        "nameType": "https://schema.metadatacenter.org/properties/c5257a64-69a4-4262-93ff-b7624fd00900",
+        "affiliation": "https://schema.metadatacenter.org/properties/2a2341d0-4936-4dce-bdf4-deb6a6544fa2",
+        "nameIdentifier": "https://schema.metadatacenter.org/properties/54d8ce77-6c50-4e77-b2b7-8bd33c846d1d"
+      },
+      "creatorName": {
+        "@value": "Creator 2"
+      },
+      "nameType": {},
+      "givenName": {
+        "@value": null
+      },
+      "familyName": {
+        "@value": null
+      },
+      "affiliation": [],
+      "nameIdentifier": []
+    }
+  ],
+  "title": [
+    {
+      "@context": {
+        "titleType": "https://schema.metadatacenter.org/properties/9b5eb75f-3355-4ddb-903d-c716f4816b12",
+        "title": "https://schema.metadatacenter.org/properties/c9a3f95f-d076-4a78-9b30-93ba8caf8d05"
+      },
+      "title": {
+        "@value": "Test Title 1"
+      },
+      "titleType": {}
+    },
+    {
+      "@context": {
+        "titleType": "https://schema.metadatacenter.org/properties/9b5eb75f-3355-4ddb-903d-c716f4816b12",
+        "title": "https://schema.metadatacenter.org/properties/c9a3f95f-d076-4a78-9b30-93ba8caf8d05"
+      },
+      "title": {
+        "@value": "Test Title 2"
+      },
+      "titleType": {}
+    }
+  ],
+  "publicationYear": {
+    "@value": "2023-01-01",
+    "@type": "xsd:date"
+  },
+  "publisher": {
+    "@value": "CEDAR"
+  },
+  "resourceType": {
+    "@value": "Template"
+  },
+  "subject": [],
+  "contributor": [],
+  "date": [],
+  "language": {
+    "@value": "en"
+  },
+  "alternateIdentifier": [],
+  "relatedIdentifier": [],
+  "size": [],
+  "format": [],
+  "version": {
+    "@value": null
+  },
+  "rights": [],
+  "description": [],
+  "geoLocation": [],
+  "fundingReference": [],
+  "relatedItem": []
+}

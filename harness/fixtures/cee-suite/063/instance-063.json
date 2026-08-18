@@ -1,0 +1,56 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Controlled Element": "https://schema.metadatacenter.org/properties/3b5d0ad4-f279-489e-96e8-0dd523c662b0"
+  },
+  "Controlled Element": [
+    {
+      "@context": {
+        "Controlled Field 1 in Element": "https://schema.metadatacenter.org/properties/0626ae90-2e1f-47b5-b638-6fa51975bfca"
+      },
+      "Controlled Field 1 in Element": [
+        {
+          "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C131506",
+          "rdfs:label": "Childhood Melanoma"
+        },
+        {},
+        {}
+      ]
+    }
+  ]
+}

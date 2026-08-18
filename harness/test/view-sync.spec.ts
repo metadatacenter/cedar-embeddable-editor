@@ -26,7 +26,7 @@ import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { instanceWith, linkNode, literalNode, termNode } from '../src/values';
+import { instanceWith, linkNode, literalNode, termNode, templateIdOf } from '../src/values';
 import { arrayAt } from '../src/nodes';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 
@@ -39,7 +39,6 @@ const attributeNames = (slots: unknown[]): (string | null)[] =>
  * valid CEDAR instance without one. Fixtures that stand in for what a host page
  * injects have to be valid instances too.
  */
-const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
 const INSTANCE_IRI = 'https://example.org/i/1';
 
 const kind = (
@@ -418,7 +417,7 @@ describe('paged attribute-value fields', () => {
   it('accepts an empty attribute name without pushing anything', () => {
     const template = buildTemplate({ name: 'vs_attr_blank', children: [{ kind: ATTR, name: 'f' }] });
     const driver = new CeeDriver(template, {
-      instance: instanceWith(TEMPLATE_IRI, { _f: [''] }, 'https://example.org/i/1'),
+      instance: instanceWith(templateIdOf(template), { _f: [''] }, 'https://example.org/i/1'),
     });
     const registry = new ActiveComponentRegistryService();
     const widget = new FakeWidget();

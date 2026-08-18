@@ -1,0 +1,100 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Attribute Value Element Single": "https://schema.metadatacenter.org/properties/4d88ab5d-6a6a-4f23-b23b-6423ca45c926",
+    "Attribute Value Element Multiple": "https://schema.metadatacenter.org/properties/990f2014-8fc4-4fad-b93c-06b9f803ad86",
+    "Attribute Value Field Root 3": "https://schema.metadatacenter.org/properties/a1b2e9a6-04c7-4894-b4ea-4fb6591895db",
+    "Attribute Value Field Root 2": "https://schema.metadatacenter.org/properties/9f9cc15a-98d5-4fca-a4cd-2190d9373644",
+    "Attribute Value Field Root 1": "https://schema.metadatacenter.org/properties/fd35c168-c46b-4d93-be4b-21803a61922d"
+  },
+  "Attribute Value Field Root": [
+    "Attribute Value Field Root 1",
+    "Attribute Value Field Root 2",
+    "Attribute Value Field Root 3"
+  ],
+  "Attribute Value Element Multiple": [
+    {
+      "@context": {
+        "Checkbox Field in Attribute Value": "https://schema.metadatacenter.org/properties/69602265-3097-49ae-9893-fc921a32553d"
+      },
+      "Attribute Value Field From Multiple": [],
+      "Checkbox Field in Attribute Value": [
+        {
+          "@value": "Option 2"
+        },
+        {
+          "@value": "Option 4"
+        }
+      ]
+    }
+  ],
+  "Attribute Value Element Single": {
+    "@context": {
+      "Text Box Multiple": "https://schema.metadatacenter.org/properties/95df14ca-9f6f-4b0b-8720-b92e94e5ea08",
+      "Attribute Value Field Single 1": "https://schema.metadatacenter.org/properties/4d7622f3-3ab4-498c-b327-d3364eddb07c",
+      "Attribute Value Field Single 2": "https://schema.metadatacenter.org/properties/bb26c067-dbda-43f1-ab40-ee1fe3b2ed13"
+    },
+    "Text Box Multiple": [
+      {
+        "@value": "text box multiple 1"
+      },
+      {
+        "@value": "text box multiple 2"
+      }
+    ],
+    "Attribute Value Field From Single": [
+      "Attribute Value Field Single 1",
+      "Attribute Value Field Single 2"
+    ],
+    "Attribute Value Field Single 1": {
+      "@value": "value 1"
+    },
+    "Attribute Value Field Single 2": {
+      "@value": "value 2"
+    }
+  },
+  "Attribute Value Field Root 3": {
+    "@value": null
+  },
+  "Attribute Value Field Root 2": {
+    "@value": "value 2"
+  },
+  "Attribute Value Field Root 1": {
+    "@value": "value 1"
+  }
+}

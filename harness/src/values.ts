@@ -162,6 +162,15 @@ export const instanceWith = (
   return CedarWriters.json().getFebruary2024().getTemplateInstanceWriter().getAsJsonNode(builder.build());
 };
 
+/** The repository IRI a generated template assigns itself. */
+export const templateIdOf = (template: object): string => {
+  const id = (template as Record<string, unknown>)['@id'];
+  if (typeof id !== 'string' || id.length === 0) {
+    throw new Error('Generated template has no @id');
+  }
+  return id;
+};
+
 /** The atoms `instanceWith` takes, so a spec names a value rather than a shape. */
 export const literalValue = (value: string | null): InstanceDataAtomType => new InstanceDataStringAtom(value);
 export const linkValue = (iri: string): InstanceDataAtomType => new InstanceDataLinkAtom(iri);

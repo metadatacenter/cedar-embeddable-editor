@@ -34,6 +34,7 @@ import {
   listValue,
   containerValue,
   literalValue,
+  templateIdOf,
 } from '../src/values';
 
 /**
@@ -41,7 +42,6 @@ import {
  * valid CEDAR instance without one. Fixtures that stand in for what a host page
  * injects have to be valid instances too.
  */
-const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
 const INSTANCE_IRI = 'https://example.org/i/1';
 
 const ATTR: FieldKind = {
@@ -184,7 +184,7 @@ describe('occurrences that are not all alike', () => {
     // document saved before the field existed — and saying so directly beats
     // deleting a property out of a document the editor produced.
     const instance = instanceWith(
-      TEMPLATE_IRI,
+      templateIdOf(template),
       {
         _author: listValue(
           containerValue({ _name: literalValue('Ada'), _email: literalValue('ada@example.org') }),
@@ -553,7 +553,7 @@ describe('an attribute name with nothing behind it', () => {
   it('is not counted as an attribute', () => {
     const template = buildTemplate({ name: 'ir_blank_attr', children: [{ kind: ATTR, name: 'f' }] });
     const driver = new CeeDriver(template, {
-      instance: instanceWith(TEMPLATE_IRI, { _f: [''] }, 'https://example.org/i/1'),
+      instance: instanceWith(templateIdOf(template), { _f: [''] }, 'https://example.org/i/1'),
     });
     expect(countOf(driver, driver.findOrThrow(['_f']))).toBe(0);
   });
@@ -565,7 +565,7 @@ describe('an attribute name with nothing behind it', () => {
       // value's property is minted from the user's text, which is not something a
       // builder can be asked for.
       instance: {
-        ...instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI),
+        ...instanceWith(templateIdOf(template), {}, INSTANCE_IRI),
         _f: ['colour'],
         colour: literalNode('blue'),
       },

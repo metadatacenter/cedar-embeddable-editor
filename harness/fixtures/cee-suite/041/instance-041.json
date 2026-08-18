@@ -1,0 +1,66 @@
+{
+  "Another Controlled Element": [
+    {
+      "Controlled Field 1 in Element": {
+        "@id": "http://purl.bioontology.org/ontology/LNC/MTHU059704",
+        "rdfs:label": "Bacterial aminoglycoside resistance aacA gene"
+      }
+    },
+    {
+      "Controlled Field 1 in Element": {
+        "@id": "http://purl.bioontology.org/ontology/LNC/LP379168-0",
+        "rdfs:label": "Avian paramyxovirus 3 Ab &#x7C; Serum &#x7C; Microbiology"
+      }
+    }
+  ],
+  "Controlled Element": [
+    {
+      "Controlled Field 1 in Element": [
+        {
+          "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C131506",
+          "rdfs:label": "Childhood Melanoma"
+        },
+        {
+          "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C137647",
+          "rdfs:label": "Clinical Stage 0 Cutaneous Melanoma AJCC v8"
+        }
+      ],
+      "Controlled Field 2 in Element": {
+        "@id": "http://purl.org/sig/ont/fma/fma7309",
+        "rdfs:label": "Right lung"
+      }
+    },
+    {
+      "Controlled Field 1 in Element": [
+        {}
+      ],
+      "Controlled Field 2 in Element": {}
+    },
+    {
+      "Controlled Field 1 in Element": [
+        {
+          "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C137647",
+          "rdfs:label": "Clinical Stage 0 Cutaneous Melanoma AJCC v8"
+        },
+        {
+          "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C140659",
+          "rdfs:label": "Choroidal and Ciliary Body Melanoma by AJCC v8 Stage"
+        }
+      ],
+      "Controlled Field 2 in Element": {
+        "@id": "http://purl.org/sig/ont/fma/fma7309",
+        "rdfs:label": "Right lung"
+      }
+    }
+  ],
+  "Controlled Standalone": [
+    {
+      "@id": "http://purl.bioontology.org/ontology/CSP/0603-8552",
+      "rdfs:label": "cell type"
+    },
+    {
+      "@id": "http://purl.obolibrary.org/obo/CLO_0000001",
+      "rdfs:label": "cell line cell"
+    }
+  ]
+}
