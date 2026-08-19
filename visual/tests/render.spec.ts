@@ -1323,6 +1323,44 @@ test.describe('the version stamp', () => {
   });
 });
 
+/*
+ * Expand All, Collapse All and the download menu, at the header's right edge.
+ *
+ * Between 520px and 1100px the header stacks and those buttons take a row of
+ * their own, shared with the paginator when the template has page breaks. That
+ * row used to be `space-between`, which reads as "paginator left, buttons right"
+ * only while there are two things in it: a template with no page breaks put its
+ * buttons at the left edge instead.
+ *
+ * No baseline covers that band — the two screenshot projects sit at 1280 and 480,
+ * either side of it — so the width is set here, and the claim is a measurement
+ * rather than an image.
+ */
+test.describe('the header actions', () => {
+  const rightEdges = (page: Page) =>
+    page.locator('.template-header').evaluate((header) => {
+      const buttons = header.querySelector('.expand-buttons')!.getBoundingClientRect();
+      return {
+        // The header's content edge, which its padding holds off the card.
+        header: Math.round(header.getBoundingClientRect().right - parseFloat(getComputedStyle(header).paddingRight)),
+        buttons: Math.round(buttons.right),
+      };
+    });
+
+  for (const [fixture, arrangement] of [
+    ['01-input-types', 'alone in their row'],
+    ['05-static-paged', 'sharing the row with a paginator'],
+  ] as const) {
+    test(`reach the right edge ${arrangement}`, async ({ page }) => {
+      await page.setViewportSize({ width: 900, height: 900 });
+      await open(page, fixture);
+
+      const edges = await rightEdges(page);
+      expect(edges.buttons, 'the buttons end where the header ends').toBe(edges.header);
+    });
+  }
+});
+
 test.describe('external authority fields', () => {
   test('typing does not raise an error', async ({ page }) => {
     await open(page, '04-controlled-terms');

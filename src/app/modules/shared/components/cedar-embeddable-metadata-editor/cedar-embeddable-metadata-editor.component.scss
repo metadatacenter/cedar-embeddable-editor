@@ -135,9 +135,21 @@
   }
 
   .template-actions {
-    justify-content: space-between;
     border-top: 1px solid #e5ebea;
     padding-top: 12px;
+  }
+
+  /*
+   * The paginator takes the free space, rather than the row splitting it.
+   *
+   * `.template-actions` is right-aligned at every width, so the expand, collapse
+   * and download buttons end at the header's right edge whether or not a
+   * paginator sits beside them. This row used to say `space-between`, which reads
+   * as "paginator left, buttons right" only while it holds two things: a template
+   * with no page breaks holds one, and it went to the left edge instead.
+   */
+  .page-break-control {
+    margin-right: auto;
   }
 
   .template-header-paged .template-actions {
@@ -170,6 +182,15 @@
   .template-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  /*
+   * Nothing to push against once the row becomes a column: an auto margin on the
+   * cross axis beats `align-items: stretch`, so leaving it in would shrink the
+   * paginator to its content here.
+   */
+  .page-break-control {
+    margin-right: 0;
   }
 
   .expand-buttons button {
