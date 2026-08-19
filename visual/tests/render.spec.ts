@@ -2935,6 +2935,7 @@ test.describe('what a host page reads back', () => {
     expect(body).toContain('type: template');
     expect(body).toContain('children:');
     expect(body).not.toContain('modelVersion:');
+    expect(body).not.toMatch(/(?:^|\n)\s*id:/);
   });
 
   test('dataQualityReport follows an invalid value and its correction', async ({ page }) => {

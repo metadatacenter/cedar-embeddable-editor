@@ -85,7 +85,9 @@ describe('the template YAML downloads', () => {
 
     expect(compact.length).toBeLessThan(full.length);
     expect(full).toContain('modelVersion:');
+    expect(full).toContain('id: "https://repo.metadatacenter.org/template-fields/');
     expect(compact).not.toContain('modelVersion:');
+    expect(compact).not.toMatch(/(?:^|\n)\s*id:/);
     expect(compact).toContain('children:');
   });
 });
