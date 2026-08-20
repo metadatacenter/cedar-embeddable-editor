@@ -77,19 +77,17 @@ describe('the domain layer is framework-free', () => {
   );
 
   /**
-   * The domain layer's Angular touchpoints, all six of them, and why.
+   * The domain layer's Angular touchpoints, all five of them, and why.
    *
    * "Framework-free" is not literally true and it would be dishonest to assert
-   * it. What is true is that these six imports cost nothing at runtime here:
-   * three are types or decorators the harness's `@angular/core` stub satisfies,
-   * and two are the translate loader, which no domain code calls.
+   * it. What is true is that these five imports are accounted for: one is a type,
+   * two are translation wiring, and two are the deliberate Angular adapter/base.
    *
    * Listed rather than allowed by pattern so a *new* one has to be added
    * deliberately, with a reason. That is the actual property worth protecting —
    * the number going up quietly is how a domain layer stops being portable.
    */
   const KNOWN_ANGULAR_IMPORTS: Record<string, string> = {
-    'handler/multi-instance-object.handler.ts': '@Injectable only; the class is constructed with new',
     'util/authority-search-control.ts': 'AbstractControl as a type, so widgets can pass their FormControl',
     'util/fallback-translate-loader-factory.ts': 'HttpClient; i18n wiring, never called by domain code',
     'util/fallback-translate-loader.ts': 'HttpClient; i18n wiring, never called by domain code',

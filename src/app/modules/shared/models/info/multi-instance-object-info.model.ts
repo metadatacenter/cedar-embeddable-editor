@@ -17,27 +17,27 @@ import { MultiInstanceInfo } from './multi-instance-info.model';
  * and add/copy/delete no longer maintain it.
  */
 export class MultiInstanceObjectInfo {
-  /** Null on the root node, which describes no component. */
-  componentName: string | null;
+  readonly componentName: string;
   currentIndex: number;
-  children: Array<MultiInstanceInfo>;
+  occurrences: Array<MultiInstanceInfo>;
 
   /**
    * Where the count comes from: the live instance, at this component's path.
    *
-   * Installed when the node is built, because that is where the component — and
-   * so its path — is in hand. Left unset on nodes that describe no component,
-   * which fall back to the stored number.
+   * Installed for repeatable components when the node is built, because that is
+   * where the component — and so its path — is in hand. Single components have no
+   * list to count and keep their fixed build-time number instead.
    */
-  countSupplier: (() => number) | null = null;
+  private readonly countSupplier: (() => number) | null;
 
-  /** Only used by nodes with no supplier. */
+  /** Only used by single-component nodes, which have no occurrence array to count. */
   private storedCount = 0;
 
-  constructor() {
-    this.componentName = null;
+  constructor(componentName: string, countSupplier: (() => number) | null = null) {
+    this.componentName = componentName;
+    this.countSupplier = countSupplier;
     this.currentIndex = -1;
-    this.children = new Array<MultiInstanceInfo>();
+    this.occurrences = new Array<MultiInstanceInfo>();
   }
 
   get currentCount(): number {
@@ -56,7 +56,18 @@ export class MultiInstanceObjectInfo {
     }
   }
 
-  public addChild(child: MultiInstanceInfo): void {
-    this.children.push(child);
+  public addOccurrence(occurrence: MultiInstanceInfo): void {
+    this.occurrences.push(occurrence);
+  }
+
+  /** Copy cursor state and occurrence branches without copying the live document. */
+  clone(): MultiInstanceObjectInfo {
+    const copy = new MultiInstanceObjectInfo(this.componentName, this.countSupplier);
+    copy.currentIndex = this.currentIndex;
+    copy.storedCount = this.storedCount;
+    for (const occurrence of this.occurrences) {
+      copy.addOccurrence(occurrence.clone());
+    }
+    return copy;
   }
 }

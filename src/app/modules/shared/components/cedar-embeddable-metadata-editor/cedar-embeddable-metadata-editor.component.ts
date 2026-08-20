@@ -10,7 +10,6 @@ import { ExternalAuthorityLookupService } from '../../service/external-authority
 import { AUTHORITY_DESCRIPTORS, EXTERNAL_AUTHORITY_PATH } from '../../models/authority/authority-descriptor.model';
 import { TemplateTrustService } from '../../service/template-trust.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
-import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import packageJson from 'package.json';
 import { DOWNLOAD_ITEMS, DownloadItemId } from '../../models/ui/download-item.model';
@@ -318,15 +317,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   private initDataFromInstance(): void {
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
-      const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
       const representation = dataContext.templateRepresentation;
       if (representation === null) {
         return;
       }
-      dataContext.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
-        representation,
-        dataContext.instanceExtractData,
-      );
+      const instance = dataContext.instanceExtractData;
+      if (!this.handlerContext.multiInstanceObjectService.isBuiltFor(representation, instance)) {
+        this.handlerContext.multiInstanceObjectService.buildNewOrFromMetadata(representation, instance);
+      }
     }
   }
 
@@ -346,7 +344,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       this.dataContext != null &&
       this.dataContext.templateRepresentation != null &&
       !(this.dataContext.templateRepresentation instanceof NullTemplate) &&
-      this.dataContext.multiInstanceData != null
+      this.handlerContext != null &&
+      this.handlerContext.multiInstanceObjectService.isInitialized()
     );
   }
 

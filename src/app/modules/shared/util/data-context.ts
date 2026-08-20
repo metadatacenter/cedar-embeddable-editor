@@ -1,7 +1,6 @@
 import { CedarInputTemplate } from '../models/cedar-input-template.model';
 import { TemplateComponent } from '../models/template/template-component.model';
 import { CedarTemplate } from '../models/template/cedar-template.model';
-import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { TemplateRepresentationFactory } from '../factory/template-representation.factory';
 import { TemplateParser } from '../factory/template-parser';
 import { InstanceCardinalityReader } from '../handler/instance-cardinality-reader';
@@ -18,7 +17,6 @@ export class DataContext {
   templateRepresentation: TemplateComponent | null = null;
   /** The instance CEE is editing. A model, not the document it will be written as. */
   instanceFullData: TemplateInstance | null = null;
-  multiInstanceData: MultiInstanceInfo | null = null;
   dataQualityReport: DataQualityReport | null = null;
   /** Null until a template is saved, and reset to null when one is replaced. */
   savedTemplateID: string | null = null;
@@ -113,9 +111,9 @@ export class DataContext {
       const dataObjectService: DataObjectBuilderHandler = handlerContext.dataObjectBuilderService;
       this.instanceFullData = dataObjectService.buildNewFullDataObject(this.templateRepresentation);
       this.invalidateDerivedViews();
-      this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
+      multiInstanceObjectService.buildNewOrFromMetadata(
         this.templateRepresentation,
-        null,
+        this.instanceFullData.dataContainer,
         instanceReader,
       );
     } else {
@@ -137,7 +135,7 @@ export class DataContext {
           `Instance schema:isBasedOn is ${instanceTemplateId}, but the loaded template is ${templateId}.`,
         );
       }
-      this.multiInstanceData = multiInstanceObjectService.buildNewOrFromMetadata(
+      multiInstanceObjectService.buildNewOrFromMetadata(
         this.templateRepresentation,
         this.instanceFullData.dataContainer,
         instanceReader,

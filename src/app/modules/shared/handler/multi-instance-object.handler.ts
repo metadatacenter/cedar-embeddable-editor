@@ -1,14 +1,12 @@
 import { TemplateComponent } from '../models/template/template-component.model';
 import { ElementComponent } from '../models/component/element-component.model';
 import { MultiComponent } from '../models/component/multi-component.model';
-import { Injectable } from '@angular/core';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
 import { MultiElementComponent } from '../models/element/multi-element-component.model';
 import { SingleElementComponent } from '../models/element/single-element-component.model';
 import { CedarComponent } from '../models/component/cedar-component.model';
 import { CedarTemplate } from '../models/template/cedar-template.model';
-import * as _ from 'lodash-es';
 import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
 import { InstanceObject } from '../models/instance-node.model';
@@ -16,15 +14,14 @@ import { InstanceCardinalityReader } from './instance-cardinality-reader';
 import { ModelLibraryInstanceReader } from './model-library-instance-reader';
 import { InstanceDataAttributeValueField } from 'cedar-model-typescript-library';
 
-@Injectable({
-  providedIn: 'root',
-})
 export class MultiInstanceObjectHandler {
   private static readonly defaultInstanceReader: InstanceCardinalityReader = new ModelLibraryInstanceReader();
 
-  /** An empty info tree until a template is built into one, which is CEE's starting state. */
-  public multiInstanceObject: MultiInstanceInfo = new MultiInstanceInfo();
+  /** The sole multi-instance state tree for this editor. */
+  private stateRoot = new MultiInstanceInfo();
   private templateRepresentation: TemplateComponent | null = null;
+  private sourceInstance: InstanceObject | null = null;
+  private initialized = false;
 
   /**
    * Resolves a component path in the live instance, through the current cursors.
@@ -38,37 +35,7 @@ export class MultiInstanceObjectHandler {
    * ancestor's `currentIndex`, never its count.
    */
   private resolveInstanceNode: ((path: string[]) => unknown) | null = null;
-  private indexRegEx = new RegExp(/@#index\[(\d+)\]#@/);
-
-  /**
-   * Walk the multi-instance info tree by component path.
-   *
-   * The tree is keyed by component name at every level, so a step is a lookup on
-   * whatever the previous step returned. Typed as the record it is rather than as
-   * `object`, which is what let the two callers below assert their way to a result.
-   */
-  private static getNodeByPath(obj: MultiInstanceInfo, arrPath: string[]): unknown {
-    let val: unknown = obj;
-
-    for (const step of arrPath) {
-      if (val === null || typeof val !== 'object') {
-        return undefined;
-      }
-      val = (val as Record<string, unknown>)[step];
-    }
-    return val;
-  }
-
-  private static getMultiInstanceInfoNodeByPath(obj: MultiInstanceInfo, arrPath: string[]): MultiInstanceInfo {
-    return MultiInstanceObjectHandler.getNodeByPath(obj, arrPath) as MultiInstanceInfo;
-  }
-
-  private static getMultiInstanceObjectInfoNodeByPath(
-    obj: MultiInstanceInfo,
-    arrPath: string[],
-  ): MultiInstanceObjectInfo {
-    return MultiInstanceObjectHandler.getNodeByPath(obj, arrPath) as MultiInstanceObjectInfo;
-  }
+  private static readonly indexRegEx = /^@#index\[(\d+)]#@$/;
 
   setInstanceResolver(resolve: (path: string[]) => unknown): void {
     this.resolveInstanceNode = resolve;
@@ -102,77 +69,82 @@ export class MultiInstanceObjectHandler {
     /** The instance root, which is a JSON-LD document and so always an object. */
     instance: InstanceObject | null = null,
     instanceReader: InstanceCardinalityReader = MultiInstanceObjectHandler.defaultInstanceReader,
-  ): MultiInstanceInfo {
-    instanceReader = instanceReader ?? MultiInstanceObjectHandler.defaultInstanceReader;
+  ): void {
+    this.initialized = false;
+    this.sourceInstance = null;
     this.templateRepresentation = templateRepresentation;
-    this.multiInstanceObject = new MultiInstanceInfo();
-    this.buildRecursively(templateRepresentation, this.multiInstanceObject);
+    this.stateRoot = new MultiInstanceInfo();
+    this.buildRecursively(templateRepresentation, this.stateRoot);
 
     if (instance) {
       // The template gave us a skeleton at each component's `minItems`; the
       // instance says what is actually there, and wins.
-      instanceReader.read(instance, (path, count) =>
-        this.setSingleMultiInstance(path, count, this.multiInstanceObject),
-      );
+      instanceReader.read(instance, (path, count) => this.setSingleMultiInstance(path, count, this.stateRoot));
     }
-    return this.multiInstanceObject;
+    this.sourceInstance = instance;
+    this.initialized = true;
+  }
+
+  /** Read-only access to the root container; mutation stays inside this handler. */
+  get rootState(): MultiInstanceInfo {
+    return this.stateRoot;
+  }
+
+  /** Whether the state tree has been built successfully for the current template. */
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
+  /** Whether this tree already describes this exact template/instance pair. */
+  isBuiltFor(template: TemplateComponent, instance: InstanceObject | null): boolean {
+    return this.initialized && this.templateRepresentation === template && this.sourceInstance === instance;
   }
 
   private setSingleMultiInstance(path: string[], count: number, multiInstanceObject: MultiInstanceInfo): void {
-    const pathCopy = [];
-    for (let i = 0; i < path.length; i++) {
-      pathCopy.push(path[i]);
-      const match = path[i].match(this.indexRegEx);
+    let container = multiInstanceObject;
+    let component: CedarComponent | null = this.templateRepresentation;
+    let state: MultiInstanceObjectInfo | null = null;
 
-      if (match && match.length > 1) {
-        pathCopy.pop();
-        const pathParent = pathCopy.slice();
-        pathCopy.push('children');
-        pathCopy.push(match[1]);
-
-        const childObj = MultiInstanceObjectHandler.getMultiInstanceInfoNodeByPath(multiInstanceObject, pathCopy);
-        const componentName = path[i + 1];
-
-        // childObj is an object of type MultiInstanceInfo of structure
-        // {strKey1 => MultiInstanceObjectInfo, strKey2 => MultiInstanceObjectInfo}
-        if (childObj) {
-          const arrayElemPath = pathCopy.slice();
-          arrayElemPath.push(componentName);
-          const arrayElem = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(
-            multiInstanceObject,
-            arrayElemPath,
-          );
-
-          // the child object (element of the array) does exist
-          // but the element inside it does not, creating base
-          if (!arrayElem) {
-            const childElem = new MultiInstanceObjectInfo();
-            childElem.componentName = componentName;
-            childObj.addChild(childElem);
-          }
-        } else {
-          // the entire child object (element of the array) does not exist
-          // need to create the object and its first base element
-          const parentObj = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(
-            multiInstanceObject,
-            pathParent,
-          );
-          if (parentObj) {
-            const child = new MultiInstanceInfo();
-            parentObj.addChild(child);
-            const childElem = new MultiInstanceObjectInfo();
-            childElem.componentName = componentName;
-            child.addChild(childElem);
-          }
+    for (const step of path) {
+      const indexMatch = step.match(MultiInstanceObjectHandler.indexRegEx);
+      if (indexMatch !== null) {
+        if (
+          state === null ||
+          !(component instanceof MultiElementComponent || component instanceof SingleElementComponent)
+        ) {
+          return;
         }
+        const occurrenceIndex = Number(indexMatch[1]);
+        while (state.occurrences.length <= occurrenceIndex) {
+          const occurrence = new MultiInstanceInfo();
+          this.buildRecursively(component, occurrence);
+          state.addOccurrence(occurrence);
+        }
+        container = state.occurrences[occurrenceIndex];
+        continue;
+      }
+
+      if (
+        !(
+          component instanceof MultiElementComponent ||
+          component instanceof SingleElementComponent ||
+          component instanceof CedarTemplate
+        )
+      ) {
+        return;
+      }
+      component = component.getChildByName(step);
+      state = container.getState(step);
+      if (component === null || state === null) {
+        // Instance envelopes and user-defined attribute names are not template
+        // components. They have no cursor state and are intentionally ignored.
+        return;
       }
     }
 
-    const targetObj = MultiInstanceObjectHandler.getMultiInstanceObjectInfoNodeByPath(multiInstanceObject, pathCopy);
-    if (targetObj) {
-      targetObj.componentName = path[path.length - 1];
-      targetObj.currentCount = count;
-      targetObj.currentIndex = count > 0 ? 0 : -1;
+    if (state !== null) {
+      state.currentCount = count;
+      state.currentIndex = count > 0 ? 0 : -1;
     }
   }
 
@@ -189,40 +161,37 @@ export class MultiInstanceObjectHandler {
     const elementComponent = cedarComponent as ElementComponent;
     for (const child of elementComponent.children) {
       const name = child.name;
-      const multiInfo = new MultiInstanceObjectInfo();
-      multiInfo.componentName = name;
+      const countSupplier =
+        child instanceof MultiFieldComponent || child instanceof MultiElementComponent
+          ? () => this.countInInstance(child.path)
+          : null;
+      const multiInfo = new MultiInstanceObjectInfo(name, countSupplier);
       // The count comes from the instance from here on. Only multi components
       // have an array to count; a single field or element is always one, and
       // stays a stored number.
-      if (child instanceof MultiFieldComponent || child instanceof MultiElementComponent) {
-        const childPath = child.path;
-        multiInfo.countSupplier = () => this.countInInstance(childPath);
-      }
-      multiInstanceObject.addChild(multiInfo);
+      multiInstanceObject.addState(multiInfo);
       let count = 0;
       let currentIndex = -1;
       if (child instanceof MultiFieldComponent) {
         count = (child as MultiComponent).multiInfo.getSafeMinItems();
         currentIndex = count > 0 ? 0 : -1;
-        /// delete multiInfo.children;
       } else if (child instanceof SingleFieldComponent) {
         count = 1;
         currentIndex = -1;
-        /// delete multiInfo.children;
       } else if (child instanceof MultiElementComponent) {
         count = (child as MultiComponent).multiInfo.getSafeMinItems();
         currentIndex = count > 0 ? 0 : -1;
         for (let i = 0; i < count; i++) {
           const mc = new MultiInstanceInfo();
           this.buildRecursively(child, mc);
-          multiInfo.addChild(mc);
+          multiInfo.addOccurrence(mc);
         }
       } else if (child instanceof SingleElementComponent) {
         count = 1;
         currentIndex = -1;
         const mc = new MultiInstanceInfo();
         this.buildRecursively(child, mc);
-        multiInfo.addChild(mc);
+        multiInfo.addOccurrence(mc);
       }
       multiInfo.currentCount = count;
       multiInfo.currentIndex = currentIndex;
@@ -246,7 +215,7 @@ export class MultiInstanceObjectHandler {
     if (component instanceof MultiElementComponent) {
       const newMultiInstanceObject: MultiInstanceInfo = new MultiInstanceInfo();
       this.buildRecursively(component, newMultiInstanceObject);
-      multiInstanceInfo.children.splice(multiInstanceInfo.currentIndex + 1, 0, newMultiInstanceObject as never);
+      multiInstanceInfo.occurrences.splice(multiInstanceInfo.currentIndex + 1, 0, newMultiInstanceObject);
     }
     // No `currentCount++`: the instance was spliced before this ran, and the
     // count is read from it.
@@ -261,9 +230,11 @@ export class MultiInstanceObjectHandler {
 
     if (component instanceof MultiElementComponent) {
       const currentIdx = multiInstanceInfo.currentIndex;
-      const sourceItem = multiInstanceInfo.children[currentIdx];
-      const cloneItem = _.cloneDeep(sourceItem);
-      multiInstanceInfo.children.splice(currentIdx + 1, 0, cloneItem as never);
+      const sourceItem = multiInstanceInfo.occurrences[currentIdx];
+      if (sourceItem === undefined) {
+        return;
+      }
+      multiInstanceInfo.occurrences.splice(currentIdx + 1, 0, sourceItem.clone());
     }
     multiInstanceInfo.currentIndex++;
   }
@@ -276,7 +247,7 @@ export class MultiInstanceObjectHandler {
 
     if (component instanceof MultiElementComponent) {
       const currentIdx = multiInstanceInfo.currentIndex;
-      multiInstanceInfo.children.splice(currentIdx, 1);
+      multiInstanceInfo.occurrences.splice(currentIdx, 1);
     }
     // The cursor may now point past the end. `currentCount` already reflects the
     // splice, because it reads the instance and the instance was spliced first.
@@ -295,7 +266,7 @@ export class MultiInstanceObjectHandler {
   }
 
   public getDataPathNode(path: string[]): MultiInstanceObjectInfo | null {
-    return this.getDataPathNodeRecursively(this.multiInstanceObject, this.templateRepresentation, path);
+    return this.getDataPathNodeRecursively(this.stateRoot, this.templateRepresentation, path);
   }
 
   private getDataPathNodeRecursively(
@@ -310,22 +281,19 @@ export class MultiInstanceObjectHandler {
     component: CedarComponent | null,
     path: string[],
   ): MultiInstanceObjectInfo | null {
-    if (!multiInstanceObject) {
-      return null;
-    }
     const firstPath = path[0];
     const remainingPath = path.slice(1);
     let childComponent: CedarComponent | null = null;
     let childMultiInfo: MultiInstanceObjectInfo | null = null;
     if (component instanceof SingleElementComponent) {
       childComponent = (component as SingleElementComponent).getChildByName(firstPath);
-      childMultiInfo = multiInstanceObject.getChildByName(firstPath);
+      childMultiInfo = multiInstanceObject.getState(firstPath);
     } else if (component instanceof CedarTemplate) {
       childComponent = (component as CedarTemplate).getChildByName(firstPath);
-      childMultiInfo = multiInstanceObject.getChildByName(firstPath);
+      childMultiInfo = multiInstanceObject.getState(firstPath);
     } else if (component instanceof MultiElementComponent) {
       childComponent = (component as MultiElementComponent).getChildByName(firstPath);
-      childMultiInfo = multiInstanceObject.getChildByName(firstPath);
+      childMultiInfo = multiInstanceObject.getState(firstPath);
     }
 
     if (remainingPath.length === 0) {
@@ -337,7 +305,11 @@ export class MultiInstanceObjectHandler {
       return null;
     }
     const goIdx = childMultiInfo.currentIndex > 0 ? childMultiInfo.currentIndex : 0;
-    return this.getDataPathNodeRecursively(childMultiInfo.children[goIdx], childComponent, remainingPath);
+    const occurrence = childMultiInfo.occurrences[goIdx];
+    if (occurrence === undefined) {
+      return null;
+    }
+    return this.getDataPathNodeRecursively(occurrence, childComponent, remainingPath);
   }
 
   hasMultiInstances(multiComponent: MultiComponent): boolean {

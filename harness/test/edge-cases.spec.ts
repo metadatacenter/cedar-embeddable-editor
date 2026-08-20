@@ -12,6 +12,7 @@ import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at, infoOf } from '../src/nodes';
 import { linkNode, literalOf, termNode, heldValue, identityOf, linkValue, termValue } from '../src/values';
+import { MultiInstanceObjectHandler } from '@cee/handler/multi-instance-object.handler';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
@@ -242,6 +243,40 @@ describe('multi-instance elements', () => {
     driver.expectNoErrors('per-page writes');
   });
 
+  it('copies nested cursor state without sharing it with the source occurrence', () => {
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'copy_nested_cursor',
+        elements: [
+          {
+            name: 'outer',
+            cardinality: 'multi',
+            minItems: 1,
+            elements: [
+              {
+                name: 'inner',
+                cardinality: 'multi',
+                minItems: 2,
+                children: [{ kind: TEXT, name: 'value' }],
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    const outer = driver.findOrThrow(['_outer']);
+    const inner = driver.findOrThrow(['_outer', '_inner']);
+    const state = driver.handlerContext.multiInstanceObjectService;
+
+    state.setCurrentIndex(inner, 1);
+    driver.handlerContext.copyMultiInstance(outer);
+
+    expect(infoOf(state.getMultiInstanceInfoForComponent(inner), inner).currentIndex).toBe(1);
+    state.setCurrentIndex(inner, 0);
+    state.setCurrentIndex(outer, 0);
+    expect(infoOf(state.getMultiInstanceInfoForComponent(inner), inner).currentIndex).toBe(1);
+  });
+
   /**
    * A copy does not inherit the identity of what it was copied from.
    *
@@ -342,6 +377,44 @@ describe('multi-instance elements', () => {
     expect(copy._manyInner.map((inner: any) => inner._term)).toEqual(
       source._manyInner.map((inner: any) => inner._term),
     );
+  });
+});
+
+describe('multi-instance state ownership', () => {
+  it('recognizes only the exact template and instance pair it was built for', () => {
+    const driver = new CeeDriver(buildTemplate({ name: 'state_owner', children: [{ kind: TEXT, name: 'field' }] }));
+    const other = new CeeDriver(buildTemplate({ name: 'state_owner_other', children: [{ kind: TEXT, name: 'field' }] }));
+    const state = driver.handlerContext.multiInstanceObjectService;
+    const instance = driver.dataContext.instanceExtractData;
+
+    expect(new MultiInstanceObjectHandler().isBuiltFor(driver.representation, instance)).toBe(false);
+    expect(state.isBuiltFor(other.representation, instance)).toBe(false);
+    expect(state.isBuiltFor(driver.representation, null)).toBe(false);
+    expect(state.isBuiltFor(driver.representation, instance)).toBe(true);
+  });
+
+  it('has no nested state or copy source when an outer component has no occurrences', () => {
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'empty_state_owner',
+        elements: [
+          {
+            name: 'outer',
+            cardinality: 'multi',
+            minItems: 0,
+            elements: [{ name: 'inner', children: [{ kind: TEXT, name: 'field' }] }],
+          },
+        ],
+      }),
+    );
+    const outer = driver.findOrThrow(['_outer']);
+    const state = driver.handlerContext.multiInstanceObjectService;
+    const outerState = infoOf(state.getMultiInstanceInfoForComponent(outer), outer);
+
+    expect(state.getDataPathNode(['_outer', '_inner'])).toBeNull();
+    state.multiInstanceItemCopy(outer);
+    expect(outerState.currentIndex).toBe(-1);
+    expect(outerState.currentCount).toBe(0);
   });
 });
 
