@@ -208,9 +208,10 @@ export interface CeeEventHandler {
  *
  * Registered as `cedar-embeddable-editor`. Configuration and the artifact inputs
  * each take one assignment; a second is reported through the event handler and
- * ignored, and the first value stands. An artifact is a template and optionally an
- * instance, so `templateAndInstanceObject` supplies between them what the two
- * separate inputs do and cannot be combined with either.
+ * ignored, and the first accepted value stands. An unreadable instance is reported
+ * and does not spend its assignment, so the host may correct it. An artifact is a
+ * template and optionally an instance, so `templateAndInstanceObject` supplies
+ * between them what the two separate inputs do and cannot be combined with either.
  *
  * `eventHandler` is the exception, and deliberately: it may be replaced. The
  * sentence above used to be written of every member, which was false for the

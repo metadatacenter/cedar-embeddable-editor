@@ -44,9 +44,9 @@ export class HandlerContext {
    * default was "No" would display "Yes" once someone changed the template, with the instance
    * untouched.
    *
-   * Set by the wrapper's host-facing inputs, and deliberately not by `setDataContextWithInstance`:
-   * assigning a template round-trips the internal instance through that method, so a flag set there
-   * is true for a template on its own, which is exactly the case it exists to tell apart.
+   * Set by the wrapper only after a host-supplied instance has been deserialized. Template parsing
+   * and rendering deliberately leave it alone, so a template on its own stays the exact case this
+   * flag exists to tell apart.
    */
   instanceSupplied: boolean = false;
 

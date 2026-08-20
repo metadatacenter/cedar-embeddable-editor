@@ -249,8 +249,8 @@
          * first because setting the template is what triggers the load.
          *
          * `combined` uses the single `templateAndInstanceObject` input instead. Worth
-         * covering separately: it takes a different branch in the editor, calling
-         * `setDataContextWithInstance` before `setInputTemplate` rather than after.
+         * covering separately: it claims both artifact halves together rather than
+         * letting the independent setters supply them in either order.
          */
         const mode = params.get('m') || 'separate';
         if (mode === 'combined') {

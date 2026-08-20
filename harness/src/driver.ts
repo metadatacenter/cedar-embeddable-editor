@@ -98,7 +98,7 @@ export class CeeDriver {
 
     if (opts.instance) {
       // Exactly what CedarEmbeddableMetadataEditorComponent
-      // .setDataContextWithInstance does: read once through the model library
+      // The wrapper's artifact boundary does: read once through the model library
       // into the one tree CEE keeps.
       const { full } = InstanceDeserializer.read(opts.instance, (m) => this.messages.error(m));
       this.dataContext.instanceFullData = full;
@@ -300,4 +300,3 @@ export class CeeDriver {
     }
   }
 }
-

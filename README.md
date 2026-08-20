@@ -565,6 +565,13 @@ customElements.whenDefined('cedar-embeddable-editor').then(async () => {
 });
 ```
 
+An instance counts only after CEE can read it. If deserialization fails, CEE
+reports the rejection to the console and to `eventHandler`, does not render a
+replacement empty form, and leaves the instance assignment available for a
+corrected value. The same rule applies to the instance inside
+`templateAndInstanceObject`; a rejected combined value spends neither artifact
+assignment.
+
 To load a different instance, create a new element. Reassigning `instanceObject`
 reports an error and leaves the first instance in place.
 

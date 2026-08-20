@@ -12,12 +12,11 @@ import {
   TranslateService,
   TranslateStore,
 } from '@ngx-translate/core';
-import { InstanceDataContainer } from 'cedar-model-typescript-library';
-import { InstanceObject } from '../../models/instance-node.model';
 import { HttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 import { FallbackTranslateLoader } from '../../util/fallback-translate-loader';
 import { CeeConfig } from '../../util/config-reader';
+import { CeeJsonObject } from '../../../../cee-public-api';
 
 /**
  * Jasmine's `toHaveBeenCalledOnceWith`, in the two assertions it stood for.
@@ -124,7 +123,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     const { component, mocks } = make();
 
     component.ngOnInit();
-    component.templateObject = new InstanceDataContainer();
+    component.templateObject = {};
 
     expect(component.editorDataReady(), 'a template alone did not build the editor').toBe(true);
     // The languages a host did not choose, which is what a blank editor never reached.
@@ -143,7 +142,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     const { component, mocks } = make();
 
     component.ngOnInit();
-    component.templateObject = new InstanceDataContainer();
+    component.templateObject = {};
     component.config = { defaultLanguage: 'hu', readOnlyMode: true };
 
     expect(component.editorDataReady()).toBe(true);
@@ -194,11 +193,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
    * Which object was kept is the whole question here, so identity is all these need
    * and none of them looks inside one. `id` makes a failure report readable.
    */
-  const artifact = (id: string): InstanceObject => {
-    const container = new InstanceDataContainer();
-    container.id = id;
-    return container;
-  };
+  const artifact = (id: string): CeeJsonObject => ({ '@id': id });
 
   /** What the host was told, as one string. */
   const reported = (errors: Mock): string => errors.mock.calls.map(([message]) => String(message)).join('\n');
@@ -266,6 +261,47 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
     expect(component.instanceJson).toBe(first);
     expect(reported(errors)).toContain('"instanceObject" ignored, because the instance is already set');
+  });
+
+  it('reports an unreadable instance without spending its claim, then accepts the correction', () => {
+    const { component, errors } = make();
+    const corrected = artifact('corrected');
+
+    component.ngOnInit();
+    component.instanceObject = { '@id': {} };
+    component.templateObject = {};
+
+    expect(component.instanceJson).toBeNull();
+    expect(component.handlerContext.instanceSupplied).toBe(false);
+    expect(component.editorDataReady(), 'a rejected instance was replaced by a blank form').toBe(false);
+    expect(reported(errors)).toContain('"instanceObject" rejected because it is not a readable CEDAR instance');
+
+    component.instanceObject = corrected;
+
+    expect(component.instanceJson).toBe(corrected);
+    expect(component.handlerContext.instanceSupplied).toBe(true);
+    expect(component.editorDataReady(), 'the corrected first instance did not unblock the template').toBe(true);
+    expect(reported(errors)).not.toContain('"instanceObject" ignored');
+  });
+
+  it('leaves both claims reusable when the combined input contains an unreadable instance', () => {
+    const { component, errors } = make();
+    const corrected = { templateObject: artifact('template'), instanceObject: artifact('instance') };
+
+    component.ngOnInit();
+    component.templateAndInstanceObject = { templateObject: {}, instanceObject: { '@id': {} } };
+
+    expect(component.templateAndInstanceJson).toBeNull();
+    expect(component.editorDataReady()).toBe(false);
+    expect(reported(errors)).toContain(
+      '"templateAndInstanceObject.instanceObject" rejected because it is not a readable CEDAR instance',
+    );
+
+    component.templateAndInstanceObject = corrected;
+
+    expect(component.templateAndInstanceJson).toBe(corrected);
+    expect(component.editorDataReady()).toBe(true);
+    expect(reported(errors)).not.toContain('"templateAndInstanceObject" ignored');
   });
 
   it('spends both claims on the combined input, so neither separate input follows it', () => {
@@ -386,7 +422,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
     translate.onTranslationChange.subscribe((event) => announced.push(event.lang));
 
     component.ngOnInit();
-    component.templateObject = new InstanceDataContainer();
+    component.templateObject = {};
 
     // The built-in map, since the host has named no source yet.
     expect(translate.instant('Generic.ExpandAll')).toBe('Expand All');
@@ -404,7 +440,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
 
     component.ngOnInit();
     component.config = { languageMapPathPrefix: PREFIX };
-    component.templateObject = new InstanceDataContainer();
+    component.templateObject = {};
 
     expect(fetched).toEqual([PREFIX + 'en.json']);
     expect(translate.instant('Generic.ExpandAll')).toBe('Alles Aufklappen');
@@ -419,7 +455,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
     const { component, fetched } = wire();
 
     component.ngOnInit();
-    component.templateObject = new InstanceDataContainer();
+    component.templateObject = {};
     component.config = { languageMapPathPrefix: PREFIX, defaultLanguage: 'de' };
 
     expect(fetched.filter((url) => url === PREFIX + 'de.json')).toHaveLength(1);
@@ -430,7 +466,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
     const { component, translate, fetched } = wire();
 
     component.ngOnInit();
-    component.templateObject = new InstanceDataContainer();
+    component.templateObject = {};
     component.config = { readOnlyMode: true };
 
     expect(fetched).toEqual([]);

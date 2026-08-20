@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { ControlledFieldDataService, INTEGRATED_SEARCH_PATH } from '../../service/controlled-field-data.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
-import { CeeEventHandler } from '../../../../cee-public-api';
+import { CeeEventHandler, CeeJsonObject, CeeTemplateAndInstance } from '../../../../cee-public-api';
 import { Subject } from 'rxjs';
 import { HandlerContext } from '../../util/handler-context';
 import { InstanceSerializer } from '../../util/instance-serializer';
@@ -31,9 +31,9 @@ import { AriaDescriber } from '@angular/cdk/a11y';
 import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
 import { baseUrl, CeeConfig, configFlag, configText } from '../../util/config-reader';
 import { checkCeeConfig } from '../../util/config-validation';
-import { InstanceObject } from '../../models/instance-node.model';
-import { Template } from 'cedar-model-typescript-library';
+import { Template, TemplateInstance } from 'cedar-model-typescript-library';
 import { CedarTemplate } from '../../models/template/cedar-template.model';
+import { InstanceDeserializer } from '../../util/instance-deserializer';
 
 /**
  * One half of what an artifact input can supply.
@@ -85,9 +85,11 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   innerConfig: CeeConfig | null = null;
   private initialized = false;
   private configSet = false;
+  /** A supplied instance failed before it could become editor state. */
+  private instanceInputRejected = false;
 
   /**
-   * Which artifact a host has already supplied.
+   * Which artifact a host has already supplied and CEE has accepted.
    *
    * Every input on this element takes one assignment and keeps it. Before, the
    * element only ever accumulated state: a second `config` patched the first for
@@ -97,18 +99,19 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    * whatever you already have", so a host could not return the editor to a known
    * state, and the same assignments in a different order gave a different editor.
    *
-   * A host wanting different configuration or a different artifact creates a new
-   * element. `templateAndInstanceObject` spends both claims, which is what makes
-   * it exclusive with the two separate inputs rather than merely redundant.
+   * A host wanting different configuration or a different accepted artifact creates
+   * a new element. An unreadable instance spends nothing and can be corrected.
+   * `templateAndInstanceObject` spends both claims, which is what makes it exclusive
+   * with the two separate inputs rather than merely redundant.
    */
   private readonly claimed = new Set<ArtifactClaim>();
 
-  templateJson: InstanceObject | null = null;
-  instanceJson: InstanceObject | null = null;
-  templateAndInstanceJson: object | null = null;
+  templateJson: CeeJsonObject | null = null;
+  instanceJson: CeeJsonObject | null = null;
+  templateAndInstanceJson: CeeTemplateAndInstance | null = null;
   protected onDestroySubject = new Subject<void>();
-  private loadedTemplateJson: InstanceObject | null = null;
-  private loadedMetadata: InstanceObject | null = null;
+  private loadedTemplateJson: CeeJsonObject | null = null;
+  private loadedMetadata: CeeJsonObject | null = null;
 
   // Constructor-assigned, so no `= null` placeholder: unlike the editor's, which
   // arrive through @Input setters and really can be unset, these two exist from
@@ -195,39 +198,64 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    * not built until a template is present, so an instance supplied first waits
    * rather than arriving early.
    */
-  @Input() set templateObject(template: InstanceObject | null) {
-    if (template == null || !this.claim('templateObject', ['template'])) {
+  @Input() set templateObject(template: CeeJsonObject | null) {
+    if (template == null || !this.claimAvailable('templateObject', ['template'])) {
       return;
     }
+    this.commitClaim(['template']);
     this.applyTemplate(template);
   }
 
   /** An existing instance to load. Takes one assignment. */
-  @Input() set instanceObject(instance: InstanceObject | null) {
-    if (instance == null || !this.claim('instanceObject', ['instance'])) {
+  @Input() set instanceObject(instance: CeeJsonObject | null) {
+    if (instance == null || !this.claimAvailable('instanceObject', ['instance'])) {
       return;
     }
-    this.applyInstance(instance);
+    const parsed = this.readInstance('instanceObject', instance);
+    if (parsed === null) {
+      this.instanceInputRejected = true;
+      return;
+    }
+    this.instanceInputRejected = false;
+    this.commitClaim(['instance']);
+    this.applyInstance(instance, parsed);
   }
 
   /** Both at once. Spends the template claim and the instance claim together. */
-  @Input() set templateAndInstanceObject(templateAndInstance: object | null) {
-    if (templateAndInstance == null || !this.claim('templateAndInstanceObject', ['template', 'instance'])) {
+  @Input() set templateAndInstanceObject(templateAndInstance: CeeTemplateAndInstance | null) {
+    if (templateAndInstance == null || !this.claimAvailable('templateAndInstanceObject', ['template', 'instance'])) {
       return;
     }
-    this.applyTemplateAndInstance(templateAndInstance);
+    const { templateObject, instanceObject } = templateAndInstance;
+    if (!this.isJsonObject(templateObject)) {
+      this.messageHandlerService.error('Template Object is missing.');
+      return;
+    }
+    if (!this.isJsonObject(instanceObject)) {
+      this.messageHandlerService.error('Instance Object is missing.');
+      return;
+    }
+    const parsed = this.readInstance('templateAndInstanceObject.instanceObject', instanceObject);
+    if (parsed === null) {
+      this.instanceInputRejected = true;
+      return;
+    }
+    this.instanceInputRejected = false;
+    this.commitClaim(['template', 'instance']);
+    this.applyTemplateAndInstance(templateAndInstance, parsed);
   }
 
   /**
-   * Records that an input has been used, or reports that it already was.
+   * Checks that an input is still available, or reports that it is not.
    *
-   * Reported and ignored rather than thrown. The setter runs inside a custom
+   * A successful parse commits the claim separately. Reported and ignored rather
+   * than thrown when already claimed: the setter runs inside a custom
    * element, so an exception would surface in the host's own call stack and could
    * break a code path with nothing to do with CEE. Silence was the other option
    * and is worse: a host debugging why its second assignment did nothing would
    * get no help at all.
    */
-  private claim(input: string, parts: readonly ArtifactClaim[]): boolean {
+  private claimAvailable(input: string, parts: readonly ArtifactClaim[]): boolean {
     const spent = parts.filter((part) => this.claimed.has(part));
     if (spent.length > 0) {
       const subject = spent.length > 1 ? 'template and instance are' : `${spent[0]} is`;
@@ -237,10 +265,30 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       );
       return false;
     }
+    return true;
+  }
+
+  private commitClaim(parts: readonly ArtifactClaim[]): void {
     for (const part of parts) {
       this.claimed.add(part);
     }
-    return true;
+  }
+
+  private isJsonObject(value: unknown): value is CeeJsonObject {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
+  /** Parse before committing the set-once claim, so a rejected value can be corrected. */
+  private readInstance(input: string, instance: CeeJsonObject): TemplateInstance | null {
+    try {
+      return InstanceDeserializer.read(instance, (message) => this.messageHandlerService.error(message)).full;
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      this.messageHandlerService.error(
+        `CEDAR Embeddable Editor: "${input}" rejected because it is not a readable CEDAR instance: ${detail}`,
+      );
+      return null;
+    }
   }
 
   /*
@@ -251,19 +299,36 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    * reassignment a host may not perform — and it is internal, so the contract
    * about what a host may do does not bind it.
    */
-  private applyTemplate(template: InstanceObject): void {
+  private applyTemplate(template: CeeJsonObject): void {
     this.templateJson = template;
     // The template can be the last thing to arrive, and now renders without a
     // config, so it is one of the three things that can complete the picture.
     this.doInitialize();
   }
 
-  private applyInstance(instance: InstanceObject): void {
+  private applyInstance(instance: CeeJsonObject, parsed?: TemplateInstance): void {
+    const accepted = parsed ?? this.readInstance('sample instance', instance);
+    if (accepted === null) {
+      this.instanceInputRejected = true;
+      return;
+    }
+    this.instanceInputRejected = false;
+    this.dataContext.instanceFullData = accepted;
+    this.dataContext.invalidateDerivedViews();
     this.instanceJson = instance;
     this.handlerContext.instanceSupplied = true;
+    this.doInitialize();
   }
 
-  private applyTemplateAndInstance(templateAndInstance: object): void {
+  private applyTemplateAndInstance(templateAndInstance: CeeTemplateAndInstance, parsed?: TemplateInstance): void {
+    const accepted = parsed ?? this.readInstance('sample instance', templateAndInstance.instanceObject);
+    if (accepted === null) {
+      this.instanceInputRejected = true;
+      return;
+    }
+    this.instanceInputRejected = false;
+    this.dataContext.instanceFullData = accepted;
+    this.dataContext.invalidateDerivedViews();
     this.templateAndInstanceJson = templateAndInstance;
     this.handlerContext.instanceSupplied = true;
     this.doInitialize();
@@ -483,7 +548,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    * documents a default, a host with nothing to say had no way to say it.
    */
   editorDataReady(): boolean {
-    return this.templateJson != null || this.templateAndInstanceJson != null;
+    return !this.instanceInputRejected && (this.templateJson != null || this.templateAndInstanceJson != null);
   }
 
   private triggerUpdateOnInjectedSampleData(): void {

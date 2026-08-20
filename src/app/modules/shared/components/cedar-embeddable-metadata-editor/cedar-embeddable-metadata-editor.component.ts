@@ -6,8 +6,6 @@ import { DataContext } from '../../util/data-context';
 import { HandlerContext } from '../../util/handler-context';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
-import { InstanceSerializer } from '../../util/instance-serializer';
-import { InstanceDeserializer } from '../../util/instance-deserializer';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
 import { AUTHORITY_DESCRIPTORS, EXTERNAL_AUTHORITY_PATH } from '../../models/authority/authority-descriptor.model';
 import { TemplateTrustService } from '../../service/template-trust.service';
@@ -15,7 +13,6 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
 import { MultiInstanceObjectHandler } from '../../handler/multi-instance-object.handler';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import packageJson from 'package.json';
-import { InstanceObject } from '../../models/instance-node.model';
 import { DOWNLOAD_ITEMS, DownloadItemId } from '../../models/ui/download-item.model';
 import { downloadContentFor, downloadFilenameFor } from '../../util/download-content';
 import { triggerDownload } from '../../util/trigger-download';
@@ -243,29 +240,20 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     if (value == null || dataContext == null || handlerContext == null) {
       return;
     }
-    this.replaceInputTemplate(value);
-    setTimeout(() => {
-      const instance = dataContext.instanceFullData;
-      if (instance !== null) {
-        // Written out, then read back against the template that just replaced the
-        // old one. The instance in hand was read against the *previous* template,
-        // so re-reading is the point — and a document is what the read takes.
-        this.initDataFromInstance(InstanceSerializer.toJson(instance))
-          .then(() => {})
-          .catch(() => {});
-      }
-    });
+    try {
+      this.replaceInputTemplate(value);
+    } catch (error) {
+      this.reportArtifactError('templateObject', error);
+      return;
+    }
+    this.deferInstanceRender('templateObject');
   }
 
-  @Input() set instanceJsonObject(value: InstanceObject | null) {
+  @Input() set instanceJsonObject(value: object | null) {
     if (value == null || this.handlerContext == null) {
       return;
     }
-    setTimeout(() => {
-      this.initDataFromInstance(value)
-        .then(() => {})
-        .catch(() => {});
-    });
+    this.deferInstanceRender('instanceObject');
   }
 
   @Input() set templateAndInstanceObject(templateAndInstance: object | null) {
@@ -282,21 +270,25 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       this.messageHandlerService.error('Instance Object is missing.');
       return;
     }
-    this.setDataContextWithInstance(instanceObject);
-    this.replaceInputTemplate(templateObject);
+    try {
+      this.replaceInputTemplate(templateObject);
+    } catch (error) {
+      this.reportArtifactError('templateAndInstanceObject.templateObject', error);
+      return;
+    }
+    this.deferInstanceRender('templateAndInstanceObject');
+  }
+
+  /** Keep all deferred artifact work on one error-reporting path. */
+  private deferInstanceRender(input: string): void {
     setTimeout(() => {
-      this.initDataWithDataContext()
-        .then(() => {})
-        .catch(() => {});
+      this.initDataFromInstance().catch((error) => this.reportArtifactError(input, error));
     });
   }
 
-  private async initDataWithDataContext(): Promise<void> {
-    if (this.handlerContext) {
-      const dataContext = this.handlerContext.dataContext;
-      this.handlerContext.buildQualityReport();
-      return this.renderInstance(dataContext);
-    }
+  private reportArtifactError(input: string, error: unknown): void {
+    const detail = error instanceof Error ? error.message : String(error);
+    this.messageHandlerService.error(`CEDAR Embeddable Editor: "${input}" could not be loaded: ${detail}`);
   }
 
   private replaceInputTemplate(templateObject: object): void {
@@ -310,14 +302,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     this.activeComponentRegistry.clear();
   }
 
-  private async initDataFromInstance(instance: object): Promise<void> {
+  private async initDataFromInstance(): Promise<void> {
     if (this.handlerContext) {
-      this.setDataContextWithInstance(instance);
       const dataContext = this.handlerContext.dataContext;
       const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
-      // `templateRepresentation` is null only before a template has been set, and
-      // an instance cannot arrive first — `initDataFromInstance` is reached from the
-      // artifact setters, both of which run `replaceInputTemplate` ahead of it.
       const representation = dataContext.templateRepresentation;
       if (representation === null) {
         return;
@@ -328,25 +316,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       );
       return this.renderInstance(dataContext);
     }
-  }
-
-  /**
-   * Take in the instance the host page handed us.
-   *
-   * Read once by the model library and projected into the two trees CEE edits.
-   * It used to be cloned twice, with one copy walked to delete envelope keys —
-   * a walk that had to guess from an untyped object which nodes were values,
-   * and got it wrong for any IRI carrying a `@type`. See `InstanceDeserializer`.
-   */
-  setDataContextWithInstance(instanceObject: object): void {
-    const handlerContext = this.handlerContext;
-    if (handlerContext == null) {
-      return;
-    }
-    const { full } = InstanceDeserializer.read(instanceObject, (message) => this.messageHandlerService.error(message));
-    const dataContext = handlerContext.dataContext;
-    dataContext.instanceFullData = full;
-    dataContext.invalidateDerivedViews();
   }
 
   private async renderInstance(dataContext: DataContext): Promise<void> {

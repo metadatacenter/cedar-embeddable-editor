@@ -3029,6 +3029,67 @@ test.describe('host input timing', () => {
     expect(valueOf(metadata, '_access'), 'the first instance should still be the one loaded').toBe('Private');
   });
 
+  test('an unreadable instance is reported and can be corrected through either input path', async ({ page }) => {
+    await open(page, '17-real-flat');
+
+    const result = await page.evaluate(async () => {
+      const template = await (await fetch('./fixtures/17-real-flat.json')).json();
+      const seed = structuredClone((document.querySelector('cedar-embeddable-editor') as any).currentMetadata);
+      seed['schema:name'] = 'RECOVERED RECORD';
+      seed.text_field = { '@value': 'data preserved by retry' };
+
+      const exercise = async (mode: 'separate' | 'combined') => {
+        const editor = document.createElement('cedar-embeddable-editor') as any;
+        const errors: string[] = [];
+        editor.eventHandler = { error: (label: string) => errors.push(label) };
+        document.querySelector('#frame')!.appendChild(editor);
+
+        const malformed = structuredClone(seed);
+        malformed['@id'] = {};
+        if (mode === 'combined') {
+          editor.templateAndInstanceObject = { templateObject: template, instanceObject: malformed };
+        } else {
+          editor.instanceObject = malformed;
+          editor.templateObject = template;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const afterRejection = structuredClone(editor.currentMetadata);
+        const renderedAfterRejection = editor.shadowRoot?.querySelector(
+          'app-cedar-embeddable-metadata-editor',
+        );
+
+        if (mode === 'combined') {
+          editor.templateAndInstanceObject = { templateObject: template, instanceObject: seed };
+        } else {
+          editor.instanceObject = seed;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        const afterCorrection = structuredClone(editor.currentMetadata);
+
+        return {
+          errors,
+          afterRejection,
+          renderedAfterRejection: renderedAfterRejection !== null,
+          correctedName: afterCorrection['schema:name'],
+          correctedValue: afterCorrection.text_field?.['@value'],
+        };
+      };
+
+      return { separate: await exercise('separate'), combined: await exercise('combined') };
+    });
+
+    for (const [mode, observed] of Object.entries(result)) {
+      expect(observed.errors.join('\n'), `${mode} did not report the rejected instance`).toContain(
+        'rejected because it is not a readable CEDAR instance',
+      );
+      expect(observed.errors.join('\n'), `${mode} spent its claim on the rejected instance`).not.toContain('ignored');
+      expect(observed.afterRejection, `${mode} exposed a replacement skeleton after rejection`).toEqual({});
+      expect(observed.renderedAfterRejection, `${mode} rendered a blank form after rejection`).toBe(false);
+      expect(observed.correctedName, `${mode} did not load the corrected instance`).toBe('RECOVERED RECORD');
+      expect(observed.correctedValue, `${mode} lost the corrected instance value`).toBe('data preserved by retry');
+    }
+  });
+
   test('reassigning a template is refused too', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance');
     const refused = await page.evaluate(async () => {
@@ -3679,10 +3740,9 @@ test.describe('the host event handler', () => {
   /**
    * A fresh element, because the assignment under test has to be the first one.
    *
-   * The combined input needs both members, and reaching that complaint means
-   * spending the artifact claim on a malformed object — which the element already
-   * loaded through `open` has spent. So this builds its own, which is also what a
-   * host now does to load anything a second time.
+   * The combined input needs both members, and the element loaded through `open`
+   * already holds an accepted template. So this builds a fresh one whose first
+   * assignment can exercise the malformed-input diagnostic.
    */
   test('receives a host-input error, not only startup traces', async ({ page }) => {
     await open(page, '01-input-types', undefined, undefined, undefined, '&e=1');
