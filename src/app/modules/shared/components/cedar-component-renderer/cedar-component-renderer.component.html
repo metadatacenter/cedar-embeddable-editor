@@ -1,207 +1,214 @@
-@if (iterableComponent) {
-  <mat-accordion multi>
-    <mat-expansion-panel
-      (opened)="panelOpenState = true"
-      (closed)="panelOpenState = false; allExpanded = false"
-      [expanded]="panelOpenState"
-    >
-      <mat-expansion-panel-header>
-        <mat-panel-title class="cee-element-heading">
-          <app-cedar-component-header [componentToRender]="iterableComponent"></app-cedar-component-header>
-        </mat-panel-title>
-      </mat-expansion-panel-header>
-      @if (iterableComponent.isMulti() && iterableAsMultiComponent) {
-        <app-cedar-multi-pager
-          [componentToRender]="iterableAsMultiComponent"
-          [handlerContext]="handlerContext"
-          [isAlignedUp]="true"
-          [pageBreakPaginatorService]="pageBreakPaginatorService"
-        >
-        </app-cedar-multi-pager>
-      }
-      @if (shouldRenderContentOfIterable(iterableComponent)) {
-        <mat-card-content class="cee-element-content">
-          @for (childComponent of iterableComponent.children; track childComponent) {
-            @if (!childComponent.hidden) {
-              <app-cedar-component-renderer
-                [componentToRender]="childComponent"
+@if (renderDecision; as decision) {
+  @switch (decision.kind) {
+    @case ('element') {
+      @if (decision.component; as iterableComponent) {
+        <mat-accordion multi>
+          <mat-expansion-panel
+            (opened)="panelOpenState = true"
+            (closed)="panelOpenState = false; allExpanded = false"
+            [expanded]="panelOpenState"
+          >
+            <mat-expansion-panel-header>
+              <mat-panel-title class="cee-element-heading">
+                <app-cedar-component-header [componentToRender]="iterableComponent"></app-cedar-component-header>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            @if (decision.multiComponent) {
+              <app-cedar-multi-pager
+                [componentToRender]="decision.multiComponent"
                 [handlerContext]="handlerContext"
-                [allExpanded]="allExpanded"
+                [isAlignedUp]="true"
                 [pageBreakPaginatorService]="pageBreakPaginatorService"
-              >
-                ></app-cedar-component-renderer
-              >
+              ></app-cedar-multi-pager>
             }
-          }
-        </mat-card-content>
+            @if (shouldRenderContentOfIterable(iterableComponent)) {
+              <mat-card-content class="cee-element-content">
+                @for (childComponent of iterableComponent.children; track childComponent) {
+                  @if (!childComponent.hidden) {
+                    <app-cedar-component-renderer
+                      [componentToRender]="childComponent"
+                      [handlerContext]="handlerContext"
+                      [allExpanded]="allExpanded"
+                      [pageBreakPaginatorService]="pageBreakPaginatorService"
+                    ></app-cedar-component-renderer>
+                  }
+                }
+              </mat-card-content>
+            }
+          </mat-expansion-panel>
+        </mat-accordion>
       }
-    </mat-expansion-panel>
-  </mat-accordion>
-}
-@if (nonIterableComponent) {
-  <div class="child-component-card non-iterable-component">
-    <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
-    @if (nonIterableComponent.isMultiPage() && shouldRenderOccurrencePager()) {
-      <app-cedar-multi-pager
-        [componentToRender]="nonIterableComponent"
-        [handlerContext]="handlerContext"
-        [isAlignedUp]="false"
-        [pageBreakPaginatorService]="pageBreakPaginatorService"
-      >
-      </app-cedar-multi-pager>
     }
-    @if (shouldRenderContentOfNonIterable(nonIterableComponent)) {
-      <div class="child-component-content">
-        <!--
-          The description, beneath the label whose line already carries the terse facts. Renders
-          itself only in read-only mode, and only when the field has one, so an editor is untouched.
-        -->
-        <app-cedar-field-spec [fieldToDescribe]="nonIterableComponent" variant="description"></app-cedar-field-spec>
-        @if (showSpecInsteadOfControl(nonIterableComponent)) {
-          <app-cedar-spec-box [fieldToDescribe]="nonIterableComponent"></app-cedar-spec-box>
-        } @else {
-          <!-- These are the regular components -->
-          @if (nonIterableComponent.basicInfo.inputType === InputType.numeric) {
-            <app-cedar-input-numeric
+    @case ('field') {
+      @if (decision.component; as nonIterableComponent) {
+        <div class="child-component-card non-iterable-component">
+          <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
+          @if (nonIterableComponent.isMultiPage() && shouldRenderOccurrencePager()) {
+            <app-cedar-multi-pager
               [componentToRender]="nonIterableComponent"
               [handlerContext]="handlerContext"
-            ></app-cedar-input-numeric>
+              [isAlignedUp]="false"
+              [pageBreakPaginatorService]="pageBreakPaginatorService"
+            ></app-cedar-multi-pager>
           }
-          @if (
-            nonIterableComponent.basicInfo.inputType === InputType.text ||
-            nonIterableComponent.basicInfo.inputType === InputType.textarea
-          ) {
-            <app-cedar-input-text
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-text>
+          @if (shouldRenderContentOfNonIterable(nonIterableComponent)) {
+            <div class="child-component-content">
+              <!--
+              The description, beneath the label whose line already carries the terse facts. Renders
+              itself only in read-only mode, and only when the field has one, so an editor is untouched.
+            -->
+              <app-cedar-field-spec
+                [fieldToDescribe]="nonIterableComponent"
+                variant="description"
+              ></app-cedar-field-spec>
+              @if (showSpecInsteadOfControl(nonIterableComponent)) {
+                <app-cedar-spec-box [fieldToDescribe]="nonIterableComponent"></app-cedar-spec-box>
+              } @else {
+                @switch (decision.renderer) {
+                  @case ('numeric') {
+                    <app-cedar-input-numeric
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-numeric>
+                  }
+                  @case ('text') {
+                    <app-cedar-input-text
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-text>
+                  }
+                  @case ('controlled') {
+                    <app-cedar-input-controlled
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-controlled>
+                  }
+                  @case ('email') {
+                    <app-cedar-input-email
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-email>
+                  }
+                  @case ('checkbox') {
+                    <app-cedar-input-checkbox
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-checkbox>
+                  }
+                  @case ('select') {
+                    <app-cedar-input-select
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-select>
+                  }
+                  @case ('attribute-value') {
+                    <app-cedar-input-attribute-value
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-attribute-value>
+                  }
+                  @case ('multiple-choice') {
+                    <app-cedar-input-multiple-choice
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-multiple-choice>
+                  }
+                  @case ('datetime') {
+                    <app-cedar-input-datetime
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-datetime>
+                  }
+                  @case ('link') {
+                    <app-cedar-input-link
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-link>
+                  }
+                  @case ('orcid') {
+                    <app-cedar-input-orcid
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-orcid>
+                  }
+                  @case ('ror') {
+                    <app-cedar-input-ror
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-ror>
+                  }
+                  @case ('pfas') {
+                    <app-cedar-input-pfas
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-pfas>
+                  }
+                  @case ('pmid') {
+                    <app-cedar-input-pmid
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-pmid>
+                  }
+                  @case ('rrid') {
+                    <app-cedar-input-rrid
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-rrid>
+                  }
+                  @case ('nih-grant') {
+                    <app-cedar-input-nih-grant
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-nih-grant>
+                  }
+                  @case ('doi') {
+                    <app-cedar-input-doi
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-doi>
+                  }
+                  @case ('phone') {
+                    <app-cedar-input-phone
+                      [componentToRender]="nonIterableComponent"
+                      [handlerContext]="handlerContext"
+                    ></app-cedar-input-phone>
+                  }
+                }
+              }
+            </div>
           }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.controlled) {
-            <app-cedar-input-controlled
-              [componentToRender]="nonIterableComponent"
+        </div>
+      }
+    }
+    @case ('static') {
+      @if (decision.component; as staticComponent) {
+        @switch (decision.renderer) {
+          @case ('section-break') {
+            <app-cedar-static-section-break
+              [componentToRender]="staticComponent"
               [handlerContext]="handlerContext"
-            ></app-cedar-input-controlled>
+            ></app-cedar-static-section-break>
           }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.email) {
-            <app-cedar-input-email
-              [componentToRender]="nonIterableComponent"
+          @case ('image') {
+            <app-cedar-static-image
+              [componentToRender]="staticComponent"
               [handlerContext]="handlerContext"
-            ></app-cedar-input-email>
+            ></app-cedar-static-image>
           }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.checkbox) {
-            <app-cedar-input-checkbox
-              [componentToRender]="nonIterableComponent"
+          @case ('youtube') {
+            <app-cedar-static-youtube
+              [componentToRender]="staticComponent"
               [handlerContext]="handlerContext"
-            ></app-cedar-input-checkbox>
+            ></app-cedar-static-youtube>
           }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.list) {
-            <app-cedar-input-select
-              [componentToRender]="nonIterableComponent"
+          @case ('rich-text') {
+            <app-cedar-static-rich-text
+              [componentToRender]="staticComponent"
               [handlerContext]="handlerContext"
-            ></app-cedar-input-select>
-          }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.attributeValue) {
-            <app-cedar-input-attribute-value
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-attribute-value>
-          }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.radio) {
-            <app-cedar-input-multiple-choice
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-multiple-choice>
-          }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.temporal) {
-            <app-cedar-input-datetime
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-datetime>
-          }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.link) {
-            <app-cedar-input-link
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-link>
-          }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.orcid) {
-            <app-cedar-input-orcid
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-orcid>
-          }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.ror) {
-            <app-cedar-input-ror
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-ror>
-          }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.pfas) {
-            <app-cedar-input-pfas
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-pfas>
-          }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.pmid) {
-            <app-cedar-input-pmid
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-pmid>
-          }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.rrid) {
-            <app-cedar-input-rrid
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-rrid>
-          }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.nihGrant) {
-            <app-cedar-input-nih-grant
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-nih-grant>
-          }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.doi) {
-            <app-cedar-input-doi
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-doi>
-          }
-          @if (nonIterableComponent.basicInfo.inputType === InputType.phoneNumber) {
-            <app-cedar-input-phone
-              [componentToRender]="nonIterableComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-input-phone>
+            ></app-cedar-static-rich-text>
           }
         }
-      </div>
+      }
     }
-  </div>
-}
-@if (staticComponent) {
-  <!-- This is the normal section break -->
-  @if (staticComponent.basicInfo.inputType === InputType.sectionBreak) {
-    <app-cedar-static-section-break
-      [componentToRender]="staticComponent"
-      [handlerContext]="handlerContext"
-    ></app-cedar-static-section-break>
-  }
-  <!-- These are the non-collapsed static components -->
-  @if (staticComponent.basicInfo.inputType === InputType.image) {
-    <app-cedar-static-image
-      [componentToRender]="staticComponent"
-      [handlerContext]="handlerContext"
-    ></app-cedar-static-image>
-  }
-  @if (staticComponent.basicInfo.inputType === InputType.youtube) {
-    <app-cedar-static-youtube
-      [componentToRender]="staticComponent"
-      [handlerContext]="handlerContext"
-    ></app-cedar-static-youtube>
-  }
-  @if (staticComponent.basicInfo.inputType === InputType.richText) {
-    <app-cedar-static-rich-text
-      [componentToRender]="staticComponent"
-      [handlerContext]="handlerContext"
-    ></app-cedar-static-rich-text>
   }
 }

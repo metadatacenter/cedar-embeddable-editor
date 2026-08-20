@@ -1,17 +1,13 @@
-import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ElementComponent } from '../../models/component/element-component.model';
-import { SingleElementComponent } from '../../models/element/single-element-component.model';
 import { MultiElementComponent } from '../../models/element/multi-element-component.model';
-import { CedarTemplate } from '../../models/template/cedar-template.model';
 import { FieldComponent } from '../../models/component/field-component.model';
 import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
-import { SingleFieldComponent } from '../../models/field/single-field-component.model';
 import { HandlerContext } from '../../util/handler-context';
-import { StaticFieldComponent } from '../../models/static/static-field-component.model';
 import { InputType } from '../../models/input-type.model';
-import { MultiComponent } from '../../models/component/multi-component.model';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
+import { ComponentRenderDecision, decideComponentRender } from './component-render-decision';
 
 @Component({
   selector: 'app-cedar-component-renderer',
@@ -21,15 +17,8 @@ import { PageBreakPaginatorService } from '../../service/page-break-paginator.se
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class CedarComponentRendererComponent {
-  protected readonly InputType = InputType;
-
-  private component!: CedarComponent;
-  iterableComponent: ElementComponent | null = null;
-  nonIterableComponent: FieldComponent | null = null;
-  iterableAsMultiComponent: MultiComponent | null = null;
-  /** Null for anything that is not a static field, which the template already tests. */
-  staticComponent: StaticFieldComponent | null = null;
+export class CedarComponentRendererComponent implements OnChanges {
+  renderDecision: ComponentRenderDecision | null = null;
   panelOpenState = false;
   @Input({ required: true }) handlerContext!: HandlerContext;
   @Input({ required: true }) pageBreakPaginatorService!: PageBreakPaginatorService;
@@ -44,46 +33,19 @@ export class CedarComponentRendererComponent {
     this.panelOpenState = allExpanded;
     this._allExpanded = allExpanded;
   }
-  constructor() {}
-
   @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {
-    this.component = componentToRender;
-    this.iterableComponent = null;
-    this.nonIterableComponent = null;
-    this.iterableAsMultiComponent = null;
-    // Reset alongside the other three. Angular reuses a renderer instance while
-    // changing its input, and this one was never cleared — so a static field
-    // followed by anything else left the static block rendering underneath it,
-    // its `@if` still satisfied by the previous component.
-    this.staticComponent = null;
-    if (
-      componentToRender instanceof SingleElementComponent ||
-      componentToRender instanceof MultiElementComponent ||
-      componentToRender instanceof CedarTemplate
-    ) {
-      const elementComponent = componentToRender as ElementComponent;
-      if (!elementComponent.hidden) {
-        this.iterableComponent = componentToRender as ElementComponent;
-      }
-    }
-    if (componentToRender instanceof SingleFieldComponent || componentToRender instanceof MultiFieldComponent) {
-      const fieldComponent = componentToRender as FieldComponent;
-      if (!fieldComponent.hidden) {
-        this.nonIterableComponent = componentToRender as FieldComponent;
-      }
-    }
-    if (componentToRender instanceof StaticFieldComponent) {
-      this.staticComponent = componentToRender as StaticFieldComponent;
-    }
-    if (this.iterableComponent != null && this.iterableComponent.isMulti()) {
-      this.iterableAsMultiComponent = this.iterableComponent as unknown as MultiComponent;
+    this.renderDecision = decideComponentRender(componentToRender);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['componentToRender'] && this.renderDecision?.kind === 'unsupported') {
+      this.handlerContext.messageHandlerService.error(this.renderDecision.reason);
     }
   }
 
   shouldRenderContentOfIterable(iterableComponent: ElementComponent): boolean {
-    if (iterableComponent.isMulti()) {
-      const multiElement: MultiElementComponent = iterableComponent as MultiElementComponent;
-      if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiElement)) {
+    if (iterableComponent instanceof MultiElementComponent) {
+      if (!this.handlerContext.multiInstanceObjectService.hasMultiInstances(iterableComponent)) {
         return false;
       }
     }
@@ -119,9 +81,11 @@ export class CedarComponentRendererComponent {
   }
 
   shouldRenderContentOfNonIterable(nonIterableComponent: FieldComponent): boolean {
-    if (nonIterableComponent.isMulti()) {
-      const multiField: MultiFieldComponent = nonIterableComponent as MultiFieldComponent;
-      if (multiField.isMultiPage() && !this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiField)) {
+    if (nonIterableComponent instanceof MultiFieldComponent) {
+      if (
+        nonIterableComponent.isMultiPage() &&
+        !this.handlerContext.multiInstanceObjectService.hasMultiInstances(nonIterableComponent)
+      ) {
         // Editing, an unoccupied repeating field is its add control and nothing else, which is right:
         // there is no occurrence to show until someone adds one. Reading a template, the same field
         // showed a name and a blank, so what it will look like was the one thing missing.
