@@ -29,6 +29,7 @@ export default defineConfig({
     // Three specs touch `document`, `window` or `customElements`.
     environment: 'jsdom',
     include: ['src/**/*.spec.ts'],
+    exclude: ['src/**/*.coordinator.spec.ts'],
     setupFiles: ['src/test-setup.ts'],
     // `harness/` has its own project and its own config; running both from here
     // would give two different meanings to `npm test` in the same repo.

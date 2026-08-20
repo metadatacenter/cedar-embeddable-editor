@@ -1,6 +1,7 @@
 import { CedarComponent } from '../models/component/cedar-component.model';
 import { ActiveComponentRegistryService } from './active-component-registry.service';
 import { HandlerContext } from '../util/handler-context';
+import { RenderSchedulerService } from './render-scheduler.service';
 
 export class PageBreakPaginatorService {
   /*
@@ -16,6 +17,7 @@ export class PageBreakPaginatorService {
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,
     private handlerContext: HandlerContext,
+    private renderScheduler: RenderSchedulerService,
   ) {}
 
   reset(pbChildren: Array<CedarComponent[]>): void {
@@ -39,11 +41,17 @@ export class PageBreakPaginatorService {
   setPageNumberAndGet(pageNum: number): CedarComponent[] | null {
     if (pageNum >= 0 && pageNum < this.pageBreakChildren.length) {
       this.currentPageBreakIndex = pageNum;
-      setTimeout(() => {
-        for (const childComponent of this.getCurrentPage()) {
-          this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
-        }
-      });
+      void this.renderScheduler
+        .schedule(() => {
+          for (const childComponent of this.getCurrentPage()) {
+            this.activeComponentRegistry.updateViewToModel(childComponent, this.handlerContext);
+          }
+        })
+        .catch((error) =>
+          this.handlerContext.messageHandlerService.error(
+            `Page render failed: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        );
       return this.getCurrentPage();
     }
     return null;

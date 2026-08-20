@@ -8,6 +8,10 @@ import { MessageHandlerService } from '../../service/message-handler.service';
 import { HandlerContext } from '../../util/handler-context';
 import { DataContext } from '../../util/data-context';
 import { UserPreferencesService } from '../../service/user-preferences.service';
+import { RenderSchedulerService } from '../../service/render-scheduler.service';
+
+const renderScheduler = (): RenderSchedulerService =>
+  ({ schedule: vi.fn(() => Promise.resolve(false)) }) as unknown as RenderSchedulerService;
 
 /**
  * The `config` object is the CEE's host-facing API, and its setter is the one
@@ -40,6 +44,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       // code than the thing it replaces.
       new TemplateTrustService(),
       new UserPreferencesService(),
+      renderScheduler(),
     );
 
   /**
@@ -181,6 +186,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
         } as unknown as MessageHandlerService,
         new TemplateTrustService(),
         new UserPreferencesService(),
+        renderScheduler(),
       );
       component.handlerContext = {} as unknown as HandlerContext;
       component.dataContext = { setInputTemplate, instanceFullData: {} } as unknown as DataContext;
@@ -193,10 +199,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       // `initDataFromInstance` is private, so the spy needs a view of the component
       // that admits it. Naming the one member is narrower than `any` and says which
       // private the test is reaching for.
-      vi.spyOn(
-        component as unknown as { initDataFromInstance: () => Promise<void> },
-        'initDataFromInstance',
-      ).mockReturnValue(Promise.resolve());
+      vi.spyOn(component as unknown as { initDataFromInstance: () => void }, 'initDataFromInstance').mockReturnValue();
 
       component.templateJsonObject = { title: 'replacement' };
 
@@ -243,6 +246,7 @@ describe('CedarEmbeddableMetadataEditorComponent read-only wiring', () => {
       } as unknown as MessageHandlerService,
       new TemplateTrustService(),
       preferences,
+      renderScheduler(),
     );
     return { component, modes };
   };

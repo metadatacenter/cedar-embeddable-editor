@@ -9,6 +9,7 @@ import { MessageHandlerService } from '../../service/message-handler.service';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { Subscription } from 'rxjs';
+import { RenderSchedulerService } from '../../service/render-scheduler.service';
 
 @Component({
   selector: 'app-cedar-multi-pager',
@@ -48,6 +49,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
     translateService: TranslateService,
     messageHandlerService: MessageHandlerService,
     userPreferencesService: UserPreferencesService,
+    private renderScheduler: RenderSchedulerService,
   ) {
     this.activeComponentRegistry = activeComponentRegistry;
     this.translateService = translateService;
@@ -108,7 +110,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
     this.handlerContext.setCurrentIndex(this.component, this.firstIndex);
     this.computeLastIndex();
     this.updatePageNumbers();
-    this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
+    this.scheduleViewSync();
   }
 
   private updatePageNumbers(): void {
@@ -154,45 +156,34 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
     }
     this.handlerContext.setCurrentIndex(this.component, chipIdx);
     this.recomputeNumbers();
-    setTimeout(() => {
-      this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
-    });
+    this.scheduleViewSync();
   }
 
   clickedAdd(event: MouseEvent): void {
     this.handlerContext.addMultiInstance(this.component);
     this.recomputeNumbers();
-    // The component will be null if the count was 0 before
-    // We need to wait for it to be available
-    setTimeout(() => {
-      this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
-      this.emitEvent(event, 'multiInstanceAdded');
-    });
+    this.emitEvent(event, 'multiInstanceAdded');
+    this.scheduleViewSync();
   }
 
   clickedCopy(event: MouseEvent): void {
     this.handlerContext.copyMultiInstance(this.component);
     this.recomputeNumbers();
-    setTimeout(() => {
-      this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
-      this.emitEvent(event, 'multiInstanceCopied');
-    });
+    this.emitEvent(event, 'multiInstanceCopied');
+    this.scheduleViewSync();
   }
 
   clickedDelete(event: MouseEvent): void {
     this.handlerContext.deleteMultiInstance(this.component);
     this.recomputeNumbers();
 
-    setTimeout(() => {
+    this.emitEvent(event, 'multiInstanceDeleted');
+    this.scheduleAfterRender(() => {
       this.activeComponentRegistry.deleteCurrentValue(this.component);
-      this.emitEvent(event, 'multiInstanceDeleted');
-    });
-
-    if ((this.currentMultiInfo?.currentCount ?? 0) > 0) {
-      setTimeout(() => {
+      if ((this.currentMultiInfo?.currentCount ?? 0) > 0) {
         this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext);
-      });
-    }
+      }
+    });
   }
 
   isEnabledDelete(): boolean {
@@ -245,5 +236,19 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
       cancelable: true,
     });
     event.target?.dispatchEvent(myEvent);
+  }
+
+  private scheduleViewSync(): void {
+    this.scheduleAfterRender(() => this.activeComponentRegistry.updateViewToModel(this.component, this.handlerContext));
+  }
+
+  private scheduleAfterRender(task: () => void): void {
+    void this.renderScheduler
+      .schedule(task)
+      .catch((error) =>
+        this.messageHandlerService.error(
+          `Multi-instance render failed: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      );
   }
 }

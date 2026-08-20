@@ -34,6 +34,7 @@ import { checkCeeConfig } from '../../util/config-validation';
 import { Template, TemplateInstance } from 'cedar-model-typescript-library';
 import { CedarTemplate } from '../../models/template/cedar-template.model';
 import { InstanceDeserializer } from '../../util/instance-deserializer';
+import { RenderSchedulerService } from '../../service/render-scheduler.service';
 
 /**
  * One half of what an artifact input can supply.
@@ -60,6 +61,7 @@ type ArtifactClaim = 'template' | 'instance';
     ExternalAuthorityLookupService,
     GlobalSettingsContextService,
     MessageHandlerService,
+    RenderSchedulerService,
     UserPreferencesService,
     {
       provide: TranslateLoader,

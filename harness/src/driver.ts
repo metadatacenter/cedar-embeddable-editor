@@ -26,6 +26,7 @@ import { present } from './nodes';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { CedarTemplate } from '@cee/models/template/cedar-template.model';
 import type { Template, TemplateInstance } from 'cedar-model-typescript-library';
+import type { RenderSchedulerService } from '@cee/service/render-scheduler.service';
 
 /**
  * Captures CEE's log output instead of printing it.
@@ -89,12 +90,13 @@ export class CeeDriver {
     if (opts.readOnlyMode) this.handlerContext.enableReadOnlyMode();
     // Mirrors the wrapper: empty-field hiding is only honoured in read-only mode.
 
-    // The paginator only touches ActiveComponentRegistryService inside
-    // setPageNumberAndGet(), which schedules a setTimeout to push model values
-    // back into live widgets. There are no widgets here, so the registry is
-    // genuinely unused and null is safe. reset() — the only method the startup
-    // path calls — never reads it.
-    this.paginator = new PageBreakPaginatorService(null as never, this.handlerContext);
+    // The paginator only touches these collaborators during page navigation.
+    // The headless startup path calls reset(), so neither has work to perform.
+    this.paginator = new PageBreakPaginatorService(
+      null as never,
+      this.handlerContext,
+      { schedule: () => Promise.resolve(false) } as unknown as RenderSchedulerService,
+    );
 
     if (opts.instance) {
       // Exactly what CedarEmbeddableMetadataEditorComponent

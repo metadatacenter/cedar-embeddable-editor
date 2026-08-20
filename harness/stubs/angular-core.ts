@@ -64,6 +64,20 @@ export abstract class ChangeDetectorRef {
   abstract checkNoChanges(): void;
 }
 
+/** Types reached by the render scheduler; the headless harness never constructs it. */
+export abstract class Injector {}
+
+export interface AfterRenderRef {
+  destroy(): void;
+}
+
+export const afterNextRender = (
+  _callback: () => void,
+  _options?: { injector?: Injector },
+): AfterRenderRef => {
+  throw new Error('The headless harness cannot schedule Angular render work.');
+};
+
 /**
  * Throws, deliberately.
  *

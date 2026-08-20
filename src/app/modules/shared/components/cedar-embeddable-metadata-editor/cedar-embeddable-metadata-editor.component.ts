@@ -18,6 +18,7 @@ import { downloadContentFor, downloadFilenameFor } from '../../util/download-con
 import { triggerDownload } from '../../util/trigger-download';
 import { baseUrl, CeeConfig, configFlag } from '../../util/config-reader';
 import type { CeeTemplateAndInstance } from '../../../../cee-public-api';
+import { RenderSchedulerService } from '../../service/render-scheduler.service';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -93,8 +94,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    */
   bridgeBaseUrl: string | null = null;
 
-  private initDataFromInstanceQueue: Promise<void> = Promise.resolve();
-
   allExpanded = true;
   ceeVersion: string;
 
@@ -127,6 +126,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     private messageHandlerService: MessageHandlerService,
     private templateTrustService: TemplateTrustService,
     private userPreferencesService: UserPreferencesService,
+    private renderScheduler: RenderSchedulerService,
   ) {
     this.ceeVersion = packageJson.version;
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
@@ -164,7 +164,9 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   @Input() set handlerContextObject(handlerContext: HandlerContext | null) {
     this.handlerContext = handlerContext;
     this.pageBreakPaginatorService =
-      handlerContext === null ? null : new PageBreakPaginatorService(this.activeComponentRegistry, handlerContext);
+      handlerContext === null
+        ? null
+        : new PageBreakPaginatorService(this.activeComponentRegistry, handlerContext, this.renderScheduler);
   }
 
   @Input() set config(value: CeeConfig | null) {
@@ -247,14 +249,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       this.reportArtifactError('templateObject', error);
       return;
     }
-    this.deferInstanceRender('templateObject');
+    this.initializeAndScheduleRender('templateObject');
   }
 
   @Input() set instanceJsonObject(value: object | null) {
     if (value == null || this.handlerContext == null) {
       return;
     }
-    this.deferInstanceRender('instanceObject');
+    this.initializeAndScheduleRender('instanceObject');
   }
 
   @Input() set templateAndInstanceObject(templateAndInstance: CeeTemplateAndInstance | null) {
@@ -275,14 +277,26 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       this.reportArtifactError('templateAndInstanceObject.templateObject', error);
       return;
     }
-    this.deferInstanceRender('templateAndInstanceObject');
+    this.initializeAndScheduleRender('templateAndInstanceObject');
   }
 
-  /** Keep all deferred artifact work on one error-reporting path. */
-  private deferInstanceRender(input: string): void {
-    setTimeout(() => {
-      this.initDataFromInstance().catch((error) => this.reportArtifactError(input, error));
-    });
+  /** Build state now, then push it to widgets after Angular renders that state. */
+  private initializeAndScheduleRender(input: string): void {
+    try {
+      this.initDataFromInstance();
+    } catch (error) {
+      this.reportArtifactError(input, error);
+      return;
+    }
+
+    void this.renderScheduler
+      .schedule(() => this.syncRenderedInstance())
+      .then((rendered) => {
+        if (rendered) {
+          this.messageHandlerService.ready();
+        }
+      })
+      .catch((error) => this.reportArtifactError(input, error));
   }
 
   private reportArtifactError(input: string, error: unknown): void {
@@ -301,7 +315,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     this.activeComponentRegistry.clear();
   }
 
-  private async initDataFromInstance(): Promise<void> {
+  private initDataFromInstance(): void {
     if (this.handlerContext) {
       const dataContext = this.handlerContext.dataContext;
       const multiInstanceObjectService: MultiInstanceObjectHandler = this.handlerContext.multiInstanceObjectService;
@@ -313,38 +327,18 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         representation,
         dataContext.instanceExtractData,
       );
-      return this.renderInstance(dataContext);
     }
   }
 
-  private async renderInstance(dataContext: DataContext): Promise<void> {
-    this.initDataFromInstanceQueue = this.initDataFromInstanceQueue
-      // The failing assignment reports through its own returned promise; let a
-      // later, corrected host assignment render instead of inheriting that failure.
-      .catch(() => {})
-      .then(async () => {
-        // Held in a local: the deferred callback runs a tick later, and the two
-        // reads of `dataContext.templateRepresentation` that the check guarded were
-        // separate reads of a mutable field rather than one narrowed value.
-        const representation = dataContext.templateRepresentation;
-        const handlerContext = this.handlerContext;
-        if (representation != null && representation.children != null && handlerContext != null) {
-          await new Promise<void>((resolve, reject) => {
-            setTimeout(() => {
-              try {
-                for (const childComponent of representation.children) {
-                  this.activeComponentRegistry.updateViewToModel(childComponent, handlerContext);
-                }
-                resolve();
-              } catch (error) {
-                reject(error instanceof Error ? error : new Error(String(error)));
-              }
-            });
-          });
-        }
-        this.messageHandlerService.ready();
-      });
-    return this.initDataFromInstanceQueue;
+  private syncRenderedInstance(): void {
+    const representation = this.dataContext?.templateRepresentation;
+    const handlerContext = this.handlerContext;
+    if (representation == null || representation.children == null || handlerContext == null) {
+      return;
+    }
+    for (const childComponent of representation.children) {
+      this.activeComponentRegistry.updateViewToModel(childComponent, handlerContext);
+    }
   }
 
   dataAvailableForRender(): boolean {
