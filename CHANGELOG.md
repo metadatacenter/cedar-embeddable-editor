@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A choice field with no option selected by default no longer records the empty
+  string. That was a third state beside the two an empty field has — `@value:
+null` for a literal and `{}` for an IRI — and the compact serialization, the one
+  that omits an empty field, listed exactly the unanswered radios because of it.
+
+- A read-only temporal box shows each part of the instant cut to the granularity
+  the field records. It showed the stored value whole, so a day-granularity field
+  asserted a midnight nobody entered and a to-the-minute field a zero second, with
+  a serialization's `T` between the halves.
+
+- A value a host pushes into a read-only form is no longer blanked on arrival. The
+  rule that clears a template's declared default out of the control tested the mode
+  alone, and the view-to-model sync runs on every push; it compares against the
+  declared default now.
+
 - A populated multi-select no longer shows a red dropdown arrow. Its Angular
   control holds an array, and shared choice validation coerced that array to one
   comma-joined string before checking membership, so two valid selections were
@@ -56,6 +71,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A form read with no instance behind it states each field instead of showing an
+  empty control: how many values it takes, the shape of one, the permitted values,
+  the pattern, the unit, the declared default, and the authorities a controlled
+  field draws on, each linked to its BioPortal page. The statement goes in a box
+  the size of the control it replaces, so the page still reads as the form it
+  stands for, and it wraps where placeholder text would truncate. Radio and
+  checkbox groups keep their controls — a set of options already shows what the
+  values are — and the option carrying the declared default is marked there.
+  Every control returns when an instance is supplied, since then the box has a
+  value to show.
+
 - `Compact YAML - Instance` in the download menu writes the model library's
   compact instance form to `<name>-instance-compact.yaml`, omitting root identity
   and provenance metadata while retaining the instance data.
@@ -69,6 +95,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   only one that could not read them without a cast.
 
 ### Changed
+
+- The required-field asterisk is the colour of the label it belongs to rather than
+  red. A form of required fields opened covered in error-coloured marks before
+  anybody had done anything, and a missing value is already reported in the error
+  line and in the data-quality report.
 
 - `eventHandler` is documented as replaceable, and replacing one is traced. The published contract
   said every member of the element keeps its first assignment, which was false for the handler and
@@ -523,7 +554,7 @@ time; this section is what changed between 1.5.2 and 1.6.0.
 ### Fixed
 
 - Copying an attribute-value occurrence names the copy `<name> copy`, then `<name>
-  copy 2` and so on until the name is free, rather than producing a collision the
+copy 2` and so on until the name is free, rather than producing a collision the
   handler had to resolve. If no name is free the copy is left unnamed and the failure
   is reported. The registry's guess at which occurrence was a clone — comparing a slot
   with the one before it — is gone.
@@ -822,7 +853,7 @@ time; this section is what changed between 1.5.2 and 1.6.0.
   content blocks in the CEDAR, HuBMAP and test-artifact corpora carry.
 - Added the `trustTemplateMarkup` configuration key, default `false`, for hosts that
   control which templates load and want the author's markup rendered as written. The
-  README's new *Embedding security* section says who should set it and who should not.
+  README's new _Embedding security_ section says who should set it and who should not.
 - Links in template rich text that open a new tab are given `rel="noopener noreferrer"`.
 
 ### Fixed
