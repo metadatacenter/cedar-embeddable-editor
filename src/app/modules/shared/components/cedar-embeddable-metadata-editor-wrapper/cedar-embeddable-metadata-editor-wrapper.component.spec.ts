@@ -78,7 +78,6 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
         reloadLang: mocks.reloadLang,
         setTranslation: mocks.setTranslation,
       } as unknown as TranslateService,
-      messaging as unknown as MessageHandlerService,
       mocks.globalSettings as unknown as GlobalSettingsContextService,
     );
     return { component, mocks };
@@ -181,7 +180,6 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
         reloadLang: vi.fn(),
         setTranslation: vi.fn(),
       } as unknown as TranslateService,
-      messaging as unknown as MessageHandlerService,
       {} as unknown as GlobalSettingsContextService,
     );
     return { component, errors };
@@ -402,7 +400,6 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
       messaging as unknown as MessageHandlerService,
       { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
       translate,
-      messaging as unknown as MessageHandlerService,
       globalSettings,
     );
     return { component, translate, fetched };
@@ -513,7 +510,6 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent invalid configuration va
         reloadLang: vi.fn(),
         setTranslation: vi.fn(),
       } as unknown as TranslateService,
-      messaging as unknown as MessageHandlerService,
       globalSettings,
     );
     component.ngOnInit();

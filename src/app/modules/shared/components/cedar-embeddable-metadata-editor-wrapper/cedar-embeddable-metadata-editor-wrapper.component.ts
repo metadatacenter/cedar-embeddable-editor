@@ -128,11 +128,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private messageHandlerService: MessageHandlerService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private translateService: TranslateService,
-    private messagingService: MessageHandlerService,
     private globalSettingsContextService: GlobalSettingsContextService,
   ) {
     this.dataContext = new DataContext();
-    this.handlerContext = new HandlerContext(this.dataContext, this.messagingService);
+    this.handlerContext = new HandlerContext(this.dataContext, this.messageHandlerService);
   }
 
   /** Re-publishes CEE's existing change contract across the shadow boundary. */
@@ -471,7 +470,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         this.fallbackLanguage,
       );
     } else {
-      this.messagingService.traceGroup(
+      this.messageHandlerService.traceGroup(
         'language',
         '"fallbackLanguage" not set, using default: "' + this.fallbackLanguage + '"',
       );
@@ -483,7 +482,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
         this.defaultLanguage,
       );
     } else {
-      this.messagingService.traceGroup(
+      this.messageHandlerService.traceGroup(
         'language',
         '"defaultLanguage" not set, using default: "' + this.defaultLanguage + '"',
       );

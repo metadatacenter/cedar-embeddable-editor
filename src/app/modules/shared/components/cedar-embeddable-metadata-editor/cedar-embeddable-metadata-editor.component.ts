@@ -17,6 +17,7 @@ import { DOWNLOAD_ITEMS, DownloadItemId } from '../../models/ui/download-item.mo
 import { downloadContentFor, downloadFilenameFor } from '../../util/download-content';
 import { triggerDownload } from '../../util/trigger-download';
 import { baseUrl, CeeConfig, configFlag } from '../../util/config-reader';
+import type { CeeTemplateAndInstance } from '../../../../cee-public-api';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -256,12 +257,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     this.deferInstanceRender('instanceObject');
   }
 
-  @Input() set templateAndInstanceObject(templateAndInstance: object | null) {
+  @Input() set templateAndInstanceObject(templateAndInstance: CeeTemplateAndInstance | null) {
     if (templateAndInstance === null) {
       return;
     }
-    // TODO: an interface for templateAndInstance object
-    // @ts-expect-error - templateAndInstance is typed as `object`
     const { templateObject, instanceObject } = templateAndInstance;
     if (!templateObject) {
       this.messageHandlerService.error('Template Object is missing.');
