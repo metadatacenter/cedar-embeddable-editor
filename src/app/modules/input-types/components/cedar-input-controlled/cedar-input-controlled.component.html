@@ -47,9 +47,34 @@ header, where every other authority's mark already lives.
         }
       </div>
     }
+    @if (showsTermAsValue) {
+      <!--
+        Read with a term in hand. The icon goes to the term's BioPortal page and the identifier to
+        the term itself, which are two different places worth having — the page says what the term
+        means in its ontology, the IRI is what the instance records.
+      -->
+      <app-cedar-term-link
+        [label]="selectedData?.label ?? null"
+        [iri]="selectedData?.iri ?? null"
+        [fieldLabel]="cds.getRenderingLabelForComponent(component)"
+      >
+        @if (bioPortalTermLink) {
+          <a
+            mat-icon-button
+            [href]="bioPortalTermLink"
+            target="_blank"
+            rel="noopener"
+            attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
+            matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
+          >
+            <mat-icon>open_in_new</mat-icon>
+          </a>
+        }
+      </app-cedar-term-link>
+    }
     <mat-form-field
       class="full-width"
-      [class.cee-hidden]="readOnlyMode && !inputValueControl.value && specSources.length > 0"
+      [class.cee-hidden]="showsTermAsValue || (readOnlyMode && !inputValueControl.value && specSources.length > 0)"
     >
       <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
       <input

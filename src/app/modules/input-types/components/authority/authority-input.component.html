@@ -13,7 +13,32 @@ genuinely theirs.
 -->
 <form class="form-container" [formGroup]="options">
   <ng-container>
-    <mat-form-field class="full-width">
+    @if (showsTermAsValue) {
+      <!--
+        Read with a term in hand: the label and the identifier, the identifier addressable. The
+        authority's own page keeps the icon it had, which for these fields is the same destination
+        the identifier resolves to and for a controlled term is a different one.
+      -->
+      <app-cedar-term-link
+        [label]="selectedData?.label ?? null"
+        [iri]="selectedData?.iri ?? null"
+        [fieldLabel]="cds.getRenderingLabelForComponent(component)"
+      >
+        @if (detailsUrl) {
+          <a
+            mat-icon-button
+            [href]="detailsUrl"
+            target="_blank"
+            rel="noopener"
+            attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
+            matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
+          >
+            <mat-icon>{{ linkIconName }}</mat-icon>
+          </a>
+        }
+      </app-cedar-term-link>
+    }
+    <mat-form-field class="full-width" [class.cee-hidden]="showsTermAsValue">
       <!--
         `matAutocompleteDisabled` on two conditions. Empty is Material's own case. The
         second is a settled term: focusing a populated field re-emits its value to

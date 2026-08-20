@@ -3105,6 +3105,53 @@ test.describe('host input timing', () => {
  * multi fixture pages an *element*, whose pager sits on a panel header with nothing beside it, and a
  * field with no instance renders no pager at all.
  */
+/**
+ * A term a field holds, read rather than edited.
+ *
+ * The identifier used to be text inside a readonly `input`, so a reader who wanted to follow it had
+ * to select and paste it — an `input` cannot contain an anchor, which is why. Read-only with a value
+ * the control is replaced by the label and the identifier, the identifier addressable, and the
+ * authority's own link-out keeps its place beside them. Two destinations for a controlled term: the
+ * IRI is what the instance records, the icon is the term's page in its ontology.
+ */
+test.describe('a term rendered as a value', () => {
+  test('links the identifier and keeps the authority icon', async ({ page }) => {
+    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance');
+
+    const controlled = page.locator('app-cedar-input-controlled').first();
+    await expect(controlled.locator('.cee-term-link-label')).toHaveText('disease');
+    const identifier = controlled.locator('a.cee-term-link-iri');
+    await expect(identifier).toHaveAttribute('href', 'http://purl.obolibrary.org/obo/DOID_4');
+    await expect(identifier).toHaveAttribute('rel', 'noopener');
+    const authorityPage = controlled.locator('.cee-term-link-suffix a');
+    expect(
+      await authorityPage.getAttribute('href'),
+      'the icon goes to the term in its ontology, not to the IRI',
+    ).toContain('bioportal.bioontology.org');
+
+    const orcid = page.locator('app-cedar-input-orcid').first();
+    await expect(orcid.locator('a.cee-term-link-iri')).toHaveAttribute('href', 'https://orcid.org/0000-0002-1825-0097');
+  });
+
+  test('leaves no control behind where it renders a value', async ({ page }) => {
+    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance');
+
+    // The form field stays in the tree so its state survives, and out of the layout. Both halves
+    // showed at once when the class hiding it was defined in one widget's own stylesheet.
+    const controls = page.locator('app-cedar-input-controlled input, app-cedar-input-orcid input');
+    for (let index = 0; index < (await controls.count()); index++) {
+      await expect(controls.nth(index)).toBeHidden();
+    }
+  });
+
+  test('keeps the control where the field is editable', async ({ page }) => {
+    await open(page, '04-controlled-terms', undefined, '04-controlled-terms-instance');
+
+    await expect(page.locator('app-cedar-input-controlled input[aria-label="organism"]')).toBeVisible();
+    await expect(page.locator('app-cedar-input-controlled .cee-term-link')).toHaveCount(0);
+  });
+});
+
 test.describe('a multi-instance field paging its values', () => {
   /*
    * Boxes through locators rather than `document.querySelectorAll` inside `evaluate`: the editor is a

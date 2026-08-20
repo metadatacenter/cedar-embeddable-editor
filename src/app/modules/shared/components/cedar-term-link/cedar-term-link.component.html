@@ -1,0 +1,17 @@
+<div class="cee-term-link" attr.aria-label="{{ fieldLabel }}">
+  @if (label) {
+    <span class="cee-term-link-label">{{ label }}</span>
+  }
+  @if (iri) {
+    @if (label) {
+      <span class="cee-term-link-dash" aria-hidden="true">-</span>
+    }
+    @if (isAddressable) {
+      <a class="cee-term-link-iri" [href]="iri" target="_blank" rel="noopener">{{ iri }}</a>
+    } @else {
+      <span class="cee-term-link-iri">{{ iri }}</span>
+    }
+  }
+  <!-- The widget's own link-out, which knows which authority it addresses. -->
+  <span class="cee-term-link-suffix"><ng-content></ng-content></span>
+</div>

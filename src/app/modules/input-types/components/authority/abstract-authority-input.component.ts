@@ -327,6 +327,18 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     return this.selectedData?.iri || null;
   }
 
+  /**
+   * Whether to render the term as a value rather than as a control.
+   *
+   * Read-only with a term in hand: there is nothing to type into, and the identifier should be a
+   * link, which text inside an `input` cannot be. Read-only with nothing in hand keeps the control,
+   * whose placeholder states the specification — and with no instance behind the form the renderer
+   * has already replaced the whole field with its specification box.
+   */
+  get showsTermAsValue(): boolean {
+    return this.readOnlyMode && this.selectedData !== null;
+  }
+
   get isEmpty(): boolean {
     return !(this.inputValueControl.value ?? '').trim();
   }

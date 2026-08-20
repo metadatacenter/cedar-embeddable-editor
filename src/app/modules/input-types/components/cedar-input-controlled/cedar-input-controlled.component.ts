@@ -292,6 +292,15 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    * reason anyone chose. The constraint the term came through decides which
    * Built from the constraint's acronym, in `bioPortalTermLink`.
    */
+  /**
+   * Whether to render the term as a value rather than as a control. Same rule as the authority
+   * fields: read-only with a term in hand, the identifier belongs in a link, and text inside an
+   * `input` cannot be one.
+   */
+  get showsTermAsValue(): boolean {
+    return this.readOnlyMode && this.selectedData !== null;
+  }
+
   get bioPortalTermLink(): string | null {
     return bioPortalTermLink(this.component.controlledInfo, this.selectedData?.iri);
   }

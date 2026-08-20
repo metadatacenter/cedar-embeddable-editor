@@ -6,6 +6,20 @@
     "@id": "http://purl.obolibrary.org/obo/DOID_4",
     "rdfs:label": "disease"
   },
+  "_contributor": {
+    "@id": "https://orcid.org/0000-0002-1825-0097",
+    "rdfs:label": "Josiah Carberry"
+  },
+  "_institution": [
+    {
+      "@id": "https://ror.org/00f54p054",
+      "rdfs:label": "Stanford University"
+    },
+    {
+      "@id": "https://ror.org/013meh722",
+      "rdfs:label": "University of Cambridge"
+    }
+  ],
   "@context": {
     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",

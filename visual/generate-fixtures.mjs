@@ -327,7 +327,21 @@ const writeRaw = (name, document) => {
       id: 'https://example.org/instances/controlled-terms-1',
       name: 'ControlledTerms instance',
       description: 'A term already selected, so its display form is rendered',
-      values: { _organism: controlled('http://purl.obolibrary.org/obo/DOID_4', 'disease') },
+      /*
+       * All three, not just the controlled one. Read-only a term is rendered as its label beside its
+       * identifier, with the identifier addressable — and the authority fields take the same
+       * rendering, so leaving them empty left half of it photographed by nothing.
+       */
+      values: {
+        _organism: controlled('http://purl.obolibrary.org/obo/DOID_4', 'disease'),
+        _contributor: controlled('https://orcid.org/0000-0002-1825-0097', 'Josiah Carberry'),
+        // Deployed multi with `minItems: 2`, so a list: one atom leaves the occurrence list empty
+        // and the field renders a pager with nothing under it.
+        _institution: [
+          controlled('https://ror.org/00f54p054', 'Stanford University'),
+          controlled('https://ror.org/013meh722', 'University of Cambridge'),
+        ],
+      },
     }),
   );
 }

@@ -602,3 +602,21 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
     color: rgba(0, 0, 0, 0.54);
   }
 }
+
+/*
+ * A control kept in the tree so its state survives, and taken out of the layout.
+ *
+ * Global rather than a component rule: two widgets use it now — the controlled-term field and the
+ * seven authority fields, each of which hides its control read-only and renders the term as a value
+ * instead. It lived in the controlled field's own stylesheet, so the class had no effect anywhere
+ * else and the authority fields showed the box and the control at once.
+ *
+ * The second selector is what makes it hold on a form field. Material sets `display: inline-flex` on
+ * `.mat-mdc-form-field`, one class like the utility, and its stylesheet is emitted after this one —
+ * so the bare class tied and lost on order, and moving the rule out of the component that owned it
+ * would have broken the case that already worked. Two classes beat one.
+ */
+.cee-hidden,
+.cee-hidden.mat-mdc-form-field {
+  display: none;
+}
