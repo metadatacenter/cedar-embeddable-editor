@@ -6,8 +6,11 @@
         (input)="inputChanged($event)"
         [formControlName]="getFormControlName(choice.label)"
         [value]="choice.label"
-        >{{ choice.label }}</mat-checkbox
-      >
+        >{{ choice.label }}
+        @if (handlerContext.statesSpecification && choice.selectedByDefault) {
+          <span class="choice-default-mark">{{ 'Spec.DefaultMark' | translate }}</span>
+        }
+      </mat-checkbox>
     </div>
   }
 </form>

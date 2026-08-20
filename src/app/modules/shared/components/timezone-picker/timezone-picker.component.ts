@@ -171,10 +171,6 @@ export class TimezonePickerComponent implements OnInit, OnChanges, OnDestroy, Co
     this.propagateTouched();
   }
 
-  displayValue(): string {
-    return this.form.controls.timezone.value?.label ?? '';
-  }
-
   registerOnChange(fn: (value: TZone | null) => void): void {
     this.propagateChange = fn;
   }

@@ -28,6 +28,25 @@ export class DatePickerComponent implements OnInit {
   static readonly YEAR_MONTH_FORMAT = 'MM/YYYY';
   static readonly YEAR_MONTH_DAY_FORMAT = 'MM/DD/YYYY';
   yearFormat = DatePickerComponent.YEAR_FORMAT;
+
+  /**
+   * The shape of an acceptable date, for the box to state while read-only.
+   *
+   * The clock beside it already labels its own boxes `HH`, `MM` and `SS`; the date box labelled
+   * nothing, so a year-granularity field and a full date looked identical when both were empty. The
+   * granularity decides how much of the notation applies — a month field says `YYYY-MM` and stops.
+   */
+  get dateNotation(): string {
+    if (!this.readOnlyMode) {
+      return '';
+    }
+    if (this.dateFormat === DatePickerComponent.YEAR_FORMAT) {
+      return 'YYYY';
+    }
+    // Hyphens, as ISO 8601 and the stored `xsd:date` both write them, so the notation is the literal
+    // shape of an acceptable value rather than a pattern of its own.
+    return this.dateFormat === DatePickerComponent.YEAR_MONTH_FORMAT ? 'YYYY-MM' : 'YYYY-MM-DD';
+  }
   yearMonthFormat = DatePickerComponent.YEAR_MONTH_FORMAT;
   yearMonthDayFormat = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
 

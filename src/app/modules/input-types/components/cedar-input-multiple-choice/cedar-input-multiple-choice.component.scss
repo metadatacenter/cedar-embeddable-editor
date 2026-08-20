@@ -2,9 +2,26 @@
   display: flex;
   align-items: center;
   min-height: 48px;
+
+  /*
+   * 48px is the row a clear button needs beside the option, and a finger needs to hit either. Reading
+   * a template neither applies, and six options at 48px is a third of a screen for six words.
+   */
+  :host-context(.cee-read-only) & {
+    min-height: 0;
+  }
 }
 
 .choice-clear-button {
   flex: 0 0 auto;
   margin-inline-start: 4px;
+}
+
+/*
+ * The declared-default mark beside an option's label. Quiet, because it is a note about the option
+ * rather than part of its text, and the same grey the specification uses everywhere else.
+ */
+.choice-default-mark {
+  margin-left: 6px;
+  color: rgba(0, 0, 0, 0.54);
 }

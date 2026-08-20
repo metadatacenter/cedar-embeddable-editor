@@ -1,0 +1,12 @@
+@if (hasContent) {
+  @if (variant === 'facts') {
+    <span class="cee-field-spec" role="note">
+      @for (fact of facts; track fact.key) {
+        <span class="cee-field-spec-fact">{{ fact.key | translate: fact.params }}</span>
+      }
+    </span>
+  }
+  @if (variant === 'description') {
+    <p class="cee-field-spec-description">{{ description }}</p>
+  }
+}

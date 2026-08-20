@@ -3,6 +3,7 @@
     <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
     <input
       matInput
+      [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
       type="text"
       [formControl]="inputValueControl"
       (input)="inputChanged($event)"

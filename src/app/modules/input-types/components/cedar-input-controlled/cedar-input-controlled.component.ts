@@ -32,7 +32,8 @@ import { ControlledFieldDataService } from '../../../shared/service/controlled-f
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
-import { bioPortalTermLink } from '../../../shared/util/bioportal-term-link';
+import { bioPortalSourceLink, bioPortalTermLink } from '../../../shared/util/bioportal-term-link';
+import { SpecTermSource, specTermSourcesOf } from '../../../shared/util/field-spec';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -257,6 +258,24 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    * kind of value shown in the same kind of box, one row apart. `getCompoundValue`
    * in `abstract-authority-input.component.ts` is the form they use.
    */
+  /**
+   * The authorities this field draws on, for the box to state when it holds no value.
+   *
+   * Rendered as links, so the box showing them cannot be an `input`: placeholder text is not
+   * clickable. It is a bordered element instead, the way the read-only clock already is — and it
+   * appears only while the field is empty and unreadable-into, so none of what the note at the top of
+   * this template warns about applies. There is no Clear action to lose, no button inside an anchor,
+   * and the value's own suffix link is untouched.
+   */
+  get specSources(): ReadonlyArray<SpecTermSource> {
+    return specTermSourcesOf(this.component);
+  }
+
+  /** Where an authority can be read about, or null when it names no acronym to address it by. */
+  specSourceLink(source: SpecTermSource): string | null {
+    return bioPortalSourceLink(source);
+  }
+
   getBioPortalTermDisplayValue(value: unknown): string {
     const term = isAuthorityTerm(value) ? value : { iri: '', label: '' };
     if (term.label && term.iri) {

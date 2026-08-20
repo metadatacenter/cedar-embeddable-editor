@@ -1,0 +1,8 @@
+/*
+ * The declared-default mark beside an option's label. Quiet, because it is a note about the option
+ * rather than part of its text, and the same grey the specification uses everywhere else.
+ */
+.choice-default-mark {
+  margin-left: 6px;
+  color: rgba(0, 0, 0, 0.54);
+}

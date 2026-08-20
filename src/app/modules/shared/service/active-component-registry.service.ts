@@ -11,6 +11,7 @@ import { HandlerContext } from '../util/handler-context';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { InstanceValueNode } from '../util/instance-value-node';
+import { isAuthorityTerm } from '../models/authority/authority-term.guard';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 
 /** The name an attribute-value slot carries, or null when the slot holds something else. */
@@ -76,16 +77,70 @@ export class ActiveComponentRegistryService {
     return label;
   }
 
+  /**
+   * Whether the value about to be shown is a declared default that should be cleared instead.
+   *
+   * Reading a template, CEE seeds the empty instance from the template's defaults, so a list arrives
+   * pre-selected and a term field pre-filled. A control holding a value shows no placeholder, and the
+   * placeholder is where the specification lives — so the default hid the very thing that would have
+   * explained it. Cleared here, the box states `default Green` along with the count and the permitted
+   * values, and nothing on screen claims somebody chose it.
+   *
+   * The value has to be compared, not just the mode. This method runs on every model-to-view sync,
+   * so testing the mode alone cleared whatever the control held: a term a host pushed into a
+   * read-only form with no instance behind it was blanked on arrival, which `view-sync.spec.ts`
+   * caught. Only a value equal to what the template declares is a default; anything else was
+   * recorded by somebody and belongs on screen.
+   *
+   * And only where a placeholder exists to state it in. A radio or checkbox group has none, so there
+   * the default stays visible in the control, marked as the default among the options.
+   */
+  private static shouldClearDeclaredDefault(
+    component: SingleFieldComponent,
+    handlerContext: HandlerContext,
+    node: InstanceNode,
+  ): boolean {
+    if (!handlerContext.statesSpecification) {
+      return false;
+    }
+    const inputType = component.basicInfo.inputType;
+    if (inputType === InputType.radio || inputType === InputType.checkbox) {
+      return false;
+    }
+    return ActiveComponentRegistryService.holdsDeclaredDefault(component, node);
+  }
+
+  /** Whether the node carries exactly the value the template declares as this field's default. */
+  private static holdsDeclaredDefault(component: SingleFieldComponent, node: InstanceNode): boolean {
+    const declared = component.valueInfo.defaultValue;
+    if (declared === null) {
+      // An enumeration declares its default by marking an option rather than by naming a value.
+      const chosen = component.choiceInfo?.choices?.find((option) => option.selectedByDefault);
+      return chosen !== undefined && InstanceValueNode.literal(node) === chosen.label;
+    }
+    if (isAuthorityTerm(declared)) {
+      return InstanceValueNode.iri(node) === declared.iri;
+    }
+    return InstanceValueNode.literal(node) === String(declared);
+  }
+
   updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
     if (component instanceof SingleFieldComponent) {
       const dataObject: InstanceNode | null = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIDirective | null = this.getUIComponent(component);
       if (uiComponent != null && dataObject != null) {
+        const clearDefault = ActiveComponentRegistryService.shouldClearDeclaredDefault(
+          component,
+          handlerContext,
+          dataObject,
+        );
         if (InstanceValueNode.isLiteral(dataObject)) {
-          uiComponent.setCurrentValue(InstanceValueNode.literal(dataObject));
+          uiComponent.setCurrentValue(clearDefault ? null : InstanceValueNode.literal(dataObject));
         } else if (InstanceValueNode.isIriBearing(dataObject)) {
           uiComponent.setCurrentValue(
-            ActiveComponentRegistryService.iriValueForWidget(dataObject, component, handlerContext.readOnlyMode),
+            clearDefault
+              ? null
+              : ActiveComponentRegistryService.iriValueForWidget(dataObject, component, handlerContext.readOnlyMode),
           );
         }
       }

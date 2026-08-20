@@ -32,6 +32,36 @@ export class HandlerContext {
 
   readOnlyMode: boolean = false;
 
+  /**
+   * Whether an instance was handed to the editor, as against a template being previewed on its own.
+   *
+   * It decides whether a declared default may stand in for an empty control. On a template with no
+   * instance behind it, showing the default states what an instance will carry unless someone
+   * changes it, and there is no recorded value it could be mistaken for. On an instance it would be
+   * a fabrication: a field left blank records `{"@value": null}` for a literal and `{}` for an IRI,
+   * both of which assert nothing, and rendering the template's default there tells a reader the
+   * instance says something it does not. Worse, defaults are edited: an instance saved when the
+   * default was "No" would display "Yes" once someone changed the template, with the instance
+   * untouched.
+   *
+   * Set by the wrapper's host-facing inputs, and deliberately not by `setDataContextWithInstance`:
+   * assigning a template round-trips the internal instance through that method, so a flag set there
+   * is true for a template on its own, which is exactly the case it exists to tell apart.
+   */
+  instanceSupplied: boolean = false;
+
+  /**
+   * Whether a control stands in for a specification rather than holding an answer.
+   *
+   * Read as a form of the template with nothing filled in: the reader wants to know what an
+   * acceptable value is, so a widget states the field instead of showing an empty box, and a
+   * declared default is presented as the template's default rather than as a recorded value. The
+   * two flags were tested together in three places before this named the question.
+   */
+  get statesSpecification(): boolean {
+    return this.readOnlyMode && !this.instanceSupplied;
+  }
+
   public constructor(dataContext: DataContext, messageHandlerService: MessageHandlerService) {
     this.dataObjectBuilderService = new DataObjectBuilderHandler();
     this.multiInstanceObjectService = new MultiInstanceObjectHandler();

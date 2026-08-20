@@ -1,0 +1,42 @@
+<div class="cee-spec-box" role="note">
+  @if (fieldToDescribe | ceeSpecPlaceholder) {
+    <span class="cee-spec-box-facts">{{ fieldToDescribe | ceeSpecPlaceholder }}</span>
+  }
+  @if (defaultTerm) {
+    <span class="cee-spec-box-source">
+      <span class="cee-spec-box-kind">{{ 'Spec.DefaultLabel' | translate }}</span>
+      @if (defaultTermLink) {
+        <a class="cee-spec-box-link" [href]="defaultTermLink" target="_blank" rel="noopener">{{ defaultTerm.label }}</a>
+      } @else {
+        <span>{{ defaultTerm.label }}</span>
+      }
+    </span>
+  }
+  @for (source of termSources; track source.uri) {
+    <!--
+      The kind stays outside the anchor. It says what sort of authority this is; the link goes to the
+      authority itself, and a word that is not the thing being linked to should not be part of it.
+    -->
+    <span class="cee-spec-box-source">
+      <span class="cee-spec-box-kind">{{ 'Spec.TermKind.' + source.kind | translate }}</span>
+      @if (linkFor(source)) {
+        <a class="cee-spec-box-link" [href]="linkFor(source)" target="_blank" rel="noopener"
+          >{{ source.name }}
+          @if (source.container) {
+            {{ 'Spec.TermIn' | translate: { container: source.container } }}
+          }
+          @if (source.acronym) {
+            ({{ source.acronym }})
+          }
+        </a>
+      } @else {
+        <span
+          >{{ source.name }}
+          @if (source.container) {
+            {{ 'Spec.TermIn' | translate: { container: source.container } }}
+          }
+        </span>
+      }
+    </span>
+  }
+</div>

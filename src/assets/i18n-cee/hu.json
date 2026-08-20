@@ -121,5 +121,40 @@
     "ControlledTermReverted": "Nem a megengedett halmaz eleme, a szerkesztés elvetve; visszaállítva az utolsó érvényes érték.",
     "DoiInvalid": "A megadott érték nem érvényes DOI, ezért törlésre került.",
     "DoiReverted": "Érvénytelen DOI, a módosítás elvetve; az utolsó érvényes DOI visszaállítva."
+  },
+  "Spec": {
+    "Cardinality": "{{min}}–{{max}} érték",
+    "CardinalityUnbounded": "{{min}}+ érték",
+    "MinLength": "min. {{minLength}} karakter",
+    "MaxLength": "max. {{maxLength}} karakter",
+    "Pattern": "minta: {{regex}}",
+    "NumberType": "{{numberType}}",
+    "UnitOfMeasure": "egység: {{unitOfMeasure}}",
+    "MinValue": "min. {{minValue}}",
+    "MaxValue": "max. {{maxValue}}",
+    "DecimalPlaces": "{{decimalPlace}} tizedesjegy",
+    "TemporalTimeFormat": "{{inputTimeFormat}} órakijelzés",
+    "TemporalZoneRequired": "időzóna szükséges",
+    "PermittedValues": "Értékek",
+    "TermKind": {
+      "branch": "ág",
+      "ontology": "ontológia",
+      "valueSet": "értékkészlet",
+      "class": "osztály"
+    },
+    "Notation": {
+      "year": "ÉÉÉÉ",
+      "month": "ÉÉÉÉ-HH",
+      "day": "ÉÉÉÉ-HH-NN",
+      "hour": "ÓÓ",
+      "minute": "ÓÓ:PP",
+      "second": "ÓÓ:PP:MM",
+      "decimalSecond": "ÓÓ:PP:MM.mmm"
+    },
+    "DecimalPlaceOne": "1 tizedesjegy",
+    "TermIn": "ebből: {{container}}",
+    "DefaultValue": "alapérték: {{defaultValue}}",
+    "DefaultLabel": "alapérték",
+    "DefaultMark": "(alapérték)"
   }
 }

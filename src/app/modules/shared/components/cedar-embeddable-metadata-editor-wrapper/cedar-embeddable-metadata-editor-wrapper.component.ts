@@ -260,10 +260,12 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   private applyInstance(instance: InstanceObject): void {
     this.instanceJson = instance;
+    this.handlerContext.instanceSupplied = true;
   }
 
   private applyTemplateAndInstance(templateAndInstance: object): void {
     this.templateAndInstanceJson = templateAndInstance;
+    this.handlerContext.instanceSupplied = true;
     this.doInitialize();
   }
 

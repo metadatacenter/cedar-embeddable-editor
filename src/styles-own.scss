@@ -24,7 +24,6 @@
   line-height: normal;
 }
 
-
 :host {
   @include theme.component-themes();
 
@@ -501,4 +500,91 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   font-style: italic;
   white-space: normal;
   line-height: 1.3;
+}
+
+/*
+ * Read-only rendering is denser than editing, because none of the room editing needs is in use.
+ *
+ * A field's card carries 16px above and below so a control has space to be reached and corrected; a
+ * reader is doing neither, and on a 43-field template that padding is most of the page. The control
+ * itself drops to the 36px Material names at density -5, which the note above says is only ever the
+ * height of an *empty* field — true while editing, because CEE draws a 48px clear action as soon as
+ * one holds a value. Read-only draws no clear action at all, so the compact height applies to every
+ * field, filled or not.
+ *
+ * Scoped to `.cee-read-only` on the editor's own card, so editing is untouched, and written here
+ * rather than in a component stylesheet because it reaches Material's internals across components.
+ */
+.cee-read-only {
+  /*
+   * Through Material's own tokens, not through selectors. `.mdc-text-field--outlined
+   * .mat-mdc-form-field-infix` reads its padding from these two custom properties and ties with any
+   * two-class rule written here, winning on order — so a selector fight is unwinnable and the tokens
+   * are the supported API the density mixin itself uses. Set here rather than in a component
+   * stylesheet because Angular namespaces a custom property declared in one, which Material then
+   * never reads.
+   */
+  --mat-form-field-container-height: 36px;
+  --mat-form-field-container-vertical-padding: 6px;
+
+  /*
+   * A radio or checkbox option is 40px tall so a finger can hit it: a 20px control in 10px of padding.
+   * Nobody is hitting anything here, and on a six-option field that is 240px of tap target for six
+   * words. The padding is what makes the height — the state-layer tokens do not, which is worth
+   * knowing before trying them — so it is the padding that shrinks.
+   */
+  .mat-mdc-radio-button .mdc-radio,
+  .mat-mdc-checkbox .mdc-checkbox {
+    padding: 2px;
+  }
+
+  /* The row's own line box, which the 40px control had been holding open. */
+  .mat-mdc-radio-button,
+  .mat-mdc-checkbox {
+    min-height: 0;
+  }
+
+  /*
+   * The group stacks its options itself rather than leaving them inline. As inline-blocks each row
+   * sat on a line box sized by the inherited line-height, so shrinking the control changed nothing:
+   * two 25px options still occupied 96px. A column of rows is as tall as the rows.
+   */
+  .mat-mdc-radio-group,
+  .cee-checkbox-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /*
+   * A suffix action shrinks with the box. Material's icon button is 48px, which is what kept a field
+   * holding a value — a term with its link-out — taller than the empty fields around it, exactly the
+   * mismatch the note above predicts when the compact height meets a 48px action.
+   */
+  .mat-mdc-form-field-icon-suffix .mat-mdc-icon-button.mat-mdc-button-base {
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+  }
+}
+
+/*
+ * A declared default reads as declared. With no instance behind the form, anything in a control was
+ * put there by the template, and the specification beside the field names it — so it is set at the
+ * placeholder's weight rather than the black that means somebody answered.
+ */
+.cee-declared-values {
+  /*
+   * Through Material's tokens for the input itself. Its own rule is
+   * `.mdc-text-field--filled:not(.mdc-text-field--disabled) .mdc-text-field__input`, three classes and
+   * a negation, which no selector written here can outrank without `!important` — and the token is
+   * what that rule reads. The controls Material styles by class rather than by token follow below.
+   */
+  --mat-form-field-filled-input-text-color: rgba(0, 0, 0, 0.54);
+  --mat-form-field-outlined-input-text-color: rgba(0, 0, 0, 0.54);
+
+  .mat-mdc-select-value-text,
+  .mat-mdc-radio-button .mdc-label,
+  .mat-mdc-checkbox .mdc-label {
+    color: rgba(0, 0, 0, 0.54);
+  }
 }

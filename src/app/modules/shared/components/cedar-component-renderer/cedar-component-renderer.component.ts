@@ -90,11 +90,42 @@ export class CedarComponentRendererComponent {
     return true;
   }
 
+  /**
+   * Whether to draw the occurrence pager for a repeating field.
+   *
+   * It exists to move between occurrences, so it earns its place when there are occurrences to move
+   * between. Reading a template on its own there are none: every occurrence the bounds imply is
+   * empty and identical, and the chips sit on the field's title row where they collide with the
+   * specification. An instance keeps its pager — that is how a reader reaches occurrence two.
+   */
+  shouldRenderOccurrencePager(): boolean {
+    return !this.handlerContext.statesSpecification;
+  }
+
+  /**
+   * Whether to state the specification in place of the control.
+   *
+   * Reading a template there is nothing to hold, so the box says what a value must be instead — and
+   * it has to replace the control rather than annotate it, because a placeholder is one line and
+   * cannot carry a link. Two widgets keep theirs: a radio or checkbox group is its own set of options,
+   * which is the form a reader wants to see, and it has no box to put anything in.
+   */
+  showSpecInsteadOfControl(nonIterableComponent: FieldComponent): boolean {
+    if (!this.handlerContext.statesSpecification) {
+      return false;
+    }
+    const inputType = nonIterableComponent.basicInfo.inputType;
+    return inputType !== InputType.radio && inputType !== InputType.checkbox && inputType !== InputType.attributeValue;
+  }
+
   shouldRenderContentOfNonIterable(nonIterableComponent: FieldComponent): boolean {
     if (nonIterableComponent.isMulti()) {
       const multiField: MultiFieldComponent = nonIterableComponent as MultiFieldComponent;
       if (multiField.isMultiPage() && !this.handlerContext.multiInstanceObjectService.hasMultiInstances(multiField)) {
-        return false;
+        // Editing, an unoccupied repeating field is its add control and nothing else, which is right:
+        // there is no occurrence to show until someone adds one. Reading a template, the same field
+        // showed a name and a blank, so what it will look like was the one thing missing.
+        return this.handlerContext.statesSpecification;
       }
     }
     return true;

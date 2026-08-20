@@ -341,9 +341,11 @@ test.describe('multiple editor instances', () => {
      * other's.
      */
     const firstInput = page.locator('#editor-first input').first();
-    const secondInput = page.locator('#editor-second input').first();
-    await expect(secondInput).toHaveAttribute('readonly', 'true');
     await expect(firstInput).not.toHaveAttribute('readonly', '');
+    // The read-only one has no controls to make read-only: with no instance behind it, each field
+    // states its specification in a box instead. Which is the stronger form of the same claim.
+    await expect(page.locator('#editor-second input')).toHaveCount(0);
+    await expect(page.locator('#editor-second .cee-spec-box').first()).toBeVisible();
   });
 
   test('keep terminology and authority endpoints isolated', async ({ page }) => {
@@ -986,7 +988,7 @@ test('a populated multi-select uses the focus color rather than the error color'
   expect(state.multi.arrowColor, 'the focused multi-select did not use the primary focus color').toBe(
     state.multi.focusColor,
   );
-  expect(state.multi.arrowColor, 'the valid multi-select used Material\'s error color').not.toBe(state.multi.errorColor);
+  expect(state.multi.arrowColor, "the valid multi-select used Material's error color").not.toBe(state.multi.errorColor);
   expect(state.single.invalid).toBe(false);
 });
 
@@ -1086,7 +1088,9 @@ test('page navigation keeps its controls in a compact row', async ({ page }) => 
 });
 
 test('numeric units are inset from the input outline', async ({ page }) => {
-  await open(page, '17-real-flat', 'readonly');
+  // Editable, because a read-only field with no instance behind it states its specification in a
+  // box instead of rendering a numeric control for the unit to sit in.
+  await open(page, '17-real-flat');
 
   const unitInset = await page.locator('.cee-numeric-unit', { hasText: 'mg' }).evaluate((unit) => {
     const field = unit.closest('mat-form-field')!.getBoundingClientRect();
@@ -1673,23 +1677,11 @@ test.describe('the time picker', () => {
       }
     });
 
-    test('readonly: the offset is boxed like the clock beside it', async ({ page }) => {
-      await open(page, '07-timezone', 'readonly');
-
-      const row = await boxes(page, {
-        dateField: '.cee-temporal-date mat-form-field',
-        clock: '.cee-time-picker-readonly',
-        offset: '.cee-offset-readonly',
-      });
-
-      expect(row.clock!.height).toBe(row.dateField!.height);
-      expect(row.offset!.height, 'a read-only offset was bare text, 36px among 48px boxes').toBe(row.dateField!.height);
-
-      if (inOneRow(page.viewportSize()!.width)) {
-        expect(row.clock!.top).toBe(row.dateField!.top);
-        expect(row.offset!.top).toBe(row.dateField!.top);
-      }
-    });
+    /*
+     * Read-only has no row to line up. Three boxes reading `YYYY-MM-DD`, `HH:MM` and an offset said
+     * the same thing three times and never lined up between them; the field states its notation as
+     * one specification instead, which `read-only states a temporal field as one box` covers.
+     */
 
     /**
      * Both separators in the row are the same separator.
@@ -1937,30 +1929,29 @@ test.describe('the time picker', () => {
     }
   });
 
-  test('read-only mode shows time in a non-editable outlined shell', async ({ page }) => {
+  test('read-only states a temporal field as one box, with no clock to drive', async ({ page }) => {
     await open(page, '09-temporal', 'readonly');
-    expect(await page.locator('input[aria-label="Hour"]').count()).toBe(0);
-    const shells = page.locator('.cee-time-picker-readonly');
-    expect(await shells.count()).toBeGreaterThan(0);
 
-    const emptyShells = await shells.evaluateAll((elements) =>
-      elements.map((element) => {
-        const box = element.getBoundingClientRect();
-        const style = getComputedStyle(element);
-        return {
-          text: element.textContent?.trim(),
-          width: box.width,
-          height: box.height,
-          borderStyle: style.borderStyle,
-        };
-      }),
-    );
-    for (const shell of emptyShells) {
-      expect(shell.text, 'the fixture deliberately has no stored time').toBe('');
-      expect(shell.width, 'an empty read-only time must remain visible').toBeGreaterThanOrEqual(64);
-      expect(shell.height).toBeGreaterThanOrEqual(48);
-      expect(shell.borderStyle).toBe('solid');
-    }
+    expect(await page.locator('input[aria-label="Hour"]').count()).toBe(0);
+    const specs = page.locator('.cee-spec-box');
+    expect(await specs.count(), 'every temporal field states its notation').toBeGreaterThan(0);
+    await expect(specs.first()).toContainText('YYYY');
+  });
+
+  test('read-only shows each recorded instant cut to its own granularity', async ({ page }) => {
+    await open(page, '21-temporal-normalization', 'readonly', '21-temporal-normalization-instance');
+
+    const boxes = page.locator('app-cedar-input-datetime input');
+    await expect(boxes.first()).toHaveAttribute('readonly', 'true');
+    // The control stores an instant, so the day field holds `2026-08-09T00:00:00` and the minute
+    // field `21:45:00`. Neither midnight nor that zero second is anything the instance asserts.
+    expect(await boxes.evaluateAll((inputs: HTMLInputElement[]) => inputs.map((input) => input.value))).toEqual([
+      '2026',
+      '2026-08',
+      '2026-08-09',
+      '21:45',
+      '21:45:32.001',
+    ]);
   });
 
   test('one clear action removes every part of a temporal value', async ({ page }) => {
@@ -3108,7 +3099,17 @@ test.describe('read-only belongs to the host', () => {
   test('renders read-only from configuration alone', async ({ page }) => {
     await open(page, '01-input-types', 'readonly');
 
-    await expect(page.locator('input[aria-label="text"]')).toHaveAttribute('readonly', 'true');
+    // Nothing to type into, because a form read with no instance behind it states each field rather
+    // than offering a box for it.
+    await expect(page.locator('input[aria-label="text"]')).toHaveCount(0);
+    await expect(page.locator('.cee-spec-box').first()).toBeVisible();
+  });
+
+  test('renders the controls of a supplied instance, and none of them editable', async ({ page }) => {
+    await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
+
+    await expect(page.locator('input[aria-label="email"]')).toHaveAttribute('readonly', 'true');
+    await expect(page.locator('input[aria-label="numeric"]')).toHaveAttribute('readonly', 'true');
   });
 
   test('offers the user nothing that leaves read-only', async ({ page }) => {

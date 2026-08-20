@@ -5,6 +5,7 @@
       <input
         matInput
         type="text"
+        [placeholder]="component | ceeSpecPlaceholder"
         [formControl]="inputValueControl"
         readonly
         attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"

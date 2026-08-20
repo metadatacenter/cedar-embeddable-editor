@@ -331,19 +331,6 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
     return value.toString().padStart(2, '0');
   }
 
-  /** What a read-only field shows instead of boxes. */
-  get displayValue(): string {
-    const pad = TimePickerComponent.pad;
-    let text = this.enableMeridian ? this.hour.toString() : pad(this.hour);
-    if (!this.disableMinute) {
-      text += `:${pad(this.minute)}`;
-      if (this.showSeconds) {
-        text += `:${pad(this.second)}`;
-      }
-    }
-    return this.enableMeridian ? `${text} ${this.meridian}` : text;
-  }
-
   private emit(): void {
     const hour24 = this.enableMeridian ? ClockTime.toTwentyFourHour(this.hour, this.meridian) : this.hour;
     // A field with hour-only granularity stores no minutes or seconds, and the

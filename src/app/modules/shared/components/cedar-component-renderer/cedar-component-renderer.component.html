@@ -41,7 +41,7 @@
 @if (nonIterableComponent) {
   <div class="child-component-card non-iterable-component">
     <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
-    @if (nonIterableComponent.isMultiPage()) {
+    @if (nonIterableComponent.isMultiPage() && shouldRenderOccurrencePager()) {
       <app-cedar-multi-pager
         [componentToRender]="nonIterableComponent"
         [handlerContext]="handlerContext"
@@ -52,117 +52,126 @@
     }
     @if (shouldRenderContentOfNonIterable(nonIterableComponent)) {
       <div class="child-component-content">
-        <!-- These are the regular components -->
-        @if (nonIterableComponent.basicInfo.inputType === InputType.numeric) {
-          <app-cedar-input-numeric
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-numeric>
-        }
-        @if (
-          nonIterableComponent.basicInfo.inputType === InputType.text ||
-          nonIterableComponent.basicInfo.inputType === InputType.textarea
-        ) {
-          <app-cedar-input-text
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-text>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.controlled) {
-          <app-cedar-input-controlled
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-controlled>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.email) {
-          <app-cedar-input-email
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-email>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.checkbox) {
-          <app-cedar-input-checkbox
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-checkbox>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.list) {
-          <app-cedar-input-select
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-select>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.attributeValue) {
-          <app-cedar-input-attribute-value
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-attribute-value>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.radio) {
-          <app-cedar-input-multiple-choice
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-multiple-choice>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.temporal) {
-          <app-cedar-input-datetime
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-datetime>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.link) {
-          <app-cedar-input-link
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-link>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.orcid) {
-          <app-cedar-input-orcid
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-orcid>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.ror) {
-          <app-cedar-input-ror
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-ror>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.pfas) {
-          <app-cedar-input-pfas
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-pfas>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.pmid) {
-          <app-cedar-input-pmid
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-pmid>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.rrid) {
-          <app-cedar-input-rrid
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-rrid>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.nihGrant) {
-          <app-cedar-input-nih-grant
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-nih-grant>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.doi) {
-          <app-cedar-input-doi
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-doi>
-        }
-        @if (nonIterableComponent.basicInfo.inputType === InputType.phoneNumber) {
-          <app-cedar-input-phone
-            [componentToRender]="nonIterableComponent"
-            [handlerContext]="handlerContext"
-          ></app-cedar-input-phone>
+        <!--
+          The description, beneath the label whose line already carries the terse facts. Renders
+          itself only in read-only mode, and only when the field has one, so an editor is untouched.
+        -->
+        <app-cedar-field-spec [fieldToDescribe]="nonIterableComponent" variant="description"></app-cedar-field-spec>
+        @if (showSpecInsteadOfControl(nonIterableComponent)) {
+          <app-cedar-spec-box [fieldToDescribe]="nonIterableComponent"></app-cedar-spec-box>
+        } @else {
+          <!-- These are the regular components -->
+          @if (nonIterableComponent.basicInfo.inputType === InputType.numeric) {
+            <app-cedar-input-numeric
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-numeric>
+          }
+          @if (
+            nonIterableComponent.basicInfo.inputType === InputType.text ||
+            nonIterableComponent.basicInfo.inputType === InputType.textarea
+          ) {
+            <app-cedar-input-text
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-text>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.controlled) {
+            <app-cedar-input-controlled
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-controlled>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.email) {
+            <app-cedar-input-email
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-email>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.checkbox) {
+            <app-cedar-input-checkbox
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-checkbox>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.list) {
+            <app-cedar-input-select
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-select>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.attributeValue) {
+            <app-cedar-input-attribute-value
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-attribute-value>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.radio) {
+            <app-cedar-input-multiple-choice
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-multiple-choice>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.temporal) {
+            <app-cedar-input-datetime
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-datetime>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.link) {
+            <app-cedar-input-link
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-link>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.orcid) {
+            <app-cedar-input-orcid
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-orcid>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.ror) {
+            <app-cedar-input-ror
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-ror>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.pfas) {
+            <app-cedar-input-pfas
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-pfas>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.pmid) {
+            <app-cedar-input-pmid
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-pmid>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.rrid) {
+            <app-cedar-input-rrid
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-rrid>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.nihGrant) {
+            <app-cedar-input-nih-grant
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-nih-grant>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.doi) {
+            <app-cedar-input-doi
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-doi>
+          }
+          @if (nonIterableComponent.basicInfo.inputType === InputType.phoneNumber) {
+            <app-cedar-input-phone
+              [componentToRender]="nonIterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-phone>
+          }
         }
       </div>
     }

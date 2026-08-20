@@ -4,6 +4,7 @@
     <input
       matInput
       readonly
+      [placeholder]="dateNotation"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
       attr.aria-label="{{ 'Generic.SelectYear' | translate }}"
@@ -11,7 +12,9 @@
     @if (dateMonthYear.getError('required')) {
       <mat-error class="mat-error align-start">{{ 'Error.ValueRequired' | translate }}</mat-error>
     }
-    <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+    @if (!readOnlyMode) {
+      <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+    }
     <mat-datepicker
       #dp
       (yearSelected)="chosenYearHandler($event, dp)"
@@ -28,6 +31,7 @@
     <input
       matInput
       readonly
+      [placeholder]="dateNotation"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
       attr.aria-label="{{ 'Generic.SelectYearAndMonth' | translate }}"
@@ -52,6 +56,7 @@
     <input
       matInput
       readonly
+      [placeholder]="dateNotation"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
       (dateChange)="chosenDateHandler($event)"

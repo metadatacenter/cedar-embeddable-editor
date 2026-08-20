@@ -71,6 +71,18 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   readOnlyMode: boolean = false;
 
   /**
+   * Whether every value on screen is one the template declared rather than one an instance recorded.
+   *
+   * With no instance behind the form, a control holds a value only because a default put it there —
+   * a list arrives pre-selected, a term field pre-filled. Shown in the 0.87 black of recorded data it
+   * claims to be an answer; in the 0.54 of a placeholder it sits at the weight of the specification
+   * beside it, which names it as the default it is.
+   */
+  get declaredValuesOnly(): boolean {
+    return this.readOnlyMode && this.handlerContext !== null && !this.handlerContext.instanceSupplied;
+  }
+
+  /**
    * Where the bridge server is, which only the host knows.
    *
    * No default, because every candidate is wrong somewhere: this held a `.orgx`

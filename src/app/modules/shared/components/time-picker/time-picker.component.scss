@@ -112,31 +112,6 @@
   letter-spacing: normal;
 }
 
-.cee-time-picker-readonly {
-  display: inline-flex;
-  align-items: center;
-  box-sizing: border-box;
-  min-width: 96px;
-  min-height: 48px;
-  padding-inline: 10px;
-  border: 1px solid #777;
-  border-radius: 4px;
-  background: white;
-  font-variant-numeric: tabular-nums;
-}
-
-.cee-time-picker-readonly-hour-only {
-  min-width: 64px;
-}
-
-.cee-time-picker-readonly-seconds {
-  min-width: 120px;
-}
-
-.cee-time-picker-readonly-meridian {
-  min-width: 128px;
-}
-
 .cee-time-validation {
   flex-basis: 100%;
   margin-inline-start: 4px;

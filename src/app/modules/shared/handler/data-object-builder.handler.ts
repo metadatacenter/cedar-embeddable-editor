@@ -106,10 +106,20 @@ export class DataObjectBuilderHandler {
               value = choice.label;
             }
           }
-          dataObject.setValue(
-            targetName,
-            DataObjectUtil.getSingleValueWrapper(nonIterableComponent, buildingMode, value ?? ''),
-          );
+          // Only when one of the choices is the default. A choice field where none is selected by
+          // default records nothing, and nothing is the empty slot already set above: `@value: null`
+          // for a literal field, `{}` for an IRI-valued one. It used to overwrite that slot with the
+          // empty string, which is a third state meaning neither of those, and which every consumer
+          // that tests a field for emptiness by looking for null then read as an answer. The compact
+          // serialization is where it showed: a template's unanswered radio fields were the only
+          // ones it listed, each with `value: ""`, while every other empty field was correctly
+          // omitted. The multi-occurrence branch above never had the defect.
+          if (value !== null) {
+            dataObject.setValue(
+              targetName,
+              DataObjectUtil.getSingleValueWrapper(nonIterableComponent, buildingMode, value),
+            );
+          }
         }
       }
     }

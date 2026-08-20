@@ -53,6 +53,12 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
   fieldTypeIcon: string | null = null;
   isOntologyField = false;
   readOnlyMode = false;
+  /**
+   * The field whose specification belongs beside this label, or null for an element, a template or a
+   * static field — none of which constrains a value. Set from the same two classes the renderer tests,
+   * so the two agree about what a field is.
+   */
+  fieldToDescribe: FieldComponent | null = null;
   readOnlyModeSubscription: Subscription = Subscription.EMPTY;
   userPreferencesService: UserPreferencesService;
 
@@ -74,6 +80,10 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
 
   @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;
+    this.fieldToDescribe =
+      componentToRender instanceof SingleFieldComponent || componentToRender instanceof MultiFieldComponent
+        ? (componentToRender as FieldComponent)
+        : null;
     this.shouldRenderRequiredMark = false;
     this.isOrcid = false;
     this.isRor = false;

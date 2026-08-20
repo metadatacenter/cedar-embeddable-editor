@@ -1,9 +1,5 @@
 @if (!readOnlyMode) {
-  <div
-    class="cee-time-picker"
-    role="group"
-    attr.aria-label="{{ 'Generic.Time' | translate }}"
-  >
+  <div class="cee-time-picker" role="group" attr.aria-label="{{ 'Generic.Time' | translate }}">
     <div class="cee-time-input-shell">
       <input
         class="cee-time-segment cee-time-segment-hour"
@@ -74,16 +70,4 @@
       <div class="cee-time-validation" role="alert">{{ 'Validation.Time.InvalidSecond' | translate }}</div>
     }
   </div>
-}
-
-@if (readOnlyMode) {
-  <span
-    class="cee-time-picker-readonly"
-    [class.cee-time-picker-readonly-hour-only]="disableMinute"
-    [class.cee-time-picker-readonly-seconds]="showSeconds"
-    [class.cee-time-picker-readonly-meridian]="enableMeridian"
-    attr.aria-label="{{ 'Generic.Time' | translate }}"
-  >
-    {{ hasValue ? displayValue : '' }}
-  </span>
 }

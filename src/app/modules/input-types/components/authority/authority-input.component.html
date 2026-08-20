@@ -24,7 +24,7 @@ genuinely theirs.
       <input
         matInput
         type="text"
-        placeholder="{{ descriptor.placeholderKey | translate }}"
+        [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : (descriptor.placeholderKey | translate)"
         #autoCompleteInput="matAutocompleteTrigger"
         [formControl]="inputValueControl"
         [errorStateMatcher]="errorStateMatcher"

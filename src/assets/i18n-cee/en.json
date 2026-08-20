@@ -121,5 +121,40 @@
     "ControlledTermReverted": "Not a term from the allowed set, edit was discarded; restored last valid term.",
     "DoiInvalid": "Entered value is not a valid DOI and has been cleared.",
     "DoiReverted": "Invalid DOI, edit was discarded; restored last valid DOI."
+  },
+  "Spec": {
+    "Cardinality": "{{min}}–{{max}} values",
+    "CardinalityUnbounded": "{{min}}+ values",
+    "MinLength": "min {{minLength}} chars",
+    "MaxLength": "max {{maxLength}} chars",
+    "Pattern": "pattern {{regex}}",
+    "NumberType": "{{numberType}}",
+    "UnitOfMeasure": "unit {{unitOfMeasure}}",
+    "MinValue": "min {{minValue}}",
+    "MaxValue": "max {{maxValue}}",
+    "DecimalPlaces": "{{decimalPlace}} decimal places",
+    "TemporalTimeFormat": "{{inputTimeFormat}} clock",
+    "TemporalZoneRequired": "time zone required",
+    "PermittedValues": "Values",
+    "TermKind": {
+      "branch": "branch",
+      "ontology": "ontology",
+      "valueSet": "value set",
+      "class": "class"
+    },
+    "Notation": {
+      "year": "YYYY",
+      "month": "YYYY-MM",
+      "day": "YYYY-MM-DD",
+      "hour": "HH",
+      "minute": "HH:MM",
+      "second": "HH:MM:SS",
+      "decimalSecond": "HH:MM:SS.sss"
+    },
+    "DecimalPlaceOne": "1 decimal place",
+    "TermIn": "of the {{container}}",
+    "DefaultValue": "default {{defaultValue}}",
+    "DefaultLabel": "default",
+    "DefaultMark": "(default)"
   }
 }

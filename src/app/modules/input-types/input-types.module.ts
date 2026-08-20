@@ -1,3 +1,4 @@
+import { SpecPlaceholderPipe } from '../shared/pipe/spec-placeholder.pipe';
 import { NgModule } from '@angular/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldModule } from '@angular/material/form-field';
 import { MAT_AUTOCOMPLETE_SCROLL_STRATEGY } from '@angular/material/autocomplete';
@@ -85,6 +86,7 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     MatDividerModule,
   ],
   declarations: [
+    SpecPlaceholderPipe,
     CedarFooBarComponent,
     CedarInputTextComponent,
     CedarInputPhoneComponent,
@@ -139,6 +141,8 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     },
   ],
   exports: [
+    // Exported for the shared module, whose field-spec block shows what no control can.
+    SpecPlaceholderPipe,
     // FooBar is needed because the first component gets exported without style otherwise
     CedarFooBarComponent,
     CedarInputTextComponent,

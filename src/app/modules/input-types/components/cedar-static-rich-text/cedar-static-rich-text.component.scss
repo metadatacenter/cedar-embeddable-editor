@@ -1,0 +1,28 @@
+/*
+ * Rich text an author composed, rendered at CEE's own weight.
+ *
+ * The markup arrives as it was written, which for the HuBMAP assay templates means it opens and
+ * closes with an `<hr>`. Left to the browser those are a heavy inset rule with half an em of margin
+ * either side, and they were the loudest lines on the page — heavier than the hairline that separates
+ * one field from the next. Same hairline here, so an authored divider reads as a divider rather than
+ * as a mistake.
+ */
+:host ::ng-deep hr {
+  height: 0;
+  margin: 10px 0;
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/*
+ * The block's own trailing space. A paragraph's last margin plus the closing rule's plus the card's
+ * gap stacked into a band wider than the text above it.
+ */
+:host ::ng-deep p:last-child {
+  margin-bottom: 0;
+}
+
+:host {
+  display: block;
+  margin-bottom: 4px;
+}

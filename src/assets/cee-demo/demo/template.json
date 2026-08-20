@@ -30,9 +30,7 @@
   "title": "SampleLoaded title",
   "description": "SampleLoaded description",
   "_ui": {
-    "order": [
-      "_title"
-    ],
+    "order": ["_title"],
     "propertyLabels": {
       "_title": "title"
     },
@@ -47,53 +45,39 @@
         "rdfs": {
           "type": "string",
           "format": "uri",
-          "enum": [
-            "http://www.w3.org/2000/01/rdf-schema#"
-          ]
+          "enum": ["http://www.w3.org/2000/01/rdf-schema#"]
         },
         "xsd": {
           "type": "string",
           "format": "uri",
-          "enum": [
-            "http://www.w3.org/2001/XMLSchema#"
-          ]
+          "enum": ["http://www.w3.org/2001/XMLSchema#"]
         },
         "pav": {
           "type": "string",
           "format": "uri",
-          "enum": [
-            "http://purl.org/pav/"
-          ]
+          "enum": ["http://purl.org/pav/"]
         },
         "schema": {
           "type": "string",
           "format": "uri",
-          "enum": [
-            "http://schema.org/"
-          ]
+          "enum": ["http://schema.org/"]
         },
         "oslc": {
           "type": "string",
           "format": "uri",
-          "enum": [
-            "http://open-services.net/ns/core#"
-          ]
+          "enum": ["http://open-services.net/ns/core#"]
         },
         "skos": {
           "type": "string",
           "format": "uri",
-          "enum": [
-            "http://www.w3.org/2004/02/skos/core#"
-          ]
+          "enum": ["http://www.w3.org/2004/02/skos/core#"]
         },
         "rdfs:label": {
           "type": "object",
           "properties": {
             "@type": {
               "type": "string",
-              "enum": [
-                "xsd:string"
-              ]
+              "enum": ["xsd:string"]
             }
           }
         },
@@ -102,9 +86,7 @@
           "properties": {
             "@type": {
               "type": "string",
-              "enum": [
-                "@id"
-              ]
+              "enum": ["@id"]
             }
           }
         },
@@ -113,9 +95,7 @@
           "properties": {
             "@type": {
               "type": "string",
-              "enum": [
-                "xsd:string"
-              ]
+              "enum": ["xsd:string"]
             }
           }
         },
@@ -124,9 +104,7 @@
           "properties": {
             "@type": {
               "type": "string",
-              "enum": [
-                "xsd:string"
-              ]
+              "enum": ["xsd:string"]
             }
           }
         },
@@ -135,9 +113,7 @@
           "properties": {
             "@type": {
               "type": "string",
-              "enum": [
-                "@id"
-              ]
+              "enum": ["@id"]
             }
           }
         },
@@ -146,9 +122,7 @@
           "properties": {
             "@type": {
               "type": "string",
-              "enum": [
-                "xsd:dateTime"
-              ]
+              "enum": ["xsd:dateTime"]
             }
           }
         },
@@ -157,9 +131,7 @@
           "properties": {
             "@type": {
               "type": "string",
-              "enum": [
-                "@id"
-              ]
+              "enum": ["@id"]
             }
           }
         },
@@ -168,9 +140,7 @@
           "properties": {
             "@type": {
               "type": "string",
-              "enum": [
-                "xsd:dateTime"
-              ]
+              "enum": ["xsd:dateTime"]
             }
           }
         },
@@ -179,9 +149,7 @@
           "properties": {
             "@type": {
               "type": "string",
-              "enum": [
-                "@id"
-              ]
+              "enum": ["@id"]
             }
           }
         },
@@ -190,16 +158,12 @@
           "properties": {
             "@type": {
               "type": "string",
-              "enum": [
-                "xsd:string"
-              ]
+              "enum": ["xsd:string"]
             }
           }
         },
         "_title": {
-          "enum": [
-            "https://schema.metadatacenter.org/properties/17d9fd68-0000-4000-8000-17d9fd680000"
-          ]
+          "enum": ["https://schema.metadatacenter.org/properties/17d9fd68-0000-4000-8000-17d9fd680000"]
         }
       },
       "required": [
@@ -219,10 +183,7 @@
       "additionalProperties": false
     },
     "@id": {
-      "type": [
-        "string",
-        "null"
-      ],
+      "type": ["string", "null"],
       "format": "uri"
     },
     "@type": {
@@ -258,31 +219,19 @@
       "format": "uri"
     },
     "pav:createdOn": {
-      "type": [
-        "string",
-        "null"
-      ],
+      "type": ["string", "null"],
       "format": "date-time"
     },
     "pav:createdBy": {
-      "type": [
-        "string",
-        "null"
-      ],
+      "type": ["string", "null"],
       "format": "uri"
     },
     "pav:lastUpdatedOn": {
-      "type": [
-        "string",
-        "null"
-      ],
+      "type": ["string", "null"],
       "format": "date-time"
     },
     "oslc:modifiedBy": {
-      "type": [
-        "string",
-        "null"
-      ],
+      "type": ["string", "null"],
       "format": "uri"
     },
     "_title": {
@@ -335,28 +284,17 @@
           "format": "uri"
         },
         "rdfs:label": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "@value": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "@language": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "minLength": 1
         }
       },
-      "required": [
-        "@value"
-      ],
+      "required": ["@value"],
       "schema:name": "title",
       "schema:description": null,
       "pav:createdOn": "2026-01-01T00:00:00-08:00",

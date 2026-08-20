@@ -6,6 +6,19 @@
   padding: 6px 12px;
   border-radius: 5px;
   margin: 5px 0;
+
+  /*
+   * Read-only, a rule under the words rather than a silver bar. The bar was the loudest thing on a
+   * page of quiet facts — and it is a heading, which is a job typography does. Editing keeps the bar:
+   * there the page is full of controls and a heading has to hold its own against them.
+   */
+  :host-context(.cee-read-only) & {
+    background-color: transparent;
+    padding: 10px 0 4px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 0;
+    margin: 6px 0 2px;
+  }
   /*
    * 20px, from the scale, rather than 1.25rem.
    *

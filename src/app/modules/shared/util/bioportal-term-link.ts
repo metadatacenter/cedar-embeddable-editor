@@ -1,4 +1,5 @@
 import { ControlledInfo } from '../models/info/controlled-info.model';
+import { SpecTermSource } from './field-spec';
 
 /**
  * Where a controlled term can be read about, as a link out to BioPortal.
@@ -36,4 +37,25 @@ export const bioPortalTermLink = (controlled: ControlledInfo, iri: string | unde
     return null;
   }
   return `${BIOPORTAL_ONTOLOGIES}${encodeURIComponent(acronym)}?p=classes&conceptid=${encodeURIComponent(iri)}`;
+};
+
+/**
+ * Where an authority itself can be read about, as against a term drawn from it.
+ *
+ * The per-value link above answers "what is this term?"; this answers "what may I put here?", which
+ * is the question a specification raises. A branch and a class point at a concept page, since both
+ * name one node in a tree; an ontology and a value set point at the collection's own page.
+ *
+ * Null when the source carries no acronym, because BioPortal addresses everything by acronym and a
+ * link built without one lands on the ontologies index — worse than no link, since it looks answered.
+ */
+export const bioPortalSourceLink = (source: SpecTermSource): string | null => {
+  if (source.acronym === null || source.acronym === '') {
+    return null;
+  }
+  const base = `${BIOPORTAL_ONTOLOGIES}${encodeURIComponent(source.acronym)}`;
+  const pointsAtOneConcept = source.kind === 'branch' || source.kind === 'class';
+  return pointsAtOneConcept && source.uri !== null
+    ? `${base}?p=classes&conceptid=${encodeURIComponent(source.uri)}`
+    : base;
 };
