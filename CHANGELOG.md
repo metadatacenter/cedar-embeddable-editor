@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A read-only choice group no longer behaves like a control. The value was always
+  safe — a change in read-only is reverted before it reaches the instance — but the
+  group kept a pointer cursor, a hover ripple, a focus ring and the tab order, so it
+  flickered when clicked and arrow keys moved the selection before it snapped back.
+
+- A read-only checkbox draws its box inside its own row. Material insets the box
+  11px absolutely to centre it in the 40px control, and read-only shrinks that
+  control to 22px, so the box hung below the row and into the label.
+
+- A single-class value constraint is stated as a value rather than as a class. It
+  enumerates what the field permits, so `class disease (DOID)` put jargon in front
+  of a bare label; it reads `value disease (DOID)`.
+
 - A choice field with no option selected by default no longer records the empty
   string. That was a third state beside the two an empty field has — `@value:
 null` for a literal and `{}` for an IRI — and the compact serialization, the one
@@ -70,6 +83,12 @@ null` for a literal and `{}` for an IRI — and the compact serialization, the o
   metadata "is an object", and `{}` is one.
 
 ### Added
+
+- The header states what the template says about itself — its `pav:version` and
+  whether it is a draft or published — on the icon's row, right-aligned above the
+  controls. A reader of a form wants to know which revision produced it and
+  whether that revision can still change under them. A template declaring neither
+  states nothing rather than guessing.
 
 - A form read with no instance behind it states each field instead of showing an
   empty control: how many values it takes, the shape of one, the permitted values,
