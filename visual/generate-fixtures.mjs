@@ -24,6 +24,7 @@ const {
   CedarBuilders,
   CedarWriters,
   ControlledTermOntologyBuilder,
+  InstanceDataAttributeValueFieldName,
   InstanceDataContainer,
   InstanceDataControlledAtom,
   InstanceDataStringAtom,
@@ -74,7 +75,12 @@ const deploy = (artifact, name, { multi, minItems, maxItems, required } = {}) =>
   if (multi) {
     db = opt(db, 'withMultiInstance', true);
     db = opt(db, 'withMinItems', minItems ?? 1);
-    db = opt(db, 'withMaxItems', maxItems ?? 5);
+    // An explicit `null` leaves the maximum unset, which is a field with no upper bound. Defaulting
+    // it to 5 made every multi fixture bounded, so `0+ values` — the unbounded rendering — appeared
+    // in no fixture at all.
+    if (maxItems !== null) {
+      db = opt(db, 'withMaxItems', maxItems ?? 5);
+    }
   }
   if (required) db = opt(db, 'withRequiredValue', true);
   return db.build();
@@ -124,6 +130,15 @@ const instance = (templateName, { id: instanceId, name, description, values }) =
 
 /** A plain string value. */
 const literal = (value) => new InstanceDataStringAtom(value);
+
+/**
+ * One name a user gave an attribute-value field.
+ *
+ * Its own type rather than a literal: the field's slot lists names, and each name is a sibling key
+ * holding that attribute's value. A literal here writes `{"@value": "depth"}` where the document
+ * wants `"depth"`, and CEE then finds no attribute at all.
+ */
+const attributeName = (name) => new InstanceDataAttributeValueFieldName(name);
 
 /** A string value carrying the XSD type its field declares. */
 const typed = (value, xsdType) => new InstanceDataTypedAtom(value, xsdType);
@@ -906,6 +921,46 @@ const writeRaw = (name, document) => {
         _datetime_day: typed('2026-08-09T21:45:32.125-07:00', 'xsd:dateTime'),
         _time_minute: typed('21:45:32.125', 'xsd:time'),
         _time_fraction: typed('21:45:32.001', 'xsd:time'),
+      },
+    }),
+  );
+}
+
+// 22. An attribute-value field holding two attributes, which is the one arrangement where a field's
+//     own occurrence pager and the terse facts on its title row have to share that row.
+//
+//     Nothing exercised it. Every other multi fixture pages an *element*, whose pager sits on a panel
+//     header with nothing beside it; a field with no instance behind it renders no pager at all; and
+//     of the three field types whose facts go on that row rather than into their own control — radio,
+//     checkbox, attribute-value — only this one pages. So the chips, pulled 33px up onto that row to
+//     save a row in the editor, were drawn on top of `0+ values`.
+//
+//     `minItems: 0` with no maximum, which is what states `0+ values` and what the deployment says
+//     when a template names neither bound.
+{
+  const av = field('attribute', () => CedarBuilders.attributeValueFieldBuilder());
+
+  let tb = common(CedarBuilders.templateBuilder(), 'MultiFieldValues', 'templates').withSchemaDescription(
+    'An attribute-value field carrying more than one attribute',
+  );
+  tb = tb.addChild(av, deploy(av, 'attribute', { multi: true, minItems: 0, maxItems: null }));
+  write('22-multi-field-values', tb.build());
+
+  /*
+   * How an attribute-value field is recorded: the field's own slot lists the names the user supplied,
+   * and each name is a sibling key holding its value. Learned from what CEE emits rather than assumed
+   * — the names are data, so they cannot be in the template.
+   */
+  writeRaw(
+    '22-multi-field-values-instance',
+    instance('MultiFieldValues', {
+      id: 'https://example.org/instances/multi-field-values-1',
+      name: 'Multi-field values instance',
+      description: 'Two attributes, so the field pages',
+      values: {
+        _attribute: [attributeName('depth'), attributeName('colour')],
+        depth: literal('15 cm'),
+        colour: literal('blue'),
       },
     }),
   );

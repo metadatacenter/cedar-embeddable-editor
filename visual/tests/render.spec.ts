@@ -38,6 +38,7 @@ const FIXTURES = [
   ['10-attribute-values', 'attribute-value fields, whose names come from the user'],
   ['12-render-decision', 'whether a multi field renders its content, in all three cases'],
   ['13-paged-choice', 'a choice field inside a multi-instance element'],
+  ['22-multi-field-values', 'multi-instance fields, whose pager shares the title row'],
 ] as const;
 
 test.describe('host style isolation', () => {
@@ -3095,6 +3096,65 @@ test.describe('host input timing', () => {
  * instantiated even when configured invisible or read-only never arrived at all. Both
  * the menu and the switch are gone, and `readOnlyMode` reaches the widgets directly.
  */
+/**
+ * A field's occurrence pager and its terse facts share the title row.
+ *
+ * Editable, that row holds only the field's name, so the chips are pulled 33px up onto it to save a
+ * row. Read-only the same row carries the facts on the right — and the chips were still pulled up,
+ * so `0+ values` and the chips were drawn on top of each other. Nothing caught it: every other
+ * multi fixture pages an *element*, whose pager sits on a panel header with nothing beside it, and a
+ * field with no instance renders no pager at all.
+ */
+test.describe('a multi-instance field paging its values', () => {
+  /*
+   * Boxes through locators rather than `document.querySelectorAll` inside `evaluate`: the editor is a
+   * custom element, and a query rooted at `document` stops at its shadow boundary, so the first
+   * version of this test measured nothing and reported no chips rather than the overlap it was for.
+   */
+  const boxesOf = async (page: import('@playwright/test').Page, selector: string) => {
+    const found = page.locator(selector);
+    const total = await found.count();
+    const out = [];
+    for (let index = 0; index < total; index++) {
+      const element = found.nth(index);
+      if ((await element.textContent())?.trim() === '') {
+        continue;
+      }
+      const box = await element.boundingBox();
+      if (box) {
+        out.push({ x: box.x, y: box.y, right: box.x + box.width, bottom: box.y + box.height });
+      }
+    }
+    return out;
+  };
+
+  const overlapping = (a: { x: number; y: number; right: number; bottom: number }, b: typeof a) =>
+    !(a.right <= b.x + 1 || b.right <= a.x + 1 || a.bottom <= b.y + 1 || b.bottom <= a.y + 1);
+
+  test('keeps its chips clear of the facts on the title row', async ({ page }) => {
+    await open(page, '22-multi-field-values', 'readonly', '22-multi-field-values-instance');
+
+    const facts = await boxesOf(page, 'app-cedar-field-spec');
+    const chips = await boxesOf(page, '.mat-mdc-chip');
+    expect(chips.length, 'two values page, so there are chips to collide with').toBeGreaterThan(0);
+    expect(facts.length, 'and facts on the row they would collide with').toBeGreaterThan(0);
+    const collisions = facts.flatMap((fact) => chips.filter((chip) => overlapping(fact, chip)));
+    expect(collisions, 'a chip is drawn over the facts').toEqual([]);
+  });
+
+  test('states the attribute it holds, one occurrence at a time', async ({ page }) => {
+    await open(page, '22-multi-field-values', 'readonly', '22-multi-field-values-instance');
+
+    // The name is data here, not template: the instance supplied both halves of each pair.
+    await expect(page.locator('input[aria-label="Attribute Name"]').first()).toHaveValue('depth');
+    await expect(page.locator('input[aria-label="Attribute Value"]').first()).toHaveValue('15 cm');
+
+    await page.locator('.mat-mdc-chip', { hasText: '2' }).first().click();
+    await expect(page.locator('input[aria-label="Attribute Name"]').first()).toHaveValue('colour');
+    await expect(page.locator('input[aria-label="Attribute Value"]').first()).toHaveValue('blue');
+  });
+});
+
 test.describe('read-only belongs to the host', () => {
   test('renders read-only from configuration alone', async ({ page }) => {
     await open(page, '01-input-types', 'readonly');

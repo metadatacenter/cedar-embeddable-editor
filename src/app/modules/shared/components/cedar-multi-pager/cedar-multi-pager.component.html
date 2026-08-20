@@ -1,13 +1,17 @@
 @if (component && currentMultiInfo && (!readOnlyMode || getInstanceCount() > 1)) {
-  <div
-    [ngClass]="
-      (isAlignedUp && readOnlyMode && getInstanceCount() > 1) || (isAlignedUp && !readOnlyMode)
-        ? 'aligned-up'
-        : !readOnlyMode || getInstanceCount() > 1
-          ? 'pager-container'
-          : 'page-container-ro'
-    "
-  >
+  <!--
+    Three placements, chosen by two questions rather than by five overlapping ones.
+    `aligned-up` puts an element's pager on its panel header. A field's pager is pulled 33px up onto
+    its title row while the form is editable, where that row holds only the field's name — but
+    read-only the same row carries the field's terse facts on the right, and the chips landed on top
+    of them. So read-only takes the placement that sits below the row instead.
+
+    That placement had a name nothing matched: the class asked for here was `page-container-ro` and
+    the rule defines `.pager-container-ro`, so a read-only pager had been unstyled since the rule was
+    written. The condition was also unreachable — the block above renders in read-only only when
+    there is more than one occurrence, which is what the old ternary tested for.
+  -->
+  <div [ngClass]="isAlignedUp ? 'aligned-up' : readOnlyMode ? 'pager-container-ro' : 'pager-container'">
     <div class="pager-chips">
       @if (getInstanceCount() > 1) {
         <mat-chip-listbox
