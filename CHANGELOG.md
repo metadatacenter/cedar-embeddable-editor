@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A read-only field's occurrence chips no longer land on the facts beside its name.
+  The chips are pulled 33px up onto the field's title row, which saves a row while
+  the form is editable and that row holds only the field's name; read-only the same
+  row carries the field's terse facts. The read-only placement that sits below the
+  row had a name nothing matched, so it had never applied.
+
 - A read-only choice group no longer behaves like a control. The value was always
   safe — a change in read-only is reverted before it reaches the instance — but the
   group kept a pointer cursor, a hover ripple, a focus ring and the tab order, so it
@@ -83,6 +89,14 @@ null` for a literal and `{}` for an IRI — and the compact serialization, the o
   metadata "is an object", and `{}` is one.
 
 ### Added
+
+- The identifier of a controlled term or an external-authority value is a link when
+  the form is read with a value in hand. It was text inside a readonly `input`, which
+  cannot contain an anchor, so a reader had to select and paste it. The authority's own
+  link-out keeps its place beside it — for a controlled term those are two different
+  destinations: the IRI is what the instance records, the icon is the term's page in
+  its ontology. Only an `http` or `https` identifier is linked; anything that
+  identifies without locating renders as text, and link fields are left alone.
 
 - The header states what the template says about itself — its `pav:version` and
   whether it is a draft or published — on the icon's row, right-aligned above the
