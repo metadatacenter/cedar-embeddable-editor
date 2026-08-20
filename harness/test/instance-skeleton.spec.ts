@@ -6,18 +6,17 @@
  * field type. A literal gets `{'@value': null}`, an IRI-valued field gets `{}`
  * because there is no `@value` to be null, a numeric or temporal field gets an
  * `@type` alongside, and a choice field with a default selection is not empty
- * at all. It does this twice, once with `@context` for the copy the host page
- * gets back and once without for the copy CEE works against.
+ * at all. It builds one typed instance tree; the model-library writer includes
+ * its property IRIs as `@context` when the host asks for a document.
  *
- * The shapes are pinned here per field type and per building mode. Nothing
+ * The shapes are pinned here per field type. Nothing
  * asserted them directly before: the round-trip suite writes a value and reads
  * it back, so it exercises the slot without ever saying what an *unwritten*
  * slot should look like — and "what does an empty form serialise to" is the
  * question a host page asks first.
  *
- * They exist to be diffed. The builder currently answers all of this by
- * re-reading the raw template JSON in parallel with the component tree it is
- * already walking, and that second walk is what should go.
+ * They exist to be diffed. The builder answers from the parsed component tree;
+ * it does not re-read raw template JSON in parallel with that tree.
  */
 import { describe, expect, it } from 'vitest';
 import { DocumentKey } from '../src/document-keys';

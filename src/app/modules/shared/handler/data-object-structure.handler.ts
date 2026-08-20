@@ -11,8 +11,6 @@ import { OccurrenceSelector, OccurrenceSelectors } from './occurrence-selector';
 import { DataObjectBuilderHandler } from './data-object-builder.handler';
 import { InstanceDataContainer, InstanceDataEmptyNode } from 'cedar-model-typescript-library';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
-import { CedarInputTemplate } from '../models/cedar-input-template.model';
-import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { TemplateComponent } from '../models/template/template-component.model';
 import { MessageHandlerService } from '../service/message-handler.service';
 import { InstanceArray, InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
@@ -139,8 +137,7 @@ export class DataObjectStructureHandler {
     const multiInstanceInfo: MultiInstanceObjectInfo | null =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const templateRepresentation = dataContext.templateRepresentation;
-    const templateInput = dataContext.templateInput;
-    if (templateRepresentation === null || templateInput === null || multiInstanceInfo === null) {
+    if (templateRepresentation === null || multiInstanceInfo === null) {
       return;
     }
 
@@ -155,9 +152,7 @@ export class DataObjectStructureHandler {
         component,
         multiInstanceObjectService,
         multiInstanceInfo,
-        templateInput,
         messageHandlerService,
-        DataObjectBuildingMode.INCLUDE_CONTEXT,
       ),
     );
   }
@@ -168,9 +163,7 @@ export class DataObjectStructureHandler {
     component: MultiComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
     multiInstanceInfo: MultiInstanceObjectInfo,
-    templateInput: CedarInputTemplate,
     messageHandlerService: MessageHandlerService,
-    buildingMode: DataObjectBuildingMode,
   ): void {
     // Somewhere to build one occurrence, thrown away once it has been taken out
     // again. A bare `{}` while a container was a plain object.
@@ -179,7 +172,7 @@ export class DataObjectStructureHandler {
     DataObjectBuilderHandler.setCurrentCountToMinRecursively(cloneComponent, component.path);
     // The property IRIs each new occurrence needs travel on the component, so
     // there is no sub-template to find first.
-    this.dataObjectBuilderService.buildRecursively(cloneComponent, dataObject, buildingMode);
+    this.dataObjectBuilderService.buildRecursively(cloneComponent, dataObject);
     const built = dataObject.values[component.name] ?? null;
     const newDataObject = isInstanceArray(built) ? built[0] : null;
     const currentNodeAny = this.getDataPathNodeRecursively(

@@ -23,10 +23,12 @@ import cedar from 'cedar-model-typescript-library';
 const {
   CedarBuilders,
   CedarWriters,
+  ControlledTermDefaultValueBuilder,
   ControlledTermOntologyBuilder,
   InstanceDataAttributeValueFieldName,
   InstanceDataContainer,
   InstanceDataControlledAtom,
+  InstanceDataEmptyAtom,
   InstanceDataStringAtom,
   InstanceDataTypedAtom,
   Iri,
@@ -976,6 +978,51 @@ const writeRaw = (name, document) => {
         depth: literal('15 cm'),
         colour: literal('blue'),
       },
+    }),
+  );
+}
+
+// 23. Non-enumerated defaults, plus an explicitly blank supplied instance.
+//
+//     These two documents distinguish structure construction from rendering.
+//     The template-only route must seed both values before a widget exists; the
+//     supplied-instance route must keep both blank after the widgets render.
+{
+  const title = field('title', () => CedarBuilders.textFieldBuilder(), (b) => b.withDefaultValue('Draft record'));
+  const termDefault = new ControlledTermDefaultValueBuilder()
+    .withTermUri(new Iri('http://purl.obolibrary.org/obo/NCBITaxon_9606'))
+    .withRdfsLabel('Homo sapiens')
+    .build();
+  const organism = field(
+    'organism',
+    () => CedarBuilders.controlledTermFieldBuilder(),
+    (b) =>
+      b
+        .addOntology(
+          new ControlledTermOntologyBuilder()
+            .withAcronym('NCBITAXON')
+            .withName('NCBI Taxonomy')
+            .withNumTerms(1000000)
+            .withUri(new Iri('https://data.bioontology.org/ontologies/NCBITAXON'))
+            .build(),
+        )
+        .withDefaultValue(termDefault),
+  );
+
+  let tb = common(CedarBuilders.templateBuilder(), 'DeclaredDefaults', 'templates').withSchemaDescription(
+    'Literal and controlled-term defaults owned by the instance builder',
+  );
+  tb = tb.addChild(title, deploy(title, 'title'));
+  tb = tb.addChild(organism, deploy(organism, 'organism'));
+  write('23-declared-defaults', tb.build());
+
+  writeRaw(
+    '23-declared-defaults-blank-instance',
+    instance('DeclaredDefaults', {
+      id: 'https://example.org/instances/declared-defaults-blank-1',
+      name: 'DeclaredDefaults blank instance',
+      description: 'Both fields were explicitly left blank by the host',
+      values: { _title: literal(null), _organism: new InstanceDataEmptyAtom() },
     }),
   );
 }

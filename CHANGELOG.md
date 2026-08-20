@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Declared text, textarea and controlled-term defaults now enter a newly built
+  instance before any widget renders, just as selected choice defaults do. A
+  controlled default keeps both its IRI and label, optional multi-choice defaults
+  create their own occurrences, and rendering no longer overwrites an explicitly
+  blank instance supplied by a host.
+
 - A read-only field's occurrence chips no longer land on the facts beside its name.
   The chips are pulled 33px up onto the field's title row, which saves a row while
   the form is editable and that row holds only the field's name; read-only the same

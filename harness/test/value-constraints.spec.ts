@@ -17,9 +17,10 @@
  */
 import { describe, expect, it } from 'vitest';
 import { CedarBuilders, NumberType, TemporalGranularity, TemporalType } from 'cedar-model-typescript-library';
-import { FieldKind } from '../src/axes';
+import { FIELD_KINDS, FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { instanceWith, literalOf, literalValue, templateIdOf, termOf } from '../src/values';
 
 const kindOf = (
   key: string,
@@ -56,6 +57,29 @@ describe('text constraints', () => {
     expect(drive(kind).findOrThrow(['_f']).valueInfo.defaultValue).toBe('preset');
   });
 
+  it('seeds a ChildSpec literal default before any widget exists', () => {
+    const text = FIELD_KINDS.find((kind) => kind.key === 'text')!;
+    const template = buildTemplate({
+      name: 'vc_child_literal_default',
+      children: [{ kind: text, name: 'f', defaultValue: 'preset' }],
+    });
+
+    expect(literalOf(new CeeDriver(template).extract.values._f)).toBe('preset');
+  });
+
+  it('does not replace an explicit empty value in a host-supplied instance', () => {
+    const text = FIELD_KINDS.find((kind) => kind.key === 'text')!;
+    const template = buildTemplate({
+      name: 'vc_supplied_blank_default',
+      children: [{ kind: text, name: 'f', defaultValue: 'preset' }],
+    });
+    const driver = new CeeDriver(template, {
+      instance: instanceWith(templateIdOf(template), { _f: literalValue(null) }),
+    });
+
+    expect(literalOf(driver.extract.values._f)).toBeNull();
+  });
+
   /**
    * `regex` is the second most common constraint in the HuBMAP corpus (150
    * uses) and was read by nothing: `ValueInfo` had no slot for it and no
@@ -88,6 +112,31 @@ describe('text constraints', () => {
     const good = drive(kind);
     good.setValue(['_f'], kind, 'ZZZ');
     expect(good.qualityReport.isValid).toBe(true);
+  });
+});
+
+describe('controlled defaults', () => {
+  it('seeds the IRI and label pair from ChildSpec even when the field is hidden', () => {
+    const controlled = FIELD_KINDS.find((kind) => kind.key === 'controlled')!;
+    const template = buildTemplate({
+      name: 'vc_child_term_default',
+      children: [
+        {
+          kind: controlled,
+          name: 'f',
+          hidden: true,
+          defaultValue: {
+            iri: 'http://purl.obolibrary.org/obo/NCBITaxon_9606',
+            label: 'Homo sapiens',
+          },
+        },
+      ],
+    });
+
+    expect(termOf(new CeeDriver(template).extract.values._f)).toEqual({
+      iri: 'http://purl.obolibrary.org/obo/NCBITaxon_9606',
+      label: 'Homo sapiens',
+    });
   });
 });
 
@@ -301,21 +350,25 @@ describe('choice literals', () => {
     expect(JSON.stringify(driver.extract.values._f)).not.toContain('Beta');
   });
 
-  /**
-   * A checkbox that is not required has `minItems` zero, so the seeding never
-   * runs — no slot exists to seed. Pinned because it is the difference between
-   * "CEE ignores selectedByDefault" (false) and "the template never asked for
-   * a slot to put it in" (true).
-   */
-  it('does not seed an optional field, even with a default-selected literal', () => {
-    const kind = kindOf(
-      'nominitems',
-      'checkbox',
-      () => CedarBuilders.checkboxFieldBuilder(),
-      (b) => b.addCheckboxOption('Beta', true),
+  it('seeds an optional field because its declared default is an occurrence', () => {
+    const checkbox = FIELD_KINDS.find((kind) => kind.key === 'checkbox')!;
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'vc_nomin',
+        children: [
+          {
+            kind: checkbox,
+            name: 'f',
+            options: [{ label: 'Alpha' }, { label: 'Beta' }],
+            defaultValue: 'Beta',
+          },
+        ],
+      }),
     );
-    const driver = new CeeDriver(buildTemplate({ name: 'vc_nomin', children: [{ kind, name: 'f' }] }));
-    expect(driver.extract.values._f).toEqual([]);
+
+    const values = driver.extract.values._f as unknown[];
+    expect(values).toHaveLength(1);
+    expect(literalOf(values[0])).toBe('Beta');
   });
 });
 

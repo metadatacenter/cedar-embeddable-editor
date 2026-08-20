@@ -15,7 +15,6 @@ import { AuthorityDescriptor } from '../../../shared/models/authority/authority-
 import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
 import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
-import { isAuthorityTerm } from '../../../shared/models/authority/authority-term.guard';
 
 export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -136,8 +135,6 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     this.inputValueControl = new FormControl<string | null>(null, validators);
     this.options = this.fb.group({ inputValue: this.inputValueControl });
 
-    this.applyDefaultValue();
-
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
         startWith(''),
@@ -194,21 +191,6 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
         }
       });
     }
-  }
-
-  /** A template may name a term to start with. */
-  private applyDefaultValue(): void {
-    const declared = this.component?.valueInfo?.defaultValue ?? null;
-    // A guard, not a cast: the field's declared default is a term only for the
-    // kinds that take one, and a template naming a bare string here would
-    // otherwise read as a term with two undefined halves.
-    if (!isAuthorityTerm(declared)) {
-      return;
-    }
-    // `|| null` as before: a term declaring an empty IRI or label is not a term,
-    // and setting it would put an empty selection on the field.
-    this.inputValueControl.setValue(declared.label || null);
-    this.handlerContext.changeControlledValue(this.component, declared.iri || null, declared.label || null);
   }
 
   /**

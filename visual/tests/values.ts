@@ -13,8 +13,14 @@
  */
 import cedar from 'cedar-model-typescript-library';
 
-const { CedarReaders, InstanceDataContainer, InstanceDataStringAtom, InstanceDataTypedAtom, JsonTemplateInstanceReader } =
-  cedar;
+const {
+  CedarReaders,
+  InstanceDataContainer,
+  InstanceDataControlledAtom,
+  InstanceDataStringAtom,
+  InstanceDataTypedAtom,
+  JsonTemplateInstanceReader,
+} = cedar;
 
 const atomOf = (node: unknown) => JsonTemplateInstanceReader.readValueNode(node);
 
@@ -32,6 +38,17 @@ export const literalOf = (node: unknown): string | null | undefined => {
 /** The literal a named field of an instance holds. */
 export const valueOf = (instance: unknown, field: string): string | null | undefined =>
   literalOf((instance as Record<string, unknown>)?.[field]);
+
+/** The two halves of a controlled term held by a named field. */
+export const termOf = (
+  instance: unknown,
+  field: string,
+): { iri: string | null | undefined; label: string | null | undefined } => {
+  const atom = atomOf((instance as Record<string, unknown>)?.[field]);
+  return atom instanceof InstanceDataControlledAtom
+    ? { iri: atom.id, label: atom.label }
+    : { iri: undefined, label: undefined };
+};
 
 /**
  * A node holding a literal, for the specs that hand CEE an edited instance.

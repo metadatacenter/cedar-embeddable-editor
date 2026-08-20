@@ -10,7 +10,6 @@
 import { describe, expect, it } from 'vitest';
 import { InstanceDataContainer } from 'cedar-model-typescript-library';
 import { DataObjectBuilderHandler } from './data-object-builder.handler';
-import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { ChoiceOption } from '../models/info/choice-option.model';
@@ -21,7 +20,7 @@ import { childOf } from '../models/instance-node.model';
 
 const built = (field: FieldComponent): InstanceDataContainer => {
   const container = new InstanceDataContainer();
-  new DataObjectBuilderHandler().buildRecursively(field, container, DataObjectBuildingMode.EXCLUDE_CONTEXT);
+  new DataObjectBuilderHandler().buildRecursively(field, container);
   return container;
 };
 
@@ -73,5 +72,87 @@ describe('what an unanswered choice field records', () => {
     for (const occurrence of occurrences as unknown[]) {
       expect(InstanceValueNode.literal(occurrence as never)).toBeNull();
     }
+  });
+
+  it('keeps selected defaults on an optional multi-occurrence choice field', () => {
+    const field = new MultiFieldComponent();
+    field.name = 'optional_protocols';
+    field.basicInfo.inputType = InputType.checkbox;
+    field.multiInfo.minItems = 0;
+    field.choiceInfo.choices = [new ChoiceOption('A', true), new ChoiceOption('B', false)];
+
+    const occurrences = childOf(built(field), 'optional_protocols') as unknown[];
+
+    expect(occurrences).toHaveLength(1);
+    expect(InstanceValueNode.literal(occurrences[0] as never)).toBe('A');
+  });
+});
+
+describe('declared defaults in a newly built instance', () => {
+  it('seeds a literal without waiting for its widget to render', () => {
+    const field = new SingleFieldComponent();
+    field.name = 'title';
+    field.basicInfo.inputType = InputType.text;
+    field.valueInfo.defaultValue = 'Untitled record';
+
+    expect(InstanceValueNode.literal(childOf(built(field), 'title'))).toBe('Untitled record');
+  });
+
+  it('treats an empty declared string as no default', () => {
+    const field = new SingleFieldComponent();
+    field.name = 'title';
+    field.basicInfo.inputType = InputType.text;
+    field.valueInfo.defaultValue = '';
+
+    expect(InstanceValueNode.literal(childOf(built(field), 'title'))).toBeNull();
+  });
+
+  it('seeds a controlled term as its IRI and label pair', () => {
+    const field = new SingleFieldComponent();
+    field.name = 'organism';
+    field.basicInfo.inputType = InputType.controlled;
+    field.valueInfo.defaultValue = {
+      iri: 'http://purl.obolibrary.org/obo/NCBITaxon_9606',
+      label: 'Homo sapiens',
+    };
+
+    const value = childOf(built(field), 'organism');
+    expect(InstanceValueNode.iri(value)).toBe('http://purl.obolibrary.org/obo/NCBITaxon_9606');
+    expect(InstanceValueNode.label(value)).toBe('Homo sapiens');
+  });
+
+  it('does not turn a malformed string default into a controlled term', () => {
+    const field = new SingleFieldComponent();
+    field.name = 'organism';
+    field.basicInfo.inputType = InputType.controlled;
+    field.valueInfo.defaultValue = 'Homo sapiens';
+
+    const value = childOf(built(field), 'organism');
+    expect(InstanceValueNode.iri(value)).toBeUndefined();
+    expect(InstanceValueNode.literal(value)).toBeUndefined();
+  });
+
+  it('seeds an IRI-valued string as an IRI rather than a literal', () => {
+    const field = new SingleFieldComponent();
+    field.name = 'source';
+    field.basicInfo.inputType = InputType.link;
+    field.valueInfo.defaultValue = 'https://example.org/source';
+
+    const value = childOf(built(field), 'source');
+    expect(InstanceValueNode.iri(value)).toBe('https://example.org/source');
+    expect(InstanceValueNode.literal(value)).toBeUndefined();
+  });
+
+  it('puts one literal default before the empty slots required by minItems', () => {
+    const field = new MultiFieldComponent();
+    field.name = 'aliases';
+    field.basicInfo.inputType = InputType.text;
+    field.valueInfo.defaultValue = 'Primary alias';
+    field.multiInfo.minItems = 2;
+
+    const occurrences = childOf(built(field), 'aliases') as unknown[];
+    expect(occurrences).toHaveLength(2);
+    expect(InstanceValueNode.literal(occurrences[0] as never)).toBe('Primary alias');
+    expect(InstanceValueNode.literal(occurrences[1] as never)).toBeNull();
   });
 });

@@ -106,10 +106,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl<string | null>(null, validators);
 
-    const declaredDefault = this.component.valueInfo.defaultValue;
-    if (isAuthorityTerm(declaredDefault)) {
-      this.setValueUIAndModel(declaredDefault.iri, declaredDefault.label);
-    }
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
         startWith(''),

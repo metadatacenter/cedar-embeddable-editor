@@ -42,14 +42,6 @@ export class CedarInputPhoneComponent extends CedarUIDirective implements OnInit
 
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl<string | null>(null, validators);
-
-    // `typeof`, not a cast: on a literal field the declared default is text, and a
-    // template that puts a term node here is declaring something this field cannot
-    // hold — which is now skipped rather than assigned as `[object Object]`.
-    const declaredDefault = this.component.valueInfo.defaultValue;
-    if (typeof declaredDefault === 'string' && this.inputValueControl.getRawValue() == '') {
-      this.setValueUIAndModel(declaredDefault);
-    }
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {

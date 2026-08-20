@@ -7,7 +7,12 @@
  * `@id` into every element occurrence it built; it mints nothing now, and two
  * builds of one template are the same document.
  */
-import { CedarBuilders, CedarWriters } from 'cedar-model-typescript-library';
+import {
+  CedarBuilders,
+  CedarWriters,
+  ControlledTermDefaultValueBuilder,
+  Iri,
+} from 'cedar-model-typescript-library';
 import { parse as parseYaml } from 'yaml';
 import { Cardinality, FieldKind, Nesting } from './axes';
 
@@ -49,7 +54,8 @@ export const supportsMultiInstance = (kind: FieldKind): boolean => {
   return typeof db?.withMultiInstance === 'function';
 };
 
-const buildField = (kind: FieldKind, name: string, size?: { width: number; height: number }) => {
+const buildField = (spec: ChildSpec) => {
+  const { kind, name } = spec;
   let b = kind
     .make()
     .withAtId(`https://repo.metadatacenter.org/template-fields/${id(name)}`)
@@ -61,9 +67,39 @@ const buildField = (kind: FieldKind, name: string, size?: { width: number; heigh
     .withLastUpdatedOn(FIXED_DATE)
     .withModifiedBy(USER);
   if (kind.configure) b = kind.configure(b);
-  if (size) {
-    b = opt(b, 'withWidth', size.width);
-    b = opt(b, 'withHeight', size.height);
+  const optionMethod = ['addRadioOption', 'addCheckboxOption', 'addListOption'].find(
+    (method) => typeof b?.[method] === 'function',
+  );
+  if ((spec.options?.length ?? 0) > 0 && optionMethod === undefined) {
+    throw new Error(`${kind.key} cannot declare choice options`);
+  }
+  for (const option of spec.options ?? []) {
+    const selected = option.selectedByDefault === true || spec.defaultValue === option.label;
+    b = b[optionMethod!](option.label, selected);
+  }
+  if (typeof spec.defaultValue === 'string') {
+    if (optionMethod !== undefined) {
+      if (!spec.options?.some((option) => option.label === spec.defaultValue)) {
+        throw new Error(`${kind.key} default "${spec.defaultValue}" is not one of its options`);
+      }
+    } else if (typeof b?.withDefaultValue === 'function') {
+      b = b.withDefaultValue(spec.defaultValue);
+    } else {
+      throw new Error(`${kind.key} cannot declare a literal default`);
+    }
+  } else if (spec.defaultValue) {
+    if (typeof b?.withDefaultValue !== 'function') {
+      throw new Error(`${kind.key} cannot declare a controlled-term default`);
+    }
+    const declared = new ControlledTermDefaultValueBuilder()
+      .withTermUri(new Iri(spec.defaultValue.iri))
+      .withRdfsLabel(spec.defaultValue.label)
+      .build();
+    b = b.withDefaultValue(declared);
+  }
+  if (spec.size) {
+    b = opt(b, 'withWidth', spec.size.width);
+    b = opt(b, 'withHeight', spec.size.height);
   }
   return b.build();
 };
@@ -77,6 +113,10 @@ export interface ChildSpec {
   hidden?: boolean;
   minItems?: number;
   maxItems?: number;
+  /** Literal choices, with either per-option or field-level default selection. */
+  options?: Array<{ label: string; selectedByDefault?: boolean }>;
+  /** The value a newly built instance should start with. */
+  defaultValue?: string | { iri: string; label: string };
   /**
    * `_ui._size`, which only the two sizeable static kinds carry.
    *
@@ -142,7 +182,7 @@ const buildElement = (spec: ElementSpec) => {
   // Optional, like `elements` below: an element holding nothing but
   // sub-elements is a shape real templates use.
   for (const child of spec.children ?? []) {
-    const field = buildField(child.kind, child.name, child.size);
+    const field = buildField(child);
     const { deployment } = deploy(field, child);
     eb = eb.addChild(field, deployment);
   }
@@ -191,7 +231,7 @@ export const buildTemplateModel = (spec: TemplateSpec): any => {
     .withModifiedBy(USER);
 
   for (const child of spec.children ?? []) {
-    const field = buildField(child.kind, child.name, child.size);
+    const field = buildField(child);
     const { deployment } = deploy(field, child);
     tb = tb.addChild(field, deployment);
   }

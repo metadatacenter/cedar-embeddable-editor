@@ -59,6 +59,20 @@ describe('minItems seeds the initial instance count', () => {
     expect(driver.extract.values._f).toHaveLength(minItems);
   });
 
+  it('gives a newly added field occurrence the same declared default', () => {
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'default_on_add',
+        children: [{ kind: TEXT, name: 'f', cardinality: 'multi', minItems: 1, defaultValue: 'Draft record' }],
+      }),
+    );
+    const field = driver.findOrThrow(['_f']);
+
+    driver.handlerContext.addMultiInstance(field);
+
+    expect(heldValue(driver.extract.values._f)).toEqual(['Draft record', 'Draft record']);
+  });
+
   /**
    * `minItems: 0` leaves `currentIndex` at -1, which is the empty-pager state.
    * `copyMultiInstance` explicitly falls back to `addMultiInstance` in that

@@ -10,12 +10,12 @@ import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceDataContainer, TemplateInstance, TemplateInstanceBuilder } from 'cedar-model-typescript-library';
 import * as _ from 'lodash-es';
 import { DataObjectUtil } from '../util/data-object-util';
-import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
 import { InstanceArray, InstanceNode, InstanceObject } from '../models/instance-node.model';
 
 /**
- * Builds an empty instance from a template.
+ * Builds a new instance from a template, including every declared default the
+ * parsed component model exposes.
  *
  * Stateless. It held five fields, and four of them were never read: `dataObject`
  * was assigned nowhere, `templateJsonObj` and `multiInstanceObjectService` were
@@ -29,11 +29,7 @@ export class DataObjectBuilderHandler {
    * A container, because that is all the builder ever writes into: every line
    * below puts a named child on it.
    */
-  public buildRecursively(
-    component: CedarComponent,
-    dataObject: InstanceObject,
-    buildingMode: DataObjectBuildingMode,
-  ): void {
+  public buildRecursively(component: CedarComponent, dataObject: InstanceObject): void {
     if (
       component instanceof SingleElementComponent ||
       component instanceof MultiElementComponent ||
@@ -49,9 +45,9 @@ export class DataObjectBuilderHandler {
         dataObject.setValue(targetName, occurrences as unknown as InstanceNode);
         if (multiElement.multiInfo.getSafeMinItems() > 0) {
           const dummyTargetObject = new InstanceDataContainer();
-          DataObjectBuilderHandler.addPropertyIris(component, dummyTargetObject, buildingMode);
+          DataObjectBuilderHandler.addPropertyIris(component, dummyTargetObject);
           for (const childComponent of iterableComponent.children) {
-            this.buildRecursively(childComponent, dummyTargetObject, buildingMode);
+            this.buildRecursively(childComponent, dummyTargetObject);
           }
           for (let idx = 0; idx < multiElement.multiInfo.getSafeMinItems(); idx++) {
             occurrences.push(_.cloneDeep(dummyTargetObject));
@@ -61,9 +57,9 @@ export class DataObjectBuilderHandler {
         // Single Element || Template
         const occurrence = new InstanceDataContainer();
         dataObject.setValue(targetName, occurrence);
-        DataObjectBuilderHandler.addPropertyIris(component, occurrence, buildingMode);
+        DataObjectBuilderHandler.addPropertyIris(component, occurrence);
         for (const childComponent of iterableComponent.children) {
-          this.buildRecursively(childComponent, occurrence, buildingMode);
+          this.buildRecursively(childComponent, occurrence);
         }
       }
     }
@@ -73,54 +69,21 @@ export class DataObjectBuilderHandler {
       if (component instanceof MultiFieldComponent) {
         // MultiFieldComponent
         const multiField: MultiFieldComponent = component as MultiFieldComponent;
-        let occurrences: InstanceArray = [];
+        const occurrences = DataObjectUtil.getDefaultValueWrappers(nonIterableComponent);
         dataObject.setValue(targetName, occurrences as unknown as InstanceNode);
-        if (multiField.multiInfo.getSafeMinItems() > 0) {
-          if (component?.choiceInfo?.choices?.length > 0) {
-            // A choice field starts holding whatever is selected by default.
-            // That used to *replace* the `minItems` skeleton outright, so a
-            // field with no default selection came out as `[]` against a schema
-            // demanding at least one item — invalid the moment it was built,
-            // and not something the user could correct, since the count is not
-            // theirs to change. Pad instead of replace.
-            const values = [];
-            for (const choice of component.choiceInfo.choices) {
-              if (choice.selectedByDefault) {
-                values.push(choice.label);
-              }
-            }
-            occurrences = DataObjectUtil.getMultiValueWrapper(nonIterableComponent, buildingMode, values);
-            dataObject.setValue(targetName, occurrences as unknown as InstanceNode);
-          }
-          for (let idx = occurrences.length; idx < multiField.multiInfo.getSafeMinItems(); idx++) {
-            occurrences.push(DataObjectUtil.getEmptyValueWrapper(nonIterableComponent, buildingMode));
-          }
+        // Defaults are occurrences in their own right, including on an optional
+        // multi field. Then pad to the schema minimum; never replace a declared
+        // default and never build fewer slots than `minItems` requires.
+        for (let idx = occurrences.length; idx < multiField.multiInfo.getSafeMinItems(); idx++) {
+          occurrences.push(DataObjectUtil.getEmptyValueWrapper(nonIterableComponent));
         }
       } else {
         // SingleFieldComponent
-        dataObject.setValue(targetName, DataObjectUtil.getEmptyValueWrapper(nonIterableComponent, buildingMode));
-        if (component?.choiceInfo?.choices?.length > 0) {
-          let value: string | null = null;
-          for (const choice of component.choiceInfo.choices) {
-            if (choice.selectedByDefault) {
-              value = choice.label;
-            }
-          }
-          // Only when one of the choices is the default. A choice field where none is selected by
-          // default records nothing, and nothing is the empty slot already set above: `@value: null`
-          // for a literal field, `{}` for an IRI-valued one. It used to overwrite that slot with the
-          // empty string, which is a third state meaning neither of those, and which every consumer
-          // that tests a field for emptiness by looking for null then read as an answer. The compact
-          // serialization is where it showed: a template's unanswered radio fields were the only
-          // ones it listed, each with `value: ""`, while every other empty field was correctly
-          // omitted. The multi-occurrence branch above never had the defect.
-          if (value !== null) {
-            dataObject.setValue(
-              targetName,
-              DataObjectUtil.getSingleValueWrapper(nonIterableComponent, buildingMode, value),
-            );
-          }
-        }
+        const defaults = DataObjectUtil.getDefaultValueWrappers(nonIterableComponent);
+        // Preserve the historical rule for malformed single-choice declarations:
+        // if several choices say they are selected, the last one wins.
+        const value = defaults.at(-1) ?? DataObjectUtil.getEmptyValueWrapper(nonIterableComponent);
+        dataObject.setValue(targetName, value);
       }
     }
   }
@@ -164,18 +127,8 @@ export class DataObjectBuilderHandler {
    *
    * The entries come off the component, where the template parser put them.
    */
-  public static addPropertyIris(
-    component: CedarComponent,
-    dataObject: InstanceObject,
-    buildingMode: DataObjectBuildingMode,
-  ): void {
-    if (buildingMode !== DataObjectBuildingMode.INCLUDE_CONTEXT) {
-      return;
-    }
+  public static addPropertyIris(component: CedarComponent, dataObject: InstanceObject): void {
     const container = component as unknown as AbstractElementComponent;
-    if (container?.contextEntries == null) {
-      return;
-    }
     Object.entries(container.contextEntries).forEach(([key, iri]) => {
       if (typeof iri === 'string') {
         dataObject.setIri(key, iri);
@@ -205,21 +158,17 @@ export class DataObjectBuilderHandler {
     builder.withSchemaName(templateName ? `${templateName} metadata` : 'metadata');
     builder.withSchemaDescription('');
     const instance = builder.build();
-    this.buildNewByIterating(templateRepresentation, instance.dataContainer, DataObjectBuildingMode.INCLUDE_CONTEXT);
+    this.buildNewByIterating(templateRepresentation, instance.dataContainer);
     return instance;
   }
 
-  private buildNewByIterating(
-    templateRepresentation: TemplateComponent,
-    dataObject: InstanceObject,
-    buildingMode: DataObjectBuildingMode,
-  ): void {
+  private buildNewByIterating(templateRepresentation: TemplateComponent, dataObject: InstanceObject): void {
     if (templateRepresentation == null || templateRepresentation.children == null) {
       return;
     }
-    DataObjectBuilderHandler.addPropertyIris(templateRepresentation, dataObject, buildingMode);
+    DataObjectBuilderHandler.addPropertyIris(templateRepresentation, dataObject);
     for (const childComponent of templateRepresentation.children) {
-      this.buildRecursively(childComponent, dataObject, buildingMode);
+      this.buildRecursively(childComponent, dataObject);
     }
   }
 }

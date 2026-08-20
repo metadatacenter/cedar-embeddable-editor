@@ -178,6 +178,36 @@ describe('single fields', () => {
     expect(r.widget.last).toEqual({ iri: 'https://example.org/terms/human', label: 'Homo sapiens' });
   });
 
+  it('clears a seeded literal default from a specification-only read-only control', () => {
+    const template = buildTemplate({
+      name: 'vs_ro_literal_default',
+      children: [{ kind: TEXT, name: 'f', defaultValue: 'Draft record' }],
+    });
+    const r = rig(TEXT, ['_f'], template, { readOnlyMode: true });
+
+    r.sync();
+
+    expect(r.widget.last).toBeNull();
+  });
+
+  it('clears a seeded term default from a specification-only read-only control', () => {
+    const template = buildTemplate({
+      name: 'vs_ro_term_default',
+      children: [
+        {
+          kind: CONTROLLED,
+          name: 'f',
+          defaultValue: { iri: 'https://example.org/terms/human', label: 'Homo sapiens' },
+        },
+      ],
+    });
+    const r = rig(CONTROLLED, ['_f'], template, { readOnlyMode: true });
+
+    r.sync();
+
+    expect(r.widget.last).toBeNull();
+  });
+
   it('pushes nothing when no widget is registered', () => {
     const driver = new CeeDriver(buildTemplate({ name: 'vs_none', children: [{ kind: TEXT, name: 'f' }] }));
     const registry = new ActiveComponentRegistryService();

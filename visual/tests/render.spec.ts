@@ -13,7 +13,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { elementIrisOf, literalNode, valueOf } from './values';
+import { elementIrisOf, literalNode, termOf, valueOf } from './values';
 import { fileURLToPath } from 'node:url';
 import {
   BUNDLE_VERSION,
@@ -2133,6 +2133,38 @@ test.describe('ported from the deleted component specs', () => {
     await expect(emptyReadOnlyField.locator('app-cedar-component-header')).toContainText('paged_no_instances');
     await expect(emptyReadOnlyField).not.toContainText('No instances yet');
     await expect(emptyReadOnlyField.locator('mat-chip-listbox')).toHaveCount(0);
+  });
+});
+
+test.describe('declared non-enumerated defaults', () => {
+  test('a new instance starts with its literal and controlled-term defaults', async ({ page }) => {
+    await open(page, '23-declared-defaults');
+
+    await expect(page.locator('input[aria-label="title"]')).toHaveValue('Draft record');
+    await expect(page.locator('input[aria-label="organism"]')).toHaveValue('Homo sapiens');
+
+    const metadata = await page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
+    );
+    expect(valueOf(metadata, '_title')).toBe('Draft record');
+    expect(termOf(metadata, '_organism')).toEqual({
+      iri: 'http://purl.obolibrary.org/obo/NCBITaxon_9606',
+      label: 'Homo sapiens',
+    });
+  });
+
+  test('rendering does not overwrite fields a supplied instance left blank', async ({ page }) => {
+    await open(page, '23-declared-defaults', undefined, '23-declared-defaults-blank-instance');
+
+    await expect(page.locator('input[aria-label="title"]')).toHaveValue('');
+    await expect(page.locator('input[aria-label="organism"]')).toHaveValue('');
+
+    const metadata = await page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
+    );
+    expect(JSON.stringify(metadata)).not.toContain('Draft record');
+    expect(JSON.stringify(metadata)).not.toContain('Homo sapiens');
+    expect(JSON.stringify(metadata)).not.toContain('NCBITaxon_9606');
   });
 });
 
