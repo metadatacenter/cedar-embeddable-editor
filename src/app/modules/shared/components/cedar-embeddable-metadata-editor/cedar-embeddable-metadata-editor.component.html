@@ -23,6 +23,24 @@
           <p class="template-description">{{ dataContext.templateRepresentation?.labelInfo?.description }}</p>
         }
       </div>
+      @if (templateVersion || templateStatus) {
+        <!--
+          What the artifact says about itself, where a reader looks for it: the top right, above the
+          controls rather than among them, so the buttons keep the right edge they were given.
+        -->
+        <div class="template-provenance">
+          @if (templateVersion) {
+            <span class="template-version">{{
+              'Generic.TemplateVersion' | translate: { version: templateVersion }
+            }}</span>
+          }
+          @if (templateStatus) {
+            <span class="template-status">{{
+              (templateStatus === 'published' ? 'Generic.StatusPublished' : 'Generic.StatusDraft') | translate
+            }}</span>
+          }
+        </div>
+      }
       <div class="template-actions">
         @if (dataContext.templateRepresentation?.hasPageBreaks()) {
           <div class="page-break-control">

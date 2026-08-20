@@ -538,6 +538,20 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
     padding: 2px;
   }
 
+  /*
+   * And the box inside it, which is positioned rather than laid out.
+   *
+   * Material insets `.mdc-checkbox__background` by 11px absolutely — the offset that centres an 18px
+   * box in the 40px control above. Shrink the control without it and the box keeps the old offset:
+   * it hung 11px below its own row and 11px into the label, which is what "wonky alignment" was. The
+   * radio's dot is centred by layout rather than by offset, so it needs nothing here.
+   */
+  .mat-mdc-checkbox .mdc-checkbox .mdc-checkbox__background,
+  .mat-mdc-checkbox .mdc-checkbox .mdc-checkbox__native-control {
+    top: 2px;
+    left: 2px;
+  }
+
   /* The row's own line box, which the 40px control had been holding open. */
   .mat-mdc-radio-button,
   .mat-mdc-checkbox {

@@ -1,4 +1,6 @@
 import { Component, Input, OnDestroy, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import type { Template } from 'cedar-model-typescript-library';
+import { CedarTemplate } from '../../models/template/cedar-template.model';
 import { NullTemplate } from '../../models/template/null-template.model';
 import { DataContext } from '../../util/data-context';
 import { HandlerContext } from '../../util/handler-context';
@@ -97,6 +99,29 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   allExpanded = true;
   ceeVersion: string;
+
+  /**
+   * The template's own version and where it is in its lifecycle, which the header states beside its
+   * name.
+   *
+   * Not CEE's version, which is the stamp under the logo and says nothing about the artifact on
+   * screen. A reader looking at a form wants to know which revision of the template produced it and
+   * whether that revision is settled: a draft can still change under them, a published one cannot.
+   * Both come from the parsed artifact — `pav:version` and `bibo:status` — so a template that
+   * declares neither states nothing rather than guessing.
+   */
+  get templateVersion(): string | null {
+    return this.parsedTemplate()?.pav_version?.getValue() ?? null;
+  }
+
+  get templateStatus(): string | null {
+    return this.parsedTemplate()?.bibo_status?.getYamlValue() ?? null;
+  }
+
+  private parsedTemplate(): Template | null {
+    const representation = this.dataContext?.templateRepresentation;
+    return representation instanceof CedarTemplate ? representation.parsed : null;
+  }
 
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,

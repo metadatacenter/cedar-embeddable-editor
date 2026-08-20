@@ -3112,6 +3112,45 @@ test.describe('read-only belongs to the host', () => {
     await expect(page.locator('input[aria-label="numeric"]')).toHaveAttribute('readonly', 'true');
   });
 
+  /**
+   * A radio group keeps its options in read-only, because a set of options is how a reader sees what
+   * the field permits. It must not keep the behaviour with them.
+   *
+   * The value was already safe — a change is reverted before it reaches the instance — and that was
+   * mistaken for the whole guarantee. The group was still in the tab order with a pointer cursor, so
+   * it hovered, focused and flickered when clicked, and arrow keys moved the selection before it
+   * snapped back. A viewer that flickers is not read-only, whatever it stores.
+   */
+  test('shows choice options without the behaviour of a control', async ({ page }) => {
+    await open(page, '02-choices', 'readonly');
+
+    const options = page.locator('mat-radio-button');
+    const before = await page.evaluate(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      () => JSON.stringify((document.querySelector('cedar-embeddable-editor') as any).currentMetadata),
+    );
+    const checkedBefore = await page.locator('mat-radio-button.mat-mdc-radio-checked').allInnerTexts();
+
+    await expect(options.first().locator('input[type="radio"]')).toHaveAttribute('tabindex', '-1');
+    await expect(options.first()).toHaveAttribute('aria-disabled', 'true');
+    expect(
+      await options.first().evaluate((option) => getComputedStyle(option).pointerEvents),
+      'the options take no pointer at all',
+    ).toBe('none');
+
+    // Forced, because an unhittable element is the point: the click lands on the page behind it.
+    await options.last().click({ force: true });
+
+    expect(await page.locator('mat-radio-button.mat-mdc-radio-checked').allInnerTexts()).toEqual(checkedBefore);
+    expect(
+      await page.evaluate(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        () => JSON.stringify((document.querySelector('cedar-embeddable-editor') as any).currentMetadata),
+      ),
+      'and nothing reached the instance',
+    ).toBe(before);
+  });
+
   test('offers the user nothing that leaves read-only', async ({ page }) => {
     await open(page, '01-input-types', 'readonly');
 

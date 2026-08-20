@@ -39,7 +39,10 @@
     "IncrementSecond": "Increment second",
     "DecrementSecond": "Decrement second",
     "ToggleMeridian": "Switch between AM and PM",
-    "Download": "Download"
+    "Download": "Download",
+    "TemplateVersion": "Version {{version}}",
+    "StatusDraft": "Draft",
+    "StatusPublished": "Published"
   },
   "Multi": {
     "NoInstancesYet": "No instances yet",
@@ -140,7 +143,7 @@
       "branch": "branch",
       "ontology": "ontology",
       "valueSet": "value set",
-      "class": "class"
+      "class": "value"
     },
     "Notation": {
       "year": "YYYY",

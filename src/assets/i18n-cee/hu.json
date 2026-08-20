@@ -39,7 +39,10 @@
     "IncrementSecond": "Másodperc növelése",
     "DecrementSecond": "Másodperc csökkentése",
     "ToggleMeridian": "Váltás AM és PM között",
-    "Download": "Letöltés"
+    "Download": "Letöltés",
+    "TemplateVersion": "Verzió {{version}}",
+    "StatusDraft": "Vázlat",
+    "StatusPublished": "Közzétett"
   },
   "Multi": {
     "NoInstancesYet": "Még nincsenek példányok",
@@ -140,7 +143,7 @@
       "branch": "ág",
       "ontology": "ontológia",
       "valueSet": "értékkészlet",
-      "class": "osztály"
+      "class": "érték"
     },
     "Notation": {
       "year": "ÉÉÉÉ",
