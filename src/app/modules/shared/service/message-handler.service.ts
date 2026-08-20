@@ -26,6 +26,7 @@ import { CeeEventHandler } from '../../../cee-public-api';
 })
 export class MessageHandlerService {
   private eventHandler: CeeEventHandler | null = null;
+  private readyEmitted = false;
 
   constructor() {}
 
@@ -96,5 +97,24 @@ export class MessageHandlerService {
     console.error('CEE ERROR: ' + label);
     console.error(value);
     this.emit('error', label, value);
+  }
+
+  /** Tell a listening host that this element's first form render completed. */
+  ready(): void {
+    if (this.readyEmitted) {
+      return;
+    }
+    this.readyEmitted = true;
+    const handler = this.eventHandler;
+    const method = handler?.ready;
+    if (typeof method !== 'function') {
+      return;
+    }
+    try {
+      method.call(handler);
+    } catch (e) {
+      console.error('CEE ERROR: the injected eventHandler threw from ready()');
+      console.error(e);
+    }
   }
 }

@@ -319,23 +319,32 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   }
 
   private async renderInstance(dataContext: DataContext): Promise<void> {
-    this.initDataFromInstanceQueue = this.initDataFromInstanceQueue.finally(async () => {
-      // Held in a local: the deferred callback runs a tick later, and the two
-      // reads of `dataContext.templateRepresentation` that the check guarded were
-      // separate reads of a mutable field rather than one narrowed value.
-      const representation = dataContext.templateRepresentation;
-      const handlerContext = this.handlerContext;
-      if (representation != null && representation.children != null && handlerContext != null) {
-        await new Promise<void>((resolve) => {
-          setTimeout(() => {
-            for (const childComponent of representation.children) {
-              this.activeComponentRegistry.updateViewToModel(childComponent, handlerContext);
-            }
-            resolve();
+    this.initDataFromInstanceQueue = this.initDataFromInstanceQueue
+      // The failing assignment reports through its own returned promise; let a
+      // later, corrected host assignment render instead of inheriting that failure.
+      .catch(() => {})
+      .then(async () => {
+        // Held in a local: the deferred callback runs a tick later, and the two
+        // reads of `dataContext.templateRepresentation` that the check guarded were
+        // separate reads of a mutable field rather than one narrowed value.
+        const representation = dataContext.templateRepresentation;
+        const handlerContext = this.handlerContext;
+        if (representation != null && representation.children != null && handlerContext != null) {
+          await new Promise<void>((resolve, reject) => {
+            setTimeout(() => {
+              try {
+                for (const childComponent of representation.children) {
+                  this.activeComponentRegistry.updateViewToModel(childComponent, handlerContext);
+                }
+                resolve();
+              } catch (error) {
+                reject(error instanceof Error ? error : new Error(String(error)));
+              }
+            });
           });
-        });
-      }
-    });
+        }
+        this.messageHandlerService.ready();
+      });
     return this.initDataFromInstanceQueue;
   }
 

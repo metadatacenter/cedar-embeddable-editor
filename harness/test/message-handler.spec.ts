@@ -7,10 +7,10 @@
  * one that works until someone depends on it.
  *
  * What it should emit was never written down. The narrow reading is taken instead: the
- * value was routed into the service whose whole job is `trace` and `error`, so a handler
- * hears those, under the names the service already uses. These tests pin that contract,
- * including the parts a host will actually hit — a partial handler, and a handler that
- * throws.
+ * value was routed into the service whose job is diagnostics and lifecycle notification,
+ * so a handler hears `trace`, `error`, and one `ready`. These tests pin that contract,
+ * including the parts a host will actually hit — a partial handler, deduplication, and a
+ * handler that throws.
  */
 import { describe, expect, it, vi } from 'vitest';
 import { MessageHandlerService } from '../../src/app/modules/shared/service/message-handler.service';
@@ -57,6 +57,30 @@ describe('the injected event handler', () => {
       ['with an object', payload],
       ['failed', payload],
     ]);
+  });
+
+  it('emits ready once for the element, however many render paths complete', () => {
+    silence();
+    const ready = vi.fn();
+    const service = new MessageHandlerService();
+    service.injectEventHandler({ ready });
+
+    service.ready();
+    service.ready();
+
+    expect(ready).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not replay ready to a handler attached after rendering', () => {
+    silence();
+    const ready = vi.fn();
+    const service = new MessageHandlerService();
+
+    service.ready();
+    service.injectEventHandler({ ready });
+    service.ready();
+
+    expect(ready).not.toHaveBeenCalled();
   });
 
   /**
@@ -128,6 +152,7 @@ describe('the injected event handler', () => {
       service.error('e');
       service.traceObject('t', {});
       service.errorObject('e', {});
+      service.ready();
     }).not.toThrow();
   });
 
@@ -147,6 +172,19 @@ describe('the injected event handler', () => {
 
     expect(() => service.trace('still fine')).not.toThrow();
     expect(console.error).toHaveBeenCalledWith('CEE ERROR: the injected eventHandler threw from trace()');
+  });
+
+  it('contains a host exception from ready too', () => {
+    silence();
+    const service = new MessageHandlerService();
+    service.injectEventHandler({
+      ready: () => {
+        throw new Error('the host is broken');
+      },
+    });
+
+    expect(() => service.ready()).not.toThrow();
+    expect(console.error).toHaveBeenCalledWith('CEE ERROR: the injected eventHandler threw from ready()');
   });
 
   it('still logs to the console when a handler is attached', () => {

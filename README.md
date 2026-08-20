@@ -430,6 +430,18 @@ be replaced, with the last handler assigned receiving — register it before the
 configuration and the artifact if you want the diagnostics from those, since a
 handler hears only what follows it.
 
+The same handler provides the lifecycle signal a host can use instead of polling
+the DOM. `ready` is called once after the element's first successful form render;
+it is not called for a rejected artifact and is not replayed to a handler attached
+after rendering:
+
+```javascript
+cee.eventHandler = {
+  error: (message) => console.error(message),
+  ready: () => startAutosave(),
+};
+```
+
 `readOnlyMode` is the only way in or out of read-only mode. CEE used to offer the
 user a switch of its own, in a preferences menu, which wrote to the same state the
 widgets read — so a form you embedded as a viewer could be made editable from inside

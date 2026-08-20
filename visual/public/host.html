@@ -236,6 +236,7 @@
           cee.eventHandler = {
             trace: (label, value) => window.__ceeEvents.push({ kind: 'trace', label, value }),
             error: (label, value) => window.__ceeEvents.push({ kind: 'error', label, value }),
+            ready: () => window.__ceeEvents.push({ kind: 'ready' }),
           };
         }
 

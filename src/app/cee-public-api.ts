@@ -182,12 +182,12 @@ export interface CeeDataQualityReport {
  * handler is called only if it has a matching method — so `{ error }` on its own
  * is a valid handler and will not be bothered with traces.
  *
- * `trace` and `error` are what `MessageHandlerService` emits, and are the only
- * two CEE calls. The three below them were declared here and are invoked
- * nowhere; the index signature is why supplying `trace` or `error` type-checked
- * against an interface that did not mention them, and so why the gap went
- * unnoticed. They are kept, and marked, rather than removed: taking a member off
- * a shipped interface is a decision about the published contract.
+ * `trace`, `error`, and `ready` are emitted by `MessageHandlerService`. The two
+ * remaining callbacks were declared here and are invoked nowhere; the index
+ * signature is why supplying the real methods type-checked against an interface
+ * that did not mention them, and so why the gap went unnoticed. They are kept,
+ * and marked, rather than removed: taking a member off a shipped interface is a
+ * decision about the published contract.
  */
 export interface CeeEventHandler {
   /** A diagnostic. `value` is the object it concerns, where there is one. */
@@ -198,7 +198,7 @@ export interface CeeEventHandler {
   valueChanged?: (path: string[], value: unknown) => void;
   /** Declared, never called. CEE has something to say. */
   message?: (message: string) => void;
-  /** Declared, never called. CEE has finished rendering a template. */
+  /** Called once, after this element's first successful form render. */
   ready?: () => void;
   [event: string]: unknown;
 }

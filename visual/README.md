@@ -199,7 +199,9 @@ one stable:
    theorised: before the fix, runs took 34s–1.3m with sporadic failures; after,
    5.4s and clean.
 3. **A DOM-settled poll, then a re-settle after fonts.** The host page sets
-   `window.__ceeReady` only once both have quiesced; tests wait on that flag
+   CEE's `eventHandler.ready()` marks the successful form render. Screenshots also
+   need fonts and layout to quiesce, so the host sets `window.__ceeReady` only once
+   those additional visual conditions hold; tests wait on that flag
    rather than a fixed timeout.
 4. **No network.** `terminologyBaseUrl` points at an unreachable
    port on purpose. The baseline must never depend on a live terminology

@@ -31,7 +31,11 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       // shape in the test: change a parameter and the double stops compiling.
       null as unknown as ActiveComponentRegistryService, // untouched by the config setter
       { setEndpoints } as unknown as ExternalAuthorityLookupService,
-      { trace: (): void => undefined, error: (): void => undefined } as unknown as MessageHandlerService,
+      {
+        trace: (): void => undefined,
+        error: (): void => undefined,
+        ready: (): void => undefined,
+      } as unknown as MessageHandlerService,
       // A real one: it holds a boolean and nothing else, so a stub would be more
       // code than the thing it replaces.
       new TemplateTrustService(),
@@ -170,7 +174,11 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
       const component = new CedarEmbeddableMetadataEditorComponent(
         { clear } as unknown as ActiveComponentRegistryService,
         { setEndpoints: (): void => undefined } as unknown as ExternalAuthorityLookupService,
-        { trace: (): void => undefined, error: (): void => undefined } as unknown as MessageHandlerService,
+        {
+          trace: (): void => undefined,
+          error: (): void => undefined,
+          ready: (): void => undefined,
+        } as unknown as MessageHandlerService,
         new TemplateTrustService(),
         new UserPreferencesService(),
       );
@@ -228,7 +236,11 @@ describe('CedarEmbeddableMetadataEditorComponent read-only wiring', () => {
     const component = new CedarEmbeddableMetadataEditorComponent(
       { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
       { setEndpoints: (): void => undefined } as unknown as ExternalAuthorityLookupService,
-      { trace: (): void => undefined, error: (): void => undefined } as unknown as MessageHandlerService,
+      {
+        trace: (): void => undefined,
+        error: (): void => undefined,
+        ready: (): void => undefined,
+      } as unknown as MessageHandlerService,
       new TemplateTrustService(),
       preferences,
     );

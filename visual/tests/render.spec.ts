@@ -3041,7 +3041,11 @@ test.describe('host input timing', () => {
       const exercise = async (mode: 'separate' | 'combined') => {
         const editor = document.createElement('cedar-embeddable-editor') as any;
         const errors: string[] = [];
-        editor.eventHandler = { error: (label: string) => errors.push(label) };
+        let readyCount = 0;
+        editor.eventHandler = {
+          error: (label: string) => errors.push(label),
+          ready: () => readyCount++,
+        };
         document.querySelector('#frame')!.appendChild(editor);
 
         const malformed = structuredClone(seed);
@@ -3057,6 +3061,7 @@ test.describe('host input timing', () => {
         const renderedAfterRejection = editor.shadowRoot?.querySelector(
           'app-cedar-embeddable-metadata-editor',
         );
+        const readyAfterRejection = readyCount;
 
         if (mode === 'combined') {
           editor.templateAndInstanceObject = { templateObject: template, instanceObject: seed };
@@ -3070,6 +3075,8 @@ test.describe('host input timing', () => {
           errors,
           afterRejection,
           renderedAfterRejection: renderedAfterRejection !== null,
+          readyAfterRejection,
+          readyAfterCorrection: readyCount,
           correctedName: afterCorrection['schema:name'],
           correctedValue: afterCorrection.text_field?.['@value'],
         };
@@ -3085,6 +3092,8 @@ test.describe('host input timing', () => {
       expect(observed.errors.join('\n'), `${mode} spent its claim on the rejected instance`).not.toContain('ignored');
       expect(observed.afterRejection, `${mode} exposed a replacement skeleton after rejection`).toEqual({});
       expect(observed.renderedAfterRejection, `${mode} rendered a blank form after rejection`).toBe(false);
+      expect(observed.readyAfterRejection, `${mode} announced readiness after rejecting the instance`).toBe(0);
+      expect(observed.readyAfterCorrection, `${mode} did not announce exactly one successful render`).toBe(1);
       expect(observed.correctedName, `${mode} did not load the corrected instance`).toBe('RECOVERED RECORD');
       expect(observed.correctedValue, `${mode} lost the corrected instance value`).toBe('data preserved by retry');
     }
@@ -3723,9 +3732,12 @@ test.describe('the host event handler', () => {
       `expected the config trace; got ${JSON.stringify(events.map((e: any) => String(e.label).slice(0, 40)))}`,
     ).toBe(true);
     expect(
-      events.every((e: any) => e.kind === 'trace' || e.kind === 'error'),
+      events.every((e: any) => e.kind === 'trace' || e.kind === 'error' || e.kind === 'ready'),
       'an event arrived under a kind the handler did not declare',
     ).toBe(true);
+    expect(events.filter((e: any) => e.kind === 'ready'), 'ready should describe one completed initial render').toHaveLength(
+      1,
+    );
   });
 
   test('gets nothing when no handler is attached, and CEE still renders', async ({ page }) => {
