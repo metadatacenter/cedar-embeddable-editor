@@ -90,6 +90,12 @@ null` for a literal and `{}` for an IRI — and the compact serialization, the o
 
 ### Added
 
+- A host can be told when the form is first on screen. `ready` was declared on
+  `CeeEventHandler` and called from nowhere, so an embedder that wanted to act once
+  the widgets existed had to poll the DOM for them. It now fires once, after this
+  element's first completed render, and it does not fire for an artifact CEE
+  refused; a handler attached after that render is not sent a replay.
+
 - The identifier of a controlled term or an external-authority value is a link when
   the form is read with a value in hand. It was text inside a readonly `input`, which
   cannot contain an anchor, so a reader had to select and paste it. The authority's own
@@ -128,6 +134,16 @@ null` for a literal and `{}` for an IRI — and the compact serialization, the o
   only one that could not read them without a cast.
 
 ### Changed
+
+- Work that has to happen after Angular has rendered waits for the render rather
+  than for a timer. Pushing model values into live widgets, and the same push after
+  a page change or an occurrence added, copied or deleted, was scheduled with
+  `setTimeout` — a guess that the components would exist by the next task, taken
+  once per call site and in one case twice for one click. One scheduler now owns
+  that wait, built on `afterNextRender`, and a newer state supersedes an older one
+  instead of both being pushed: several host inputs arriving in one turn, or a
+  reader paging faster than the form renders, no longer race. A failed push is
+  reported through the message handler rather than lost in a callback.
 
 - The required-field asterisk is the colour of the label it belongs to rather than
   red. A form of required fields opened covered in error-coloured marks before
