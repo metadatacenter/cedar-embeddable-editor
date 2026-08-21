@@ -50,9 +50,8 @@ export class ActiveComponentRegistryService {
    * type decides which the widget wants. A link takes the IRI, because that is
    * its value. An external authority field takes both — the IRI identifies the
    * record, the label is what its autocomplete displays. A controlled term
-   * takes the label alone while it is editable, since the autocomplete's own
-   * value is the label, and both once read-only, where there is no
-   * autocomplete and the viewer wants the IRI to link to.
+   * also takes both: its widget displays the label but retains the IRI for the
+   * selected-term link and for paging safely between different terms.
    */
   private static iriValueForWidget(
     node: InstanceNode,
@@ -68,7 +67,11 @@ export class ActiveComponentRegistryService {
       return iri;
     }
     const label = InstanceValueNode.label(node) ?? null;
-    if (EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType) || readOnlyMode) {
+    if (
+      inputType === InputType.controlled ||
+      EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType) ||
+      readOnlyMode
+    ) {
       // `?? ''` on both: the widget wants a term, and a node that carries an IRI
       // without a label — or a label the reader could not find — is still the
       // term the field holds. The reads above answer null for either.
@@ -128,7 +131,13 @@ export class ActiveComponentRegistryService {
     if (component instanceof SingleFieldComponent) {
       const dataObject: InstanceNode | null = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIDirective | null = this.getUIComponent(component);
-      if (uiComponent != null && dataObject != null) {
+      if (uiComponent != null && dataObject == null) {
+        // The same widget is reused while a multi element pages between
+        // occurrences. A child that is absent from the new occurrence must
+        // actively clear that widget, or the preceding occurrence remains on
+        // screen even though it is not present in the model.
+        uiComponent.setCurrentValue(null);
+      } else if (uiComponent != null && dataObject != null) {
         const clearDefault = ActiveComponentRegistryService.shouldClearDeclaredDefault(
           component,
           handlerContext,
@@ -142,6 +151,8 @@ export class ActiveComponentRegistryService {
               ? null
               : ActiveComponentRegistryService.iriValueForWidget(dataObject, component, handlerContext.readOnlyMode),
           );
+        } else {
+          uiComponent.setCurrentValue(null);
         }
       }
     } else if (component instanceof MultiFieldComponent) {
@@ -155,8 +166,8 @@ export class ActiveComponentRegistryService {
       if (!component.isMultiPage()) {
         const dataArr = isInstanceArray(dataObject) ? dataObject : null;
 
-        if (uiComponent && dataArr) {
-          uiComponent.setCurrentValue(dataArr.map((a) => InstanceValueNode.literal(a)));
+        if (uiComponent) {
+          uiComponent.setCurrentValue(dataArr?.map((a) => InstanceValueNode.literal(a)) ?? []);
         }
       } else if (isInstanceArray(dataObject) && multiInstanceInfo !== null) {
         // A paged multi field with no node in the info tree has no cursor, so there
@@ -203,8 +214,12 @@ export class ActiveComponentRegistryService {
               if (uiComponent) {
                 uiComponent.setCurrentValue(undefined);
               }
+            } else if (uiComponent) {
+              uiComponent.setCurrentValue(null);
             }
           }
+        } else if (uiComponent && component.basicInfo.inputType !== InputType.attributeValue) {
+          uiComponent.setCurrentValue(null);
         }
 
         if (component.isMultiPage()) {
@@ -216,6 +231,9 @@ export class ActiveComponentRegistryService {
         }
       } else {
         // Empty multi-field
+        if (uiComponent && component.basicInfo.inputType !== InputType.attributeValue) {
+          uiComponent.setCurrentValue(component.isMultiPage() ? null : []);
+        }
         const uiPager = this.getMultiPagerUI(component);
         if (uiPager) {
           uiPager.updatePagingUI();

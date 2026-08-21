@@ -136,7 +136,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     if (!this.readOnlyMode) {
       this.trigger?.panelClosingActions.subscribe(() => {
         if (this.selectedData !== null) {
-          this.setCurrentValue(this.selectedData.label);
+          this.setCurrentValue(this.selectedData);
         }
       });
     }
@@ -231,14 +231,13 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   setCurrentValue(currentValue: unknown): void {
     // Remember the term itself, not only its rendering. It is what the BioPortal
     // link is built from, and read-write selection records it the same way.
-    if (isAuthorityTerm(currentValue)) {
-      this.selectedData = currentValue;
-    }
+    const term = isAuthorityTerm(currentValue) ? currentValue : null;
+    this.selectedData = term;
     if (this.readOnlyMode) {
       const displayTerm = this.getBioPortalTermDisplayValue(currentValue);
       this.inputValueControl.setValue(displayTerm);
     } else {
-      this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
+      this.inputValueControl.setValue(term?.label ?? (typeof currentValue === 'string' ? currentValue : null));
     }
   }
   /*

@@ -233,6 +233,21 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     expect(reported(errors)).toContain('"templateObject" ignored, because the template is already set');
   });
 
+  it('reports an unreadable template without spending its claim, then accepts the correction', () => {
+    const { component, errors } = make();
+    const corrected = artifact('corrected');
+
+    component.templateObject = { '@id': {} } as unknown as CeeJsonObject;
+
+    expect(component.templateJson).toBeNull();
+    expect(reported(errors)).toContain('"templateObject" rejected because it is not a readable CEDAR template');
+
+    component.templateObject = corrected;
+
+    expect(component.templateJson).toBe(corrected);
+    expect(reported(errors)).not.toContain('"templateObject" ignored');
+  });
+
   /**
    * The two separate inputs are independent claims, which is what lets a host set
    * them in either order — the route three of the six consumers take.

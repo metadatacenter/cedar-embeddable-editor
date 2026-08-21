@@ -35,6 +35,7 @@ import { Template, TemplateInstance } from 'cedar-model-typescript-library';
 import { CedarTemplate } from '../../models/template/cedar-template.model';
 import { InstanceDeserializer } from '../../util/instance-deserializer';
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
+import { TemplateRepresentationFactory } from '../../factory/template-representation.factory';
 
 /**
  * One half of what an artifact input can supply.
@@ -203,6 +204,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     if (template == null || !this.claimAvailable('templateObject', ['template'])) {
       return;
     }
+    if (!this.templateReadable('templateObject', template)) {
+      return;
+    }
     this.commitClaim(['template']);
     this.applyTemplate(template);
   }
@@ -234,6 +238,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     }
     if (!this.isJsonObject(instanceObject)) {
       this.messageHandlerService.error('Instance Object is missing.');
+      return;
+    }
+    if (!this.templateReadable('templateAndInstanceObject.templateObject', templateObject)) {
       return;
     }
     const parsed = this.readInstance('templateAndInstanceObject.instanceObject', instanceObject);
@@ -277,6 +284,28 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
 
   private isJsonObject(value: unknown): value is CeeJsonObject {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
+  /** Validate through the production parser before a set-once template claim is spent. */
+  private templateReadable(input: string, template: CeeJsonObject): boolean {
+    try {
+      // Parsing here is intentionally side-effect free: the real parse still
+      // populates this wrapper's DataContext when Angular supplies the accepted
+      // value to the inner editor. This pass only proves that same parser can
+      // consume it before the host loses its one assignment.
+      const quietMessages = {
+        error: (): void => undefined,
+        trace: (): void => undefined,
+      } as unknown as MessageHandlerService;
+      TemplateRepresentationFactory.create(template, new HandlerContext(new DataContext(), quietMessages));
+      return true;
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      this.messageHandlerService.error(
+        `CEDAR Embeddable Editor: "${input}" rejected because it is not a readable CEDAR template: ${detail}`,
+      );
+      return false;
+    }
   }
 
   /** Parse before committing the set-once claim, so a rejected value can be corrected. */

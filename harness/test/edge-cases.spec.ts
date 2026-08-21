@@ -13,6 +13,7 @@ import { CeeDriver } from '../src/driver';
 import { at, infoOf } from '../src/nodes';
 import { linkNode, literalOf, termNode, heldValue, identityOf, linkValue, termValue } from '../src/values';
 import { MultiInstanceObjectHandler } from '@cee/handler/multi-instance-object.handler';
+import type { CedarComponent } from '@cee/models/component/cedar-component.model';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
@@ -84,7 +85,11 @@ describe('page break pagination', () => {
       }),
     );
     // a | <blank> | b
-    expect(driver.representation.pageBreakChildren).toHaveLength(3);
+    expect(
+      driver.representation.pageBreakChildren.map((page: CedarComponent[]) =>
+        page.map((component) => component.name || '<blank>'),
+      ),
+    ).toEqual([['_a'], ['<blank>'], ['_b']]);
   });
 });
 

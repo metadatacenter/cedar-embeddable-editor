@@ -43,38 +43,25 @@ export class TemplateRepresentationFactory {
   static extractPageBreakPages(template: CedarTemplate): void {
     const pages: CedarComponent[][] = [];
     let page: CedarComponent[] = [];
-    let numPBInRow = 0;
 
-    template.children.forEach((child, index) => {
-      // encountered page-break component
-      if (
-        child instanceof StaticFieldComponent &&
-        (child as StaticFieldComponent).basicInfo.inputType === InputType.pageBreak
-      ) {
-        if (page.length) {
-          pages.push(page);
-        }
-        // if page-break is the last component, always add an empty page
-        if (index === template.children.length - 1) {
-          pages.push([new EmptyTemplate()]);
-        } else {
-          numPBInRow++;
-        }
+    for (const child of template.children) {
+      if (child instanceof StaticFieldComponent && child.basicInfo.inputType === InputType.pageBreak) {
+        // A break closes the page at its position. If the previous child was
+        // also a break, this page is intentionally blank and must be emitted
+        // now, before any later content.
+        pages.push(page.length > 0 ? page : [new EmptyTemplate()]);
         page = [];
       } else {
         page.push(child);
-
-        if (index === template.children.length - 1) {
-          pages.push(page);
-        }
-
-        // add empty pages corresponding to: (number of page breaks in a row - 1)
-        for (let i = 0; i < numPBInRow - 1; i++) {
-          pages.push([new EmptyTemplate()]);
-        }
-        numPBInRow = 0;
       }
-    });
+    }
+
+    if (page.length > 0) {
+      pages.push(page);
+    } else if (template.children.length > 0) {
+      // A trailing break opens one final blank page.
+      pages.push([new EmptyTemplate()]);
+    }
     template.pageBreakChildren = pages;
   }
 }

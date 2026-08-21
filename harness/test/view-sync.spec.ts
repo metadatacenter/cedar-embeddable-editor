@@ -33,7 +33,16 @@ import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { instanceWith, linkNode, literalNode, termNode, templateIdOf } from '../src/values';
+import {
+  containerValue,
+  instanceWith,
+  linkNode,
+  listValue,
+  literalNode,
+  literalValue,
+  termNode,
+  templateIdOf,
+} from '../src/values';
 import { arrayAt } from '../src/nodes';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 
@@ -187,11 +196,11 @@ describe('single fields', () => {
    * A controlled term being edited pushes only the label, because the
    * autocomplete's own value is the label; the IRI would be shown verbatim.
    */
-  it('pushes a controlled term as its label when editable', () => {
+  it('pushes both halves of a controlled term when editable', () => {
     const r = rig(CONTROLLED);
     r.driver.handlerContext.changeControlledValue(r.component, 'https://example.org/terms/human', 'Homo sapiens');
     r.sync();
-    expect(r.widget.last).toBe('Homo sapiens');
+    expect(r.widget.last).toEqual({ iri: 'https://example.org/terms/human', label: 'Homo sapiens' });
   });
 
   /**
@@ -312,11 +321,11 @@ describe('paged multi fields', () => {
     expect(r.widget.last).toEqual({ iri: 'https://orcid.org/0000-0002-1825-0097', label: 'Ada Lovelace' });
   });
 
-  it('pushes a paged controlled term as its label', () => {
+  it('pushes both halves of a paged controlled term', () => {
     const r = rig(CONTROLLED, ['_f'], pagedTemplate(CONTROLLED));
     r.driver.handlerContext.changeControlledValue(r.component, 'https://example.org/terms/human', 'Homo sapiens');
     r.sync();
-    expect(r.widget.last).toBe('Homo sapiens');
+    expect(r.widget.last).toEqual({ iri: 'https://example.org/terms/human', label: 'Homo sapiens' });
   });
 
   it('tells the pager to redraw', () => {
@@ -383,6 +392,35 @@ describe('elements', () => {
 
     expect(pager.updates).toBe(1);
     expect(a.last, 'the child of the occurrence on screen').toBe('second');
+  });
+
+  it('clears a child omitted from the next multi-element occurrence', () => {
+    const template = elementTemplate('multi');
+    const driver = new CeeDriver(template, {
+      instance: instanceWith(
+        templateIdOf(template),
+        {
+          _el: listValue(
+            containerValue({ _a: literalValue('first occurrence') }),
+            containerValue({ _b: literalValue('second occurrence') }),
+          ),
+        },
+        INSTANCE_IRI,
+      ),
+    });
+    const registry = new ActiveComponentRegistryService();
+    const widget = new FakeWidget();
+    const element = driver.findOrThrow(['_el']);
+    const child = driver.findOrThrow(['_el', '_a']);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    registry.registerComponent(child, widget as any);
+
+    registry.updateViewToModel(element, driver.handlerContext);
+    expect(widget.last).toBe('first occurrence');
+
+    driver.handlerContext.setCurrentIndex(element, 1);
+    registry.updateViewToModel(element, driver.handlerContext);
+    expect(widget.last).toBeNull();
   });
 });
 

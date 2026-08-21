@@ -257,6 +257,14 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     const configuration = this.temporalConfiguration();
     const stored = typeof currentValue === 'string' ? currentValue : null;
     this.revalidate(stored);
+    if (stored === null) {
+      this.datetimeParsed = new DatetimeRepresentation();
+      this.dateMonthYearControl.reset(null, { emitEvent: false });
+      this.timePickerTime = null;
+      this.decimalSeconds = null;
+      this.timezone = null;
+      return;
+    }
     if (stored) {
       const parsed = CedarTemporalValue.parse(stored, configuration);
       if (parsed === null) {

@@ -1,4 +1,13 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { DateAdapter } from '@angular/material/core';
 import { MatDatepicker } from '@angular/material/datepicker';
@@ -23,7 +32,7 @@ import { MatDatepickerInputEvent } from '@angular/material/datepicker';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class DatePickerComponent implements OnInit {
+export class DatePickerComponent implements OnInit, OnDestroy {
   static readonly YEAR_FORMAT = 'YYYY';
   static readonly YEAR_MONTH_FORMAT = 'MM/YYYY';
   static readonly YEAR_MONTH_DAY_FORMAT = 'MM/DD/YYYY';
@@ -75,6 +84,10 @@ export class DatePickerComponent implements OnInit {
       this.dateMonthYear.addValidators(Validators.required);
       this.dateMonthYear.updateValueAndValidity({ emitEvent: false });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.readOnlyModeSubscription.unsubscribe();
   }
 
   chosenYearHandler(normalizedYear: Date, datepicker: MatDatepicker<Date>): void {
