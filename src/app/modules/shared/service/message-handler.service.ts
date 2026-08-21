@@ -99,6 +99,21 @@ export class MessageHandlerService {
     this.emit('error', label, value);
   }
 
+  /** Tell a listening host that a field mutation changed the serialized instance. */
+  valueChanged(path: string[], value: unknown): void {
+    const handler = this.eventHandler;
+    const method = handler?.valueChanged;
+    if (typeof method !== 'function') {
+      return;
+    }
+    try {
+      method.call(handler, [...path], value);
+    } catch (e) {
+      console.error('CEE ERROR: the injected eventHandler threw from valueChanged()');
+      console.error(e);
+    }
+  }
+
   /** Tell a listening host that this element's first form render completed. */
   ready(): void {
     if (this.readyEmitted) {

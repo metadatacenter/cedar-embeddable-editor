@@ -3415,7 +3415,6 @@ test.describe('host change notifications', () => {
     await recordChanges(page);
     const field = page.locator('input[aria-label="text"]');
     await field.fill('host-visible edit');
-    await field.blur();
 
     await expect(async () => {
       expect(await page.evaluate(() => (window as any).__ceeChanges.length)).toBeGreaterThan(0);
@@ -3424,6 +3423,108 @@ test.describe('host change notifications', () => {
       () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
     );
     expect(JSON.stringify(metadata)).toContain('host-visible edit');
+    const detail = await page.evaluate(() => (window as any).__ceeChanges.at(-1));
+    expect(detail).toMatchObject({ operation: 'valueChanged', value: 'host-visible edit' });
+    expect(detail.path).toContain('_text');
+    expect(typeof detail.validity).toBe('boolean');
+    expect(typeof detail.dataQualityReport.isValid).toBe('boolean');
+  });
+
+  test('an edit and its revert both notify the host before blur', async ({ page }) => {
+    await open(page, '01-input-types');
+    const baseline = await page.evaluate(
+      () => JSON.stringify((document.querySelector('cedar-embeddable-editor') as any).currentMetadata),
+    );
+    await recordChanges(page);
+    const field = page.locator('input[aria-label="text"]');
+
+    await field.fill('temporary edit');
+    await expect.poll(() => page.evaluate(() => (window as any).__ceeChanges.length)).toBe(1);
+    await field.fill('');
+    await expect.poll(() => page.evaluate(() => (window as any).__ceeChanges.length)).toBe(2);
+
+    expect(
+      await page.evaluate(
+        () => JSON.stringify((document.querySelector('cedar-embeddable-editor') as any).currentMetadata),
+      ),
+    ).toBe(baseline);
+  });
+
+  test('Material selection and clear operations publish model changes', async ({ page }) => {
+    await open(page, '02-choices');
+    await recordChanges(page);
+    const widget = page.locator('app-cedar-input-select').filter({
+      has: page.locator('mat-select[aria-label="single_list"]'),
+    });
+
+    await widget.locator('mat-select').click();
+    // Green is the fixture's declared default. Choose a different value so this
+    // exercises a model mutation rather than the intentional no-op suppression.
+    await page.locator('mat-option').filter({ hasText: 'Red' }).click();
+    await expect.poll(() => page.evaluate(() => (window as any).__ceeChanges.length)).toBe(1);
+    await widget.getByRole('button', { name: 'Clear', exact: true }).click();
+    await expect.poll(() => page.evaluate(() => (window as any).__ceeChanges.length)).toBe(2);
+
+    const details = await page.evaluate(() => (window as any).__ceeChanges);
+    expect(details.map((detail: any) => detail.operation)).toEqual(['valueChanged', 'valueChanged']);
+    expect(details[0].path).toContain('_single_list');
+    expect(details[1].value).toBeNull();
+  });
+
+  test('controlled-term selection publishes the stored IRI and label', async ({ page }) => {
+    const id = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
+    const label = 'Homo sapiens';
+    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ collection: [{ id, '@id': id, prefLabel: label }] }),
+      });
+    });
+    await open(page, '04-controlled-terms');
+    await recordChanges(page);
+
+    const field = page.locator('input[aria-label="organism"]');
+    await field.pressSequentially('Homo', { delay: 40 });
+    await passDebounceWindow(page);
+    await page.locator('mat-option').filter({ hasText: label }).click();
+
+    await expect.poll(() => page.evaluate(() => (window as any).__ceeChanges.length)).toBe(1);
+    const detail = await page.evaluate(() => (window as any).__ceeChanges[0]);
+    expect(detail).toMatchObject({ operation: 'valueChanged', value: { iri: id, label } });
+    expect(detail.path).toContain('_organism');
+  });
+
+  test('temporal clear publishes a model change', async ({ page }) => {
+    await open(page, '21-temporal-normalization', undefined, '21-temporal-normalization-instance');
+    await recordChanges(page);
+    const field = page.locator('app-cedar-input-datetime').nth(4);
+
+    await field.getByRole('button', { name: 'Clear', exact: true }).click();
+
+    await expect.poll(() => page.evaluate(() => (window as any).__ceeChanges.length)).toBe(1);
+    const detail = await page.evaluate(() => (window as any).__ceeChanges[0]);
+    expect(detail).toMatchObject({ operation: 'valueChanged', value: null });
+    expect(detail.path).toContain('_time_fraction');
+  });
+
+  test('paging does not report an instance change', async ({ page }) => {
+    await open(page, '13-paged-choice', undefined, '13-paged-choice-instance');
+    await recordChanges(page);
+    const chips = page.locator('app-cedar-multi-pager').first().locator('mat-chip-option');
+    await expect(chips).toHaveCount(2);
+    await chips.nth(1).click();
+    expect(await page.evaluate(() => (window as any).__ceeChanges)).toEqual([]);
+  });
+
+  test('read-only native control traffic does not report an instance change', async ({ page }) => {
+    // A blank read-only instance intentionally renders specifications instead of
+    // empty controls. Supply a filled instance so there is a real native control
+    // whose incidental DOM event can be exercised.
+    await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
+    await recordChanges(page);
+    await page.locator('input[aria-label="email"]').dispatchEvent('change');
+    expect(await page.evaluate(() => (window as any).__ceeChanges)).toEqual([]);
   });
 
   test('multi-instance add, copy and delete report their operation and obey maxItems', async ({ page }) => {

@@ -175,6 +175,35 @@ export interface CeeDataQualityReport {
   isValid: boolean;
 }
 
+/** The model operation that produced a host-visible instance change. */
+export type CeeChangeOperation = 'valueChanged' | 'multiInstanceAdded' | 'multiInstanceCopied' | 'multiInstanceDeleted';
+
+/**
+ * Detail carried by CEE's composed `change` event.
+ *
+ * This describes a change to the serialized instance, not traffic from a DOM
+ * control. Paging, focus, blur and a write which leaves the instance identical
+ * therefore produce no event.
+ */
+export interface CeeChangeDetail {
+  /** What changed. */
+  operation: CeeChangeOperation;
+  /** Template path of the changed field or multi-instance component. */
+  path: string[];
+  /** The value supplied to the model operation. */
+  value: unknown;
+  /** Current validity after the operation. */
+  validity: boolean;
+  /** Current validation report after the operation. */
+  dataQualityReport: CeeDataQualityReport;
+  /** Current instance title, where the envelope carries one. */
+  title: string | null;
+  /** Current instance description, where the envelope carries one. */
+  description: string | null;
+  /** Backward-compatible name carried by the three multi-instance operations. */
+  message?: 'multiInstanceAdded' | 'multiInstanceCopied' | 'multiInstanceDeleted';
+}
+
 /**
  * The callbacks CEE will invoke on the host.
  *
@@ -182,19 +211,16 @@ export interface CeeDataQualityReport {
  * handler is called only if it has a matching method — so `{ error }` on its own
  * is a valid handler and will not be bothered with traces.
  *
- * `trace`, `error`, and `ready` are emitted by `MessageHandlerService`. The two
- * remaining callbacks were declared here and are invoked nowhere; the index
- * signature is why supplying the real methods type-checked against an interface
- * that did not mention them, and so why the gap went unnoticed. They are kept,
- * and marked, rather than removed: taking a member off a shipped interface is a
- * decision about the published contract.
+ * `trace`, `error`, `valueChanged`, and `ready` are emitted by
+ * `MessageHandlerService`. `message` remains declared for compatibility but is
+ * not emitted; structured instance changes use the DOM `change` event above.
  */
 export interface CeeEventHandler {
   /** A diagnostic. `value` is the object it concerns, where there is one. */
   trace?: (label: string, value: object | null) => void;
   /** A failure worth surfacing — a template problem, a discarded value. */
   error?: (label: string, value: object | null) => void;
-  /** Declared, never called. A field's value changed. */
+  /** Called after a field mutation actually changes the serialized instance. */
   valueChanged?: (path: string[], value: unknown) => void;
   /** Declared, never called. CEE has something to say. */
   message?: (message: string) => void;

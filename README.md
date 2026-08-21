@@ -721,7 +721,16 @@ Information about the loading process is logged onto the console with the `CEE T
 
 ### Listening for changes
 
-If you need to listen to data changes inside the embeddable editor, you can use the existing `change` DOM events. We added custom events in case of a multi-instance add, copy and delete operations, so you can listen to all the events on the instance.
+CEE emits one composed, bubbling `change` event after an operation actually changes
+the serialized instance. It does not forward incidental DOM control traffic: focus,
+blur, paging, read-only controls, and a write that leaves `currentMetadata` unchanged
+produce no event. Field edits, clears, controlled-term selections, and multi-instance
+add, copy, and delete operations do.
+
+The event is a `CustomEvent<CeeChangeDetail>`. Its detail carries the operation,
+template path, supplied value, current validity and full data-quality report, plus
+the current title and description. Multi-instance details also retain their former
+`message` name for compatibility.
 
 An example in Angular is:
 
@@ -737,10 +746,19 @@ An example in Angular is:
 
 - `component.ts`:
 ```typescript fragment
-  logChange(event) {
-    console.log('CHANGE', event);
+  import type { CeeChangeDetail } from 'cedar-embeddable-editor';
+
+  logChange(event: CustomEvent<CeeChangeDetail>) {
+    console.log(event.detail.operation, event.detail.path);
+    console.log('valid:', event.detail.validity);
   }
 ```
+
+The optional `eventHandler.valueChanged(path, value)` callback receives the same
+field mutations. It is not a dirty flag: only the host knows which serialization
+was last loaded or saved. Keep that baseline in the host and compare
+`cee.currentMetadata` after each `change`; doing so also clears dirty state when an
+edit is undone.
 
 ### Viewer Mode
 

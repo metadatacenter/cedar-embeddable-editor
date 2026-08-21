@@ -16,8 +16,9 @@ import { HttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 import { FallbackTranslateLoader } from '../../util/fallback-translate-loader';
 import { CeeConfig } from '../../util/config-reader';
-import { CeeJsonObject } from '../../../../cee-public-api';
+import { CeeChangeDetail, CeeJsonObject } from '../../../../cee-public-api';
 import inputTypesTemplate from '../../../../../../visual/fixtures/01-input-types.json';
+import { FieldComponent } from '../../models/component/field-component.model';
 
 const validTemplate = inputTypesTemplate as unknown as CeeJsonObject;
 
@@ -43,6 +44,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     reloadLang: Mock;
     setTranslation: Mock;
     clearRegistry: Mock;
+    valueChanged: Mock;
+    host: HTMLElement;
     globalSettings: { languageMapPathPrefix?: string };
   }
 
@@ -59,16 +62,23 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       reloadLang: vi.fn(),
       setTranslation: vi.fn(),
       clearRegistry: vi.fn(),
+      valueChanged: vi.fn(),
+      host: document.createElement('cedar-embeddable-editor'),
       globalSettings: {},
     };
-    const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined, error: vi.fn() };
+    const messaging = {
+      trace: (): void => undefined,
+      traceGroup: (): void => undefined,
+      error: vi.fn(),
+      valueChanged: mocks.valueChanged,
+    };
     // `as unknown as T` throughout, rather than `as any`. Each double implements only
     // what this test exercises, which is the point of a double — but naming the
     // service it stands in for keeps the constructor's shape under test. Reorder or
     // retype a parameter and these stop compiling; under `as any` they would have
     // gone on silently standing in for the wrong thing.
     const component = new CedarEmbeddableMetadataEditorWrapperComponent(
-      new ElementRef(document.createElement('cedar-embeddable-editor')),
+      new ElementRef(mocks.host),
       {
         setIntegratedSearchUrl: mocks.setIntegratedSearchUrl,
       } as unknown as ControlledFieldDataService,
@@ -150,6 +160,34 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     expect(component.editorDataReady()).toBe(true);
     expect(mocks.use).toHaveBeenLastCalledWith('hu');
     expect(component.handlerContext.readOnlyMode).toBe(true);
+  });
+
+  it('publishes actual model mutations once and suppresses no-op writes', () => {
+    const { component, mocks } = make();
+    const changes: CeeChangeDetail[] = [];
+    mocks.host.addEventListener('change', (event) => changes.push((event as CustomEvent<CeeChangeDetail>).detail));
+
+    component.ngOnInit();
+    component.templateObject = validTemplate;
+    const field = component.dataContext.templateRepresentation?.children.find(
+      (child): child is FieldComponent => 'basicInfo' in child,
+    ) as FieldComponent;
+
+    component.handlerContext.changeValue(field, 'edited');
+
+    expect(changes).toHaveLength(1);
+    expect(changes[0]).toMatchObject({ operation: 'valueChanged', path: field.path, value: 'edited' });
+    expect(changes[0].dataQualityReport).toEqual(component.dataQualityReport);
+    expect(mocks.valueChanged).toHaveBeenCalledOnce();
+    expect(mocks.valueChanged).toHaveBeenLastCalledWith(field.path, 'edited');
+
+    component.handlerContext.changeValue(field, 'edited');
+    expect(changes, 'an identical serialization was announced twice').toHaveLength(1);
+    expect(mocks.valueChanged).toHaveBeenCalledOnce();
+
+    component.handlerContext.changeValue(field, null);
+    expect(changes).toHaveLength(2);
+    expect(changes[1]).toMatchObject({ operation: 'valueChanged', path: field.path, value: null });
   });
 });
 

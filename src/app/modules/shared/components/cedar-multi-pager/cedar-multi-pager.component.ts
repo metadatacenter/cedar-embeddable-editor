@@ -166,25 +166,21 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
     this.scheduleViewSync();
   }
 
-  clickedAdd(event: MouseEvent): void {
+  clickedAdd(): void {
     this.handlerContext.addMultiInstance(this.component);
     this.recomputeNumbers();
-    this.emitEvent(event, 'multiInstanceAdded');
     this.scheduleViewSync();
   }
 
-  clickedCopy(event: MouseEvent): void {
+  clickedCopy(): void {
     this.handlerContext.copyMultiInstance(this.component);
     this.recomputeNumbers();
-    this.emitEvent(event, 'multiInstanceCopied');
     this.scheduleViewSync();
   }
 
-  clickedDelete(event: MouseEvent): void {
+  clickedDelete(): void {
     this.handlerContext.deleteMultiInstance(this.component);
     this.recomputeNumbers();
-
-    this.emitEvent(event, 'multiInstanceDeleted');
     this.scheduleAfterRender(() => {
       this.activeComponentRegistry.deleteCurrentValue(this.component);
       if ((this.currentMultiInfo?.currentCount ?? 0) > 0) {
@@ -234,15 +230,6 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
 
   getInstanceCount(): number {
     return this.currentMultiInfo?.currentCount ?? 0;
-  }
-
-  private emitEvent(event: MouseEvent, message: string) {
-    const myEvent = new CustomEvent('change', {
-      detail: { message: message },
-      bubbles: true,
-      cancelable: true,
-    });
-    event.target?.dispatchEvent(myEvent);
   }
 
   private scheduleViewSync(): void {

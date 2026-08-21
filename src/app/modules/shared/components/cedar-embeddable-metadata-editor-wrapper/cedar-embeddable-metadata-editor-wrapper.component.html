@@ -1,5 +1,5 @@
 <app-cedar-font-registrar></app-cedar-font-registrar>
-<div class="cee-root" (change)="forwardChange($event)">
+<div class="cee-root" (change)="suppressNativeChange($event)">
   @if (editorDataReady()) {
     <app-cedar-embeddable-metadata-editor
       [config]="innerConfig"

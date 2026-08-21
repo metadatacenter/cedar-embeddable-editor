@@ -14,9 +14,17 @@ import { InputType } from '../models/input-type.model';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 import { isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 import { InstanceValueNode } from './instance-value-node';
+import type { CeeChangeOperation } from '../../../cee-public-api';
 // import { RdfBuilderService } from '../service/rdf-builder.service';
 
+export interface InstanceMutation {
+  readonly operation: CeeChangeOperation;
+  readonly path: string[];
+  readonly value: unknown;
+}
+
 export class HandlerContext {
+  private mutationListener: ((mutation: InstanceMutation) => void) | null = null;
   // No `= null` initialisers. The constructor assigns every one of these, so the
   // null was a placeholder that never survived construction — and declaring it
   // made each service nullable at all 45 call sites for a state none of them can
@@ -77,6 +85,19 @@ export class HandlerContext {
     // this.rdfService = new RdfBuilderService();
   }
 
+  /** Install the wrapper-owned bridge from model mutations to the host contract. */
+  setMutationListener(listener: (mutation: InstanceMutation) => void): void {
+    this.mutationListener = listener;
+  }
+
+  private reportMutation(
+    operation: CeeChangeOperation,
+    component: FieldComponent | MultiComponent,
+    value: unknown,
+  ): void {
+    this.mutationListener?.({ operation, path: [...component.path], value });
+  }
+
   /**
    * Cardinality bounds are a model invariant, enforced here rather than only by
    * the pager disabling its buttons.
@@ -135,6 +156,9 @@ export class HandlerContext {
     );
     this.multiInstanceObjectService.multiInstanceItemAdd(component);
     this.buildQualityReport();
+    this.reportMutation('multiInstanceAdded', component, {
+      count: this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentCount ?? 0,
+    });
     return true;
   }
 
@@ -198,6 +222,9 @@ export class HandlerContext {
       }
     }
     this.buildQualityReport();
+    this.reportMutation('multiInstanceCopied', component, {
+      count: this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentCount ?? 0,
+    });
     return true;
   }
 
@@ -213,6 +240,9 @@ export class HandlerContext {
     );
     this.multiInstanceObjectService.multiInstanceItemDelete(component);
     this.buildQualityReport();
+    this.reportMutation('multiInstanceDeleted', component, {
+      count: this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentCount ?? 0,
+    });
     return true;
   }
 
@@ -300,6 +330,7 @@ export class HandlerContext {
   changeValue(component: FieldComponent, value: string | null): void {
     this.dataObjectDataValueHandler.changeValue(this.dataContext, component, this.multiInstanceObjectService, value);
     this.buildQualityReport();
+    this.reportMutation('valueChanged', component, value);
     // this.rdfService.toRdf(this.dataContext.instanceFullData);
   }
 
@@ -311,6 +342,7 @@ export class HandlerContext {
       value,
     );
     this.buildQualityReport();
+    this.reportMutation('valueChanged', component, value);
   }
 
   changeAttributeValue(component: FieldComponent, key: string | null, value: string | null): string | null {
@@ -322,6 +354,7 @@ export class HandlerContext {
       value,
     );
     this.buildQualityReport();
+    this.reportMutation('valueChanged', component, { key, value });
     return validationError;
   }
 
@@ -333,6 +366,7 @@ export class HandlerContext {
       key,
     );
     this.buildQualityReport();
+    this.reportMutation('valueChanged', component, { key, value: null });
   }
 
   changeControlledValue(component: FieldComponent, atId: string | null, prefLabel: string | null): void {
@@ -344,6 +378,7 @@ export class HandlerContext {
       prefLabel,
     );
     this.buildQualityReport();
+    this.reportMutation('valueChanged', component, { iri: atId, label: prefLabel });
   }
 
   buildQualityReport() {

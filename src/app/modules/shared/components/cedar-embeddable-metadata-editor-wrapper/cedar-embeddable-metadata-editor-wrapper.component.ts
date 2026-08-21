@@ -9,8 +9,14 @@ import {
 } from '@angular/core';
 import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
-import { CeeEventHandler, CeeJsonObject, CeeTemplateAndInstance } from '../../../../cee-public-api';
-import { HandlerContext } from '../../util/handler-context';
+import {
+  CeeChangeDetail,
+  CeeDataQualityReport,
+  CeeEventHandler,
+  CeeJsonObject,
+  CeeTemplateAndInstance,
+} from '../../../../cee-public-api';
+import { HandlerContext, InstanceMutation } from '../../util/handler-context';
 import { InstanceSerializer } from '../../util/instance-serializer';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { TranslateLoader, TranslateService, USE_DEFAULT_LANG, USE_STORE } from '@ngx-translate/core';
@@ -74,6 +80,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   private initialized = false;
   private readonly artifacts: ArtifactInputCoordinator;
   private readonly configuration: WrapperConfigCoordinator;
+  private lastPublishedMetadata = '';
   artifactRevision = 0;
 
   // Constructor-assigned, so no `= null` placeholder: unlike the editor's, which
@@ -117,18 +124,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     return this.artifacts.state.templateAndInstanceJson;
   }
 
-  /** Re-publishes CEE's existing change contract across the shadow boundary. */
-  forwardChange(event: Event): void {
-    if (event.composed) {
-      return;
-    }
-    this.wrapper.nativeElement.dispatchEvent(
-      new CustomEvent('change', {
-        detail: event instanceof CustomEvent ? event.detail : undefined,
-        bubbles: true,
-        composed: true,
-      }),
-    );
+  /** DOM control events are implementation traffic; model mutations publish the host contract. */
+  suppressNativeChange(event: Event): void {
+    event.stopPropagation();
   }
 
   ngOnInit(): void {
@@ -208,8 +206,44 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.activeComponentRegistry.clear();
     this.dataContext = state.dataContext;
     this.handlerContext = state.handlerContext;
+    this.handlerContext.setMutationListener((mutation) => this.publishMutation(mutation));
     this.artifactRevision = state.revision;
+    this.lastPublishedMetadata = this.metadataKey();
     this.doInitialize();
+  }
+
+  private metadataKey(): string {
+    return JSON.stringify(this.currentMetadata);
+  }
+
+  /** Publish only mutations whose serialized result differs from the previous result. */
+  private publishMutation(mutation: InstanceMutation): void {
+    const metadata = this.currentMetadata as CeeJsonObject;
+    const key = JSON.stringify(metadata);
+    if (key === this.lastPublishedMetadata) {
+      return;
+    }
+    this.lastPublishedMetadata = key;
+
+    const report = this.dataQualityReport as CeeDataQualityReport;
+    const multiOperation = mutation.operation === 'valueChanged' ? undefined : mutation.operation;
+    const detail: CeeChangeDetail = {
+      operation: mutation.operation,
+      path: [...mutation.path],
+      value: mutation.value,
+      validity: report.isValid === true,
+      dataQualityReport: report,
+      title: typeof metadata['schema:name'] === 'string' ? metadata['schema:name'] : null,
+      description: typeof metadata['schema:description'] === 'string' ? metadata['schema:description'] : null,
+      ...(multiOperation === undefined ? {} : { message: multiOperation }),
+    };
+
+    if (mutation.operation === 'valueChanged') {
+      this.messageHandlerService.valueChanged(detail.path, detail.value);
+    }
+    this.wrapper.nativeElement.dispatchEvent(
+      new CustomEvent<CeeChangeDetail>('change', { detail, bubbles: true, composed: true }),
+    );
   }
 
   @Input() get dataQualityReport(): object {
