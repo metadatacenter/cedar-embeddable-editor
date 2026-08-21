@@ -123,6 +123,20 @@ null` for a literal and `{}` for an IRI — and the compact serialization, the o
 
 ### Added
 
+- A host is told what changed rather than that something did. The `change` event carries a
+  `CeeChangeDetail` naming the operation, the template path, the value supplied to it, the
+  resulting validity, the whole data-quality report, and the instance's title and
+  description; `valueChanged(path, value)` on the event handler receives the same field
+  mutations. It fires when the serialized instance actually changed, so focus, blur, paging,
+  a read-only control and a write that leaves `currentMetadata` identical produce nothing.
+  What a host had before was whatever `change` bubbled out of the root element, which named
+  no field and could not distinguish an edit from an edit undone. Dirty state stays the
+  host's to keep, since only the host knows which serialization it last loaded or saved.
+
+- The published element type declares the `change` listener, so a TypeScript host reads
+  `event.detail` as `CeeChangeDetail` without a cast, and the inherited overloads still
+  cover every other DOM event.
+
 - A host can be told when the form is first on screen. `ready` was declared on
   `CeeEventHandler` and called from nowhere, so an embedder that wanted to act once
   the widgets existed had to poll the DOM for them. It now fires once, after this
@@ -167,6 +181,17 @@ null` for a literal and `{}` for an IRI — and the compact serialization, the o
   only one that could not read them without a cast.
 
 ### Changed
+
+- Every timer and subscription a widget owns ends with the widget. The authority and
+  controlled-term fields held `setTimeout` callbacks for opening the autocomplete panel and
+  for expiring the reverted and cleared notices, and a panel-closing subscription with no
+  teardown, so a field destroyed inside those windows left work that ran against a dead
+  component. They are `timer` piped through `takeUntilDestroyed` now.
+
+- The seven authority widgets share one search and lifecycle implementation. ORCID and ROR
+  kept their own copies of the pipeline alongside the detail panels that are genuinely
+  theirs, so a change here had to be made three times; the panels stay with each widget and
+  the rest lives once in the base class.
 
 - The host artifact inputs are accepted as one atomic state. `templateObject`,
   `instanceJsonObject` and `templateAndInstanceObject` overlap and may arrive in any order,
@@ -255,6 +280,8 @@ null` for a literal and `{}` for an IRI — and the compact serialization, the o
   sanitizer's policy will render flattened until the key is renamed.
 
 ### Removed
+
+- A placeholder component and an RDF pipe that nothing rendered.
 
 - `Template Rendering Data`, `Multi-Instance Information` and the duplicate
   `JSON-LD - Instance - Core` are no longer in the download menu. The first two
