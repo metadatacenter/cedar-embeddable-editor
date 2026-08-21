@@ -105,6 +105,7 @@ export class CeeDriver {
       const { full } = InstanceDeserializer.read(opts.instance, (m) => this.messages.error(m));
       this.dataContext.instanceFullData = full;
       this.dataContext.invalidateDerivedViews();
+      this.handlerContext.instanceSupplied = true;
     }
 
     this.dataContext.setInputTemplate(

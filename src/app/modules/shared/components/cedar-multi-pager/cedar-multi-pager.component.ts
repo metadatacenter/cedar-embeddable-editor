@@ -1,4 +1,13 @@
-import { Component, Input, OnDestroy, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewEncapsulation,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MultiComponent } from '../../models/component/multi-component.model';
 import { PageEvent } from '@angular/material/paginator';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
@@ -8,7 +17,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
-import { Subscription } from 'rxjs';
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
 
 @Component({
@@ -30,7 +38,6 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
   @Input() isAlignedUp = false;
   @Input({ required: true }) pageBreakPaginatorService!: PageBreakPaginatorService;
   readOnlyMode = false;
-  readOnlModeSubscription: Subscription = Subscription.EMPTY;
   userPreferencesService: UserPreferencesService;
 
   length = 0;
@@ -50,6 +57,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
     messageHandlerService: MessageHandlerService,
     userPreferencesService: UserPreferencesService,
     private renderScheduler: RenderSchedulerService,
+    private readonly destroyRef: DestroyRef,
   ) {
     this.activeComponentRegistry = activeComponentRegistry;
     this.translateService = translateService;
@@ -58,14 +66,13 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.readOnlModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((value) => {
+    this.userPreferencesService.readOnlyMode$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
       this.readOnlyMode = value;
     });
     this.recomputeNumbers();
   }
 
   ngOnDestroy(): void {
-    this.readOnlModeSubscription.unsubscribe();
     this.activeComponentRegistry.unregisterMultiPagerComponent(this.component, this);
   }
 

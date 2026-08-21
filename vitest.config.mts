@@ -62,6 +62,26 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/**/*.ts'],
       exclude: ['src/**/*.spec.ts', 'src/main.ts', 'src/polyfills.ts', 'src/test.ts', 'src/environments/**'],
+      thresholds: {
+        // Host-input coordination is small, stateful and release-critical. Keep
+        // regressions visible even when the broad component total barely moves.
+        'src/app/modules/shared/util/artifact-input-coordinator.ts': {
+          statements: 90,
+          branches: 85,
+          functions: 90,
+          lines: 90,
+        },
+        'src/app/modules/shared/util/wrapper-config-coordinator.ts': {
+          statements: 95,
+          branches: 95,
+          functions: 95,
+          lines: 95,
+        },
+        'src/app/modules/shared/components/cedar-embeddable-metadata-editor-wrapper/*.ts': {
+          statements: 70,
+          branches: 60,
+        },
+      },
     },
   },
   resolve: {

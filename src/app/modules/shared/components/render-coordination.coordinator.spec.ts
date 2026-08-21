@@ -12,6 +12,7 @@ import { CedarEmbeddableMetadataEditorComponent } from './cedar-embeddable-metad
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
 import { MessageHandlerService } from '../service/message-handler.service';
 import { RenderSchedulerService } from '../service/render-scheduler.service';
+import { ActiveComponentRegistryService } from '../service/active-component-registry.service';
 
 @Component({
   selector: 'app-scheduler-host',
@@ -76,5 +77,26 @@ describe('Angular render coordination', () => {
     expect(fixture.componentInstance.handlerContext.messageHandlerService).toBe(scopedMessages);
     expect(errors).not.toHaveBeenCalled();
     expect(ready).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases every scoped widget registration across repeated editor lifecycles', async () => {
+    await TestBed.configureTestingModule({
+      imports: [SharedModule, TranslateModule.forRoot()],
+      providers: [provideHttpClient()],
+    }).compileComponents();
+
+    for (let cycle = 0; cycle < 5; cycle++) {
+      const fixture = TestBed.createComponent(CedarEmbeddableMetadataEditorWrapperComponent);
+      fixture.componentInstance.templateObject = inputTypesTemplate as unknown as CeeJsonObject;
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const registry = fixture.debugElement.injector.get(ActiveComponentRegistryService);
+      expect(registry.modelToUI.size, `cycle ${cycle} rendered no registered widgets`).toBeGreaterThan(0);
+
+      fixture.destroy();
+      expect(registry.modelToUI.size, `cycle ${cycle} retained destroyed widgets`).toBe(0);
+    }
   });
 });

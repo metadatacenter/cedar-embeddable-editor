@@ -1,16 +1,15 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   forwardRef,
   Input,
   OnChanges,
-  OnDestroy,
   OnInit,
   ViewEncapsulation,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 
 /** A fixed UTC offset and its unambiguous display text. */
@@ -34,7 +33,7 @@ export interface TZone {
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class TimezonePickerComponent implements OnInit, OnChanges, OnDestroy, ControlValueAccessor {
+export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueAccessor {
   /**
    * Fixed offsets CEE has historically accepted, now named for what they are.
    *
@@ -98,11 +97,13 @@ export class TimezonePickerComponent implements OnInit, OnChanges, OnDestroy, Co
   readOnlyMode = false;
 
   private initialized = false;
-  private readonly destroy$ = new Subject<void>();
   private propagateChange: (value: TZone | null) => void = () => {};
   private propagateTouched: () => void = () => {};
 
-  constructor(private readonly userPreferencesService: UserPreferencesService) {}
+  constructor(
+    private readonly userPreferencesService: UserPreferencesService,
+    private readonly destroyRef: DestroyRef,
+  ) {}
 
   static guessedUserZone(): TZone {
     // getTimezoneOffset has the inverse sign of an ISO 8601 offset.
@@ -143,10 +144,10 @@ export class TimezonePickerComponent implements OnInit, OnChanges, OnDestroy, Co
 
   ngOnInit(): void {
     this.initialized = true;
-    this.userPreferencesService.readOnlyMode$.pipe(takeUntil(this.destroy$)).subscribe((mode) => {
+    this.userPreferencesService.readOnlyMode$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((mode) => {
       this.readOnlyMode = mode;
     });
-    this.form.controls.timezone.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value) => {
+    this.form.controls.timezone.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
       this.propagateChange(value);
     });
     this.applyGuessedZone();
@@ -156,11 +157,6 @@ export class TimezonePickerComponent implements OnInit, OnChanges, OnDestroy, Co
     if (this.initialized) {
       this.applyGuessedZone();
     }
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   compareZones(first: TZone | null, second: TZone | null): boolean {

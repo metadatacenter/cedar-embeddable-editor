@@ -16,6 +16,19 @@
  */
 export type CeeConfig = Record<string, unknown>;
 
+/** The one runtime spelling of every host configuration key. */
+export const CEE_CONFIG_KEY = {
+  showTemplateDescription: 'showTemplateDescription',
+  readOnlyMode: 'readOnlyMode',
+  trustTemplateRichText: 'trustTemplateRichText',
+  showDownloadMenu: 'showDownloadMenu',
+  terminologyBaseUrl: 'terminologyBaseUrl',
+  bridgeBaseUrl: 'bridgeBaseUrl',
+  defaultLanguage: 'defaultLanguage',
+  fallbackLanguage: 'fallbackLanguage',
+  languageMapPathPrefix: 'languageMapPathPrefix',
+} as const;
+
 export function configFlag(config: CeeConfig, key: string, current: boolean): boolean {
   return config != null && Object.hasOwn(config, key) ? Boolean(config[key]) : current;
 }

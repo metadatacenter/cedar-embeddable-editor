@@ -37,10 +37,12 @@ import {
   containerValue,
   instanceWith,
   linkNode,
+  linkValue,
   listValue,
   literalNode,
   literalValue,
   termNode,
+  termValue,
   templateIdOf,
 } from '../src/values';
 import { arrayAt } from '../src/nodes';
@@ -421,6 +423,82 @@ describe('elements', () => {
     driver.handlerContext.setCurrentIndex(element, 1);
     registry.updateViewToModel(element, driver.handlerContext);
     expect(widget.last).toBeNull();
+  });
+
+  /**
+   * The model-to-widget contract, across every value shape that has a distinct
+   * branch in ActiveComponentRegistryService. Each row exercises both sides of
+   * an occurrence boundary: a populated first occurrence and an omitted child
+   * in the second. The same matrix runs editable and read-only with an actual
+   * supplied instance; read-only must display recorded data, not treat it as a
+   * template default or leave the previous occurrence on screen.
+   */
+  const syncCases = [
+    ['text', TEXT, literalValue('alpha'), 'alpha', null],
+    ['numeric', NUMERIC, literalValue('42.5'), '42.5', null],
+    ['temporal', TEMPORAL, literalValue('2026-08-20'), '2026-08-20', null],
+    ['link', LINK, linkValue('https://example.org/thing'), 'https://example.org/thing', null],
+    [
+      'external authority',
+      ORCID,
+      termValue('https://orcid.org/0000-0002-1825-0097', 'Ada Lovelace'),
+      { iri: 'https://orcid.org/0000-0002-1825-0097', label: 'Ada Lovelace' },
+      null,
+    ],
+    [
+      'controlled term',
+      CONTROLLED,
+      termValue('https://example.org/terms/human', 'Homo sapiens'),
+      { iri: 'https://example.org/terms/human', label: 'Homo sapiens' },
+      null,
+    ],
+    [
+      'checkbox',
+      CHECKBOX,
+      listValue(literalValue('Option A'), literalValue('Option B')),
+      ['Option A', 'Option B'],
+      [],
+    ],
+  ] as const;
+
+  it.each(
+    syncCases.flatMap(([name, fieldKind, value, shown, cleared]) =>
+      [false, true].map((readOnlyMode) => [name, readOnlyMode, fieldKind, value, shown, cleared] as const),
+    ),
+  )('syncs %s across nested occurrences (readOnly=%s)', (_name, readOnlyMode, fieldKind, value, shown, cleared) => {
+    const template = buildTemplate({
+      name: `vs_matrix_${fieldKind.key}_${readOnlyMode ? 'readonly' : 'editable'}`,
+      elements: [
+        {
+          name: 'el',
+          cardinality: 'multi',
+          minItems: 1,
+          maxItems: 3,
+          children: [{ kind: fieldKind, name: 'f' }],
+        },
+      ],
+    });
+    const driver = new CeeDriver(template, {
+      readOnlyMode,
+      instance: instanceWith(
+        templateIdOf(template),
+        { _el: listValue(containerValue({ _f: value }), containerValue({})) },
+        INSTANCE_IRI,
+      ),
+    });
+    const registry = new ActiveComponentRegistryService();
+    const widget = new FakeWidget();
+    const element = driver.findOrThrow(['_el']);
+    const field = driver.findOrThrow(['_el', '_f']);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    registry.registerComponent(field, widget as any);
+
+    registry.updateViewToModel(element, driver.handlerContext);
+    expect(widget.last).toEqual(shown);
+
+    driver.handlerContext.setCurrentIndex(element, 1);
+    registry.updateViewToModel(element, driver.handlerContext);
+    expect(widget.last).toEqual(cleared);
   });
 });
 

@@ -172,10 +172,10 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
     const makeWithRegistry = (): {
       component: CedarEmbeddableMetadataEditorComponent;
       clear: Mock;
-      setInputTemplate: Mock;
+      schedule: Mock;
     } => {
       const clear = vi.fn();
-      const setInputTemplate = vi.fn();
+      const schedule = vi.fn(() => Promise.resolve(false));
       const component = new CedarEmbeddableMetadataEditorComponent(
         { clear } as unknown as ActiveComponentRegistryService,
         { setEndpoints: (): void => undefined } as unknown as ExternalAuthorityLookupService,
@@ -186,29 +186,19 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
         } as unknown as MessageHandlerService,
         new TemplateTrustService(),
         new UserPreferencesService(),
-        renderScheduler(),
+        { schedule } as unknown as RenderSchedulerService,
       );
       component.handlerContext = {} as unknown as HandlerContext;
-      component.dataContext = { setInputTemplate, instanceFullData: {} } as unknown as DataContext;
-      return { component, clear, setInputTemplate };
+      component.dataContext = { templateRepresentation: null } as unknown as DataContext;
+      return { component, clear, schedule };
     };
 
-    it('clears obsolete registrations after a replacement template is accepted', () => {
-      const { component, clear, setInputTemplate } = makeWithRegistry();
-      // Keep the setter's deferred instance initialization inert in this unit test.
-      // `initDataFromInstance` is private, so the spy needs a view of the component
-      // that admits it. Naming the one member is narrower than `any` and says which
-      // private the test is reaching for.
-      vi.spyOn(component as unknown as { initDataFromInstance: () => void }, 'initDataFromInstance').mockReturnValue();
+    it('schedules a completed artifact revision without parsing it again', () => {
+      const { component, schedule } = makeWithRegistry();
 
-      component.templateJsonObject = { title: 'replacement' };
+      component.artifactRevision = 1;
 
-      expect(setInputTemplate).toHaveBeenCalledTimes(1);
-      expect(clear).toHaveBeenCalledTimes(1);
-      // Ordering matters: the replacement template has to be taken before the old
-      // registrations are dropped. Jasmine spelled this `toHaveBeenCalledBefore`;
-      // Vitest exposes the call ordinals instead.
-      expect(setInputTemplate.mock.invocationCallOrder[0]).toBeLessThan(clear.mock.invocationCallOrder[0]);
+      expect(schedule).toHaveBeenCalledTimes(1);
     });
 
     it('clears the registry when the editor is destroyed', () => {

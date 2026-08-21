@@ -1,4 +1,5 @@
-import { Component, Input, OnDestroy, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ComponentDataService } from '../../service/component-data.service';
 import { MultiComponent } from '../../models/component/multi-component.model';
@@ -7,7 +8,6 @@ import { SingleFieldComponent } from '../../models/field/single-field-component.
 import { FieldComponent } from '../../models/component/field-component.model';
 import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
 import { InputType } from '../../models/input-type.model';
-import { Subscription } from 'rxjs';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 
 @Component({
@@ -18,7 +18,7 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
+export class CedarComponentHeaderComponent implements OnInit {
   private static readonly FIELD_TYPE_ICONS: Readonly<Record<string, string>> = {
     [InputType.numeric]: 'dialpad',
     [InputType.text]: 'short_text',
@@ -59,23 +59,19 @@ export class CedarComponentHeaderComponent implements OnInit, OnDestroy {
    * so the two agree about what a field is.
    */
   fieldToDescribe: FieldComponent | null = null;
-  readOnlyModeSubscription: Subscription = Subscription.EMPTY;
   userPreferencesService: UserPreferencesService;
 
   constructor(
     public cds: ComponentDataService,
     userPreferencesService: UserPreferencesService,
+    private readonly destroyRef: DestroyRef,
   ) {
     this.userPreferencesService = userPreferencesService;
   }
   ngOnInit() {
-    this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
+    this.userPreferencesService.readOnlyMode$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((mode) => {
       this.readOnlyMode = mode;
     });
-  }
-
-  ngOnDestroy(): void {
-    this.readOnlyModeSubscription.unsubscribe();
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {

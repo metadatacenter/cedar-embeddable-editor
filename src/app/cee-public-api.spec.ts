@@ -1,11 +1,12 @@
 /**
  * The published contract against the code that implements it.
  *
- * Both sides are read from source, because neither exists at runtime: `CeeConfig`
- * is an interface, and the keys it describes are private statics on a component the
- * public API deliberately does not import. That leaves two lists that can be edited
- * independently, which is the condition this test exists for — the same reason
- * `import-boundaries.spec.ts` guards a property no type can express.
+ * The public side is read from source because `CeeConfig` is an interface and does
+ * not exist at runtime. The implementation side is the shared runtime key map, and
+ * the readers are scanned to prove every key in that map is actually consumed. That
+ * leaves lists that can still be edited independently, which is the condition this
+ * test exists for — the same reason `import-boundaries.spec.ts` guards a property no
+ * type can express.
  *
  * A key added to the component but not to `CeeConfig` would be invisible to a
  * host's compiler; one on `CeeConfig` that the component never reads would be a
@@ -15,6 +16,7 @@ import { describe, expect, it } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { CONFIG_SCHEMA } from './modules/shared/util/config-validation';
+import { CEE_CONFIG_KEY } from './modules/shared/util/config-reader';
 import { DataQualityReport } from './modules/shared/models/data-quality-report.model';
 import { ValidationProblem } from './modules/shared/validation/validation-problem.model';
 
@@ -23,20 +25,17 @@ const COMPONENT = path.resolve(
   'modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.ts',
 );
 const PUBLIC_API = path.resolve(__dirname, 'cee-public-api.ts');
+const ARTIFACT_COORDINATOR = path.resolve(__dirname, 'modules/shared/util/artifact-input-coordinator.ts');
+const CONFIG_COORDINATOR = path.resolve(__dirname, 'modules/shared/util/wrapper-config-coordinator.ts');
 
 /**
- * The string literals the component declares as configuration keys.
- *
- * `SERIALIZATION_YAML` is excluded: it is a configuration *value* — what
- * `outputSerialization` may be set to — rather than a key, and it is the only
- * static of that shape.
+ * The keys the two runtime config consumers actually read, resolved through the
+ * shared key map rather than repeated string literals.
  */
 const componentKeys = (): string[] => {
-  const source = fs.readFileSync(COMPONENT, 'utf8');
-  return [...source.matchAll(/static ([A-Z_]+)(?:: string)? = '([a-zA-Z]+)';/g)]
-    .filter(([, name]) => name !== 'SERIALIZATION_YAML')
-    .map(([, , value]) => value)
-    .sort();
+  const source = [COMPONENT, CONFIG_COORDINATOR].map((file) => fs.readFileSync(file, 'utf8')).join('\n');
+  const names = [...source.matchAll(/CEE_CONFIG_KEY\.([a-zA-Z][a-zA-Z0-9]*)/g)].map(([, name]) => name);
+  return [...new Set(names)].map((name) => CEE_CONFIG_KEY[name as keyof typeof CEE_CONFIG_KEY]).sort();
 };
 
 /** The optional property names declared on `CeeConfig`, ignoring its index signature. */
@@ -61,7 +60,7 @@ describe('the published config keys and the ones the editor reads', () => {
      * These two are the last keys that would ever be removed.
      */
     expect(declared, 'the CeeConfig properties were not parsed').toContain('readOnlyMode');
-    expect(implemented, 'the component key constants were not parsed').toContain('readOnlyMode');
+    expect(implemented, 'the runtime config reads were not parsed').toContain('readOnlyMode');
     expect(
       implemented.filter((key) => !declared.includes(key)),
       'the editor reads a key that CeeConfig does not declare',
@@ -164,10 +163,10 @@ describe('the published report types and the objects behind them', () => {
  */
 describe('the published combined input and the one the editor reads', () => {
   it('name the same members', () => {
-    const source = fs.readFileSync(COMPONENT, 'utf8');
-    const destructured = source.match(/const \{([^}]+)\} = templateAndInstance;/);
+    const source = fs.readFileSync(ARTIFACT_COORDINATOR, 'utf8');
+    const destructured = source.match(/const \{([^}]+)\} = value;/);
 
-    expect(destructured, 'the templateAndInstanceObject setter no longer destructures').not.toBeNull();
+    expect(destructured, 'the artifact coordinator no longer destructures the combined input').not.toBeNull();
     const implemented = (destructured as RegExpMatchArray)[1]
       .split(',')
       .map((member) => member.trim())

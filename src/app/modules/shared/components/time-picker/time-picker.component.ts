@@ -1,14 +1,14 @@
 import {
   Component,
+  DestroyRef,
   forwardRef,
   Input,
-  OnDestroy,
   OnInit,
   ViewEncapsulation,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Subscription } from 'rxjs';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { ClockTime, Meridian } from '../../util/clock-time';
 
@@ -52,7 +52,7 @@ import { ClockTime, Meridian } from '../../util/clock-time';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDestroy {
+export class TimePickerComponent implements ControlValueAccessor, OnInit {
   /** Show a 12-hour face with an AM/PM control. Display only. */
   @Input() enableMeridian = false;
   /** Hour-only precision: the field's granularity stops at the hour. */
@@ -108,21 +108,19 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
    * stored representation.
    */
   private value: Date | null = null;
-  private readOnlyModeSubscription: Subscription = Subscription.EMPTY;
 
   private onChange: (value: Date) => void = () => {};
   private onTouched: () => void = () => {};
 
-  constructor(private userPreferencesService: UserPreferencesService) {}
+  constructor(
+    private userPreferencesService: UserPreferencesService,
+    private readonly destroyRef: DestroyRef,
+  ) {}
 
   ngOnInit(): void {
-    this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
+    this.userPreferencesService.readOnlyMode$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((mode) => {
       this.readOnlyPreference = mode;
     });
-  }
-
-  ngOnDestroy(): void {
-    this.readOnlyModeSubscription.unsubscribe();
   }
 
   // --- ControlValueAccessor -------------------------------------------------

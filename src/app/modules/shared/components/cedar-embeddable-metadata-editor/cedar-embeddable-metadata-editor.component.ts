@@ -15,8 +15,7 @@ import packageJson from 'package.json';
 import { DOWNLOAD_ITEMS, DownloadItemId } from '../../models/ui/download-item.model';
 import { downloadContentFor, downloadFilenameFor } from '../../util/download-content';
 import { triggerDownload } from '../../util/trigger-download';
-import { baseUrl, CeeConfig, configFlag } from '../../util/config-reader';
-import type { CeeTemplateAndInstance } from '../../../../cee-public-api';
+import { baseUrl, CEE_CONFIG_KEY, CeeConfig, configFlag } from '../../util/config-reader';
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
 
 @Component({
@@ -37,15 +36,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    * `expanded…` partners, each rendering a dump under the form. The host decides
    * whether the menu is offered; what it offers is fixed.
    */
-  private static SHOW_DOWNLOAD_MENU = 'showDownloadMenu';
-
-  static TERMINOLOGY_BASE_URL = 'terminologyBaseUrl';
-
-  static FALLBACK_LANGUAGE = 'fallbackLanguage';
-  static DEFAULT_LANGUAGE = 'defaultLanguage';
-  static LANGUAGE_MAP_PATH_PREFIX = 'languageMapPathPrefix';
-  static SHOW_TEMPLATE_DESCRIPTION: string = 'showTemplateDescription';
-
   /**
    * Whether the host vouches for its template's rich text.
    *
@@ -54,12 +44,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    * chosen by its own users is safe without having to know that. See the embedding
    * security section of the README.
    */
-  static TRUST_TEMPLATE_RICH_TEXT: string = 'trustTemplateRichText';
-
-  static READ_ONLY_MODE: string = 'readOnlyMode';
-
-  static BRIDGE_BASE_URL = 'bridgeBaseUrl';
-
   dataContext: DataContext | null = null;
   handlerContext: HandlerContext | null = null;
 
@@ -166,22 +150,22 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       handlerContext === null
         ? null
         : new PageBreakPaginatorService(this.activeComponentRegistry, handlerContext, this.renderScheduler);
+    const representation = handlerContext?.dataContext.templateRepresentation;
+    if (representation !== null && representation !== undefined) {
+      this.pageBreakPaginatorService?.reset(representation.pageBreakChildren);
+    }
   }
 
   @Input() set config(value: CeeConfig | null) {
     if (value != null) {
-      this.showDownloadMenu = configFlag(
-        value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_DOWNLOAD_MENU,
-        this.showDownloadMenu,
-      );
+      this.showDownloadMenu = configFlag(value, CEE_CONFIG_KEY.showDownloadMenu, this.showDownloadMenu);
       this.showTemplateDescription = configFlag(
         value,
-        CedarEmbeddableMetadataEditorComponent.SHOW_TEMPLATE_DESCRIPTION,
+        CEE_CONFIG_KEY.showTemplateDescription,
         this.showTemplateDescription,
       );
 
-      this.bridgeBaseUrl = baseUrl(value, CedarEmbeddableMetadataEditorComponent.BRIDGE_BASE_URL);
+      this.bridgeBaseUrl = baseUrl(value, CEE_CONFIG_KEY.bridgeBaseUrl);
 
       // Every external authority's two endpoints, in one loop.
       //
@@ -209,14 +193,10 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       }
 
       this.templateTrustService.setTrustTemplateRichText(
-        configFlag(
-          value,
-          CedarEmbeddableMetadataEditorComponent.TRUST_TEMPLATE_RICH_TEXT,
-          this.templateTrustService.trustTemplateRichText,
-        ),
+        configFlag(value, CEE_CONFIG_KEY.trustTemplateRichText, this.templateTrustService.trustTemplateRichText),
       );
 
-      this.readOnlyMode = configFlag(value, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE, this.readOnlyMode);
+      this.readOnlyMode = configFlag(value, CEE_CONFIG_KEY.readOnlyMode, this.readOnlyMode);
       /*
        * The widgets read read-only from `UserPreferencesService`, and this is what
        * puts it there.
@@ -232,62 +212,16 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     }
   }
 
-  /*
-   * Both artifact setters run before the contexts are guaranteed, because a host is
-   * free to set `templateJsonObject` before `handlerContextObject`. The early return
-   * says that once instead of at each of the six reads below it.
-   */
-  @Input() set templateJsonObject(value: object | null) {
-    const { dataContext, handlerContext } = this;
-    if (value == null || dataContext == null || handlerContext == null) {
+  /** A completed wrapper transaction is ready to render; parsing is already done. */
+  @Input() set artifactRevision(revision: number) {
+    if (revision <= 0 || this.handlerContext === null || this.dataContext === null) {
       return;
     }
-    try {
-      this.replaceInputTemplate(value);
-    } catch (error) {
-      this.reportArtifactError('templateObject', error);
-      return;
-    }
-    this.initializeAndScheduleRender('templateObject');
+    this.scheduleRender(`artifact revision ${revision}`);
   }
 
-  @Input() set instanceJsonObject(value: object | null) {
-    if (value == null || this.handlerContext == null) {
-      return;
-    }
-    this.initializeAndScheduleRender('instanceObject');
-  }
-
-  @Input() set templateAndInstanceObject(templateAndInstance: CeeTemplateAndInstance | null) {
-    if (templateAndInstance === null) {
-      return;
-    }
-    const { templateObject, instanceObject } = templateAndInstance;
-    if (!templateObject) {
-      this.messageHandlerService.error('Template Object is missing.');
-      return;
-    } else if (!instanceObject) {
-      this.messageHandlerService.error('Instance Object is missing.');
-      return;
-    }
-    try {
-      this.replaceInputTemplate(templateObject);
-    } catch (error) {
-      this.reportArtifactError('templateAndInstanceObject.templateObject', error);
-      return;
-    }
-    this.initializeAndScheduleRender('templateAndInstanceObject');
-  }
-
-  /** Build state now, then push it to widgets after Angular renders that state. */
-  private initializeAndScheduleRender(input: string): void {
-    try {
-      this.initDataFromInstance();
-    } catch (error) {
-      this.reportArtifactError(input, error);
-      return;
-    }
-
+  /** Push the accepted model to widgets after Angular renders that model. */
+  private scheduleRender(input: string): void {
     void this.renderScheduler
       .schedule(() => this.syncRenderedInstance())
       .then((rendered) => {
@@ -301,31 +235,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   private reportArtifactError(input: string, error: unknown): void {
     const detail = error instanceof Error ? error.message : String(error);
     this.messageHandlerService.error(`CEDAR Embeddable Editor: "${input}" could not be loaded: ${detail}`);
-  }
-
-  private replaceInputTemplate(templateObject: object): void {
-    const { dataContext, handlerContext, pageBreakPaginatorService } = this;
-    if (dataContext == null || handlerContext == null) {
-      return;
-    }
-    dataContext.setInputTemplate(templateObject, handlerContext, pageBreakPaginatorService);
-    // The old component tree remains alive until Angular's next render pass.
-    // Drop its strong references immediately after the replacement succeeds.
-    this.activeComponentRegistry.clear();
-  }
-
-  private initDataFromInstance(): void {
-    if (this.handlerContext) {
-      const dataContext = this.handlerContext.dataContext;
-      const representation = dataContext.templateRepresentation;
-      if (representation === null) {
-        return;
-      }
-      const instance = dataContext.instanceExtractData;
-      if (!this.handlerContext.multiInstanceObjectService.isBuiltFor(representation, instance)) {
-        this.handlerContext.multiInstanceObjectService.buildNewOrFromMetadata(representation, instance);
-      }
-    }
   }
 
   private syncRenderedInstance(): void {

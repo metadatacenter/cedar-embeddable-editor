@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  prepare:
     # arm64 Linux, because the visual suite runs inside Playwright's own container
     # and the runner must not emulate it: `visual/run-in-container.sh` asks for
     # linux/arm64, and a runner that resolves to x86_64 would rasterise text
@@ -78,19 +78,24 @@ jobs:
         working-directory: cedar-embeddable-editor
         run: npm run build:production
 
-      # The root `npm ci` is already done above; only the two test workspaces are
-      # left, now that the runner no longer changes Node underneath them.
-      # Only the harness installs here. The visual suite installs inside the
-      # container, against a `node_modules` volume, because the browsers it drives
-      # and the fonts they rasterise with come from the image rather than from this
-      # runner — which is the whole point of running it there.
+      # The root `npm ci` is already done above. The harness runs on the runner;
+      # visual's host install is used only to stage the same bundle that packaging
+      # verifies. Browser execution still installs inside Playwright's container.
       - name: Install CEE test dependencies
         working-directory: cedar-embeddable-editor
-        run: npm --prefix harness ci
+        run: |
+          npm --prefix harness ci
+          npm --prefix visual ci
 
-      - name: Test the production artifact built above
+      - name: Run source and domain gates
         working-directory: cedar-embeddable-editor
-        run: npm run test:ci:prebuilt
+        run: npm run test:ci:nonvisual:prebuilt
+
+      - name: Stage and verify the distributable package
+        working-directory: cedar-embeddable-editor
+        run: |
+          npm --prefix visual run prepare:all
+          npm run package:npm:prebuilt
 
       # Deliberately its own step, and deliberately not part of `test:ci`.
       #
@@ -111,3 +116,39 @@ jobs:
       - name: Audit what ships
         working-directory: cedar-embeddable-editor
         run: npm run audit:prod
+
+      - name: Save the production build for browser shards
+        uses: actions/upload-artifact@v4
+        with:
+          name: cee-production-dist
+          path: cedar-embeddable-editor/dist
+          if-no-files-found: error
+          retention-days: 2
+
+  visual:
+    name: Visual shard ${{ matrix.shard }}/4
+    needs: prepare
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+
+    steps:
+      - name: Check out CEE
+        uses: actions/checkout@v4
+        with:
+          path: cedar-embeddable-editor
+
+      - name: Restore the tested production build
+        uses: actions/download-artifact@v4
+        with:
+          name: cee-production-dist
+          path: cedar-embeddable-editor/dist
+
+      # Every shard uses the pinned browser/font image. The named node_modules
+      # volume is runner-local, so parallel jobs cannot contaminate one another.
+      - name: Run Playwright shard
+        working-directory: cedar-embeddable-editor
+        run: bash visual/run-in-container.sh --shard=${{ matrix.shard }}/4

@@ -3,18 +3,18 @@ import {
   ElementRef,
   EventEmitter,
   Input,
-  OnDestroy,
+  DestroyRef,
   OnInit,
   Output,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, Validators } from '@angular/forms';
 import { DateAdapter } from '@angular/material/core';
 import { MatDatepicker } from '@angular/material/datepicker';
 import { CustomDateAdapter } from '../../service/date-time/custom-date-adapter';
 import { DateTimeService } from '../../service/date-time/date-time.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
-import { Subscription } from 'rxjs';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
 @Component({
@@ -32,7 +32,7 @@ import { MatDatepickerInputEvent } from '@angular/material/datepicker';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class DatePickerComponent implements OnInit, OnDestroy {
+export class DatePickerComponent implements OnInit {
   static readonly YEAR_FORMAT = 'YYYY';
   static readonly YEAR_MONTH_FORMAT = 'MM/YYYY';
   static readonly YEAR_MONTH_DAY_FORMAT = 'MM/DD/YYYY';
@@ -64,19 +64,19 @@ export class DatePickerComponent implements OnInit, OnDestroy {
   @Input() required = false;
   @Output() dateChangedEvent = new EventEmitter<Date>();
   private userPreferencesService: UserPreferencesService;
-  private readOnlyModeSubscription: Subscription = Subscription.EMPTY;
   readOnlyMode = false;
 
   public constructor(
     private _dateTimeService: DateTimeService,
     userPreferenceService: UserPreferencesService,
     private elementRef: ElementRef<HTMLElement>,
+    private readonly destroyRef: DestroyRef,
   ) {
     this.userPreferencesService = userPreferenceService;
   }
 
   public ngOnInit(): void {
-    this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
+    this.userPreferencesService.readOnlyMode$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((mode) => {
       this.readOnlyMode = mode;
     });
     this._dateTimeService.format = this.dateFormat;
@@ -84,10 +84,6 @@ export class DatePickerComponent implements OnInit, OnDestroy {
       this.dateMonthYear.addValidators(Validators.required);
       this.dateMonthYear.updateValueAndValidity({ emitEvent: false });
     }
-  }
-
-  ngOnDestroy(): void {
-    this.readOnlyModeSubscription.unsubscribe();
   }
 
   chosenYearHandler(normalizedYear: Date, datepicker: MatDatepicker<Date>): void {

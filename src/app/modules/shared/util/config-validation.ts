@@ -20,6 +20,8 @@
  * and configuration is applied once, so there is nothing to fall back to.
  */
 
+import { CEE_CONFIG_KEY } from './config-reader';
+
 /** What a key's value has to be. */
 type ExpectedType = 'boolean' | 'string';
 
@@ -28,22 +30,22 @@ type ExpectedType = 'boolean' | 'string';
  *
  * The runtime counterpart to `CeeConfig`, which is an interface and so exists only
  * at compile time. `cee-public-api.spec.ts` holds the two together, along with the
- * component's own key constants, so the three cannot drift.
+ * shared runtime key map and its consumers, so they cannot drift.
  */
 export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
-  showTemplateDescription: 'boolean',
+  [CEE_CONFIG_KEY.showTemplateDescription]: 'boolean',
 
-  readOnlyMode: 'boolean',
-  trustTemplateRichText: 'boolean',
+  [CEE_CONFIG_KEY.readOnlyMode]: 'boolean',
+  [CEE_CONFIG_KEY.trustTemplateRichText]: 'boolean',
 
-  showDownloadMenu: 'boolean',
+  [CEE_CONFIG_KEY.showDownloadMenu]: 'boolean',
 
-  terminologyBaseUrl: 'string',
-  bridgeBaseUrl: 'string',
+  [CEE_CONFIG_KEY.terminologyBaseUrl]: 'string',
+  [CEE_CONFIG_KEY.bridgeBaseUrl]: 'string',
 
-  defaultLanguage: 'string',
-  fallbackLanguage: 'string',
-  languageMapPathPrefix: 'string',
+  [CEE_CONFIG_KEY.defaultLanguage]: 'string',
+  [CEE_CONFIG_KEY.fallbackLanguage]: 'string',
+  [CEE_CONFIG_KEY.languageMapPathPrefix]: 'string',
 };
 
 /** Levenshtein distance, capped: only used to suggest a key the host probably meant. */

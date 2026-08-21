@@ -170,6 +170,11 @@ export default defineConfig({
         // fail-closed guard, and `template-markup-policy-fallback.spec.ts` asserts
         // it. The allowlist itself is asserted under jsdom and in the browser.
         'src/app/modules/shared/util/template-markup-policy.ts',
+        // These are host/Angular boundary coordinators. Their direct root-unit
+        // suites cover them at focused thresholds; counting them here at 0%
+        // would mix suite ownership and dilute the domain util floor.
+        'src/app/modules/shared/util/artifact-input-coordinator.ts',
+        'src/app/modules/shared/util/wrapper-config-coordinator.ts',
       ],
       reporter: ['text'],
       /*
@@ -195,6 +200,15 @@ export default defineConfig({
         'src/app/modules/shared/handler/**': { statements: 90, branches: 85 },
         'src/app/modules/shared/util/**': { statements: 90, branches: 85 },
         'src/app/modules/shared/validation/**': { statements: 90, branches: 85 },
+        // High-risk files that broad directory averages can otherwise conceal.
+        'src/app/modules/shared/service/active-component-registry.service.ts': {
+          statements: 75,
+          branches: 65,
+        },
+        'src/app/modules/shared/factory/template-representation.factory.ts': {
+          statements: 95,
+          branches: 95,
+        },
       },
     },
   },

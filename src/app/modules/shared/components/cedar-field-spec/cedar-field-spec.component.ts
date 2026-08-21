@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FieldComponent } from '../../models/component/field-component.model';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../../models/ext-auth-categories.model';
@@ -35,7 +35,7 @@ import {
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class CedarFieldSpecComponent implements OnInit, OnDestroy {
+export class CedarFieldSpecComponent implements OnInit {
   @Input({ required: true }) fieldToDescribe!: FieldComponent;
 
   /**
@@ -55,18 +55,15 @@ export class CedarFieldSpecComponent implements OnInit, OnDestroy {
    * acceptable by the control itself and by validation as they type.
    */
   readOnlyMode = false;
-  private readOnlyModeSubscription: Subscription = Subscription.EMPTY;
-
-  constructor(private readonly userPreferencesService: UserPreferencesService) {}
+  constructor(
+    private readonly userPreferencesService: UserPreferencesService,
+    private readonly destroyRef: DestroyRef,
+  ) {}
 
   ngOnInit(): void {
-    this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
+    this.userPreferencesService.readOnlyMode$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((mode) => {
       this.readOnlyMode = mode;
     });
-  }
-
-  ngOnDestroy(): void {
-    this.readOnlyModeSubscription.unsubscribe();
   }
 
   get description(): string | null {

@@ -17,6 +17,9 @@ import { of } from 'rxjs';
 import { FallbackTranslateLoader } from '../../util/fallback-translate-loader';
 import { CeeConfig } from '../../util/config-reader';
 import { CeeJsonObject } from '../../../../cee-public-api';
+import inputTypesTemplate from '../../../../../../visual/fixtures/01-input-types.json';
+
+const validTemplate = inputTypesTemplate as unknown as CeeJsonObject;
 
 /**
  * Jasmine's `toHaveBeenCalledOnceWith`, in the two assertions it stood for.
@@ -58,7 +61,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       clearRegistry: vi.fn(),
       globalSettings: {},
     };
-    const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined };
+    const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined, error: vi.fn() };
     // `as unknown as T` throughout, rather than `as any`. Each double implements only
     // what this test exercises, which is the point of a double — but naming the
     // service it stands in for keeps the constructor's shape under test. Reorder or
@@ -122,7 +125,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     const { component, mocks } = make();
 
     component.ngOnInit();
-    component.templateObject = {};
+    component.templateObject = validTemplate;
 
     expect(component.editorDataReady(), 'a template alone did not build the editor').toBe(true);
     // The languages a host did not choose, which is what a blank editor never reached.
@@ -141,7 +144,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     const { component, mocks } = make();
 
     component.ngOnInit();
-    component.templateObject = {};
+    component.templateObject = validTemplate;
     component.config = { defaultLanguage: 'hu', readOnlyMode: true };
 
     expect(component.editorDataReady()).toBe(true);
@@ -287,6 +290,9 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     expect(component.instanceJson).toBeNull();
     expect(component.handlerContext.instanceSupplied).toBe(false);
     expect(component.editorDataReady(), 'a rejected instance was replaced by a blank form').toBe(false);
+    expect(component.currentMetadata, 'a rejected instance exposed a replacement skeleton').toEqual({});
+    expect(component.currentMetadataYaml).toBe('');
+    expect(component.dataQualityReport).toEqual({});
     expect(reported(errors)).toContain('"instanceObject" rejected because it is not a readable CEDAR instance');
 
     component.instanceObject = corrected;
