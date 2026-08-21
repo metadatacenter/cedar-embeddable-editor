@@ -8,19 +8,31 @@ import { HttpClient } from '@angular/common/http';
 import { MessageHandlerService } from './message-handler.service';
 import { map, switchMap } from 'rxjs/operators';
 
+/**
+ * The terminology server's search route, under whatever base a host names.
+ *
+ * CEE's, in the way the authority descriptors' paths are: it is how the
+ * terminology server is addressed, and a host free to move it could only move it
+ * somewhere nothing answers. It reached CEE inside `terminologyIntegratedSearchUrl`
+ * for as long as that key took the endpoint whole, which put this string in four
+ * deployment configs.
+ */
+export const INTEGRATED_SEARCH_PATH = 'bioportal/integrated-search';
+
 @Injectable({
   providedIn: 'root',
 })
 export class ControlledFieldDataService {
-  private terminologyIntegratedSearchUrl: string | null = null;
+  private integratedSearchUrl: string | null = null;
+  private reportedUnconfigured = false;
 
   constructor(
     private http: HttpClient,
     private messageHandlerService: MessageHandlerService,
   ) {}
 
-  setTerminologyIntegratedSearchUrl(terminologyIntegratedSearchUrl: string): void {
-    this.terminologyIntegratedSearchUrl = terminologyIntegratedSearchUrl;
+  setIntegratedSearchUrl(integratedSearchUrl: string): void {
+    this.integratedSearchUrl = integratedSearchUrl;
   }
 
   /**
@@ -39,16 +51,36 @@ export class ControlledFieldDataService {
     postData.parameterObject.valueConstraints.ontologies = component.controlledInfo.ontologies;
     postData.parameterObject.valueConstraints.valueSets = component.controlledInfo.valueSets;
     // Random delay to prevent throttling
-    const searchUrl = this.terminologyIntegratedSearchUrl;
+    const searchUrl = this.integratedSearchUrl;
     if (searchUrl === null) {
       // No endpoint configured, so no terms to offer. The autocomplete shows its
-      // "no results" row, which is what an empty response produces anyway.
+      // "no results" row, which is what an empty response produces anyway — and
+      // that is indistinguishable from a term nobody has, so say once which key
+      // is missing rather than let a host watch a working field find nothing.
+      this.reportUnconfigured();
       return EMPTY;
     }
     const randomDelay = Math.floor(Math.random() * 2000);
     return timer(randomDelay).pipe(
       switchMap(() => this.http.post<IntegratedSearchResponse>(searchUrl, postData)),
       map((response) => this.toTerms(response, val)),
+    );
+  }
+
+  /**
+   * Say once that controlled-term search is off, and why.
+   *
+   * Once per editor, not once per keystroke: a form of controlled fields would
+   * otherwise report this on every character typed into any of them.
+   */
+  private reportUnconfigured(): void {
+    if (this.reportedUnconfigured) {
+      return;
+    }
+    this.reportedUnconfigured = true;
+    this.messageHandlerService.error(
+      'CEDAR Embeddable Editor: controlled-term search is off, because "terminologyBaseUrl" is not configured. ' +
+        'Set it to the CEDAR terminology server, ending in a slash.',
     );
   }
 

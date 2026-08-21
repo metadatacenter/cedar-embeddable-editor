@@ -1,68 +1,36 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { CeeJsonObject, CeeTemplateAndInstance } from './cee-public-api';
 
 @Component({
   selector: 'app-component-dev',
-  templateUrl: './app.component.html',
+  templateUrl: './app.component.dev.html',
   styleUrls: ['./app.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class AppDevComponent {
-  ceeConfig = {
-    // The standalone developer app carries one local sample so it starts from
-    // this repository alone. Embedded hosts still provide their own templates.
-    sampleTemplateLocationPrefix: '/assets/cee-demo/',
-    loadSampleTemplateName: 'demo',
-    showSampleTemplateLinks: false,
-    expandedSampleTemplateLinks: false,
-    showTemplateRenderingRepresentation: true,
-    showAllMultiInstanceValues: true,
-    showDataQualityReport: true,
-    showHeader: true,
-    showFooter: true,
-    showTemplateDescription: false,
+export class AppDevComponent implements OnInit {
+  /**
+   * The demo artifact, fetched the way any host fetches its own.
+   *
+   * CEE used to load this itself, given a location prefix and a name. That was
+   * the one path where CEE reached the network for an artifact, and it existed
+   * for this app. The developer app is a host like any other, so it does what a
+   * host does: fetch, then assign. Null until then, which the input ignores.
+   */
+  artifact: CeeTemplateAndInstance | null = null;
 
-    terminologyIntegratedSearchUrl: 'https://terminology.metadatacenter.orgx/bioportal/integrated-search',
-    expandedInstanceDataFull: false,
-    showInstanceYaml: true,
-    expandedInstanceYaml: false,
-    showTemplateYaml: true,
-    expandedTemplateYaml: false,
-    showInstanceDataCore: true,
-    expandedInstanceDataCore: false,
-    showMultiInstanceInfo: true,
-    expandedMultiInstanceInfo: false,
-    expandedDataQualityReport: false,
+  ceeConfig = {
+    showTemplateDescription: true,
+    showDownloadMenu: true,
+
+    terminologyBaseUrl: 'https://terminology.metadatacenter.orgx/',
     languageMapPathPrefix: '/assets/i18n-cee/',
     defaultLanguage: 'en',
     fallbackLanguage: 'en',
 
-    iriPrefix: 'https://repo.metadatacenter.orgx/',
-    bioPortalPrefix: 'https://bioportal.bioontology.org/ontologies/',
-    orcidPrefix: 'https://orcid.org/',
-    rorPrefix: 'https://ror.org/',
-
-    collapseStaticComponents: true,
-    // showStaticText: true,
     readOnlyMode: false,
-    hideEmptyFields: false,
 
-    extAuthBaseUrl: 'https://bridge.metadatacenter.orgx/ext-auth/',
-
-    orcidIntegratedExtAuthUrl: 'orcid/search-by-name',
-    orcidIntegratedDetailsUrl: 'orcid',
-    rorIntegratedExtAuthUrl: 'ror/search-by-name',
-    rorIntegratedDetailsUrl: 'ror',
-    pfasIntegratedExtAuthUrl: 'comp-tox/search-by-name',
-    pfasIntegratedDetailsUrl: 'comp-tox',
-    pmidIntegratedExtAuthUrl: 'pmid/search-by-name',
-    pmidIntegratedDetailsUrl: 'pmid',
-    rridIntegratedExtAuthUrl: 'rrid/search-by-name',
-    rridIntegratedDetailsUrl: 'rrid',
-    nihGrantIntegratedExtAuthUrl: 'nih-grant/search-by-name',
-    nihGrantIntegratedDetailsUrl: 'nih-grant',
-    doiIntegratedExtAuthUrl: 'doi/search-by-name',
-    doiIntegratedDetailsUrl: 'doi',
+    bridgeBaseUrl: 'https://bridge.metadatacenter.orgx/',
   };
 
   languages = {
@@ -74,4 +42,12 @@ export class AppDevComponent {
   };
 
   constructor() {}
+
+  async ngOnInit(): Promise<void> {
+    const load = async (file: string): Promise<CeeJsonObject> => (await fetch(`/assets/cee-demo/demo/${file}`)).json();
+    const [templateObject, instanceObject] = await Promise.all([load('template.json'), load('metadata.json')]);
+    // Both at once, so the form is built with the instance already read. Two
+    // separate assignments would build it from the template alone.
+    this.artifact = { templateObject, instanceObject };
+  }
 }

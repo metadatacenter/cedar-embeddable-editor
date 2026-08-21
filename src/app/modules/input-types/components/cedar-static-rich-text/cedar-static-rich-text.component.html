@@ -5,4 +5,4 @@
   rest as siblings. The rendering survived that, but nothing asserting on structure
   could, which matters now that the sanitizer's output is under test.
 -->
-<div [innerHTML]="(component.contentInfo.content || '') | keepHtml"></div>
+<div [innerHTML]="component.contentInfo.content || '' | keepHtml"></div>

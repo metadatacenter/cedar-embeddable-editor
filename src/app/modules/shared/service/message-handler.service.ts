@@ -26,11 +26,25 @@ import { CeeEventHandler } from '../../../cee-public-api';
 })
 export class MessageHandlerService {
   private eventHandler: CeeEventHandler | null = null;
+  private readyEmitted = false;
 
   constructor() {}
 
+  /**
+   * Install the host's handler, replacing any handler already installed.
+   *
+   * Replaceable on purpose, unlike the inputs that decide what the editor is — the
+   * reasoning is on `eventHandler` in the public API. Traced *after* the swap, so the
+   * message reaches the handler now listening rather than the one just displaced: a
+   * page whose diagnostics stopped arriving can see that something took the slot,
+   * which is the only symptom a silent replacement leaves.
+   */
   injectEventHandler(value: CeeEventHandler): void {
+    const replaced = this.eventHandler !== null;
     this.eventHandler = value;
+    if (replaced) {
+      this.trace('CEDAR Embeddable Editor: "eventHandler" replaced; this handler receives from now on.');
+    }
   }
 
   /**
@@ -83,5 +97,39 @@ export class MessageHandlerService {
     console.error('CEE ERROR: ' + label);
     console.error(value);
     this.emit('error', label, value);
+  }
+
+  /** Tell a listening host that a field mutation changed the serialized instance. */
+  valueChanged(path: string[], value: unknown): void {
+    const handler = this.eventHandler;
+    const method = handler?.valueChanged;
+    if (typeof method !== 'function') {
+      return;
+    }
+    try {
+      method.call(handler, [...path], value);
+    } catch (e) {
+      console.error('CEE ERROR: the injected eventHandler threw from valueChanged()');
+      console.error(e);
+    }
+  }
+
+  /** Tell a listening host that this element's first form render completed. */
+  ready(): void {
+    if (this.readyEmitted) {
+      return;
+    }
+    this.readyEmitted = true;
+    const handler = this.eventHandler;
+    const method = handler?.ready;
+    if (typeof method !== 'function') {
+      return;
+    }
+    try {
+      method.call(handler);
+    } catch (e) {
+      console.error('CEE ERROR: the injected eventHandler threw from ready()');
+      console.error(e);
+    }
   }
 }

@@ -9,15 +9,22 @@ import { DataObjectStructureHandler } from '../handler/data-object-structure.han
 import { MessageHandlerService } from '../service/message-handler.service';
 import { DataQualityReportBuilderHandler } from '../handler/data-quality-report-builder.handler';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
-import { DEFAULT_IRI_PREFIX } from './iri-prefix';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { InputType } from '../models/input-type.model';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 import { isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 import { InstanceValueNode } from './instance-value-node';
+import type { CeeChangeOperation } from '../../../cee-public-api';
 // import { RdfBuilderService } from '../service/rdf-builder.service';
 
+export interface InstanceMutation {
+  readonly operation: CeeChangeOperation;
+  readonly path: string[];
+  readonly value: unknown;
+}
+
 export class HandlerContext {
+  private mutationListener: ((mutation: InstanceMutation) => void) | null = null;
   // No `= null` initialisers. The constructor assigns every one of these, so the
   // null was a placeholder that never survived construction — and declaring it
   // made each service nullable at all 45 call sites for a state none of them can
@@ -32,14 +39,39 @@ export class HandlerContext {
   // readonly rdfService: RdfBuilderService = null;
 
   readOnlyMode: boolean = false;
-  hideEmptyFields: boolean = false;
 
-  public constructor(
-    dataContext: DataContext,
-    messageHandlerService: MessageHandlerService,
-    iriPrefix: () => string = () => DEFAULT_IRI_PREFIX,
-  ) {
-    this.dataObjectBuilderService = new DataObjectBuilderHandler(iriPrefix);
+  /**
+   * Whether an instance was handed to the editor, as against a template being previewed on its own.
+   *
+   * It decides whether a declared default may stand in for an empty control. On a template with no
+   * instance behind it, showing the default states what an instance will carry unless someone
+   * changes it, and there is no recorded value it could be mistaken for. On an instance it would be
+   * a fabrication: a field left blank records `{"@value": null}` for a literal and `{}` for an IRI,
+   * both of which assert nothing, and rendering the template's default there tells a reader the
+   * instance says something it does not. Worse, defaults are edited: an instance saved when the
+   * default was "No" would display "Yes" once someone changed the template, with the instance
+   * untouched.
+   *
+   * Set by the wrapper only after a host-supplied instance has been deserialized. Template parsing
+   * and rendering deliberately leave it alone, so a template on its own stays the exact case this
+   * flag exists to tell apart.
+   */
+  instanceSupplied: boolean = false;
+
+  /**
+   * Whether a control stands in for a specification rather than holding an answer.
+   *
+   * Read as a form of the template with nothing filled in: the reader wants to know what an
+   * acceptable value is, so a widget states the field instead of showing an empty box, and a
+   * declared default is presented as the template's default rather than as a recorded value. The
+   * two flags were tested together in three places before this named the question.
+   */
+  get statesSpecification(): boolean {
+    return this.readOnlyMode && !this.instanceSupplied;
+  }
+
+  public constructor(dataContext: DataContext, messageHandlerService: MessageHandlerService) {
+    this.dataObjectBuilderService = new DataObjectBuilderHandler();
     this.multiInstanceObjectService = new MultiInstanceObjectHandler();
     this.dataObjectManipulationService = new DataObjectStructureHandler(this.dataObjectBuilderService);
     this.dataObjectDataValueHandler = new DataObjectDataValueHandler(messageHandlerService);
@@ -51,6 +83,19 @@ export class HandlerContext {
     // `MultiInstanceObjectInfo.currentCount` read the document — see that class.
     this.multiInstanceObjectService.setInstanceResolver((path) => this.getDataObjectNodeByPath(path));
     // this.rdfService = new RdfBuilderService();
+  }
+
+  /** Install the wrapper-owned bridge from model mutations to the host contract. */
+  setMutationListener(listener: (mutation: InstanceMutation) => void): void {
+    this.mutationListener = listener;
+  }
+
+  private reportMutation(
+    operation: CeeChangeOperation,
+    component: FieldComponent | MultiComponent,
+    value: unknown,
+  ): void {
+    this.mutationListener?.({ operation, path: [...component.path], value });
   }
 
   /**
@@ -111,6 +156,9 @@ export class HandlerContext {
     );
     this.multiInstanceObjectService.multiInstanceItemAdd(component);
     this.buildQualityReport();
+    this.reportMutation('multiInstanceAdded', component, {
+      count: this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentCount ?? 0,
+    });
     return true;
   }
 
@@ -174,6 +222,9 @@ export class HandlerContext {
       }
     }
     this.buildQualityReport();
+    this.reportMutation('multiInstanceCopied', component, {
+      count: this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentCount ?? 0,
+    });
     return true;
   }
 
@@ -189,6 +240,9 @@ export class HandlerContext {
     );
     this.multiInstanceObjectService.multiInstanceItemDelete(component);
     this.buildQualityReport();
+    this.reportMutation('multiInstanceDeleted', component, {
+      count: this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentCount ?? 0,
+    });
     return true;
   }
 
@@ -276,6 +330,7 @@ export class HandlerContext {
   changeValue(component: FieldComponent, value: string | null): void {
     this.dataObjectDataValueHandler.changeValue(this.dataContext, component, this.multiInstanceObjectService, value);
     this.buildQualityReport();
+    this.reportMutation('valueChanged', component, value);
     // this.rdfService.toRdf(this.dataContext.instanceFullData);
   }
 
@@ -287,6 +342,7 @@ export class HandlerContext {
       value,
     );
     this.buildQualityReport();
+    this.reportMutation('valueChanged', component, value);
   }
 
   changeAttributeValue(component: FieldComponent, key: string | null, value: string | null): string | null {
@@ -298,6 +354,7 @@ export class HandlerContext {
       value,
     );
     this.buildQualityReport();
+    this.reportMutation('valueChanged', component, { key, value });
     return validationError;
   }
 
@@ -309,6 +366,7 @@ export class HandlerContext {
       key,
     );
     this.buildQualityReport();
+    this.reportMutation('valueChanged', component, { key, value: null });
   }
 
   changeControlledValue(component: FieldComponent, atId: string | null, prefLabel: string | null): void {
@@ -320,6 +378,7 @@ export class HandlerContext {
       prefLabel,
     );
     this.buildQualityReport();
+    this.reportMutation('valueChanged', component, { iri: atId, label: prefLabel });
   }
 
   buildQualityReport() {
@@ -332,8 +391,5 @@ export class HandlerContext {
   }
   enableReadOnlyMode() {
     this.readOnlyMode = true;
-  }
-  enableEmptyFieldHiding() {
-    this.hideEmptyFields = true;
   }
 }

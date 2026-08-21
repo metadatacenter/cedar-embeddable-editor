@@ -1,1 +1,67 @@
-@import "@angular/material/prebuilt-themes/indigo-pink.css";
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+/*
+ * The standalone app's own chrome.
+ *
+ * CEE rendered a header and a footer of its own until they moved out here. Both
+ * carried CEDAR's identity in hardcoded strings and links, which an embedder could
+ * take or leave and could not replace, so they belong to a host rather than to a
+ * component that renders inside one.
+ *
+ * The Stanford mark was inlined as base64 in CEE, on the reasoning that a footer in
+ * an embedded web component should cost no extra request. A host app serves its own
+ * assets, so it is a file here.
+ */
+$cedar-teal: #197b74;
+
+/*
+ * The host page's own font.
+ *
+ * CEE brings its own inside its shadow root, so the form looked right while this
+ * app's header and footer fell back to the browser's serif default. A host styles
+ * its own chrome; nothing about CEE does it for them.
+ */
+.app-header,
+.app-footer {
+  font-family: Roboto, system-ui, sans-serif;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding: 0 16px;
+  background: $cedar-teal;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.app-logo {
+  width: 80px;
+  height: 60px;
+  margin-right: 5px;
+  background: url('/assets/images/cedar-logo-80x80.png') no-repeat center / contain;
+}
+
+.app-footer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 30px auto 0;
+  padding: 20px;
+  max-width: 80%;
+  background: #eee;
+
+  p {
+    margin: 0 0 4px;
+  }
+}
+
+/* 224x194, the mark cropped clear of the wordmark the Division sets in text. */
+.app-footer-logo {
+  display: block;
+  width: 112px;
+  height: 97px;
+  background: url('/assets/images/division-logo.png') no-repeat center / contain;
+}

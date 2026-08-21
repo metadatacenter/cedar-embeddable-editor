@@ -4,10 +4,15 @@
       <mat-checkbox
         color="primary"
         (input)="inputChanged($event)"
+        [tabIndex]="readOnlyMode ? -1 : 0"
+        [attr.aria-disabled]="readOnlyMode ? true : null"
         [formControlName]="getFormControlName(choice.label)"
         [value]="choice.label"
-        >{{ choice.label }}</mat-checkbox
-      >
+        >{{ choice.label }}
+        @if (handlerContext.statesSpecification && choice.selectedByDefault) {
+          <span class="choice-default-mark">{{ 'Spec.DefaultMark' | translate }}</span>
+        }
+      </mat-checkbox>
     </div>
   }
 </form>

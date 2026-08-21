@@ -162,6 +162,15 @@ export const instanceWith = (
   return CedarWriters.json().getFebruary2024().getTemplateInstanceWriter().getAsJsonNode(builder.build());
 };
 
+/** The repository IRI a generated template assigns itself. */
+export const templateIdOf = (template: object): string => {
+  const id = (template as Record<string, unknown>)['@id'];
+  if (typeof id !== 'string' || id.length === 0) {
+    throw new Error('Generated template has no @id');
+  }
+  return id;
+};
+
 /** The atoms `instanceWith` takes, so a spec names a value rather than a shape. */
 export const literalValue = (value: string | null): InstanceDataAtomType => new InstanceDataStringAtom(value);
 export const linkValue = (iri: string): InstanceDataAtomType => new InstanceDataLinkAtom(iri);
@@ -177,8 +186,9 @@ export const termValue = (iri: string, label: string): InstanceDataAtomType =>
  * and `setValue` on it is how a child goes in — so a spec can describe the shape
  * it wants without writing a nested document.
  *
- * `id` is the element instance's own IRI, which CEE mints when it builds one and
- * a loaded instance carries. Left off where a spec does not care.
+ * `id` is the element instance's own IRI, which a loaded instance carries and CEE
+ * does not invent — so a spec passing one is describing a document that came from
+ * somewhere, and most leave it off.
  */
 export const containerValue = (
   children: Record<string, InstanceDataAtomType>,
@@ -253,3 +263,15 @@ export const attributeValue = (container: InstanceObject, field: string, name: s
   }
   return heldValue(container.values[name]);
 };
+
+/**
+ * An element occurrence's identity, however the writer spells its absence.
+ *
+ * CEE mints none, so what the writer does with a container that has no `id` is
+ * the library's business: the version CEE consumes omits the key, and the one it
+ * is moving to writes `"@id": null`. Both are an absent identity, and both
+ * validate — a template's element sub-schema names `@id` in `required`, but the
+ * validator does not enforce a value for it.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const identityOf = (occurrence: any): string | null => occurrence?.['@id'] ?? null;

@@ -1,16 +1,12 @@
-@if (dataAvailableForRender() && showHeader) {
-  <app-static-header
-    [callbackOwnerObject]="sampleTemplateLoaderObject"
-    [showSampleTemplateLinks]="showSampleTemplateLinks"
-  ></app-static-header>
-}
 @if (dataAvailableForRender() && dataContext && handlerContext && pageBreakPaginatorService) {
-  <mat-card appearance="outlined" class="template-card">
+  <mat-card
+    appearance="outlined"
+    class="template-card"
+    [class.cee-read-only]="readOnlyMode"
+    [class.cee-declared-values]="declaredValuesOnly"
+  >
     <!--  <mat-card-header>-->
-    <div
-      class="template-header"
-      [class.template-header-paged]="dataContext.templateRepresentation?.hasPageBreaks()"
-    >
+    <div class="template-header" [class.template-header-paged]="dataContext.templateRepresentation?.hasPageBreaks()">
       <div class="logo-block">
         <div
           mat-card-avatar
@@ -27,6 +23,24 @@
           <p class="template-description">{{ dataContext.templateRepresentation?.labelInfo?.description }}</p>
         }
       </div>
+      @if (templateVersion || templateStatus) {
+        <!--
+          What the artifact says about itself, where a reader looks for it: the top right, above the
+          controls rather than among them, so the buttons keep the right edge they were given.
+        -->
+        <div class="template-provenance">
+          @if (templateVersion) {
+            <span class="template-version">{{
+              'Generic.TemplateVersion' | translate: { version: templateVersion }
+            }}</span>
+          }
+          @if (templateStatus) {
+            <span class="template-status">{{
+              (templateStatus === 'published' ? 'Generic.StatusPublished' : 'Generic.StatusDraft') | translate
+            }}</span>
+          }
+        </div>
+      }
       <div class="template-actions">
         @if (dataContext.templateRepresentation?.hasPageBreaks()) {
           <div class="page-break-control">
@@ -43,6 +57,9 @@
           <button mat-button (click)="closeAll()">
             <mat-icon>unfold_less</mat-icon>{{ 'Generic.CollapseAll' | translate }}
           </button>
+          @if (showDownloadMenu) {
+            <app-download-menu (downloadRequested)="download($event)"></app-download-menu>
+          }
         </div>
       </div>
     </div>
@@ -54,42 +71,10 @@
             [componentToRender]="childComponent"
             [handlerContext]="handlerContext"
             [allExpanded]="allExpanded"
-            [showStaticText]="showStaticText"
-            [showAllMultiInstanceValues]="showAllMultiInstanceValues"
             [pageBreakPaginatorService]="pageBreakPaginatorService"
           ></app-cedar-component-renderer>
         }
       }
     </mat-card-content>
   </mat-card>
-}
-@if (dataAvailableForRender() && dataContext) {
-  <app-source-panels
-    [dataContext]="dataContext"
-    [showTemplateRenderingRepresentation]="showTemplateRenderingRepresentation"
-    [showMultiInstanceInfo]="showMultiInstanceInfo"
-    [showTemplateSourceData]="showTemplateSourceData"
-    [showTemplateYaml]="showTemplateYaml"
-    [showInstanceDataCore]="showInstanceDataCore"
-    [showInstanceDataFull]="showInstanceDataFull"
-    [showInstanceYaml]="showInstanceYaml"
-    [showDataQualityReport]="showDataQualityReport"
-    [expandedTemplateRenderingRepresentation]="expandedTemplateRenderingRepresentation"
-    [expandedMultiInstanceInfo]="expandedMultiInstanceInfo"
-    [expandedTemplateSourceData]="expandedTemplateSourceData"
-    [expandedTemplateYaml]="expandedTemplateYaml"
-    [expandedInstanceDataCore]="expandedInstanceDataCore"
-    [expandedInstanceDataFull]="expandedInstanceDataFull"
-    [expandedInstanceYaml]="expandedInstanceYaml"
-    [expandedDataQualityReport]="expandedDataQualityReport"
-  ></app-source-panels>
-}
-@if (dataAvailableForRender() && showSampleTemplateLinks) {
-  <app-sample-templates
-    [callbackOwnerObject]="sampleTemplateLoaderObject"
-    [expandedSampleTemplateLinks]="expandedSampleTemplateLinks"
-  ></app-sample-templates>
-}
-@if (dataAvailableForRender() && showFooter) {
-  <app-static-footer></app-static-footer>
 }

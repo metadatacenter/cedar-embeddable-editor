@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { CedarReaders, InstanceValidator } from 'cedar-model-typescript-library';
-import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { CARDINALITIES, FIELD_KINDS } from '../src/axes';
 import { corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+import { validateWithModel } from '../src/instance-conformance';
 
 /**
  * Does what CEE emits satisfy the template it came from?
  *
- * This used to be answered with `ajv`, which meant CEE carried a second
- * validator implementation and a set of rules restating what CEDAR defines.
- * That was never CEE's to own, and it has been removed. The model library now
- * answers it: `InstanceValidator.validate` walks the instance against the
- * template and reports what does not fit.
+ * The model library answers the semantic half:
+ * `InstanceValidator.validate` walks the instance against the parsed template
+ * and reports what does not fit.  The separate population-matrix suite also
+ * validates the exact emitted document against the unparsed Draft-04 template
+ * schema, because parsing can legitimately repair a legacy shape and thereby
+ * hide what the resource server will see.
  *
  * Worth being clear about what this does and does not test. It is not checking
  * the library — the library has its own suite for that. It is checking the tree
@@ -25,28 +25,7 @@ import { CeeDriver } from '../src/driver';
  */
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
 
-const conformance = (template: object, driver: CeeDriver) => {
-  const parsedTemplate = CedarReaders.json()
-    .getFebruary2024()
-    .getTemplateReader()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .readFromObject(template as any).template;
-  const emitted = InstanceSerializer.toJson(driver.dataContext.instanceFullData);
-  const parsedInstance = CedarReaders.json()
-    .getFebruary2024()
-    .getTemplateInstanceReader()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .readFromObject(emitted as any, undefined as never).instance;
-
-  const result = InstanceValidator.validate(parsedInstance, parsedTemplate);
-  return {
-    count: result.getBlueprintComparisonErrorCount(),
-    detail: result
-      .getBlueprintComparisonErrors()
-      .map((e) => `${e.errorType.getValue()} at ${JSON.stringify(e.errorPath)}`)
-      .join('; '),
-  };
-};
+const conformance = (template: object, driver: CeeDriver) => validateWithModel(template, driver.emitted);
 
 const cases = VALUED.flatMap((kind, i) => CARDINALITIES.map((c) => [`${kind.key}/${c}`, i, c] as const));
 
@@ -98,8 +77,15 @@ describe('a populated template', () => {
    * raises `minItems` on the same field, which is the answer a user sees; the
    * validator raises `missingIndexInRealObject` on the same path, which is the
    * answer the document gets. Two implementations, one verdict.
+   *
+   * `listSingle/multi` joined them when the model library stopped inferring
+   * `multipleChoice` from cardinality and read it from `_valueConstraints`
+   * instead. A single-choice list that repeats is a multi-instance field like
+   * the others, so it starts with `minItems` slots and one written value leaves
+   * the rest empty — the same part-filled state, reached by a field whose choice
+   * is single.
    */
-  const PART_FILLED_CHOICE = ['checkbox/multi', 'listMulti/multi'];
+  const PART_FILLED_CHOICE = ['checkbox/multi', 'listMulti/multi', 'listSingle/multi'];
 
   it.each(cases)('%s still satisfies it once a value is written', (label, index, cardinality) => {
     const kind = VALUED[index];

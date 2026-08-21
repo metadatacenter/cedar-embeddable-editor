@@ -1,0 +1,121 @@
+@use '../../../../../cee-tokens' as tokens;
+
+/*
+ * The specification reads as one or two tight lines above the control, not as a panel. Anything a
+ * reader can already see in the control itself is left out rather than restated: a radio group draws
+ * its own options, so only the widgets that conceal their values get an enumeration.
+ */
+.cee-field-spec {
+  font-family: tokens.$cee-font-family;
+  /*
+   * The reading size, the same as the label it follows and the description below it. It was the small
+   * size, which made a specification harder to read than the form it describes; the facts are set
+   * apart by colour and by the dot separators instead of by being shrunk.
+   */
+  font-size: tokens.$cee-font-size;
+  color: rgba(0, 0, 0, 0.62);
+  /*
+   * Baseline-aligned with the label it follows, and allowed to wrap as a unit: the facts are a
+   * trailing phrase on the name's line, not a column of their own.
+   */
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0;
+  margin-left: 10px;
+  /*
+   * Aligned to the row's right edge rather than trailing the name. Following the name put the facts
+   * at a different horizontal position on every row, since names differ in length, so a column of
+   * fields showed a jagged left edge down the specifications. The alternative — a fixed-width name
+   * column — buys a left edge by truncating or wrapping long names, which are the ones a reader most
+   * needs whole.
+   */
+  flex: 0 1 auto;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+/*
+ * Facts are separated by a middle dot rather than by punctuation of their own, so each stays a
+ * phrase and the line stays scannable. The separator is generated between adjacent items, never by
+ * `:not(:first-child)`, which put a dot straight after the "Values" label — that label is the
+ * line's first child, so every value counted as a later sibling.
+ */
+.cee-field-spec-fact + .cee-field-spec-fact,
+.cee-field-spec-value + .cee-field-spec-value {
+  &::before {
+    content: '·';
+    margin: 0 6px;
+    color: rgba(0, 0, 0, 0.32);
+  }
+}
+
+/* A pattern can be long, and it is the one fact nobody should have to guess at. */
+.cee-field-spec-fact {
+  overflow-wrap: anywhere;
+}
+
+/*
+ * The lead-in word for a list — "Values", "Terms" — quiet enough not to read as a heading. It needs
+ * its own left margin because it follows a fact rather than another value, so the dot separators
+ * between siblings do not apply to it: without this the line read "0+ valuesValues North".
+ */
+.cee-field-spec-term {
+  font-weight: 500;
+  margin-right: 6px;
+  color: rgba(0, 0, 0, 0.72);
+
+  &:not(:first-child) {
+    margin-left: 12px;
+  }
+}
+
+/* Which kind of authority: branch and ontology mean different scopes, and the word is the fact. */
+.cee-field-spec-kind {
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  color: rgba(0, 0, 0, 0.5);
+  margin-right: 5px;
+}
+
+.cee-field-spec-source {
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.cee-field-spec-note {
+  margin-left: 4px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+/*
+ * The description is prose and is often the specification itself — a median of 164 characters and up
+ * to 795 across the HuBMAP assay templates — so it is set at the reading size, not the small one.
+ *
+ * Flush with the card's own left edge, which is where the controls and the field-type icons sit. It
+ * was briefly indented to the label instead, on the reasoning that the specification should form one
+ * column with the name — but that left two competing edges down the card, 14px for icons and
+ * controls against 44px for the label and its prose, which reads as ragged. The label's 30px offset
+ * belongs to the icon beside it and is not an edge anything else should adopt.
+ */
+.cee-field-spec-description {
+  font-size: tokens.$cee-font-size;
+  line-height: 1.5;
+  margin: 0 0 6px;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/*
+ * An authority reads as a link, because it is one: BioPortal's page for the branch, the ontology or
+ * the class the field draws on. Underlined on hover rather than always, so a row of facts does not
+ * turn into a row of rules.
+ */
+.cee-field-spec-authority {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}

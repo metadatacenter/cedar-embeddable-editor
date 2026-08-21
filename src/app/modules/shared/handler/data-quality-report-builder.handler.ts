@@ -10,7 +10,6 @@ import * as _ from 'lodash-es';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
-import { MultiInstanceInfo } from '../models/info/multi-instance-info.model';
 import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
 import { HandlerContext } from '../util/handler-context';
 import { InstanceValueNode } from '../util/instance-value-node';
@@ -36,47 +35,6 @@ type InspectedComponent = CedarComponent & {
   basicInfo?: BasicInfo;
   multiInfo?: MultiInfo;
 };
-
-/**
- * Read a node of the multi-instance tree as the object info it holds.
- *
- * `MultiInstanceInfo` and `MultiInstanceObjectInfo` are unrelated classes: the
- * first is a bag keyed by component name, the second is what those keys hold. The
- * recursion below walks from one into the other, so at the points that read
- * `currentCount` the value is an object info even though the parameter is typed as
- * the bag. TypeScript cannot see that, so the conversion has to be asserted.
- *
- * It was asserted five separate times as `as any as`. Named once instead, and
- * through `unknown` rather than `any`, which is the same assertion without
- * disabling every other check on the expression. The muddle it papers over is
- * real and worth fixing properly one day: the parameter type is honest at the
- * root call and wrong at every recursive one.
- */
-/*
- * The two multi-instance info types are conflated, and these two bridges are where
- * it shows. `MultiInstanceInfo` is a map from component name to
- * `MultiInstanceObjectInfo`; `MultiInstanceObjectInfo` is a node with a count, an
- * index and a list of child maps. The recursion below alternates between them —
- * the root is a map, every child is a node — while declaring one type throughout.
- *
- * `asObjectInfo` predates this work and papered over it while the parameter was
- * effectively untyped. `asInfo` is its inverse, needed now that `getChildByName`
- * returns its real type. Neither is a fix: straightening out the two is a model
- * change of its own, recorded on the roadmap rather than smuggled in here.
- */
-const asObjectInfo = (info: MultiInstanceInfo): MultiInstanceObjectInfo => info as unknown as MultiInstanceObjectInfo;
-
-/**
- * A child of the info tree, by component name.
- *
- * Deliberately a property lookup and not `MultiInstanceInfo.getChildByName`, even
- * though that accessor exists and is typed. What actually arrives here is sometimes
- * a `MultiInstanceObjectInfo`, which has no such method — swapping the lookup for
- * the accessor threw `getChildByName is not a function` across 216 domain tests.
- * The declared parameter type is the lie; the lookup is what works on both.
- */
-const childInfo = (info: MultiInstanceInfo, name: string): MultiInstanceInfo =>
-  (info as unknown as Record<string, MultiInstanceInfo>)[name];
 
 /**
  * The report's value tree, which is not an instance tree and never was.
@@ -120,24 +78,18 @@ export class DataQualityReportBuilderHandler {
     const valueTree: ReportContainer = {};
 
     if (dataContext.templateRepresentation != null && dataContext.templateInput != null) {
-      DataQualityReportBuilderHandler.buildRecursively(
-        dataContext.templateRepresentation,
-        report,
-        valueTree,
-        dataContext.multiInstanceData ?? new MultiInstanceInfo(),
-        handlerContext,
-      );
+      const rootState = handlerContext.multiInstanceObjectService.rootState;
+      for (const child of dataContext.templateRepresentation.children) {
+        DataQualityReportBuilderHandler.buildRecursively(
+          child,
+          report,
+          valueTree,
+          rootState.getState(child.name),
+          handlerContext,
+        );
+      }
     }
-    /*
-     * The recursion files every component's subtree under that component's own
-     * name, so the template's sits under the template's — and a template has none,
-     * because the parser names only children. This read the literal string
-     * `'undefined'`, which is what that unset name stringified to when used as a
-     * key. Asking the root what it is called says the same thing without depending
-     * on a field having no default, and keeps working if a template ever gets one.
-     */
-    const rootName = dataContext.templateRepresentation?.name ?? '';
-    report.valueTree = valueTree[rootName] ?? {};
+    report.valueTree = valueTree;
     report.computeValidity();
     return report;
   }
@@ -146,7 +98,7 @@ export class DataQualityReportBuilderHandler {
     component: CedarComponent,
     report: DataQualityReport,
     valueTree: ReportContainer,
-    multiInstanceInfo: MultiInstanceInfo,
+    multiInstanceState: MultiInstanceObjectInfo | null,
     handlerContext: HandlerContext,
   ): void {
     if (
@@ -157,10 +109,9 @@ export class DataQualityReportBuilderHandler {
       const iterableComponent: ElementComponent = component as ElementComponent;
       const targetName = iterableComponent.name;
       if (component instanceof MultiElementComponent) {
-        //const multiElement: MultiElementComponent = component as MultiElementComponent;
         const occurrences = DataQualityReportBuilderHandler.getEmptyList();
         valueTree[targetName] = occurrences;
-        const multiCount = asObjectInfo(multiInstanceInfo).currentCount;
+        const multiCount = multiInstanceState?.currentCount ?? 0;
         DataQualityReportBuilderHandler.collectPresenceProblems(
           component,
           handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
@@ -168,35 +119,32 @@ export class DataQualityReportBuilderHandler {
         );
         DataQualityReportBuilderHandler.collectCardinalityProblems(component, multiCount, report);
         if (multiCount > 0) {
-          const dummyTargetObject: ReportContainer = DataQualityReportBuilderHandler.getEmptyObject();
-          const currentIndex = asObjectInfo(multiInstanceInfo).currentIndex;
+          const displayedOccurrence = DataQualityReportBuilderHandler.getEmptyObject();
+          const currentIndex = multiInstanceState?.currentIndex ?? -1;
+          const childStates = currentIndex >= 0 ? multiInstanceState?.occurrences[currentIndex] : undefined;
           for (const childComponent of iterableComponent.children) {
             DataQualityReportBuilderHandler.buildRecursively(
               childComponent,
               report,
-              dummyTargetObject,
-              childInfo(asObjectInfo(multiInstanceInfo).children[currentIndex], childComponent.name),
+              displayedOccurrence,
+              childStates?.getState(childComponent.name) ?? null,
               handlerContext,
             );
           }
-          const multiCount = asObjectInfo(multiInstanceInfo).currentCount;
           for (let idx = 0; idx < multiCount; idx++) {
-            const clone = _.cloneDeep(dummyTargetObject);
-            occurrences.values.push(clone);
+            occurrences.values.push(_.cloneDeep(displayedOccurrence));
           }
         }
       } else {
-        valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyObject();
+        const elementValues = DataQualityReportBuilderHandler.getEmptyObject();
+        valueTree[targetName] = elementValues;
+        const childStates = multiInstanceState?.occurrences[0];
         for (const childComponent of iterableComponent.children) {
-          let nextMultiInstanceInfo = childInfo(multiInstanceInfo, childComponent.name);
-          if (nextMultiInstanceInfo == undefined) {
-            nextMultiInstanceInfo = childInfo(asObjectInfo(multiInstanceInfo).children[0], childComponent.name);
-          }
           DataQualityReportBuilderHandler.buildRecursively(
             childComponent,
             report,
-            valueTree[targetName],
-            nextMultiInstanceInfo,
+            elementValues,
+            childStates?.getState(childComponent.name) ?? null,
             handlerContext,
           );
         }
@@ -233,12 +181,12 @@ export class DataQualityReportBuilderHandler {
         );
         DataQualityReportBuilderHandler.collectCardinalityProblems(
           nonIterableComponent,
-          asObjectInfo(multiInstanceInfo).currentCount,
+          multiInstanceState?.currentCount ?? 0,
           report,
         );
         const occurrences = DataQualityReportBuilderHandler.getEmptyList();
         valueTree[targetName] = occurrences;
-        const multiCount = asObjectInfo(multiInstanceInfo).currentCount;
+        const multiCount = multiInstanceState?.currentCount ?? 0;
         for (let idx = 0; idx < multiCount; idx++) {
           const occurrence = isInstanceArray(dataValueObject) ? dataValueObject[idx] : null;
           const value = DataQualityReportBuilderHandler.extractPlainValue(occurrence, component);

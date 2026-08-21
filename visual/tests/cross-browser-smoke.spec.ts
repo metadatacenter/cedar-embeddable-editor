@@ -83,38 +83,6 @@ test('keeps a Material overlay inside the custom element', async ({ page }) => {
   expect(placement.outside).toBe(0);
 });
 
-test('filters and loads a sample template through the Material select', async ({ page }) => {
-  await open(page, '01-input-types', 'chrome', undefined, undefined, '&f=showSampleTemplateLinks');
-
-  await page.locator('app-sample-template-select mat-select').click();
-
-  // Reachable by role again, and asserted that way deliberately.
-  //
-  // ngx-mat-select-search v6 put aria-hidden="true" on the mat-option it lives in,
-  // taking its own input out of the accessibility tree; that was pinned here as a
-  // known defect so the suite would say when it stopped being true. The MDC
-  // migration moved this to v7, which sets no such attribute, and the pin fired.
-  // Querying by role is what makes this a check on whether a screen-reader user can
-  // find the filter, rather than merely on whether the input exists.
-  const search = page.getByRole('textbox', { name: 'dropdown search' });
-  await expect(search).toBeVisible();
-
-  // ngx-mat-select-search deliberately lives inside a disabled mat-option so
-  // Material cannot select the search row. Browsers still focus its input, but
-  // Playwright inherits aria-disabled from the option unless the actionability
-  // check is bypassed.
-  await search.fill('Demo', { force: true });
-  await expect(page.getByRole('option', { name: 'Demo template' })).toBeVisible();
-  await expect(page.getByRole('option', { name: 'Unrelated template' })).toHaveCount(0);
-
-  await search.fill('', { force: true });
-  await expect(page.getByRole('option', { name: 'Unrelated template' })).toBeVisible();
-  await search.fill('Demo', { force: true });
-  await page.getByRole('option', { name: 'Demo template' }).click();
-
-  await expect(page.locator('input[aria-label="title"]')).toHaveValue('loaded from metadata.json');
-});
-
 test('renders YouTube content as a native iframe without the Player API', async ({ page }) => {
   await page.route('https://www.youtube.com/embed/**', (route) =>
     route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>YouTube stub</title>' }),
@@ -172,17 +140,12 @@ test('selects and records a fixed UTC offset', async ({ page }) => {
   await page.locator('mat-datepicker-toggle button').click();
   await page.getByRole('button', { name: '01/01/2026', exact: true }).click();
 
-  // Material hands focus back to the toggle when the calendar closes, and does
-  // it asynchronously. Typing into a time box before that lands loses the
-  // keystrokes: the box is focused, the restore takes focus away a millisecond
-  // later, and the text is inserted nowhere — no input event, so nothing tells
-  // the picker anything happened. Waiting for the restore is waiting for the
-  // form to be ready for the next thing a person would do.
-  await expect(page.locator('mat-datepicker-toggle button')).toBeFocused();
-
   const time = page.locator('.cee-time-picker');
-  await time.locator('input[aria-label="Hour"]').fill('09');
-  await time.locator('input[aria-label="Minute"]').fill('30');
+  // Send separate input events with a real pause between them. `fill('09')`
+  // delivers the complete segment at once and used to hide the widget padding
+  // the first `0` into `00` before the `9` arrived.
+  await time.locator('input[aria-label="Hour"]').pressSequentially('09', { delay: 40 });
+  await time.locator('input[aria-label="Minute"]').pressSequentially('30', { delay: 40 });
 
   await expect
     .poll(() =>
@@ -191,10 +154,20 @@ test('selects and records a fixed UTC offset', async ({ page }) => {
     .toContain('2026-01-01T09:30:00+05:30');
 });
 
+test('returns calendar focus to its toggle when the user has not moved on', async ({ page }) => {
+  await open(page, '07-timezone');
+  const toggle = page.locator('mat-datepicker-toggle button');
+
+  await toggle.click();
+  await page.getByRole('button', { name: '01/01/2026', exact: true }).click();
+
+  await expect(toggle).toBeFocused();
+});
+
 test('updates temporal data through the custom time picker', async ({ page }) => {
   await open(page, '09-temporal');
   const seconds = page.locator('.cee-time-picker').nth(2).locator('input[aria-label="Second"]');
-  await seconds.fill('42');
+  await seconds.pressSequentially('42', { delay: 40 });
   await seconds.blur();
 
   await expect
@@ -220,9 +193,15 @@ test('adds and removes a multi-instance value', async ({ page }) => {
 });
 
 test('honors read-only mode', async ({ page }) => {
+  // Two states, and neither is editable. With no instance behind it a field states its
+  // specification and renders no control at all; with one, the controls appear and are read-only.
   await open(page, '01-input-types', 'readonly');
-  await expect(page.locator('input[aria-label="text"]')).toHaveAttribute('readonly', 'true');
+  await expect(page.locator('input[aria-label="text"]')).toHaveCount(0);
+  await expect(page.locator('.cee-spec-box').first()).toBeVisible();
+
+  await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
   await expect(page.locator('input[aria-label="email"]')).toHaveAttribute('readonly', 'true');
+  await expect(page.locator('input[aria-label="phone"]')).toHaveAttribute('readonly', 'true');
 });
 
 /**
@@ -245,4 +224,57 @@ test('exposes JSON and YAML outputs for a host-supplied instance', async ({ page
   });
   expect(outputs.json).toContain('Private');
   expect(outputs.yaml).toContain('Private');
+});
+
+/**
+ * A host with nothing to configure.
+ *
+ * Every key on `CeeConfig` is optional and documents a default, so assigning no
+ * configuration and assigning `{}` have to mean the same thing. They did not: the
+ * editor rendered only once `config` had been assigned, so an element given a
+ * template and nothing else stayed blank for good, with both getters answering
+ * empty — `{}` and `''` — and nothing said so. No error, no warning, and no way to
+ * connect a blank frame to a key nobody had set.
+ *
+ * Built here rather than through the harness page, which always assigns a config
+ * and so could never have caught this. The element is created, given a template,
+ * and read — the smallest thing a host can do.
+ */
+test('renders from a template alone, with no configuration at all', async ({ page }) => {
+  await open(page, '01-input-types');
+
+  const template = await page.evaluate(async () => (await fetch('./fixtures/01-input-types.json')).json());
+
+  const result = await page.evaluate(async (fixture) => {
+    const editor = document.createElement('cedar-embeddable-editor') as HTMLElement & {
+      templateObject: unknown;
+      currentMetadata: object;
+      currentMetadataYaml: string;
+    };
+    document.body.appendChild(editor);
+    editor.templateObject = fixture;
+
+    const deadline = Date.now() + 15_000;
+    while (Date.now() < deadline) {
+      if (editor.shadowRoot?.querySelector('app-cedar-embeddable-metadata-editor')) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    const rendered = editor.shadowRoot?.querySelector('app-cedar-embeddable-metadata-editor') !== null;
+    const fields = editor.shadowRoot?.querySelectorAll('input').length ?? 0;
+    const json = editor.currentMetadata;
+    const yaml = editor.currentMetadataYaml;
+    editor.remove();
+
+    return {
+      rendered,
+      hasFields: fields > 0,
+      jsonKeys: Object.keys(json ?? {}).length > 0,
+      yamlLength: typeof yaml === 'string' && yaml.length > 0,
+    };
+  }, template);
+
+  expect(result).toEqual({ rendered: true, hasFields: true, jsonKeys: true, yamlLength: true });
 });

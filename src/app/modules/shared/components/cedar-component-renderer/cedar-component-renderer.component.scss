@@ -25,18 +25,28 @@
  * that, and the two are complementary rather than alternatives.
  */
 .cee-element-heading {
-  font-size: clamp(12px, var(--cee-element-heading-size), 32px);
-  font-weight: clamp(400, var(--cee-element-heading-weight), 700);
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .cee-element-content {
-  padding-top: clamp(0px, var(--cee-element-content-gap), 32px);
+  padding-top: 12px;
 }
 
 .non-iterable-component {
   box-sizing: border-box;
   min-width: 0;
   padding: 16px 0;
+
+  /*
+   * Half that when read-only. The 16px above and below gives a control room to be reached and
+   * corrected, which a reader is not doing; across a 43-field template it is most of the page.
+   * `:host-context` rather than a global rule under `.cee-read-only`: this padding is set by an
+   * encapsulated selector, which a global rule of the same specificity loses to on order.
+   */
+  :host-context(.cee-read-only) & {
+    padding: 8px 0;
+  }
   background: transparent;
   border-bottom: 1px solid #e1e7e6;
 }
@@ -46,15 +56,24 @@
  * first ordinary field used to add its own 16px top padding as well, producing
  * a 32px blank band at every nesting level. Keep the field's bottom rhythm but
  * do not count its top spacing twice.
+ *
+ * Twice, because read-only sets that padding through `:host-context`, and the
+ * emitted `.cee-read-only[_nghost] .non-iterable-component[_ngcontent]` carries
+ * four class-level parts against this rule's three — so the tighter read-only
+ * padding came back on the first field and the band with it. Naming the
+ * read-only ancestor here takes the specificity back.
  */
-::ng-deep
-  .cee-element-content:not(.cee-element-content-with-static)
-  > app-cedar-component-renderer:first-of-type
-  > .non-iterable-component {
+::ng-deep .cee-element-content > app-cedar-component-renderer:first-of-type > .non-iterable-component,
+::ng-deep .cee-read-only .cee-element-content > app-cedar-component-renderer:first-of-type > .non-iterable-component {
   padding-top: 0;
 }
 
 .child-component-content {
   min-width: 0;
   padding-top: 10px;
+
+  /* Tighter when read-only, for the reason given on the card's own padding above. */
+  :host-context(.cee-read-only) & {
+    padding-top: 4px;
+  }
 }

@@ -26,6 +26,7 @@ import { present } from './nodes';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { CedarTemplate } from '@cee/models/template/cedar-template.model';
 import type { Template, TemplateInstance } from 'cedar-model-typescript-library';
+import type { RenderSchedulerService } from '@cee/service/render-scheduler.service';
 
 /**
  * Captures CEE's log output instead of printing it.
@@ -58,9 +59,7 @@ export class RecordingMessageHandler extends MessageHandlerService {
 }
 
 export interface DriverOptions {
-  collapseStaticComponents?: boolean;
   readOnlyMode?: boolean;
-  hideEmptyFields?: boolean;
   /** Pre-load an existing instance, as the host page's `instanceObject` would. */
   /**
    * An instance a host page hands over: a document, not a node of CEE's tree.
@@ -90,31 +89,29 @@ export class CeeDriver {
 
     if (opts.readOnlyMode) this.handlerContext.enableReadOnlyMode();
     // Mirrors the wrapper: empty-field hiding is only honoured in read-only mode.
-    if (opts.hideEmptyFields && this.handlerContext.readOnlyMode) {
-      this.handlerContext.enableEmptyFieldHiding();
-    }
 
-    // The paginator only touches ActiveComponentRegistryService inside
-    // setPageNumberAndGet(), which schedules a setTimeout to push model values
-    // back into live widgets. There are no widgets here, so the registry is
-    // genuinely unused and null is safe. reset() — the only method the startup
-    // path calls — never reads it.
-    this.paginator = new PageBreakPaginatorService(null as never, this.handlerContext);
+    // The paginator only touches these collaborators during page navigation.
+    // The headless startup path calls reset(), so neither has work to perform.
+    this.paginator = new PageBreakPaginatorService(
+      null as never,
+      this.handlerContext,
+      { schedule: () => Promise.resolve(false) } as unknown as RenderSchedulerService,
+    );
 
     if (opts.instance) {
       // Exactly what CedarEmbeddableMetadataEditorComponent
-      // .setDataContextWithInstance does: read once through the model library
+      // The wrapper's artifact boundary does: read once through the model library
       // into the one tree CEE keeps.
       const { full } = InstanceDeserializer.read(opts.instance, (m) => this.messages.error(m));
       this.dataContext.instanceFullData = full;
       this.dataContext.invalidateDerivedViews();
+      this.handlerContext.instanceSupplied = true;
     }
 
     this.dataContext.setInputTemplate(
       template,
       this.handlerContext,
       this.paginator,
-      opts.collapseStaticComponents ?? false,
       opts.templateParser,
       opts.instanceReader,
     );
@@ -222,17 +219,6 @@ export class CeeDriver {
     return JSON.parse(JSON.stringify(this.dataContext.dataQualityReport));
   }
 
-  /**
-   * Run the empty-field visibility pass, as `hideEmptyFields` does on screen.
-   *
-   * `ActiveComponentRegistryService.setVisibility` is what decides which
-   * components a read-only viewer draws. It needs no registered widgets — it
-   * reads the instance and writes `hidden` on the components — so the harness
-   * can ask for it directly.
-   */
-  registryForVisibility(): void {
-    new ActiveComponentRegistryService().setVisibility(this.representation, this.handlerContext);
-  }
 
   /** Locate a component by its template path, e.g. `['_element', '_field']`. */
   find(path: string[]): any {
@@ -317,32 +303,3 @@ export class CeeDriver {
     }
   }
 }
-
-/** Every `@id` CEE mints at build time, so they can be normalized away. */
-const MINTED_ID = /^https:\/\/repo\.metadatacenter\.org\/template-element-instances\//;
-
-/**
- * Replace nondeterministic values with stable placeholders.
- *
- * CEE stamps a fresh RFC4122 GUID onto every element instance it builds
- * (`DataObjectUtil.generateGUID`, which uses `Date.now()` and `Math.random()`).
- * Without this, no two runs produce the same instance and snapshots are
- * worthless. Only CEE-minted IRIs are touched — externally supplied `@id`s are
- * meaningful data and must survive, which is also what
- * `cleanUpAtIdsRecursively` relies on when copying a multi-instance.
- */
-export const normalize = (value: unknown): unknown => {
-  if (Array.isArray(value)) return value.map(normalize);
-  if (value && typeof value === 'object') {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value)) {
-      if (k === DocumentKey.atId && typeof v === 'string' && MINTED_ID.test(v)) {
-        out[k] = '<minted>';
-      } else {
-        out[k] = normalize(v);
-      }
-    }
-    return out;
-  }
-  return value;
-};

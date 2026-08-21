@@ -4,6 +4,7 @@
     <input
       matInput
       readonly
+      [placeholder]="dateNotation"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
       attr.aria-label="{{ 'Generic.SelectYear' | translate }}"
@@ -11,10 +12,14 @@
     @if (dateMonthYear.getError('required')) {
       <mat-error class="mat-error align-start">{{ 'Error.ValueRequired' | translate }}</mat-error>
     }
-    <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+    @if (!readOnlyMode) {
+      <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+    }
     <mat-datepicker
       #dp
       (yearSelected)="chosenYearHandler($event, dp)"
+      (closed)="datepickerClosed()"
+      [restoreFocus]="false"
       startView="multi-year"
       panelClass="year-month-picker"
     ></mat-datepicker>
@@ -26,6 +31,7 @@
     <input
       matInput
       readonly
+      [placeholder]="dateNotation"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
       attr.aria-label="{{ 'Generic.SelectYearAndMonth' | translate }}"
@@ -37,6 +43,8 @@
       #dp
       (yearSelected)="chosenYearHandler($event, dp)"
       (monthSelected)="chosenMonthHandler($event, dp)"
+      (closed)="datepickerClosed()"
+      [restoreFocus]="false"
       startView="multi-year"
       panelClass="year-month-picker"
     ></mat-datepicker>
@@ -48,6 +56,7 @@
     <input
       matInput
       readonly
+      [placeholder]="dateNotation"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
       (dateChange)="chosenDateHandler($event)"
@@ -59,6 +68,6 @@
     <!-- `(dateChange)` above is what carries the chosen date. `(opened)` emits
     nothing, so binding the same handler to it passed `undefined` and the body
     never ran; removed rather than left looking live. -->
-    <mat-datepicker #dp></mat-datepicker>
+    <mat-datepicker #dp (closed)="datepickerClosed()" [restoreFocus]="false"></mat-datepicker>
   </mat-form-field>
 }

@@ -1,29 +1,43 @@
-@if (showDatePicker()) {
-  <div class="cee-temporal-date">
-    <app-date-picker
-      [dateFormat]="dateFormat()"
-      (dateChangedEvent)="dateInputChanged($event)"
-      [dateMonthYear]="dateMonthYearControl"
-      [required]="required"
-      xmlns="http://www.w3.org/1999/html"
-    ></app-date-picker>
-  </div>
+@if (readOnlyMode) {
+  <mat-form-field class="full-width">
+    <input
+      matInput
+      type="text"
+      readonly
+      [value]="readOnlyValue()"
+      [placeholder]="component | ceeSpecPlaceholder"
+      attr.aria-label="{{ component.labelInfo.label }}"
+    />
+  </mat-form-field>
 }
 
-@if (showTimePicker()) {
-  <div class="cee-temporal-time">
-    <app-time-picker
-      [(ngModel)]="timePickerTime"
-      (ngModelChange)="timeInputChanged($event)"
-      [enableMeridian]="enableMeridian()"
-      [disableMinute]="disableMinute()"
-      [showSeconds]="showSeconds()"
-    >
-    </app-time-picker>
+@if (!readOnlyMode) {
+  @if (showDatePicker()) {
+    <div class="cee-temporal-date">
+      <app-date-picker
+        [dateFormat]="dateFormat()"
+        (dateChangedEvent)="dateInputChanged($event)"
+        [dateMonthYear]="dateMonthYearControl"
+        [required]="required"
+        xmlns="http://www.w3.org/1999/html"
+      ></app-date-picker>
+    </div>
+  }
 
-    @if (showDecimalSeconds()) {
-      <span class="cee-fraction-separator" aria-hidden="true">.</span>
-      <!--
+  @if (showTimePicker()) {
+    <div class="cee-temporal-time">
+      <app-time-picker
+        [(ngModel)]="timePickerTime"
+        (ngModelChange)="timeInputChanged($event)"
+        [enableMeridian]="enableMeridian()"
+        [disableMinute]="disableMinute()"
+        [showSeconds]="showSeconds()"
+      >
+      </app-time-picker>
+
+      @if (showDecimalSeconds()) {
+        <span class="cee-fraction-separator" aria-hidden="true">.</span>
+        <!--
         The placeholder is `sss`, not `000`, because a placeholder must not look
         like a value.
 
@@ -37,51 +51,51 @@
         `MM`, `SS`. Lowercase here so it reads as sub-second beside the uppercase
         `SS`, which is the usual notation for `HH:MM:SS.sss`.
       -->
-      <mat-form-field class="cee-fraction-field">
-        <input
-          matInput
-          type="text"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          (input)="decimalSecondsChanged($event)"
-          [(ngModel)]="decimalSeconds"
-          name="decimalSeconds"
-          placeholder="sss"
-          matTooltip="{{ 'Generic.DecimalSeconds' | translate }}"
-          attr.aria-label="{{ 'Generic.SelectDecimalSeconds' | translate }}"
-          [readonly]="readOnlyMode"
-        />
-      </mat-form-field>
-    }
-  </div>
-}
+        <mat-form-field class="cee-fraction-field">
+          <input
+            matInput
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            (input)="decimalSecondsChanged($event)"
+            [(ngModel)]="decimalSeconds"
+            name="decimalSeconds"
+            placeholder="sss"
+            matTooltip="{{ 'Generic.DecimalSeconds' | translate }}"
+            attr.aria-label="{{ 'Generic.SelectDecimalSeconds' | translate }}"
+          />
+        </mat-form-field>
+      }
+    </div>
+  }
 
-@if (showTimezonePicker()) {
-  <div class="cee-temporal-offset" [class.cee-temporal-offset-readonly]="readOnlyMode">
-    <app-timezone-picker
-      [(ngModel)]="timezone"
-      (ngModelChange)="timezoneInputChanged($event)"
-      customPlaceholderText="{{ 'Generic.SelectUtcOffset' | translate }}"
-      [getUserZone]="setDefaultZone"
-    ></app-timezone-picker>
-  </div>
-}
+  @if (showTimezonePicker()) {
+    <div class="cee-temporal-offset">
+      <app-timezone-picker
+        [(ngModel)]="timezone"
+        (ngModelChange)="timezoneInputChanged($event)"
+        customPlaceholderText="{{ 'Generic.SelectUtcOffset' | translate }}"
+        [getUserZone]="setDefaultZone"
+      ></app-timezone-picker>
+    </div>
+  }
 
-@if (hasTemporalValue() && !readOnlyMode) {
-  <button
-    type="button"
-    mat-icon-button
-    class="cee-temporal-clear"
-    attr.aria-label="{{ 'Generic.Clear' | translate }}"
-    matTooltip="{{ 'Generic.Clear' | translate }}"
-    (click)="clearValue()"
-  >
-    <mat-icon>close</mat-icon>
-  </button>
-}
+  @if (hasTemporalValue() && !readOnlyMode) {
+    <button
+      type="button"
+      mat-icon-button
+      class="cee-temporal-clear"
+      attr.aria-label="{{ 'Generic.Clear' | translate }}"
+      matTooltip="{{ 'Generic.Clear' | translate }}"
+      (click)="clearValue()"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  }
 
-@if (valueControl.invalid && userEdited && !readOnlyMode) {
-  <mat-error class="mat-error align-start cee-temporal-error">
-    {{ validationMessage() }}
-  </mat-error>
+  @if (valueControl.invalid && userEdited && !readOnlyMode) {
+    <mat-error class="mat-error align-start cee-temporal-error">
+      {{ validationMessage() }}
+    </mat-error>
+  }
 }

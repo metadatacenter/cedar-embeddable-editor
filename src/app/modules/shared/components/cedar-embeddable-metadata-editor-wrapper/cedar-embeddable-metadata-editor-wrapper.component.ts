@@ -9,21 +9,22 @@ import {
 } from '@angular/core';
 import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
-import { CeeEventHandler } from '../../../../cee-public-api';
-import { Subject } from 'rxjs';
-import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
-import { map, takeUntil, withLatestFrom } from 'rxjs/operators';
-import { HandlerContext } from '../../util/handler-context';
+import {
+  CeeChangeDetail,
+  CeeDataQualityReport,
+  CeeEventHandler,
+  CeeJsonObject,
+  CeeTemplateAndInstance,
+} from '../../../../cee-public-api';
+import { HandlerContext, InstanceMutation } from '../../util/handler-context';
 import { InstanceSerializer } from '../../util/instance-serializer';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { TranslateLoader, TranslateService, USE_DEFAULT_LANG, USE_STORE } from '@ngx-translate/core';
-import { CedarEmbeddableMetadataEditorComponent } from '../cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { DataContext } from '../../util/data-context';
 import { HttpClient } from '@angular/common/http';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
-import { IriPrefix } from '../../util/iri-prefix';
 import { FallbackTranslateLoaderFactory } from '../../util/fallback-translate-loader-factory';
 import * as fallbackMapEN from '../../../../../assets/i18n-cee/en.json';
 import * as fallbackMapHU from '../../../../../assets/i18n-cee/hu.json';
@@ -31,22 +32,12 @@ import { Overlay, OverlayContainer, OverlayPositionBuilder } from '@angular/cdk/
 import { CedarOverlayContainer } from '../../service/cedar-overlay-container.service';
 import { AriaDescriber } from '@angular/cdk/a11y';
 import { CedarAriaDescriber } from '../../service/cedar-aria-describer.service';
-import { SampleTemplateLoaderOwner } from '../../models/ui/sample-template-loader-owner.model';
-import { CeeConfig, configFlag, configText } from '../../util/config-reader';
-import { validateCeeConfig } from '../../util/config-validation';
-import { InstanceObject } from '../../models/instance-node.model';
+import { CeeConfig } from '../../util/config-reader';
 import { Template } from 'cedar-model-typescript-library';
 import { CedarTemplate } from '../../models/template/cedar-template.model';
-
-/**
- * One half of what an artifact input can supply.
- *
- * Two, rather than one claim per input, because the inputs overlap:
- * `templateAndInstanceObject` supplies what `templateObject` and `instanceObject`
- * supply between them, so a seal per input would let a host set the template
- * twice through two different names.
- */
-type ArtifactClaim = 'template' | 'instance';
+import { RenderSchedulerService } from '../../service/render-scheduler.service';
+import { ArtifactInputCoordinator } from '../../util/artifact-input-coordinator';
+import { WrapperConfigCoordinator } from '../../util/wrapper-config-coordinator';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -62,9 +53,8 @@ type ArtifactClaim = 'template' | 'instance';
     ControlledFieldDataService,
     ExternalAuthorityLookupService,
     GlobalSettingsContextService,
-    { provide: IriPrefix, useFactory: () => new IriPrefix() },
     MessageHandlerService,
-    SampleTemplatesService,
+    RenderSchedulerService,
     UserPreferencesService,
     {
       provide: TranslateLoader,
@@ -87,109 +77,59 @@ type ArtifactClaim = 'template' | 'instance';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, OnDestroy {
-  innerConfig: CeeConfig | null = null;
   private initialized = false;
-  private configSet = false;
-
-  /**
-   * Which artifact a host has already supplied.
-   *
-   * Every input on this element takes one assignment and keeps it. Before, the
-   * element only ever accumulated state: a second `config` patched the first for
-   * most keys and replaced it for `outputSerialization`, and three inputs could
-   * each supply an artifact with nothing saying which won. Neither lets a host
-   * say "here is what I want now" instead of "here is one more thing on top of
-   * whatever you already have", so a host could not return the editor to a known
-   * state, and the same assignments in a different order gave a different editor.
-   *
-   * A host wanting different configuration or a different artifact creates a new
-   * element. `templateAndInstanceObject` spends both claims, which is what makes
-   * it exclusive with the two separate inputs rather than merely redundant.
-   */
-  private readonly claimed = new Set<ArtifactClaim>();
-
-  templateJson: InstanceObject | null = null;
-  instanceJson: InstanceObject | null = null;
-  templateAndInstanceJson: object | null = null;
-  sampleTemplateLoaderObject: SampleTemplateLoaderOwner | null = null;
-  showSpinnerBeforeInit = true;
-  protected onDestroySubject = new Subject<void>();
-  private loadedTemplateJson: InstanceObject | null = null;
-  private loadedMetadata: InstanceObject | null = null;
+  private readonly artifacts: ArtifactInputCoordinator;
+  private readonly configuration: WrapperConfigCoordinator;
+  private lastPublishedMetadata = '';
+  artifactRevision = 0;
 
   // Constructor-assigned, so no `= null` placeholder: unlike the editor's, which
   // arrive through @Input setters and really can be unset, these two exist from
   // the moment the wrapper does.
-  readonly dataContext: DataContext;
-  readonly handlerContext: HandlerContext;
-
-  private defaultLanguage = GlobalSettingsContextService.DEFAULT_LANGUAGE;
-  private fallbackLanguage = GlobalSettingsContextService.DEFAULT_LANGUAGE;
+  dataContext: DataContext;
+  handlerContext: HandlerContext;
 
   constructor(
     private readonly wrapper: ElementRef<HTMLElement>,
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
-    private sampleTemplateService: SampleTemplatesService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private translateService: TranslateService,
-    private messagingService: MessageHandlerService,
     private globalSettingsContextService: GlobalSettingsContextService,
-    private iriPrefix: IriPrefix,
   ) {
-    this.sampleTemplateLoaderObject = this;
-    this.dataContext = new DataContext();
-    this.handlerContext = new HandlerContext(this.dataContext, this.messagingService, () => this.iriPrefix.get());
+    this.artifacts = new ArtifactInputCoordinator(this.messageHandlerService);
+    this.configuration = new WrapperConfigCoordinator(
+      this.controlledFieldDataService,
+      this.messageHandlerService,
+      this.translateService,
+      this.globalSettingsContextService,
+    );
+    this.dataContext = this.artifacts.state.dataContext;
+    this.handlerContext = this.artifacts.state.handlerContext;
   }
 
-  /** Re-publishes CEE's existing change contract across the shadow boundary. */
-  forwardChange(event: Event): void {
-    if (event.composed) {
-      return;
-    }
-    this.wrapper.nativeElement.dispatchEvent(
-      new CustomEvent('change', {
-        detail: event instanceof CustomEvent ? event.detail : undefined,
-        bubbles: true,
-        composed: true,
-      }),
-    );
+  get innerConfig(): CeeConfig | null {
+    return this.configuration.config;
+  }
+
+  get templateJson(): CeeJsonObject | null {
+    return this.artifacts.state.templateJson;
+  }
+
+  get instanceJson(): CeeJsonObject | null {
+    return this.artifacts.state.instanceJson;
+  }
+
+  get templateAndInstanceJson(): CeeTemplateAndInstance | null {
+    return this.artifacts.state.templateAndInstanceJson;
+  }
+
+  /** DOM control events are implementation traffic; model mutations publish the host contract. */
+  suppressNativeChange(event: Event): void {
+    event.stopPropagation();
   }
 
   ngOnInit(): void {
-    const { templateJson$, metadataJson$ } = this.sampleTemplateService;
-
-    const metadataAndTemplate = metadataJson$.pipe(
-      withLatestFrom(templateJson$),
-      map(([metadataJson, templateJson]) => {
-        return { metadataJson, templateJson };
-      }),
-      takeUntil(this.onDestroySubject),
-    );
-
-    metadataAndTemplate.subscribe((values) => {
-      const { templateJson: templateByNum, metadataJson: metadataByNum } = values;
-      if (templateByNum && metadataByNum) {
-        // Separate bindings rather than reassigning the same two: what arrives is a
-        // `{ templateNum: artifact }` map, and what is wanted is the artifact inside
-        // it. The old code put both through one name and the types disagreed.
-        const templateJson = Object.values(templateByNum)[0];
-        const metadataJson = Object.values(metadataByNum)[0];
-        if (templateJson && metadataJson) {
-          this.loadedTemplateJson = templateJson;
-          this.loadedMetadata = metadataJson;
-        } else if (templateJson) {
-          this.loadedTemplateJson = templateJson;
-          this.loadedMetadata = null;
-        } else if (metadataJson) {
-          this.loadedMetadata = metadataJson;
-        } else {
-          this.templateJson = null;
-          this.loadedMetadata = null;
-        }
-        this.triggerUpdateOnInjectedSampleData();
-      }
-    });
     this.initialized = true;
     this.doInitialize();
   }
@@ -203,7 +143,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    * of those looks like is the model's business.
    */
   @Input() get currentMetadata(): object {
-    if (this.handlerContext) {
+    if (!this.artifacts.instanceInputRejected) {
       return InstanceSerializer.toJson(this.handlerContext.dataContext.instanceFullData, this.parsedTemplate());
     }
     return {};
@@ -216,30 +156,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    * writer, not a different code path.
    */
   @Input() get currentMetadataYaml(): string {
-    if (this.handlerContext) {
+    if (!this.artifacts.instanceInputRejected) {
       return InstanceSerializer.toYaml(this.handlerContext.dataContext.instanceFullData, this.parsedTemplate());
     }
     return '';
-  }
-
-  /**
-   * The instance in whichever serialization the config selected — a JSON object
-   * by default, or a YAML string when `outputSerialization: 'yaml'` is set.
-   *
-   * The typed getters above stay for a host that always wants one or the other;
-   * this is for a host that configures the format once and reads a single
-   * accessor. Output serialization is independent of input: the template can be
-   * handed in as JSON and the instance asked for as YAML.
-   */
-  @Input() get currentMetadataSerialized(): object | string {
-    if (!this.handlerContext) {
-      return this.isYamlOutput() ? '' : {};
-    }
-    const instance = this.handlerContext.dataContext.instanceFullData;
-    const template = this.parsedTemplate();
-    return this.isYamlOutput()
-      ? InstanceSerializer.toYaml(instance, template)
-      : InstanceSerializer.toJson(instance, template);
   }
 
   /**
@@ -251,14 +171,6 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     return representation instanceof CedarTemplate ? representation.parsed : null;
   }
 
-  private isYamlOutput(): boolean {
-    return (
-      this.innerConfig != null &&
-      this.innerConfig[CedarEmbeddableMetadataEditorComponent.OUTPUT_SERIALIZATION] ===
-        CedarEmbeddableMetadataEditorComponent.SERIALIZATION_YAML
-    );
-  }
-
   /**
    * The template to render.
    *
@@ -266,84 +178,82 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    * not built until a template is present, so an instance supplied first waits
    * rather than arriving early.
    */
-  @Input() set templateObject(template: InstanceObject | null) {
-    if (template == null || !this.claim('templateObject', ['template'])) {
+  @Input() set templateObject(template: CeeJsonObject | null) {
+    if (template === null || !this.artifacts.acceptTemplate(template)) {
       return;
     }
-    this.applyTemplate(template);
+    this.installArtifactState();
   }
 
   /** An existing instance to load. Takes one assignment. */
-  @Input() set instanceObject(instance: InstanceObject | null) {
-    if (instance == null || !this.claim('instanceObject', ['instance'])) {
+  @Input() set instanceObject(instance: CeeJsonObject | null) {
+    if (instance === null || !this.artifacts.acceptInstance(instance)) {
       return;
     }
-    this.applyInstance(instance);
+    this.installArtifactState();
   }
 
   /** Both at once. Spends the template claim and the instance claim together. */
-  @Input() set templateAndInstanceObject(templateAndInstance: object | null) {
-    if (templateAndInstance == null || !this.claim('templateAndInstanceObject', ['template', 'instance'])) {
+  @Input() set templateAndInstanceObject(templateAndInstance: CeeTemplateAndInstance | null) {
+    if (templateAndInstance === null || !this.artifacts.acceptCombined(templateAndInstance)) {
       return;
     }
-    this.applyTemplateAndInstance(templateAndInstance);
+    this.installArtifactState();
   }
 
-  /**
-   * Records that an input has been used, or reports that it already was.
-   *
-   * Reported and ignored rather than thrown. The setter runs inside a custom
-   * element, so an exception would surface in the host's own call stack and could
-   * break a code path with nothing to do with CEE. Silence was the other option
-   * and is worse: a host debugging why its second assignment did nothing would
-   * get no help at all.
-   */
-  private claim(input: string, parts: readonly ArtifactClaim[]): boolean {
-    const spent = parts.filter((part) => this.claimed.has(part));
-    if (spent.length > 0) {
-      const subject = spent.length > 1 ? 'template and instance are' : `${spent[0]} is`;
-      this.messageHandlerService.error(
-        `CEDAR Embeddable Editor: "${input}" ignored, because the ${subject} already set. Each input takes ` +
-          'one assignment; create a new editor element to load a different artifact.',
-      );
-      return false;
+  private installArtifactState(): void {
+    const state = this.artifacts.state;
+    this.activeComponentRegistry.clear();
+    this.dataContext = state.dataContext;
+    this.handlerContext = state.handlerContext;
+    this.handlerContext.setMutationListener((mutation) => this.publishMutation(mutation));
+    this.artifactRevision = state.revision;
+    this.lastPublishedMetadata = this.metadataKey();
+    this.doInitialize();
+  }
+
+  private metadataKey(): string {
+    return JSON.stringify(this.currentMetadata);
+  }
+
+  /** Publish only mutations whose serialized result differs from the previous result. */
+  private publishMutation(mutation: InstanceMutation): void {
+    const metadata = this.currentMetadata as CeeJsonObject;
+    const key = JSON.stringify(metadata);
+    if (key === this.lastPublishedMetadata) {
+      return;
     }
-    for (const part of parts) {
-      this.claimed.add(part);
+    this.lastPublishedMetadata = key;
+
+    const report = this.dataQualityReport as CeeDataQualityReport;
+    const multiOperation = mutation.operation === 'valueChanged' ? undefined : mutation.operation;
+    const detail: CeeChangeDetail = {
+      operation: mutation.operation,
+      path: [...mutation.path],
+      value: mutation.value,
+      validity: report.isValid === true,
+      dataQualityReport: report,
+      title: typeof metadata['schema:name'] === 'string' ? metadata['schema:name'] : null,
+      description: typeof metadata['schema:description'] === 'string' ? metadata['schema:description'] : null,
+      ...(multiOperation === undefined ? {} : { message: multiOperation }),
+    };
+
+    if (mutation.operation === 'valueChanged') {
+      this.messageHandlerService.valueChanged(detail.path, detail.value);
     }
-    return true;
-  }
-
-  /*
-   * The write, separated from the claim that guards it.
-   *
-   * The sample-template loader reaches these directly. It is CEE's own developer
-   * feature and loads a different sample on every click, which is exactly the
-   * reassignment a host may not perform — and it is internal, so the contract
-   * about what a host may do does not bind it.
-   */
-  private applyTemplate(template: InstanceObject): void {
-    this.templateJson = template;
-  }
-
-  private applyInstance(instance: InstanceObject): void {
-    this.instanceJson = instance;
-  }
-
-  private applyTemplateAndInstance(templateAndInstance: object): void {
-    this.templateAndInstanceJson = templateAndInstance;
+    this.wrapper.nativeElement.dispatchEvent(
+      new CustomEvent<CeeChangeDetail>('change', { detail, bubbles: true, composed: true }),
+    );
   }
 
   @Input() get dataQualityReport(): object {
-    if (this.handlerContext) {
+    if (!this.artifacts.instanceInputRejected) {
       return JSON.parse(JSON.stringify(this.handlerContext.dataContext.dataQualityReport));
     }
     return {};
   }
 
   ngOnDestroy(): void {
-    this.onDestroySubject.next();
-    this.onDestroySubject.complete();
     this.activeComponentRegistry.clear();
   }
 
@@ -357,30 +267,9 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    * instead — so what a missing key meant depended on which key it was.
    */
   @Input() set config(value: CeeConfig | null) {
-    if (value == null) {
+    if (value === null || !this.configuration.accept(value)) {
       return;
     }
-    if (this.configSet) {
-      this.messageHandlerService.error(
-        'CEDAR Embeddable Editor: "config" ignored, because the editor is already configured. Configuration ' +
-          'takes one assignment; create a new editor element to configure it differently.',
-      );
-      return;
-    }
-    this.messageHandlerService.trace('CEDAR Embeddable Editor config set to:' + JSON.stringify(value));
-
-    /*
-     * Reported, not rejected. A bad key is ignored downstream exactly as before;
-     * the change is that the host is told rather than left watching a setting do
-     * nothing. The shipped declarations catch a misspelled key for a TypeScript
-     * host writing a literal; this catches the same thing for a JavaScript one.
-     */
-    for (const problem of validateCeeConfig(value)) {
-      this.messageHandlerService.error(problem);
-    }
-
-    this.innerConfig = value;
-    this.configSet = true;
     this.doInitialize();
   }
 
@@ -388,104 +277,41 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.messageHandlerService.injectEventHandler(value);
   }
 
+  /**
+   * Apply the configuration, once there is a reason to.
+   *
+   * Called from three places, because three things can be the last to arrive: the
+   * component's own `ngOnInit`, a `config` assignment, and a template. Whichever
+   * completes the picture does the work, and the guard below is what keeps the
+   * others from doing it early or twice.
+   *
+   * "A reason to" means a host has said something — a configuration — or there is
+   * an editor about to be rendered that needs the defaults installed. Neither yet,
+   * and there is nothing to apply: settling on defaults at `ngOnInit` would install
+   * a language a `config` arriving a moment later immediately replaces.
+   *
+   * A template followed by a `config` does run this twice, and has to: the editor
+   * is rendered with the defaults and then reconfigured. That is visible only as a
+   * second call to the translation service, and the settings a late config carries
+   * reach already-built widgets through services they subscribe to.
+   */
   private doInitialize(): void {
-    // Narrowed once. Every read below went through `this.innerConfig`, which is
-    // nullable until a host sets it, so each of the sixteen would otherwise have
-    // to restate that. `configSet` already implies it is there; this makes the
-    // implication something the compiler can see.
-    const config = this.innerConfig;
-    if (!this.initialized || !this.configSet || config === null) {
+    if (!this.initialized || (!this.configuration.hasConfiguration && !this.editorDataReady())) {
       return;
     }
-    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME)) {
-      this.sampleTemplateService.loadTemplate(
-        configText(config, CedarEmbeddableMetadataEditorComponent.TEMPLATE_LOCATION_PREFIX, ''),
-        configText(config, CedarEmbeddableMetadataEditorComponent.LOAD_SAMPLE_TEMPLATE_NAME, ''),
-      );
-    }
-    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL)) {
-      const integratedSearchUrl = configText(
-        config,
-        CedarEmbeddableMetadataEditorComponent.TERMINOLOGY_INTEGRATED_SEARCH_URL,
-        '',
-      );
-      this.controlledFieldDataService.setTerminologyIntegratedSearchUrl(integratedSearchUrl);
-    }
-    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT)) {
-      this.showSpinnerBeforeInit = configFlag(
-        config,
-        CedarEmbeddableMetadataEditorComponent.SHOW_SPINNER_BEFORE_INIT,
-        this.showSpinnerBeforeInit,
-      );
-    }
-    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX)) {
-      const languageMapPathPrefix = configText(
-        config,
-        CedarEmbeddableMetadataEditorComponent.LANGUAGE_MAP_PATH_PREFIX,
-        '',
-      );
-      this.globalSettingsContextService.languageMapPathPrefix = languageMapPathPrefix;
-    }
-    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE)) {
-      this.fallbackLanguage = configText(
-        config,
-        CedarEmbeddableMetadataEditorComponent.FALLBACK_LANGUAGE,
-        this.fallbackLanguage,
-      );
-    } else {
-      this.messagingService.traceGroup(
-        'language',
-        '"fallbackLanguage" not set, using default: "' + this.fallbackLanguage + '"',
-      );
-    }
-    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE)) {
-      this.defaultLanguage = configText(
-        config,
-        CedarEmbeddableMetadataEditorComponent.DEFAULT_LANGUAGE,
-        this.defaultLanguage,
-      );
-    } else {
-      this.messagingService.traceGroup(
-        'language',
-        '"defaultLanguage" not set, using default: "' + this.defaultLanguage + '"',
-      );
-    }
-    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE)) {
-      const mode = configFlag(config, CedarEmbeddableMetadataEditorComponent.READ_ONLY_MODE, false);
-      if (mode) {
-        this.handlerContext.enableReadOnlyMode();
-      }
-    }
-    if (Object.hasOwn(config, CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS)) {
-      // Hiding empty fields is only allowed in ReadOnly Mode
-      const hideEmptyFields = configFlag(config, CedarEmbeddableMetadataEditorComponent.HIDE_EMPTY_FIELDS, false);
-      if (this.handlerContext.readOnlyMode && hideEmptyFields) {
-        this.handlerContext.enableEmptyFieldHiding();
-      }
-    }
-    this.translateService.setDefaultLang(this.fallbackLanguage);
-    this.translateService.use(this.defaultLanguage);
+    this.configuration.apply(this.handlerContext);
   }
 
+  /**
+   * Whether there is something to render, which is a question about the artifact.
+   *
+   * A template. Configuration was required too, so an element assigned a template
+   * and nothing else stayed blank for good: both getters answered empty — `{}` and
+   * `''` — with no error, no warning and nothing in the console to connect the
+   * blank frame to a key the host had not set. Since every key is optional and
+   * documents a default, a host with nothing to say had no way to say it.
+   */
   editorDataReady(): boolean {
-    return this.innerConfig != null && (this.templateJson != null || this.templateAndInstanceJson != null);
-  }
-
-  private triggerUpdateOnInjectedSampleData(): void {
-    if (this.loadedTemplateJson != null && this.loadedMetadata != null) {
-      this.applyTemplateAndInstance({
-        templateObject: this.loadedTemplateJson,
-        instanceObject: this.loadedMetadata,
-      });
-      return;
-    }
-    if (this.loadedTemplateJson != null) {
-      this.handlerContext.dataContext.instanceFullData = null;
-      this.handlerContext.dataContext.invalidateDerivedViews();
-      this.applyTemplate(this.loadedTemplateJson);
-    }
-    if (this.loadedMetadata !== null) {
-      this.applyInstance(this.loadedMetadata);
-    }
+    return !this.artifacts.instanceInputRejected && this.dataContext.templateRepresentation !== null;
   }
 }

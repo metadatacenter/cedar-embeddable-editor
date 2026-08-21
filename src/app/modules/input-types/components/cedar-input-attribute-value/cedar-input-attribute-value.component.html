@@ -4,7 +4,7 @@
     <input
       matInput
       type="text"
-      placeholder="{{ 'Generic.AttributeName' | translate }}"
+      [placeholder]="'Generic.AttributeName' | translate"
       [formControl]="nameInputControl"
       (input)="nameChanged($event)"
       (blur)="nameChanged($event)"
@@ -31,7 +31,7 @@
     <input
       matInput
       type="text"
-      placeholder="{{ 'Generic.AttributeValue' | translate }}"
+      [placeholder]="'Generic.AttributeValue' | translate"
       [formControl]="valueInputControl"
       (input)="valueChanged($event)"
       [readonly]="readOnlyMode"

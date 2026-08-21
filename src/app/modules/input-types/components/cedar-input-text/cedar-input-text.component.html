@@ -21,6 +21,7 @@
         <input
           matInput
           type="text"
+          [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
           [formControl]="inputValueControl"
           (input)="inputChanged($event)"
           [readonly]="readOnlyMode"
@@ -31,6 +32,7 @@
         <textarea
           matInput
           type="text"
+          [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
           cdkTextareaAutosize
           cdkAutosizeMinRows="6"
           [formControl]="inputValueControl"

@@ -1,0 +1,57 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Favorite Bands": "https://schema.metadatacenter.orgx/properties/95dd9c26-a0cf-451a-a3bb-6464d0050669"
+  },
+  "Favorite Bands": [
+    {
+      "@value": "Taylor Swift"
+    },
+    {
+      "@value": "AC/DC"
+    }
+  ],
+  "schema:isBasedOn": "https://repo.metadatacenter.orgx/templates/3b14c261-d8f6-48dc-a162-718f9acae800",
+  "schema:name": "Multiple select metadata",
+  "schema:description": "",
+  "pav:createdOn": "2023-08-31T10:20:33-07:00",
+  "pav:createdBy": "https://metadatacenter.org/users/68d898fd-2b81-492c-b68c-a80c8283fd8a",
+  "pav:lastUpdatedOn": "2023-08-31T10:20:33-07:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/68d898fd-2b81-492c-b68c-a80c8283fd8a",
+  "@id": "https://repo.metadatacenter.orgx/template-instances/28f60f26-42cb-47e4-b4d2-648e771a1981"
+}

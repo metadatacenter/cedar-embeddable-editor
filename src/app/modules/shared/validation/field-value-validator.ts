@@ -30,6 +30,16 @@ export class FieldValueValidator {
   }
 
   static validate(component: FieldComponent, value: unknown, path: string[]): ValidationProblem[] {
+    // A multiple-choice select holds every selected label in one Angular control.
+    // Validate those labels independently: coercing the array to text produces
+    // `Option B,Option C`, which is naturally not one of the declared options and
+    // made every populated multi-select look invalid. The data-quality walk already
+    // reaches repeated instance nodes one at a time; this branch is principally the
+    // widget adapter seeing the control's native value shape.
+    if (Array.isArray(value)) {
+      return value.flatMap((entry) => this.validate(component, entry, path));
+    }
+
     // An absent value is the required check's business, handled by the report's
     // counters. Constraints describe what a value must look like *if present*.
     if (this.isEmpty(value)) {

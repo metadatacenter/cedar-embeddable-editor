@@ -11,8 +11,6 @@ import { OccurrenceSelector, OccurrenceSelectors } from './occurrence-selector';
 import { DataObjectBuilderHandler } from './data-object-builder.handler';
 import { InstanceDataContainer, InstanceDataEmptyNode } from 'cedar-model-typescript-library';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
-import { CedarInputTemplate } from '../models/cedar-input-template.model';
-import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { TemplateComponent } from '../models/template/template-component.model';
 import { MessageHandlerService } from '../service/message-handler.service';
 import { InstanceArray, InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
@@ -139,8 +137,7 @@ export class DataObjectStructureHandler {
     const multiInstanceInfo: MultiInstanceObjectInfo | null =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
     const templateRepresentation = dataContext.templateRepresentation;
-    const templateInput = dataContext.templateInput;
-    if (templateRepresentation === null || templateInput === null || multiInstanceInfo === null) {
+    if (templateRepresentation === null || multiInstanceInfo === null) {
       return;
     }
 
@@ -155,9 +152,7 @@ export class DataObjectStructureHandler {
         component,
         multiInstanceObjectService,
         multiInstanceInfo,
-        templateInput,
         messageHandlerService,
-        DataObjectBuildingMode.INCLUDE_CONTEXT,
       ),
     );
   }
@@ -168,9 +163,7 @@ export class DataObjectStructureHandler {
     component: MultiComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
     multiInstanceInfo: MultiInstanceObjectInfo,
-    templateInput: CedarInputTemplate,
     messageHandlerService: MessageHandlerService,
-    buildingMode: DataObjectBuildingMode,
   ): void {
     // Somewhere to build one occurrence, thrown away once it has been taken out
     // again. A bare `{}` while a container was a plain object.
@@ -179,7 +172,7 @@ export class DataObjectStructureHandler {
     DataObjectBuilderHandler.setCurrentCountToMinRecursively(cloneComponent, component.path);
     // The property IRIs each new occurrence needs travel on the component, so
     // there is no sub-template to find first.
-    this.dataObjectBuilderService.buildRecursively(cloneComponent, dataObject, buildingMode);
+    this.dataObjectBuilderService.buildRecursively(cloneComponent, dataObject);
     const built = dataObject.values[component.name] ?? null;
     const newDataObject = isInstanceArray(built) ? built[0] : null;
     const currentNodeAny = this.getDataPathNodeRecursively(
@@ -277,7 +270,7 @@ export class DataObjectStructureHandler {
     const currentNodeArray = currentNodeAny as [];
     const sourceItem = currentNodeArray[multiInstanceInfo.currentIndex];
     const cloneItem = _.cloneDeep(sourceItem);
-    this.remintElementInstanceIds(cloneItem, component);
+    this.clearElementInstanceIds(cloneItem, component);
     currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, cloneItem as never);
   }
 
@@ -321,16 +314,20 @@ export class DataObjectStructureHandler {
   }
 
   /**
-   * Give every element occurrence in a copied subtree a new identity.
+   * Take every element occurrence's identity off a copied subtree.
    *
-   * An `@id` cannot identify its role by its string value. A field is allowed to
-   * hold an IRI under the same namespace CEE uses for element occurrences, so a
-   * prefix-based object walk can silently replace legitimate link or controlled-
-   * term values. The component tree does carry that distinction: only element
-   * components own occurrence-envelope IDs, while field components own data that
-   * must be copied verbatim.
+   * A duplicated occurrence is not the one it was copied from, and an identity a
+   * repository assigned belongs to the original. Nothing is minted to put back:
+   * the writer emits a null `@id` for a container that has none, which is what an
+   * absent identity looks like, and which validates.
+   *
+   * The walk follows the component tree rather than the document, because an
+   * `@id` cannot be recognised by its string value. A field may legitimately hold
+   * an IRI under any namespace, so a prefix-based object walk silently rewrites
+   * link and controlled-term values; only element components own an occurrence
+   * envelope.
    */
-  private remintElementInstanceIds(item: InstanceNode, component: CedarComponent): void {
+  private clearElementInstanceIds(item: InstanceNode, component: CedarComponent): void {
     if (!(component instanceof SingleElementComponent || component instanceof MultiElementComponent)) {
       return;
     }
@@ -342,18 +339,16 @@ export class DataObjectStructureHandler {
     }
 
     const occurrence = item;
-    // `id` on the container, not a property written into it: an occurrence's
-    // identity is the model's, and a copy must not inherit the original's.
+    // `id` on the container, not a property written into it.
     occurrence.id = null;
-    this.dataObjectBuilderService.addRandomAtId(occurrence);
 
     for (const childComponent of component.children) {
       const childValue = occurrence.values[childComponent.name] ?? null;
       if (childComponent instanceof SingleElementComponent) {
-        this.remintElementInstanceIds(childValue, childComponent);
+        this.clearElementInstanceIds(childValue, childComponent);
       } else if (childComponent instanceof MultiElementComponent && Array.isArray(childValue)) {
         for (const childOccurrence of childValue) {
-          this.remintElementInstanceIds(childOccurrence, childComponent);
+          this.clearElementInstanceIds(childOccurrence, childComponent);
         }
       }
     }

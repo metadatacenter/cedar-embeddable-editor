@@ -1,0 +1,54 @@
+/*
+ * The same rectangle a read-only form field draws — the field's full width, a hairline border, 36px
+ * where one line is enough — so a page of these still reads as a form. It grows instead of
+ * truncating: a HuBMAP pattern beside a count and a unit does not fit one line at a narrow width, and
+ * a specification a reader cannot finish reading is not one.
+ */
+.cee-spec-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.38);
+  border-radius: 4px;
+  color: rgba(0, 0, 0, 0.54);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* The facts, then the authorities, separated the way facts are separated everywhere else. */
+.cee-spec-box-facts + .cee-spec-box-source::before,
+.cee-spec-box-source + .cee-spec-box-source::before {
+  content: '·';
+  margin: 0 6px;
+  color: rgba(0, 0, 0, 0.32);
+}
+
+/* What sort of authority it is: a word, not a destination, so it is quiet and not part of the link. */
+.cee-spec-box-kind {
+  margin-right: 5px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+/*
+ * The authority itself, which is what the link points at.
+ *
+ * It keeps the specification's grey rather than taking a link colour, so a page of these does not
+ * turn blue. But it has to look like something: underlining only on hover left ten BioPortal links
+ * on a HuBMAP template indistinguishable from the grey text around them, so nobody could find one
+ * without sweeping the mouse across the page. A dotted rule is the quiet form of the one convention
+ * everybody reads as a link, and it goes solid on hover and focus.
+ */
+.cee-spec-box-link {
+  color: inherit;
+  text-decoration: underline dotted rgba(0, 0, 0, 0.42);
+  text-underline-offset: 2px;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline solid rgba(0, 0, 0, 0.54);
+  }
+}

@@ -1,4 +1,4 @@
-<div class="flex-container">
+<div class="flex-container" [class.has-spec]="readOnlyMode && fieldToDescribe">
   @if (isRor) {
     <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="ror-icon"></i></span>
   }
@@ -50,7 +50,11 @@
     }
   </span>
 
-  @if (component.labelInfo.description && component.labelInfo.description !== 'Help Text') {
+  @if (fieldToDescribe) {
+    <app-cedar-field-spec [fieldToDescribe]="fieldToDescribe" variant="facts"></app-cedar-field-spec>
+  }
+
+  @if (!readOnlyMode && component.labelInfo.description && component.labelInfo.description !== 'Help Text') {
     <mat-icon
       matTooltip="{{ component.labelInfo.description }}"
       matTooltipClass="tooltip"

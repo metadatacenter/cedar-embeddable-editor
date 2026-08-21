@@ -2,9 +2,10 @@ import { InstanceValueNode } from './instance-value-node';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
-import { DataObjectBuildingMode } from '../models/enum/data-object-building-mode.model';
 import { InstanceArray, InstanceNode, InstanceObject } from '../models/instance-node.model';
 import { InstanceDataContainer } from 'cedar-model-typescript-library';
+import { isAuthorityTerm } from '../models/authority/authority-term.guard';
+import { CedarTemporalValue } from './cedar-temporal-value';
 
 export class DataObjectUtil {
   /**
@@ -22,51 +23,62 @@ export class DataObjectUtil {
    * walked the template JSON in step with the component tree it was already
    * walking, purely to re-derive things the tree had.
    */
-  static getEmptyValueWrapper(component: FieldComponent, buildingMode: DataObjectBuildingMode): InstanceNode {
+  static getEmptyValueWrapper(component: FieldComponent): InstanceNode {
     return InstanceValueNode.emptySlot(
       DataObjectUtil.isIriValued(component),
-      DataObjectUtil.xsdTypeFor(component, buildingMode),
+      DataObjectUtil.xsdTypeForFullCopy(component),
     );
   }
 
-  static getSingleValueWrapper(
-    component: FieldComponent,
-    buildingMode: DataObjectBuildingMode,
-    value: string,
-  ): InstanceNode {
-    // A controlled term's default is not a literal, so it gets no `@value` — and
-    // no `@type` either, since only numeric and temporal fields have one.
-    if (component?.basicInfo?.inputType === InputType.controlled) {
-      return InstanceValueNode.emptySlot(true);
+  /**
+   * Values a newly built field receives from its declaration.
+   *
+   * A default belongs to the instance structure, not to whichever widget happens
+   * to be rendered first. Choice fields encode it on their selected literals;
+   * ordinary fields put it on `valueInfo`; controlled terms need both halves of
+   * their IRI/label pair. Keeping those three representations together here makes
+   * hidden fields, later pages and newly added occurrences behave identically.
+   */
+  static getDefaultValueWrappers(component: FieldComponent): InstanceArray {
+    const selectedChoices = component.choiceInfo.choices.filter((choice) => choice.selectedByDefault);
+    if (selectedChoices.length > 0) {
+      // Multi values historically carry no XSD type. Choice values are literals,
+      // so there is no type to preserve here in either cardinality.
+      return selectedChoices.map((choice) => InstanceValueNode.literalValue(choice.label));
     }
-    return InstanceValueNode.literalValue(value, DataObjectUtil.xsdTypeFor(component, buildingMode));
-  }
 
-  static getMultiValueWrapper(
-    component: FieldComponent,
-    buildingMode: DataObjectBuildingMode,
-    values: string[],
-  ): InstanceArray {
-    const obj: InstanceArray = [];
-    if (component?.basicInfo?.inputType !== InputType.controlled) {
-      for (const value of values) {
-        // No XSD type on the elements, deliberately: see below.
-        obj.push(InstanceValueNode.literalValue(value));
-      }
+    const declared = component.valueInfo.defaultValue;
+    if (isAuthorityTerm(declared)) {
+      return [InstanceValueNode.iriValue(declared.iri, declared.label)];
     }
-    // A multi field's elements carry no XSD type, and nothing here sets one.
-    //
-    // What stood here set `@type` as a *property of the array* rather than on
-    // its elements. `JSON.stringify` ignores a property on an array, so it never
-    // reached an emitted instance — it was transcribed from the code this
-    // replaced and kept while the surrounding change was a refactor. Removing it
-    // changes no output, which the bundle-level suite confirms, and it was the
-    // last place outside `InstanceValueNode` that named a JSON-LD key here.
-    //
-    // Whether a multi numeric field's elements *should* carry a type is a real
-    // question and a real behaviour change; it is not answered by leaving a line
-    // that does nothing.
-    return obj;
+    // The TypeScript JSON reader preserves `defaultValue: ""` while its YAML
+    // reader drops it; the Java reader also treats it as absent. It cannot seed
+    // a meaningful answer and must not make instance construction depend on the
+    // template's serialization.
+    if (declared === '') {
+      return [];
+    }
+    if (component.basicInfo.inputType === InputType.controlled) {
+      // A controlled default without its IRI/label shape is not a usable term.
+      return [];
+    }
+    if (typeof declared === 'string' && DataObjectUtil.isIriValued(component)) {
+      return [InstanceValueNode.iriValue(declared)];
+    }
+    if (typeof declared === 'string' && component.basicInfo.inputType === InputType.temporal) {
+      const normalized = CedarTemporalValue.normalizeDeclaredDefault(declared, {
+        temporalType: component.valueInfo.temporalType,
+        granularity: component.basicInfo.temporalGranularity,
+        timezoneEnabled: component.basicInfo.timezoneEnabled === true,
+      });
+      return normalized === null
+        ? []
+        : [InstanceValueNode.literalValue(normalized, DataObjectUtil.xsdTypeForFullCopy(component))];
+    }
+    if (typeof declared === 'string' || typeof declared === 'number' || typeof declared === 'boolean') {
+      return [InstanceValueNode.literalValue(String(declared), DataObjectUtil.xsdTypeForFullCopy(component))];
+    }
+    return [];
   }
 
   /**
@@ -105,29 +117,6 @@ export class DataObjectUtil {
    */
   static xsdTypeForFullCopy(component: FieldComponent): string | null {
     return component?.numberInfo?.numberType ?? component?.valueInfo?.temporalType ?? null;
-  }
-
-  /**
-   * The XSD type a value carries alongside itself, if it carries one.
-   *
-   * Only numeric and temporal fields do, and only in the full copy — the type is
-   * part of the artifact rather than of the value the form is editing.
-   */
-  private static xsdTypeFor(component: FieldComponent, buildingMode: DataObjectBuildingMode): string | null {
-    if (buildingMode !== DataObjectBuildingMode.INCLUDE_CONTEXT) {
-      return null;
-    }
-    return DataObjectUtil.xsdTypeForFullCopy(component);
-  }
-
-  // Generating a RFC4122 version 4 compliant GUID
-  static generateGUID(): string {
-    let d = Date.now();
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = (d + Math.random() * 16) % 16 | 0;
-      d = Math.floor(d / 16);
-      return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-    });
   }
 
   static arraysEqual(arr1: unknown[], arr2: unknown[]): boolean {

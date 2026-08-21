@@ -2,8 +2,9 @@ import { AfterViewInit, Directive, Input, OnInit, ViewChild } from '@angular/cor
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { Observable, of } from 'rxjs';
+import { Observable, of, timer } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
@@ -13,8 +14,8 @@ import { ExternalAuthorityLookupService } from '../../../shared/service/external
 import { AuthoritySearchControl } from '../../../shared/util/authority-search-control';
 import { AuthorityDescriptor } from '../../../shared/models/authority/authority-descriptor.model';
 import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
+import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
-import { isAuthorityTerm } from '../../../shared/models/authority/authority-term.guard';
 
 export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -43,9 +44,8 @@ export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
  * A subclass supplies a `descriptor` and nothing else. What it must *not* supply
  * is a second copy of anything below.
  *
- * ORCID and ROR do *not* extend this. Each carries its own copy of the search
- * pipeline alongside the detail panel that is genuinely its own, so a change to
- * the flow here has to be made in those two as well until they are folded in.
+ * All seven authority widgets extend this class. ORCID and ROR add their own
+ * detail panels, but the search and lifecycle rules still live here once.
  */
 @Directive()
 export abstract class AbstractAuthorityInputComponent extends CedarUIDirective implements OnInit, AfterViewInit {
@@ -135,8 +135,6 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     this.inputValueControl = new FormControl<string | null>(null, validators);
     this.options = this.fb.group({ inputValue: this.inputValueControl });
 
-    this.applyDefaultValue();
-
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
         startWith(''),
@@ -171,13 +169,14 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
             }),
           );
         }),
+        takeUntilDestroyed(this.destroyRef),
       );
     }
   }
 
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
-      this.trigger?.panelClosingActions.subscribe((event) => {
+      this.trigger?.panelClosingActions.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
         // `panelClosingActions` emits the option-selection event that closed the
         // panel, or null when something else did. `source` is the option.
         const selectionMode = !!event?.source;
@@ -193,21 +192,6 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
         }
       });
     }
-  }
-
-  /** A template may name a term to start with. */
-  private applyDefaultValue(): void {
-    const declared = this.component?.valueInfo?.defaultValue ?? null;
-    // A guard, not a cast: the field's declared default is a term only for the
-    // kinds that take one, and a template naming a bare string here would
-    // otherwise read as a term with two undefined halves.
-    if (!isAuthorityTerm(declared)) {
-      return;
-    }
-    // `|| null` as before: a term declaring an empty IRI or label is not a term,
-    // and setting it would put an empty selection on the field.
-    this.inputValueControl.setValue(declared.label || null);
-    this.handlerContext.changeControlledValue(this.component, declared.iri || null, declared.label || null);
   }
 
   /**
@@ -236,11 +220,13 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
       // Material 14 checks document.activeElement before opening on input. In
       // Shadow DOM that is the custom-element host, not this input, so open the
       // panel explicitly once Angular has updated matAutocompleteDisabled.
-      setTimeout(() => {
-        if (this.trigger && !this.trigger.panelOpen) {
-          this.trigger.openPanel();
-        }
-      });
+      timer(1)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          if (this.trigger && !this.trigger.panelOpen) {
+            this.trigger.openPanel();
+          }
+        });
     }
   }
 
@@ -326,6 +312,18 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     return this.selectedData?.iri || null;
   }
 
+  /**
+   * Whether to render the term as a value rather than as a control.
+   *
+   * Read-only with a term in hand: there is nothing to type into, and the identifier should be a
+   * link, which text inside an `input` cannot be. Read-only with nothing in hand keeps the control,
+   * whose placeholder states the specification — and with no instance behind the form the renderer
+   * has already replaced the whole field with its specification box.
+   */
+  get showsTermAsValue(): boolean {
+    return this.readOnlyMode && this.selectedData !== null;
+  }
+
   get isEmpty(): boolean {
     return !(this.inputValueControl.value ?? '').trim();
   }
@@ -388,11 +386,10 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
         if (!results.length) {
           return [];
         }
-        // The endpoints are inconsistent about honouring `q`, so the widgets all
-        // narrowed the results themselves. Kept, because dropping it would widen
-        // what a field offers rather than narrow it.
-        const needle = (query || '').toLowerCase();
-        return needle ? results.filter((option) => (option?.label ?? '').toLowerCase().includes(needle)) : results;
+        // The endpoints are inconsistent about honouring `q`, so the results are
+        // narrowed here too. See `narrowByQuery` for why it matches every word
+        // rather than the query as one substring.
+        return narrowByQuery(results, query);
       }),
     );
   }
@@ -405,16 +402,16 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    */
   protected showRevertHint(): void {
     this.justReverted = true;
-    setTimeout(() => {
-      this.justReverted = false;
-    }, 5000);
+    timer(5000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => (this.justReverted = false));
   }
 
   /** The text was discarded, but the now-empty optional field is not invalid. */
   private showClearedWarning(): void {
     this.justCleared = true;
-    setTimeout(() => {
-      this.justCleared = false;
-    }, 5000);
+    timer(5000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => (this.justCleared = false));
   }
 }

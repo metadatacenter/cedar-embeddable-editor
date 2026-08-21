@@ -1,69 +1,26 @@
 import { type Mock, vi } from 'vitest';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper.component';
 import { ElementRef } from '@angular/core';
-import { Subject } from 'rxjs';
-import { IriPrefix } from '../../util/iri-prefix';
-import { ControlledFieldDataService } from '../../service/controlled-field-data.service';
+import { ControlledFieldDataService, INTEGRATED_SEARCH_PATH } from '../../service/controlled-field-data.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
-import { SampleTemplatesService } from '../sample-templates/sample-templates.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
-import { TranslateService } from '@ngx-translate/core';
-import { InstanceDataContainer } from 'cedar-model-typescript-library';
-import { InstanceObject } from '../../models/instance-node.model';
+import {
+  FakeMissingTranslationHandler,
+  TranslateDefaultParser,
+  TranslateFakeCompiler,
+  TranslateService,
+  TranslateStore,
+} from '@ngx-translate/core';
+import { HttpClient } from '@angular/common/http';
+import { of } from 'rxjs';
+import { FallbackTranslateLoader } from '../../util/fallback-translate-loader';
+import { CeeConfig } from '../../util/config-reader';
+import { CeeChangeDetail, CeeJsonObject } from '../../../../cee-public-api';
+import inputTypesTemplate from '../../../../../../visual/fixtures/01-input-types.json';
+import { FieldComponent } from '../../models/component/field-component.model';
 
-/**
- * `outputSerialization` drives the host-facing `currentMetadataSerialized`
- * getter, while the typed getters and the save-path getter stay put.
- *
- * The instance is empty here (no template loaded), so YAML output is the empty
- * string and JSON output the empty object — enough to prove which branch the
- * config selects. `innerConfig` is set directly rather than through the `config`
- * setter, which would run the full initialise path; the getter only reads it.
- *
- * The one contract that must not move: `currentMetadata` is always a JSON object,
- * whatever `outputSerialization` says, because that is what the host saves.
- */
-describe('CedarEmbeddableMetadataEditorWrapperComponent output serialization', () => {
-  const make = (): CedarEmbeddableMetadataEditorWrapperComponent =>
-    // `as unknown as T` throughout, for the reason given on the lifecycle suite's
-    // own doubles below: naming the service each stands in for keeps the
-    // constructor's shape under test, which `as any` would have hidden.
-    new CedarEmbeddableMetadataEditorWrapperComponent(
-      new ElementRef(document.createElement('cedar-embeddable-editor')),
-      {} as unknown as ControlledFieldDataService,
-      { trace: (): void => undefined } as unknown as MessageHandlerService,
-      {} as unknown as SampleTemplatesService,
-      {} as unknown as ActiveComponentRegistryService,
-      {} as unknown as TranslateService,
-      { trace: (): void => undefined } as unknown as MessageHandlerService, // messagingService (HandlerContext)
-      {} as unknown as GlobalSettingsContextService,
-      new IriPrefix(),
-    );
-
-  it('serializes output as a YAML string when outputSerialization is "yaml"', () => {
-    const component = make();
-    component.innerConfig = { outputSerialization: 'yaml' };
-    expect(typeof component.currentMetadataSerialized).toBe('string');
-  });
-
-  it('serializes output as a JSON object by default', () => {
-    expect(typeof make().currentMetadataSerialized).toBe('object');
-  });
-
-  it('serializes output as a JSON object when outputSerialization is "json"', () => {
-    const component = make();
-    component.innerConfig = { outputSerialization: 'json' };
-    expect(typeof component.currentMetadataSerialized).toBe('object');
-  });
-
-  it('keeps currentMetadata a JSON object regardless of outputSerialization', () => {
-    const component = make();
-    component.innerConfig = { outputSerialization: 'yaml' };
-    expect(typeof component.currentMetadata).toBe('object');
-    expect(typeof component.currentMetadataYaml).toBe('string');
-  });
-});
+const validTemplate = inputTypesTemplate as unknown as CeeJsonObject;
 
 /**
  * Jasmine's `toHaveBeenCalledOnceWith`, in the two assertions it stood for.
@@ -80,82 +37,72 @@ const expectCalledOnceWith = (spy: Mock, ...args: unknown[]): void => {
 
 describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
   interface Mocks {
-    templateJson$: Subject<object>;
-    metadataJson$: Subject<object>;
-    loadTemplate: Mock;
-    setTerminologyIntegratedSearchUrl: Mock;
+    setIntegratedSearchUrl: Mock;
     setDefaultLang: Mock;
     use: Mock;
+    getLangs: Mock;
+    reloadLang: Mock;
+    setTranslation: Mock;
     clearRegistry: Mock;
+    valueChanged: Mock;
+    host: HTMLElement;
     globalSettings: { languageMapPathPrefix?: string };
   }
 
   const make = (): { component: CedarEmbeddableMetadataEditorWrapperComponent; mocks: Mocks } => {
     const mocks: Mocks = {
-      templateJson$: new Subject<object>(),
-      metadataJson$: new Subject<object>(),
-      loadTemplate: vi.fn(),
-      setTerminologyIntegratedSearchUrl: vi.fn(),
+      setIntegratedSearchUrl: vi.fn(),
       setDefaultLang: vi.fn(),
       use: vi.fn(),
+      // No language loaded yet, which is every case in this describe: the doubles
+      // below record calls and load nothing. What happens once a map *is* loaded from
+      // one source and the host names another is the subject of the real-service test
+      // at the end of this file, which a double of `use` cannot answer.
+      getLangs: vi.fn(() => []),
+      reloadLang: vi.fn(),
+      setTranslation: vi.fn(),
       clearRegistry: vi.fn(),
+      valueChanged: vi.fn(),
+      host: document.createElement('cedar-embeddable-editor'),
       globalSettings: {},
     };
-    const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined };
+    const messaging = {
+      trace: (): void => undefined,
+      traceGroup: (): void => undefined,
+      error: vi.fn(),
+      valueChanged: mocks.valueChanged,
+    };
     // `as unknown as T` throughout, rather than `as any`. Each double implements only
     // what this test exercises, which is the point of a double — but naming the
     // service it stands in for keeps the constructor's shape under test. Reorder or
     // retype a parameter and these stop compiling; under `as any` they would have
     // gone on silently standing in for the wrong thing.
     const component = new CedarEmbeddableMetadataEditorWrapperComponent(
-      new ElementRef(document.createElement('cedar-embeddable-editor')),
+      new ElementRef(mocks.host),
       {
-        setTerminologyIntegratedSearchUrl: mocks.setTerminologyIntegratedSearchUrl,
+        setIntegratedSearchUrl: mocks.setIntegratedSearchUrl,
       } as unknown as ControlledFieldDataService,
       messaging as unknown as MessageHandlerService,
-      {
-        templateJson$: mocks.templateJson$,
-        metadataJson$: mocks.metadataJson$,
-        loadTemplate: mocks.loadTemplate,
-      } as unknown as SampleTemplatesService,
       { clear: mocks.clearRegistry } as unknown as ActiveComponentRegistryService,
-      { setDefaultLang: mocks.setDefaultLang, use: mocks.use } as unknown as TranslateService,
-      messaging as unknown as MessageHandlerService,
+      {
+        setDefaultLang: mocks.setDefaultLang,
+        use: mocks.use,
+        getLangs: mocks.getLangs,
+        reloadLang: mocks.reloadLang,
+        setTranslation: mocks.setTranslation,
+      } as unknown as TranslateService,
       mocks.globalSettings as unknown as GlobalSettingsContextService,
-      new IriPrefix(),
     );
     return { component, mocks };
   };
 
-  it('stops reacting to sample-template streams after destruction', () => {
-    const { component, mocks } = make();
-    const first = { title: 'first template' };
-    const firstMetadata = { title: 'first metadata' };
-    component.ngOnInit();
-
-    mocks.templateJson$.next({ first });
-    mocks.metadataJson$.next({ first: firstMetadata });
-    expect(component.templateAndInstanceJson).toEqual({ templateObject: first, instanceObject: firstMetadata });
-
-    component.ngOnDestroy();
-    expect(mocks.clearRegistry).toHaveBeenCalledTimes(1);
-    mocks.templateJson$.next({ second: { title: 'second template' } });
-    mocks.metadataJson$.next({ second: { title: 'second metadata' } });
-
-    expect(component.templateAndInstanceJson).toEqual({ templateObject: first, instanceObject: firstMetadata });
-  });
-
   it('applies config identically whether Angular supplies it before or after ngOnInit', () => {
     const config = {
-      sampleTemplateLocationPrefix: '/samples/',
-      loadSampleTemplateName: 'example',
-      terminologyIntegratedSearchUrl: '/terminology/search',
-      showSpinnerBeforeInit: false,
+      terminologyBaseUrl: '/terminology/',
       languageMapPathPrefix: '/languages/',
       fallbackLanguage: 'fr',
       defaultLanguage: 'hu',
       readOnlyMode: true,
-      hideEmptyFields: true,
     };
     const before = make();
     const after = make();
@@ -166,15 +113,91 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     after.component.config = config;
 
     for (const candidate of [before, after]) {
-      expectCalledOnceWith(candidate.mocks.loadTemplate, '/samples/', 'example');
-      expectCalledOnceWith(candidate.mocks.setTerminologyIntegratedSearchUrl, '/terminology/search');
-      expect(candidate.component.showSpinnerBeforeInit).toBe(false);
+      expectCalledOnceWith(candidate.mocks.setIntegratedSearchUrl, '/terminology/' + INTEGRATED_SEARCH_PATH);
       expect(candidate.mocks.globalSettings.languageMapPathPrefix).toBe('/languages/');
       expectCalledOnceWith(candidate.mocks.setDefaultLang, 'fr');
       expectCalledOnceWith(candidate.mocks.use, 'hu');
       expect(candidate.component.handlerContext.readOnlyMode).toBe(true);
-      expect(candidate.component.handlerContext.hideEmptyFields).toBe(true);
     }
+  });
+
+  /**
+   * A host with nothing to say must be able to say it.
+   *
+   * Every key on `CeeConfig` is optional and documents a default, so an unset
+   * configuration and `{}` have to mean the same thing. They did not: the editor
+   * rendered only once `config` had been assigned, so an element given a template
+   * and nothing else stayed blank for good — `currentMetadata` answering `{}` and
+   * `currentMetadataYaml` answering `''`, with no error and nothing in the console
+   * tying the blank frame to a key nobody set.
+   */
+  it('renders on a template alone, taking every default', () => {
+    const { component, mocks } = make();
+
+    component.ngOnInit();
+    component.templateObject = validTemplate;
+
+    expect(component.editorDataReady(), 'a template alone did not build the editor').toBe(true);
+    // The languages a host did not choose, which is what a blank editor never reached.
+    expectCalledOnceWith(mocks.setDefaultLang, 'en');
+    expectCalledOnceWith(mocks.use, 'en');
+    expect(component.handlerContext.readOnlyMode).toBe(false);
+  });
+
+  /**
+   * Rendering no longer waits for configuration, so for the first time the two can
+   * arrive in either order around the render. Config assigned second must still
+   * apply — the settings it carries reach already-built widgets through services
+   * they subscribe to, rather than by being read once at construction.
+   */
+  it('applies configuration assigned after the template', () => {
+    const { component, mocks } = make();
+
+    component.ngOnInit();
+    component.templateObject = validTemplate;
+    component.config = { defaultLanguage: 'hu', readOnlyMode: true };
+
+    expect(component.editorDataReady()).toBe(true);
+    expect(mocks.use).toHaveBeenLastCalledWith('hu');
+    expect(component.handlerContext.readOnlyMode).toBe(true);
+  });
+
+  it('publishes actual model mutations once and suppresses no-op writes', () => {
+    const { component, mocks } = make();
+    const changes: CeeChangeDetail[] = [];
+    mocks.host.addEventListener('change', (event) => changes.push((event as CustomEvent<CeeChangeDetail>).detail));
+
+    component.ngOnInit();
+    component.templateObject = validTemplate;
+    expect(changes, 'building the canonical instance was reported as a user mutation').toEqual([]);
+    const field = component.dataContext.templateRepresentation?.children.find(
+      (child): child is FieldComponent => 'basicInfo' in child,
+    ) as FieldComponent;
+
+    component.handlerContext.changeValue(field, 'edited');
+
+    expect(changes).toHaveLength(1);
+    const metadata = component.currentMetadata as CeeJsonObject;
+    const report = component.dataQualityReport as CeeChangeDetail['dataQualityReport'];
+    expect(changes[0]).toEqual({
+      operation: 'valueChanged',
+      path: field.path,
+      value: 'edited',
+      validity: report.isValid,
+      dataQualityReport: report,
+      title: typeof metadata['schema:name'] === 'string' ? metadata['schema:name'] : null,
+      description: typeof metadata['schema:description'] === 'string' ? metadata['schema:description'] : null,
+    });
+    expect(mocks.valueChanged).toHaveBeenCalledOnce();
+    expect(mocks.valueChanged).toHaveBeenLastCalledWith(field.path, 'edited');
+
+    component.handlerContext.changeValue(field, 'edited');
+    expect(changes, 'an identical serialization was announced twice').toHaveLength(1);
+    expect(mocks.valueChanged).toHaveBeenCalledOnce();
+
+    component.handlerContext.changeValue(field, null);
+    expect(changes).toHaveLength(2);
+    expect(changes[1]).toMatchObject({ operation: 'valueChanged', path: field.path, value: null });
   });
 });
 
@@ -193,25 +216,24 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
   const make = (): {
     component: CedarEmbeddableMetadataEditorWrapperComponent;
     errors: Mock;
-    templateJson$: Subject<object>;
-    metadataJson$: Subject<object>;
   } => {
     const errors = vi.fn();
-    const templateJson$ = new Subject<object>();
-    const metadataJson$ = new Subject<object>();
     const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined, error: errors };
     const component = new CedarEmbeddableMetadataEditorWrapperComponent(
       new ElementRef(document.createElement('cedar-embeddable-editor')),
-      { setTerminologyIntegratedSearchUrl: vi.fn() } as unknown as ControlledFieldDataService,
+      { setIntegratedSearchUrl: vi.fn() } as unknown as ControlledFieldDataService,
       messaging as unknown as MessageHandlerService,
-      { templateJson$, metadataJson$, loadTemplate: vi.fn() } as unknown as SampleTemplatesService,
       { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
-      { setDefaultLang: vi.fn(), use: vi.fn() } as unknown as TranslateService,
-      messaging as unknown as MessageHandlerService,
+      {
+        setDefaultLang: vi.fn(),
+        use: vi.fn(),
+        getLangs: vi.fn(() => []),
+        reloadLang: vi.fn(),
+        setTranslation: vi.fn(),
+      } as unknown as TranslateService,
       {} as unknown as GlobalSettingsContextService,
-      new IriPrefix(),
     );
-    return { component, errors, templateJson$, metadataJson$ };
+    return { component, errors };
   };
 
   /**
@@ -220,11 +242,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
    * Which object was kept is the whole question here, so identity is all these need
    * and none of them looks inside one. `id` makes a failure report readable.
    */
-  const artifact = (id: string): InstanceObject => {
-    const container = new InstanceDataContainer();
-    container.id = id;
-    return container;
-  };
+  const artifact = (id: string): CeeJsonObject => ({ '@id': id });
 
   /** What the host was told, as one string. */
   const reported = (errors: Mock): string => errors.mock.calls.map(([message]) => String(message)).join('\n');
@@ -266,6 +284,21 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     expect(reported(errors)).toContain('"templateObject" ignored, because the template is already set');
   });
 
+  it('reports an unreadable template without spending its claim, then accepts the correction', () => {
+    const { component, errors } = make();
+    const corrected = artifact('corrected');
+
+    component.templateObject = { '@id': {} } as unknown as CeeJsonObject;
+
+    expect(component.templateJson).toBeNull();
+    expect(reported(errors)).toContain('"templateObject" rejected because it is not a readable CEDAR template');
+
+    component.templateObject = corrected;
+
+    expect(component.templateJson).toBe(corrected);
+    expect(reported(errors)).not.toContain('"templateObject" ignored');
+  });
+
   /**
    * The two separate inputs are independent claims, which is what lets a host set
    * them in either order — the route three of the six consumers take.
@@ -292,6 +325,50 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
     expect(component.instanceJson).toBe(first);
     expect(reported(errors)).toContain('"instanceObject" ignored, because the instance is already set');
+  });
+
+  it('reports an unreadable instance without spending its claim, then accepts the correction', () => {
+    const { component, errors } = make();
+    const corrected = artifact('corrected');
+
+    component.ngOnInit();
+    component.instanceObject = { '@id': {} };
+    component.templateObject = {};
+
+    expect(component.instanceJson).toBeNull();
+    expect(component.handlerContext.instanceSupplied).toBe(false);
+    expect(component.editorDataReady(), 'a rejected instance was replaced by a blank form').toBe(false);
+    expect(component.currentMetadata, 'a rejected instance exposed a replacement skeleton').toEqual({});
+    expect(component.currentMetadataYaml).toBe('');
+    expect(component.dataQualityReport).toEqual({});
+    expect(reported(errors)).toContain('"instanceObject" rejected because it is not a readable CEDAR instance');
+
+    component.instanceObject = corrected;
+
+    expect(component.instanceJson).toBe(corrected);
+    expect(component.handlerContext.instanceSupplied).toBe(true);
+    expect(component.editorDataReady(), 'the corrected first instance did not unblock the template').toBe(true);
+    expect(reported(errors)).not.toContain('"instanceObject" ignored');
+  });
+
+  it('leaves both claims reusable when the combined input contains an unreadable instance', () => {
+    const { component, errors } = make();
+    const corrected = { templateObject: artifact('template'), instanceObject: artifact('instance') };
+
+    component.ngOnInit();
+    component.templateAndInstanceObject = { templateObject: {}, instanceObject: { '@id': {} } };
+
+    expect(component.templateAndInstanceJson).toBeNull();
+    expect(component.editorDataReady()).toBe(false);
+    expect(reported(errors)).toContain(
+      '"templateAndInstanceObject.instanceObject" rejected because it is not a readable CEDAR instance',
+    );
+
+    component.templateAndInstanceObject = corrected;
+
+    expect(component.templateAndInstanceJson).toBe(corrected);
+    expect(component.editorDataReady()).toBe(true);
+    expect(reported(errors)).not.toContain('"templateAndInstanceObject" ignored');
   });
 
   it('spends both claims on the combined input, so neither separate input follows it', () => {
@@ -329,25 +406,243 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
       '"templateAndInstanceObject" ignored, because the template and instance are already set',
     );
   });
+});
+
+/**
+ * Language configuration arriving after the artifact, against the real translation
+ * service.
+ *
+ * A double of `TranslateService` cannot answer this, and the ordering test above is
+ * the demonstration: it asserts `use` was called with the language the late config
+ * named, which a double always records. The real service has two guards behind that
+ * call — `use()` returns at once when the language asked for is already current, and
+ * `retrieveTranslations` reaches the loader only when it holds no map for the
+ * language — so a host that rendered a template first and then named a
+ * `languageMapPathPrefix` got no fetch at all, and kept the built-in labels. That
+ * went out in a shipped bundle with a green suite.
+ *
+ * So this wires up what production wires up: the real `TranslateService`, the real
+ * `FallbackTranslateLoader` reading the prefix at load time, and an `HttpClient`
+ * standing in for the network and counting what was asked of it. `of(...)` makes
+ * every load synchronous, so the assertions need no waiting.
+ */
+describe('CedarEmbeddableMetadataEditorWrapperComponent late language configuration', () => {
+  const BUILT_IN = { Generic: { ExpandAll: 'Expand All' } };
+  const EXTERNAL = { Generic: { ExpandAll: 'Alles Aufklappen' } };
+  const PREFIX = '/languages/';
+
+  interface Wired {
+    component: CedarEmbeddableMetadataEditorWrapperComponent;
+    translate: TranslateService;
+    fetched: string[];
+  }
+
+  const wire = (): Wired => {
+    const fetched: string[] = [];
+    const http = {
+      get: (url: string) => {
+        fetched.push(url);
+        return of(EXTERNAL);
+      },
+    } as unknown as HttpClient;
+    const messaging = { trace: (): void => undefined, traceGroup: (): void => undefined, error: vi.fn() };
+    const globalSettings = new GlobalSettingsContextService();
+    const loader = new FallbackTranslateLoader(http, messaging as unknown as MessageHandlerService, globalSettings, {
+      en: BUILT_IN,
+    });
+    // The empty default language matters: a language passed here would be loaded by
+    // the constructor, before the component has said anything.
+    const translate = new TranslateService(
+      new TranslateStore(),
+      loader,
+      new TranslateFakeCompiler(),
+      new TranslateDefaultParser(),
+      new FakeMissingTranslationHandler(),
+      true,
+      false,
+      false,
+      '',
+    );
+    const component = new CedarEmbeddableMetadataEditorWrapperComponent(
+      new ElementRef(document.createElement('cedar-embeddable-editor')),
+      { setIntegratedSearchUrl: vi.fn() } as unknown as ControlledFieldDataService,
+      messaging as unknown as MessageHandlerService,
+      { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
+      translate,
+      globalSettings,
+    );
+    return { component, translate, fetched };
+  };
+
+  it('loads the named language map when the template arrived first', () => {
+    const { component, translate, fetched } = wire();
+    /*
+     * The event an already-rendered editor depends on, and the half of the repair
+     * that a loaded map does not evidence. `reloadLang` alone puts the new labels
+     * where `instant` finds them while every rendered widget goes on showing the old
+     * ones, because the fetch stores its result silently. `onTranslationChange` is
+     * what the pipes are subscribed to, so this is how the test sees what a reader
+     * would see.
+     */
+    const announced: string[] = [];
+    translate.onTranslationChange.subscribe((event) => announced.push(event.lang));
+
+    component.ngOnInit();
+    component.templateObject = {};
+
+    // The built-in map, since the host has named no source yet.
+    expect(translate.instant('Generic.ExpandAll')).toBe('Expand All');
+    expect(fetched).toEqual([]);
+
+    component.config = { languageMapPathPrefix: PREFIX };
+
+    expect(fetched, 'the late prefix reached no loader').toEqual([PREFIX + 'en.json']);
+    expect(translate.instant('Generic.ExpandAll'), 'the editor kept the built-in label').toBe('Alles Aufklappen');
+    expect(announced, 'nothing told the rendered widgets to re-read their labels').toEqual(['en']);
+  });
+
+  it('loads it once when the host configures before supplying the template', () => {
+    const { component, translate, fetched } = wire();
+
+    component.ngOnInit();
+    component.config = { languageMapPathPrefix: PREFIX };
+    component.templateObject = {};
+
+    expect(fetched).toEqual([PREFIX + 'en.json']);
+    expect(translate.instant('Generic.ExpandAll')).toBe('Alles Aufklappen');
+  });
 
   /**
-   * The sample-template loader is CEE's own developer feature and loads a different
-   * sample on every click, which is exactly the reassignment a host may not perform.
-   * It writes through the internal path, so the claims do not bind it.
+   * A late config naming a different language gets past both guards on its own, so
+   * the repair must not add a second fetch of the map `use()` has just loaded. Only
+   * `en`, loaded from the built-in map before the prefix existed, is stale.
    */
-  it('lets the sample-template loader load one sample after another', () => {
-    const { component, errors, templateJson$, metadataJson$ } = make();
+  it('fetches each language once when the late config also changes the language', () => {
+    const { component, fetched } = wire();
+
     component.ngOnInit();
+    component.templateObject = {};
+    component.config = { languageMapPathPrefix: PREFIX, defaultLanguage: 'de' };
 
-    templateJson$.next({ first: { title: 'first template' } });
-    metadataJson$.next({ first: { title: 'first metadata' } });
-    templateJson$.next({ second: { title: 'second template' } });
-    metadataJson$.next({ second: { title: 'second metadata' } });
+    expect(fetched.filter((url) => url === PREFIX + 'de.json')).toHaveLength(1);
+    expect(fetched.filter((url) => url === PREFIX + 'en.json')).toHaveLength(1);
+  });
 
-    expect(component.templateAndInstanceJson).toEqual({
-      templateObject: { title: 'second template' },
-      instanceObject: { title: 'second metadata' },
-    });
-    expect(errors).not.toHaveBeenCalled();
+  it('leaves the built-in map alone when the host names no source', () => {
+    const { component, translate, fetched } = wire();
+
+    component.ngOnInit();
+    component.templateObject = {};
+    component.config = { readOnlyMode: true };
+
+    expect(fetched).toEqual([]);
+    expect(translate.instant('Generic.ExpandAll')).toBe('Expand All');
+  });
+});
+
+/**
+ * A configuration value CEE refuses reaches nothing.
+ *
+ * The check reported these and the reader coerced them anyway, so the console said
+ * "Ignored." while the setting took effect. Each case below is one that behaved that
+ * way, asserted on the effect rather than on the message: a message is what was
+ * already right.
+ */
+describe('CedarEmbeddableMetadataEditorWrapperComponent invalid configuration values', () => {
+  interface Wired {
+    component: CedarEmbeddableMetadataEditorWrapperComponent;
+    reported: string[];
+    integratedSearchUrls: Mock;
+    globalSettings: GlobalSettingsContextService;
+  }
+
+  const wire = (): Wired => {
+    const reported: string[] = [];
+    const integratedSearchUrls = vi.fn();
+    const messaging = {
+      trace: (): void => undefined,
+      traceGroup: (): void => undefined,
+      error: (message: string): void => {
+        reported.push(message);
+      },
+    };
+    const globalSettings = new GlobalSettingsContextService();
+    const component = new CedarEmbeddableMetadataEditorWrapperComponent(
+      new ElementRef(document.createElement('cedar-embeddable-editor')),
+      { setIntegratedSearchUrl: integratedSearchUrls } as unknown as ControlledFieldDataService,
+      messaging as unknown as MessageHandlerService,
+      { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
+      {
+        setDefaultLang: vi.fn(),
+        use: vi.fn(),
+        getLangs: vi.fn(() => []),
+        reloadLang: vi.fn(),
+        setTranslation: vi.fn(),
+      } as unknown as TranslateService,
+      globalSettings,
+    );
+    component.ngOnInit();
+    return { component, reported, integratedSearchUrls, globalSettings };
+  };
+
+  /**
+   * The one that locked a form nobody asked to lock: `Boolean('false')` is true, so
+   * the host asking for the opposite of read-only got read-only.
+   */
+  it('leaves read-only off when the host sends the string "false"', () => {
+    const { component, reported } = wire();
+
+    component.config = { readOnlyMode: 'false' } as unknown as CeeConfig;
+
+    expect(component.handlerContext.readOnlyMode).toBe(false);
+    expect(reported.join(' ')).toContain('expects a boolean');
+  });
+
+  it('installs no terminology endpoint built out of a number', () => {
+    const { component, integratedSearchUrls } = wire();
+
+    component.config = { terminologyBaseUrl: 7 } as unknown as CeeConfig;
+
+    expect(integratedSearchUrls, 'CEE built an endpoint from "7"').not.toHaveBeenCalled();
+  });
+
+  it('installs no terminology endpoint from a base URL missing its slash', () => {
+    const { component, integratedSearchUrls } = wire();
+
+    component.config = { terminologyBaseUrl: 'https://terminology.example.org/x' } as unknown as CeeConfig;
+
+    expect(integratedSearchUrls).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Configuration takes one assignment, and something that is not a configuration
+   * must not be the one. A host that handed over a string used to be left holding an
+   * element it could never configure, its correct second attempt refused as a repeat.
+   */
+  it('still accepts a configuration after one that was not an object', () => {
+    const { component, reported, globalSettings } = wire();
+
+    component.config = 'nonsense' as unknown as CeeConfig;
+    expect(reported.join(' ')).toContain('Configuration must be an object');
+
+    component.config = { languageMapPathPrefix: '/languages/' } as unknown as CeeConfig;
+
+    expect(globalSettings.languageMapPathPrefix, 'the second, valid configuration was refused').toBe('/languages/');
+    expect(reported.join(' ')).not.toContain('already configured');
+  });
+
+  /**
+   * An object still spends the assignment, however little of it survives: it asks for
+   * the defaults, which is what an empty configuration asks for, and a host must not
+   * have to know which of its keys were refused to know whether it may try again.
+   */
+  it('spends the assignment on an object whose every key was refused', () => {
+    const { component, reported } = wire();
+
+    component.config = { readOnlyMode: 'false' } as unknown as CeeConfig;
+    component.config = { readOnlyMode: true } as unknown as CeeConfig;
+
+    expect(component.handlerContext.readOnlyMode).toBe(false);
+    expect(reported.join(' ')).toContain('already configured');
   });
 });

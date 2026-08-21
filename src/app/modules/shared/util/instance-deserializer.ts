@@ -5,6 +5,7 @@ import {
   InstanceDataAtomType,
   InstanceDataContainer,
   InstanceDataEmptyAtom,
+  JsonTemplateInstanceReader,
   TemplateInstance,
   JsonNode,
 } from 'cedar-model-typescript-library';
@@ -51,10 +52,11 @@ export class InstanceDeserializer {
     instanceJson: object,
     report?: (message: string) => void,
   ): { full: TemplateInstance; extract: InstanceObject } {
+    const compatibleInstance = InstanceDeserializer.canonicalizeLegacyOccurrenceIds(instanceJson);
     const instance = CedarReaders.json()
       .getFebruary2024()
       .getTemplateInstanceReader()
-      .readFromObject(instanceJson as JsonNode).instance;
+      .readFromObject(compatibleInstance as JsonNode).instance;
 
     InstanceDeserializer.makeAttributeValuesEditable(instance.dataContainer);
 
@@ -63,6 +65,51 @@ export class InstanceDeserializer {
     }
 
     return { full: instance, extract: instance.dataContainer };
+  }
+
+  /**
+   * Translate the one invalid identifier spelling old CEDAR instances need in
+   * order to reach the repository repair boundary.
+   *
+   * Production once stored an element occurrence waiting for identity as
+   * `"@id": ""`. The model reader correctly refuses an empty IRI, but that
+   * refusal also prevents CEE from opening the artifact and writing the
+   * canonical `null` that asks the server to assign one. Link and controlled-
+   * term values also carry `@id`, and their domain identifiers must never be
+   * minted or cleared by this compatibility path. The decision is delegated to
+   * the model reader's public value-node classifier, so this adapter does not
+   * grow a second account of the wire shapes.
+   *
+   * Clone while walking. A host owns the object it handed CEE, and loading it
+   * must not repair the caller's copy as a side effect.
+   */
+  private static canonicalizeLegacyOccurrenceIds(instanceJson: object): object {
+    const visit = (node: unknown, documentRoot: boolean): unknown => {
+      if (Array.isArray(node)) {
+        return node.map((entry) => visit(entry, false));
+      }
+      if (node === null || typeof node !== 'object') {
+        return node;
+      }
+
+      const source = node as Record<string, unknown>;
+      const copy: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(source)) {
+        copy[key] = visit(value, false);
+      }
+
+      if (
+        !documentRoot &&
+        !JsonTemplateInstanceReader.isValueNode(source as JsonNode) &&
+        typeof source['@id'] === 'string' &&
+        source['@id'].trim() === ''
+      ) {
+        copy['@id'] = null;
+      }
+      return copy;
+    };
+
+    return visit(instanceJson, true) as object;
   }
 
   /**

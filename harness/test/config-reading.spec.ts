@@ -81,9 +81,13 @@ describe('a value of the wrong type', () => {
   /**
    * The sharp edge, recorded because it is surprising rather than because it is
    * right: a host sending the *string* `'false'` enables the setting, since a
-   * non-empty string is truthy. Reading it is not what catches this —
-   * `validateCeeConfig` reports the key as expecting a boolean, which is the
-   * boundary that exists for exactly this.
+   * non-empty string is truthy.
+   *
+   * Which is why nothing hands these functions a value of the wrong type any more.
+   * `checkCeeConfig` refuses the key at the boundary and CEE reads a configuration
+   * without it, so the coercions below describe what these two functions do with a
+   * value rather than anything a host can now provoke. The boundary used only to
+   * *report* this case, and reported it as ignored while the form locked.
    */
   it('turns the string "false" into true', () => {
     expect(configFlag({ showFooter: 'false' }, 'showFooter', false)).toBe(true);

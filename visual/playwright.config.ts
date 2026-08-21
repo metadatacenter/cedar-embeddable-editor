@@ -54,35 +54,35 @@ export default defineConfig({
   expect: {
     toHaveScreenshot: {
       /*
-       * An absolute budget, for every screenshot in the suite.
+       * No budget at all, because there is nothing left for one to absorb.
        *
-       * 120 pixels is a couple of glyphs' worth of rasterisation variance. Within
-       * one machine the real figure is zero, and CI runs the same platform family
-       * as the baselines are keyed to.
+       * A budget existed to swallow rasterisation variance, and the variance
+       * existed because the baselines were compared across machines: recorded on
+       * a developer's macOS laptop, checked on a macOS CI runner that rasterises
+       * text slightly differently. Measured on 2026-08-16, that boundary moved 7
+       * of 106 baselines by 124 to 393 pixels — every failure marginal, none of
+       * them a rendering change, and none distinguishable from a real one.
        *
-       * This was `maxDiffPixelRatio: 0.01`, and a ratio fails worst exactly where
-       * it matters most: the larger the image, the more it forgives, so a
-       * localised change to a tall page is what it hides. It was already known to
-       * have let a whole footer rebrand through at 0.708% of the desktop page, and
-       * the clipped widget shots were given this budget in response. Leaving the
-       * full pages on the ratio meant the fix stopped where the problem was
-       * smallest.
+       * `visual/run-in-container.sh` removes the boundary: both sides run the
+       * same Playwright image, so the only thing a diff can now report is a
+       * change in what CEE draws. Two consecutive runs agree to the pixel.
        *
-       * Four changes in one day went green against a stale full-page baseline: a
-       * decimal separator's colour and size, a placeholder from `000` to `sss`,
-       * `AM` losing 100 of font weight, and an occurrence chip shrinking 32px to
-       * 26px. The last two sat in `17-real-flat` for two commits — 55 differing
-       * scanlines on a 1280x4418 page, 0.06% of it — while both the app and the
-       * baseline reported agreement. A baseline that passes while depicting the
-       * previous rendering is worse than no baseline, because the next real diff
-       * arrives carrying it.
+       * What the budget used to hide is the argument for zero. `maxDiffPixelRatio`
+       * let a whole footer rebrand through at 0.708% of the desktop page. Its
+       * replacement, an absolute 120, still absorbed four changes in one day
+       * against a stale baseline — a decimal separator's colour and size, a
+       * placeholder from `000` to `sss`, `AM` losing 100 of font weight, and an
+       * occurrence chip shrinking 32px to 26px. The last two sat in `17-real-flat`
+       * for two commits while both the app and the baseline reported agreement.
+       * A baseline that passes while depicting the previous rendering is worse
+       * than no baseline, because the next real diff arrives carrying it.
        *
-       * The trade-off, stated so it is not a surprise: these baselines are keyed
-       * to the platform but not to the OS version, so an OS update that shifts
-       * font rendering will now fail full pages loudly instead of quietly.
-       * Re-recording is the right response to that.
+       * A failure here is therefore a rendering change, and the only correct
+       * responses are to fix it or to re-record deliberately. Moving the image
+       * pin in `run-in-container.sh` is the one thing that will move every
+       * baseline at once, exactly as an OS upgrade used to.
        */
-      maxDiffPixels: 120,
+      maxDiffPixels: 0,
       animations: 'disabled',
       caret: 'hide',
       // Neutralises content that differs between two builds of the same code —

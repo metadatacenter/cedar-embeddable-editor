@@ -13,10 +13,10 @@
  * because webpack tolerates one, and it cost this harness a stub of the entire
  * editor component to cut.
  *
- * The value now lives in `util/iri-prefix.ts`, which imports nothing. This test
- * is here because that is a property worth keeping rather than a one-off fix: a
- * single convenient `import` would put it back, and nothing else would complain
- * until the framework moved.
+ * That value is gone — CEE mints no identifiers, so there is no prefix to read —
+ * but the property is worth keeping rather than treating as a one-off fix: a
+ * single convenient `import` would put the cycle back, and nothing else would
+ * complain until the framework moved.
  */
 import { describe, expect, it } from 'vitest';
 import * as fs from 'node:fs';
@@ -71,25 +71,23 @@ describe('the domain layer is framework-free', () => {
       expect(
         offending,
         `${name} imports the top-level editor component, which drags the Angular subtree into the domain layer. ` +
-          'If you need a config value, put it in a module of its own — see util/iri-prefix.ts.',
+          'If you need a config value, put it in a module of its own, importing nothing.',
       ).toEqual([]);
     },
   );
 
   /**
-   * The domain layer's Angular touchpoints, all six of them, and why.
+   * The domain layer's Angular touchpoints, all five of them, and why.
    *
    * "Framework-free" is not literally true and it would be dishonest to assert
-   * it. What is true is that these six imports cost nothing at runtime here:
-   * three are types or decorators the harness's `@angular/core` stub satisfies,
-   * and two are the translate loader, which no domain code calls.
+   * it. What is true is that these five imports are accounted for: one is a type,
+   * two are translation wiring, and two are the deliberate Angular adapter/base.
    *
    * Listed rather than allowed by pattern so a *new* one has to be added
    * deliberately, with a reason. That is the actual property worth protecting —
    * the number going up quietly is how a domain layer stops being portable.
    */
   const KNOWN_ANGULAR_IMPORTS: Record<string, string> = {
-    'handler/multi-instance-object.handler.ts': '@Injectable only; the class is constructed with new',
     'util/authority-search-control.ts': 'AbstractControl as a type, so widgets can pass their FormControl',
     'util/fallback-translate-loader-factory.ts': 'HttpClient; i18n wiring, never called by domain code',
     'util/fallback-translate-loader.ts': 'HttpClient; i18n wiring, never called by domain code',
@@ -126,15 +124,5 @@ describe('the domain layer is framework-free', () => {
     for (const dir of DOMAIN_DIRS) {
       expect(fs.existsSync(path.join(SHARED, dir)), `${dir} is missing — has it been renamed?`).toBe(true);
     }
-  });
-});
-
-describe('the iri prefix holder', () => {
-  /**
-   * It exists to be importable from anywhere, which it only is if it imports
-   * nothing itself.
-   */
-  it('imports nothing at all', () => {
-    expect(importsOf(path.join(SHARED, 'util/iri-prefix.ts'))).toEqual([]);
   });
 });

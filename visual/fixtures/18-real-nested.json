@@ -121,49 +121,49 @@
       "multi_wrapper": "Wrapper then Nested (multi-instance)"
     },
     "propertyDescriptions": {
-      "t_text_field": "",
-      "t_text_area_field": "",
-      "t_numeric_field": "",
-      "t_numeric_long": "",
-      "t_numeric_short": "",
-      "t_numeric_byte": "",
-      "t_numeric_decimal_0dp": "",
-      "t_numeric_decimal_2dp": "",
-      "t_numeric_decimal_4dp": "",
-      "t_numeric_float_3dp": "",
-      "t_numeric_double_6dp": "",
-      "t_temporal_field": "",
-      "t_temporal_date_year": "",
-      "t_temporal_date_month": "",
-      "t_temporal_date_day": "",
-      "t_temporal_time_minute_24h": "",
-      "t_temporal_time_second_12h": "",
-      "t_temporal_datetime_day": "",
-      "t_temporal_datetime_second_24h_tz": "",
-      "t_temporal_datetime_decimalsecond_12h": "",
-      "t_radio_field": "",
-      "t_checkbox_field": "",
-      "t_single_select_list_field": "",
-      "t_multi_select_list_field": "",
-      "t_phone_number_field": "",
-      "t_email_field": "",
-      "t_link_field": "",
+      "t_text_field": "A single line of free text.",
+      "t_text_area_field": "Free text over several lines, for a paragraph rather than a phrase.",
+      "t_numeric_field": "A whole number, stored as xsd:int.",
+      "t_numeric_long": "A whole number in the 64-bit range, stored as xsd:long.",
+      "t_numeric_short": "A whole number in the 16-bit range, stored as xsd:short.",
+      "t_numeric_byte": "A whole number in the 8-bit range, stored as xsd:byte.",
+      "t_numeric_decimal_0dp": "A decimal number entered without a fractional part, stored as xsd:decimal.",
+      "t_numeric_decimal_2dp": "A decimal number carrying two decimal places, stored as xsd:decimal.",
+      "t_numeric_decimal_4dp": "A decimal number carrying four decimal places, stored as xsd:decimal.",
+      "t_numeric_float_3dp": "A floating-point number carrying three decimal places, stored as xsd:float.",
+      "t_numeric_double_6dp": "A double-precision number carrying six decimal places, stored as xsd:double.",
+      "t_temporal_field": "A date and a time of day, to the minute, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
+      "t_temporal_date_year": "A year. Stored as xsd:date.",
+      "t_temporal_date_month": "A year and a month. Stored as xsd:date.",
+      "t_temporal_date_day": "A calendar date. Stored as xsd:date.",
+      "t_temporal_time_minute_24h": "A time of day, to the minute, on a 24-hour clock. Stored as xsd:time.",
+      "t_temporal_time_second_12h": "A time of day, to the second, on a 12-hour clock. Stored as xsd:time.",
+      "t_temporal_datetime_day": "A date, with no time of day. Stored as xsd:dateTime.",
+      "t_temporal_datetime_second_24h_tz": "A date and a time of day, to the second, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
+      "t_temporal_datetime_decimalsecond_12h": "A date and a time of day, to a fraction of a second, on a 12-hour clock. Stored as xsd:dateTime.",
+      "t_radio_field": "Exactly one of Option A, Option B or Option C, shown as radio buttons.",
+      "t_checkbox_field": "Any of Option A, Option B or Option C, shown as check boxes and stored as a list.",
+      "t_single_select_list_field": "One of Option A, Option B or Option C, chosen from a drop-down list.",
+      "t_multi_select_list_field": "One or more of Option A, Option B or Option C, chosen from a drop-down list.",
+      "t_phone_number_field": "A telephone number, entered with or without a country code and separators.",
+      "t_email_field": "An email address. A value not shaped like one keeps the form invalid.",
+      "t_link_field": "A web address. The instance records it as an IRI, not as a string.",
       "t_section_break": "",
-      "t_attribute_value_field": "",
-      "t_controlled_term_field": "",
-      "t_ext_ror_field": "",
-      "t_ext_orcid_field": "",
-      "t_ext_pfas_field": "",
-      "t_ext_rrid_field": "",
-      "t_ext_pubmed_field": "",
+      "t_attribute_value_field": "Name and value pairs supplied while the form is filled in. The person entering metadata names each attribute, so the template does not have to name it in advance.",
+      "t_controlled_term_field": "A term chosen from the DOID class disease, looked up in the terminology server as you type. The instance keeps the term IRI alongside its label.",
+      "t_ext_ror_field": "An organization, chosen from the Research Organization Registry (ROR). The instance keeps the ROR IRI and the registered name.",
+      "t_ext_orcid_field": "A person, chosen by ORCID iD. The instance keeps the ORCID IRI and the registered name.",
+      "t_ext_pfas_field": "A PFAS chemical, chosen from the EPA CompTox Chemicals Dashboard. The instance keeps the dashboard IRI and the substance name.",
+      "t_ext_rrid_field": "A research resource — an antibody, a cell line, a tool — chosen by RRID from SciCrunch. The instance keeps the resolver IRI and the RRID.",
+      "t_ext_pubmed_field": "A publication, chosen by PubMed ID. The instance keeps the PubMed IRI and the PMID.",
       "t_static_page_break": "",
       "t_static_rich_text": "",
       "t_static_image": "",
       "t_static_youtube_video": "",
-      "all_single": "",
-      "all_multi": "",
-      "single_wrapper": "",
-      "multi_wrapper": ""
+      "all_single": "One instance of every field type the editor supports, none of them repeatable — the plain case a nested element has to render correctly.",
+      "all_multi": "The same set of field types again, with each field repeatable, so cardinality is exercised inside an element rather than at the top level.",
+      "single_wrapper": "A field of its own followed by a nested element, taking this template two levels deep.",
+      "multi_wrapper": "A field of its own followed by a nested element whose fields repeat, so the second level carries cardinality."
     }
   },
   "properties": {
@@ -703,7 +703,7 @@
         "@value"
       ],
       "schema:name": "Text Field",
-      "schema:description": "",
+      "schema:description": "A single line of free text.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -785,7 +785,7 @@
         "@value"
       ],
       "schema:name": "Text Area Field",
-      "schema:description": "",
+      "schema:description": "Free text over several lines, for a paragraph rather than a phrase.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -872,7 +872,7 @@
         "@type"
       ],
       "schema:name": "Numeric Field",
-      "schema:description": "",
+      "schema:description": "A whole number, stored as xsd:int.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -958,7 +958,7 @@
         "@type"
       ],
       "schema:name": "Numeric Long",
-      "schema:description": "",
+      "schema:description": "A whole number in the 64-bit range, stored as xsd:long.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1044,7 +1044,7 @@
         "@type"
       ],
       "schema:name": "Numeric Short",
-      "schema:description": "",
+      "schema:description": "A whole number in the 16-bit range, stored as xsd:short.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1130,7 +1130,7 @@
         "@type"
       ],
       "schema:name": "Numeric Byte",
-      "schema:description": "",
+      "schema:description": "A whole number in the 8-bit range, stored as xsd:byte.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1215,7 +1215,7 @@
         "@type"
       ],
       "schema:name": "Numeric Decimal (0 dp)",
-      "schema:description": "",
+      "schema:description": "A decimal number entered without a fractional part, stored as xsd:decimal.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1303,7 +1303,7 @@
         "@type"
       ],
       "schema:name": "Numeric Decimal (2 dp)",
-      "schema:description": "",
+      "schema:description": "A decimal number carrying two decimal places, stored as xsd:decimal.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1388,7 +1388,7 @@
         "@type"
       ],
       "schema:name": "Numeric Decimal (4 dp)",
-      "schema:description": "",
+      "schema:description": "A decimal number carrying four decimal places, stored as xsd:decimal.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1474,7 +1474,7 @@
         "@type"
       ],
       "schema:name": "Numeric Float (3 dp)",
-      "schema:description": "",
+      "schema:description": "A floating-point number carrying three decimal places, stored as xsd:float.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1560,7 +1560,7 @@
         "@type"
       ],
       "schema:name": "Numeric Double (6 dp)",
-      "schema:description": "",
+      "schema:description": "A double-precision number carrying six decimal places, stored as xsd:double.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1647,7 +1647,7 @@
         "@type"
       ],
       "schema:name": "Temporal Field",
-      "schema:description": "",
+      "schema:description": "A date and a time of day, to the minute, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1732,7 +1732,7 @@
         "@type"
       ],
       "schema:name": "Temporal Date (Year)",
-      "schema:description": "",
+      "schema:description": "A year. Stored as xsd:date.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1817,7 +1817,7 @@
         "@type"
       ],
       "schema:name": "Temporal Date (Month)",
-      "schema:description": "",
+      "schema:description": "A year and a month. Stored as xsd:date.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1902,7 +1902,7 @@
         "@type"
       ],
       "schema:name": "Temporal Date (Day)",
-      "schema:description": "",
+      "schema:description": "A calendar date. Stored as xsd:date.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1988,7 +1988,7 @@
         "@type"
       ],
       "schema:name": "Temporal Time (Minute, 24h)",
-      "schema:description": "",
+      "schema:description": "A time of day, to the minute, on a 24-hour clock. Stored as xsd:time.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2074,7 +2074,7 @@
         "@type"
       ],
       "schema:name": "Temporal Time (Second, 12h)",
-      "schema:description": "",
+      "schema:description": "A time of day, to the second, on a 12-hour clock. Stored as xsd:time.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2159,7 +2159,7 @@
         "@type"
       ],
       "schema:name": "Temporal DateTime (Day)",
-      "schema:description": "",
+      "schema:description": "A date, with no time of day. Stored as xsd:dateTime.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2246,7 +2246,7 @@
         "@type"
       ],
       "schema:name": "Temporal DateTime (Second, 24h, TZ)",
-      "schema:description": "",
+      "schema:description": "A date and a time of day, to the second, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2332,7 +2332,7 @@
         "@type"
       ],
       "schema:name": "Temporal DateTime (Decimal Second, 12h)",
-      "schema:description": "",
+      "schema:description": "A date and a time of day, to a fraction of a second, on a 12-hour clock. Stored as xsd:dateTime.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2426,7 +2426,7 @@
         "@value"
       ],
       "schema:name": "Radio Field",
-      "schema:description": "",
+      "schema:description": "Exactly one of Option A, Option B or Option C, shown as radio buttons.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2523,7 +2523,7 @@
           "@value"
         ],
         "schema:name": "Checkbox Field",
-        "schema:description": "",
+        "schema:description": "Any of Option A, Option B or Option C, shown as check boxes and stored as a list.",
         "pav:createdOn": "2026-08-06T18:42:20-07:00",
         "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
         "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2618,7 +2618,7 @@
         "@value"
       ],
       "schema:name": "Single-Select List Field",
-      "schema:description": "",
+      "schema:description": "One of Option A, Option B or Option C, chosen from a drop-down list.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2628,98 +2628,102 @@
       "$schema": "http://json-schema.org/draft-04/schema#"
     },
     "t_multi_select_list_field": {
-      "@id": "https://repo.metadatacenter.orgx/template-fields/f8f803e6-0e0b-4ac2-875d-4ae93d96b77e",
-      "@type": "https://schema.metadatacenter.org/core/TemplateField",
-      "@context": {
-        "xsd": "http://www.w3.org/2001/XMLSchema#",
-        "pav": "http://purl.org/pav/",
-        "bibo": "http://purl.org/ontology/bibo/",
-        "oslc": "http://open-services.net/ns/core#",
-        "schema": "http://schema.org/",
-        "skos": "http://www.w3.org/2004/02/skos/core#",
-        "schema:name": {
-          "@type": "xsd:string"
-        },
-        "schema:description": {
-          "@type": "xsd:string"
-        },
-        "skos:prefLabel": {
-          "@type": "xsd:string"
-        },
-        "skos:altLabel": {
-          "@type": "xsd:string"
-        },
-        "pav:createdOn": {
-          "@type": "xsd:dateTime"
-        },
-        "pav:createdBy": {
-          "@type": "@id"
-        },
-        "pav:lastUpdatedOn": {
-          "@type": "xsd:dateTime"
-        },
-        "oslc:modifiedBy": {
-          "@type": "@id"
-        }
-      },
-      "type": "object",
-      "title": "Multi-Select List Field field schema",
-      "description": "Multi-Select List Field field schema generated by the CEDAR Artifact Library",
-      "_ui": {
-        "inputType": "list"
-      },
-      "_valueConstraints": {
-        "literals": [
-          {
-            "label": "Option A"
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "@id": "https://repo.metadatacenter.orgx/template-fields/f8f803e6-0e0b-4ac2-875d-4ae93d96b77e",
+        "@type": "https://schema.metadatacenter.org/core/TemplateField",
+        "@context": {
+          "xsd": "http://www.w3.org/2001/XMLSchema#",
+          "pav": "http://purl.org/pav/",
+          "bibo": "http://purl.org/ontology/bibo/",
+          "oslc": "http://open-services.net/ns/core#",
+          "schema": "http://schema.org/",
+          "skos": "http://www.w3.org/2004/02/skos/core#",
+          "schema:name": {
+            "@type": "xsd:string"
           },
-          {
-            "label": "Option B"
+          "schema:description": {
+            "@type": "xsd:string"
           },
-          {
-            "label": "Option C"
+          "skos:prefLabel": {
+            "@type": "xsd:string"
+          },
+          "skos:altLabel": {
+            "@type": "xsd:string"
+          },
+          "pav:createdOn": {
+            "@type": "xsd:dateTime"
+          },
+          "pav:createdBy": {
+            "@type": "@id"
+          },
+          "pav:lastUpdatedOn": {
+            "@type": "xsd:dateTime"
+          },
+          "oslc:modifiedBy": {
+            "@type": "@id"
           }
-        ],
-        "requiredValue": false,
-        "multipleChoice": true
-      },
-      "properties": {
-        "@type": {
-          "type": "string",
-          "format": "uri"
         },
-        "rdfs:label": {
-          "type": [
-            "string",
-            "null"
-          ]
+        "type": "object",
+        "title": "Multi-Select List Field field schema",
+        "description": "Multi-Select List Field field schema generated by the CEDAR Artifact Library",
+        "_ui": {
+          "inputType": "list"
         },
-        "@value": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "@language": {
-          "type": [
-            "string",
-            "null"
+        "_valueConstraints": {
+          "literals": [
+            {
+              "label": "Option A"
+            },
+            {
+              "label": "Option B"
+            },
+            {
+              "label": "Option C"
+            }
           ],
-          "minLength": 1
-        }
-      },
-      "required": [
-        "@value"
-      ],
-      "schema:name": "Multi-Select List Field",
-      "schema:description": "",
-      "pav:createdOn": "2026-08-06T18:42:20-07:00",
-      "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
-      "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
-      "oslc:modifiedBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
-      "schema:schemaVersion": "1.6.0",
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-04/schema#"
+          "requiredValue": false,
+          "multipleChoice": true
+        },
+        "properties": {
+          "@type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "rdfs:label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "@value": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "@language": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          }
+        },
+        "required": [
+          "@value"
+        ],
+        "schema:name": "Multi-Select List Field",
+        "schema:description": "One or more of Option A, Option B or Option C, chosen from a drop-down list.",
+        "pav:createdOn": "2026-08-06T18:42:20-07:00",
+        "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
+        "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
+        "oslc:modifiedBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
+        "schema:schemaVersion": "1.6.0",
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-04/schema#"
+      }
     },
     "t_phone_number_field": {
       "@id": "https://repo.metadatacenter.orgx/template-fields/2b2c8087-45e1-47fc-9a2a-34fc07423227",
@@ -2794,7 +2798,7 @@
         "@value"
       ],
       "schema:name": "Phone Number Field",
-      "schema:description": "",
+      "schema:description": "A telephone number, entered with or without a country code and separators.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2876,7 +2880,7 @@
         "@value"
       ],
       "schema:name": "Email Field",
-      "schema:description": "",
+      "schema:description": "An email address. A value not shaped like one keeps the form invalid.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2952,7 +2956,7 @@
         }
       },
       "schema:name": "Link Field",
-      "schema:description": "",
+      "schema:description": "A web address. The instance records it as an IRI, not as a string.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3032,7 +3036,7 @@
           "inputType": "attribute-value"
         },
         "schema:name": "Attribute-Value Field",
-        "schema:description": "",
+        "schema:description": "Name and value pairs supplied while the form is filled in. The person entering metadata names each attribute, so the template does not have to name it in advance.",
         "pav:createdOn": "2026-08-06T18:42:20-07:00",
         "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
         "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3121,7 +3125,7 @@
         }
       },
       "schema:name": "Controlled-Term Field",
-      "schema:description": "",
+      "schema:description": "A term chosen from the DOID class disease, looked up in the terminology server as you type. The instance keeps the term IRI alongside its label.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3197,7 +3201,7 @@
         }
       },
       "schema:name": "ROR Field",
-      "schema:description": "",
+      "schema:description": "An organization, chosen from the Research Organization Registry (ROR). The instance keeps the ROR IRI and the registered name.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3273,7 +3277,7 @@
         }
       },
       "schema:name": "ORCID Field",
-      "schema:description": "",
+      "schema:description": "A person, chosen by ORCID iD. The instance keeps the ORCID IRI and the registered name.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3349,7 +3353,7 @@
         }
       },
       "schema:name": "PFAS Field",
-      "schema:description": "",
+      "schema:description": "A PFAS chemical, chosen from the EPA CompTox Chemicals Dashboard. The instance keeps the dashboard IRI and the substance name.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3425,7 +3429,7 @@
         }
       },
       "schema:name": "RRID Field",
-      "schema:description": "",
+      "schema:description": "A research resource — an antibody, a cell line, a tool — chosen by RRID from SciCrunch. The instance keeps the resolver IRI and the RRID.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3501,7 +3505,7 @@
         }
       },
       "schema:name": "PubMed Field",
-      "schema:description": "",
+      "schema:description": "A publication, chosen by PubMed ID. The instance keeps the PubMed IRI and the PMID.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3737,41 +3741,41 @@
           "s_static_youtube_video": "YouTube Video"
         },
         "propertyDescriptions": {
-          "s_text_field": "",
-          "s_text_area_field": "",
-          "s_numeric_field": "",
-          "s_numeric_long": "",
-          "s_numeric_short": "",
-          "s_numeric_byte": "",
-          "s_numeric_decimal_0dp": "",
-          "s_numeric_decimal_2dp": "",
-          "s_numeric_decimal_4dp": "",
-          "s_numeric_float_3dp": "",
-          "s_numeric_double_6dp": "",
-          "s_temporal_field": "",
-          "s_temporal_date_year": "",
-          "s_temporal_date_month": "",
-          "s_temporal_date_day": "",
-          "s_temporal_time_minute_24h": "",
-          "s_temporal_time_second_12h": "",
-          "s_temporal_datetime_day": "",
-          "s_temporal_datetime_second_24h_tz": "",
-          "s_temporal_datetime_decimalsecond_12h": "",
-          "s_radio_field": "",
-          "s_checkbox_field": "",
-          "s_single_select_list_field": "",
-          "s_multi_select_list_field": "",
-          "s_phone_number_field": "",
-          "s_email_field": "",
-          "s_link_field": "",
+          "s_text_field": "A single line of free text.",
+          "s_text_area_field": "Free text over several lines, for a paragraph rather than a phrase.",
+          "s_numeric_field": "A whole number, stored as xsd:int.",
+          "s_numeric_long": "A whole number in the 64-bit range, stored as xsd:long.",
+          "s_numeric_short": "A whole number in the 16-bit range, stored as xsd:short.",
+          "s_numeric_byte": "A whole number in the 8-bit range, stored as xsd:byte.",
+          "s_numeric_decimal_0dp": "A decimal number entered without a fractional part, stored as xsd:decimal.",
+          "s_numeric_decimal_2dp": "A decimal number carrying two decimal places, stored as xsd:decimal.",
+          "s_numeric_decimal_4dp": "A decimal number carrying four decimal places, stored as xsd:decimal.",
+          "s_numeric_float_3dp": "A floating-point number carrying three decimal places, stored as xsd:float.",
+          "s_numeric_double_6dp": "A double-precision number carrying six decimal places, stored as xsd:double.",
+          "s_temporal_field": "A date and a time of day, to the minute, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
+          "s_temporal_date_year": "A year. Stored as xsd:date.",
+          "s_temporal_date_month": "A year and a month. Stored as xsd:date.",
+          "s_temporal_date_day": "A calendar date. Stored as xsd:date.",
+          "s_temporal_time_minute_24h": "A time of day, to the minute, on a 24-hour clock. Stored as xsd:time.",
+          "s_temporal_time_second_12h": "A time of day, to the second, on a 12-hour clock. Stored as xsd:time.",
+          "s_temporal_datetime_day": "A date, with no time of day. Stored as xsd:dateTime.",
+          "s_temporal_datetime_second_24h_tz": "A date and a time of day, to the second, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
+          "s_temporal_datetime_decimalsecond_12h": "A date and a time of day, to a fraction of a second, on a 12-hour clock. Stored as xsd:dateTime.",
+          "s_radio_field": "Exactly one of Option A, Option B or Option C, shown as radio buttons.",
+          "s_checkbox_field": "Any of Option A, Option B or Option C, shown as check boxes and stored as a list.",
+          "s_single_select_list_field": "One of Option A, Option B or Option C, chosen from a drop-down list.",
+          "s_multi_select_list_field": "One or more of Option A, Option B or Option C, chosen from a drop-down list.",
+          "s_phone_number_field": "A telephone number, entered with or without a country code and separators.",
+          "s_email_field": "An email address. A value not shaped like one keeps the form invalid.",
+          "s_link_field": "A web address. The instance records it as an IRI, not as a string.",
           "s_section_break": "",
-          "s_attribute_value_field": "",
-          "s_controlled_term_field": "",
-          "s_ext_ror_field": "",
-          "s_ext_orcid_field": "",
-          "s_ext_pfas_field": "",
-          "s_ext_rrid_field": "",
-          "s_ext_pubmed_field": "",
+          "s_attribute_value_field": "Name and value pairs supplied while the form is filled in. The person entering metadata names each attribute, so the template does not have to name it in advance.",
+          "s_controlled_term_field": "A term chosen from the DOID class disease, looked up in the terminology server as you type. The instance keeps the term IRI alongside its label.",
+          "s_ext_ror_field": "An organization, chosen from the Research Organization Registry (ROR). The instance keeps the ROR IRI and the registered name.",
+          "s_ext_orcid_field": "A person, chosen by ORCID iD. The instance keeps the ORCID IRI and the registered name.",
+          "s_ext_pfas_field": "A PFAS chemical, chosen from the EPA CompTox Chemicals Dashboard. The instance keeps the dashboard IRI and the substance name.",
+          "s_ext_rrid_field": "A research resource — an antibody, a cell line, a tool — chosen by RRID from SciCrunch. The instance keeps the resolver IRI and the RRID.",
+          "s_ext_pubmed_field": "A publication, chosen by PubMed ID. The instance keeps the PubMed IRI and the PMID.",
           "s_static_page_break": "",
           "s_static_rich_text": "",
           "s_static_image": "",
@@ -4082,7 +4086,7 @@
             "@value"
           ],
           "schema:name": "Text Field",
-          "schema:description": "",
+          "schema:description": "A single line of free text.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -4164,7 +4168,7 @@
             "@value"
           ],
           "schema:name": "Text Area Field",
-          "schema:description": "",
+          "schema:description": "Free text over several lines, for a paragraph rather than a phrase.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -4251,7 +4255,7 @@
             "@type"
           ],
           "schema:name": "Numeric Field",
-          "schema:description": "",
+          "schema:description": "A whole number, stored as xsd:int.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -4337,7 +4341,7 @@
             "@type"
           ],
           "schema:name": "Numeric Long",
-          "schema:description": "",
+          "schema:description": "A whole number in the 64-bit range, stored as xsd:long.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -4423,7 +4427,7 @@
             "@type"
           ],
           "schema:name": "Numeric Short",
-          "schema:description": "",
+          "schema:description": "A whole number in the 16-bit range, stored as xsd:short.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -4509,7 +4513,7 @@
             "@type"
           ],
           "schema:name": "Numeric Byte",
-          "schema:description": "",
+          "schema:description": "A whole number in the 8-bit range, stored as xsd:byte.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -4594,7 +4598,7 @@
             "@type"
           ],
           "schema:name": "Numeric Decimal (0 dp)",
-          "schema:description": "",
+          "schema:description": "A decimal number entered without a fractional part, stored as xsd:decimal.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -4682,7 +4686,7 @@
             "@type"
           ],
           "schema:name": "Numeric Decimal (2 dp)",
-          "schema:description": "",
+          "schema:description": "A decimal number carrying two decimal places, stored as xsd:decimal.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -4767,7 +4771,7 @@
             "@type"
           ],
           "schema:name": "Numeric Decimal (4 dp)",
-          "schema:description": "",
+          "schema:description": "A decimal number carrying four decimal places, stored as xsd:decimal.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -4853,7 +4857,7 @@
             "@type"
           ],
           "schema:name": "Numeric Float (3 dp)",
-          "schema:description": "",
+          "schema:description": "A floating-point number carrying three decimal places, stored as xsd:float.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -4939,7 +4943,7 @@
             "@type"
           ],
           "schema:name": "Numeric Double (6 dp)",
-          "schema:description": "",
+          "schema:description": "A double-precision number carrying six decimal places, stored as xsd:double.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -5026,7 +5030,7 @@
             "@type"
           ],
           "schema:name": "Temporal Field",
-          "schema:description": "",
+          "schema:description": "A date and a time of day, to the minute, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -5111,7 +5115,7 @@
             "@type"
           ],
           "schema:name": "Temporal Date (Year)",
-          "schema:description": "",
+          "schema:description": "A year. Stored as xsd:date.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -5196,7 +5200,7 @@
             "@type"
           ],
           "schema:name": "Temporal Date (Month)",
-          "schema:description": "",
+          "schema:description": "A year and a month. Stored as xsd:date.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -5281,7 +5285,7 @@
             "@type"
           ],
           "schema:name": "Temporal Date (Day)",
-          "schema:description": "",
+          "schema:description": "A calendar date. Stored as xsd:date.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -5367,7 +5371,7 @@
             "@type"
           ],
           "schema:name": "Temporal Time (Minute, 24h)",
-          "schema:description": "",
+          "schema:description": "A time of day, to the minute, on a 24-hour clock. Stored as xsd:time.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -5453,7 +5457,7 @@
             "@type"
           ],
           "schema:name": "Temporal Time (Second, 12h)",
-          "schema:description": "",
+          "schema:description": "A time of day, to the second, on a 12-hour clock. Stored as xsd:time.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -5538,7 +5542,7 @@
             "@type"
           ],
           "schema:name": "Temporal DateTime (Day)",
-          "schema:description": "",
+          "schema:description": "A date, with no time of day. Stored as xsd:dateTime.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -5625,7 +5629,7 @@
             "@type"
           ],
           "schema:name": "Temporal DateTime (Second, 24h, TZ)",
-          "schema:description": "",
+          "schema:description": "A date and a time of day, to the second, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -5711,7 +5715,7 @@
             "@type"
           ],
           "schema:name": "Temporal DateTime (Decimal Second, 12h)",
-          "schema:description": "",
+          "schema:description": "A date and a time of day, to a fraction of a second, on a 12-hour clock. Stored as xsd:dateTime.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -5805,7 +5809,7 @@
             "@value"
           ],
           "schema:name": "Radio Field",
-          "schema:description": "",
+          "schema:description": "Exactly one of Option A, Option B or Option C, shown as radio buttons.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -5902,7 +5906,7 @@
               "@value"
             ],
             "schema:name": "Checkbox Field",
-            "schema:description": "",
+            "schema:description": "Any of Option A, Option B or Option C, shown as check boxes and stored as a list.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -5997,7 +6001,7 @@
             "@value"
           ],
           "schema:name": "Single-Select List Field",
-          "schema:description": "",
+          "schema:description": "One of Option A, Option B or Option C, chosen from a drop-down list.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -6007,98 +6011,102 @@
           "$schema": "http://json-schema.org/draft-04/schema#"
         },
         "s_multi_select_list_field": {
-          "@id": null,
-          "@type": "https://schema.metadatacenter.org/core/TemplateField",
-          "@context": {
-            "xsd": "http://www.w3.org/2001/XMLSchema#",
-            "pav": "http://purl.org/pav/",
-            "bibo": "http://purl.org/ontology/bibo/",
-            "oslc": "http://open-services.net/ns/core#",
-            "schema": "http://schema.org/",
-            "skos": "http://www.w3.org/2004/02/skos/core#",
-            "schema:name": {
-              "@type": "xsd:string"
-            },
-            "schema:description": {
-              "@type": "xsd:string"
-            },
-            "skos:prefLabel": {
-              "@type": "xsd:string"
-            },
-            "skos:altLabel": {
-              "@type": "xsd:string"
-            },
-            "pav:createdOn": {
-              "@type": "xsd:dateTime"
-            },
-            "pav:createdBy": {
-              "@type": "@id"
-            },
-            "pav:lastUpdatedOn": {
-              "@type": "xsd:dateTime"
-            },
-            "oslc:modifiedBy": {
-              "@type": "@id"
-            }
-          },
-          "type": "object",
-          "title": "Multi-Select List Field field schema",
-          "description": "Multi-Select List Field field schema generated by the CEDAR Artifact Library",
-          "_ui": {
-            "inputType": "list"
-          },
-          "_valueConstraints": {
-            "literals": [
-              {
-                "label": "Option A"
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "@id": null,
+            "@type": "https://schema.metadatacenter.org/core/TemplateField",
+            "@context": {
+              "xsd": "http://www.w3.org/2001/XMLSchema#",
+              "pav": "http://purl.org/pav/",
+              "bibo": "http://purl.org/ontology/bibo/",
+              "oslc": "http://open-services.net/ns/core#",
+              "schema": "http://schema.org/",
+              "skos": "http://www.w3.org/2004/02/skos/core#",
+              "schema:name": {
+                "@type": "xsd:string"
               },
-              {
-                "label": "Option B"
+              "schema:description": {
+                "@type": "xsd:string"
               },
-              {
-                "label": "Option C"
+              "skos:prefLabel": {
+                "@type": "xsd:string"
+              },
+              "skos:altLabel": {
+                "@type": "xsd:string"
+              },
+              "pav:createdOn": {
+                "@type": "xsd:dateTime"
+              },
+              "pav:createdBy": {
+                "@type": "@id"
+              },
+              "pav:lastUpdatedOn": {
+                "@type": "xsd:dateTime"
+              },
+              "oslc:modifiedBy": {
+                "@type": "@id"
               }
-            ],
-            "requiredValue": false,
-            "multipleChoice": true
-          },
-          "properties": {
-            "@type": {
-              "type": "string",
-              "format": "uri"
             },
-            "rdfs:label": {
-              "type": [
-                "string",
-                "null"
-              ]
+            "type": "object",
+            "title": "Multi-Select List Field field schema",
+            "description": "Multi-Select List Field field schema generated by the CEDAR Artifact Library",
+            "_ui": {
+              "inputType": "list"
             },
-            "@value": {
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "@language": {
-              "type": [
-                "string",
-                "null"
+            "_valueConstraints": {
+              "literals": [
+                {
+                  "label": "Option A"
+                },
+                {
+                  "label": "Option B"
+                },
+                {
+                  "label": "Option C"
+                }
               ],
-              "minLength": 1
-            }
-          },
-          "required": [
-            "@value"
-          ],
-          "schema:name": "Multi-Select List Field",
-          "schema:description": "",
-          "pav:createdOn": null,
-          "pav:createdBy": null,
-          "pav:lastUpdatedOn": null,
-          "oslc:modifiedBy": null,
-          "schema:schemaVersion": "1.6.0",
-          "additionalProperties": false,
-          "$schema": "http://json-schema.org/draft-04/schema#"
+              "requiredValue": false,
+              "multipleChoice": true
+            },
+            "properties": {
+              "@type": {
+                "type": "string",
+                "format": "uri"
+              },
+              "rdfs:label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "@value": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "@language": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              }
+            },
+            "required": [
+              "@value"
+            ],
+            "schema:name": "Multi-Select List Field",
+            "schema:description": "One or more of Option A, Option B or Option C, chosen from a drop-down list.",
+            "pav:createdOn": null,
+            "pav:createdBy": null,
+            "pav:lastUpdatedOn": null,
+            "oslc:modifiedBy": null,
+            "schema:schemaVersion": "1.6.0",
+            "additionalProperties": false,
+            "$schema": "http://json-schema.org/draft-04/schema#"
+          }
         },
         "s_phone_number_field": {
           "@id": null,
@@ -6173,7 +6181,7 @@
             "@value"
           ],
           "schema:name": "Phone Number Field",
-          "schema:description": "",
+          "schema:description": "A telephone number, entered with or without a country code and separators.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -6255,7 +6263,7 @@
             "@value"
           ],
           "schema:name": "Email Field",
-          "schema:description": "",
+          "schema:description": "An email address. A value not shaped like one keeps the form invalid.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -6331,7 +6339,7 @@
             }
           },
           "schema:name": "Link Field",
-          "schema:description": "",
+          "schema:description": "A web address. The instance records it as an IRI, not as a string.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -6411,7 +6419,7 @@
               "inputType": "attribute-value"
             },
             "schema:name": "Attribute-Value Field",
-            "schema:description": "",
+            "schema:description": "Name and value pairs supplied while the form is filled in. The person entering metadata names each attribute, so the template does not have to name it in advance.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -6500,7 +6508,7 @@
             }
           },
           "schema:name": "Controlled-Term Field",
-          "schema:description": "",
+          "schema:description": "A term chosen from the DOID class disease, looked up in the terminology server as you type. The instance keeps the term IRI alongside its label.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -6576,7 +6584,7 @@
             }
           },
           "schema:name": "ROR Field",
-          "schema:description": "",
+          "schema:description": "An organization, chosen from the Research Organization Registry (ROR). The instance keeps the ROR IRI and the registered name.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -6652,7 +6660,7 @@
             }
           },
           "schema:name": "ORCID Field",
-          "schema:description": "",
+          "schema:description": "A person, chosen by ORCID iD. The instance keeps the ORCID IRI and the registered name.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -6728,7 +6736,7 @@
             }
           },
           "schema:name": "PFAS Field",
-          "schema:description": "",
+          "schema:description": "A PFAS chemical, chosen from the EPA CompTox Chemicals Dashboard. The instance keeps the dashboard IRI and the substance name.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -6804,7 +6812,7 @@
             }
           },
           "schema:name": "RRID Field",
-          "schema:description": "",
+          "schema:description": "A research resource — an antibody, a cell line, a tool — chosen by RRID from SciCrunch. The instance keeps the resolver IRI and the RRID.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -6880,7 +6888,7 @@
             }
           },
           "schema:name": "PubMed Field",
-          "schema:description": "",
+          "schema:description": "A publication, chosen by PubMed ID. The instance keeps the PubMed IRI and the PMID.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -7040,7 +7048,7 @@
         "s_ext_pubmed_field"
       ],
       "schema:name": "All Field Types (single)",
-      "schema:description": "",
+      "schema:description": "One instance of every field type the editor supports, none of them repeatable — the plain case a nested element has to render correctly.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -7182,41 +7190,41 @@
           "m_static_youtube_video": "YouTube Video"
         },
         "propertyDescriptions": {
-          "m_text_field": "",
-          "m_text_area_field": "",
-          "m_numeric_field": "",
-          "m_numeric_long": "",
-          "m_numeric_short": "",
-          "m_numeric_byte": "",
-          "m_numeric_decimal_0dp": "",
-          "m_numeric_decimal_2dp": "",
-          "m_numeric_decimal_4dp": "",
-          "m_numeric_float_3dp": "",
-          "m_numeric_double_6dp": "",
-          "m_temporal_field": "",
-          "m_temporal_date_year": "",
-          "m_temporal_date_month": "",
-          "m_temporal_date_day": "",
-          "m_temporal_time_minute_24h": "",
-          "m_temporal_time_second_12h": "",
-          "m_temporal_datetime_day": "",
-          "m_temporal_datetime_second_24h_tz": "",
-          "m_temporal_datetime_decimalsecond_12h": "",
-          "m_radio_field": "",
-          "m_checkbox_field": "",
-          "m_single_select_list_field": "",
-          "m_multi_select_list_field": "",
-          "m_phone_number_field": "",
-          "m_email_field": "",
-          "m_link_field": "",
+          "m_text_field": "A single line of free text. Repeatable, up to five values.",
+          "m_text_area_field": "Free text over several lines, for a paragraph rather than a phrase. Repeatable, one to three values.",
+          "m_numeric_field": "A whole number, stored as xsd:int. Repeatable, two to four values.",
+          "m_numeric_long": "A whole number in the 64-bit range, stored as xsd:long. Repeatable, two to four values.",
+          "m_numeric_short": "A whole number in the 16-bit range, stored as xsd:short. Repeatable, two to four values.",
+          "m_numeric_byte": "A whole number in the 8-bit range, stored as xsd:byte. Repeatable, two to four values.",
+          "m_numeric_decimal_0dp": "A decimal number entered without a fractional part, stored as xsd:decimal. Repeatable, two to four values.",
+          "m_numeric_decimal_2dp": "A decimal number carrying two decimal places, stored as xsd:decimal. Repeatable, two to four values.",
+          "m_numeric_decimal_4dp": "A decimal number carrying four decimal places, stored as xsd:decimal. Repeatable, two to four values.",
+          "m_numeric_float_3dp": "A floating-point number carrying three decimal places, stored as xsd:float. Repeatable, two to four values.",
+          "m_numeric_double_6dp": "A double-precision number carrying six decimal places, stored as xsd:double. Repeatable, two to four values.",
+          "m_temporal_field": "A date and a time of day, to the minute, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime. Repeatable, up to two values.",
+          "m_temporal_date_year": "A year. Stored as xsd:date. Repeatable, up to two values.",
+          "m_temporal_date_month": "A year and a month. Stored as xsd:date. Repeatable, up to two values.",
+          "m_temporal_date_day": "A calendar date. Stored as xsd:date. Repeatable, up to two values.",
+          "m_temporal_time_minute_24h": "A time of day, to the minute, on a 24-hour clock. Stored as xsd:time. Repeatable, up to two values.",
+          "m_temporal_time_second_12h": "A time of day, to the second, on a 12-hour clock. Stored as xsd:time. Repeatable, up to two values.",
+          "m_temporal_datetime_day": "A date, with no time of day. Stored as xsd:dateTime. Repeatable, up to two values.",
+          "m_temporal_datetime_second_24h_tz": "A date and a time of day, to the second, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime. Repeatable, up to two values.",
+          "m_temporal_datetime_decimalsecond_12h": "A date and a time of day, to a fraction of a second, on a 12-hour clock. Stored as xsd:dateTime. Repeatable, up to two values.",
+          "m_radio_field": "Exactly one of Option A, Option B or Option C, shown as radio buttons.",
+          "m_checkbox_field": "Any of Option A, Option B or Option C, shown as check boxes and stored as a list.",
+          "m_single_select_list_field": "One of Option A, Option B or Option C, chosen from a drop-down list.",
+          "m_multi_select_list_field": "One or more of Option A, Option B or Option C, chosen from a drop-down list.",
+          "m_phone_number_field": "A telephone number, entered with or without a country code and separators. Repeatable, one to five values.",
+          "m_email_field": "An email address. A value not shaped like one keeps the form invalid. Repeatable, three to five values.",
+          "m_link_field": "A web address. The instance records it as an IRI, not as a string. Repeatable, up to three values.",
           "m_section_break": "",
-          "m_attribute_value_field": "",
-          "m_controlled_term_field": "",
-          "m_ext_ror_field": "",
-          "m_ext_orcid_field": "",
-          "m_ext_pfas_field": "",
-          "m_ext_rrid_field": "",
-          "m_ext_pubmed_field": "",
+          "m_attribute_value_field": "Name and value pairs supplied while the form is filled in. The person entering metadata names each attribute, so the template does not have to name it in advance.",
+          "m_controlled_term_field": "A term chosen from the DOID class disease, looked up in the terminology server as you type. The instance keeps the term IRI alongside its label. Repeatable, two to five values.",
+          "m_ext_ror_field": "An organization, chosen from the Research Organization Registry (ROR). The instance keeps the ROR IRI and the registered name. Repeatable, one to two values.",
+          "m_ext_orcid_field": "A person, chosen by ORCID iD. The instance keeps the ORCID IRI and the registered name. Repeatable, up to four values.",
+          "m_ext_pfas_field": "A PFAS chemical, chosen from the EPA CompTox Chemicals Dashboard. The instance keeps the dashboard IRI and the substance name. Repeatable, two to three values.",
+          "m_ext_rrid_field": "A research resource — an antibody, a cell line, a tool — chosen by RRID from SciCrunch. The instance keeps the resolver IRI and the RRID. Repeatable, one to four values.",
+          "m_ext_pubmed_field": "A publication, chosen by PubMed ID. The instance keeps the PubMed IRI and the PMID. Repeatable, up to one value.",
           "m_static_page_break": "",
           "m_static_rich_text": "",
           "m_static_image": "",
@@ -7531,7 +7539,7 @@
               "@value"
             ],
             "schema:name": "Text Field",
-            "schema:description": "",
+            "schema:description": "A single line of free text. Repeatable, up to five values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -7618,7 +7626,7 @@
               "@value"
             ],
             "schema:name": "Text Area Field",
-            "schema:description": "",
+            "schema:description": "Free text over several lines, for a paragraph rather than a phrase. Repeatable, one to three values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -7710,7 +7718,7 @@
               "@type"
             ],
             "schema:name": "Numeric Field",
-            "schema:description": "",
+            "schema:description": "A whole number, stored as xsd:int. Repeatable, two to four values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -7801,7 +7809,7 @@
               "@type"
             ],
             "schema:name": "Numeric Long",
-            "schema:description": "",
+            "schema:description": "A whole number in the 64-bit range, stored as xsd:long. Repeatable, two to four values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -7892,7 +7900,7 @@
               "@type"
             ],
             "schema:name": "Numeric Short",
-            "schema:description": "",
+            "schema:description": "A whole number in the 16-bit range, stored as xsd:short. Repeatable, two to four values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -7983,7 +7991,7 @@
               "@type"
             ],
             "schema:name": "Numeric Byte",
-            "schema:description": "",
+            "schema:description": "A whole number in the 8-bit range, stored as xsd:byte. Repeatable, two to four values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -8073,7 +8081,7 @@
               "@type"
             ],
             "schema:name": "Numeric Decimal (0 dp)",
-            "schema:description": "",
+            "schema:description": "A decimal number entered without a fractional part, stored as xsd:decimal. Repeatable, two to four values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -8166,7 +8174,7 @@
               "@type"
             ],
             "schema:name": "Numeric Decimal (2 dp)",
-            "schema:description": "",
+            "schema:description": "A decimal number carrying two decimal places, stored as xsd:decimal. Repeatable, two to four values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -8256,7 +8264,7 @@
               "@type"
             ],
             "schema:name": "Numeric Decimal (4 dp)",
-            "schema:description": "",
+            "schema:description": "A decimal number carrying four decimal places, stored as xsd:decimal. Repeatable, two to four values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -8347,7 +8355,7 @@
               "@type"
             ],
             "schema:name": "Numeric Float (3 dp)",
-            "schema:description": "",
+            "schema:description": "A floating-point number carrying three decimal places, stored as xsd:float. Repeatable, two to four values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -8438,7 +8446,7 @@
               "@type"
             ],
             "schema:name": "Numeric Double (6 dp)",
-            "schema:description": "",
+            "schema:description": "A double-precision number carrying six decimal places, stored as xsd:double. Repeatable, two to four values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -8530,7 +8538,7 @@
               "@type"
             ],
             "schema:name": "Temporal Field",
-            "schema:description": "",
+            "schema:description": "A date and a time of day, to the minute, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime. Repeatable, up to two values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -8620,7 +8628,7 @@
               "@type"
             ],
             "schema:name": "Temporal Date (Year)",
-            "schema:description": "",
+            "schema:description": "A year. Stored as xsd:date. Repeatable, up to two values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -8710,7 +8718,7 @@
               "@type"
             ],
             "schema:name": "Temporal Date (Month)",
-            "schema:description": "",
+            "schema:description": "A year and a month. Stored as xsd:date. Repeatable, up to two values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -8800,7 +8808,7 @@
               "@type"
             ],
             "schema:name": "Temporal Date (Day)",
-            "schema:description": "",
+            "schema:description": "A calendar date. Stored as xsd:date. Repeatable, up to two values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -8891,7 +8899,7 @@
               "@type"
             ],
             "schema:name": "Temporal Time (Minute, 24h)",
-            "schema:description": "",
+            "schema:description": "A time of day, to the minute, on a 24-hour clock. Stored as xsd:time. Repeatable, up to two values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -8982,7 +8990,7 @@
               "@type"
             ],
             "schema:name": "Temporal Time (Second, 12h)",
-            "schema:description": "",
+            "schema:description": "A time of day, to the second, on a 12-hour clock. Stored as xsd:time. Repeatable, up to two values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -9072,7 +9080,7 @@
               "@type"
             ],
             "schema:name": "Temporal DateTime (Day)",
-            "schema:description": "",
+            "schema:description": "A date, with no time of day. Stored as xsd:dateTime. Repeatable, up to two values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -9164,7 +9172,7 @@
               "@type"
             ],
             "schema:name": "Temporal DateTime (Second, 24h, TZ)",
-            "schema:description": "",
+            "schema:description": "A date and a time of day, to the second, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime. Repeatable, up to two values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -9255,7 +9263,7 @@
               "@type"
             ],
             "schema:name": "Temporal DateTime (Decimal Second, 12h)",
-            "schema:description": "",
+            "schema:description": "A date and a time of day, to a fraction of a second, on a 12-hour clock. Stored as xsd:dateTime. Repeatable, up to two values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -9350,7 +9358,7 @@
             "@value"
           ],
           "schema:name": "Radio Field",
-          "schema:description": "",
+          "schema:description": "Exactly one of Option A, Option B or Option C, shown as radio buttons.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -9447,7 +9455,7 @@
               "@value"
             ],
             "schema:name": "Checkbox Field",
-            "schema:description": "",
+            "schema:description": "Any of Option A, Option B or Option C, shown as check boxes and stored as a list.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -9542,7 +9550,7 @@
             "@value"
           ],
           "schema:name": "Single-Select List Field",
-          "schema:description": "",
+          "schema:description": "One of Option A, Option B or Option C, chosen from a drop-down list.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -9552,98 +9560,102 @@
           "$schema": "http://json-schema.org/draft-04/schema#"
         },
         "m_multi_select_list_field": {
-          "@id": null,
-          "@type": "https://schema.metadatacenter.org/core/TemplateField",
-          "@context": {
-            "xsd": "http://www.w3.org/2001/XMLSchema#",
-            "pav": "http://purl.org/pav/",
-            "bibo": "http://purl.org/ontology/bibo/",
-            "oslc": "http://open-services.net/ns/core#",
-            "schema": "http://schema.org/",
-            "skos": "http://www.w3.org/2004/02/skos/core#",
-            "schema:name": {
-              "@type": "xsd:string"
-            },
-            "schema:description": {
-              "@type": "xsd:string"
-            },
-            "skos:prefLabel": {
-              "@type": "xsd:string"
-            },
-            "skos:altLabel": {
-              "@type": "xsd:string"
-            },
-            "pav:createdOn": {
-              "@type": "xsd:dateTime"
-            },
-            "pav:createdBy": {
-              "@type": "@id"
-            },
-            "pav:lastUpdatedOn": {
-              "@type": "xsd:dateTime"
-            },
-            "oslc:modifiedBy": {
-              "@type": "@id"
-            }
-          },
-          "type": "object",
-          "title": "Multi-Select List Field field schema",
-          "description": "Multi-Select List Field field schema generated by the CEDAR Artifact Library",
-          "_ui": {
-            "inputType": "list"
-          },
-          "_valueConstraints": {
-            "literals": [
-              {
-                "label": "Option A"
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "@id": null,
+            "@type": "https://schema.metadatacenter.org/core/TemplateField",
+            "@context": {
+              "xsd": "http://www.w3.org/2001/XMLSchema#",
+              "pav": "http://purl.org/pav/",
+              "bibo": "http://purl.org/ontology/bibo/",
+              "oslc": "http://open-services.net/ns/core#",
+              "schema": "http://schema.org/",
+              "skos": "http://www.w3.org/2004/02/skos/core#",
+              "schema:name": {
+                "@type": "xsd:string"
               },
-              {
-                "label": "Option B"
+              "schema:description": {
+                "@type": "xsd:string"
               },
-              {
-                "label": "Option C"
+              "skos:prefLabel": {
+                "@type": "xsd:string"
+              },
+              "skos:altLabel": {
+                "@type": "xsd:string"
+              },
+              "pav:createdOn": {
+                "@type": "xsd:dateTime"
+              },
+              "pav:createdBy": {
+                "@type": "@id"
+              },
+              "pav:lastUpdatedOn": {
+                "@type": "xsd:dateTime"
+              },
+              "oslc:modifiedBy": {
+                "@type": "@id"
               }
-            ],
-            "requiredValue": false,
-            "multipleChoice": true
-          },
-          "properties": {
-            "@type": {
-              "type": "string",
-              "format": "uri"
             },
-            "rdfs:label": {
-              "type": [
-                "string",
-                "null"
-              ]
+            "type": "object",
+            "title": "Multi-Select List Field field schema",
+            "description": "Multi-Select List Field field schema generated by the CEDAR Artifact Library",
+            "_ui": {
+              "inputType": "list"
             },
-            "@value": {
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "@language": {
-              "type": [
-                "string",
-                "null"
+            "_valueConstraints": {
+              "literals": [
+                {
+                  "label": "Option A"
+                },
+                {
+                  "label": "Option B"
+                },
+                {
+                  "label": "Option C"
+                }
               ],
-              "minLength": 1
-            }
-          },
-          "required": [
-            "@value"
-          ],
-          "schema:name": "Multi-Select List Field",
-          "schema:description": "",
-          "pav:createdOn": null,
-          "pav:createdBy": null,
-          "pav:lastUpdatedOn": null,
-          "oslc:modifiedBy": null,
-          "schema:schemaVersion": "1.6.0",
-          "additionalProperties": false,
-          "$schema": "http://json-schema.org/draft-04/schema#"
+              "requiredValue": false,
+              "multipleChoice": true
+            },
+            "properties": {
+              "@type": {
+                "type": "string",
+                "format": "uri"
+              },
+              "rdfs:label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "@value": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "@language": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              }
+            },
+            "required": [
+              "@value"
+            ],
+            "schema:name": "Multi-Select List Field",
+            "schema:description": "One or more of Option A, Option B or Option C, chosen from a drop-down list.",
+            "pav:createdOn": null,
+            "pav:createdBy": null,
+            "pav:lastUpdatedOn": null,
+            "oslc:modifiedBy": null,
+            "schema:schemaVersion": "1.6.0",
+            "additionalProperties": false,
+            "$schema": "http://json-schema.org/draft-04/schema#"
+          }
         },
         "m_phone_number_field": {
           "type": "array",
@@ -9722,7 +9734,7 @@
               "@value"
             ],
             "schema:name": "Phone Number Field",
-            "schema:description": "",
+            "schema:description": "A telephone number, entered with or without a country code and separators. Repeatable, one to five values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -9809,7 +9821,7 @@
               "@value"
             ],
             "schema:name": "Email Field",
-            "schema:description": "",
+            "schema:description": "An email address. A value not shaped like one keeps the form invalid. Repeatable, three to five values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -9890,7 +9902,7 @@
               }
             },
             "schema:name": "Link Field",
-            "schema:description": "",
+            "schema:description": "A web address. The instance records it as an IRI, not as a string. Repeatable, up to three values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -9971,7 +9983,7 @@
               "inputType": "attribute-value"
             },
             "schema:name": "Attribute-Value Field",
-            "schema:description": "",
+            "schema:description": "Name and value pairs supplied while the form is filled in. The person entering metadata names each attribute, so the template does not have to name it in advance.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -10064,7 +10076,7 @@
               }
             },
             "schema:name": "Controlled-Term Field",
-            "schema:description": "",
+            "schema:description": "A term chosen from the DOID class disease, looked up in the terminology server as you type. The instance keeps the term IRI alongside its label. Repeatable, two to five values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -10145,7 +10157,7 @@
               }
             },
             "schema:name": "ROR Field",
-            "schema:description": "",
+            "schema:description": "An organization, chosen from the Research Organization Registry (ROR). The instance keeps the ROR IRI and the registered name. Repeatable, one to two values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -10226,7 +10238,7 @@
               }
             },
             "schema:name": "ORCID Field",
-            "schema:description": "",
+            "schema:description": "A person, chosen by ORCID iD. The instance keeps the ORCID IRI and the registered name. Repeatable, up to four values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -10307,7 +10319,7 @@
               }
             },
             "schema:name": "PFAS Field",
-            "schema:description": "",
+            "schema:description": "A PFAS chemical, chosen from the EPA CompTox Chemicals Dashboard. The instance keeps the dashboard IRI and the substance name. Repeatable, two to three values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -10388,7 +10400,7 @@
               }
             },
             "schema:name": "RRID Field",
-            "schema:description": "",
+            "schema:description": "A research resource — an antibody, a cell line, a tool — chosen by RRID from SciCrunch. The instance keeps the resolver IRI and the RRID. Repeatable, one to four values.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -10469,7 +10481,7 @@
               }
             },
             "schema:name": "PubMed Field",
-            "schema:description": "",
+            "schema:description": "A publication, chosen by PubMed ID. The instance keeps the PubMed IRI and the PMID. Repeatable, up to one value.",
             "pav:createdOn": null,
             "pav:createdBy": null,
             "pav:lastUpdatedOn": null,
@@ -10630,7 +10642,7 @@
         "m_ext_pubmed_field"
       ],
       "schema:name": "All Field Types (multi-instance)",
-      "schema:description": "",
+      "schema:description": "The same set of field types again, with each field repeatable, so cardinality is exercised inside an element rather than at the top level.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -10698,8 +10710,8 @@
           "nested_all_single": "Nested: All Field Types (single)"
         },
         "propertyDescriptions": {
-          "sw_lead": "",
-          "nested_all_single": ""
+          "sw_lead": "A single line of free text.",
+          "nested_all_single": "The inner element of the single-instance pair, holding one instance of every field type."
         }
       },
       "properties": {
@@ -10817,7 +10829,7 @@
             "@value"
           ],
           "schema:name": "Lead Field",
-          "schema:description": "",
+          "schema:description": "A single line of free text.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -10941,41 +10953,41 @@
               "ns_static_youtube_video": "YouTube Video"
             },
             "propertyDescriptions": {
-              "ns_text_field": "",
-              "ns_text_area_field": "",
-              "ns_numeric_field": "",
-              "ns_numeric_long": "",
-              "ns_numeric_short": "",
-              "ns_numeric_byte": "",
-              "ns_numeric_decimal_0dp": "",
-              "ns_numeric_decimal_2dp": "",
-              "ns_numeric_decimal_4dp": "",
-              "ns_numeric_float_3dp": "",
-              "ns_numeric_double_6dp": "",
-              "ns_temporal_field": "",
-              "ns_temporal_date_year": "",
-              "ns_temporal_date_month": "",
-              "ns_temporal_date_day": "",
-              "ns_temporal_time_minute_24h": "",
-              "ns_temporal_time_second_12h": "",
-              "ns_temporal_datetime_day": "",
-              "ns_temporal_datetime_second_24h_tz": "",
-              "ns_temporal_datetime_decimalsecond_12h": "",
-              "ns_radio_field": "",
-              "ns_checkbox_field": "",
-              "ns_single_select_list_field": "",
-              "ns_multi_select_list_field": "",
-              "ns_phone_number_field": "",
-              "ns_email_field": "",
-              "ns_link_field": "",
+              "ns_text_field": "A single line of free text.",
+              "ns_text_area_field": "Free text over several lines, for a paragraph rather than a phrase.",
+              "ns_numeric_field": "A whole number, stored as xsd:int.",
+              "ns_numeric_long": "A whole number in the 64-bit range, stored as xsd:long.",
+              "ns_numeric_short": "A whole number in the 16-bit range, stored as xsd:short.",
+              "ns_numeric_byte": "A whole number in the 8-bit range, stored as xsd:byte.",
+              "ns_numeric_decimal_0dp": "A decimal number entered without a fractional part, stored as xsd:decimal.",
+              "ns_numeric_decimal_2dp": "A decimal number carrying two decimal places, stored as xsd:decimal.",
+              "ns_numeric_decimal_4dp": "A decimal number carrying four decimal places, stored as xsd:decimal.",
+              "ns_numeric_float_3dp": "A floating-point number carrying three decimal places, stored as xsd:float.",
+              "ns_numeric_double_6dp": "A double-precision number carrying six decimal places, stored as xsd:double.",
+              "ns_temporal_field": "A date and a time of day, to the minute, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
+              "ns_temporal_date_year": "A year. Stored as xsd:date.",
+              "ns_temporal_date_month": "A year and a month. Stored as xsd:date.",
+              "ns_temporal_date_day": "A calendar date. Stored as xsd:date.",
+              "ns_temporal_time_minute_24h": "A time of day, to the minute, on a 24-hour clock. Stored as xsd:time.",
+              "ns_temporal_time_second_12h": "A time of day, to the second, on a 12-hour clock. Stored as xsd:time.",
+              "ns_temporal_datetime_day": "A date, with no time of day. Stored as xsd:dateTime.",
+              "ns_temporal_datetime_second_24h_tz": "A date and a time of day, to the second, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
+              "ns_temporal_datetime_decimalsecond_12h": "A date and a time of day, to a fraction of a second, on a 12-hour clock. Stored as xsd:dateTime.",
+              "ns_radio_field": "Exactly one of Option A, Option B or Option C, shown as radio buttons.",
+              "ns_checkbox_field": "Any of Option A, Option B or Option C, shown as check boxes and stored as a list.",
+              "ns_single_select_list_field": "One of Option A, Option B or Option C, chosen from a drop-down list.",
+              "ns_multi_select_list_field": "One or more of Option A, Option B or Option C, chosen from a drop-down list.",
+              "ns_phone_number_field": "A telephone number, entered with or without a country code and separators.",
+              "ns_email_field": "An email address. A value not shaped like one keeps the form invalid.",
+              "ns_link_field": "A web address. The instance records it as an IRI, not as a string.",
               "ns_section_break": "",
-              "ns_attribute_value_field": "",
-              "ns_controlled_term_field": "",
-              "ns_ext_ror_field": "",
-              "ns_ext_orcid_field": "",
-              "ns_ext_pfas_field": "",
-              "ns_ext_rrid_field": "",
-              "ns_ext_pubmed_field": "",
+              "ns_attribute_value_field": "Name and value pairs supplied while the form is filled in. The person entering metadata names each attribute, so the template does not have to name it in advance.",
+              "ns_controlled_term_field": "A term chosen from the DOID class disease, looked up in the terminology server as you type. The instance keeps the term IRI alongside its label.",
+              "ns_ext_ror_field": "An organization, chosen from the Research Organization Registry (ROR). The instance keeps the ROR IRI and the registered name.",
+              "ns_ext_orcid_field": "A person, chosen by ORCID iD. The instance keeps the ORCID IRI and the registered name.",
+              "ns_ext_pfas_field": "A PFAS chemical, chosen from the EPA CompTox Chemicals Dashboard. The instance keeps the dashboard IRI and the substance name.",
+              "ns_ext_rrid_field": "A research resource — an antibody, a cell line, a tool — chosen by RRID from SciCrunch. The instance keeps the resolver IRI and the RRID.",
+              "ns_ext_pubmed_field": "A publication, chosen by PubMed ID. The instance keeps the PubMed IRI and the PMID.",
               "ns_static_page_break": "",
               "ns_static_rich_text": "",
               "ns_static_image": "",
@@ -11286,7 +11298,7 @@
                 "@value"
               ],
               "schema:name": "Text Field",
-              "schema:description": "",
+              "schema:description": "A single line of free text.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -11368,7 +11380,7 @@
                 "@value"
               ],
               "schema:name": "Text Area Field",
-              "schema:description": "",
+              "schema:description": "Free text over several lines, for a paragraph rather than a phrase.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -11455,7 +11467,7 @@
                 "@type"
               ],
               "schema:name": "Numeric Field",
-              "schema:description": "",
+              "schema:description": "A whole number, stored as xsd:int.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -11541,7 +11553,7 @@
                 "@type"
               ],
               "schema:name": "Numeric Long",
-              "schema:description": "",
+              "schema:description": "A whole number in the 64-bit range, stored as xsd:long.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -11627,7 +11639,7 @@
                 "@type"
               ],
               "schema:name": "Numeric Short",
-              "schema:description": "",
+              "schema:description": "A whole number in the 16-bit range, stored as xsd:short.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -11713,7 +11725,7 @@
                 "@type"
               ],
               "schema:name": "Numeric Byte",
-              "schema:description": "",
+              "schema:description": "A whole number in the 8-bit range, stored as xsd:byte.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -11798,7 +11810,7 @@
                 "@type"
               ],
               "schema:name": "Numeric Decimal (0 dp)",
-              "schema:description": "",
+              "schema:description": "A decimal number entered without a fractional part, stored as xsd:decimal.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -11886,7 +11898,7 @@
                 "@type"
               ],
               "schema:name": "Numeric Decimal (2 dp)",
-              "schema:description": "",
+              "schema:description": "A decimal number carrying two decimal places, stored as xsd:decimal.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -11971,7 +11983,7 @@
                 "@type"
               ],
               "schema:name": "Numeric Decimal (4 dp)",
-              "schema:description": "",
+              "schema:description": "A decimal number carrying four decimal places, stored as xsd:decimal.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -12057,7 +12069,7 @@
                 "@type"
               ],
               "schema:name": "Numeric Float (3 dp)",
-              "schema:description": "",
+              "schema:description": "A floating-point number carrying three decimal places, stored as xsd:float.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -12143,7 +12155,7 @@
                 "@type"
               ],
               "schema:name": "Numeric Double (6 dp)",
-              "schema:description": "",
+              "schema:description": "A double-precision number carrying six decimal places, stored as xsd:double.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -12230,7 +12242,7 @@
                 "@type"
               ],
               "schema:name": "Temporal Field",
-              "schema:description": "",
+              "schema:description": "A date and a time of day, to the minute, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -12315,7 +12327,7 @@
                 "@type"
               ],
               "schema:name": "Temporal Date (Year)",
-              "schema:description": "",
+              "schema:description": "A year. Stored as xsd:date.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -12400,7 +12412,7 @@
                 "@type"
               ],
               "schema:name": "Temporal Date (Month)",
-              "schema:description": "",
+              "schema:description": "A year and a month. Stored as xsd:date.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -12485,7 +12497,7 @@
                 "@type"
               ],
               "schema:name": "Temporal Date (Day)",
-              "schema:description": "",
+              "schema:description": "A calendar date. Stored as xsd:date.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -12571,7 +12583,7 @@
                 "@type"
               ],
               "schema:name": "Temporal Time (Minute, 24h)",
-              "schema:description": "",
+              "schema:description": "A time of day, to the minute, on a 24-hour clock. Stored as xsd:time.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -12657,7 +12669,7 @@
                 "@type"
               ],
               "schema:name": "Temporal Time (Second, 12h)",
-              "schema:description": "",
+              "schema:description": "A time of day, to the second, on a 12-hour clock. Stored as xsd:time.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -12742,7 +12754,7 @@
                 "@type"
               ],
               "schema:name": "Temporal DateTime (Day)",
-              "schema:description": "",
+              "schema:description": "A date, with no time of day. Stored as xsd:dateTime.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -12829,7 +12841,7 @@
                 "@type"
               ],
               "schema:name": "Temporal DateTime (Second, 24h, TZ)",
-              "schema:description": "",
+              "schema:description": "A date and a time of day, to the second, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -12915,7 +12927,7 @@
                 "@type"
               ],
               "schema:name": "Temporal DateTime (Decimal Second, 12h)",
-              "schema:description": "",
+              "schema:description": "A date and a time of day, to a fraction of a second, on a 12-hour clock. Stored as xsd:dateTime.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -13009,7 +13021,7 @@
                 "@value"
               ],
               "schema:name": "Radio Field",
-              "schema:description": "",
+              "schema:description": "Exactly one of Option A, Option B or Option C, shown as radio buttons.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -13106,7 +13118,7 @@
                   "@value"
                 ],
                 "schema:name": "Checkbox Field",
-                "schema:description": "",
+                "schema:description": "Any of Option A, Option B or Option C, shown as check boxes and stored as a list.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -13201,7 +13213,7 @@
                 "@value"
               ],
               "schema:name": "Single-Select List Field",
-              "schema:description": "",
+              "schema:description": "One of Option A, Option B or Option C, chosen from a drop-down list.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -13211,98 +13223,102 @@
               "$schema": "http://json-schema.org/draft-04/schema#"
             },
             "ns_multi_select_list_field": {
-              "@id": null,
-              "@type": "https://schema.metadatacenter.org/core/TemplateField",
-              "@context": {
-                "xsd": "http://www.w3.org/2001/XMLSchema#",
-                "pav": "http://purl.org/pav/",
-                "bibo": "http://purl.org/ontology/bibo/",
-                "oslc": "http://open-services.net/ns/core#",
-                "schema": "http://schema.org/",
-                "skos": "http://www.w3.org/2004/02/skos/core#",
-                "schema:name": {
-                  "@type": "xsd:string"
-                },
-                "schema:description": {
-                  "@type": "xsd:string"
-                },
-                "skos:prefLabel": {
-                  "@type": "xsd:string"
-                },
-                "skos:altLabel": {
-                  "@type": "xsd:string"
-                },
-                "pav:createdOn": {
-                  "@type": "xsd:dateTime"
-                },
-                "pav:createdBy": {
-                  "@type": "@id"
-                },
-                "pav:lastUpdatedOn": {
-                  "@type": "xsd:dateTime"
-                },
-                "oslc:modifiedBy": {
-                  "@type": "@id"
-                }
-              },
-              "type": "object",
-              "title": "Multi-Select List Field field schema",
-              "description": "Multi-Select List Field field schema generated by the CEDAR Artifact Library",
-              "_ui": {
-                "inputType": "list"
-              },
-              "_valueConstraints": {
-                "literals": [
-                  {
-                    "label": "Option A"
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "@id": null,
+                "@type": "https://schema.metadatacenter.org/core/TemplateField",
+                "@context": {
+                  "xsd": "http://www.w3.org/2001/XMLSchema#",
+                  "pav": "http://purl.org/pav/",
+                  "bibo": "http://purl.org/ontology/bibo/",
+                  "oslc": "http://open-services.net/ns/core#",
+                  "schema": "http://schema.org/",
+                  "skos": "http://www.w3.org/2004/02/skos/core#",
+                  "schema:name": {
+                    "@type": "xsd:string"
                   },
-                  {
-                    "label": "Option B"
+                  "schema:description": {
+                    "@type": "xsd:string"
                   },
-                  {
-                    "label": "Option C"
+                  "skos:prefLabel": {
+                    "@type": "xsd:string"
+                  },
+                  "skos:altLabel": {
+                    "@type": "xsd:string"
+                  },
+                  "pav:createdOn": {
+                    "@type": "xsd:dateTime"
+                  },
+                  "pav:createdBy": {
+                    "@type": "@id"
+                  },
+                  "pav:lastUpdatedOn": {
+                    "@type": "xsd:dateTime"
+                  },
+                  "oslc:modifiedBy": {
+                    "@type": "@id"
                   }
-                ],
-                "requiredValue": false,
-                "multipleChoice": true
-              },
-              "properties": {
-                "@type": {
-                  "type": "string",
-                  "format": "uri"
                 },
-                "rdfs:label": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                "type": "object",
+                "title": "Multi-Select List Field field schema",
+                "description": "Multi-Select List Field field schema generated by the CEDAR Artifact Library",
+                "_ui": {
+                  "inputType": "list"
                 },
-                "@value": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "@language": {
-                  "type": [
-                    "string",
-                    "null"
+                "_valueConstraints": {
+                  "literals": [
+                    {
+                      "label": "Option A"
+                    },
+                    {
+                      "label": "Option B"
+                    },
+                    {
+                      "label": "Option C"
+                    }
                   ],
-                  "minLength": 1
-                }
-              },
-              "required": [
-                "@value"
-              ],
-              "schema:name": "Multi-Select List Field",
-              "schema:description": "",
-              "pav:createdOn": null,
-              "pav:createdBy": null,
-              "pav:lastUpdatedOn": null,
-              "oslc:modifiedBy": null,
-              "schema:schemaVersion": "1.6.0",
-              "additionalProperties": false,
-              "$schema": "http://json-schema.org/draft-04/schema#"
+                  "requiredValue": false,
+                  "multipleChoice": true
+                },
+                "properties": {
+                  "@type": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "rdfs:label": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "@value": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "@language": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "@value"
+                ],
+                "schema:name": "Multi-Select List Field",
+                "schema:description": "One or more of Option A, Option B or Option C, chosen from a drop-down list.",
+                "pav:createdOn": null,
+                "pav:createdBy": null,
+                "pav:lastUpdatedOn": null,
+                "oslc:modifiedBy": null,
+                "schema:schemaVersion": "1.6.0",
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-04/schema#"
+              }
             },
             "ns_phone_number_field": {
               "@id": null,
@@ -13377,7 +13393,7 @@
                 "@value"
               ],
               "schema:name": "Phone Number Field",
-              "schema:description": "",
+              "schema:description": "A telephone number, entered with or without a country code and separators.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -13459,7 +13475,7 @@
                 "@value"
               ],
               "schema:name": "Email Field",
-              "schema:description": "",
+              "schema:description": "An email address. A value not shaped like one keeps the form invalid.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -13535,7 +13551,7 @@
                 }
               },
               "schema:name": "Link Field",
-              "schema:description": "",
+              "schema:description": "A web address. The instance records it as an IRI, not as a string.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -13615,7 +13631,7 @@
                   "inputType": "attribute-value"
                 },
                 "schema:name": "Attribute-Value Field",
-                "schema:description": "",
+                "schema:description": "Name and value pairs supplied while the form is filled in. The person entering metadata names each attribute, so the template does not have to name it in advance.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -13704,7 +13720,7 @@
                 }
               },
               "schema:name": "Controlled-Term Field",
-              "schema:description": "",
+              "schema:description": "A term chosen from the DOID class disease, looked up in the terminology server as you type. The instance keeps the term IRI alongside its label.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -13780,7 +13796,7 @@
                 }
               },
               "schema:name": "ROR Field",
-              "schema:description": "",
+              "schema:description": "An organization, chosen from the Research Organization Registry (ROR). The instance keeps the ROR IRI and the registered name.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -13856,7 +13872,7 @@
                 }
               },
               "schema:name": "ORCID Field",
-              "schema:description": "",
+              "schema:description": "A person, chosen by ORCID iD. The instance keeps the ORCID IRI and the registered name.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -13932,7 +13948,7 @@
                 }
               },
               "schema:name": "PFAS Field",
-              "schema:description": "",
+              "schema:description": "A PFAS chemical, chosen from the EPA CompTox Chemicals Dashboard. The instance keeps the dashboard IRI and the substance name.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -14008,7 +14024,7 @@
                 }
               },
               "schema:name": "RRID Field",
-              "schema:description": "",
+              "schema:description": "A research resource — an antibody, a cell line, a tool — chosen by RRID from SciCrunch. The instance keeps the resolver IRI and the RRID.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -14084,7 +14100,7 @@
                 }
               },
               "schema:name": "PubMed Field",
-              "schema:description": "",
+              "schema:description": "A publication, chosen by PubMed ID. The instance keeps the PubMed IRI and the PMID.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -14244,7 +14260,7 @@
             "ns_ext_pubmed_field"
           ],
           "schema:name": "Nested: All Field Types (single)",
-          "schema:description": "",
+          "schema:description": "The inner element of the single-instance pair, holding one instance of every field type.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -14279,7 +14295,7 @@
         "nested_all_single"
       ],
       "schema:name": "Wrapper then Nested (single)",
-      "schema:description": "",
+      "schema:description": "A field of its own followed by a nested element, taking this template two levels deep.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -14329,8 +14345,8 @@
           "nested_all_multi": "Nested: All Field Types (multi-instance)"
         },
         "propertyDescriptions": {
-          "mw_lead": "",
-          "nested_all_multi": ""
+          "mw_lead": "A single line of free text.",
+          "nested_all_multi": "The inner element of the multi-instance pair, holding one repeatable instance of every field type."
         }
       },
       "properties": {
@@ -14448,7 +14464,7 @@
             "@value"
           ],
           "schema:name": "Lead Field",
-          "schema:description": "",
+          "schema:description": "A single line of free text.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -14572,41 +14588,41 @@
               "nm_static_youtube_video": "YouTube Video"
             },
             "propertyDescriptions": {
-              "nm_text_field": "",
-              "nm_text_area_field": "",
-              "nm_numeric_field": "",
-              "nm_numeric_long": "",
-              "nm_numeric_short": "",
-              "nm_numeric_byte": "",
-              "nm_numeric_decimal_0dp": "",
-              "nm_numeric_decimal_2dp": "",
-              "nm_numeric_decimal_4dp": "",
-              "nm_numeric_float_3dp": "",
-              "nm_numeric_double_6dp": "",
-              "nm_temporal_field": "",
-              "nm_temporal_date_year": "",
-              "nm_temporal_date_month": "",
-              "nm_temporal_date_day": "",
-              "nm_temporal_time_minute_24h": "",
-              "nm_temporal_time_second_12h": "",
-              "nm_temporal_datetime_day": "",
-              "nm_temporal_datetime_second_24h_tz": "",
-              "nm_temporal_datetime_decimalsecond_12h": "",
-              "nm_radio_field": "",
-              "nm_checkbox_field": "",
-              "nm_single_select_list_field": "",
-              "nm_multi_select_list_field": "",
-              "nm_phone_number_field": "",
-              "nm_email_field": "",
-              "nm_link_field": "",
+              "nm_text_field": "A single line of free text. Repeatable, up to five values.",
+              "nm_text_area_field": "Free text over several lines, for a paragraph rather than a phrase. Repeatable, one to three values.",
+              "nm_numeric_field": "A whole number, stored as xsd:int. Repeatable, two to four values.",
+              "nm_numeric_long": "A whole number in the 64-bit range, stored as xsd:long. Repeatable, two to four values.",
+              "nm_numeric_short": "A whole number in the 16-bit range, stored as xsd:short. Repeatable, two to four values.",
+              "nm_numeric_byte": "A whole number in the 8-bit range, stored as xsd:byte. Repeatable, two to four values.",
+              "nm_numeric_decimal_0dp": "A decimal number entered without a fractional part, stored as xsd:decimal. Repeatable, two to four values.",
+              "nm_numeric_decimal_2dp": "A decimal number carrying two decimal places, stored as xsd:decimal. Repeatable, two to four values.",
+              "nm_numeric_decimal_4dp": "A decimal number carrying four decimal places, stored as xsd:decimal. Repeatable, two to four values.",
+              "nm_numeric_float_3dp": "A floating-point number carrying three decimal places, stored as xsd:float. Repeatable, two to four values.",
+              "nm_numeric_double_6dp": "A double-precision number carrying six decimal places, stored as xsd:double. Repeatable, two to four values.",
+              "nm_temporal_field": "A date and a time of day, to the minute, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime. Repeatable, up to two values.",
+              "nm_temporal_date_year": "A year. Stored as xsd:date. Repeatable, up to two values.",
+              "nm_temporal_date_month": "A year and a month. Stored as xsd:date. Repeatable, up to two values.",
+              "nm_temporal_date_day": "A calendar date. Stored as xsd:date. Repeatable, up to two values.",
+              "nm_temporal_time_minute_24h": "A time of day, to the minute, on a 24-hour clock. Stored as xsd:time. Repeatable, up to two values.",
+              "nm_temporal_time_second_12h": "A time of day, to the second, on a 12-hour clock. Stored as xsd:time. Repeatable, up to two values.",
+              "nm_temporal_datetime_day": "A date, with no time of day. Stored as xsd:dateTime. Repeatable, up to two values.",
+              "nm_temporal_datetime_second_24h_tz": "A date and a time of day, to the second, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime. Repeatable, up to two values.",
+              "nm_temporal_datetime_decimalsecond_12h": "A date and a time of day, to a fraction of a second, on a 12-hour clock. Stored as xsd:dateTime. Repeatable, up to two values.",
+              "nm_radio_field": "Exactly one of Option A, Option B or Option C, shown as radio buttons.",
+              "nm_checkbox_field": "Any of Option A, Option B or Option C, shown as check boxes and stored as a list.",
+              "nm_single_select_list_field": "One of Option A, Option B or Option C, chosen from a drop-down list.",
+              "nm_multi_select_list_field": "One or more of Option A, Option B or Option C, chosen from a drop-down list.",
+              "nm_phone_number_field": "A telephone number, entered with or without a country code and separators. Repeatable, one to five values.",
+              "nm_email_field": "An email address. A value not shaped like one keeps the form invalid. Repeatable, three to five values.",
+              "nm_link_field": "A web address. The instance records it as an IRI, not as a string. Repeatable, up to three values.",
               "nm_section_break": "",
-              "nm_attribute_value_field": "",
-              "nm_controlled_term_field": "",
-              "nm_ext_ror_field": "",
-              "nm_ext_orcid_field": "",
-              "nm_ext_pfas_field": "",
-              "nm_ext_rrid_field": "",
-              "nm_ext_pubmed_field": "",
+              "nm_attribute_value_field": "Name and value pairs supplied while the form is filled in. The person entering metadata names each attribute, so the template does not have to name it in advance.",
+              "nm_controlled_term_field": "A term chosen from the DOID class disease, looked up in the terminology server as you type. The instance keeps the term IRI alongside its label. Repeatable, two to five values.",
+              "nm_ext_ror_field": "An organization, chosen from the Research Organization Registry (ROR). The instance keeps the ROR IRI and the registered name. Repeatable, one to two values.",
+              "nm_ext_orcid_field": "A person, chosen by ORCID iD. The instance keeps the ORCID IRI and the registered name. Repeatable, up to four values.",
+              "nm_ext_pfas_field": "A PFAS chemical, chosen from the EPA CompTox Chemicals Dashboard. The instance keeps the dashboard IRI and the substance name. Repeatable, two to three values.",
+              "nm_ext_rrid_field": "A research resource — an antibody, a cell line, a tool — chosen by RRID from SciCrunch. The instance keeps the resolver IRI and the RRID. Repeatable, one to four values.",
+              "nm_ext_pubmed_field": "A publication, chosen by PubMed ID. The instance keeps the PubMed IRI and the PMID. Repeatable, up to one value.",
               "nm_static_page_break": "",
               "nm_static_rich_text": "",
               "nm_static_image": "",
@@ -14921,7 +14937,7 @@
                   "@value"
                 ],
                 "schema:name": "Text Field",
-                "schema:description": "",
+                "schema:description": "A single line of free text. Repeatable, up to five values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -15008,7 +15024,7 @@
                   "@value"
                 ],
                 "schema:name": "Text Area Field",
-                "schema:description": "",
+                "schema:description": "Free text over several lines, for a paragraph rather than a phrase. Repeatable, one to three values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -15100,7 +15116,7 @@
                   "@type"
                 ],
                 "schema:name": "Numeric Field",
-                "schema:description": "",
+                "schema:description": "A whole number, stored as xsd:int. Repeatable, two to four values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -15191,7 +15207,7 @@
                   "@type"
                 ],
                 "schema:name": "Numeric Long",
-                "schema:description": "",
+                "schema:description": "A whole number in the 64-bit range, stored as xsd:long. Repeatable, two to four values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -15282,7 +15298,7 @@
                   "@type"
                 ],
                 "schema:name": "Numeric Short",
-                "schema:description": "",
+                "schema:description": "A whole number in the 16-bit range, stored as xsd:short. Repeatable, two to four values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -15373,7 +15389,7 @@
                   "@type"
                 ],
                 "schema:name": "Numeric Byte",
-                "schema:description": "",
+                "schema:description": "A whole number in the 8-bit range, stored as xsd:byte. Repeatable, two to four values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -15463,7 +15479,7 @@
                   "@type"
                 ],
                 "schema:name": "Numeric Decimal (0 dp)",
-                "schema:description": "",
+                "schema:description": "A decimal number entered without a fractional part, stored as xsd:decimal. Repeatable, two to four values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -15556,7 +15572,7 @@
                   "@type"
                 ],
                 "schema:name": "Numeric Decimal (2 dp)",
-                "schema:description": "",
+                "schema:description": "A decimal number carrying two decimal places, stored as xsd:decimal. Repeatable, two to four values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -15646,7 +15662,7 @@
                   "@type"
                 ],
                 "schema:name": "Numeric Decimal (4 dp)",
-                "schema:description": "",
+                "schema:description": "A decimal number carrying four decimal places, stored as xsd:decimal. Repeatable, two to four values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -15737,7 +15753,7 @@
                   "@type"
                 ],
                 "schema:name": "Numeric Float (3 dp)",
-                "schema:description": "",
+                "schema:description": "A floating-point number carrying three decimal places, stored as xsd:float. Repeatable, two to four values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -15828,7 +15844,7 @@
                   "@type"
                 ],
                 "schema:name": "Numeric Double (6 dp)",
-                "schema:description": "",
+                "schema:description": "A double-precision number carrying six decimal places, stored as xsd:double. Repeatable, two to four values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -15920,7 +15936,7 @@
                   "@type"
                 ],
                 "schema:name": "Temporal Field",
-                "schema:description": "",
+                "schema:description": "A date and a time of day, to the minute, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime. Repeatable, up to two values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -16010,7 +16026,7 @@
                   "@type"
                 ],
                 "schema:name": "Temporal Date (Year)",
-                "schema:description": "",
+                "schema:description": "A year. Stored as xsd:date. Repeatable, up to two values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -16100,7 +16116,7 @@
                   "@type"
                 ],
                 "schema:name": "Temporal Date (Month)",
-                "schema:description": "",
+                "schema:description": "A year and a month. Stored as xsd:date. Repeatable, up to two values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -16190,7 +16206,7 @@
                   "@type"
                 ],
                 "schema:name": "Temporal Date (Day)",
-                "schema:description": "",
+                "schema:description": "A calendar date. Stored as xsd:date. Repeatable, up to two values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -16281,7 +16297,7 @@
                   "@type"
                 ],
                 "schema:name": "Temporal Time (Minute, 24h)",
-                "schema:description": "",
+                "schema:description": "A time of day, to the minute, on a 24-hour clock. Stored as xsd:time. Repeatable, up to two values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -16372,7 +16388,7 @@
                   "@type"
                 ],
                 "schema:name": "Temporal Time (Second, 12h)",
-                "schema:description": "",
+                "schema:description": "A time of day, to the second, on a 12-hour clock. Stored as xsd:time. Repeatable, up to two values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -16462,7 +16478,7 @@
                   "@type"
                 ],
                 "schema:name": "Temporal DateTime (Day)",
-                "schema:description": "",
+                "schema:description": "A date, with no time of day. Stored as xsd:dateTime. Repeatable, up to two values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -16554,7 +16570,7 @@
                   "@type"
                 ],
                 "schema:name": "Temporal DateTime (Second, 24h, TZ)",
-                "schema:description": "",
+                "schema:description": "A date and a time of day, to the second, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime. Repeatable, up to two values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -16645,7 +16661,7 @@
                   "@type"
                 ],
                 "schema:name": "Temporal DateTime (Decimal Second, 12h)",
-                "schema:description": "",
+                "schema:description": "A date and a time of day, to a fraction of a second, on a 12-hour clock. Stored as xsd:dateTime. Repeatable, up to two values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -16740,7 +16756,7 @@
                 "@value"
               ],
               "schema:name": "Radio Field",
-              "schema:description": "",
+              "schema:description": "Exactly one of Option A, Option B or Option C, shown as radio buttons.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -16837,7 +16853,7 @@
                   "@value"
                 ],
                 "schema:name": "Checkbox Field",
-                "schema:description": "",
+                "schema:description": "Any of Option A, Option B or Option C, shown as check boxes and stored as a list.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -16932,7 +16948,7 @@
                 "@value"
               ],
               "schema:name": "Single-Select List Field",
-              "schema:description": "",
+              "schema:description": "One of Option A, Option B or Option C, chosen from a drop-down list.",
               "pav:createdOn": null,
               "pav:createdBy": null,
               "pav:lastUpdatedOn": null,
@@ -16942,98 +16958,102 @@
               "$schema": "http://json-schema.org/draft-04/schema#"
             },
             "nm_multi_select_list_field": {
-              "@id": null,
-              "@type": "https://schema.metadatacenter.org/core/TemplateField",
-              "@context": {
-                "xsd": "http://www.w3.org/2001/XMLSchema#",
-                "pav": "http://purl.org/pav/",
-                "bibo": "http://purl.org/ontology/bibo/",
-                "oslc": "http://open-services.net/ns/core#",
-                "schema": "http://schema.org/",
-                "skos": "http://www.w3.org/2004/02/skos/core#",
-                "schema:name": {
-                  "@type": "xsd:string"
-                },
-                "schema:description": {
-                  "@type": "xsd:string"
-                },
-                "skos:prefLabel": {
-                  "@type": "xsd:string"
-                },
-                "skos:altLabel": {
-                  "@type": "xsd:string"
-                },
-                "pav:createdOn": {
-                  "@type": "xsd:dateTime"
-                },
-                "pav:createdBy": {
-                  "@type": "@id"
-                },
-                "pav:lastUpdatedOn": {
-                  "@type": "xsd:dateTime"
-                },
-                "oslc:modifiedBy": {
-                  "@type": "@id"
-                }
-              },
-              "type": "object",
-              "title": "Multi-Select List Field field schema",
-              "description": "Multi-Select List Field field schema generated by the CEDAR Artifact Library",
-              "_ui": {
-                "inputType": "list"
-              },
-              "_valueConstraints": {
-                "literals": [
-                  {
-                    "label": "Option A"
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "@id": null,
+                "@type": "https://schema.metadatacenter.org/core/TemplateField",
+                "@context": {
+                  "xsd": "http://www.w3.org/2001/XMLSchema#",
+                  "pav": "http://purl.org/pav/",
+                  "bibo": "http://purl.org/ontology/bibo/",
+                  "oslc": "http://open-services.net/ns/core#",
+                  "schema": "http://schema.org/",
+                  "skos": "http://www.w3.org/2004/02/skos/core#",
+                  "schema:name": {
+                    "@type": "xsd:string"
                   },
-                  {
-                    "label": "Option B"
+                  "schema:description": {
+                    "@type": "xsd:string"
                   },
-                  {
-                    "label": "Option C"
+                  "skos:prefLabel": {
+                    "@type": "xsd:string"
+                  },
+                  "skos:altLabel": {
+                    "@type": "xsd:string"
+                  },
+                  "pav:createdOn": {
+                    "@type": "xsd:dateTime"
+                  },
+                  "pav:createdBy": {
+                    "@type": "@id"
+                  },
+                  "pav:lastUpdatedOn": {
+                    "@type": "xsd:dateTime"
+                  },
+                  "oslc:modifiedBy": {
+                    "@type": "@id"
                   }
-                ],
-                "requiredValue": false,
-                "multipleChoice": true
-              },
-              "properties": {
-                "@type": {
-                  "type": "string",
-                  "format": "uri"
                 },
-                "rdfs:label": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                "type": "object",
+                "title": "Multi-Select List Field field schema",
+                "description": "Multi-Select List Field field schema generated by the CEDAR Artifact Library",
+                "_ui": {
+                  "inputType": "list"
                 },
-                "@value": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "@language": {
-                  "type": [
-                    "string",
-                    "null"
+                "_valueConstraints": {
+                  "literals": [
+                    {
+                      "label": "Option A"
+                    },
+                    {
+                      "label": "Option B"
+                    },
+                    {
+                      "label": "Option C"
+                    }
                   ],
-                  "minLength": 1
-                }
-              },
-              "required": [
-                "@value"
-              ],
-              "schema:name": "Multi-Select List Field",
-              "schema:description": "",
-              "pav:createdOn": null,
-              "pav:createdBy": null,
-              "pav:lastUpdatedOn": null,
-              "oslc:modifiedBy": null,
-              "schema:schemaVersion": "1.6.0",
-              "additionalProperties": false,
-              "$schema": "http://json-schema.org/draft-04/schema#"
+                  "requiredValue": false,
+                  "multipleChoice": true
+                },
+                "properties": {
+                  "@type": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "rdfs:label": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "@value": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "@language": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "@value"
+                ],
+                "schema:name": "Multi-Select List Field",
+                "schema:description": "One or more of Option A, Option B or Option C, chosen from a drop-down list.",
+                "pav:createdOn": null,
+                "pav:createdBy": null,
+                "pav:lastUpdatedOn": null,
+                "oslc:modifiedBy": null,
+                "schema:schemaVersion": "1.6.0",
+                "additionalProperties": false,
+                "$schema": "http://json-schema.org/draft-04/schema#"
+              }
             },
             "nm_phone_number_field": {
               "type": "array",
@@ -17112,7 +17132,7 @@
                   "@value"
                 ],
                 "schema:name": "Phone Number Field",
-                "schema:description": "",
+                "schema:description": "A telephone number, entered with or without a country code and separators. Repeatable, one to five values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -17199,7 +17219,7 @@
                   "@value"
                 ],
                 "schema:name": "Email Field",
-                "schema:description": "",
+                "schema:description": "An email address. A value not shaped like one keeps the form invalid. Repeatable, three to five values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -17280,7 +17300,7 @@
                   }
                 },
                 "schema:name": "Link Field",
-                "schema:description": "",
+                "schema:description": "A web address. The instance records it as an IRI, not as a string. Repeatable, up to three values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -17361,7 +17381,7 @@
                   "inputType": "attribute-value"
                 },
                 "schema:name": "Attribute-Value Field",
-                "schema:description": "",
+                "schema:description": "Name and value pairs supplied while the form is filled in. The person entering metadata names each attribute, so the template does not have to name it in advance.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -17454,7 +17474,7 @@
                   }
                 },
                 "schema:name": "Controlled-Term Field",
-                "schema:description": "",
+                "schema:description": "A term chosen from the DOID class disease, looked up in the terminology server as you type. The instance keeps the term IRI alongside its label. Repeatable, two to five values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -17535,7 +17555,7 @@
                   }
                 },
                 "schema:name": "ROR Field",
-                "schema:description": "",
+                "schema:description": "An organization, chosen from the Research Organization Registry (ROR). The instance keeps the ROR IRI and the registered name. Repeatable, one to two values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -17616,7 +17636,7 @@
                   }
                 },
                 "schema:name": "ORCID Field",
-                "schema:description": "",
+                "schema:description": "A person, chosen by ORCID iD. The instance keeps the ORCID IRI and the registered name. Repeatable, up to four values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -17697,7 +17717,7 @@
                   }
                 },
                 "schema:name": "PFAS Field",
-                "schema:description": "",
+                "schema:description": "A PFAS chemical, chosen from the EPA CompTox Chemicals Dashboard. The instance keeps the dashboard IRI and the substance name. Repeatable, two to three values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -17778,7 +17798,7 @@
                   }
                 },
                 "schema:name": "RRID Field",
-                "schema:description": "",
+                "schema:description": "A research resource — an antibody, a cell line, a tool — chosen by RRID from SciCrunch. The instance keeps the resolver IRI and the RRID. Repeatable, one to four values.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -17859,7 +17879,7 @@
                   }
                 },
                 "schema:name": "PubMed Field",
-                "schema:description": "",
+                "schema:description": "A publication, chosen by PubMed ID. The instance keeps the PubMed IRI and the PMID. Repeatable, up to one value.",
                 "pav:createdOn": null,
                 "pav:createdBy": null,
                 "pav:lastUpdatedOn": null,
@@ -18020,7 +18040,7 @@
             "nm_ext_pubmed_field"
           ],
           "schema:name": "Nested: All Field Types (multi-instance)",
-          "schema:description": "",
+          "schema:description": "The inner element of the multi-instance pair, holding one repeatable instance of every field type.",
           "pav:createdOn": null,
           "pav:createdBy": null,
           "pav:lastUpdatedOn": null,
@@ -18055,7 +18075,7 @@
         "nested_all_multi"
       ],
       "schema:name": "Wrapper then Nested (multi-instance)",
-      "schema:description": "",
+      "schema:description": "A field of its own followed by a nested element whose fields repeat, so the second level carries cardinality.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",

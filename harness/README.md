@@ -4,9 +4,9 @@ A headless, generative test harness for the CEDAR Embeddable Editor's domain
 layer — template parsing, instance construction, path resolution, value writes,
 multi-instance mechanics, and the data quality report.
 
-> **Status: 2,202 tests, all passing** on Node 24.19.0 / Vitest 4.1.
+> **Status: 2,560 tests, all passing** on Node 24.19.0 / Vitest 4.1.
 > Verified non-vacuous by mutation testing — see [Does it have teeth?](#does-it-have-teeth).
-> Three CEE defects found, all three fixed. See [What it found](#what-it-found).
+> Four CEE defects found, all four fixed. See [What it found](#what-it-found).
 
 ## Why this exists
 
@@ -21,7 +21,7 @@ ones.
 The gnarliest code in CEE (handlers, factory, `currentIndex`-dependent path
 resolution, attribute-value handling) is the code **least** likely to break in
 an Angular upgrade. It is plain TypeScript; `HandlerContext` is constructed with
-`new`, not injected. Meanwhile the things that *will* break — Material 15's MDC
+`new`, not injected. Meanwhile the things that _will_ break — Material 15's MDC
 rewrite, `entryComponents`, rxjs 7, the ngx-translate API — are rendering and
 wiring concerns.
 
@@ -48,7 +48,7 @@ counts and required JSON/YAML pairs; a missing or incomplete snapshot fails test
 collection instead of skipping the corpus suites.
 
 The first run of that suite found CEE crashing on `template-003`. It also
-matters prospectively — if CEE ever parses templates *with* the model library,
+matters prospectively — if CEE ever parses templates _with_ the model library,
 the generated suites will have that library on both sides of every comparison
 and will agree with themselves regardless. The corpus snapshots are what would
 catch a change in behaviour across that refactor.
@@ -58,7 +58,7 @@ cardinality, nesting position, required, hidden, static collapsing, page-break
 shape — and [`src/generate.ts`](src/generate.ts) builds templates across their
 cross-product using the **CEDAR Model TypeScript Library**.
 
-The oracle is a round-trip, not a golden file:
+The ordinary oracle is a round-trip, not a golden file:
 
 ```
 generate template → CEE builds an instance → write a value
@@ -69,39 +69,48 @@ generate template → CEE builds an instance → write a value
 Properties don't rot. There are no snapshots to regenerate when unrelated things
 change.
 
+Saveability has a deliberately independent oracle. The populated-instance
+matrix writes a value through CEE and validates the resulting JSON-LD both with
+the TypeScript model and against the **untouched Draft-04 template** using ajv.
+The latter catches contradictions that disappear when a reader helpfully
+normalizes a legacy template before validating it.
+
 ## Layout
 
-| Path | Purpose |
-|---|---|
-| `src/axes.ts` | The branch-space enumeration, and the honest list of what isn't covered |
-| `src/generate.ts` | Deterministic template generation via `CedarBuilders` |
-| `src/controlled.ts` | Controlled-term constraint construction and subset enumeration |
-| `src/driver.ts` | Headless CEE — reproduces the wrapper's startup path without Angular |
-| `stubs/angular-core.ts` | No-op decorators, so the harness never loads Angular |
-| `stubs/editor-component.ts` | Breaks the `DataObjectUtil` → editor-component circular import |
-| `test/coverage.spec.ts` | Drift detection: does the generator still cover every `InputType`? |
-| `test/roundtrip.spec.ts` | The oracle, swept across the cross-product |
-| `test/controlled-terms.spec.ts` | All 15 constraint-kind subsets × cardinality × nesting × reload |
-| `test/cardinality.spec.ts` | minItems, required values, two-level multi nesting |
-| `test/value-constraints.spec.ts` | Text/numeric/temporal constraints, choice literals, defaults |
-| `test/edge-cases.spec.ts` | Page breaks, static collapse, hidden fields, multi-instance, reload |
-| `test/read-only.spec.ts` | Read-only mode, `hideEmptyFields`, element visibility |
-| `test/corpus.spec.ts` | 37 corpus + 57 HuBMAP production templates, with tree snapshots |
+| Path                               | Purpose                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------ |
+| `src/axes.ts`                      | The branch-space enumeration, and the honest list of what isn't covered        |
+| `src/generate.ts`                  | Deterministic template generation via `CedarBuilders`                          |
+| `src/controlled.ts`                | Controlled-term constraint construction and subset enumeration                 |
+| `src/driver.ts`                    | Headless CEE — reproduces the wrapper's startup path without Angular           |
+| `src/instance-conformance.ts`      | TypeScript-model and untouched Draft-04 instance validators                    |
+| `stubs/angular-core.ts`            | No-op decorators, so the harness never loads Angular                           |
+| `test/coverage.spec.ts`            | Drift detection: does the generator still cover every `InputType`?             |
+| `test/roundtrip.spec.ts`           | The oracle, swept across the cross-product                                     |
+| `test/controlled-terms.spec.ts`    | All 15 constraint-kind subsets × cardinality × nesting × reload                |
+| `test/cardinality.spec.ts`         | minItems, required values, two-level multi nesting                             |
+| `test/instance-schema-population.spec.ts` | Every value-bearing field × field cardinality × seven element placements, populated and validated against its template |
+| `test/template-consistency.spec.ts` | Raw-template contradictions, including object-shaped inherently multiple fields |
+| `test/value-constraints.spec.ts`   | Text/numeric/temporal constraints, choice literals, defaults                   |
+| `test/edge-cases.spec.ts`          | Page breaks, static collapse, hidden fields, multi-instance, reload            |
+| `test/read-only.spec.ts`           | Read-only mode                                                                 |
+| `test/corpus.spec.ts`              | 37 corpus + 57 HuBMAP production templates, with tree snapshots                |
+| `test/cee-suite-lifecycle.spec.ts` | 85 production-derived CEE cases: create plus paired load/save/model validation |
 
 ## Dimensions covered
 
-| Dimension | Extent |
-|---|---|
-| Input type | all 24 of CEE's input types |
-| Cardinality | single / multi, `minItems` ∈ {0, 1, 2, 3, 5} |
-| Nesting | root, in element, in multi element, multi-in-multi (two cursors) |
-| Required | every non-static kind, single and inside multi elements |
-| Controlled terms | all 15 non-empty subsets of {ontologies, classes, branches, valueSets}, plus multiplicity |
-| Value constraints | min/maxLength, default, numberType × 5, min/maxValue, decimalPlaces, unitOfMeasure, temporalType × 3, granularity × 7, timezone |
-| Choice literals | list (single + multiple), radio, checkbox; `selectedByDefault` and its instance pre-seeding |
-| Instance lifecycle | build → write → save → reload, across the controlled-term matrix |
-| Static content | image, youtube, richtext, section break, page break; collapsing on/off |
-| Operating modes | edit vs read-only; `hideEmptyFields` over fields, elements and nesting |
+| Dimension          | Extent                                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| Input type         | all 24 of CEE's input types                                                                                                     |
+| Cardinality        | single / multi, `minItems` ∈ {0, 1, 2, 3, 5}                                                                                    |
+| Nesting            | root; one-level single/multi elements; all four outer/inner single/multi combinations through two levels                       |
+| Required           | every non-static kind, single and inside multi elements                                                                         |
+| Controlled terms   | all 15 non-empty subsets of {ontologies, classes, branches, valueSets}, plus multiplicity                                       |
+| Value constraints  | min/maxLength, default, numberType × 5, min/maxValue, decimalPlaces, unitOfMeasure, temporalType × 3, granularity × 7, timezone |
+| Choice literals    | list (single + multiple), radio, checkbox; `selectedByDefault` and its instance pre-seeding                                     |
+| Instance lifecycle | build → write → save → reload, across the controlled-term matrix                                                                |
+| Static content     | image, youtube, richtext, section break, page break; collapsing on/off                                                          |
+| Operating modes    | edit vs read-only                                                                                                               |
 
 Constraint frequencies were taken from the HuBMAP corpus shipped with
 `cedar-artifact-library` (`src/test/resources/templates-yaml/`) so the emphasis
@@ -128,21 +137,19 @@ Angular 15.
 A suite that is green the day it is written is worth nothing until you have seen
 it go red. Every fix below was mutation-tested, and the mutations were reverted.
 
-| Mutation | Tests failed |
-|---|---|
-| `computeValidity`: `<=` → `<` | 1 |
-| `multiInstanceItemAdd`: second write targets the extract tree, not the full tree | 1 |
-| `extractPlainValue`: drop `EXTERNAL_AUTHORITY_INPUT_TYPES`, compare to `link` only | 14 |
-| `hasNonEmptyChild`: invert to last-child-wins | 5 |
-| `hasNonEmptyChild`: always report non-empty | 3 |
-| `findAnyValue`: revert to cursor-based satisfaction | 7 |
-| `findAnyValue`: null guard returns a value | 1 |
-| `configFlag`/`configText`: `Object.hasOwn` → a truthiness test | 2 |
-| `configFlag`/`configText`: drop the `config != null` guard | 1 |
-| `configFlag`: fall back to `false` rather than the current value | 2 |
-| the parser stops reading `_ui._size` | 1 |
-| `usable()` accepts zero as a size | 2 |
-| video size falls back as a pair rather than per dimension | 1 |
+| Mutation                                                                           | Tests failed |
+| ---------------------------------------------------------------------------------- | ------------ |
+| `computeValidity`: `<=` → `<`                                                      | 1            |
+| `multiInstanceItemAdd`: second write targets the extract tree, not the full tree   | 1            |
+| `extractPlainValue`: drop `EXTERNAL_AUTHORITY_INPUT_TYPES`, compare to `link` only | 14           |
+| `findAnyValue`: revert to cursor-based satisfaction                                | 7            |
+| `findAnyValue`: null guard returns a value                                         | 1            |
+| `configFlag`/`configText`: `Object.hasOwn` → a truthiness test                     | 2            |
+| `configFlag`/`configText`: drop the `config != null` guard                         | 1            |
+| `configFlag`: fall back to `false` rather than the current value                   | 2            |
+| the parser stops reading `_ui._size`                                               | 1            |
+| `usable()` accepts zero as a size                                                  | 2            |
+| video size falls back as a pair rather than per dimension                          | 1            |
 
 `findAnyValue`'s null guard is the interesting entry. It **survived** the first time: the
 null-node guard is unreachable from an instance CEE built, because CEE always
@@ -153,7 +160,7 @@ pointing at an untested branch, not at a redundant one.
 
 ## What it found
 
-Three defects, all fixed.
+Four defects, all fixed.
 
 **1. A filled required IRI-valued field never satisfied its requirement. — FIXED**
 
@@ -188,10 +195,10 @@ answered only for the visible page. With three authors and the name filled on
 page 2, the same instance reported:
 
 | viewing | `isValid` |
-|---|---|
-| page 0 | false |
-| page 1 | false |
-| page 2 | true |
+| ------- | --------- |
+| page 0  | false     |
+| page 1  | false     |
+| page 2  | true      |
 
 Settling the semantic made the fix small. Under **at least one instance must
 carry a value** — which the counting side already implemented, since
@@ -199,7 +206,7 @@ carry a value** — which the counting side already implemented, since
 needed, and therefore no cursor override and no collision with the shared
 mutable `currentIndex`. The report now decides satisfaction with `findAnyValue`,
 a cursor-free walk of the extract instance that branches into every array
-entry. The value *tree* still shows the displayed page; only the counters are
+entry. The value _tree_ still shows the displayed page; only the counters are
 page-independent, and a test pins that separation.
 
 Still open as a product question, and pinned rather than assumed: whether an
@@ -215,7 +222,7 @@ without stopping — so the last element child decided the outcome and overwrote
 any earlier `true`. An element holding data was reported empty whenever a later
 sibling element happened to be empty, and the section silently disappeared from
 the viewer. Nothing errored; the data was simply not shown. The field branch of
-the same loop *did* stop, so this was an inconsistency inside one function
+the same loop _did_ stop, so this was an inconsistency inside one function
 rather than a design choice.
 
 Found by asking what read-only mode actually covered, and demonstrated by
@@ -228,6 +235,30 @@ cannot hide anything that previously rendered. Regression tests cover both
 orderings, a populated sibling between two empty ones, and the case that guards
 the other direction: an all-empty subtree must still be hidden.
 
+`hasNonEmptyChild` and the empty-field hiding it served have since been removed
+with the `hideEmptyFields` config key, so this entry is a record of the defect
+rather than a description of code that still runs. Its regression tests went with
+it.
+
+**4. Legacy extract instances remained orphaned after save. — FIXED**
+
+Twenty-eight of the 56 usable template/instance pairs in the larger CEE corpus
+carry an extract-form instance with no `schema:isBasedOn`. That is a supported
+input shape: the model reader records the missing envelope as warnings and CEE
+can edit every value. But the output path wrote the same missing link back, even
+though the loaded template supplied the one exact value that belongs there. The
+result was parseable and preserved all field values, yet the strict repository
+could not know which template it instantiated.
+
+When an injected instance has no link, `DataContext` now assigns the loaded
+template's `@id` before emission. A different existing link is not rewritten:
+that is an ambiguous host pairing, so CEE reports both IRIs. The 85-case
+lifecycle suite pins the distinction, verifies all 56 usable pairs preserve
+every non-empty value, and validates CEE-created instances from all 84
+parseable templates. It also keeps the three inherited exceptions visible:
+malformed template 086, unsaved template 048, and deliberately under-filled
+instance 002.
+
 Related, and worth knowing rather than fixing: writing to an IRI-valued field
 leaves `rdfs:label: undefined` on the node. `JSON.stringify` drops
 undefined-valued keys, so the emitted JSON looks clean while
@@ -239,7 +270,7 @@ Recorded because they are non-obvious and will bite again if the config is
 rebuilt.
 
 1. **A `resolveId` plugin, not `resolve.alias`.** The import that has to be
-   intercepted is *relative*
+   intercepted is _relative_
    (`../components/…/cedar-embeddable-metadata-editor.component`). Vite resolves
    relative specifiers against the importer before alias regexes are consulted,
    so an alias silently never fires.
@@ -260,12 +291,12 @@ rebuilt.
 `npm run test:domain:coverage` measures all of `shared/` for visibility, but it
 enforces aggregate thresholds only on the four Angular-free domain directories:
 
-| Directory | Statements | Branches |
-|---|---:|---:|
-| `factory/` | 90% | 90% |
-| `handler/` | 90% | 85% |
-| `util/` | 90% | 85% |
-| `validation/` | 90% | 85% |
+| Directory     | Statements | Branches |
+| ------------- | ---------: | -------: |
+| `factory/`    |        90% |      90% |
+| `handler/`    |        90% |      85% |
+| `util/`       |        90% |      85% |
+| `validation/` |        90% |      85% |
 
 The broad `shared/` percentage is not a gate. It includes Angular components,
 pipes, REST models and services that this headless harness deliberately does not
@@ -289,13 +320,13 @@ were found.
 
 ## A note on the stubs
 
-`stubs/editor-component.ts` exists because
-[`data-object-util.ts:157`](../src/app/modules/shared/util/data-object-util.ts)
-reads a single static (`iriPrefix`) off the top-level Angular component. That
-one read pulls the whole component subtree — HttpClient services, a
-`package.json` import, and a circular edge back into `DataObjectUtil` — into
-anything that touches the data-object builder.
+`stubs/editor-component.ts` existed because `data-object-util.ts` read a single
+static off the top-level Angular component. That one read pulled the whole
+component subtree — HttpClient services, a `package.json` import, and a circular
+edge back into `DataObjectUtil` — into anything touching the data-object builder.
 
-Moving `iriPrefix` onto a plain constant would let both the stub and its alias
-be deleted, and would remove a real circular import that currently survives only
-because webpack tolerates it. Worth doing independently of this harness.
+The read went first, moving the value to a constant that imported nothing, and then
+the value went too, when CEE stopped minting occurrence identifiers at all. So the
+stub, its alias and the circular import are gone, and there is no longer a value for
+the domain layer to reach the component for. `test/import-boundaries.spec.ts` keeps
+that class of import from returning.

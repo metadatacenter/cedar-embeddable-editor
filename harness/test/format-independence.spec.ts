@@ -34,26 +34,17 @@ const paired = json
   .map((j) => ({ id: j.id, json: j.json, yaml: yaml.find((y) => y.id === j.id)?.json }))
   .filter((p): p is { id: string; json: object; yaml: object } => p.yaml !== undefined);
 
-/**
- * `@id`s are minted per run, so normalise them before comparing instances.
+/*
+ * Nothing normalises identifiers here any more, and the comparisons below are
+ * exact because of it.
+ *
+ * A `stable` walker used to rewrite every `@id` and `_id` to `<minted>` before any
+ * comparison, because CEE stamped a fresh GUID onto each element occurrence it built
+ * and two readings of one template therefore never matched literally. CEE mints
+ * nothing now, so the walker had become an identity transform — verified by
+ * disabling the substitution and watching all 233 tests in the two format suites
+ * pass — and every identifier is compared like any other value.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const stable = (node: any): any => {
-  if (Array.isArray(node)) return node.map(stable);
-  if (node && typeof node === 'object') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const out: any = {};
-    for (const key of Object.keys(node)) {
-      // `_id` as well as `@id`: a container carries its occurrence IRI under its
-      // own name, and CEE mints a fresh one on every read, so comparing two
-      // readings means normalising it whichever side of the boundary it is on.
-      const isMintedId = (key === DocumentKey.atId || key === '_id') && typeof node[key] === 'string';
-      out[key] = isMintedId ? '<minted>' : stable(node[key]);
-    }
-    return out;
-  }
-  return node;
-};
 
 /**
  * The one thing YAML cannot say, so the one thing the two readings may differ on.
@@ -144,8 +135,8 @@ describe('a template read from YAML', () => {
    * count normalised, which leaves every other field of every template exact.
    */
   it.each(paired.map((p) => [p.id, p] as const))('template-%s builds the same instance', (_id, pair) => {
-    const j = stable(fromJson(pair.json).extract.values);
-    const y = stable(fromYaml(pair.yaml).extract.values);
+    const j = fromJson(pair.json).extract.values;
+    const y = fromYaml(pair.yaml).extract.values;
     expect(Object.keys(y)).toEqual(Object.keys(j));
     for (const key of Object.keys(j)) {
       expect(withoutUnexpressibleSlots(y[key], j[key]), `${key} differs between the two readings`).toEqual(j[key]);
@@ -159,8 +150,8 @@ describe('a template read from YAML', () => {
    * written in cannot reach it.
    */
   it.each(paired.map((p) => [p.id, p] as const))('template-%s builds the same @context', (_id, pair) => {
-    expect(stable(fromYaml(pair.yaml).emitted)[DocumentKey.atContext]).toEqual(
-      stable(fromJson(pair.json).emitted)[DocumentKey.atContext],
+    expect(fromYaml(pair.yaml).emitted[DocumentKey.atContext]).toEqual(
+      fromJson(pair.json).emitted[DocumentKey.atContext],
     );
   });
 

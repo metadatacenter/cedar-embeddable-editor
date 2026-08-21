@@ -1,24 +1,24 @@
-type: "template"
+type: template
 name: "#015 Complex number"
 id: "https://repo.metadatacenter.org/templates/eafa53b5-220f-4480-ab5f-518e9136b88c"
-status: "draft"
-version: "0.0.1"
-modelVersion: "1.6.0"
+status: draft
+version: 0.0.1
+modelVersion: 1.6.0
 createdOn: "2024-03-06T17:49:03-08:00"
 createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 modifiedOn: "2024-03-06T17:49:03-08:00"
 modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 children:
   - key: "Complex number"
-    type: "numeric-field"
+    type: numeric-field
     name: "Complex number"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/005c1ca8-0c7f-4114-b647-df9d3af0e35d"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     altLabels:
       - "Alt label 1"
       - "Alt label 2"
-    datatype: "xsd:decimal"
+    datatype: xsd:decimal
     minValue: 32
     maxValue: 1024
     decimalPlaces: 3

@@ -20,13 +20,31 @@
  */
 import { describe, expect, it } from 'vitest';
 import { DocumentKey } from '../src/document-keys';
-import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
+import {
+  CedarBuilders,
+  ControlledTermOntologyBuilder,
+  Iri,
+  NumberType,
+  TemporalGranularity,
+  TemporalType,
+} from 'cedar-model-typescript-library';
 import { ActiveComponentRegistryService } from '@cee/service/active-component-registry.service';
 import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { instanceWith, linkNode, literalNode, termNode } from '../src/values';
+import {
+  containerValue,
+  instanceWith,
+  linkNode,
+  linkValue,
+  listValue,
+  literalNode,
+  literalValue,
+  termNode,
+  termValue,
+  templateIdOf,
+} from '../src/values';
 import { arrayAt } from '../src/nodes';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 
@@ -39,7 +57,6 @@ const attributeNames = (slots: unknown[]): (string | null)[] =>
  * valid CEDAR instance without one. Fixtures that stand in for what a host page
  * injects have to be valid instances too.
  */
-const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
 const INSTANCE_IRI = 'https://example.org/i/1';
 
 const kind = (
@@ -51,6 +68,12 @@ const kind = (
 ): FieldKind => ({ key, inputType, make, isStatic: false, write: 'value', sample, ...extra }) as FieldKind;
 
 const TEXT = kind('text', 'textfield', () => CedarBuilders.textFieldBuilder(), 'some text');
+const NUMERIC = kind('numeric', 'numeric', () => CedarBuilders.numericFieldBuilder(), '42.5', {
+  configure: (b: any) => b.withNumberType(NumberType.DECIMAL),
+});
+const TEMPORAL = kind('temporal', 'temporal', () => CedarBuilders.temporalFieldBuilder(), '2026-08-20', {
+  configure: (b: any) => b.withTemporalType(TemporalType.DATE).withTemporalGranularity(TemporalGranularity.DAY),
+});
 const LINK = kind('link', 'link', () => CedarBuilders.linkFieldBuilder(), 'https://example.org/thing');
 const ORCID = kind(
   'orcid',
@@ -137,6 +160,21 @@ describe('single fields', () => {
     expect(r.widget.last).toBe('typed');
   });
 
+  it.each([
+    ['numeric', NUMERIC, 42.5, '42.5'],
+    ['temporal', TEMPORAL, '2026-08-20', '2026-08-20'],
+  ] as const)('pushes a seeded %s default into an editable widget', (_name, fieldKind, declared, shown) => {
+    const template = buildTemplate({
+      name: `vs_edit_${_name}_default`,
+      children: [{ kind: fieldKind, name: 'f', defaultValue: declared }],
+    });
+    const r = rig(fieldKind, ['_f'], template);
+
+    r.sync();
+
+    expect(r.widget.last).toBe(shown);
+  });
+
   it('pushes a link as its IRI', () => {
     const r = rig(LINK);
     r.driver.setValue(['_f'], LINK, 'https://example.org/thing');
@@ -160,11 +198,11 @@ describe('single fields', () => {
    * A controlled term being edited pushes only the label, because the
    * autocomplete's own value is the label; the IRI would be shown verbatim.
    */
-  it('pushes a controlled term as its label when editable', () => {
+  it('pushes both halves of a controlled term when editable', () => {
     const r = rig(CONTROLLED);
     r.driver.handlerContext.changeControlledValue(r.component, 'https://example.org/terms/human', 'Homo sapiens');
     r.sync();
-    expect(r.widget.last).toBe('Homo sapiens');
+    expect(r.widget.last).toEqual({ iri: 'https://example.org/terms/human', label: 'Homo sapiens' });
   });
 
   /**
@@ -177,6 +215,51 @@ describe('single fields', () => {
     r.driver.handlerContext.changeControlledValue(r.component, 'https://example.org/terms/human', 'Homo sapiens');
     r.sync();
     expect(r.widget.last).toEqual({ iri: 'https://example.org/terms/human', label: 'Homo sapiens' });
+  });
+
+  it('clears a seeded literal default from a specification-only read-only control', () => {
+    const template = buildTemplate({
+      name: 'vs_ro_literal_default',
+      children: [{ kind: TEXT, name: 'f', defaultValue: 'Draft record' }],
+    });
+    const r = rig(TEXT, ['_f'], template, { readOnlyMode: true });
+
+    r.sync();
+
+    expect(r.widget.last).toBeNull();
+  });
+
+  it('clears a seeded term default from a specification-only read-only control', () => {
+    const template = buildTemplate({
+      name: 'vs_ro_term_default',
+      children: [
+        {
+          kind: CONTROLLED,
+          name: 'f',
+          defaultValue: { iri: 'https://example.org/terms/human', label: 'Homo sapiens' },
+        },
+      ],
+    });
+    const r = rig(CONTROLLED, ['_f'], template, { readOnlyMode: true });
+
+    r.sync();
+
+    expect(r.widget.last).toBeNull();
+  });
+
+  it.each([
+    ['numeric', NUMERIC, 42.5],
+    ['temporal', TEMPORAL, '2026-08-20'],
+  ] as const)('clears a seeded %s default from a specification-only read-only control', (_name, fieldKind, declared) => {
+    const template = buildTemplate({
+      name: `vs_ro_${_name}_default`,
+      children: [{ kind: fieldKind, name: 'f', defaultValue: declared }],
+    });
+    const r = rig(fieldKind, ['_f'], template, { readOnlyMode: true });
+
+    r.sync();
+
+    expect(r.widget.last).toBeNull();
   });
 
   it('pushes nothing when no widget is registered', () => {
@@ -240,11 +323,11 @@ describe('paged multi fields', () => {
     expect(r.widget.last).toEqual({ iri: 'https://orcid.org/0000-0002-1825-0097', label: 'Ada Lovelace' });
   });
 
-  it('pushes a paged controlled term as its label', () => {
+  it('pushes both halves of a paged controlled term', () => {
     const r = rig(CONTROLLED, ['_f'], pagedTemplate(CONTROLLED));
     r.driver.handlerContext.changeControlledValue(r.component, 'https://example.org/terms/human', 'Homo sapiens');
     r.sync();
-    expect(r.widget.last).toBe('Homo sapiens');
+    expect(r.widget.last).toEqual({ iri: 'https://example.org/terms/human', label: 'Homo sapiens' });
   });
 
   it('tells the pager to redraw', () => {
@@ -312,6 +395,111 @@ describe('elements', () => {
     expect(pager.updates).toBe(1);
     expect(a.last, 'the child of the occurrence on screen').toBe('second');
   });
+
+  it('clears a child omitted from the next multi-element occurrence', () => {
+    const template = elementTemplate('multi');
+    const driver = new CeeDriver(template, {
+      instance: instanceWith(
+        templateIdOf(template),
+        {
+          _el: listValue(
+            containerValue({ _a: literalValue('first occurrence') }),
+            containerValue({ _b: literalValue('second occurrence') }),
+          ),
+        },
+        INSTANCE_IRI,
+      ),
+    });
+    const registry = new ActiveComponentRegistryService();
+    const widget = new FakeWidget();
+    const element = driver.findOrThrow(['_el']);
+    const child = driver.findOrThrow(['_el', '_a']);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    registry.registerComponent(child, widget as any);
+
+    registry.updateViewToModel(element, driver.handlerContext);
+    expect(widget.last).toBe('first occurrence');
+
+    driver.handlerContext.setCurrentIndex(element, 1);
+    registry.updateViewToModel(element, driver.handlerContext);
+    expect(widget.last).toBeNull();
+  });
+
+  /**
+   * The model-to-widget contract, across every value shape that has a distinct
+   * branch in ActiveComponentRegistryService. Each row exercises both sides of
+   * an occurrence boundary: a populated first occurrence and an omitted child
+   * in the second. The same matrix runs editable and read-only with an actual
+   * supplied instance; read-only must display recorded data, not treat it as a
+   * template default or leave the previous occurrence on screen.
+   */
+  const syncCases = [
+    ['text', TEXT, literalValue('alpha'), 'alpha', null],
+    ['numeric', NUMERIC, literalValue('42.5'), '42.5', null],
+    ['temporal', TEMPORAL, literalValue('2026-08-20'), '2026-08-20', null],
+    ['link', LINK, linkValue('https://example.org/thing'), 'https://example.org/thing', null],
+    [
+      'external authority',
+      ORCID,
+      termValue('https://orcid.org/0000-0002-1825-0097', 'Ada Lovelace'),
+      { iri: 'https://orcid.org/0000-0002-1825-0097', label: 'Ada Lovelace' },
+      null,
+    ],
+    [
+      'controlled term',
+      CONTROLLED,
+      termValue('https://example.org/terms/human', 'Homo sapiens'),
+      { iri: 'https://example.org/terms/human', label: 'Homo sapiens' },
+      null,
+    ],
+    [
+      'checkbox',
+      CHECKBOX,
+      listValue(literalValue('Option A'), literalValue('Option B')),
+      ['Option A', 'Option B'],
+      [],
+    ],
+  ] as const;
+
+  it.each(
+    syncCases.flatMap(([name, fieldKind, value, shown, cleared]) =>
+      [false, true].map((readOnlyMode) => [name, readOnlyMode, fieldKind, value, shown, cleared] as const),
+    ),
+  )('syncs %s across nested occurrences (readOnly=%s)', (_name, readOnlyMode, fieldKind, value, shown, cleared) => {
+    const template = buildTemplate({
+      name: `vs_matrix_${fieldKind.key}_${readOnlyMode ? 'readonly' : 'editable'}`,
+      elements: [
+        {
+          name: 'el',
+          cardinality: 'multi',
+          minItems: 1,
+          maxItems: 3,
+          children: [{ kind: fieldKind, name: 'f' }],
+        },
+      ],
+    });
+    const driver = new CeeDriver(template, {
+      readOnlyMode,
+      instance: instanceWith(
+        templateIdOf(template),
+        { _el: listValue(containerValue({ _f: value }), containerValue({})) },
+        INSTANCE_IRI,
+      ),
+    });
+    const registry = new ActiveComponentRegistryService();
+    const widget = new FakeWidget();
+    const element = driver.findOrThrow(['_el']);
+    const field = driver.findOrThrow(['_el', '_f']);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    registry.registerComponent(field, widget as any);
+
+    registry.updateViewToModel(element, driver.handlerContext);
+    expect(widget.last).toEqual(shown);
+
+    driver.handlerContext.setCurrentIndex(element, 1);
+    registry.updateViewToModel(element, driver.handlerContext);
+    expect(widget.last).toEqual(cleared);
+  });
 });
 
 describe('deleting the displayed value', () => {
@@ -325,111 +513,6 @@ describe('deleting the displayed value', () => {
     const driver = new CeeDriver(buildTemplate({ name: 'vs_del', children: [{ kind: TEXT, name: 'f' }] }));
     const registry = new ActiveComponentRegistryService();
     expect(() => registry.deleteCurrentValue(driver.findOrThrow(['_f']))).not.toThrow();
-  });
-});
-
-describe('hiding empty fields in a repeated element', () => {
-  /**
-   * `setVisibility` is the read-only viewer's per-occurrence hiding: as the
-   * user pages through a repeated element, fields empty on *this* page are
-   * hidden and filled ones shown. Distinct from the `hideEmptyFields` pass in
-   * the factory, which decides once from the whole instance.
-   */
-  const visTemplate = () =>
-    buildTemplate({
-      name: 'vs_vis',
-      elements: [
-        {
-          name: 'el',
-          cardinality: 'multi',
-          minItems: 1,
-          maxItems: 9,
-          children: [
-            { kind: TEXT, name: 'filled' },
-            { kind: TEXT, name: 'empty' },
-          ],
-        },
-      ],
-    });
-
-  it('hides a field with no value and shows one with a value', () => {
-    const driver = new CeeDriver(visTemplate());
-    const registry = new ActiveComponentRegistryService();
-    driver.setValue(['_el', '_filled'], TEXT, 'here');
-
-    registry.setVisibility(driver.findOrThrow(['_el']), driver.handlerContext);
-
-    expect(driver.findOrThrow(['_el', '_filled']).hidden).toBe(false);
-    expect(driver.findOrThrow(['_el', '_empty']).hidden).toBe(true);
-  });
-
-  it('follows the page the user is on', () => {
-    const driver = new CeeDriver(visTemplate());
-    const registry = new ActiveComponentRegistryService();
-    const element = driver.findOrThrow(['_el']);
-
-    driver.setValue(['_el', '_filled'], TEXT, 'on page one');
-    driver.handlerContext.addMultiInstance(element);
-    // Page two leaves both fields empty.
-    registry.setVisibility(element, driver.handlerContext);
-    expect(driver.findOrThrow(['_el', '_filled']).hidden).toBe(true);
-
-    driver.handlerContext.setCurrentIndex(element, 0);
-    registry.setVisibility(element, driver.handlerContext);
-    expect(driver.findOrThrow(['_el', '_filled']).hidden).toBe(false);
-  });
-
-  it('does nothing for a component that is not a repeated element', () => {
-    const r = rig(TEXT);
-    expect(() => r.registry.setVisibility(r.component, r.driver.handlerContext)).not.toThrow();
-  });
-
-  /**
-   * CHARACTERISATION, and the behaviour is wrong.
-   *
-   * The literal branch asks `value === '' || value === null` and hides on
-   * either. The link and controlled-term branches ask
-   * `value != '' || value != null` and *show* on either — which is every value
-   * there is, because nothing is simultaneously equal to `''` and to `null`.
-   * Both `else` clauses are unreachable, so an empty link or an empty
-   * controlled term is never hidden however empty it is.
-   *
-   * Pinned rather than fixed: unlike the `@id`-stripping bug this loses no
-   * data, it only shows a blank row in the read-only viewer, and "links always
-   * show" is a defensible thing for someone to have decided on purpose. The
-   * `||` reads like a slip, but the tests should say what CEE does until that
-   * is settled.
-   */
-  const iriVisibility = (fieldKind: FieldKind, node: InstanceNode) => {
-    const template = buildTemplate({
-      name: `vs_vis_${fieldKind.key}`,
-      elements: [
-        { name: 'el', cardinality: 'multi', minItems: 1, maxItems: 9, children: [{ kind: fieldKind, name: 'f' }] },
-      ],
-    });
-    const driver = new CeeDriver(template, {
-      // Only the occurrence is written by hand: it carries the node under test,
-      // which the caller supplies in shapes the library would not write.
-      instance: {
-        ...instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI),
-        _el: [{ [DocumentKey.atId]: 'https://example.org/e/1', _f: node }],
-      },
-    });
-    new ActiveComponentRegistryService().setVisibility(driver.findOrThrow(['_el']), driver.handlerContext);
-    return driver.findOrThrow(['_el', '_f']).hidden;
-  };
-
-  it('shows a filled link', () => {
-    expect(iriVisibility(LINK, linkNode('https://example.org/thing'))).toBe(false);
-  });
-
-  it('shows a filled controlled term', () => {
-    expect(iriVisibility(CONTROLLED, termNode('https://x/1', 'One'))).toBe(false);
-  });
-
-  it('hides an empty literal, which is the branch that does work', () => {
-    expect(iriVisibility(TEXT, literalNode(''))).toBe(true);
-    expect(iriVisibility(TEXT, literalNode('something'))).toBe(false);
   });
 });
 
@@ -523,7 +606,7 @@ describe('paged attribute-value fields', () => {
   it('accepts an empty attribute name without pushing anything', () => {
     const template = buildTemplate({ name: 'vs_attr_blank', children: [{ kind: ATTR, name: 'f' }] });
     const driver = new CeeDriver(template, {
-      instance: instanceWith(TEMPLATE_IRI, { _f: [''] }, 'https://example.org/i/1'),
+      instance: instanceWith(templateIdOf(template), { _f: [''] }, 'https://example.org/i/1'),
     });
     const registry = new ActiveComponentRegistryService();
     const widget = new FakeWidget();

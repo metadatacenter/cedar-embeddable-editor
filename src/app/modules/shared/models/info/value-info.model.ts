@@ -18,14 +18,15 @@ export class ValueInfo {
    * the parser's untyped read of `valueConstraints` — so the declaration named one
    * of the three shapes that reach it.
    *
-   * Every consumer narrows before using it: the literal widgets test
-   * `typeof === 'string'`, and the term widgets use `isAuthorityTerm`.
+   * The instance builder narrows it once when it seeds a new instance: literal
+   * defaults become literal atoms, and term defaults become an IRI/label atom.
+   * Widgets only display the instance and never apply this declaration themselves.
    *
    * Null for an ORCID or ROR field whatever the template declares. The model
    * library gives those kinds — and email, link and phone-number — an empty
    * constraint object, so a default declared on one never reaches here.
    */
-  defaultValue: string | boolean | AuthorityTerm | null = null;
+  defaultValue: string | number | boolean | AuthorityTerm | null = null;
   minLength: number | null = null;
   maxLength: number | null = null;
   temporalType: string | null = null;

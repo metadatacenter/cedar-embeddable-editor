@@ -30,7 +30,7 @@ import { CeeDriver } from '../src/driver';
 import { InstanceObject } from '@cee/models/instance-node.model';
 import { arrayAt, objectAt } from '../src/nodes';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
-import { literalOf, heldValue, attributeValue, instanceWith } from '../src/values';
+import { literalOf, heldValue, attributeValue, instanceWith, templateIdOf } from '../src/values';
 
 const ATTR: FieldKind = {
   key: 'attr',
@@ -90,13 +90,12 @@ const addAttribute = (driver: CeeDriver, component: any, name: string | null, va
  * occurrence to, so the add was refused and the field could not be used at all.
  */
 describe('an attribute-value field the instance says nothing about', () => {
-  const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/avflat';
   const INSTANCE_IRI = 'https://example.org/i/1';
 
   /** The instance a host hands over, with `_av` set to whatever a case needs. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const loaded = (slot?: unknown): any => {
-    const instance = instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI);
+  const loaded = (template: object, slot?: unknown): any => {
+    const instance = instanceWith(templateIdOf(template), {}, INSTANCE_IRI);
     if (slot !== undefined) {
       (instance as Record<string, unknown>)._av = slot;
     }
@@ -109,7 +108,8 @@ describe('an attribute-value field the instance says nothing about', () => {
     // learned that this field's empty slot is a list.
     ['the key holds an empty node', {}],
   ])('adds an attribute when %s', (_label, slot) => {
-    const driver = new CeeDriver(flat(), { instance: loaded(slot) });
+    const template = flat();
+    const driver = new CeeDriver(template, { instance: loaded(template, slot) });
     const component = driver.findOrThrow(['_av']);
 
     addAttribute(driver, component, 'colour', 'blue');
@@ -125,7 +125,8 @@ describe('an attribute-value field the instance says nothing about', () => {
    * on the strength of a click would discard whatever is there.
    */
   it('refuses, and says so, when the slot holds a value instead', () => {
-    const driver = new CeeDriver(flat(), { instance: loaded({ '@value': 'not a list' }) });
+    const template = flat();
+    const driver = new CeeDriver(template, { instance: loaded(template, { '@value': 'not a list' }) });
     const component = driver.findOrThrow(['_av']);
 
     driver.handlerContext.addMultiInstance(component);
@@ -148,16 +149,20 @@ describe('adding an attribute value', () => {
   });
 
   /**
-   * The attribute is a new property of the instance, so it needs a term IRI
-   * like any other. CEE mints one; only `instanceFullData` carries `@context`,
-   * since the extract form drops it.
+   * The attribute is a new property of the instance and CEE does not name it.
+   *
+   * It minted `https://schema.metadatacenter.org/properties/<guid>` here, which
+   * is an identity nothing assigned. The model library states the shape a draft
+   * takes — the value sits at the instance root with no `@context` term, and the
+   * server fills the term on upload — and dropped `PropertyIri.forId` so the
+   * minting had nowhere to come from.
    */
-  it('mints an @context entry for the new property', () => {
+  it('names the new property nowhere, leaving the term to the server', () => {
     const driver = new CeeDriver(flat());
     addAttribute(driver, driver.findOrThrow(['_av']), 'colour', 'blue');
 
     const context = driver.metadata[DocumentKey.atContext];
-    expect(context.colour, 'no @context entry minted for the attribute').toBeTruthy();
+    expect(context.colour, 'an invented @context entry for the attribute').toBeUndefined();
     // The field's own placeholder entry goes away — the property is now the
     // attribute, not the field.
     expect(context._av).toBeUndefined();
@@ -222,7 +227,9 @@ describe('copying an attribute', () => {
     expect(driver.emitted._av).toEqual(['a1', 'a1 copy']);
     expect(driver.emitted.a1[DocumentKey.atValue]).toBe('v1');
     expect(driver.emitted['a1 copy'][DocumentKey.atValue]).toBe('v1');
-    expect(driver.emitted[DocumentKey.atContext]['a1 copy']).not.toBe(driver.emitted[DocumentKey.atContext].a1);
+    // Neither carries a term, so neither can carry the other's.
+    expect(driver.emitted[DocumentKey.atContext]['a1 copy']).toBeUndefined();
+    expect(driver.emitted[DocumentKey.atContext].a1).toBeUndefined();
 
     driver.handlerContext.setCurrentIndex(component, 0);
     expect(valueOf(driver.extract, 'a1')).toBe('v1');
@@ -255,16 +262,12 @@ describe('names the user did not supply', () => {
     addAttribute(driver, driver.findOrThrow(['_av']), null, 'blue');
     driver.expectNoErrors('adding an unnamed attribute');
 
-    const names: string[] = driver.metadata._av;
-    expect(names).toHaveLength(1);
-    expect(names[0]).toBe('');
+    expect(heldValue(driver.extract.values._av)).toEqual(['']);
     expect(driver.extract.hasValue('Attribute Value Field1'), 'a name was manufactured').toBe(false);
-    // The row is held open in the emitted list, under an empty name, and no
-    // property is invented for it. It used to come out as `[]` because the
-    // projection that built this list dropped a nameless entry on the way; the
-    // list is written from the instance now, and the row is really there — the
-    // user made it, and it is waiting for a name.
-    expect(driver.emitted._av).toEqual(['']);
+    // The row stays in CEE's editing model, where the user can finish it, but it
+    // is not an attribute until it has a name and must not leave CEE as one.
+    expect(driver.metadata._av).toEqual([]);
+    expect(driver.emitted._av).toEqual([]);
   });
 
   it('does not let a second attribute overwrite the first by reusing its name', () => {
@@ -432,7 +435,8 @@ describe('deleting an attribute', () => {
 
     expect(driver.extract.values.colour).toBeUndefined();
     expect(valueOf(driver.extract, 'size')).toBe('large');
-    expect(driver.emitted[DocumentKey.atContext].size).toBeTruthy();
+    // The surviving attribute keeps its value; neither ever carried a term.
+    expect(driver.emitted[DocumentKey.atContext].size).toBeUndefined();
   });
 
   it('is a no-op when no name is given', () => {
@@ -463,7 +467,7 @@ describe('attribute values inside elements', () => {
 
     expect(valueOf(objectAt(driver.extract, '_el'), 'colour')).toBe('blue');
     expect(driver.extract.values.colour, 'the attribute leaked onto the template').toBeUndefined();
-    expect(driver.emitted._el[DocumentKey.atContext].colour).toBeTruthy();
+    expect(driver.emitted._el[DocumentKey.atContext].colour).toBeUndefined();
   });
 
   it('rejects a collision with an ordinary child in the enclosing element', () => {

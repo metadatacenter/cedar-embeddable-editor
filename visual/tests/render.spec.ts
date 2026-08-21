@@ -13,7 +13,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { elementIrisOf, literalNode, valueOf } from './values';
+import { elementIrisOf, literalNode, termOf, valueOf } from './values';
 import { fileURLToPath } from 'node:url';
 import {
   BUNDLE_VERSION,
@@ -38,6 +38,7 @@ const FIXTURES = [
   ['10-attribute-values', 'attribute-value fields, whose names come from the user'],
   ['12-render-decision', 'whether a multi field renders its content, in all three cases'],
   ['13-paged-choice', 'a choice field inside a multi-instance element'],
+  ['22-multi-field-values', 'multi-instance fields, whose pager shares the title row'],
 ] as const;
 
 test.describe('host style isolation', () => {
@@ -298,7 +299,7 @@ test.describe('host style isolation', () => {
 });
 
 test.describe('multiple editor instances', () => {
-  test('keep language paths, IRI prefixes and preferences isolated', async ({ page }) => {
+  test('keep language paths and preferences isolated, and invent no element IRIs', async ({ page }) => {
     const languageRequests: string[] = [];
     await page.route('**/served/languages/**', async (route) => {
       languageRequests.push(route.request().url());
@@ -320,10 +321,16 @@ test.describe('multiple editor instances', () => {
     });
     const firstElementIds = elementIrisOf(instances.first);
     const secondElementIds = elementIrisOf(instances.second);
-    expect(firstElementIds.length).toBeGreaterThan(0);
-    expect(secondElementIds.length).toBeGreaterThan(0);
-    expect(firstElementIds.every((id) => id.startsWith('https://first.example/'))).toBe(true);
-    expect(secondElementIds.every((id) => id.startsWith('https://second.example/'))).toBe(true);
+    /*
+     * Neither editor invents an identity for an occurrence.
+     *
+     * This asserted that the two minted under the prefixes their host had configured.
+     * CEE mints nothing now — an `@id` on an element occurrence only ever arrives in a
+     * loaded instance — so what the two editors have in common here is that they add
+     * none, which is the property a per-editor prefix existed to keep apart.
+     */
+    expect(firstElementIds).toEqual([]);
+    expect(secondElementIds).toEqual([]);
 
     /*
      * Read-only is per instance, and configured rather than toggled. It used to be
@@ -335,9 +342,11 @@ test.describe('multiple editor instances', () => {
      * other's.
      */
     const firstInput = page.locator('#editor-first input').first();
-    const secondInput = page.locator('#editor-second input').first();
-    await expect(secondInput).toHaveAttribute('readonly', 'true');
     await expect(firstInput).not.toHaveAttribute('readonly', '');
+    // The read-only one has no controls to make read-only: with no instance behind it, each field
+    // states its specification in a box instead. Which is the stronger form of the same claim.
+    await expect(page.locator('#editor-second input')).toHaveCount(0);
+    await expect(page.locator('#editor-second .cee-spec-box').first()).toBeVisible();
   });
 
   test('keep terminology and authority endpoints isolated', async ({ page }) => {
@@ -358,11 +367,11 @@ test.describe('multiple editor instances', () => {
 
     await openTwoEditors(page, '08-authority');
     const authorityRequest = page.waitForRequest((request) =>
-      request.url().includes('/isolation/first/authority/pfas/search'),
+      request.url().includes('/isolation/first/ext-auth/comp-tox/search-by-name'),
     );
     await page.locator('#editor-first input[aria-label="chemical_pfas"]').pressSequentially('chemical', { delay: 40 });
     await passDebounceWindow(page);
-    expect((await authorityRequest).url()).toContain('/isolation/first/authority/pfas/search');
+    expect((await authorityRequest).url()).toContain('/isolation/first/ext-auth/comp-tox/search-by-name');
   });
 });
 
@@ -481,11 +490,8 @@ test.describe('real templates', () => {
       const stray = await hermetic(page);
       await open(page, fixture);
 
-      // The authority icons are CSS `background-image`s and the static image an `img`,
-      // so they are fetched when the browser paints rather than before `__ceeReady`.
-      // Without this the ROR icon lands in some runs and not others, and the baseline
-      // records whichever happened — the difference is visible between two runs of the
-      // same build.
+      // Static images are fetched when the browser paints rather than before
+      // `__ceeReady`; wait for those fixture assets before taking the baseline.
       await page.waitForLoadState('networkidle');
 
       await expect(page).toHaveScreenshot(`${fixture}-page-1.png`, { fullPage: true });
@@ -942,15 +948,53 @@ test('radio selection uses primary color and keeps Clear on the selected row', a
   expect(geometry.selectedColor).toBe('#00897b');
 });
 
+test('a populated multi-select uses the focus color rather than the error color', async ({ page }) => {
+  await open(page, '02-choices');
+
+  const multi = page.locator('mat-select[aria-label="multi_list"]');
+  await multi.click();
+  await page.locator('mat-option').filter({ hasText: 'North' }).click();
+  await page.locator('mat-option').filter({ hasText: 'South' }).click();
+  await page.keyboard.press('Escape');
+
+  const state = await page.evaluate(() => {
+    const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+    const resolvedColor = (value: string) => {
+      const probe = document.createElement('span');
+      probe.style.color = value;
+      root.appendChild(probe);
+      const resolved = getComputedStyle(probe).color;
+      probe.remove();
+      return resolved;
+    };
+    const read = (label: string) => {
+      const select = root.querySelector(`mat-select[aria-label="${label}"]`)!;
+      const field = select.closest('mat-form-field')!;
+      const arrow = select.querySelector('.mat-mdc-select-arrow')!;
+      const style = getComputedStyle(select);
+      return {
+        invalid: field.classList.contains('mat-form-field-invalid'),
+        arrowColor: getComputedStyle(arrow).color,
+        focusColor: resolvedColor(style.getPropertyValue('--mat-select-focused-arrow-color').trim()),
+        errorColor: resolvedColor(style.getPropertyValue('--mat-select-invalid-arrow-color').trim()),
+      };
+    };
+    return { single: read('single_list'), multi: read('multi_list') };
+  });
+
+  expect(state.multi.invalid, 'two declared options made the multi-select invalid').toBe(false);
+  expect(state.multi.arrowColor, 'the focused multi-select did not use the primary focus color').toBe(
+    state.multi.focusColor,
+  );
+  expect(state.multi.arrowColor, "the valid multi-select used Material's error color").not.toBe(state.multi.errorColor);
+  expect(state.single.invalid).toBe(false);
+});
+
 test.describe('config presets', () => {
   /**
    * The base preset hides the header and footer so diffs reflect the form. This
    * covers them, and with them `mat-toolbar`, which appears in no other baseline.
    */
-  test('chrome: header and footer', async ({ page }) => {
-    await open(page, '01-input-types', 'chrome');
-    await expect(page).toHaveScreenshot('preset-chrome.png', { fullPage: true });
-  });
 
   /**
    * Read-only mode swaps inputs for plain text in several widgets and
@@ -1022,85 +1066,6 @@ test('element headings establish hierarchy without doubling the first content ga
     });
 
   expect(await readMetrics()).toEqual({ fontSize: '18px', fontWeight: '600', contentGap: 12 });
-
-  await page.locator('cedar-embeddable-editor').evaluate((host) => {
-    const style = (host as HTMLElement).style;
-    style.setProperty('--cee-element-heading-size', '18px');
-    style.setProperty('--cee-element-heading-weight', '700');
-    style.setProperty('--cee-element-content-gap', '8px');
-  });
-
-  expect(await readMetrics()).toEqual({ fontSize: '18px', fontWeight: '700', contentGap: 8 });
-});
-
-/**
- * What an embedder can do to the published properties, and what CEE does about it.
- *
- * These are public API, so a host page can put anything in them, and before this
- * nothing bounded what happened next. `--cee-element-heading-size: 100px` left the
- * expansion-panel header at its own 64px while the text escaped it — the heading
- * clipped mid-word with no ellipsis, and a nested element's heading drew over the
- * field list below. `999px` was accepted the same way.
- *
- * Two mechanisms answer two different mistakes, which is why both exist and why
- * this test names both. `clamp()` bounds a value that is valid but ruinous.
- * Registering the property with a `syntax` handles one of the wrong *type*: those
- * used to make the declaration invalid at computed-value time, so `font-size`
- * inherited and a typo rendered at the 14px body size rather than at the 18px
- * default — the worst outcome, because it looks deliberate.
- *
- * Asserted through the real element rather than a probe: `registerCeeThemeProperties`
- * runs from the bundle's entry point, so this is also the test that it ran at all.
- */
-test('published theme properties are bounded, and a bad value falls back to the default', async ({ page }) => {
-  await open(page, '18-real-nested', 'readonly');
-  await page.locator('.page-break-paginator-container mat-chip-option', { hasText: '2' }).first().click();
-  await page.waitForTimeout(300);
-
-  const panel = page.locator('mat-expansion-panel', { hasText: 'Wrapper then Nested (single)' }).first();
-  const headingSize = () =>
-    panel.evaluate(
-      (element) =>
-        getComputedStyle(element.querySelector(':scope > mat-expansion-panel-header mat-panel-title')!).fontSize,
-    );
-  const set = (value: string | null) =>
-    page.locator('cedar-embeddable-editor').evaluate((host, v) => {
-      const style = (host as HTMLElement).style;
-      if (v === null) style.removeProperty('--cee-element-heading-size');
-      else style.setProperty('--cee-element-heading-size', v);
-    }, value);
-
-  expect(await headingSize(), 'the default should sit inside the clamp untouched').toBe('18px');
-
-  // Valid but ruinous: bounded rather than obeyed.
-  await set('100px');
-  expect(await headingSize()).toBe('32px');
-  await set('999px');
-  expect(await headingSize()).toBe('32px');
-  await set('1px');
-  expect(await headingSize()).toBe('12px');
-
-  // `rem` resolves against the host page's root, which is the dependence
-  // `_cee-tokens.scss` removed from CEE's own sizes. The clamp keeps an embedder
-  // from reintroducing it without bound.
-  await set('3rem');
-  expect(await headingSize()).toBe('32px');
-
-  // Wrong *type*: the registered `<length>` syntax discards it in favour of the
-  // initial value. Unregistered this gave 14px, the inherited body size, which is
-  // the failure worth preventing because it looks deliberate.
-  await set('banana');
-  expect(await headingSize(), 'a typo must fall back to the published default').toBe('18px');
-
-  // A negative length is a *valid* `<length>`, so registration passes it through
-  // and the clamp floors it — the same treatment `100px` gets at the other end.
-  // This is the seam between the two mechanisms, so it is asserted rather than
-  // assumed: unregistered and unclamped, this rendered at 14px.
-  await set('-20px');
-  expect(await headingSize(), 'a negative length must be floored by the clamp').toBe('12px');
-
-  await set(null);
-  expect(await headingSize()).toBe('18px');
 });
 
 test('page navigation keeps its controls in a compact row', async ({ page }) => {
@@ -1121,7 +1086,9 @@ test('page navigation keeps its controls in a compact row', async ({ page }) => 
 });
 
 test('numeric units are inset from the input outline', async ({ page }) => {
-  await open(page, '17-real-flat', 'readonly');
+  // Editable, because a read-only field with no instance behind it states its specification in a
+  // box instead of rendering a numeric control for the unit to sit in.
+  await open(page, '17-real-flat');
 
   const unitInset = await page.locator('.cee-numeric-unit', { hasText: 'mg' }).evaluate((unit) => {
     const field = unit.closest('mat-form-field')!.getBoundingClientRect();
@@ -1344,8 +1311,8 @@ test.describe('the version stamp', () => {
   const declared = JSON.parse(readFileSync(fileURLToPath(new URL('../../package.json', import.meta.url)), 'utf8'))
     .version as string;
 
-  test('is published on window and rendered in the header', async ({ page }) => {
-    await open(page, '01-input-types', 'chrome');
+  test("is published on window and rendered in the form's title block", async ({ page }) => {
+    await open(page, '01-input-types');
 
     expect(
       await page.evaluate(() => (window as { cedarEmbeddableEditorVersion?: string }).cedarEmbeddableEditorVersion),
@@ -1358,128 +1325,42 @@ test.describe('the version stamp', () => {
   });
 });
 
-test.describe('the footer', () => {
-  const ORGANISATION = 'Stanford Division of Computational Medicine';
-  const HOME = 'https://computationalmedicine.stanford.edu';
-
-  test('names the maintaining organisation and links to it', async ({ page }) => {
-    await open(page, '01-input-types', 'chrome');
-    const footer = page.locator('footer.main__footer');
-    await expect(footer).toBeVisible();
-
-    await expect(footer).toContainText(ORGANISATION);
-    await expect(footer.locator('a').first()).toHaveAttribute('href', HOME);
-    // The link is the logo's, and it is the only non-text route to the site, so
-    // its accessible name has to carry the destination too.
-    await expect(footer.locator('a').first()).toHaveAttribute('aria-label', HOME);
-  });
-
-  /**
-   * The mark carries no text of its own.
-   *
-   * The old asset baked "BMIR" underneath the tree, so a rebrand that changed
-   * only the strings would have left the previous name rendered in an image
-   * where no text assertion could reach it. Cropping the wordmark off is what
-   * makes the name above the single source of it — and this keeps it that way by
-   * pinning the mark's aspect ratio to the crop.
-   */
-  test('shows the mark on its own', async ({ page }) => {
-    await open(page, '01-input-types', 'chrome');
-    const footer = page.locator('footer.main__footer');
-    const logo = footer.locator('.division-logo');
-
-    const box = await logo.boundingBox();
-    expect(box, 'the footer logo has no box').toBeTruthy();
-    // 224x194 cropped to the mark; `background-size: cover` would silently
-    // distort it if the box drifted away from that ratio.
-    expect(box!.width / box!.height).toBeCloseTo(224 / 194, 1);
-
-    await expect(footer).toHaveScreenshot('footer.png');
-  });
-});
-
-/**
- * External authority fields — ORCID, ROR, PFAS, PubMed, RRID, NIH Grant, DOI.
+/*
+ * Expand All, Collapse All and the download menu, at the header's right edge.
  *
- * These are search boxes, not value boxes. The control holds whatever the user
- * is typing, and after a selection it holds `"Label - https://iri"`; the IRI
- * itself only ever reaches the model. A validator that checks the control's
- * contents for a well-formed IRI therefore rejects every intermediate state,
- * which is how "Entered value is not a valid RRID and has been cleared."
- * came to appear on the first keystroke — over a field that had not been
- * cleared, above an autocomplete that was working.
+ * Between 520px and 1100px the header stacks and those buttons take a row of
+ * their own, shared with the paginator when the template has page breaks. That
+ * row used to be `space-between`, which reads as "paginator left, buttons right"
+ * only while there are two things in it: a template with no page breaks put its
+ * buttons at the left edge instead.
  *
- * No screenshot: this asserts behaviour rather than pixels, and a baseline
- * image would make it fail for unrelated styling changes.
+ * No baseline covers that band — the two screenshot projects sit at 1280 and 480,
+ * either side of it — so the width is set here, and the claim is a measurement
+ * rather than an image.
  */
-/**
- * A chosen controlled term reads the way a chosen authority term reads.
- *
- * It did not. The controlled widget composed `label - (iri)` while the seven
- * authority fields compose `label - iri` through `getCompoundValue`, so two boxes
- * one row apart showed the same kind of value in two forms.
- *
- * Reaching this state normally needs a live terminology server, which the visual
- * suite deliberately cannot contact — which is why the display form had no test at
- * all and was free to drift. An instance fixture supplies the selected term
- * instead, through the same `instanceObject` input a host page uses, so no lookup
- * happens and nothing is stubbed.
- *
- * Read-only, because that is the only mode the compound form is used in:
- * `setCurrentValue` composes `label - iri` when the field is not editable, and
- * otherwise puts the bare label in the box for typing. It is also the mode
- * openview runs in, which is where this was reported from.
- */
-test('a selected controlled term reads like a selected authority term', async ({ page }) => {
-  await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance');
+test.describe('the header actions', () => {
+  const rightEdges = (page: Page) =>
+    page.locator('.template-header').evaluate((header) => {
+      const buttons = header.querySelector('.expand-buttons')!.getBoundingClientRect();
+      return {
+        // The header's content edge, which its padding holds off the card.
+        header: Math.round(header.getBoundingClientRect().right - parseFloat(getComputedStyle(header).paddingRight)),
+        buttons: Math.round(buttons.right),
+      };
+    });
 
-  const organism = page.locator('input[aria-label="organism"]');
-  await expect(organism).toHaveValue('disease - http://purl.obolibrary.org/obo/DOID_4');
+  for (const [fixture, arrangement] of [
+    ['01-input-types', 'alone in their row'],
+    ['05-static-paged', 'sharing the row with a paginator'],
+  ] as const) {
+    test(`reach the right edge ${arrangement}`, async ({ page }) => {
+      await page.setViewportSize({ width: 900, height: 900 });
+      await open(page, fixture);
 
-  const shown = await organism.inputValue();
-  expect(shown, 'the IRI must not be wrapped in parentheses').not.toContain('(');
-});
-
-/**
- * `hideEmptyFields`, which until now did nothing at all.
- *
- * Both artifact setters cleared the flag, and on the one pass an artifact gets the
- * clear ran after the configuration set it — so the key was live only on the
- * combined input, whose setter did not clear. The clear is gone, and this is the
- * behavioural coverage the key never had: the only test of it watched the flag being
- * set on a wrapper with no child editor and no template, which is why nothing caught
- * that the flag never reached a rendered form.
- *
- * The instance fills `organism` and leaves `contributor` empty, so a viewer that
- * honours the key shows one and drops the other.
- */
-test.describe('hiding fields the instance never filled', () => {
-  test('drops an empty field on the combined input', async ({ page }) => {
-    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance', 'combined', '&f=hideEmptyFields');
-
-    await expect(page.locator('input[aria-label="organism"]')).toBeVisible();
-    await expect(page.locator('input[aria-label="contributor"]')).toHaveCount(0);
-  });
-
-  /**
-   * The separate inputs do not honour the key, which is a build-ordering limit
-   * rather than the cleared flag: the form is built when the template arrives, and
-   * on that route the instance has not been read yet, so nothing knows which fields
-   * are empty. Asserted so the limit is recorded rather than rediscovered.
-   */
-  test('does not drop it on the separate inputs', async ({ page }) => {
-    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance', 'separate', '&f=hideEmptyFields');
-
-    await expect(page.locator('input[aria-label="organism"]')).toBeVisible();
-    await expect(page.locator('input[aria-label="contributor"]')).toBeVisible();
-  });
-
-  test('keeps both fields when the key is off', async ({ page }) => {
-    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance', 'combined');
-
-    await expect(page.locator('input[aria-label="organism"]')).toBeVisible();
-    await expect(page.locator('input[aria-label="contributor"]')).toBeVisible();
-  });
+      const edges = await rightEdges(page);
+      expect(edges.buttons, 'the buttons end where the header ends').toBe(edges.header);
+    });
+  }
 });
 
 test.describe('external authority fields', () => {
@@ -1622,525 +1503,6 @@ test.describe('the served bundle', () => {
   });
 });
 
-/**
- * CEE's own time picker.
- *
- * Written because `@angular-material-components/datetime-picker` peers Angular 16
- * and capped the upgrade, and because the obvious replacement supports no seconds
- * at all — while second-precision is the second most used granularity across both
- * artifact corpora, after `day`.
- *
- * Tested here rather than in the domain harness because it is a widget: what
- * matters is which boxes a granularity puts on screen and what a click on a
- * stepper stores. The arithmetic underneath has its own unit tests in
- * `harness/test/clock-time.spec.ts`.
- *
- * `09-temporal` is the fixture; before it existed the only temporal field under
- * test was minute-granularity, so the seconds boxes and the 12-hour face — the
- * entire reason for owning this — were rendered by nothing.
- */
-test.describe('the time picker', () => {
-  /**
-   * Which picker belongs to which field, in document order.
-   *
-   * `year_only` and `day_only` are `xsd:date`, so they have no time half at all —
-   * the six pickers are the six fields that do.
-   */
-  const PICKERS = [
-    'hour_only',
-    'to_the_minute',
-    'to_the_second',
-    'decimal_seconds',
-    'twelve_hour',
-    'twelve_hour_seconds',
-  ];
-  const pickerFor = (page: import('@playwright/test').Page, field: string) =>
-    page.locator('.cee-time-picker').nth(PICKERS.indexOf(field));
-
-  /** The instance CEE would hand a host page. */
-  const storedValue = async (page: import('@playwright/test').Page, field: string): Promise<unknown> =>
-    valueOf(
-      await page.evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata),
-      field,
-    );
-
-  /**
-   * Which boxes each granularity offers, asserted per field.
-   *
-   * This is the model-fidelity claim, and the reason CEE owns this component: a
-   * field never shows precision it cannot store, and never hides precision it
-   * can. `@ng-matero/extensions` would have failed the last two rows outright.
-   */
-  test.describe('shows exactly the units its granularity allows', () => {
-    const cases: Array<[string, number, number]> = [
-      // field, minute boxes, second boxes — every time field has exactly one hour
-      ['hour_only', 0, 0],
-      ['to_the_minute', 1, 0],
-      ['to_the_second', 1, 1],
-      ['decimal_seconds', 1, 1],
-      ['twelve_hour', 1, 0],
-      ['twelve_hour_seconds', 1, 1],
-    ];
-
-    for (const [field, minutes, seconds] of cases) {
-      test(field, async ({ page }) => {
-        await open(page, '09-temporal');
-        const picker = pickerFor(page, field);
-
-        await expect(picker.locator('input[aria-label="Hour"]'), 'hour').toHaveCount(1);
-        await expect(picker.locator('input[aria-label="Minute"]'), 'minute').toHaveCount(minutes);
-        await expect(picker.locator('input[aria-label="Second"]'), 'second').toHaveCount(seconds);
-      });
-    }
-
-    test('a date-only field has no time picker at all', async ({ page }) => {
-      await open(page, '09-temporal');
-      await expect(page.locator('.cee-time-picker')).toHaveCount(PICKERS.length);
-    });
-  });
-
-  /**
-   * How wide a clock holding a time is.
-   *
-   * The boxes have to fit `HH`, `MM` and `SS` when empty, and M is half again as
-   * wide as a digit — so a box sized once, for both states, leaves half a digit
-   * of air on either side of every colon and the clock reads `14 : 30 : 15`.
-   *
-   * Asserted against the width of the text itself rather than a pixel count, so
-   * it stays a statement about the two being close and survives a change of font
-   * or type size. The slack covers three boxes' 1px padding either side.
-   */
-  test('a filled clock is as wide as the time it shows', async ({ page }) => {
-    await open(page, '09-temporal');
-    const picker = pickerFor(page, 'to_the_second');
-
-    for (const [unit, value] of [
-      ['Hour', '14'],
-      ['Minute', '30'],
-      ['Second', '15'],
-    ]) {
-      await picker.locator(`input[aria-label="${unit}"]`).fill(value);
-    }
-    await page.waitForTimeout(300);
-
-    const slack = await picker.locator('.cee-time-input-shell').evaluate((shell) => {
-      const box = getComputedStyle(shell);
-      const inner =
-        shell.getBoundingClientRect().width -
-        parseFloat(box.paddingLeft) -
-        parseFloat(box.paddingRight) -
-        parseFloat(box.borderLeftWidth) -
-        parseFloat(box.borderRightWidth);
-
-      const segment = getComputedStyle(shell.querySelector('.cee-time-segment')!);
-      const measure = document.createElement('canvas').getContext('2d')!;
-      measure.font = `${segment.fontWeight} ${segment.fontSize} ${segment.fontFamily}`;
-
-      return inner - measure.measureText('14:30:15').width;
-    });
-
-    expect(slack, 'the boxes are clipping the time').toBeGreaterThan(-2);
-    expect(slack, 'the colons are floating in air').toBeLessThan(12);
-  });
-
-  /**
-   * A temporal field is one row of controls, so they line up.
-   *
-   * The offset did not. Editable, it was the row's only control with a floating
-   * label, and a floating label rests where Material's own 56px field puts it —
-   * seven pixels below the date's text in the 48px CEE renders. Read-only it was
-   * bare text, 36px tall and top-aligned against two 48px bordered boxes.
-   *
-   * Both are geometry rather than appearance, so both are measured. A clipped
-   * screenshot of this row would carry the diff too, but it would not say which
-   * of the three moved.
-   */
-  test.describe('a temporal row lines its controls up', () => {
-    const boxes = (page: import('@playwright/test').Page, selectors: Record<string, string>) =>
-      page
-        .locator('app-cedar-input-datetime')
-        .first()
-        .evaluate((host, wanted) => {
-          const out: Record<string, { top: number; height: number } | null> = {};
-          for (const [name, selector] of Object.entries(wanted)) {
-            const element = host.querySelector(selector);
-            const rect = element?.getBoundingClientRect();
-            out[name] = rect ? { top: Math.round(rect.top), height: Math.round(rect.height) } : null;
-          }
-          return out;
-        }, selectors);
-
-    /*
-     * The row stacks below 620px, by a container query — so `top` is only
-     * comparable in the desktop project, while the height each control takes is
-     * the claim at either width. Asserted separately rather than skipping the
-     * narrow project, because a 36px control among 48px ones is the read-only
-     * defect and it stacks just the same.
-     */
-    const inOneRow = (width: number) => width > 620;
-
-    test('editable: the offset reads at the same height as the date', async ({ page }) => {
-      await open(page, '07-timezone');
-
-      const row = await boxes(page, {
-        dateField: '.cee-temporal-date mat-form-field',
-        clock: '.cee-time-input-shell',
-        offsetField: '.cee-temporal-offset mat-form-field',
-        dateText: '.cee-temporal-date input',
-        offsetText: '.mat-mdc-select-value',
-      });
-      const width = page.viewportSize()!.width;
-
-      expect(row.offsetField!.height, 'every control in the row is one height').toBe(row.dateField!.height);
-      expect(row.clock!.height).toBe(row.dateField!.height);
-      expect(row.offsetText!.height, 'the offset text is as tall as the date text').toBe(row.dateText!.height);
-
-      if (inOneRow(width)) {
-        expect(row.offsetField!.top, 'the three controls are one row').toBe(row.dateField!.top);
-        expect(row.clock!.top).toBe(row.dateField!.top);
-        expect(row.offsetText!.top, 'the offset text sits where the date text sits').toBe(row.dateText!.top);
-      }
-    });
-
-    test('readonly: the offset is boxed like the clock beside it', async ({ page }) => {
-      await open(page, '07-timezone', 'readonly');
-
-      const row = await boxes(page, {
-        dateField: '.cee-temporal-date mat-form-field',
-        clock: '.cee-time-picker-readonly',
-        offset: '.cee-offset-readonly',
-      });
-
-      expect(row.clock!.height).toBe(row.dateField!.height);
-      expect(row.offset!.height, 'a read-only offset was bare text, 36px among 48px boxes').toBe(row.dateField!.height);
-
-      if (inOneRow(page.viewportSize()!.width)) {
-        expect(row.clock!.top).toBe(row.dateField!.top);
-        expect(row.offset!.top).toBe(row.dateField!.top);
-      }
-    });
-
-    /**
-     * Both separators in the row are the same separator.
-     *
-     * The `.` before the decimal-seconds box asked for 18px and took the default
-     * black, while the `:` between hour, minute and second — inches away, inside
-     * the same control — is 14px and #555. Two glyphs doing one job in two sizes
-     * and two colours, and it was the last rendered size in the editor that
-     * belonged to no scale.
-     *
-     * A DOM assertion rather than a baseline, because a period is roughly thirty
-     * pixels and the change moved none of the 108 snapshots. That is the miss the
-     * budget comment above predicts in as many words — the smaller the thing that
-     * broke, the more slack a ratio gives it — so pixels cannot hold this and are
-     * not asked to.
-     */
-    test('the decimal point matches the colons beside it', async ({ page }) => {
-      await open(page, '09-temporal');
-
-      const separators = await page
-        .locator('app-cedar-input-datetime')
-        .filter({ has: page.locator('.cee-fraction-separator') })
-        .first()
-        .evaluate((host) => {
-          const read = (selector: string) => {
-            const element = host.querySelector(selector);
-            if (!element) return null;
-            const style = getComputedStyle(element);
-            return { fontSize: style.fontSize, color: style.color };
-          };
-          return { point: read('.cee-fraction-separator'), colon: read('.cee-time-separator') };
-        });
-
-      expect(separators.colon, 'no clock separator to compare against').not.toBeNull();
-      expect(separators.point, 'this fixture should hold a decimal-seconds field').not.toBeNull();
-      expect(separators.point, 'the decimal point diverged from the colons in the same control').toEqual(
-        separators.colon,
-      );
-    });
-
-    /**
-     * No placeholder in the row is shaped like a value.
-     *
-     * The decimal-seconds box used to read `000`, which is both a placeholder and a
-     * valid value — and at this granularity the fraction is a *required* part, so an
-     * empty box means the field records nothing. Date and time filled with a grey
-     * `000` beside them therefore looked complete and stored `null`, while typing
-     * `000` stored `…T02:30:15.000`. The two opposite states differed only in text
-     * colour.
-     *
-     * Asserted as a rule about every placeholder rather than a check on one string,
-     * because the next digit-shaped placeholder would be the same bug. The clock's
-     * own `HH`/`MM`/`SS` already satisfy it, which is what made the fraction the
-     * odd one out.
-     *
-     * A DOM assertion for the same reason as the separator above: changing `000` to
-     * `sss` moved none of the 108 baselines, three grey glyphs being well under the
-     * budget.
-     */
-    test('no placeholder in the temporal row can be mistaken for a value', async ({ page }) => {
-      await open(page, '09-temporal');
-
-      const placeholders = await page
-        .locator('app-cedar-input-datetime')
-        .filter({ has: page.locator('.cee-fraction-separator') })
-        .first()
-        .evaluate((host) =>
-          [...host.querySelectorAll('input[placeholder]')].map((input) => (input as HTMLInputElement).placeholder),
-        );
-
-      expect(placeholders.length, 'expected the clock segments and the fraction box').toBeGreaterThan(1);
-      const valueShaped = placeholders.filter((text) => /^[\d\s.:]+$/.test(text));
-      expect(valueShaped, 'a placeholder made of digits is indistinguishable from data').toEqual([]);
-    });
-  });
-
-  test('the 12-hour fields show a meridian control and the others do not', async ({ page }) => {
-    await open(page, '09-temporal');
-    await expect(page.locator('.cee-time-meridian'), 'only the two 12h fields').toHaveCount(2);
-    await expect(pickerFor(page, 'twelve_hour').locator('.cee-time-meridian')).toHaveText(/AM|PM/);
-    await expect(pickerFor(page, 'to_the_minute').locator('.cee-time-meridian')).toHaveCount(0);
-  });
-
-  test('typing an hour stores it', async ({ page }) => {
-    await open(page, '09-temporal');
-    const hour = pickerFor(page, 'to_the_minute').locator('input[aria-label="Hour"]');
-    await hour.fill('14');
-    await page.waitForTimeout(300);
-
-    expect(String(await storedValue(page, '_to_the_minute'))).toContain('14:');
-  });
-
-  test('an out-of-range typed hour waits for blur, then restores instead of wrapping', async ({ page }) => {
-    await open(page, '09-temporal');
-    const picker = pickerFor(page, 'to_the_minute');
-    const hour = picker.locator('input[aria-label="Hour"]');
-
-    await hour.fill('25');
-    await expect(hour, 'do not interrupt while the user is still typing').toHaveValue('25');
-    await expect(picker.getByRole('alert')).toHaveCount(0);
-    expect(await storedValue(page, '_to_the_minute'), 'an invalid edit must never reach metadata').toBeNull();
-
-    await hour.blur();
-    await expect(hour, 'there was no previous value, so blur restores the empty field').toHaveValue('');
-    await expect(picker.getByRole('alert')).toContainText('00 to 23');
-
-    await hour.fill('14');
-    await expect(picker.getByRole('alert'), 'a correction clears the feedback live').toHaveCount(0);
-    await expect.poll(async () => String(await storedValue(page, '_to_the_minute'))).toContain('14:');
-  });
-
-  /** Wrapping rather than clamping when a focused segment is stepped. */
-  test('stepping past the end of an hour wraps to the start', async ({ page }) => {
-    await open(page, '09-temporal');
-    const picker = pickerFor(page, 'to_the_minute');
-    const hour = picker.locator('input[aria-label="Hour"]');
-    await hour.fill('23');
-    await page.waitForTimeout(200);
-
-    await hour.press('ArrowUp');
-    await page.waitForTimeout(300);
-
-    // Zero-padded, as a clock reads and as the dependency this replaced did.
-    await expect(hour).toHaveValue('00');
-    expect(String(await storedValue(page, '_to_the_minute'))).toContain('00:');
-  });
-
-  test('stepping below zero wraps to the end', async ({ page }) => {
-    await open(page, '09-temporal');
-    const picker = pickerFor(page, 'to_the_minute');
-    const minute = picker.locator('input[aria-label="Minute"]');
-    await minute.fill('0');
-    await page.waitForTimeout(200);
-    await minute.press('ArrowDown');
-    await page.waitForTimeout(300);
-
-    await expect(minute).toHaveValue('59');
-  });
-
-  test('seconds reach the stored value', async ({ page }) => {
-    await open(page, '09-temporal');
-    const second = pickerFor(page, 'to_the_second').locator('input[aria-label="Second"]');
-    await second.fill('42');
-    await page.waitForTimeout(300);
-
-    expect(String(await storedValue(page, '_to_the_second'))).toContain(':42');
-  });
-
-  /**
-   * The invariant worth guarding above all others: CEDAR stores a 24-hour clock
-   * whatever the field displays. A 12-hour field showing 2 PM must store 14.
-   */
-  test('a 12-hour field stores 24-hour time', async ({ page }) => {
-    await open(page, '09-temporal');
-    const picker = pickerFor(page, 'twelve_hour');
-    const hour = picker.locator('input[aria-label="Hour"]');
-    const meridian = picker.locator('.cee-time-meridian');
-
-    await hour.fill('2');
-    await page.waitForTimeout(200);
-    if ((await meridian.textContent())?.trim() === 'AM') {
-      await meridian.click();
-      await page.waitForTimeout(200);
-    }
-    await expect(meridian).toHaveText('PM');
-    await page.waitForTimeout(300);
-
-    const stored = String(await storedValue(page, '_twelve_hour'));
-    expect(stored, `2 PM must store as 14, got ${stored}`).toContain('14:');
-  });
-
-  test('a 12-hour field stores midnight as 00, not 12', async ({ page }) => {
-    await open(page, '09-temporal');
-    const picker = pickerFor(page, 'twelve_hour');
-    const hour = picker.locator('input[aria-label="Hour"]');
-    const meridian = picker.locator('.cee-time-meridian');
-
-    await hour.fill('12');
-    await page.waitForTimeout(200);
-    if ((await meridian.textContent())?.trim() === 'PM') {
-      await meridian.click();
-      await page.waitForTimeout(200);
-    }
-    await expect(meridian).toHaveText('AM');
-    await page.waitForTimeout(300);
-
-    expect(String(await storedValue(page, '_twelve_hour'))).toContain('00:');
-  });
-
-  /**
-   * Noon, which is the case a 12-hour clock actually gets wrong.
-   *
-   * Added because mutation-testing the conversion exposed the gap: breaking
-   * `12 PM → 12` failed the unit tests and passed all fifteen browser tests,
-   * because the cases here were 2 PM and 12 AM and neither exercises it. 2 PM
-   * survives most plausible off-by-twelve bugs; noon survives none of them.
-   */
-  test('a 12-hour field stores noon as 12', async ({ page }) => {
-    await open(page, '09-temporal');
-    const picker = pickerFor(page, 'twelve_hour');
-    const hour = picker.locator('input[aria-label="Hour"]');
-    const meridian = picker.locator('.cee-time-meridian');
-
-    await hour.fill('12');
-    await page.waitForTimeout(200);
-    if ((await meridian.textContent())?.trim() === 'AM') {
-      await meridian.click();
-      await page.waitForTimeout(200);
-    }
-    await expect(meridian).toHaveText('PM');
-    await page.waitForTimeout(300);
-
-    const stored = String(await storedValue(page, '_twelve_hour'));
-    expect(stored, `noon must store as 12, got ${stored}`).toContain('12:');
-  });
-
-  /**
-   * The colons line up with the digits.
-   *
-   * Guarded rather than eyeballed because a screenshot would report only that
-   * pixels moved. The semantic failure is simpler: punctuation in a segmented
-   * clock must share the digits' baseline and remain visible.
-   */
-  test('the colons sit level with the digits', async ({ page }) => {
-    await open(page, '09-temporal');
-
-    const offsets = await page.evaluate(() => {
-      const picker = document
-        .querySelector('cedar-embeddable-editor')!
-        .shadowRoot!.querySelectorAll('.cee-time-picker')[2]; // to_the_second
-      const digit = picker.querySelector('input[aria-label="Hour"]')!.getBoundingClientRect();
-      const digitCentre = digit.top + digit.height / 2;
-      return Array.from(picker.querySelectorAll('.cee-time-separator')).map((sep) => {
-        const box = sep.getBoundingClientRect();
-        return { off: box.top + box.height / 2 - digitCentre, width: box.width };
-      });
-    });
-
-    expect(offsets, 'two colons on a to-the-second field').toHaveLength(2);
-    for (const { off, width } of offsets) {
-      expect(Math.abs(off), `colon is ${off.toFixed(1)}px off the digit centre`).toBeLessThan(3);
-      // A zero-width colon is positioned perfectly and invisible, which is
-      // exactly the failure one of the earlier attempts produced.
-      expect(width, 'the colon has to actually be visible').toBeGreaterThan(2);
-    }
-  });
-
-  test('read-only mode shows time in a non-editable outlined shell', async ({ page }) => {
-    await open(page, '09-temporal', 'readonly');
-    expect(await page.locator('input[aria-label="Hour"]').count()).toBe(0);
-    const shells = page.locator('.cee-time-picker-readonly');
-    expect(await shells.count()).toBeGreaterThan(0);
-
-    const emptyShells = await shells.evaluateAll((elements) =>
-      elements.map((element) => {
-        const box = element.getBoundingClientRect();
-        const style = getComputedStyle(element);
-        return {
-          text: element.textContent?.trim(),
-          width: box.width,
-          height: box.height,
-          borderStyle: style.borderStyle,
-        };
-      }),
-    );
-    for (const shell of emptyShells) {
-      expect(shell.text, 'the fixture deliberately has no stored time').toBe('');
-      expect(shell.width, 'an empty read-only time must remain visible').toBeGreaterThanOrEqual(64);
-      expect(shell.height).toBeGreaterThanOrEqual(48);
-      expect(shell.borderStyle).toBe('solid');
-    }
-  });
-
-  test('one clear action removes every part of a temporal value', async ({ page }) => {
-    await open(page, '21-temporal-normalization', undefined, '21-temporal-normalization-instance');
-    const field = page.locator('app-cedar-input-datetime').nth(4); // time_fraction
-
-    await field.getByRole('button', { name: 'Clear', exact: true }).click();
-
-    await expect.poll(() => storedValue(page, '_time_fraction')).toBeNull();
-    await expect(field.locator('input[aria-label="Hour"]')).toHaveValue('');
-    await expect(field.locator('input[aria-label="Minute"]')).toHaveValue('');
-    await expect(field.locator('input[aria-label="Second"]')).toHaveValue('');
-    await expect(field.locator('input[aria-label="Select Decimal Seconds"]')).toHaveValue('');
-  });
-});
-
-/**
- * Granularity is a storage rule, not only a decision about which boxes render.
- *
- * These values arrive with deliberately finer information. Loading the instance
- * must rewrite them to the neutral padding defined by the field's granularity,
- * while a decimal-second value keeps its exact fraction digits.
- */
-test('normalizes existing temporal values to their declared granularity', async ({ page }) => {
-  await open(page, '21-temporal-normalization', undefined, '21-temporal-normalization-instance');
-
-  await expect
-    .poll(() =>
-      page
-        .evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata)
-        .then((metadata) => ({
-          year: valueOf(metadata, '_date_year'),
-          month: valueOf(metadata, '_date_month'),
-          day: valueOf(metadata, '_datetime_day'),
-          minute: valueOf(metadata, '_time_minute'),
-          fraction: valueOf(metadata, '_time_fraction'),
-        })),
-    )
-    .toEqual({
-      year: '2026-01-01',
-      month: '2026-08-01',
-      day: '2026-08-09T00:00:00',
-      minute: '21:45:00',
-      fraction: '21:45:32.001',
-    });
-
-  const fields = page.locator('app-cedar-input-datetime');
-  await expect(fields).toHaveCount(5);
-  await expect(fields.nth(2).locator('app-date-picker'), 'dateTime/day keeps its date input').toHaveCount(1);
-  await expect(fields.nth(2).locator('.cee-time-picker'), 'dateTime/day hides finer time input').toHaveCount(0);
-});
 
 /**
  * Two behaviours ported here from Angular component specs, which are now deleted.
@@ -2270,6 +1632,64 @@ test.describe('ported from the deleted component specs', () => {
     await expect(emptyReadOnlyField.locator('app-cedar-component-header')).toContainText('paged_no_instances');
     await expect(emptyReadOnlyField).not.toContainText('No instances yet');
     await expect(emptyReadOnlyField.locator('mat-chip-listbox')).toHaveCount(0);
+  });
+});
+
+test.describe('declared non-enumerated defaults', () => {
+  test('editable: a new instance starts with text, numeric, temporal and controlled-term defaults', async ({ page }) => {
+    await open(page, '23-declared-defaults');
+
+    await expect(page.locator('input[aria-label="title"]')).toHaveValue('Draft record');
+    await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('42.5');
+    await expect(page.locator('input[aria-label="Select Date"]')).not.toHaveValue('');
+    await expect(page.locator('input[aria-label="organism"]')).toHaveValue('Homo sapiens');
+
+    const metadata = await page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
+    );
+    expect(valueOf(metadata, '_title')).toBe('Draft record');
+    expect(valueOf(metadata, '_measurement')).toBe('42.5');
+    expect(valueOf(metadata, '_collected_on')).toBe('2026-08-20');
+    expect(termOf(metadata, '_organism')).toEqual({
+      iri: 'http://purl.obolibrary.org/obo/NCBITaxon_9606',
+      label: 'Homo sapiens',
+    });
+  });
+
+  test('rendering does not overwrite fields a supplied instance left blank', async ({ page }) => {
+    await open(page, '23-declared-defaults', undefined, '23-declared-defaults-blank-instance');
+
+    await expect(page.locator('input[aria-label="title"]')).toHaveValue('');
+    await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('');
+    await expect(page.locator('app-cedar-input-datetime input')).toHaveValue('');
+    await expect(page.locator('input[aria-label="organism"]')).toHaveValue('');
+
+    const metadata = await page.evaluate(
+      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
+    );
+    expect(JSON.stringify(metadata)).not.toContain('Draft record');
+    expect(JSON.stringify(metadata)).not.toContain('42.5');
+    expect(JSON.stringify(metadata)).not.toContain('2026-08-20');
+    expect(JSON.stringify(metadata)).not.toContain('Homo sapiens');
+    expect(JSON.stringify(metadata)).not.toContain('NCBITaxon_9606');
+  });
+
+  test('read-only template view states numeric and temporal defaults as specification facts', async ({ page }) => {
+    await open(page, '23-declared-defaults', 'readonly');
+
+    const measurement = page.locator('.non-iterable-component').filter({ hasText: 'measurement' });
+    const collectedOn = page.locator('.non-iterable-component').filter({ hasText: 'collected_on' });
+    await expect(measurement.locator('.cee-spec-box')).toContainText('default 42.5');
+    await expect(collectedOn.locator('.cee-spec-box')).toContainText('default 2026-08-20');
+    await expect(measurement.locator('input')).toHaveCount(0);
+    await expect(collectedOn.locator('input')).toHaveCount(0);
+  });
+
+  test('read-only supplied instance keeps explicitly blank numeric and temporal fields blank', async ({ page }) => {
+    await open(page, '23-declared-defaults', 'readonly', '23-declared-defaults-blank-instance');
+
+    await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('');
+    await expect(page.locator('app-cedar-input-datetime input')).toHaveValue('');
   });
 });
 
@@ -2446,7 +1866,7 @@ test.describe('template rich text', () => {
   });
 
   /**
-   * `trustTemplateMarkup` renders the author's markup as written.
+   * `trustTemplateRichText` renders the author's markup as written.
    *
    * Asserted through an attribute the policy would have removed rather than by
    * letting a handler fire: the proof needed is that the key reaches the pipe, and
@@ -2454,10 +1874,10 @@ test.describe('template rich text', () => {
    * flakier way to learn the same thing.
    */
   test('renders verbatim when the host asks for it by name', async ({ page }) => {
-    await open(page, '19-template-markup', undefined, undefined, undefined, '&f=trustTemplateMarkup');
+    await open(page, '19-template-markup', undefined, undefined, undefined, '&f=trustTemplateRichText');
 
     const html = await shadowHtml(page);
-    expect(html, 'trustTemplateMarkup did not reach the rich-text pipe').toContain('ng-click');
+    expect(html, 'trustTemplateRichText did not reach the rich-text pipe').toContain('ng-click');
     expect(html, 'trusted markup should be verbatim').toContain('<iframe');
   });
 });
@@ -2649,16 +2069,16 @@ test.describe('markup in an instance value', () => {
  *
  * `ExternalAuthorityLookupService` replaced seven near-identical services with one,
  * which is a clear win and moved a per-field decision into a table: each descriptor
- * names the config keys its endpoints come from. The table had no test. A descriptor
- * naming another authority's key, or a widget wired to the wrong descriptor, would
- * send a field to the wrong service — and because every one of them answers the same
- * shape, the field would keep working against something live and fail only in ways
- * nobody would attribute to a config key.
+ * names the two paths its endpoints hang off. The table had no test. A descriptor
+ * carrying another authority's path, or a widget wired to the wrong descriptor,
+ * would send a field to the wrong service — and because every one of them answers
+ * the same shape, the field would keep working against something live and fail only
+ * in ways nobody would attribute to a table of paths.
  *
- * The `authority` preset gives each of the seven a unique unroutable URL, and this
- * intercepts the requests, so the assertion is on what CEE *asked for*. That covers
- * the descriptor table, the wiring, and the query parameter, without a live service
- * and without leaving the machine.
+ * The `authority` preset points the base at an unroutable host, and this intercepts
+ * the requests, so the assertion is on what CEE *asked for*. That covers the
+ * descriptor table, the wiring, and the query parameter, without a live service and
+ * without leaving the machine.
  *
  * Requests are fulfilled with an empty result rather than aborted: aborting surfaces
  * as a lookup error in the widget, which is a different behaviour from a search that
@@ -2666,19 +2086,23 @@ test.describe('markup in an instance value', () => {
  */
 test.describe('external authority endpoints', () => {
   const FIELDS = [
+    // The path segment, not the authority's name: PFAS is served under `comp-tox`
+    // and NIH Grant under `nih-grant`. These are the bridge server's own routes,
+    // which CEE now derives rather than being handed by a host, so asserting on
+    // them is asserting on the real thing rather than on a harness invention.
     { label: 'contributor_orcid', authority: 'orcid' },
     { label: 'institution_ror', authority: 'ror' },
-    { label: 'chemical_pfas', authority: 'pfas' },
+    { label: 'chemical_pfas', authority: 'comp-tox' },
     { label: 'citation_pmid', authority: 'pmid' },
     { label: 'resource_rrid', authority: 'rrid' },
-    { label: 'award_nih', authority: 'nihGrant' },
+    { label: 'award_nih', authority: 'nih-grant' },
     { label: 'dataset_doi', authority: 'doi' },
   ] as const;
 
   for (const { label, authority } of FIELDS) {
     test(`${label} searches the ${authority} endpoint`, async ({ page }) => {
       const asked: string[] = [];
-      await page.route('**/authority/**', async (route) => {
+      await page.route('**/ext-auth/**', async (route) => {
         asked.push(route.request().url());
         await route.fulfill({
           status: 200,
@@ -2703,7 +2127,7 @@ test.describe('external authority endpoints', () => {
         expect(asked.length, `${label} issued no search request`).toBeGreaterThan(0);
       }).toPass({ timeout: 5000 });
 
-      const wrong = asked.filter((u) => !u.includes(`/authority/${authority}/`));
+      const wrong = asked.filter((u) => !u.includes(`/ext-auth/${authority}/`));
       expect(wrong, `${label} asked another authority's endpoint`).toEqual([]);
       expect(
         asked.some((u) => u.includes('q=probe')),
@@ -2729,19 +2153,22 @@ test.describe('external authority endpoints', () => {
    * alone had; with the panels gone all seven run the same base class, and this
    * loop is what holds them to it.
    */
+  // `authority` is the path segment the bridge server serves that authority under,
+  // which is what the route below has to match: PFAS is `comp-tox` and NIH Grant is
+  // `nih-grant`.
   for (const { label: fieldName, authority, name } of [
     { label: 'contributor_orcid', authority: 'orcid', name: 'ORCID' },
     { label: 'institution_ror', authority: 'ror', name: 'ROR' },
-    { label: 'chemical_pfas', authority: 'pfas', name: 'PFAS' },
+    { label: 'chemical_pfas', authority: 'comp-tox', name: 'PFAS' },
     { label: 'citation_pmid', authority: 'pmid', name: 'PubMed' },
     { label: 'resource_rrid', authority: 'rrid', name: 'RRID' },
-    { label: 'award_nih', authority: 'nihGrant', name: 'NIH Grant' },
+    { label: 'award_nih', authority: 'nih-grant', name: 'NIH Grant' },
     { label: 'dataset_doi', authority: 'doi', name: 'DOI' },
   ] as const) {
     test(`${name}: a returned term can be selected and reaches the host metadata`, async ({ page }) => {
       const id = `https://example.org/${authority}/DETERMINISTIC-1`;
       const label = `Deterministic ${name} result`;
-      await page.route(`**/authority/${authority}/search**`, async (route) => {
+      await page.route(`**/ext-auth/${authority}/search**`, async (route) => {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -2824,7 +2251,9 @@ test.describe('controlled terminology selection', () => {
   test('a returned term can be selected and reaches the host metadata', async ({ page }) => {
     const id = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
     const label = 'Homo sapiens';
-    await page.route('http://127.0.0.1:9/unused', async (route) => {
+    // The harness sets `terminologyBaseUrl` to the discard port; CEE appends the
+    // search path, which is its own and not the host's to move.
+    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -2866,7 +2295,7 @@ test.describe('controlled terminology selection', () => {
   test('a chosen term keeps its field, and offers BioPortal as a suffix link', async ({ page }) => {
     const id = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
     const label = 'Homo sapiens';
-    await page.route('http://127.0.0.1:9/unused', async (route) => {
+    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -2948,6 +2377,56 @@ test.describe('controlled terminology selection', () => {
  * should be. A structural check on agreement catches a serializer that has stopped
  * working; it does not need to re-verify YAML grammar the library already tests.
  */
+/**
+ * Take one download the way a developer does, and read what arrived.
+ *
+ * What each download *contains* is asserted in the domain harness, against every
+ * shape the corpus has and without a browser. What only a browser can answer is
+ * whether the click reaches the editor at all and whether a file comes back with
+ * the right name — a page-initiated download is refusable, and there is no event
+ * to observe when it is refused.
+ */
+const takeDownload = async (
+  page: import('@playwright/test').Page,
+  id: string,
+): Promise<{ filename: string; body: string }> => {
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    (async () => {
+      await page.locator('.download-trigger').click();
+      await page.locator(`[data-download="${id}"]`).click();
+    })(),
+  ]);
+  const stream = await download.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk as Buffer);
+  }
+  return { filename: download.suggestedFilename(), body: Buffer.concat(chunks).toString('utf8') };
+};
+
+test('the download menu exposes only its supported artifact views', async ({ page }) => {
+  await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
+  await page.locator('.download-trigger').click();
+
+  const items = page.locator('[data-download]');
+  await expect(items).toHaveCount(7);
+  expect(await items.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-download')))).toEqual([
+    'instance',
+    'instanceYaml',
+    'instanceYamlCompact',
+    'templateSource',
+    'templateYaml',
+    'templateYamlCompact',
+    'dataQuality',
+  ]);
+  await expect(page.getByText('Compact YAML - Instance', { exact: true })).toBeVisible();
+  await expect(page.getByText('Compact YAML - Template', { exact: true })).toBeVisible();
+  await expect(page.getByText('JSON-LD - Instance - Core', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Template Rendering Data', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Multi-Instance Information', { exact: true })).toHaveCount(0);
+});
+
 test.describe('what a host page reads back', () => {
   const read = (page: import('@playwright/test').Page) =>
     page.evaluate(() => {
@@ -2991,70 +2470,59 @@ test.describe('what a host page reads back', () => {
     expect(yaml, 'an edit did not reach currentMetadataYaml').toContain('typed into the form');
   });
 
-  test('the full instance source panel shows CEDAR JSON-LD, not the internal model', async ({ page }) => {
-    await open(
-      page,
-      '10-attribute-values',
-      undefined,
-      undefined,
-      undefined,
-      '&f=showInstanceDataFull,expandedInstanceDataFull',
-    );
+  test('the instance download is a CEDAR document carrying what was typed', async ({ page }) => {
+    await open(page, '10-attribute-values', undefined, undefined, undefined, '&f=showDownloadMenu');
 
     await page.locator('input[aria-label="Attribute Name"]').fill('colour');
     await page.locator('input[aria-label="Attribute Value"]').fill('blue');
 
-    const source = page.getByRole('region', { name: 'JSON-LD - Instance' });
-    await expect(source).toContainText('"@context"');
-    await expect(source).toContainText('"colour"');
-    await expect(source).toContainText('"blue"');
-    await expect(source).not.toContainText('"dataContainer"');
-    await expect(source).not.toContainText('"_values"');
-    await expect(source).not.toContainText('"_iris"');
+    const { filename, body } = await takeDownload(page, 'instance');
+
+    expect(filename).toBe('AttributeValues-instance.json');
+    expect(body).toContain('"@context"');
+    expect(body).toContain('"colour"');
+    expect(body).toContain('"blue"');
+    expect(body, "CEE's working tree reached the file").not.toContain('"_values"');
   });
 
-  test('the YAML source panels use the model-library representations', async ({ page }) => {
-    await open(
-      page,
-      '10-attribute-values',
-      undefined,
-      undefined,
-      undefined,
-      '&f=showInstanceYaml,expandedInstanceYaml,showTemplateYaml,expandedTemplateYaml',
-    );
+  test('a YAML download arrives as YAML, under its own extension', async ({ page }) => {
+    await open(page, '10-attribute-values', undefined, undefined, undefined, '&f=showDownloadMenu');
 
+    // Both, as the JSON case does: filling the value is what takes focus off the
+    // name and commits it. Filling the name alone downloads a form that has not
+    // yet been told about it.
     await page.locator('input[aria-label="Attribute Name"]').fill('colour');
     await page.locator('input[aria-label="Attribute Value"]').fill('blue');
 
-    const instance = page.getByRole('region', { name: 'YAML - Instance' });
-    await expect(instance).toContainText('colour');
-    await expect(instance).toContainText('blue');
-    await expect(instance).not.toContainText('dataContainer');
+    const { filename, body } = await takeDownload(page, 'instanceYaml');
 
-    const template = page.getByRole('region', { name: 'YAML - Template' });
-    await expect(template).toContainText('type: "attribute-value-field"');
-    await expect(template).not.toContainText('_values');
-
-    const header = page.getByRole('button', { name: /YAML - Instance/ });
-    const headerBox = await header.boundingBox();
-    expect(headerBox, 'the YAML instance header is not visible').not.toBeNull();
-    expect((headerBox as { height: number }).height, 'source-panel rows should stay compact').toBeLessThanOrEqual(40);
+    expect(filename).toBe('AttributeValues-instance.yaml');
+    expect(body).toContain('colour');
+    expect(body, 'a YAML download must not be a JSON object').not.toMatch(/^\s*\{/);
   });
 
-  test('currentMetadataSerialized follows the configured format with real content', async ({ page }) => {
-    await open(page, '11-choice-default', undefined, '11-choice-default-instance');
-    const json = await page.evaluate(
-      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadataSerialized,
-    );
-    expect(typeof json).toBe('object');
-    expect(JSON.stringify(json)).toContain('Private');
+  test('compact instance YAML downloads without root identity or provenance', async ({ page }) => {
+    await open(page, '11-choice-default', undefined, '11-choice-default-instance', undefined, '&f=showDownloadMenu');
 
-    await open(page, '11-choice-default', undefined, '11-choice-default-instance', undefined, '&s=yaml');
-    const yaml = await page.evaluate(
-      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadataSerialized,
-    );
-    expect(typeof yaml).toBe('string');
-    expect(yaml).toContain('Private');
+    const { filename, body } = await takeDownload(page, 'instanceYamlCompact');
+
+    expect(filename).toBe('ChoiceDefault-instance-compact.yaml');
+    expect(body).toContain('Private');
+    expect(body).toContain('isBasedOn:');
+    expect(body).not.toContain('id: "https://example.org/instances/choice-default-1"');
+    expect(body).not.toContain('createdOn:');
+  });
+
+  test('compact template YAML downloads under its own name without repository metadata', async ({ page }) => {
+    await open(page, '10-attribute-values', undefined, undefined, undefined, '&f=showDownloadMenu');
+
+    const { filename, body } = await takeDownload(page, 'templateYamlCompact');
+
+    expect(filename).toBe('AttributeValues-template-compact.yaml');
+    expect(body).toContain('type: template');
+    expect(body).toContain('children:');
+    expect(body).not.toContain('modelVersion:');
+    expect(body).not.toMatch(/(?:^|\n)\s*id:/);
   });
 
   test('dataQualityReport follows an invalid value and its correction', async ({ page }) => {
@@ -3118,6 +2586,76 @@ test.describe('host input timing', () => {
     expect(valueOf(metadata, '_access'), 'the first instance should still be the one loaded').toBe('Private');
   });
 
+  test('an unreadable instance is reported and can be corrected through either input path', async ({ page }) => {
+    await open(page, '17-real-flat');
+
+    const result = await page.evaluate(async () => {
+      const template = await (await fetch('./fixtures/17-real-flat.json')).json();
+      const seed = structuredClone((document.querySelector('cedar-embeddable-editor') as any).currentMetadata);
+      seed['schema:name'] = 'RECOVERED RECORD';
+      seed.text_field = { '@value': 'data preserved by retry' };
+
+      const exercise = async (mode: 'separate' | 'combined') => {
+        const editor = document.createElement('cedar-embeddable-editor') as any;
+        const errors: string[] = [];
+        let readyCount = 0;
+        editor.eventHandler = {
+          error: (label: string) => errors.push(label),
+          ready: () => readyCount++,
+        };
+        document.querySelector('#frame')!.appendChild(editor);
+
+        const malformed = structuredClone(seed);
+        malformed['@id'] = {};
+        if (mode === 'combined') {
+          editor.templateAndInstanceObject = { templateObject: template, instanceObject: malformed };
+        } else {
+          editor.instanceObject = malformed;
+          editor.templateObject = template;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const afterRejection = structuredClone(editor.currentMetadata);
+        const renderedAfterRejection = editor.shadowRoot?.querySelector(
+          'app-cedar-embeddable-metadata-editor',
+        );
+        const readyAfterRejection = readyCount;
+
+        if (mode === 'combined') {
+          editor.templateAndInstanceObject = { templateObject: template, instanceObject: seed };
+        } else {
+          editor.instanceObject = seed;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        const afterCorrection = structuredClone(editor.currentMetadata);
+
+        return {
+          errors,
+          afterRejection,
+          renderedAfterRejection: renderedAfterRejection !== null,
+          readyAfterRejection,
+          readyAfterCorrection: readyCount,
+          correctedName: afterCorrection['schema:name'],
+          correctedValue: afterCorrection.text_field?.['@value'],
+        };
+      };
+
+      return { separate: await exercise('separate'), combined: await exercise('combined') };
+    });
+
+    for (const [mode, observed] of Object.entries(result)) {
+      expect(observed.errors.join('\n'), `${mode} did not report the rejected instance`).toContain(
+        'rejected because it is not a readable CEDAR instance',
+      );
+      expect(observed.errors.join('\n'), `${mode} spent its claim on the rejected instance`).not.toContain('ignored');
+      expect(observed.afterRejection, `${mode} exposed a replacement skeleton after rejection`).toEqual({});
+      expect(observed.renderedAfterRejection, `${mode} rendered a blank form after rejection`).toBe(false);
+      expect(observed.readyAfterRejection, `${mode} announced readiness after rejecting the instance`).toBe(0);
+      expect(observed.readyAfterCorrection, `${mode} did not announce exactly one successful render`).toBe(1);
+      expect(observed.correctedName, `${mode} did not load the corrected instance`).toBe('RECOVERED RECORD');
+      expect(observed.correctedValue, `${mode} lost the corrected instance value`).toBe('data preserved by retry');
+    }
+  });
+
   test('reassigning a template is refused too', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance');
     const refused = await page.evaluate(async () => {
@@ -3165,12 +2703,12 @@ test.describe('host input timing', () => {
       const cee = document.querySelector('cedar-embeddable-editor') as any;
       const errors: string[] = [];
       cee.eventHandler = { error: (label: string) => errors.push(label) };
-      cee.config = { showFooter: true };
+      cee.config = { showDownloadMenu: true };
       return errors;
     });
 
     expect(refused.join('\n')).toContain('"config" ignored, because the editor is already configured');
-    await expect(page.locator('footer.main__footer'), 'the refused configuration must not take effect').toBeHidden();
+    await expect(page.locator('.download-trigger'), 'the refused configuration must not take effect').toHaveCount(0);
   });
 });
 
@@ -3185,11 +2723,166 @@ test.describe('host input timing', () => {
  * instantiated even when configured invisible or read-only never arrived at all. Both
  * the menu and the switch are gone, and `readOnlyMode` reaches the widgets directly.
  */
+/**
+ * A field's occurrence pager and its terse facts share the title row.
+ *
+ * Editable, that row holds only the field's name, so the chips are pulled 33px up onto it to save a
+ * row. Read-only the same row carries the facts on the right — and the chips were still pulled up,
+ * so `0+ values` and the chips were drawn on top of each other. Nothing caught it: every other
+ * multi fixture pages an *element*, whose pager sits on a panel header with nothing beside it, and a
+ * field with no instance renders no pager at all.
+ */
+/**
+ * A term a field holds, read rather than edited.
+ *
+ * The identifier used to be text inside a readonly `input`, so a reader who wanted to follow it had
+ * to select and paste it — an `input` cannot contain an anchor, which is why. Read-only with a value
+ * the control is replaced by the label and the identifier, the identifier addressable, and the
+ * authority's own link-out keeps its place beside them. Two destinations for a controlled term: the
+ * IRI is what the instance records, the icon is the term's page in its ontology.
+ */
+test.describe('a term rendered as a value', () => {
+  test('links the identifier and keeps the authority icon', async ({ page }) => {
+    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance');
+
+    const controlled = page.locator('app-cedar-input-controlled').first();
+    await expect(controlled.locator('.cee-term-link-label')).toHaveText('disease');
+    const identifier = controlled.locator('a.cee-term-link-iri');
+    await expect(identifier).toHaveAttribute('href', 'http://purl.obolibrary.org/obo/DOID_4');
+    await expect(identifier).toHaveAttribute('rel', 'noopener');
+    const authorityPage = controlled.locator('.cee-term-link-suffix a');
+    expect(
+      await authorityPage.getAttribute('href'),
+      'the icon goes to the term in its ontology, not to the IRI',
+    ).toContain('bioportal.bioontology.org');
+
+    const orcid = page.locator('app-cedar-input-orcid').first();
+    await expect(orcid.locator('a.cee-term-link-iri')).toHaveAttribute('href', 'https://orcid.org/0000-0002-1825-0097');
+  });
+
+  test('leaves no control behind where it renders a value', async ({ page }) => {
+    await open(page, '04-controlled-terms', 'readonly', '04-controlled-terms-instance');
+
+    // The form field stays in the tree so its state survives, and out of the layout. Both halves
+    // showed at once when the class hiding it was defined in one widget's own stylesheet.
+    const controls = page.locator('app-cedar-input-controlled input, app-cedar-input-orcid input');
+    for (let index = 0; index < (await controls.count()); index++) {
+      await expect(controls.nth(index)).toBeHidden();
+    }
+  });
+
+  test('keeps the control where the field is editable', async ({ page }) => {
+    await open(page, '04-controlled-terms', undefined, '04-controlled-terms-instance');
+
+    await expect(page.locator('app-cedar-input-controlled input[aria-label="organism"]')).toBeVisible();
+    await expect(page.locator('app-cedar-input-controlled .cee-term-link')).toHaveCount(0);
+  });
+});
+
+test.describe('a multi-instance field paging its values', () => {
+  /*
+   * Boxes through locators rather than `document.querySelectorAll` inside `evaluate`: the editor is a
+   * custom element, and a query rooted at `document` stops at its shadow boundary, so the first
+   * version of this test measured nothing and reported no chips rather than the overlap it was for.
+   */
+  const boxesOf = async (page: import('@playwright/test').Page, selector: string) => {
+    const found = page.locator(selector);
+    const total = await found.count();
+    const out = [];
+    for (let index = 0; index < total; index++) {
+      const element = found.nth(index);
+      if ((await element.textContent())?.trim() === '') {
+        continue;
+      }
+      const box = await element.boundingBox();
+      if (box) {
+        out.push({ x: box.x, y: box.y, right: box.x + box.width, bottom: box.y + box.height });
+      }
+    }
+    return out;
+  };
+
+  const overlapping = (a: { x: number; y: number; right: number; bottom: number }, b: typeof a) =>
+    !(a.right <= b.x + 1 || b.right <= a.x + 1 || a.bottom <= b.y + 1 || b.bottom <= a.y + 1);
+
+  test('keeps its chips clear of the facts on the title row', async ({ page }) => {
+    await open(page, '22-multi-field-values', 'readonly', '22-multi-field-values-instance');
+
+    const facts = await boxesOf(page, 'app-cedar-field-spec');
+    const chips = await boxesOf(page, '.mat-mdc-chip');
+    expect(chips.length, 'two values page, so there are chips to collide with').toBeGreaterThan(0);
+    expect(facts.length, 'and facts on the row they would collide with').toBeGreaterThan(0);
+    const collisions = facts.flatMap((fact) => chips.filter((chip) => overlapping(fact, chip)));
+    expect(collisions, 'a chip is drawn over the facts').toEqual([]);
+  });
+
+  test('states the attribute it holds, one occurrence at a time', async ({ page }) => {
+    await open(page, '22-multi-field-values', 'readonly', '22-multi-field-values-instance');
+
+    // The name is data here, not template: the instance supplied both halves of each pair.
+    await expect(page.locator('input[aria-label="Attribute Name"]').first()).toHaveValue('depth');
+    await expect(page.locator('input[aria-label="Attribute Value"]').first()).toHaveValue('15 cm');
+
+    await page.locator('.mat-mdc-chip', { hasText: '2' }).first().click();
+    await expect(page.locator('input[aria-label="Attribute Name"]').first()).toHaveValue('colour');
+    await expect(page.locator('input[aria-label="Attribute Value"]').first()).toHaveValue('blue');
+  });
+});
+
 test.describe('read-only belongs to the host', () => {
   test('renders read-only from configuration alone', async ({ page }) => {
     await open(page, '01-input-types', 'readonly');
 
-    await expect(page.locator('input[aria-label="text"]')).toHaveAttribute('readonly', 'true');
+    // Nothing to type into, because a form read with no instance behind it states each field rather
+    // than offering a box for it.
+    await expect(page.locator('input[aria-label="text"]')).toHaveCount(0);
+    await expect(page.locator('.cee-spec-box').first()).toBeVisible();
+  });
+
+  test('renders the controls of a supplied instance, and none of them editable', async ({ page }) => {
+    await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
+
+    await expect(page.locator('input[aria-label="email"]')).toHaveAttribute('readonly', 'true');
+    await expect(page.locator('input[aria-label="numeric"]')).toHaveAttribute('readonly', 'true');
+  });
+
+  /**
+   * A radio group keeps its options in read-only, because a set of options is how a reader sees what
+   * the field permits. It must not keep the behaviour with them.
+   *
+   * The value was already safe — a change is reverted before it reaches the instance — and that was
+   * mistaken for the whole guarantee. The group was still in the tab order with a pointer cursor, so
+   * it hovered, focused and flickered when clicked, and arrow keys moved the selection before it
+   * snapped back. A viewer that flickers is not read-only, whatever it stores.
+   */
+  test('shows choice options without the behaviour of a control', async ({ page }) => {
+    await open(page, '02-choices', 'readonly');
+
+    const options = page.locator('mat-radio-button');
+    const before = await page.evaluate(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      () => JSON.stringify((document.querySelector('cedar-embeddable-editor') as any).currentMetadata),
+    );
+    const checkedBefore = await page.locator('mat-radio-button.mat-mdc-radio-checked').allInnerTexts();
+
+    await expect(options.first().locator('input[type="radio"]')).toHaveAttribute('tabindex', '-1');
+    await expect(options.first()).toHaveAttribute('aria-disabled', 'true');
+    expect(
+      await options.first().evaluate((option) => getComputedStyle(option).pointerEvents),
+      'the options take no pointer at all',
+    ).toBe('none');
+
+    // Forced, because an unhittable element is the point: the click lands on the page behind it.
+    await options.last().click({ force: true });
+
+    expect(await page.locator('mat-radio-button.mat-mdc-radio-checked').allInnerTexts()).toEqual(checkedBefore);
+    expect(
+      await page.evaluate(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        () => JSON.stringify((document.querySelector('cedar-embeddable-editor') as any).currentMetadata),
+      ),
+      'and nothing reached the instance',
+    ).toBe(before);
   });
 
   test('offers the user nothing that leaves read-only', async ({ page }) => {
@@ -3207,68 +2900,10 @@ test.describe('read-only belongs to the host', () => {
   });
 });
 
-test.describe('host change notifications', () => {
-  const recordChanges = (page: import('@playwright/test').Page) =>
-    page.evaluate(() => {
-      (window as any).__ceeChanges = [];
-      document.querySelector('cedar-embeddable-editor').addEventListener('change', (event: CustomEvent) => {
-        (window as any).__ceeChanges.push(event.detail ?? null);
-      });
-    });
-
-  test('a field edit bubbles a change event and updates currentMetadata', async ({ page }) => {
-    await open(page, '01-input-types');
-    await recordChanges(page);
-    const field = page.locator('input[aria-label="text"]');
-    await field.fill('host-visible edit');
-    await field.blur();
-
-    await expect(async () => {
-      expect(await page.evaluate(() => (window as any).__ceeChanges.length)).toBeGreaterThan(0);
-    }).toPass();
-    const metadata = await page.evaluate(
-      () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
-    );
-    expect(JSON.stringify(metadata)).toContain('host-visible edit');
-  });
-
-  test('multi-instance add, copy and delete report their operation and obey maxItems', async ({ page }) => {
-    await open(page, '13-paged-choice', undefined, '13-paged-choice-instance');
-    await recordChanges(page);
-    const pager = page.locator('app-cedar-multi-pager').first();
-    // `button[mat-icon-button]` rather than every button in the pager: an MDC chip
-    // renders its own button inside itself, so a bare `button` locator picks up one
-    // per occurrence and the action buttons stop being nth(0..2).
-    const add = pager.locator('button[mat-icon-button]').nth(0);
-    const copy = pager.locator('button[mat-icon-button]').nth(1);
-    const remove = pager.locator('button[mat-icon-button]').nth(2);
-    const count = () =>
-      page.evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata._record.length);
-    const messages = () =>
-      page.evaluate(() => (window as any).__ceeChanges.map((detail: any) => detail?.message).filter(Boolean));
-
-    expect(await count()).toBe(2);
-    await add.click();
-    await expect(async () => expect(await count()).toBe(3)).toPass();
-    await expect(async () => expect(await messages()).toContain('multiInstanceAdded')).toPass();
-
-    await copy.click();
-    await expect(async () => expect(await count()).toBe(4)).toPass();
-    await expect(async () => expect(await messages()).toContain('multiInstanceCopied')).toPass();
-    await expect(add, 'add must disable at maxItems').toBeDisabled();
-    await expect(copy, 'copy must disable at maxItems').toBeDisabled();
-
-    await remove.click();
-    await expect(async () => expect(await count()).toBe(3)).toPass();
-    await expect(async () => expect(await messages()).toContain('multiInstanceDeleted')).toPass();
-    await expect(add).toBeEnabled();
-  });
-});
-
 /**
  * Every boolean config flag does something.
  *
- * CEE takes 31 config keys and two thirds of them appeared in no test. Breadth is the
+ * Most of CEE's config keys appeared in no test at all. Breadth is the
  * point rather than depth: the failure this catches is a key that is silently ignored,
  * which is indistinguishable from a working one until someone relies on it. That is
  * not hypothetical — `eventHandler` is a documented input whose value is stored in
@@ -3281,33 +2916,9 @@ test.describe('host change notifications', () => {
  * flag is wired to something, which is the question that was unanswered for nineteen
  * of them.
  *
- * `expanded*` flags are paired with the panel they expand, since expanding a panel that
- * is not shown changes nothing and would read as a dead flag.
  */
 test.describe('config flags are wired to something', () => {
-  const FLAGS: ReadonlyArray<{ flag: string; withFlags?: string[]; fixture?: string }> = [
-    { flag: 'showHeader' },
-    { flag: 'showFooter' },
-    { flag: 'showSampleTemplateLinks' },
-    { flag: 'showTemplateRenderingRepresentation' },
-    { flag: 'showInstanceDataCore' },
-    { flag: 'showInstanceDataFull' },
-    { flag: 'showInstanceYaml' },
-    { flag: 'showTemplateSourceData' },
-    { flag: 'showTemplateYaml' },
-    { flag: 'showDataQualityReport' },
-    { flag: 'showMultiInstanceInfo', fixture: '03-nested-multi' },
-    // Expanding a panel only shows when the panel itself is shown.
-    { flag: 'expandedInstanceDataCore', withFlags: ['showInstanceDataCore'] },
-    { flag: 'expandedInstanceDataFull', withFlags: ['showInstanceDataFull'] },
-    { flag: 'expandedInstanceYaml', withFlags: ['showInstanceYaml'] },
-    { flag: 'expandedTemplateSourceData', withFlags: ['showTemplateSourceData'] },
-    { flag: 'expandedTemplateYaml', withFlags: ['showTemplateYaml'] },
-    { flag: 'expandedDataQualityReport', withFlags: ['showDataQualityReport'] },
-    { flag: 'expandedTemplateRenderingRepresentation', withFlags: ['showTemplateRenderingRepresentation'] },
-    { flag: 'expandedSampleTemplateLinks', withFlags: ['showSampleTemplateLinks'] },
-    { flag: 'expandedMultiInstanceInfo', withFlags: ['showMultiInstanceInfo'], fixture: '03-nested-multi' },
-  ];
+  const FLAGS: ReadonlyArray<{ flag: string; withFlags?: string[]; fixture?: string }> = [{ flag: 'showDownloadMenu' }];
 
   /**
    * Strip the identifiers Angular generates, which say nothing about a config key.
@@ -3343,39 +2954,6 @@ test.describe('config flags are wired to something', () => {
     );
     return normaliseAngularIds(html);
   };
-
-  /**
-   * Wired, but to something no fixture in the corpus produces.
-   *
-   * Each of these gates on a second condition as well as the flag, and the corpus
-   * never satisfies it — so the flag cannot change anything here whatever it is set
-   * to. They were "passing" until Angular 16 made ids deterministic, at which point
-   * it became clear they were comparing a page with itself.
-   *
-   * `fixme` rather than deletion or a silent skip: the run reports them, so the gap
-   * stays visible until a fixture reaches the condition. Adding one is tracked
-   * separately; both conditions are named here so whoever builds it knows the shape.
-   */
-  const UNREACHABLE = new Map([
-    [
-      'showStaticText',
-      'gates on `linkedStaticFieldComponent`, which template-representation.factory only ' +
-        'sets for a lone static component immediately preceding a field or element. Every ' +
-        'static run in the corpus is a pair, so nothing is ever linked.',
-    ],
-    [
-      'showAllMultiInstanceValues',
-      'gates on `multiInstanceValue`, and getMultiInstanceDataValueInfo returns "" unless ' +
-        'the paged component is a *field* holding values. The corpus pages elements, so the ' +
-        'summary is always empty. Needs a multi-instance field plus an instance to fill it.',
-    ],
-  ]);
-
-  for (const [flag, why] of UNREACHABLE) {
-    test.fixme(`${flag} changes what renders`, () => {
-      throw new Error(`no fixture reaches this flag: ${why}`);
-    });
-  }
 
   for (const { flag, withFlags = [], fixture = '01-input-types' } of FLAGS) {
     test(`${flag} changes what renders`, async ({ page }) => {
@@ -3599,10 +3177,48 @@ test.describe('date calendar selection', () => {
  * whether the input is actually wired to it.
  *
  * No trigger is needed: CEE traces its config and its language-map choice on every load,
- * which is a real message from a real path rather than something contrived. The first
- * version of this test reached for a `hideEmptyFields` warning that turned out not to
- * fire from a config flag — the handler had been receiving four traces all along.
+ * which is a real message from a real path rather than something contrived.
  */
+/**
+ * Every icon CEE names has a glyph in the font CEE ships.
+ *
+ * The icon font is subsetted, and a ligature that is not in the subset does not
+ * fail — it renders as the literal word. `download` did exactly that: the menu
+ * trigger measured 192px of invisible text and looked like an empty button, and
+ * nothing failed, because no test looks at a glyph and the trigger appears in no
+ * baseline.
+ *
+ * Measuring is what makes this answerable. A resolved ligature collapses to about
+ * one em; an unresolved one is as wide as the word, so anything much wider than
+ * its own font size is a missing glyph whatever it is called.
+ */
+test.describe('the subsetted icon font', () => {
+  test('has a glyph for every icon the download menu names', async ({ page }) => {
+    await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
+    await page.locator('.download-trigger').click();
+
+    const wide = await page.evaluate(() => {
+      const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+      return [...root.querySelectorAll('mat-icon')]
+        .map((icon) => {
+          const size = parseFloat(getComputedStyle(icon).fontSize);
+          const probe = document.createElement('span');
+          probe.style.cssText = `position:absolute;left:-9999px;font-family:${
+            getComputedStyle(icon).fontFamily
+          };font-size:${size}px`;
+          probe.textContent = icon.textContent!.trim();
+          root.appendChild(probe);
+          const width = probe.getBoundingClientRect().width;
+          probe.remove();
+          return { name: icon.textContent!.trim(), width, size };
+        })
+        .filter((entry) => entry.width > entry.size * 1.6);
+    });
+
+    expect(wide, `these icon names have no glyph and render as text: ${JSON.stringify(wide)}`).toEqual([]);
+  });
+});
+
 test.describe('the host event handler', () => {
   test('receives CEE diagnostics through the web component input', async ({ page }) => {
     await open(page, '01-input-types', undefined, undefined, undefined, '&e=1');
@@ -3615,9 +3231,12 @@ test.describe('the host event handler', () => {
       `expected the config trace; got ${JSON.stringify(events.map((e: any) => String(e.label).slice(0, 40)))}`,
     ).toBe(true);
     expect(
-      events.every((e: any) => e.kind === 'trace' || e.kind === 'error'),
+      events.every((e: any) => e.kind === 'trace' || e.kind === 'error' || e.kind === 'ready'),
       'an event arrived under a kind the handler did not declare',
     ).toBe(true);
+    expect(events.filter((e: any) => e.kind === 'ready'), 'ready should describe one completed initial render').toHaveLength(
+      1,
+    );
   });
 
   test('gets nothing when no handler is attached, and CEE still renders', async ({ page }) => {
@@ -3632,10 +3251,9 @@ test.describe('the host event handler', () => {
   /**
    * A fresh element, because the assignment under test has to be the first one.
    *
-   * The combined input needs both members, and reaching that complaint means
-   * spending the artifact claim on a malformed object — which the element already
-   * loaded through `open` has spent. So this builds its own, which is also what a
-   * host now does to load anything a second time.
+   * The combined input needs both members, and the element loaded through `open`
+   * already holds an accepted template. So this builds a fresh one whose first
+   * assignment can exercise the malformed-input diagnostic.
    */
   test('receives a host-input error, not only startup traces', async ({ page }) => {
     await open(page, '01-input-types', undefined, undefined, undefined, '&e=1');
@@ -3645,7 +3263,7 @@ test.describe('the host event handler', () => {
       const seen: string[] = [];
       fresh.eventHandler = { error: (label: string) => seen.push(label) };
       document.querySelector('#frame').appendChild(fresh);
-      fresh.config = { showSampleTemplateLinks: false, defaultLanguage: 'en', fallbackLanguage: 'en' };
+      fresh.config = { defaultLanguage: 'en', fallbackLanguage: 'en' };
       fresh.templateAndInstanceObject = { templateObject: template };
       await new Promise((resolve) => setTimeout(resolve, 500));
       return seen;
@@ -3679,43 +3297,6 @@ test.describe('host inputs that fetch', () => {
   };
 
   /**
-   * The sample-template loader, which is the route the CEDAR demo pages use.
-   *
-   * Given only `sampleTemplateLocationPrefix` and `loadSampleTemplateName`, CEE builds
-   * `<prefix><name>/template.json` and `<prefix><name>/metadata.json` itself, fetches
-   * both, and assembles them into `templateAndInstanceObject`. So this covers the
-   * filename convention, the fetch, and the hand-off in one — and the metadata's value is
-   * something the template does not default to, so a form that renders with an empty
-   * field would fail rather than look right.
-   */
-  test('the sample-template loader fetches a template and its metadata', async ({ page }) => {
-    await openHost(page, 'host=sample');
-
-    const field = page.locator('input[aria-label="title"]');
-    await expect(field, 'no template was loaded from the sample location').toBeVisible({ timeout: 10_000 });
-    await expect(field, 'the template loaded but its metadata did not').toHaveValue('loaded from metadata.json');
-  });
-
-  test('a missing sample template leaves CEE standing and says so', async ({ page }) => {
-    const errors: string[] = [];
-    page.on('console', (m) => {
-      if (m.type() === 'error') errors.push(m.text());
-    });
-
-    await openHost(page, 'host=sample&sample=nonexistent');
-
-    await expect(async () => {
-      expect(
-        errors.some((e) => e.includes('Error while loading sample template')),
-        `expected a load error on the console; got ${JSON.stringify(errors.slice(0, 3))}`,
-      ).toBe(true);
-    }).toPass({ timeout: 10_000 });
-
-    // The failure is reported rather than thrown: no form, but nothing broken either.
-    await expect(page.locator('input[aria-label="title"]')).toHaveCount(0);
-  });
-
-  /**
    * Translation is a third entry point that fetches, and the least covered.
    *
    * `FallbackTranslateLoader` asks `TranslateHttpLoader` for
@@ -3732,8 +3313,17 @@ test.describe('host inputs that fetch', () => {
    * Both directions are asserted here, against the same string, so neither reading can
    * be mistaken for the other.
    */
-  const BUILT_IN_FOOTER = 'CEDAR is maintained by the Stanford Division of Computational Medicine.';
-  const SERVED_FOOTER = 'Maintained per an externally served language map.';
+  /*
+   * `Generic.ExpandAll`, which renders in the form's own title block on every
+   * template and behind no configuration key.
+   *
+   * It was `App.Maintained` in the footer, chosen because the footer already had an
+   * assertion on it. The footer belongs to the host now, so the only rendered string
+   * either branch could be read from went with it — and this coverage is the half
+   * that was uncovered before someone added it, so it moves rather than lapses.
+   */
+  const BUILT_IN_LABEL = 'Expand All';
+  const SERVED_LABEL = 'Unfurl the lot';
 
   const loadTemplateIntoHost = (page: import('@playwright/test').Page) =>
     page.evaluate(async () => {
@@ -3745,18 +3335,23 @@ test.describe('host inputs that fetch', () => {
     await openHost(page, 'host=lang');
     await loadTemplateIntoHost(page);
 
-    const footer = page.locator('footer.main__footer');
-    await expect(footer).toBeVisible({ timeout: 10_000 });
-    await expect(footer, 'the served language map did not reach the rendered form').toContainText(SERVED_FOOTER);
-    await expect(footer, 'the built-in map should have been overridden').not.toContainText(BUILT_IN_FOOTER);
+    // `toContainText`, not `toHaveText`: the button holds its icon's ligature text
+    // as well as the label, so an exact match would be asserting on `unfold_more`.
+    const expand = page.locator('.expand-buttons button').first();
+    await expect(expand, 'the served language map did not reach the rendered form').toContainText(SERVED_LABEL, {
+      timeout: 10_000,
+    });
+    await expect(expand, 'the built-in map should have been overridden').not.toContainText(BUILT_IN_LABEL);
   });
 
   test('an unreachable language map falls back to the built-in one', async ({ page }) => {
     await openHost(page, 'host=lang&prefix=./served/no-such-languages/');
     await loadTemplateIntoHost(page);
 
-    const footer = page.locator('footer.main__footer');
-    await expect(footer).toBeVisible({ timeout: 10_000 });
-    await expect(footer, 'a 404 on the language map should not blank the interface').toContainText(BUILT_IN_FOOTER);
+    const expand = page.locator('.expand-buttons button').first();
+    await expect(expand, 'a 404 on the language map should not blank the interface').toContainText(BUILT_IN_LABEL, {
+      timeout: 10_000,
+    });
+    await expect(expand, 'nothing was served, so nothing should have overridden it').not.toContainText(SERVED_LABEL);
   });
 });

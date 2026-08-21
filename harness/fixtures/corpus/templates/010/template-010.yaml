@@ -1,23 +1,23 @@
-type: "template"
+type: template
 name: "#010 Template with DateTime field"
 id: "https://repo.metadatacenter.org/templates/d58504c7-6926-4b12-a42e-776f99c7df60"
-status: "draft"
-version: "0.0.1"
-modelVersion: "1.6.0"
+status: draft
+version: 0.0.1
+modelVersion: 1.6.0
 createdOn: "2024-03-06T10:55:26-08:00"
 createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 modifiedOn: "2024-03-06T14:35:02-08:00"
 modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 children:
   - key: "Simple date"
-    type: "temporal-field"
+    type: temporal-field
     name: "Simple date"
     description: "Help text"
     id: "https://repo.metadatacenter.org/template-fields/d44a1d82-5457-4dce-95f9-0400c7b4cb80"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "Simple date preferred"
-    datatype: "xsd:date"
-    granularity: "day"
+    datatype: xsd:date
+    granularity: day
     createdOn: "2024-03-06T14:35:02-08:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
     modifiedOn: "2024-03-06T14:35:02-08:00"
@@ -25,15 +25,15 @@ children:
     configuration:
       propertyIri: "https://schema.metadatacenter.org/properties/94a247ff-5b4c-4fa0-91e5-dd07509d354d"
   - key: "Simple time"
-    type: "temporal-field"
+    type: temporal-field
     name: "Simple time"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/40db78e1-834d-46f8-92c3-d8a57571bf0a"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "Simple time preferred"
-    datatype: "xsd:time"
-    granularity: "second"
-    inputTimeFormat: "12h"
+    datatype: xsd:time
+    granularity: second
+    inputTimeFormat: 12h
     inputTimeZone: true
     createdOn: "2024-03-06T14:35:02-08:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
@@ -42,18 +42,18 @@ children:
     configuration:
       propertyIri: "https://schema.metadatacenter.org/properties/79fc4226-7537-4548-a5a9-9ffc6827d322"
   - key: "Complex datetime"
-    type: "temporal-field"
+    type: temporal-field
     name: "Complex datetime"
     description: "Help Text 2"
     id: "https://repo.metadatacenter.org/template-fields/2d2a43fc-c599-4852-a996-333a1b998a6f"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "Complex datetime preferred"
     altLabels:
       - "Alt label 1"
       - "Alt label 2"
-    datatype: "xsd:dateTime"
-    granularity: "decimalSecond"
-    inputTimeFormat: "12h"
+    datatype: xsd:dateTime
+    granularity: decimalSecond
+    inputTimeFormat: 12h
     inputTimeZone: true
     createdOn: "2024-03-06T14:35:02-08:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"

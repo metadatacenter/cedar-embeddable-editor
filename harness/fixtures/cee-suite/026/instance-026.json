@@ -1,0 +1,125 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Multiple Text Field": "https://schema.metadatacenter.org/properties/16c2163e-3612-4fa1-b5be-d5760bcb70bb"
+  },
+  "Multiple Text Field": [
+    {
+      "@context": {
+        "Text Field": "https://schema.metadatacenter.org/properties/c909aa10-28c6-41c7-b46e-96b7934b4ffe"
+      },
+      "Text Field": [
+        {
+          "@value": "1-1"
+        },
+        {
+          "@value": "1-2"
+        },
+        {
+          "@value": "1-3"
+        }
+      ]
+    },
+    {
+      "@context": {
+        "Text Field": "https://schema.metadatacenter.org/properties/c909aa10-28c6-41c7-b46e-96b7934b4ffe"
+      },
+      "Text Field": [
+        {
+          "@value": "2-1"
+        },
+        {
+          "@value": "2-2"
+        },
+        {
+          "@value": "2-3"
+        },
+        {
+          "@value": "2-4"
+        }
+      ]
+    },
+    {
+      "@context": {
+        "Text Field": "https://schema.metadatacenter.org/properties/c909aa10-28c6-41c7-b46e-96b7934b4ffe"
+      },
+      "Text Field": [
+        {
+          "@value": "3-1"
+        },
+        {
+          "@value": "3-2"
+        },
+        {
+          "@value": "3-3"
+        },
+        {
+          "@value": "3-4"
+        },
+        {
+          "@value": "3-5"
+        }
+      ]
+    },
+    {
+      "@context": {
+        "Text Field": "https://schema.metadatacenter.org/properties/c909aa10-28c6-41c7-b46e-96b7934b4ffe"
+      },
+      "Text Field": [
+        {
+          "@value": "4-1"
+        },
+        {
+          "@value": "4-2"
+        },
+        {
+          "@value": "4-3"
+        },
+        {
+          "@value": "4-4"
+        },
+        {
+          "@value": "4-5"
+        },
+        {
+          "@value": "4-6"
+        }
+      ]
+    }
+  ]
+}

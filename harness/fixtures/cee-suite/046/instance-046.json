@@ -1,0 +1,203 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Numeric Field in Template": "https://schema.metadatacenter.org/properties/f87b62e3-0807-4195-8727-206fa510e7be",
+    "Element 1": "https://schema.metadatacenter.org/properties/fd55ba0e-4cb1-4c74-8ea5-1d64acac98d1"
+  },
+  "Element 1": {
+    "@context": {
+      "Multiple Text in Element 1": "https://schema.metadatacenter.org/properties/d68978ff-e81f-4cc3-8c10-a4538ed99afa",
+      "Element 2": "https://schema.metadatacenter.org/properties/90ed824b-8a53-4422-ab5c-8373d04849af"
+    },
+    "Element 2": [
+      {
+        "@context": {
+          "Paragraph Field in Element 2": "https://schema.metadatacenter.org/properties/df834378-d6fe-4c48-965e-49a20645cbb9",
+          "Text Field in Element 2": "https://schema.metadatacenter.org/properties/6585f8b2-177f-4a38-87cf-d4007b2393f0",
+          "Element 3": "https://schema.metadatacenter.org/properties/d273e47a-cfcd-4784-bee7-754e3a11ad47"
+        },
+        "Element 3": [
+          {
+            "@context": {
+              "Sample Text": "https://schema.metadatacenter.org/properties/90136184-431a-415e-bc97-ff541683f55e",
+              "Sample Datetime": "https://schema.metadatacenter.org/properties/a6488127-223c-46c3-9684-210d0f1dff61",
+              "Sample Checkbox": "https://schema.metadatacenter.org/properties/6467a2f6-c6d3-4775-a63c-54aa66e2a371",
+              "Attribute Value Field1": "https://schema.metadatacenter.org/properties/218f5fa7-599c-46cc-88ff-6affac234273",
+              "Attribute Value Field2": "https://schema.metadatacenter.org/properties/1b9a486a-3f5e-4d09-9344-e4e81dde8b92"
+            },
+            "Sample Text": [
+              {},
+              {}
+            ],
+            "Sample Datetime": [
+              {
+                "@value": "2035-11-29T07:09:12",
+                "@type": "xsd:dateTime"
+              },
+              {
+                "@value": "2022-04-21T07:11:06",
+                "@type": "xsd:dateTime"
+              }
+            ],
+            "Sample Checkbox": [
+              {
+                "@value": "Option 1"
+              },
+              {
+                "@value": "Option 2"
+              },
+              {
+                "@value": "Option 3"
+              }
+            ],
+            "Sample Attribute Value": [
+              "Attribute Value Field1",
+              "Attribute Value Field2"
+            ],
+            "Attribute Value Field1": {
+              "@value": "45"
+            },
+            "Attribute Value Field2": {
+              "@value": "67"
+            }
+          },
+          {
+            "@context": {
+              "Sample Text": "https://schema.metadatacenter.org/properties/90136184-431a-415e-bc97-ff541683f55e",
+              "Sample Datetime": "https://schema.metadatacenter.org/properties/a6488127-223c-46c3-9684-210d0f1dff61",
+              "Sample Checkbox": "https://schema.metadatacenter.org/properties/6467a2f6-c6d3-4775-a63c-54aa66e2a371"
+            },
+            "Sample Text": [
+              {}
+            ],
+            "Sample Datetime": [
+              {
+                "@value": "2022-04-21T07:10:12",
+                "@type": "xsd:dateTime"
+              }
+            ],
+            "Sample Checkbox": [
+              {
+                "@value": null
+              }
+            ],
+            "Sample Attribute Value": [
+              {
+                "@value": null
+              }
+            ]
+          },
+          {
+            "@context": {
+              "Sample Text": "https://schema.metadatacenter.org/properties/90136184-431a-415e-bc97-ff541683f55e",
+              "Sample Datetime": "https://schema.metadatacenter.org/properties/a6488127-223c-46c3-9684-210d0f1dff61",
+              "Sample Checkbox": "https://schema.metadatacenter.org/properties/6467a2f6-c6d3-4775-a63c-54aa66e2a371"
+            },
+            "Sample Text": [
+              {
+                "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C140659",
+                "rdfs:label": "Choroidal and Ciliary Body Melanoma by AJCC v8 Stage"
+              },
+              {
+                "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C111022",
+                "rdfs:label": "Class 1a Uveal Melanoma"
+              }
+            ],
+            "Sample Datetime": [
+              {
+                "@value": "2034-11-16T07:10:14",
+                "@type": "xsd:dateTime"
+              },
+              {
+                "@value": "2022-04-21T07:10:36",
+                "@type": "xsd:dateTime"
+              },
+              {
+                "@value": "2022-04-21T07:10:39",
+                "@type": "xsd:dateTime"
+              },
+              {
+                "@value": "2033-10-11T07:10:39",
+                "@type": "xsd:dateTime"
+              }
+            ],
+            "Sample Checkbox": [
+              {
+                "@value": "Option 1"
+              },
+              {
+                "@value": "Option 2"
+              }
+            ],
+            "Sample Attribute Value": [
+              {
+                "@value": null
+              }
+            ]
+          }
+        ],
+        "Paragraph Field in Element 2": {
+          "@value": null
+        },
+        "Text Field in Element 2": [
+          {
+            "@value": null
+          }
+        ]
+      }
+    ],
+    "Multiple Text in Element 1": [
+      {
+        "@value": "111"
+      },
+      {
+        "@value": "222"
+      },
+      {
+        "@value": null
+      },
+      {
+        "@value": "4444"
+      }
+    ]
+  },
+  "Numeric Field in Template": {
+    "@value": "45667889",
+    "@type": "xsd:decimal"
+  }
+}

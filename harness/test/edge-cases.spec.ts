@@ -11,7 +11,9 @@ import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at, infoOf } from '../src/nodes';
-import { linkNode, literalOf, termNode, heldValue, linkValue, termValue } from '../src/values';
+import { linkNode, literalOf, termNode, heldValue, identityOf, linkValue, termValue } from '../src/values';
+import { MultiInstanceObjectHandler } from '@cee/handler/multi-instance-object.handler';
+import type { CedarComponent } from '@cee/models/component/cedar-component.model';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
@@ -83,7 +85,11 @@ describe('page break pagination', () => {
       }),
     );
     // a | <blank> | b
-    expect(driver.representation.pageBreakChildren).toHaveLength(3);
+    expect(
+      driver.representation.pageBreakChildren.map((page: CedarComponent[]) =>
+        page.map((component) => component.name || '<blank>'),
+      ),
+    ).toEqual([['_a'], ['<blank>'], ['_b']]);
   });
 });
 
@@ -132,47 +138,34 @@ describe('hidden fields', () => {
   });
 });
 
-describe('static component collapsing', () => {
+describe('static content components', () => {
   /**
-   * With `collapseStaticComponents`, a static content component immediately
-   * preceding a field is removed from `children` and re-attached as that
-   * field's `linkedStaticFieldComponent`, so the renderer draws them as one
-   * unit. Off by default; the dev config turns it on.
+   * A static content component stays where the template put it.
+   *
+   * `collapseStaticComponents` used to remove a lone static that immediately preceded
+   * a field or element and re-attach it inside that successor, which for an element
+   * also replaced the element's own heading with the static's label. The key and the
+   * collapsing are both gone, so a static is a sibling wherever it appears. These
+   * assert the shapes that used to collapse.
    */
-  it('leaves statics as siblings when disabled', () => {
+  it('leaves a static as a sibling of the field that follows it', () => {
     const driver = new CeeDriver(
       buildTemplate({
-        name: 'collapse_off',
+        name: 'static_sibling',
         children: [
           { kind: IMAGE, name: 'img' },
           { kind: TEXT, name: 'field' },
         ],
       }),
-      { collapseStaticComponents: false },
     );
     expect(driver.find(['_img'])).toBeTruthy();
-    expect(driver.findOrThrow(['_field']).linkedStaticFieldComponent).toBeFalsy();
+    expect(driver.find(['_field'])).toBeTruthy();
   });
 
-  it('attaches the static to the following field when enabled', () => {
+  it('leaves a static inside a nested element as a sibling too', () => {
     const driver = new CeeDriver(
       buildTemplate({
-        name: 'collapse_on',
-        children: [
-          { kind: IMAGE, name: 'img' },
-          { kind: TEXT, name: 'field' },
-        ],
-      }),
-      { collapseStaticComponents: true },
-    );
-    expect(driver.find(['_img']), 'the static should have been absorbed').toBeNull();
-    expect(driver.findOrThrow(['_field']).linkedStaticFieldComponent).toBeTruthy();
-  });
-
-  it('collapses static content inside nested elements too', () => {
-    const driver = new CeeDriver(
-      buildTemplate({
-        name: 'collapse_nested',
+        name: 'static_sibling_nested',
         elements: [
           {
             name: 'details',
@@ -183,11 +176,9 @@ describe('static component collapsing', () => {
           },
         ],
       }),
-      { collapseStaticComponents: true },
     );
-
-    expect(driver.find(['_details', '_img']), 'the nested static should have been absorbed').toBeNull();
-    expect(driver.findOrThrow(['_details', '_field']).linkedStaticFieldComponent).toBeTruthy();
+    expect(driver.find(['_details', '_img'])).toBeTruthy();
+    expect(driver.find(['_details', '_field'])).toBeTruthy();
   });
 });
 
@@ -257,15 +248,61 @@ describe('multi-instance elements', () => {
     driver.expectNoErrors('per-page writes');
   });
 
-  it('copying an instance mints fresh @ids rather than duplicating them', () => {
+  it('copies nested cursor state without sharing it with the source occurrence', () => {
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'copy_nested_cursor',
+        elements: [
+          {
+            name: 'outer',
+            cardinality: 'multi',
+            minItems: 1,
+            elements: [
+              {
+                name: 'inner',
+                cardinality: 'multi',
+                minItems: 2,
+                children: [{ kind: TEXT, name: 'value' }],
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    const outer = driver.findOrThrow(['_outer']);
+    const inner = driver.findOrThrow(['_outer', '_inner']);
+    const state = driver.handlerContext.multiInstanceObjectService;
+
+    state.setCurrentIndex(inner, 1);
+    driver.handlerContext.copyMultiInstance(outer);
+
+    expect(infoOf(state.getMultiInstanceInfoForComponent(inner), inner).currentIndex).toBe(1);
+    state.setCurrentIndex(inner, 0);
+    state.setCurrentIndex(outer, 0);
+    expect(infoOf(state.getMultiInstanceInfoForComponent(inner), inner).currentIndex).toBe(1);
+  });
+
+  /**
+   * A copy does not inherit the identity of what it was copied from.
+   *
+   * CEE mints nothing, so the identity a copied occurrence must not carry is one
+   * that arrived with a loaded instance — which is what is set up here. The copy
+   * comes back with a null `@id`, the shape the writer emits for a container
+   * that has no identity, and the original keeps the one it had.
+   */
+  it('copying an instance clears the identity rather than duplicating it', () => {
     const driver = new CeeDriver(multiElementTemplate());
     const author = driver.findOrThrow(['_author']);
+    const assigned = `${ELEMENT_INSTANCE_IRI}/loaded-author`;
+    driver.dataContext.mutate((instance: any) => {
+      instance.values._author[0].id = assigned;
+    });
 
     driver.handlerContext.copyMultiInstance(author);
 
     const authors = driver.metadata['_author'];
-    const ids = authors.map((a: any) => a[DocumentKey.atId]).filter(Boolean);
-    expect(new Set(ids).size, 'copied instances share an @id').toBe(ids.length);
+    expect(authors[0][DocumentKey.atId]).toBe(assigned);
+    expect(identityOf(authors[1]), 'the copy carries an identity').toBeNull();
   });
 
   it('copies a repeatable IRI field verbatim even when its value uses the element-instance namespace', () => {
@@ -286,7 +323,7 @@ describe('multi-instance elements', () => {
     ]);
   });
 
-  it('remints only element envelopes throughout a copied subtree', () => {
+  it('clears only element envelopes throughout a copied subtree', () => {
     const driver = new CeeDriver(
       buildTemplate({
         name: 'copy_nested_elements',
@@ -319,25 +356,70 @@ describe('multi-instance elements', () => {
       outer.values._manyInner.forEach((inner: any, index: number) => {
         inner.setValue('_term', termValue(`${ELEMENT_INSTANCE_IRI}/term-${index}`, `Term ${index}`));
       });
+      // Identities as a loaded instance would carry them, since CEE mints none.
+      outer.id = `${ELEMENT_INSTANCE_IRI}/outer`;
+      outer.values._inner.id = `${ELEMENT_INSTANCE_IRI}/inner`;
+      outer.values._manyInner.forEach((inner: any, index: number) => {
+        inner.id = `${ELEMENT_INSTANCE_IRI}/many-${index}`;
+      });
     });
 
     const outerComponent = driver.findOrThrow(['_outer']);
-    const before = driver.metadata._outer[0];
     driver.handlerContext.copyMultiInstance(outerComponent);
     const [source, copy] = driver.metadata._outer;
 
-    expect(source[DocumentKey.atId]).toBe(before[DocumentKey.atId]);
-    expect(copy[DocumentKey.atId]).not.toBe(source[DocumentKey.atId]);
-    expect(copy._inner[DocumentKey.atId]).not.toBe(source._inner[DocumentKey.atId]);
-    expect(copy._manyInner.map((inner: any) => inner[DocumentKey.atId])).not.toEqual(
-      source._manyInner.map((inner: any) => inner[DocumentKey.atId]),
-    );
+    // The source keeps every identity it was loaded with, at every depth.
+    expect(source[DocumentKey.atId]).toBe(`${ELEMENT_INSTANCE_IRI}/outer`);
+    expect(source._inner[DocumentKey.atId]).toBe(`${ELEMENT_INSTANCE_IRI}/inner`);
+
+    // The copy has none of them, at any depth.
+    expect(identityOf(copy)).toBeNull();
+    expect(identityOf(copy._inner)).toBeNull();
+    expect(copy._manyInner.map(identityOf)).toEqual([null, null]);
 
     expect(copy._reference[DocumentKey.atId]).toBe(source._reference[DocumentKey.atId]);
     expect(copy._inner._innerReference[DocumentKey.atId]).toBe(source._inner._innerReference[DocumentKey.atId]);
     expect(copy._manyInner.map((inner: any) => inner._term)).toEqual(
       source._manyInner.map((inner: any) => inner._term),
     );
+  });
+});
+
+describe('multi-instance state ownership', () => {
+  it('recognizes only the exact template and instance pair it was built for', () => {
+    const driver = new CeeDriver(buildTemplate({ name: 'state_owner', children: [{ kind: TEXT, name: 'field' }] }));
+    const other = new CeeDriver(buildTemplate({ name: 'state_owner_other', children: [{ kind: TEXT, name: 'field' }] }));
+    const state = driver.handlerContext.multiInstanceObjectService;
+    const instance = driver.dataContext.instanceExtractData;
+
+    expect(new MultiInstanceObjectHandler().isBuiltFor(driver.representation, instance)).toBe(false);
+    expect(state.isBuiltFor(other.representation, instance)).toBe(false);
+    expect(state.isBuiltFor(driver.representation, null)).toBe(false);
+    expect(state.isBuiltFor(driver.representation, instance)).toBe(true);
+  });
+
+  it('has no nested state or copy source when an outer component has no occurrences', () => {
+    const driver = new CeeDriver(
+      buildTemplate({
+        name: 'empty_state_owner',
+        elements: [
+          {
+            name: 'outer',
+            cardinality: 'multi',
+            minItems: 0,
+            elements: [{ name: 'inner', children: [{ kind: TEXT, name: 'field' }] }],
+          },
+        ],
+      }),
+    );
+    const outer = driver.findOrThrow(['_outer']);
+    const state = driver.handlerContext.multiInstanceObjectService;
+    const outerState = infoOf(state.getMultiInstanceInfoForComponent(outer), outer);
+
+    expect(state.getDataPathNode(['_outer', '_inner'])).toBeNull();
+    state.multiInstanceItemCopy(outer);
+    expect(outerState.currentIndex).toBe(-1);
+    expect(outerState.currentCount).toBe(0);
   });
 });
 

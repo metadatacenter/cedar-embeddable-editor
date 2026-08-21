@@ -14,12 +14,73 @@ header, where every other authority's mark already lives.
 -->
 <form class="form-container" [formGroup]="options">
   <ng-container>
-    <mat-form-field class="full-width">
+    <!--
+      Read-only and empty, the box states the authority instead of the value, with each source linked
+      to its BioPortal page. Not an `input`, because that could only carry the text as a placeholder
+      and a placeholder cannot be clicked.
+    -->
+    @if (readOnlyMode && !inputValueControl.value && specSources.length > 0) {
+      <div class="cee-controlled-spec" role="note">
+        <!--
+          The rest of the specification first — how many values, the declared default — then the
+          authorities as links. This box replaces the input, so its placeholder would be invisible.
+        -->
+        @if (component | ceeSpecPlaceholder) {
+          <span class="cee-controlled-spec-facts">{{ component | ceeSpecPlaceholder }}</span>
+        }
+        @for (source of specSources; track source.uri) {
+          @if (specSourceLink(source)) {
+            <a class="cee-controlled-spec-source" [href]="specSourceLink(source)" target="_blank" rel="noopener"
+              >{{ 'Spec.TermKind.' + source.kind | translate }} {{ source.name }}
+              @if (source.container) {
+                {{ 'Spec.TermIn' | translate: { container: source.container } }}
+              }
+              @if (source.acronym) {
+                ({{ source.acronym }})
+              }
+            </a>
+          } @else {
+            <span class="cee-controlled-spec-source"
+              >{{ 'Spec.TermKind.' + source.kind | translate }} {{ source.name }}</span
+            >
+          }
+        }
+      </div>
+    }
+    @if (showsTermAsValue) {
+      <!--
+        Read with a term in hand. The icon goes to the term's BioPortal page and the identifier to
+        the term itself, which are two different places worth having — the page says what the term
+        means in its ontology, the IRI is what the instance records.
+      -->
+      <app-cedar-term-link
+        [label]="selectedData?.label ?? null"
+        [iri]="selectedData?.iri ?? null"
+        [fieldLabel]="cds.getRenderingLabelForComponent(component)"
+      >
+        @if (bioPortalTermLink) {
+          <a
+            mat-icon-button
+            [href]="bioPortalTermLink"
+            target="_blank"
+            rel="noopener"
+            attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
+            matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
+          >
+            <mat-icon>open_in_new</mat-icon>
+          </a>
+        }
+      </app-cedar-term-link>
+    }
+    <mat-form-field
+      class="full-width"
+      [class.cee-hidden]="showsTermAsValue || (readOnlyMode && !inputValueControl.value && specSources.length > 0)"
+    >
       <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
       <input
         matInput
         type="text"
-        placeholder="{{ 'Generic.Filter' | translate }}"
+        [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ('Generic.Filter' | translate)"
         #autoCompleteInput="matAutocompleteTrigger"
         [formControl]="inputValueControl"
         [errorStateMatcher]="errorStateMatcher"

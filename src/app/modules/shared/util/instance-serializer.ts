@@ -85,14 +85,18 @@ export class InstanceSerializer {
       .getAsJsonNode(InstanceSerializer.contracted(instance, template));
   }
 
-  /** The same instance as CEDAR YAML. */
-  static toYaml(instance: TemplateInstance | null, template: Template | null = null): string {
+  /** The same instance as CEDAR YAML, optionally in the library's compact form. */
+  static toYaml(
+    instance: TemplateInstance | null,
+    template: Template | null = null,
+    isCompact: boolean = false,
+  ): string {
     if (!InstanceSerializer.isWritable(instance)) {
       return '';
     }
     return CedarWriters.yaml()
       .getStrict()
       .getTemplateInstanceWriter()
-      .getAsYamlString(InstanceSerializer.contracted(instance, template));
+      .getAsYamlString(InstanceSerializer.contracted(instance, template), isCompact);
   }
 }

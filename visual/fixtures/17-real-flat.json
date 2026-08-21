@@ -113,41 +113,41 @@
       "static_youtube_video": "YouTube Video"
     },
     "propertyDescriptions": {
-      "text_field": "",
-      "text_area_field": "",
-      "numeric_field": "",
-      "numeric_long": "",
-      "numeric_short": "",
-      "numeric_byte": "",
-      "numeric_decimal_0dp": "",
-      "numeric_decimal_2dp": "",
-      "numeric_decimal_4dp": "",
-      "numeric_float_3dp": "",
-      "numeric_double_6dp": "",
-      "temporal_field": "",
-      "temporal_date_year": "",
-      "temporal_date_month": "",
-      "temporal_date_day": "",
-      "temporal_time_minute_24h": "",
-      "temporal_time_second_12h": "",
-      "temporal_datetime_day": "",
-      "temporal_datetime_second_24h_tz": "",
-      "temporal_datetime_decimalsecond_12h": "",
-      "radio_field": "",
-      "checkbox_field": "",
-      "single_select_list_field": "",
-      "multi_select_list_field": "",
-      "phone_number_field": "",
-      "email_field": "",
-      "link_field": "",
-      "attribute_value_field": "",
+      "text_field": "A single line of free text.",
+      "text_area_field": "Free text over several lines, for a paragraph rather than a phrase.",
+      "numeric_field": "A whole number, stored as xsd:int.",
+      "numeric_long": "A whole number in the 64-bit range, stored as xsd:long.",
+      "numeric_short": "A whole number in the 16-bit range, stored as xsd:short.",
+      "numeric_byte": "A whole number in the 8-bit range, stored as xsd:byte.",
+      "numeric_decimal_0dp": "A decimal number entered without a fractional part, stored as xsd:decimal.",
+      "numeric_decimal_2dp": "A decimal number carrying two decimal places, stored as xsd:decimal.",
+      "numeric_decimal_4dp": "A decimal number carrying four decimal places, stored as xsd:decimal.",
+      "numeric_float_3dp": "A floating-point number carrying three decimal places, stored as xsd:float.",
+      "numeric_double_6dp": "A double-precision number carrying six decimal places, stored as xsd:double.",
+      "temporal_field": "A date and a time of day, to the minute, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
+      "temporal_date_year": "A year. Stored as xsd:date.",
+      "temporal_date_month": "A year and a month. Stored as xsd:date.",
+      "temporal_date_day": "A calendar date. Stored as xsd:date.",
+      "temporal_time_minute_24h": "A time of day, to the minute, on a 24-hour clock. Stored as xsd:time.",
+      "temporal_time_second_12h": "A time of day, to the second, on a 12-hour clock. Stored as xsd:time.",
+      "temporal_datetime_day": "A date, with no time of day. Stored as xsd:dateTime.",
+      "temporal_datetime_second_24h_tz": "A date and a time of day, to the second, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
+      "temporal_datetime_decimalsecond_12h": "A date and a time of day, to a fraction of a second, on a 12-hour clock. Stored as xsd:dateTime.",
+      "radio_field": "Exactly one of Option A, Option B or Option C, shown as radio buttons.",
+      "checkbox_field": "Any of Option A, Option B or Option C, shown as check boxes and stored as a list.",
+      "single_select_list_field": "One of Option A, Option B or Option C, chosen from a drop-down list.",
+      "multi_select_list_field": "One or more of Option A, Option B or Option C, chosen from a drop-down list.",
+      "phone_number_field": "A telephone number, entered with or without a country code and separators.",
+      "email_field": "An email address. A value not shaped like one keeps the form invalid.",
+      "link_field": "A web address. The instance records it as an IRI, not as a string.",
+      "attribute_value_field": "Name and value pairs supplied while the form is filled in. The person entering metadata names each attribute, so the template does not have to name it in advance.",
       "section_break": "",
-      "controlled_term_field": "",
-      "ext_ror_field": "",
-      "ext_orcid_field": "",
-      "ext_pfas_field": "",
-      "ext_rrid_field": "",
-      "ext_pubmed_field": "",
+      "controlled_term_field": "A term chosen from the DOID class disease, looked up in the terminology server as you type. The instance keeps the term IRI alongside its label.",
+      "ext_ror_field": "An organization, chosen from the Research Organization Registry (ROR). The instance keeps the ROR IRI and the registered name.",
+      "ext_orcid_field": "A person, chosen by ORCID iD. The instance keeps the ORCID IRI and the registered name.",
+      "ext_pfas_field": "A PFAS chemical, chosen from the EPA CompTox Chemicals Dashboard. The instance keeps the dashboard IRI and the substance name.",
+      "ext_rrid_field": "A research resource — an antibody, a cell line, a tool — chosen by RRID from SciCrunch. The instance keeps the resolver IRI and the RRID.",
+      "ext_pubmed_field": "A publication, chosen by PubMed ID. The instance keeps the PubMed IRI and the PMID.",
       "static_page_break": "",
       "static_rich_text": "",
       "static_image": "",
@@ -667,7 +667,7 @@
         "@value"
       ],
       "schema:name": "Text Field",
-      "schema:description": "",
+      "schema:description": "A single line of free text.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -749,7 +749,7 @@
         "@value"
       ],
       "schema:name": "Text Area Field",
-      "schema:description": "",
+      "schema:description": "Free text over several lines, for a paragraph rather than a phrase.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -836,7 +836,7 @@
         "@type"
       ],
       "schema:name": "Numeric Field",
-      "schema:description": "",
+      "schema:description": "A whole number, stored as xsd:int.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -922,7 +922,7 @@
         "@type"
       ],
       "schema:name": "Numeric Long",
-      "schema:description": "",
+      "schema:description": "A whole number in the 64-bit range, stored as xsd:long.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1008,7 +1008,7 @@
         "@type"
       ],
       "schema:name": "Numeric Short",
-      "schema:description": "",
+      "schema:description": "A whole number in the 16-bit range, stored as xsd:short.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1094,7 +1094,7 @@
         "@type"
       ],
       "schema:name": "Numeric Byte",
-      "schema:description": "",
+      "schema:description": "A whole number in the 8-bit range, stored as xsd:byte.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1179,7 +1179,7 @@
         "@type"
       ],
       "schema:name": "Numeric Decimal (0 dp)",
-      "schema:description": "",
+      "schema:description": "A decimal number entered without a fractional part, stored as xsd:decimal.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1267,7 +1267,7 @@
         "@type"
       ],
       "schema:name": "Numeric Decimal (2 dp)",
-      "schema:description": "",
+      "schema:description": "A decimal number carrying two decimal places, stored as xsd:decimal.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1352,7 +1352,7 @@
         "@type"
       ],
       "schema:name": "Numeric Decimal (4 dp)",
-      "schema:description": "",
+      "schema:description": "A decimal number carrying four decimal places, stored as xsd:decimal.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1438,7 +1438,7 @@
         "@type"
       ],
       "schema:name": "Numeric Float (3 dp)",
-      "schema:description": "",
+      "schema:description": "A floating-point number carrying three decimal places, stored as xsd:float.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1524,7 +1524,7 @@
         "@type"
       ],
       "schema:name": "Numeric Double (6 dp)",
-      "schema:description": "",
+      "schema:description": "A double-precision number carrying six decimal places, stored as xsd:double.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1611,7 +1611,7 @@
         "@type"
       ],
       "schema:name": "Temporal Field",
-      "schema:description": "",
+      "schema:description": "A date and a time of day, to the minute, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1696,7 +1696,7 @@
         "@type"
       ],
       "schema:name": "Temporal Date (Year)",
-      "schema:description": "",
+      "schema:description": "A year. Stored as xsd:date.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1781,7 +1781,7 @@
         "@type"
       ],
       "schema:name": "Temporal Date (Month)",
-      "schema:description": "",
+      "schema:description": "A year and a month. Stored as xsd:date.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1866,7 +1866,7 @@
         "@type"
       ],
       "schema:name": "Temporal Date (Day)",
-      "schema:description": "",
+      "schema:description": "A calendar date. Stored as xsd:date.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -1952,7 +1952,7 @@
         "@type"
       ],
       "schema:name": "Temporal Time (Minute, 24h)",
-      "schema:description": "",
+      "schema:description": "A time of day, to the minute, on a 24-hour clock. Stored as xsd:time.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2038,7 +2038,7 @@
         "@type"
       ],
       "schema:name": "Temporal Time (Second, 12h)",
-      "schema:description": "",
+      "schema:description": "A time of day, to the second, on a 12-hour clock. Stored as xsd:time.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2123,7 +2123,7 @@
         "@type"
       ],
       "schema:name": "Temporal DateTime (Day)",
-      "schema:description": "",
+      "schema:description": "A date, with no time of day. Stored as xsd:dateTime.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2210,7 +2210,7 @@
         "@type"
       ],
       "schema:name": "Temporal DateTime (Second, 24h, TZ)",
-      "schema:description": "",
+      "schema:description": "A date and a time of day, to the second, on a 24-hour clock, with a UTC offset. Stored as xsd:dateTime.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2296,7 +2296,7 @@
         "@type"
       ],
       "schema:name": "Temporal DateTime (Decimal Second, 12h)",
-      "schema:description": "",
+      "schema:description": "A date and a time of day, to a fraction of a second, on a 12-hour clock. Stored as xsd:dateTime.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2390,7 +2390,7 @@
         "@value"
       ],
       "schema:name": "Radio Field",
-      "schema:description": "",
+      "schema:description": "Exactly one of Option A, Option B or Option C, shown as radio buttons.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2487,7 +2487,7 @@
           "@value"
         ],
         "schema:name": "Checkbox Field",
-        "schema:description": "",
+        "schema:description": "Any of Option A, Option B or Option C, shown as check boxes and stored as a list.",
         "pav:createdOn": "2026-08-06T18:42:20-07:00",
         "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
         "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2582,7 +2582,7 @@
         "@value"
       ],
       "schema:name": "Single-Select List Field",
-      "schema:description": "",
+      "schema:description": "One of Option A, Option B or Option C, chosen from a drop-down list.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2592,98 +2592,102 @@
       "$schema": "http://json-schema.org/draft-04/schema#"
     },
     "multi_select_list_field": {
-      "@id": "https://repo.metadatacenter.orgx/template-fields/f5fbdc9d-54ce-41b0-92b1-c38a3932f322",
-      "@type": "https://schema.metadatacenter.org/core/TemplateField",
-      "@context": {
-        "xsd": "http://www.w3.org/2001/XMLSchema#",
-        "pav": "http://purl.org/pav/",
-        "bibo": "http://purl.org/ontology/bibo/",
-        "oslc": "http://open-services.net/ns/core#",
-        "schema": "http://schema.org/",
-        "skos": "http://www.w3.org/2004/02/skos/core#",
-        "schema:name": {
-          "@type": "xsd:string"
-        },
-        "schema:description": {
-          "@type": "xsd:string"
-        },
-        "skos:prefLabel": {
-          "@type": "xsd:string"
-        },
-        "skos:altLabel": {
-          "@type": "xsd:string"
-        },
-        "pav:createdOn": {
-          "@type": "xsd:dateTime"
-        },
-        "pav:createdBy": {
-          "@type": "@id"
-        },
-        "pav:lastUpdatedOn": {
-          "@type": "xsd:dateTime"
-        },
-        "oslc:modifiedBy": {
-          "@type": "@id"
-        }
-      },
-      "type": "object",
-      "title": "Multi-Select List Field field schema",
-      "description": "Multi-Select List Field field schema generated by the CEDAR Artifact Library",
-      "_ui": {
-        "inputType": "list"
-      },
-      "_valueConstraints": {
-        "literals": [
-          {
-            "label": "Option A"
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "@id": "https://repo.metadatacenter.orgx/template-fields/f5fbdc9d-54ce-41b0-92b1-c38a3932f322",
+        "@type": "https://schema.metadatacenter.org/core/TemplateField",
+        "@context": {
+          "xsd": "http://www.w3.org/2001/XMLSchema#",
+          "pav": "http://purl.org/pav/",
+          "bibo": "http://purl.org/ontology/bibo/",
+          "oslc": "http://open-services.net/ns/core#",
+          "schema": "http://schema.org/",
+          "skos": "http://www.w3.org/2004/02/skos/core#",
+          "schema:name": {
+            "@type": "xsd:string"
           },
-          {
-            "label": "Option B"
+          "schema:description": {
+            "@type": "xsd:string"
           },
-          {
-            "label": "Option C"
+          "skos:prefLabel": {
+            "@type": "xsd:string"
+          },
+          "skos:altLabel": {
+            "@type": "xsd:string"
+          },
+          "pav:createdOn": {
+            "@type": "xsd:dateTime"
+          },
+          "pav:createdBy": {
+            "@type": "@id"
+          },
+          "pav:lastUpdatedOn": {
+            "@type": "xsd:dateTime"
+          },
+          "oslc:modifiedBy": {
+            "@type": "@id"
           }
-        ],
-        "requiredValue": false,
-        "multipleChoice": true
-      },
-      "properties": {
-        "@type": {
-          "type": "string",
-          "format": "uri"
         },
-        "rdfs:label": {
-          "type": [
-            "string",
-            "null"
-          ]
+        "type": "object",
+        "title": "Multi-Select List Field field schema",
+        "description": "Multi-Select List Field field schema generated by the CEDAR Artifact Library",
+        "_ui": {
+          "inputType": "list"
         },
-        "@value": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "@language": {
-          "type": [
-            "string",
-            "null"
+        "_valueConstraints": {
+          "literals": [
+            {
+              "label": "Option A"
+            },
+            {
+              "label": "Option B"
+            },
+            {
+              "label": "Option C"
+            }
           ],
-          "minLength": 1
-        }
-      },
-      "required": [
-        "@value"
-      ],
-      "schema:name": "Multi-Select List Field",
-      "schema:description": "",
-      "pav:createdOn": "2026-08-06T18:42:20-07:00",
-      "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
-      "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
-      "oslc:modifiedBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
-      "schema:schemaVersion": "1.6.0",
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-04/schema#"
+          "requiredValue": false,
+          "multipleChoice": true
+        },
+        "properties": {
+          "@type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "rdfs:label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "@value": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "@language": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          }
+        },
+        "required": [
+          "@value"
+        ],
+        "schema:name": "Multi-Select List Field",
+        "schema:description": "One or more of Option A, Option B or Option C, chosen from a drop-down list.",
+        "pav:createdOn": "2026-08-06T18:42:20-07:00",
+        "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
+        "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
+        "oslc:modifiedBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
+        "schema:schemaVersion": "1.6.0",
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-04/schema#"
+      }
     },
     "phone_number_field": {
       "@id": "https://repo.metadatacenter.orgx/template-fields/2be2717d-a8b7-4eea-91ad-c5206e585dd5",
@@ -2758,7 +2762,7 @@
         "@value"
       ],
       "schema:name": "Phone Number Field",
-      "schema:description": "",
+      "schema:description": "A telephone number, entered with or without a country code and separators.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2840,7 +2844,7 @@
         "@value"
       ],
       "schema:name": "Email Field",
-      "schema:description": "",
+      "schema:description": "An email address. A value not shaped like one keeps the form invalid.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2916,7 +2920,7 @@
         }
       },
       "schema:name": "Link Field",
-      "schema:description": "",
+      "schema:description": "A web address. The instance records it as an IRI, not as a string.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -2970,7 +2974,7 @@
           "inputType": "attribute-value"
         },
         "schema:name": "Attribute-Value Field",
-        "schema:description": "",
+        "schema:description": "Name and value pairs supplied while the form is filled in. The person entering metadata names each attribute, so the template does not have to name it in advance.",
         "pav:createdOn": "2026-08-06T18:42:20-07:00",
         "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
         "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3085,7 +3089,7 @@
         }
       },
       "schema:name": "Controlled-Term Field",
-      "schema:description": "",
+      "schema:description": "A term chosen from the DOID class disease, looked up in the terminology server as you type. The instance keeps the term IRI alongside its label.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3161,7 +3165,7 @@
         }
       },
       "schema:name": "ROR Field",
-      "schema:description": "",
+      "schema:description": "An organization, chosen from the Research Organization Registry (ROR). The instance keeps the ROR IRI and the registered name.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3237,7 +3241,7 @@
         }
       },
       "schema:name": "ORCID Field",
-      "schema:description": "",
+      "schema:description": "A person, chosen by ORCID iD. The instance keeps the ORCID IRI and the registered name.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3313,7 +3317,7 @@
         }
       },
       "schema:name": "PFAS Field",
-      "schema:description": "",
+      "schema:description": "A PFAS chemical, chosen from the EPA CompTox Chemicals Dashboard. The instance keeps the dashboard IRI and the substance name.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3389,7 +3393,7 @@
         }
       },
       "schema:name": "RRID Field",
-      "schema:description": "",
+      "schema:description": "A research resource — an antibody, a cell line, a tool — chosen by RRID from SciCrunch. The instance keeps the resolver IRI and the RRID.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",
@@ -3465,7 +3469,7 @@
         }
       },
       "schema:name": "PubMed Field",
-      "schema:description": "",
+      "schema:description": "A publication, chosen by PubMed ID. The instance keeps the PubMed IRI and the PMID.",
       "pav:createdOn": "2026-08-06T18:42:20-07:00",
       "pav:createdBy": "https://metadatacenter.org/users/ab2a9696-291f-4705-b5e6-6c262266c506",
       "pav:lastUpdatedOn": "2026-08-06T18:42:20-07:00",

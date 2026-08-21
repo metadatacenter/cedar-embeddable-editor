@@ -45,27 +45,41 @@ doing it *during* is not.
 
 These are commitments. A diff that changes one of them is a regression.
 
-**The `--cee-*` custom properties are public API.** `--cee-color-primary`,
-`--cee-color-text-primary`, `--cee-color-accent` and `--cee-color-warn` are
-published on `:host`, where an embedder can override them. Element hierarchy is
-customizable in the same way through `--cee-element-heading-size`,
-`--cee-element-heading-weight`, and `--cee-element-content-gap`. Their defaults
-are `18px`, `600`, and `12px` respectively. Two of the color properties have no
-internal consumer, which is the point. Renaming or dropping any public property
-breaks embedders silently, so treat the set as versioned surface.
+**CEE publishes no theming surface, and that is the current state rather than a
+settled position.** Eight `--cee-*` custom properties stood on `:host`, described
+here as versioned API. They are gone, and what they were worth is the reason:
 
-The two lengths were `1.125rem` and `0.75rem`, and the same measurements in a
-page whose root element is 16px. An embedder may still override them with any
-unit; what changed is what CEE falls back to when nobody does. A default in `rem`
-was not a default — `rem` resolves against the host document's root, so a page
-carrying `html { font-size: 62.5% }` got 11.25px and 7.5px, and CEE could neither
-see that nor say it was wrong. The type scale in `_cee-tokens.scss` is absolute
-for the same reason.
+* `--cee-color-text-primary` and `--cee-color-accent` were read nowhere. This
+  document said that was the point.
+* The Material theme is compiled from Sass — `_cee-material-theme.scss` contains
+  no `var(--cee-…)` at all — so no override reached a button, chip, form field or
+  focus ring. What `--cee-color-primary` actually moved was the time picker's
+  focus border, in three declarations, and nothing else.
+* `--cee-element-heading-size`, `-weight` and `-content-gap` were the only three
+  that described a real seam, bounded by `clamp()` and typed through
+  `CSS.registerProperty` so a wrong value failed visibly rather than inheriting
+  the 14px body size.
+* No embedder set any of the eight. Not the Template Designer, not openview, not
+  artifacts, not bridging, not the demo.
 
-These layout properties deliberately customize presentation rather than
-structure. The template still decides which elements are nested and collapsible;
-an embedding application can adapt their typography and density without gaining
-a second, conflicting representation of the template hierarchy.
+The test that guarded them asserted each was *published on `:host`* — which a
+property that does nothing passes as well as one that works. Replacing the
+`clamp(12px, var(…), 32px)` forms with the literal values they resolved to moved
+393 pixels of glyph antialiasing across sixteen baselines and nothing else, which
+is the restyle this document's own rule accepts.
+
+Designing a real surface — roles rather than Material palette slots, values
+derived with `color-mix` rather than enumerated, a Material theme that reads them,
+and a test that a colour reaches rendered pixels — is on
+[CEE-ROADMAP.md](../cedar-development/ops/CEE-ROADMAP.md). Until then an embedder
+styles CEE by not styling it.
+
+The three element lengths' defaults were once `1.125rem` and `0.75rem`, and are
+now `18px`, `600` and `12px`. A default in `rem` was not a default — `rem`
+resolves against the host document's root, so a page carrying
+`html { font-size: 62.5% }` got 11.25px and 7.5px, and CEE could neither see that
+nor say it was wrong. The type scale in `_cee-tokens.scss` is absolute for the
+same reason.
 
 **`ViewEncapsulation.None` is how the component styles itself.** CEE is a web
 component whose styles have to reach its own light-DOM content and the CDK

@@ -1,92 +1,52 @@
-import { AUTHORITY_DESCRIPTORS } from '../models/authority/authority-descriptor.model';
-
 /**
- * What CEE will say about a configuration a host handed it.
+ * What CEE will say about a configuration a host handed it, and what it will read.
  *
  * The declarations the package ships describe this surface, and a TypeScript host
- * gets a compile error for a misspelled key or a wrong value. A JavaScript host
- * has no such protection, and used to be answered with silence — an unknown key is
+ * gets a compile error for a misspelled key or a wrong value. A JavaScript host has
+ * no such protection, and used to be answered with silence — an unknown key is
  * simply never read, which looks exactly like a key that works.
  *
- * Reporting only. Nothing here rejects a configuration or changes what CEE does
- * with it: a key that fails this check is ignored by the reader downstream, as it
- * always was, and the host is now told so. Rejecting a whole configuration over
- * one bad key would take an editor a host had configured acceptably and leave it
- * with none, and configuration is applied once, so there is nothing to fall back
- * to.
+ * Both answers come from one pass, because for a while they disagreed. This said
+ * "Ignored." and meant it as a description of the reader downstream, which coerces
+ * instead: `readOnlyMode: 'false'` locked the form, since a non-empty string is
+ * truthy; `terminologyBaseUrl: 7` built the endpoint `7bioportal/integrated-search`;
+ * and a base URL missing its slash produced `…/terminologybioportal/…` and was used.
+ * A message that says a value was ignored while the value takes effect is worse than
+ * no message, so the check now decides what CEE reads rather than describing what it
+ * hoped the reader did.
+ *
+ * One bad key still costs only that key. Refusing a whole configuration over one of
+ * them would take an editor a host had configured acceptably and leave it with none,
+ * and configuration is applied once, so there is nothing to fall back to.
  */
 
+import { CEE_CONFIG_KEY } from './config-reader';
+
 /** What a key's value has to be. */
-type ExpectedType = 'boolean' | 'string' | 'serialization';
+type ExpectedType = 'boolean' | 'string';
 
 /**
  * Every key CEE reads, and what it expects.
  *
  * The runtime counterpart to `CeeConfig`, which is an interface and so exists only
  * at compile time. `cee-public-api.spec.ts` holds the two together, along with the
- * component's own key constants, so the three cannot drift.
+ * shared runtime key map and its consumers, so they cannot drift.
  */
 export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
-  showHeader: 'boolean',
-  showFooter: 'boolean',
-  showTemplateDescription: 'boolean',
-  showStaticText: 'boolean',
-  showAllMultiInstanceValues: 'boolean',
-  collapseStaticComponents: 'boolean',
-  showSpinnerBeforeInit: 'boolean',
+  [CEE_CONFIG_KEY.showTemplateDescription]: 'boolean',
 
-  readOnlyMode: 'boolean',
-  hideEmptyFields: 'boolean',
-  trustTemplateMarkup: 'boolean',
+  [CEE_CONFIG_KEY.readOnlyMode]: 'boolean',
+  [CEE_CONFIG_KEY.trustTemplateRichText]: 'boolean',
 
-  showTemplateRenderingRepresentation: 'boolean',
-  showMultiInstanceInfo: 'boolean',
-  showTemplateSourceData: 'boolean',
-  showTemplateYaml: 'boolean',
-  showInstanceDataCore: 'boolean',
-  showInstanceDataFull: 'boolean',
-  showInstanceYaml: 'boolean',
-  showDataQualityReport: 'boolean',
-  showSampleTemplateLinks: 'boolean',
-  expandedTemplateRenderingRepresentation: 'boolean',
-  expandedMultiInstanceInfo: 'boolean',
-  expandedTemplateSourceData: 'boolean',
-  expandedTemplateYaml: 'boolean',
-  expandedInstanceDataCore: 'boolean',
-  expandedInstanceDataFull: 'boolean',
-  expandedInstanceYaml: 'boolean',
-  expandedDataQualityReport: 'boolean',
-  expandedSampleTemplateLinks: 'boolean',
+  [CEE_CONFIG_KEY.showDownloadMenu]: 'boolean',
 
-  inputSerialization: 'serialization',
-  outputSerialization: 'serialization',
+  [CEE_CONFIG_KEY.terminologyBaseUrl]: 'string',
+  [CEE_CONFIG_KEY.bridgeBaseUrl]: 'string',
 
-  terminologyIntegratedSearchUrl: 'string',
-  extAuthBaseUrl: 'string',
-  iriPrefix: 'string',
-  bioPortalPrefix: 'string',
-  orcidPrefix: 'string',
-  rorPrefix: 'string',
-
-  defaultLanguage: 'string',
-  fallbackLanguage: 'string',
-  languageMapPathPrefix: 'string',
-
-  sampleTemplateLocationPrefix: 'string',
-  loadSampleTemplateName: 'string',
+  [CEE_CONFIG_KEY.defaultLanguage]: 'string',
+  [CEE_CONFIG_KEY.fallbackLanguage]: 'string',
+  [CEE_CONFIG_KEY.languageMapPathPrefix]: 'string',
 };
-
-/**
- * The per-authority endpoint overrides.
- *
- * Taken from the descriptors rather than matched by pattern, so `orcidIntegrated…`
- * is accepted and `orkidIntegrated…` is not. A pattern would have accepted both.
- */
-const AUTHORITY_KEYS: ReadonlySet<string> = new Set(
-  AUTHORITY_DESCRIPTORS.flatMap((descriptor) => [descriptor.searchUrlConfigKey, descriptor.detailsUrlConfigKey]),
-);
-
-const SERIALIZATIONS: ReadonlySet<string> = new Set(['json', 'yaml']);
 
 /** Levenshtein distance, capped: only used to suggest a key the host probably meant. */
 const distance = (a: string, b: string): number => {
@@ -105,7 +65,7 @@ const distance = (a: string, b: string): number => {
 
 /** The known key closest to an unknown one, when there is a plausible candidate. */
 const didYouMean = (key: string): string | null => {
-  const known = [...Object.keys(CONFIG_SCHEMA), ...AUTHORITY_KEYS];
+  const known = Object.keys(CONFIG_SCHEMA);
   let best: string | null = null;
   let bestDistance = Number.POSITIVE_INFINITY;
   for (const candidate of known) {
@@ -122,28 +82,37 @@ const didYouMean = (key: string): string | null => {
 
 const describe = (value: unknown): string => (value === null ? 'null' : typeof value);
 
+/** What a value that failed the check reads as, which is the same as never sending it. */
+const IGNORED = 'Ignored, and the key reads as unset.';
+
 /**
- * Everything wrong with a configuration, as messages for the host.
+ * A checked configuration: what to tell the host, and what CEE may read.
  *
- * Returns them rather than reporting them, so the rules can be tested without a
- * message handler and so the caller decides how loud to be.
+ * `usable` is null only when the host handed over something that is not a
+ * configuration at all. An object always yields one, possibly empty — a
+ * configuration whose every key was refused still says "I want the defaults", which
+ * is what an empty one says too.
  */
-export const validateCeeConfig = (config: unknown): string[] => {
+export interface CheckedCeeConfig {
+  problems: string[];
+  usable: Record<string, unknown> | null;
+}
+
+/**
+ * Everything wrong with a configuration, and the part of it CEE will read.
+ *
+ * Returns both rather than reporting anything, so the rules can be tested without a
+ * message handler and the caller decides how loud to be.
+ */
+export const checkCeeConfig = (config: unknown): CheckedCeeConfig => {
   if (config === null || typeof config !== 'object' || Array.isArray(config)) {
-    return [`Configuration must be an object, but was ${describe(config)}. Ignored.`];
+    return { problems: [`Configuration must be an object, but was ${describe(config)}. Ignored.`], usable: null };
   }
 
   const problems: string[] = [];
-  const entries = Object.entries(config as Record<string, unknown>);
+  const usable: Record<string, unknown> = {};
 
-  for (const [key, value] of entries) {
-    if (AUTHORITY_KEYS.has(key)) {
-      if (typeof value !== 'string') {
-        problems.push(`Configuration key "${key}" expects a string, but was ${describe(value)}. Ignored.`);
-      }
-      continue;
-    }
-
+  for (const [key, value] of Object.entries(config as Record<string, unknown>)) {
     const expected = CONFIG_SCHEMA[key];
     if (expected === undefined) {
       const suggestion = didYouMean(key);
@@ -153,40 +122,41 @@ export const validateCeeConfig = (config: unknown): string[] => {
       continue;
     }
 
-    if (expected === 'serialization') {
-      if (typeof value !== 'string' || !SERIALIZATIONS.has(value)) {
-        problems.push(`Configuration key "${key}" expects "json" or "yaml", but was ${JSON.stringify(value)}.`);
-      }
+    if (typeof value !== expected) {
+      problems.push(`Configuration key "${key}" expects a ${expected}, but was ${describe(value)}. ${IGNORED}`);
       continue;
     }
 
-    if (typeof value !== expected) {
-      problems.push(`Configuration key "${key}" expects a ${expected}, but was ${describe(value)}. Ignored.`);
-    }
+    usable[key] = value;
   }
 
-  problems.push(...combinationProblems(config as Record<string, unknown>));
-  return problems;
+  // Run over the survivors, so a key already refused for its type is not refused
+  // twice for its shape.
+  problems.push(...dropMisshapenValues(usable));
+  return { problems, usable };
 };
 
 /**
- * Settings that are individually valid and wrong together.
+ * Values of the right type that CEE still cannot use, removed from what it reads.
  *
- * Both of these are already true of CEE and were discoverable only by watching
- * nothing happen.
+ * Both keys naming a CEDAR server name the server and nothing below it, and CEE
+ * appends the path it knows. A base without its trailing slash produced
+ * `…/bridgeext-auth/orcid/…` or `…/terminologybioportal/integrated-search`, which
+ * every request then 404s on in a way that reads as a broken server rather than a
+ * missing character. CEE does not add the slash for the host: guessing at a URL
+ * nobody wrote is how a deployment ends up talking to an endpoint no one chose,
+ * whereas an unset base is a state CEE already has and already reports, as the
+ * lookups being off.
  */
-const combinationProblems = (config: Record<string, unknown>): string[] => {
+const dropMisshapenValues = (usable: Record<string, unknown>): string[] => {
   const problems: string[] = [];
 
-  if (config['hideEmptyFields'] === true && config['readOnlyMode'] !== true) {
-    problems.push('Configuration key "hideEmptyFields" only takes effect in read-only mode, which is not enabled.');
-  }
-
-  // The reader appends an authority path to this, so a base without a trailing
-  // slash silently produces `…/ext-authorcid/search-by-name`.
-  const base = config['extAuthBaseUrl'];
-  if (typeof base === 'string' && base !== '' && !base.endsWith('/')) {
-    problems.push(`Configuration key "extAuthBaseUrl" must end in a slash, but was "${base}".`);
+  for (const key of ['bridgeBaseUrl', 'terminologyBaseUrl']) {
+    const base = usable[key];
+    if (typeof base === 'string' && base !== '' && !base.endsWith('/')) {
+      problems.push(`Configuration key "${key}" must end in a slash, but was "${base}". ${IGNORED}`);
+      delete usable[key];
+    }
   }
 
   return problems;

@@ -72,8 +72,9 @@ Two viewports: `desktop` (1280×900) and `narrow` (480×900).
 
 ## Cross-browser smoke coverage
 
-The pixel baselines remain Chromium/macOS-only. Repeating screenshots for each
-engine would mostly version font rasterisation and triple the review burden.
+The pixel baselines remain Chromium-only, recorded in Playwright's container so
+that a laptop and a CI runner see the same rasterisation. Repeating screenshots
+for each engine would mostly version font rendering and triple the review burden.
 Instead, `cross-browser-smoke.spec.ts` runs seven semantic checks in Chromium,
 Firefox and WebKit against the same production bundle:
 
@@ -198,9 +199,11 @@ one stable:
    theorised: before the fix, runs took 34s–1.3m with sporadic failures; after,
    5.4s and clean.
 3. **A DOM-settled poll, then a re-settle after fonts.** The host page sets
-   `window.__ceeReady` only once both have quiesced; tests wait on that flag
+   CEE's `eventHandler.ready()` marks the successful form render. Screenshots also
+   need fonts and layout to quiesce, so the host sets `window.__ceeReady` only once
+   those additional visual conditions hold; tests wait on that flag
    rather than a fixed timeout.
-4. **No network.** `terminologyIntegratedSearchUrl` points at an unreachable
+4. **No network.** `terminologyBaseUrl` points at an unreachable
    port on purpose. The baseline must never depend on a live terminology
    server, and autocomplete panels are not screenshotted.
 

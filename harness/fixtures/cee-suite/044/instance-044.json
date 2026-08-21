@@ -1,0 +1,112 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Collection DateTime": "https://schema.metadatacenter.org/properties/47ad2ae5-8f3a-4709-aae4-7adf608406e9",
+    "Spatial Box and keyword": "https://schema.metadatacenter.org/properties/989fa9e7-7387-4760-b867-ae40dee43159",
+    "Species Targeted": "https://schema.metadatacenter.org/properties/b73dfade-5608-41a6-85f2-9221638401b0",
+    "Software": "https://schema.metadatacenter.org/properties/b2d231cb-e585-49e4-b5ff-3000a9a17fde",
+    "eDNA Sampling": "https://schema.metadatacenter.org/properties/25c19fa9-5a05-4472-85c2-ce3b26662daf"
+  },
+  "Spatial Box and keyword": {
+    "@context": {
+      "SpatialCoverage": "https://schema.metadatacenter.org/properties/2e93851e-4045-456f-ab61-cdd89f56e405",
+      "PlaceName": "https://schema.metadatacenter.org/properties/fe6ce02c-b5c8-4055-973d-764bf97cd20b"
+    },
+    "SpatialCoverage": [
+      {
+        "@context": {
+          "eastBoundLongitude": "http://vocab.fairdatacollective.org/gdmt/hasEastBoundLongitude",
+          "westBoundLongitude": "http://vocab.fairdatacollective.org/gdmt/hasWestBoundLongitude",
+          "southBoundLatitude": "http://vocab.fairdatacollective.org/gdmt/hasSouthBoundLatitude",
+          "northBoundLatitude": "http://vocab.fairdatacollective.org/gdmt/hasNorthBoundLatitude"
+        },
+        "eastBoundLongitude": {
+          "@value": "87",
+          "@type": "xsd:decimal"
+        },
+        "westBoundLongitude": {
+          "@value": "89",
+          "@type": "xsd:decimal"
+        },
+        "southBoundLatitude": {
+          "@value": "90",
+          "@type": "xsd:decimal"
+        },
+        "northBoundLatitude": {
+          "@value": "55",
+          "@type": "xsd:decimal"
+        }
+      }
+    ],
+    "PlaceName": [
+      {
+        "@value": "My Place"
+      }
+    ]
+  },
+  "Species Targeted": {
+    "@value": "Species at Risk (SAR)"
+  },
+  "Software": {
+    "@value": "Softy"
+  },
+  "eDNA Sampling": {
+    "@context": {
+      "Sampling Depth": "https://schema.metadatacenter.org/properties/1ea4cbab-4f32-41d6-808f-2b5d818c68dd",
+      "Distance From Shore": "https://schema.metadatacenter.org/properties/6f178c84-2519-43ed-bab9-f7b6486742f6",
+      "Preservation of Sample": "https://schema.metadatacenter.org/properties/d3a903fa-875b-4f35-8d9f-c169cfd6228b"
+    },
+    "Sampling Depth": {
+      "@value": "123",
+      "@type": "xsd:decimal"
+    },
+    "Distance From Shore": {
+      "@value": "456",
+      "@type": "xsd:decimal"
+    },
+    "Preservation of Sample": {
+      "@value": "Q"
+    }
+  },
+  "Collection DateTime": [
+    {
+      "@value": "2023-09-01T13:02:03+04:00",
+      "@type": "xsd:dateTime"
+    }
+  ]
+}

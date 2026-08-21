@@ -1,0 +1,98 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "Paragraph Standalone": "https://schema.metadatacenter.org/properties/fbb24fcd-ed7d-4d13-8eac-f69efde87922",
+    "Paragraph Element": "https://schema.metadatacenter.org/properties/f441b4d8-4761-4a38-a762-86a811fd6b8a"
+  },
+  "Paragraph Element": [
+    {
+      "@context": {
+        "Paragraph Field Multiple Inside Element": "https://schema.metadatacenter.org/properties/d5c3a923-d727-46b8-a2b2-a7cf3620c1e4",
+        "Text Field in Paragraph Element": "https://schema.metadatacenter.org/properties/c2984dad-126b-4857-ae1c-983d15d59f11",
+        "Numeric Field Multiple Inside Paragraph Element": "https://schema.metadatacenter.org/properties/255526ef-b5dd-48c7-9f21-df5718dcfe5b"
+      },
+      "Paragraph Field Multiple Inside Element": [
+        {
+          "@value": "Para\ngraph\n1/1"
+        },
+        {
+          "@value": "Para\ngraph\n1/2"
+        }
+      ],
+      "Text Field in Paragraph Element": [
+        {
+          "@value": null
+        }
+      ],
+      "Numeric Field Multiple Inside Paragraph Element": [
+        {
+          "@value": null,
+          "@type": "xsd:double"
+        }
+      ]
+    },
+    {
+      "@context": {
+        "Paragraph Field Multiple Inside Element": "https://schema.metadatacenter.org/properties/d5c3a923-d727-46b8-a2b2-a7cf3620c1e4",
+        "Text Field in Paragraph Element": "https://schema.metadatacenter.org/properties/c2984dad-126b-4857-ae1c-983d15d59f11",
+        "Numeric Field Multiple Inside Paragraph Element": "https://schema.metadatacenter.org/properties/255526ef-b5dd-48c7-9f21-df5718dcfe5b"
+      },
+      "Paragraph Field Multiple Inside Element": [
+        {
+          "@value": "Para\ngraph\n2/1"
+        }
+      ],
+      "Text Field in Paragraph Element": [
+        {
+          "@value": "Text field 1"
+        }
+      ],
+      "Numeric Field Multiple Inside Paragraph Element": [
+        {
+          "@value": "120",
+          "@type": "xsd:double"
+        }
+      ]
+    }
+  ],
+  "Paragraph Standalone": [
+    {
+      "@value": null
+    }
+  ]
+}

@@ -4,7 +4,7 @@
     <input
       matInput
       type="number"
-      placeholder="{{ 'Generic.NumberOnly' | translate }}"
+      [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ('Generic.NumberOnly' | translate)"
       [formControl]="inputValueControl"
       (input)="inputChanged($event)"
       [readonly]="readOnlyMode"

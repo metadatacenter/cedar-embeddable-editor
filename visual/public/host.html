@@ -61,14 +61,6 @@
         const params = new URLSearchParams(location.search);
         const name = params.get('t');
 
-        /**
-         * `?host=sample` exercises the one entry point that fetches.
-         *
-         * A host-page route rather than a data input, so it loads no `?t=` fixture: it
-         * sets only the sample-template config keys and lets CEE's own loader fetch the
-         * template and its metadata. Deliberately no template is set — the point is that
-         * CEE ends up with one without being handed it.
-         */
         const hostRoute = params.get('host');
         if (hostRoute) {
           await customElements.whenDefined('cedar-embeddable-editor');
@@ -86,29 +78,21 @@
 
             const configFor = (owner) => {
               const config = {
-                showHeader: false,
-                showFooter: false,
-                showSampleTemplateLinks: false,
                 // Second read-only and first not, so the per-instance read-only state is
                 // observable: the service carrying it is provided on the element rather
                 // than shared, and this is what proves it. Second rather than first,
                 // because the endpoint-isolation test types into the first editor and a
                 // read-only field cannot be typed into.
                 readOnlyMode: owner === 'second',
-                showTemplateSourceData: false,
                 defaultLanguage: 'en',
                 fallbackLanguage: 'en',
                 languageMapPathPrefix: `./served/languages/${owner}/`,
-                iriPrefix: `https://${owner}.example/`,
-                terminologyIntegratedSearchUrl: `http://127.0.0.1:9/isolation/${owner}/terminology`,
-                extAuthBaseUrl: '',
+                terminologyBaseUrl: `http://127.0.0.1:9/isolation/${owner}/terminology/`,
+                // Every authority endpoint hangs off this, so pointing it at the discard
+                // port is what keeps every authority request on the machine — and what
+                // makes them per-owner, which is what the isolation test reads.
+                bridgeBaseUrl: `http://127.0.0.1:9/isolation/${owner}/`,
               };
-              for (const authority of ['orcid', 'ror', 'pfas', 'pmid', 'rrid', 'nihGrant', 'doi']) {
-                config[`${authority}IntegratedExtAuthUrl`] =
-                  `http://127.0.0.1:9/isolation/${owner}/authority/${authority}/search`;
-                config[`${authority}IntegratedDetailsUrl`] =
-                  `http://127.0.0.1:9/isolation/${owner}/authority/${authority}/details`;
-              }
               return config;
             };
 
@@ -123,28 +107,14 @@
              * `?host=lang` drives translation through `languageMapPathPrefix`.
              *
              * `?prefix=` chooses what the loader finds: a served directory holding
-             * `en.json`, or an unroutable one. The footer is on because that is where
-             * the translated string under test is rendered.
+             * `en.json`, or an unroutable one. The string under test is the form's own
+             * Expand All label, which renders on every template.
              */
             el.config = {
-              showHeader: false,
-              showFooter: true,
-              showSampleTemplateLinks: false,
               defaultLanguage: 'en',
               fallbackLanguage: 'en',
               languageMapPathPrefix: params.get('prefix') || './served/languages/',
-              terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
-            };
-          } else if (hostRoute === 'sample') {
-            el.config = {
-              showHeader: false,
-              showFooter: false,
-              showSampleTemplateLinks: false,
-              defaultLanguage: 'en',
-              fallbackLanguage: 'en',
-              sampleTemplateLocationPrefix: params.get('prefix') || './served/sample/',
-              loadSampleTemplateName: params.get('sample') || 'demo',
-              terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
+              terminologyBaseUrl: 'http://127.0.0.1:9/unused/',
             };
           } else {
             window.__ceeError = `unknown ?host= route: ${hostRoute}`;
@@ -180,57 +150,44 @@
         await customElements.whenDefined('cedar-embeddable-editor');
         const cee = document.querySelector('cedar-embeddable-editor');
 
+        // Installed before any artifact input so the host contract tests can tell
+        // initialization from a user mutation. Most tests reset this after `open`.
+        window.__ceeChanges = [];
+        cee.addEventListener('change', (event) => window.__ceeChanges.push(event.detail ?? null));
+
         /**
          * Config presets, selected with ?c=<name>.
          *
-         * `base` strips the surrounding chrome so a diff reflects the form
-         * itself. That is the right default, but it also means the header and
-         * footer — and with them mat-toolbar — render in no baseline at all. The
-         * `chrome` preset exists to cover them rather than leave that silently
-         * untested.
+         * `base` is the form and nothing else. CEE draws no page chrome of its own
+         * any more — a header and a footer belong to the host — so there is no
+         * surrounding furniture for a preset to switch on.
          */
         const base = {
-          showSampleTemplateLinks: false,
-          showHeader: false,
-          showFooter: false,
-          showTemplateRenderingRepresentation: false,
-          showInstanceDataCore: false,
-          showTemplateSourceData: false,
-          showDataQualityReport: false,
-          showMultiInstanceInfo: false,
-          collapseStaticComponents: true,
           defaultLanguage: 'en',
           fallbackLanguage: 'en',
-          sampleTemplateLocationPrefix: './served/sample/',
           // Deliberately unreachable: the visual baseline must never depend on
           // a live terminology server. Lookup spinners are not screenshotted
           // for the same reason — they only appear mid-request.
-          terminologyIntegratedSearchUrl: 'http://127.0.0.1:9/unused',
+          terminologyBaseUrl: 'http://127.0.0.1:9/unused/',
         };
 
         /**
-         * A distinct, deliberately unroutable URL per authority.
+         * A deliberately unroutable base for the seven authority endpoints.
          *
-         * Each of the seven external authority fields reads its endpoint from its own
-         * config key, and nothing checked that a field ends up asking the endpoint it
-         * was configured with — a descriptor naming the wrong key, or a widget wired to
-         * the wrong descriptor, would send a field to another authority's service and
-         * fail only against something live. Giving each a unique path makes the
-         * question answerable by looking at the request.
+         * Each field derives its own path under this, and nothing checked that a field
+         * ends up asking for the authority it renders — a widget wired to the wrong
+         * descriptor would send a field to another authority's service and fail only
+         * against something live. The paths differ per authority, so the question is
+         * answerable by looking at the request.
          *
          * `127.0.0.1:9` is the discard port: nothing listens, so the requests are
          * intercepted by the test and never leave the machine. Which is the same reason
          * `base` points the terminology server there.
          */
-        const AUTHORITY_ENDPOINTS = {};
-        for (const name of ['orcid', 'ror', 'pfas', 'pmid', 'rrid', 'nihGrant', 'doi']) {
-          AUTHORITY_ENDPOINTS[`${name}IntegratedExtAuthUrl`] = `http://127.0.0.1:9/authority/${name}/search`;
-          AUTHORITY_ENDPOINTS[`${name}IntegratedDetailsUrl`] = `http://127.0.0.1:9/authority/${name}/details`;
-        }
+        const AUTHORITY_ENDPOINTS = { bridgeBaseUrl: 'http://127.0.0.1:9/' };
 
         const PRESETS = {
           base,
-          chrome: { ...base, showHeader: true, showFooter: true },
           readonly: { ...base, readOnlyMode: true },
           authority: { ...base, ...AUTHORITY_ENDPOINTS },
         };
@@ -244,11 +201,11 @@
         /**
          * Turn individual boolean config flags on, with ?f=one,two.
          *
-         * CEE takes 31 config keys and `base` deliberately turns most of them off so a
-         * diff reflects the form. That left two thirds of the config surface rendered in
-         * no test at all — and a config key that is silently ignored looks exactly like
-         * one that works. Not hypothetical: `eventHandler` was stored and never read, so
-         * a host page passing one got silence, which is what prompted this sweep.
+         * `base` deliberately turns most of CEE's config keys off so a diff reflects the
+         * form. That left much of the config surface rendered in no test at all — and a
+         * config key that is silently ignored looks exactly like one that works. Not
+         * hypothetical: `eventHandler` was stored and never read, so a host page passing
+         * one got silence, which is what prompted this sweep.
          *
          * This exists so a test can ask the only question that catches that: does
          * turning this flag on change anything?
@@ -270,9 +227,6 @@
         for (const flag of (params.get('n') || '').split(',').filter(Boolean)) {
           overrides[flag] = false;
         }
-        if (params.get('s')) {
-          overrides.outputSerialization = params.get('s');
-        }
 
         /**
          * An event handler, when ?e=1, recording what CEE tells the host.
@@ -287,6 +241,7 @@
           cee.eventHandler = {
             trace: (label, value) => window.__ceeEvents.push({ kind: 'trace', label, value }),
             error: (label, value) => window.__ceeEvents.push({ kind: 'error', label, value }),
+            ready: () => window.__ceeEvents.push({ kind: 'ready' }),
           };
         }
 
@@ -300,12 +255,8 @@
          * first because setting the template is what triggers the load.
          *
          * `combined` uses the single `templateAndInstanceObject` input instead. Worth
-         * covering separately: it takes a different branch in the editor, calling
-         * `setDataContextWithInstance` before `setInputTemplate` rather than after —
-         * and it is the route the sample-template loader funnels into, since
-         * `triggerUpdateOnInjectedSampleData` assembles exactly this object. So a test
-         * here covers the sample-template path's mechanism without needing the
-         * sample-template links and their network fetches.
+         * covering separately: it claims both artifact halves together rather than
+         * letting the independent setters supply them in either order.
          */
         const mode = params.get('m') || 'separate';
         if (mode === 'combined') {

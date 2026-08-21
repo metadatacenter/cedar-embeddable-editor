@@ -1,19 +1,15 @@
 @if (!readOnlyMode) {
-  <div
-    class="cee-time-picker"
-    [class.cee-time-picker-filled]="hasValue"
-    role="group"
-    attr.aria-label="{{ 'Generic.Time' | translate }}"
-  >
+  <div class="cee-time-picker" role="group" attr.aria-label="{{ 'Generic.Time' | translate }}">
     <div class="cee-time-input-shell">
       <input
         class="cee-time-segment cee-time-segment-hour"
         type="text"
         inputmode="numeric"
         maxlength="2"
-        [value]="hasValue ? hourText : ''"
+        [value]="hourDraft"
         placeholder="HH"
         (input)="hourChanged($any($event.target).value)"
+        (focus)="segmentFocus($event, 'hour')"
         (keydown)="segmentKeydown($event, 'hour')"
         (blur)="segmentBlur($event, 'hour')"
         attr.aria-label="{{ 'Generic.Hour' | translate }}"
@@ -25,9 +21,10 @@
           type="text"
           inputmode="numeric"
           maxlength="2"
-          [value]="hasValue ? minuteText : ''"
+          [value]="minuteDraft"
           placeholder="MM"
           (input)="minuteChanged($any($event.target).value)"
+          (focus)="segmentFocus($event, 'minute')"
           (keydown)="segmentKeydown($event, 'minute')"
           (blur)="segmentBlur($event, 'minute')"
           attr.aria-label="{{ 'Generic.Minute' | translate }}"
@@ -39,9 +36,10 @@
             type="text"
             inputmode="numeric"
             maxlength="2"
-            [value]="hasValue ? secondText : ''"
+            [value]="secondDraft"
             placeholder="SS"
             (input)="secondChanged($any($event.target).value)"
+            (focus)="segmentFocus($event, 'second')"
             (keydown)="segmentKeydown($event, 'second')"
             (blur)="segmentBlur($event, 'second')"
             attr.aria-label="{{ 'Generic.Second' | translate }}"
@@ -72,16 +70,4 @@
       <div class="cee-time-validation" role="alert">{{ 'Validation.Time.InvalidSecond' | translate }}</div>
     }
   </div>
-}
-
-@if (readOnlyMode) {
-  <span
-    class="cee-time-picker-readonly"
-    [class.cee-time-picker-readonly-hour-only]="disableMinute"
-    [class.cee-time-picker-readonly-seconds]="showSeconds"
-    [class.cee-time-picker-readonly-meridian]="enableMeridian"
-    attr.aria-label="{{ 'Generic.Time' | translate }}"
-  >
-    {{ hasValue ? displayValue : '' }}
-  </span>
 }

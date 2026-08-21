@@ -4,7 +4,7 @@ preparation_protocol_doi type=link single required
 dataset_type type=controlled single required branches=1
 contributors_path type=textfield single required
 data_path type=textfield single required
-mapped_area_value type=numeric single num=xsd:decimal
+mapped_area_value type=numeric single required num=xsd:decimal
 mapped_area_unit type=controlled single required branches=1
 spot_size_value type=numeric single required num=xsd:decimal
 spot_size_unit type=controlled single required branches=1

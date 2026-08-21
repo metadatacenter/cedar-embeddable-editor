@@ -2,7 +2,6 @@ import {
   AbstractChildDeploymentInfo,
   AbstractContainerArtifact,
   AbstractDynamicChildDeploymentInfo,
-  BooleanField,
   CedarArtifactType,
   CedarFieldType,
   CedarReaders,
@@ -73,8 +72,6 @@ const isNumericField = (field: TemplateField): field is NumericField => field.ce
 
 const isTemporalField = (field: TemplateField): field is TemporalField =>
   field.cedarFieldType === CedarFieldType.TEMPORAL;
-
-const isBooleanField = (field: TemplateField): field is BooleanField => field.cedarFieldType === CedarFieldType.BOOLEAN;
 
 const isControlledTermField = (field: TemplateField): field is ControlledTermField =>
   field.cedarFieldType === CedarFieldType.CONTROLLED_TERM;
@@ -321,8 +318,10 @@ export class ModelLibraryTemplateParser implements TemplateParser {
    * Record each child's property IRI, rather than copying a `@context` block.
    *
    * The IRIs come from the same mapping the library uses when it writes a
-   * template, which takes each child's declared IRI and mints one where a
-   * template omits it. The block those IRIs end up in is the instance writer's
+   * template, which takes each child's declared IRI and records nothing for a child
+   * that declares none — the repository assigns one on upload. It used to build an
+   * IRI out of the child's name, asserting an identity nobody had assigned and
+   * deriving it from the one thing an author can rename. The block those IRIs end up in is the instance writer's
    * to build; the root used to be handed the standard prefixes here as well,
    * and every container is the same now.
    *
@@ -380,6 +379,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
       fc.basicInfo.inputTimeFormat = field.inputTimeFormat.getValue();
       fc.basicInfo.temporalGranularity = field.temporalGranularity.getValue();
       fc.valueInfo.temporalType = field.valueConstraints.temporalType.getValue();
+      fc.valueInfo.defaultValue = field.valueConstraints.defaultValue ?? null;
     }
 
     /*
@@ -390,10 +390,10 @@ export class ModelLibraryTemplateParser implements TemplateParser {
      * ask what the bound is.
      *
      * Each read sits under the guard for the kind that declares it. That is not a
-     * narrowing of what CEE reads: the four kinds below are the only ones the
-     * library gives a constraint object carrying these at all.
+     * narrowing of what CEE reads: the kinds below are the only ones the library
+     * gives a constraint object carrying these at all.
      */
-    if (isTextField(field) || isTextArea(field) || isListField(field) || isBooleanField(field)) {
+    if (isTextField(field) || isTextArea(field) || isListField(field)) {
       fc.valueInfo.defaultValue = field.valueConstraints.defaultValue ?? null;
     }
 
@@ -405,6 +405,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
 
     if (isNumericField(field)) {
       fc.numberInfo.numberType = field.valueConstraints.numberType.getValue();
+      fc.valueInfo.defaultValue = field.valueConstraints.defaultValue ?? null;
       fc.numberInfo.unitOfMeasure = field.valueConstraints.unitOfMeasure ?? null;
       fc.numberInfo.minValue = field.valueConstraints.minValue ?? null;
       fc.numberInfo.maxValue = field.valueConstraints.maxValue ?? null;
@@ -455,7 +456,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
       };
     } else {
       // Null, not undefined: a field with no declared default holds nothing, and
-      // `ValueInfo.defaultValue` says `string | boolean | AuthorityTerm | null`.
+      // `ValueInfo.defaultValue` says `string | number | boolean | AuthorityTerm | null`.
       fc.valueInfo.defaultValue = null;
     }
   }

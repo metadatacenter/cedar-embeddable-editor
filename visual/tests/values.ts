@@ -13,8 +13,14 @@
  */
 import cedar from 'cedar-model-typescript-library';
 
-const { CedarReaders, InstanceDataContainer, InstanceDataStringAtom, InstanceDataTypedAtom, JsonTemplateInstanceReader } =
-  cedar;
+const {
+  CedarReaders,
+  InstanceDataContainer,
+  InstanceDataControlledAtom,
+  InstanceDataStringAtom,
+  InstanceDataTypedAtom,
+  JsonTemplateInstanceReader,
+} = cedar;
 
 const atomOf = (node: unknown) => JsonTemplateInstanceReader.readValueNode(node);
 
@@ -33,6 +39,17 @@ export const literalOf = (node: unknown): string | null | undefined => {
 export const valueOf = (instance: unknown, field: string): string | null | undefined =>
   literalOf((instance as Record<string, unknown>)?.[field]);
 
+/** The two halves of a controlled term held by a named field. */
+export const termOf = (
+  instance: unknown,
+  field: string,
+): { iri: string | null | undefined; label: string | null | undefined } => {
+  const atom = atomOf((instance as Record<string, unknown>)?.[field]);
+  return atom instanceof InstanceDataControlledAtom
+    ? { iri: atom.id, label: atom.label }
+    : { iri: undefined, label: undefined };
+};
+
 /**
  * A node holding a literal, for the specs that hand CEE an edited instance.
  *
@@ -46,11 +63,13 @@ export const literalNode = (value: string | null): unknown =>
 /**
  * Every element-occurrence IRI an instance carries, at any depth.
  *
- * CEE mints one of these for each occurrence it builds, from the IRI prefix its
- * host configured, so they are what proves two editors on a page are not sharing
- * that configuration. Read by parsing the instance rather than by walking the
- * document for a key: the library's reader is what knows where an occurrence's
- * identity lives.
+ * Expected to be none, for an instance CEE built: it invents no identity for an
+ * occurrence, so an `@id` here only ever arrives in a loaded instance. This proved
+ * two editors on a page were minting under separate host-configured prefixes; with
+ * nothing minted, what it proves is that neither adds one, which is the property the
+ * per-editor prefix existed to keep apart. Read by parsing the instance rather than
+ * by walking the document for a key: the library's reader is what knows where an
+ * occurrence's identity lives.
  */
 export const elementIrisOf = (document: unknown): string[] => {
   const parsed = CedarReaders.json().getFebruary2024().getTemplateInstanceReader().readFromObject(document).instance;

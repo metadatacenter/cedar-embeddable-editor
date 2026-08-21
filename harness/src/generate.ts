@@ -1,12 +1,18 @@
 /**
  * Template generation, driven by the CEDAR Model TypeScript Library.
  *
- * Everything here is deterministic: fixed IRIs, fixed timestamps, no randomness.
- * That matters because CEE itself mints random `@id`s at instance-build time
- * (`DataObjectUtil.generateGUID`), so the *only* nondeterminism in a test run
- * should come from the code under test — never from the fixtures.
+ * Everything here is deterministic: fixed IRIs, fixed timestamps, no randomness,
+ * so the only nondeterminism in a test run comes from the code under test rather
+ * than from the fixtures. CEE used to supply some of its own, minting a random
+ * `@id` into every element occurrence it built; it mints nothing now, and two
+ * builds of one template are the same document.
  */
-import { CedarBuilders, CedarWriters } from 'cedar-model-typescript-library';
+import {
+  CedarBuilders,
+  CedarWriters,
+  ControlledTermDefaultValueBuilder,
+  Iri,
+} from 'cedar-model-typescript-library';
 import { parse as parseYaml } from 'yaml';
 import { Cardinality, FieldKind, Nesting } from './axes';
 
@@ -48,7 +54,8 @@ export const supportsMultiInstance = (kind: FieldKind): boolean => {
   return typeof db?.withMultiInstance === 'function';
 };
 
-const buildField = (kind: FieldKind, name: string, size?: { width: number; height: number }) => {
+const buildField = (spec: ChildSpec) => {
+  const { kind, name } = spec;
   let b = kind
     .make()
     .withAtId(`https://repo.metadatacenter.org/template-fields/${id(name)}`)
@@ -60,9 +67,44 @@ const buildField = (kind: FieldKind, name: string, size?: { width: number; heigh
     .withLastUpdatedOn(FIXED_DATE)
     .withModifiedBy(USER);
   if (kind.configure) b = kind.configure(b);
-  if (size) {
-    b = opt(b, 'withWidth', size.width);
-    b = opt(b, 'withHeight', size.height);
+  const optionMethod = ['addRadioOption', 'addCheckboxOption', 'addListOption'].find(
+    (method) => typeof b?.[method] === 'function',
+  );
+  if ((spec.options?.length ?? 0) > 0 && optionMethod === undefined) {
+    throw new Error(`${kind.key} cannot declare choice options`);
+  }
+  for (const option of spec.options ?? []) {
+    const selected = option.selectedByDefault === true || spec.defaultValue === option.label;
+    b = b[optionMethod!](option.label, selected);
+  }
+  if (typeof spec.defaultValue === 'string') {
+    if (optionMethod !== undefined) {
+      if (!spec.options?.some((option) => option.label === spec.defaultValue)) {
+        throw new Error(`${kind.key} default "${spec.defaultValue}" is not one of its options`);
+      }
+    } else if (typeof b?.withDefaultValue === 'function') {
+      b = b.withDefaultValue(spec.defaultValue);
+    } else {
+      throw new Error(`${kind.key} cannot declare a literal default`);
+    }
+  } else if (typeof spec.defaultValue === 'number') {
+    if (typeof b?.withDefaultValue !== 'function') {
+      throw new Error(`${kind.key} cannot declare a numeric default`);
+    }
+    b = b.withDefaultValue(spec.defaultValue);
+  } else if (spec.defaultValue) {
+    if (typeof b?.withDefaultValue !== 'function') {
+      throw new Error(`${kind.key} cannot declare a controlled-term default`);
+    }
+    const declared = new ControlledTermDefaultValueBuilder()
+      .withTermUri(new Iri(spec.defaultValue.iri))
+      .withRdfsLabel(spec.defaultValue.label)
+      .build();
+    b = b.withDefaultValue(declared);
+  }
+  if (spec.size) {
+    b = opt(b, 'withWidth', spec.size.width);
+    b = opt(b, 'withHeight', spec.size.height);
   }
   return b.build();
 };
@@ -76,6 +118,10 @@ export interface ChildSpec {
   hidden?: boolean;
   minItems?: number;
   maxItems?: number;
+  /** Literal choices, with either per-option or field-level default selection. */
+  options?: Array<{ label: string; selectedByDefault?: boolean }>;
+  /** The value a newly built instance should start with. */
+  defaultValue?: string | number | { iri: string; label: string };
   /**
    * `_ui._size`, which only the two sizeable static kinds carry.
    *
@@ -141,7 +187,7 @@ const buildElement = (spec: ElementSpec) => {
   // Optional, like `elements` below: an element holding nothing but
   // sub-elements is a shape real templates use.
   for (const child of spec.children ?? []) {
-    const field = buildField(child.kind, child.name, child.size);
+    const field = buildField(child);
     const { deployment } = deploy(field, child);
     eb = eb.addChild(field, deployment);
   }
@@ -190,7 +236,7 @@ export const buildTemplateModel = (spec: TemplateSpec): any => {
     .withModifiedBy(USER);
 
   for (const child of spec.children ?? []) {
-    const field = buildField(child.kind, child.name, child.size);
+    const field = buildField(child);
     const { deployment } = deploy(field, child);
     tb = tb.addChild(field, deployment);
   }
@@ -252,6 +298,7 @@ export const sweep = (
   kinds: FieldKind[],
   cardinalities: readonly Cardinality[],
   nestings: readonly Nesting[],
+  options: { multiElementMinItems?: number; multiFieldMinItems?: number } = {},
 ): Case[] => {
   const cases: Case[] = [];
 
@@ -263,7 +310,12 @@ export const sweep = (
 
       for (const nesting of nestings) {
         const fieldName = `${kind.key}_${cardinality}`;
-        const child: ChildSpec = { kind, name: fieldName, cardinality };
+        const child: ChildSpec = {
+          kind,
+          name: fieldName,
+          cardinality,
+          minItems: cardinality === 'multi' ? options.multiFieldMinItems ?? 2 : undefined,
+        };
         const label = `${kind.inputType}/${cardinality}/${nesting}`;
         let template: object;
         let path: string[];
@@ -271,7 +323,7 @@ export const sweep = (
         if (nesting === 'root') {
           template = buildTemplate({ name: `t_${kind.key}_${cardinality}_root`, children: [child] });
           path = [`_${fieldName}`];
-        } else {
+        } else if (nesting === 'inElement' || nesting === 'inMultiElement') {
           const elMulti = nesting === 'inMultiElement';
           const elName = elMulti ? 'multi_el' : 'single_el';
           template = buildTemplate({
@@ -280,12 +332,36 @@ export const sweep = (
               {
                 name: elName,
                 cardinality: elMulti ? 'multi' : ('single' as Cardinality),
-                minItems: elMulti ? 2 : undefined,
+                minItems: elMulti ? options.multiElementMinItems ?? 2 : undefined,
                 children: [child],
               },
             ],
           });
           path = [`_${elName}`, `_${fieldName}`];
+        } else {
+          const outerMulti = nesting === 'inNestedOuterMultiElement' || nesting === 'inNestedMultiElements';
+          const innerMulti = nesting === 'inNestedInnerMultiElement' || nesting === 'inNestedMultiElements';
+          const outerName = outerMulti ? 'outer_multi_el' : 'outer_single_el';
+          const innerName = innerMulti ? 'inner_multi_el' : 'inner_single_el';
+          template = buildTemplate({
+            name: `t_${kind.key}_${cardinality}_${outerName}_${innerName}`,
+            elements: [
+              {
+                name: outerName,
+                cardinality: outerMulti ? 'multi' : ('single' as Cardinality),
+                minItems: outerMulti ? options.multiElementMinItems ?? 2 : undefined,
+                elements: [
+                  {
+                    name: innerName,
+                    cardinality: innerMulti ? 'multi' : ('single' as Cardinality),
+                    minItems: innerMulti ? options.multiElementMinItems ?? 2 : undefined,
+                    children: [child],
+                  },
+                ],
+              },
+            ],
+          });
+          path = [`_${outerName}`, `_${innerName}`, `_${fieldName}`];
         }
 
         cases.push({ label, kind, cardinality, nesting, path, template });

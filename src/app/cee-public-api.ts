@@ -6,12 +6,13 @@
  * `tsc --emitDeclarationOnly` turn this one file into the `.d.ts` the npm package
  * ships, without dragging in paths that exist only inside this repository.
  *
- * Every input is set-once: the first assignment stands, and a later one is reported
- * and ignored. A host wanting different configuration or a different artifact
- * creates a new element. That is the whole of the contract's assignment
- * semantics, and it replaces three behaviours that had no answer — a second
- * `config` that patched some keys and replaced others, a read-only mode that could
- * be turned on and not off, and three artifact inputs with no stated precedence.
+ * Configuration and the artifact inputs are set-once: the first assignment stands,
+ * and a later one is reported and ignored. A host wanting different configuration or
+ * a different artifact creates a new element. That replaces three behaviours which
+ * had no answer — a second `config` that patched some keys and replaced others, a
+ * read-only mode that could be turned on and not off, and three artifact inputs with
+ * no stated precedence. `eventHandler` is deliberately outside it and may be
+ * replaced, for the reasons given where it is declared.
  *
  * Types only, with no runtime values, and that is a constraint rather than a
  * style. The shipped bundle is an IIFE that registers a custom element and exports
@@ -24,20 +25,16 @@
  * contract cannot drift from the code by being edited in only one place.
  */
 
-/** How an artifact is serialised on the way in or out. */
-export type CeeSerialization = 'json' | 'yaml';
-
 /**
- * The external authorities CEE can look terms up in.
+ * A configuration key, as a type.
  *
- * Each contributes two configuration keys, `<name>IntegratedExtAuthUrl` and
- * `<name>IntegratedDetailsUrl`, which override the path appended to
- * `extAuthBaseUrl`.
+ * Every key of `CeeConfig`, now that the interface is closed. It was
+ * `Exclude<keyof CeeConfig, number | symbol>`, which is what an index signature
+ * costs: `keyof` on an open interface is `string | number | symbol`, so the type
+ * of a key had to be narrowed back down by hand and named nothing more precise
+ * than "a string".
  */
-export type CeeAuthority = 'orcid' | 'ror' | 'pfas' | 'pmid' | 'rrid' | 'nihGrant' | 'doi';
-
-/** A configuration key, as a type. */
-export type CeeConfigKey = Exclude<keyof CeeConfig, number | symbol>;
+export type CeeConfigKey = keyof CeeConfig;
 
 /**
  * The configuration CEE accepts.
@@ -46,13 +43,7 @@ export type CeeConfigKey = Exclude<keyof CeeConfig, number | symbol>;
  * configuration is applied once and never merged with a previous assignment.
  */
 export interface CeeConfig {
-  showHeader?: boolean;
-  showFooter?: boolean;
   showTemplateDescription?: boolean;
-  showStaticText?: boolean;
-  showAllMultiInstanceValues?: boolean;
-  collapseStaticComponents?: boolean;
-  showSpinnerBeforeInit?: boolean;
 
   /**
    * Renders the form without editing controls.
@@ -62,63 +53,61 @@ export interface CeeConfig {
    * viewer could be made editable from inside it.
    */
   readOnlyMode?: boolean;
-  /** Honoured only in read-only mode, where an empty field is noise. */
-  hideEmptyFields?: boolean;
 
   /**
-   * Whether a template author's rich-text markup renders verbatim.
+   * Whether a template author's rich text renders verbatim.
    *
    * Defaults to false, which sanitizes. Set true only if template authors are as
    * trusted as your own application code — see the README's embedding-security
    * section.
    */
-  trustTemplateMarkup?: boolean;
+  trustTemplateRichText?: boolean;
 
-  showTemplateRenderingRepresentation?: boolean;
-  showMultiInstanceInfo?: boolean;
-  showTemplateSourceData?: boolean;
-  showTemplateYaml?: boolean;
-  showInstanceDataCore?: boolean;
-  showInstanceDataFull?: boolean;
-  showInstanceYaml?: boolean;
-  showDataQualityReport?: boolean;
-  showSampleTemplateLinks?: boolean;
-  expandedTemplateRenderingRepresentation?: boolean;
-  expandedMultiInstanceInfo?: boolean;
-  expandedTemplateSourceData?: boolean;
-  expandedTemplateYaml?: boolean;
-  expandedInstanceDataCore?: boolean;
-  expandedInstanceDataFull?: boolean;
-  expandedInstanceYaml?: boolean;
-  expandedDataQualityReport?: boolean;
-  expandedSampleTemplateLinks?: boolean;
+  /**
+   * Offers a menu that saves CEE's views of the artifact as files — the instance
+   * as JSON-LD plus standard and compact YAML, the template as JSON Schema plus
+   * standard and compact YAML, and the data quality report.
+   *
+   * Off by default, so an embedded form offers nothing of the sort unless a host
+   * asks. Nothing is rendered under the form either way.
+   */
+  showDownloadMenu?: boolean;
 
-  inputSerialization?: CeeSerialization;
-  outputSerialization?: CeeSerialization;
+  /**
+   * Base for controlled-term search. Must end in a slash.
+   *
+   * Identifies the CEDAR terminology server, and nothing below it: the search
+   * path hangs off this and is CEE's own. Unset, controlled fields offer no
+   * terms, and CEE says so once.
+   *
+   * This was `terminologyIntegratedSearchUrl` and took the endpoint whole, so
+   * every host spelled out `bioportal/integrated-search` — a route belonging to
+   * the terminology server, restated in four deployment configs that would all
+   * have to change together if it ever moved.
+   */
+  terminologyBaseUrl?: string;
 
-  terminologyIntegratedSearchUrl?: string;
-  /** Base for authority lookups. Must end in a slash. */
-  extAuthBaseUrl?: string;
-  iriPrefix?: string;
-  bioPortalPrefix?: string;
-  orcidPrefix?: string;
-  rorPrefix?: string;
+  /**
+   * Base for every external authority lookup. Must end in a slash.
+   *
+   * Identifies the CEDAR bridge server, and nothing below it: the fourteen
+   * endpoints behind the seven authority fields hang off this and are CEE's own,
+   * so a deployment moves all of them by moving this, or none of them. Fourteen
+   * keys used to offer the paths one at a time, and every host that set one
+   * restated the default.
+   *
+   * Unset, authority fields offer no terms and resolve no identifiers, and CEE
+   * says so once. There was a default — the production bridge — which a host
+   * embedding CEE anywhere else reached without asking and without knowing.
+   *
+   * This was `extAuthBaseUrl` and took the bridge server's `ext-auth/` resource
+   * root, the one path segment a host was still left spelling.
+   */
+  bridgeBaseUrl?: string;
 
   defaultLanguage?: string;
   fallbackLanguage?: string;
   languageMapPathPrefix?: string;
-
-  sampleTemplateLocationPrefix?: string;
-  loadSampleTemplateName?: string;
-
-  /**
-   * Per-authority endpoint overrides, `orcidIntegratedExtAuthUrl` and the like.
-   *
-   * An index signature rather than fourteen declarations, and it is the one place
-   * this interface stops catching typos. That is a deliberate trade: closing it
-   * would mean a host adding a future authority's key could not compile.
-   */
-  [authorityEndpoint: string]: unknown;
 }
 
 /** A JSON-serialisable value, as it appears in a CEDAR artifact. */
@@ -143,12 +132,25 @@ export interface CeeTemplateAndInstance {
   instanceObject: CeeJsonObject;
 }
 
-/** One thing wrong with the instance, as the data quality report sees it. */
+/**
+ * One thing wrong with the instance, as the data quality report sees it.
+ *
+ * Every member the runtime object carries, unlike `CeeDataQualityReport`, which
+ * declares a subset because the report also holds CEE's internal working views. A
+ * problem has no internals — it exists to be read by a host — so anything missing
+ * here is missing by mistake, which `field` and `inputType` were: documented in the
+ * validation guide, present at runtime, and absent from this interface, so a
+ * TypeScript host could not read either without a cast.
+ */
 export interface CeeValidationProblem {
   /** Machine-readable code, e.g. `numberType` or `temporalGranularity`. */
   code: string;
   /** Path to the offending value, outermost first. */
   path: string[];
+  /** The field's property name, which is the last path segment. */
+  field: string;
+  /** The field's declared `_ui.inputType`, or null where it declares none. */
+  inputType: string | null;
   /** Human-readable explanation. */
   message: string;
   /** The value that failed, when there is one. */
@@ -173,6 +175,35 @@ export interface CeeDataQualityReport {
   isValid: boolean;
 }
 
+/** The model operation that produced a host-visible instance change. */
+export type CeeChangeOperation = 'valueChanged' | 'multiInstanceAdded' | 'multiInstanceCopied' | 'multiInstanceDeleted';
+
+/**
+ * Detail carried by CEE's composed `change` event.
+ *
+ * This describes a change to the serialized instance, not traffic from a DOM
+ * control. Paging, focus, blur and a write which leaves the instance identical
+ * therefore produce no event.
+ */
+export interface CeeChangeDetail {
+  /** What changed. */
+  operation: CeeChangeOperation;
+  /** Template path of the changed field or multi-instance component. */
+  path: string[];
+  /** The value supplied to the model operation. */
+  value: unknown;
+  /** Current validity after the operation. */
+  validity: boolean;
+  /** Current validation report after the operation. */
+  dataQualityReport: CeeDataQualityReport;
+  /** Current instance title, where the envelope carries one. */
+  title: string | null;
+  /** Current instance description, where the envelope carries one. */
+  description: string | null;
+  /** Backward-compatible name carried by the three multi-instance operations. */
+  message?: 'multiInstanceAdded' | 'multiInstanceCopied' | 'multiInstanceDeleted';
+}
+
 /**
  * The callbacks CEE will invoke on the host.
  *
@@ -180,23 +211,23 @@ export interface CeeDataQualityReport {
  * handler is called only if it has a matching method — so `{ error }` on its own
  * is a valid handler and will not be bothered with traces.
  *
- * `trace` and `error` are what `MessageHandlerService` emits, and are the only
- * two CEE calls. The three below them were declared here and are invoked
- * nowhere; the index signature is why supplying `trace` or `error` type-checked
- * against an interface that did not mention them, and so why the gap went
- * unnoticed. They are kept, and marked, rather than removed: taking a member off
- * a shipped interface is a decision about the published contract.
+ * `trace`, `error`, `valueChanged`, and `ready` are emitted by
+ * `MessageHandlerService`. `message` remains declared for compatibility but is
+ * not emitted; structured instance changes use the DOM `change` event above.
  */
 export interface CeeEventHandler {
   /** A diagnostic. `value` is the object it concerns, where there is one. */
   trace?: (label: string, value: object | null) => void;
   /** A failure worth surfacing — a template problem, a discarded value. */
   error?: (label: string, value: object | null) => void;
-  /** Declared, never called. A field's value changed. */
+  /** Called after a field mutation actually changes the serialized instance. */
   valueChanged?: (path: string[], value: unknown) => void;
-  /** Declared, never called. CEE has something to say. */
+  /**
+   * @deprecated Never emitted. Listen for the structured DOM `change` event;
+   * this compatibility member will be removed in the next major release.
+   */
   message?: (message: string) => void;
-  /** Declared, never called. CEE has finished rendering a template. */
+  /** Called once, after this element's first successful form render. */
   ready?: () => void;
   [event: string]: unknown;
 }
@@ -204,13 +235,52 @@ export interface CeeEventHandler {
 /**
  * The custom element, as a host sees it.
  *
- * Registered as `cedar-embeddable-editor`. Each member below takes one
- * assignment; a second is reported through the event handler and ignored, and the
- * first value stands. An artifact is a template and optionally an instance, so
- * `templateAndInstanceObject` supplies between them what the two separate inputs
- * do and cannot be combined with either.
+ * Registered as `cedar-embeddable-editor`. Configuration and the artifact inputs
+ * each take one assignment; a second is reported through the event handler and
+ * ignored, and the first accepted value stands. An unreadable instance is reported
+ * and does not spend its assignment, so the host may correct it. An artifact is a
+ * template and optionally an instance, so `templateAndInstanceObject` supplies
+ * between them what the two separate inputs do and cannot be combined with either.
+ *
+ * `eventHandler` is the exception, and deliberately: it may be replaced. The
+ * sentence above used to be written of every member, which was false for the
+ * handler and meaningless for the three read-only getters below.
  */
 export interface CedarEmbeddableEditorElement extends HTMLElement {
+  /** Typed host mutation event; the inherited overloads still handle every other DOM event. */
+  addEventListener(
+    type: 'change',
+    listener: ((this: CedarEmbeddableEditorElement, event: CustomEvent<CeeChangeDetail>) => unknown) | null,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener<K extends keyof HTMLElementEventMap>(
+    type: K,
+    listener: (this: HTMLElement, event: HTMLElementEventMap[K]) => unknown,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /** Typed counterpart to the specialized `change` listener overload. */
+  removeEventListener(
+    type: 'change',
+    listener: ((this: CedarEmbeddableEditorElement, event: CustomEvent<CeeChangeDetail>) => unknown) | null,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener<K extends keyof HTMLElementEventMap>(
+    type: K,
+    listener: (this: HTMLElement, event: HTMLElementEventMap[K]) => unknown,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions,
+  ): void;
+
   /** Configuration. Assign once, before or after the artifact. */
   config: CeeConfig;
 
@@ -229,7 +299,21 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
   /** Both at once, as `{ templateObject, instanceObject }`. */
   templateAndInstanceObject: CeeTemplateAndInstance;
 
-  /** Host callbacks. */
+  /**
+   * Host callbacks, which may be replaced: the last one assigned receives.
+   *
+   * Set-once protects the inputs that decide what the editor *is*, because the same
+   * assignments in a different order used to give a different editor. A handler
+   * decides nothing about the form, so nothing here needs an order to reason about,
+   * and sealing it would answer a host's second assignment by reporting the refusal
+   * *to the handler being replaced*. Replacing a callback slot is also what the DOM
+   * does everywhere else.
+   *
+   * Assign it before the configuration and the artifact if the diagnostics from those
+   * matter. A handler hears what CEE emits after it arrives, and CEE has already
+   * reported on a configuration by the time a handler assigned later is installed.
+   * Replacing one is traced, so a page whose messages stop arriving can see why.
+   */
   eventHandler: CeeEventHandler;
 
   /** The instance as CEDAR JSON. Read-only. */
@@ -237,9 +321,6 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
 
   /** The instance as CEDAR YAML. Read-only. */
   readonly currentMetadataYaml: string;
-
-  /** The instance in whichever form `outputSerialization` selected. Read-only. */
-  readonly currentMetadataSerialized: CeeJsonObject | string;
 
   /** What CEE thinks of the instance. Read-only. */
   readonly dataQualityReport: CeeDataQualityReport;

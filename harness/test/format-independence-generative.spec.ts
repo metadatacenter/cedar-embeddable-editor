@@ -31,7 +31,7 @@ import { ModelLibraryTemplateParser } from '@cee/factory/model-library-template-
 import { YamlTemplateParser } from '@cee/factory/yaml-template-parser';
 import { buildTemplate, buildTemplateYaml, supportsMultiInstance, type TemplateSpec } from '../src/generate';
 import { FIELD_KINDS } from '../src/axes';
-import { CeeDriver, normalize } from '../src/driver';
+import { CeeDriver } from '../src/driver';
 import { describeTree } from '../src/corpus';
 
 const fromJson = (spec: TemplateSpec) =>
@@ -39,26 +39,19 @@ const fromJson = (spec: TemplateSpec) =>
 const fromYaml = (spec: TemplateSpec) =>
   new CeeDriver(buildTemplateYaml(spec), { templateParser: new YamlTemplateParser() });
 
-/** A minted attribute-value property IRI, non-deterministic like an element-instance `@id`. */
-const MINTED_ATTR =
-  /^https:\/\/schema\.metadatacenter\.org\/properties\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-const stripAttrIds = (value: unknown): unknown => {
-  if (Array.isArray(value)) return value.map(stripAttrIds);
-  if (value && typeof value === 'object') {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value))
-      out[k] = typeof v === 'string' && MINTED_ATTR.test(v) ? '<attr>' : stripAttrIds(v);
-    return out;
-  }
-  return value;
-};
-
-// CEE mints a fresh GUID onto every element instance it builds and onto every
-// attribute-value property, so the two drivers' ids never match literally.
-// Normalized away — the same treatment the corpus round-trip and snapshot specs
-// give minted ids — leaving everything else, including every written value,
-// compared exactly.
-const emitted = (driver: CeeDriver) => stripAttrIds(normalize(InstanceSerializer.toJson(driver.instance)));
+/*
+ * Compared exactly, with nothing normalised out.
+ *
+ * A `stripAttrIds` walker used to rewrite any
+ * `https://schema.metadatacenter.org/properties/<guid>` to `<attr>`, because naming
+ * an attribute minted a property IRI from a GUID and the two drivers therefore never
+ * matched literally. Neither identity is invented now — an attribute keeps the IRI it
+ * arrived with, and an element occurrence gets none at all — so the walker had become
+ * an identity transform, verified by disabling the substitution and watching all 233
+ * tests in the two format suites pass. Two builds of one template are the same
+ * document, whichever serialisation it was written in.
+ */
+const emitted = (driver: CeeDriver) => InstanceSerializer.toJson(driver.instance);
 
 const TEXT = FIELD_KINDS.find((k) => k.key === 'text')!;
 

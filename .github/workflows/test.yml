@@ -17,16 +17,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    # The committed Playwright snapshots are macOS baselines, so this label is pinned
-    # rather than tracking macos-latest: a runner bump would move them underneath us.
+  prepare:
+    # arm64 Linux, because the visual suite runs inside Playwright's own container
+    # and the runner must not emulate it: `visual/run-in-container.sh` asks for
+    # linux/arm64, and a runner that resolves to x86_64 would rasterise text
+    # differently and put the baselines quietly back where they were.
     #
-    # Not macos-14. Playwright no longer builds WebKit for mac14-arm64 and serves a
-    # frozen v2251 there, while 1.62.1 drives v2336. The driver sends
-    # `Page.overrideSetting: PushAPIEnabled`, v2251 does not implement it, and every
-    # newPage() in the webkit-smoke project fails. Playwright's own install warning is
-    # "please update to the latest version of your operating system".
-    runs-on: macos-15
+    # This was macos-15, pinned because the snapshots were macOS baselines and a
+    # runner bump would have moved them underneath us. That pin protected the
+    # wrong thing: the baselines were recorded on a laptop and checked here, and
+    # the two machines never agreed — 7 of 106 differed by 124 to 393 pixels, a
+    # budget of 120 papering over the gap. The container removes the boundary, so
+    # the runner no longer has a rendering of its own to defend.
+    #
+    # macOS also cannot host a Linux container, so this label is what the container
+    # requires rather than a preference. A side effect: Playwright's WebKit build
+    # for mac14-arm64 was frozen at v2251 against a driver expecting v2336, which
+    # broke every newPage() in the webkit-smoke project and forced macos-15. Linux
+    # builds are current, so that constraint is gone with the runner.
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 30
 
     steps:
@@ -69,18 +78,24 @@ jobs:
         working-directory: cedar-embeddable-editor
         run: npm run build:production
 
-      # The root `npm ci` is already done above; only the two test workspaces are
-      # left, now that the runner no longer changes Node underneath them.
+      # The root `npm ci` is already done above. The harness runs on the runner;
+      # visual's host install is used only to stage the same bundle that packaging
+      # verifies. Browser execution still installs inside Playwright's container.
       - name: Install CEE test dependencies
         working-directory: cedar-embeddable-editor
         run: |
           npm --prefix harness ci
           npm --prefix visual ci
-          ./visual/node_modules/.bin/playwright install chromium firefox webkit
 
-      - name: Test the production artifact built above
+      - name: Run source and domain gates
         working-directory: cedar-embeddable-editor
-        run: npm run test:ci:prebuilt
+        run: npm run test:ci:nonvisual:prebuilt
+
+      - name: Stage and verify the distributable package
+        working-directory: cedar-embeddable-editor
+        run: |
+          npm --prefix visual run prepare:all
+          npm run package:npm:prebuilt
 
       # Deliberately its own step, and deliberately not part of `test:ci`.
       #
@@ -101,3 +116,39 @@ jobs:
       - name: Audit what ships
         working-directory: cedar-embeddable-editor
         run: npm run audit:prod
+
+      - name: Save the production build for browser shards
+        uses: actions/upload-artifact@v4
+        with:
+          name: cee-production-dist
+          path: cedar-embeddable-editor/dist
+          if-no-files-found: error
+          retention-days: 2
+
+  visual:
+    name: Visual shard ${{ matrix.shard }}/4
+    needs: prepare
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+
+    steps:
+      - name: Check out CEE
+        uses: actions/checkout@v4
+        with:
+          path: cedar-embeddable-editor
+
+      - name: Restore the tested production build
+        uses: actions/download-artifact@v4
+        with:
+          name: cee-production-dist
+          path: cedar-embeddable-editor/dist
+
+      # Every shard uses the pinned browser/font image. The named node_modules
+      # volume is runner-local, so parallel jobs cannot contaminate one another.
+      - name: Run Playwright shard
+        working-directory: cedar-embeddable-editor
+        run: bash visual/run-in-container.sh --shard=${{ matrix.shard }}/4

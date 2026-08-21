@@ -95,6 +95,57 @@ export class CedarTemporalValue {
   }
 
   /**
+   * Turn a template default into the complete lexical form stored by an instance.
+   *
+   * Template defaults are written at the field's declared granularity (`2026`,
+   * `2026-08`, `14`), while CEE instances carry complete XSD values
+   * (`2026-01-01`, `2026-08-01`, `14:00:00`). Values already in instance form
+   * continue through the ordinary parser; the small partial forms below are
+   * accepted only at this declaration boundary.
+   */
+  static normalizeDeclaredDefault(value: string, configuration: CedarTemporalConfiguration): string | null {
+    const complete = this.parse(value, configuration);
+    if (complete !== null) {
+      return this.serialize(complete, configuration);
+    }
+
+    const parts = this.empty();
+    const granularity = configuration.granularity;
+    let match: RegExpMatchArray | null = null;
+
+    if (configuration.temporalType === Xsd.date) {
+      if (granularity === Temporal.year && (match = value.match(/^(\d{4})$/)) !== null) {
+        [, parts.year] = match;
+      } else if (granularity === Temporal.month && (match = value.match(/^(\d{4})-(\d{2})$/)) !== null) {
+        [, parts.year, parts.month] = match;
+      } else {
+        return null;
+      }
+    } else if (configuration.temporalType === Xsd.time) {
+      if (granularity === Temporal.hour && (match = value.match(/^(\d{2})(Z|[+-]\d{2}:\d{2})?$/)) !== null) {
+        [, parts.hour, parts.offset] = match;
+      } else {
+        return null;
+      }
+    } else if (configuration.temporalType === Xsd.dateTime) {
+      if (granularity === Temporal.day && (match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)) !== null) {
+        [, parts.year, parts.month, parts.day] = match;
+      } else if (
+        granularity === Temporal.hour &&
+        (match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2})(Z|[+-]\d{2}:\d{2})?$/)) !== null
+      ) {
+        [, parts.year, parts.month, parts.day, parts.hour, parts.offset] = match;
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+
+    return this.serialize(parts, configuration);
+  }
+
+  /**
    * Apply the template's precision to a set of parts.
    *
    * The returned object is new; callers can safely retain their editable draft.

@@ -17,10 +17,28 @@ export const TARGET = resolve(ROOT, 'dist-npm/cedar-embeddable-editor');
 export const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
+/**
+ * The two channels CEE publishes on, and which one a version selects.
+ *
+ * A dev snapshot goes to the CEDAR Nexus as `@org.metadatacenter/…` under the `dev`
+ * tag; a release goes to public npmjs unscoped under `latest`. The channel is
+ * derived from the version rather than passed at publish time, so a snapshot cannot
+ * be published as a release by forgetting a flag — the manifest that reaches the
+ * registry names the registry it belongs to.
+ *
+ * The scope is what makes selective resolution possible: npm routes by scope, not
+ * by package name, so an embedding app can take this one package from Nexus while
+ * everything else still comes from npmjs. The unscoped name also exists on Nexus,
+ * carrying a 2023 lineage whose 2.6.x versions sort above anything published now.
+ */
+const NEXUS_REGISTRY = 'https://nexus.bmir.stanford.edu/repository/npm-cedar/';
+const DEV_VERSION = /-dev\./;
+
 export const packageMetadata = () => {
   const rootPackage = readJson(resolve(ROOT, 'package.json'));
+  const isDev = DEV_VERSION.test(rootPackage.version);
   return {
-    name: 'cedar-embeddable-editor',
+    name: isDev ? '@org.metadatacenter/cedar-embeddable-editor' : 'cedar-embeddable-editor',
     version: rootPackage.version,
     description: rootPackage.description,
     main: 'cedar-embeddable-editor.js',
@@ -35,17 +53,41 @@ export const packageMetadata = () => {
       'bundle-manifest.json',
       'README.md',
       'CHANGELOG.md',
+      'license.txt',
     ],
-    // No publishConfig: the stable package publishes to the default registry
-    // (registry.npmjs.org) under the default `latest` tag. The Nexus registry and
-    // the `dev` tag belonged to the scoped dev-snapshot channel.
+    // A release carries no publishConfig, so it goes to the default registry
+    // (registry.npmjs.org) under the default `latest` tag. A dev snapshot names the
+    // Nexus registry here, so the destination cannot be lost by forgetting a flag.
+    //
+    // The tag is stated too, but is NOT load-bearing: npm 11 reports `tag latest`
+    // for a dry run of this manifest, so `--tag dev` has to be passed at the command
+    // line. Publishing a snapshot without it would point the scoped package's
+    // `latest` at a prerelease — a tag it does not currently have at all.
+    ...(isDev ? { publishConfig: { registry: NEXUS_REGISTRY, tag: 'dev' } } : {}),
     repository: {
       type: 'git',
       url: 'git+https://github.com/metadatacenter/cedar-embeddable-editor.git',
     },
     keywords: ['metadata', 'CEDAR', 'embeddable editor', 'Web Component'],
     author: 'Metadata Center',
-    license: 'ISC',
+    /*
+     * The licence the repository actually carries, which for a while this did not say.
+     *
+     * `license.txt` is BSD 2-Clause, byte-identical to the file in `cedar-parent`,
+     * `cedar-template-editor`, `cedar-development` and the rest, and the documentation
+     * has always said so. This field said `ISC`, which nothing anywhere supported: the
+     * root `package.json` declares no licence, so the value came from an `npm init`
+     * default and was published as an assertion about someone else's software. The text
+     * is shipped now too — a package naming a licence it does not include leaves a
+     * consumer nothing to read.
+     *
+     * `BSD-2-Clause` rather than `BSD-2-Clause-Views`, which is what the trailing
+     * "views and conclusions" paragraph makes the text in SPDX's terms. The shorter id
+     * is what the documentation and every sibling repository call it, and it is the one
+     * a reader recognises. That paragraph is also why GitHub reports the file as
+     * `NOASSERTION`: its detector will not match the variant.
+     */
+    license: 'BSD-2-Clause',
     bugs: {
       url: 'https://github.com/metadatacenter/cedar-embeddable-editor/issues',
     },
@@ -96,6 +138,7 @@ export const expectedFiles = () => ({
   'bundle-manifest.json': readFileSync(SOURCE_MANIFEST),
   'README.md': readFileSync(resolve(ROOT, 'README.md')),
   'CHANGELOG.md': readFileSync(resolve(ROOT, 'CHANGELOG.md')),
+  'license.txt': readFileSync(resolve(ROOT, 'license.txt')),
   'package.json': Buffer.from(`${JSON.stringify(packageMetadata(), null, 2)}\n`),
   'package-lock.json': Buffer.from(`${JSON.stringify(packageLock(), null, 2)}\n`),
 });

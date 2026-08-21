@@ -146,6 +146,37 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.writeValue();
   }
 
+  /**
+   * What the field holds, cut to the granularity it records.
+   *
+   * The control stores an instant, so a day-granularity field holds `2026-08-09T00:00:00` and a
+   * to-the-minute one holds `21:45:00`. Shown verbatim, a date field asserted a midnight nobody
+   * entered and a minute field asserted a zero second — and the `T` is a serialization's separator,
+   * not something to read. Each part is cut to what the field records and the parts are joined the
+   * way the notation beside them joins, with a space. A zone offset is kept whole: it is one value,
+   * and no granularity trims it.
+   */
+  readOnlyValue(): string {
+    const held = this.valueControl.value;
+    if (typeof held !== 'string' || held === '') {
+      return '';
+    }
+    const granularity = this.component.basicInfo.temporalGranularity ?? '';
+    const zone = held.match(/(Z|[+-]\d{2}:\d{2})$/)?.[0] ?? '';
+    const body = zone === '' ? held : held.slice(0, -zone.length);
+    const [datePart, timePart] = body.includes('T') ? body.split('T') : body.includes(':') ? ['', body] : [body, ''];
+    const dateLength = { [Temporal.year]: 4, [Temporal.month]: 7, [Temporal.day]: 10 }[granularity];
+    const timeLength = {
+      [Temporal.hour]: 2,
+      [Temporal.minute]: 5,
+      [Temporal.second]: 8,
+      [Temporal.decimalSecond]: 12,
+    }[granularity];
+    const date = datePart === '' ? '' : datePart.slice(0, dateLength ?? datePart.length);
+    const time = timePart === '' || timeLength === undefined ? '' : timePart.slice(0, timeLength);
+    return [date, time, zone].filter((part) => part !== '').join(' ');
+  }
+
   showDatePicker(): boolean {
     const temporalType = this.component.valueInfo.temporalType;
     return temporalType != null && [Xsd.dateTime, Xsd.date].includes(temporalType);
@@ -226,6 +257,14 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     const configuration = this.temporalConfiguration();
     const stored = typeof currentValue === 'string' ? currentValue : null;
     this.revalidate(stored);
+    if (stored === null) {
+      this.datetimeParsed = new DatetimeRepresentation();
+      this.dateMonthYearControl.reset(null, { emitEvent: false });
+      this.timePickerTime = null;
+      this.decimalSeconds = null;
+      this.timezone = null;
+      return;
+    }
     if (stored) {
       const parsed = CedarTemporalValue.parse(stored, configuration);
       if (parsed === null) {

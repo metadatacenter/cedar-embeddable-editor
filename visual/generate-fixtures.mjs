@@ -23,9 +23,12 @@ import cedar from 'cedar-model-typescript-library';
 const {
   CedarBuilders,
   CedarWriters,
+  ControlledTermDefaultValueBuilder,
   ControlledTermOntologyBuilder,
+  InstanceDataAttributeValueFieldName,
   InstanceDataContainer,
   InstanceDataControlledAtom,
+  InstanceDataEmptyAtom,
   InstanceDataStringAtom,
   InstanceDataTypedAtom,
   Iri,
@@ -74,7 +77,12 @@ const deploy = (artifact, name, { multi, minItems, maxItems, required } = {}) =>
   if (multi) {
     db = opt(db, 'withMultiInstance', true);
     db = opt(db, 'withMinItems', minItems ?? 1);
-    db = opt(db, 'withMaxItems', maxItems ?? 5);
+    // An explicit `null` leaves the maximum unset, which is a field with no upper bound. Defaulting
+    // it to 5 made every multi fixture bounded, so `0+ values` — the unbounded rendering — appeared
+    // in no fixture at all.
+    if (maxItems !== null) {
+      db = opt(db, 'withMaxItems', maxItems ?? 5);
+    }
   }
   if (required) db = opt(db, 'withRequiredValue', true);
   return db.build();
@@ -124,6 +132,15 @@ const instance = (templateName, { id: instanceId, name, description, values }) =
 
 /** A plain string value. */
 const literal = (value) => new InstanceDataStringAtom(value);
+
+/**
+ * One name a user gave an attribute-value field.
+ *
+ * Its own type rather than a literal: the field's slot lists names, and each name is a sibling key
+ * holding that attribute's value. A literal here writes `{"@value": "depth"}` where the document
+ * wants `"depth"`, and CEE then finds no attribute at all.
+ */
+const attributeName = (name) => new InstanceDataAttributeValueFieldName(name);
 
 /** A string value carrying the XSD type its field declares. */
 const typed = (value, xsdType) => new InstanceDataTypedAtom(value, xsdType);
@@ -312,7 +329,21 @@ const writeRaw = (name, document) => {
       id: 'https://example.org/instances/controlled-terms-1',
       name: 'ControlledTerms instance',
       description: 'A term already selected, so its display form is rendered',
-      values: { _organism: controlled('http://purl.obolibrary.org/obo/DOID_4', 'disease') },
+      /*
+       * All three, not just the controlled one. Read-only a term is rendered as its label beside its
+       * identifier, with the identifier addressable — and the authority fields take the same
+       * rendering, so leaving them empty left half of it photographed by nothing.
+       */
+      values: {
+        _organism: controlled('http://purl.obolibrary.org/obo/DOID_4', 'disease'),
+        _contributor: controlled('https://orcid.org/0000-0002-1825-0097', 'Josiah Carberry'),
+        // Deployed multi with `minItems: 2`, so a list: one atom leaves the occurrence list empty
+        // and the field renders a pager with nothing under it.
+        _institution: [
+          controlled('https://ror.org/00f54p054', 'Stanford University'),
+          controlled('https://ror.org/013meh722', 'University of Cambridge'),
+        ],
+      },
     }),
   );
 }
@@ -804,64 +835,26 @@ const writeRaw = (name, document) => {
 }
 
 /**
- * 17. Files for the two host inputs that fetch.
+ * 17. Files for the host input that fetches.
  *
- * `loadConfigFromURL(url, onSuccess, onError)` and the sample-template loader are the
- * last two entry points a host page uses that no test touched, and both are untestable
- * without something to fetch. So this writes what they fetch, under
- * `fixtures/served/`, which the harness page copies into place.
- *
- * The sample-template loader wants a fixed layout it builds itself:
- * `<prefix><name>/template.json` and `<prefix><name>/metadata.json`. Encoded here rather
- * than in the test, so a change to `TEMPLATE_FILENAME` breaks in one obvious place.
- *
- * The metadata carries a value the template does not default to, so a test can tell
- * "the sample template loaded" from "the sample template *and its metadata* loaded" —
- * the second being the path that assembles `templateAndInstanceObject` and is easy to
- * half-implement.
+ * `loadConfigFromURL(url, onSuccess, onError)` is an entry point a host page uses that
+ * no test touched, and it is untestable without something to fetch. So this writes what
+ * it fetches, under `fixtures/served/`, which the harness page copies into place.
  */
 {
   const served = join(OUT, 'served');
-  const sample = join(served, 'sample', 'demo');
-  mkdirSync(sample, { recursive: true });
-
-  const text = field('title', () => CedarBuilders.textFieldBuilder());
-  let tb = common(CedarBuilders.templateBuilder(), 'SampleLoaded', 'templates').withSchemaDescription(
-    'A template fetched through the sample-template loader',
-  );
-  tb = tb.addChild(text, deploy(text, 'title'));
-  const template = tb.build();
-  const json = CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template);
-  writeFileSync(join(sample, 'template.json'), JSON.stringify(json, null, 2));
-
-  writeFileSync(
-    join(sample, 'metadata.json'),
-    JSON.stringify(
-      instance('SampleLoaded', {
-        id: 'https://example.org/instances/sample-loaded-1',
-        name: 'SampleLoaded instance',
-        description: 'Fetched alongside its template',
-        values: { _title: literal('loaded from metadata.json') },
-      }),
-      null,
-      2,
-    ),
-  );
-
-  // The toolbar's sample-template select fetches this registry before it can
-  // filter or load a choice. The second entry need not be selected; it exists
-  // to prove filtering removes and restores alternatives.
-  writeFileSync(
-    join(served, 'sample', 'registry.json'),
-    JSON.stringify({ demo: 'Demo template', other: 'Unrelated template' }, null, 2),
-  );
-
-  // A config a host would fetch. `showFooter` is the observable part: it is off in the
-  // harness's base preset, so seeing a footer means this config was applied rather than
-  // the preset's.
+  mkdirSync(served, { recursive: true });
+  // A config a host would fetch. `showDownloadMenu` is the observable part: it is off
+  // in the harness's base preset, so seeing the trigger means this config was applied
+  // rather than the preset's.
+  //
+  // Nothing reads this today. `loadConfigFromURL` was the entry point it was written
+  // for, and that is gone — a host that wants configuration from a URL fetches it and
+  // assigns the result. Kept rather than deleted because the fixture is what a test
+  // would need if that route ever returns.
   writeFileSync(
     join(served, 'host-config.json'),
-    JSON.stringify({ showHeader: false, showFooter: true, defaultLanguage: 'en', fallbackLanguage: 'en' }, null, 2),
+    JSON.stringify({ showDownloadMenu: true, defaultLanguage: 'en', fallbackLanguage: 'en' }, null, 2),
   );
 
   // Deliberately not JSON. `loadConfigFromURL` calls `JSON.parse` on any 200 response
@@ -879,20 +872,19 @@ const writeRaw = (name, document) => {
    * in no test, which is the wrong half to leave untested when the loader is a
    * third-party package on its own release schedule.
    *
-   * `App.Maintained` is the override because it already has an assertion on it, in
-   * the footer, so the two readings sit side by side: built-in text without a prefix,
+   * `Generic.ExpandAll` is the override because it renders in the form's own title
+   * block on every template and behind no config key, so the two readings sit side
+   * by side: built-in text without a prefix,
    * this text with one.
    */
   const languages = join(served, 'languages');
   mkdirSync(languages, { recursive: true });
   writeFileSync(
     join(languages, 'en.json'),
-    JSON.stringify({ App: { Maintained: 'Maintained per an externally served language map.' } }, null, 2),
+    JSON.stringify({ Generic: { ExpandAll: 'Unfurl the lot' } }, null, 2),
   );
 
-  console.log(
-    'wrote fixtures/served/ (sample registry + template + metadata, host config, malformed config, language map)',
-  );
+  console.log('wrote fixtures/served/ (host config, malformed config, language map)');
 }
 
 // 21. Existing temporal values that carry more information than their declared
@@ -945,6 +937,107 @@ const writeRaw = (name, document) => {
         _datetime_day: typed('2026-08-09T21:45:32.125-07:00', 'xsd:dateTime'),
         _time_minute: typed('21:45:32.125', 'xsd:time'),
         _time_fraction: typed('21:45:32.001', 'xsd:time'),
+      },
+    }),
+  );
+}
+
+// 22. An attribute-value field holding two attributes, which is the one arrangement where a field's
+//     own occurrence pager and the terse facts on its title row have to share that row.
+//
+//     Nothing exercised it. Every other multi fixture pages an *element*, whose pager sits on a panel
+//     header with nothing beside it; a field with no instance behind it renders no pager at all; and
+//     of the three field types whose facts go on that row rather than into their own control — radio,
+//     checkbox, attribute-value — only this one pages. So the chips, pulled 33px up onto that row to
+//     save a row in the editor, were drawn on top of `0+ values`.
+//
+//     `minItems: 0` with no maximum, which is what states `0+ values` and what the deployment says
+//     when a template names neither bound.
+{
+  const av = field('attribute', () => CedarBuilders.attributeValueFieldBuilder());
+
+  let tb = common(CedarBuilders.templateBuilder(), 'MultiFieldValues', 'templates').withSchemaDescription(
+    'An attribute-value field carrying more than one attribute',
+  );
+  tb = tb.addChild(av, deploy(av, 'attribute', { multi: true, minItems: 0, maxItems: null }));
+  write('22-multi-field-values', tb.build());
+
+  /*
+   * How an attribute-value field is recorded: the field's own slot lists the names the user supplied,
+   * and each name is a sibling key holding its value. Learned from what CEE emits rather than assumed
+   * — the names are data, so they cannot be in the template.
+   */
+  writeRaw(
+    '22-multi-field-values-instance',
+    instance('MultiFieldValues', {
+      id: 'https://example.org/instances/multi-field-values-1',
+      name: 'Multi-field values instance',
+      description: 'Two attributes, so the field pages',
+      values: {
+        _attribute: [attributeName('depth'), attributeName('colour')],
+        depth: literal('15 cm'),
+        colour: literal('blue'),
+      },
+    }),
+  );
+}
+
+// 23. Non-enumerated defaults, plus an explicitly blank supplied instance.
+//
+//     These two documents distinguish structure construction from rendering.
+//     The template-only route must seed every value before a widget exists; the
+//     supplied-instance route must keep every field blank after the widgets render.
+{
+  const title = field('title', () => CedarBuilders.textFieldBuilder(), (b) => b.withDefaultValue('Draft record'));
+  const measurement = field('measurement', () => CedarBuilders.numericFieldBuilder(), (b) =>
+    b.withNumberType(NumberType.DECIMAL).withDefaultValue(42.5),
+  );
+  const collectedOn = field('collected_on', () => CedarBuilders.temporalFieldBuilder(), (b) =>
+    b
+      .withTemporalType(TemporalType.DATE)
+      .withTemporalGranularity(TemporalGranularity.DAY)
+      .withDefaultValue('2026-08-20'),
+  );
+  const termDefault = new ControlledTermDefaultValueBuilder()
+    .withTermUri(new Iri('http://purl.obolibrary.org/obo/NCBITaxon_9606'))
+    .withRdfsLabel('Homo sapiens')
+    .build();
+  const organism = field(
+    'organism',
+    () => CedarBuilders.controlledTermFieldBuilder(),
+    (b) =>
+      b
+        .addOntology(
+          new ControlledTermOntologyBuilder()
+            .withAcronym('NCBITAXON')
+            .withName('NCBI Taxonomy')
+            .withNumTerms(1000000)
+            .withUri(new Iri('https://data.bioontology.org/ontologies/NCBITAXON'))
+            .build(),
+        )
+        .withDefaultValue(termDefault),
+  );
+
+  let tb = common(CedarBuilders.templateBuilder(), 'DeclaredDefaults', 'templates').withSchemaDescription(
+    'Text, numeric, temporal and controlled-term defaults owned by the instance builder',
+  );
+  tb = tb.addChild(title, deploy(title, 'title'));
+  tb = tb.addChild(measurement, deploy(measurement, 'measurement'));
+  tb = tb.addChild(collectedOn, deploy(collectedOn, 'collected_on'));
+  tb = tb.addChild(organism, deploy(organism, 'organism'));
+  write('23-declared-defaults', tb.build());
+
+  writeRaw(
+    '23-declared-defaults-blank-instance',
+    instance('DeclaredDefaults', {
+      id: 'https://example.org/instances/declared-defaults-blank-1',
+      name: 'DeclaredDefaults blank instance',
+      description: 'Every field was explicitly left blank by the host',
+      values: {
+        _title: literal(null),
+        _measurement: typed(null, 'xsd:decimal'),
+        _collected_on: typed(null, 'xsd:date'),
+        _organism: new InstanceDataEmptyAtom(),
       },
     }),
   );

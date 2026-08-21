@@ -1,10 +1,10 @@
-type: "template"
+type: template
 name: "Catalog"
 description: "DCAT v3 template for data catalog metadata"
 id: "https://repo.metadatacenter.org/templates/5a1651a1-7f30-497d-a1be-1ac62c92734f"
-status: "published"
-version: "0.0.1"
-modelVersion: "1.6.0"
+status: published
+version: 0.0.1
+modelVersion: 1.6.0
 derivedFrom: "https://repo.metadatacenter.org/templates/2ef5e58f-0770-484d-80ae-23768cc1fda2"
 createdOn: "2022-06-19T09:15:48-07:00"
 createdBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
@@ -12,12 +12,12 @@ modifiedOn: "2022-06-19T21:59:19-07:00"
 modifiedBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
 children:
   - key: "Read & Understood Catalog"
-    type: "element"
+    type: element
     name: "Read & Understood Catalog"
     id: "https://repo.metadatacenter.org/template-elements/b6f69a07-365a-43ce-b7b0-b74835a7d8af"
-    status: "draft"
-    version: "0.0.1"
-    modelVersion: "1.6.0"
+    status: draft
+    version: 0.0.1
+    modelVersion: 1.6.0
     derivedFrom: "https://repo.metadatacenter.org/template-elements/0f91041a-b334-41d2-abb4-ec1b5da6d180"
     createdOn: "2022-06-19T21:59:19-07:00"
     createdBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
@@ -25,20 +25,20 @@ children:
     modifiedBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
     children:
       - key: "Read & Understood - RT"
-        type: "static-rich-text"
+        type: static-rich-text
         name: "Read & Understood - RT"
         id: "https://repo.metadatacenter.org/template-fields/2e8e7338-5ecd-4028-a36f-aa34858bc505"
-        modelVersion: "1.6.0"
+        modelVersion: 1.6.0
         content: "<p>Welcome to the Catalog form which follows the metadata schema set by DCAT. The DCAT Catalog&nbsp;<span id=\"docs-internal-guid-b8aefd18-7fff-e625-51b8-aef58b481e19\"><span style=\"font-size: 11pt; font-family: Arial; color: rgb(67, 67, 67); background-color: transparent; font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;\">is a collection of datasets, like a folder you might create in a directory to organize your results. The Catalog metadata describes attributes of this high-level collection and </span></span>helps to increase the FAIRness of your research outputs.</p>\n\n<p>Whenever you see a blue hyperlink in this form, use the right mouse button to open a new window.</p>\n\n<p>Many fields are optional. Those marked with a red asterisk are mandatory.&nbsp;<span style=\"background-color: rgb(255, 255, 255);\">(1...N) means that you are allowed to give multiple answers, but you need to provide at least one answer.&nbsp;</span>Use the copy symbol if you want to add more than one item as described in section 6c in the guidelines. Use toggle view to get an overview of the entered values. Watch this&nbsp;<a href=\"http://www.youtube.com/watch?v=lgWBkdJ1fnM\" style=\"background-color: rgb(255, 255, 255);\">video&nbsp;</a>to find out how.</p>\n\n<p>Complete the form in English.</p>\n\n<p>Further information can be found in the&nbsp;<a href=\"https://osf.io/kt7y2/\" style=\"background-color: rgb(255, 255, 255);\">guidelines</a>.</p>\n\n<p>&nbsp;</p>\n\n<p dir=\"ltr\" style=\"margin-top: 12pt; margin-bottom: 0pt; line-height: 1.38; text-align: justify; background-color: rgb(255, 255, 255); padding: 0pt 0pt 12pt;\">&nbsp;</p>\n"
         createdOn: "2022-06-19T17:25:06-07:00"
         createdBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
         modifiedOn: "2022-06-19T17:25:06-07:00"
         modifiedBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
       - key: "Read & Understood"
-        type: "checkbox-field"
+        type: checkbox-field
         name: "Read & Understood"
         id: "https://repo.metadatacenter.org/template-fields/67455702-fee8-441d-b013-2975d1e719a1"
-        modelVersion: "1.6.0"
+        modelVersion: 1.6.0
         prefLabel: "Read & Understood"
         values:
           - label: "I have read & understood"
@@ -52,10 +52,10 @@ children:
     configuration:
       propertyIri: "https://schema.metadatacenter.org/properties/a61ce8cd-37e7-4a0f-9035-5cd0e5f6756c"
   - key: "catalogTitleRT"
-    type: "static-rich-text"
+    type: static-rich-text
     name: "catalogTitleRT"
     id: "https://repo.metadatacenter.org/template-fields/4ea2fcc8-6d20-4376-b9e2-1655a946081b"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "Catalog Title RT"
     content: "<p><span style=\"font-size: 16px; background-color: rgb(238, 238, 238);\">Please provide a title of the catalog.</span></p>\n"
     createdOn: "2022-06-19T21:59:19-07:00"
@@ -63,10 +63,10 @@ children:
     modifiedOn: "2022-06-19T21:59:19-07:00"
     modifiedBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
   - key: "catalogTitle"
-    type: "text-field"
+    type: text-field
     name: "catalogTitle"
     id: "https://repo.metadatacenter.org/template-fields/2b0906ae-2761-4a4c-b85c-78c9275426f6"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "Catalog Title"
     createdOn: "2022-06-19T21:59:19-07:00"
     createdBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
@@ -76,10 +76,10 @@ children:
       required: true
       propertyIri: "http://purl.org/dc/terms/title"
   - key: "catalogDescriptionRT"
-    type: "static-rich-text"
+    type: static-rich-text
     name: "catalogDescriptionRT"
     id: "https://repo.metadatacenter.org/template-fields/412039ca-6049-4d17-ab19-ccbd1b7fd189"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "Catalog Description RT"
     content: "<p>Please provide a description of the catalog.</p>\n"
     createdOn: "2022-06-19T21:59:19-07:00"
@@ -87,10 +87,10 @@ children:
     modifiedOn: "2022-06-19T21:59:19-07:00"
     modifiedBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
   - key: "catalogDescription"
-    type: "text-field"
+    type: text-field
     name: "catalogDescription"
     id: "https://repo.metadatacenter.org/template-fields/2a3a851f-2e9c-4b22-8923-4f24c6bd977e"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "Catalog Description"
     createdOn: "2022-06-19T21:59:19-07:00"
     createdBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
@@ -100,10 +100,10 @@ children:
       required: true
       propertyIri: "http://purl.org/dc/terms/description"
   - key: "publisherRT"
-    type: "static-rich-text"
+    type: static-rich-text
     name: "publisherRT"
     id: "https://repo.metadatacenter.org/template-fields/ae2c88e6-6e72-4257-8a1c-5b41e31a98d4"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "Publisher RT"
     content: "<p>Please provide a URI (globally unique, persistent and resolvable identifier) of the entity that holds, archives, publishes prints, distributes, releases, issues, or produces the catalog being described.</p>\n"
     createdOn: "2022-06-19T21:59:19-07:00"
@@ -111,10 +111,10 @@ children:
     modifiedOn: "2022-06-19T21:59:19-07:00"
     modifiedBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
   - key: "publisher"
-    type: "link-field"
+    type: link-field
     name: "publisher"
     id: "https://repo.metadatacenter.org/template-fields/64f8b236-9127-41fb-9b2a-dacecfa9ee37"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "Publisher"
     createdOn: "2022-06-19T21:59:19-07:00"
     createdBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
@@ -124,11 +124,11 @@ children:
       required: true
       propertyIri: "http://purl.org/dc/terms/publisher"
   - key: "licenseRT"
-    type: "static-rich-text"
+    type: static-rich-text
     name: "licenseRT"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/11983fc0-9bac-426c-8e8a-847191c996e5"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "License RT"
     content: "<p><span style=\"background-color: rgb(255, 255, 255);\">Please select a legal document under which the dataset is made reusable.</span></p>\n"
     createdOn: "2022-06-19T21:59:19-07:00"
@@ -136,19 +136,19 @@ children:
     modifiedOn: "2022-06-19T21:59:19-07:00"
     modifiedBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
   - key: "license"
-    type: "controlled-term-field"
+    type: controlled-term-field
     name: "license"
     id: "https://repo.metadatacenter.org/template-fields/54d38f5c-dd5b-4b3e-82ef-7c2e577b1fba"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "License"
-    datatype: "iri"
+    datatype: iri
     values:
-      - type: "branch"
-        ontologyName: "Ontology for Generic Dataset Metadata Template (FDC-GDMT)"
-        acronym: "FDC-GDMT"
-        termLabel: "License Identifier"
-        iri: "http://vocab.fairdatacollective.org/gdmt/LicenseIdentifier"
-        maxDepth: 0
+      - type: branch
+        sourceAcronym: "FDC-GDMT"
+        sourceName: "Ontology for Generic Dataset Metadata Template (FDC-GDMT)"
+        termBaseIri: "http://vocab.fairdatacollective.org/gdmt/LicenseIdentifier"
+        termBaseLabel: "License Identifier"
+        termMaxDepth: 0
     createdOn: "2022-06-19T21:59:19-07:00"
     createdBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
     modifiedOn: "2022-06-19T21:59:19-07:00"
@@ -156,11 +156,11 @@ children:
     configuration:
       propertyIri: "https://schema.metadatacenter.org/properties/1872f17a-7791-4b24-b1cb-3de7ef4c31e6"
   - key: "datasetMetadataInstanceIDRT"
-    type: "static-rich-text"
+    type: static-rich-text
     name: "datasetMetadataInstanceIDRT"
     description: "Help Text"
     id: "https://repo.metadatacenter.org/template-fields/5d16c3a5-547b-4803-ae9d-6811badf1906"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "Dataset Metadata Instance ID RT"
     content: "<p>Please provide the ID(s) of Dataset metadata instance(s). They can be found, only after you have created these instances. If you have not yet created them, or should more dataset be created in the future, you can return to this field later and update. Once Dataset metadata Instances are created, you will find them in your personal CEDAR workspace. After opening a Dataset metadata instance, you should&nbsp;copy the URL in the address bar of your web browser, taking only the part after &quot;..edit/&quot; but before the &quot;?&quot;.&nbsp;</p>\n"
     createdOn: "2022-06-19T21:59:19-07:00"
@@ -168,10 +168,10 @@ children:
     modifiedOn: "2022-06-19T21:59:19-07:00"
     modifiedBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"
   - key: "datasetMetadataInstanceIdentifier"
-    type: "link-field"
+    type: link-field
     name: "datasetMetadataInstanceIdentifier"
     id: "https://repo.metadatacenter.org/template-fields/c72c114b-7b44-4e29-884f-322406de06fe"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     prefLabel: "Dataset Metadata Instance ID (1..N)"
     createdOn: "2022-06-19T21:59:19-07:00"
     createdBy: "https://metadatacenter.org/users/ffbb4dc6-7829-4a3c-8708-a2e4c386997b"

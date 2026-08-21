@@ -1,0 +1,155 @@
+{
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "About the template": "https://schema.metadatacenter.org/properties/695f5f9e-1b46-4ebe-be05-7b6b26de9ac7",
+    "Dataset": "https://schema.metadatacenter.org/properties/bfebbba4-5a6e-46ab-ae5d-f59a219cb363"
+  },
+  "About the template": {
+    "@value": "Click to read the instruction - I read the instructions"
+  },
+  "Dataset": {
+    "@context": {
+      "Dataset instruction": "https://schema.metadatacenter.org/properties/49257820-84ce-4119-afd1-9d26affdd78c",
+      "Standard": "https://schema.metadatacenter.org/properties/9a12ef7c-9847-4a44-9865-28e892435d7e",
+      "Preprocessing": "https://schema.metadatacenter.org/properties/44fd8f05-7e61-45b5-b31b-ecd3172b159d",
+      "Data acqusition technique": "https://schema.metadatacenter.org/properties/3bb0fe53-2e54-4e89-88a6-7d15f1ad4867",
+      "Data Modality": "https://schema.metadatacenter.org/properties/c3e4e4c5-bc8a-4418-b2af-e8b9e4909429",
+      "Source dataset": "https://schema.metadatacenter.org/properties/547a6b21-bd28-4380-ab1b-9e639cf4b91c"
+    },
+    "Dataset instruction": {
+      "@value": "Click to read instructions - Read the dataset instructions as well"
+    },
+    "Standard": [
+      {
+        "@context": {
+          "Data Standard": "https://schema.metadatacenter.org/properties/0e55b1c1-82be-4abd-8bc9-8a2c56285a22",
+          "Reference to Data Standard": "https://schema.metadatacenter.org/properties/1ae506d9-87cc-4b01-a751-ec20d073d5d1"
+        },
+        "Data Standard": [
+          {
+            "@value": "Neuroimaging Data Model (NIDM)"
+          },
+          {
+            "@value": "Neuroscience information exchange format  (NIX)"
+          }
+        ],
+        "Reference to Data Standard": [
+          {
+            "@id": "http://telecom.com"
+          }
+        ],
+        "@id": "https://repo.metadatacenter.orgx/template-element-instances/6387ab40-4477-4315-9e51-1d6d6c0ab7ec"
+      }
+    ],
+    "Preprocessing": [
+      {
+        "@context": {
+          "Analysis Pipeline": "https://schema.metadatacenter.org/properties/4f611c44-1a64-454a-89c9-c84247375b0f",
+          "Preprocessing Script": "https://schema.metadatacenter.org/properties/5f95ec2a-ac1b-48d6-9f4f-cc00a44e4cae"
+        },
+        "Analysis Pipeline": [
+          {
+            "@id": "http://cedar.com"
+          },
+          {
+            "@id": "https://metadatacenter.rog"
+          }
+        ],
+        "Preprocessing Script": [
+          {
+            "@id": "https://google.com"
+          },
+          {
+            "@id": "https://aws.com"
+          }
+        ],
+        "@id": "https://repo.metadatacenter.orgx/template-element-instances/00cf15d8-295b-4d47-a45b-659ba3f92a80"
+      }
+    ],
+    "Data acqusition technique": [
+      {
+        "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C38054",
+        "rdfs:label": "Electroencephalography"
+      }
+    ],
+    "Data Modality": {
+      "@id": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C17650",
+      "rdfs:label": "Physiologic"
+    },
+    "Source dataset": [
+      {
+        "@context": {
+          "Identifier": "https://schema.metadatacenter.org/properties/57ee4763-c60b-4ded-a9da-387d24435929",
+          "Contact person": "https://schema.metadatacenter.org/properties/836a975b-bb90-47b4-a0c2-8033a96a65cd",
+          "ORCID": "https://schema.metadatacenter.org/properties/11927461-4f53-45e4-b6d9-0aedd0beafa4"
+        },
+        "Identifier": [
+          {
+            "@id": "https://dataset.com"
+          },
+          {
+            "@id": "https://dataset.com/2"
+          },
+          {
+            "@id": "https://dataset.com/3"
+          }
+        ],
+        "Contact person": [
+          {
+            "@value": "manage@contact.info"
+          }
+        ],
+        "ORCID": [
+          {
+            "@value": "https://orcid.org/0000-0001-8743-5071"
+          }
+        ],
+        "@id": "https://repo.metadatacenter.orgx/template-element-instances/cba3e0e2-132a-473e-955c-374daa1fcd01"
+      }
+    ],
+    "@id": "https://repo.metadatacenter.orgx/template-element-instances/217a67f0-7af2-4fdf-9701-5b85c636d41d"
+  },
+  "schema:isBasedOn": "https://repo.metadatacenter.orgx/templates/5af7fae2-ec0c-4d64-b420-ae4ecda43f3b",
+  "schema:name": "Human Cognitive Neuroscience Data - Part 2 metadata",
+  "schema:description": "",
+  "pav:createdOn": "2023-08-30T14:35:39-07:00",
+  "pav:createdBy": "https://metadatacenter.org/users/68d898fd-2b81-492c-b68c-a80c8283fd8a",
+  "pav:lastUpdatedOn": "2023-08-30T14:35:39-07:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/68d898fd-2b81-492c-b68c-a80c8283fd8a",
+  "@id": "https://repo.metadatacenter.orgx/template-instances/ceb1554f-b468-4ccb-bf42-086874c467fa"
+}

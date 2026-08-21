@@ -6,7 +6,7 @@ exports[`the shape of an element > a multi element starts at minItems 1`] = `
     "@context": {
       "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
     },
-    "@id": "<minted>",
+    "@id": null,
     "_f": {
       "@value": null,
     },
@@ -15,7 +15,7 @@ exports[`the shape of an element > a multi element starts at minItems 1`] = `
     "@context": {
       "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
     },
-    "@id": "<minted>",
+    "@id": null,
     "_f": {
       "@value": null,
     },
@@ -24,7 +24,7 @@ exports[`the shape of an element > a multi element starts at minItems 1`] = `
     "@context": {
       "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
     },
-    "@id": "<minted>",
+    "@id": null,
     "_f": {
       "@value": null,
     },
@@ -39,7 +39,7 @@ exports[`the shape of an element > a single element 1`] = `
     "@context": {
       "_f": "https://schema.metadatacenter.org/properties/490b6798-0000-4000-8000-490b67980000",
     },
-    "@id": "<minted>",
+    "@id": null,
     "_f": {
       "@value": null,
     },
@@ -156,10 +156,18 @@ exports[`the slot a multi field starts with > listMulti 1`] = `
 
 exports[`the slot a multi field starts with > listSingle 1`] = `
 {
-  "holds": null,
-  "written": {
-    "@value": null,
-  },
+  "holds": [
+    null,
+    null,
+  ],
+  "written": [
+    {
+      "@value": null,
+    },
+    {
+      "@value": null,
+    },
+  ],
 }
 `;
 
@@ -294,9 +302,11 @@ exports[`the slot a multi field starts with > temporal 1`] = `
   ],
   "written": [
     {
+      "@type": "xsd:date",
       "@value": null,
     },
     {
+      "@type": "xsd:date",
       "@value": null,
     },
   ],
@@ -471,6 +481,7 @@ exports[`the slot a single field starts with > temporal 1`] = `
 {
   "holds": null,
   "written": {
+    "@type": "xsd:date",
     "@value": null,
   },
 }

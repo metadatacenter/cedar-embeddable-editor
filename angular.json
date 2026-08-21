@@ -44,6 +44,9 @@
             ]
           },
           "configurations": {
+            "coordinator-test": {
+              "polyfills": []
+            },
             "production": {
               "fileReplacements": [
                 {
@@ -86,6 +89,29 @@
           "builder": "@angular/build:extract-i18n",
           "options": {
             "buildTarget": "cedar-embeddable-editor:build"
+          }
+        },
+        "coordinator-test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "cedar-embeddable-editor:build:coordinator-test",
+            "tsConfig": "tsconfig.spec.json",
+            "runner": "vitest",
+            "include": ["src/**/*.coordinator.spec.ts"],
+            "coverage": true,
+            "coverageInclude": [
+              "src/app/modules/shared/service/render-scheduler.service.ts",
+              "src/app/modules/shared/components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component.ts",
+              "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.ts",
+              "src/app/modules/shared/components/cedar-component-renderer/cedar-component-renderer.component.ts"
+            ],
+            "coverageReporters": ["text-summary", "json-summary"],
+            "coverageThresholds": {
+              "statements": 45,
+              "branches": 35,
+              "functions": 55,
+              "lines": 45
+            }
           }
         },
         "lint": {

@@ -1,11 +1,20 @@
-import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  DestroyRef,
+  OnInit,
+  Output,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, Validators } from '@angular/forms';
 import { DateAdapter } from '@angular/material/core';
 import { MatDatepicker } from '@angular/material/datepicker';
 import { CustomDateAdapter } from '../../service/date-time/custom-date-adapter';
 import { DateTimeService } from '../../service/date-time/date-time.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
-import { Subscription } from 'rxjs';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 
 @Component({
@@ -28,6 +37,25 @@ export class DatePickerComponent implements OnInit {
   static readonly YEAR_MONTH_FORMAT = 'MM/YYYY';
   static readonly YEAR_MONTH_DAY_FORMAT = 'MM/DD/YYYY';
   yearFormat = DatePickerComponent.YEAR_FORMAT;
+
+  /**
+   * The shape of an acceptable date, for the box to state while read-only.
+   *
+   * The clock beside it already labels its own boxes `HH`, `MM` and `SS`; the date box labelled
+   * nothing, so a year-granularity field and a full date looked identical when both were empty. The
+   * granularity decides how much of the notation applies — a month field says `YYYY-MM` and stops.
+   */
+  get dateNotation(): string {
+    if (!this.readOnlyMode) {
+      return '';
+    }
+    if (this.dateFormat === DatePickerComponent.YEAR_FORMAT) {
+      return 'YYYY';
+    }
+    // Hyphens, as ISO 8601 and the stored `xsd:date` both write them, so the notation is the literal
+    // shape of an acceptable value rather than a pattern of its own.
+    return this.dateFormat === DatePickerComponent.YEAR_MONTH_FORMAT ? 'YYYY-MM' : 'YYYY-MM-DD';
+  }
   yearMonthFormat = DatePickerComponent.YEAR_MONTH_FORMAT;
   yearMonthDayFormat = DatePickerComponent.YEAR_MONTH_DAY_FORMAT;
 
@@ -36,18 +64,19 @@ export class DatePickerComponent implements OnInit {
   @Input() required = false;
   @Output() dateChangedEvent = new EventEmitter<Date>();
   private userPreferencesService: UserPreferencesService;
-  private readOnlyModeSubscription: Subscription = Subscription.EMPTY;
   readOnlyMode = false;
 
   public constructor(
     private _dateTimeService: DateTimeService,
     userPreferenceService: UserPreferencesService,
+    private elementRef: ElementRef<HTMLElement>,
+    private readonly destroyRef: DestroyRef,
   ) {
     this.userPreferencesService = userPreferenceService;
   }
 
   public ngOnInit(): void {
-    this.readOnlyModeSubscription = this.userPreferencesService.readOnlyMode$.subscribe((mode) => {
+    this.userPreferencesService.readOnlyMode$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((mode) => {
       this.readOnlyMode = mode;
     });
     this._dateTimeService.format = this.dateFormat;
@@ -82,6 +111,27 @@ export class DatePickerComponent implements OnInit {
     if (event.value !== null) {
       this.dateChangedEvent.emit(event.value);
     }
+  }
+
+  /** Restore the toggle only when focus did not move out of the closing calendar. */
+  datepickerClosed(): void {
+    const root = this.elementRef.nativeElement.getRootNode();
+    const closedFrom = DatePickerComponent.activeElement(root);
+    if (closedFrom instanceof HTMLElement && closedFrom.closest('.cdk-overlay-container') === null) {
+      return;
+    }
+
+    queueMicrotask(() => {
+      const active = DatePickerComponent.activeElement(root);
+      if (active instanceof HTMLElement && active.isConnected && active !== closedFrom) {
+        return;
+      }
+      this.elementRef.nativeElement.querySelector<HTMLButtonElement>('mat-datepicker-toggle button')?.focus();
+    });
+  }
+
+  private static activeElement(root: Node): Element | null {
+    return root instanceof Document || root instanceof ShadowRoot ? root.activeElement : null;
   }
 
   private static localDate(year: number, month: number, day: number): Date {

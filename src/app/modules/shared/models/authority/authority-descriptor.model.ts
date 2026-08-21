@@ -42,19 +42,34 @@ export interface AuthorityDescriptor {
   looksLikeIdentifier(text: string): boolean;
 
   /**
-   * The host page's config keys for this authority's two endpoints, and the
-   * paths used when the config names neither.
+   * This authority's two endpoints under `EXTERNAL_AUTHORITY_PATH`: the search
+   * path, and the path an identifier is resolved through.
    *
    * Here because the editor component had fourteen identical blocks — read the
    * key, fall back to a default, prepend the base URL, hand it to that
    * authority's own service — one per authority per endpoint. An eighth
    * authority meant two more blocks and a new service to hand them to.
+   *
+   * Neither is configurable. Both were, through fourteen host keys, and every
+   * host that set one set the value below — CEE's own default, restated. The
+   * paths are the bridge server's, and `bridgeBaseUrl` identifies that server, so
+   * a host free to move them could only move them somewhere nothing answers.
    */
-  readonly searchUrlConfigKey: string;
-  readonly detailsUrlConfigKey: string;
-  readonly defaultSearchPath: string;
-  readonly defaultDetailsPath: string;
+  readonly searchPath: string;
+  readonly detailsPath: string;
 }
+
+/**
+ * The bridge server's external-authority resource, under whatever base a host
+ * names.
+ *
+ * CEE's, like the paths below it. It reached CEE inside the host's own key for as
+ * long as that key was `extAuthBaseUrl` and had to be given as
+ * `https://bridge.<domain>/ext-auth/` — one segment of the bridge server's own
+ * route shape, spelled out in every deployment config, which is what
+ * `bioportal/integrated-search` was on the terminology side.
+ */
+export const EXTERNAL_AUTHORITY_PATH = 'ext-auth/';
 
 /**
  * Recognise an identifier by pattern, which is how all seven do it.
@@ -79,10 +94,8 @@ const byPattern =
 export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   {
     inputType: InputType.orcid,
-    searchUrlConfigKey: 'orcidIntegratedExtAuthUrl',
-    detailsUrlConfigKey: 'orcidIntegratedDetailsUrl',
-    defaultSearchPath: 'orcid/search-by-name',
-    defaultDetailsPath: 'orcid',
+    searchPath: 'orcid/search-by-name',
+    detailsPath: 'orcid',
     label: 'ORCID',
     placeholderKey: 'Generic.FilterOrcid',
     invalidMessageKey: 'Validation.OrcidInvalid',
@@ -91,10 +104,8 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   },
   {
     inputType: InputType.ror,
-    searchUrlConfigKey: 'rorIntegratedExtAuthUrl',
-    detailsUrlConfigKey: 'rorIntegratedDetailsUrl',
-    defaultSearchPath: 'ror/search-by-name',
-    defaultDetailsPath: 'ror',
+    searchPath: 'ror/search-by-name',
+    detailsPath: 'ror',
     label: 'ROR',
     placeholderKey: 'Generic.FilterRor',
     invalidMessageKey: 'Validation.RorInvalid',
@@ -103,10 +114,8 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   },
   {
     inputType: InputType.pfas,
-    searchUrlConfigKey: 'pfasIntegratedExtAuthUrl',
-    detailsUrlConfigKey: 'pfasIntegratedDetailsUrl',
-    defaultSearchPath: 'comp-tox/search-by-name',
-    defaultDetailsPath: 'comp-tox',
+    searchPath: 'comp-tox/search-by-name',
+    detailsPath: 'comp-tox',
     label: 'PFAS',
     placeholderKey: 'Generic.FilterPfas',
     invalidMessageKey: 'Validation.PfasInvalid',
@@ -115,10 +124,8 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   },
   {
     inputType: InputType.pmid,
-    searchUrlConfigKey: 'pmidIntegratedExtAuthUrl',
-    detailsUrlConfigKey: 'pmidIntegratedDetailsUrl',
-    defaultSearchPath: 'pmid/search-by-name',
-    defaultDetailsPath: 'pmid',
+    searchPath: 'pmid/search-by-name',
+    detailsPath: 'pmid',
     label: 'PubMed',
     placeholderKey: 'Generic.FilterPmid',
     invalidMessageKey: 'Validation.PmidInvalid',
@@ -139,10 +146,8 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   },
   {
     inputType: InputType.rrid,
-    searchUrlConfigKey: 'rridIntegratedExtAuthUrl',
-    detailsUrlConfigKey: 'rridIntegratedDetailsUrl',
-    defaultSearchPath: 'rrid/search-by-name',
-    defaultDetailsPath: 'rrid',
+    searchPath: 'rrid/search-by-name',
+    detailsPath: 'rrid',
     label: 'RRID',
     placeholderKey: 'Generic.FilterRrid',
     invalidMessageKey: 'Validation.RridInvalid',
@@ -151,10 +156,8 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   },
   {
     inputType: InputType.nihGrant,
-    searchUrlConfigKey: 'nihGrantIntegratedExtAuthUrl',
-    detailsUrlConfigKey: 'nihGrantIntegratedDetailsUrl',
-    defaultSearchPath: 'nih-grant/search-by-name',
-    defaultDetailsPath: 'nih-grant',
+    searchPath: 'nih-grant/search-by-name',
+    detailsPath: 'nih-grant',
     label: 'NIH Grant',
     placeholderKey: 'Generic.FilterNihGrant',
     invalidMessageKey: 'Validation.NihGrantInvalid',
@@ -165,10 +168,8 @@ export const AUTHORITY_DESCRIPTORS: ReadonlyArray<AuthorityDescriptor> = [
   },
   {
     inputType: InputType.doi,
-    searchUrlConfigKey: 'doiIntegratedExtAuthUrl',
-    detailsUrlConfigKey: 'doiIntegratedDetailsUrl',
-    defaultSearchPath: 'doi/search-by-name',
-    defaultDetailsPath: 'doi',
+    searchPath: 'doi/search-by-name',
+    detailsPath: 'doi',
     label: 'DOI',
     placeholderKey: 'Generic.FilterDoi',
     invalidMessageKey: 'Validation.DoiInvalid',

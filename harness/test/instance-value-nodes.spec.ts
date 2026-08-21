@@ -26,14 +26,13 @@ import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { emptyNode, instanceWith, linkNode, literalNode, termNode, linkValue } from '../src/values';
+import { emptyNode, instanceWith, linkNode, literalNode, termNode, linkValue, templateIdOf } from '../src/values';
 
 /**
  * An instance always names the template it is an instance of; there is no
  * valid CEDAR instance without one. Fixtures that stand in for what a host page
  * injects have to be valid instances too.
  */
-const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
 const INSTANCE_IRI = 'https://example.org/i/1';
 
 const CONTROLLED: FieldKind = {
@@ -69,7 +68,7 @@ describe('what the quality report reads a node as', () => {
     const driver = new CeeDriver(template, {
       // Only `_f` is written by hand: the node under test is supplied by the caller,
       // including shapes the library would not write.
-      instance: { ...instanceWith(TEMPLATE_IRI, {}, INSTANCE_IRI), _f: node },
+      instance: { ...instanceWith(templateIdOf(template), {}, INSTANCE_IRI), _f: node },
     });
     driver.handlerContext.buildQualityReport();
     return driver.qualityReport.valueTree._f.value;
@@ -126,7 +125,7 @@ describe('a labelless controlled term satisfies a requirement', () => {
       children: [{ kind: CONTROLLED, name: 'f', required: true }],
     });
     const driver = new CeeDriver(template, {
-      instance: instanceWith(TEMPLATE_IRI, { _f: linkValue('https://x/1') }, INSTANCE_IRI),
+      instance: instanceWith(templateIdOf(template), { _f: linkValue('https://x/1') }, INSTANCE_IRI),
     });
     driver.handlerContext.buildQualityReport();
 

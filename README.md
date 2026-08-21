@@ -38,9 +38,10 @@ loading CEE.
 
 You can run CEE as a standalone application. This is helpful for developers to
 see changes to the code reflected immediately in the application. The standalone
-app loads a small sample template and instance from `src/assets/cee-demo`, so it
-does not require a separate sample-template server or a
-`cedar-component-distribution` checkout.
+app fetches a small template and instance from `src/assets/cee-demo` and assigns
+them to `templateAndInstanceObject`, the same way any host supplies an artifact,
+so it needs no separate template server and no `cedar-component-distribution`
+checkout.
 
 Proceed with the following steps:
 
@@ -106,10 +107,34 @@ before `npm pack` or `npm publish`.
 
 ## Running as an `npm` package
 
-Stable releases remain available as
+Releases are published to npmjs.org as
 [`cedar-embeddable-editor`](https://www.npmjs.com/package/cedar-embeddable-editor)
-on npmjs.org. Development builds are published to the BMIR Nexus as the scoped
-package `cedar-embeddable-editor` under the `dev` tag:
+under the `latest` tag, so an embedder installs the current one by name:
+
+```shell
+npm install cedar-embeddable-editor
+```
+
+`1.6.0` is current on npmjs.org.
+
+Dev snapshots go somewhere else: the BMIR Nexus, as the scoped
+`@org.metadatacenter/cedar-embeddable-editor` under a `dev` tag. `scripts/npm-package.mjs`
+derives which from the version — a `-dev.` in it selects the scoped name and the Nexus
+registry, and anything else the unscoped name and the default one — so the two channels
+cannot be confused by a flag someone forgets to pass. npm routes by scope rather than by
+package name, which is what lets one package come from Nexus while everything else resolves
+from npmjs.org.
+
+A CEDAR frontend names a snapshot through an npm alias:
+
+```json
+"cedar-embeddable-editor": "npm:@org.metadatacenter/cedar-embeddable-editor@2.0.0-dev.20260816.5e7dca6"
+```
+
+Cutting one is in
+[CEE-RUNBOOK.md](https://github.com/metadatacenter/cedar-development/blob/develop/ops/CEE-RUNBOOK.md),
+including the version convention and which host needs what afterwards. Publishing needs the
+Nexus credential; reads are anonymous.
 
 ## Testing
 
@@ -127,9 +152,11 @@ It runs, in order:
 3. The unit tests, in Node under Vitest.
 4. The headless domain harness with V8 coverage, and its per-directory coverage
    floors.
-5. A production build, then the Playwright suite against that bundle: the full
-   Chromium baseline at desktop and narrow viewport sizes, plus focused
-   Chromium, Firefox and WebKit compatibility checks.
+5. A production build, then the Playwright suite against that bundle, in a
+   container: the full Chromium baseline at desktop and narrow viewport sizes,
+   plus focused Chromium, Firefox and WebKit compatibility checks. The container
+   is what makes a screenshot baseline mean the same thing on a laptop and on CI,
+   so the pixel budget is zero — see `visual/run-in-container.sh`.
 6. Staging the npm package from the bundle the suite just exercised, which
    checks the raw and gzip size budgets and verifies every staged byte against
    its source.
@@ -165,9 +192,11 @@ published to the BMIR Nexus, so no sibling checkout is needed:
 ```shell
 npm ci
 npm --prefix harness ci
-npm --prefix visual ci
-./visual/node_modules/.bin/playwright install chromium firefox webkit
 ```
+
+The visual suite installs nothing here. It runs inside Playwright's own container,
+which carries the browsers it drives, and installs its dependencies there against a
+named volume — so it needs Docker running and no `playwright install` of its own.
 
 ### Node versions during the Angular migration
 
@@ -197,8 +226,9 @@ Each manifest depends on it under an alias:
 
 The alias keeps the local import name, so source files import
 `cedar-model-typescript-library` regardless of the published name. To move to a
-newer build, publish it to Nexus and bump the version in the root, `harness/`,
-and `visual/` manifests together.
+newer build, publish it to Nexus and bump the version in the root and `visual/`
+manifests together. The harness declares no separate copy; it resolves the root
+installation.
 
 ### Focused test commands
 
@@ -248,15 +278,23 @@ customElements.whenDefined('cedar-embeddable-editor').then(async () => {
 
 ### Required configuration parameters
 
-* **showSampleTemplateLinks:** Wether the sample links are shown or not.
-  * For production this should be false, the template should be injected into the component by the embedding application
-* **terminologyIntegratedSearchUrl:** The URL of the CEDAR integrated search endpoint that communicates with BioPortal.
-  * The value `https://terminology.metadatacenter.org/bioportal/integrated-search` should work for the majority of applications.
+Two keys name the CEDAR services CEE calls, and neither has a default. CEE cannot
+know which deployment it is embedded in, and a default would name one — so a key
+left unset turns its lookups off and CEE reports which key is missing, rather than
+sending a host's users' keystrokes to somebody else's server.
+
+Both are bases and both must end in a slash. Every path below them is CEE's own.
+
+* **terminologyBaseUrl:** the CEDAR terminology server, which searches BioPortal.
+  Unset, controlled fields offer no terms.
+* **bridgeBaseUrl:** the CEDAR bridge server, which reaches the external
+  authorities. Unset, the seven authority fields offer no terms and resolve no
+  identifiers.
 
 ```json
 {
-  "showSampleTemplateLinks": false,
-  "terminologyIntegratedSearchUrl": 'https://terminology.metadatacenter.org/bioportal/integrated-search',
+  "terminologyBaseUrl": "https://terminology.metadatacenter.org/",
+  "bridgeBaseUrl": "https://bridge.metadatacenter.org/"
 }
 ```
 
@@ -270,91 +308,80 @@ What the user sees:
 
 | Key | Default |
 |---|---|
-| `showHeader` | `false` |
-| `showFooter` | `false` |
 | `showTemplateDescription` | `false` |
-| `showStaticText` | `true` |
-| `collapseStaticComponents` | `false` |
-| `showAllMultiInstanceValues` | `true` |
-| `showSpinnerBeforeInit` | `true` |
+
+CEE draws no page chrome of its own. It used to render a header carrying the CEDAR
+logo and title, and a footer carrying the Stanford Division of Computational
+Medicine mark and a contact link, behind `showHeader` and `showFooter`. Every string
+and destination was hardcoded, so an embedder took CEDAR's branding or nothing.
+A host renders its own header and footer around the element; the standalone app in
+`src/app/app.component.dev.html` is a worked example.
+
+What CEE keeps is the CEDAR mark and the version stamp inside the form's own title
+block, which is a component naming itself rather than dressing someone else's page.
 
 Editing behaviour and serialization:
 
 | Key | Default |
 |---|---|
 | `readOnlyMode` | `false` |
-| `hideEmptyFields` | `false` |
-| `trustTemplateMarkup` | `false` |
-| `inputSerialization` | `json` |
-| `outputSerialization` | `json` |
+| `trustTemplateRichText` | `false` |
 
-The diagnostic panels. Each has a `show` key and an `expanded` key, and every
-`expanded` key defaults to `false`:
+`showDownloadMenu` offers a menu that saves CEE's views of the artifact as files.
+It defaults to `false`, and nothing is rendered under the form either way:
 
-| Panel | `show` key | Default |
+| Menu entry | Saves | As |
 |---|---|---|
-| JSON Schema - Template | `showTemplateSourceData` | `true` |
-| YAML - Template | `showTemplateYaml` | `false` |
-| JSON-LD - Instance | `showInstanceDataFull` | `true` |
-| YAML - Instance | `showInstanceYaml` | `false` |
-| JSON-LD - Instance - Core | `showInstanceDataCore` | `false` |
-| Template Rendering Data | `showTemplateRenderingRepresentation` | `false` |
-| Multi-Instance Information | `showMultiInstanceInfo` | `false` |
-| Data Quality Report | `showDataQualityReport` | `false` |
-| Sample templates | `showSampleTemplateLinks` | `false` |
+| JSON-LD - Instance | The instance as a CEDAR document | `<name>-instance.json` |
+| YAML - Instance | The same instance, as CEDAR YAML | `<name>-instance.yaml` |
+| Compact YAML - Instance | The same instance without root identity and provenance metadata | `<name>-instance-compact.yaml` |
+| JSON Schema - Template | The template as the host supplied it | `<name>-template.json` |
+| YAML - Template | The same template, as CEDAR YAML | `<name>-template.yaml` |
+| Compact YAML - Template | Its compact authoring form, without repository-managed metadata | `<name>-template-compact.yaml` |
+| Data Quality Report | Required-field tally and constraint violations | `<name>-data-quality.json` |
 
-The two JSON source panels are on by default, which suits a developer and rarely
-suits a deployment. A production embedding usually disables them. YAML is
-opt-in through `showTemplateYaml` and `showInstanceYaml`, and its expansion is
-controlled independently by `expandedTemplateYaml` and
-`expandedInstanceYaml`.
+`<name>` is the template's own `schema:name`, reduced to file-name-safe
+characters, so a developer with several forms open can tell the files apart.
 
-Language, and the IRI prefixes CEE recognises or mints:
+These were eight panels once, each printing a dump under the form, and each
+costing two keys — one to show it and one to expand it. Two of the sixteen were
+on by default, so an embedder who configured nothing got a JSON Schema dump and
+a JSON-LD dump beneath every form.
+
+A download is started by the page, which a host running under a restrictive
+sandbox can refuse, with no event to observe when it does. CEE traces each
+attempt through the event handler, so a developer seeing the trace and no file
+knows to look at their own sandbox.
+
+Language:
 
 | Key | Default |
 |---|---|
 | `defaultLanguage` | `en` |
 | `fallbackLanguage` | `en` |
 | `languageMapPathPrefix` | none |
-| `iriPrefix` | `https://repo.metadatacenter.org/` |
-| `bioPortalPrefix` | `https://bioportal.bioontology.org/ontologies/` |
-| `orcidPrefix` | `https://orcid.org/` |
-| `rorPrefix` | `https://ror.org/` |
 
-`sampleTemplateLocationPrefix` and `loadSampleTemplateName` have no defaults.
-Setting both has CEE fetch `<prefix><name>/template.json` and
-`<prefix><name>/metadata.json` itself, which serves demonstrations rather than
-production.
-
-`trustTemplateMarkup` decides whether a template author's rich text renders verbatim
+`trustTemplateRichText` decides whether a template author's rich text renders verbatim
 or is sanitized first. It defaults to `false` and should stay there unless your
 application controls which templates load — see [Embedding security](#embedding-security).
 
-External-authority fields (ORCID, ROR, PFAS, PubMed, RRID, NIH Grant and DOI)
-use CEDAR's production bridge by default. A host using another CEDAR deployment
-can override the base URL; it must include a trailing slash:
+`bridgeBaseUrl` is the whole of the external-authority surface, covering the
+seven authorities: ORCID, ROR, PFAS, PubMed, RRID, NIH Grant and DOI. CEE appends
+the bridge server's `ext-auth/` resource, then the path for the authority a field
+is bound to — a search path for a name typed into it, and a details path for an
+identifier pasted into it. All of that is the bridge server's own route shape, so
+none of it is configurable: a deployment moves all fourteen endpoints by moving
+the base, or none of them.
 
-```json
-{
-  "extAuthBaseUrl": "https://bridge.metadatacenter.org/ext-auth/"
-}
-```
-
-CEE appends an authority-specific search or details path to this base. Those
-paths can also be overridden independently with the following configuration
-keys:
-
-| Authority | Search path key | Details path key | Default paths |
-|---|---|---|---|
-| ORCID | `orcidIntegratedExtAuthUrl` | `orcidIntegratedDetailsUrl` | `orcid/search-by-name`, `orcid` |
-| ROR | `rorIntegratedExtAuthUrl` | `rorIntegratedDetailsUrl` | `ror/search-by-name`, `ror` |
-| PFAS | `pfasIntegratedExtAuthUrl` | `pfasIntegratedDetailsUrl` | `comp-tox/search-by-name`, `comp-tox` |
-| PubMed | `pmidIntegratedExtAuthUrl` | `pmidIntegratedDetailsUrl` | `pmid/search-by-name`, `pmid` |
-| RRID | `rridIntegratedExtAuthUrl` | `rridIntegratedDetailsUrl` | `rrid/search-by-name`, `rrid` |
-| NIH Grant | `nihGrantIntegratedExtAuthUrl` | `nihGrantIntegratedDetailsUrl` | `nih-grant/search-by-name`, `nih-grant` |
-| DOI | `doiIntegratedExtAuthUrl` | `doiIntegratedDetailsUrl` | `doi/search-by-name`, `doi` |
-
-Enabling of hiding empty fields is only possible in read-only mode.
+| Authority | Search path | Details path |
+|---|---|---|
+| ORCID | `orcid/search-by-name` | `orcid` |
+| ROR | `ror/search-by-name` | `ror` |
+| PFAS | `comp-tox/search-by-name` | `comp-tox` |
+| PubMed | `pmid/search-by-name` | `pmid` |
+| RRID | `rrid/search-by-name` | `rrid` |
+| NIH Grant | `nih-grant/search-by-name` | `nih-grant` |
+| DOI | `doi/search-by-name` | `doi` |
 
 ### TypeScript types
 
@@ -364,7 +391,7 @@ object and a typed element:
 ```ts
 import type { CeeConfig, CedarEmbeddableEditorElement } from 'cedar-embeddable-editor';
 
-const config: CeeConfig = { readOnlyMode: true, outputSerialization: 'yaml' };
+const config: CeeConfig = { readOnlyMode: true, showDownloadMenu: true };
 
 // Typed by the package, with no cast: it declares the tag in HTMLElementTagNameMap.
 const cee = document.querySelector('cedar-embeddable-editor');
@@ -384,17 +411,36 @@ go to the console and to any `eventHandler` you registered:
 
 ```
 CEE ERROR: Unknown configuration key "readOnlyMod". It has no effect. Did you mean "readOnlyMode"?
-CEE ERROR: Configuration key "outputSerialization" expects "json" or "yaml", but was "xml".
-CEE ERROR: Configuration key "hideEmptyFields" only takes effect in read-only mode, which is not enabled.
 ```
 
-Reporting only: a key CEE cannot use is ignored, exactly as before. The change is
-that you are told rather than left watching a setting do nothing.
+A key CEE cannot use is reported *and* refused: it reads as unset, so the setting
+keeps the default it documents. One bad key costs only that key — every other key in
+the same configuration applies. CEE does not repair a value either, so a base URL
+missing its trailing slash is dropped rather than completed, since appending CEE's
+own path to it would name an endpoint nobody chose.
 
-Every input on the element takes one assignment and keeps it. Assign `config` a
-second time, or an artifact input a second time, and CEE reports it and ignores it:
-the first value stands. Build the configuration you want, assign it once, and create
-a new element if it has to change.
+An assignment that is not an object at all configures nothing and does not spend the
+one assignment there is, so your next attempt is still your first.
+
+Configuration and the artifact inputs take one assignment each and keep it. Assign
+`config` a second time, or an artifact input a second time, and CEE reports it and
+ignores it: the first value stands. Build the configuration you want, assign it once,
+and create a new element if it has to change. `eventHandler` is the exception and may
+be replaced, with the last handler assigned receiving — register it before the
+configuration and the artifact if you want the diagnostics from those, since a
+handler hears only what follows it.
+
+The same handler provides the lifecycle signal a host can use instead of polling
+the DOM. `ready` is called once after the element's first successful form render;
+it is not called for a rejected artifact and is not replayed to a handler attached
+after rendering:
+
+```javascript
+cee.eventHandler = {
+  error: (message) => console.error(message),
+  ready: () => startAutosave(),
+};
+```
 
 `readOnlyMode` is the only way in or out of read-only mode. CEE used to offer the
 user a switch of its own, in a preferences menu, which wrote to the same state the
@@ -429,7 +475,7 @@ as written:
 
 ```json
 {
-  "trustTemplateMarkup": true
+  "trustTemplateRichText": true
 }
 ```
 
@@ -446,10 +492,9 @@ CEE will render the formatting without the risk.
 
 | Content | Origin | Treatment |
 |---|---|---|
-| Static rich-text field body | Template author | Sanitized, unless `trustTemplateMarkup` is on |
+| Static rich-text field body | Template author | Sanitized, unless `trustTemplateRichText` is on |
 | Static section break, image, YouTube | Template author | Not rendered as HTML; content is used as text or a URL |
 | Field values, in the form and in read-only view | Instance data | Always sanitized. Not configurable |
-| Multi-instance value summaries | Instance data | Always sanitized. Not configurable |
 
 ## Metadata API
 
@@ -463,40 +508,21 @@ The metadata currently being edited inside CEE can be exported at anytime by mak
 const meta = cee.currentMetadata;
 ```
 
-`currentMetadata` always returns a CEDAR JSON object. CEE also exposes two
-format-specific alternatives:
+`currentMetadata` always returns a CEDAR JSON object. For YAML, read the
+companion accessor instead:
 
 ```javascript
-const yaml = cee.currentMetadataYaml;             // always a YAML string
-const selected = cee.currentMetadataSerialized;   // JSON object or YAML string
+const yaml = cee.currentMetadataYaml;   // always a YAML string
 ```
 
-`currentMetadataSerialized` follows the `outputSerialization` configuration
-value. It returns a JSON object by default and a YAML string when configured as
-follows:
-
-```json
-{
-  "outputSerialization": "yaml"
-}
-```
-
-Input and output serialization are independent. Setting
-`inputSerialization` to `"yaml"` selects the model library's YAML template
-reader; the value assigned to `templateObject` must be the parsed YAML object,
-not the YAML source string:
+Either accessor works whatever form the template arrived in. A template written
+as CEDAR YAML is assigned to `templateObject` like any other, as the parsed YAML
+object rather than the YAML source string, and CEE picks the reader from the
+template's own shape:
 
 ```javascript
-cee.config = {
-  // Include the other settings required by the embedding application.
-  inputSerialization: 'yaml',
-  outputSerialization: 'yaml'
-};
 cee.templateObject = parsedTemplateYaml;
 ```
-
-Any value other than `"yaml"`, including an omitted value or `"json"`, selects
-JSON serialization.
 
 In the example below, the metadata is sent to an external endpoint every 15 seconds:
 
@@ -550,6 +576,13 @@ customElements.whenDefined('cedar-embeddable-editor').then(async () => {
   cee.templateObject = yourCustomTemplateJson;
 });
 ```
+
+An instance counts only after CEE can read it. If deserialization fails, CEE
+reports the rejection to the console and to `eventHandler`, does not render a
+replacement empty form, and leaves the instance assignment available for a
+corrected value. The same rule applies to the instance inside
+`templateAndInstanceObject`; a rejected combined value spends neither artifact
+assignment.
 
 To load a different instance, create a new element. Reassigning `instanceObject`
 reports an error and leaves the first instance in place.
@@ -688,26 +721,42 @@ Information about the loading process is logged onto the console with the `CEE T
 
 ### Listening for changes
 
-If you need to listen to data changes inside the embeddable editor, you can use the existing `change` DOM events. We added custom events in case of a multi-instance add, copy and delete operations, so you can listen to all the events on the instance.
+CEE emits one composed, bubbling `change` event after an operation actually changes
+the serialized instance. It does not forward incidental DOM control traffic: focus,
+blur, paging, read-only controls, and a write that leaves `currentMetadata` unchanged
+produce no event. Field edits, clears, controlled-term selections, and multi-instance
+add, copy, and delete operations do.
 
-An example in Angular is:
+The event is a `CustomEvent<CeeChangeDetail>`. Its detail carries the operation,
+template path, supplied value, current validity and full data-quality report, plus
+the current title and description. Multi-instance details also retain their former
+`message` name for compatibility.
 
-- `component.html`:
-```html
-<cedar-embeddable-editor
-  [config]="conf"
-  [templateObject]="template"
-  [instanceObject]="instance"
-  (change)="logChange($event)"
-></cedar-embeddable-editor>
-```
+The package's custom-element declaration types the listener and its detail without
+a cast:
 
-- `component.ts`:
 ```typescript
-  logChange(event) {
-    console.log('CHANGE', event);
-  }
+import type { CeeChangeDetail } from 'cedar-embeddable-editor';
+
+const cee = document.querySelector('cedar-embeddable-editor');
+if (!cee) throw new Error('CEE element is missing');
+
+cee.addEventListener('change', (event) => {
+  const detail: CeeChangeDetail = event.detail;
+  console.log(detail.operation, detail.path);
+  console.log('valid:', detail.validity);
+});
 ```
+
+Framework event bindings receive the same custom event. For example, Angular can
+bind `(change)="logChange($event)"` on the element and type the handler parameter as
+`CustomEvent<CeeChangeDetail>`.
+
+The optional `eventHandler.valueChanged(path, value)` callback receives the same
+field mutations. It is not a dirty flag: only the host knows which serialization
+was last loaded or saved. Keep that baseline in the host and compare
+`cee.currentMetadata` after each `change`; doing so also clears dirty state when an
+edit is undone.
 
 ### Viewer Mode
 
@@ -727,7 +776,9 @@ holds small runnable applications that embed CEE, each with its own README:
 | `cedar-cee-demo-angular-src` | Angular |
 | `cedar-cee-demo-react` | React |
 | `cedar-cee-demo-ember-src` | Ember |
-| `cedar-cee-docs-angular-src` | Angular, documenting the component |
+
+Each edits the same template, `eDNA ECT Demonstration`, kept as a file inside the
+application rather than fetched from a server.
 
 `cedar-cee-demo-angular-src` needs `npm install --legacy-peer-deps`; the others
 do not.

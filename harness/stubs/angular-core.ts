@@ -64,6 +64,26 @@ export abstract class ChangeDetectorRef {
   abstract checkNoChanges(): void;
 }
 
+/** Teardown scope named by shared Angular directives; never instantiated here. */
+export abstract class DestroyRef {
+  abstract readonly destroyed: boolean;
+  abstract onDestroy(callback: () => void): () => void;
+}
+
+/** Types reached by the render scheduler; the headless harness never constructs it. */
+export abstract class Injector {}
+
+export interface AfterRenderRef {
+  destroy(): void;
+}
+
+export const afterNextRender = (
+  _callback: () => void,
+  _options?: { injector?: Injector },
+): AfterRenderRef => {
+  throw new Error('The headless harness cannot schedule Angular render work.');
+};
+
 /**
  * Throws, deliberately.
  *

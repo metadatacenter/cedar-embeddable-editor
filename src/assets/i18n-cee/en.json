@@ -1,9 +1,4 @@
 {
-  "App": {
-    "Title": "CEDAR Embeddable Editor",
-    "Maintained": "CEDAR is maintained by the Stanford Division of Computational Medicine.",
-    "Contact": "Contact CEDAR"
-  },
   "Generic": {
     "SAVE": "SAVE",
     "Infinite": "Infinite",
@@ -15,7 +10,6 @@
     "Value": "Value",
     "AttributeName": "Attribute Name",
     "AttributeValue": "Attribute Value",
-    "AllValues": "All Values",
     "Clear": "Clear",
     "SelectDecimalSeconds": "Select Decimal Seconds",
     "SelectUtcOffset": "Select UTC offset",
@@ -44,10 +38,11 @@
     "DecrementMinute": "Decrement minute",
     "IncrementSecond": "Increment second",
     "DecrementSecond": "Decrement second",
-    "ToggleMeridian": "Switch between AM and PM"
-  },
-  "Process": {
-    "Initializing": "CEDAR Embeddable Editor initializing..."
+    "ToggleMeridian": "Switch between AM and PM",
+    "Download": "Download",
+    "TemplateVersion": "Version {{version}}",
+    "StatusDraft": "Draft",
+    "StatusPublished": "Published"
   },
   "Multi": {
     "NoInstancesYet": "No instances yet",
@@ -67,16 +62,15 @@
       "FindNoMatch": "No matching templates found"
     },
     "JsonLD": {
-      "InstanceCore": "JSON-LD - Instance - Core",
       "Instance": "JSON-LD - Instance"
     },
     "JsonSchemaTemplate": "JSON Schema - Template",
     "Yaml": {
       "Instance": "YAML - Instance",
-      "Template": "YAML - Template"
+      "InstanceCompact": "Compact YAML - Instance",
+      "Template": "YAML - Template",
+      "TemplateCompact": "Compact YAML - Template"
     },
-    "TemplateRendering": "Template Rendering Data",
-    "MultiInstance": "Multi-Instance Information",
     "DataQualityReport": "Data Quality Report"
   },
   "Hint": {
@@ -130,5 +124,40 @@
     "ControlledTermReverted": "Not a term from the allowed set, edit was discarded; restored last valid term.",
     "DoiInvalid": "Entered value is not a valid DOI and has been cleared.",
     "DoiReverted": "Invalid DOI, edit was discarded; restored last valid DOI."
+  },
+  "Spec": {
+    "Cardinality": "{{min}}–{{max}} values",
+    "CardinalityUnbounded": "{{min}}+ values",
+    "MinLength": "min {{minLength}} chars",
+    "MaxLength": "max {{maxLength}} chars",
+    "Pattern": "pattern {{regex}}",
+    "NumberType": "{{numberType}}",
+    "UnitOfMeasure": "unit {{unitOfMeasure}}",
+    "MinValue": "min {{minValue}}",
+    "MaxValue": "max {{maxValue}}",
+    "DecimalPlaces": "{{decimalPlace}} decimal places",
+    "TemporalTimeFormat": "{{inputTimeFormat}} clock",
+    "TemporalZoneRequired": "time zone required",
+    "PermittedValues": "Values",
+    "TermKind": {
+      "branch": "branch",
+      "ontology": "ontology",
+      "valueSet": "value set",
+      "class": "value"
+    },
+    "Notation": {
+      "year": "YYYY",
+      "month": "YYYY-MM",
+      "day": "YYYY-MM-DD",
+      "hour": "HH",
+      "minute": "HH:MM",
+      "second": "HH:MM:SS",
+      "decimalSecond": "HH:MM:SS.sss"
+    },
+    "DecimalPlaceOne": "1 decimal place",
+    "TermIn": "of the {{container}}",
+    "DefaultValue": "default {{defaultValue}}",
+    "DefaultLabel": "default",
+    "DefaultMark": "(default)"
   }
 }

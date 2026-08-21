@@ -2,9 +2,40 @@
   display: flex;
   align-items: center;
   min-height: 48px;
+
+  /*
+   * 48px is the row a clear button needs beside the option, and a finger needs to hit either. Reading
+   * a template neither applies, and six options at 48px is a third of a screen for six words.
+   */
+  :host-context(.cee-read-only) & {
+    min-height: 0;
+  }
 }
 
 .choice-clear-button {
   flex: 0 0 auto;
   margin-inline-start: 4px;
+}
+
+/*
+ * The declared-default mark beside an option's label. Quiet, because it is a note about the option
+ * rather than part of its text, and the same grey the specification uses everywhere else.
+ */
+.choice-default-mark {
+  margin-left: 6px;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+/*
+ * Read-only, the options are a rendering of what the field permits, not a control.
+ *
+ * The value was already safe — a change in read-only is reverted before it reaches the instance —
+ * but the affordance was not: pointer cursor, hover ripple, focus ring, and arrow keys moving the
+ * selection to snap it back a frame later. So a viewer looked live and flickered when clicked.
+ * Interaction is removed here rather than by disabling the control, which would grey the selected
+ * option along with the rest and lose the one thing a reader is looking for.
+ */
+:host-context(.cee-read-only) .mat-mdc-radio-button,
+:host-context(.cee-read-only) .mat-mdc-checkbox {
+  pointer-events: none;
 }

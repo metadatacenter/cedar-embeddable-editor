@@ -35,6 +35,7 @@ import {
   literalValue,
   termOf,
   termValue,
+  templateIdOf,
   heldValue,
 } from '../src/values';
 import type { InstanceDataAtomType } from 'cedar-model-typescript-library';
@@ -44,8 +45,6 @@ import type { InstanceDataAtomType } from 'cedar-model-typescript-library';
  * valid CEDAR instance without one. Fixtures that stand in for what a host page
  * injects have to be valid instances too.
  */
-const TEMPLATE_IRI = 'https://repo.metadatacenter.org/templates/fixture';
-
 const kind = (key: string, inputType: string, make: () => unknown, extra: Partial<FieldKind> = {}): FieldKind =>
   ({ key, inputType, make, isStatic: false, write: 'value', sample: 'x', ...extra }) as FieldKind;
 
@@ -72,7 +71,7 @@ const rig = (fieldKind: FieldKind, startingSlot?: InstanceDataAtomType) => {
     startingSlot === undefined
       ? new CeeDriver(template)
       : new CeeDriver(template, {
-          instance: instanceWith(TEMPLATE_IRI, { _f: startingSlot }, 'https://example.org/i/1'),
+          instance: instanceWith(templateIdOf(template), { _f: startingSlot }, 'https://example.org/i/1'),
         });
   return { driver, component: driver.findOrThrow(['_f']) };
 };

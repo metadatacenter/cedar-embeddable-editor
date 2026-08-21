@@ -6,7 +6,7 @@ import { MultiElementComponent } from '../models/element/multi-element-component
 import { DataContext } from '../util/data-context';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
-import { InstanceDataAttributeValueFieldName, PropertyIri } from 'cedar-model-typescript-library';
+import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
@@ -224,7 +224,7 @@ export class DataObjectDataValueHandler {
 
     // The property IRI moves with the name, so an attribute keeps its identity
     // across a rename rather than being minted a new one.
-    let propertyIri = needsDeleting ? parentDataObject.iris[oldName] ?? '' : '';
+    const propertyIri = needsDeleting ? parentDataObject.iris[oldName] ?? '' : '';
     if (needsDeleting) {
       parentDataObject.removeValue(oldName);
     }
@@ -235,10 +235,21 @@ export class DataObjectDataValueHandler {
     // attributes it holds are — so it must not be left carrying an identity.
     parentDataObject.removeIri(component.name);
 
-    if (!parentDataObject.hasIri(newName)) {
-      if (propertyIri.length === 0) {
-        propertyIri = PropertyIri.forId(DataObjectUtil.generateGUID());
-      }
+    /*
+     * An attribute a user has just named carries no property IRI, and CEE does not
+     * invent one.
+     *
+     * It minted `https://schema.metadatacenter.org/properties/<guid>` here, which
+     * is an identity nothing assigned — the same fabrication the element-occurrence
+     * `@id` was. The model library states the shape a draft takes: the attribute's
+     * value sits at the instance root with no `@context` term, and the server fills
+     * the term on upload. It dropped `PropertyIri.forId` to make that hard to get
+     * wrong, which is what brought this to light.
+     *
+     * A rename still carries the old IRI across, above: that one was assigned, and
+     * the attribute keeps its identity rather than being minted a new one.
+     */
+    if (!parentDataObject.hasIri(newName) && propertyIri.length > 0) {
       parentDataObject.setIri(newName, propertyIri);
     }
     return null;

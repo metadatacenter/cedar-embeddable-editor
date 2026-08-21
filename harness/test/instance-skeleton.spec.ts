@@ -6,18 +6,17 @@
  * field type. A literal gets `{'@value': null}`, an IRI-valued field gets `{}`
  * because there is no `@value` to be null, a numeric or temporal field gets an
  * `@type` alongside, and a choice field with a default selection is not empty
- * at all. It does this twice, once with `@context` and `@id` for the copy the
- * host page gets back and once without for the copy CEE works against.
+ * at all. It builds one typed instance tree; the model-library writer includes
+ * its property IRIs as `@context` when the host asks for a document.
  *
- * The shapes are pinned here per field type and per building mode. Nothing
+ * The shapes are pinned here per field type. Nothing
  * asserted them directly before: the round-trip suite writes a value and reads
  * it back, so it exercises the slot without ever saying what an *unwritten*
  * slot should look like — and "what does an empty form serialise to" is the
  * question a host page asks first.
  *
- * They exist to be diffed. The builder currently answers all of this by
- * re-reading the raw template JSON in parallel with the component tree it is
- * already walking, and that second walk is what should go.
+ * They exist to be diffed. The builder answers from the parsed component tree;
+ * it does not re-read raw template JSON in parallel with that tree.
  */
 import { describe, expect, it } from 'vitest';
 import { DocumentKey } from '../src/document-keys';
@@ -30,27 +29,12 @@ import { labelOf, xsdTypeOf, heldValue } from '../src/values';
 /** Every field type that takes a value; static content has no slot. */
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
 
-/** `@id`s are minted per run, so normalise them out of any comparison. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const stable = (node: any): any => {
-  if (Array.isArray(node)) return node.map(stable);
-  if (node && typeof node === 'object') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const out: any = {};
-    for (const key of Object.keys(node)) {
-      out[key] = key === DocumentKey.atId && typeof node[key] === 'string' ? '<minted>' : stable(node[key]);
-    }
-    return out;
-  }
-  return node;
-};
-
 describe('the slot a single field starts with', () => {
   it.each(VALUED.map((k) => [k.key, k] as const))('%s', (key, fieldKind) => {
     const driver = new CeeDriver(buildTemplate({ name: `sk_${key}`, children: [{ kind: fieldKind, name: 'f' }] }));
     expect({
       holds: heldValue(driver.extract.values._f),
-      written: stable(driver.metadata._f),
+      written: driver.metadata._f,
     }).toMatchSnapshot();
   });
 });
@@ -65,24 +49,20 @@ describe('the slot a multi field starts with', () => {
     );
     expect({
       holds: heldValue(driver.extract.values._f),
-      written: stable(driver.metadata._f),
+      written: driver.metadata._f,
     }).toMatchSnapshot();
   });
 });
 
 describe('the shape of an element', () => {
   /**
-   * A single element is one object carrying a minted `@id`; a multi element is
-   * a list of `minItems` of them, each with its own. The `@id` only appears in
-   * the full copy — the extract form drops it, which is why the reader had to
-   * stop relying on `@context` to recognise an element.
+   * A single element is one object; a multi element is a list of `minItems` of
+   * them. Neither carries an `@id`: CEE mints no identities, so a freshly built
+   * occurrence has none until a loaded instance gives it one.
    *
-   * That last sentence was in this comment before it was true. The snapshot
-   * below recorded an `@id` in the extract for months, because the builder
-   * minted one into whichever tree it was filling, and a snapshot records
-   * whatever happens rather than whatever was meant. `tree-consistency.spec.ts`
-   * now asserts the property directly, in both directions, instead of leaving it
-   * to a comment and a recording that disagreed.
+   * The snapshots below recorded a minted `@id` for months — a fresh GUID per
+   * run, normalised to `<minted>` before comparison so that a value meaning
+   * nothing could be recorded as though it meant something.
    */
   it('a single element', () => {
     const template = buildTemplate({
@@ -90,7 +70,7 @@ describe('the shape of an element', () => {
       elements: [{ name: 'el', children: [{ kind: VALUED[0], name: 'f' }] }],
     });
     const driver = new CeeDriver(template);
-    expect({ holds: heldValue(driver.extract.values._el), written: stable(driver.metadata._el) }).toMatchSnapshot();
+    expect({ holds: heldValue(driver.extract.values._el), written: driver.metadata._el }).toMatchSnapshot();
   });
 
   it('a multi element starts at minItems', () => {
@@ -102,7 +82,7 @@ describe('the shape of an element', () => {
     });
     const driver = new CeeDriver(template);
     expect(driver.extract.values._el).toHaveLength(3);
-    expect(stable(driver.metadata._el)).toMatchSnapshot();
+    expect(driver.metadata._el).toMatchSnapshot();
   });
 
   it('a multi element with no floor starts empty', () => {
@@ -115,16 +95,6 @@ describe('the shape of an element', () => {
     expect(new CeeDriver(template).extract.values._el).toEqual([]);
   });
 
-  it('gives every occurrence of a multi element its own @id', () => {
-    const template = buildTemplate({
-      name: 'sk_el_ids',
-      elements: [
-        { name: 'el', cardinality: 'multi', minItems: 3, maxItems: 9, children: [{ kind: VALUED[0], name: 'f' }] },
-      ],
-    });
-    const ids = new CeeDriver(template).metadata._el.map((o: Record<string, string>) => o[DocumentKey.atId]);
-    expect(new Set(ids).size, `occurrences share an @id: ${ids.join(', ')}`).toBe(3);
-  });
 });
 
 describe('the XSD type a numeric or temporal slot declares', () => {
@@ -176,7 +146,7 @@ describe('the XSD type a numeric or temporal slot declares', () => {
     expect(xsdTypeOf(slot)).toBe('xsd:decimal');
   });
 
-  it('leaves the type off a temporal field that declares none', () => {
+  it('uses the model default when a temporal builder declares no explicit type', () => {
     const kind = {
       key: 'tmp',
       inputType: 'temporal',
@@ -187,7 +157,8 @@ describe('the XSD type a numeric or temporal slot declares', () => {
     };
     const template = buildTemplate({ name: 'sk_tmp_none', children: [{ kind, name: 'f' }] });
     const slot = new CeeDriver(template).metadata._f;
-    expect(Object.hasOwn(slot, DocumentKey.atType), 'a null @type was written into the instance').toBe(false);
+    expect(Object.hasOwn(slot, DocumentKey.atType), 'the model default type was omitted from the instance').toBe(true);
+    expect(xsdTypeOf(slot)).toBe('xsd:dateTime');
   });
 
   it('uses the declared temporal type', () => {

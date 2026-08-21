@@ -11,6 +11,7 @@ import { HandlerContext } from '../util/handler-context';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { InstanceValueNode } from '../util/instance-value-node';
+import { isAuthorityTerm } from '../models/authority/authority-term.guard';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 
 /** The name an attribute-value slot carries, or null when the slot holds something else. */
@@ -42,41 +43,6 @@ export class ActiveComponentRegistryService {
     return this.modelToMultiPagerUI.get(component) ?? null;
   }
 
-  setVisibility(component: CedarComponent, handlerContext: HandlerContext): void {
-    const fieldComponents = this.getFieldComponents(component);
-    for (const fieldComponent of fieldComponents) {
-      const dataObject = handlerContext.getDataObjectNodeByPath(fieldComponent.path);
-      if (dataObject == null) {
-        continue;
-      }
-      // A field the template hid stays hidden whatever it holds. This pass
-      // writes the same flag for a different reason — the field is empty and
-      // the viewer is configured not to show empty fields — and without the
-      // guard a template-hidden field carrying a value would be revealed by it.
-      if (fieldComponent.hiddenInTemplate) {
-        fieldComponent.hidden = true;
-      } else if (InstanceValueNode.isLiteral(dataObject)) {
-        const value = InstanceValueNode.literal(dataObject);
-        fieldComponent.hidden = value === '' || value === null;
-      } else if (InstanceValueNode.isIriBearing(dataObject)) {
-        // CHARACTERISED, NOT INTENDED. The original asked
-        // `value != '' || value != null`, which is true of every value there
-        // is — nothing equals both — so an IRI-valued field was never hidden
-        // however empty it was, and the `else` that would have hidden it was
-        // unreachable. Kept because it loses no data, only leaves a blank row
-        // in the read-only viewer, and because "links always show" is a
-        // defensible thing to have decided on purpose.
-        //
-        // Nothing tests the empty half any more, because there is no longer an
-        // empty node that reaches here: an IRI-valued field holding nothing is
-        // written `{}`, which is not IRI-bearing, and the model library refuses
-        // to build the `{"@id": ""}` the old cases passed. What is left is a
-        // branch that only ever sees a filled node.
-        fieldComponent.hidden = false;
-      }
-    }
-  }
-
   /**
    * What an IRI-valued node should look like to the widget showing it.
    *
@@ -84,9 +50,8 @@ export class ActiveComponentRegistryService {
    * type decides which the widget wants. A link takes the IRI, because that is
    * its value. An external authority field takes both — the IRI identifies the
    * record, the label is what its autocomplete displays. A controlled term
-   * takes the label alone while it is editable, since the autocomplete's own
-   * value is the label, and both once read-only, where there is no
-   * autocomplete and the viewer wants the IRI to link to.
+   * also takes both: its widget displays the label but retains the IRI for the
+   * selected-term link and for paging safely between different terms.
    */
   private static iriValueForWidget(
     node: InstanceNode,
@@ -102,7 +67,11 @@ export class ActiveComponentRegistryService {
       return iri;
     }
     const label = InstanceValueNode.label(node) ?? null;
-    if (EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType) || readOnlyMode) {
+    if (
+      inputType === InputType.controlled ||
+      EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType) ||
+      readOnlyMode
+    ) {
       // `?? ''` on both: the widget wants a term, and a node that carries an IRI
       // without a label — or a label the reader could not find — is still the
       // term the field holds. The reads above answer null for either.
@@ -111,28 +80,79 @@ export class ActiveComponentRegistryService {
     return label;
   }
 
-  getFieldComponents(component: CedarComponent): SingleFieldComponent[] {
-    const fieldComponents = [] as SingleFieldComponent[];
-    if (component instanceof MultiElementComponent) {
-      for (const child of component.children) {
-        if (child instanceof SingleFieldComponent) {
-          fieldComponents.push(child);
-        }
-      }
+  /**
+   * Whether the value about to be shown is a declared default that should be cleared instead.
+   *
+   * Reading a template, CEE seeds the empty instance from the template's defaults, so a list arrives
+   * pre-selected and a term field pre-filled. A control holding a value shows no placeholder, and the
+   * placeholder is where the specification lives — so the default hid the very thing that would have
+   * explained it. Cleared here, the box states `default Green` along with the count and the permitted
+   * values, and nothing on screen claims somebody chose it.
+   *
+   * The value has to be compared, not just the mode. This method runs on every model-to-view sync,
+   * so testing the mode alone cleared whatever the control held: a term a host pushed into a
+   * read-only form with no instance behind it was blanked on arrival, which `view-sync.spec.ts`
+   * caught. Only a value equal to what the template declares is a default; anything else was
+   * recorded by somebody and belongs on screen.
+   *
+   * And only where a placeholder exists to state it in. A radio or checkbox group has none, so there
+   * the default stays visible in the control, marked as the default among the options.
+   */
+  private static shouldClearDeclaredDefault(
+    component: SingleFieldComponent,
+    handlerContext: HandlerContext,
+    node: InstanceNode,
+  ): boolean {
+    if (!handlerContext.statesSpecification) {
+      return false;
     }
-    return fieldComponents;
+    const inputType = component.basicInfo.inputType;
+    if (inputType === InputType.radio || inputType === InputType.checkbox) {
+      return false;
+    }
+    return ActiveComponentRegistryService.holdsDeclaredDefault(component, node);
   }
+
+  /** Whether the node carries exactly the value the template declares as this field's default. */
+  private static holdsDeclaredDefault(component: SingleFieldComponent, node: InstanceNode): boolean {
+    const declared = component.valueInfo.defaultValue;
+    if (declared === null) {
+      // An enumeration declares its default by marking an option rather than by naming a value.
+      const chosen = component.choiceInfo?.choices?.find((option) => option.selectedByDefault);
+      return chosen !== undefined && InstanceValueNode.literal(node) === chosen.label;
+    }
+    if (isAuthorityTerm(declared)) {
+      return InstanceValueNode.iri(node) === declared.iri;
+    }
+    return InstanceValueNode.literal(node) === String(declared);
+  }
+
   updateViewToModel(component: CedarComponent, handlerContext: HandlerContext): void {
     if (component instanceof SingleFieldComponent) {
       const dataObject: InstanceNode | null = handlerContext.getDataObjectNodeByPath(component.path);
       const uiComponent: CedarUIDirective | null = this.getUIComponent(component);
-      if (uiComponent != null && dataObject != null) {
+      if (uiComponent != null && dataObject == null) {
+        // The same widget is reused while a multi element pages between
+        // occurrences. A child that is absent from the new occurrence must
+        // actively clear that widget, or the preceding occurrence remains on
+        // screen even though it is not present in the model.
+        uiComponent.setCurrentValue(null);
+      } else if (uiComponent != null && dataObject != null) {
+        const clearDefault = ActiveComponentRegistryService.shouldClearDeclaredDefault(
+          component,
+          handlerContext,
+          dataObject,
+        );
         if (InstanceValueNode.isLiteral(dataObject)) {
-          uiComponent.setCurrentValue(InstanceValueNode.literal(dataObject));
+          uiComponent.setCurrentValue(clearDefault ? null : InstanceValueNode.literal(dataObject));
         } else if (InstanceValueNode.isIriBearing(dataObject)) {
           uiComponent.setCurrentValue(
-            ActiveComponentRegistryService.iriValueForWidget(dataObject, component, handlerContext.readOnlyMode),
+            clearDefault
+              ? null
+              : ActiveComponentRegistryService.iriValueForWidget(dataObject, component, handlerContext.readOnlyMode),
           );
+        } else {
+          uiComponent.setCurrentValue(null);
         }
       }
     } else if (component instanceof MultiFieldComponent) {
@@ -146,8 +166,8 @@ export class ActiveComponentRegistryService {
       if (!component.isMultiPage()) {
         const dataArr = isInstanceArray(dataObject) ? dataObject : null;
 
-        if (uiComponent && dataArr) {
-          uiComponent.setCurrentValue(dataArr.map((a) => InstanceValueNode.literal(a)));
+        if (uiComponent) {
+          uiComponent.setCurrentValue(dataArr?.map((a) => InstanceValueNode.literal(a)) ?? []);
         }
       } else if (isInstanceArray(dataObject) && multiInstanceInfo !== null) {
         // A paged multi field with no node in the info tree has no cursor, so there
@@ -194,8 +214,12 @@ export class ActiveComponentRegistryService {
               if (uiComponent) {
                 uiComponent.setCurrentValue(undefined);
               }
+            } else if (uiComponent) {
+              uiComponent.setCurrentValue(null);
             }
           }
+        } else if (uiComponent && component.basicInfo.inputType !== InputType.attributeValue) {
+          uiComponent.setCurrentValue(null);
         }
 
         if (component.isMultiPage()) {
@@ -207,6 +231,9 @@ export class ActiveComponentRegistryService {
         }
       } else {
         // Empty multi-field
+        if (uiComponent && component.basicInfo.inputType !== InputType.attributeValue) {
+          uiComponent.setCurrentValue(component.isMultiPage() ? null : []);
+        }
         const uiPager = this.getMultiPagerUI(component);
         if (uiPager) {
           uiPager.updatePagingUI();

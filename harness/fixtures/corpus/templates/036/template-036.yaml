@@ -1,64 +1,62 @@
-type: "template"
+type: template
 name: "Values from ValueSets"
 id: "https://repo.pprod.metadatacenter.org/templates/a10522bf-6683-44bf-9018-4c8350312af2"
-status: "draft"
-version: "0.0.1"
-modelVersion: "1.6.0"
+status: draft
+version: 0.0.1
+modelVersion: 1.6.0
 createdOn: "2024-06-26T13:27:57-07:00"
 createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 modifiedOn: "2024-06-26T13:29:48-07:00"
 modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 children:
   - key: "Neoplasm"
-    type: "controlled-term-field"
+    type: controlled-term-field
     name: "Neoplasm"
     description: "Help Text"
     id: "https://repo.pprod.metadatacenter.org/template-fields/00ff5dab-88b2-462d-bcd9-3f55cc05c963"
-    modelVersion: "1.6.0"
-    datatype: "iri"
+    modelVersion: 1.6.0
+    datatype: iri
     values:
-      - type: "class"
-        label: "Malignant Neoplasm"
-        acronym: "CADSR-VS"
-        termType: "class"
+      - type: class
+        sourceAcronym: "CADSR-VS"
+        termIri: "https://cadsr.nci.nih.gov/metadata/CADSR-VS/78d215b4d52d89ab6f485206f41d5bc1aac23770"
+        termType: class
         termLabel: "Malignant Neoplasm"
-        iri: "https://cadsr.nci.nih.gov/metadata/CADSR-VS/78d215b4d52d89ab6f485206f41d5bc1aac23770"
-      - type: "valueSet"
-        acronym: "CADSR-VS"
-        valueSetName: "Neoplasm"
-        iri: "https://cadsr.nci.nih.gov/metadata/CADSR-VS/20c76e5a73776dc5af1d26329ccb712f42e0e255"
-        numTerms: 0
+      - type: valueSet
+        sourceAcronym: "CADSR-VS"
+        termBaseIri: "https://cadsr.nci.nih.gov/metadata/CADSR-VS/20c76e5a73776dc5af1d26329ccb712f42e0e255"
+        termBaseLabel: "Neoplasm"
     actions:
-      - action: "move"
+      - action: move
         to: 0
         termIri: "http://purl.bioontology.org/ontology/ICD10CM/C94.02"
         sourceIri: "http://purl.bioontology.org/ontology/NLMVS/2.16.840.1.113883.3.526.3.1010"
         sourceAcronym: "NLMVS"
-        type: "value"
-      - action: "move"
+        type: value
+      - action: move
         to: 0
         termIri: "http://purl.bioontology.org/ontology/ICD9CM/208.02"
         sourceIri: "http://purl.bioontology.org/ontology/NLMVS/2.16.840.1.113883.3.526.3.1010"
         sourceAcronym: "NLMVS"
-        type: "value"
-      - action: "move"
+        type: value
+      - action: move
         to: 0
         termIri: "https://cadsr.nci.nih.gov/metadata/CADSR-VS/78d215b4d52d89ab6f485206f41d5bc1aac23770"
         sourceIri: "template"
         sourceAcronym: "CADSR-VS"
-        type: "class"
-      - action: "move"
+        type: class
+      - action: move
         to: 1
         termIri: "http://purl.bioontology.org/ontology/ICD10CM/C94.02"
         sourceIri: "http://purl.bioontology.org/ontology/NLMVS/2.16.840.1.113883.3.526.3.1010"
         sourceAcronym: "NLMVS"
-        type: "value"
-      - action: "move"
+        type: value
+      - action: move
         to: 1
         termIri: "http://purl.bioontology.org/ontology/ICD9CM/208.02"
         sourceIri: "http://purl.bioontology.org/ontology/NLMVS/2.16.840.1.113883.3.526.3.1010"
         sourceAcronym: "NLMVS"
-        type: "value"
+        type: value
     createdOn: "2024-06-26T13:29:48-07:00"
     createdBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
     modifiedOn: "2024-06-26T13:29:48-07:00"

@@ -1,11 +1,12 @@
-type: "template"
+type: template
 name: "Template with extra"
 description: "Template desc"
 identifier: "template-identifier"
 id: "https://repo.metadatacenter.org/templates/2df0a567-a52c-4df2-aa41-2458b911d3a8"
-status: "draft"
-version: "0.0.1"
-modelVersion: "1.6.0"
+status: draft
+version: 0.0.1
+modelVersion: 1.6.0
+instanceType: "http://purl.bioontology.org/ontology/SNOMEDCT/224699009"
 header: "Template header"
 footer: "Template footer"
 createdOn: "2024-02-29T14:25:48-08:00"
@@ -14,10 +15,10 @@ modifiedOn: "2024-02-29T14:26:44-08:00"
 modifiedBy: "https://metadatacenter.org/users/c7dcc3ca-55fe-4ca8-b448-ab110bfe4c95"
 children:
   - key: "Text field"
-    type: "text-field"
+    type: text-field
     name: "Text field"
     description: "Help Text"
     id: "tmp-1709246251573-870301"
-    modelVersion: "1.6.0"
+    modelVersion: 1.6.0
     configuration:
       propertyIri: "https://schema.metadatacenter.org/properties/5fa5e733-f503-4831-a4f9-b027b9ca204d"

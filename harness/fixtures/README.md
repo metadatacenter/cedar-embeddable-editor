@@ -12,19 +12,29 @@ workspace.
 - 21 JSON instances
 
 Source: `metadatacenter/cedar-test-artifacts`, branch `develop`, commit
-`ed02edd4974000ad694c150c4da1051c92739b97`.
+`775448d5a4013a708229fed8535d22e4fc1e6a65`.
 
 To refresh it, copy `template-NNN.json`, `template-NNN.yaml`, and
 `instance-NNN.json` from that repository's `artifacts/templates/` and
-`artifacts/instances/` trees. Do not copy generated library outputs or the
-larger `cee-suite` corpus unless a test is added for them.
+`artifacts/instances/` trees. Do not copy generated library outputs.
+
+## CEE production-derived compatibility corpus
+
+`cee-suite/` contains all 85 case directories from the shared corpus: 86
+template files (including the retained `template-001-original.json`) and 57
+paired instances. Case 086 intentionally contains malformed template JSON and
+is declared as such by the loader; its instance remains part of the inventory.
+
+Source: `metadatacenter/cedar-test-artifacts`, branch `develop`, commit
+`51581826f047ba4b17a1a6464c41c14c468ee3cb`, directory
+`artifacts/cee-suite/`.
 
 ## HuBMAP corpus
 
 `hubmap/` contains 57 production template JSON files.
 
 Source: `metadatacenter/cedar-artifact-library`, branch `develop`, commit
-`98fe90ca25c9b6e79619488cb7ad100d34c2cd99`, directory
+`aad2e8a6be35403d8831ddf300e94e0cb6f81660`, directory
 `src/test/resources/templates-json/`.
 
 These snapshots are mandatory test inputs. `harness/src/corpus.ts` checks the

@@ -1,9 +1,4 @@
 {
-  "App": {
-    "Title": "CEDAR Beágyazható Szerkesztő",
-    "Maintained": "A CEDAR-t a Stanford Számítógépes Medicina Osztály működteti.",
-    "Contact": "Kapcsolat"
-  },
   "Generic": {
     "SAVE": "MENTÉS",
     "Infinite": "Végtelen",
@@ -15,7 +10,6 @@
     "Value": "Érték",
     "AttributeName": "Attribútum név",
     "AttributeValue": "Attribútum érték",
-    "AllValues": "Minden érték",
     "Clear": "Törlés",
     "SelectDecimalSeconds": "Tizedes másodpercek kiválasztása",
     "SelectUtcOffset": "UTC-eltolás kiválasztása",
@@ -44,10 +38,11 @@
     "DecrementMinute": "Perc csökkentése",
     "IncrementSecond": "Másodperc növelése",
     "DecrementSecond": "Másodperc csökkentése",
-    "ToggleMeridian": "Váltás AM és PM között"
-  },
-  "Process": {
-    "Initializing": "A CEDAR Beágyazható Szerkesztő inicializálása..."
+    "ToggleMeridian": "Váltás AM és PM között",
+    "Download": "Letöltés",
+    "TemplateVersion": "Verzió {{version}}",
+    "StatusDraft": "Vázlat",
+    "StatusPublished": "Közzétett"
   },
   "Multi": {
     "NoInstancesYet": "Még nincsenek példányok",
@@ -67,16 +62,15 @@
       "FindNoMatch": "Nincs egyező sablon"
     },
     "JsonLD": {
-      "InstanceCore": "JSON-LD - Példány - Alap",
       "Instance": "JSON-LD - Példány"
     },
     "JsonSchemaTemplate": "JSON Séma - Sablon",
     "Yaml": {
       "Instance": "YAML - Példány",
-      "Template": "YAML - Sablon"
+      "InstanceCompact": "Tömör YAML - Példány",
+      "Template": "YAML - Sablon",
+      "TemplateCompact": "Tömör YAML - Sablon"
     },
-    "TemplateRendering": "Sablon megjelenítési adatok",
-    "MultiInstance": "Multi-példány információ",
     "DataQualityReport": "Adatminőségi riport"
   },
   "Hint": {
@@ -130,5 +124,40 @@
     "ControlledTermReverted": "Nem a megengedett halmaz eleme, a szerkesztés elvetve; visszaállítva az utolsó érvényes érték.",
     "DoiInvalid": "A megadott érték nem érvényes DOI, ezért törlésre került.",
     "DoiReverted": "Érvénytelen DOI, a módosítás elvetve; az utolsó érvényes DOI visszaállítva."
+  },
+  "Spec": {
+    "Cardinality": "{{min}}–{{max}} érték",
+    "CardinalityUnbounded": "{{min}}+ érték",
+    "MinLength": "min. {{minLength}} karakter",
+    "MaxLength": "max. {{maxLength}} karakter",
+    "Pattern": "minta: {{regex}}",
+    "NumberType": "{{numberType}}",
+    "UnitOfMeasure": "egység: {{unitOfMeasure}}",
+    "MinValue": "min. {{minValue}}",
+    "MaxValue": "max. {{maxValue}}",
+    "DecimalPlaces": "{{decimalPlace}} tizedesjegy",
+    "TemporalTimeFormat": "{{inputTimeFormat}} órakijelzés",
+    "TemporalZoneRequired": "időzóna szükséges",
+    "PermittedValues": "Értékek",
+    "TermKind": {
+      "branch": "ág",
+      "ontology": "ontológia",
+      "valueSet": "értékkészlet",
+      "class": "érték"
+    },
+    "Notation": {
+      "year": "ÉÉÉÉ",
+      "month": "ÉÉÉÉ-HH",
+      "day": "ÉÉÉÉ-HH-NN",
+      "hour": "ÓÓ",
+      "minute": "ÓÓ:PP",
+      "second": "ÓÓ:PP:MM",
+      "decimalSecond": "ÓÓ:PP:MM.mmm"
+    },
+    "DecimalPlaceOne": "1 tizedesjegy",
+    "TermIn": "ebből: {{container}}",
+    "DefaultValue": "alapérték: {{defaultValue}}",
+    "DefaultLabel": "alapérték",
+    "DefaultMark": "(alapérték)"
   }
 }

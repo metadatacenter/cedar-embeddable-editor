@@ -4,12 +4,14 @@
   "schema:description": "Two occurrences, Public then Private",
   "_record": [
     {
+      "@id": null,
       "_access": {
         "@value": "Public"
       },
       "@context": {}
     },
     {
+      "@id": null,
       "_access": {
         "@value": "Private"
       },

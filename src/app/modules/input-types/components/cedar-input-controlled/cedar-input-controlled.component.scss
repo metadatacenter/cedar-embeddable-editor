@@ -7,3 +7,50 @@
  * swapped itself for once a term was chosen. The field is a real
  * `mat-form-field` in both states now, so the imitation and its styles are gone.
  */
+
+/*
+ * The box a controlled field shows while read-only and empty: the same rectangle a form field draws,
+ * holding the authorities it draws on rather than a value. Sized from the read-only density so it
+ * lines up with every other control on the page.
+ */
+.cee-controlled-spec {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  /* Spacing comes from the dot separators, so the box does not add its own between items. */
+  gap: 0;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 36px;
+  padding: 4px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.38);
+  border-radius: 4px;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.cee-controlled-spec-facts {
+  /* Set apart from the authorities beside it the way the facts elsewhere are: a dot, not a break. */
+  &::after {
+    content: '·';
+    margin: 0 6px;
+    color: rgba(0, 0, 0, 0.32);
+  }
+}
+
+/* One authority after another reads as a list, so it takes the same dot the facts do. */
+.cee-controlled-spec-source + .cee-controlled-spec-source::before {
+  content: '·';
+  margin: 0 6px;
+  color: rgba(0, 0, 0, 0.32);
+}
+
+.cee-controlled-spec-source {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}
+

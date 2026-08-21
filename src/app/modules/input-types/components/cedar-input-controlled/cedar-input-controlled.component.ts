@@ -24,15 +24,17 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, timer } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
 import { isAuthorityTerm } from '../../../shared/models/authority/authority-term.guard';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
-import { IriPrefix } from '../../../shared/util/iri-prefix';
+import { bioPortalSourceLink, bioPortalTermLink } from '../../../shared/util/bioportal-term-link';
+import { SpecTermSource, specTermSourcesOf } from '../../../shared/util/field-spec';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
     return !!(control && control.invalid && (control.dirty || control.touched));
@@ -89,7 +91,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     private activeComponentRegistry: ActiveComponentRegistryService,
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
-    private iriPrefix: IriPrefix,
   ) {
     super();
     this.options = fb.group({
@@ -106,10 +107,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl<string | null>(null, validators);
 
-    const declaredDefault = this.component.valueInfo.defaultValue;
-    if (isAuthorityTerm(declaredDefault)) {
-      this.setValueUIAndModel(declaredDefault.iri, declaredDefault.label);
-    }
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
         startWith(''),
@@ -133,14 +130,15 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
             finalize(() => (this.loading = false)),
           );
         }),
+        takeUntilDestroyed(this.destroyRef),
       );
     }
   }
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
-      this.trigger?.panelClosingActions.subscribe(() => {
+      this.trigger?.panelClosingActions.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         if (this.selectedData !== null) {
-          this.setCurrentValue(this.selectedData.label);
+          this.setCurrentValue(this.selectedData);
         }
       });
     }
@@ -166,9 +164,9 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   /** The hint stands for a few seconds, matching the authority widgets. */
   private showRevertHint(): void {
     this.justReverted = true;
-    setTimeout(() => {
-      this.justReverted = false;
-    }, 5000);
+    timer(5000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => (this.justReverted = false));
   }
 
   /** Bound to the option's `mousedown`, which precedes the blur it causes. */
@@ -221,28 +219,20 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   /** Explain a discarded value without leaving an already-cleared field invalid. */
   private showClearedWarning(): void {
     this.justCleared = true;
-    setTimeout(() => {
-      this.justCleared = false;
-    }, 5000);
+    timer(5000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => (this.justCleared = false));
   }
-  // inputFocused(): void {
-  //   if (!this.readOnlyMode) {
-  //     const currentValue = this.inputValueControl.value || '';
-  //     this.filteredOptions = this.filter(currentValue);
-  //     setTimeout(() => this.trigger.openPanel(), 0);
-  //   }
-  // }
   setCurrentValue(currentValue: unknown): void {
     // Remember the term itself, not only its rendering. It is what the BioPortal
     // link is built from, and read-write selection records it the same way.
-    if (isAuthorityTerm(currentValue)) {
-      this.selectedData = currentValue;
-    }
+    const term = isAuthorityTerm(currentValue) ? currentValue : null;
+    this.selectedData = term;
     if (this.readOnlyMode) {
       const displayTerm = this.getBioPortalTermDisplayValue(currentValue);
       this.inputValueControl.setValue(displayTerm);
     } else {
-      this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
+      this.inputValueControl.setValue(term?.label ?? (typeof currentValue === 'string' ? currentValue : null));
     }
   }
   /*
@@ -258,6 +248,24 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    * kind of value shown in the same kind of box, one row apart. `getCompoundValue`
    * in `abstract-authority-input.component.ts` is the form they use.
    */
+  /**
+   * The authorities this field draws on, for the box to state when it holds no value.
+   *
+   * Rendered as links, so the box showing them cannot be an `input`: placeholder text is not
+   * clickable. It is a bordered element instead, the way the read-only clock already is — and it
+   * appears only while the field is empty and unreadable-into, so none of what the note at the top of
+   * this template warns about applies. There is no Clear action to lose, no button inside an anchor,
+   * and the value's own suffix link is untouched.
+   */
+  get specSources(): ReadonlyArray<SpecTermSource> {
+    return specTermSourcesOf(this.component);
+  }
+
+  /** Where an authority can be read about, or null when it names no acronym to address it by. */
+  specSourceLink(source: SpecTermSource): string | null {
+    return bioPortalSourceLink(source);
+  }
+
   getBioPortalTermDisplayValue(value: unknown): string {
     const term = isAuthorityTerm(value) ? value : { iri: '', label: '' };
     if (term.label && term.iri) {
@@ -272,29 +280,19 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    * function that formats the display text, and that function only runs in
    * read-only mode — so the link existed in one mode and not the other for no
    * reason anyone chose. The constraint the term came through decides which
-   * BioPortal path names it: a branch carries its own source, a class and an
-   * ontology are named under the configured prefix.
+   * Built from the constraint's acronym, in `bioPortalTermLink`.
    */
+  /**
+   * Whether to render the term as a value rather than as a control. Same rule as the authority
+   * fields: read-only with a term in hand, the identifier belongs in a link, and text inside an
+   * `input` cannot be one.
+   */
+  get showsTermAsValue(): boolean {
+    return this.readOnlyMode && this.selectedData !== null;
+  }
+
   get bioPortalTermLink(): string | null {
-    const iri = this.selectedData?.iri;
-    if (!iri) {
-      return null;
-    }
-
-    const { branches, classes, ontologies } = this.component.controlledInfo;
-    const term = '?p=classes&conceptid=' + encodeURIComponent(iri);
-    const prefix = this.iriPrefix.getBioPortalPrefix();
-
-    if (branches[0]) {
-      return branches[0].source + term;
-    }
-    if (classes[0]) {
-      return prefix + classes[0].source + term;
-    }
-    if (ontologies[0]) {
-      return prefix + ontologies[0].acronym + term;
-    }
-    return null;
+    return bioPortalTermLink(this.component.controlledInfo, this.selectedData?.iri);
   }
   clearValue(): void {
     this.selectedData = null;

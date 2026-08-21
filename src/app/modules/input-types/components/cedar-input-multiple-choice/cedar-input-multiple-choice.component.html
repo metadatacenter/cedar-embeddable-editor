@@ -4,9 +4,25 @@
     <mat-radio-group [formControl]="selectedChoiceInputControl">
       @for (choice of component.choiceInfo.choices; track choice) {
         <div class="choice-option-row">
-          <mat-radio-button color="primary" [value]="choice.label" (change)="inputChanged($event)">{{
-            choice.label
-          }}</mat-radio-button>
+          <!--
+            The declared default is marked on the option that carries it, not stated beside the
+            field's name. A radio group has no placeholder to put it in, which is why it used to sit
+            on the label line; the option itself is the one place a reader is already looking, and it
+            says which of the two the template picked without a second lookup. Only where the group
+            is standing in for the specification: with an instance behind it, the selected option is
+            an answer, and calling it the default would misdescribe it.
+          -->
+          <mat-radio-button
+            color="primary"
+            [value]="choice.label"
+            (change)="inputChanged($event)"
+            [tabIndex]="readOnlyMode ? -1 : 0"
+            [attr.aria-disabled]="readOnlyMode ? true : null"
+            >{{ choice.label }}
+            @if (handlerContext.statesSpecification && choice.selectedByDefault) {
+              <span class="choice-default-mark">{{ 'Spec.DefaultMark' | translate }}</span>
+            }
+          </mat-radio-button>
           @if (choice.label === selectedChoiceInputControl.value && !readOnlyMode) {
             <button
               class="choice-clear-button"

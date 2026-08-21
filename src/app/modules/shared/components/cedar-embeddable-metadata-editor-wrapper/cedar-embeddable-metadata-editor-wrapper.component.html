@@ -1,20 +1,11 @@
 <app-cedar-font-registrar></app-cedar-font-registrar>
-<div class="cee-root" (change)="forwardChange($event)">
+<div class="cee-root" (change)="suppressNativeChange($event)">
   @if (editorDataReady()) {
     <app-cedar-embeddable-metadata-editor
       [config]="innerConfig"
       [dataContextObject]="dataContext"
       [handlerContextObject]="handlerContext"
-      [templateJsonObject]="templateJson"
-      [instanceJsonObject]="instanceJson"
-      [templateAndInstanceObject]="templateAndInstanceJson"
-      [sampleTemplateLoaderObject]="sampleTemplateLoaderObject"
+      [artifactRevision]="artifactRevision"
     ></app-cedar-embeddable-metadata-editor>
-  }
-  @if (!editorDataReady() && showSpinnerBeforeInit) {
-    <div class="spinner-wrapper">
-      <mat-progress-spinner diameter="24" mode="indeterminate"> </mat-progress-spinner>
-      <h1>{{ 'Process.Initializing' | translate }}</h1>
-    </div>
   }
 </div>
