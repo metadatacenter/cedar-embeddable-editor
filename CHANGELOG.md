@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A host's malformed template no longer spends the one assignment it gets. `templateObject`
+  and the template half of `templateAndInstanceObject` are set-once, so a payload that the
+  parser could not read used up the claim and left the element permanently empty with no
+  way to correct it. Each is now parsed into a throwaway context first, and rejected with
+  the parser's own reason before the claim is taken.
+
+- Consecutive page breaks produce the blank pages they describe, at the positions they
+  describe. The count of breaks in a row was carried forward and the blank pages emitted
+  after the next page of content, so a template that broke twice in the middle showed its
+  blanks in the wrong order; a trailing break is still a final blank page.
+
+- A widget that a new occurrence has no value for is cleared rather than left showing the
+  previous one. The same widget instance is reused as a multi-element pages, and a child
+  absent from the occurrence being shown was simply skipped, so the value from the
+  occurrence before it stayed on screen while the model held nothing. A temporal field
+  clears every part of the instant it had, not only its text.
+
+- Paging between two controlled terms carries the term rather than its label. The registry
+  handed an editable controlled field the label alone, so the widget lost the IRI it needs
+  for the term's link and could not tell two occurrences with the same label apart.
+
 - Declared text, textarea and controlled-term defaults now enter a newly built
   instance before any widget renders, just as selected choice defaults do. A
   controlled default keeps both its IRI and label, optional multi-choice defaults
@@ -146,6 +167,17 @@ null` for a literal and `{}` for an IRI — and the compact serialization, the o
   only one that could not read them without a cast.
 
 ### Changed
+
+- The host artifact inputs are accepted as one atomic state. `templateObject`,
+  `instanceJsonObject` and `templateAndInstanceObject` overlap and may arrive in any order,
+  and the wrapper coordinated them inline, which left a failure halfway through
+  initialization able to publish a half-replaced context. A coordinator now parses into a
+  candidate context and publishes the completed state, and the inner component renders what
+  it is given rather than parsing the artifact a second time.
+
+- Widget subscriptions end with the widget through `takeUntilDestroyed` rather than a
+  hand-held `Subscription` per component, which removes the teardown each of the six had to
+  implement.
 
 - Work that has to happen after Angular has rendered waits for the render rather
   than for a timer. Pushing model values into live widgets, and the same push after
