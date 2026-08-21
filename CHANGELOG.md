@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-08-21
+
+The first stable release on the 2.x line, published to npmjs as `cedar-embeddable-editor@2.0.1`.
+It takes its model library from the public registry — `cedar-model-typescript-library@1.0.2` in
+place of the scoped Nexus snapshot the `2.0.0-dev.*` builds carried — so an embedder installs CEE
+and the model it speaks from npmjs alone. The entries below were accumulated across those
+snapshots, which are recorded individually further down.
+
 ### Fixed
 
 - A host's malformed template no longer spends the one assignment it gets. `templateObject`
