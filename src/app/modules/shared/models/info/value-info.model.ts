@@ -26,7 +26,7 @@ export class ValueInfo {
    * library gives those kinds — and email, link and phone-number — an empty
    * constraint object, so a default declared on one never reaches here.
    */
-  defaultValue: string | boolean | AuthorityTerm | null = null;
+  defaultValue: string | number | boolean | AuthorityTerm | null = null;
   minLength: number | null = null;
   maxLength: number | null = null;
   temporalType: string | null = null;

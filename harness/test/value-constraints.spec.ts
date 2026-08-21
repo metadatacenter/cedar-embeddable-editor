@@ -20,7 +20,7 @@ import { CedarBuilders, NumberType, TemporalGranularity, TemporalType } from 'ce
 import { FIELD_KINDS, FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { instanceWith, literalOf, literalValue, templateIdOf, termOf } from '../src/values';
+import { instanceWith, literalOf, literalValue, templateIdOf, termOf, xsdTypeOf } from '../src/values';
 
 const kindOf = (
   key: string,
@@ -142,6 +142,8 @@ describe('controlled defaults', () => {
 
 describe('numeric constraints', () => {
   const numberTypes = [
+    ['BYTE', NumberType.BYTE],
+    ['SHORT', NumberType.SHORT],
     ['INT', NumberType.INT],
     ['LONG', NumberType.LONG],
     ['FLOAT', NumberType.FLOAT],
@@ -192,6 +194,32 @@ describe('numeric constraints', () => {
       (b) => b.withNumberType(NumberType.INT).withMinValue(0),
     );
     expect(drive(kind).findOrThrow(['_f']).numberInfo.minValue).toBe(0);
+  });
+
+  it.each<[string, NumberType, number]>([
+    ['BYTE', NumberType.BYTE, -128],
+    ['SHORT', NumberType.SHORT, 32767],
+    ['INT', NumberType.INT, 2147483647],
+    ['LONG', NumberType.LONG, Number.MAX_SAFE_INTEGER],
+    ['FLOAT', NumberType.FLOAT, 3.4e38],
+    ['DOUBLE', NumberType.DOUBLE, 1e300],
+    ['DECIMAL', NumberType.DECIMAL, 42.5],
+  ])('seeds a valid %s default as its typed literal', (_name, numberType, defaultValue) => {
+    const numeric = kindOf(
+      `num_default_${_name}`,
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => b.withNumberType(numberType),
+    );
+    const template = buildTemplate({
+      name: `vc_num_default_${_name}`,
+      children: [{ kind: numeric, name: 'f', defaultValue }],
+    });
+    const driver = new CeeDriver(template);
+
+    expect(driver.findOrThrow(['_f']).valueInfo.defaultValue).toBe(defaultValue);
+    expect(literalOf(driver.extract.values._f)).toBe(String(defaultValue));
+    expect(xsdTypeOf(driver.extract.values._f)).toBe(numberType.getValue());
   });
 });
 
@@ -244,6 +272,43 @@ describe('temporal constraints', () => {
           .withTimezoneEnabled(true),
     );
     expect(drive(kind).findOrThrow(['_f']).basicInfo.timezoneEnabled).toBe(true);
+  });
+
+  it.each<[string, TemporalType, TemporalGranularity, string, string]>([
+    ['date/year', TemporalType.DATE, TemporalGranularity.YEAR, '2026', '2026-01-01'],
+    ['date/month', TemporalType.DATE, TemporalGranularity.MONTH, '2026-08', '2026-08-01'],
+    ['date/day', TemporalType.DATE, TemporalGranularity.DAY, '2024-02-29', '2024-02-29'],
+    ['time/hour', TemporalType.TIME, TemporalGranularity.HOUR, '14', '14:00:00'],
+    ['time/minute', TemporalType.TIME, TemporalGranularity.MINUTE, '14:30', '14:30:00'],
+    ['time/second', TemporalType.TIME, TemporalGranularity.SECOND, '14:30:45', '14:30:45'],
+    ['time/decimalSecond', TemporalType.TIME, TemporalGranularity.DECIMAL_SECOND, '14:30:45.125', '14:30:45.125'],
+    ['dateTime/day', TemporalType.DATETIME, TemporalGranularity.DAY, '2026-08-20', '2026-08-20T00:00:00'],
+    ['dateTime/hour', TemporalType.DATETIME, TemporalGranularity.HOUR, '2026-08-20T14', '2026-08-20T14:00:00'],
+    ['dateTime/minute', TemporalType.DATETIME, TemporalGranularity.MINUTE, '2026-08-20T14:30', '2026-08-20T14:30:00'],
+    ['dateTime/second', TemporalType.DATETIME, TemporalGranularity.SECOND, '2026-08-20T14:30:45', '2026-08-20T14:30:45'],
+    [
+      'dateTime/decimalSecond',
+      TemporalType.DATETIME,
+      TemporalGranularity.DECIMAL_SECOND,
+      '2026-08-20T14:30:45.125',
+      '2026-08-20T14:30:45.125',
+    ],
+  ])('seeds a %s default in complete instance form', (_name, temporalType, granularity, declared, stored) => {
+    const temporal = kindOf(
+      `temporal_default_${_name}`,
+      'temporal',
+      () => CedarBuilders.temporalFieldBuilder(),
+      (b) => b.withTemporalType(temporalType).withTemporalGranularity(granularity),
+    );
+    const template = buildTemplate({
+      name: `vc_temporal_default_${_name}`,
+      children: [{ kind: temporal, name: 'f', defaultValue: declared }],
+    });
+    const driver = new CeeDriver(template);
+
+    expect(driver.findOrThrow(['_f']).valueInfo.defaultValue).toBe(declared);
+    expect(literalOf(driver.extract.values._f)).toBe(stored);
+    expect(xsdTypeOf(driver.extract.values._f)).toBe(temporalType.getValue());
   });
 });
 

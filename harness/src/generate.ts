@@ -87,6 +87,11 @@ const buildField = (spec: ChildSpec) => {
     } else {
       throw new Error(`${kind.key} cannot declare a literal default`);
     }
+  } else if (typeof spec.defaultValue === 'number') {
+    if (typeof b?.withDefaultValue !== 'function') {
+      throw new Error(`${kind.key} cannot declare a numeric default`);
+    }
+    b = b.withDefaultValue(spec.defaultValue);
   } else if (spec.defaultValue) {
     if (typeof b?.withDefaultValue !== 'function') {
       throw new Error(`${kind.key} cannot declare a controlled-term default`);
@@ -116,7 +121,7 @@ export interface ChildSpec {
   /** Literal choices, with either per-option or field-level default selection. */
   options?: Array<{ label: string; selectedByDefault?: boolean }>;
   /** The value a newly built instance should start with. */
-  defaultValue?: string | { iri: string; label: string };
+  defaultValue?: string | number | { iri: string; label: string };
   /**
    * `_ui._size`, which only the two sizeable static kinds carry.
    *

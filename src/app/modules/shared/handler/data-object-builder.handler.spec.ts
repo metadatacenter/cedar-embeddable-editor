@@ -8,7 +8,7 @@
  * template's 53 fields it listed six, the five unanswered radios among them.
  */
 import { describe, expect, it } from 'vitest';
-import { InstanceDataContainer } from 'cedar-model-typescript-library';
+import { InstanceDataContainer, InstanceDataTypedAtom } from 'cedar-model-typescript-library';
 import { DataObjectBuilderHandler } from './data-object-builder.handler';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
@@ -141,6 +141,33 @@ describe('declared defaults in a newly built instance', () => {
     const value = childOf(built(field), 'source');
     expect(InstanceValueNode.iri(value)).toBe('https://example.org/source');
     expect(InstanceValueNode.literal(value)).toBeUndefined();
+  });
+
+  it('seeds a numeric default as a typed literal', () => {
+    const field = new SingleFieldComponent();
+    field.name = 'measurement';
+    field.basicInfo.inputType = InputType.numeric;
+    field.numberInfo.numberType = 'xsd:decimal';
+    field.valueInfo.defaultValue = 42.5;
+
+    const value = childOf(built(field), 'measurement');
+    expect(InstanceValueNode.literal(value)).toBe('42.5');
+    expect(value).toBeInstanceOf(InstanceDataTypedAtom);
+    expect((value as InstanceDataTypedAtom).type).toBe('xsd:decimal');
+  });
+
+  it('normalizes a temporal default to the complete typed value an instance stores', () => {
+    const field = new SingleFieldComponent();
+    field.name = 'collected_on';
+    field.basicInfo.inputType = InputType.temporal;
+    field.basicInfo.temporalGranularity = 'month';
+    field.valueInfo.temporalType = 'xsd:date';
+    field.valueInfo.defaultValue = '2026-08';
+
+    const value = childOf(built(field), 'collected_on');
+    expect(InstanceValueNode.literal(value)).toBe('2026-08-01');
+    expect(value).toBeInstanceOf(InstanceDataTypedAtom);
+    expect((value as InstanceDataTypedAtom).type).toBe('xsd:date');
   });
 
   it('puts one literal default before the empty slots required by minItems', () => {

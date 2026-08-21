@@ -2137,16 +2137,20 @@ test.describe('ported from the deleted component specs', () => {
 });
 
 test.describe('declared non-enumerated defaults', () => {
-  test('a new instance starts with its literal and controlled-term defaults', async ({ page }) => {
+  test('editable: a new instance starts with text, numeric, temporal and controlled-term defaults', async ({ page }) => {
     await open(page, '23-declared-defaults');
 
     await expect(page.locator('input[aria-label="title"]')).toHaveValue('Draft record');
+    await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('42.5');
+    await expect(page.locator('input[aria-label="Select Date"]')).not.toHaveValue('');
     await expect(page.locator('input[aria-label="organism"]')).toHaveValue('Homo sapiens');
 
     const metadata = await page.evaluate(
       () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
     );
     expect(valueOf(metadata, '_title')).toBe('Draft record');
+    expect(valueOf(metadata, '_measurement')).toBe('42.5');
+    expect(valueOf(metadata, '_collected_on')).toBe('2026-08-20');
     expect(termOf(metadata, '_organism')).toEqual({
       iri: 'http://purl.obolibrary.org/obo/NCBITaxon_9606',
       label: 'Homo sapiens',
@@ -2157,14 +2161,36 @@ test.describe('declared non-enumerated defaults', () => {
     await open(page, '23-declared-defaults', undefined, '23-declared-defaults-blank-instance');
 
     await expect(page.locator('input[aria-label="title"]')).toHaveValue('');
+    await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('');
+    await expect(page.locator('app-cedar-input-datetime input')).toHaveValue('');
     await expect(page.locator('input[aria-label="organism"]')).toHaveValue('');
 
     const metadata = await page.evaluate(
       () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
     );
     expect(JSON.stringify(metadata)).not.toContain('Draft record');
+    expect(JSON.stringify(metadata)).not.toContain('42.5');
+    expect(JSON.stringify(metadata)).not.toContain('2026-08-20');
     expect(JSON.stringify(metadata)).not.toContain('Homo sapiens');
     expect(JSON.stringify(metadata)).not.toContain('NCBITaxon_9606');
+  });
+
+  test('read-only template view states numeric and temporal defaults as specification facts', async ({ page }) => {
+    await open(page, '23-declared-defaults', 'readonly');
+
+    const measurement = page.locator('.non-iterable-component').filter({ hasText: 'measurement' });
+    const collectedOn = page.locator('.non-iterable-component').filter({ hasText: 'collected_on' });
+    await expect(measurement.locator('.cee-spec-box')).toContainText('default 42.5');
+    await expect(collectedOn.locator('.cee-spec-box')).toContainText('default 2026-08-20');
+    await expect(measurement.locator('input')).toHaveCount(0);
+    await expect(collectedOn.locator('input')).toHaveCount(0);
+  });
+
+  test('read-only supplied instance keeps explicitly blank numeric and temporal fields blank', async ({ page }) => {
+    await open(page, '23-declared-defaults', 'readonly', '23-declared-defaults-blank-instance');
+
+    await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('');
+    await expect(page.locator('app-cedar-input-datetime input')).toHaveValue('');
   });
 });
 

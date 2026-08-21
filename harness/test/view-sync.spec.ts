@@ -20,7 +20,14 @@
  */
 import { describe, expect, it } from 'vitest';
 import { DocumentKey } from '../src/document-keys';
-import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
+import {
+  CedarBuilders,
+  ControlledTermOntologyBuilder,
+  Iri,
+  NumberType,
+  TemporalGranularity,
+  TemporalType,
+} from 'cedar-model-typescript-library';
 import { ActiveComponentRegistryService } from '@cee/service/active-component-registry.service';
 import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
@@ -50,6 +57,12 @@ const kind = (
 ): FieldKind => ({ key, inputType, make, isStatic: false, write: 'value', sample, ...extra }) as FieldKind;
 
 const TEXT = kind('text', 'textfield', () => CedarBuilders.textFieldBuilder(), 'some text');
+const NUMERIC = kind('numeric', 'numeric', () => CedarBuilders.numericFieldBuilder(), '42.5', {
+  configure: (b: any) => b.withNumberType(NumberType.DECIMAL),
+});
+const TEMPORAL = kind('temporal', 'temporal', () => CedarBuilders.temporalFieldBuilder(), '2026-08-20', {
+  configure: (b: any) => b.withTemporalType(TemporalType.DATE).withTemporalGranularity(TemporalGranularity.DAY),
+});
 const LINK = kind('link', 'link', () => CedarBuilders.linkFieldBuilder(), 'https://example.org/thing');
 const ORCID = kind(
   'orcid',
@@ -136,6 +149,21 @@ describe('single fields', () => {
     expect(r.widget.last).toBe('typed');
   });
 
+  it.each([
+    ['numeric', NUMERIC, 42.5, '42.5'],
+    ['temporal', TEMPORAL, '2026-08-20', '2026-08-20'],
+  ] as const)('pushes a seeded %s default into an editable widget', (_name, fieldKind, declared, shown) => {
+    const template = buildTemplate({
+      name: `vs_edit_${_name}_default`,
+      children: [{ kind: fieldKind, name: 'f', defaultValue: declared }],
+    });
+    const r = rig(fieldKind, ['_f'], template);
+
+    r.sync();
+
+    expect(r.widget.last).toBe(shown);
+  });
+
   it('pushes a link as its IRI', () => {
     const r = rig(LINK);
     r.driver.setValue(['_f'], LINK, 'https://example.org/thing');
@@ -202,6 +230,21 @@ describe('single fields', () => {
       ],
     });
     const r = rig(CONTROLLED, ['_f'], template, { readOnlyMode: true });
+
+    r.sync();
+
+    expect(r.widget.last).toBeNull();
+  });
+
+  it.each([
+    ['numeric', NUMERIC, 42.5],
+    ['temporal', TEMPORAL, '2026-08-20'],
+  ] as const)('clears a seeded %s default from a specification-only read-only control', (_name, fieldKind, declared) => {
+    const template = buildTemplate({
+      name: `vs_ro_${_name}_default`,
+      children: [{ kind: fieldKind, name: 'f', defaultValue: declared }],
+    });
+    const r = rig(fieldKind, ['_f'], template, { readOnlyMode: true });
 
     r.sync();
 

@@ -379,6 +379,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
       fc.basicInfo.inputTimeFormat = field.inputTimeFormat.getValue();
       fc.basicInfo.temporalGranularity = field.temporalGranularity.getValue();
       fc.valueInfo.temporalType = field.valueConstraints.temporalType.getValue();
+      fc.valueInfo.defaultValue = field.valueConstraints.defaultValue ?? null;
     }
 
     /*
@@ -404,6 +405,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
 
     if (isNumericField(field)) {
       fc.numberInfo.numberType = field.valueConstraints.numberType.getValue();
+      fc.valueInfo.defaultValue = field.valueConstraints.defaultValue ?? null;
       fc.numberInfo.unitOfMeasure = field.valueConstraints.unitOfMeasure ?? null;
       fc.numberInfo.minValue = field.valueConstraints.minValue ?? null;
       fc.numberInfo.maxValue = field.valueConstraints.maxValue ?? null;
@@ -454,7 +456,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
       };
     } else {
       // Null, not undefined: a field with no declared default holds nothing, and
-      // `ValueInfo.defaultValue` says `string | boolean | AuthorityTerm | null`.
+      // `ValueInfo.defaultValue` says `string | number | boolean | AuthorityTerm | null`.
       fc.valueInfo.defaultValue = null;
     }
   }

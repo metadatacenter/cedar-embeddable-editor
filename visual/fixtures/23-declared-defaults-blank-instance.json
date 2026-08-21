@@ -1,9 +1,17 @@
 {
   "@id": "https://example.org/instances/declared-defaults-blank-1",
   "schema:name": "DeclaredDefaults blank instance",
-  "schema:description": "Both fields were explicitly left blank by the host",
+  "schema:description": "Every field was explicitly left blank by the host",
   "_title": {
     "@value": null
+  },
+  "_measurement": {
+    "@value": null,
+    "@type": "xsd:decimal"
+  },
+  "_collected_on": {
+    "@value": null,
+    "@type": "xsd:date"
   },
   "_organism": {},
   "@context": {

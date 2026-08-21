@@ -5,6 +5,7 @@ import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.mo
 import { InstanceArray, InstanceNode, InstanceObject } from '../models/instance-node.model';
 import { InstanceDataContainer } from 'cedar-model-typescript-library';
 import { isAuthorityTerm } from '../models/authority/authority-term.guard';
+import { CedarTemporalValue } from './cedar-temporal-value';
 
 export class DataObjectUtil {
   /**
@@ -64,7 +65,17 @@ export class DataObjectUtil {
     if (typeof declared === 'string' && DataObjectUtil.isIriValued(component)) {
       return [InstanceValueNode.iriValue(declared)];
     }
-    if (typeof declared === 'string' || typeof declared === 'boolean') {
+    if (typeof declared === 'string' && component.basicInfo.inputType === InputType.temporal) {
+      const normalized = CedarTemporalValue.normalizeDeclaredDefault(declared, {
+        temporalType: component.valueInfo.temporalType,
+        granularity: component.basicInfo.temporalGranularity,
+        timezoneEnabled: component.basicInfo.timezoneEnabled === true,
+      });
+      return normalized === null
+        ? []
+        : [InstanceValueNode.literalValue(normalized, DataObjectUtil.xsdTypeForFullCopy(component))];
+    }
+    if (typeof declared === 'string' || typeof declared === 'number' || typeof declared === 'boolean') {
       return [InstanceValueNode.literalValue(String(declared), DataObjectUtil.xsdTypeForFullCopy(component))];
     }
     return [];

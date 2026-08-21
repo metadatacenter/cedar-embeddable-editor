@@ -335,6 +335,16 @@ describe('a declared default', () => {
     expect(specValueFactsOf(field)).toStrictEqual([]);
   });
 
+  it('states a numeric zero rather than treating it as an absent default', () => {
+    const field = new SingleFieldComponent();
+    field.basicInfo.inputType = InputType.numeric;
+    field.valueInfo.defaultValue = 0;
+
+    expect(specDefaultFactsOf(field)).toStrictEqual([
+      { key: SpecFactKey.defaultValue, params: { defaultValue: '0' } },
+    ]);
+  });
+
   it('is left to the permitted-values list for an enumeration, which marks its own', () => {
     const field = new SingleFieldComponent();
     field.basicInfo.inputType = InputType.list;

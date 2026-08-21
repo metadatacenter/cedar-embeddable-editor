@@ -215,7 +215,7 @@ export function specDefaultFactsOf(field: FieldComponent): SpecFact[] {
   if (typeof declared === 'string' && declared.length > 0) {
     return [fact(SpecFactKey.defaultValue, { defaultValue: declared })];
   }
-  if (typeof declared === 'boolean') {
+  if (typeof declared === 'number' || typeof declared === 'boolean') {
     return [fact(SpecFactKey.defaultValue, { defaultValue: String(declared) })];
   }
   if (isAuthorityTerm(declared)) {

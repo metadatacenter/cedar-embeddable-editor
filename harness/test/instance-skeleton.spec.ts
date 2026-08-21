@@ -146,7 +146,7 @@ describe('the XSD type a numeric or temporal slot declares', () => {
     expect(xsdTypeOf(slot)).toBe('xsd:decimal');
   });
 
-  it('leaves the type off a temporal field that declares none', () => {
+  it('uses the model default when a temporal builder declares no explicit type', () => {
     const kind = {
       key: 'tmp',
       inputType: 'temporal',
@@ -157,7 +157,8 @@ describe('the XSD type a numeric or temporal slot declares', () => {
     };
     const template = buildTemplate({ name: 'sk_tmp_none', children: [{ kind, name: 'f' }] });
     const slot = new CeeDriver(template).metadata._f;
-    expect(Object.hasOwn(slot, DocumentKey.atType), 'a null @type was written into the instance').toBe(false);
+    expect(Object.hasOwn(slot, DocumentKey.atType), 'the model default type was omitted from the instance').toBe(true);
+    expect(xsdTypeOf(slot)).toBe('xsd:dateTime');
   });
 
   it('uses the declared temporal type', () => {

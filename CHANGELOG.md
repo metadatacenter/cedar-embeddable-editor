@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   create their own occurrences, and rendering no longer overwrites an explicitly
   blank instance supplied by a host.
 
+- Declared numeric and temporal defaults now follow that same instance-first path.
+  Numbers retain their declared XSD datatype; temporal defaults at year, month,
+  day, hour, minute, second and fractional-second granularity are normalized to
+  complete instance values. Editable controls receive the seeded value, while a
+  read-only template view labels it as a default rather than as recorded data.
+
 - A read-only field's occurrence chips no longer land on the facts beside its name.
   The chips are pulled 33px up onto the field's title row, which saves a row while
   the form is editable and that row holds only the field's name; read-only the same
