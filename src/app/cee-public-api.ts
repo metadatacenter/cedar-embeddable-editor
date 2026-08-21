@@ -222,7 +222,10 @@ export interface CeeEventHandler {
   error?: (label: string, value: object | null) => void;
   /** Called after a field mutation actually changes the serialized instance. */
   valueChanged?: (path: string[], value: unknown) => void;
-  /** Declared, never called. CEE has something to say. */
+  /**
+   * @deprecated Never emitted. Listen for the structured DOM `change` event;
+   * this compatibility member will be removed in the next major release.
+   */
   message?: (message: string) => void;
   /** Called once, after this element's first successful form render. */
   ready?: () => void;
@@ -244,6 +247,40 @@ export interface CeeEventHandler {
  * handler and meaningless for the three read-only getters below.
  */
 export interface CedarEmbeddableEditorElement extends HTMLElement {
+  /** Typed host mutation event; the inherited overloads still handle every other DOM event. */
+  addEventListener(
+    type: 'change',
+    listener: ((this: CedarEmbeddableEditorElement, event: CustomEvent<CeeChangeDetail>) => unknown) | null,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener<K extends keyof HTMLElementEventMap>(
+    type: K,
+    listener: (this: HTMLElement, event: HTMLElementEventMap[K]) => unknown,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  /** Typed counterpart to the specialized `change` listener overload. */
+  removeEventListener(
+    type: 'change',
+    listener: ((this: CedarEmbeddableEditorElement, event: CustomEvent<CeeChangeDetail>) => unknown) | null,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener<K extends keyof HTMLElementEventMap>(
+    type: K,
+    listener: (this: HTMLElement, event: HTMLElementEventMap[K]) => unknown,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions,
+  ): void;
+
   /** Configuration. Assign once, before or after the artifact. */
   config: CeeConfig;
 

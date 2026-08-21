@@ -24,8 +24,9 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, timer } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
 import { isAuthorityTerm } from '../../../shared/models/authority/authority-term.guard';
 import { ControlledFieldDataService } from '../../../shared/service/controlled-field-data.service';
@@ -129,12 +130,13 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
             finalize(() => (this.loading = false)),
           );
         }),
+        takeUntilDestroyed(this.destroyRef),
       );
     }
   }
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
-      this.trigger?.panelClosingActions.subscribe(() => {
+      this.trigger?.panelClosingActions.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         if (this.selectedData !== null) {
           this.setCurrentValue(this.selectedData);
         }
@@ -162,9 +164,9 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   /** The hint stands for a few seconds, matching the authority widgets. */
   private showRevertHint(): void {
     this.justReverted = true;
-    setTimeout(() => {
-      this.justReverted = false;
-    }, 5000);
+    timer(5000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => (this.justReverted = false));
   }
 
   /** Bound to the option's `mousedown`, which precedes the blur it causes. */
@@ -217,17 +219,10 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   /** Explain a discarded value without leaving an already-cleared field invalid. */
   private showClearedWarning(): void {
     this.justCleared = true;
-    setTimeout(() => {
-      this.justCleared = false;
-    }, 5000);
+    timer(5000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => (this.justCleared = false));
   }
-  // inputFocused(): void {
-  //   if (!this.readOnlyMode) {
-  //     const currentValue = this.inputValueControl.value || '';
-  //     this.filteredOptions = this.filter(currentValue);
-  //     setTimeout(() => this.trigger.openPanel(), 0);
-  //   }
-  // }
   setCurrentValue(currentValue: unknown): void {
     // Remember the term itself, not only its rendering. It is what the BioPortal
     // link is built from, and read-write selection records it the same way.

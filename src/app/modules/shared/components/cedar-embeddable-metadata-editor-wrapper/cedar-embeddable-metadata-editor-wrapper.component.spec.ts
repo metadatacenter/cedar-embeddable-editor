@@ -169,6 +169,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
 
     component.ngOnInit();
     component.templateObject = validTemplate;
+    expect(changes, 'building the canonical instance was reported as a user mutation').toEqual([]);
     const field = component.dataContext.templateRepresentation?.children.find(
       (child): child is FieldComponent => 'basicInfo' in child,
     ) as FieldComponent;
@@ -176,8 +177,17 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     component.handlerContext.changeValue(field, 'edited');
 
     expect(changes).toHaveLength(1);
-    expect(changes[0]).toMatchObject({ operation: 'valueChanged', path: field.path, value: 'edited' });
-    expect(changes[0].dataQualityReport).toEqual(component.dataQualityReport);
+    const metadata = component.currentMetadata as CeeJsonObject;
+    const report = component.dataQualityReport as CeeChangeDetail['dataQualityReport'];
+    expect(changes[0]).toEqual({
+      operation: 'valueChanged',
+      path: field.path,
+      value: 'edited',
+      validity: report.isValid,
+      dataQualityReport: report,
+      title: typeof metadata['schema:name'] === 'string' ? metadata['schema:name'] : null,
+      description: typeof metadata['schema:description'] === 'string' ? metadata['schema:description'] : null,
+    });
     expect(mocks.valueChanged).toHaveBeenCalledOnce();
     expect(mocks.valueChanged).toHaveBeenLastCalledWith(field.path, 'edited');
 

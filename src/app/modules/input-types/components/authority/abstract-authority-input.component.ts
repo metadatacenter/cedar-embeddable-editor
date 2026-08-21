@@ -2,8 +2,9 @@ import { AfterViewInit, Directive, Input, OnInit, ViewChild } from '@angular/cor
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { Observable, of } from 'rxjs';
+import { Observable, of, timer } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
@@ -43,9 +44,8 @@ export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
  * A subclass supplies a `descriptor` and nothing else. What it must *not* supply
  * is a second copy of anything below.
  *
- * ORCID and ROR do *not* extend this. Each carries its own copy of the search
- * pipeline alongside the detail panel that is genuinely its own, so a change to
- * the flow here has to be made in those two as well until they are folded in.
+ * All seven authority widgets extend this class. ORCID and ROR add their own
+ * detail panels, but the search and lifecycle rules still live here once.
  */
 @Directive()
 export abstract class AbstractAuthorityInputComponent extends CedarUIDirective implements OnInit, AfterViewInit {
@@ -169,13 +169,14 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
             }),
           );
         }),
+        takeUntilDestroyed(this.destroyRef),
       );
     }
   }
 
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
-      this.trigger?.panelClosingActions.subscribe((event) => {
+      this.trigger?.panelClosingActions.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
         // `panelClosingActions` emits the option-selection event that closed the
         // panel, or null when something else did. `source` is the option.
         const selectionMode = !!event?.source;
@@ -219,11 +220,13 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
       // Material 14 checks document.activeElement before opening on input. In
       // Shadow DOM that is the custom-element host, not this input, so open the
       // panel explicitly once Angular has updated matAutocompleteDisabled.
-      setTimeout(() => {
-        if (this.trigger && !this.trigger.panelOpen) {
-          this.trigger.openPanel();
-        }
-      });
+      timer(1)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          if (this.trigger && !this.trigger.panelOpen) {
+            this.trigger.openPanel();
+          }
+        });
     }
   }
 
@@ -399,16 +402,16 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    */
   protected showRevertHint(): void {
     this.justReverted = true;
-    setTimeout(() => {
-      this.justReverted = false;
-    }, 5000);
+    timer(5000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => (this.justReverted = false));
   }
 
   /** The text was discarded, but the now-empty optional field is not invalid. */
   private showClearedWarning(): void {
     this.justCleared = true;
-    setTimeout(() => {
-      this.justCleared = false;
-    }, 5000);
+    timer(5000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => (this.justCleared = false));
   }
 }

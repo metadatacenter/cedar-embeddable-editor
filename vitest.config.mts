@@ -34,30 +34,6 @@ export default defineConfig({
     // `harness/` has its own project and its own config; running both from here
     // would give two different meanings to `npm test` in the same repo.
     root: '.',
-    server: {
-      deps: {
-        /**
-         * Let Vite resolve these packages instead of Node.
-         *
-         * Each ships an fesm bundle that imports `rxjs/operators` as a bare
-         * directory. rxjs 6 publishes no `exports` map, so Node's ESM loader
-         * refuses the import outright (`ERR_UNSUPPORTED_DIR_IMPORT`) and the
-         * spec that reaches it fails to load. Vite's resolver applies
-         * node-resolution semantics and finds the index file.
-         *
-         * Inlining is the mechanism rather than a `resolve.alias` on
-         * `rxjs/operators`, which looks like the tidier fix and does nothing: an
-         * externalized package is resolved by Node before Vite sees it, so no
-         * alias applies. Inlining is what puts the import through Vite at all.
-         *
-         * The list is every dependency in the tree with this packaging, found by
-         * grep rather than one test failure at a time. rxjs 7 publishes proper
-         * entry points and makes the whole block unnecessary, which happens
-         * anyway at Angular 16.
-         */
-        inline: [/@angular\//, /@ngx-translate\//, /@ng-select\//, /ngx-mat-select-search/],
-      },
-    },
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],

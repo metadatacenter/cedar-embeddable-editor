@@ -150,6 +150,11 @@
         await customElements.whenDefined('cedar-embeddable-editor');
         const cee = document.querySelector('cedar-embeddable-editor');
 
+        // Installed before any artifact input so the host contract tests can tell
+        // initialization from a user mutation. Most tests reset this after `open`.
+        window.__ceeChanges = [];
+        cee.addEventListener('change', (event) => window.__ceeChanges.push(event.detail ?? null));
+
         /**
          * Config presets, selected with ?c=<name>.
          *

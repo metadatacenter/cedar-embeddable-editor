@@ -9,7 +9,8 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
   protected readonly userPreferencesService = inject(UserPreferencesService);
   protected readonly cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
   private readonly componentRegistry = inject(ActiveComponentRegistryService);
-  private readonly destroyRef = inject(DestroyRef);
+  /** Component-scoped teardown signal for subscriptions and delayed UI work. */
+  protected readonly destroyRef = inject(DestroyRef);
   abstract component: CedarComponent;
   /**
    * The value the field should now show, as it sits in the instance.

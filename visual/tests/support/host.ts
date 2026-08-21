@@ -2,6 +2,7 @@ import { expect, type Page } from '@playwright/test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as url from 'node:url';
+import type { CeeChangeDetail, CeeJsonObject } from '../../../src/app/cee-public-api';
 
 export const BUNDLE_PATH = path.resolve(
   path.dirname(url.fileURLToPath(import.meta.url)),
@@ -59,6 +60,22 @@ export const passDebounceWindow = async (page: Page): Promise<void> => {
   await page.clock.setFixedTime(new Date(FROZEN.getTime() + 60_000));
 };
 
+type ChangeRecordingWindow = Window & { __ceeChanges?: CeeChangeDetail[] };
+
+/** Reset the host listener that is installed before artifact initialization. */
+export const recordChanges = (page: Page): Promise<void> =>
+  page.evaluate(() => {
+    (window as ChangeRecordingWindow).__ceeChanges = [];
+  });
+
+/** Structured host events recorded by `host.html`, with the public contract type. */
+export const changeDetails = (page: Page): Promise<CeeChangeDetail[]> =>
+  page.evaluate(() => (window as ChangeRecordingWindow).__ceeChanges ?? []);
+
+/** Current serialized instance through the package's typed custom-element contract. */
+export const currentMetadata = (page: Page): Promise<CeeJsonObject> =>
+  page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.currentMetadata);
+
 /** The stub served in place of every image a template points at an outside host. */
 const STUB_IMAGE = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), './stub-image.png');
 
@@ -75,16 +92,8 @@ const STUB_IMAGE = path.resolve(path.dirname(url.fileURLToPath(import.meta.url))
  * error notice instead of a picture (`resolveStaticImageView`), which would take the
  * card out of the layout the screenshot is here to watch.
  *
- * The third is not the templates' doing. CEE's own ROR icon is a `background-image`
- * pointing at raw.githubusercontent.com — alone among the five authority icons, which
- * are otherwise inlined as `data:` SVGs — so any fixture holding an `ext-ror` field
- * fetches it. That includes `04-controlled-terms` and `08-authority`, whose baselines
- * have therefore always been network-dependent without saying so. Stubbed here rather
- * than fixed, because inlining it changes what those two render and belongs in its own
- * commit with its own re-baseline.
- *
  * The unmatched-host route is the part worth keeping, and it earned that on its first
- * run by finding the ROR icon. It aborts anything else and records it, so
+ * run by finding a formerly external ROR icon. It aborts anything else and records it, so
  * `expectNoStrayHosts` fails a fixture that quietly starts depending on the network
  * instead of letting it become another silent one.
  */
@@ -104,13 +113,6 @@ export const hermetic = async (page: Page): Promise<string[]> => {
 
   await page.route('https://www.youtube.com/embed/**', (route) =>
     route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>stub</title>' }),
-  );
-
-  await page.route('https://raw.githubusercontent.com/ror-community/**', (route) =>
-    route.fulfill({
-      contentType: 'image/svg+xml',
-      body: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='#53baa1'/></svg>",
-    }),
   );
 
   return stray;

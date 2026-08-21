@@ -732,27 +732,25 @@ template path, supplied value, current validity and full data-quality report, pl
 the current title and description. Multi-instance details also retain their former
 `message` name for compatibility.
 
-An example in Angular is:
+The package's custom-element declaration types the listener and its detail without
+a cast:
 
-- `component.html`:
-```html
-<cedar-embeddable-editor
-  [config]="conf"
-  [templateObject]="template"
-  [instanceObject]="instance"
-  (change)="logChange($event)"
-></cedar-embeddable-editor>
+```typescript
+import type { CeeChangeDetail } from 'cedar-embeddable-editor';
+
+const cee = document.querySelector('cedar-embeddable-editor');
+if (!cee) throw new Error('CEE element is missing');
+
+cee.addEventListener('change', (event) => {
+  const detail: CeeChangeDetail = event.detail;
+  console.log(detail.operation, detail.path);
+  console.log('valid:', detail.validity);
+});
 ```
 
-- `component.ts`:
-```typescript fragment
-  import type { CeeChangeDetail } from 'cedar-embeddable-editor';
-
-  logChange(event: CustomEvent<CeeChangeDetail>) {
-    console.log(event.detail.operation, event.detail.path);
-    console.log('valid:', event.detail.validity);
-  }
-```
+Framework event bindings receive the same custom event. For example, Angular can
+bind `(change)="logChange($event)"` on the element and type the handler parameter as
+`CustomEvent<CeeChangeDetail>`.
 
 The optional `eventHandler.valueChanged(path, value)` callback receives the same
 field mutations. It is not a dirty flag: only the host knows which serialization

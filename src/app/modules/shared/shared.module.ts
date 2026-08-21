@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
-import { RdfPipe } from './pipe/rdf.pipe';
 import { CedarComponentHeaderComponent } from './components/cedar-component-header/cedar-component-header.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -57,7 +56,6 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     MatCheckboxModule,
   ],
   declarations: [
-    RdfPipe,
     CedarComponentHeaderComponent,
     CedarEmbeddableMetadataEditorComponent,
     CedarEmbeddableMetadataEditorWrapperComponent,
@@ -69,6 +67,6 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     CedarMultiPagerComponent,
   ],
   providers: [],
-  exports: [RdfPipe, CedarEmbeddableMetadataEditorWrapperComponent],
+  exports: [CedarEmbeddableMetadataEditorWrapperComponent],
 })
 export class SharedModule {}

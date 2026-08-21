@@ -41,7 +41,6 @@ import { CedarStaticImageComponent } from './components/cedar-static-image/cedar
 import { CedarStaticYoutubeComponent } from './components/cedar-static-youtube/cedar-static-youtube.component';
 import { CedarInputOrcidComponent } from './components/cedar-input-orcid/cedar-input-orcid.component';
 import { CedarInputRorComponent } from './components/cedar-input-ror/cedar-input-ror.component';
-import { CedarFooBarComponent } from './components/cedar-foo-bar/cedar-foo-bar.component';
 import { CedarInputControlledComponent } from './components/cedar-input-controlled/cedar-input-controlled.component';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { TrustHtmlPipe } from '../shared/pipe/keep-html.pipe';
@@ -89,7 +88,6 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
   declarations: [
     SpecPlaceholderPipe,
     CedarTermLinkComponent,
-    CedarFooBarComponent,
     CedarInputTextComponent,
     CedarInputPhoneComponent,
     CedarInputControlledComponent,
@@ -146,8 +144,6 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     // Exported for the shared module, whose field-spec block shows what no control can.
     SpecPlaceholderPipe,
     CedarTermLinkComponent,
-    // FooBar is needed because the first component gets exported without style otherwise
-    CedarFooBarComponent,
     CedarInputTextComponent,
     CedarInputPhoneComponent,
     CedarInputControlledComponent,
