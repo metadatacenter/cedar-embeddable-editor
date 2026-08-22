@@ -193,13 +193,17 @@ git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
 #### Build the project and start the server
 
 1. Navigate to the CEE directory:
-```shell
-$ cd <...>/<clone directory>/cedar-embeddable-editor/
-```
-1. Run these commands:
-```shell
-cedar-embeddable-editor$ npm install
-cedar-embeddable-editor$ ng serve
-```
 
-1. In your browser, navigate to `http://localhost:4400/`. The app will automatically reload if you change any of the source files.
+   ```shell
+   cd <...>/<clone directory>/cedar-embeddable-editor/
+   ```
+
+2. Run these commands:
+
+   ```shell
+   npm install
+   ng serve
+   ```
+
+3. In your browser, navigate to `http://localhost:4400/`. The app will
+   automatically reload if you change any of the source files.
