@@ -117,11 +117,6 @@ A CEDAR frontend names a snapshot through an npm alias:
 "cedar-embeddable-editor": "npm:@org.metadatacenter/cedar-embeddable-editor@<next>-dev.<date>.<sha>"
 ```
 
-Cutting one is in
-[CEE-RUNBOOK.md](https://github.com/metadatacenter/cedar-development/blob/develop/ops/CEE-RUNBOOK.md),
-including the version convention and which host needs what afterwards. Publishing needs the
-Nexus credential; reads are anonymous.
-
 ## Testing
 
 The complete test gate is available from the repository root:
