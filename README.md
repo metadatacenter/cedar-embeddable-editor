@@ -18,7 +18,7 @@ Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002), published in the
 For embedding and using the CEE in a web application, see the
 [CEDAR Embeddable Editor documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/intro/).
 
-This README covers developing, building, testing, and releasing the component.
+This README covers developing, building, and testing the component.
 
 ## Building the Web Component
 
