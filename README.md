@@ -187,8 +187,19 @@ git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
 
 #### Edit configuration
 
-1. Open the file ```cedar-embeddable-editor/src/app/app.component.dev.ts``` in your favorite editor.
-2. Edit configuration parameters based on your local environment (see the [configuration documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/configuration/) for details).
+Open the standalone application's configuration file, `src/app/app.component.dev.ts`.
+This minimal configuration enables lookups through the public CEDAR services:
+
+```typescript
+ceeConfig = {
+  terminologyBaseUrl: 'https://terminology.metadatacenter.org/',
+  bridgeBaseUrl: 'https://bridge.metadatacenter.org/',
+};
+```
+
+For a different CEDAR deployment, replace both URLs with its service URLs. See
+the [configuration documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/configuration/)
+for all available settings.
 
 #### Build the project and start the server
 
