@@ -15,6 +15,9 @@ see [*Author Once, Publish Everywhere: Portable Metadata Authoring with the CEDA
 Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002), published in the
 *Data Science Journal* (2026).
 
+For embedding and using CEE, see the
+[CEDAR Embeddable Editor documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/intro/).
+
 This README covers building, testing, releasing and embedding this version of
 the component. The [configuration](#configuration) and
 [metadata API](#metadata-api) sections are kept aligned with the TypeScript
@@ -579,36 +582,6 @@ cee.templateAndInstanceObject = templateAndInstance;
 
 The combined object must contain exactly `templateObject` and `instanceObject`.
 It claims both artifact inputs, so do not combine it with either separate input.
-
-### Temporal Values
-
-CEE treats a temporal field's declared `temporalType`, `temporalGranularity`
-and `timezoneEnabled` settings as its storage contract. The editor shows only
-the parts named by that contract and emits a complete lexical `xsd:date`,
-`xsd:time` or `xsd:dateTime` value:
-
-| Declared precision | Canonical stored example |
-| --- | --- |
-| date, year | `2026-01-01` |
-| date, month | `2026-08-01` |
-| date, day | `2026-08-09` |
-| time, hour | `21:00:00` |
-| time, minute | `21:45:00` |
-| time, second | `21:45:32` |
-| time, decimal second | `21:45:32.001` |
-| date-time, day | `2026-08-09T00:00:00` |
-| date-time, minute | `2026-08-09T21:45:00` |
-
-The same padding rule applies to the other date-time granularities. If time
-zones are enabled, CEE appends the selected fixed offset (`Z` or `+/-HH:mm`);
-if they are disabled, any offset is removed.
-
-Granularity is authoritative when an existing instance is loaded. Information
-finer than the declared granularity is intentionally discarded and the
-canonical value is written back. For example,
-`2026-08-09T21:45:32.125-07:00` in a day-granularity date-time field becomes
-`2026-08-09T00:00:00-07:00`. Embedders should account for that normalization
-when comparing a saved instance with its original input.
 
 ### Data Quality Report
 
