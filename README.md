@@ -52,57 +52,6 @@ The command fails if the browser bundle is stale or does not match its SHA-256
 digest. `npm run check:npm-package` can repeat the byte-for-byte verification
 before `npm pack` or `npm publish`.
 
-## Running as an `npm` package
-
-Releases are published to npmjs.org as
-[`cedar-embeddable-editor`](https://www.npmjs.com/package/cedar-embeddable-editor)
-under the `latest` tag, so an embedder installs the current one by name:
-
-```shell
-npm install cedar-embeddable-editor
-```
-
-The `latest` tag is the public stable channel. To see the current release without
-depending on a version copied into this README:
-
-```shell
-npm view cedar-embeddable-editor version
-```
-
-## Running as a standalone application
-
-You can run the CEE as a standalone application. This is helpful for developers to
-see changes to the code reflected immediately in the application.
-
-Proceed with the following steps:
-
-### Clone the repository
-
-Clone this repository onto a local directory of your choice:
-
-```shell
-git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
-```
-
-### Edit configuration
-
-1. Open the file ```cedar-embeddable-editor/src/app/app.component.dev.ts``` in your favorite editor.
-2. Edit configuration parameters based on your local environment (see the [configuration documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/configuration/) for details).
-
-### Build the project and start the server
-
-1. Navigate to the CEE directory:
-```shell
-$ cd <...>/<clone directory>/cedar-embeddable-editor/
-```
-1. Run these commands:
-```shell
-cedar-embeddable-editor$ npm install
-cedar-embeddable-editor$ ng serve
-```
-
-1. In your browser, navigate to `http://localhost:4400/`. The app will automatically reload if you change any of the source files.
-
 ## Testing
 
 The complete test gate is available from the repository root:
@@ -201,3 +150,56 @@ for interactive development. Use `npm run test:ci` for a complete verification.
 The unit tests run in Node and do not use `TestBed` or Angular's JIT compiler.
 Browser behavior belongs in the Playwright suite under `visual/`, which tests the
 shipped bundle rather than the sources.
+
+## Running
+
+### As an `npm` package
+
+Releases are published to npmjs.org as
+[`cedar-embeddable-editor`](https://www.npmjs.com/package/cedar-embeddable-editor)
+under the `latest` tag, so an embedder installs the current one by name:
+
+```shell
+npm install cedar-embeddable-editor
+```
+
+The `latest` tag is the public stable channel. To see the current release without
+depending on a version copied into this README:
+
+```shell
+npm view cedar-embeddable-editor version
+```
+
+### As a standalone application
+
+You can run the CEE as a standalone application. This is helpful for developers to
+see changes to the code reflected immediately in the application.
+
+Proceed with the following steps:
+
+#### Clone the repository
+
+Clone this repository onto a local directory of your choice:
+
+```shell
+git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
+```
+
+#### Edit configuration
+
+1. Open the file ```cedar-embeddable-editor/src/app/app.component.dev.ts``` in your favorite editor.
+2. Edit configuration parameters based on your local environment (see the [configuration documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/configuration/) for details).
+
+#### Build the project and start the server
+
+1. Navigate to the CEE directory:
+```shell
+$ cd <...>/<clone directory>/cedar-embeddable-editor/
+```
+1. Run these commands:
+```shell
+cedar-embeddable-editor$ npm install
+cedar-embeddable-editor$ ng serve
+```
+
+1. In your browser, navigate to `http://localhost:4400/`. The app will automatically reload if you change any of the source files.
