@@ -201,8 +201,3 @@ for interactive development. Use `npm run test:ci` for a complete verification.
 The unit tests run in Node and do not use `TestBed` or Angular's JIT compiler.
 Browser behavior belongs in the Playwright suite under `visual/`, which tests the
 shipped bundle rather than the sources.
-
-## Deploying the CEE in a Web Application
-
-See the [CEDAR Embeddable Editor guide](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/intro/)
-for deployment and integration instructions.
