@@ -103,20 +103,6 @@ depending on a version copied into this README:
 npm view cedar-embeddable-editor version
 ```
 
-Dev snapshots go somewhere else: the BMIR Nexus, as the scoped
-`@org.metadatacenter/cedar-embeddable-editor` under a `dev` tag. `scripts/npm-package.mjs`
-derives which from the version — a `-dev.` in it selects the scoped name and the Nexus
-registry, and anything else the unscoped name and the default one — so the two channels
-cannot be confused by a flag someone forgets to pass. npm routes by scope rather than by
-package name, which is what lets one package come from Nexus while everything else resolves
-from npmjs.org.
-
-A CEDAR frontend names a snapshot through an npm alias:
-
-```json
-"cedar-embeddable-editor": "npm:@org.metadatacenter/cedar-embeddable-editor@<next>-dev.<date>.<sha>"
-```
-
 ## Testing
 
 The complete test gate is available from the repository root:
@@ -167,8 +153,8 @@ dependencies explicitly instead.
 
 ### First-time setup
 
-The CEE resolves `cedar-model-typescript-library` from npmjs.org, so neither a
-sibling checkout nor Nexus access is needed:
+The CEE resolves `cedar-model-typescript-library` from npmjs.org, so a sibling
+checkout is not needed:
 
 ```shell
 nvm use
@@ -195,10 +181,6 @@ sync. The production bundle imports the root copy while the browser fixtures are
 generated with the visual copy, so a mismatch means the tests and the artifact
 are using different model contracts. The harness declares no separate copy; it
 resolves the root installation.
-
-The repository's `.npmrc` files map the `@org.metadatacenter` scope to Nexus for
-the scoped development-snapshot channel for the CEE described above. Stable
-installations of the CEE and the model library come from npmjs.org.
 
 ### Focused test commands
 
