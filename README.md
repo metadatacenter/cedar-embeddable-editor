@@ -231,18 +231,7 @@ The unit tests run in Node and do not use `TestBed` or Angular's JIT compiler.
 Browser behavior belongs in the Playwright suite under `visual/`, which tests the
 shipped bundle rather than the sources.
 
-## Embedding and Using the CEE
+## Deploying the CEE in a Web Application
 
-The canonical guide covers the public integration contract:
-
-- [Your first embedded editor](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/first-editor/)
-- [Angular, React, Ember, and other frameworks](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/frameworks/)
-- [Templates, instances, metadata export, and change events](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/templates-and-metadata/)
-- [Configuration and TypeScript declarations](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/configuration/)
-- [Controlled terms and external authorities](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/controlled-terms/)
-- [Validation and the data quality report](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/validation/)
-- [Appearance, read-only viewing, and language maps](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/appearance/)
-- [Embedding security and content security policy](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/security/)
-
-Small runnable Angular, React, and Ember integrations are available in
-[`cedar-component-demo`](https://github.com/metadatacenter/cedar-component-demo).
+See the [CEDAR Embeddable Editor guide](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/intro/)
+for deployment and integration instructions.
