@@ -88,10 +88,9 @@ npm run build:production
 npm run test:visual:prebuilt
 ```
 
-One Node version throughout — 24.19.0, which `.nvmrc` names. The build and the
-tests used to run on different ones, because Angular 14's toolchain and the
-Playwright the suite needs did not accept the same version; from Angular 15 they
-do, so the dist that ships is produced on the same Node that exercised it.
+Use Node 24.19.0, which `.nvmrc`, `package.json` and CI all specify. The build and
+tests use that same version, so the distribution is produced by the toolchain
+that exercises it.
 
 Once that exact bundle is green, stage the publishable npm directory from it:
 
@@ -171,8 +170,8 @@ The domain corpora are checked into `harness/fixtures/`; running the tests does
 not require `cedar-artifact-library` or `cedar-test-artifacts` checkouts.
 
 `.github/workflows/test.yml` runs the same gate on every pull request and on
-pushes to `main`, `develop` and the `cee-angular-**` branches. Nothing is
-published from CI: releasing is a separate, manual procedure.
+pushes to `main` and `develop`. Nothing is published from CI: releasing is a
+separate, manual procedure.
 
 ### Auditing what ships
 
@@ -185,10 +184,10 @@ the one that describes the shipped artifact, and it is deliberately not part of
 `test:ci` — it can fail on a disclosure rather than on a commit, which would
 break an unrelated pull request its author cannot fix.
 
-A root `npm audit` reports advisories against `@angular/cli` and the packages
-reached through it. **Never run `npm audit fix --force` here.** npm's idea of
-fixing that tree is to walk the toolchain years backwards, undoing the Angular
-march to silence warnings about build tooling an embedder never downloads.
+A root `npm audit` also reports on development tooling that is not shipped to an
+embedder. **Never run `npm audit fix --force` here:** it can replace the declared
+toolchain with incompatible major versions. Review and update affected
+dependencies explicitly instead.
 
 ### First-time setup
 
@@ -196,6 +195,7 @@ CEE resolves `cedar-model-typescript-library` from npmjs.org, so neither a
 sibling checkout nor Nexus access is needed:
 
 ```shell
+nvm use
 npm ci
 npm --prefix harness ci
 ```
@@ -204,21 +204,8 @@ The visual suite installs nothing here. It runs inside Playwright's own containe
 which carries the browsers it drives, and installs its dependencies there against a
 named volume — so it needs Docker running and no `playwright install` of its own.
 
-### Node versions during the Angular migration
-
-The root `.nvmrc` pins the Node version used to update, lint and compile the
-current Angular version. Move that pin with each completed framework hop.
-
-CEE is on **Angular 22.1** and **Node 24.19.0**, named in `.nvmrc`, declared in
-`engines`, and pinned by CI. Angular 22 accepts `^22.22.3 || ^24.15.0 || >=26`; 24
-is the active LTS where 22 is in maintenance, so that is the one CEE uses.
-
-Build and test share it. Through Angular 14 they could not: no Node version
-satisfied both that toolchain and the test tools, so CI built on one and switched
-the runner to another without replacing `dist`. `npm run test:ci:prebuilt` is what
-remains of that arrangement — it tests an already-built artifact and deliberately
-does not invoke `ng build`, which is still what CI wants, because it means the
-bytes tested are the bytes that ship.
+CEE uses Angular 22.1 and Node 24.19.0. `.nvmrc`, the package `engines` field and
+CI specify the Node version.
 
 The application bundle and the visual fixture generator each install the model
 library directly from npmjs.org:
@@ -253,10 +240,8 @@ npm run test:visual           # production build, fixture preparation, Playwrigh
 `npm test` runs the unit tests once, and `npm run test:watch` keeps them running
 for interactive development. Use `npm run test:ci` for a complete verification.
 
-The unit tests run in Node rather than a browser. None of them uses `TestBed`, so
-none needs Angular's JIT compiler to build a component, and dropping the browser
-took the suite from a Chrome launch to about a second. Anything that does need a
-real browser belongs in the Playwright suite under `visual/`, which tests the
+The unit tests run in Node and do not use `TestBed` or Angular's JIT compiler.
+Browser behavior belongs in the Playwright suite under `visual/`, which tests the
 shipped bundle rather than the sources.
 
 ## Configuration
@@ -317,15 +302,9 @@ What the user sees:
 |---|---|
 | `showTemplateDescription` | `false` |
 
-CEE draws no page chrome of its own. It used to render a header carrying the CEDAR
-logo and title, and a footer carrying the Stanford Division of Computational
-Medicine mark and a contact link, behind `showHeader` and `showFooter`. Every string
-and destination was hardcoded, so an embedder took CEDAR's branding or nothing.
-A host renders its own header and footer around the element; the standalone app in
-`src/app/app.component.dev.html` is a worked example.
-
-What CEE keeps is the CEDAR mark and the version stamp inside the form's own title
-block, which is a component naming itself rather than dressing someone else's page.
+CEE draws no page chrome of its own. A host renders its header and footer around
+the element; the standalone app in `src/app/app.component.dev.html` is a worked
+example. The form's title block contains the CEDAR mark and CEE version.
 
 Editing behaviour and serialization:
 
@@ -349,11 +328,6 @@ It defaults to `false`, and nothing is rendered under the form either way:
 
 `<name>` is the template's own `schema:name`, reduced to file-name-safe
 characters, so a developer with several forms open can tell the files apart.
-
-These were eight panels once, each printing a dump under the form, and each
-costing two keys — one to show it and one to expand it. Two of the sixteen were
-on by default, so an embedder who configured nothing got a JSON Schema dump and
-a JSON-LD dump beneath every form.
 
 A download is started by the page, which a host running under a restrictive
 sandbox can refuse, with no event to observe when it does. CEE traces each
@@ -449,10 +423,8 @@ cee.eventHandler = {
 };
 ```
 
-`readOnlyMode` is the only way in or out of read-only mode. CEE used to offer the
-user a switch of its own, in a preferences menu, which wrote to the same state the
-widgets read — so a form you embedded as a viewer could be made editable from inside
-it. Both are gone, along with the `showPreferencesMenu` key that governed the menu.
+`readOnlyMode` is the only way in or out of read-only mode. CEE provides no
+in-component mode toggle; create a new element to change modes.
 
 ## Embedding security
 
@@ -605,8 +577,8 @@ const templateAndInstance = {templateObject: object, instanceObject: object};
 cee.templateAndInstanceObject = templateAndInstance;
 ```
 
-Injecting template and metadata together brings performance benefits as well as allows configuring hiding empty fields.
-Object being injected must strictly have two objects one named 'templateObject' and the other 'instanceObject'.
+The combined object must contain exactly `templateObject` and `instanceObject`.
+It claims both artifact inputs, so do not combine it with either separate input.
 
 ### Temporal Values
 
@@ -736,8 +708,7 @@ add, copy, and delete operations do.
 
 The event is a `CustomEvent<CeeChangeDetail>`. Its detail carries the operation,
 template path, supplied value, current validity and full data-quality report, plus
-the current title and description. Multi-instance details also retain their former
-`message` name for compatibility.
+the current title and description. Multi-instance details also include `message`.
 
 The package's custom-element declaration types the listener and its detail without
 a cast:
