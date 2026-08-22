@@ -15,9 +15,10 @@ see [*Author Once, Publish Everywhere: Portable Metadata Authoring with the CEDA
 Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002), published in the
 *Data Science Journal* (2026).
 
-This README covers building, testing and releasing the component. For embedding
-it in an application, the CEDAR documentation site carries a fuller guide:
-[CEDAR Embeddable Editor](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/intro/).
+This README covers building, testing, releasing and embedding this version of
+the component. The [configuration](#configuration) and
+[metadata API](#metadata-api) sections are kept aligned with the TypeScript
+declarations the npm package ships.
 
 ## Browser support
 
@@ -115,7 +116,12 @@ under the `latest` tag, so an embedder installs the current one by name:
 npm install cedar-embeddable-editor
 ```
 
-`1.6.0` is current on npmjs.org.
+The `latest` tag is the public stable channel. To see the current release without
+depending on a version copied into this README:
+
+```shell
+npm view cedar-embeddable-editor version
+```
 
 Dev snapshots go somewhere else: the BMIR Nexus, as the scoped
 `@org.metadatacenter/cedar-embeddable-editor` under a `dev` tag. `scripts/npm-package.mjs`
@@ -128,7 +134,7 @@ from npmjs.org.
 A CEDAR frontend names a snapshot through an npm alias:
 
 ```json
-"cedar-embeddable-editor": "npm:@org.metadatacenter/cedar-embeddable-editor@2.0.0-dev.20260816.5e7dca6"
+"cedar-embeddable-editor": "npm:@org.metadatacenter/cedar-embeddable-editor@<next>-dev.<date>.<sha>"
 ```
 
 Cutting one is in
@@ -186,8 +192,8 @@ march to silence warnings about build tooling an embedder never downloads.
 
 ### First-time setup
 
-CEE resolves the model library from `@org.metadatacenter/cedar-model-typescript-library`,
-published to the BMIR Nexus, so no sibling checkout is needed:
+CEE resolves `cedar-model-typescript-library` from npmjs.org, so neither a
+sibling checkout nor Nexus access is needed:
 
 ```shell
 npm ci
@@ -214,21 +220,22 @@ remains of that arrangement — it tests an already-built artifact and deliberat
 does not invoke `ng build`, which is still what CI wants, because it means the
 bytes tested are the bytes that ship.
 
-Only that one package comes from Nexus; everything else resolves from npmjs.org.
-An `.npmrc` alongside each of the three `package.json` files maps the
-`@org.metadatacenter` scope to Nexus, and reads need no credentials.
-
-Each manifest depends on it under an alias:
+The application bundle and the visual fixture generator each install the model
+library directly from npmjs.org:
 
 ```json
-"cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@<version>"
+"cedar-model-typescript-library": "<version>"
 ```
 
-The alias keeps the local import name, so source files import
-`cedar-model-typescript-library` regardless of the published name. To move to a
-newer build, publish it to Nexus and bump the version in the root and `visual/`
-manifests together. The harness declares no separate copy; it resolves the root
-installation.
+Keep the version in the root and `visual/` manifests, and both lockfiles, in
+sync. The production bundle imports the root copy while the browser fixtures are
+generated with the visual copy, so a mismatch means the tests and the artifact
+are using different model contracts. The harness declares no separate copy; it
+resolves the root installation.
+
+The repository's `.npmrc` files still map the `@org.metadatacenter` scope to
+Nexus for the scoped CEE development-snapshot channel described above. Stable
+CEE and model-library installs come from npmjs.org.
 
 ### Focused test commands
 
