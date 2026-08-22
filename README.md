@@ -3,11 +3,11 @@
 The CEDAR Embeddable Editor (CEE) is a reusable Web Component for adding
 structured, standards-based metadata authoring to web applications.
 
-CEE dynamically renders data-entry forms from machine-actionable CEDAR
+The CEE dynamically renders data-entry forms from machine-actionable CEDAR
 templates and produces semantically rich metadata as JSON-LD. Templates define
 the fields, constraints, controlled vocabularies, and repeatable structures in a
 form, allowing the metadata-authoring experience to evolve independently of the
-application that embeds it. CEE also supports ontology-backed value selection
+application that embeds it. The CEE also supports ontology-backed value selection
 and persistent identifiers from external authorities such as ORCID and ROR.
 
 For the design rationale, architecture, and deployments in research platforms,
@@ -15,66 +15,14 @@ see [*Author Once, Publish Everywhere: Portable Metadata Authoring with the CEDA
 Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002), published in the
 *Data Science Journal* (2026).
 
-This README covers building, testing and releasing the component. For embedding
-it in an application, the CEDAR documentation site carries a fuller guide:
-[CEDAR Embeddable Editor](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/intro/).
+For embedding and using the CEE in a web application, see the
+[CEDAR Embeddable Editor documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/intro/).
 
-## Browser support
-
-CEE supports the browser targets of the Angular version each release is built
-with. It requires native Custom Elements v1 and native Shadow DOM.
-
-Automated compatibility tests run against current desktop Chromium, Firefox and
-WebKit engines. Firefox ESR and the configured Edge, Safari and iOS versions are
-compilation targets, but are not all exercised as separate browser products.
-
-Internet Explorer, legacy EdgeHTML, and browsers or embedded web views without
-native `window.customElements` and Shadow DOM support are not supported. CEE
-does not polyfill its host page. Consumers choosing to support browsers outside
-this contract must load and maintain their own Web Components polyfills before
-loading CEE.
-
-## Running as a standalone application
-
-You can run CEE as a standalone application. This is helpful for developers to
-see changes to the code reflected immediately in the application. The standalone
-app fetches a small template and instance from `src/assets/cee-demo` and assigns
-them to `templateAndInstanceObject`, the same way any host supplies an artifact,
-so it needs no separate template server and no `cedar-component-distribution`
-checkout.
-
-Proceed with the following steps:
-
-### Clone the repository
-
-Clone this repository onto a local directory of your choice:
-
-```shell
-git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
-```
-
-### Edit configuration
-
-1. Open the file ```cedar-embeddable-editor/src/app/app.component.dev.ts``` in your favorite editor.
-2. Edit configuration parameters based on your local environment (see section [Configuration](https://github.com/metadatacenter/cedar-embeddable-editor/tree/develop#configuration) for details).
-
-### Build the project and start the server
-
-1. Navigate to the CEE directory:
-```shell
-$ cd <...>/<clone directory>/cedar-embeddable-editor/
-```
-1. Run these commands:
-```shell
-cedar-embeddable-editor$ npm install
-cedar-embeddable-editor$ ng serve
-```
-
-1. In your browser, navigate to `http://localhost:4400/`. The app will automatically reload if you change any of the source files.
+This README covers developing, building, and testing the component.
 
 ## Building the Web Component
 
-CEE is shipped as one JavaScript file that can be embedded in an application or
+The CEE is shipped as one JavaScript file that can be embedded in an application or
 HTML page. Do not concatenate named Angular output files manually: their names,
 locations, and module structure change when Angular changes builders.
 
@@ -87,10 +35,9 @@ npm run build:production
 npm run test:visual:prebuilt
 ```
 
-One Node version throughout — 24.19.0, which `.nvmrc` names. The build and the
-tests used to run on different ones, because Angular 14's toolchain and the
-Playwright the suite needs did not accept the same version; from Angular 15 they
-do, so the dist that ships is produced on the same Node that exercised it.
+Use Node 24.19.0, which `.nvmrc`, `package.json` and CI all specify. The build and
+tests use that same version, so the distribution is produced by the toolchain
+that exercises it.
 
 Once that exact bundle is green, stage the publishable npm directory from it:
 
@@ -104,37 +51,6 @@ version, README, changelog, and package lock, and records the bundle manifest.
 The command fails if the browser bundle is stale or does not match its SHA-256
 digest. `npm run check:npm-package` can repeat the byte-for-byte verification
 before `npm pack` or `npm publish`.
-
-## Running as an `npm` package
-
-Releases are published to npmjs.org as
-[`cedar-embeddable-editor`](https://www.npmjs.com/package/cedar-embeddable-editor)
-under the `latest` tag, so an embedder installs the current one by name:
-
-```shell
-npm install cedar-embeddable-editor
-```
-
-`1.6.0` is current on npmjs.org.
-
-Dev snapshots go somewhere else: the BMIR Nexus, as the scoped
-`@org.metadatacenter/cedar-embeddable-editor` under a `dev` tag. `scripts/npm-package.mjs`
-derives which from the version — a `-dev.` in it selects the scoped name and the Nexus
-registry, and anything else the unscoped name and the default one — so the two channels
-cannot be confused by a flag someone forgets to pass. npm routes by scope rather than by
-package name, which is what lets one package come from Nexus while everything else resolves
-from npmjs.org.
-
-A CEDAR frontend names a snapshot through an npm alias:
-
-```json
-"cedar-embeddable-editor": "npm:@org.metadatacenter/cedar-embeddable-editor@2.0.0-dev.20260816.5e7dca6"
-```
-
-Cutting one is in
-[CEE-RUNBOOK.md](https://github.com/metadatacenter/cedar-development/blob/develop/ops/CEE-RUNBOOK.md),
-including the version convention and which host needs what afterwards. Publishing needs the
-Nexus credential; reads are anonymous.
 
 ## Testing
 
@@ -165,8 +81,8 @@ The domain corpora are checked into `harness/fixtures/`; running the tests does
 not require `cedar-artifact-library` or `cedar-test-artifacts` checkouts.
 
 `.github/workflows/test.yml` runs the same gate on every pull request and on
-pushes to `main`, `develop` and the `cee-angular-**` branches. Nothing is
-published from CI: releasing is a separate, manual procedure.
+pushes to `main` and `develop`. Nothing is published from CI: releasing is a
+separate, manual procedure.
 
 ### Auditing what ships
 
@@ -179,17 +95,18 @@ the one that describes the shipped artifact, and it is deliberately not part of
 `test:ci` — it can fail on a disclosure rather than on a commit, which would
 break an unrelated pull request its author cannot fix.
 
-A root `npm audit` reports advisories against `@angular/cli` and the packages
-reached through it. **Never run `npm audit fix --force` here.** npm's idea of
-fixing that tree is to walk the toolchain years backwards, undoing the Angular
-march to silence warnings about build tooling an embedder never downloads.
+A root `npm audit` also reports on development tooling that is not shipped to an
+embedder. **Never run `npm audit fix --force` here:** it can replace the declared
+toolchain with incompatible major versions. Review and update affected
+dependencies explicitly instead.
 
 ### First-time setup
 
-CEE resolves the model library from `@org.metadatacenter/cedar-model-typescript-library`,
-published to the BMIR Nexus, so no sibling checkout is needed:
+The CEE resolves `cedar-model-typescript-library` from npmjs.org, so a sibling
+checkout is not needed:
 
 ```shell
+nvm use
 npm ci
 npm --prefix harness ci
 ```
@@ -198,37 +115,21 @@ The visual suite installs nothing here. It runs inside Playwright's own containe
 which carries the browsers it drives, and installs its dependencies there against a
 named volume — so it needs Docker running and no `playwright install` of its own.
 
-### Node versions during the Angular migration
+The CEE uses Angular 22.1 and Node 24.19.0. `.nvmrc`, the package `engines` field and
+CI specify the Node version.
 
-The root `.nvmrc` pins the Node version used to update, lint and compile the
-current Angular version. Move that pin with each completed framework hop.
-
-CEE is on **Angular 22.1** and **Node 24.19.0**, named in `.nvmrc`, declared in
-`engines`, and pinned by CI. Angular 22 accepts `^22.22.3 || ^24.15.0 || >=26`; 24
-is the active LTS where 22 is in maintenance, so that is the one CEE uses.
-
-Build and test share it. Through Angular 14 they could not: no Node version
-satisfied both that toolchain and the test tools, so CI built on one and switched
-the runner to another without replacing `dist`. `npm run test:ci:prebuilt` is what
-remains of that arrangement — it tests an already-built artifact and deliberately
-does not invoke `ng build`, which is still what CI wants, because it means the
-bytes tested are the bytes that ship.
-
-Only that one package comes from Nexus; everything else resolves from npmjs.org.
-An `.npmrc` alongside each of the three `package.json` files maps the
-`@org.metadatacenter` scope to Nexus, and reads need no credentials.
-
-Each manifest depends on it under an alias:
+The application bundle and the visual fixture generator each install the model
+library directly from npmjs.org:
 
 ```json
-"cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@<version>"
+"cedar-model-typescript-library": "<version>"
 ```
 
-The alias keeps the local import name, so source files import
-`cedar-model-typescript-library` regardless of the published name. To move to a
-newer build, publish it to Nexus and bump the version in the root and `visual/`
-manifests together. The harness declares no separate copy; it resolves the root
-installation.
+Keep the version in the root and `visual/` manifests, and both lockfiles, in
+sync. The production bundle imports the root copy while the browser fixtures are
+generated with the visual copy, so a mismatch means the tests and the artifact
+are using different model contracts. The harness declares no separate copy; it
+resolves the root installation.
 
 ### Focused test commands
 
@@ -246,539 +147,74 @@ npm run test:visual           # production build, fixture preparation, Playwrigh
 `npm test` runs the unit tests once, and `npm run test:watch` keeps them running
 for interactive development. Use `npm run test:ci` for a complete verification.
 
-The unit tests run in Node rather than a browser. None of them uses `TestBed`, so
-none needs Angular's JIT compiler to build a component, and dropping the browser
-took the suite from a Chrome launch to about a second. Anything that does need a
-real browser belongs in the Playwright suite under `visual/`, which tests the
+The unit tests run in Node and do not use `TestBed` or Angular's JIT compiler.
+Browser behavior belongs in the Playwright suite under `visual/`, which tests the
 shipped bundle rather than the sources.
 
-## Configuration
+## Running
 
-### Configuration file
+### As an `npm` package
 
-The CEE configuration file format and storage location depends on the application and the mode in which CEE is being used.
+Releases are published to npmjs.org as
+[`cedar-embeddable-editor`](https://www.npmjs.com/package/cedar-embeddable-editor)
+under the `latest` tag, so an embedder installs the current one by name:
 
-* When running CEE in the standalone mode (developer mode), the configuration parameters are stored in and read from the file: `src/app/app.component.dev.ts`.
-* When running CEE as a generic Webcomponent, the configuration parameters can be stored in any `.json` file that is visible to the application that embeds CEE Webcomponent. Fetch it and assign the result:
-```javascript
-customElements.whenDefined('cedar-embeddable-editor').then(async () => {
-  const cee = document.querySelector('cedar-embeddable-editor');
-  cee.config = await (await fetch('assets/data/cee-config.json')).json();
-});
-```
-* The configuration can also be passed into the editor as a json map. In Angular this looks as follows:
-```html
-<cedar-embeddable-editor
-  [config]="conf"
-  [templateObject]="template"
-  [instanceObject]="instance"
-></cedar-embeddable-editor>
+```shell
+npm install cedar-embeddable-editor
 ```
 
+The `latest` tag is the public stable channel. To see the current release without
+depending on a version copied into this README:
 
-### Required configuration parameters
-
-Two keys name the CEDAR services CEE calls, and neither has a default. CEE cannot
-know which deployment it is embedded in, and a default would name one — so a key
-left unset turns its lookups off and CEE reports which key is missing, rather than
-sending a host's users' keystrokes to somebody else's server.
-
-Both are bases and both must end in a slash. Every path below them is CEE's own.
-
-* **terminologyBaseUrl:** the CEDAR terminology server, which searches BioPortal.
-  Unset, controlled fields offer no terms.
-* **bridgeBaseUrl:** the CEDAR bridge server, which reaches the external
-  authorities. Unset, the seven authority fields offer no terms and resolve no
-  identifiers.
-
-```json
-{
-  "terminologyBaseUrl": "https://terminology.metadatacenter.org/",
-  "bridgeBaseUrl": "https://bridge.metadatacenter.org/"
-}
+```shell
+npm view cedar-embeddable-editor version
 ```
 
-### Optional configuration parameters
+### As a standalone application
 
-Every other key is optional. The defaults below are the component's own, read
-from `CedarEmbeddableMetadataEditorComponent` and its wrapper, not from the
-standalone developer app in `src/app/app.component.dev.ts`, whose values differ.
+You can run the CEE as a standalone application. This is helpful for developers to
+see changes to the code reflected immediately in the application.
 
-What the user sees:
+Proceed with the following steps:
 
-| Key | Default |
-|---|---|
-| `showTemplateDescription` | `false` |
+#### Clone the repository
 
-CEE draws no page chrome of its own. It used to render a header carrying the CEDAR
-logo and title, and a footer carrying the Stanford Division of Computational
-Medicine mark and a contact link, behind `showHeader` and `showFooter`. Every string
-and destination was hardcoded, so an embedder took CEDAR's branding or nothing.
-A host renders its own header and footer around the element; the standalone app in
-`src/app/app.component.dev.html` is a worked example.
+Clone this repository onto a local directory of your choice:
 
-What CEE keeps is the CEDAR mark and the version stamp inside the form's own title
-block, which is a component naming itself rather than dressing someone else's page.
-
-Editing behaviour and serialization:
-
-| Key | Default |
-|---|---|
-| `readOnlyMode` | `false` |
-| `trustTemplateRichText` | `false` |
-
-`showDownloadMenu` offers a menu that saves CEE's views of the artifact as files.
-It defaults to `false`, and nothing is rendered under the form either way:
-
-| Menu entry | Saves | As |
-|---|---|---|
-| JSON-LD - Instance | The instance as a CEDAR document | `<name>-instance.json` |
-| YAML - Instance | The same instance, as CEDAR YAML | `<name>-instance.yaml` |
-| Compact YAML - Instance | The same instance without root identity and provenance metadata | `<name>-instance-compact.yaml` |
-| JSON Schema - Template | The template as the host supplied it | `<name>-template.json` |
-| YAML - Template | The same template, as CEDAR YAML | `<name>-template.yaml` |
-| Compact YAML - Template | Its compact authoring form, without repository-managed metadata | `<name>-template-compact.yaml` |
-| Data Quality Report | Required-field tally and constraint violations | `<name>-data-quality.json` |
-
-`<name>` is the template's own `schema:name`, reduced to file-name-safe
-characters, so a developer with several forms open can tell the files apart.
-
-These were eight panels once, each printing a dump under the form, and each
-costing two keys — one to show it and one to expand it. Two of the sixteen were
-on by default, so an embedder who configured nothing got a JSON Schema dump and
-a JSON-LD dump beneath every form.
-
-A download is started by the page, which a host running under a restrictive
-sandbox can refuse, with no event to observe when it does. CEE traces each
-attempt through the event handler, so a developer seeing the trace and no file
-knows to look at their own sandbox.
-
-Language:
-
-| Key | Default |
-|---|---|
-| `defaultLanguage` | `en` |
-| `fallbackLanguage` | `en` |
-| `languageMapPathPrefix` | none |
-
-`trustTemplateRichText` decides whether a template author's rich text renders verbatim
-or is sanitized first. It defaults to `false` and should stay there unless your
-application controls which templates load — see [Embedding security](#embedding-security).
-
-`bridgeBaseUrl` is the whole of the external-authority surface, covering the
-seven authorities: ORCID, ROR, PFAS, PubMed, RRID, NIH Grant and DOI. CEE appends
-the bridge server's `ext-auth/` resource, then the path for the authority a field
-is bound to — a search path for a name typed into it, and a details path for an
-identifier pasted into it. All of that is the bridge server's own route shape, so
-none of it is configurable: a deployment moves all fourteen endpoints by moving
-the base, or none of them.
-
-| Authority | Search path | Details path |
-|---|---|---|
-| ORCID | `orcid/search-by-name` | `orcid` |
-| ROR | `ror/search-by-name` | `ror` |
-| PFAS | `comp-tox/search-by-name` | `comp-tox` |
-| PubMed | `pmid/search-by-name` | `pmid` |
-| RRID | `rrid/search-by-name` | `rrid` |
-| NIH Grant | `nih-grant/search-by-name` | `nih-grant` |
-| DOI | `doi/search-by-name` | `doi` |
-
-### TypeScript types
-
-The package ships declarations. A host importing them gets a checked configuration
-object and a typed element:
-
-```ts
-import type { CeeConfig, CedarEmbeddableEditorElement } from 'cedar-embeddable-editor';
-
-const config: CeeConfig = { readOnlyMode: true, showDownloadMenu: true };
-
-// Typed by the package, with no cast: it declares the tag in HTMLElementTagNameMap.
-const cee = document.querySelector('cedar-embeddable-editor');
-cee!.config = config;
-const report = cee!.dataQualityReport;   // CeeDataQualityReport
+```shell
+git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
 ```
 
-The declarations are **types only**. The bundle is a script that registers a custom
-element and exports no values, so there is nothing to import at runtime — use
-`import type`, and let the interface rather than a constant catch a mistyped key.
+#### Edit configuration
 
-If you are not using TypeScript, or your configuration comes from a JSON file no
-compiler has seen, CEE checks it at runtime instead and reports what it cannot use.
-An unknown key is named, with the nearest real key suggested; a value of the wrong
-kind says what was expected; and settings that conflict are called out. The messages
-go to the console and to any `eventHandler` you registered:
+Open the standalone application's configuration file, `src/app/app.component.dev.ts`.
+This minimal configuration enables lookups through the public CEDAR services:
 
-```
-CEE ERROR: Unknown configuration key "readOnlyMod". It has no effect. Did you mean "readOnlyMode"?
-```
-
-A key CEE cannot use is reported *and* refused: it reads as unset, so the setting
-keeps the default it documents. One bad key costs only that key — every other key in
-the same configuration applies. CEE does not repair a value either, so a base URL
-missing its trailing slash is dropped rather than completed, since appending CEE's
-own path to it would name an endpoint nobody chose.
-
-An assignment that is not an object at all configures nothing and does not spend the
-one assignment there is, so your next attempt is still your first.
-
-Configuration and the artifact inputs take one assignment each and keep it. Assign
-`config` a second time, or an artifact input a second time, and CEE reports it and
-ignores it: the first value stands. Build the configuration you want, assign it once,
-and create a new element if it has to change. `eventHandler` is the exception and may
-be replaced, with the last handler assigned receiving — register it before the
-configuration and the artifact if you want the diagnostics from those, since a
-handler hears only what follows it.
-
-The same handler provides the lifecycle signal a host can use instead of polling
-the DOM. `ready` is called once after the element's first successful form render;
-it is not called for a rejected artifact and is not replayed to a handler attached
-after rendering:
-
-```javascript
-cee.eventHandler = {
-  error: (message) => console.error(message),
-  ready: () => startAutosave(),
+```typescript
+ceeConfig = {
+  terminologyBaseUrl: 'https://terminology.metadatacenter.org/',
+  bridgeBaseUrl: 'https://bridge.metadatacenter.org/',
 };
 ```
 
-`readOnlyMode` is the only way in or out of read-only mode. CEE used to offer the
-user a switch of its own, in a preferences menu, which wrote to the same state the
-widgets read — so a form you embedded as a viewer could be made editable from inside
-it. Both are gone, along with the `showPreferencesMenu` key that governed the menu.
+For a different CEDAR deployment, replace both URLs with its service URLs. See
+the [configuration documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/configuration/)
+for all available settings.
 
-## Embedding security
+#### Build the project and start the server
 
-CEE renders inside your page, in your origin. It is a custom element using Shadow
-DOM, and **Shadow DOM is not a security boundary**: it scopes styles and markup, not
-privileges. Anything CEE executes runs with the same access to cookies, storage and
-network as the rest of your application.
+1. Navigate to the CEE directory:
 
-That matters for one input in particular.
+   ```shell
+   cd <...>/<clone directory>/cedar-embeddable-editor/
+   ```
 
-### Templates are trusted input
+2. Run these commands:
 
-A template can carry a **static rich-text field**, whose body is HTML composed by the
-template's author and rendered as HTML by CEE. Instance data is different and is
-always sanitized — a value a form's user typed can never introduce markup that runs.
-The question is only what a *template author* may do.
+   ```shell
+   npm install
+   ng serve
+   ```
 
-CEE sanitizes template rich text by default. Script elements, event-handler
-attributes such as `onerror`, `javascript:` URLs, `iframe`, `form` controls and
-AngularJS directive attributes such as `ng-click` are removed. Formatting is
-preserved: inline styles, tables, lists, headings, links, and inline `data:` images
-in the raster formats all render as the author composed them.
-
-If your application decides which templates load — they ship with the application, or
-come from a source you control — you may prefer the author's markup to render exactly
-as written:
-
-```json
-{
-  "trustTemplateRichText": true
-}
-```
-
-**Only set this if template authors are as trusted as your own application code.**
-With it on, a template author can run JavaScript in your origin. "Allowed to define a
-form" and "allowed to run code in this page" are very different permissions, and this
-key is where you say they are the same for your deployment.
-
-In particular, **do not set it if your users choose their own templates** — from
-CEDAR's public library, or from anywhere your users can write to. Leave it off and
-CEE will render the formatting without the risk.
-
-### What is sanitized where
-
-| Content | Origin | Treatment |
-|---|---|---|
-| Static rich-text field body | Template author | Sanitized, unless `trustTemplateRichText` is on |
-| Static section break, image, YouTube | Template author | Not rendered as HTML; content is used as text or a URL |
-| Field values, in the form and in read-only view | Instance data | Always sanitized. Not configurable |
-
-## Metadata API
-
-CEE Webcomponent includes APIs for exporting metadata externally and importing metadata into CEE.
-
-### Metadata Export
-
-The metadata currently being edited inside CEE can be exported at anytime by making this API call:
-
-```javascript
-const meta = cee.currentMetadata;
-```
-
-`currentMetadata` always returns a CEDAR JSON object. For YAML, read the
-companion accessor instead:
-
-```javascript
-const yaml = cee.currentMetadataYaml;   // always a YAML string
-```
-
-Either accessor works whatever form the template arrived in. A template written
-as CEDAR YAML is assigned to `templateObject` like any other, as the parsed YAML
-object rather than the YAML source string, and CEE picks the reader from the
-template's own shape:
-
-```javascript
-cee.templateObject = parsedTemplateYaml;
-```
-
-In the example below, the metadata is sent to an external endpoint every 15 seconds:
-
-```javascript
-customElements.whenDefined('cedar-embeddable-editor').then(async () => {
-  const cee = document.querySelector('cedar-embeddable-editor');
-  cee.config = await (await fetch('assets/data/cee-config.json')).json();
-  const saveTime = 15000; // 15 seconds
-
-  setInterval(() => {
-    const meta = cee.currentMetadata;
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://localhost:8001/metadatasave.php");
-    xhr.setRequestHeader("Accept", "application/json");
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.send(JSON.stringify(meta, null, 2));
-    console.log('Saved metadata after ' + saveTime / 1000 + ' seconds');
-  }, saveTime);
-});
-```
-
-### Template Injection
-
-You can inject your template into CEE:
-
-```javascript
-cee.templateObject = yourCustomTemplateJson;
-```
-
-### Metadata Injection
-
-You can inject your metadata into CEE, provided it matches the template currently being edited:
-
-```javascript
-cee.instanceObject = yourCustomMetadataJson
-```
-
-`templateObject` and `instanceObject` are independent, and either may be assigned
-first: CEE does not build the form until a template is present, so an instance
-supplied ahead of one waits rather than loading against nothing.
-
-Each takes one assignment. Fetch the metadata before you assign it, rather than
-assigning a placeholder and correcting it once the fetch lands:
-
-```javascript
-customElements.whenDefined('cedar-embeddable-editor').then(async () => {
-  const cee = document.querySelector('cedar-embeddable-editor');
-  cee.config = await (await fetch('assets/data/cee-config.json')).json();
-  cee.instanceObject = await (await fetch('uploads/metadata-for-restore.json')).json();
-  cee.templateObject = yourCustomTemplateJson;
-});
-```
-
-An instance counts only after CEE can read it. If deserialization fails, CEE
-reports the rejection to the console and to `eventHandler`, does not render a
-replacement empty form, and leaves the instance assignment available for a
-corrected value. The same rule applies to the instance inside
-`templateAndInstanceObject`; a rejected combined value spends neither artifact
-assignment.
-
-To load a different instance, create a new element. Reassigning `instanceObject`
-reports an error and leaves the first instance in place.
-
-To reiterate, the metadata being injected **MUST** match the template currently being edited and open in your browser window.
-
-### Injecting Template And Metadata Together
-
-You can inject your template and metadata together into CEE:
-
-```javascript
-const templateAndInstance = {templateObject: object, instanceObject: object};
-cee.templateAndInstanceObject = templateAndInstance;
-```
-
-Injecting template and metadata together brings performance benefits as well as allows configuring hiding empty fields.
-Object being injected must strictly have two objects one named 'templateObject' and the other 'instanceObject'.
-
-### Temporal Values
-
-CEE treats a temporal field's declared `temporalType`, `temporalGranularity`
-and `timezoneEnabled` settings as its storage contract. The editor shows only
-the parts named by that contract and emits a complete lexical `xsd:date`,
-`xsd:time` or `xsd:dateTime` value:
-
-| Declared precision | Canonical stored example |
-| --- | --- |
-| date, year | `2026-01-01` |
-| date, month | `2026-08-01` |
-| date, day | `2026-08-09` |
-| time, hour | `21:00:00` |
-| time, minute | `21:45:00` |
-| time, second | `21:45:32` |
-| time, decimal second | `21:45:32.001` |
-| date-time, day | `2026-08-09T00:00:00` |
-| date-time, minute | `2026-08-09T21:45:00` |
-
-The same padding rule applies to the other date-time granularities. If time
-zones are enabled, CEE appends the selected fixed offset (`Z` or `+/-HH:mm`);
-if they are disabled, any offset is removed.
-
-Granularity is authoritative when an existing instance is loaded. Information
-finer than the declared granularity is intentionally discarded and the
-canonical value is written back. For example,
-`2026-08-09T21:45:32.125-07:00` in a day-granularity date-time field becomes
-`2026-08-09T00:00:00-07:00`. Embedders should account for that normalization
-when comparing a saved instance with its original input.
-
-### Data Quality Report
-
-The dataQualityReport summarizes basic metrics on the instance data.
-
-```javascript
-const report = cee.dataQualityReport;
-```
-
-The report answers two questions: is anything required missing, and is anything
-present invalid.
-
-```
-requiredFieldValueCount: int
-nonNullRequiredFieldValueCount: int
-problems: ValidationProblem[]
-isValid: boolean
-```
-
-`isValid` is true when nothing required is missing **and** `problems` is empty.
-
-Each problem names the field and what is wrong with it:
-
-```javascript
-{
-  path: ['_author', '_email'],   // component path from the template root
-  field: '_email',
-  inputType: 'email',
-  code: 'email',                 // stable, matchable without parsing the message
-  message: 'Not a valid email address.',
-  value: 'not-an-email'
-}
-```
-
-Constraints checked: `requiredValue`; `minLength`, `maxLength` and `regex`;
-email, link, phone and external-authority IRI format; numeric type — including
-`xsd:decimal`, `xsd:byte` and `xsd:short` — with the type's own range,
-`minValue`, `maxValue` and `decimalPlace`; temporal shape against
-`temporalType`, `granularity` and `timezoneEnabled`, plus calendar validity;
-membership of a value in its declared choice literals; `minItems` and
-`maxItems`; and the structure of a controlled-term value.
-
-Controlled-term **membership** — whether a term belongs to the declared
-ontologies, value sets, classes or branches — is not checked. It requires the
-terminology server, and a local synchronous report should not depend on the
-network. Structural checks on controlled values (`@id` and `rdfs:label` present
-as a pair, `@id` well-formed) are performed.
-
-An absent value produces no constraint problems; that is the required check's
-business, so an empty form reports what is missing rather than also reporting
-every blank as malformed.
-
-### Language Maps / Translations
-
-The application currently has two built-in language maps: `en` and `hu`. If you do not specify any language-related config option, the default `English` map will be used.
-
-If you wish to change the language to another built-in one (currently the only other language is `Hungarian`), specify the config like below:
-
-```json
-{
-  "defaultLanguage": "hu",
-  "fallbackLanguage": "en"
-}
-```
-
-You can use external language maps as well. In order to do this, specify a relative path to a folder containing the language file. The file should be named `x.json`, and should have the identical structure of the language map found in the source of the application:
-
-https://github.com/metadatacenter/cedar-embeddable-editor/blob/main/src/assets/i18n-cee/en.json
-
-In order to use an external language file, specify the config as follows:
-
-```json
-{
-  "languageMapPathPrefix": "/assets/i18n-cee/",
-  "defaultLanguage": "de",
-  "fallbackLanguage": "en"
-}
-```
-
-In the example above we want to use a `German` language file, which is located in the specified directory. Starting the path with `/` makes the path absolute. 
-
-In our case the `/assets/i18n-cee/de.json` will be loaded if present.
-
-If the file is missing, the `/assets/i18n-cee/en.json` will be used.
-
-If that file is also missing, the built-in `de` map would be the next. As this does not exist at this moment, the last option, the built-in `en` map will be used.
-
-Information about the loading process is logged onto the console with the `CEE TRACE` prefix. 
-
-### Listening for changes
-
-CEE emits one composed, bubbling `change` event after an operation actually changes
-the serialized instance. It does not forward incidental DOM control traffic: focus,
-blur, paging, read-only controls, and a write that leaves `currentMetadata` unchanged
-produce no event. Field edits, clears, controlled-term selections, and multi-instance
-add, copy, and delete operations do.
-
-The event is a `CustomEvent<CeeChangeDetail>`. Its detail carries the operation,
-template path, supplied value, current validity and full data-quality report, plus
-the current title and description. Multi-instance details also retain their former
-`message` name for compatibility.
-
-The package's custom-element declaration types the listener and its detail without
-a cast:
-
-```typescript
-import type { CeeChangeDetail } from 'cedar-embeddable-editor';
-
-const cee = document.querySelector('cedar-embeddable-editor');
-if (!cee) throw new Error('CEE element is missing');
-
-cee.addEventListener('change', (event) => {
-  const detail: CeeChangeDetail = event.detail;
-  console.log(detail.operation, detail.path);
-  console.log('valid:', detail.validity);
-});
-```
-
-Framework event bindings receive the same custom event. For example, Angular can
-bind `(change)="logChange($event)"` on the element and type the handler parameter as
-`CustomEvent<CeeChangeDetail>`.
-
-The optional `eventHandler.valueChanged(path, value)` callback receives the same
-field mutations. It is not a dirty flag: only the host knows which serialization
-was last loaded or saved. Keep that baseline in the host and compare
-`cee.currentMetadata` after each `change`; doing so also clears dirty state when an
-edit is undone.
-
-### Viewer Mode
-
-CEE can be used as a viewer to display metadata instances. This can be achieved by the following configuration setting:
-
-```json
-"readOnlyMode": true
-```
-When used in this mode, users won't be able to manipulate the metadata instance but can only read it.
-## Example Applications
-
-[`cedar-component-demo`](https://github.com/metadatacenter/cedar-component-demo)
-holds small runnable applications that embed CEE, each with its own README:
-
-| Application | Framework |
-|---|---|
-| `cedar-cee-demo-angular-src` | Angular |
-| `cedar-cee-demo-react` | React |
-| `cedar-cee-demo-ember-src` | Ember |
-
-Each edits the same template, `eDNA ECT Demonstration`, kept as a file inside the
-application rather than fetched from a server.
-
-`cedar-cee-demo-angular-src` needs `npm install --legacy-peer-deps`; the others
-do not.
+3. In your browser, navigate to `http://localhost:4400/`. The app will
+   automatically reload if you change any of the source files.
