@@ -23,11 +23,7 @@ This README covers developing, building, testing, and releasing the component.
 ## Running as a standalone application
 
 You can run the CEE as a standalone application. This is helpful for developers to
-see changes to the code reflected immediately in the application. The standalone
-app fetches a small template and instance from `src/assets/cee-demo` and assigns
-them to `templateAndInstanceObject`, the same way any host supplies an artifact,
-so it needs no separate template server and no `cedar-component-distribution`
-checkout.
+see changes to the code reflected immediately in the application.
 
 Proceed with the following steps:
 
