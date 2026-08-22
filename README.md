@@ -20,40 +20,6 @@ For embedding and using the CEE in a web application, see the
 
 This README covers developing, building, testing, and releasing the component.
 
-## Running as a standalone application
-
-You can run the CEE as a standalone application. This is helpful for developers to
-see changes to the code reflected immediately in the application.
-
-Proceed with the following steps:
-
-### Clone the repository
-
-Clone this repository onto a local directory of your choice:
-
-```shell
-git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
-```
-
-### Edit configuration
-
-1. Open the file ```cedar-embeddable-editor/src/app/app.component.dev.ts``` in your favorite editor.
-2. Edit configuration parameters based on your local environment (see the [configuration documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/configuration/) for details).
-
-### Build the project and start the server
-
-1. Navigate to the CEE directory:
-```shell
-$ cd <...>/<clone directory>/cedar-embeddable-editor/
-```
-1. Run these commands:
-```shell
-cedar-embeddable-editor$ npm install
-cedar-embeddable-editor$ ng serve
-```
-
-1. In your browser, navigate to `http://localhost:4400/`. The app will automatically reload if you change any of the source files.
-
 ## Building the Web Component
 
 The CEE is shipped as one JavaScript file that can be embedded in an application or
@@ -102,6 +68,40 @@ depending on a version copied into this README:
 ```shell
 npm view cedar-embeddable-editor version
 ```
+
+## Running as a standalone application
+
+You can run the CEE as a standalone application. This is helpful for developers to
+see changes to the code reflected immediately in the application.
+
+Proceed with the following steps:
+
+### Clone the repository
+
+Clone this repository onto a local directory of your choice:
+
+```shell
+git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
+```
+
+### Edit configuration
+
+1. Open the file ```cedar-embeddable-editor/src/app/app.component.dev.ts``` in your favorite editor.
+2. Edit configuration parameters based on your local environment (see the [configuration documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/configuration/) for details).
+
+### Build the project and start the server
+
+1. Navigate to the CEE directory:
+```shell
+$ cd <...>/<clone directory>/cedar-embeddable-editor/
+```
+1. Run these commands:
+```shell
+cedar-embeddable-editor$ npm install
+cedar-embeddable-editor$ ng serve
+```
+
+1. In your browser, navigate to `http://localhost:4400/`. The app will automatically reload if you change any of the source files.
 
 ## Testing
 
