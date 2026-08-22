@@ -3,11 +3,11 @@
 The CEDAR Embeddable Editor (CEE) is a reusable Web Component for adding
 structured, standards-based metadata authoring to web applications.
 
-CEE dynamically renders data-entry forms from machine-actionable CEDAR
+The CEE dynamically renders data-entry forms from machine-actionable CEDAR
 templates and produces semantically rich metadata as JSON-LD. Templates define
 the fields, constraints, controlled vocabularies, and repeatable structures in a
 form, allowing the metadata-authoring experience to evolve independently of the
-application that embeds it. CEE also supports ontology-backed value selection
+application that embeds it. The CEE also supports ontology-backed value selection
 and persistent identifiers from external authorities such as ORCID and ROR.
 
 For the design rationale, architecture, and deployments in research platforms,
@@ -15,7 +15,7 @@ see [*Author Once, Publish Everywhere: Portable Metadata Authoring with the CEDA
 Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002), published in the
 *Data Science Journal* (2026).
 
-For embedding and using CEE, see the
+For embedding and using the CEE, see the
 [CEDAR Embeddable Editor documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/intro/).
 
 This README covers developing, building, testing, and releasing the component.
@@ -24,7 +24,7 @@ including the [browser support contract](https://metadatacenter.readthedocs.io/e
 
 ## Running as a standalone application
 
-You can run CEE as a standalone application. This is helpful for developers to
+You can run the CEE as a standalone application. This is helpful for developers to
 see changes to the code reflected immediately in the application. The standalone
 app fetches a small template and instance from `src/assets/cee-demo` and assigns
 them to `templateAndInstanceObject`, the same way any host supplies an artifact,
@@ -62,7 +62,7 @@ cedar-embeddable-editor$ ng serve
 
 ## Building the Web Component
 
-CEE is shipped as one JavaScript file that can be embedded in an application or
+The CEE is shipped as one JavaScript file that can be embedded in an application or
 HTML page. Do not concatenate named Angular output files manually: their names,
 locations, and module structure change when Angular changes builders.
 
@@ -178,7 +178,7 @@ dependencies explicitly instead.
 
 ### First-time setup
 
-CEE resolves `cedar-model-typescript-library` from npmjs.org, so neither a
+The CEE resolves `cedar-model-typescript-library` from npmjs.org, so neither a
 sibling checkout nor Nexus access is needed:
 
 ```shell
@@ -191,7 +191,7 @@ The visual suite installs nothing here. It runs inside Playwright's own containe
 which carries the browsers it drives, and installs its dependencies there against a
 named volume — so it needs Docker running and no `playwright install` of its own.
 
-CEE uses Angular 22.1 and Node 24.19.0. `.nvmrc`, the package `engines` field and
+The CEE uses Angular 22.1 and Node 24.19.0. `.nvmrc`, the package `engines` field and
 CI specify the Node version.
 
 The application bundle and the visual fixture generator each install the model
@@ -207,9 +207,9 @@ generated with the visual copy, so a mismatch means the tests and the artifact
 are using different model contracts. The harness declares no separate copy; it
 resolves the root installation.
 
-The repository's `.npmrc` files still map the `@org.metadatacenter` scope to
-Nexus for the scoped CEE development-snapshot channel described above. Stable
-CEE and model-library installs come from npmjs.org.
+The repository's `.npmrc` files map the `@org.metadatacenter` scope to Nexus for
+the scoped development-snapshot channel for the CEE described above. Stable
+installations of the CEE and the model library come from npmjs.org.
 
 ### Focused test commands
 
@@ -231,7 +231,7 @@ The unit tests run in Node and do not use `TestBed` or Angular's JIT compiler.
 Browser behavior belongs in the Playwright suite under `visual/`, which tests the
 shipped bundle rather than the sources.
 
-## Embedding and using CEE
+## Embedding and Using the CEE
 
 The canonical guide covers the public integration contract:
 
