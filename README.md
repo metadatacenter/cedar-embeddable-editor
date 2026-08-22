@@ -19,8 +19,6 @@ For embedding and using the CEE in a web application, see the
 [CEDAR Embeddable Editor documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/intro/).
 
 This README covers developing, building, testing, and releasing the component.
-The documentation linked above is the canonical guide to embedding and using it,
-including the [browser support contract](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/intro/#browser-support).
 
 ## Running as a standalone application
 
