@@ -20,11 +20,8 @@ export class DataQualityReport extends Object {
   /** How many of those the instance fills. */
   nonNullRequiredFieldValueCount = 0;
   /**
-   * Constraint violations, one per problem. Empty when every present value
-   * satisfies its declared constraints.
-   *
-   * The counters above answer "is anything missing"; this answers "is anything
-   * wrong", which the report could not express before.
+   * Validation problems, including one `required` problem for each unfilled
+   * required field declaration and constraint violations on present values.
    */
   problems: ValidationProblem[] = [];
   isValid = false;

@@ -180,7 +180,12 @@ export interface CeeDataQualityReport {
    * unaffected by which page the form is showing.
    */
   nonNullRequiredFieldValueCount: number;
-  /** Constraint violations. Empty when every present value satisfies its constraints. */
+  /**
+   * Validation problems.
+   *
+   * Includes one `required` problem for each unsatisfied required field
+   * declaration, while the two counters retain their existing aggregate view.
+   */
   problems: CeeValidationProblem[];
   /** True when every required field is filled and no constraint is violated. */
   isValid: boolean;

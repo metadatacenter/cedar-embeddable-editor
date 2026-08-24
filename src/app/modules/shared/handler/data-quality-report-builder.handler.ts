@@ -126,7 +126,8 @@ export class DataQualityReportBuilderHandler {
   }
 
   /**
-   * Whether this field's requirement is declared, and whether it is met.
+   * Whether this field's requirement is declared, whether it is met, and the
+   * host-visible problem when it is not.
    *
    * One count per required field the template declares, whatever its
    * cardinality. A multi field used to contribute one count per occurrence,
@@ -157,7 +158,19 @@ export class DataQualityReportBuilderHandler {
     );
     if (satisfiedBy !== null) {
       report.nonNullRequiredFieldValueCount++;
+      return;
     }
+    const path = component.path ?? [];
+    report.problems.push(
+      new ValidationProblem(
+        path,
+        path.length > 0 ? path[path.length - 1] : component.name,
+        component.basicInfo.inputType,
+        ValidationCode.required,
+        'A required value is missing.',
+        null,
+      ),
+    );
   }
 
   /**

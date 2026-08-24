@@ -41,8 +41,8 @@ export class FieldValueValidator {
       return value.flatMap((entry) => this.validate(component, entry, path));
     }
 
-    // An absent value is the required check's business, handled by the report's
-    // counters. Constraints describe what a value must look like *if present*.
+    // An absent value is the report's required check's business. Constraints
+    // describe what a value must look like *if present*.
     if (this.isEmpty(value)) {
       return [];
     }

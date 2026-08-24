@@ -107,8 +107,18 @@ describe('required counting', () => {
   it('counts a required single field once', () => {
     const driver = new CeeDriver(buildTemplate({ name: 'rc1', children: [{ kind: TEXT, name: 'r', required: true }] }));
     expect(counts(driver)).toEqual({ required: 1, filled: 0, isValid: false });
+    expect(driver.qualityReport.problems).toEqual([
+      expect.objectContaining({
+        path: ['_r'],
+        field: '_r',
+        inputType: 'textfield',
+        code: 'required',
+        value: null,
+      }),
+    ]);
     driver.setValue(['_r'], TEXT, 'x');
     expect(counts(driver)).toEqual({ required: 1, filled: 1, isValid: true });
+    expect(driver.qualityReport.problems).toEqual([]);
   });
 
   it('counts a required multi field once, not once per occurrence', () => {
@@ -119,8 +129,10 @@ describe('required counting', () => {
       }),
     );
     expect(counts(driver)).toEqual({ required: 1, filled: 0, isValid: false });
+    expect(driver.qualityReport.problems.map((p: { code: string }) => p.code)).toContain('required');
     driver.setValue(['_r'], TEXT, 'first occurrence only');
     expect(counts(driver)).toEqual({ required: 1, filled: 1, isValid: true });
+    expect(driver.qualityReport.problems.map((p: { code: string }) => p.code)).not.toContain('required');
   });
 
   it('counts a required field in a repeated element once', () => {
@@ -133,8 +145,12 @@ describe('required counting', () => {
       }),
     );
     expect(counts(driver)).toEqual({ required: 1, filled: 0, isValid: false });
+    expect(driver.qualityReport.problems).toEqual([
+      expect.objectContaining({ path: ['_el', '_r'], field: '_r', code: 'required' }),
+    ]);
     driver.setValue(['_el', '_r'], TEXT, 'first occurrence only');
     expect(counts(driver)).toEqual({ required: 1, filled: 1, isValid: true });
+    expect(driver.qualityReport.problems).toEqual([]);
   });
 
   /**
