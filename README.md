@@ -191,7 +191,9 @@ Open the standalone application's configuration file, `src/app/app.component.dev
 This minimal configuration enables lookups through the public CEDAR services:
 
 ```typescript
-ceeConfig = {
+import type { CeeConfig } from 'cedar-embeddable-editor';
+
+const ceeConfig: CeeConfig = {
   terminologyBaseUrl: 'https://terminology.metadatacenter.org/',
   bridgeBaseUrl: 'https://bridge.metadatacenter.org/',
 };
