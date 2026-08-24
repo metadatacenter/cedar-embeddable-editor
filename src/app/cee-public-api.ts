@@ -160,14 +160,25 @@ export interface CeeValidationProblem {
 /**
  * What CEE thinks of the instance currently in the form.
  *
- * Read through `dataQualityReport`. Typed here as what a host can rely on; the
- * report object also carries CEE's internal working views, which are not part of
- * this contract and may change.
+ * Read through `dataQualityReport`. These four members are the whole object: it
+ * carried three of CEE's internal working views as well, and the interface was a
+ * subset of what a host actually received.
  */
 export interface CeeDataQualityReport {
-  /** How many required fields the template declares. */
+  /**
+   * How many required fields the template declares.
+   *
+   * One per declaration, whatever its cardinality — a required field repeated
+   * five times counts once, as does a required field inside an element repeated
+   * five times.
+   */
   requiredFieldValueCount: number;
-  /** How many of those the instance actually fills. */
+  /**
+   * How many of those the instance fills.
+   *
+   * A requirement is met when any occurrence carries a value, so this is
+   * unaffected by which page the form is showing.
+   */
   nonNullRequiredFieldValueCount: number;
   /** Constraint violations. Empty when every present value satisfies its constraints. */
   problems: CeeValidationProblem[];

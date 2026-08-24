@@ -27,6 +27,9 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { emptyNode, instanceWith, linkNode, literalNode, termNode, linkValue, templateIdOf } from '../src/values';
+import { InstanceValueNode } from '@cee/util/instance-value-node';
+import { valueIsIri } from '@cee/models/ext-auth-categories.model';
+import { InputType } from '@cee/models/input-type.model';
 
 /**
  * An instance always names the template it is an instance of; there is no
@@ -62,7 +65,17 @@ const LINK: FieldKind = {
   sample: 'https://example.org/resource',
 };
 
-describe('what the quality report reads a node as', () => {
+/**
+ * The node still arrives the way a host sends one — as JSON, read into the tree
+ * by the deserializer — and only the last step changed. The answer used to be
+ * read back out of the report's value tree, and that tree is gone: it was CEE's
+ * working view of the instance the host had itself supplied. So the atom is
+ * taken from the tree and asked directly, which is the same call the report
+ * makes — `extractPlainValue` is `plainValue` under the same `valueIsIri` gate —
+ * and the requirement test below holds the report to it at the level someone
+ * would notice.
+ */
+describe('what CEE reads a node as', () => {
   const reportValue = (kind: FieldKind, node: InstanceNode) => {
     const template = buildTemplate({ name: `ivn_${kind.key}`, children: [{ kind, name: 'f' }] });
     const driver = new CeeDriver(template, {
@@ -70,8 +83,8 @@ describe('what the quality report reads a node as', () => {
       // including shapes the library would not write.
       instance: { ...instanceWith(templateIdOf(template), {}, INSTANCE_IRI), _f: node },
     });
-    driver.handlerContext.buildQualityReport();
-    return driver.qualityReport.valueTree._f.value;
+    const stored = driver.extract.values['_f'] ?? null;
+    return InstanceValueNode.plainValue(stored, valueIsIri(kind.inputType as InputType));
   };
 
   it('reads a controlled term by its label', () => {

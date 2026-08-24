@@ -1,4 +1,3 @@
-import { InstanceSerializer } from '../util/instance-serializer';
 import { DataQualityReport } from '../models/data-quality-report.model';
 import { DataContext } from '../util/data-context';
 import { CedarComponent } from '../models/component/cedar-component.model';
@@ -6,7 +5,6 @@ import { SingleElementComponent } from '../models/element/single-element-compone
 import { MultiElementComponent } from '../models/element/multi-element-component.model';
 import { CedarTemplate } from '../models/template/cedar-template.model';
 import { ElementComponent } from '../models/component/element-component.model';
-import * as _ from 'lodash-es';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
@@ -19,7 +17,7 @@ import { ValidationCode, ValidationProblem } from '../validation/validation-prob
 import { InputType } from '../models/input-type.model';
 import { BasicInfo } from '../models/info/basic-info.model';
 import { MultiInfo } from '../models/info/multi-info.model';
-import { InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
+import { InstanceNode, isInstanceObject } from '../models/instance-node.model';
 
 /**
  * What the two problem collectors read off a component.
@@ -37,29 +35,6 @@ type InspectedComponent = CedarComponent & {
 };
 
 /**
- * The report's value tree, which is not an instance tree and never was.
- *
- * Three shapes, mirroring the template rather than the document: a container keyed
- * by child component name, a list of occurrences under `values`, and a leaf holding
- * what was found and whether it was required. It was typed `object` throughout, so
- * `valueTree[name]['values'].push(...)` type-checked against nothing.
- */
-export interface ReportValue {
-  value: unknown;
-  required?: true;
-}
-
-export interface ReportList {
-  values: ReportNode[];
-}
-
-export interface ReportContainer {
-  [componentName: string]: ReportNode;
-}
-
-export type ReportNode = ReportValue | ReportList | ReportContainer;
-
-/**
  * Builds the data quality report from a template and the instance under it.
  *
  * Stateless, for the reason given on `DataObjectBuilderHandler`: `dataObjectFull`
@@ -70,26 +45,13 @@ export type ReportNode = ReportValue | ReportList | ReportContainer;
 export class DataQualityReportBuilderHandler {
   buildReport(dataContext: DataContext, handlerContext: HandlerContext): DataQualityReport {
     const report = new DataQualityReport();
-    report.templateRepresentation = dataContext.templateRepresentation;
-    // Written, because a host page reads this. The working tree is a model, and
-    // the model's container is CEE's business.
-    report.instance = InstanceSerializer.toJson(dataContext.instanceFullData);
-
-    const valueTree: ReportContainer = {};
 
     if (dataContext.templateRepresentation != null && dataContext.templateInput != null) {
       const rootState = handlerContext.multiInstanceObjectService.rootState;
       for (const child of dataContext.templateRepresentation.children) {
-        DataQualityReportBuilderHandler.buildRecursively(
-          child,
-          report,
-          valueTree,
-          rootState.getState(child.name),
-          handlerContext,
-        );
+        DataQualityReportBuilderHandler.buildRecursively(child, report, rootState.getState(child.name), handlerContext);
       }
     }
-    report.valueTree = valueTree;
     report.computeValidity();
     return report;
   }
@@ -97,7 +59,6 @@ export class DataQualityReportBuilderHandler {
   private static buildRecursively(
     component: CedarComponent,
     report: DataQualityReport,
-    valueTree: ReportContainer,
     multiInstanceState: MultiInstanceObjectInfo | null,
     handlerContext: HandlerContext,
   ): void {
@@ -107,10 +68,7 @@ export class DataQualityReportBuilderHandler {
       component instanceof CedarTemplate
     ) {
       const iterableComponent: ElementComponent = component as ElementComponent;
-      const targetName = iterableComponent.name;
       if (component instanceof MultiElementComponent) {
-        const occurrences = DataQualityReportBuilderHandler.getEmptyList();
-        valueTree[targetName] = occurrences;
         const multiCount = multiInstanceState?.currentCount ?? 0;
         DataQualityReportBuilderHandler.collectPresenceProblems(
           component,
@@ -119,31 +77,23 @@ export class DataQualityReportBuilderHandler {
         );
         DataQualityReportBuilderHandler.collectCardinalityProblems(component, multiCount, report);
         if (multiCount > 0) {
-          const displayedOccurrence = DataQualityReportBuilderHandler.getEmptyObject();
           const currentIndex = multiInstanceState?.currentIndex ?? -1;
           const childStates = currentIndex >= 0 ? multiInstanceState?.occurrences[currentIndex] : undefined;
           for (const childComponent of iterableComponent.children) {
             DataQualityReportBuilderHandler.buildRecursively(
               childComponent,
               report,
-              displayedOccurrence,
               childStates?.getState(childComponent.name) ?? null,
               handlerContext,
             );
           }
-          for (let idx = 0; idx < multiCount; idx++) {
-            occurrences.values.push(_.cloneDeep(displayedOccurrence));
-          }
         }
       } else {
-        const elementValues = DataQualityReportBuilderHandler.getEmptyObject();
-        valueTree[targetName] = elementValues;
         const childStates = multiInstanceState?.occurrences[0];
         for (const childComponent of iterableComponent.children) {
           DataQualityReportBuilderHandler.buildRecursively(
             childComponent,
             report,
-            elementValues,
             childStates?.getState(childComponent.name) ?? null,
             handlerContext,
           );
@@ -152,21 +102,7 @@ export class DataQualityReportBuilderHandler {
     }
     if (component instanceof SingleFieldComponent || component instanceof MultiFieldComponent) {
       const nonIterableComponent = component as FieldComponent;
-      const targetName = nonIterableComponent.name;
-      let isRequired = false;
-      if (component.valueInfo.requiredValue) {
-        isRequired = true;
-      }
       const dataValueObject: InstanceNode | null = handlerContext.getDataObjectNodeByPath(component.path);
-      // Whether a requirement is satisfied is asked of the whole instance, not
-      // of the page currently on screen. See findAnyValue.
-      const satisfiedBy = isRequired
-        ? DataQualityReportBuilderHandler.findAnyValue(
-            component.path,
-            handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
-            component,
-          )
-        : null;
       DataQualityReportBuilderHandler.collectFieldProblems(
         nonIterableComponent,
         dataValueObject,
@@ -184,36 +120,45 @@ export class DataQualityReportBuilderHandler {
           multiInstanceState?.currentCount ?? 0,
           report,
         );
-        const occurrences = DataQualityReportBuilderHandler.getEmptyList();
-        valueTree[targetName] = occurrences;
-        const multiCount = multiInstanceState?.currentCount ?? 0;
-        for (let idx = 0; idx < multiCount; idx++) {
-          const occurrence = isInstanceArray(dataValueObject) ? dataValueObject[idx] : null;
-          const value = DataQualityReportBuilderHandler.extractPlainValue(occurrence, component);
-          occurrences.values.push(
-            DataQualityReportBuilderHandler.getEmptyValueWrapper(value, isRequired, report, satisfiedBy),
-          );
-        }
-      } else {
-        const value = DataQualityReportBuilderHandler.extractPlainValue(dataValueObject, component);
-        valueTree[targetName] = DataQualityReportBuilderHandler.getEmptyValueWrapper(
-          value,
-          isRequired,
-          report,
-          satisfiedBy,
-        );
       }
+      DataQualityReportBuilderHandler.countRequirement(component, report, handlerContext);
     }
   }
 
   /**
-   * @param value          what this slot holds — goes into the value tree, so it
-   *                       stays the value of the page being displayed.
-   * @param satisfiedBy    what decides whether the requirement is met. Separate
-   *                       from `value` because a required field inside a
-   *                       multi-instance element is satisfied by *any* instance
-   *                       holding a value, not only the one on screen.
+   * Whether this field's requirement is declared, and whether it is met.
+   *
+   * One count per required field the template declares, whatever its
+   * cardinality. A multi field used to contribute one count per occurrence,
+   * which made the pair mean two different things in one report: three
+   * occurrences of one required field read as `3` while a required field inside
+   * an element repeated three times read as `1`. Neither number was per
+   * occurrence, because a single `satisfiedBy` answered for all of them — so
+   * filling one of three occurrences reported "3 of 3 filled". The verdict was
+   * right and the number was not, and a host has nothing to label but the
+   * number.
+   *
+   * Whether a requirement is satisfied is asked of the whole instance, not of
+   * the page currently on screen. See `findAnyValue`.
    */
+  private static countRequirement(
+    component: SingleFieldComponent | MultiFieldComponent,
+    report: DataQualityReport,
+    handlerContext: HandlerContext,
+  ): void {
+    if (!component.valueInfo.requiredValue) {
+      return;
+    }
+    report.requiredFieldValueCount++;
+    const satisfiedBy = DataQualityReportBuilderHandler.findAnyValue(
+      component.path,
+      handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
+      component,
+    );
+    if (satisfiedBy !== null) {
+      report.nonNullRequiredFieldValueCount++;
+    }
+  }
 
   /**
    * Constraint problems for one field, across every instance that holds a value.
@@ -395,23 +340,6 @@ export class DataQualityReportBuilderHandler {
     return DataQualityReportBuilderHandler.collectNodes(rest, node.values[head] ?? null, acc);
   }
 
-  private static getEmptyValueWrapper(
-    value: unknown,
-    isRequired: boolean,
-    report: DataQualityReport,
-    satisfiedBy: unknown = value,
-  ): ReportValue {
-    const v: ReportValue = { value: value };
-    if (isRequired) {
-      v.required = true;
-      report.requiredFieldValueCount++;
-      if (satisfiedBy !== null) {
-        report.nonNullRequiredFieldValueCount++;
-      }
-    }
-    return v;
-  }
-
   /**
    * The first value held at `path` by any instance, or null.
    *
@@ -455,14 +383,6 @@ export class DataQualityReportBuilderHandler {
       return null;
     }
     return DataQualityReportBuilderHandler.findAnyValue(rest, node.values[head] ?? null, component);
-  }
-
-  private static getEmptyList(): ReportList {
-    return { values: [] };
-  }
-
-  private static getEmptyObject(): ReportContainer {
-    return {};
   }
 
   /**

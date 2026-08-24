@@ -246,6 +246,16 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     );
   }
 
+  /**
+   * A copy, so a host holding one is holding a snapshot rather than a view into
+   * a report the next keystroke rebuilds.
+   *
+   * `publishMutation` reads this on every model change, which is why the copy is
+   * worth a note: it used to clone the component tree, the instance and a value
+   * tree along with the answer, and cost 2.7 ms per edit on the largest corpus
+   * template against 0.3 ms to compute the report it was copying. The report is
+   * four members now and the copy is what it always looked like.
+   */
   @Input() get dataQualityReport(): object {
     if (!this.artifacts.instanceInputRejected) {
       return JSON.parse(JSON.stringify(this.handlerContext.dataContext.dataQualityReport));

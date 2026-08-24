@@ -138,15 +138,13 @@ describe('required values', () => {
 
   /**
    * A required field inside a multi element is counted ONCE, not once per
-   * instance. `buildRecursively` walks a multi element's children a single time
-   * into a dummy object — incrementing the counters as it goes — then
-   * `_.cloneDeep`s that dummy `currentCount` times into the value tree
-   * (data-quality-report-builder.handler.ts:65-80). The clones never touch the
-   * counters.
+   * instance: `countRequirement` counts declarations, and `buildRecursively`
+   * walks a multi element's children once whatever `currentCount` says.
    *
-   * That is the "at least one instance must carry a value" semantic, now made
-   * deliberate: see "required values are page-independent" below, which pins
-   * that the *which* instance no longer matters either.
+   * That is the "at least one instance must carry a value" semantic: see
+   * "required values are page-independent" below, which pins that *which*
+   * instance carries it does not matter either. `report-shape.spec.ts` holds a
+   * required multi field to the same count, which it did not used to meet.
    */
   it('counts a required field in a multi element once, regardless of instance count', () => {
     const driver = new CeeDriver(
@@ -312,11 +310,12 @@ describe('required values are page-independent', () => {
   });
 
   /**
-   * The value tree is a view of the current page and must stay that way — the
-   * fix separates "what is displayed" from "what satisfies the requirement",
-   * and conflating them again would show a value from another instance.
+   * "What is displayed" and "what satisfies the requirement" are separate
+   * questions, and this is the case where they give opposite answers: the page
+   * on screen is empty and the instance is valid all the same. Conflating them
+   * would report an instance as incomplete for having been left on a blank page.
    */
-  it('still reports the displayed page in the value tree', () => {
+  it('does not let the displayed page decide the verdict', () => {
     const driver = new CeeDriver(threeInstances());
     const el = driver.findOrThrow(['_el']);
 
