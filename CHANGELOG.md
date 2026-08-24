@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   four-member shape, required-field counters, and validity result are unchanged; hosts that already
   read `problems` gain the field identities that the counters alone could not provide.
 
+### Changed
+
+- Development builds use
+  `@org.metadatacenter/cedar-model-typescript-library@1.0.3-dev.20260824.2260108` from Nexus in both
+  the application and visual-test dependency graphs.
+
 ## [2.0.1] - 2026-08-21
 
 The first stable release on the 2.x line, published to npmjs as `cedar-embeddable-editor@2.0.1`.
