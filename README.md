@@ -1,5 +1,7 @@
 # CEDAR Embeddable Editor (CEE)
 
+[![Test](https://github.com/metadatacenter/cedar-embeddable-editor/actions/workflows/test.yml/badge.svg?branch=develop)](https://github.com/metadatacenter/cedar-embeddable-editor/actions/workflows/test.yml)
+
 The CEDAR Embeddable Editor (CEE) is a reusable Web Component for adding
 structured, standards-based metadata authoring to web applications.
 
