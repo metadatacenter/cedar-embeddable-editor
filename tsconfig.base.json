@@ -68,12 +68,10 @@
      * its compilerOptions here — the same blind spot that made the Angular 15
      * `useDefineForClassFields` migration report "No changes made" above.
      *
-     * Not load-bearing for the build, which succeeds without it and emits an
-     * artifact 27 bytes different. What it settles is `moment` and
-     * `moment-timezone`, the two CommonJS dependencies: with only
-     * `allowSyntheticDefaultImports` the default-import syntax type-checks while
-     * the interop is left to the bundler, and the two can disagree about what a
-     * CommonJS module's default is. Set so they cannot.
+     * Kept explicit so default-import interop is a compiler decision shared by
+     * every root project, rather than behavior left for an individual bundler to
+     * infer. A future CommonJS import therefore cannot type-check under one rule
+     * and execute under another.
      */
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
