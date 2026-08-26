@@ -193,20 +193,20 @@ describe('multi-valued writes', () => {
   it('writes each selection as its own literal', () => {
     const { driver, component } = rig(CHECKBOX);
     driver.handlerContext.changeListValue(component, ['A', 'B']);
-    expect((driver.extract.values._f as unknown[]).map(literalOf)).toEqual(['A', 'B']);
+    expect((driver.extract.values._f as InstanceNode[]).map(literalOf)).toEqual(['A', 'B']);
   });
 
   it('replaces the whole list rather than appending', () => {
     const { driver, component } = rig(CHECKBOX);
     driver.handlerContext.changeListValue(component, ['A', 'B']);
     driver.handlerContext.changeListValue(component, ['B']);
-    expect((driver.extract.values._f as unknown[]).map(literalOf)).toEqual(['B']);
+    expect((driver.extract.values._f as InstanceNode[]).map(literalOf)).toEqual(['B']);
   });
 
   it('an empty selection writes one empty slot rather than none', () => {
     const { driver, component } = rig(CHECKBOX);
     driver.handlerContext.changeListValue(component, []);
-    expect((driver.extract.values._f as unknown[]).map(literalOf)).toEqual([null]);
+    expect((driver.extract.values._f as InstanceNode[]).map(literalOf)).toEqual([null]);
   });
 });
 

@@ -74,7 +74,7 @@ const lifecycle = (entry: PairedCase) => {
   const instanceResult = CedarReaders.json()
     .getFebruary2024()
     .getTemplateInstanceReader()
-    .readFromObject(emitted as never, undefined as never);
+    .readFromObject(emitted as never);
   const validation = InstanceValidator.validate(instanceResult.instance, template);
   return { driver, emitted, instanceResult, validation };
 };
@@ -108,7 +108,7 @@ describe('the production-derived CEE lifecycle corpus', () => {
       const parsedInstance = CedarReaders.json()
         .getFebruary2024()
         .getTemplateInstanceReader()
-        .readFromObject(emitted as never, undefined as never);
+        .readFromObject(emitted as never);
 
       expect(parsedInstance.parsingResult.getBlueprintComparisonErrorCount()).toBe(0);
       expect(parsedInstance.parsingResult.getBlueprintComparisonWarningCount()).toBe(id === '048' ? 6 : 5);

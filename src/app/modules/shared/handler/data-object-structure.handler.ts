@@ -234,7 +234,7 @@ export class DataObjectStructureHandler {
     }
 
     const list: InstanceArray = [];
-    parent.setValue(component.name, list as unknown as InstanceNode);
+    parent.setValue(component.name, list);
     return list;
   }
 

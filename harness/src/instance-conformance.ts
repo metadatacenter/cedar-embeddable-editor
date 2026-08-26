@@ -25,7 +25,7 @@ export const validateWithModel = (template: object, instance: object): Conforman
     .getFebruary2024()
     .getTemplateInstanceReader()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .readFromObject(instance as any, undefined as never).instance;
+    .readFromObject(instance as any).instance;
 
   const result = InstanceValidator.validate(parsedInstance, parsedTemplate);
   return {

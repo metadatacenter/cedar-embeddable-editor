@@ -45,6 +45,8 @@ const isModelAtom = (node: unknown): node is InstanceDataAtomType =>
   node instanceof InstanceDataControlledAtom ||
   node instanceof InstanceDataEmptyAtom;
 
+type ReadableValueNode = InstanceDataAtomType | JsonNode | string | null | undefined;
+
 /**
  * The atom a node holds, whichever side of the boundary it came from.
  *
@@ -53,8 +55,8 @@ const isModelAtom = (node: unknown): node is InstanceDataAtomType =>
  * is the atom the instance holds. `readValueNode` classifies the first; the
  * second is already the answer.
  */
-const atomOf = (node: unknown): InstanceDataAtomType =>
-  isModelAtom(node) ? node : JsonTemplateInstanceReader.readValueNode((node ?? null) as unknown as JsonNode);
+const atomOf = (node: ReadableValueNode): InstanceDataAtomType =>
+  isModelAtom(node) ? node : JsonTemplateInstanceReader.readValueNode(node ?? null);
 
 /**
  * The literal a node holds.
@@ -63,25 +65,25 @@ const atomOf = (node: unknown): InstanceDataAtomType =>
  * as a different outcome from a literal of `null` or `''` — both of which are
  * values a field can legitimately hold.
  */
-export const literalOf = (node: unknown): string | null | undefined => {
+export const literalOf = (node: ReadableValueNode): string | null | undefined => {
   const atom = atomOf(node);
   return atom instanceof InstanceDataStringAtom || atom instanceof InstanceDataTypedAtom ? atom.value : undefined;
 };
 
 /** The IRI a node carries — a link or a controlled term. */
-export const iriOf = (node: unknown): string | null | undefined => {
+export const iriOf = (node: ReadableValueNode): string | null | undefined => {
   const atom = atomOf(node);
   return atom instanceof InstanceDataLinkAtom || atom instanceof InstanceDataControlledAtom ? atom.id : undefined;
 };
 
 /** The label a node carries, which only a controlled term has. */
-export const labelOf = (node: unknown): string | null | undefined => {
+export const labelOf = (node: ReadableValueNode): string | null | undefined => {
   const atom = atomOf(node);
   return atom instanceof InstanceDataControlledAtom ? atom.label : undefined;
 };
 
 /** The XSD type a node declares alongside its value, if it declares one. */
-export const xsdTypeOf = (node: unknown): string | null | undefined => {
+export const xsdTypeOf = (node: ReadableValueNode): string | null | undefined => {
   const atom = atomOf(node);
   return atom instanceof InstanceDataTypedAtom ? atom.type : undefined;
 };
@@ -94,15 +96,17 @@ export const xsdTypeOf = (node: unknown): string | null | undefined => {
  * used to be asked as `Object.hasOwn(node, '@value')` — which is the same
  * question with the answer's spelling baked in.
  */
-export const isLiteral = (node: unknown): boolean =>
+export const isLiteral = (node: ReadableValueNode): boolean =>
   atomOf(node) instanceof InstanceDataStringAtom || atomOf(node) instanceof InstanceDataTypedAtom;
 
 /** True when the node carries an IRI, whether or not it also carries a label. */
-export const isIriBearing = (node: unknown): boolean =>
+export const isIriBearing = (node: ReadableValueNode): boolean =>
   atomOf(node) instanceof InstanceDataLinkAtom || atomOf(node) instanceof InstanceDataControlledAtom;
 
 /** A controlled term's pair, for asserting both halves at once. */
-export const termOf = (node: unknown): { iri: string | null | undefined; label: string | null | undefined } => ({
+export const termOf = (
+  node: ReadableValueNode,
+): { iri: string | null | undefined; label: string | null | undefined } => ({
   iri: iriOf(node),
   label: labelOf(node),
 });
@@ -204,7 +208,7 @@ export const containerValue = (
 
 /** The occurrences of a multi child, in order. */
 export const listValue = (...occurrences: InstanceDataAtomType[]): InstanceDataAtomType =>
-  occurrences as unknown as InstanceDataAtomType;
+  occurrences;
 
 /** The node a slot holds when nothing has been put in it. */
 export const emptyValue = (): InstanceDataAtomType => new InstanceDataEmptyAtom();
