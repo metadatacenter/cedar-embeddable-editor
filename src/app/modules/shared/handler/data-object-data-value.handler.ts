@@ -6,7 +6,7 @@ import { MultiElementComponent } from '../models/element/multi-element-component
 import { DataContext } from '../util/data-context';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
-import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
+import { AttributeValueNamePolicy, InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
@@ -49,36 +49,6 @@ interface DownstreamObjects {
   childComponent: CedarComponent | null;
   remainingPath: string[];
 }
-
-/*
- * Kept in step with AttributeValueNamePolicy in the model library. CEE cannot
- * consume that new export until the next model-library package is published,
- * but it must reject the same names at the point of entry rather than relying
- * on serialization to catch them later.
- */
-const RESERVED_ATTRIBUTE_VALUE_NAMES = new Set([
-  '@context',
-  '@id',
-  '@type',
-  '@value',
-  '@language',
-  'schema:isBasedOn',
-  'schema:name',
-  'schema:description',
-  'pav:derivedFrom',
-  'pav:createdOn',
-  'pav:createdBy',
-  'pav:lastUpdatedOn',
-  'oslc:modifiedBy',
-  'rdfs:label',
-  'skos:prefLabel',
-  'skos:altLabel',
-  'skos:notation',
-  '_annotations',
-]);
-
-const isReservedAttributeValueName = (name: string): boolean =>
-  name.startsWith('@') || RESERVED_ATTRIBUTE_VALUE_NAMES.has(name);
 
 /**
  * One change to an attribute-value field: the attribute's name, and what it holds.
@@ -207,7 +177,7 @@ export class DataObjectDataValueHandler {
       return null;
     }
 
-    if (isReservedAttributeValueName(newName)) {
+    if (AttributeValueNamePolicy.isReserved(newName)) {
       return `Attribute name "${newName}" is reserved for instance metadata.`;
     }
 
