@@ -226,6 +226,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.lastPublishedMetadata = key;
 
     const report = this.dataQualityReport as CeeDataQualityReport;
+    const instance = this.handlerContext.dataContext.instanceFullData;
     const multiOperation = mutation.operation === 'valueChanged' ? undefined : mutation.operation;
     const detail: CeeChangeDetail = {
       operation: mutation.operation,
@@ -233,8 +234,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       value: mutation.value,
       validity: report.isValid === true,
       dataQualityReport: report,
-      title: typeof metadata['schema:name'] === 'string' ? metadata['schema:name'] : null,
-      description: typeof metadata['schema:description'] === 'string' ? metadata['schema:description'] : null,
+      title: instance?.schema_name ?? null,
+      description: instance?.schema_description ?? null,
       ...(multiOperation === undefined ? {} : { message: multiOperation }),
     };
 

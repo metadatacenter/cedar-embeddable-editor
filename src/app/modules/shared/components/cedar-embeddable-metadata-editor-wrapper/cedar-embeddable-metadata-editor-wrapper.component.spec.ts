@@ -177,7 +177,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     component.handlerContext.changeValue(field, 'edited');
 
     expect(changes).toHaveLength(1);
-    const metadata = component.currentMetadata as CeeJsonObject;
+    const instance = component.dataContext.instanceFullData;
     const report = component.dataQualityReport as CeeChangeDetail['dataQualityReport'];
     expect(changes[0]).toEqual({
       operation: 'valueChanged',
@@ -185,8 +185,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       value: 'edited',
       validity: report.isValid,
       dataQualityReport: report,
-      title: typeof metadata['schema:name'] === 'string' ? metadata['schema:name'] : null,
-      description: typeof metadata['schema:description'] === 'string' ? metadata['schema:description'] : null,
+      title: instance?.schema_name ?? null,
+      description: instance?.schema_description ?? null,
     });
     expect(mocks.valueChanged).toHaveBeenCalledOnce();
     expect(mocks.valueChanged).toHaveBeenLastCalledWith(field.path, 'edited');
