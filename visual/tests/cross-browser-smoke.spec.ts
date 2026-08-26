@@ -45,10 +45,10 @@ test('registers the production custom element and renders inside Shadow DOM', as
 test('publishes edits through a composed change event and currentMetadata', async ({ page }) => {
   await open(page, '01-input-types');
   await page.evaluate(() => {
-    (window as any).__ceeSmokeChanges = 0;
+    window.__ceeSmokeChanges = 0;
     document.querySelector('cedar-embeddable-editor')!.addEventListener('change', (event) => {
       if (event.composed) {
-        (window as any).__ceeSmokeChanges += 1;
+        window.__ceeSmokeChanges += 1;
       }
     });
   });
@@ -57,10 +57,8 @@ test('publishes edits through a composed change event and currentMetadata', asyn
   await field.fill('cross-browser edit');
   await field.blur();
 
-  await expect.poll(() => page.evaluate(() => (window as any).__ceeSmokeChanges)).toBeGreaterThan(0);
-  const metadata = await page.evaluate(
-    () => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata,
-  );
+  await expect.poll(() => page.evaluate(() => window.__ceeSmokeChanges)).toBeGreaterThan(0);
+  const metadata = await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.currentMetadata);
   expect(JSON.stringify(metadata)).toContain('cross-browser edit');
 });
 
@@ -129,7 +127,7 @@ test('selects and records a fixed UTC offset', async ({ page }) => {
   await expect
     .poll(() =>
       page
-        .evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata)
+        .evaluate(() => document.querySelector('cedar-embeddable-editor')!.currentMetadata)
         .then((metadata) => valueOf(metadata, '_sampled_at')),
     )
     .toBeNull();
@@ -148,9 +146,7 @@ test('selects and records a fixed UTC offset', async ({ page }) => {
   await time.locator('input[aria-label="Minute"]').pressSequentially('30', { delay: 40 });
 
   await expect
-    .poll(() =>
-      page.evaluate(() => JSON.stringify((document.querySelector('cedar-embeddable-editor') as any).currentMetadata)),
-    )
+    .poll(() => page.evaluate(() => JSON.stringify(document.querySelector('cedar-embeddable-editor')!.currentMetadata)))
     .toContain('2026-01-01T09:30:00+05:30');
 });
 
@@ -171,9 +167,7 @@ test('updates temporal data through the custom time picker', async ({ page }) =>
   await seconds.blur();
 
   await expect
-    .poll(() =>
-      page.evaluate(() => JSON.stringify((document.querySelector('cedar-embeddable-editor') as any).currentMetadata)),
-    )
+    .poll(() => page.evaluate(() => JSON.stringify(document.querySelector('cedar-embeddable-editor')!.currentMetadata)))
     .toContain(':42');
 });
 
@@ -183,7 +177,10 @@ test('adds and removes a multi-instance value', async ({ page }) => {
   const add = pager.locator('button[mat-icon-button]').nth(0);
   const remove = pager.locator('button[mat-icon-button]').nth(2);
   const count = () =>
-    page.evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata._record.length);
+    page.evaluate(() => {
+      const record = document.querySelector('cedar-embeddable-editor')!.currentMetadata._record;
+      return Array.isArray(record) ? record.length : 0;
+    });
 
   expect(await count()).toBe(2);
   await add.click();
@@ -219,7 +216,7 @@ test('exposes JSON and YAML outputs for a host-supplied instance', async ({ page
 
   await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Private');
   const outputs = await page.evaluate(() => {
-    const editor = document.querySelector('cedar-embeddable-editor') as any;
+    const editor = document.querySelector('cedar-embeddable-editor')!;
     return { json: JSON.stringify(editor.currentMetadata), yaml: editor.currentMetadataYaml };
   });
   expect(outputs.json).toContain('Private');

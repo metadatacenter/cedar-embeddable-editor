@@ -24,7 +24,7 @@
     "test:visual": "npm run build:production && bash visual/run-in-container.sh",
     "test:ci:nonvisual:prebuilt": "npm run lint && npm run typecheck && npm run test:unit:ci && npm run test:coordinator && npm run test:domain:coverage",
     "test:ci:prebuilt": "npm run test:ci:nonvisual:prebuilt && npm run test:visual:prebuilt && npm run package:npm:prebuilt",
-    "typecheck": "tsc -p tsconfig.eslint.json --noEmit && tsc -p harness/tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.eslint.json --noEmit && tsc -p harness/tsconfig.json --noEmit && tsc -p visual/tsconfig.json --noEmit",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
     "test:ci": "npm run test:ci:nonvisual:prebuilt && npm run test:visual && npm run package:npm:prebuilt",
     "types:public": "tsc -p tsconfig.public-api.json",

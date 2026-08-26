@@ -29,10 +29,10 @@ export const open = async (
     `/host.html?t=${fixture}${preset ? `&c=${preset}` : ''}${instance ? `&i=${instance}` : ''}` +
       `${mode ? `&m=${mode}` : ''}${extra ?? ''}&b=${BUNDLE_VERSION}`,
   );
-  await page.waitForFunction(() => (window as any).__ceeReady === true || (window as any).__ceeError, null, {
+  await page.waitForFunction(() => window.__ceeReady === true || window.__ceeError, null, {
     timeout: 20_000,
   });
-  const err = await page.evaluate(() => (window as any).__ceeError);
+  const err = await page.evaluate(() => window.__ceeError);
   expect(err, `host page failed to load ${fixture}`).toBeFalsy();
   // Material ripples and expansion-panel transitions.
   await page.waitForTimeout(300);
@@ -126,10 +126,10 @@ export const expectNoStrayHosts = (stray: string[]): void => {
 export const openTwoEditors = async (page: Page, fixture: string): Promise<void> => {
   await page.clock.setFixedTime(FROZEN);
   await page.goto(`/host.html?host=multi&t=${fixture}&b=${BUNDLE_VERSION}`);
-  await page.waitForFunction(() => (window as any).__ceeReady === true || (window as any).__ceeError, null, {
+  await page.waitForFunction(() => window.__ceeReady === true || window.__ceeError, null, {
     timeout: 20_000,
   });
-  expect(await page.evaluate(() => (window as any).__ceeError)).toBeFalsy();
+  expect(await page.evaluate(() => window.__ceeError)).toBeFalsy();
   await expect(page.locator('#editor-first app-cedar-embeddable-metadata-editor')).toBeVisible();
   await expect(page.locator('#editor-second app-cedar-embeddable-metadata-editor')).toBeVisible();
 };
