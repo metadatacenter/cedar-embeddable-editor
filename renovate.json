@@ -5,6 +5,9 @@
     ":semanticCommitsDisabled"
   ],
   "description": "Review-only external dependency updates for CEE and its test workspaces. The train remains the only authority for the TypeScript model input and frontend output versions.",
+  "baseBranches": [
+    "develop"
+  ],
   "labels": [
     "dependencies"
   ],
