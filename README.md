@@ -47,6 +47,10 @@ Once that exact bundle is green, stage the publishable npm directory from it:
 npm run package:npm:prebuilt
 ```
 
+For a release candidate, `npm run test:package` performs both operations in one command: it builds
+and browser-tests the production bundle, then stages and verifies the package from those exact
+tested bytes.
+
 This copies the tested bytes to
 `dist-npm/cedar-embeddable-editor/cedar-embeddable-editor.js`, refreshes its
 version, README, changelog, and package lock, and records the bundle manifest.
