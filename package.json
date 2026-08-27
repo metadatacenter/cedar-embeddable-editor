@@ -2,7 +2,7 @@
   "name": "cedar-embeddable-editor",
   "description": "A reusable Web Component for creating and editing CEDAR metadata instances.",
   "license": "BSD-2-Clause",
-  "version": "2.0.2",
+  "version": "2.0.3-dev.20260827.10212094",
   "engines": {
     "node": "^24.15.0"
   },
@@ -45,7 +45,7 @@
     "@angular/platform-browser": "~22.1.1",
     "@ngx-translate/core": "^14.0.0",
     "@ngx-translate/http-loader": "^7.0.0",
-    "cedar-model-typescript-library": "1.0.3",
+    "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@1.0.3-dev.20260824.2260108",
     "dompurify": "^3.4.13",
     "lodash-es": "^4.18.1",
     "rxjs": "^7.8.2",
