@@ -431,10 +431,8 @@ describe('controlled term structure', () => {
 
   /**
    * The consequence, at the level a host page sees: the field counts as
-   * unfilled and the instance is invalid. A missing required value is carried
-   * by the counters rather than the `problems` list — same as a field never
-   * filled in at all — so the user is still told something is wrong with that
-   * field, just not what.
+   * unfilled and the instance is invalid. When the field is required, the
+   * report also names its path with a `required` problem.
    */
 
   it('reports a malformed @id', () => {
@@ -489,6 +487,7 @@ describe('problem diagnostics', () => {
     );
     expect(driver.qualityReport.requiredFieldValueCount).toBe(1);
     expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(0);
+    expect(driver.qualityReport.problems.map((p: any) => p.code)).toEqual(['required']);
   });
 
   it('does not report constraint problems for an empty value', () => {

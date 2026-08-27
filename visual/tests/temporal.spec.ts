@@ -39,10 +39,7 @@ test.describe('the time picker', () => {
 
   /** The instance CEE would hand a host page. */
   const storedValue = async (page: import('@playwright/test').Page, field: string): Promise<unknown> =>
-    valueOf(
-      await page.evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata),
-      field,
-    );
+    valueOf(await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.currentMetadata), field);
 
   /**
    * Which boxes each granularity offers, asserted per field.
@@ -478,7 +475,7 @@ test('normalizes existing temporal values to their declared granularity', async 
   await expect
     .poll(() =>
       page
-        .evaluate(() => (document.querySelector('cedar-embeddable-editor') as any).currentMetadata)
+        .evaluate(() => document.querySelector('cedar-embeddable-editor')!.currentMetadata)
         .then((metadata) => ({
           year: valueOf(metadata, '_date_year'),
           month: valueOf(metadata, '_date_month'),

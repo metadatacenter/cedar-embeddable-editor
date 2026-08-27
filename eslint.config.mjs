@@ -40,7 +40,7 @@ export default tseslint.config(
     languageOptions: {
       globals: { ...globals.browser },
       parserOptions: {
-        project: ['./tsconfig.eslint.json'],
+        project: ['./tsconfig.eslint.json', './visual/tsconfig.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },

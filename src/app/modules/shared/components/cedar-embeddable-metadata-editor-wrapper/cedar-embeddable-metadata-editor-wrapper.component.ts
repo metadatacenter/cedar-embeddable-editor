@@ -226,6 +226,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.lastPublishedMetadata = key;
 
     const report = this.dataQualityReport as CeeDataQualityReport;
+    const instance = this.handlerContext.dataContext.instanceFullData;
     const multiOperation = mutation.operation === 'valueChanged' ? undefined : mutation.operation;
     const detail: CeeChangeDetail = {
       operation: mutation.operation,
@@ -233,8 +234,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       value: mutation.value,
       validity: report.isValid === true,
       dataQualityReport: report,
-      title: typeof metadata['schema:name'] === 'string' ? metadata['schema:name'] : null,
-      description: typeof metadata['schema:description'] === 'string' ? metadata['schema:description'] : null,
+      title: instance?.schema_name ?? null,
+      description: instance?.schema_description ?? null,
       ...(multiOperation === undefined ? {} : { message: multiOperation }),
     };
 
@@ -246,6 +247,16 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     );
   }
 
+  /**
+   * A copy, so a host holding one is holding a snapshot rather than a view into
+   * a report the next keystroke rebuilds.
+   *
+   * `publishMutation` reads this on every model change, which is why the copy is
+   * worth a note: it used to clone the component tree, the instance and a value
+   * tree along with the answer, and cost 2.7 ms per edit on the largest corpus
+   * template against 0.3 ms to compute the report it was copying. The report is
+   * four members now and the copy is what it always looked like.
+   */
   @Input() get dataQualityReport(): object {
     if (!this.artifacts.instanceInputRejected) {
       return JSON.parse(JSON.stringify(this.handlerContext.dataContext.dataQualityReport));

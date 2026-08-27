@@ -1,29 +1,27 @@
-import { TemplateComponent } from './template/template-component.model';
-import { JsonNode } from 'cedar-model-typescript-library';
 import { ValidationProblem } from '../validation/validation-problem.model';
 
+/**
+ * What CEE thinks of the instance in the form.
+ *
+ * Everything here is answer. The report carried three working views alongside
+ * it — the component tree, the instance, and a value tree mirroring the
+ * template — and across the 56 paired cases in the compatibility corpus those
+ * three were 99.6% of its bytes. None was read by CEE, by the CEDAR workspace
+ * or by the published contract, and two of them were data the host already
+ * held: the instance it supplied, and the template it supplied. The third was
+ * derivable from the first two.
+ *
+ * So the file a host downloads and the interface it programs against are now
+ * the same four members, rather than the second being a subset of the first.
+ */
 export class DataQualityReport extends Object {
-  /** Null when a report is built before a template is set, which produces an empty one. */
-  templateRepresentation: TemplateComponent | null = null;
-  /**
-   * The instance the report describes, as the document a host page reads.
-   *
-   * This was the envelope-free *view* of the working tree, which was a document
-   * itself, so handing it out cost nothing. The tree is a model now: handing a
-   * host page the model's container would show it `_values` and `_iris`, and
-   * there is no reason a consumer of a report should see CEE's internals. A
-   * written instance is what one is.
-   */
-  instance: JsonNode | null = null;
-  valueTree: object = {};
+  /** How many required fields the template declares. */
   requiredFieldValueCount = 0;
+  /** How many of those the instance fills. */
   nonNullRequiredFieldValueCount = 0;
   /**
-   * Constraint violations, one per problem. Empty when every present value
-   * satisfies its declared constraints.
-   *
-   * The counters above answer "is anything missing"; this answers "is anything
-   * wrong", which the report could not express before.
+   * Validation problems, including one `required` problem for each unfilled
+   * required field declaration and constraint violations on present values.
    */
   problems: ValidationProblem[] = [];
   isValid = false;

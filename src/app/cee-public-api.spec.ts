@@ -105,16 +105,22 @@ const interfaceMembers = (name: string): string[] => {
 /**
  * The report types against the objects a host actually receives.
  *
- * One direction only. Both interfaces are deliberately narrower than the classes
- * behind them — the report also carries CEE's internal working views, which are not
- * part of the contract — so a runtime property missing from the declaration is a
- * choice. A *declared* property missing at runtime is not: it type-checks in a host
- * and reads `undefined`, which is exactly how `problems` came to be published under
- * a name the report has never used.
+ * Both directions, for both interfaces. A *declared* member missing at runtime
+ * type-checks in a host and reads `undefined`, which is how `problems` came to be
+ * published under a name the report has never used. A member carried at runtime
+ * and undeclared needs a cast to read, which is how `field` and `inputType` were
+ * taught by the validation guide and unreachable from TypeScript.
+ *
+ * The report was checked in one direction only while it carried three of CEE's
+ * internal working views alongside the contract, so an undeclared member was a
+ * deliberate withholding rather than an omission. It carries nothing but the
+ * contract now, and this is what keeps that true: adding a working view back to
+ * `DataQualityReport` fails here rather than reaching a host.
  */
 describe('the published report types and the objects behind them', () => {
-  it('declare only members the report really has', () => {
+  it('declare every member the report has, and only those', () => {
     const report = new DataQualityReport() as unknown as Record<string, unknown>;
+    const carried = Object.getOwnPropertyNames(report);
     const declared = interfaceMembers('CeeDataQualityReport');
 
     expect(declared.length, 'the CeeDataQualityReport members were not parsed').toBeGreaterThan(3);
@@ -122,18 +128,12 @@ describe('the published report types and the objects behind them', () => {
       declared.filter((member) => !(member in report)),
       'CeeDataQualityReport declares a member DataQualityReport does not have',
     ).toEqual([]);
+    expect(
+      carried.filter((member) => !declared.includes(member)),
+      'DataQualityReport carries a member CeeDataQualityReport does not declare, so a host receives an internal view',
+    ).toEqual([]);
   });
 
-  /**
-   * A problem is checked in both directions, where the report is checked in one.
-   *
-   * The report withholds members deliberately, because it carries CEE's internal
-   * working views alongside the contract. A problem carries nothing of the sort — it
-   * is a value class that exists to be read by a host — so a member present at
-   * runtime and absent here is not a choice but an omission. `field` and `inputType`
-   * were exactly that: the validation guide taught both, every problem carried both,
-   * and a TypeScript host reading either needed a cast to get at them.
-   */
   it('declare every member a problem has, and only those', () => {
     const problem = new ValidationProblem([], 'field', null, 'code', 'message') as unknown as Record<string, unknown>;
     const carried = Object.getOwnPropertyNames(problem);

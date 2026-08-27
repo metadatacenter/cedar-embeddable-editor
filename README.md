@@ -1,5 +1,7 @@
 # CEDAR Embeddable Editor (CEE)
 
+[![Test](https://github.com/metadatacenter/cedar-embeddable-editor/actions/workflows/test.yml/badge.svg?branch=develop)](https://github.com/metadatacenter/cedar-embeddable-editor/actions/workflows/test.yml)
+
 The CEDAR Embeddable Editor (CEE) is a reusable Web Component for adding
 structured, standards-based metadata authoring to web applications.
 
@@ -44,6 +46,10 @@ Once that exact bundle is green, stage the publishable npm directory from it:
 ```shell
 npm run package:npm:prebuilt
 ```
+
+For a release candidate, `npm run test:package` performs both operations in one command: it builds
+and browser-tests the production bundle, then stages and verifies the package from those exact
+tested bytes.
 
 This copies the tested bytes to
 `dist-npm/cedar-embeddable-editor/cedar-embeddable-editor.js`, refreshes its
@@ -191,7 +197,9 @@ Open the standalone application's configuration file, `src/app/app.component.dev
 This minimal configuration enables lookups through the public CEDAR services:
 
 ```typescript
-ceeConfig = {
+import type { CeeConfig } from 'cedar-embeddable-editor';
+
+const ceeConfig: CeeConfig = {
   terminologyBaseUrl: 'https://terminology.metadatacenter.org/',
   bridgeBaseUrl: 'https://bridge.metadatacenter.org/',
 };

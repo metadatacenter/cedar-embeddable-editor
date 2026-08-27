@@ -7,6 +7,7 @@ import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.mo
 import { ValidationCode, ValidationProblem } from './validation-problem.model';
 import { InstanceValueNode } from '../util/instance-value-node';
 import { InstanceNode } from '../models/instance-node.model';
+import { JsonTemplateInstanceWriter } from 'cedar-model-typescript-library';
 
 /**
  * Constraint checking for a single field value.
@@ -40,8 +41,8 @@ export class FieldValueValidator {
       return value.flatMap((entry) => this.validate(component, entry, path));
     }
 
-    // An absent value is the required check's business, handled by the report's
-    // counters. Constraints describe what a value must look like *if present*.
+    // An absent value is the report's required check's business. Constraints
+    // describe what a value must look like *if present*.
     if (this.isEmpty(value)) {
       return [];
     }
@@ -478,7 +479,13 @@ export class FieldValueValidator {
           path,
           ValidationCode.controlledStructure,
           hasId ? 'Has @id but no rdfs:label.' : 'Has rdfs:label but no @id.',
-          node,
+          // The library writes the node, rather than the node being handed over
+          // as it stands. A problem's `value` is published contract, and an atom
+          // serialises by its private fields — so what a host read here was
+          // `{"_id": "…"}`, CEE's own spelling of `@id`. `writeValueNode` is
+          // public for exactly this: the library's doc for it says a consumer
+          // that spells the shapes by hand drifts from the end that reads them.
+          JsonTemplateInstanceWriter.writeValueNode(node),
         ),
       );
     }

@@ -5,9 +5,8 @@ test('loading the production bundle twice reuses the first bootstrap', async ({ 
   await page.goto(`/host.html?b=${BUNDLE_VERSION}`);
   await page.waitForFunction(() => customElements.get('cedar-embeddable-editor'));
   await page.evaluate(() => {
-    const host = window as any;
-    host.__ceeFirstBootstrap = host.cedarEmbeddableEditorBootstrap;
-    host.__ceeFirstConstructor = customElements.get('cedar-embeddable-editor');
+    window.__ceeFirstBootstrap = window.cedarEmbeddableEditorBootstrap;
+    window.__ceeFirstConstructor = customElements.get('cedar-embeddable-editor');
   });
 
   const errors: string[] = [];
@@ -24,10 +23,9 @@ test('loading the production bundle twice reuses the first bootstrap', async ({ 
   await page.waitForTimeout(100);
 
   const state = await page.evaluate(() => {
-    const host = window as any;
     return {
-      sameBootstrap: host.cedarEmbeddableEditorBootstrap === host.__ceeFirstBootstrap,
-      sameConstructor: customElements.get('cedar-embeddable-editor') === host.__ceeFirstConstructor,
+      sameBootstrap: window.cedarEmbeddableEditorBootstrap === window.__ceeFirstBootstrap,
+      sameConstructor: customElements.get('cedar-embeddable-editor') === window.__ceeFirstConstructor,
     };
   });
 

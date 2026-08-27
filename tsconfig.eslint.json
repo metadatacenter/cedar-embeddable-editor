@@ -17,8 +17,8 @@
     // No `skipLibCheck`. It was set because Vitest's declarations needed TypeScript
     // 5.2 while Angular 14 pinned ~4.8; TypeScript is 6.0 and Vitest is 4, so the
     // declarations in node_modules are checked again rather than trusted.
-    // Both are set by tsconfig.app.json and needed by src/ (moment's default export,
-    // and the package.json import in cedar-embeddable-metadata-editor.component.ts).
+    // Match the application program's module options: src/ contains default imports
+    // and imports package.json as data, so this all-sources program must accept both.
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     // The spec files under src/ use the globals vitest.config.mts exposes, so this must

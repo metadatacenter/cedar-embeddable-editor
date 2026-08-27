@@ -34,8 +34,9 @@ export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex'
 const NEXUS_REGISTRY = 'https://nexus.bmir.stanford.edu/repository/npm-cedar/';
 const DEV_VERSION = /-dev\./;
 
-export const packageMetadata = () => {
-  const rootPackage = readJson(resolve(ROOT, 'package.json'));
+export const packageMetadata = (
+  rootPackage = readJson(resolve(ROOT, 'package.json')),
+) => {
   const isDev = DEV_VERSION.test(rootPackage.version);
   return {
     name: isDev ? '@org.metadatacenter/cedar-embeddable-editor' : 'cedar-embeddable-editor',

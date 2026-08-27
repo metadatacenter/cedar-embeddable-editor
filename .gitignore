@@ -67,3 +67,9 @@ dist-types/
 # `node_modules/cedar-embeddable-editor` here, so this directory still has to exist
 # on disk; a fresh clone needs one `npm run package:npm:prebuilt` before it does.
 /dist-npm
+
+# The TypeScript model library needs a second source manifest because its root and
+# published packages have different names. CEE does not: scripts/npm-package.mjs
+# derives the scoped dev or unscoped release manifest from the root version. Keep
+# an accidentally copied model-library package-dist.json out of this repository.
+/package-dist.json

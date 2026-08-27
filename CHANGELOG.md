@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-08-27
+
+The second stable release on the 2.x line adds field identities to required-value validation and
+bundles the public `cedar-model-typescript-library@1.0.3`. The application and the visual fixtures
+use that same model build, so the package exercised in browsers carries the contract those fixtures
+were generated against.
+
+### Added
+
+- The data quality report now includes one `required` problem for each unsatisfied required field
+  declaration, with the same `path`, `field`, and `inputType` carried by other problems. The report's
+  four-member shape, required-field counters, and validity result are unchanged; hosts that already
+  read `problems` gain the field identities that the counters alone could not provide.
+
+### Changed
+
+- The application and visual-test dependency graphs now use the public
+  `cedar-model-typescript-library@1.0.3` release from npmjs.
+
 ## [2.0.1] - 2026-08-21
 
 The first stable release on the 2.x line, published to npmjs as `cedar-embeddable-editor@2.0.1`.

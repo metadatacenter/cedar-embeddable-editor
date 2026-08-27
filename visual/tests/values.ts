@@ -12,6 +12,7 @@
  * library about it here.
  */
 import cedar from 'cedar-model-typescript-library';
+import type { JsonNode } from 'cedar-model-typescript-library';
 
 const {
   CedarReaders,
@@ -22,7 +23,7 @@ const {
   JsonTemplateInstanceReader,
 } = cedar;
 
-const atomOf = (node: unknown) => JsonTemplateInstanceReader.readValueNode(node);
+const atomOf = (node: unknown) => JsonTemplateInstanceReader.readValueNode(node as JsonNode | string | null);
 
 /**
  * The literal a node holds.
@@ -57,8 +58,8 @@ export const termOf = (
  * writing that change as `node['@value'] = 'Public'` put the serialization back
  * into the suite. The writer is the mirror of the reader above.
  */
-export const literalNode = (value: string | null): unknown =>
-  cedar.JsonTemplateInstanceWriter.writeValueNode(new InstanceDataStringAtom(value));
+export const literalNode = (value: string | null): Record<string, string | null> =>
+  cedar.JsonTemplateInstanceWriter.writeValueNode(new InstanceDataStringAtom(value)) as Record<string, string | null>;
 
 /**
  * Every element-occurrence IRI an instance carries, at any depth.
@@ -72,7 +73,10 @@ export const literalNode = (value: string | null): unknown =>
  * occurrence's identity lives.
  */
 export const elementIrisOf = (document: unknown): string[] => {
-  const parsed = CedarReaders.json().getFebruary2024().getTemplateInstanceReader().readFromObject(document).instance;
+  const parsed = CedarReaders.json()
+    .getFebruary2024()
+    .getTemplateInstanceReader()
+    .readFromObject(document as JsonNode).instance;
   const collect = (value: unknown): string[] => {
     if (Array.isArray(value)) {
       return value.flatMap(collect);

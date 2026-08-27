@@ -21,6 +21,7 @@ import { FIELD_KINDS, FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { instanceWith, literalOf, literalValue, templateIdOf, termOf, xsdTypeOf } from '../src/values';
+import type { InstanceNode } from '@cee/models/instance-node.model';
 
 const kindOf = (
   key: string,
@@ -431,7 +432,7 @@ describe('choice literals', () => {
       }),
     );
 
-    const values = driver.extract.values._f as unknown[];
+    const values = driver.extract.values._f as InstanceNode[];
     expect(values).toHaveLength(1);
     expect(literalOf(values[0])).toBe('Beta');
   });

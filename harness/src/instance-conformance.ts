@@ -1,6 +1,6 @@
 import Ajv from 'ajv-draft-04';
 import addFormats from 'ajv-formats';
-import { CedarReaders, InstanceValidator } from 'cedar-model-typescript-library';
+import { CedarReaders, InstanceValidator, JsonNode } from 'cedar-model-typescript-library';
 
 export interface ConformanceOutcome {
   count: number;
@@ -19,13 +19,11 @@ export const validateWithModel = (template: object, instance: object): Conforman
   const parsedTemplate = CedarReaders.json()
     .getFebruary2024()
     .getTemplateReader()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .readFromObject(template as any).template;
+    .readFromObject(template as JsonNode).template;
   const parsedInstance = CedarReaders.json()
     .getFebruary2024()
     .getTemplateInstanceReader()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .readFromObject(instance as any, undefined as never).instance;
+    .readFromObject(instance as JsonNode).instance;
 
   const result = InstanceValidator.validate(parsedInstance, parsedTemplate);
   return {

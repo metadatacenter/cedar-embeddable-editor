@@ -11,7 +11,7 @@ import { InstanceDataContainer, TemplateInstance, TemplateInstanceBuilder } from
 import * as _ from 'lodash-es';
 import { DataObjectUtil } from '../util/data-object-util';
 import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
-import { InstanceArray, InstanceNode, InstanceObject } from '../models/instance-node.model';
+import { InstanceArray, InstanceObject } from '../models/instance-node.model';
 
 /**
  * Builds a new instance from a template, including every declared default the
@@ -42,7 +42,7 @@ export class DataObjectBuilderHandler {
         // MultiElement
         const multiElement: MultiElementComponent = component as MultiElementComponent;
         const occurrences: InstanceArray = [];
-        dataObject.setValue(targetName, occurrences as unknown as InstanceNode);
+        dataObject.setValue(targetName, occurrences);
         if (multiElement.multiInfo.getSafeMinItems() > 0) {
           const dummyTargetObject = new InstanceDataContainer();
           DataObjectBuilderHandler.addPropertyIris(component, dummyTargetObject);
@@ -70,7 +70,7 @@ export class DataObjectBuilderHandler {
         // MultiFieldComponent
         const multiField: MultiFieldComponent = component as MultiFieldComponent;
         const occurrences = DataObjectUtil.getDefaultValueWrappers(nonIterableComponent);
-        dataObject.setValue(targetName, occurrences as unknown as InstanceNode);
+        dataObject.setValue(targetName, occurrences);
         // Defaults are occurrences in their own right, including on an optional
         // multi field. Then pad to the schema minimum; never replace a declared
         // default and never build fewer slots than `minItems` requires.
@@ -127,8 +127,7 @@ export class DataObjectBuilderHandler {
    *
    * The entries come off the component, where the template parser put them.
    */
-  public static addPropertyIris(component: CedarComponent, dataObject: InstanceObject): void {
-    const container = component as unknown as AbstractElementComponent;
+  public static addPropertyIris(container: AbstractElementComponent, dataObject: InstanceObject): void {
     Object.entries(container.contextEntries).forEach(([key, iri]) => {
       if (typeof iri === 'string') {
         dataObject.setIri(key, iri);
@@ -158,11 +157,11 @@ export class DataObjectBuilderHandler {
     builder.withSchemaName(templateName ? `${templateName} metadata` : 'metadata');
     builder.withSchemaDescription('');
     const instance = builder.build();
-    this.buildNewByIterating(templateRepresentation, instance.dataContainer);
+    this.buildNewByIterating(template, instance.dataContainer);
     return instance;
   }
 
-  private buildNewByIterating(templateRepresentation: TemplateComponent, dataObject: InstanceObject): void {
+  private buildNewByIterating(templateRepresentation: CedarTemplate, dataObject: InstanceObject): void {
     if (templateRepresentation == null || templateRepresentation.children == null) {
       return;
     }

@@ -1,0 +1,102 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommitsDisabled"
+  ],
+  "description": "Review-only external dependency updates for CEE and its test workspaces. The train remains the only authority for the TypeScript model input and frontend output versions.",
+  "baseBranches": [
+    "develop"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "Dependency Dashboard",
+  "automerge": false,
+  "prConcurrentLimit": 4,
+  "prHourlyLimit": 2,
+  "minimumReleaseAge": "7 days",
+  "ignorePaths": [
+    "dist/**",
+    "coverage/**",
+    "visual/playwright-report/**",
+    "visual/test-results/**"
+  ],
+  "packageRules": [
+    {
+      "description": "The model-library alias is wired by the immutable build train after that exact model package is published and verified.",
+      "matchPackageNames": [
+        "/^@org\\.metadatacenter\\//"
+      ],
+      "matchDepNames": [
+        "/^@org\\.metadatacenter\\//",
+        "cedar-model-typescript-library",
+        "/^cedar-/"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Major upgrades require explicit approval in the Dependency Dashboard.",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Angular framework, build, lint, Material, and runtime packages must move as one tested platform.",
+      "matchPackageNames": [
+        "/^@angular\\//",
+        "angular-eslint",
+        "zone.js"
+      ],
+      "groupName": "Angular platform"
+    },
+    {
+      "description": "Keep ESLint and TypeScript-ESLint packages compatible in one pull request.",
+      "matchPackageNames": [
+        "eslint",
+        "/^@eslint\\//",
+        "/^@typescript-eslint\\//",
+        "typescript-eslint",
+        "/^eslint-/"
+      ],
+      "groupName": "ESLint toolchain"
+    },
+    {
+      "description": "CEE, its domain harness, and coverage tooling use one Vitest line.",
+      "matchPackageNames": [
+        "vitest",
+        "/^@vitest\\//"
+      ],
+      "groupName": "Vitest"
+    },
+    {
+      "description": "Review TypeScript updates across the root and harness workspaces together.",
+      "matchPackageNames": [
+        "typescript"
+      ],
+      "groupName": "TypeScript"
+    },
+    {
+      "description": "Keep lodash-es and its type definitions aligned across CEE workspaces.",
+      "matchPackageNames": [
+        "lodash-es",
+        "@types/lodash-es"
+      ],
+      "groupName": "lodash-es"
+    },
+    {
+      "description": "Keep package engines, .nvmrc, and the GitHub Actions runtime on one Node.js version decision.",
+      "matchDepNames": [
+        "node"
+      ],
+      "groupName": "Node.js"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": [
+      "security"
+    ]
+  }
+}

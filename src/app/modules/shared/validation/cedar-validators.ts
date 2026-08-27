@@ -15,8 +15,9 @@ import { ValidationCode } from './validation-problem.model';
  * did. This makes the widgets ask the same question the report asks.
  *
  * `required` stays an Angular validator. `FieldValueValidator` deliberately
- * returns nothing for an empty value, because absence is the required check's
- * business and constraints describe what a value must look like *if present*.
+ * returns nothing for an empty value, because absence is the report's required
+ * check's business and constraints describe what a value must look like *if
+ * present*.
  */
 export class CedarValidators {
   /**

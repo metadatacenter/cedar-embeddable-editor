@@ -191,15 +191,6 @@ export class CeeDriver {
   }
 
   /**
-   * The instance without its envelope, as the quality report and the source
-   * panel see it.
-   *
-   * A derived view of `instanceFullData`, not a second tree — see
-   * `DataContext.instanceExtractData`. Still the natural thing for a test to
-   * assert against, because it is the instance's content with the bookkeeping
-   * left out.
-   */
-  /**
    * The instance without its envelope — which is the instance's own container.
    *
    * It answered a JSON document, produced by a writer method that existed for
