@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.3] - 2026-08-27
+
+This release aligns CEE's build-time model dependency with the public
+`cedar-model-typescript-library@1.0.4` package. The model library remains compiled into CEE's
+browser bundle and is not a runtime dependency for embedding applications.
+
+### Changed
+
+- The application and visual-test dependency graphs now pin the same public
+  `cedar-model-typescript-library@1.0.4` tarball from npmjs.
+
 ## [2.0.2] - 2026-08-27
 
 The second stable release on the 2.x line adds field identities to required-value validation and
