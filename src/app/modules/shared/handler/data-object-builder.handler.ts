@@ -127,8 +127,7 @@ export class DataObjectBuilderHandler {
    *
    * The entries come off the component, where the template parser put them.
    */
-  public static addPropertyIris(component: CedarComponent, dataObject: InstanceObject): void {
-    const container = component as unknown as AbstractElementComponent;
+  public static addPropertyIris(container: AbstractElementComponent, dataObject: InstanceObject): void {
     Object.entries(container.contextEntries).forEach(([key, iri]) => {
       if (typeof iri === 'string') {
         dataObject.setIri(key, iri);
@@ -158,11 +157,11 @@ export class DataObjectBuilderHandler {
     builder.withSchemaName(templateName ? `${templateName} metadata` : 'metadata');
     builder.withSchemaDescription('');
     const instance = builder.build();
-    this.buildNewByIterating(templateRepresentation, instance.dataContainer);
+    this.buildNewByIterating(template, instance.dataContainer);
     return instance;
   }
 
-  private buildNewByIterating(templateRepresentation: TemplateComponent, dataObject: InstanceObject): void {
+  private buildNewByIterating(templateRepresentation: CedarTemplate, dataObject: InstanceObject): void {
     if (templateRepresentation == null || templateRepresentation.children == null) {
       return;
     }

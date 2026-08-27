@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CedarReaders, InstanceValidator } from 'cedar-model-typescript-library';
+import { CedarReaders, InstanceValidator, JsonNode } from 'cedar-model-typescript-library';
 import type { InstanceObject } from '@cee/models/instance-node.model';
 import { ceeSuiteCases } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
@@ -70,11 +70,11 @@ const lifecycle = (entry: PairedCase) => {
   const template = CedarReaders.json()
     .getFebruary2024()
     .getTemplateReader()
-    .readFromObject(entry.template as never).template;
+    .readFromObject(entry.template as JsonNode).template;
   const instanceResult = CedarReaders.json()
     .getFebruary2024()
     .getTemplateInstanceReader()
-    .readFromObject(emitted as never);
+    .readFromObject(emitted as JsonNode);
   const validation = InstanceValidator.validate(instanceResult.instance, template);
   return { driver, emitted, instanceResult, validation };
 };
@@ -104,11 +104,11 @@ describe('the production-derived CEE lifecycle corpus', () => {
       const parsedTemplate = CedarReaders.json()
         .getFebruary2024()
         .getTemplateReader()
-        .readFromObject(entry.template as never).template;
+        .readFromObject(entry.template as JsonNode).template;
       const parsedInstance = CedarReaders.json()
         .getFebruary2024()
         .getTemplateInstanceReader()
-        .readFromObject(emitted as never);
+        .readFromObject(emitted as JsonNode);
 
       expect(parsedInstance.parsingResult.getBlueprintComparisonErrorCount()).toBe(0);
       expect(parsedInstance.parsingResult.getBlueprintComparisonWarningCount()).toBe(id === '048' ? 6 : 5);
