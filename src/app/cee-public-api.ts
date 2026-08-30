@@ -74,6 +74,20 @@ export interface CeeConfig {
   showDownloadMenu?: boolean;
 
   /**
+   * Offers the Expand All and Collapse All buttons above the form.
+   *
+   * On by default, which is how CEE has always rendered. A host with its own view
+   * of the same artifact beside the form — a designer previewing the template it
+   * is editing, say — can turn them off so the two are not offered contradictory
+   * controls over one thing.
+   *
+   * The buttons act on the form's own sections and nothing else, so turning them
+   * off removes a control rather than fixing the sections open or shut: each
+   * still opens and closes on its own header.
+   */
+  showExpandCollapseAll?: boolean;
+
+  /**
    * Base for controlled-term search. Must end in a slash.
    *
    * Identifies the CEDAR terminology server, and nothing below it: the search

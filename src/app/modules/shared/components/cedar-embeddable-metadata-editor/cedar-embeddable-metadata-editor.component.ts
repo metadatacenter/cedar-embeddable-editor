@@ -51,6 +51,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
 
   showDownloadMenu = false;
 
+  /**
+   * Whether Expand All and Collapse All are offered.
+   *
+   * Defaults to true, which is how CEE has always rendered: a host turns them off
+   * rather than having to ask for them.
+   */
+  showExpandCollapseAll = true;
+
   showTemplateDescription: boolean = false;
   readOnlyMode: boolean = false;
 
@@ -159,6 +167,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   @Input() set config(value: CeeConfig | null) {
     if (value != null) {
       this.showDownloadMenu = configFlag(value, CEE_CONFIG_KEY.showDownloadMenu, this.showDownloadMenu);
+      this.showExpandCollapseAll = configFlag(value, CEE_CONFIG_KEY.showExpandCollapseAll, this.showExpandCollapseAll);
       this.showTemplateDescription = configFlag(
         value,
         CEE_CONFIG_KEY.showTemplateDescription,

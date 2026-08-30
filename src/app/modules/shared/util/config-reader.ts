@@ -22,6 +22,7 @@ export const CEE_CONFIG_KEY = {
   readOnlyMode: 'readOnlyMode',
   trustTemplateRichText: 'trustTemplateRichText',
   showDownloadMenu: 'showDownloadMenu',
+  showExpandCollapseAll: 'showExpandCollapseAll',
   terminologyBaseUrl: 'terminologyBaseUrl',
   bridgeBaseUrl: 'bridgeBaseUrl',
   defaultLanguage: 'defaultLanguage',

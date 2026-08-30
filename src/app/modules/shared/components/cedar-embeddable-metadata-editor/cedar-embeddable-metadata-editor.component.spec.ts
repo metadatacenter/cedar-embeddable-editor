@@ -58,7 +58,7 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
 
   // For every boolean display flag the config key and the field it sets share a
   // name, so one list drives both sides of the assertion.
-  const BOOLEAN_FLAGS = ['showDownloadMenu', 'showTemplateDescription', 'readOnlyMode'];
+  const BOOLEAN_FLAGS = ['showDownloadMenu', 'showTemplateDescription', 'readOnlyMode', 'showExpandCollapseAll'];
 
   describe('every boolean flag maps its config key to its field', () => {
     BOOLEAN_FLAGS.forEach((flag) => {
@@ -156,6 +156,12 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
 
       expect(component.showDownloadMenu).toBe(true);
       expect(component.showTemplateDescription).toBe(untouchedFlag);
+    });
+
+    it('offers Expand All and Collapse All unless a host says otherwise', () => {
+      // The one display flag that defaults on, because it is how CEE has always
+      // rendered: a host turns the buttons off rather than asking for them.
+      expect(make().showExpandCollapseAll).toBe(true);
     });
 
     it('an empty config changes nothing', () => {

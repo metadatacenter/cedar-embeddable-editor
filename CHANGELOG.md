@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `showExpandCollapseAll`, a config key hiding the Expand All and Collapse All
+  buttons above the form. On by default, so nothing changes for a host that does
+  not set it. A host rendering its own view of the same artifact beside the form
+  — the CEDAR Embeddable Designer previewing the template it is editing — can turn
+  them off rather than offering two contradictory sets of controls over one thing.
+  Each section still opens and closes on its own header.
+
 ## [2.0.3] - 2026-08-27
 
 This release aligns CEE's build-time model dependency with the public
