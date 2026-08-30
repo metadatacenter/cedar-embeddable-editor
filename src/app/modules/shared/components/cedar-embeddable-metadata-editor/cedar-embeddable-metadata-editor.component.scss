@@ -58,6 +58,24 @@
   min-width: 0;
 }
 
+/*
+ * The component's name, under its mark and above its version.
+ *
+ * The stamp alone read `2.0.4-dev.20260827.…`, which names a build without naming
+ * what was built. Embedded next to another CEDAR component's header — the
+ * designer's preview panel puts the two side by side — a mark and a version
+ * string do not say whose form this is.
+ */
+.cee-name {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: #1f2937;
+  margin-top: 4px;
+}
+
 .cee-version {
   display: block;
   max-width: 100%;
@@ -208,6 +226,10 @@
 
   .logo-block {
     flex-basis: 52px;
+  }
+
+  .cee-name {
+    font-size: 9px;
   }
 
   .cee-version {

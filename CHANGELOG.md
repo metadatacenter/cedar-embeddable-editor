@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The editor says it is the editor. `CEE` is stamped under the mark in the form's
+  header, above the version, which on its own read `2.0.4-dev.20260827.…` and named
+  a build without naming what was built. It matters where CEE is one of several
+  CEDAR components on a page: the embeddable designer's preview panel puts CEE's
+  header a few inches from the designer's own.
+
 - `showExpandCollapseAll`, a config key hiding the Expand All and Collapse All
   buttons above the form. On by default, so nothing changes for a host that does
   not set it. A host rendering its own view of the same artifact beside the form
