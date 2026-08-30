@@ -174,9 +174,10 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   /**
    * The template to render.
    *
-   * Takes one assignment. Either order works with `instanceObject`: the editor is
-   * not built until a template is present, so an instance supplied first waits
-   * rather than arriving early.
+   * Either order works with `instanceObject`: the editor is not built until a
+   * template is present, so an instance supplied first waits rather than arriving
+   * early. Assignable more than once while no instance has been supplied, which is
+   * what lets a host show a live view of a template that is itself being edited.
    */
   @Input() set templateObject(template: CeeJsonObject | null) {
     if (template === null || !this.artifacts.acceptTemplate(template)) {

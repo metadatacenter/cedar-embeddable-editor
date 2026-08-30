@@ -6,12 +6,15 @@
  * `tsc --emitDeclarationOnly` turn this one file into the `.d.ts` the npm package
  * ships, without dragging in paths that exist only inside this repository.
  *
- * Configuration and the artifact inputs are set-once: the first assignment stands,
- * and a later one is reported and ignored. A host wanting different configuration or
- * a different artifact creates a new element. That replaces three behaviours which
- * had no answer — a second `config` that patched some keys and replaced others, a
- * read-only mode that could be turned on and not off, and three artifact inputs with
- * no stated precedence. `eventHandler` is deliberately outside it and may be
+ * Configuration is set-once: the first assignment stands, and a later one is reported
+ * and ignored. So is the instance, and so is the template once an instance is loaded
+ * against it. That replaces three behaviours which had no answer — a second `config`
+ * that patched some keys and replaced others, a read-only mode that could be turned on
+ * and not off, and three artifact inputs with no stated precedence.
+ *
+ * A template with no instance behind it may be replaced, because the question set-once
+ * exists to refuse is what becomes of the answers someone has been typing. Where there
+ * are none, a host may drive a live view of a template that is itself changing. `eventHandler` is deliberately outside it and may be
  * replaced, for the reasons given where it is declared.
  *
  * Types only, with no runtime values, and that is a constraint rather than a
@@ -265,9 +268,10 @@ export interface CeeEventHandler {
 /**
  * The custom element, as a host sees it.
  *
- * Registered as `cedar-embeddable-editor`. Configuration and the artifact inputs
- * each take one assignment; a second is reported through the event handler and
- * ignored, and the first accepted value stands. An unreadable instance is reported
+ * Registered as `cedar-embeddable-editor`. Configuration takes one assignment, as does
+ * the instance, and so does the template once an instance is loaded against it; a second
+ * is reported through the event handler and ignored, and the first accepted value stands.
+ * A template with no instance behind it may be replaced. An unreadable instance is reported
  * and does not spend its assignment, so the host may correct it. An artifact is a
  * template and optionally an instance, so `templateAndInstanceObject` supplies
  * between them what the two separate inputs do and cannot be combined with either.
@@ -314,7 +318,15 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
   /** Configuration. Assign once, before or after the artifact. */
   config: CeeConfig;
 
-  /** The template to render, as a parsed CEDAR artifact. */
+  /**
+   * The template to render, as a parsed CEDAR artifact.
+   *
+   * Assignable more than once while no instance has been supplied: each one replaces the
+   * form, building a fresh context, so nothing of the previous template survives. Once an
+   * instance is loaded the template is fixed, and a further assignment is reported and
+   * ignored — the answers in front of a person were recorded against the template that
+   * would be taken away.
+   */
   templateObject: CeeJsonObject;
 
   /**

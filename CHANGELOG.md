@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- A template may be replaced while no instance has been supplied. Set-once exists
+  to refuse one question — what becomes of the answers someone has been typing when
+  the template under them is swapped — and where there are no answers, there is
+  nothing to lose. Each replacement builds a fresh context, so nothing of the
+  previous template survives into the new form; once an instance is loaded the
+  template is fixed again and a second assignment is reported and ignored, as
+  before. A host showing a live view of a template that is itself being edited no
+  longer has to discard the element and start a whole editor per change, which cost
+  about a second of bootstrapping regardless of the size of the template.
+
 ### Added
 
 - `showExpandCollapseAll`, a config key hiding the Expand All and Collapse All
