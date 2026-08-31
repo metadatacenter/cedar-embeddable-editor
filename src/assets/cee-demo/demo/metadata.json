@@ -1,14 +1,862 @@
 {
-  "@context": {},
-  "@id": "https://example.org/instances/sample-loaded-1",
-  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/171697de-0000-4000-8000-171697de0000",
-  "schema:name": "SampleLoaded instance",
+  "@id": "https://example.org/instances/nested-field-types-1",
+  "schema:name": "Nested field types instance",
   "schema:description": "Fetched alongside its template",
+  "t_text_field": {
+    "@value": "loaded from metadata.json"
+  },
+  "t_text_area_field": {
+    "@value": "The developer app fetches this instance beside its template and hands CEE both at once, so the form is built with the values already read."
+  },
+  "t_numeric_field": {
+    "@value": "42",
+    "@type": "xsd:int"
+  },
+  "t_numeric_long": {
+    "@value": null,
+    "@type": "xsd:long"
+  },
+  "t_numeric_short": {
+    "@value": null,
+    "@type": "xsd:short"
+  },
+  "t_numeric_byte": {
+    "@value": null,
+    "@type": "xsd:byte"
+  },
+  "t_numeric_decimal_0dp": {
+    "@value": null,
+    "@type": "xsd:decimal"
+  },
+  "t_numeric_decimal_2dp": {
+    "@value": null,
+    "@type": "xsd:decimal"
+  },
+  "t_numeric_decimal_4dp": {
+    "@value": null,
+    "@type": "xsd:decimal"
+  },
+  "t_numeric_float_3dp": {
+    "@value": null,
+    "@type": "xsd:float"
+  },
+  "t_numeric_double_6dp": {
+    "@value": null,
+    "@type": "xsd:double"
+  },
+  "t_temporal_field": {
+    "@value": null,
+    "@type": "xsd:dateTime"
+  },
+  "t_temporal_date_year": {
+    "@value": null,
+    "@type": "xsd:date"
+  },
+  "t_temporal_date_month": {
+    "@value": null,
+    "@type": "xsd:date"
+  },
+  "t_temporal_date_day": {
+    "@value": "2026-01-01",
+    "@type": "xsd:date"
+  },
+  "t_temporal_time_minute_24h": {
+    "@value": null,
+    "@type": "xsd:time"
+  },
+  "t_temporal_time_second_12h": {
+    "@value": null,
+    "@type": "xsd:time"
+  },
+  "t_temporal_datetime_day": {
+    "@value": null,
+    "@type": "xsd:dateTime"
+  },
+  "t_temporal_datetime_second_24h_tz": {
+    "@value": null,
+    "@type": "xsd:dateTime"
+  },
+  "t_temporal_datetime_decimalsecond_12h": {
+    "@value": null,
+    "@type": "xsd:dateTime"
+  },
+  "t_radio_field": {
+    "@value": "Option B"
+  },
+  "t_checkbox_field": [
+    {
+      "@value": "Option A"
+    },
+    {
+      "@value": "Option C"
+    }
+  ],
+  "t_single_select_list_field": {
+    "@value": "Option C"
+  },
+  "t_multi_select_list_field": [],
+  "t_phone_number_field": {
+    "@value": null
+  },
+  "t_email_field": {
+    "@value": "test1@test.com"
+  },
+  "t_link_field": {},
+  "t_attribute_value_field": [],
+  "t_controlled_term_field": {},
+  "t_ext_ror_field": {},
+  "t_ext_orcid_field": {},
+  "t_ext_pfas_field": {},
+  "t_ext_rrid_field": {},
+  "t_ext_pubmed_field": {},
+  "all_single": {
+    "@id": null,
+    "s_text_field": {
+      "@value": null
+    },
+    "s_text_area_field": {
+      "@value": null
+    },
+    "s_numeric_field": {
+      "@value": null,
+      "@type": "xsd:int"
+    },
+    "s_numeric_long": {
+      "@value": null,
+      "@type": "xsd:long"
+    },
+    "s_numeric_short": {
+      "@value": null,
+      "@type": "xsd:short"
+    },
+    "s_numeric_byte": {
+      "@value": null,
+      "@type": "xsd:byte"
+    },
+    "s_numeric_decimal_0dp": {
+      "@value": null,
+      "@type": "xsd:decimal"
+    },
+    "s_numeric_decimal_2dp": {
+      "@value": null,
+      "@type": "xsd:decimal"
+    },
+    "s_numeric_decimal_4dp": {
+      "@value": null,
+      "@type": "xsd:decimal"
+    },
+    "s_numeric_float_3dp": {
+      "@value": null,
+      "@type": "xsd:float"
+    },
+    "s_numeric_double_6dp": {
+      "@value": null,
+      "@type": "xsd:double"
+    },
+    "s_temporal_field": {
+      "@value": null,
+      "@type": "xsd:dateTime"
+    },
+    "s_temporal_date_year": {
+      "@value": null,
+      "@type": "xsd:date"
+    },
+    "s_temporal_date_month": {
+      "@value": null,
+      "@type": "xsd:date"
+    },
+    "s_temporal_date_day": {
+      "@value": null,
+      "@type": "xsd:date"
+    },
+    "s_temporal_time_minute_24h": {
+      "@value": null,
+      "@type": "xsd:time"
+    },
+    "s_temporal_time_second_12h": {
+      "@value": null,
+      "@type": "xsd:time"
+    },
+    "s_temporal_datetime_day": {
+      "@value": null,
+      "@type": "xsd:dateTime"
+    },
+    "s_temporal_datetime_second_24h_tz": {
+      "@value": null,
+      "@type": "xsd:dateTime"
+    },
+    "s_temporal_datetime_decimalsecond_12h": {
+      "@value": null,
+      "@type": "xsd:dateTime"
+    },
+    "s_radio_field": {
+      "@value": null
+    },
+    "s_checkbox_field": [
+      {
+        "@value": "Option B"
+      }
+    ],
+    "s_single_select_list_field": {
+      "@value": null
+    },
+    "s_multi_select_list_field": [],
+    "s_phone_number_field": {
+      "@value": null
+    },
+    "s_email_field": {
+      "@value": null
+    },
+    "s_link_field": {},
+    "s_attribute_value_field": [],
+    "s_controlled_term_field": {},
+    "s_ext_ror_field": {},
+    "s_ext_orcid_field": {},
+    "s_ext_pfas_field": {},
+    "s_ext_rrid_field": {},
+    "s_ext_pubmed_field": {},
+    "@context": {
+      "s_text_field": "https://schema.metadatacenter.org/properties/s_text_field",
+      "s_text_area_field": "https://schema.metadatacenter.org/properties/s_text_area_field",
+      "s_numeric_field": "https://schema.metadatacenter.org/properties/s_numeric_field",
+      "s_numeric_long": "https://schema.metadatacenter.org/properties/s_numeric_long",
+      "s_numeric_short": "https://schema.metadatacenter.org/properties/s_numeric_short",
+      "s_numeric_byte": "https://schema.metadatacenter.org/properties/s_numeric_byte",
+      "s_numeric_decimal_0dp": "https://schema.metadatacenter.org/properties/s_numeric_decimal_0dp",
+      "s_numeric_decimal_2dp": "https://schema.metadatacenter.org/properties/s_numeric_decimal_2dp",
+      "s_numeric_decimal_4dp": "https://schema.metadatacenter.org/properties/s_numeric_decimal_4dp",
+      "s_numeric_float_3dp": "https://schema.metadatacenter.org/properties/s_numeric_float_3dp",
+      "s_numeric_double_6dp": "https://schema.metadatacenter.org/properties/s_numeric_double_6dp",
+      "s_temporal_field": "https://schema.metadatacenter.org/properties/s_temporal_field",
+      "s_temporal_date_year": "https://schema.metadatacenter.org/properties/s_temporal_date_year",
+      "s_temporal_date_month": "https://schema.metadatacenter.org/properties/s_temporal_date_month",
+      "s_temporal_date_day": "https://schema.metadatacenter.org/properties/s_temporal_date_day",
+      "s_temporal_time_minute_24h": "https://schema.metadatacenter.org/properties/s_temporal_time_minute_24h",
+      "s_temporal_time_second_12h": "https://schema.metadatacenter.org/properties/s_temporal_time_second_12h",
+      "s_temporal_datetime_day": "https://schema.metadatacenter.org/properties/s_temporal_datetime_day",
+      "s_temporal_datetime_second_24h_tz": "https://schema.metadatacenter.org/properties/s_temporal_datetime_second_24h_tz",
+      "s_temporal_datetime_decimalsecond_12h": "https://schema.metadatacenter.org/properties/s_temporal_datetime_decimalsecond_12h",
+      "s_radio_field": "https://schema.metadatacenter.org/properties/s_radio_field",
+      "s_checkbox_field": "https://schema.metadatacenter.org/properties/s_checkbox_field",
+      "s_single_select_list_field": "https://schema.metadatacenter.org/properties/s_single_select_list_field",
+      "s_multi_select_list_field": "https://schema.metadatacenter.org/properties/s_multi_select_list_field",
+      "s_phone_number_field": "https://schema.metadatacenter.org/properties/s_phone_number_field",
+      "s_email_field": "https://schema.metadatacenter.org/properties/s_email_field",
+      "s_link_field": "https://schema.metadatacenter.org/properties/s_link_field",
+      "s_controlled_term_field": "https://schema.metadatacenter.org/properties/s_controlled_term_field",
+      "s_ext_ror_field": "https://schema.metadatacenter.org/properties/s_ext_ror_field",
+      "s_ext_orcid_field": "https://schema.metadatacenter.org/properties/s_ext_orcid_field",
+      "s_ext_pfas_field": "https://schema.metadatacenter.org/properties/s_ext_pfas_field",
+      "s_ext_rrid_field": "https://schema.metadatacenter.org/properties/s_ext_rrid_field",
+      "s_ext_pubmed_field": "https://schema.metadatacenter.org/properties/s_ext_pubmed_field"
+    }
+  },
+  "all_multi": {
+    "@id": null,
+    "m_text_field": [],
+    "m_text_area_field": [
+      {
+        "@value": null
+      }
+    ],
+    "m_numeric_field": [
+      {
+        "@value": null,
+        "@type": "xsd:int"
+      },
+      {
+        "@value": null,
+        "@type": "xsd:int"
+      }
+    ],
+    "m_numeric_long": [
+      {
+        "@value": null,
+        "@type": "xsd:long"
+      },
+      {
+        "@value": null,
+        "@type": "xsd:long"
+      }
+    ],
+    "m_numeric_short": [
+      {
+        "@value": null,
+        "@type": "xsd:short"
+      },
+      {
+        "@value": null,
+        "@type": "xsd:short"
+      }
+    ],
+    "m_numeric_byte": [
+      {
+        "@value": null,
+        "@type": "xsd:byte"
+      },
+      {
+        "@value": null,
+        "@type": "xsd:byte"
+      }
+    ],
+    "m_numeric_decimal_0dp": [
+      {
+        "@value": null,
+        "@type": "xsd:decimal"
+      },
+      {
+        "@value": null,
+        "@type": "xsd:decimal"
+      }
+    ],
+    "m_numeric_decimal_2dp": [
+      {
+        "@value": null,
+        "@type": "xsd:decimal"
+      },
+      {
+        "@value": null,
+        "@type": "xsd:decimal"
+      }
+    ],
+    "m_numeric_decimal_4dp": [
+      {
+        "@value": null,
+        "@type": "xsd:decimal"
+      },
+      {
+        "@value": null,
+        "@type": "xsd:decimal"
+      }
+    ],
+    "m_numeric_float_3dp": [
+      {
+        "@value": null,
+        "@type": "xsd:float"
+      },
+      {
+        "@value": null,
+        "@type": "xsd:float"
+      }
+    ],
+    "m_numeric_double_6dp": [
+      {
+        "@value": null,
+        "@type": "xsd:double"
+      },
+      {
+        "@value": null,
+        "@type": "xsd:double"
+      }
+    ],
+    "m_temporal_field": [],
+    "m_temporal_date_year": [],
+    "m_temporal_date_month": [],
+    "m_temporal_date_day": [],
+    "m_temporal_time_minute_24h": [],
+    "m_temporal_time_second_12h": [],
+    "m_temporal_datetime_day": [],
+    "m_temporal_datetime_second_24h_tz": [],
+    "m_temporal_datetime_decimalsecond_12h": [],
+    "m_radio_field": {
+      "@value": null
+    },
+    "m_checkbox_field": [],
+    "m_single_select_list_field": {
+      "@value": null
+    },
+    "m_multi_select_list_field": [],
+    "m_phone_number_field": [
+      {
+        "@value": null
+      }
+    ],
+    "m_email_field": [
+      {
+        "@value": null
+      },
+      {
+        "@value": null
+      },
+      {
+        "@value": null
+      }
+    ],
+    "m_link_field": [],
+    "m_attribute_value_field": [],
+    "m_controlled_term_field": [
+      {},
+      {}
+    ],
+    "m_ext_ror_field": [
+      {}
+    ],
+    "m_ext_orcid_field": [],
+    "m_ext_pfas_field": [
+      {},
+      {}
+    ],
+    "m_ext_rrid_field": [
+      {}
+    ],
+    "m_ext_pubmed_field": [],
+    "@context": {
+      "m_text_field": "https://schema.metadatacenter.org/properties/m_text_field",
+      "m_text_area_field": "https://schema.metadatacenter.org/properties/m_text_area_field",
+      "m_numeric_field": "https://schema.metadatacenter.org/properties/m_numeric_field",
+      "m_numeric_long": "https://schema.metadatacenter.org/properties/m_numeric_long",
+      "m_numeric_short": "https://schema.metadatacenter.org/properties/m_numeric_short",
+      "m_numeric_byte": "https://schema.metadatacenter.org/properties/m_numeric_byte",
+      "m_numeric_decimal_0dp": "https://schema.metadatacenter.org/properties/m_numeric_decimal_0dp",
+      "m_numeric_decimal_2dp": "https://schema.metadatacenter.org/properties/m_numeric_decimal_2dp",
+      "m_numeric_decimal_4dp": "https://schema.metadatacenter.org/properties/m_numeric_decimal_4dp",
+      "m_numeric_float_3dp": "https://schema.metadatacenter.org/properties/m_numeric_float_3dp",
+      "m_numeric_double_6dp": "https://schema.metadatacenter.org/properties/m_numeric_double_6dp",
+      "m_temporal_field": "https://schema.metadatacenter.org/properties/m_temporal_field",
+      "m_temporal_date_year": "https://schema.metadatacenter.org/properties/m_temporal_date_year",
+      "m_temporal_date_month": "https://schema.metadatacenter.org/properties/m_temporal_date_month",
+      "m_temporal_date_day": "https://schema.metadatacenter.org/properties/m_temporal_date_day",
+      "m_temporal_time_minute_24h": "https://schema.metadatacenter.org/properties/m_temporal_time_minute_24h",
+      "m_temporal_time_second_12h": "https://schema.metadatacenter.org/properties/m_temporal_time_second_12h",
+      "m_temporal_datetime_day": "https://schema.metadatacenter.org/properties/m_temporal_datetime_day",
+      "m_temporal_datetime_second_24h_tz": "https://schema.metadatacenter.org/properties/m_temporal_datetime_second_24h_tz",
+      "m_temporal_datetime_decimalsecond_12h": "https://schema.metadatacenter.org/properties/m_temporal_datetime_decimalsecond_12h",
+      "m_radio_field": "https://schema.metadatacenter.org/properties/m_radio_field",
+      "m_checkbox_field": "https://schema.metadatacenter.org/properties/m_checkbox_field",
+      "m_single_select_list_field": "https://schema.metadatacenter.org/properties/m_single_select_list_field",
+      "m_multi_select_list_field": "https://schema.metadatacenter.org/properties/m_multi_select_list_field",
+      "m_phone_number_field": "https://schema.metadatacenter.org/properties/m_phone_number_field",
+      "m_email_field": "https://schema.metadatacenter.org/properties/m_email_field",
+      "m_link_field": "https://schema.metadatacenter.org/properties/m_link_field",
+      "m_controlled_term_field": "https://schema.metadatacenter.org/properties/m_controlled_term_field",
+      "m_ext_ror_field": "https://schema.metadatacenter.org/properties/m_ext_ror_field",
+      "m_ext_orcid_field": "https://schema.metadatacenter.org/properties/m_ext_orcid_field",
+      "m_ext_pfas_field": "https://schema.metadatacenter.org/properties/m_ext_pfas_field",
+      "m_ext_rrid_field": "https://schema.metadatacenter.org/properties/m_ext_rrid_field",
+      "m_ext_pubmed_field": "https://schema.metadatacenter.org/properties/m_ext_pubmed_field"
+    }
+  },
+  "single_wrapper": {
+    "@id": null,
+    "sw_lead": {
+      "@value": null
+    },
+    "nested_all_single": {
+      "@id": null,
+      "ns_text_field": {
+        "@value": null
+      },
+      "ns_text_area_field": {
+        "@value": null
+      },
+      "ns_numeric_field": {
+        "@value": null,
+        "@type": "xsd:int"
+      },
+      "ns_numeric_long": {
+        "@value": null,
+        "@type": "xsd:long"
+      },
+      "ns_numeric_short": {
+        "@value": null,
+        "@type": "xsd:short"
+      },
+      "ns_numeric_byte": {
+        "@value": null,
+        "@type": "xsd:byte"
+      },
+      "ns_numeric_decimal_0dp": {
+        "@value": null,
+        "@type": "xsd:decimal"
+      },
+      "ns_numeric_decimal_2dp": {
+        "@value": null,
+        "@type": "xsd:decimal"
+      },
+      "ns_numeric_decimal_4dp": {
+        "@value": null,
+        "@type": "xsd:decimal"
+      },
+      "ns_numeric_float_3dp": {
+        "@value": null,
+        "@type": "xsd:float"
+      },
+      "ns_numeric_double_6dp": {
+        "@value": null,
+        "@type": "xsd:double"
+      },
+      "ns_temporal_field": {
+        "@value": null,
+        "@type": "xsd:dateTime"
+      },
+      "ns_temporal_date_year": {
+        "@value": null,
+        "@type": "xsd:date"
+      },
+      "ns_temporal_date_month": {
+        "@value": null,
+        "@type": "xsd:date"
+      },
+      "ns_temporal_date_day": {
+        "@value": null,
+        "@type": "xsd:date"
+      },
+      "ns_temporal_time_minute_24h": {
+        "@value": null,
+        "@type": "xsd:time"
+      },
+      "ns_temporal_time_second_12h": {
+        "@value": null,
+        "@type": "xsd:time"
+      },
+      "ns_temporal_datetime_day": {
+        "@value": null,
+        "@type": "xsd:dateTime"
+      },
+      "ns_temporal_datetime_second_24h_tz": {
+        "@value": null,
+        "@type": "xsd:dateTime"
+      },
+      "ns_temporal_datetime_decimalsecond_12h": {
+        "@value": null,
+        "@type": "xsd:dateTime"
+      },
+      "ns_radio_field": {
+        "@value": null
+      },
+      "ns_checkbox_field": [],
+      "ns_single_select_list_field": {
+        "@value": null
+      },
+      "ns_multi_select_list_field": [],
+      "ns_phone_number_field": {
+        "@value": null
+      },
+      "ns_email_field": {
+        "@value": null
+      },
+      "ns_link_field": {},
+      "ns_attribute_value_field": [],
+      "ns_controlled_term_field": {},
+      "ns_ext_ror_field": {},
+      "ns_ext_orcid_field": {},
+      "ns_ext_pfas_field": {},
+      "ns_ext_rrid_field": {},
+      "ns_ext_pubmed_field": {},
+      "@context": {
+        "ns_text_field": "https://schema.metadatacenter.org/properties/ns_text_field",
+        "ns_text_area_field": "https://schema.metadatacenter.org/properties/ns_text_area_field",
+        "ns_numeric_field": "https://schema.metadatacenter.org/properties/ns_numeric_field",
+        "ns_numeric_long": "https://schema.metadatacenter.org/properties/ns_numeric_long",
+        "ns_numeric_short": "https://schema.metadatacenter.org/properties/ns_numeric_short",
+        "ns_numeric_byte": "https://schema.metadatacenter.org/properties/ns_numeric_byte",
+        "ns_numeric_decimal_0dp": "https://schema.metadatacenter.org/properties/ns_numeric_decimal_0dp",
+        "ns_numeric_decimal_2dp": "https://schema.metadatacenter.org/properties/ns_numeric_decimal_2dp",
+        "ns_numeric_decimal_4dp": "https://schema.metadatacenter.org/properties/ns_numeric_decimal_4dp",
+        "ns_numeric_float_3dp": "https://schema.metadatacenter.org/properties/ns_numeric_float_3dp",
+        "ns_numeric_double_6dp": "https://schema.metadatacenter.org/properties/ns_numeric_double_6dp",
+        "ns_temporal_field": "https://schema.metadatacenter.org/properties/ns_temporal_field",
+        "ns_temporal_date_year": "https://schema.metadatacenter.org/properties/ns_temporal_date_year",
+        "ns_temporal_date_month": "https://schema.metadatacenter.org/properties/ns_temporal_date_month",
+        "ns_temporal_date_day": "https://schema.metadatacenter.org/properties/ns_temporal_date_day",
+        "ns_temporal_time_minute_24h": "https://schema.metadatacenter.org/properties/ns_temporal_time_minute_24h",
+        "ns_temporal_time_second_12h": "https://schema.metadatacenter.org/properties/ns_temporal_time_second_12h",
+        "ns_temporal_datetime_day": "https://schema.metadatacenter.org/properties/ns_temporal_datetime_day",
+        "ns_temporal_datetime_second_24h_tz": "https://schema.metadatacenter.org/properties/ns_temporal_datetime_second_24h_tz",
+        "ns_temporal_datetime_decimalsecond_12h": "https://schema.metadatacenter.org/properties/ns_temporal_datetime_decimalsecond_12h",
+        "ns_radio_field": "https://schema.metadatacenter.org/properties/ns_radio_field",
+        "ns_checkbox_field": "https://schema.metadatacenter.org/properties/ns_checkbox_field",
+        "ns_single_select_list_field": "https://schema.metadatacenter.org/properties/ns_single_select_list_field",
+        "ns_multi_select_list_field": "https://schema.metadatacenter.org/properties/ns_multi_select_list_field",
+        "ns_phone_number_field": "https://schema.metadatacenter.org/properties/ns_phone_number_field",
+        "ns_email_field": "https://schema.metadatacenter.org/properties/ns_email_field",
+        "ns_link_field": "https://schema.metadatacenter.org/properties/ns_link_field",
+        "ns_controlled_term_field": "https://schema.metadatacenter.org/properties/ns_controlled_term_field",
+        "ns_ext_ror_field": "https://schema.metadatacenter.org/properties/ns_ext_ror_field",
+        "ns_ext_orcid_field": "https://schema.metadatacenter.org/properties/ns_ext_orcid_field",
+        "ns_ext_pfas_field": "https://schema.metadatacenter.org/properties/ns_ext_pfas_field",
+        "ns_ext_rrid_field": "https://schema.metadatacenter.org/properties/ns_ext_rrid_field",
+        "ns_ext_pubmed_field": "https://schema.metadatacenter.org/properties/ns_ext_pubmed_field"
+      }
+    },
+    "@context": {
+      "sw_lead": "https://schema.metadatacenter.org/properties/sw_lead",
+      "nested_all_single": "https://schema.metadatacenter.org/properties/nested_all_single"
+    }
+  },
+  "multi_wrapper": {
+    "@id": null,
+    "mw_lead": {
+      "@value": null
+    },
+    "nested_all_multi": {
+      "@id": null,
+      "nm_text_field": [],
+      "nm_text_area_field": [
+        {
+          "@value": null
+        }
+      ],
+      "nm_numeric_field": [
+        {
+          "@value": null,
+          "@type": "xsd:int"
+        },
+        {
+          "@value": null,
+          "@type": "xsd:int"
+        }
+      ],
+      "nm_numeric_long": [
+        {
+          "@value": null,
+          "@type": "xsd:long"
+        },
+        {
+          "@value": null,
+          "@type": "xsd:long"
+        }
+      ],
+      "nm_numeric_short": [
+        {
+          "@value": null,
+          "@type": "xsd:short"
+        },
+        {
+          "@value": null,
+          "@type": "xsd:short"
+        }
+      ],
+      "nm_numeric_byte": [
+        {
+          "@value": null,
+          "@type": "xsd:byte"
+        },
+        {
+          "@value": null,
+          "@type": "xsd:byte"
+        }
+      ],
+      "nm_numeric_decimal_0dp": [
+        {
+          "@value": null,
+          "@type": "xsd:decimal"
+        },
+        {
+          "@value": null,
+          "@type": "xsd:decimal"
+        }
+      ],
+      "nm_numeric_decimal_2dp": [
+        {
+          "@value": null,
+          "@type": "xsd:decimal"
+        },
+        {
+          "@value": null,
+          "@type": "xsd:decimal"
+        }
+      ],
+      "nm_numeric_decimal_4dp": [
+        {
+          "@value": null,
+          "@type": "xsd:decimal"
+        },
+        {
+          "@value": null,
+          "@type": "xsd:decimal"
+        }
+      ],
+      "nm_numeric_float_3dp": [
+        {
+          "@value": null,
+          "@type": "xsd:float"
+        },
+        {
+          "@value": null,
+          "@type": "xsd:float"
+        }
+      ],
+      "nm_numeric_double_6dp": [
+        {
+          "@value": null,
+          "@type": "xsd:double"
+        },
+        {
+          "@value": null,
+          "@type": "xsd:double"
+        }
+      ],
+      "nm_temporal_field": [],
+      "nm_temporal_date_year": [],
+      "nm_temporal_date_month": [],
+      "nm_temporal_date_day": [],
+      "nm_temporal_time_minute_24h": [],
+      "nm_temporal_time_second_12h": [],
+      "nm_temporal_datetime_day": [],
+      "nm_temporal_datetime_second_24h_tz": [],
+      "nm_temporal_datetime_decimalsecond_12h": [],
+      "nm_radio_field": {
+        "@value": null
+      },
+      "nm_checkbox_field": [],
+      "nm_single_select_list_field": {
+        "@value": null
+      },
+      "nm_multi_select_list_field": [],
+      "nm_phone_number_field": [
+        {
+          "@value": null
+        }
+      ],
+      "nm_email_field": [
+        {
+          "@value": null
+        },
+        {
+          "@value": null
+        },
+        {
+          "@value": null
+        }
+      ],
+      "nm_link_field": [],
+      "nm_attribute_value_field": [],
+      "nm_controlled_term_field": [
+        {},
+        {}
+      ],
+      "nm_ext_ror_field": [
+        {}
+      ],
+      "nm_ext_orcid_field": [],
+      "nm_ext_pfas_field": [
+        {},
+        {}
+      ],
+      "nm_ext_rrid_field": [
+        {}
+      ],
+      "nm_ext_pubmed_field": [],
+      "@context": {
+        "nm_text_field": "https://schema.metadatacenter.org/properties/nm_text_field",
+        "nm_text_area_field": "https://schema.metadatacenter.org/properties/nm_text_area_field",
+        "nm_numeric_field": "https://schema.metadatacenter.org/properties/nm_numeric_field",
+        "nm_numeric_long": "https://schema.metadatacenter.org/properties/nm_numeric_long",
+        "nm_numeric_short": "https://schema.metadatacenter.org/properties/nm_numeric_short",
+        "nm_numeric_byte": "https://schema.metadatacenter.org/properties/nm_numeric_byte",
+        "nm_numeric_decimal_0dp": "https://schema.metadatacenter.org/properties/nm_numeric_decimal_0dp",
+        "nm_numeric_decimal_2dp": "https://schema.metadatacenter.org/properties/nm_numeric_decimal_2dp",
+        "nm_numeric_decimal_4dp": "https://schema.metadatacenter.org/properties/nm_numeric_decimal_4dp",
+        "nm_numeric_float_3dp": "https://schema.metadatacenter.org/properties/nm_numeric_float_3dp",
+        "nm_numeric_double_6dp": "https://schema.metadatacenter.org/properties/nm_numeric_double_6dp",
+        "nm_temporal_field": "https://schema.metadatacenter.org/properties/nm_temporal_field",
+        "nm_temporal_date_year": "https://schema.metadatacenter.org/properties/nm_temporal_date_year",
+        "nm_temporal_date_month": "https://schema.metadatacenter.org/properties/nm_temporal_date_month",
+        "nm_temporal_date_day": "https://schema.metadatacenter.org/properties/nm_temporal_date_day",
+        "nm_temporal_time_minute_24h": "https://schema.metadatacenter.org/properties/nm_temporal_time_minute_24h",
+        "nm_temporal_time_second_12h": "https://schema.metadatacenter.org/properties/nm_temporal_time_second_12h",
+        "nm_temporal_datetime_day": "https://schema.metadatacenter.org/properties/nm_temporal_datetime_day",
+        "nm_temporal_datetime_second_24h_tz": "https://schema.metadatacenter.org/properties/nm_temporal_datetime_second_24h_tz",
+        "nm_temporal_datetime_decimalsecond_12h": "https://schema.metadatacenter.org/properties/nm_temporal_datetime_decimalsecond_12h",
+        "nm_radio_field": "https://schema.metadatacenter.org/properties/nm_radio_field",
+        "nm_checkbox_field": "https://schema.metadatacenter.org/properties/nm_checkbox_field",
+        "nm_single_select_list_field": "https://schema.metadatacenter.org/properties/nm_single_select_list_field",
+        "nm_multi_select_list_field": "https://schema.metadatacenter.org/properties/nm_multi_select_list_field",
+        "nm_phone_number_field": "https://schema.metadatacenter.org/properties/nm_phone_number_field",
+        "nm_email_field": "https://schema.metadatacenter.org/properties/nm_email_field",
+        "nm_link_field": "https://schema.metadatacenter.org/properties/nm_link_field",
+        "nm_controlled_term_field": "https://schema.metadatacenter.org/properties/nm_controlled_term_field",
+        "nm_ext_ror_field": "https://schema.metadatacenter.org/properties/nm_ext_ror_field",
+        "nm_ext_orcid_field": "https://schema.metadatacenter.org/properties/nm_ext_orcid_field",
+        "nm_ext_pfas_field": "https://schema.metadatacenter.org/properties/nm_ext_pfas_field",
+        "nm_ext_rrid_field": "https://schema.metadatacenter.org/properties/nm_ext_rrid_field",
+        "nm_ext_pubmed_field": "https://schema.metadatacenter.org/properties/nm_ext_pubmed_field"
+      }
+    },
+    "@context": {
+      "mw_lead": "https://schema.metadatacenter.org/properties/mw_lead",
+      "nested_all_multi": "https://schema.metadatacenter.org/properties/nested_all_multi"
+    }
+  },
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    },
+    "t_text_field": "https://schema.metadatacenter.org/properties/t_text_field",
+    "t_text_area_field": "https://schema.metadatacenter.org/properties/t_text_area_field",
+    "t_numeric_field": "https://schema.metadatacenter.org/properties/t_numeric_field",
+    "t_numeric_long": "https://schema.metadatacenter.org/properties/t_numeric_long",
+    "t_numeric_short": "https://schema.metadatacenter.org/properties/t_numeric_short",
+    "t_numeric_byte": "https://schema.metadatacenter.org/properties/t_numeric_byte",
+    "t_numeric_decimal_0dp": "https://schema.metadatacenter.org/properties/t_numeric_decimal_0dp",
+    "t_numeric_decimal_2dp": "https://schema.metadatacenter.org/properties/t_numeric_decimal_2dp",
+    "t_numeric_decimal_4dp": "https://schema.metadatacenter.org/properties/t_numeric_decimal_4dp",
+    "t_numeric_float_3dp": "https://schema.metadatacenter.org/properties/t_numeric_float_3dp",
+    "t_numeric_double_6dp": "https://schema.metadatacenter.org/properties/t_numeric_double_6dp",
+    "t_temporal_field": "https://schema.metadatacenter.org/properties/t_temporal_field",
+    "t_temporal_date_year": "https://schema.metadatacenter.org/properties/t_temporal_date_year",
+    "t_temporal_date_month": "https://schema.metadatacenter.org/properties/t_temporal_date_month",
+    "t_temporal_date_day": "https://schema.metadatacenter.org/properties/t_temporal_date_day",
+    "t_temporal_time_minute_24h": "https://schema.metadatacenter.org/properties/t_temporal_time_minute_24h",
+    "t_temporal_time_second_12h": "https://schema.metadatacenter.org/properties/t_temporal_time_second_12h",
+    "t_temporal_datetime_day": "https://schema.metadatacenter.org/properties/t_temporal_datetime_day",
+    "t_temporal_datetime_second_24h_tz": "https://schema.metadatacenter.org/properties/t_temporal_datetime_second_24h_tz",
+    "t_temporal_datetime_decimalsecond_12h": "https://schema.metadatacenter.org/properties/t_temporal_datetime_decimalsecond_12h",
+    "t_radio_field": "https://schema.metadatacenter.org/properties/t_radio_field",
+    "t_checkbox_field": "https://schema.metadatacenter.org/properties/t_checkbox_field",
+    "t_single_select_list_field": "https://schema.metadatacenter.org/properties/t_single_select_list_field",
+    "t_multi_select_list_field": "https://schema.metadatacenter.org/properties/t_multi_select_list_field",
+    "t_phone_number_field": "https://schema.metadatacenter.org/properties/t_phone_number_field",
+    "t_email_field": "https://schema.metadatacenter.org/properties/t_email_field",
+    "t_link_field": "https://schema.metadatacenter.org/properties/t_link_field",
+    "t_controlled_term_field": "https://schema.metadatacenter.org/properties/t_controlled_term_field",
+    "t_ext_ror_field": "https://schema.metadatacenter.org/properties/t_ext_ror_field",
+    "t_ext_orcid_field": "https://schema.metadatacenter.org/properties/t_ext_orcid_field",
+    "t_ext_pfas_field": "https://schema.metadatacenter.org/properties/t_ext_pfas_field",
+    "t_ext_rrid_field": "https://schema.metadatacenter.org/properties/t_ext_rrid_field",
+    "t_ext_pubmed_field": "https://schema.metadatacenter.org/properties/t_ext_pubmed_field",
+    "all_single": "https://schema.metadatacenter.org/properties/all_single",
+    "all_multi": "https://schema.metadatacenter.org/properties/all_multi",
+    "single_wrapper": "https://schema.metadatacenter.org/properties/single_wrapper",
+    "multi_wrapper": "https://schema.metadatacenter.org/properties/multi_wrapper"
+  },
+  "schema:isBasedOn": "https://repo.metadatacenter.orgx/templates/5e68d921-fd5d-4d05-9a6d-a81714cbd2c5",
   "pav:createdOn": "2026-01-01T00:00:00-08:00",
   "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
   "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
-  "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
-  "_title": {
-    "@value": "loaded from metadata.json"
-  }
+  "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001"
 }
