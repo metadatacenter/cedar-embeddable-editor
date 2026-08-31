@@ -62,6 +62,17 @@ const TEXT: FieldKind = {
   sample: 'x',
 };
 
+const CHECKBOX: FieldKind = {
+  key: 'checkbox',
+  inputType: 'checkbox',
+  make: () => CedarBuilders.checkboxFieldBuilder(),
+  isStatic: false,
+  write: 'value',
+  sample: 'Option A',
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  configure: (b: unknown) => (b as any).addCheckboxOption('Option A').addCheckboxOption('Option B'),
+};
+
 /** One multi element, `minItems` occurrences to start, each holding two fields. */
 const multiElementTemplate = (minItems = 1) =>
   buildTemplate({
@@ -588,5 +599,69 @@ describe('no template at all', () => {
     expect(driver.representation.className).toBe('NullTemplate');
     expect(driver.representation.children).toEqual([]);
     driver.expectNoErrors('building from a null template');
+  });
+});
+
+describe('an instance that leaves a multi field out', () => {
+  /**
+   * A host may hand CEE an instance naming some of a template's fields and not
+   * the rest — one written by hand rather than produced by CEE. The form still
+   * builds, and the fields the instance did name still arrive filled. Then the
+   * widget for a multi-valued field the instance skipped writes its occurrences,
+   * reaches the place they go, and finds no list there.
+   *
+   * CEE reports and carries on, which is right. What it reported was "Expected a
+   * list of occurrences to replace, found something else" and nothing more — the
+   * same sentence however many fields were missing, naming none of them. Reading
+   * it told you only that something in an instance you had just written did not
+   * fit a template you had just chosen.
+   */
+  const templateWithCheckbox = () =>
+    buildTemplate({
+      name: 'ir_partial_multi',
+      children: [
+        { kind: TEXT, name: 't' },
+        { kind: CHECKBOX, name: 'f', cardinality: 'multi', minItems: 1, maxItems: 3 },
+      ],
+    });
+
+  /** Written out rather than built, because a builder produces the complete instance. */
+  const partialInstance = (template: object) => ({
+    '@context': {},
+    '@id': INSTANCE_IRI,
+    'schema:isBasedOn': templateIdOf(template),
+    _t: literalNode('kept'),
+  });
+
+  it('names the field it could not write', () => {
+    const template = templateWithCheckbox();
+    const driver = new CeeDriver(template, { instance: partialInstance(template) });
+
+    driver.setValue(['_f'], CHECKBOX, 'Option A');
+
+    expect(driver.messages.errors).toEqual(['Expected a list of occurrences to replace at _f']);
+  });
+
+  it('still reads the field the instance did name', () => {
+    const template = templateWithCheckbox();
+    const driver = new CeeDriver(template, { instance: partialInstance(template) });
+
+    expect(heldValue(driver.extract.values._t)).toBe('kept');
+  });
+
+  /** The complete instance is the case that must stay silent. */
+  it('says nothing when the field is there', () => {
+    const template = templateWithCheckbox();
+    const driver = new CeeDriver(template, {
+      instance: instanceWith(
+        templateIdOf(template),
+        { _t: literalValue('kept'), _f: listValue([literalValue('Option A')]) },
+        INSTANCE_IRI,
+      ),
+    });
+
+    driver.setValue(['_f'], CHECKBOX, 'Option A');
+
+    driver.expectNoErrors('writing into a complete instance');
   });
 });

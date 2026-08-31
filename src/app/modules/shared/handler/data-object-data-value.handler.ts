@@ -130,9 +130,19 @@ export class DataObjectDataValueHandler {
     this.messageHandlerService.error('No place to put a value at: ' + fullPath.join(' > '));
   }
 
-  private injectArrayValue(target: InstanceNode | null, valueArray: InstanceNode[]): void {
+  private injectArrayValue(target: InstanceNode | null, valueArray: InstanceNode[], fullPath: string[]): void {
     if (!isInstanceArray(target)) {
-      this.messageHandlerService.error('Expected a list of occurrences to replace, found something else');
+      /*
+       * Named, because the message used to be "found something else" and nothing more.
+       * A partial instance — one written by hand, naming some of a template's fields and
+       * not the rest — brings the widget for every multi-valued field it left out to this
+       * point, and the reader's next question is always which field. The path answers it.
+       *
+       * The path only. What was found there was reported for a while as well, and it said
+       * "object" or "null" depending on how the key went missing, which distinguishes two
+       * ways of writing the same mistake and helps with neither.
+       */
+      this.messageHandlerService.error(`Expected a list of occurrences to replace at ${fullPath.join(' > ')}`);
       return;
     }
     target.length = 0;
@@ -253,7 +263,7 @@ export class DataObjectDataValueHandler {
         // wrapper carrying a reserved attribute name, a list of occurrences, or a
         // single value wrapper destined for the current occurrence.
         if (!isAttributeWrite(valueObject) && isInstanceArray(valueObject)) {
-          this.injectArrayValue(dataObject, valueObject);
+          this.injectArrayValue(dataObject, valueObject, fullPath);
         } else if (isAttributeWrite(valueObject)) {
           if (isInstanceArray(dataObject) && isInstanceObject(parentDataObject)) {
             return this.injectAttributeValue(
