@@ -1,11 +1,13 @@
 .choice-option-row {
   display: flex;
   align-items: center;
-  min-height: 48px;
+  min-height: 36px;
 
   /*
-   * 48px is the row a clear button needs beside the option, and a finger needs to hit either. Reading
-   * a template neither applies, and six options at 48px is a third of a screen for six words.
+   * 36px is the option itself: `mat.radio-density(-1)` in `_cee-material-theme.scss`, where the
+   * height of a choice control is decided. The row used to hold 48px so the clear button beside the
+   * selected option could be Material's full-size icon button, which made every row in the field as
+   * tall as the one action any of them draws.
    */
   :host-context(.cee-read-only) & {
     min-height: 0;
@@ -15,6 +17,25 @@
 .choice-clear-button {
   flex: 0 0 auto;
   margin-inline-start: 4px;
+}
+
+/*
+ * The clear action, sized to the option it clears rather than to Material's default.
+ *
+ * Through the same token the theme sets, at the specificity it takes to be read. `:host
+ * .mat-mdc-icon-button.mat-mdc-button-base` declares `--mat-icon-button-state-layer-size: 48px` on
+ * the button element itself and sizes the box from it, so the value is neither inherited nor
+ * outranked by a one-class rule — the button stayed 48px and held every row in the field at 48px
+ * with it. Naming the two Material classes ties that selector and wins on order. `padding` is a
+ * literal in the same rule and does not follow the token, so it comes too: 6px around a 24px icon.
+ *
+ * The 48px touch target is absolutely positioned and unaffected, so the button accepts a tap over
+ * the area it always did — the trade the choice controls make one level up, in
+ * `_cee-material-theme.scss`.
+ */
+.choice-clear-button.mat-mdc-icon-button.mat-mdc-button-base {
+  --mat-icon-button-state-layer-size: 36px;
+  padding: 6px;
 }
 
 /*

@@ -166,8 +166,32 @@ $applied-theme: mat.m2-define-light-theme(
 /// inside the box, reading "Select UTC offset" where it previously straddled its
 /// own outline. Which is the misalignment the reviewer's screenshot showed, fixed
 /// by asking Material for a height it supports instead of forcing one it does not.
+/// And two more density overrides, for the choice controls: **a radio or
+/// checkbox option is 36px**, decided here for the same reason.
+///
+/// Material draws a 20px control inside a 40px state layer, so a radio field of
+/// six options spent 240px on six words while the words themselves needed 120px.
+/// The multiple-choice widget then held its rows at 48px, because the clear
+/// action it draws beside the selected option is a 48px icon button. Reading
+/// down a template, that is the tallest thing on the page saying the least.
+///
+/// -1 rather than lower. Material stops drawing the invisible 48px touch target
+/// below -1 — `$touch-target-display` in `m2-radio.scss` and its checkbox twin
+/// turn it off once the scale passes -1 — and the control being smaller than the
+/// area that accepts a tap is the point of having both. At -1 the visible control
+/// is 36px and the target it keeps is still 48px, so this costs a third of the
+/// field's height and none of its reach.
+///
+/// The density tokens are what move: `.mdc-radio` takes
+/// `padding: calc((var(--mat-radio-state-layer-size) - 20px) / 2)`, and the
+/// checkbox insets `.mdc-checkbox__background` off the same token, so its box
+/// stays centred without being told where to sit. Read-only is unaffected, since
+/// `styles-own.scss` sets that padding outright and wants a control smaller than
+/// any level on the scale.
 @mixin component-themes() {
   @include mat.all-component-themes($applied-theme);
   @include mat.form-field-density(-2);
+  @include mat.radio-density(-1);
+  @include mat.checkbox-density(-1);
   @include mat.strong-focus-indicators-theme($applied-theme);
 }
