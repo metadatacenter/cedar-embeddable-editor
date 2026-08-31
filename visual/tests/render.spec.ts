@@ -2646,7 +2646,13 @@ test.describe('host input timing', () => {
     }
   });
 
-  test('reassigning a template is refused too', async ({ page }) => {
+  /**
+   * With an instance behind it. A template on its own may be replaced — a host driving a live
+   * view of a template it is editing is re-rendering rather than swapping an artifact out from
+   * under anyone — so the refusal is about the answers, not the template. This fixture loads an
+   * instance, which is what makes the second template ambiguous and what the message says.
+   */
+  test('reassigning a template is refused once an instance stands behind it', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance');
     const refused = await page.evaluate(async () => {
       const cee = document.querySelector('cedar-embeddable-editor')!;
@@ -2656,7 +2662,9 @@ test.describe('host input timing', () => {
       return errors;
     });
 
-    expect(refused.join('\n')).toContain('"templateObject" ignored, because the template is already set');
+    expect(refused.join('\n')).toContain(
+      '"templateObject" ignored, because an instance is loaded against the template it would replace',
+    );
     await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Private');
   });
 
@@ -2680,7 +2688,9 @@ test.describe('host input timing', () => {
       return errors;
     });
 
-    expect(refused.join('\n')).toContain('"templateObject" ignored, because the template is already set');
+    expect(refused.join('\n')).toContain(
+      '"templateObject" ignored, because an instance is loaded against the template it would replace',
+    );
     expect(refused.join('\n')).toContain('"instanceObject" ignored, because the instance is already set');
     expect(refused.join('\n')).toContain(
       '"templateAndInstanceObject" ignored, because the template and instance are already set',
