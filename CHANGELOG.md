@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.4] - 2026-09-01
+
+This release aligns CEE's build-time model dependency with the public
+`cedar-model-typescript-library@1.0.5` package. The model library remains compiled into CEE's
+browser bundle and is not a runtime dependency for embedding applications.
+
 ### Changed
+
+- The application and visual-test dependency graphs now pin the same public
+  `cedar-model-typescript-library@1.0.5` tarball from npmjs.
 
 - A template may be replaced while no instance has been supplied. Set-once exists
   to refuse one question — what becomes of the answers someone has been typing when
