@@ -15,6 +15,7 @@
           role="link"
           aria-label="Cedar logo - https://metadatacenter.org"
         ></div>
+        <span class="cee-name">CEE</span>
         <span class="cee-version" [title]="ceeVersion">{{ ceeVersion }}</span>
       </div>
       <div class="template-title-block">
@@ -51,12 +52,14 @@
           </div>
         }
         <div class="expand-buttons">
-          <button mat-button (click)="openAll()">
-            <mat-icon>unfold_more</mat-icon>{{ 'Generic.ExpandAll' | translate }}
-          </button>
-          <button mat-button (click)="closeAll()">
-            <mat-icon>unfold_less</mat-icon>{{ 'Generic.CollapseAll' | translate }}
-          </button>
+          @if (showExpandCollapseAll) {
+            <button mat-button (click)="openAll()">
+              <mat-icon>unfold_more</mat-icon>{{ 'Generic.ExpandAll' | translate }}
+            </button>
+            <button mat-button (click)="closeAll()">
+              <mat-icon>unfold_less</mat-icon>{{ 'Generic.CollapseAll' | translate }}
+            </button>
+          }
           @if (showDownloadMenu) {
             <app-download-menu (downloadRequested)="download($event)"></app-download-menu>
           }

@@ -273,15 +273,47 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     expect(errors).not.toHaveBeenCalled();
   });
 
-  it('keeps the first template and reports the second', () => {
+  /**
+   * A template with nothing recorded against it is a rendering, not an artifact someone
+   * is working in, so replacing it takes nothing away. This is what lets a host show a
+   * live view of a template that is itself being edited without discarding the editor and
+   * starting another for every change.
+   */
+  it('replaces a template that has no instance behind it', () => {
+    const { component, errors } = make();
+    const second = artifact('second');
+
+    component.templateObject = artifact('first');
+    component.templateObject = second;
+
+    expect(component.templateJson).toBe(second);
+    expect(errors).not.toHaveBeenCalled();
+  });
+
+  it('renders each replacement rather than the first one again', () => {
+    const { component } = make();
+
+    component.templateObject = artifact('first');
+    const first = component.artifactRevision;
+    component.templateObject = artifact('second');
+
+    // The revision is what reaches the inner editor and asks it to render, so a
+    // replacement that did not move it would leave the previous form on screen.
+    expect(component.artifactRevision).toBeGreaterThan(first);
+  });
+
+  it('keeps the template once an instance is loaded against it, and reports the second', () => {
     const { component, errors } = make();
     const first = artifact('first');
 
+    component.instanceObject = artifact('instance');
     component.templateObject = first;
     component.templateObject = artifact('second');
 
+    // The answers in front of a person were recorded against the template that would be
+    // taken away, and there is no good answer to what becomes of them.
     expect(component.templateJson).toBe(first);
-    expect(reported(errors)).toContain('"templateObject" ignored, because the template is already set');
+    expect(reported(errors)).toContain('"templateObject" ignored, because an instance is loaded');
   });
 
   it('reports an unreadable template without spending its claim, then accepts the correction', () => {

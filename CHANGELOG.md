@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.4] - 2026-09-01
+
+This release aligns CEE's build-time model dependency with the public
+`cedar-model-typescript-library@1.0.5` package. The model library remains compiled into CEE's
+browser bundle and is not a runtime dependency for embedding applications.
+
+### Changed
+
+- The application and visual-test dependency graphs now pin the same public
+  `cedar-model-typescript-library@1.0.5` tarball from npmjs.
+
+- A template may be replaced while no instance has been supplied. Set-once exists
+  to refuse one question — what becomes of the answers someone has been typing when
+  the template under them is swapped — and where there are no answers, there is
+  nothing to lose. Each replacement builds a fresh context, so nothing of the
+  previous template survives into the new form; once an instance is loaded the
+  template is fixed again and a second assignment is reported and ignored, as
+  before. A host showing a live view of a template that is itself being edited no
+  longer has to discard the element and start a whole editor per change, which cost
+  about a second of bootstrapping regardless of the size of the template.
+
+### Added
+
+- The editor says it is the editor. `CEE` is stamped under the mark in the form's
+  header, above the version, which on its own read `2.0.4-dev.20260827.…` and named
+  a build without naming what was built. It matters where CEE is one of several
+  CEDAR components on a page: the embeddable designer's preview panel puts CEE's
+  header a few inches from the designer's own.
+
+- `showExpandCollapseAll`, a config key hiding the Expand All and Collapse All
+  buttons above the form. On by default, so nothing changes for a host that does
+  not set it. A host rendering its own view of the same artifact beside the form
+  — the CEDAR Embeddable Designer previewing the template it is editing — can turn
+  them off rather than offering two contradictory sets of controls over one thing.
+  Each section still opens and closes on its own header.
+
 ## [2.0.3] - 2026-08-27
 
 This release aligns CEE's build-time model dependency with the public

@@ -39,6 +39,7 @@ export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
   [CEE_CONFIG_KEY.trustTemplateRichText]: 'boolean',
 
   [CEE_CONFIG_KEY.showDownloadMenu]: 'boolean',
+  [CEE_CONFIG_KEY.showExpandCollapseAll]: 'boolean',
 
   [CEE_CONFIG_KEY.terminologyBaseUrl]: 'string',
   [CEE_CONFIG_KEY.bridgeBaseUrl]: 'string',

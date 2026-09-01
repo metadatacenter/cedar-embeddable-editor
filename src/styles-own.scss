@@ -528,10 +528,13 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   --mat-form-field-container-vertical-padding: 6px;
 
   /*
-   * A radio or checkbox option is 40px tall so a finger can hit it: a 20px control in 10px of padding.
-   * Nobody is hitting anything here, and on a six-option field that is 240px of tap target for six
-   * words. The padding is what makes the height — the state-layer tokens do not, which is worth
-   * knowing before trying them — so it is the padding that shrinks.
+   * A choice option is 36px while editing, so a finger can hit it: a 20px control in 8px of padding,
+   * set by `mat.radio-density(-1)` and its checkbox twin. Nobody is hitting anything here, and a
+   * reader can go tighter than any level on Material's scale, which stops at 28px.
+   *
+   * The padding is what shrinks, rather than the state-layer token the density mixin sets, because
+   * 24px is not a level to ask for. The two are the same lever: `.mdc-radio` takes
+   * `padding: calc((var(--mat-radio-state-layer-size) - 20px) / 2)`.
    */
   .mat-mdc-radio-button .mdc-radio,
   .mat-mdc-checkbox .mdc-checkbox {

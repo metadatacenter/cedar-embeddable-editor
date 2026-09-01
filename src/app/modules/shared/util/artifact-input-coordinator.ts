@@ -46,7 +46,7 @@ export class ArtifactInputCoordinator {
   }
 
   acceptTemplate(template: CeeJsonObject): boolean {
-    if (!this.claimAvailable('templateObject', ['template'])) {
+    if (!this.mayAcceptTemplate()) {
       return false;
     }
     // An instance accepted before its template is already the live waiting
@@ -176,6 +176,31 @@ export class ArtifactInputCoordinator {
       );
       return null;
     }
+  }
+
+  /**
+   * Whether a template may be accepted, which a template already accepted does not settle.
+   *
+   * A second template is ambiguous only when someone is filling the form in: the answers in front
+   * of them were recorded against the template being taken away, and there is no good answer to
+   * what becomes of them. That is the case set-once exists for, and it still refuses.
+   *
+   * With no instance there is nothing to lose. A host driving a live view of a template it is
+   * itself editing — a designer previewing its own work — is replacing a rendering rather than
+   * swapping an artifact out from under anyone, and making it discard the element and start a
+   * whole editor for each edit costs a second of bootstrapping to show a form that differs by a
+   * word. Each accepted template still builds a fresh context, so nothing of the previous one
+   * survives into the new form.
+   */
+  private mayAcceptTemplate(): boolean {
+    if (!this.claimed.has('template') || !this.claimed.has('instance')) {
+      return true;
+    }
+    this.messages.error(
+      'CEDAR Embeddable Editor: "templateObject" ignored, because an instance is loaded against the template it ' +
+        'would replace. Create a new editor element to load a different artifact.',
+    );
+    return false;
   }
 
   private claimAvailable(input: string, parts: readonly ArtifactClaim[]): boolean {
