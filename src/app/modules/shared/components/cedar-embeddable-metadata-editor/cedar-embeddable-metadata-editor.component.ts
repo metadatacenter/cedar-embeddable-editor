@@ -27,7 +27,7 @@ import { RenderSchedulerService } from '../../service/render-scheduler.service';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
-  private static INNER_VERSION = '2026-09-01 03:04 1cbe5878';
+  private static INNER_VERSION = '2026-09-01 03:16 f7fdc417';
 
   /**
    * Whether the download menu exists.

@@ -21,7 +21,7 @@
     "flake-hunt": "node check-bundle-fresh.mjs && for i in $(seq 1 ${RUNS:-20}); do echo \"--- run $i\"; playwright test --retries=0 --reporter=line || exit 1; done"
   },
   "dependencies": {
-    "cedar-model-typescript-library": "1.0.5"
+    "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@1.0.5-dev.20260827.2030.g9261381c1fb4"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",
