@@ -34,6 +34,13 @@
     "lint": "ng lint",
     "check:readme-examples": "node scripts/check-readme-examples.mjs"
   },
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.3": true,
+    "lmdb@3.5.6": true,
+    "msgpackr-extract@3.0.4": true
+  },
   "dependencies": {
     "@angular/cdk": "^22.1.1",
     "@angular/common": "~22.1.1",

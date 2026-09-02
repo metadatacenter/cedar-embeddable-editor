@@ -16,6 +16,9 @@ concurrency:
   group: test-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NPM_CONFIG_STRICT_ALLOW_SCRIPTS: "true"
+
 jobs:
   prepare:
     # arm64 Linux, because the visual suite runs inside Playwright's own container
