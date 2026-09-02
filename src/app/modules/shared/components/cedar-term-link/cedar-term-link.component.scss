@@ -52,16 +52,17 @@
 }
 
 /*
- * A paper title can be a paragraph; its PMID cannot. In the PubMed variant the title takes the
- * elastic part of one row and ellipsizes, while the dash, identifier and authority action retain
- * their full width. The complete title is still the span's text and its native hover title.
+ * A paper title can be a paragraph; its PMID cannot. In the PubMed variant the title keeps its
+ * natural width until the row needs it to shrink, then ellipsizes; it must not grow into spare space
+ * and push the dash and identifier to the far edge. The identifier and authority action retain their
+ * full width. The complete title is still the span's text and its native hover title.
  */
 .cee-term-link-single-line {
   flex-wrap: nowrap;
   overflow: hidden;
 
   .cee-term-link-label {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;

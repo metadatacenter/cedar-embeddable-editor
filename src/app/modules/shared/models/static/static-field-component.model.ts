@@ -8,6 +8,7 @@ export class StaticFieldComponent implements SingleComponent {
 
   name = '';
   path: string[] = [];
+  propertyIri: string | null = null;
   labelInfo: LabelInfo = new LabelInfo();
   basicInfo: BasicInfo = new BasicInfo();
   contentInfo: ContentInfo = new ContentInfo();

@@ -5,6 +5,13 @@ export interface CedarComponent {
   name: string;
   path: string[];
   /**
+   * The property IRI assigned to this child by its parent artifact.
+   *
+   * This is deployment metadata: it belongs to the child as it appears in a
+   * particular parent, not to the reusable field or element artifact itself.
+   */
+  propertyIri: string | null;
+  /**
    * Whether the renderer draws this component.
    *
    * On every component, not only the field and element halves, because the parser

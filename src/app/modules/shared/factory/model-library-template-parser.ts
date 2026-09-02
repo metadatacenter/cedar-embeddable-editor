@@ -352,6 +352,10 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     const iriMap = container.getChildrenInfo().getChildIriMap();
     for (const name of Object.keys(iriMap)) {
       entries[name] = String(iriMap[name]);
+      const child = component.getChildByName(name);
+      if (child !== null) {
+        child.propertyIri = entries[name];
+      }
     }
     component.contextEntries = entries;
   }

@@ -19,6 +19,7 @@ export class CedarInputLinkComponent extends CedarUIDirective implements OnInit 
   component!: FieldComponent;
   options: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
+  linkIconName = 'open_in_new';
   @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
@@ -56,6 +57,11 @@ export class CedarInputLinkComponent extends CedarUIDirective implements OnInit 
 
   setCurrentValue(currentValue: unknown): void {
     this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
+  }
+
+  /** A recorded IRI is a value to follow in read-only mode, not an inert input to edit. */
+  get showsLinkAsValue(): boolean {
+    return this.readOnlyMode && (this.inputValueControl.value?.length ?? 0) > 0;
   }
 
   clearValue(): void {

@@ -29,6 +29,7 @@ const {
   InstanceDataContainer,
   InstanceDataControlledAtom,
   InstanceDataEmptyAtom,
+  InstanceDataLinkAtom,
   InstanceDataStringAtom,
   InstanceDataTypedAtom,
   Iri,
@@ -133,6 +134,9 @@ const instance = (templateName, { id: instanceId, name, description, values }) =
 /** A plain string value. */
 const literal = (value) => new InstanceDataStringAtom(value);
 
+/** A value whose field records an IRI rather than a literal string. */
+const link = (value) => new InstanceDataLinkAtom(value);
+
 /**
  * One name a user gave an attribute-value field.
  *
@@ -200,6 +204,15 @@ const writeRaw = (name, document) => {
     tb = tb.addChild(f, deploy(f, name, { required: name === 'text' }));
   }
   write('01-input-types', tb.build());
+  writeRaw(
+    '01-input-types-instance',
+    instance('AllInputTypes', {
+      id: 'https://example.org/instances/all-input-types-1',
+      name: 'All input types instance',
+      description: 'A supplied link value for read-only rendering',
+      values: { _link: link('https://example.org/resource') },
+    }),
+  );
 }
 
 // 2. Choice widgets — radio, checkbox, single- and multi-select lists.
@@ -582,6 +595,20 @@ const writeRaw = (name, document) => {
     tb = tb.addChild(f, deploy(f, name));
   }
   write('08-authority', tb.build());
+  writeRaw(
+    '08-authority-instance',
+    instance('ExternalAuthority', {
+      id: 'https://example.org/instances/external-authority-1',
+      name: 'External authority instance',
+      description: 'A supplied PubMed value for compact read-only rendering',
+      values: {
+        _citation_pmid: controlled(
+          'https://pubmed.ncbi.nlm.nih.gov/28715478',
+          'Loneliness is adversely associated with physical and mental health and lifestyle factors: Results from a Swiss national survey.',
+        ),
+      },
+    }),
+  );
 }
 
 // 9. Temporal fields at every granularity CEDAR defines, and both time formats.

@@ -20,6 +20,8 @@
     "CedarLogo": "Cedar Logo",
     "DecimalSeconds": "decimal seconds",
     "Filter": "Start typing to filter",
+    "OpenLink": "Open link",
+    "PropertyIri": "Property IRI: {{iri}}",
     "OpenAuthorityPage": "Open the {{authority}} page",
     "FilterOrcid": "Start typing researcher name or ORCID",
     "FilterRor": "Start typing institution name or ROR",

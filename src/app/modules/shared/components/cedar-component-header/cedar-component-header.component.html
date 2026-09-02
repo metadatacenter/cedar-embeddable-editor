@@ -58,8 +58,20 @@
       class="icon-help icon-questionmark"
       role="tooltip"
       inline="false"
-      >help</mat-icon
+    >help</mat-icon
     >
+  }
+
+  @if (component.propertyIri) {
+    <span
+      class="property-iri"
+      [matTooltip]="component.propertyIri"
+      matTooltipPosition="above"
+      [attr.aria-label]="'Generic.PropertyIri' | translate: { iri: component.propertyIri }"
+      [attr.data-property-iri]="component.propertyIri"
+    >
+      <span class="material-icons property-iri-icon" aria-hidden="true">device_hub</span>
+    </span>
   }
 
   <span id="Description of {{ cds.getRenderingLabelForComponent(component) }}" class="cdk-visually-hidden">{{

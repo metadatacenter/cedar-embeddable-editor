@@ -6,6 +6,7 @@ export abstract class AbstractElementComponent implements ElementComponent {
   className = 'AbstractElementComponent';
   name = '';
   path: string[] = [];
+  propertyIri: string | null = null;
   children: CedarComponent[] = [];
   labelInfo: LabelInfo = new LabelInfo();
   hidden = false;

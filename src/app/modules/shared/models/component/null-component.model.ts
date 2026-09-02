@@ -6,6 +6,7 @@ export class NullComponent implements CedarComponent {
   labelInfo: LabelInfo = new LabelInfo();
   name = '';
   path: string[] = [];
+  propertyIri: string | null = null;
   hidden = false;
   hiddenInTemplate = false;
 

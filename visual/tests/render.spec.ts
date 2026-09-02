@@ -429,6 +429,32 @@ test.describe('field type markers', () => {
     await expect(page.locator('.authority-icon-slot')).toHaveCount(2);
     await expect(page.locator('[data-field-type-icon]')).toHaveCount(1);
   });
+
+  test('fields and elements expose their property IRI from a quiet non-link marker', async ({ page }) => {
+    await open(page, '03-nested-multi');
+
+    const elementHeader = page.locator('mat-expansion-panel-header').first();
+    const elementMarker = elementHeader.locator('[data-property-iri]');
+    const iri = await elementMarker.getAttribute('data-property-iri');
+    expect(iri).toMatch(/^https:\/\/schema\.metadatacenter\.org\/properties\//);
+    await expect(elementMarker).toHaveAttribute('aria-label', `Property IRI: ${iri}`);
+    await expect(elementMarker.locator('.property-iri-icon')).toHaveText('device_hub');
+    await expect(elementMarker.locator('a')).toHaveCount(0);
+    await expect(elementMarker).toHaveCSS('color', 'rgb(107, 107, 107)');
+
+    const alignment = await elementMarker.evaluate((marker) => {
+      const markerBox = marker.getBoundingClientRect();
+      const headingBox = marker.closest('.flex-container')!.getBoundingClientRect();
+      return headingBox.right - markerBox.right;
+    });
+    expect(alignment).toBe(0);
+
+    await elementMarker.hover();
+    await expect(page.locator('.mat-mdc-tooltip').filter({ hasText: iri! })).toBeVisible();
+
+    const fieldMarkers = page.locator('.non-iterable-component app-cedar-component-header [data-property-iri]');
+    expect(await fieldMarkers.count()).toBeGreaterThan(0);
+  });
 });
 
 /**
@@ -2833,6 +2859,53 @@ test.describe('a term rendered as a value', () => {
     await expect(page.locator('app-cedar-input-controlled input[aria-label="organism"]')).toBeVisible();
     await expect(page.locator('app-cedar-input-controlled .cee-term-link')).toHaveCount(0);
   });
+});
+
+test.describe('a link rendered as a value', () => {
+  test('offers both its recorded IRI and the compact link-out action in a supplied read-only instance', async ({
+    page,
+  }) => {
+    await open(page, '01-input-types', 'readonly', '01-input-types-instance');
+
+    const linkField = page.locator('app-cedar-input-link');
+    const identifier = linkField.locator('a.cee-term-link-iri');
+    await expect(identifier).toHaveAttribute('href', 'https://example.org/resource');
+
+    const action = linkField.locator('a.cee-term-link-action');
+    await expect(action).toHaveAttribute('href', 'https://example.org/resource');
+    await expect(action).toHaveAttribute('aria-label', 'Open link');
+    await expect(linkField.locator('input')).toBeHidden();
+    expect((await linkField.locator('.cee-term-link').boundingBox())?.height).toBe(36);
+  });
+
+  test('keeps an empty read-only template link as its specification box', async ({ page }) => {
+    await open(page, '01-input-types', 'readonly');
+
+    const linkRenderer = page.locator('.non-iterable-component').filter({ hasText: 'link property description' });
+    await expect(linkRenderer.locator('.cee-spec-box')).toBeVisible();
+    await expect(linkRenderer.locator('.cee-term-link')).toHaveCount(0);
+    await expect(linkRenderer.locator('input')).toHaveCount(0);
+  });
+});
+
+test('a PubMed IRI follows its title instead of being pushed to the far edge', async ({ page }) => {
+  await open(page, '08-authority', 'readonly', '08-authority-instance');
+
+  const pubmed = page.locator('app-cedar-input-pmid .cee-term-link');
+  const geometry = await pubmed.evaluate((row) => {
+    const label = row.querySelector('.cee-term-link-label')!.getBoundingClientRect();
+    const dash = row.querySelector('.cee-term-link-dash')!.getBoundingClientRect();
+    const iri = row.querySelector('.cee-term-link-iri')!.getBoundingClientRect();
+    return {
+      dashAfterLabel: dash.left - label.right,
+      iriAfterDash: iri.left - dash.right,
+    };
+  });
+
+  expect(geometry.dashAfterLabel).toBeGreaterThanOrEqual(5);
+  expect(geometry.dashAfterLabel).toBeLessThanOrEqual(7);
+  expect(geometry.iriAfterDash).toBeGreaterThanOrEqual(5);
+  expect(geometry.iriAfterDash).toBeLessThanOrEqual(7);
 });
 
 test.describe('a multi-instance field paging its values', () => {

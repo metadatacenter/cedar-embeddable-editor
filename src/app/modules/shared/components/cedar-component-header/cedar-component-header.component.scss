@@ -1,8 +1,41 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
 .flex-container {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: nowrap;
+}
+
+/*
+ * The child's property IRI is quiet deployment metadata rather than an action.
+ * Keep the ontology glyph at the far edge of the heading, use neutral grey so
+ * it cannot be confused with the teal controlled-term field badge, and expose
+ * the full value through the tooltip without turning it into a link.
+ */
+.property-iri {
+  display: inline-flex;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  align-items: center;
+  justify-content: center;
+  color: #6b6b6b;
+  border-radius: 2px;
+  cursor: help;
+}
+
+.property-iri-icon {
+  width: 18px;
+  height: 18px;
+  overflow: hidden;
+  font-size: 18px;
+  line-height: 18px;
 }
 
 /*
