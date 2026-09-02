@@ -182,13 +182,34 @@
   flex: 0 0 auto;
 }
 
-/* The text block: stays on one line, truncates with ellipsis */
+/*
+ * Keep the occurrence range visible when a long name has to truncate. Field names are slightly
+ * stronger than their surrounding specification, without taking on the full-bold weight of an
+ * element heading. The range remains secondary in a medium grey at either rendering mode.
+ */
 .title {
   flex: 1 1 auto;
-  min-width: 0; /* critical for flex text truncation */
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+  min-width: 0;
   white-space: nowrap;
+}
+
+.title-label {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.field-title {
+  font-weight: 500;
+}
+
+.multi-instance-range {
+  flex: 0 0 auto;
+  color: #6b6b6b;
+  font-weight: 400;
 }
 
 /* Keep the Material help icon aligned with text */

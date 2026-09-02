@@ -1,5 +1,10 @@
-import { Component, EventEmitter, Output, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
-import { DOWNLOAD_ITEMS, DownloadItemId } from '../../models/ui/download-item.model';
+import { Component, EventEmitter, Input, Output, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import {
+  DOWNLOAD_MENU_ITEMS,
+  DownloadItemDescriptor,
+  DownloadItemId,
+  TEMPLATE_ONLY_DOWNLOAD_MENU_ITEMS,
+} from '../../models/ui/download-item.model';
 
 /**
  * The developer's way to take CEE's views of an artifact away as files.
@@ -25,8 +30,11 @@ import { DOWNLOAD_ITEMS, DownloadItemId } from '../../models/ui/download-item.mo
 })
 export class DownloadMenuComponent {
   @Output() downloadRequested = new EventEmitter<DownloadItemId>();
+  @Input() showInstanceDownloads = true;
 
-  protected readonly items = DOWNLOAD_ITEMS;
+  protected get items(): readonly DownloadItemDescriptor[] {
+    return this.showInstanceDownloads ? DOWNLOAD_MENU_ITEMS : TEMPLATE_ONLY_DOWNLOAD_MENU_ITEMS;
+  }
 
   protected request(id: DownloadItemId): void {
     this.downloadRequested.emit(id);

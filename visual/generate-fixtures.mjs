@@ -879,10 +879,7 @@ const writeRaw = (name, document) => {
    */
   const languages = join(served, 'languages');
   mkdirSync(languages, { recursive: true });
-  writeFileSync(
-    join(languages, 'en.json'),
-    JSON.stringify({ Generic: { ExpandAll: 'Unfurl the lot' } }, null, 2),
-  );
+  writeFileSync(join(languages, 'en.json'), JSON.stringify({ Generic: { ExpandAll: 'Unfurl the lot' } }, null, 2));
 
   console.log('wrote fixtures/served/ (host config, malformed config, language map)');
 }
@@ -988,15 +985,24 @@ const writeRaw = (name, document) => {
 //     The template-only route must seed every value before a widget exists; the
 //     supplied-instance route must keep every field blank after the widgets render.
 {
-  const title = field('title', () => CedarBuilders.textFieldBuilder(), (b) => b.withDefaultValue('Draft record'));
-  const measurement = field('measurement', () => CedarBuilders.numericFieldBuilder(), (b) =>
-    b.withNumberType(NumberType.DECIMAL).withDefaultValue(42.5),
+  const title = field(
+    'title',
+    () => CedarBuilders.textFieldBuilder(),
+    (b) => b.withDefaultValue('Draft record'),
   );
-  const collectedOn = field('collected_on', () => CedarBuilders.temporalFieldBuilder(), (b) =>
-    b
-      .withTemporalType(TemporalType.DATE)
-      .withTemporalGranularity(TemporalGranularity.DAY)
-      .withDefaultValue('2026-08-20'),
+  const measurement = field(
+    'measurement',
+    () => CedarBuilders.numericFieldBuilder(),
+    (b) => b.withNumberType(NumberType.DECIMAL).withDefaultValue(42.5),
+  );
+  const collectedOn = field(
+    'collected_on',
+    () => CedarBuilders.temporalFieldBuilder(),
+    (b) =>
+      b
+        .withTemporalType(TemporalType.DATE)
+        .withTemporalGranularity(TemporalGranularity.DAY)
+        .withDefaultValue('2026-08-20'),
   );
   const termDefault = new ControlledTermDefaultValueBuilder()
     .withTermUri(new Iri('http://purl.obolibrary.org/obo/NCBITaxon_9606'))
@@ -1038,6 +1044,36 @@ const writeRaw = (name, document) => {
         _measurement: typed(null, 'xsd:decimal'),
         _collected_on: typed(null, 'xsd:date'),
         _organism: new InstanceDataEmptyAtom(),
+      },
+    }),
+  );
+}
+
+// 24. A repeating field with no facts beside its name.
+//
+//     In read-only the two ORCID occurrences have chips to page, but the control states its own
+//     specification and leaves the right of the title row empty. The chips belong on that row rather
+//     than consuming a row of their own. Separate from fixture 22 so its screenshot remains the
+//     established facts-and-pager collision case.
+{
+  const author = field('author', () => CedarBuilders.extOrcidFieldBuilder());
+  let tb = common(CedarBuilders.templateBuilder(), 'MultiAuthorityValues', 'templates').withSchemaDescription(
+    'A repeating ORCID field whose title row carries no specification facts',
+  );
+  tb = tb.addChild(author, deploy(author, 'author', { multi: true, minItems: 0, maxItems: null }));
+  write('24-multi-authority-values', tb.build());
+
+  writeRaw(
+    '24-multi-authority-values-instance',
+    instance('MultiAuthorityValues', {
+      id: 'https://example.org/instances/multi-authority-values-1',
+      name: 'Multi-authority values instance',
+      description: 'Two authors, so the ORCID field pages',
+      values: {
+        _author: [
+          controlled('https://orcid.org/0000-0001-8922-0488', 'Nina Kreuzberger'),
+          controlled('https://orcid.org/0000-0002-1825-0097', 'Josiah Carberry'),
+        ],
       },
     }),
   );

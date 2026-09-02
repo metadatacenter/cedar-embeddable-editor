@@ -6,8 +6,8 @@
     "CollapseAll": "Mindet bezár",
     "Copy": "Másolás",
     "Page": "Oldal",
-    "Name": "Név",
-    "Value": "Érték",
+    "Name": "név",
+    "Value": "érték",
     "AttributeName": "Attribútum név",
     "AttributeValue": "Attribútum érték",
     "Clear": "Törlés",
@@ -126,8 +126,6 @@
     "DoiReverted": "Érvénytelen DOI, a módosítás elvetve; az utolsó érvényes DOI visszaállítva."
   },
   "Spec": {
-    "Cardinality": "{{min}}–{{max}} érték",
-    "CardinalityUnbounded": "{{min}}+ érték",
     "MinLength": "min. {{minLength}} karakter",
     "MaxLength": "max. {{maxLength}} karakter",
     "Pattern": "minta: {{regex}}",
@@ -138,12 +136,23 @@
     "DecimalPlaces": "{{decimalPlace}} tizedesjegy",
     "TemporalTimeFormat": "{{inputTimeFormat}} órakijelzés",
     "TemporalZoneRequired": "időzóna szükséges",
-    "PermittedValues": "Értékek",
+    "PermittedValues": "értékek",
+    "Keyword": {
+      "Min": "min.",
+      "Max": "max.",
+      "Unit": "egység:",
+      "Values": "értékek"
+    },
+    "FactValue": {
+      "MinLength": "{{minLength}} karakter",
+      "MaxLength": "{{maxLength}} karakter"
+    },
     "TermKind": {
       "branch": "ág",
       "ontology": "ontológia",
       "valueSet": "értékkészlet",
-      "class": "érték"
+      "class": "osztály",
+      "value": "érték"
     },
     "Notation": {
       "year": "ÉÉÉÉ",

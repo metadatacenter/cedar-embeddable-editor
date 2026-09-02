@@ -214,6 +214,15 @@
   margin-top: 10px;
 }
 
+/*
+ * The renderer gives a fact-free read-only field a real two-column title row. Its pager no longer
+ * needs the stacked placement's 10px top margin; the grid centres the chip list beside the label.
+ * Global because the container class is inside the child pager component's emulated scope.
+ */
+.inline-readonly-pager > app-cedar-multi-pager .pager-container-ro {
+  margin-top: 0;
+}
+
 .pager-chips {
   margin-right: 20px;
 }
@@ -239,6 +248,10 @@
 
   .pager-chips {
     margin-right: 12px;
+  }
+
+  .inline-readonly-pager > app-cedar-multi-pager .pager-container-ro {
+    margin-top: 8px;
   }
 }
 
@@ -622,4 +635,29 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 .cee-hidden,
 .cee-hidden.mat-mdc-form-field {
   display: none;
+}
+
+/*
+ * A selected authority is already one compact read-only value row. Material's ordinary icon button
+ * is 48px square, appropriate beside an editable control but taller than that row; projected into
+ * the value it stretched every populated authority box from 36px to 62px and also stole wrapping
+ * width from long PubMed titles. Keep the link and its accessible name, but size this read-only
+ * affordance like the inline action it is. The editable `matSuffix` button remains untouched.
+ */
+.cee-term-link-action {
+  display: inline-flex;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: inherit;
+  text-decoration: none;
+
+  .mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    line-height: 18px;
+  }
 }

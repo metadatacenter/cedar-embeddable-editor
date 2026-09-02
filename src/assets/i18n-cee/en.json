@@ -6,8 +6,8 @@
     "CollapseAll": "Collapse All",
     "Copy": "Copy",
     "Page": "Page",
-    "Name": "Name",
-    "Value": "Value",
+    "Name": "name",
+    "Value": "value",
     "AttributeName": "Attribute Name",
     "AttributeValue": "Attribute Value",
     "Clear": "Clear",
@@ -126,8 +126,6 @@
     "DoiReverted": "Invalid DOI, edit was discarded; restored last valid DOI."
   },
   "Spec": {
-    "Cardinality": "{{min}}–{{max}} values",
-    "CardinalityUnbounded": "{{min}}+ values",
     "MinLength": "min {{minLength}} chars",
     "MaxLength": "max {{maxLength}} chars",
     "Pattern": "pattern {{regex}}",
@@ -138,12 +136,23 @@
     "DecimalPlaces": "{{decimalPlace}} decimal places",
     "TemporalTimeFormat": "{{inputTimeFormat}} clock",
     "TemporalZoneRequired": "time zone required",
-    "PermittedValues": "Values",
+    "PermittedValues": "values",
+    "Keyword": {
+      "Min": "min",
+      "Max": "max",
+      "Unit": "unit",
+      "Values": "values"
+    },
+    "FactValue": {
+      "MinLength": "{{minLength}} chars",
+      "MaxLength": "{{maxLength}} chars"
+    },
     "TermKind": {
       "branch": "branch",
       "ontology": "ontology",
       "valueSet": "value set",
-      "class": "value"
+      "class": "class",
+      "value": "value"
     },
     "Notation": {
       "year": "YYYY",

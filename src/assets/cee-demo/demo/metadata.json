@@ -103,12 +103,27 @@
   },
   "t_link_field": {},
   "t_attribute_value_field": [],
-  "t_controlled_term_field": {},
-  "t_ext_ror_field": {},
-  "t_ext_orcid_field": {},
-  "t_ext_pfas_field": {},
+  "t_controlled_term_field": {
+    "@id": "http://purl.obolibrary.org/obo/DOID_4",
+    "rdfs:label": "disease"
+  },
+  "t_ext_ror_field": {
+    "@id": "https://ror.org/00f54p054",
+    "rdfs:label": "Stanford University"
+  },
+  "t_ext_orcid_field": {
+    "@id": "https://orcid.org/0000-0002-1825-0097",
+    "rdfs:label": "Josiah Carberry"
+  },
+  "t_ext_pfas_field": {
+    "@id": "https://comptox.epa.gov/dashboard/chemical/details/DTXSID3031860",
+    "rdfs:label": "Perfluorodecanoic acid"
+  },
   "t_ext_rrid_field": {},
-  "t_ext_pubmed_field": {},
+  "t_ext_pubmed_field": {
+    "@id": "https://pubmed.ncbi.nlm.nih.gov/28715478",
+    "rdfs:label": "Loneliness is adversely associated with physical and mental health and lifestyle factors: Results from a Swiss national survey."
+  },
   "all_single": {
     "@id": null,
     "s_text_field": {

@@ -631,7 +631,7 @@ test('attribute-value labels stay distinct and its pager aligns responsively', a
   }
 });
 
-test('a new attribute-value row starts with placeholders, not a generated name', async ({ page }) => {
+test('a new attribute-value row starts empty beneath its labels, not with redundant placeholders', async ({ page }) => {
   await open(page, '10-attribute-values');
 
   const renderer = page.locator('app-cedar-component-renderer').filter({
@@ -642,10 +642,11 @@ test('a new attribute-value row starts with placeholders, not a generated name',
 
   const name = renderer.locator('input[aria-label="Attribute Name"]');
   const value = renderer.locator('input[aria-label="Attribute Value"]');
+  await expect(renderer.locator('mat-label')).toHaveText(['Attribute Name', 'Attribute Value']);
   await expect(name).toHaveValue('');
-  await expect(name).toHaveAttribute('placeholder', 'Attribute Name');
+  expect(await name.getAttribute('placeholder')).toBeNull();
   await expect(value).toHaveValue('');
-  await expect(value).toHaveAttribute('placeholder', 'Attribute Value');
+  expect(await value.getAttribute('placeholder')).toBeNull();
 });
 
 test('an unsafe attribute name stays visible with a local explanation', async ({ page }) => {
@@ -1062,11 +1063,12 @@ test('element headings establish hierarchy without doubling the first content ga
       return {
         fontSize: titleStyle.fontSize,
         fontWeight: titleStyle.fontWeight,
+        headerHeight: header.height,
         contentGap: firstFieldHeader.top - header.bottom,
       };
     });
 
-  expect(await readMetrics()).toEqual({ fontSize: '18px', fontWeight: '600', contentGap: 12 });
+  expect(await readMetrics()).toEqual({ fontSize: '18px', fontWeight: '600', headerHeight: 48, contentGap: 4 });
 });
 
 test('page navigation keeps its controls in a compact row', async ({ page }) => {
@@ -1323,6 +1325,14 @@ test.describe('the version stamp', () => {
     await expect(stamp).toHaveText(declared);
     // Hidden from the screenshot, not from the page: an embedder still sees it.
     await expect(stamp).toBeVisible();
+  });
+
+  test('links the CEE identity to its npm package', async ({ page }) => {
+    await open(page, '01-input-types');
+
+    const productLink = page.locator('.logo-block');
+    await expect(productLink).toHaveAttribute('href', 'https://www.npmjs.com/package/cedar-embeddable-editor');
+    await expect(productLink).toHaveAttribute('target', '_blank');
   });
 });
 
@@ -1630,6 +1640,7 @@ test.describe('ported from the deleted component specs', () => {
 
     const emptyReadOnlyField = page.locator('.non-iterable-component').nth(1);
     await expect(emptyReadOnlyField.locator('app-cedar-component-header')).toContainText('paged_no_instances');
+    await expect(emptyReadOnlyField.locator('.child-component-content')).toHaveCount(1);
     await expect(emptyReadOnlyField).not.toContainText('No instances yet');
     await expect(emptyReadOnlyField.locator('mat-chip-listbox')).toHaveCount(0);
   });
@@ -1683,11 +1694,15 @@ test.describe('declared non-enumerated defaults', () => {
     await expect(collectedOn.locator('input')).toHaveCount(0);
   });
 
-  test('read-only supplied instance keeps explicitly blank numeric and temporal fields blank', async ({ page }) => {
+  test('read-only supplied instance states the specification for explicitly blank fields', async ({ page }) => {
     await open(page, '23-declared-defaults', 'readonly', '23-declared-defaults-blank-instance');
 
-    await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('');
-    await expect(page.locator('app-cedar-input-datetime input')).toHaveValue('');
+    const measurement = page.locator('.non-iterable-component').filter({ hasText: 'measurement' });
+    const collectedOn = page.locator('.non-iterable-component').filter({ hasText: 'collected_on' });
+    await expect(measurement.locator('.cee-spec-box')).toContainText('default 42.5');
+    await expect(collectedOn.locator('.cee-spec-box')).toContainText('default 2026-08-20');
+    await expect(measurement.locator('input')).toHaveCount(0);
+    await expect(collectedOn.locator('input')).toHaveCount(0);
   });
 });
 
@@ -1959,6 +1974,12 @@ test.describe('template-authored strings that are not rich text', () => {
 
     const { becameMarkup } = await probes(page);
     expect(becameMarkup, 'the help text was parsed as markup').toBe(0);
+  });
+
+  test('does not repeat a section-break description behind a help icon in read-only mode', async ({ page }) => {
+    await open(page, '20-static-markup', 'readonly');
+
+    await expect(page.locator('app-cedar-static-section-break mat-icon.icon-help')).toHaveCount(0);
   });
 });
 
@@ -2404,19 +2425,36 @@ test('the download menu exposes only its supported artifact views', async ({ pag
   const items = page.locator('[data-download]');
   await expect(items).toHaveCount(7);
   expect(await items.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-download')))).toEqual([
-    'instance',
+    'templateYaml',
+    'templateYamlCompact',
     'instanceYaml',
     'instanceYamlCompact',
     'templateSource',
-    'templateYaml',
-    'templateYamlCompact',
+    'instance',
     'dataQuality',
   ]);
+  await expect(page.getByText('JSON Schema - Template', { exact: true })).toBeVisible();
   await expect(page.getByText('Compact YAML - Instance', { exact: true })).toBeVisible();
   await expect(page.getByText('Compact YAML - Template', { exact: true })).toBeVisible();
   await expect(page.getByText('JSON-LD - Instance - Core', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Template Rendering Data', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Multi-Instance Information', { exact: true })).toHaveCount(0);
+});
+
+test('a read-only template-only download menu does not offer an instance file', async ({ page }) => {
+  await open(page, '01-input-types', 'readonly', undefined, undefined, '&f=showDownloadMenu');
+  await page.locator('.download-trigger').click();
+
+  const items = page.locator('[data-download]');
+  expect(await items.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-download')))).toEqual([
+    'templateYaml',
+    'templateYamlCompact',
+    'templateSource',
+  ]);
+  await expect(page.getByText('YAML - Instance', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Compact YAML - Instance', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('JSON-LD - Instance', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Data Quality Report', { exact: true })).toHaveCount(0);
 });
 
 test.describe('what a host page reads back', () => {
@@ -2724,11 +2762,11 @@ test.describe('host input timing', () => {
  * the menu and the switch are gone, and `readOnlyMode` reaches the widgets directly.
  */
 /**
- * A field's occurrence pager and its terse facts share the title row.
+ * A field's occurrence pager and the content after its name share the title row.
  *
- * Editable, that row holds only the field's name, so the chips are pulled 33px up onto it to save a
- * row. Read-only the same row carries the facts on the right — and the chips were still pulled up,
- * so `0+ values` and the chips were drawn on top of each other. Nothing caught it: every other
+ * Editable, that row holds the field's name and its grey occurrence range, so the chips are pulled
+ * 33px up onto it to save a row. Read-only can also carry terse facts on the right — and the chips
+ * were still pulled up, covering them. Nothing caught it: every other
  * multi fixture pages an *element*, whose pager sits on a panel header with nothing beside it, and a
  * field with no instance renders no pager at all.
  */
@@ -2738,8 +2776,8 @@ test.describe('host input timing', () => {
  * The identifier used to be text inside a readonly `input`, so a reader who wanted to follow it had
  * to select and paste it — an `input` cannot contain an anchor, which is why. Read-only with a value
  * the control is replaced by the label and the identifier, the identifier addressable, and the
- * authority's own link-out keeps its place beside them. Two destinations for a controlled term: the
- * IRI is what the instance records, the icon is the term's page in its ontology.
+ * authority's own mark keeps its place before them. Two destinations for a controlled term: the IRI
+ * is what the instance records, the BioPortal mark is the term's page in its ontology.
  */
 test.describe('a term rendered as a value', () => {
   test('links the identifier and keeps the authority icon', async ({ page }) => {
@@ -2750,14 +2788,32 @@ test.describe('a term rendered as a value', () => {
     const identifier = controlled.locator('a.cee-term-link-iri');
     await expect(identifier).toHaveAttribute('href', 'http://purl.obolibrary.org/obo/DOID_4');
     await expect(identifier).toHaveAttribute('rel', 'noopener');
-    const authorityPage = controlled.locator('.cee-term-link-suffix a');
+    const authorityPage = controlled.locator('a.cee-bioportal-term-link');
     expect(
       await authorityPage.getAttribute('href'),
-      'the icon goes to the term in its ontology, not to the IRI',
+      'the BioPortal mark goes to the term in its ontology, not to the IRI',
     ).toContain('bioportal.bioontology.org');
+    await expect(authorityPage).toHaveAttribute('termLinkPrefix', '');
+    const logo = await authorityPage.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      return {
+        width: box.width,
+        height: box.height,
+        backgroundImage: getComputedStyle(element).backgroundImage,
+      };
+    });
+    expect(logo.width).toBe(60);
+    expect(logo.height).toBe(20);
+    expect(logo.backgroundImage).toContain('data:image/png;base64');
 
     const orcid = page.locator('app-cedar-input-orcid').first();
     await expect(orcid.locator('a.cee-term-link-iri')).toHaveAttribute('href', 'https://orcid.org/0000-0002-1825-0097');
+    const authorityAction = orcid.locator('a.cee-term-link-action');
+    await expect(authorityAction).toHaveAttribute('aria-label', /ORCID/);
+    const actionBox = await authorityAction.boundingBox();
+    expect(actionBox?.width).toBe(20);
+    expect(actionBox?.height).toBe(20);
+    expect((await orcid.locator('.cee-term-link').boundingBox())?.height).toBe(36);
   });
 
   test('leaves no control behind where it renders a value', async ({ page }) => {
@@ -2805,15 +2861,47 @@ test.describe('a multi-instance field paging its values', () => {
   const overlapping = (a: { x: number; y: number; right: number; bottom: number }, b: typeof a) =>
     !(a.right <= b.x + 1 || b.right <= a.x + 1 || a.bottom <= b.y + 1 || b.bottom <= a.y + 1);
 
-  test('keeps its chips clear of the facts on the title row', async ({ page }) => {
+  test('states its range after the name without losing the occurrence chips', async ({ page }) => {
     await open(page, '22-multi-field-values', 'readonly', '22-multi-field-values-instance');
 
-    const facts = await boxesOf(page, 'app-cedar-field-spec');
+    const range = page.locator('.multi-instance-range').first();
+    await expect(range).toHaveText('(0 .. ∞)');
+    await expect(range).toHaveCSS('color', 'rgb(107, 107, 107)');
     const chips = await boxesOf(page, '.mat-mdc-chip');
     expect(chips.length, 'two values page, so there are chips to collide with').toBeGreaterThan(0);
-    expect(facts.length, 'and facts on the row they would collide with').toBeGreaterThan(0);
-    const collisions = facts.flatMap((fact) => chips.filter((chip) => overlapping(fact, chip)));
-    expect(collisions, 'a chip is drawn over the facts').toEqual([]);
+    const ranges = await boxesOf(page, '.multi-instance-range');
+    const collisions = ranges.flatMap((box) => chips.filter((chip) => overlapping(box, chip)));
+    expect(collisions, 'a chip is drawn over the range').toEqual([]);
+  });
+
+  test('shares a fact-free read-only title row with its chips', async ({ page }, testInfo) => {
+    await open(page, '24-multi-authority-values', 'readonly', '24-multi-authority-values-instance');
+
+    const renderer = page.locator('app-cedar-component-renderer').filter({
+      has: page.locator('app-cedar-input-orcid'),
+    });
+    const geometry = await renderer.evaluate((element) => {
+      const header = element.querySelector(':scope > .non-iterable-component > app-cedar-component-header')!;
+      const pager = element.querySelector(':scope > .non-iterable-component > app-cedar-multi-pager')!;
+      const h = header.getBoundingClientRect();
+      const p = pager.getBoundingClientRect();
+      return {
+        headerCenter: h.top + h.height / 2,
+        pagerCenter: p.top + p.height / 2,
+        pagerTop: p.top,
+        headerBottom: h.bottom,
+      };
+    });
+
+    if (testInfo.project.name === 'desktop') {
+      expect(Math.abs(geometry.headerCenter - geometry.pagerCenter), 'the label and chips share one row').toBeLessThan(
+        1,
+      );
+    } else {
+      expect(geometry.pagerTop, 'a narrow field still gives the pager its own row').toBeGreaterThanOrEqual(
+        geometry.headerBottom,
+      );
+    }
   });
 
   test('states the attribute it holds, one occurrence at a time', async ({ page }) => {
@@ -2839,7 +2927,7 @@ test.describe('read-only belongs to the host', () => {
     await expect(page.locator('.cee-spec-box').first()).toBeVisible();
   });
 
-  test('renders the controls of a supplied instance, and none of them editable', async ({ page }) => {
+  test('renders populated controls from a supplied instance, and none of them editable', async ({ page }) => {
     await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
 
     await expect(page.locator('input[aria-label="email"]')).toHaveAttribute('readonly', 'true');

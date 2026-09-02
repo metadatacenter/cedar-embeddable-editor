@@ -43,12 +43,9 @@ const JSON_TYPE = 'application/json';
 const YAML_TYPE = 'application/yaml';
 
 /**
- * Menu order.
+ * Every supported download.
  *
- * Instance before template, because a developer looking at a form is usually
- * asking what it produced rather than what defined it. Within each, JSON before
- * YAML. The data-quality report, which is neither artifact nor serialisation,
- * comes last.
+ * This is the capability registry, not the visible menu order.
  */
 export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
   {
@@ -108,3 +105,37 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
     mediaType: JSON_TYPE,
   },
 ];
+
+/**
+ * What the download menu offers, in reading order. The YAML views come first, full before compact;
+ * JSON Schema follows them immediately before the JSON-LD instance, and the report comes last.
+ */
+const DOWNLOAD_MENU_ORDER: readonly DownloadItemId[] = [
+  'templateYaml',
+  'templateYamlCompact',
+  'instanceYaml',
+  'instanceYamlCompact',
+  'templateSource',
+  'instance',
+  'dataQuality',
+];
+
+export const DOWNLOAD_MENU_ITEMS: readonly DownloadItemDescriptor[] = DOWNLOAD_MENU_ORDER.map((id) => {
+  const item = DOWNLOAD_ITEMS.find((candidate) => candidate.id === id);
+  if (item === undefined) {
+    throw new Error(`Unknown download menu item: ${id}`);
+  }
+  return item;
+});
+
+const INSTANCE_ONLY_DOWNLOAD_IDS: ReadonlySet<DownloadItemId> = new Set([
+  'instanceYaml',
+  'instanceYamlCompact',
+  'instance',
+  'dataQuality',
+]);
+
+/** Template exports shown when read-only CEE has no instance to download or assess. */
+export const TEMPLATE_ONLY_DOWNLOAD_MENU_ITEMS: readonly DownloadItemDescriptor[] = DOWNLOAD_MENU_ITEMS.filter(
+  (item) => !INSTANCE_ONLY_DOWNLOAD_IDS.has(item.id),
+);

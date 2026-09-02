@@ -10,7 +10,9 @@
   background-image: url(common.$cedar-logo-80x80);
   background-size: cover;
   background-color: #0b3938;
-  cursor: pointer;
+  /* Angular Material's card-avatar default adds 16px below the mark. The CEE name supplies its own
+   * 4px separation, so retaining both created a conspicuous 20px hole in this compact identity. */
+  margin-bottom: 0;
 }
 .template-header {
   display: grid;
@@ -56,6 +58,8 @@
   align-items: center;
   flex: 0 0 72px;
   min-width: 0;
+  color: inherit;
+  text-decoration: none;
 }
 
 /*

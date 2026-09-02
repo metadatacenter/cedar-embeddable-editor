@@ -8,9 +8,9 @@ cost the field its Clear action and any way back to the search box, nested a
 `<button>` inside an `<a>`, and opened two tabs on a click: the handler called
 `window.open` and then the event reached the anchor.
 
-The BioPortal record is a suffix link instead, which is what the seven external
-authority widgets do with theirs. The source stays branded in the component
-header, where every other authority's mark already lives.
+For a selected term, BioPortal's own mark precedes the value and links to the
+term's BioPortal record. The term IRI remains its own link: those are two
+different destinations worth having.
 -->
 <form class="form-container" [formGroup]="options">
   <ng-container>
@@ -31,7 +31,8 @@ header, where every other authority's mark already lives.
         @for (source of specSources; track source.uri) {
           @if (specSourceLink(source)) {
             <a class="cee-controlled-spec-source" [href]="specSourceLink(source)" target="_blank" rel="noopener"
-              >{{ 'Spec.TermKind.' + source.kind | translate }} {{ source.name }}
+              ><em class="cee-controlled-spec-kind">{{ 'Spec.TermKind.' + source.kind | translate }}</em>
+              {{ source.name }}
               @if (source.container) {
                 {{ 'Spec.TermIn' | translate: { container: source.container } }}
               }
@@ -41,7 +42,8 @@ header, where every other authority's mark already lives.
             </a>
           } @else {
             <span class="cee-controlled-spec-source"
-              >{{ 'Spec.TermKind.' + source.kind | translate }} {{ source.name }}</span
+              ><em class="cee-controlled-spec-kind">{{ 'Spec.TermKind.' + source.kind | translate }}</em>
+              {{ source.name }}</span
             >
           }
         }
@@ -49,9 +51,9 @@ header, where every other authority's mark already lives.
     }
     @if (showsTermAsValue) {
       <!--
-        Read with a term in hand. The icon goes to the term's BioPortal page and the identifier to
-        the term itself, which are two different places worth having — the page says what the term
-        means in its ontology, the IRI is what the instance records.
+        Read with a term in hand. The BioPortal mark goes to the term's BioPortal page and the
+        identifier to the term itself, which are two different places worth having — the page says
+        what the term means in its ontology, the IRI is what the instance records.
       -->
       <app-cedar-term-link
         [label]="selectedData?.label ?? null"
@@ -60,15 +62,14 @@ header, where every other authority's mark already lives.
       >
         @if (bioPortalTermLink) {
           <a
-            mat-icon-button
+            termLinkPrefix
+            class="cee-bioportal-term-link"
             [href]="bioPortalTermLink"
             target="_blank"
             rel="noopener"
             attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
             matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
-          >
-            <mat-icon>open_in_new</mat-icon>
-          </a>
+          ></a>
         }
       </app-cedar-term-link>
     }

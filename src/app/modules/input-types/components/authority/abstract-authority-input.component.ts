@@ -14,6 +14,7 @@ import { ExternalAuthorityLookupService } from '../../../shared/service/external
 import { AuthoritySearchControl } from '../../../shared/util/authority-search-control';
 import { AuthorityDescriptor } from '../../../shared/models/authority/authority-descriptor.model';
 import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
+import { InputType } from '../../../shared/models/input-type.model';
 import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 
@@ -108,6 +109,11 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
 
   /** Which authority this field searches. The only thing a subclass decides. */
   abstract get descriptor(): AuthorityDescriptor;
+
+  /** PubMed's human label is an article title; keep it from turning one selected value into a card. */
+  get truncatesSelectedLabel(): boolean {
+    return this.descriptor.inputType === InputType.pmid;
+  }
 
   protected constructor(
     protected fb: FormBuilder,

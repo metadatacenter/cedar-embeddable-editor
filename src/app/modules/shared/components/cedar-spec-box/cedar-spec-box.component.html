@@ -1,10 +1,46 @@
 <div class="cee-spec-box" role="note">
-  @if (fieldToDescribe | ceeSpecPlaceholder) {
-    <span class="cee-spec-box-facts">{{ fieldToDescribe | ceeSpecPlaceholder }}</span>
+  @if (facts.length > 0 || optionLabels) {
+    <span class="cee-spec-box-facts">
+      @for (fact of facts; track fact.key) {
+        <span class="cee-spec-box-fact">
+          @switch (fact.key) {
+            @case ('Spec.MinLength') {
+              <em class="cee-spec-box-keyword">{{ 'Spec.Keyword.Min' | translate }}</em>
+              {{ 'Spec.FactValue.MinLength' | translate: fact.params }}
+            }
+            @case ('Spec.MaxLength') {
+              <em class="cee-spec-box-keyword">{{ 'Spec.Keyword.Max' | translate }}</em>
+              {{ 'Spec.FactValue.MaxLength' | translate: fact.params }}
+            }
+            @case ('Spec.MinValue') {
+              <em class="cee-spec-box-keyword">{{ 'Spec.Keyword.Min' | translate }}</em>
+              {{ fact.params['minValue'] }}
+            }
+            @case ('Spec.MaxValue') {
+              <em class="cee-spec-box-keyword">{{ 'Spec.Keyword.Max' | translate }}</em>
+              {{ fact.params['maxValue'] }}
+            }
+            @case ('Spec.UnitOfMeasure') {
+              <em class="cee-spec-box-keyword">{{ 'Spec.Keyword.Unit' | translate }}</em>
+              {{ fact.params['unitOfMeasure'] }}
+            }
+            @default {
+              {{ fact.key | translate: fact.params }}
+            }
+          }
+        </span>
+      }
+      @if (optionLabels) {
+        <span class="cee-spec-box-fact cee-spec-box-options">
+          <em class="cee-spec-box-keyword">{{ 'Spec.Keyword.Values' | translate }}</em>
+          {{ optionLabels }}
+        </span>
+      }
+    </span>
   }
   @if (defaultTerm) {
     <span class="cee-spec-box-source">
-      <span class="cee-spec-box-kind">{{ 'Spec.DefaultLabel' | translate }}</span>
+      <span class="cee-spec-box-default-kind">{{ 'Spec.DefaultLabel' | translate }}</span>
       @if (defaultTermLink) {
         <a class="cee-spec-box-link" [href]="defaultTermLink" target="_blank" rel="noopener">{{ defaultTerm.label }}</a>
       } @else {
@@ -18,7 +54,7 @@
       authority itself, and a word that is not the thing being linked to should not be part of it.
     -->
     <span class="cee-spec-box-source">
-      <span class="cee-spec-box-kind">{{ 'Spec.TermKind.' + source.kind | translate }}</span>
+      <em class="cee-spec-box-kind">{{ 'Spec.TermKind.' + source.kind | translate }}</em>
       @if (linkFor(source)) {
         <a class="cee-spec-box-link" [href]="linkFor(source)" target="_blank" rel="noopener"
           >{{ source.name }}

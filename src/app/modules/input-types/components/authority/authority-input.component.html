@@ -23,10 +23,11 @@ genuinely theirs.
         [label]="selectedData?.label ?? null"
         [iri]="selectedData?.iri ?? null"
         [fieldLabel]="cds.getRenderingLabelForComponent(component)"
+        [truncateLabel]="truncatesSelectedLabel"
       >
         @if (detailsUrl) {
           <a
-            mat-icon-button
+            class="cee-term-link-action"
             [href]="detailsUrl"
             target="_blank"
             rel="noopener"

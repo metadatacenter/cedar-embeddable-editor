@@ -1,6 +1,7 @@
 import { FieldComponent } from '../models/component/field-component.model';
 import { ChoiceOption } from '../models/info/choice-option.model';
 import { InputType } from '../models/input-type.model';
+import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { isAuthorityTerm } from '../models/authority/authority-term.guard';
 import {
   BranchConstraint,
@@ -33,8 +34,6 @@ import {
 
 /** The translation keys a fact can carry. Named so a typo is a compile error rather than a blank. */
 export const SpecFactKey = {
-  cardinality: 'Spec.Cardinality',
-  cardinalityUnbounded: 'Spec.CardinalityUnbounded',
   decimalPlaces: 'Spec.DecimalPlaces',
   decimalPlaceOne: 'Spec.DecimalPlaceOne',
   defaultValue: 'Spec.DefaultValue',
@@ -65,8 +64,8 @@ export type SpecFact = {
 
 /** One authority a controlled-term field draws its values from. */
 export type SpecTermSource = {
-  /** `branch`, `ontology`, `valueSet` or `class`, which decides how narrow the authority is. */
-  readonly kind: 'branch' | 'ontology' | 'valueSet' | 'class';
+  /** `branch`, `ontology`, `valueSet`, `class` or `value`, which decides how narrow the authority is. */
+  readonly kind: 'branch' | 'ontology' | 'valueSet' | 'class' | 'value';
   /** What the authority is called: a branch's label, an ontology's or value set's full name. */
   readonly name: string;
   /**
@@ -80,19 +79,6 @@ export type SpecTermSource = {
 };
 
 const fact = (key: SpecFactKeyValue, params: Record<string, string | number> = {}): SpecFact => ({ key, params });
-
-/**
- * The occurrence bounds, stated only for a field that may occur more than once. A single-occurrence
- * field says nothing rather than "1 to 1", which would read as a constraint someone chose.
- */
-function cardinalityFacts(field: FieldComponent): SpecFact[] {
-  if (!field.isMulti()) {
-    return [];
-  }
-  const min = field.multiInfo.getSafeMinItems();
-  const max = field.multiInfo.maxItems;
-  return [max === null ? fact(SpecFactKey.cardinalityUnbounded, { min }) : fact(SpecFactKey.cardinality, { min, max })];
-}
 
 function textFacts(field: FieldComponent): SpecFact[] {
   const facts: SpecFact[] = [];
@@ -192,11 +178,41 @@ function temporalFacts(field: FieldComponent): SpecFact[] {
 }
 
 /**
- * How many occurrences the field takes. Stated beside the field's name, because it is a fact about
- * the field rather than about a value — a reader asking "how many" is not asking "what shape".
+ * The facts that occupy the field-name row in read-only rendering.
+ *
+ * Most widgets carry their specification in their own placeholder, so putting the same facts beside
+ * the name would say them twice. Radio and checkbox groups have no placeholder, and an
+ * attribute-value field has two boxes whose placeholders name the pair rather than its constraints;
+ * those are the fields whose facts remain on the header row.
+ *
+ * Kept here rather than in the component that renders the facts because layout also needs to know
+ * whether that row is occupied: a repeating field can share an empty row with its occurrence chips,
+ * but must give a row carrying facts its full width.
  */
-export function specCardinalityFactsOf(field: FieldComponent): SpecFact[] {
-  return cardinalityFacts(field);
+export function specHeaderFactsOf(field: FieldComponent): ReadonlyArray<SpecFact> {
+  const inputType = field.basicInfo.inputType;
+  const controlStatesSpecification =
+    inputType === InputType.text ||
+    inputType === InputType.textarea ||
+    inputType === InputType.numeric ||
+    inputType === InputType.email ||
+    inputType === InputType.link ||
+    inputType === InputType.phoneNumber ||
+    inputType === InputType.controlled ||
+    inputType === InputType.list ||
+    inputType === InputType.temporal ||
+    EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType);
+
+  if (controlStatesSpecification) {
+    return [];
+  }
+
+  const optionsCarryDefault = inputType === InputType.radio || inputType === InputType.checkbox;
+  return [
+    ...(optionsCarryDefault ? [] : specDefaultFactsOf(field)),
+    ...specValueFactsOf(field),
+    ...specUnitFactsOf(field),
+  ];
 }
 
 /**
@@ -326,7 +342,9 @@ const valueSetSource = (valueSet: ValueSetConstraint): SpecTermSource => ({
 });
 
 const classSource = (entry: ClassConstraint): SpecTermSource => ({
-  kind: 'class',
+  // Some producers use the classes array for a fixed value. Preserve that distinction in the label
+  // while treating an absent type as the ontology class shape the model names.
+  kind: entry.type === 'Value' ? 'value' : 'class',
   name: entry.prefLabel ?? entry.label ?? entry.uri ?? '',
   // A class names its ontology by acronym in `source`, where a branch names it in full. Reading it as
   // a container produced "class asthma of the DOID": an acronym in the slot for a spelled-out name.

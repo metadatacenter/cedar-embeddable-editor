@@ -20,6 +20,17 @@
 }
 
 /* The facts, then the authorities, separated the way facts are separated everywhere else. */
+.cee-spec-box-facts {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+
+.cee-spec-box-fact + .cee-spec-box-fact::before {
+  content: '·';
+  margin: 0 6px;
+  color: rgba(0, 0, 0, 0.32);
+}
+
 .cee-spec-box-facts + .cee-spec-box-source::before,
 .cee-spec-box-source + .cee-spec-box-source::before {
   content: '·';
@@ -27,10 +38,25 @@
   color: rgba(0, 0, 0, 0.32);
 }
 
-/* What sort of authority it is: a word, not a destination, so it is quiet and not part of the link. */
-.cee-spec-box-kind {
-  margin-right: 5px;
+/* Lead-in words are semantic signposts rather than values, so italics separate the two at a glance. */
+.cee-spec-box-keyword,
+.cee-spec-box-kind,
+.cee-spec-box-default-kind {
   color: rgba(0, 0, 0, 0.45);
+}
+
+.cee-spec-box-default-kind {
+  margin-right: 5px;
+}
+
+.cee-spec-box-kind {
+  margin-right: 0.25em;
+}
+
+.cee-spec-box-keyword,
+.cee-spec-box-kind {
+  font-style: italic;
+  font-weight: 400;
 }
 
 /*

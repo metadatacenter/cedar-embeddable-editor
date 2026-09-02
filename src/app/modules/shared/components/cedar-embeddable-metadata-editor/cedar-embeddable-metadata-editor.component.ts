@@ -274,8 +274,4 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   closeAll(): void {
     this.allExpanded = false;
   }
-
-  launchMetadataCenter() {
-    window.open('https://metadatacenter.org/', '_blank');
-  }
 }

@@ -14,7 +14,11 @@
  */
 import { describe, expect, it } from 'vitest';
 import { downloadContentFor, downloadFilenameFor } from '@cee/util/download-content';
-import { DOWNLOAD_ITEMS } from '@cee/models/ui/download-item.model';
+import {
+  DOWNLOAD_ITEMS,
+  DOWNLOAD_MENU_ITEMS,
+  TEMPLATE_ONLY_DOWNLOAD_MENU_ITEMS,
+} from '@cee/models/ui/download-item.model';
 import { CeeDriver } from '../src/driver';
 import { buildTemplate } from '../src/generate';
 import { FIELD_KINDS } from '../src/axes';
@@ -28,15 +32,23 @@ const driverWithValue = (name = 'dl'): CeeDriver => {
 };
 
 describe('the download menu', () => {
-  it('offers only portable artifacts and the data-quality report', () => {
-    expect(DOWNLOAD_ITEMS.map((item) => item.id)).toEqual([
-      'instance',
+  it('offers the template, instance and report in reading order', () => {
+    expect(DOWNLOAD_MENU_ITEMS.map((item) => item.id)).toEqual([
+      'templateYaml',
+      'templateYamlCompact',
       'instanceYaml',
       'instanceYamlCompact',
       'templateSource',
+      'instance',
+      'dataQuality',
+    ]);
+  });
+
+  it('omits instance files when read-only CEE has only a template', () => {
+    expect(TEMPLATE_ONLY_DOWNLOAD_MENU_ITEMS.map((item) => item.id)).toEqual([
       'templateYaml',
       'templateYamlCompact',
-      'dataQuality',
+      'templateSource',
     ]);
   });
 });

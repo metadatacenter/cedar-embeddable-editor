@@ -2,13 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { CedarComponent } from '../models/component/cedar-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
-import {
-  specCardinalityFactsOf,
-  specDefaultFactsOf,
-  specOptionsOf,
-  specUnitFactsOf,
-  specValueFactsOf,
-} from '../util/field-spec';
+import { specDefaultFactsOf, specOptionsOf, specUnitFactsOf, specValueFactsOf } from '../util/field-spec';
 
 /**
  * What an empty control says about the value it would hold, for its placeholder.
@@ -19,7 +13,8 @@ import {
  * permitted values, the ontology branch a term must come from.
  *
  * A temporal field composes this with its own notation, which it builds from the granularity: the
- * pipe supplies how many values and the clock and zone rules, the widget supplies `YYYY-MM-DD`.
+ * pipe supplies the clock and zone rules, while the widget supplies `YYYY-MM-DD`. A repeating
+ * field's occurrence range stays beside its name, where it also works for elements.
  *
  * A controlled field's authorities are not here. They are links out to BioPortal, and placeholder
  * text cannot be clicked, so they are rendered beside the field's name instead.
@@ -39,12 +34,9 @@ export class SpecPlaceholderPipe implements PipeTransform {
       return '';
     }
 
-    const parts = [
-      ...specCardinalityFactsOf(field),
-      ...specValueFactsOf(field),
-      ...specDefaultFactsOf(field),
-      ...specUnitFactsOf(field),
-    ].map((fact) => this.translate.instant(fact.key, fact.params));
+    const parts = [...specValueFactsOf(field), ...specDefaultFactsOf(field), ...specUnitFactsOf(field)].map((fact) =>
+      this.translate.instant(fact.key, fact.params),
+    );
 
     const options = specOptionsOf(field);
     if (options.length > 0) {

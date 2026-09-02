@@ -25,6 +25,11 @@
   margin-top: -56px;
 }
 
+/* The read-only element header is 16px shorter, so its pulled-up pager moves 16px less. */
+:host-context(.cee-read-only) .aligned-up {
+  margin-top: -40px;
+}
+
 @container cee (max-width: 620px) {
   .aligned-up {
     justify-content: flex-start;

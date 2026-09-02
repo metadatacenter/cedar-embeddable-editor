@@ -31,6 +31,19 @@
 
 .cee-element-content {
   padding-top: 12px;
+
+  :host-context(.cee-read-only) & {
+    padding-top: 4px;
+  }
+}
+
+/*
+ * Material gives an expanded panel a 64px header, although the same header is 48px collapsed. A
+ * reader does not need the extra expansion affordance around an already-open element, and the 64px
+ * row plus the content padding is the large blank band between an element name and its first field.
+ */
+:host-context(.cee-read-only) .mat-expansion-panel-header.mat-expanded {
+  height: 48px;
 }
 
 .non-iterable-component {
@@ -49,6 +62,37 @@
   }
   background: transparent;
   border-bottom: 1px solid #e1e7e6;
+}
+
+/*
+ * A read-only repeating field whose header carries no facts can put its occurrence chips beside the
+ * name. Grid makes that an actual shared row rather than another fixed negative offset; the control
+ * and description span both columns beneath it. Fields with header facts keep the existing stacked
+ * placement, so the two cannot cover each other.
+ */
+.inline-readonly-pager {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+
+  > app-cedar-component-header {
+    grid-column: 1;
+  }
+
+  > app-cedar-multi-pager {
+    grid-column: 2;
+  }
+
+  > .child-component-content {
+    grid-column: 1 / -1;
+  }
+}
+
+@container cee (max-width: 620px) {
+  .inline-readonly-pager {
+    display: block;
+  }
 }
 
 /*
