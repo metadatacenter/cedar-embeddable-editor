@@ -126,4 +126,31 @@ describe('CedarInputCheckboxComponent', () => {
 
     expect(harness.written.at(-1)).toEqual(['A', 'C']);
   });
+
+  it('publishes one selection per tick', () => {
+    const harness = makeComponent(['A', 'B', 'C']);
+    harness.component.ngOnInit();
+    harness.written.length = 0;
+
+    click(harness, 'B', true);
+
+    expect(harness.written).toEqual([['B']]);
+  });
+
+  it('writes nothing to the model when the model pushes a value into the view', () => {
+    // `setCurrentValue` is a view sync. It used to run the same path a tick runs,
+    // so paging from an occurrence holding [B] to one holding [A] wrote [A, B]
+    // and then corrected itself — and the host was told about both. A page turn
+    // must not look like an edit.
+    const harness = makeComponent(['A', 'B']);
+    harness.component.ngOnInit();
+    click(harness, 'B', true);
+    harness.written.length = 0;
+
+    harness.component.setCurrentValue(['A']);
+
+    expect(harness.written).toEqual([]);
+    expect(harness.component.isChecked('A')).toBe(true);
+    expect(harness.component.isChecked('B')).toBe(false);
+  });
 });

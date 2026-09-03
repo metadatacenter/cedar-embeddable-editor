@@ -65,15 +65,21 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     this.setInput(checkbox.checked, checkbox.value);
   }
 
+  /**
+   * Show what the instance holds. A sync, so it writes nothing back.
+   *
+   * It used to run the same path a tick runs, once per option, and each of those
+   * published the partly-updated selection. Paging from an occurrence holding
+   * `[B]` to one holding `[A]` therefore wrote `[A, B]` and then corrected itself
+   * — and both reached the host as `change` events, the first carrying a
+   * selection nobody had made and a quality report describing it. A host saving
+   * on change persisted it.
+   */
   setCurrentValue(currentValue: unknown): void {
-    const arrVal = currentValue as Array<string>;
+    const selected = Array.isArray(currentValue) ? (currentValue as string[]) : [];
 
     for (const choice of this.component.choiceInfo.choices) {
-      if (arrVal.indexOf(choice.label) >= 0) {
-        this.setInput(true, choice.label);
-      } else {
-        this.setInput(false, choice.label);
-      }
+      this.showInView(selected.includes(choice.label), choice.label);
     }
   }
 
@@ -123,11 +129,19 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
       }
     }
     for (const choice of this.component.choiceInfo.choices) {
-      this.setInput(choice.selectedByDefault, choice.label);
+      this.showInView(choice.selectedByDefault, choice.label);
     }
+    this.publishSelection();
   }
 
+  /** One option ticked or unticked by the user: show it, then record the result. */
   private setInput(isChecked: boolean, val: string): void {
+    this.showInView(isChecked, val);
+    this.publishSelection();
+  }
+
+  /** Tick or untick one option. View only. */
+  private showInView(isChecked: boolean, val: string): void {
     const formArray: FormArray = requireFormArray(this.options, 'checkedChoices');
     const control = this.controlForLabel(val);
 
@@ -149,10 +163,22 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
       // the model no longer carried.
       control?.setValue(null);
     }
+  }
 
-    // Keep the values in the original sort order
-    const sortingArr = this.component.choiceInfo.choices.map((a) => a.label);
-    formArray.value.sort((a: string, b: string) => sortingArr.indexOf(a) - sortingArr.indexOf(b));
-    this.handlerContext.changeListValue(this.component, formArray.value);
+  /**
+   * Hand the whole selection to the model, in the order the template declares.
+   *
+   * Read off the controls rather than sorted in place. `FormArray.value` is a
+   * cached snapshot that the next push or removal rebuilds from the controls, so
+   * sorting it ordered the copy about to be discarded and left the controls as
+   * they were.
+   */
+  private publishSelection(): void {
+    const checked = new Set<string>(requireFormArray(this.options, 'checkedChoices').value as string[]);
+    const declared = this.component.choiceInfo.choices.map((choice) => choice.label);
+    this.handlerContext.changeListValue(
+      this.component,
+      declared.filter((label) => checked.has(label)),
+    );
   }
 }
