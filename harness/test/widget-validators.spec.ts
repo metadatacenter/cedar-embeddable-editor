@@ -306,7 +306,58 @@ describe('numeric hint text', () => {
       () => CedarBuilders.numericFieldBuilder(),
       (b) => b.withNumberType(NumberType.DOUBLE).withDecimalPlaces(3),
     );
-    expect(CedarValidators.describeNumberType(componentFor(kind))).toContain('3 decimals');
+    expect(CedarValidators.describeNumberType(componentFor(kind))).toContain('3 decimal places');
+  });
+
+  /**
+   * A fractional type allowed no fractional part is a whole number, so naming the type
+   * states the opposite of the constraint: `a decimal with at most 0 decimal places`
+   * reads as a contradiction.
+   */
+  it('describes zero declared places as a number rather than as its type', () => {
+    const kind = kindOf(
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => b.withNumberType(NumberType.DECIMAL).withDecimalPlaces(0),
+    );
+    expect(CedarValidators.describeNumberType(componentFor(kind))).toBe(
+      'The value should be a number with no decimal places.',
+    );
+  });
+
+  it('matches the noun to the count when only one place is allowed', () => {
+    const kind = kindOf(
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => b.withNumberType(NumberType.DOUBLE).withDecimalPlaces(1),
+    );
+    expect(CedarValidators.describeNumberType(componentFor(kind))).toContain('1 decimal place.');
+  });
+
+  /**
+   * The widget prints this as it stands. Every branch used to open with a space and end
+   * without its own period, leaving the rendered line indented under the error above it
+   * and closed with two — and a float with no decimal place declared trailed a comma
+   * into nothing.
+   */
+  it.each([
+    [NumberType.INT, undefined],
+    [NumberType.LONG, undefined],
+    [NumberType.BYTE, undefined],
+    [NumberType.SHORT, undefined],
+    [NumberType.FLOAT, undefined],
+    [NumberType.DOUBLE, undefined],
+    [NumberType.DECIMAL, 2],
+  ])('reads as a finished sentence for %s', (type, decimals) => {
+    const kind = kindOf(
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => (decimals == null ? b.withNumberType(type) : b.withNumberType(type).withDecimalPlaces(decimals)),
+    );
+
+    const message = CedarValidators.describeNumberType(componentFor(kind))!;
+
+    expect(message).toMatch(/^[^\s].*[^.,]\.$/);
   });
 });
 

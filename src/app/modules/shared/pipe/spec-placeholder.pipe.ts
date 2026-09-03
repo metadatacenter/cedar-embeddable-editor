@@ -2,7 +2,13 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { CedarComponent } from '../models/component/cedar-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
-import { specDefaultFactsOf, specOptionsOf, specUnitFactsOf, specValueFactsOf } from '../util/field-spec';
+import {
+  specDefaultFactsOf,
+  specKeywordOf,
+  specOptionsOf,
+  specUnitFactsOf,
+  specValueFactsOf,
+} from '../util/field-spec';
 
 /**
  * What an empty control says about the value it would hold, for its placeholder.
@@ -34,9 +40,13 @@ export class SpecPlaceholderPipe implements PipeTransform {
       return '';
     }
 
-    const parts = [...specValueFactsOf(field), ...specDefaultFactsOf(field), ...specUnitFactsOf(field)].map((fact) =>
-      this.translate.instant(fact.key, fact.params),
-    );
+    // A fact's lead-in word is a separate key so the rendered surfaces can italicize it; plain text
+    // cannot, so here the two are simply joined back into the phrase they make.
+    const parts = [...specValueFactsOf(field), ...specDefaultFactsOf(field), ...specUnitFactsOf(field)].map((fact) => {
+      const value = this.translate.instant(fact.key, fact.params);
+      const keyword = specKeywordOf(fact);
+      return keyword === null ? value : `${this.translate.instant(keyword)} ${value}`;
+    });
 
     const options = specOptionsOf(field);
     if (options.length > 0) {

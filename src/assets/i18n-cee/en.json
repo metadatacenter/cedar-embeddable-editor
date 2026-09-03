@@ -16,7 +16,6 @@
     "SelectYear": "Select Year",
     "SelectYearAndMonth": "Select Year and Month",
     "SelectDate": "Select Date",
-    "NumberOnly": "Number Only",
     "CedarLogo": "Cedar Logo",
     "DecimalSeconds": "decimal seconds",
     "Filter": "Start typing to filter",
@@ -130,13 +129,13 @@
     "DoiReverted": "Invalid DOI, edit was discarded; restored last valid DOI."
   },
   "Spec": {
-    "MinLength": "min {{minLength}} chars",
-    "MaxLength": "max {{maxLength}} chars",
-    "Pattern": "pattern {{regex}}",
+    "MinLength": "{{minLength}} chars",
+    "MaxLength": "{{maxLength}} chars",
+    "Pattern": "{{regex}}",
     "NumberType": "{{numberType}}",
-    "UnitOfMeasure": "unit {{unitOfMeasure}}",
-    "MinValue": "min {{minValue}}",
-    "MaxValue": "max {{maxValue}}",
+    "UnitOfMeasure": "{{unitOfMeasure}}",
+    "MinValue": "{{minValue}}",
+    "MaxValue": "{{maxValue}}",
     "DecimalPlaces": "{{decimalPlace}} decimal places",
     "TemporalTimeFormat": "{{inputTimeFormat}} clock",
     "TemporalZoneRequired": "time zone required",
@@ -145,11 +144,9 @@
       "Min": "min",
       "Max": "max",
       "Unit": "unit",
-      "Values": "values"
-    },
-    "FactValue": {
-      "MinLength": "{{minLength}} chars",
-      "MaxLength": "{{maxLength}} chars"
+      "Values": "values",
+      "Pattern": "pattern",
+      "Default": "default"
     },
     "TermKind": {
       "branch": "branch",
@@ -169,7 +166,7 @@
     },
     "DecimalPlaceOne": "1 decimal place",
     "TermIn": "of the {{container}}",
-    "DefaultValue": "default {{defaultValue}}",
+    "DefaultValue": "{{defaultValue}}",
     "DefaultLabel": "default",
     "DefaultMark": "(default)"
   }

@@ -62,6 +62,35 @@ export type SpecFact = {
   readonly params: Readonly<Record<string, string | number>>;
 };
 
+/**
+ * The word a fact leads with, for the facts that lead with one.
+ *
+ * A specification reads `min 12 chars · pattern ^HBM… · default HBM386.ZGKG.235`, and those lead-in
+ * words are signposts rather than values — so they are set in italics, which means they have to be
+ * marked up rather than baked into the fact's own string. The split lives here, beside the facts, so
+ * the three surfaces that state a fact agree: the heading row, the box that replaces an empty
+ * control, and the placeholder inside a control that has one. It used to live in the box's template
+ * and covered four of the seven, so `pattern` and `default` read as values of themselves and the
+ * heading row italicized nothing at all.
+ *
+ * A fact with no entry is a phrase rather than a labelled value — `YYYY-MM-DD`, `time zone
+ * required`, `2 decimal places` — and has nothing to set apart.
+ */
+const SPEC_FACT_KEYWORD: Partial<Record<SpecFactKeyValue, string>> = {
+  [SpecFactKey.minLength]: 'Spec.Keyword.Min',
+  [SpecFactKey.maxLength]: 'Spec.Keyword.Max',
+  [SpecFactKey.minValue]: 'Spec.Keyword.Min',
+  [SpecFactKey.maxValue]: 'Spec.Keyword.Max',
+  [SpecFactKey.unitOfMeasure]: 'Spec.Keyword.Unit',
+  [SpecFactKey.pattern]: 'Spec.Keyword.Pattern',
+  [SpecFactKey.defaultValue]: 'Spec.Keyword.Default',
+};
+
+/** The translation key of a fact's lead-in word, or null where the fact leads with none. */
+export function specKeywordOf(fact: SpecFact): string | null {
+  return SPEC_FACT_KEYWORD[fact.key] ?? null;
+}
+
 /** One authority a controlled-term field draws its values from. */
 export type SpecTermSource = {
   /** `branch`, `ontology`, `valueSet`, `class` or `value`, which decides how narrow the authority is. */

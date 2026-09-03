@@ -16,7 +16,6 @@
     "SelectYear": "Év kiválasztása",
     "SelectYearAndMonth": "Év és hónap kiválasztása",
     "SelectDate": "Dátum kiválasztása",
-    "NumberOnly": "Csak szám",
     "CedarLogo": "CEDAR logó",
     "DecimalSeconds": "tizedmásodpercek",
     "Filter": "Kezdjen el írni a szűréshez",
@@ -130,13 +129,13 @@
     "DoiReverted": "Érvénytelen DOI, a módosítás elvetve; az utolsó érvényes DOI visszaállítva."
   },
   "Spec": {
-    "MinLength": "min. {{minLength}} karakter",
-    "MaxLength": "max. {{maxLength}} karakter",
-    "Pattern": "minta: {{regex}}",
+    "MinLength": "{{minLength}} karakter",
+    "MaxLength": "{{maxLength}} karakter",
+    "Pattern": "{{regex}}",
     "NumberType": "{{numberType}}",
-    "UnitOfMeasure": "egység: {{unitOfMeasure}}",
-    "MinValue": "min. {{minValue}}",
-    "MaxValue": "max. {{maxValue}}",
+    "UnitOfMeasure": "{{unitOfMeasure}}",
+    "MinValue": "{{minValue}}",
+    "MaxValue": "{{maxValue}}",
     "DecimalPlaces": "{{decimalPlace}} tizedesjegy",
     "TemporalTimeFormat": "{{inputTimeFormat}} órakijelzés",
     "TemporalZoneRequired": "időzóna szükséges",
@@ -145,11 +144,9 @@
       "Min": "min.",
       "Max": "max.",
       "Unit": "egység:",
-      "Values": "értékek"
-    },
-    "FactValue": {
-      "MinLength": "{{minLength}} karakter",
-      "MaxLength": "{{maxLength}} karakter"
+      "Values": "értékek",
+      "Pattern": "minta:",
+      "Default": "alapérték:"
     },
     "TermKind": {
       "branch": "ág",
@@ -169,7 +166,7 @@
     },
     "DecimalPlaceOne": "1 tizedesjegy",
     "TermIn": "ebből: {{container}}",
-    "DefaultValue": "alapérték: {{defaultValue}}",
+    "DefaultValue": "{{defaultValue}}",
     "DefaultLabel": "alapérték",
     "DefaultMark": "(alapérték)"
   }

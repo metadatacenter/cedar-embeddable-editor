@@ -55,6 +55,13 @@
   overflow-wrap: anywhere;
 }
 
+/* Lead-in words are signposts rather than values, set apart the way the box sets them apart. */
+.cee-field-spec-keyword {
+  font-style: italic;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.45);
+}
+
 /*
  * The lead-in word for a list — "Values", "Terms" — quiet enough not to read as a heading. It needs
  * its own left margin because it follows a fact rather than another value, so the dot separators

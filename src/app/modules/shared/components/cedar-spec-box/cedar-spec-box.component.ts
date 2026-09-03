@@ -7,6 +7,7 @@ import {
   specDefaultFactsOf,
   specDefaultTermOf,
   specOptionsOf,
+  specKeywordOf,
   specTermSourcesOf,
   specUnitFactsOf,
   specValueFactsOf,
@@ -43,6 +44,11 @@ export class CedarSpecBoxComponent {
       ...specDefaultFactsOf(this.fieldToDescribe),
       ...specUnitFactsOf(this.fieldToDescribe),
     ];
+  }
+
+  /** The lead-in word this fact is stated with, or null where it leads with none. */
+  keywordOf(fact: SpecFact): string | null {
+    return specKeywordOf(fact);
   }
 
   /** The option labels a closed list control would otherwise conceal. */

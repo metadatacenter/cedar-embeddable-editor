@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FieldComponent } from '../../models/component/field-component.model';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { bioPortalSourceLink } from '../../util/bioportal-term-link';
-import { SpecFact, SpecTermSource, specHeaderFactsOf, specTermSourcesOf } from '../../util/field-spec';
+import { SpecFact, SpecTermSource, specHeaderFactsOf, specKeywordOf, specTermSourcesOf } from '../../util/field-spec';
 
 /**
  * A field's specification, for a reader rather than for someone filling the form in.
@@ -85,6 +85,11 @@ export class CedarFieldSpecComponent implements OnInit {
    */
   get facts(): ReadonlyArray<SpecFact> {
     return specHeaderFactsOf(this.fieldToDescribe);
+  }
+
+  /** The lead-in word this fact is stated with, or null where it leads with none. */
+  keywordOf(fact: SpecFact): string | null {
+    return specKeywordOf(fact);
   }
 
   /**
