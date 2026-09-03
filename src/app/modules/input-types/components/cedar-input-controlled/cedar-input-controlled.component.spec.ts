@@ -150,3 +150,54 @@ describe('CedarInputControlledComponent model-to-view sync', () => {
     vi.useRealTimers();
   });
 });
+
+/**
+ * Which of the two empty results the panel is looking at.
+ *
+ * A lookup returning nothing used to render no row at all, so a constraint whose branch
+ * root its ontology had stopped serving looked identical to a term nobody has. The panel
+ * now says which, and `hasQuery` is what it decides on: text in the box means the query
+ * matched nothing, an empty box means the constraint offers nothing.
+ */
+describe('CedarInputControlledComponent empty-result wording', () => {
+  const built = (): CedarInputControlledComponent => {
+    const registry = {
+      registerComponent: vi.fn(),
+      unregisterComponent: vi.fn(),
+    } as unknown as ActiveComponentRegistryService;
+    const injector = Injector.create({
+      providers: [
+        { provide: UserPreferencesService, useValue: new UserPreferencesService() },
+        { provide: ChangeDetectorRef, useValue: { markForCheck: vi.fn() } },
+        { provide: ActiveComponentRegistryService, useValue: registry },
+      ],
+    });
+    return runInInjectionContext(
+      injector,
+      () =>
+        new CedarInputControlledComponent(
+          new FormBuilder(),
+          {} as ComponentDataService,
+          registry,
+          {} as ControlledFieldDataService,
+          {} as MessageHandlerService,
+        ),
+    );
+  };
+
+  it('reports no query for a field nobody has typed into', () => {
+    expect(built().hasQuery).toBe(false);
+  });
+
+  it('reports no query for whitespace, which matches nothing on purpose', () => {
+    const component = built();
+    component.inputValueControl.setValue('   ');
+    expect(component.hasQuery).toBe(false);
+  });
+
+  it('reports a query once there is text to search on', () => {
+    const component = built();
+    component.inputValueControl.setValue('Dataset');
+    expect(component.hasQuery).toBe(true);
+  });
+});

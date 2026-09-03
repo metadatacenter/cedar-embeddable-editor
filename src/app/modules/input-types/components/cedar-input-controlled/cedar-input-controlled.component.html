@@ -92,6 +92,12 @@ different destinations worth having.
         attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
       />
       <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
+        <!--
+          Resolved once. A second `| async` on this binding subscribes the pipeline
+          again, and each subscription carries its own `debounceTime` and `switchMap`,
+          so it would issue a second lookup per keystroke.
+        -->
+        @let terms = filteredOptions | async;
         @if (loading) {
           <mat-option disabled class="spinner-container">
             <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
@@ -102,7 +108,19 @@ different destinations worth having.
             {{ 'Error.LookupFailed' | translate }}
           </mat-option>
         }
-        @for (option of filteredOptions | async; track option) {
+        <!--
+          The third outcome, which the panel used to leave blank. A constraint resolving
+          to nothing drew no rows, no spinner and no notice, so it read exactly like a
+          term nobody has — the ambiguity `catchLookupFailure` removed for the failure
+          case, still here for this one. A branch whose root its ontology has stopped
+          serving reaches this, and said nothing at all.
+        -->
+        @if (!readOnlyMode && !loading && !lookupFailed && terms !== null && terms.length === 0) {
+          <mat-option disabled>
+            {{ (hasQuery ? 'Error.NoResults' : 'Error.NoTermsAvailable') | translate }}
+          </mat-option>
+        }
+        @for (option of terms; track option) {
           <!-- `mousedown` precedes the blur it causes: see `selectionStarting`. -->
           <mat-option
             [value]="option.label"

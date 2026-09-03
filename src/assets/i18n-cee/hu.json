@@ -54,7 +54,9 @@
   },
   "Error": {
     "ValueRequired": "A mező kitöltése kötelező",
-    "LookupFailed": "A keresés sikertelen: a szolgáltatás nem érhető el"
+    "LookupFailed": "A keresés sikertelen: a szolgáltatás nem érhető el",
+    "NoResults": "Nincs találat",
+    "NoTermsAvailable": "Nincs elérhető fogalom"
   },
   "Extra": {
     "SampleTemplate": {

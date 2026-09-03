@@ -54,7 +54,9 @@
   },
   "Error": {
     "ValueRequired": "The value is required",
-    "LookupFailed": "Search failed: the service could not be reached"
+    "LookupFailed": "Search failed: the service could not be reached",
+    "NoResults": "No results found",
+    "NoTermsAvailable": "No terms available"
   },
   "Extra": {
     "SampleTemplate": {

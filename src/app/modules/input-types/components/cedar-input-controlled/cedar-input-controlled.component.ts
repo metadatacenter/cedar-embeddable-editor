@@ -169,6 +169,19 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       .subscribe(() => (this.justReverted = false));
   }
 
+  /**
+   * Whether the box holds text to search on.
+   *
+   * The panel says something different for each of the two ways a lookup comes back
+   * empty. A query that matched nothing says something about the query. An empty result
+   * for the empty query the field opens with says something about the constraint, which
+   * offers no terms at all, and calling that "no results found" would make a claim about
+   * a query nobody typed.
+   */
+  get hasQuery(): boolean {
+    return (this.inputValueControl.value?.trim().length ?? 0) > 0;
+  }
+
   /** Bound to the option's `mousedown`, which precedes the blur it causes. */
   selectionStarting(): void {
     this.selectionInProgress = true;
