@@ -2,8 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, ViewEnca
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FieldComponent } from '../../models/component/field-component.model';
 import { UserPreferencesService } from '../../service/user-preferences.service';
-import { bioPortalSourceLink } from '../../util/bioportal-term-link';
-import { SpecFact, SpecTermSource, specHeaderFactsOf, specKeywordOf, specTermSourcesOf } from '../../util/field-spec';
+import { SpecFact, specHeaderFactsOf, specKeywordOf } from '../../util/field-spec';
 
 /**
  * A field's specification, for a reader rather than for someone filling the form in.
@@ -90,22 +89,6 @@ export class CedarFieldSpecComponent implements OnInit {
   /** The lead-in word this fact is stated with, or null where it leads with none. */
   keywordOf(fact: SpecFact): string | null {
     return specKeywordOf(fact);
-  }
-
-  /**
-   * The authorities a controlled field draws on, beside the name rather than in the box.
-   *
-   * They belong here because they are links: a reader asking what may go in the field wants to see
-   * the branch or the ontology, and placeholder text cannot be clicked. The value's own link-out
-   * inside the control answers a different question — what is this term? — and stays where it is.
-   */
-  get termSources(): ReadonlyArray<SpecTermSource> {
-    return specTermSourcesOf(this.fieldToDescribe);
-  }
-
-  /** Where the authority can be read about, or null when it names no acronym to address it by. */
-  linkFor(source: SpecTermSource): string | null {
-    return bioPortalSourceLink(source);
   }
 
   /** Whether this half has anything to state, which decides whether it appears at all. */
