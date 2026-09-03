@@ -33,6 +33,7 @@ import { ControlledFieldDataService } from '../../../shared/service/controlled-f
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { bioPortalSourceLink, bioPortalTermLink } from '../../../shared/util/bioportal-term-link';
 import { SpecTermSource, specTermSourcesOf } from '../../../shared/util/field-spec';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
@@ -147,13 +148,14 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    * The offered terms, narrowed to those whose label matches what was typed.
    *
    * The endpoint is inconsistent about honouring the query, so the widget
-   * narrows the results itself — the same rule the seven authority widgets
-   * apply. A term with no label is dropped rather than shown blank.
+   * narrows the results itself — through `narrowByQuery`, which is the rule the
+   * seven authority widgets apply. This claimed the same rule in a comment while
+   * asking whether the label contained the whole query as one substring, so a
+   * term named in another order or with a word between was thrown away *after*
+   * the server had found it, and the panel then said "No results found".
    */
   filter(val: string): Observable<AuthorityTerm[]> {
-    return this.controlledFieldDataService
-      .getData(val, this.component)
-      .pipe(map((terms) => terms.filter((term) => term.label.toLowerCase().includes(val.toLowerCase()))));
+    return this.controlledFieldDataService.getData(val, this.component).pipe(map((terms) => narrowByQuery(terms, val)));
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {

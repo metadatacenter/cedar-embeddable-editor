@@ -201,3 +201,76 @@ describe('CedarInputControlledComponent empty-result wording', () => {
     expect(component.hasQuery).toBe(true);
   });
 });
+
+/**
+ * Which of the terminology server's answers the panel keeps.
+ *
+ * The endpoint is inconsistent about honouring the query, so the widget narrows
+ * the results itself. Narrowing throws away real hits when it asks the wrong
+ * question, and the field then says "No results found" — which is true of the
+ * list and false of the search.
+ */
+describe('CedarInputControlledComponent result narrowing', () => {
+  const componentWithTerms = (terms: AuthorityTerm[]): CedarInputControlledComponent => {
+    const registry = {
+      registerComponent: vi.fn(),
+      unregisterComponent: vi.fn(),
+    } as unknown as ActiveComponentRegistryService;
+    const injector = Injector.create({
+      providers: [
+        { provide: UserPreferencesService, useValue: new UserPreferencesService() },
+        { provide: ChangeDetectorRef, useValue: { markForCheck: vi.fn() } },
+        { provide: ActiveComponentRegistryService, useValue: registry },
+      ],
+    });
+    return runInInjectionContext(
+      injector,
+      () =>
+        new CedarInputControlledComponent(
+          new FormBuilder(),
+          {} as ComponentDataService,
+          registry,
+          { getData: () => of(terms) } as unknown as ControlledFieldDataService,
+          {} as MessageHandlerService,
+        ),
+    );
+  };
+
+  const labelsFor = (terms: AuthorityTerm[], query: string): string[] => {
+    let kept: string[] = [];
+    componentWithTerms(terms)
+      .filter(query)
+      .subscribe((result) => (kept = result.map((term) => term.label)));
+    return kept;
+  };
+
+  it('keeps a term whose words the query names in another order', () => {
+    // The seven external authority fields match every word in any order, for
+    // exactly this reason. This one asked whether the label contained the whole
+    // query as one substring, and said so in a comment claiming the same rule.
+    const terms = [{ iri: 'https://example.org/1', label: 'cell death, programmed' }];
+
+    expect(labelsFor(terms, 'programmed cell death')).toEqual(['cell death, programmed']);
+  });
+
+  it('keeps a term the query names with a word between', () => {
+    const terms = [{ iri: 'https://example.org/2', label: 'Mark A. Musen' }];
+
+    expect(labelsFor(terms, 'Mark Musen')).toEqual(['Mark A. Musen']);
+  });
+
+  it('drops a term the query does not name', () => {
+    const terms = [{ iri: 'https://example.org/3', label: 'cell death' }];
+
+    expect(labelsFor(terms, 'apoptosis')).toEqual([]);
+  });
+
+  it('keeps everything for an empty query, which is how the panel opens', () => {
+    const terms = [
+      { iri: 'https://example.org/4', label: 'one' },
+      { iri: 'https://example.org/5', label: 'two' },
+    ];
+
+    expect(labelsFor(terms, '')).toEqual(['one', 'two']);
+  });
+});
