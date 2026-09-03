@@ -2,7 +2,7 @@ import { DestroyRef } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { TranslateService } from '@ngx-translate/core';
 import { InstanceDataContainer, TemplateInstance } from 'cedar-model-typescript-library';
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
 import { InputType } from '../../models/input-type.model';
