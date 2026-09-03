@@ -243,12 +243,12 @@ null` for a literal and `{}` for an IRI — and the compact serialization, the o
   value to show.
 
 - `Compact YAML - Instance` in the download menu writes the model library's
-  compact instance form to `<name>-instance-compact.yaml`, omitting root identity
-  and provenance metadata while retaining the instance data.
+  compact instance form to `<name>-instance-compact.yaml`, retaining root identity
+  and instance data while omitting provenance metadata.
 
 - `Compact YAML - Template` in the download menu writes the model library's
-  compact template form to `<name>-template-compact.yaml`, alongside the full
-  YAML document rather than replacing it.
+  identified compact template form to `<name>-template-compact.yaml`, alongside
+  the full YAML document rather than replacing it.
 
 - `CeeValidationProblem` declares `field` and `inputType`. Every problem has carried both and the
   validation guide documents both, so the one kind of consumer the declarations exist for was the

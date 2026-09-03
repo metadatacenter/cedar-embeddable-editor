@@ -2582,7 +2582,7 @@ test.describe('what a host page reads back', () => {
     expect(body, 'a YAML download must not be a JSON object').not.toMatch(/^\s*\{/);
   });
 
-  test('compact instance YAML downloads without root identity or provenance', async ({ page }) => {
+  test('compact instance YAML downloads with root identity but without provenance', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance', undefined, '&f=showDownloadMenu');
 
     const { filename, body } = await takeDownload(page, 'instanceYamlCompact');
@@ -2590,11 +2590,13 @@ test.describe('what a host page reads back', () => {
     expect(filename).toBe('ChoiceDefault-instance-compact.yaml');
     expect(body).toContain('Private');
     expect(body).toContain('isBasedOn:');
-    expect(body).not.toContain('id: "https://example.org/instances/choice-default-1"');
+    expect(body).toContain('id: "https://example.org/instances/choice-default-1"');
     expect(body).not.toContain('createdOn:');
   });
 
-  test('compact template YAML downloads under its own name without repository metadata', async ({ page }) => {
+  test('compact template YAML downloads under its own name with identity but without repository metadata', async ({
+    page,
+  }) => {
     await open(page, '10-attribute-values', undefined, undefined, undefined, '&f=showDownloadMenu');
 
     const { filename, body } = await takeDownload(page, 'templateYamlCompact');
@@ -2603,7 +2605,7 @@ test.describe('what a host page reads back', () => {
     expect(body).toContain('type: template');
     expect(body).toContain('children:');
     expect(body).not.toContain('modelVersion:');
-    expect(body).not.toMatch(/(?:^|\n)\s*id:/);
+    expect(body).toMatch(/(?:^|\n)\s*id:/);
   });
 
   test('dataQualityReport follows an invalid value and its correction', async ({ page }) => {
