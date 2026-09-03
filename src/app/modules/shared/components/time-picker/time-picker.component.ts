@@ -216,9 +216,20 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit {
     this.emit();
   }
 
+  /**
+   * Which half of the day the face is showing.
+   *
+   * Reported only when there is a time for it to be about. A meridian expresses
+   * something *about* a time and is not one, so toggling it on an empty clock
+   * used to build an instant out of `new Date()` and report it — a field nobody
+   * had entered a time into recorded midnight. The choice is still remembered,
+   * so the first hour typed afterwards lands in the half the user picked.
+   */
   meridianChanged(meridian: Meridian): void {
     this.meridian = meridian;
-    this.emit();
+    if (this.hasValue) {
+      this.emit();
+    }
   }
 
   /** Step a focused clock segment from its ArrowUp or ArrowDown key. */
