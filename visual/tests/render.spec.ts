@@ -976,6 +976,52 @@ test('radio selection uses primary color and keeps Clear on the selected row', a
   expect(geometry.selectedColor).toBe('#00897b');
 });
 
+/**
+ * A required checkbox group states that it needs an answer.
+ *
+ * The widget decides this — `atLeastOneChecked` on its group — and for as long as
+ * the template carried no `mat-error` the verdict was reached and shown to
+ * nobody, which every stage but this one reports as working. Not one checkbox
+ * field in any other fixture is required, so no baseline could have caught it.
+ */
+test('a required checkbox group says so until an option is ticked', async ({ page }) => {
+  await open(page, '25-required-choices');
+
+  const group = page.locator('app-cedar-input-checkbox').first();
+  const notice = group.locator('mat-error');
+  await expect(notice).toBeVisible();
+  await expect(notice).toHaveText(/at least one/i);
+
+  await group.getByRole('checkbox', { name: 'Agree' }).click();
+  await expect(notice).toHaveCount(0);
+
+  await group.getByRole('checkbox', { name: 'Agree' }).click();
+  await expect(group.locator('mat-error')).toBeVisible();
+});
+
+test('an optional checkbox group says nothing', async ({ page }) => {
+  await open(page, '02-choices');
+
+  await expect(page.locator('app-cedar-input-checkbox').first().locator('mat-error')).toHaveCount(0);
+});
+
+/**
+ * Read-only, a multiple-choice field reads as a list.
+ *
+ * Its chosen labels went into a text input through the form control, and the DOM
+ * coerced the array on the way into `value`: `North,South`, with no space and
+ * nothing to say it is more than one value. The only other read-only choice
+ * baseline opens a template with no instance behind it, where the field holds
+ * nothing at all, so the coercion appeared in no screenshot.
+ */
+test('a read-only multiple-choice field reads its values as a list', async ({ page }) => {
+  await open(page, '25-required-choices', 'readonly', '25-required-choices-instance');
+
+  const shown = page.locator('app-cedar-input-select input');
+  await expect(shown).toHaveValue('North, South');
+  await expect(page.locator('app-cedar-input-select')).toHaveScreenshot('widget-select-multi-readonly.png');
+});
+
 test('a populated multi-select uses the focus color rather than the error color', async ({ page }) => {
   await open(page, '02-choices');
 
@@ -1247,6 +1293,9 @@ const WIDGETS = [
   { name: 'input-link', selector: 'app-cedar-input-link', fixture: '01-input-types', nth: 0 },
   { name: 'input-datetime', selector: 'app-cedar-input-datetime', fixture: '01-input-types', nth: 0 },
   { name: 'input-checkbox', selector: 'app-cedar-input-checkbox', fixture: '02-choices', nth: 0 },
+  // The same widget with an answer required of it, which is the only state that
+  // draws its notice. Every other checkbox fixture leaves the field optional.
+  { name: 'input-checkbox-required', selector: 'app-cedar-input-checkbox', fixture: '25-required-choices', nth: 0 },
   { name: 'input-multiple-choice', selector: 'app-cedar-input-multiple-choice', fixture: '02-choices', nth: 0 },
   { name: 'input-select', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 0 },
   { name: 'input-select-multi', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 1 },

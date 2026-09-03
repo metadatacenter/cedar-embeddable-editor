@@ -1105,3 +1105,48 @@ const writeRaw = (name, document) => {
     }),
   );
 }
+
+// 25. A required checkbox group, and a multiple-choice list holding more than one value.
+//
+//     Two states the suite could not see. A required checkbox group decides whether it has been
+//     answered and had nowhere to say so: no `mat-error`, and no `mat-form-field` to put one in, so
+//     the verdict was reached and shown to nobody. Not one of the seven checkbox fields across the
+//     other fixtures is required, so no baseline could have caught that.
+//
+//     The list is the same gap from the other side. Read-only, a multiple-choice field's chosen
+//     labels went into a text input through the form control and the DOM coerced the array — `A,B`,
+//     no space, nothing saying it is more than one value. The only read-only choice baseline opens a
+//     template with no instance behind it, where the field holds nothing, so the coercion rendered in
+//     no screenshot.
+//
+//     Its own fixture rather than a field added to `02-choices`: that one is read by five test files,
+//     three of which index its widgets by position, and a required field there would also make every
+//     instance built from it invalid.
+{
+  const consent = field('consent', () => CedarBuilders.checkboxFieldBuilder(), (b) =>
+    b.addCheckboxOption('Agree', false).addCheckboxOption('Decline', false),
+  );
+  const regions = field('regions', () => CedarBuilders.multipleChoiceListFieldBuilder(), (b) =>
+    b.addListOption('North', false).addListOption('South', false),
+  );
+
+  let tb = common(CedarBuilders.templateBuilder(), 'RequiredChoices', 'templates').withSchemaDescription(
+    'A required checkbox group and a multiple-choice list',
+  );
+  tb = tb.addChild(consent, deploy(consent, 'consent', { required: true }));
+  tb = tb.addChild(regions, deploy(regions, 'regions'));
+  write('25-required-choices', tb.build());
+
+  writeRaw(
+    '25-required-choices-instance',
+    instance('RequiredChoices', {
+      id: 'https://example.org/instances/required-choices-1',
+      name: 'Required choices instance',
+      description: 'The consent answered and two regions chosen, so read-only has values to state',
+      values: {
+        _consent: [literal('Agree')],
+        _regions: [literal('North'), literal('South')],
+      },
+    }),
+  );
+}
