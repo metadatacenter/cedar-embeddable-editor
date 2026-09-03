@@ -367,18 +367,32 @@ describe('checkbox groups', () => {
    * it cannot express "at least one ticked". That is why the checkbox widget
    * carried no validator at all and a required checkbox field never showed as
    * unsatisfied, even though the report counted it.
+   *
+   * The group is asked through the control that records the selection, and this
+   * stub answers as that control does. It used to hand the validator
+   * `{ Alpha: false, Beta: true }` — a shape the widget does not produce and
+   * never has. The widget writes the string `checked` or null per option, so the
+   * validator's `=== true` test could not hold on a real form, and these three
+   * checks passed for years over a required field that could never be satisfied.
+   *
+   * A stub is still the right tool for the rule itself. What it has to be a stub
+   * *of* is the thing the widget builds, which is why
+   * `cedar-input-checkbox.component.spec.ts` drives the whole path with clicks.
    */
-  const validate = (value: unknown) => CedarValidators.atLeastOneChecked()({ value } as any);
+  const selecting = (selection: string[]) =>
+    CedarValidators.atLeastOneChecked('checkedChoices')({
+      get: (name: string) => (name === 'checkedChoices' ? { value: selection } : null),
+    } as any);
 
   it('rejects a group with nothing ticked', () => {
-    expect(validate({ Alpha: false, Beta: false })).not.toBeNull();
+    expect(selecting([])).not.toBeNull();
   });
 
   it('accepts a group with one ticked', () => {
-    expect(validate({ Alpha: false, Beta: true })).toBeNull();
+    expect(selecting(['Beta'])).toBeNull();
   });
 
-  it('rejects an empty group', () => {
-    expect(validate({})).not.toBeNull();
+  it('rejects a group whose selection control is missing', () => {
+    expect(CedarValidators.atLeastOneChecked('checkedChoices')({ get: () => null } as any)).not.toBeNull();
   });
 });
