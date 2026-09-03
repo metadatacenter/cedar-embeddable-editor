@@ -28,7 +28,7 @@ export class AppDevComponent implements OnInit {
     defaultLanguage: 'en',
     fallbackLanguage: 'en',
 
-    readOnlyMode: true,
+    readOnlyMode: false,
 
     bridgeBaseUrl: 'https://bridge.metadatacenter.orgx/',
   };
