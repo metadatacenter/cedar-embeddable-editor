@@ -117,8 +117,9 @@ export class CedarValidators {
    * indented under the error above it and ended `...(-32768 to 32767)..`; a float with
    * no declared decimal place ended `a float,.`, the comma left waiting for a clause
    * that was never appended.
+   *
+   * Null for a field whose XSD type carries no hint worth showing.
    */
-  /** Null for a field whose XSD type carries no hint worth showing. */
   static describeNumberType(component: FieldComponent): string | null {
     const numberType = component.numberInfo?.numberType;
     const decimalPlace = component.numberInfo?.decimalPlace ?? null;

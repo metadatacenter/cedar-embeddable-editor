@@ -66,15 +66,6 @@ export class CedarFieldSpecComponent implements OnInit {
   }
 
   /**
-   * Beside the name: only what the field's own control cannot state.
-   *
-   * Most widgets have a placeholder, and `ceeSpecPlaceholder` puts the value specification there —
-   * the shape of a value, the permitted values, the authority. The exceptions
-   * have no such slot: a radio or checkbox group is a set of options rather than a box, a temporal
-   * row is three boxes with their own notation, and an attribute-value pair is two boxes whose
-   * placeholders name the pair. Those keep their facts here.
-   */
-  /**
    * What the field's own control cannot state.
    *
    * Almost nothing, by design: a widget's placeholder carries the whole specification, the declared

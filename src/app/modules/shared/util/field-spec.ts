@@ -245,10 +245,6 @@ export function specHeaderFactsOf(field: FieldComponent): ReadonlyArray<SpecFact
 }
 
 /**
- * What an acceptable value looks like. Stated inside the control, where the value itself would be:
- * an empty box in read-only says nothing, and this is the one thing that belongs in that space.
- */
-/**
  * The value the template supplies when nobody chooses one, whatever shape it takes.
  *
  * Every kind is covered because every kind shows it the same way: the widget puts it in the control.
@@ -276,6 +272,10 @@ export function specDefaultFactsOf(field: FieldComponent): SpecFact[] {
   return chosen === undefined ? [] : [fact(SpecFactKey.defaultValue, { defaultValue: chosen.label })];
 }
 
+/**
+ * What an acceptable value looks like. Stated inside the control, where the value itself would be:
+ * an empty box in read-only says nothing, and this is the one thing that belongs in that space.
+ */
 export function specValueFactsOf(field: FieldComponent): SpecFact[] {
   const inputType = field.basicInfo.inputType;
   const facts: SpecFact[] = [];
