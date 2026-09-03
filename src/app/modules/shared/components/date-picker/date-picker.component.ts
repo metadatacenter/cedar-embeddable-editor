@@ -86,15 +86,28 @@ export class DatePickerComponent implements OnInit {
     }
   }
 
+  /**
+   * The year the calendar was given, kept and recorded.
+   *
+   * Both, and it used to be only the first for a year-and-month field: the
+   * control was set and nothing was emitted, so the box read the new year while
+   * the instance kept the old one. Material leaves the calendar open on the
+   * month view after a year, and closing it there — a click outside — left the
+   * two disagreeing with nothing on screen to say so.
+   *
+   * A field holding nothing pads to January. The month used to come off `new
+   * Date()`, so picking a year in an empty field recorded whichever month the
+   * form happened to be opened in — a value nobody chose, and a different one
+   * next month.
+   */
   chosenYearHandler(normalizedYear: Date, datepicker: MatDatepicker<Date>): void {
-    const current = this.dateMonthYear.value ?? new Date();
-    const month = this.dateFormat === this.yearFormat ? 0 : current.getMonth();
+    const month = this.dateFormat === this.yearFormat ? 0 : this.dateMonthYear.value?.getMonth() ?? 0;
     const next = DatePickerComponent.localDate(normalizedYear.getFullYear(), month, 1);
     this.dateMonthYear.setValue(next);
     if (this.dateFormat === this.yearFormat) {
       datepicker.close();
-      this.dateChangedEvent.emit(next);
     }
+    this.dateChangedEvent.emit(next);
   }
 
   chosenMonthHandler(normalizedMonth: Date, datepicker: MatDatepicker<Date>): void {
