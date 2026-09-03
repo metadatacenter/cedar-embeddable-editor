@@ -68,6 +68,14 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
    */
   userEdited = false;
 
+  /**
+   * A stored value this widget could not read, or null.
+   *
+   * Kept so the empty pickers can be explained. It is cleared by the next value
+   * that parses, including the one an edit produces.
+   */
+  unreadableValue: string | null = null;
+
   @HostListener('input')
   @HostListener('change')
   onUserEdit(): void {
@@ -239,8 +247,23 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     return CedarValidators.firstMessage(this.valueControl) ?? 'The value is required.';
   }
 
+  /**
+   * Whether to state what is wrong with the value.
+   *
+   * Two ways to earn it. An edit the user made, which is what `userEdited` is
+   * for — an error on a form nobody has touched says nothing useful. And a
+   * stored value the widget could not read, where the pickers are necessarily
+   * empty and staying quiet would leave a blank field over an instance holding
+   * something, with nothing on screen connecting the two.
+   */
+  get showsValidationMessage(): boolean {
+    return !this.readOnlyMode && (this.unreadableValue !== null || (this.valueControl.invalid && this.userEdited));
+  }
+
   private writeValue(): void {
     const stored = this.datetimeParsed.toStorageRepresentation(this.temporalConfiguration());
+    // An edit replaces whatever could not be read, so the notice about it goes.
+    this.unreadableValue = null;
     this.revalidate(stored);
     this.handlerContext.changeValue(this.component, stored);
   }
@@ -257,58 +280,72 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     const configuration = this.temporalConfiguration();
     const stored = typeof currentValue === 'string' ? currentValue : null;
     this.revalidate(stored);
-    if (stored === null) {
-      this.datetimeParsed = new DatetimeRepresentation();
-      this.dateMonthYearControl.reset(null, { emitEvent: false });
-      this.timePickerTime = null;
-      this.decimalSeconds = null;
-      this.timezone = null;
+    const parsed = stored === null ? null : CedarTemporalValue.parse(stored, configuration);
+
+    /*
+     * Nothing to show, whether the field holds nothing or holds something this
+     * widget cannot read — a bare `2021-06-06` in an `xsd:dateTime` field, which
+     * a hand-written or migrated instance readily carries.
+     *
+     * The unreadable case used to return here without touching a single picker,
+     * and the same widget is reused as a repeating field pages between
+     * occurrences. So occurrence one's instant stayed on screen over occurrence
+     * two, and the next edit of any part serialized those stale parts back and
+     * overwrote occurrence two with occurrence one's value.
+     */
+    this.unreadableValue = parsed === null && stored !== null ? stored : null;
+    if (parsed === null) {
+      this.clearDisplayedParts();
       return;
     }
-    if (stored) {
-      const parsed = CedarTemporalValue.parse(stored, configuration);
-      if (parsed === null) {
-        return;
-      }
-      this.datetimeParsed = DatetimeRepresentation.fromTemporalParts(parsed);
-      const normalized = this.datetimeParsed.toStorageRepresentation(configuration);
 
-      if (this.datetimeParsed.dateIsSet) {
-        const date = new Date(0);
-        date.setHours(0, 0, 0, 0);
-        date.setFullYear(+this.datetimeParsed.year, +this.datetimeParsed.month - 1, +this.datetimeParsed.day);
-        this.dateMonthYearControl.setValue(date, { emitEvent: false });
-      }
+    this.datetimeParsed = DatetimeRepresentation.fromTemporalParts(parsed);
+    const normalized = this.datetimeParsed.toStorageRepresentation(configuration);
 
-      if (this.datetimeParsed.timeIsSet) {
-        // reset timepicker UI
-        this.timePickerTime = new Date();
-        this.timePickerTime.setHours(
-          +this.datetimeParsed.hours,
-          +this.datetimeParsed.minutes,
-          +this.datetimeParsed.seconds,
-        );
-
-        // reset decimal seconds
-        if (this.datetimeParsed.decimalSeconds.length > 0) {
-          this.decimalSeconds = this.datetimeParsed.decimalSeconds;
-        } else {
-          this.decimalSeconds = null;
-        }
-      }
-      if (this.datetimeParsed.timezoneIsSet) {
-        this.timezone = {
-          id: this.datetimeParsed.timezoneOffset,
-          label: this.datetimeParsed.timezoneName,
-        };
-      } else {
-        this.timezone = null;
-      }
-      if (normalized !== null && normalized !== stored) {
-        this.revalidate(normalized);
-        this.handlerContext.changeValue(this.component, normalized);
-      }
+    // Each part is shown when the value carries it and cleared when it does not.
+    // Only the zone was cleared before, which is what marked the other two as an
+    // omission rather than a decision.
+    if (this.datetimeParsed.dateIsSet) {
+      const date = new Date(0);
+      date.setHours(0, 0, 0, 0);
+      date.setFullYear(+this.datetimeParsed.year, +this.datetimeParsed.month - 1, +this.datetimeParsed.day);
+      this.dateMonthYearControl.setValue(date, { emitEvent: false });
+    } else {
+      this.dateMonthYearControl.reset(null, { emitEvent: false });
     }
+
+    if (this.datetimeParsed.timeIsSet) {
+      // reset timepicker UI
+      this.timePickerTime = new Date();
+      this.timePickerTime.setHours(
+        +this.datetimeParsed.hours,
+        +this.datetimeParsed.minutes,
+        +this.datetimeParsed.seconds,
+      );
+
+      // reset decimal seconds
+      this.decimalSeconds = this.datetimeParsed.decimalSeconds.length > 0 ? this.datetimeParsed.decimalSeconds : null;
+    } else {
+      this.timePickerTime = null;
+      this.decimalSeconds = null;
+    }
+
+    this.timezone = this.datetimeParsed.timezoneIsSet
+      ? { id: this.datetimeParsed.timezoneOffset, label: this.datetimeParsed.timezoneName }
+      : null;
+
+    if (normalized !== null && normalized !== stored) {
+      this.revalidate(normalized);
+      this.handlerContext.changeValue(this.component, normalized);
+    }
+  }
+
+  private clearDisplayedParts(): void {
+    this.datetimeParsed = new DatetimeRepresentation();
+    this.dateMonthYearControl.reset(null, { emitEvent: false });
+    this.timePickerTime = null;
+    this.decimalSeconds = null;
+    this.timezone = null;
   }
 }
 
