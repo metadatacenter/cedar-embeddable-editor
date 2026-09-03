@@ -15,4 +15,14 @@
       </mat-checkbox>
     </div>
   }
+  <!--
+    Outside a `mat-form-field`, because a group of options is not one control with
+    a box around it. The datetime widget states its own errors the same way, for
+    the same reason.
+  -->
+  @if (showsRequiredError) {
+    <mat-error class="mat-error align-start cee-checkbox-error">{{
+      'Validation.SelectAtLeastOne' | translate
+    }}</mat-error>
+  }
 </form>

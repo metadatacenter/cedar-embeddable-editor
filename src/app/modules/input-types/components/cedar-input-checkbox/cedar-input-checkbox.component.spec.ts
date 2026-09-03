@@ -24,7 +24,12 @@ describe('CedarInputCheckboxComponent', () => {
     written: (string[] | null)[];
   }
 
-  const makeComponent = (labels: string[], defaults: string[] = [], stored: string[] | null = null): Harness => {
+  const makeComponent = (
+    labels: string[],
+    defaults: string[] = [],
+    stored: string[] | null = null,
+    requiredValue = false,
+  ): Harness => {
     const registry = {
       registerComponent: vi.fn(),
       unregisterComponent: vi.fn(),
@@ -43,7 +48,7 @@ describe('CedarInputCheckboxComponent', () => {
     component.component = {
       path: ['field'],
       choiceInfo: { multipleChoice: true, choices: labels.map((l) => new ChoiceOption(l, defaults.includes(l))) },
-      valueInfo: { requiredValue: false },
+      valueInfo: { requiredValue },
     } as unknown as FieldComponent;
 
     const written: (string[] | null)[] = [];
@@ -135,6 +140,37 @@ describe('CedarInputCheckboxComponent', () => {
     click(harness, 'B', true);
 
     expect(harness.written).toEqual([['B']]);
+  });
+
+  it('reports a required group as unsatisfied only while nothing is ticked', () => {
+    // The validator asked whether any control held `true`. Nothing ever puts a
+    // `true` there: a sync writes `checked`, and Material's own `true` arrives
+    // during the click, before the `input` handler overwrites it. So a required
+    // group stayed unsatisfied however many boxes were ticked.
+    const harness = makeComponent(['A', 'B'], [], null, true);
+    harness.component.ngOnInit();
+
+    expect(harness.component.showsRequiredError).toBe(true);
+
+    click(harness, 'A', true);
+    expect(harness.component.showsRequiredError).toBe(false);
+
+    click(harness, 'A', false);
+    expect(harness.component.showsRequiredError).toBe(true);
+  });
+
+  it('reports a required group satisfied by a value the instance already held', () => {
+    const harness = makeComponent(['A', 'B'], [], ['B'], true);
+    harness.component.ngOnInit();
+
+    expect(harness.component.showsRequiredError).toBe(false);
+  });
+
+  it('states nothing about a group the template does not require', () => {
+    const harness = makeComponent(['A', 'B']);
+    harness.component.ngOnInit();
+
+    expect(harness.component.showsRequiredError).toBe(false);
   });
 
   it('writes nothing to the model when the model pushes a value into the view', () => {

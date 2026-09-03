@@ -84,6 +84,7 @@
     }
   },
   "Validation": {
+    "SelectAtLeastOne": "Legalább egy lehetőséget ki kell választani.",
     "Required": "Az érték megadása kötelező.",
     "Text": {
       "MinLength": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",

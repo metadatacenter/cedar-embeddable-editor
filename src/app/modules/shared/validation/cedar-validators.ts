@@ -96,11 +96,19 @@ export class CedarValidators {
    * `Validators.required` on a FormGroup passes as soon as the group exists, so
    * it cannot express this — which is why the checkbox widget had no validator
    * and a required checkbox field never showed as unsatisfied.
+   *
+   * `listControlName` names the control holding the selection, and the check has
+   * to go through it. It used to ask whether any of the group's values was
+   * `true`, and nothing ever puts a `true` there: the widget writes the string
+   * `checked`, and Material's own `true` arrives during the click, before the
+   * `input` handler overwrites it. So the group stayed unsatisfied however many
+   * boxes were ticked. Testing the values for truthiness instead would not have
+   * helped, since one of them is the selection list itself and `[]` is truthy.
    */
-  static atLeastOneChecked(): ValidatorFn {
+  static atLeastOneChecked(listControlName: string): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const value = control.value ?? {};
-      const anyChecked = Object.values(value).some((v) => v === true);
+      const selected = control.get(listControlName)?.value;
+      const anyChecked = Array.isArray(selected) && selected.length > 0;
       return anyChecked ? null : { required: { message: 'Select at least one option.', value: null } };
     };
   }

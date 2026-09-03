@@ -84,6 +84,7 @@
     }
   },
   "Validation": {
+    "SelectAtLeastOne": "Select at least one option.",
     "Required": "The value is required.",
     "Text": {
       "MinLength": "Value should be at least {{constraintMinLength}} chars long.",

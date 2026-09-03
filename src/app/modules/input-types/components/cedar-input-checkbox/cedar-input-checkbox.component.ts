@@ -17,6 +17,9 @@ import { InstanceValueNode } from '../../../shared/util/instance-value-node';
   standalone: false,
 })
 export class CedarInputCheckboxComponent extends CedarUIDirective implements OnInit {
+  /** The control holding the selection, named once because the validator asks for it too. */
+  private static readonly SELECTION = 'checkedChoices';
+
   component!: FieldComponent;
   options: FormGroup;
   @Input({ required: true }) handlerContext!: HandlerContext;
@@ -28,8 +31,21 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     super();
     this.options = fb.group({
       // initialize checked box value holder
-      checkedChoices: new FormArray([]),
+      [CedarInputCheckboxComponent.SELECTION]: new FormArray([]),
     });
+  }
+
+  /**
+   * Whether to say the group needs an answer.
+   *
+   * A group has no `mat-form-field` to hang a `mat-error` inside, so the widget
+   * asks the question and the template renders the notice. Without it the
+   * validator installed below decided a required field's fate and told nobody:
+   * the markup to show the verdict did not exist, which is the same silence the
+   * validator was added to end.
+   */
+  get showsRequiredError(): boolean {
+    return !this.readOnlyMode && this.options.hasError('required');
   }
 
   override ngOnInit(): void {
@@ -41,7 +57,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
       // The checkbox group installed no validators at all, so a required
       // checkbox field could never report itself unsatisfied — the data quality
       // report caught it while the widget stayed silent.
-      this.options.setValidators(CedarValidators.atLeastOneChecked());
+      this.options.setValidators(CedarValidators.atLeastOneChecked(CedarInputCheckboxComponent.SELECTION));
       this.options.updateValueAndValidity({ emitEvent: false });
     }
     this.populateValuesOnLoad();
@@ -142,7 +158,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
 
   /** Tick or untick one option. View only. */
   private showInView(isChecked: boolean, val: string): void {
-    const formArray: FormArray = requireFormArray(this.options, 'checkedChoices');
+    const formArray: FormArray = requireFormArray(this.options, CedarInputCheckboxComponent.SELECTION);
     const control = this.controlForLabel(val);
 
     /* Selected */
@@ -174,7 +190,9 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
    * they were.
    */
   private publishSelection(): void {
-    const checked = new Set<string>(requireFormArray(this.options, 'checkedChoices').value as string[]);
+    const checked = new Set<string>(
+      requireFormArray(this.options, CedarInputCheckboxComponent.SELECTION).value as string[],
+    );
     const declared = this.component.choiceInfo.choices.map((choice) => choice.label);
     this.handlerContext.changeListValue(
       this.component,
