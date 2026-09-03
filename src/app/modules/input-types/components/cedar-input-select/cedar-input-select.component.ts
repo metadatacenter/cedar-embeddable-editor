@@ -134,15 +134,32 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     }
   }
 
+  /**
+   * What a read-only field shows.
+   *
+   * A multiple-choice field holds a list, and the read-only input used to be
+   * bound to the control itself — so the DOM coerced the array on its way into
+   * the input's `value` and rendered `A,B`: no space, and nothing to say it is
+   * more than one value. Joined here instead, so what is shown is a decision
+   * rather than a coercion. A label containing a comma still reads ambiguously;
+   * a text input cannot express a list, and that is as far as one goes.
+   */
+  get readOnlyValue(): string {
+    const value = this.inputValueControl.value;
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    return value ?? '';
+  }
+
   clearValue($event: Event): void {
     $event.stopPropagation();
     this.inputValueControl.setValue(null);
-    const multi = this.component.choiceInfo.multipleChoice;
-    if (multi) {
-      this.changeValue(null);
-    } else {
-      this.changeValue(null);
-    }
+    // The record of what is selected, and it survived the clear: the bound guard
+    // below restores `selections` when a pick goes over `maxItems`, so a rejected
+    // pick put back a selection the user had cleared.
+    this.selections = [];
+    this.changeValue(null);
   }
 
   /*
