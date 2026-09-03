@@ -207,13 +207,16 @@ export class ActiveComponentRegistryService {
                   ActiveComponentRegistryService.iriValueForWidget(pageNode, component, handlerContext.readOnlyMode),
                 );
               }
-            } else if (isInstanceObject(pageNode) && Object.keys(pageNode).length === 0) {
-              // A page with nothing on it at all. The controlled-term widget is
-              // still told, so it clears rather than keeping the previous
-              // page's term on screen.
-              if (uiComponent) {
-                uiComponent.setCurrentValue(undefined);
-              }
+              /*
+               * A page holding nothing falls through to the clear below, which is
+               * where it always went. There was a branch here for it, testing
+               * `Object.keys(pageNode).length === 0` — and a node is one of the
+               * model library's classes, whose own enumerable properties are never
+               * none, while an unfilled IRI-valued slot is an atom rather than a
+               * container. So the test could not hold either way, and the widget
+               * was cleared with `undefined` instead of `null` by a line that
+               * never ran.
+               */
             } else if (uiComponent) {
               uiComponent.setCurrentValue(null);
             }
