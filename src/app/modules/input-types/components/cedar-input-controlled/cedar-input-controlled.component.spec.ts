@@ -380,6 +380,13 @@ describe('CedarInputControlledComponent', () => {
   });
 
   describe('leaving the field', () => {
+    const withTrigger = (component: CedarInputControlledComponent): Subject<unknown> => {
+      const closing = new Subject<unknown>();
+      component.trigger = { panelClosingActions: closing } as unknown as MatAutocompleteTrigger;
+      component.ngAfterViewInit();
+      return closing;
+    };
+
     it('discards text naming no term, and tells the model', () => {
       const { component, written } = makeComponent();
       component.inputValueControl.setValue('not a term');
@@ -415,6 +422,59 @@ describe('CedarInputControlledComponent', () => {
       expect(component.inputValueControl.value).toBe('canc');
     });
 
+    it('releases an aborted suggestion press so a later blur still reconciles', () => {
+      // Mousedown sets the guard before the input blurs. A drag off the option
+      // closes the panel without selecting it; that close must release the
+      // guard or every subsequent blur is ignored for the rest of the session.
+      const { component, written } = makeComponent();
+      const closing = withTrigger(component);
+      component.selectionStarting();
+
+      closing.next(null);
+      component.inputValueControl.setValue('names no term');
+      component.onInputBlur();
+
+      expect(component.inputValueControl.value).toBe('');
+      expect(written).toEqual([{ iri: null, label: null }]);
+    });
+
+    it('clears an unstored query as soon as an empty-field suggestion press is aborted', () => {
+      const { component, written } = makeComponent();
+      const closing = withTrigger(component);
+      component.inputValueControl.setValue('half a name');
+      component.selectionStarting();
+
+      closing.next(null);
+
+      expect(component.inputValueControl.value).toBe('');
+      expect(written).toEqual([{ iri: null, label: null }]);
+    });
+
+    it('restores the selected term when the panel closes without a choice', () => {
+      const { component } = makeComponent();
+      const closing = withTrigger(component);
+      component.onSelectionChange(TERM);
+      component.inputValueControl.setValue('typed over it');
+
+      closing.next(null);
+
+      expect(component.inputValueControl.value).toBe(TERM.label);
+    });
+
+    it('does not overwrite the value when selection closes the panel', () => {
+      // Keep the controlled-term implementation on the same panel contract as
+      // the authority base: Material owns the control value on a selection
+      // close, while CEE restores it only on a cancellation close.
+      const { component } = makeComponent();
+      const closing = withTrigger(component);
+      component.onSelectionChange(TERM);
+      component.inputValueControl.setValue('selection-owned value');
+
+      closing.next({ source: {} });
+
+      expect(component.inputValueControl.value).toBe('selection-owned value');
+    });
+
     it('leaves a read-only field alone', () => {
       const { component, written } = makeComponent({ readOnly: true });
       component.inputValueControl.setValue('text nobody can edit');
@@ -433,6 +493,21 @@ describe('CedarInputControlledComponent', () => {
       component.setCurrentValue(TERM);
 
       expect(component.inputValueControl.value).toBe(TERM.label);
+    });
+
+    it('shows a labelless term by its IRI and keeps it on an unchanged blur', () => {
+      // The instance reader deliberately accepts this corpus shape. Showing an
+      // empty label made the populated field look empty, hid Clear, and made a
+      // required Angular control disagree with the data-quality report.
+      const { component, written } = makeComponent();
+      const labelless = { iri: TERM.iri, label: '' };
+
+      component.setCurrentValue(labelless);
+      component.onInputBlur();
+
+      expect(component.inputValueControl.value).toBe(TERM.iri);
+      expect(component.inputValueControl.valid).toBe(true);
+      expect(written).toEqual([]);
     });
 
     it('shows the label and the identifier while it is read-only', () => {

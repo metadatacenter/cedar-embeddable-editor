@@ -144,9 +144,23 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   }
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
-      this.trigger?.panelClosingActions.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.trigger?.panelClosingActions.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+        const selectionWasInProgress = this.selectionInProgress;
+        // `mousedown` set this before the blur. Selection clears it through
+        // `onSelectionChange`; an aborted press has no selection event, so the
+        // panel close is the one place that can release it. Without this, every
+        // later blur declines to reconcile for the lifetime of the widget.
+        this.selectionInProgress = false;
+        if (event?.source) {
+          return;
+        }
         if (this.selectedData !== null) {
           this.setCurrentValue(this.selectedData);
+        } else if (selectionWasInProgress) {
+          // The press suppressed its blur, and there is no selected term to put
+          // back. Complete that reconciliation here so an unstored query does
+          // not remain in an empty field after the user has left it.
+          this.onInputBlur();
         }
       });
     }
@@ -228,7 +242,10 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     if (this.readOnlyMode || this.selectionInProgress) {
       return;
     }
-    const outcome = AuthoritySearchControl.reconcileOnBlur(this.inputValueControl, this.selectedData?.label ?? null);
+    const outcome = AuthoritySearchControl.reconcileOnBlur(
+      this.inputValueControl,
+      this.editableTermDisplay(this.selectedData),
+    );
     if (outcome === 'reverted') {
       this.showRevertHint();
     } else if (outcome === 'cleared') {
@@ -254,8 +271,15 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       const displayTerm = this.getBioPortalTermDisplayValue(currentValue);
       this.inputValueControl.setValue(displayTerm);
     } else {
-      this.inputValueControl.setValue(term?.label ?? (typeof currentValue === 'string' ? currentValue : null));
+      this.inputValueControl.setValue(
+        term !== null ? this.editableTermDisplay(term) : typeof currentValue === 'string' ? currentValue : null,
+      );
     }
+  }
+
+  /** Editable text for a selected term: its label, or its IRI when no label arrived. */
+  private editableTermDisplay(term: AuthorityTerm | null): string | null {
+    return term?.label?.trim() || term?.iri?.trim() || null;
   }
   /**
    * The authorities this field draws on, for the box to state when it holds no value.

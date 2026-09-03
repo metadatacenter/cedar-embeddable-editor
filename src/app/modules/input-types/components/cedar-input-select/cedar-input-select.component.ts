@@ -101,14 +101,16 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
       // Inside this branch the control is the multi-select's, so its value is the
       // list. Named separately rather than reused, because the else branch below
       // reads the same control as a single string.
-      const values = Array.isArray(raw) ? raw : [];
-      if (this.maxSelections === null || (values && values.length <= this.maxSelections)) {
-        this.selections = values;
+      const values = this.selectedLabels(raw);
+      if (this.maxSelections === null || values.length <= this.maxSelections) {
+        // A snapshot, not the control's array. This is rollback state and must
+        // not change underneath us if the select mutates its own value.
+        this.selections = [...values];
       } else {
-        this.inputValueControl.setValue(this.selections);
+        this.inputValueControl.setValue([...this.selections]);
       }
       // close dropdown if max selections reached
-      if (this.selectElement && this.maxSelections !== null && values && values.length === this.maxSelections) {
+      if (this.selectElement && this.maxSelections !== null && values.length === this.maxSelections) {
         this.selectElement.close();
       }
       this.changeValue(this.selections);
@@ -123,9 +125,27 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     // A multiple-choice field is handed the whole list, a single-choice field one
     // label. Both are values this control holds, which is why its type is the union
     // — narrowing to string alone dropped every multi-select's selection on load.
-    const value =
-      typeof currentValue === 'string' || Array.isArray(currentValue) ? (currentValue as string | string[]) : null;
-    this.inputValueControl.setValue(value);
+    if (this.component.choiceInfo.multipleChoice) {
+      // Model-to-view sync is also the initial state for the maxItems rollback.
+      // Keeping that state only in `inputChanged` meant a loaded selection was
+      // absent from the cache until the user made one successful edit.
+      //
+      // A cleared list is represented by one null literal in the instance.
+      // Project only actual labels: Angular's required validator considers
+      // [null] and [''] non-empty even though Material selects no option.
+      const values = this.selectedLabels(currentValue);
+      this.selections = [...values];
+      this.inputValueControl.setValue(values);
+    } else {
+      this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
+    }
+  }
+
+  /** The non-empty labels a multiple-choice control can actually select. */
+  private selectedLabels(value: unknown): string[] {
+    return Array.isArray(value)
+      ? value.filter((entry): entry is string => typeof entry === 'string' && entry.length > 0)
+      : [];
   }
 
   private populateItemsOnLoad(): void {

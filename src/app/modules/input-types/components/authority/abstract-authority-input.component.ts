@@ -186,6 +186,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
         // `panelClosingActions` emits the option-selection event that closed the
         // panel, or null when something else did. `source` is the option.
         const selectionMode = !!event?.source;
+        const selectionWasInProgress = this.selectionInProgress;
         // A press that closed the panel without choosing anything — dragged off
         // the option, or a click outside — leaves the flag set otherwise, and
         // the next blur would find it and decline to reconcile forever.
@@ -195,6 +196,11 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
         }
         if (this.selectedData !== null) {
           this.setCurrentValue(this.selectedData);
+        } else if (selectionWasInProgress) {
+          // The blur caused by the press was deliberately ignored. With no
+          // prior selection to restore, finish that deferred reconciliation now
+          // or the unstored query remains visible after the user has left.
+          this.reconcileWithSelection();
         }
       });
     }

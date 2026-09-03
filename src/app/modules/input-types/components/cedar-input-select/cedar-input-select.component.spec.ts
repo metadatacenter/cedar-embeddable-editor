@@ -16,7 +16,10 @@ describe('CedarInputSelectComponent', () => {
     written: unknown[];
   }
 
-  const makeComponent = (labels: string[], { multiple = false, maxItems = null as number | null } = {}): Harness => {
+  const makeComponent = (
+    labels: string[],
+    { multiple = false, maxItems = null as number | null, required = false } = {},
+  ): Harness => {
     const registry = {
       registerComponent: vi.fn(),
       unregisterComponent: vi.fn(),
@@ -35,7 +38,7 @@ describe('CedarInputSelectComponent', () => {
     component.componentToRender = {
       path: ['pick'],
       choiceInfo: { multipleChoice: multiple, choices: labels.map((l) => new ChoiceOption(l, false)) },
-      valueInfo: { requiredValue: false },
+      valueInfo: { requiredValue: required },
       multiInfo: { maxItems },
       basicInfo: {},
     } as unknown as FieldComponent;
@@ -100,4 +103,36 @@ describe('CedarInputSelectComponent', () => {
 
     expect(written.at(-1)).toEqual(['A', 'B']);
   });
+
+  it('rejects the first over-bound edit without erasing a loaded selection', () => {
+    // Model-to-view sync did not seed `selections`, the rollback cache. If the
+    // loaded instance was already at maxItems, its first rejected pick restored
+    // the cache's initial [] and wrote that empty list back into the instance.
+    const { component, written } = makeComponent(['A', 'B', 'C'], { multiple: true, maxItems: 2 });
+    component.setCurrentValue(['A', 'B']);
+
+    component.inputValueControl.setValue(['A', 'B', 'C']);
+    component.inputChanged();
+
+    expect(component.inputValueControl.value).toEqual(['A', 'B']);
+    expect(written.at(-1)).toEqual(['A', 'B']);
+  });
+
+  it.each([[[null]], [['']], [[null, '', 'A']]] as const)(
+    'treats empty model slots %j as no multi-selection',
+    (loaded) => {
+      // A cleared list is represented in the instance by one null literal.
+      // Angular's required validator considers [null] and [''] non-empty, so
+      // the widget has to project model slots to selected option labels first.
+      const { component } = makeComponent(['A', 'B'], { multiple: true, required: true });
+      const expected = (loaded as readonly unknown[]).filter(
+        (entry): entry is string => typeof entry === 'string' && entry.length > 0,
+      );
+
+      component.setCurrentValue([...loaded]);
+
+      expect(component.inputValueControl.value).toEqual(expected);
+      expect(component.inputValueControl.hasError('required')).toBe(expected.length === 0);
+    },
+  );
 });

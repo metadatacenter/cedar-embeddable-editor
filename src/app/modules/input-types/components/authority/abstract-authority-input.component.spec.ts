@@ -387,6 +387,18 @@ describe('AbstractAuthorityInputComponent', () => {
 
       expect(harness.component.inputValueControl.value).toBe('');
     });
+
+    it('clears an unstored query as soon as an empty-field suggestion press is aborted', () => {
+      const harness = makeComponent();
+      const closing = withTrigger(harness);
+      harness.component.inputValueControl.setValue('half a name');
+      harness.component.selectionStarting();
+
+      closing.next(null);
+
+      expect(harness.component.inputValueControl.value).toBe('');
+      expect(harness.written).toEqual([{ iri: null, label: null }]);
+    });
   });
 
   describe('what it searches for', () => {

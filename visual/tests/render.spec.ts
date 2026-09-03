@@ -13,17 +13,20 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { elementIrisOf, literalNode, termOf, valueOf } from './values';
+import { elementIrisOf, literalNode, literalOf, termOf, valueOf } from './values';
 import { fileURLToPath } from 'node:url';
 import type { CedarEmbeddableEditorElement } from '../../src/app/cee-public-api';
 import {
   BUNDLE_VERSION,
   FROZEN,
+  changeDetails,
+  currentMetadata,
   expectNoStrayHosts,
   hermetic,
   open,
   openTwoEditors,
   passDebounceWindow,
+  recordChanges,
 } from './support/host';
 
 const FIXTURES = [
@@ -752,6 +755,29 @@ test('an attribute-value field survives save and reload', async ({ page }) => {
   await expect(page.locator('app-cedar-embeddable-metadata-editor')).toBeVisible();
 });
 
+test('paging back to an unnamed attribute clears the preceding occurrence', async ({ page }) => {
+  await open(page, '10-attribute-values');
+
+  const renderer = page.locator('app-cedar-component-renderer').filter({
+    has: page.locator('input[aria-label="Attribute Name"]'),
+  });
+  const name = renderer.locator('input[aria-label="Attribute Name"]');
+  const value = renderer.locator('input[aria-label="Attribute Value"]');
+  await name.fill('colour');
+  await value.fill('blue');
+  await renderer.getByRole('button', { name: 'Add empty after current', exact: true }).click();
+  await expect(name).toHaveValue('');
+  await expect(value).toHaveValue('');
+
+  await renderer.getByRole('option', { name: '1', exact: true }).click();
+  await expect(name).toHaveValue('colour');
+  await expect(value).toHaveValue('blue');
+  await renderer.getByRole('option', { name: '2', exact: true }).click();
+
+  await expect(name, 'the unnamed page kept the preceding attribute name').toHaveValue('');
+  await expect(value, 'the unnamed page kept the preceding attribute value').toHaveValue('');
+});
+
 test('an expansion panel collapses and expands', async ({ page }) => {
   await open(page, '03-nested-multi');
   const header = page.locator('mat-expansion-panel-header').first();
@@ -1005,6 +1031,22 @@ test('an optional checkbox group says nothing', async ({ page }) => {
   await expect(page.locator('app-cedar-input-checkbox').first().locator('mat-error')).toHaveCount(0);
 });
 
+test('an unanswered required multi-select is invalid despite its model placeholder slot', async ({ page }) => {
+  await open(page, '25-required-choices');
+
+  const select = page.locator('app-cedar-input-select').first();
+  const trigger = select.locator('mat-select');
+  await expect(trigger).toHaveAttribute('aria-required', 'true');
+  await expect(trigger).toHaveClass(/ng-invalid/);
+
+  // Material exposes the error state after the user has visited the field.
+  await trigger.focus();
+  await page.keyboard.press('Tab');
+  await expect(trigger).toHaveAttribute('aria-invalid', 'true');
+  await expect(select.locator('mat-error')).toBeVisible();
+  await expect(select.locator('mat-error')).toHaveText(/required/i);
+});
+
 /**
  * Read-only, a multiple-choice field reads as a list.
  *
@@ -1062,6 +1104,25 @@ test('a populated multi-select uses the focus color rather than the error color'
   );
   expect(state.multi.arrowColor, "the valid multi-select used Material's error color").not.toBe(state.multi.errorColor);
   expect(state.single.invalid).toBe(false);
+});
+
+test('a bounded multi-select rejects its first over-limit pick without erasing loaded answers', async ({ page }) => {
+  await open(page, '02-choices', undefined, '02-choices-bounded-instance');
+  await recordChanges(page);
+
+  const select = page.locator('mat-select[aria-label="bounded_list"]');
+  await expect(select).toContainText('Up');
+  await expect(select).toContainText('Down');
+  await select.click();
+  await page.locator('mat-option').filter({ hasText: 'Sideways' }).click();
+  await page.keyboard.press('Escape');
+
+  await expect(select).toContainText('Up');
+  await expect(select).toContainText('Down');
+  await expect(select).not.toContainText('Sideways');
+  const metadata = await currentMetadata(page);
+  expect(((metadata._bounded_list ?? []) as unknown[]).map(literalOf)).toEqual(['Up', 'Down']);
+  expect(await changeDetails(page), 'a rejected pick changed the serialized instance').toEqual([]);
 });
 
 test.describe('config presets', () => {
@@ -2398,6 +2459,58 @@ test.describe('controlled terminology selection', () => {
       widget.getByRole('button', { name: 'Clear', exact: true }),
       'clearing a chosen term used to be impossible',
     ).toHaveCount(1);
+  });
+
+  test('a labelless loaded term falls back to its IRI and can be cleared', async ({ page }) => {
+    const iri = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
+    await open(page, '04-controlled-terms', undefined, '04-controlled-terms-labelless-instance');
+
+    const widget = page.locator('app-cedar-input-controlled').first();
+    const field = widget.locator('input[aria-label="organism"]');
+    await expect(field).toHaveValue(iri);
+    await expect(field).toHaveAttribute('aria-invalid', 'false');
+    const clear = widget.getByRole('button', { name: 'Clear', exact: true });
+    await expect(clear, 'an empty rendering hid the only way to clear the loaded IRI').toBeVisible();
+
+    await clear.click();
+
+    await expect(field).toHaveValue('');
+    expect(JSON.stringify(await currentMetadata(page))).not.toContain(iri);
+  });
+
+  test('an aborted suggestion press does not disable later blur reconciliation', async ({ page }) => {
+    const id = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
+    const label = 'Homo sapiens';
+    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ collection: [{ id, '@id': id, prefLabel: label }] }),
+      });
+    });
+    await open(page, '04-controlled-terms', undefined, '04-controlled-terms-instance');
+    const field = page.locator('input[aria-label="organism"]');
+    await field.fill('Homo');
+    await passDebounceWindow(page);
+    const option = page.locator('mat-option').filter({ hasText: label });
+    await expect(option).toBeVisible({ timeout: 6000 });
+    const box = await option.boundingBox();
+    expect(box, 'the selectable term has no pointer target').not.toBeNull();
+    if (box === null) return;
+
+    // Press on the option, drag away, then release: mousedown has set CEE's
+    // guard, but Material emits no selection event to clear it.
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(1, 1, { steps: 5 });
+    await page.mouse.up();
+    await page.getByRole('heading', { level: 1 }).click();
+    await expect(field, 'cancelling the suggestion should restore the loaded term').toHaveValue('disease');
+
+    await field.fill('names no term');
+    await field.blur();
+
+    await expect(field, 'the aborted press left every later blur disabled').toHaveValue('disease');
   });
 
   /**

@@ -393,7 +393,7 @@
     },
     "_regions": {
       "type": "array",
-      "minItems": 0,
+      "minItems": 1,
       "items": {
         "@id": "https://repo.metadatacenter.org/template-fields/f17df00a-0000-4000-8000-f17df00a0000",
         "@type": "https://schema.metadatacenter.org/core/TemplateField",
@@ -444,7 +444,7 @@
               "label": "South"
             }
           ],
-          "requiredValue": false,
+          "requiredValue": true,
           "multipleChoice": true
         },
         "properties": {
@@ -504,7 +504,7 @@
   ],
   "additionalProperties": false,
   "schema:name": "RequiredChoices",
-  "schema:description": "A required checkbox group and a multiple-choice list",
+  "schema:description": "A required checkbox group and a required multiple-choice list",
   "pav:createdOn": "2026-01-01T00:00:00-08:00",
   "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
   "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",

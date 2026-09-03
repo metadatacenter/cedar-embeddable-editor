@@ -178,12 +178,23 @@ export class ActiveComponentRegistryService {
 
             if (keyName === null && InstanceValueNode.literal(dataObject[multiInstanceInfo.currentIndex]) === null) {
               handlerContext.changeAttributeValue(component, null, null);
-            } else if (keyName === '') {
-              // if it is an empty string, we silently accept it
-              return;
             }
             // This next line is actually needed, current index can change
             keyName = attributeNameOf(dataObject[multiInstanceInfo.currentIndex]);
+            if (keyName === '') {
+              // An unnamed occurrence is still the page being shown. A reused
+              // widget must receive it or it keeps the preceding page's name
+              // and value. An injected instance may name the slot without
+              // carrying a corresponding parent property, so its value is
+              // absent rather than a reason to skip the view update.
+              const value = isInstanceObject(parentDataObject)
+                ? InstanceValueNode.literal(parentDataObject.values[keyName])
+                : null;
+              if (uiComponent) {
+                uiComponent.setCurrentValue({ '': value ?? null });
+              }
+              return;
+            }
             if (keyName === null || !isInstanceObject(parentDataObject)) {
               return;
             }

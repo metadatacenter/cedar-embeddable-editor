@@ -279,6 +279,15 @@ const writeRaw = (name, document) => {
     );
   }
   write('02-choices', tb.build());
+  writeRaw(
+    '02-choices-bounded-instance',
+    instance('ChoiceWidgets', {
+      id: 'https://example.org/instances/choice-widgets-bounded-1',
+      name: 'ChoiceWidgets bounded instance',
+      description: 'The bounded multi-select is already at its maximum before its first user edit',
+      values: { _bounded_list: [literal('Up'), literal('Down')] },
+    }),
+  );
 }
 
 // 3. Nested elements and multi-instance pagers — the chip pager and the
@@ -357,6 +366,19 @@ const writeRaw = (name, document) => {
           controlled('https://ror.org/013meh722', 'University of Cambridge'),
         ],
       },
+    }),
+  );
+
+  // A shape present in the corpus: an IRI with no rdfs:label. The instance
+  // reader treats it as a filled controlled term, so the editable widget must
+  // have a non-empty rendering and a reachable Clear action too.
+  writeRaw(
+    '04-controlled-terms-labelless-instance',
+    instance('ControlledTerms', {
+      id: 'https://example.org/instances/controlled-terms-labelless-1',
+      name: 'ControlledTerms labelless instance',
+      description: 'A controlled term carrying only its IRI',
+      values: { _organism: link('http://purl.obolibrary.org/obo/NCBITaxon_9606') },
     }),
   );
 }
@@ -1131,10 +1153,10 @@ const writeRaw = (name, document) => {
   );
 
   let tb = common(CedarBuilders.templateBuilder(), 'RequiredChoices', 'templates').withSchemaDescription(
-    'A required checkbox group and a multiple-choice list',
+    'A required checkbox group and a required multiple-choice list',
   );
   tb = tb.addChild(consent, deploy(consent, 'consent', { required: true }));
-  tb = tb.addChild(regions, deploy(regions, 'regions'));
+  tb = tb.addChild(regions, deploy(regions, 'regions', { required: true }));
   write('25-required-choices', tb.build());
 
   writeRaw(
