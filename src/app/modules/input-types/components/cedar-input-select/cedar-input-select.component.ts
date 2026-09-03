@@ -38,7 +38,14 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
 
   component!: FieldComponent;
   dropdownList: Record<string, string>[] = [];
-  options: FormGroup;
+  /*
+   * Both built in `ngOnInit`, because the control's validators come off the
+   * component and that arrives as an input. Asserted rather than made optional:
+   * Angular runs `ngOnInit` before it first checks the template that binds them,
+   * so there is no render in which they are absent. The same shape
+   * `AbstractAuthorityInputComponent` already uses.
+   */
+  options!: FormGroup;
   /*
    * A string or a list of them: a single-choice field holds the chosen label, a
    * multiple-choice field the chosen labels. `multipleChoice` is what decides
@@ -61,12 +68,9 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,
     public cds: ComponentDataService,
-    fb: FormBuilder,
+    private readonly fb: FormBuilder,
   ) {
     super();
-    this.options = fb.group({
-      inputValue: this.inputValueControl,
-    });
   }
 
   override ngOnInit(): void {
@@ -79,6 +83,9 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     }
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl<string | string[] | null>(null, validators);
+    // Beside the control it holds. Built in the constructor, the group kept the
+    // control this line replaces — see `input-control-binding.spec.ts`.
+    this.options = this.fb.group({ inputValue: this.inputValueControl });
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {

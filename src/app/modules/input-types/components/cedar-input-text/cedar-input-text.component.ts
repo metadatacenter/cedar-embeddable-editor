@@ -24,7 +24,14 @@ const ROR_IRI_PREFIX = 'https://ror.org/';
 })
 export class CedarInputTextComponent extends CedarUIDirective implements OnInit {
   component!: FieldComponent;
-  options: FormGroup;
+  /*
+   * Both built in `ngOnInit`, because the control's validators come off the
+   * component and that arrives as an input. Asserted rather than made optional:
+   * Angular runs `ngOnInit` before it first checks the template that binds them,
+   * so there is no render in which they are absent. The same shape
+   * `AbstractAuthorityInputComponent` already uses.
+   */
+  options!: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
   constraintMinLength: number | null = null;
   constraintMaxLength: number | null = null;
@@ -37,15 +44,12 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
   originalValue: string | null = null;
 
   constructor(
-    fb: FormBuilder,
+    private readonly fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private htmlDetectService: HtmlDetectService,
   ) {
     super();
-    this.options = fb.group({
-      inputValue: this.inputValueControl,
-    });
   }
 
   override ngOnInit(): void {
@@ -60,6 +64,9 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     }
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl<string | null>(null, validators);
+    // Beside the control it holds. Built in the constructor, the group kept the
+    // control this line replaces — see `input-control-binding.spec.ts`.
+    this.options = this.fb.group({ inputValue: this.inputValueControl });
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {

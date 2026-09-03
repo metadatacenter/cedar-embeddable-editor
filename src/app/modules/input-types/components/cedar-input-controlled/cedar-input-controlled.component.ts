@@ -71,7 +71,14 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   justReverted = false;
   justCleared = false;
   component!: FieldComponent;
-  options: FormGroup;
+  /*
+   * Both built in `ngOnInit`, because the control's validators come off the
+   * component and that arrives as an input. Asserted rather than made optional:
+   * Angular runs `ngOnInit` before it first checks the template that binds them,
+   * so there is no render in which they are absent. The same shape
+   * `AbstractAuthorityInputComponent` already uses.
+   */
+  options!: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input({ required: true }) handlerContext!: HandlerContext;
@@ -87,16 +94,13 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   lookupFailed = false;
 
   constructor(
-    fb: FormBuilder,
+    private readonly fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
   ) {
     super();
-    this.options = fb.group({
-      inputValue: this.inputValueControl,
-    });
   }
   override ngOnInit(): void {
     super.ngOnInit();
@@ -107,6 +111,9 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     }
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl<string | null>(null, validators);
+    // Beside the control it holds. Built in the constructor, the group kept the
+    // control this line replaces — see `input-control-binding.spec.ts`.
+    this.options = this.fb.group({ inputValue: this.inputValueControl });
 
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(

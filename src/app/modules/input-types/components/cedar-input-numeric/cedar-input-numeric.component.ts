@@ -20,8 +20,21 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class CedarInputNumericComponent extends CedarUIDirective implements OnInit {
   component!: FieldComponent;
-  options: FormGroup;
-  inputValueControl = new FormControl<string | null>(null, Validators.min(10));
+  /*
+   * Both built in `ngOnInit`, because the control's validators come off the
+   * component and that arrives as an input. Asserted rather than made optional:
+   * Angular runs `ngOnInit` before it first checks the template that binds them,
+   * so there is no render in which they are absent. The same shape
+   * `AbstractAuthorityInputComponent` already uses.
+   */
+  options!: FormGroup;
+  /*
+   * Replaced in `ngOnInit` with one carrying the field's validators. It held a
+   * `Validators.min(10)` that belonged to no field and could never fire, which
+   * was invisible for as long as the group went on holding this control instead
+   * of the real one.
+   */
+  inputValueControl = new FormControl<string | null>(null);
   unitOfMeasure: string | null = null;
   constraintMinValue: number | null = null;
   constraintMaxValue: number | null = null;
@@ -29,15 +42,12 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
   @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
-    fb: FormBuilder,
+    private readonly fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private translateService: TranslateService,
   ) {
     super();
-    this.options = fb.group({
-      inputValue: this.inputValueControl,
-    });
   }
 
   override ngOnInit(): void {
@@ -82,6 +92,9 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
 
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl<string | null>(null, validators);
+    // Beside the control it holds. Built in the constructor, the group kept the
+    // control this line replaces — see `input-control-binding.spec.ts`.
+    this.options = this.fb.group({ inputValue: this.inputValueControl });
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
