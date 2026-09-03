@@ -75,9 +75,9 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
       value = this.valueInputControl.value;
     }
 
-    if (value && value.length === 0) {
-      value = null;
-    }
+    // What an empty box means is the model's answer, not this widget's, and
+    // `changeAttributeValue` gives it. The copy that stood here was dead — `''`
+    // is falsy, so `value && value.length === 0` never held.
     const name = this.nameInputControl.value;
     this.attributeNameError = this.handlerContext.changeAttributeValue(this.component, name, value);
     this.nameInputControl.setErrors(this.attributeNameError === null ? null : { attributeName: true });
