@@ -195,14 +195,32 @@
   border: none !important;
 }
 
+/*
+ * A field's pager is drawn over its title row rather than taking a row of its own.
+ *
+ * The two margins centre the 32px row on the 20px title row and then hand back all but
+ * the 6px it hangs below it, so the control starts flush under the pager instead of 15px
+ * further down. The arithmetic holds at any row height: a field with more than a page of
+ * occurrences grows this row by its paginator, and the control follows it down.
+ */
 .pager-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: right;
   align-items: center;
   margin-right: 10px;
-  /* Centre the 48px pager actions on the compact field-title row. */
-  margin-top: -33px;
+  margin-top: -26px;
+  margin-bottom: -4px;
+}
+
+/*
+ * A field's pager is drawn over its title row, so it stops before that row's trailing
+ * icon slot. Without the stop the delete button covered the help mark, taking both the
+ * glyph and the click. The template's own page pager shares the class but overlays
+ * nothing, so the rule names the field card.
+ */
+.non-iterable-component > app-cedar-multi-pager .pager-container {
+  margin-right: tokens.$cee-header-trailing-slot + 8px;
 }
 
 .pager-container-ro {
@@ -240,10 +258,12 @@
 /* At embedding widths the pager becomes its own row instead of covering the title. */
 @container cee (max-width: 620px) {
   .pager-container,
-  .pager-container-ro {
+  .pager-container-ro,
+  .non-iterable-component > app-cedar-multi-pager .pager-container {
     justify-content: flex-start;
     margin-top: 8px;
     margin-right: 0;
+    margin-bottom: 0;
   }
 
   .pager-chips {

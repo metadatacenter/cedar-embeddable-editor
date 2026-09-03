@@ -48,31 +48,39 @@
     <app-cedar-field-spec [fieldToDescribe]="fieldToDescribe" variant="facts"></app-cedar-field-spec>
   }
 
-  @if (!readOnlyMode && component.labelInfo.description && component.labelInfo.description !== 'Help Text') {
-    <mat-icon
-      matTooltip="{{ component.labelInfo.description }}"
-      matTooltipClass="tooltip"
-      matTooltipPosition="right"
-      aria-hidden="false"
-      aria-labelledby="description"
-      class="icon-help icon-questionmark"
-      role="tooltip"
-      inline="false"
-    >help</mat-icon
-    >
-  }
+  <!--
+    The help mark and the property glyph share one slot, which keeps its width whether
+    this component carries both, one or neither. An editable occurrence pager is drawn
+    over the right of this row, and a slot that moved with the icons would leave it
+    nothing to stop against.
+  -->
+  <span class="header-trailing">
+    @if (!readOnlyMode && component.labelInfo.description && component.labelInfo.description !== 'Help Text') {
+      <mat-icon
+        matTooltip="{{ component.labelInfo.description }}"
+        matTooltipClass="tooltip"
+        matTooltipPosition="right"
+        aria-hidden="false"
+        aria-labelledby="description"
+        class="icon-help icon-questionmark"
+        role="tooltip"
+        inline="false"
+        >help</mat-icon
+      >
+    }
 
-  @if (component.propertyIri) {
-    <span
-      class="property-iri"
-      [matTooltip]="component.propertyIri"
-      matTooltipPosition="above"
-      [attr.aria-label]="'Generic.PropertyIri' | translate: { iri: component.propertyIri }"
-      [attr.data-property-iri]="component.propertyIri"
-    >
-      <span class="material-icons property-iri-icon" aria-hidden="true">device_hub</span>
-    </span>
-  }
+    @if (component.propertyIri) {
+      <span
+        class="property-iri"
+        [matTooltip]="component.propertyIri"
+        matTooltipPosition="above"
+        [attr.aria-label]="'Generic.PropertyIri' | translate: { iri: component.propertyIri }"
+        [attr.data-property-iri]="component.propertyIri"
+      >
+        <span class="material-icons property-iri-icon" aria-hidden="true">device_hub</span>
+      </span>
+    }
+  </span>
 
   <span id="Description of {{ cds.getRenderingLabelForComponent(component) }}" class="cdk-visually-hidden">{{
     component.labelInfo.description
