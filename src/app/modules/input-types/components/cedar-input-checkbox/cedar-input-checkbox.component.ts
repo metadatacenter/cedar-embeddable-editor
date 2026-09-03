@@ -5,7 +5,7 @@ import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
-import { requireControl, requireFormArray } from '../../../shared/forms/form-control';
+import { requireFormArray } from '../../../shared/forms/form-control';
 import { InstanceValueNode } from '../../../shared/util/instance-value-node';
 
 @Component({
@@ -34,10 +34,9 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
 
   override ngOnInit(): void {
     super.ngOnInit();
-    for (const choice of this.component.choiceInfo.choices) {
-      const fc = new FormControl();
-      this.options.addControl(this.getFormControlName(choice.label), fc);
-    }
+    this.component.choiceInfo.choices.forEach((_choice, index) => {
+      this.options.addControl(this.controlNameFor(index), new FormControl());
+    });
     if (this.component.valueInfo.requiredValue) {
       // The checkbox group installed no validators at all, so a required
       // checkbox field could never report itself unsatisfied — the data quality
@@ -54,16 +53,15 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
   }
 
   inputChanged(event: Event): void {
+    const checkbox = event.target as HTMLInputElement;
     // If readOnly -> revert the change
     if (this.readOnlyMode) {
-      const name = (event.target as HTMLInputElement).value;
-      const val = requireControl(this.options, this.getFormControlName(name)).value;
-      requireControl(this.options, this.getFormControlName(name)).setValue(!val);
+      const control = this.controlForLabel(checkbox.value);
+      control?.setValue(control.value ? null : 'checked');
       event.preventDefault();
       event.stopPropagation();
       return;
     }
-    const checkbox = event.target as HTMLInputElement;
     this.setInput(checkbox.checked, checkbox.value);
   }
 
@@ -79,8 +77,34 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     }
   }
 
-  getFormControlName(val: string): string {
-    return val.replace(/\s+/g, '');
+  /**
+   * The control name for the option at this position.
+   *
+   * A position, not the option's text. The name used to be the label with its
+   * whitespace stripped out, which fails twice over. Angular reads a `.` in a
+   * name passed to `FormGroup.get` as a path separator, so `Dr.` — a label real
+   * CEDAR templates carry — registered a control that could never be looked up
+   * again, and the lookup threw before the tick could reach the instance. And
+   * removing the spaces made `New York` and `NewYork` the same name, which
+   * `FormGroup.addControl` resolves by silently keeping the control already
+   * there, so both boxes drove one control.
+   *
+   * An index is unique by construction and contains nothing Angular reads as
+   * anything else.
+   */
+  controlNameFor(index: number): string {
+    return `choice${index}`;
+  }
+
+  /** Whether the box for this option is ticked. */
+  isChecked(label: string): boolean {
+    return this.controlForLabel(label)?.value === 'checked';
+  }
+
+  /** The control behind an option, or null for a label this field does not offer. */
+  private controlForLabel(label: string): AbstractControl | null {
+    const index = this.component.choiceInfo.choices.findIndex((choice) => choice.label === label);
+    return index < 0 ? null : this.options.get(this.controlNameFor(index));
   }
 
   private populateValuesOnLoad(): void {
@@ -105,6 +129,7 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
 
   private setInput(isChecked: boolean, val: string): void {
     const formArray: FormArray = requireFormArray(this.options, 'checkedChoices');
+    const control = this.controlForLabel(val);
 
     /* Selected */
     if (isChecked) {
@@ -112,21 +137,17 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
       if (formArray.value.indexOf(val) < 0) {
         formArray.push(new FormControl(val));
       }
-      requireControl(this.options, this.getFormControlName(val)).setValue('checked');
+      control?.setValue('checked');
     } else {
-      /* unselected */
-      // find the unselected element
-      let i = 0;
-
-      formArray.controls.forEach((ctrl: AbstractControl) => {
-        if (ctrl.value === val) {
-          // Remove the unselected element from the arrayForm
-          formArray.removeAt(i);
-          requireControl(this.options, this.getFormControlName(val)).setValue(null);
-          return;
-        }
-        i++;
-      });
+      const position = formArray.controls.findIndex((ctrl: AbstractControl) => ctrl.value === val);
+      if (position >= 0) {
+        formArray.removeAt(position);
+      }
+      // Outside the removal, because the box and the list are two records of one
+      // fact and must agree even when they had already drifted: clearing only
+      // where the list still held the label left a ticked box over a selection
+      // the model no longer carried.
+      control?.setValue(null);
     }
 
     // Keep the values in the original sort order

@@ -6,7 +6,7 @@
         (input)="inputChanged($event)"
         [tabIndex]="readOnlyMode ? -1 : 0"
         [attr.aria-disabled]="readOnlyMode ? true : null"
-        [formControlName]="getFormControlName(choice.label)"
+        [formControlName]="controlNameFor($index)"
         [value]="choice.label"
         >{{ choice.label }}
         @if (handlerContext.statesSpecification && choice.selectedByDefault) {
