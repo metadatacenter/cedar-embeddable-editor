@@ -248,19 +248,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       this.inputValueControl.setValue(term?.label ?? (typeof currentValue === 'string' ? currentValue : null));
     }
   }
-  /*
-   * `unknown`, matching what `setCurrentValue` is handed. A controlled value arrives
-   * as a term; anything else — a plain string on a field whose constraint was
-   * removed — falls through the last branch and is shown as-is.
-   */
-  /**
-   * How a selected term reads in the box: "Label - https://iri".
-   *
-   * No parentheses around the IRI. This wrapped it — `label - (iri)` — where the
-   * seven external-authority fields render `label - iri`, and they are the same
-   * kind of value shown in the same kind of box, one row apart. `getCompoundValue`
-   * in `abstract-authority-input.component.ts` is the form they use.
-   */
   /**
    * The authorities this field draws on, for the box to state when it holds no value.
    *
@@ -279,6 +266,18 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     return bioPortalSourceLink(source);
   }
 
+  /**
+   * How a selected term reads in the box: "Label - https://iri".
+   *
+   * No parentheses around the IRI. This wrapped it — `label - (iri)` — where the
+   * seven external-authority fields render `label - iri`, and they are the same
+   * kind of value shown in the same kind of box, one row apart. `getCompoundValue`
+   * in `abstract-authority-input.component.ts` is the form they use.
+   *
+   * `unknown`, matching what `setCurrentValue` is handed. A controlled value arrives
+   * as a term; anything else — a plain string on a field whose constraint was
+   * removed — falls through the last branch and is shown as-is.
+   */
   getBioPortalTermDisplayValue(value: unknown): string {
     const term = isAuthorityTerm(value) ? value : { iri: '', label: '' };
     if (term.label && term.iri) {
@@ -286,15 +285,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     } else return value as string;
   }
 
-  /**
-   * The BioPortal page for the term the field holds, or null when it holds none.
-   *
-   * Derived rather than assigned. It used to be set as a side effect of the
-   * function that formats the display text, and that function only runs in
-   * read-only mode — so the link existed in one mode and not the other for no
-   * reason anyone chose. The constraint the term came through decides which
-   * Built from the constraint's acronym, in `bioPortalTermLink`.
-   */
   /**
    * Whether to render the term as a value rather than as a control. Same rule as the authority
    * fields: read-only with a term in hand, the identifier belongs in a link, and text inside an
@@ -304,6 +294,16 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     return this.readOnlyMode && this.selectedData !== null;
   }
 
+  /**
+   * The BioPortal page for the term the field holds, or null when it holds none.
+   *
+   * Derived rather than assigned. It used to be set as a side effect of the
+   * function that formats the display text, and that function only runs in
+   * read-only mode — so the link existed in one mode and not the other for no
+   * reason anyone chose. The constraint the term came through decides which
+   * ontology addresses it, so the page is built from that constraint's acronym,
+   * in `bioPortalTermLink`.
+   */
   get bioPortalTermLink(): string | null {
     return bioPortalTermLink(this.component.controlledInfo, this.selectedData?.iri);
   }

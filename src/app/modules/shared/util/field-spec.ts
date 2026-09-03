@@ -314,13 +314,6 @@ export function specOptionsOf(field: FieldComponent): ReadonlyArray<ChoiceOption
 }
 
 /**
- * Whether a spelled-out name already carries its own acronym.
- *
- * A branch's `source` is a display name rather than a key, and across the corpus it is written both
- * ways: `"Human Disease Ontology"`, and `"Medical Subject Headings (MESH)"`. Appending the acronym to
- * the second form gives "Medical Subject Headings (MESH) (MESH)".
- */
-/**
  * The ontology's spelled-out name from a branch's `source`, or null when it holds none.
  *
  * `source` is a display name rather than a key, and templates write it three ways. Sometimes the name

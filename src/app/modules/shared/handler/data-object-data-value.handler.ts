@@ -65,16 +65,16 @@ interface AttributeWrite {
   value: InstanceNode;
 }
 
+/** Where an attribute name sits in the field's list of them, or -1. */
+const indexOfName = (names: InstanceArray, name: string): number =>
+  names.findIndex((n) => n instanceof InstanceDataAttributeValueFieldName && n.name === name);
+
 /**
  * Whether this write names an attribute.
  *
  * The dispatch used to ask whether the JSON fragment carried a reserved key.
  * A guard over a declared shape asks the same question of a value that has one.
  */
-/** Where an attribute name sits in the field's list of them, or -1. */
-const indexOfName = (names: InstanceArray, name: string): number =>
-  names.findIndex((n) => n instanceof InstanceDataAttributeValueFieldName && n.name === name);
-
 const isAttributeWrite = (write: InstanceNode | AttributeWrite): write is AttributeWrite =>
   typeof write === 'object' && write !== null && !Array.isArray(write) && 'name' in write && 'value' in write;
 

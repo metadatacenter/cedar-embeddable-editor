@@ -34,7 +34,6 @@ const kindOf = (inputType: string, make: () => any, configure?: (b: any) => any)
 const componentFor = (kind: FieldKind) =>
   new CeeDriver(buildTemplate({ name: kind.key, children: [{ kind, name: 'f' }] })).findOrThrow(['_f']);
 
-/** Run the adapter the way Angular would. */
 /** One error detail: the validator's message and the value that produced it. */
 interface ErrorDetail {
   message: string;
@@ -50,6 +49,7 @@ interface ErrorDetail {
  */
 type ValidatedControl = Parameters<ReturnType<typeof CedarValidators.forComponent>>[0];
 
+/** Run the adapter the way Angular would. */
 const errorsFor = (kind: FieldKind, value: unknown): Record<string, ErrorDetail> | null =>
   CedarValidators.forComponent(componentFor(kind))({ value } as unknown as ValidatedControl) as Record<
     string,

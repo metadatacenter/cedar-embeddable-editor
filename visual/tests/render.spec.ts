@@ -1303,30 +1303,6 @@ test.describe('widgets, clipped', () => {
 });
 
 /**
- * The footer, asserted on its own rather than as part of `preset-chrome`.
- *
- * `preset-chrome` was the only baseline covering the footer, and it did not
- * catch the BMIR → Division of Computational Medicine rebrand: new logo, new
- * wordmark-free mark, new organisation name, new link. Measured against the
- * previous baselines, that whole change moved 0.708% of the desktop page and
- * 0.897% of the narrow one — under the 1% ratio the config applied at the time, so
- * both projects reported green. Narrow cleared it by a tenth of a percentage point.
- *
- * The conclusion drawn here was that the ratio should stay, on the grounds that it
- * absorbs cross-machine font rasterisation and that tightening it globally would
- * trade a silent failure for a noisy one. That was wrong, and four stale-but-green
- * baselines in one day are what showed it: rasterisation variance does not scale with
- * image area, so an absolute budget absorbs it just as well while staying sensitive on
- * a tall page. The ratio is gone. What follows is still worth having for what it says
- * when it fails. So:
- *
- *  - the mark is screenshotted clipped to the footer, where the same 1% is
- *    around a thousand pixels rather than sixteen thousand, and
- *  - the organisation's name and URL are asserted as text, because that is what
- *    they are. A brand is not a pixel region; it is a specific string, and it
- *    should fail on the string.
- */
-/**
  * The version stamp, which the screenshots deliberately cannot see.
  *
  * screenshot.css hides it so the baselines survive a version bump, and that
@@ -1794,45 +1770,6 @@ test.describe('a choice value reaches the widget by every load path', () => {
 });
 
 /**
- * Instance values are sanitized; template-authored rich text is not.
- *
- * `TrustHtmlPipe` (`keepHtml`) is `bypassSecurityTrustHtml`, and it used to be applied
- * to three things: the static rich-text field's body, a text field's own value when
- * `isRichText`, and pager labels built from values. The first is content a *template
- * author* wrote. The other two are **instance data**, arriving with whatever document
- * the host page loaded — and CEE is embedded in someone else's page, so trusting them
- * handed an instance author script execution in that origin.
- *
- * `isRichText` is set by `checkHTMLContent`, which asks whether the *value* looks like
- * HTML, from `onReadOnlyModeChange(true)`. So the trigger was the data and the gate was
- * read-only mode: a documented viewer mode, no exotic config needed. Verified before
- * the fix — an inert probe element was parsed into live DOM.
- *
- * The two instance sinks now use `safeHtml`, which sanitizes rather than bypasses. The
- * static rich-text field keeps `keepHtml`, deliberately: a template author is already
- * trusted with the form's structure, and stripping their formatting would break a
- * documented feature to no benefit.
- *
- * The probe value carries both halves, so one assertion distinguishes all three possible
- * behaviours. `<b>` is safe formatting and survives sanitization — its presence proves
- * the field was not simply escaped wholesale, which would have been a regression dressed
- * up as a fix. The `onerror` handler is what sanitization removes, and it sets a window
- * flag and nothing else.
- */
-/**
- * The other half of the trust boundary: markup a *template* author wrote.
- *
- * `markup in an instance value` below asserts that instance-authored HTML is
- * sanitized. This asserts the same for template-authored HTML, which used to be
- * rendered verbatim on the strength of an assumption no embedder was told about —
- * that the host, not its users, chooses which template loads.
- *
- * Assertion-only, and `19-template-markup` is deliberately absent from `FIXTURES`:
- * its content is adversarial rather than representative, and a screenshot would
- * record what a sanitizer's output happens to look like rather than what it must
- * never do.
- */
-/**
  * A configuration CEE cannot use is reported, not swallowed.
  *
  * The shipped declarations catch a misspelled key for a TypeScript host writing a
@@ -1870,6 +1807,19 @@ test.describe('an unusable configuration', () => {
   });
 });
 
+/**
+ * The other half of the trust boundary: markup a *template* author wrote.
+ *
+ * `markup in an instance value` below asserts that instance-authored HTML is
+ * sanitized. This asserts the same for template-authored HTML, which used to be
+ * rendered verbatim on the strength of an assumption no embedder was told about —
+ * that the host, not its users, chooses which template loads.
+ *
+ * Assertion-only, and `19-template-markup` is deliberately absent from `FIXTURES`:
+ * its content is adversarial rather than representative, and a screenshot would
+ * record what a sanitizer's output happens to look like rather than what it must
+ * never do.
+ */
 test.describe('template rich text', () => {
   const shadowHtml = (page: import('@playwright/test').Page): Promise<string> =>
     page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.shadowRoot!.innerHTML);
@@ -2068,6 +2018,32 @@ test.describe('an attribute-value field with no slot in the instance', () => {
   });
 });
 
+/**
+ * Instance values are sanitized; template-authored rich text is not.
+ *
+ * `TrustHtmlPipe` (`keepHtml`) is `bypassSecurityTrustHtml`, and it used to be applied
+ * to three things: the static rich-text field's body, a text field's own value when
+ * `isRichText`, and pager labels built from values. The first is content a *template
+ * author* wrote. The other two are **instance data**, arriving with whatever document
+ * the host page loaded — and CEE is embedded in someone else's page, so trusting them
+ * handed an instance author script execution in that origin.
+ *
+ * `isRichText` is set by `checkHTMLContent`, which asks whether the *value* looks like
+ * HTML, from `onReadOnlyModeChange(true)`. So the trigger was the data and the gate was
+ * read-only mode: a documented viewer mode, no exotic config needed. Verified before
+ * the fix — an inert probe element was parsed into live DOM.
+ *
+ * The two instance sinks now use `safeHtml`, which sanitizes rather than bypasses. The
+ * static rich-text field keeps `keepHtml`, deliberately: a template author is already
+ * trusted with the form's structure, and stripping their formatting would break a
+ * documented feature to no benefit.
+ *
+ * The probe value carries both halves, so one assertion distinguishes all three possible
+ * behaviours. `<b>` is safe formatting and survives sanitization — its presence proves
+ * the field was not simply escaped wholesale, which would have been a regression dressed
+ * up as a fix. The `onerror` handler is what sanitization removes, and it sets a window
+ * flag and nothing else.
+ */
 test.describe('markup in an instance value', () => {
   test('is escaped, not rendered, while the field is editable', async ({ page }) => {
     await open(page, '01-input-types', undefined, '14-markup-in-a-value');
@@ -2401,22 +2377,6 @@ test.describe('controlled terminology selection', () => {
 });
 
 /**
- * The two output getters a host page reads.
- *
- * `currentMetadata` and `currentMetadataYaml` are how an embedding page gets the
- * edited document back out — the whole point of the component from the host's side.
- * The JSON one is exercised indirectly all over the domain harness; the YAML one was
- * touched by nothing, in either suite, despite being a separate serializer
- * (`InstanceSerializer.toYaml`) with its own failure modes.
- *
- * Asserted without a YAML parser, which `visual/` does not have and which is not worth
- * a dependency: the checks are that the two outputs agree about the document. Same
- * field values, same template IRI, and none of the shapes a broken serializer actually
- * produces — an empty string, `undefined`, or `[object Object]` where a nested node
- * should be. A structural check on agreement catches a serializer that has stopped
- * working; it does not need to re-verify YAML grammar the library already tests.
- */
-/**
  * Take one download the way a developer does, and read what arrived.
  *
  * What each download *contains* is asserted in the domain harness, against every
@@ -2483,6 +2443,22 @@ test('a read-only template-only download menu does not offer an instance file', 
   await expect(page.getByText('Data Quality Report', { exact: true })).toHaveCount(0);
 });
 
+/**
+ * The two output getters a host page reads.
+ *
+ * `currentMetadata` and `currentMetadataYaml` are how an embedding page gets the
+ * edited document back out — the whole point of the component from the host's side.
+ * The JSON one is exercised indirectly all over the domain harness; the YAML one was
+ * touched by nothing, in either suite, despite being a separate serializer
+ * (`InstanceSerializer.toYaml`) with its own failure modes.
+ *
+ * Asserted without a YAML parser, which `visual/` does not have and which is not worth
+ * a dependency: the checks are that the two outputs agree about the document. Same
+ * field values, same template IRI, and none of the shapes a broken serializer actually
+ * produces — an empty string, `undefined`, or `[object Object]` where a nested node
+ * should be. A structural check on agreement catches a serializer that has stopped
+ * working; it does not need to re-verify YAML grammar the library already tests.
+ */
 test.describe('what a host page reads back', () => {
   const read = (page: import('@playwright/test').Page) =>
     page.evaluate(() => {
@@ -2777,26 +2753,6 @@ test.describe('host input timing', () => {
 });
 
 /**
- * Read-only is the host's alone.
- *
- * CEE offered the user a switch of its own, in a preferences menu, and it wrote
- * straight to the state the widgets read — so a form embedded as a viewer could be
- * made editable from inside it, and a host offering its own save button would then
- * store the edits. Host configuration reached those widgets through that same
- * control, which is why the control could override it, and why the menu had to stay
- * instantiated even when configured invisible or read-only never arrived at all. Both
- * the menu and the switch are gone, and `readOnlyMode` reaches the widgets directly.
- */
-/**
- * A field's occurrence pager and the content after its name share the title row.
- *
- * Editable, that row holds the field's name and its grey occurrence range, so the chips are pulled
- * 33px up onto it to save a row. Read-only can also carry terse facts on the right — and the chips
- * were still pulled up, covering them. Nothing caught it: every other
- * multi fixture pages an *element*, whose pager sits on a panel header with nothing beside it, and a
- * field with no instance renders no pager at all.
- */
-/**
  * A term a field holds, read rather than edited.
  *
  * The identifier used to be text inside a readonly `input`, so a reader who wanted to follow it had
@@ -2947,6 +2903,15 @@ test.describe('a multi-instance field paging its values', () => {
     expect(collisions, 'a chip is drawn over the range').toEqual([]);
   });
 
+  /**
+   * A field's occurrence pager and the content after its name share the title row.
+   *
+   * Editable, that row holds the field's name and its grey occurrence range, so the chips are pulled
+   * 33px up onto it to save a row. Read-only can also carry terse facts on the right — and the chips
+   * were still pulled up, covering them. Nothing caught it: every other
+   * multi fixture pages an *element*, whose pager sits on a panel header with nothing beside it, and a
+   * field with no instance renders no pager at all.
+   */
   test('shares a fact-free read-only title row with its chips', async ({ page }, testInfo) => {
     await open(page, '24-multi-authority-values', 'readonly', '24-multi-authority-values-instance');
 
@@ -2990,6 +2955,17 @@ test.describe('a multi-instance field paging its values', () => {
   });
 });
 
+/**
+ * Read-only is the host's alone.
+ *
+ * CEE offered the user a switch of its own, in a preferences menu, and it wrote
+ * straight to the state the widgets read — so a form embedded as a viewer could be
+ * made editable from inside it, and a host offering its own save button would then
+ * store the edits. Host configuration reached those widgets through that same
+ * control, which is why the control could override it, and why the menu had to stay
+ * instantiated even when configured invisible or read-only never arrived at all. Both
+ * the menu and the switch are gone, and `readOnlyMode` reaches the widgets directly.
+ */
 test.describe('read-only belongs to the host', () => {
   test('renders read-only from configuration alone', async ({ page }) => {
     await open(page, '01-input-types', 'readonly');
@@ -3319,21 +3295,6 @@ test.describe('date calendar selection', () => {
 });
 
 /**
- * A host page hears what CEE has to say.
- *
- * `eventHandler` is a documented input that was stored and read nowhere, so a host
- * passing one got silence. It now forwards `MessageHandlerService`'s traces and errors —
- * the narrow reading, since that service is where the value was always routed.
- *
- * Exercised through the real input on the real web component rather than the service in
- * isolation, which `harness/test/message-handler.spec.ts` already covers. The two halves
- * answer different questions: that one asks whether the contract holds, this one asks
- * whether the input is actually wired to it.
- *
- * No trigger is needed: CEE traces its config and its language-map choice on every load,
- * which is a real message from a real path rather than something contrived.
- */
-/**
  * Every icon CEE names has a glyph in the font CEE ships.
  *
  * The icon font is subsetted, and a ligature that is not in the subset does not
@@ -3373,6 +3334,21 @@ test.describe('the subsetted icon font', () => {
   });
 });
 
+/**
+ * A host page hears what CEE has to say.
+ *
+ * `eventHandler` is a documented input that was stored and read nowhere, so a host
+ * passing one got silence. It now forwards `MessageHandlerService`'s traces and errors —
+ * the narrow reading, since that service is where the value was always routed.
+ *
+ * Exercised through the real input on the real web component rather than the service in
+ * isolation, which `harness/test/message-handler.spec.ts` already covers. The two halves
+ * answer different questions: that one asks whether the contract holds, this one asks
+ * whether the input is actually wired to it.
+ *
+ * No trigger is needed: CEE traces its config and its language-map choice on every load,
+ * which is a real message from a real path rather than something contrived.
+ */
 test.describe('the host event handler', () => {
   test('receives CEE diagnostics through the web component input', async ({ page }) => {
     await open(page, '01-input-types', undefined, undefined, undefined, '&e=1');

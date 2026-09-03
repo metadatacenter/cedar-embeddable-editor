@@ -49,14 +49,14 @@ describe('a freshly opened template', () => {
   });
 });
 
+/**
+ * The skeleton is not where instances break. A field's empty slot carries
+ * whatever the build put there, so it conforms by construction; what fails is
+ * a *written* value whose shape no longer matches. Editing a temporal or
+ * numeric field dropped the `@type` its schema requires, and only a filled
+ * field shows it.
+ */
 describe('a populated template', () => {
-  /**
-   * The skeleton is not where instances break. A field's empty slot carries
-   * whatever the build put there, so it conforms by construction; what fails is
-   * a *written* value whose shape no longer matches. Editing a temporal or
-   * numeric field dropped the `@type` its schema requires, and only a filled
-   * field shows it.
-   */
   /**
    * A part-filled multi choice field does not satisfy its template, and should
    * not.

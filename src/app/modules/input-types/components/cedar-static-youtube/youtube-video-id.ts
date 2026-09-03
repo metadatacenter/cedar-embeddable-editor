@@ -30,8 +30,10 @@ export const isYouTubeHost = (hostname: string): boolean => {
  * fields, but return only a validated video ID. The caller can therefore build
  * an embed URL from a fixed origin instead of trusting template content as a
  * resource URL.
+ *
+ * Nullable for the same reason as `resolveStaticImageView`: the body opens with
+ * `value?.trim()`.
  */
-/** Nullable for the same reason as `resolveStaticImageView`: the body opens with `value?.trim()`. */
 export const extractYouTubeVideoId = (value: string | null | undefined): string | null => {
   const candidate = value?.trim();
   if (!candidate) {

@@ -29,6 +29,11 @@ import { RenderSchedulerService } from '../../service/render-scheduler.service';
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   private static INNER_VERSION = '2026-09-01 03:16 f7fdc417';
 
+  dataContext: DataContext | null = null;
+  handlerContext: HandlerContext | null = null;
+
+  pageBreakPaginatorService: PageBreakPaginatorService | null = null;
+
   /**
    * Whether the download menu exists.
    *
@@ -36,19 +41,6 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    * `expanded…` partners, each rendering a dump under the form. The host decides
    * whether the menu is offered; what it offers is fixed.
    */
-  /**
-   * Whether the host vouches for its template's rich text.
-   *
-   * A static rich-text field's body renders as HTML in the host's own origin. CEE
-   * sanitizes it unless this says otherwise, so an embedder that loads templates
-   * chosen by its own users is safe without having to know that. See the embedding
-   * security section of the README.
-   */
-  dataContext: DataContext | null = null;
-  handlerContext: HandlerContext | null = null;
-
-  pageBreakPaginatorService: PageBreakPaginatorService | null = null;
-
   showDownloadMenu = false;
 
   /**

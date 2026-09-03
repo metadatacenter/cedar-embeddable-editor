@@ -60,10 +60,9 @@ export class RecordingMessageHandler extends MessageHandlerService {
 
 export interface DriverOptions {
   readOnlyMode?: boolean;
-  /** Pre-load an existing instance, as the host page's `instanceObject` would. */
   /**
-   * An instance a host page hands over: a document, not a node of CEE's tree.
-   * It goes to `InstanceDeserializer.read` exactly as `instanceObject` would.
+   * An instance a host page hands over, pre-loaded as `instanceObject` would be: a
+   * document, not a node of CEE's tree. It goes to `InstanceDeserializer.read`.
    */
   instance?: object;
   /**
@@ -131,8 +130,9 @@ export class CeeDriver {
    * and fails with a sentence rather than a null dereference if it is ever
    * wrong. The tree itself, not a copy: writing through it edits what CEE holds,
    * which is what the malformed-node specs are for.
+   *
+   * The model rather than its data container, which is what `fullData` below returns.
    */
-  /** The instance CEE is editing, as the model it is. */
   get instance(): TemplateInstance {
     const instance = this.dataContext.instanceFullData;
     if (instance === null) {
@@ -209,7 +209,6 @@ export class CeeDriver {
   get qualityReport(): any {
     return JSON.parse(JSON.stringify(this.dataContext.dataQualityReport));
   }
-
 
   /** Locate a component by its template path, e.g. `['_element', '_field']`. */
   find(path: string[]): any {
