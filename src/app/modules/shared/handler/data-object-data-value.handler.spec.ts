@@ -48,6 +48,10 @@ const attributeValueFixture = (): Fixture => {
   dataContext.instanceFullData = { dataContainer: root } as unknown as TemplateInstance;
 
   const multi = new MultiInstanceObjectHandler();
+  // `HandlerContext` installs this, and the count is read through it. Without it
+  // every field reports zero occurrences, which puts the cursor off the end of a
+  // list that does have one — a state the editor cannot reach.
+  multi.setInstanceResolver((path) => (path.length === 1 ? root.values[path[0]] ?? null : null));
   multi.buildNewOrFromMetadata(template, root);
 
   return { handler: new DataObjectDataValueHandler(new MessageHandlerService()), dataContext, field, multi, root };

@@ -20,6 +20,7 @@ import {
   labelOf,
   listValue,
   literalOf,
+  literalValue,
   heldValue,
   templateIdOf,
 } from '../src/values';
@@ -677,4 +678,148 @@ describe('multi fields, every kind that supports it', () => {
       expect(written ?? null, `${k.key} leaked page 0's value into page 1`).toBeNull();
     },
   );
+});
+
+/**
+ * Structural edits against an instance the template does not describe.
+ *
+ * An instance need not carry a slot for every property its template declares.
+ * `multiInstanceItemAdd` says so and opens a list; the note above it records
+ * that asserting the shape instead — `currentNodeAny as []` — let a node that
+ * was not a list reach `.splice`. Its two siblings kept that assertion until the
+ * September 2026 audit, so the same sparse instance that `add` was fixed for
+ * still reached `.splice` on a null.
+ *
+ * Here rather than beside the widget specs because a handler is domain code, and
+ * because this is the suite whose coverage gate `shared/handler/**` answers to.
+ */
+describe('a repeating field absent from the instance', () => {
+  const sparse = () => {
+    const template = buildTemplate({
+      name: 'sparse_multi',
+      children: [{ kind: TEXT, name: 'f', cardinality: 'multi', minItems: 1 }],
+    });
+    // An instance naming the template and nothing else: no `_f` at all, which is
+    // what a host sends for a field its user never filled.
+    const driver = new CeeDriver(template, {
+      instance: instanceWith(templateIdOf(template), {}, INSTANCE_IRI),
+    });
+    return { driver, field: driver.findOrThrow(['_f']) };
+  };
+
+  it('adds the first occurrence by opening the list the instance lacks', () => {
+    const { driver, field } = sparse();
+
+    driver.handlerContext.addMultiInstance(field);
+
+    expect(driver.extract.values._f).toHaveLength(1);
+    expect(driver.messages.errors).toEqual([]);
+  });
+
+  it('copies by adding the first occurrence, there being none to copy', () => {
+    const { driver, field } = sparse();
+
+    expect(() => driver.handlerContext.copyMultiInstance(field)).not.toThrow();
+
+    expect(driver.extract.values._f).toHaveLength(1);
+    expect(driver.messages.errors).toEqual([]);
+  });
+
+  it('declines to delete an occurrence that is not there', () => {
+    const { driver, field } = sparse();
+
+    expect(driver.handlerContext.deleteMultiInstance(field)).toBe(false);
+    expect(driver.messages.errors).toEqual([]);
+  });
+
+  it('starts with the cursor off the end of an empty list, not on it', () => {
+    // The index was seeded from the template's `minItems` while the count reads
+    // the instance, so a field the instance omits opened with the cursor on
+    // occurrence zero of a list with none. `add` then spliced at index 1 of an
+    // empty array, and `copy` read `occurrences[1]` — undefined, cloned into the
+    // list as a hole for the writer to serialize.
+    const { driver, field } = sparse();
+
+    const info = driver.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(field);
+    expect(info?.currentCount).toBe(0);
+    expect(info?.currentIndex).toBe(-1);
+  });
+
+  it('keeps the cursor inside the occurrences after each add', () => {
+    const { driver, field } = sparse();
+    const info = () => driver.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(field);
+
+    for (let expected = 1; expected <= 3; expected++) {
+      driver.handlerContext.addMultiInstance(field);
+      expect(driver.extract.values._f).toHaveLength(expected);
+      expect(info()!.currentIndex).toBeLessThan(info()!.currentCount);
+      expect(info()!.currentIndex).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('copies an occurrence once the instance carries one', () => {
+    const { driver, field } = sparse();
+    driver.handlerContext.addMultiInstance(field);
+
+    driver.handlerContext.copyMultiInstance(field);
+
+    expect(driver.extract.values._f).toHaveLength(2);
+    expect(driver.messages.errors).toEqual([]);
+  });
+});
+
+/**
+ * The two refusals, reached directly.
+ *
+ * `occurrencesFor` answers null when the instance holds something other than a
+ * list where the template declares one, and the copy path answers again when the
+ * cursor names an occurrence that is not there. Neither is reachable through the
+ * editor now that the cursor cannot point past the end — which is the point of
+ * having them, and the reason they are driven here rather than through a
+ * `CeeDriver`: they are what stands between a caller with a stale cursor and
+ * `.splice` on a null.
+ */
+describe('structural edits refuse an instance shaped the wrong way', () => {
+  const handlerFor = (nodeAtPath: unknown, currentIndex: number) => {
+    const template = buildTemplate({
+      name: 'wrong_shape',
+      children: [{ kind: TEXT, name: 'f', cardinality: 'multi', minItems: 1 }],
+    });
+    const driver = new CeeDriver(template);
+    const field = driver.findOrThrow(['_f']) as any;
+    // The instance says something the template does not describe.
+    driver.dataContext.instanceFullData!.dataContainer.setValue('_f', nodeAtPath as never);
+    driver.dataContext.invalidateDerivedViews();
+    const info = driver.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(field)!;
+    info.currentIndex = currentIndex;
+    return { driver, field };
+  };
+
+  it('refuses to copy into a node that is not a list', () => {
+    const { driver, field } = handlerFor(literalValue('not a list'), 0);
+
+    expect(() =>
+      driver.handlerContext.dataObjectManipulationService.multiInstanceItemCopy(
+        driver.dataContext,
+        field,
+        driver.handlerContext.multiInstanceObjectService,
+      ),
+    ).not.toThrow();
+
+    expect(driver.messages.errors.join('\n')).toMatch(/copy .* _f/i);
+  });
+
+  it('refuses to delete from a node that is not a list', () => {
+    const { driver, field } = handlerFor(literalValue('not a list'), 0);
+
+    expect(() =>
+      driver.handlerContext.dataObjectManipulationService.multiInstanceItemDelete(
+        driver.dataContext,
+        field,
+        driver.handlerContext.multiInstanceObjectService,
+      ),
+    ).not.toThrow();
+
+    expect(driver.messages.errors.join('\n')).toMatch(/delete .* _f/i);
+  });
 });

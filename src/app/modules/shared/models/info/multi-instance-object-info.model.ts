@@ -18,8 +18,33 @@ import { MultiInstanceInfo } from './multi-instance-info.model';
  */
 export class MultiInstanceObjectInfo {
   readonly componentName: string;
-  currentIndex: number;
   occurrences: Array<MultiInstanceInfo>;
+
+  /**
+   * Which occurrence is on screen, and never one that is not there.
+   *
+   * The cursor is UI state and the count is a fact about the document, so the
+   * two can disagree — and they were seeded from different places. A component's
+   * starting index came from the *template's* `minItems`, while the count reads
+   * the *instance*, so a repeating field a sparse instance omits began with the
+   * cursor on occurrence zero of a list with none. Adding then spliced at
+   * `currentIndex + 1`, which is 1, into an empty list, and every add or copy
+   * pushed the cursor further past the end.
+   *
+   * Clamped here rather than at each of the eleven places that read it.
+   * `multiInstanceItemDelete` already did exactly this by hand afterwards, which
+   * is the rule stated once and maintained in one of the places it applies.
+   */
+  get currentIndex(): number {
+    const count = this.currentCount;
+    return count === 0 ? -1 : Math.min(this.storedIndex, count - 1);
+  }
+
+  set currentIndex(value: number) {
+    this.storedIndex = value;
+  }
+
+  private storedIndex = -1;
 
   /**
    * Where the count comes from: the live instance, at this component's path.
@@ -36,7 +61,6 @@ export class MultiInstanceObjectInfo {
   constructor(componentName: string, countSupplier: (() => number) | null = null) {
     this.componentName = componentName;
     this.countSupplier = countSupplier;
-    this.currentIndex = -1;
     this.occurrences = new Array<MultiInstanceInfo>();
   }
 
@@ -63,7 +87,7 @@ export class MultiInstanceObjectInfo {
   /** Copy cursor state and occurrence branches without copying the live document. */
   clone(): MultiInstanceObjectInfo {
     const copy = new MultiInstanceObjectInfo(this.componentName, this.countSupplier);
-    copy.currentIndex = this.currentIndex;
+    copy.storedIndex = this.storedIndex;
     copy.storedCount = this.storedCount;
     for (const occurrence of this.occurrences) {
       copy.addOccurrence(occurrence.clone());

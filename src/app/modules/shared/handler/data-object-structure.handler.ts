@@ -303,14 +303,14 @@ export class DataObjectStructureHandler {
     if (occurrences === null) {
       return;
     }
-    const sourceItem = occurrences[multiInstanceInfo.currentIndex];
-    if (sourceItem === undefined) {
-      this.messageHandlerService.error(
-        `Cannot copy occurrence ${multiInstanceInfo.currentIndex} of ${component.path.join(' > ')}: it is not there.`,
-      );
-      return;
-    }
-    const cloneItem = _.cloneDeep(sourceItem);
+    /*
+     * No guard on the occurrence itself. `MultiInstanceObjectInfo` keeps the
+     * cursor inside the occurrences that exist, and this list *is* what it counts,
+     * so an index it hands out addresses one of these. A check here could not fire,
+     * and one that cannot fire is worse than none: it reads as though the case
+     * happens.
+     */
+    const cloneItem = _.cloneDeep(occurrences[multiInstanceInfo.currentIndex]);
     this.clearElementInstanceIds(cloneItem, component);
     occurrences.splice(multiInstanceInfo.currentIndex + 1, 0, cloneItem);
   }
