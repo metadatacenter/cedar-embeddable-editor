@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.5] - 2026-09-03
+
+This release aligns CEE's build-time model dependency with the public
+`cedar-model-typescript-library@1.0.6` package. It also completes a pass over
+the editor's read/write interaction states and the presentation of supplied
+read-only instances.
+
+### Changed
+
+- Compact YAML downloads retain the artifact ID for templates, elements, fields, and instances.
+
+- Read-only instances present recorded values as values rather than editable controls. Multiple
+  selections read as a list, temporal values respect their declared granularity, authority and
+  controlled-term identifiers remain available as links, and multi-instance fields keep their
+  occurrence controls alongside the field heading.
+
+- Field specification text, numeric bounds, field and element identity markers, and the spacing of
+  editable forms are more compact and consistent.
+
+### Fixed
+
+- Loading, clearing, and rejecting an over-limit edit in a multi-select no longer leaves stale
+  selection or validation state, erases an existing answer, or writes while the form is read-only.
+
+- Required checkbox and multi-select fields now report an unanswered value correctly, and checkbox
+  view synchronization no longer mutates the instance.
+
+- Paging, copying, adding, deleting, and emptying repeated fields and attribute-value fields keep
+  the displayed occurrence, cursor, and serialized instance in agreement.
+
+- Temporal fields now preserve the selected year in month pickers, ignore an untouched AM/PM
+  control, restore invalid typed segments on blur, and display unreadable stored values explicitly.
+
+- Controlled-term searches honor value arrangements, distinguish empty and failed result states,
+  recover after an aborted suggestion click, and retain a labelless loaded term by its IRI.
+
+- Authority inputs no longer issue duplicate searches per keystroke and consistently reconcile
+  unselected free text on blur.
+
 ## [2.0.4] - 2026-09-01
 
 This release aligns CEE's build-time model dependency with the public
