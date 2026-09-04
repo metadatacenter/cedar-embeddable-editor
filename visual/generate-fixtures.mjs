@@ -1013,8 +1013,7 @@ const writeRaw = (name, document) => {
    * and each name is a sibling key holding its value. Learned from what CEE emits rather than assumed
    * — the names are data, so they cannot be in the template.
    */
-  writeRaw(
-    '22-multi-field-values-instance',
+  const twoAttributes = () =>
     instance('MultiFieldValues', {
       id: 'https://example.org/instances/multi-field-values-1',
       name: 'Multi-field values instance',
@@ -1024,8 +1023,19 @@ const writeRaw = (name, document) => {
         depth: literal('15 cm'),
         colour: literal('blue'),
       },
-    }),
-  );
+    });
+  writeRaw('22-multi-field-values-instance', twoAttributes());
+
+  /*
+   * The same instance as the workspace saves it, whose `@context` names the attribute-value field's
+   * own property. CEE mints no such term for a draft, so the document above carries none — and a
+   * read-only blur that rewrote the field's slot removed the term, which is the one difference a
+   * host could see. On the document above the rewrite produced an identical document and the
+   * editor's own de-duplication hid it.
+   */
+  const asSaved = twoAttributes();
+  asSaved['@context']._attribute = `https://schema.metadatacenter.org/properties/${id('_attribute')}`;
+  writeRaw('22-multi-field-values-context-instance', asSaved);
 }
 
 // 23. Non-enumerated defaults, plus an explicitly blank supplied instance.

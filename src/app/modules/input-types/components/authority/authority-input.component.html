@@ -93,11 +93,19 @@ genuinely theirs.
             blur, which is the whole point. It tells the blur handler that the
             blur it is about to see was caused by reaching for this option, not
             by leaving the field.
+
+            The value is the same text the box is compared against on blur and
+            when deciding whether it shows its term. It was assembled here a
+            second time, without the trimming `getCompoundValue` applies, so a
+            label with a stray space selected fine and then read as an edit.
+
+            `$event` goes along because this output also carries the deselection
+            of the previous option; see `onSelectionChange`.
           -->
           <mat-option
-            [value]="option.label + ' - ' + option.iri"
+            [value]="getCompoundValue(option)"
             (mousedown)="selectionStarting()"
-            (onSelectionChange)="onSelectionChange(option)"
+            (onSelectionChange)="onSelectionChange(option, $event)"
             >{{ getCompoundValue(option) }}</mat-option
           >
         }

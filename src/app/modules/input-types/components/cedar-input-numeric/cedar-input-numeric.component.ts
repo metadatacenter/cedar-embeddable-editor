@@ -104,7 +104,15 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
 
   inputChanged($event: Event): void {
     const typed = ($event.target as HTMLTextAreaElement).value;
-    this.handlerContext.changeValue(this.component, typed.length === 0 ? null : typed);
+    const value = typed.length === 0 ? null : typed;
+    // Judge the text that was typed. Angular's number accessor has already handed
+    // the control `parseFloat` of it, so `1.50` in a one-decimal field validated
+    // as `1.5` and passed, while the model held `1.50` and the quality report
+    // failed it — the widget and the report disagreeing about one value, which is
+    // what `CedarValidators` exists to prevent. The box already shows the text,
+    // so the view is left alone.
+    this.inputValueControl.setValue(value, { emitModelToViewChange: false });
+    this.handlerContext.changeValue(this.component, value);
   }
 
   setCurrentValue(currentValue: unknown): void {

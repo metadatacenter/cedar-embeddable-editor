@@ -116,7 +116,7 @@ describe('CedarInputDatetimeComponent by granularity', () => {
   const makeField = (
     temporalType: string,
     granularity: string,
-    { timezoneEnabled = false, inputTimeFormat = '' } = {},
+    { timezoneEnabled = false, inputTimeFormat = '', requiredValue = false } = {},
   ): { component: CedarInputDatetimeComponent; written: (string | null)[] } => {
     const registry = {
       registerComponent: vi.fn(),
@@ -135,7 +135,7 @@ describe('CedarInputDatetimeComponent by granularity', () => {
     );
     component.componentToRender = {
       basicInfo: { temporalGranularity: granularity, timezoneEnabled, inputTimeFormat, inputType: InputType.temporal },
-      valueInfo: { temporalType, requiredValue: false },
+      valueInfo: { temporalType, requiredValue },
       path: ['when'],
     } as unknown as FieldComponent;
     const written: (string | null)[] = [];
@@ -144,6 +144,51 @@ describe('CedarInputDatetimeComponent by granularity', () => {
     } as never;
     return { component, written };
   };
+
+  /**
+   * When the field says what is wrong with its value.
+   *
+   * A part picked from a popup — a date from the calendar, an offset from the
+   * list — is an edit like any other, and used to count as none: the signal
+   * was DOM events on the widget, and Material dispatches none for either. A
+   * required dateTime with only its date picked therefore stored nothing and
+   * said nothing, over a box that looked half filled.
+   */
+  describe('what it says', () => {
+    it('says a required field is still unanswered once only its date has been picked', () => {
+      const { component, written } = makeField(Xsd.dateTime, Temporal.minute, { requiredValue: true });
+
+      component.dateInputChanged(new Date(2027, 5, 17));
+
+      expect(written.at(-1)).toBeNull();
+      expect(component.showsValidationMessage).toBe(true);
+      expect(component.validationMessage()).toBe('The value is required.');
+    });
+
+    it('says the same once only an offset has been chosen', () => {
+      const { component } = makeField(Xsd.dateTime, Temporal.minute, { timezoneEnabled: true, requiredValue: true });
+
+      component.timezoneInputChanged({ id: '+02:00', label: 'UTC+02:00' });
+
+      expect(component.showsValidationMessage).toBe(true);
+    });
+
+    it('says nothing about a required field nobody has touched', () => {
+      const { component } = makeField(Xsd.dateTime, Temporal.minute, { requiredValue: true });
+
+      expect(component.showsValidationMessage).toBe(false);
+    });
+
+    it('says nothing once both halves are in', () => {
+      const { component } = makeField(Xsd.dateTime, Temporal.minute, { requiredValue: true });
+      component.dateInputChanged(new Date(2027, 5, 17));
+
+      component.timePickerTime = new Date(2027, 5, 17, 14, 30, 0);
+      component.timeInputChanged(null);
+
+      expect(component.showsValidationMessage).toBe(false);
+    });
+  });
 
   describe('which controls it offers', () => {
     it('offers a date and no clock for an xsd:date field', () => {

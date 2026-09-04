@@ -23,7 +23,7 @@ import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
-import { ErrorStateMatcher } from '@angular/material/core';
+import { ErrorStateMatcher, MatOptionSelectionChange } from '@angular/material/core';
 import { Observable, of, timer } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -210,7 +210,20 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     this.selectionInProgress = true;
   }
 
-  onSelectionChange(option: AuthorityTerm): void {
+  /**
+   * A suggestion the user chose.
+   *
+   * Material reports through this same output the option it *deselects* when a
+   * new one is chosen, and that report arrives after the choice. This widget
+   * reopens its panel on a click, so a second pick from a list that still held
+   * the first term's option recorded the first term over the second, and the
+   * next blur then "reverted" the box to it. `isUserInput` tells a choice from
+   * its echo, and is the only thing about the event this needs.
+   */
+  onSelectionChange(option: AuthorityTerm, { isUserInput }: Pick<MatOptionSelectionChange, 'isUserInput'>): void {
+    if (!isUserInput) {
+      return;
+    }
     this.selectionInProgress = false;
     // `|| null` because a term arriving without a label is a state this component
     // already handles — `filter` drops such items from the list — and null is what

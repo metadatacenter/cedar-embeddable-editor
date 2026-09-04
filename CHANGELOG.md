@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- A required external authority field emptied by its clear action or by deleting its text reports
+  the requirement again, instead of reporting itself satisfied over nothing.
+
+- Choosing a second controlled term or authority term from a suggestion list that still holds the
+  first records the second. Material reports the deselection of the first through the same output,
+  after the choice, and that report used to overwrite the new value.
+
+- The clock shows the minutes and seconds the field stores once the user leaves it, rather than
+  leaving their placeholders over a recorded `00`.
+
+- A required temporal field says it is unanswered once a date has been picked from the calendar or
+  an offset chosen from the list and the value is still incomplete.
+
+- A read-only attribute-value field no longer rewrites its slot, or publishes a change event, when
+  its name box loses focus.
+
+- Paging a read-only repeating text field from an occurrence holding an ORCID or ROR to one holding
+  plain text no longer renders the text as a link to the previous occurrence's identifier, and the
+  widget returns to an input over the whole identifier should read-only mode be switched off.
+
+- A numeric field validates the text the user typed rather than the number the browser parsed from
+  it, so the widget and the data quality report reach the same verdict on values such as `1.50` in a
+  one-decimal field.
+
 ## [2.0.5] - 2026-09-03
 
 This release aligns CEE's build-time model dependency with the public

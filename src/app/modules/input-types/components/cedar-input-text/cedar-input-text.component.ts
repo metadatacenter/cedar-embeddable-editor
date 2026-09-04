@@ -74,17 +74,25 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  checkHTMLContent(value: string): void {
-    if (this.htmlDetectService.isHtmlString(value)) {
-      this.isRichText = true;
-    }
-  }
+  /**
+   * Re-derive the presentation from the value in hand.
+   *
+   * A persistent identifier's link and rich text's markup are read-only
+   * presentations; editable, the box is an input over the stored value whatever
+   * it holds. Only the rich-text flag used to be lowered here, so a form
+   * switched from reading to editing kept the ORCID link where the input should
+   * be, and the field could not be edited. `originalValue` is the whole
+   * identifier, of which the box shows only the last segment.
+   *
+   * The view is marked afterwards, through the base class. Which of the three
+   * renderings this template draws is decided here and nowhere a template event
+   * could mark it, and while the link is drawn there is no form field beneath it
+   * whose control could mark the view either — so without this the switch to
+   * editable left the link standing until something else happened to redraw.
+   */
   protected override onReadOnlyModeChange(mode: boolean): void {
-    if (mode) {
-      this.checkHTMLContent(this.inputValueControl.value ?? '');
-    } else {
-      this.isRichText = false;
-    }
+    this.setCurrentValue(this.originalValue ?? this.inputValueControl.value);
+    super.onReadOnlyModeChange(mode);
   }
   inputChanged($event: Event): void {
     // An emptied box clears the field rather than storing '', which is what the
@@ -94,22 +102,19 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
   }
 
   setCurrentValue(currentValue: unknown): void {
-    // Narrowed once, at the top. Everything in here reads the value as text — the
-    // HTML sniff and both IRI patterns — so proving it is a string here replaces the
-    // two `as string` casts that used to state the same fact twice.
-    if (this.readOnlyMode && typeof currentValue === 'string') {
-      this.checkHTMLContent(currentValue);
-      if (this.checkOrcid(currentValue)) {
-        this.isOrcid = true;
-        this.originalValue = currentValue;
-        currentValue = currentValue.split('/').pop();
-      } else if (this.checkRor(currentValue)) {
-        this.isRor = true;
-        this.originalValue = currentValue;
-        currentValue = currentValue.split('/').pop();
-      }
-    }
-    this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
+    const text = typeof currentValue === 'string' ? currentValue : null;
+    // Every flag is decided for this value, not merely raised by it. They were
+    // set and never cleared, so the one widget a repeating field reuses, paging
+    // from an occurrence holding an ORCID to one holding plain text, went on
+    // rendering the text as a link — to the previous occurrence's ORCID. The
+    // presentations exist only while reading; editable, the box holds the text.
+    const presented = this.readOnlyMode ? text : null;
+    this.isOrcid = presented !== null && this.checkOrcid(presented);
+    this.isRor = presented !== null && this.checkRor(presented);
+    this.isRichText = presented !== null && this.htmlDetectService.isHtmlString(presented);
+    this.originalValue = this.isOrcid || this.isRor ? presented : null;
+    // An identifier is shown by its last segment; the link keeps the whole IRI.
+    this.inputValueControl.setValue(this.originalValue === null ? text : this.originalValue.split('/').pop() ?? null);
   }
 
   /**

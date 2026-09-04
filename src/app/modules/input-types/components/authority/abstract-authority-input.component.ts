@@ -1,6 +1,6 @@
 import { AfterViewInit, Directive, Input, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ErrorStateMatcher } from '@angular/material/core';
+import { ErrorStateMatcher, MatOptionSelectionChange } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Observable, of, timer } from 'rxjs';
 import { debounceTime, distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
@@ -216,8 +216,17 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     this.selectionInProgress = true;
   }
 
-  onSelectionChange(option: AuthorityTerm): void {
-    if (!option) {
+  /**
+   * A suggestion the user chose.
+   *
+   * Material reports through this same output the option it *deselects* when a
+   * new one is chosen, and that report arrives after the choice — so a handler
+   * reading only the option it was bound to recorded the old term over the new
+   * one whenever the panel still listed both. `isUserInput` is what tells a
+   * choice from its echo, and is the only thing about the event this needs.
+   */
+  onSelectionChange(option: AuthorityTerm, { isUserInput }: Pick<MatOptionSelectionChange, 'isUserInput'>): void {
+    if (!option || !isUserInput) {
       return;
     }
     this.selectionInProgress = false;
@@ -306,10 +315,18 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     this.inputValueControl.setValue(this.getCompoundValue(value), { emitEvent: true });
   }
 
+  /**
+   * Empty the box and the value behind it.
+   *
+   * Nothing here clears the control's errors. It did, from the days when
+   * `CedarValidators.forComponent` sat on this control and put a pattern error
+   * under every keystroke; with that gone, the only validator left is
+   * `required`, and wiping it left a required field emptied by backspacing
+   * reporting itself satisfied over nothing — and the notice under it unlit.
+   */
   clearValue(): void {
     this.selectedData = null;
     this.inputValueControl.setValue(null);
-    this.inputValueControl.setErrors(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
 

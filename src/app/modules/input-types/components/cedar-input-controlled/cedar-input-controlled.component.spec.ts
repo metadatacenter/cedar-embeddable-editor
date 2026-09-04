@@ -334,23 +334,39 @@ describe('CedarInputControlledComponent', () => {
     it('records both halves', () => {
       const { component, written } = makeComponent();
 
-      component.onSelectionChange(TERM);
+      component.onSelectionChange(TERM, { isUserInput: true });
 
       expect(written).toEqual([{ iri: TERM.iri, label: TERM.label }]);
+      expect(component.selectedData).toEqual(TERM);
+    });
+
+    it('ignores the report of the option it deselected', () => {
+      // Material reports the deselection of the previous option through the same
+      // output, after the choice. This panel reopens on a click, so a second pick
+      // from a list still holding the first term's option arrived as: B chosen,
+      // then A deselected — and the handler recorded A over B.
+      const { component, written } = makeComponent();
+      const previous: AuthorityTerm = { iri: 'http://purl.obolibrary.org/obo/DOID_4', label: 'disease' };
+      component.onSelectionChange(previous, { isUserInput: true });
+      component.onSelectionChange(TERM, { isUserInput: true });
+
+      component.onSelectionChange(previous, { isUserInput: false });
+
+      expect(written.at(-1)).toEqual({ iri: TERM.iri, label: TERM.label });
       expect(component.selectedData).toEqual(TERM);
     });
 
     it('records a term with no label as holding none', () => {
       const { component, written } = makeComponent();
 
-      component.onSelectionChange({ iri: TERM.iri, label: '' });
+      component.onSelectionChange({ iri: TERM.iri, label: '' }, { isUserInput: true });
 
       expect(written).toEqual([{ iri: TERM.iri, label: null }]);
     });
 
     it('clears both the box and the value', () => {
       const { component, written } = makeComponent();
-      component.onSelectionChange(TERM);
+      component.onSelectionChange(TERM, { isUserInput: true });
       written.length = 0;
 
       component.clearValue();
@@ -362,7 +378,7 @@ describe('CedarInputControlledComponent', () => {
 
     it('clears the value when the box is emptied', () => {
       const { component, written } = makeComponent();
-      component.onSelectionChange(TERM);
+      component.onSelectionChange(TERM, { isUserInput: true });
       written.length = 0;
 
       component.inputChanged({ target: { value: '' } } as unknown as Event);
@@ -400,7 +416,7 @@ describe('CedarInputControlledComponent', () => {
 
     it('restores the chosen term when the text was edited away from it', () => {
       const { component, written } = makeComponent();
-      component.onSelectionChange(TERM);
+      component.onSelectionChange(TERM, { isUserInput: true });
       written.length = 0;
       component.inputValueControl.setValue('canc');
 
@@ -453,7 +469,7 @@ describe('CedarInputControlledComponent', () => {
     it('restores the selected term when the panel closes without a choice', () => {
       const { component } = makeComponent();
       const closing = withTrigger(component);
-      component.onSelectionChange(TERM);
+      component.onSelectionChange(TERM, { isUserInput: true });
       component.inputValueControl.setValue('typed over it');
 
       closing.next(null);
@@ -467,7 +483,7 @@ describe('CedarInputControlledComponent', () => {
       // close, while CEE restores it only on a cancellation close.
       const { component } = makeComponent();
       const closing = withTrigger(component);
-      component.onSelectionChange(TERM);
+      component.onSelectionChange(TERM, { isUserInput: true });
       component.inputValueControl.setValue('selection-owned value');
 
       closing.next({ source: {} });

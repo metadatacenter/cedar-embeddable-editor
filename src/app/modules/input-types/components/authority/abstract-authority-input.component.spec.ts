@@ -244,7 +244,7 @@ describe('AbstractAuthorityInputComponent', () => {
 
     it('restores the selected term when the text was edited away from it', () => {
       const { component, written } = makeComponent();
-      component.onSelectionChange(TERM);
+      component.onSelectionChange(TERM, { isUserInput: true });
       written.length = 0;
       component.inputValueControl.setValue('Bisphen');
 
@@ -266,7 +266,7 @@ describe('AbstractAuthorityInputComponent', () => {
 
     it('does nothing to a field showing exactly its term', () => {
       const { component, written } = makeComponent();
-      component.onSelectionChange(TERM);
+      component.onSelectionChange(TERM, { isUserInput: true });
       component.setCurrentValue(TERM);
       written.length = 0;
 
@@ -305,16 +305,31 @@ describe('AbstractAuthorityInputComponent', () => {
     it('records the term behind it', () => {
       const { component, written } = makeComponent();
 
-      component.onSelectionChange(TERM);
+      component.onSelectionChange(TERM, { isUserInput: true });
 
       expect(written).toEqual([{ iri: TERM.iri, label: TERM.label }]);
+      expect(component.selectedData).toEqual(TERM);
+    });
+
+    it('ignores the report of the option it deselected', () => {
+      // Material reports the deselection of the previous option through the same
+      // output, after the choice, so a pick from a list still holding the previous
+      // term's option arrived as: B chosen, then A deselected.
+      const { component, written } = makeComponent();
+      const previous = { iri: 'https://example.org/DTXSID3020000', label: 'Something else' };
+      component.onSelectionChange(previous, { isUserInput: true });
+      component.onSelectionChange(TERM, { isUserInput: true });
+
+      component.onSelectionChange(previous, { isUserInput: false });
+
+      expect(written.at(-1)).toEqual({ iri: TERM.iri, label: TERM.label });
       expect(component.selectedData).toEqual(TERM);
     });
 
     it('records nothing for a suggestion carrying neither half', () => {
       const { component, written } = makeComponent();
 
-      component.onSelectionChange({ iri: '', label: '' });
+      component.onSelectionChange({ iri: '', label: '' }, { isUserInput: true });
 
       expect(written).toEqual([{ iri: null, label: null }]);
     });
@@ -328,7 +343,7 @@ describe('AbstractAuthorityInputComponent', () => {
 
     it('clears both the box and the value', () => {
       const { component, written } = makeComponent();
-      component.onSelectionChange(TERM);
+      component.onSelectionChange(TERM, { isUserInput: true });
       written.length = 0;
 
       component.clearValue();
@@ -354,7 +369,7 @@ describe('AbstractAuthorityInputComponent', () => {
     it('puts the selected term back when it closes without one being chosen', () => {
       const harness = makeComponent();
       const closing = withTrigger(harness);
-      harness.component.onSelectionChange(TERM);
+      harness.component.onSelectionChange(TERM, { isUserInput: true });
       harness.component.inputValueControl.setValue('typed over it');
 
       closing.next(null);
@@ -365,7 +380,7 @@ describe('AbstractAuthorityInputComponent', () => {
     it('leaves the box alone when a suggestion is what closed it', () => {
       const harness = makeComponent();
       const closing = withTrigger(harness);
-      harness.component.onSelectionChange(TERM);
+      harness.component.onSelectionChange(TERM, { isUserInput: true });
       harness.component.inputValueControl.setValue('mid-selection');
 
       closing.next({ source: {} });
@@ -440,7 +455,7 @@ describe('AbstractAuthorityInputComponent', () => {
 
     it('offers nothing when the box already holds the term it would offer', () => {
       const harness = makeComponent({ results: [TERM] });
-      harness.component.onSelectionChange(TERM);
+      harness.component.onSelectionChange(TERM, { isUserInput: true });
       harness.component.setCurrentValue(TERM);
       let found: unknown[] = [];
 

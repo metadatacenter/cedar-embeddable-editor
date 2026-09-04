@@ -268,6 +268,28 @@ test.describe('the time picker', () => {
     expect(String(await storedValue(page, '_to_the_minute'))).toContain('14:');
   });
 
+  /**
+   * The boxes the user did not type into show what the field stores once the user leaves.
+   *
+   * A typed hour stores `14:00:00`, and the model writes that instant back while the hour
+   * still has focus. `writeValue` rightly leaves drafts alone during an edit, so on leaving
+   * the clock the minute box went on reading `MM` over a stored `00` — a placeholder standing
+   * over a value, which is the one thing the letter placeholders exist to rule out.
+   */
+  test('leaving the clock shows the minutes the field padded', async ({ page }) => {
+    await open(page, '09-temporal');
+    const picker = pickerFor(page, 'to_the_minute');
+    const hour = picker.locator('input[aria-label="Hour"]');
+    const minute = picker.locator('input[aria-label="Minute"]');
+    await hour.fill('14');
+    await expect(minute, 'not while the user is still in the clock').toHaveValue('');
+
+    await hour.blur();
+
+    await expect(minute).toHaveValue('00');
+    expect(String(await storedValue(page, '_to_the_minute'))).toContain('14:00');
+  });
+
   test('an out-of-range typed hour waits for blur, then restores instead of wrapping', async ({ page }) => {
     await open(page, '09-temporal');
     const picker = pickerFor(page, 'to_the_minute');

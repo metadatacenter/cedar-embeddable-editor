@@ -2461,6 +2461,55 @@ test.describe('controlled terminology selection', () => {
     ).toHaveCount(1);
   });
 
+  /**
+   * A second pick from a list that still holds the first records the second.
+   *
+   * Material reports the deselection of the previous option through the same output as the
+   * choice, and after it. This panel reopens on a click, and its list is only replaced once the
+   * lookup for the newly chosen label answers — so a user who chose one term, clicked the box
+   * again and chose another before that answer arrived had the first recorded over the second,
+   * and the next blur then "reverted" the box to it. The lookup for the chosen label is left
+   * unanswered here, which is that race made certain.
+   */
+  test('a second pick from the list the first pick left behind records the second term', async ({ page }) => {
+    // Both name the word typed, because the widget narrows what the server returns to the query.
+    const terms = [
+      { id: 'http://purl.obolibrary.org/obo/NCBITaxon_9606', label: 'Homo sapiens' },
+      { id: 'http://purl.obolibrary.org/obo/NCBITaxon_63221', label: 'Homo neanderthalensis' },
+    ];
+    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
+      const asked = route.request().postDataJSON()?.parameterObject?.inputText;
+      if (asked === terms[0].label) {
+        // The lookup for the chosen label. Unanswered, so the list is not replaced.
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          collection: terms.map((term) => ({ id: term.id, '@id': term.id, prefLabel: term.label })),
+        }),
+      });
+    });
+
+    await open(page, '04-controlled-terms');
+    const field = page.locator('input[aria-label="organism"]');
+    await field.pressSequentially('Homo', { delay: 40 });
+    await passDebounceWindow(page);
+    await page.locator('mat-option').filter({ hasText: terms[0].label }).click();
+    await expect(field).toHaveValue(terms[0].label);
+
+    await field.click();
+    const second = page.locator('mat-option').filter({ hasText: terms[1].label });
+    await expect(second, 'the list the first pick left behind').toBeVisible();
+    await second.click();
+    await field.blur();
+
+    await expect(field, 'the second pick stands').toHaveValue(terms[1].label);
+    await expect(page.locator('.input-warning'), 'and nothing was reverted').toHaveCount(0);
+    expect(termOf(await currentMetadata(page), '_organism').iri).toBe(terms[1].id);
+  });
+
   test('a labelless loaded term falls back to its IRI and can be cleared', async ({ page }) => {
     const iri = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
     await open(page, '04-controlled-terms', undefined, '04-controlled-terms-labelless-instance');
@@ -3180,6 +3229,33 @@ test.describe('read-only belongs to the host', () => {
       await page.evaluate(() => JSON.stringify(document.querySelector('cedar-embeddable-editor')!.currentMetadata)),
       'and nothing reached the instance',
     ).toBe(before);
+  });
+
+  /**
+   * Nothing a reader does to a read-only form reaches the host.
+   *
+   * `readonly` on an input stops keystrokes and nothing else: focus and blur still arrive, and a
+   * widget bound to a blur decides for itself whether it means anything. The attribute-value field
+   * decided wrong — its name box rewrote the slot on every blur and dropped the field's own context
+   * term doing it, so tabbing through a read-only form published a change event carrying an
+   * instance nobody had edited. The instance here carries that term, as one saved by the workspace
+   * does; on the suite's other attribute instance the rewrite produced an identical document and the
+   * editor's own de-duplication hid the defect.
+   */
+  test('publishes nothing when a reader moves through a populated form', async ({ page }) => {
+    await open(page, '22-multi-field-values', 'readonly', '22-multi-field-values-context-instance');
+    await recordChanges(page);
+    const before = JSON.stringify(await currentMetadata(page));
+    expect(before, 'the instance arrived with its context term').toContain('properties/');
+
+    for (const input of await page.locator('input').all()) {
+      await input.focus();
+      await input.blur();
+    }
+    await page.waitForTimeout(300);
+
+    expect(await changeDetails(page), 'a read-only form has nothing to report').toEqual([]);
+    expect(JSON.stringify(await currentMetadata(page))).toBe(before);
   });
 
   test('offers the user nothing that leaves read-only', async ({ page }) => {

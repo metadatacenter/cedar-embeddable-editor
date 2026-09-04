@@ -60,11 +60,15 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
    * `xsd:dateTime`. Reporting that would put an error on a form nobody has
    * touched.
    *
-   * Driven by real DOM events rather than by the change handlers: assigning
-   * `timePickerTime` fires the timepicker's `ngModelChange` exactly as a user
-   * edit does, and `setCurrentValue` can arrive on a later tick, so neither the
-   * handlers nor a post-init reset can tell the two apart. A programmatic
-   * assignment dispatches no `input` or `change` event; a user action does.
+   * Set on two signals, and both are needed. `writeValue` is one: only the part
+   * handlers and the clear action reach it, and each of those is a user acting
+   * on a part, while a value the model pushes in arrives through
+   * `setCurrentValue` and never comes near it. The host listeners below are the
+   * other: a keystroke the clock rejects emits nothing and reaches no handler,
+   * and still leaves a field somebody has touched. Until `writeValue` set it, a
+   * date picked from the calendar and an offset chosen from the list set it
+   * through neither — Material dispatches no DOM event for either — so a
+   * required dateTime with only its date picked stored nothing and said nothing.
    */
   userEdited = false;
 
@@ -150,7 +154,6 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.timePickerTime = null;
     this.decimalSeconds = null;
     this.timezone = null;
-    this.userEdited = true;
     this.writeValue();
   }
 
@@ -261,6 +264,8 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   }
 
   private writeValue(): void {
+    // Only a user reaches here; see `userEdited`.
+    this.userEdited = true;
     const stored = this.datetimeParsed.toStorageRepresentation(this.temporalConfiguration());
     // An edit replaces whatever could not be read, so the notice about it goes.
     this.unreadableValue = null;

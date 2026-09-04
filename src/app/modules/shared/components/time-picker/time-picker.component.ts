@@ -296,6 +296,13 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit {
     const movingWithinClock = next instanceof HTMLElement && next.classList.contains('cee-time-segment');
     if (!movingWithinClock && this.editingSegment === field) {
       this.editingSegment = null;
+      // Leaving the clock, every box shows what the instant holds. The model
+      // wrote the other segments back while this one was being typed into — a
+      // typed hour stores `09:00:00` — and `writeValue` rightly leaves drafts
+      // alone during an edit, so `MM` and `SS` stood over a stored `00` until
+      // something else wrote the value in again. A placeholder is the one thing
+      // that must not stand over a value.
+      this.syncDrafts();
     }
     if (this.replaceOnNextKey === field) {
       this.replaceOnNextKey = null;
