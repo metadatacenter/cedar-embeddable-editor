@@ -59,10 +59,22 @@ describe('CedarInputCheckboxComponent', () => {
     return { component, written };
   };
 
-  /** What the browser sends when someone clicks an option: the label, and the new state. */
+  /**
+   * What the browser sends when someone clicks an option: the label, and the new
+   * state. Material's own accessor has marked the option's control dirty by then,
+   * during the click, before the `input` event this widget reads.
+   */
   const click = (harness: Harness, label: string, checked: boolean): void => {
+    const index = harness.component.component.choiceInfo.choices.findIndex((choice) => choice.label === label);
+    harness.component.options.get(harness.component.controlNameFor(index))?.markAsDirty();
     const target = { value: label, checked } as HTMLInputElement;
     harness.component.inputChanged({ target } as unknown as Event);
+  };
+
+  /** What Material does when a box loses focus: marks its control touched. */
+  const leave = (harness: Harness, label: string): void => {
+    const index = harness.component.component.choiceInfo.choices.findIndex((choice) => choice.label === label);
+    harness.component.options.get(harness.component.controlNameFor(index))?.markAsTouched();
   };
 
   it('records a ticked option whose label contains a period', () => {
@@ -150,12 +162,30 @@ describe('CedarInputCheckboxComponent', () => {
     const harness = makeComponent(['A', 'B'], [], null, true);
     harness.component.ngOnInit();
 
-    expect(harness.component.showsRequiredError).toBe(true);
-
     click(harness, 'A', true);
     expect(harness.component.showsRequiredError).toBe(false);
 
     click(harness, 'A', false);
+    expect(harness.component.showsRequiredError).toBe(true);
+  });
+
+  it('says nothing about a required group nobody has been near', () => {
+    // Every other widget waits for a touched or dirty control before stating a
+    // requirement. This one spoke on first render, so an empty form opened with
+    // red notices under its required checkbox groups and nowhere else.
+    const harness = makeComponent(['A', 'B'], [], null, true);
+    harness.component.ngOnInit();
+
+    expect(harness.component.options.hasError('required'), 'the verdict is there').toBe(true);
+    expect(harness.component.showsRequiredError, 'and is not yet stated').toBe(false);
+  });
+
+  it('says so once a required group has been left empty', () => {
+    const harness = makeComponent(['A', 'B'], [], null, true);
+    harness.component.ngOnInit();
+
+    leave(harness, 'A');
+
     expect(harness.component.showsRequiredError).toBe(true);
   });
 

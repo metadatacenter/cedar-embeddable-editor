@@ -52,7 +52,6 @@
     "DeleteCurrent": "Aktuális törlése"
   },
   "Error": {
-    "ValueRequired": "A mező kitöltése kötelező",
     "LookupFailed": "A keresés sikertelen: a szolgáltatás nem érhető el",
     "NoResults": "Nincs találat",
     "NoTermsAvailable": "Nincs elérhető fogalom"
@@ -86,6 +85,11 @@
   "Validation": {
     "SelectAtLeastOne": "Legalább egy lehetőséget ki kell választani.",
     "Required": "Az érték megadása kötelező.",
+    "Temporal": {
+      "MissingDate": "A dátum még hiányzik. Amíg az érték nem teljes, semmi nem kerül rögzítésre.",
+      "MissingTime": "Az időpont még hiányzik. Amíg az érték nem teljes, semmi nem kerül rögzítésre.",
+      "MissingFraction": "A másodperc törtrésze még hiányzik. Amíg az érték nem teljes, semmi nem kerül rögzítésre."
+    },
     "Text": {
       "MinLength": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
       "MaxLength": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet."

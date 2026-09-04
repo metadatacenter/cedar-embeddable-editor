@@ -96,6 +96,25 @@ describe('CedarInputNumericComponent', () => {
     expect(component.inputValueControl.valid).toBe(true);
   });
 
+  /**
+   * The step the spinner moves by, from the declared type and places. The
+   * browser's default is one, which stepped a two-place field past every value
+   * it is for.
+   */
+  it.each([
+    ['an integer', { numberType: Xsd.int }, '1'],
+    ['a long', { numberType: Xsd.long }, '1'],
+    ['a decimal with two places', { numberType: Xsd.decimal, decimalPlace: 2 }, '0.01'],
+    ['a float with one place', { numberType: Xsd.float, decimalPlace: 1 }, '0.1'],
+    ['a decimal with no places', { numberType: Xsd.decimal, decimalPlace: 0 }, '1'],
+    ['a double declaring no places', { numberType: Xsd.double }, 'any'],
+    ['a field declaring no type', {}, 'any'],
+  ] as const)('steps %s by %s', (_name, numberInfo, step) => {
+    const { component } = makeComponent(numberInfo);
+
+    expect(component.step).toBe(step);
+  });
+
   it('rejects exponent notation for an integer, as the report does', () => {
     const { component } = makeComponent({ numberType: Xsd.int });
 

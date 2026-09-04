@@ -1010,18 +1010,30 @@ test('radio selection uses primary color and keeps Clear on the selected row', a
  * nobody, which every stage but this one reports as working. Not one checkbox
  * field in any other fixture is required, so no baseline could have caught it.
  */
-test('a required checkbox group says so until an option is ticked', async ({ page }) => {
+/**
+ * A required checkbox group says so once it has been left empty, and not before.
+ *
+ * Every other widget waits for a touched or dirty control before stating a requirement, and this
+ * one used to speak on first render — an empty form opened with red notices under its required
+ * checkbox groups and nowhere else. Leaving a box is what makes it speak, as it is for a text field.
+ */
+test('a required checkbox group says so once it has been left empty, until an option is ticked', async ({ page }) => {
   await open(page, '25-required-choices');
 
   const group = page.locator('app-cedar-input-checkbox').first();
   const notice = group.locator('mat-error');
+  await expect(notice, 'a form nobody has touched states no requirement').toHaveCount(0);
+
+  const agree = group.getByRole('checkbox', { name: 'Agree' });
+  await agree.focus();
+  await agree.blur();
   await expect(notice).toBeVisible();
   await expect(notice).toHaveText(/at least one/i);
 
-  await group.getByRole('checkbox', { name: 'Agree' }).click();
+  await agree.click();
   await expect(notice).toHaveCount(0);
 
-  await group.getByRole('checkbox', { name: 'Agree' }).click();
+  await agree.click();
   await expect(group.locator('mat-error')).toBeVisible();
 });
 
@@ -1263,6 +1275,28 @@ test('numeric fields state their bounds in words', async ({ page }) => {
 });
 
 /**
+ * The spinner steps a numeric field by the precision the field declares.
+ *
+ * The browser's default step is one, which is right for an integer and wrong for a field declaring
+ * two decimal places: the arrows stepped past every value the field is for and snapped a typed
+ * `1.25` to a whole number. The step is derived from the declared type and places, so the arrows
+ * move by the smallest amount the field records.
+ */
+test('the spinner steps a numeric field by its declared precision', async ({ page }) => {
+  await open(page, '17-real-flat');
+
+  const twoPlaces = page.locator('input[aria-label="Numeric Decimal (2 dp)"]');
+  const fourPlaces = page.locator('input[aria-label="Numeric Decimal (4 dp)"]');
+  await expect(twoPlaces).toHaveAttribute('step', '0.01');
+  await expect(fourPlaces).toHaveAttribute('step', '0.0001');
+
+  await twoPlaces.fill('1.25');
+  await twoPlaces.press('ArrowUp');
+
+  await expect(twoPlaces).toHaveValue('1.26');
+});
+
+/**
  * One type size for a field's label and for the value inside it.
  *
  * They were two. CEE's chrome is `$cee-font-size`, and Material's typography
@@ -1345,7 +1379,7 @@ test('a field states its label and its value at one size', async ({ page }) => {
  *  - `app-orcid-details` and `app-ror-details` only render after a term is
  *    selected, which needs a reachable authority service.
  */
-const WIDGETS = [
+const WIDGETS: { name: string; selector: string; fixture: string; nth: number; touched?: boolean }[] = [
   { name: 'input-text', selector: 'app-cedar-input-text', fixture: '01-input-types', nth: 0 },
   { name: 'input-textarea', selector: 'app-cedar-input-text', fixture: '01-input-types', nth: 1 },
   { name: 'input-numeric', selector: 'app-cedar-input-numeric', fixture: '01-input-types', nth: 0 },
@@ -1355,8 +1389,16 @@ const WIDGETS = [
   { name: 'input-datetime', selector: 'app-cedar-input-datetime', fixture: '01-input-types', nth: 0 },
   { name: 'input-checkbox', selector: 'app-cedar-input-checkbox', fixture: '02-choices', nth: 0 },
   // The same widget with an answer required of it, which is the only state that
-  // draws its notice. Every other checkbox fixture leaves the field optional.
-  { name: 'input-checkbox-required', selector: 'app-cedar-input-checkbox', fixture: '25-required-choices', nth: 0 },
+  // draws its notice — once the group has been left empty, so the first box is
+  // focused and left before the photograph. Every other checkbox fixture leaves
+  // the field optional.
+  {
+    name: 'input-checkbox-required',
+    selector: 'app-cedar-input-checkbox',
+    fixture: '25-required-choices',
+    nth: 0,
+    touched: true,
+  },
   { name: 'input-multiple-choice', selector: 'app-cedar-input-multiple-choice', fixture: '02-choices', nth: 0 },
   { name: 'input-select', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 0 },
   { name: 'input-select-multi', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 1 },
@@ -1407,6 +1449,12 @@ test.describe('widgets, clipped', () => {
 
       const element = all.nth(widget.nth);
       await expect(element).toBeVisible();
+      if (widget.touched) {
+        const box = element.getByRole('checkbox').first();
+        await box.focus();
+        await box.blur();
+        await expect(element.locator('mat-error')).toBeVisible();
+      }
       await expect(element).toHaveScreenshot(`widget-${widget.name}.png`);
     });
   }

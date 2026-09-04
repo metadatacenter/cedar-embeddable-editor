@@ -9,9 +9,12 @@
       [formControl]="dateMonthYear"
       attr.aria-label="{{ 'Generic.SelectYear' | translate }}"
     />
-    @if (dateMonthYear.getError('required')) {
-      <mat-error class="mat-error align-start">{{ 'Error.ValueRequired' | translate }}</mat-error>
-    }
+    <!--
+      No requirement of its own. The year template alone used to carry one, with a
+      `mat-error` the month and day templates never had, over a validator that also
+      outlined the box red on its own — while the temporal field below states the
+      same requirement once, for the whole row.
+    -->
     @if (!readOnlyMode) {
       <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
     }

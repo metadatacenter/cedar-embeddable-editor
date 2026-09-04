@@ -18,7 +18,6 @@
         [dateFormat]="dateFormat()"
         (dateChangedEvent)="dateInputChanged($event)"
         [dateMonthYear]="dateMonthYearControl"
-        [required]="required"
         xmlns="http://www.w3.org/1999/html"
       ></app-date-picker>
     </div>
@@ -93,6 +92,11 @@
     </button>
   }
 
+  @if (missingPart; as part) {
+    <mat-error class="mat-error align-start cee-temporal-error">
+      {{ missingPartKeys[part] | translate }}
+    </mat-error>
+  }
   @if (showsValidationMessage) {
     <mat-error class="mat-error align-start cee-temporal-error">
       {{ validationMessage() }}

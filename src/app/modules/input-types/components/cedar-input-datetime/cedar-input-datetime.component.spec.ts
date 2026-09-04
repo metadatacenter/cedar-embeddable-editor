@@ -146,36 +146,63 @@ describe('CedarInputDatetimeComponent by granularity', () => {
   };
 
   /**
-   * When the field says what is wrong with its value.
+   * What the field says while a value is being entered, and when.
    *
    * A part picked from a popup — a date from the calendar, an offset from the
-   * list — is an edit like any other, and used to count as none: the signal
-   * was DOM events on the widget, and Material dispatches none for either. A
-   * required dateTime with only its date picked therefore stored nothing and
-   * said nothing, over a box that looked half filled.
+   * list — is an edit like any other, and used to count as none: the signal was
+   * DOM events on the widget, and Material dispatches none for either. And a
+   * value still missing a part recorded nothing and said nothing: for a required
+   * field until the requirement spoke, for an optional one for good.
    */
   describe('what it says', () => {
-    it('says a required field is still unanswered once only its date has been picked', () => {
+    it('names the time as still missing once only a date has been picked', () => {
       const { component, written } = makeField(Xsd.dateTime, Temporal.minute, { requiredValue: true });
 
       component.dateInputChanged(new Date(2027, 5, 17));
 
       expect(written.at(-1)).toBeNull();
-      expect(component.showsValidationMessage).toBe(true);
-      expect(component.validationMessage()).toBe('The value is required.');
+      expect(component.missingPart).toBe('time');
+      expect(component.showsValidationMessage, 'the requirement waits behind the missing part').toBe(false);
     });
 
-    it('says the same once only an offset has been chosen', () => {
-      const { component } = makeField(Xsd.dateTime, Temporal.minute, { timezoneEnabled: true, requiredValue: true });
+    it('says so for an optional field too, which used to stay silent for good', () => {
+      const { component } = makeField(Xsd.dateTime, Temporal.minute);
+
+      component.dateInputChanged(new Date(2027, 5, 17));
+
+      expect(component.missingPart).toBe('time');
+    });
+
+    it('names the date first when only an offset has been chosen', () => {
+      const { component } = makeField(Xsd.dateTime, Temporal.minute, { timezoneEnabled: true });
 
       component.timezoneInputChanged({ id: '+02:00', label: 'UTC+02:00' });
 
-      expect(component.showsValidationMessage).toBe(true);
+      expect(component.missingPart).toBe('date');
+    });
+
+    it('names the time when a time-only field has only its offset', () => {
+      const { component } = makeField(Xsd.time, Temporal.minute, { timezoneEnabled: true });
+
+      component.timezoneInputChanged({ id: '+02:00', label: 'UTC+02:00' });
+
+      expect(component.missingPart).toBe('time');
+    });
+
+    it('names the fraction a decimal-second field still lacks', () => {
+      const { component } = makeField(Xsd.dateTime, Temporal.decimalSecond);
+      component.dateInputChanged(new Date(2027, 5, 17));
+
+      component.timePickerTime = new Date(2027, 5, 17, 14, 30, 15);
+      component.timeInputChanged(null);
+
+      expect(component.missingPart).toBe('fraction');
     });
 
     it('says nothing about a required field nobody has touched', () => {
       const { component } = makeField(Xsd.dateTime, Temporal.minute, { requiredValue: true });
 
+      expect(component.missingPart).toBeNull();
       expect(component.showsValidationMessage).toBe(false);
     });
 
@@ -186,7 +213,28 @@ describe('CedarInputDatetimeComponent by granularity', () => {
       component.timePickerTime = new Date(2027, 5, 17, 14, 30, 0);
       component.timeInputChanged(null);
 
+      expect(component.missingPart).toBeNull();
       expect(component.showsValidationMessage).toBe(false);
+    });
+
+    it('asks for the value again once a required field is cleared', () => {
+      const { component } = makeField(Xsd.dateTime, Temporal.minute, { requiredValue: true });
+      component.dateInputChanged(new Date(2027, 5, 17));
+
+      component.clearValue();
+
+      expect(component.missingPart).toBeNull();
+      expect(component.showsValidationMessage).toBe(true);
+      expect(component.validationMessage()).toBe('The value is required.');
+    });
+
+    it('states a value it cannot read rather than a missing part', () => {
+      const { component } = makeField(Xsd.dateTime, Temporal.minute);
+
+      component.setCurrentValue('2021-06-06');
+
+      expect(component.missingPart).toBeNull();
+      expect(component.showsValidationMessage).toBe(true);
     });
   });
 

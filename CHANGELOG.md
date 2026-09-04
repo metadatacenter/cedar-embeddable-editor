@@ -33,6 +33,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   it, so the widget and the data quality report reach the same verdict on values such as `1.50` in a
   one-decimal field.
 
+- A required checkbox group states its requirement once the group has been touched or edited, as
+  every other widget does, rather than on first render.
+
+- A temporal value still being entered says which part it lacks, and that nothing is recorded until
+  it is complete. An optional dateTime with only its date picked used to stay silent for good.
+
+- The date picker no longer carries a requirement of its own, in one of its three templates and with
+  a red outline the other two never showed. The temporal field states the requirement once, below
+  the row.
+
+- The numeric spinner and arrow keys step by the field's declared precision, one for an integer and
+  the smallest declared decimal place otherwise.
+
 ## [2.0.5] - 2026-09-03
 
 This release aligns CEE's build-time model dependency with the public

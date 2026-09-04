@@ -129,6 +129,26 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
   }
 
   /**
+   * The amount the browser's spinner and arrow keys move the value by.
+   *
+   * Derived from what the field declares, because the browser's default is one:
+   * right for an integer, and wrong for a field declaring two decimal places,
+   * where the arrows stepped past every value the field is for and snapped a
+   * typed `1.25` to a whole number. A fractional type declaring no places takes
+   * any step, and a field declaring no type at all likewise.
+   */
+  get step(): string {
+    const { numberType, decimalPlace } = this.component.numberInfo;
+    if (numberType === Xsd.int || numberType === Xsd.long || numberType === Xsd.byte || numberType === Xsd.short) {
+      return '1';
+    }
+    if (decimalPlace === null || decimalPlace === undefined) {
+      return 'any';
+    }
+    return decimalPlace === 0 ? '1' : `0.${'0'.repeat(decimalPlace - 1)}1`;
+  }
+
+  /**
    * The bounds the template declares, as a hint under the input.
    *
    * Each bound is a translated label rather than an abbreviation assembled

@@ -290,6 +290,25 @@ test.describe('the time picker', () => {
     expect(String(await storedValue(page, '_to_the_minute'))).toContain('14:00');
   });
 
+  /**
+   * A value still being entered names the part it lacks.
+   *
+   * A dateTime records nothing until it has both halves. The box meanwhile showed the part
+   * entered over an instance holding null and said nothing — for an optional field, for good.
+   */
+  test('an incomplete value names the part still missing', async ({ page }) => {
+    await open(page, '09-temporal');
+    // The one field with a fraction box, which names it more reliably than a position.
+    const field = page.locator('app-cedar-input-datetime').filter({
+      has: page.locator('input[aria-label="Select Decimal Seconds"]'),
+    });
+
+    await field.locator('input[aria-label="Hour"]').fill('14');
+
+    await expect(field.locator('mat-error')).toHaveText(/date is still needed/);
+    expect(await storedValue(page, '_decimal_seconds'), 'nothing is recorded until the value is complete').toBeNull();
+  });
+
   test('an out-of-range typed hour waits for blur, then restores instead of wrapping', async ({ page }) => {
     await open(page, '09-temporal');
     const picker = pickerFor(page, 'to_the_minute');
