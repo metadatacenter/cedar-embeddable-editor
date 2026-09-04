@@ -29,6 +29,7 @@ const {
   InstanceDataContainer,
   InstanceDataControlledAtom,
   InstanceDataEmptyAtom,
+  InstanceDataLinkAtom,
   InstanceDataStringAtom,
   InstanceDataTypedAtom,
   Iri,
@@ -133,6 +134,9 @@ const instance = (templateName, { id: instanceId, name, description, values }) =
 /** A plain string value. */
 const literal = (value) => new InstanceDataStringAtom(value);
 
+/** A value whose field records an IRI rather than a literal string. */
+const link = (value) => new InstanceDataLinkAtom(value);
+
 /**
  * One name a user gave an attribute-value field.
  *
@@ -200,6 +204,15 @@ const writeRaw = (name, document) => {
     tb = tb.addChild(f, deploy(f, name, { required: name === 'text' }));
   }
   write('01-input-types', tb.build());
+  writeRaw(
+    '01-input-types-instance',
+    instance('AllInputTypes', {
+      id: 'https://example.org/instances/all-input-types-1',
+      name: 'All input types instance',
+      description: 'A supplied link value for read-only rendering',
+      values: { _link: link('https://example.org/resource') },
+    }),
+  );
 }
 
 // 2. Choice widgets — radio, checkbox, single- and multi-select lists.
@@ -266,6 +279,15 @@ const writeRaw = (name, document) => {
     );
   }
   write('02-choices', tb.build());
+  writeRaw(
+    '02-choices-bounded-instance',
+    instance('ChoiceWidgets', {
+      id: 'https://example.org/instances/choice-widgets-bounded-1',
+      name: 'ChoiceWidgets bounded instance',
+      description: 'The bounded multi-select is already at its maximum before its first user edit',
+      values: { _bounded_list: [literal('Up'), literal('Down')] },
+    }),
+  );
 }
 
 // 3. Nested elements and multi-instance pagers — the chip pager and the
@@ -344,6 +366,19 @@ const writeRaw = (name, document) => {
           controlled('https://ror.org/013meh722', 'University of Cambridge'),
         ],
       },
+    }),
+  );
+
+  // A shape present in the corpus: an IRI with no rdfs:label. The instance
+  // reader treats it as a filled controlled term, so the editable widget must
+  // have a non-empty rendering and a reachable Clear action too.
+  writeRaw(
+    '04-controlled-terms-labelless-instance',
+    instance('ControlledTerms', {
+      id: 'https://example.org/instances/controlled-terms-labelless-1',
+      name: 'ControlledTerms labelless instance',
+      description: 'A controlled term carrying only its IRI',
+      values: { _organism: link('http://purl.obolibrary.org/obo/NCBITaxon_9606') },
     }),
   );
 }
@@ -582,6 +617,20 @@ const writeRaw = (name, document) => {
     tb = tb.addChild(f, deploy(f, name));
   }
   write('08-authority', tb.build());
+  writeRaw(
+    '08-authority-instance',
+    instance('ExternalAuthority', {
+      id: 'https://example.org/instances/external-authority-1',
+      name: 'External authority instance',
+      description: 'A supplied PubMed value for compact read-only rendering',
+      values: {
+        _citation_pmid: controlled(
+          'https://pubmed.ncbi.nlm.nih.gov/28715478',
+          'Loneliness is adversely associated with physical and mental health and lifestyle factors: Results from a Swiss national survey.',
+        ),
+      },
+    }),
+  );
 }
 
 // 9. Temporal fields at every granularity CEDAR defines, and both time formats.
@@ -879,10 +928,7 @@ const writeRaw = (name, document) => {
    */
   const languages = join(served, 'languages');
   mkdirSync(languages, { recursive: true });
-  writeFileSync(
-    join(languages, 'en.json'),
-    JSON.stringify({ Generic: { ExpandAll: 'Unfurl the lot' } }, null, 2),
-  );
+  writeFileSync(join(languages, 'en.json'), JSON.stringify({ Generic: { ExpandAll: 'Unfurl the lot' } }, null, 2));
 
   console.log('wrote fixtures/served/ (host config, malformed config, language map)');
 }
@@ -988,15 +1034,24 @@ const writeRaw = (name, document) => {
 //     The template-only route must seed every value before a widget exists; the
 //     supplied-instance route must keep every field blank after the widgets render.
 {
-  const title = field('title', () => CedarBuilders.textFieldBuilder(), (b) => b.withDefaultValue('Draft record'));
-  const measurement = field('measurement', () => CedarBuilders.numericFieldBuilder(), (b) =>
-    b.withNumberType(NumberType.DECIMAL).withDefaultValue(42.5),
+  const title = field(
+    'title',
+    () => CedarBuilders.textFieldBuilder(),
+    (b) => b.withDefaultValue('Draft record'),
   );
-  const collectedOn = field('collected_on', () => CedarBuilders.temporalFieldBuilder(), (b) =>
-    b
-      .withTemporalType(TemporalType.DATE)
-      .withTemporalGranularity(TemporalGranularity.DAY)
-      .withDefaultValue('2026-08-20'),
+  const measurement = field(
+    'measurement',
+    () => CedarBuilders.numericFieldBuilder(),
+    (b) => b.withNumberType(NumberType.DECIMAL).withDefaultValue(42.5),
+  );
+  const collectedOn = field(
+    'collected_on',
+    () => CedarBuilders.temporalFieldBuilder(),
+    (b) =>
+      b
+        .withTemporalType(TemporalType.DATE)
+        .withTemporalGranularity(TemporalGranularity.DAY)
+        .withDefaultValue('2026-08-20'),
   );
   const termDefault = new ControlledTermDefaultValueBuilder()
     .withTermUri(new Iri('http://purl.obolibrary.org/obo/NCBITaxon_9606'))
@@ -1038,6 +1093,81 @@ const writeRaw = (name, document) => {
         _measurement: typed(null, 'xsd:decimal'),
         _collected_on: typed(null, 'xsd:date'),
         _organism: new InstanceDataEmptyAtom(),
+      },
+    }),
+  );
+}
+
+// 24. A repeating field with no facts beside its name.
+//
+//     In read-only the two ORCID occurrences have chips to page, but the control states its own
+//     specification and leaves the right of the title row empty. The chips belong on that row rather
+//     than consuming a row of their own. Separate from fixture 22 so its screenshot remains the
+//     established facts-and-pager collision case.
+{
+  const author = field('author', () => CedarBuilders.extOrcidFieldBuilder());
+  let tb = common(CedarBuilders.templateBuilder(), 'MultiAuthorityValues', 'templates').withSchemaDescription(
+    'A repeating ORCID field whose title row carries no specification facts',
+  );
+  tb = tb.addChild(author, deploy(author, 'author', { multi: true, minItems: 0, maxItems: null }));
+  write('24-multi-authority-values', tb.build());
+
+  writeRaw(
+    '24-multi-authority-values-instance',
+    instance('MultiAuthorityValues', {
+      id: 'https://example.org/instances/multi-authority-values-1',
+      name: 'Multi-authority values instance',
+      description: 'Two authors, so the ORCID field pages',
+      values: {
+        _author: [
+          controlled('https://orcid.org/0000-0001-8922-0488', 'Nina Kreuzberger'),
+          controlled('https://orcid.org/0000-0002-1825-0097', 'Josiah Carberry'),
+        ],
+      },
+    }),
+  );
+}
+
+// 25. A required checkbox group, and a multiple-choice list holding more than one value.
+//
+//     Two states the suite could not see. A required checkbox group decides whether it has been
+//     answered and had nowhere to say so: no `mat-error`, and no `mat-form-field` to put one in, so
+//     the verdict was reached and shown to nobody. Not one of the seven checkbox fields across the
+//     other fixtures is required, so no baseline could have caught that.
+//
+//     The list is the same gap from the other side. Read-only, a multiple-choice field's chosen
+//     labels went into a text input through the form control and the DOM coerced the array — `A,B`,
+//     no space, nothing saying it is more than one value. The only read-only choice baseline opens a
+//     template with no instance behind it, where the field holds nothing, so the coercion rendered in
+//     no screenshot.
+//
+//     Its own fixture rather than a field added to `02-choices`: that one is read by five test files,
+//     three of which index its widgets by position, and a required field there would also make every
+//     instance built from it invalid.
+{
+  const consent = field('consent', () => CedarBuilders.checkboxFieldBuilder(), (b) =>
+    b.addCheckboxOption('Agree', false).addCheckboxOption('Decline', false),
+  );
+  const regions = field('regions', () => CedarBuilders.multipleChoiceListFieldBuilder(), (b) =>
+    b.addListOption('North', false).addListOption('South', false),
+  );
+
+  let tb = common(CedarBuilders.templateBuilder(), 'RequiredChoices', 'templates').withSchemaDescription(
+    'A required checkbox group and a required multiple-choice list',
+  );
+  tb = tb.addChild(consent, deploy(consent, 'consent', { required: true }));
+  tb = tb.addChild(regions, deploy(regions, 'regions', { required: true }));
+  write('25-required-choices', tb.build());
+
+  writeRaw(
+    '25-required-choices-instance',
+    instance('RequiredChoices', {
+      id: 'https://example.org/instances/required-choices-1',
+      name: 'Required choices instance',
+      description: 'The consent answered and two regions chosen, so read-only has values to state',
+      values: {
+        _consent: [literal('Agree')],
+        _regions: [literal('North'), literal('South')],
       },
     }),
   );

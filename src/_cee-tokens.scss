@@ -163,3 +163,16 @@ $cee-color-warning: #856404;
 // Brand colors used directly in component CSS rather than through the theme.
 $cee-color-icon-hover: map.get($cee-brand-primary, 500);
 $cee-color-component-title: #0b3938;
+
+// ---------------------------------------------------------------------------
+// Layout
+// ---------------------------------------------------------------------------
+
+/// The slot at the right of a component's title row, holding the help mark and
+/// the property-IRI glyph: 16px, 6px of gap, 18px.
+///
+/// A constant rather than the width of whichever icons a component happens to
+/// carry, because an editable occurrence pager overlays that row from the right
+/// and the only stop it can aim at is one that does not move. It also puts the
+/// two marks in the same column on every row of a form.
+$cee-header-trailing-slot: 40px;

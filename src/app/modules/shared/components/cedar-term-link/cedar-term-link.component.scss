@@ -17,6 +17,12 @@
   overflow-wrap: anywhere;
 }
 
+.cee-term-link-prefix {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
 .cee-term-link-dash {
   margin: 0 6px;
   color: rgba(0, 0, 0, 0.38);
@@ -43,4 +49,30 @@
   display: flex;
   align-items: center;
   margin-left: auto;
+}
+
+/*
+ * A paper title can be a paragraph; its PMID cannot. In the PubMed variant the title keeps its
+ * natural width until the row needs it to shrink, then ellipsizes; it must not grow into spare space
+ * and push the dash and identifier to the far edge. The identifier and authority action retain their
+ * full width. The complete title is still the span's text and its native hover title.
+ */
+.cee-term-link-single-line {
+  flex-wrap: nowrap;
+  overflow: hidden;
+
+  .cee-term-link-label {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cee-term-link-dash,
+  .cee-term-link-iri,
+  .cee-term-link-suffix {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
 }

@@ -1,6 +1,7 @@
 import { FieldComponent } from '../models/component/field-component.model';
 import { ChoiceOption } from '../models/info/choice-option.model';
 import { InputType } from '../models/input-type.model';
+import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { isAuthorityTerm } from '../models/authority/authority-term.guard';
 import {
   BranchConstraint,
@@ -33,8 +34,6 @@ import {
 
 /** The translation keys a fact can carry. Named so a typo is a compile error rather than a blank. */
 export const SpecFactKey = {
-  cardinality: 'Spec.Cardinality',
-  cardinalityUnbounded: 'Spec.CardinalityUnbounded',
   decimalPlaces: 'Spec.DecimalPlaces',
   decimalPlaceOne: 'Spec.DecimalPlaceOne',
   defaultValue: 'Spec.DefaultValue',
@@ -63,10 +62,39 @@ export type SpecFact = {
   readonly params: Readonly<Record<string, string | number>>;
 };
 
+/**
+ * The word a fact leads with, for the facts that lead with one.
+ *
+ * A specification reads `min 12 chars · pattern ^HBM… · default HBM386.ZGKG.235`, and those lead-in
+ * words are signposts rather than values — so they are set in italics, which means they have to be
+ * marked up rather than baked into the fact's own string. The split lives here, beside the facts, so
+ * the three surfaces that state a fact agree: the heading row, the box that replaces an empty
+ * control, and the placeholder inside a control that has one. It used to live in the box's template
+ * and covered four of the seven, so `pattern` and `default` read as values of themselves and the
+ * heading row italicized nothing at all.
+ *
+ * A fact with no entry is a phrase rather than a labelled value — `YYYY-MM-DD`, `time zone
+ * required`, `2 decimal places` — and has nothing to set apart.
+ */
+const SPEC_FACT_KEYWORD: Partial<Record<SpecFactKeyValue, string>> = {
+  [SpecFactKey.minLength]: 'Spec.Keyword.Min',
+  [SpecFactKey.maxLength]: 'Spec.Keyword.Max',
+  [SpecFactKey.minValue]: 'Spec.Keyword.Min',
+  [SpecFactKey.maxValue]: 'Spec.Keyword.Max',
+  [SpecFactKey.unitOfMeasure]: 'Spec.Keyword.Unit',
+  [SpecFactKey.pattern]: 'Spec.Keyword.Pattern',
+  [SpecFactKey.defaultValue]: 'Spec.Keyword.Default',
+};
+
+/** The translation key of a fact's lead-in word, or null where the fact leads with none. */
+export function specKeywordOf(fact: SpecFact): string | null {
+  return SPEC_FACT_KEYWORD[fact.key] ?? null;
+}
+
 /** One authority a controlled-term field draws its values from. */
 export type SpecTermSource = {
-  /** `branch`, `ontology`, `valueSet` or `class`, which decides how narrow the authority is. */
-  readonly kind: 'branch' | 'ontology' | 'valueSet' | 'class';
+  /** `branch`, `ontology`, `valueSet`, `class` or `value`, which decides how narrow the authority is. */
+  readonly kind: 'branch' | 'ontology' | 'valueSet' | 'class' | 'value';
   /** What the authority is called: a branch's label, an ontology's or value set's full name. */
   readonly name: string;
   /**
@@ -80,19 +108,6 @@ export type SpecTermSource = {
 };
 
 const fact = (key: SpecFactKeyValue, params: Record<string, string | number> = {}): SpecFact => ({ key, params });
-
-/**
- * The occurrence bounds, stated only for a field that may occur more than once. A single-occurrence
- * field says nothing rather than "1 to 1", which would read as a constraint someone chose.
- */
-function cardinalityFacts(field: FieldComponent): SpecFact[] {
-  if (!field.isMulti()) {
-    return [];
-  }
-  const min = field.multiInfo.getSafeMinItems();
-  const max = field.multiInfo.maxItems;
-  return [max === null ? fact(SpecFactKey.cardinalityUnbounded, { min }) : fact(SpecFactKey.cardinality, { min, max })];
-}
 
 function textFacts(field: FieldComponent): SpecFact[] {
   const facts: SpecFact[] = [];
@@ -192,17 +207,43 @@ function temporalFacts(field: FieldComponent): SpecFact[] {
 }
 
 /**
- * How many occurrences the field takes. Stated beside the field's name, because it is a fact about
- * the field rather than about a value — a reader asking "how many" is not asking "what shape".
+ * The facts that occupy the field-name row in read-only rendering.
+ *
+ * Most widgets carry their specification in their own placeholder, so putting the same facts beside
+ * the name would say them twice. Radio and checkbox groups have no placeholder, and an
+ * attribute-value field has two boxes whose placeholders name the pair rather than its constraints;
+ * those are the fields whose facts remain on the header row.
+ *
+ * Kept here rather than in the component that renders the facts because layout also needs to know
+ * whether that row is occupied: a repeating field can share an empty row with its occurrence chips,
+ * but must give a row carrying facts its full width.
  */
-export function specCardinalityFactsOf(field: FieldComponent): SpecFact[] {
-  return cardinalityFacts(field);
+export function specHeaderFactsOf(field: FieldComponent): ReadonlyArray<SpecFact> {
+  const inputType = field.basicInfo.inputType;
+  const controlStatesSpecification =
+    inputType === InputType.text ||
+    inputType === InputType.textarea ||
+    inputType === InputType.numeric ||
+    inputType === InputType.email ||
+    inputType === InputType.link ||
+    inputType === InputType.phoneNumber ||
+    inputType === InputType.controlled ||
+    inputType === InputType.list ||
+    inputType === InputType.temporal ||
+    EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType);
+
+  if (controlStatesSpecification) {
+    return [];
+  }
+
+  const optionsCarryDefault = inputType === InputType.radio || inputType === InputType.checkbox;
+  return [
+    ...(optionsCarryDefault ? [] : specDefaultFactsOf(field)),
+    ...specValueFactsOf(field),
+    ...specUnitFactsOf(field),
+  ];
 }
 
-/**
- * What an acceptable value looks like. Stated inside the control, where the value itself would be:
- * an empty box in read-only says nothing, and this is the one thing that belongs in that space.
- */
 /**
  * The value the template supplies when nobody chooses one, whatever shape it takes.
  *
@@ -231,6 +272,10 @@ export function specDefaultFactsOf(field: FieldComponent): SpecFact[] {
   return chosen === undefined ? [] : [fact(SpecFactKey.defaultValue, { defaultValue: chosen.label })];
 }
 
+/**
+ * What an acceptable value looks like. Stated inside the control, where the value itself would be:
+ * an empty box in read-only says nothing, and this is the one thing that belongs in that space.
+ */
 export function specValueFactsOf(field: FieldComponent): SpecFact[] {
   const inputType = field.basicInfo.inputType;
   const facts: SpecFact[] = [];
@@ -268,13 +313,6 @@ export function specOptionsOf(field: FieldComponent): ReadonlyArray<ChoiceOption
   return field.basicInfo.inputType === InputType.list ? field.choiceInfo.choices : [];
 }
 
-/**
- * Whether a spelled-out name already carries its own acronym.
- *
- * A branch's `source` is a display name rather than a key, and across the corpus it is written both
- * ways: `"Human Disease Ontology"`, and `"Medical Subject Headings (MESH)"`. Appending the acronym to
- * the second form gives "Medical Subject Headings (MESH) (MESH)".
- */
 /**
  * The ontology's spelled-out name from a branch's `source`, or null when it holds none.
  *
@@ -326,7 +364,9 @@ const valueSetSource = (valueSet: ValueSetConstraint): SpecTermSource => ({
 });
 
 const classSource = (entry: ClassConstraint): SpecTermSource => ({
-  kind: 'class',
+  // Some producers use the classes array for a fixed value. Preserve that distinction in the label
+  // while treating an absent type as the ontology class shape the model names.
+  kind: entry.type === 'Value' ? 'value' : 'class',
   name: entry.prefLabel ?? entry.label ?? entry.uri ?? '',
   // A class names its ontology by acronym in `source`, where a branch names it in full. Reading it as
   // a container produced "class asthma of the DOID": an acronym in the slot for a spelled-out name.

@@ -13,17 +13,20 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { elementIrisOf, literalNode, termOf, valueOf } from './values';
+import { elementIrisOf, literalNode, literalOf, termOf, valueOf } from './values';
 import { fileURLToPath } from 'node:url';
 import type { CedarEmbeddableEditorElement } from '../../src/app/cee-public-api';
 import {
   BUNDLE_VERSION,
   FROZEN,
+  changeDetails,
+  currentMetadata,
   expectNoStrayHosts,
   hermetic,
   open,
   openTwoEditors,
   passDebounceWindow,
+  recordChanges,
 } from './support/host';
 
 const FIXTURES = [
@@ -429,6 +432,32 @@ test.describe('field type markers', () => {
     await expect(page.locator('.authority-icon-slot')).toHaveCount(2);
     await expect(page.locator('[data-field-type-icon]')).toHaveCount(1);
   });
+
+  test('fields and elements expose their property IRI from a quiet non-link marker', async ({ page }) => {
+    await open(page, '03-nested-multi');
+
+    const elementHeader = page.locator('mat-expansion-panel-header').first();
+    const elementMarker = elementHeader.locator('[data-property-iri]');
+    const iri = await elementMarker.getAttribute('data-property-iri');
+    expect(iri).toMatch(/^https:\/\/schema\.metadatacenter\.org\/properties\//);
+    await expect(elementMarker).toHaveAttribute('aria-label', `Property IRI: ${iri}`);
+    await expect(elementMarker.locator('.property-iri-icon')).toHaveText('device_hub');
+    await expect(elementMarker.locator('a')).toHaveCount(0);
+    await expect(elementMarker).toHaveCSS('color', 'rgb(107, 107, 107)');
+
+    const alignment = await elementMarker.evaluate((marker) => {
+      const markerBox = marker.getBoundingClientRect();
+      const headingBox = marker.closest('.flex-container')!.getBoundingClientRect();
+      return headingBox.right - markerBox.right;
+    });
+    expect(alignment).toBe(0);
+
+    await elementMarker.hover();
+    await expect(page.locator('.mat-mdc-tooltip').filter({ hasText: iri! })).toBeVisible();
+
+    const fieldMarkers = page.locator('.non-iterable-component app-cedar-component-header [data-property-iri]');
+    expect(await fieldMarkers.count()).toBeGreaterThan(0);
+  });
 });
 
 /**
@@ -631,7 +660,7 @@ test('attribute-value labels stay distinct and its pager aligns responsively', a
   }
 });
 
-test('a new attribute-value row starts with placeholders, not a generated name', async ({ page }) => {
+test('a new attribute-value row starts empty beneath its labels, not with redundant placeholders', async ({ page }) => {
   await open(page, '10-attribute-values');
 
   const renderer = page.locator('app-cedar-component-renderer').filter({
@@ -642,10 +671,11 @@ test('a new attribute-value row starts with placeholders, not a generated name',
 
   const name = renderer.locator('input[aria-label="Attribute Name"]');
   const value = renderer.locator('input[aria-label="Attribute Value"]');
+  await expect(renderer.locator('mat-label')).toHaveText(['Attribute Name', 'Attribute Value']);
   await expect(name).toHaveValue('');
-  await expect(name).toHaveAttribute('placeholder', 'Attribute Name');
+  expect(await name.getAttribute('placeholder')).toBeNull();
   await expect(value).toHaveValue('');
-  await expect(value).toHaveAttribute('placeholder', 'Attribute Value');
+  expect(await value.getAttribute('placeholder')).toBeNull();
 });
 
 test('an unsafe attribute name stays visible with a local explanation', async ({ page }) => {
@@ -723,6 +753,29 @@ test('an attribute-value field survives save and reload', async ({ page }) => {
   await expect(name).toHaveValue('colour');
   await expect(value).toHaveValue('blue');
   await expect(page.locator('app-cedar-embeddable-metadata-editor')).toBeVisible();
+});
+
+test('paging back to an unnamed attribute clears the preceding occurrence', async ({ page }) => {
+  await open(page, '10-attribute-values');
+
+  const renderer = page.locator('app-cedar-component-renderer').filter({
+    has: page.locator('input[aria-label="Attribute Name"]'),
+  });
+  const name = renderer.locator('input[aria-label="Attribute Name"]');
+  const value = renderer.locator('input[aria-label="Attribute Value"]');
+  await name.fill('colour');
+  await value.fill('blue');
+  await renderer.getByRole('button', { name: 'Add empty after current', exact: true }).click();
+  await expect(name).toHaveValue('');
+  await expect(value).toHaveValue('');
+
+  await renderer.getByRole('option', { name: '1', exact: true }).click();
+  await expect(name).toHaveValue('colour');
+  await expect(value).toHaveValue('blue');
+  await renderer.getByRole('option', { name: '2', exact: true }).click();
+
+  await expect(name, 'the unnamed page kept the preceding attribute name').toHaveValue('');
+  await expect(value, 'the unnamed page kept the preceding attribute value').toHaveValue('');
 });
 
 test('an expansion panel collapses and expands', async ({ page }) => {
@@ -949,6 +1002,68 @@ test('radio selection uses primary color and keeps Clear on the selected row', a
   expect(geometry.selectedColor).toBe('#00897b');
 });
 
+/**
+ * A required checkbox group states that it needs an answer.
+ *
+ * The widget decides this — `atLeastOneChecked` on its group — and for as long as
+ * the template carried no `mat-error` the verdict was reached and shown to
+ * nobody, which every stage but this one reports as working. Not one checkbox
+ * field in any other fixture is required, so no baseline could have caught it.
+ */
+test('a required checkbox group says so until an option is ticked', async ({ page }) => {
+  await open(page, '25-required-choices');
+
+  const group = page.locator('app-cedar-input-checkbox').first();
+  const notice = group.locator('mat-error');
+  await expect(notice).toBeVisible();
+  await expect(notice).toHaveText(/at least one/i);
+
+  await group.getByRole('checkbox', { name: 'Agree' }).click();
+  await expect(notice).toHaveCount(0);
+
+  await group.getByRole('checkbox', { name: 'Agree' }).click();
+  await expect(group.locator('mat-error')).toBeVisible();
+});
+
+test('an optional checkbox group says nothing', async ({ page }) => {
+  await open(page, '02-choices');
+
+  await expect(page.locator('app-cedar-input-checkbox').first().locator('mat-error')).toHaveCount(0);
+});
+
+test('an unanswered required multi-select is invalid despite its model placeholder slot', async ({ page }) => {
+  await open(page, '25-required-choices');
+
+  const select = page.locator('app-cedar-input-select').first();
+  const trigger = select.locator('mat-select');
+  await expect(trigger).toHaveAttribute('aria-required', 'true');
+  await expect(trigger).toHaveClass(/ng-invalid/);
+
+  // Material exposes the error state after the user has visited the field.
+  await trigger.focus();
+  await page.keyboard.press('Tab');
+  await expect(trigger).toHaveAttribute('aria-invalid', 'true');
+  await expect(select.locator('mat-error')).toBeVisible();
+  await expect(select.locator('mat-error')).toHaveText(/required/i);
+});
+
+/**
+ * Read-only, a multiple-choice field reads as a list.
+ *
+ * Its chosen labels went into a text input through the form control, and the DOM
+ * coerced the array on the way into `value`: `North,South`, with no space and
+ * nothing to say it is more than one value. The only other read-only choice
+ * baseline opens a template with no instance behind it, where the field holds
+ * nothing at all, so the coercion appeared in no screenshot.
+ */
+test('a read-only multiple-choice field reads its values as a list', async ({ page }) => {
+  await open(page, '25-required-choices', 'readonly', '25-required-choices-instance');
+
+  const shown = page.locator('app-cedar-input-select input');
+  await expect(shown).toHaveValue('North, South');
+  await expect(page.locator('app-cedar-input-select')).toHaveScreenshot('widget-select-multi-readonly.png');
+});
+
 test('a populated multi-select uses the focus color rather than the error color', async ({ page }) => {
   await open(page, '02-choices');
 
@@ -989,6 +1104,25 @@ test('a populated multi-select uses the focus color rather than the error color'
   );
   expect(state.multi.arrowColor, "the valid multi-select used Material's error color").not.toBe(state.multi.errorColor);
   expect(state.single.invalid).toBe(false);
+});
+
+test('a bounded multi-select rejects its first over-limit pick without erasing loaded answers', async ({ page }) => {
+  await open(page, '02-choices', undefined, '02-choices-bounded-instance');
+  await recordChanges(page);
+
+  const select = page.locator('mat-select[aria-label="bounded_list"]');
+  await expect(select).toContainText('Up');
+  await expect(select).toContainText('Down');
+  await select.click();
+  await page.locator('mat-option').filter({ hasText: 'Sideways' }).click();
+  await page.keyboard.press('Escape');
+
+  await expect(select).toContainText('Up');
+  await expect(select).toContainText('Down');
+  await expect(select).not.toContainText('Sideways');
+  const metadata = await currentMetadata(page);
+  expect(((metadata._bounded_list ?? []) as unknown[]).map(literalOf)).toEqual(['Up', 'Down']);
+  expect(await changeDetails(page), 'a rejected pick changed the serialized instance').toEqual([]);
 });
 
 test.describe('config presets', () => {
@@ -1062,11 +1196,12 @@ test('element headings establish hierarchy without doubling the first content ga
       return {
         fontSize: titleStyle.fontSize,
         fontWeight: titleStyle.fontWeight,
+        headerHeight: header.height,
         contentGap: firstFieldHeader.top - header.bottom,
       };
     });
 
-  expect(await readMetrics()).toEqual({ fontSize: '18px', fontWeight: '600', contentGap: 12 });
+  expect(await readMetrics()).toEqual({ fontSize: '18px', fontWeight: '600', headerHeight: 48, contentGap: 4 });
 });
 
 test('page navigation keeps its controls in a compact row', async ({ page }) => {
@@ -1219,6 +1354,9 @@ const WIDGETS = [
   { name: 'input-link', selector: 'app-cedar-input-link', fixture: '01-input-types', nth: 0 },
   { name: 'input-datetime', selector: 'app-cedar-input-datetime', fixture: '01-input-types', nth: 0 },
   { name: 'input-checkbox', selector: 'app-cedar-input-checkbox', fixture: '02-choices', nth: 0 },
+  // The same widget with an answer required of it, which is the only state that
+  // draws its notice. Every other checkbox fixture leaves the field optional.
+  { name: 'input-checkbox-required', selector: 'app-cedar-input-checkbox', fixture: '25-required-choices', nth: 0 },
   { name: 'input-multiple-choice', selector: 'app-cedar-input-multiple-choice', fixture: '02-choices', nth: 0 },
   { name: 'input-select', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 0 },
   { name: 'input-select-multi', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 1 },
@@ -1275,30 +1413,6 @@ test.describe('widgets, clipped', () => {
 });
 
 /**
- * The footer, asserted on its own rather than as part of `preset-chrome`.
- *
- * `preset-chrome` was the only baseline covering the footer, and it did not
- * catch the BMIR → Division of Computational Medicine rebrand: new logo, new
- * wordmark-free mark, new organisation name, new link. Measured against the
- * previous baselines, that whole change moved 0.708% of the desktop page and
- * 0.897% of the narrow one — under the 1% ratio the config applied at the time, so
- * both projects reported green. Narrow cleared it by a tenth of a percentage point.
- *
- * The conclusion drawn here was that the ratio should stay, on the grounds that it
- * absorbs cross-machine font rasterisation and that tightening it globally would
- * trade a silent failure for a noisy one. That was wrong, and four stale-but-green
- * baselines in one day are what showed it: rasterisation variance does not scale with
- * image area, so an absolute budget absorbs it just as well while staying sensitive on
- * a tall page. The ratio is gone. What follows is still worth having for what it says
- * when it fails. So:
- *
- *  - the mark is screenshotted clipped to the footer, where the same 1% is
- *    around a thousand pixels rather than sixteen thousand, and
- *  - the organisation's name and URL are asserted as text, because that is what
- *    they are. A brand is not a pixel region; it is a specific string, and it
- *    should fail on the string.
- */
-/**
  * The version stamp, which the screenshots deliberately cannot see.
  *
  * screenshot.css hides it so the baselines survive a version bump, and that
@@ -1323,6 +1437,14 @@ test.describe('the version stamp', () => {
     await expect(stamp).toHaveText(declared);
     // Hidden from the screenshot, not from the page: an embedder still sees it.
     await expect(stamp).toBeVisible();
+  });
+
+  test('links the CEE identity to its npm package', async ({ page }) => {
+    await open(page, '01-input-types');
+
+    const productLink = page.locator('.logo-block');
+    await expect(productLink).toHaveAttribute('href', 'https://www.npmjs.com/package/cedar-embeddable-editor');
+    await expect(productLink).toHaveAttribute('target', '_blank');
   });
 });
 
@@ -1630,6 +1752,7 @@ test.describe('ported from the deleted component specs', () => {
 
     const emptyReadOnlyField = page.locator('.non-iterable-component').nth(1);
     await expect(emptyReadOnlyField.locator('app-cedar-component-header')).toContainText('paged_no_instances');
+    await expect(emptyReadOnlyField.locator('.child-component-content')).toHaveCount(1);
     await expect(emptyReadOnlyField).not.toContainText('No instances yet');
     await expect(emptyReadOnlyField.locator('mat-chip-listbox')).toHaveCount(0);
   });
@@ -1683,11 +1806,15 @@ test.describe('declared non-enumerated defaults', () => {
     await expect(collectedOn.locator('input')).toHaveCount(0);
   });
 
-  test('read-only supplied instance keeps explicitly blank numeric and temporal fields blank', async ({ page }) => {
+  test('read-only supplied instance states the specification for explicitly blank fields', async ({ page }) => {
     await open(page, '23-declared-defaults', 'readonly', '23-declared-defaults-blank-instance');
 
-    await expect(page.locator('input[aria-label="measurement"]')).toHaveValue('');
-    await expect(page.locator('app-cedar-input-datetime input')).toHaveValue('');
+    const measurement = page.locator('.non-iterable-component').filter({ hasText: 'measurement' });
+    const collectedOn = page.locator('.non-iterable-component').filter({ hasText: 'collected_on' });
+    await expect(measurement.locator('.cee-spec-box')).toContainText('default 42.5');
+    await expect(collectedOn.locator('.cee-spec-box')).toContainText('default 2026-08-20');
+    await expect(measurement.locator('input')).toHaveCount(0);
+    await expect(collectedOn.locator('input')).toHaveCount(0);
   });
 });
 
@@ -1753,45 +1880,6 @@ test.describe('a choice value reaches the widget by every load path', () => {
 });
 
 /**
- * Instance values are sanitized; template-authored rich text is not.
- *
- * `TrustHtmlPipe` (`keepHtml`) is `bypassSecurityTrustHtml`, and it used to be applied
- * to three things: the static rich-text field's body, a text field's own value when
- * `isRichText`, and pager labels built from values. The first is content a *template
- * author* wrote. The other two are **instance data**, arriving with whatever document
- * the host page loaded — and CEE is embedded in someone else's page, so trusting them
- * handed an instance author script execution in that origin.
- *
- * `isRichText` is set by `checkHTMLContent`, which asks whether the *value* looks like
- * HTML, from `onReadOnlyModeChange(true)`. So the trigger was the data and the gate was
- * read-only mode: a documented viewer mode, no exotic config needed. Verified before
- * the fix — an inert probe element was parsed into live DOM.
- *
- * The two instance sinks now use `safeHtml`, which sanitizes rather than bypasses. The
- * static rich-text field keeps `keepHtml`, deliberately: a template author is already
- * trusted with the form's structure, and stripping their formatting would break a
- * documented feature to no benefit.
- *
- * The probe value carries both halves, so one assertion distinguishes all three possible
- * behaviours. `<b>` is safe formatting and survives sanitization — its presence proves
- * the field was not simply escaped wholesale, which would have been a regression dressed
- * up as a fix. The `onerror` handler is what sanitization removes, and it sets a window
- * flag and nothing else.
- */
-/**
- * The other half of the trust boundary: markup a *template* author wrote.
- *
- * `markup in an instance value` below asserts that instance-authored HTML is
- * sanitized. This asserts the same for template-authored HTML, which used to be
- * rendered verbatim on the strength of an assumption no embedder was told about —
- * that the host, not its users, chooses which template loads.
- *
- * Assertion-only, and `19-template-markup` is deliberately absent from `FIXTURES`:
- * its content is adversarial rather than representative, and a screenshot would
- * record what a sanitizer's output happens to look like rather than what it must
- * never do.
- */
-/**
  * A configuration CEE cannot use is reported, not swallowed.
  *
  * The shipped declarations catch a misspelled key for a TypeScript host writing a
@@ -1829,6 +1917,19 @@ test.describe('an unusable configuration', () => {
   });
 });
 
+/**
+ * The other half of the trust boundary: markup a *template* author wrote.
+ *
+ * `markup in an instance value` below asserts that instance-authored HTML is
+ * sanitized. This asserts the same for template-authored HTML, which used to be
+ * rendered verbatim on the strength of an assumption no embedder was told about —
+ * that the host, not its users, chooses which template loads.
+ *
+ * Assertion-only, and `19-template-markup` is deliberately absent from `FIXTURES`:
+ * its content is adversarial rather than representative, and a screenshot would
+ * record what a sanitizer's output happens to look like rather than what it must
+ * never do.
+ */
 test.describe('template rich text', () => {
   const shadowHtml = (page: import('@playwright/test').Page): Promise<string> =>
     page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.shadowRoot!.innerHTML);
@@ -1960,6 +2061,12 @@ test.describe('template-authored strings that are not rich text', () => {
     const { becameMarkup } = await probes(page);
     expect(becameMarkup, 'the help text was parsed as markup').toBe(0);
   });
+
+  test('does not repeat a section-break description behind a help icon in read-only mode', async ({ page }) => {
+    await open(page, '20-static-markup', 'readonly');
+
+    await expect(page.locator('app-cedar-static-section-break mat-icon.icon-help')).toHaveCount(0);
+  });
 });
 
 /**
@@ -2021,6 +2128,32 @@ test.describe('an attribute-value field with no slot in the instance', () => {
   });
 });
 
+/**
+ * Instance values are sanitized; template-authored rich text is not.
+ *
+ * `TrustHtmlPipe` (`keepHtml`) is `bypassSecurityTrustHtml`, and it used to be applied
+ * to three things: the static rich-text field's body, a text field's own value when
+ * `isRichText`, and pager labels built from values. The first is content a *template
+ * author* wrote. The other two are **instance data**, arriving with whatever document
+ * the host page loaded — and CEE is embedded in someone else's page, so trusting them
+ * handed an instance author script execution in that origin.
+ *
+ * `isRichText` is set by `checkHTMLContent`, which asks whether the *value* looks like
+ * HTML, from `onReadOnlyModeChange(true)`. So the trigger was the data and the gate was
+ * read-only mode: a documented viewer mode, no exotic config needed. Verified before
+ * the fix — an inert probe element was parsed into live DOM.
+ *
+ * The two instance sinks now use `safeHtml`, which sanitizes rather than bypasses. The
+ * static rich-text field keeps `keepHtml`, deliberately: a template author is already
+ * trusted with the form's structure, and stripping their formatting would break a
+ * documented feature to no benefit.
+ *
+ * The probe value carries both halves, so one assertion distinguishes all three possible
+ * behaviours. `<b>` is safe formatting and survives sanitization — its presence proves
+ * the field was not simply escaped wholesale, which would have been a regression dressed
+ * up as a fix. The `onerror` handler is what sanitization removes, and it sets a window
+ * flag and nothing else.
+ */
 test.describe('markup in an instance value', () => {
   test('is escaped, not rendered, while the field is editable', async ({ page }) => {
     await open(page, '01-input-types', undefined, '14-markup-in-a-value');
@@ -2328,6 +2461,58 @@ test.describe('controlled terminology selection', () => {
     ).toHaveCount(1);
   });
 
+  test('a labelless loaded term falls back to its IRI and can be cleared', async ({ page }) => {
+    const iri = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
+    await open(page, '04-controlled-terms', undefined, '04-controlled-terms-labelless-instance');
+
+    const widget = page.locator('app-cedar-input-controlled').first();
+    const field = widget.locator('input[aria-label="organism"]');
+    await expect(field).toHaveValue(iri);
+    await expect(field).toHaveAttribute('aria-invalid', 'false');
+    const clear = widget.getByRole('button', { name: 'Clear', exact: true });
+    await expect(clear, 'an empty rendering hid the only way to clear the loaded IRI').toBeVisible();
+
+    await clear.click();
+
+    await expect(field).toHaveValue('');
+    expect(JSON.stringify(await currentMetadata(page))).not.toContain(iri);
+  });
+
+  test('an aborted suggestion press does not disable later blur reconciliation', async ({ page }) => {
+    const id = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
+    const label = 'Homo sapiens';
+    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ collection: [{ id, '@id': id, prefLabel: label }] }),
+      });
+    });
+    await open(page, '04-controlled-terms', undefined, '04-controlled-terms-instance');
+    const field = page.locator('input[aria-label="organism"]');
+    await field.fill('Homo');
+    await passDebounceWindow(page);
+    const option = page.locator('mat-option').filter({ hasText: label });
+    await expect(option).toBeVisible({ timeout: 6000 });
+    const box = await option.boundingBox();
+    expect(box, 'the selectable term has no pointer target').not.toBeNull();
+    if (box === null) return;
+
+    // Press on the option, drag away, then release: mousedown has set CEE's
+    // guard, but Material emits no selection event to clear it.
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(1, 1, { steps: 5 });
+    await page.mouse.up();
+    await page.getByRole('heading', { level: 1 }).click();
+    await expect(field, 'cancelling the suggestion should restore the loaded term').toHaveValue('disease');
+
+    await field.fill('names no term');
+    await field.blur();
+
+    await expect(field, 'the aborted press left every later blur disabled').toHaveValue('disease');
+  });
+
   /**
    * REGRESSION: this widget searches BioPortal rather than an authority, and had
    * no blur handling at all — so text naming no term simply stayed in the box
@@ -2353,22 +2538,6 @@ test.describe('controlled terminology selection', () => {
   });
 });
 
-/**
- * The two output getters a host page reads.
- *
- * `currentMetadata` and `currentMetadataYaml` are how an embedding page gets the
- * edited document back out — the whole point of the component from the host's side.
- * The JSON one is exercised indirectly all over the domain harness; the YAML one was
- * touched by nothing, in either suite, despite being a separate serializer
- * (`InstanceSerializer.toYaml`) with its own failure modes.
- *
- * Asserted without a YAML parser, which `visual/` does not have and which is not worth
- * a dependency: the checks are that the two outputs agree about the document. Same
- * field values, same template IRI, and none of the shapes a broken serializer actually
- * produces — an empty string, `undefined`, or `[object Object]` where a nested node
- * should be. A structural check on agreement catches a serializer that has stopped
- * working; it does not need to re-verify YAML grammar the library already tests.
- */
 /**
  * Take one download the way a developer does, and read what arrived.
  *
@@ -2404,14 +2573,15 @@ test('the download menu exposes only its supported artifact views', async ({ pag
   const items = page.locator('[data-download]');
   await expect(items).toHaveCount(7);
   expect(await items.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-download')))).toEqual([
-    'instance',
+    'templateYaml',
+    'templateYamlCompact',
     'instanceYaml',
     'instanceYamlCompact',
     'templateSource',
-    'templateYaml',
-    'templateYamlCompact',
+    'instance',
     'dataQuality',
   ]);
+  await expect(page.getByText('JSON Schema - Template', { exact: true })).toBeVisible();
   await expect(page.getByText('Compact YAML - Instance', { exact: true })).toBeVisible();
   await expect(page.getByText('Compact YAML - Template', { exact: true })).toBeVisible();
   await expect(page.getByText('JSON-LD - Instance - Core', { exact: true })).toHaveCount(0);
@@ -2419,6 +2589,38 @@ test('the download menu exposes only its supported artifact views', async ({ pag
   await expect(page.getByText('Multi-Instance Information', { exact: true })).toHaveCount(0);
 });
 
+test('a read-only template-only download menu does not offer an instance file', async ({ page }) => {
+  await open(page, '01-input-types', 'readonly', undefined, undefined, '&f=showDownloadMenu');
+  await page.locator('.download-trigger').click();
+
+  const items = page.locator('[data-download]');
+  expect(await items.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-download')))).toEqual([
+    'templateYaml',
+    'templateYamlCompact',
+    'templateSource',
+  ]);
+  await expect(page.getByText('YAML - Instance', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Compact YAML - Instance', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('JSON-LD - Instance', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Data Quality Report', { exact: true })).toHaveCount(0);
+});
+
+/**
+ * The two output getters a host page reads.
+ *
+ * `currentMetadata` and `currentMetadataYaml` are how an embedding page gets the
+ * edited document back out — the whole point of the component from the host's side.
+ * The JSON one is exercised indirectly all over the domain harness; the YAML one was
+ * touched by nothing, in either suite, despite being a separate serializer
+ * (`InstanceSerializer.toYaml`) with its own failure modes.
+ *
+ * Asserted without a YAML parser, which `visual/` does not have and which is not worth
+ * a dependency: the checks are that the two outputs agree about the document. Same
+ * field values, same template IRI, and none of the shapes a broken serializer actually
+ * produces — an empty string, `undefined`, or `[object Object]` where a nested node
+ * should be. A structural check on agreement catches a serializer that has stopped
+ * working; it does not need to re-verify YAML grammar the library already tests.
+ */
 test.describe('what a host page reads back', () => {
   const read = (page: import('@playwright/test').Page) =>
     page.evaluate(() => {
@@ -2493,7 +2695,7 @@ test.describe('what a host page reads back', () => {
     expect(body, 'a YAML download must not be a JSON object').not.toMatch(/^\s*\{/);
   });
 
-  test('compact instance YAML downloads without root identity or provenance', async ({ page }) => {
+  test('compact instance YAML downloads with root identity but without provenance', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance', undefined, '&f=showDownloadMenu');
 
     const { filename, body } = await takeDownload(page, 'instanceYamlCompact');
@@ -2501,11 +2703,13 @@ test.describe('what a host page reads back', () => {
     expect(filename).toBe('ChoiceDefault-instance-compact.yaml');
     expect(body).toContain('Private');
     expect(body).toContain('isBasedOn:');
-    expect(body).not.toContain('id: "https://example.org/instances/choice-default-1"');
+    expect(body).toContain('id: "https://example.org/instances/choice-default-1"');
     expect(body).not.toContain('createdOn:');
   });
 
-  test('compact template YAML downloads under its own name without repository metadata', async ({ page }) => {
+  test('compact template YAML downloads under its own name with identity but without repository metadata', async ({
+    page,
+  }) => {
     await open(page, '10-attribute-values', undefined, undefined, undefined, '&f=showDownloadMenu');
 
     const { filename, body } = await takeDownload(page, 'templateYamlCompact');
@@ -2514,7 +2718,7 @@ test.describe('what a host page reads back', () => {
     expect(body).toContain('type: template');
     expect(body).toContain('children:');
     expect(body).not.toContain('modelVersion:');
-    expect(body).not.toMatch(/(?:^|\n)\s*id:/);
+    expect(body).toMatch(/(?:^|\n)\s*id:/);
   });
 
   test('dataQualityReport follows an invalid value and its correction', async ({ page }) => {
@@ -2713,33 +2917,13 @@ test.describe('host input timing', () => {
 });
 
 /**
- * Read-only is the host's alone.
- *
- * CEE offered the user a switch of its own, in a preferences menu, and it wrote
- * straight to the state the widgets read — so a form embedded as a viewer could be
- * made editable from inside it, and a host offering its own save button would then
- * store the edits. Host configuration reached those widgets through that same
- * control, which is why the control could override it, and why the menu had to stay
- * instantiated even when configured invisible or read-only never arrived at all. Both
- * the menu and the switch are gone, and `readOnlyMode` reaches the widgets directly.
- */
-/**
- * A field's occurrence pager and its terse facts share the title row.
- *
- * Editable, that row holds only the field's name, so the chips are pulled 33px up onto it to save a
- * row. Read-only the same row carries the facts on the right — and the chips were still pulled up,
- * so `0+ values` and the chips were drawn on top of each other. Nothing caught it: every other
- * multi fixture pages an *element*, whose pager sits on a panel header with nothing beside it, and a
- * field with no instance renders no pager at all.
- */
-/**
  * A term a field holds, read rather than edited.
  *
  * The identifier used to be text inside a readonly `input`, so a reader who wanted to follow it had
  * to select and paste it — an `input` cannot contain an anchor, which is why. Read-only with a value
  * the control is replaced by the label and the identifier, the identifier addressable, and the
- * authority's own link-out keeps its place beside them. Two destinations for a controlled term: the
- * IRI is what the instance records, the icon is the term's page in its ontology.
+ * authority's own mark keeps its place before them. Two destinations for a controlled term: the IRI
+ * is what the instance records, the BioPortal mark is the term's page in its ontology.
  */
 test.describe('a term rendered as a value', () => {
   test('links the identifier and keeps the authority icon', async ({ page }) => {
@@ -2750,14 +2934,32 @@ test.describe('a term rendered as a value', () => {
     const identifier = controlled.locator('a.cee-term-link-iri');
     await expect(identifier).toHaveAttribute('href', 'http://purl.obolibrary.org/obo/DOID_4');
     await expect(identifier).toHaveAttribute('rel', 'noopener');
-    const authorityPage = controlled.locator('.cee-term-link-suffix a');
+    const authorityPage = controlled.locator('a.cee-bioportal-term-link');
     expect(
       await authorityPage.getAttribute('href'),
-      'the icon goes to the term in its ontology, not to the IRI',
+      'the BioPortal mark goes to the term in its ontology, not to the IRI',
     ).toContain('bioportal.bioontology.org');
+    await expect(authorityPage).toHaveAttribute('termLinkPrefix', '');
+    const logo = await authorityPage.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      return {
+        width: box.width,
+        height: box.height,
+        backgroundImage: getComputedStyle(element).backgroundImage,
+      };
+    });
+    expect(logo.width).toBe(60);
+    expect(logo.height).toBe(20);
+    expect(logo.backgroundImage).toContain('data:image/png;base64');
 
     const orcid = page.locator('app-cedar-input-orcid').first();
     await expect(orcid.locator('a.cee-term-link-iri')).toHaveAttribute('href', 'https://orcid.org/0000-0002-1825-0097');
+    const authorityAction = orcid.locator('a.cee-term-link-action');
+    await expect(authorityAction).toHaveAttribute('aria-label', /ORCID/);
+    const actionBox = await authorityAction.boundingBox();
+    expect(actionBox?.width).toBe(20);
+    expect(actionBox?.height).toBe(20);
+    expect((await orcid.locator('.cee-term-link').boundingBox())?.height).toBe(36);
   });
 
   test('leaves no control behind where it renders a value', async ({ page }) => {
@@ -2777,6 +2979,53 @@ test.describe('a term rendered as a value', () => {
     await expect(page.locator('app-cedar-input-controlled input[aria-label="organism"]')).toBeVisible();
     await expect(page.locator('app-cedar-input-controlled .cee-term-link')).toHaveCount(0);
   });
+});
+
+test.describe('a link rendered as a value', () => {
+  test('offers both its recorded IRI and the compact link-out action in a supplied read-only instance', async ({
+    page,
+  }) => {
+    await open(page, '01-input-types', 'readonly', '01-input-types-instance');
+
+    const linkField = page.locator('app-cedar-input-link');
+    const identifier = linkField.locator('a.cee-term-link-iri');
+    await expect(identifier).toHaveAttribute('href', 'https://example.org/resource');
+
+    const action = linkField.locator('a.cee-term-link-action');
+    await expect(action).toHaveAttribute('href', 'https://example.org/resource');
+    await expect(action).toHaveAttribute('aria-label', 'Open link');
+    await expect(linkField.locator('input')).toBeHidden();
+    expect((await linkField.locator('.cee-term-link').boundingBox())?.height).toBe(36);
+  });
+
+  test('keeps an empty read-only template link as its specification box', async ({ page }) => {
+    await open(page, '01-input-types', 'readonly');
+
+    const linkRenderer = page.locator('.non-iterable-component').filter({ hasText: 'link property description' });
+    await expect(linkRenderer.locator('.cee-spec-box')).toBeVisible();
+    await expect(linkRenderer.locator('.cee-term-link')).toHaveCount(0);
+    await expect(linkRenderer.locator('input')).toHaveCount(0);
+  });
+});
+
+test('a PubMed IRI follows its title instead of being pushed to the far edge', async ({ page }) => {
+  await open(page, '08-authority', 'readonly', '08-authority-instance');
+
+  const pubmed = page.locator('app-cedar-input-pmid .cee-term-link');
+  const geometry = await pubmed.evaluate((row) => {
+    const label = row.querySelector('.cee-term-link-label')!.getBoundingClientRect();
+    const dash = row.querySelector('.cee-term-link-dash')!.getBoundingClientRect();
+    const iri = row.querySelector('.cee-term-link-iri')!.getBoundingClientRect();
+    return {
+      dashAfterLabel: dash.left - label.right,
+      iriAfterDash: iri.left - dash.right,
+    };
+  });
+
+  expect(geometry.dashAfterLabel).toBeGreaterThanOrEqual(5);
+  expect(geometry.dashAfterLabel).toBeLessThanOrEqual(7);
+  expect(geometry.iriAfterDash).toBeGreaterThanOrEqual(5);
+  expect(geometry.iriAfterDash).toBeLessThanOrEqual(7);
 });
 
 test.describe('a multi-instance field paging its values', () => {
@@ -2805,15 +3054,56 @@ test.describe('a multi-instance field paging its values', () => {
   const overlapping = (a: { x: number; y: number; right: number; bottom: number }, b: typeof a) =>
     !(a.right <= b.x + 1 || b.right <= a.x + 1 || a.bottom <= b.y + 1 || b.bottom <= a.y + 1);
 
-  test('keeps its chips clear of the facts on the title row', async ({ page }) => {
+  test('states its range after the name without losing the occurrence chips', async ({ page }) => {
     await open(page, '22-multi-field-values', 'readonly', '22-multi-field-values-instance');
 
-    const facts = await boxesOf(page, 'app-cedar-field-spec');
+    const range = page.locator('.multi-instance-range').first();
+    await expect(range).toHaveText('(0 .. ∞)');
+    await expect(range).toHaveCSS('color', 'rgb(107, 107, 107)');
     const chips = await boxesOf(page, '.mat-mdc-chip');
     expect(chips.length, 'two values page, so there are chips to collide with').toBeGreaterThan(0);
-    expect(facts.length, 'and facts on the row they would collide with').toBeGreaterThan(0);
-    const collisions = facts.flatMap((fact) => chips.filter((chip) => overlapping(fact, chip)));
-    expect(collisions, 'a chip is drawn over the facts').toEqual([]);
+    const ranges = await boxesOf(page, '.multi-instance-range');
+    const collisions = ranges.flatMap((box) => chips.filter((chip) => overlapping(box, chip)));
+    expect(collisions, 'a chip is drawn over the range').toEqual([]);
+  });
+
+  /**
+   * A field's occurrence pager and the content after its name share the title row.
+   *
+   * Editable, that row holds the field's name and its grey occurrence range, so the chips are pulled
+   * 33px up onto it to save a row. Read-only can also carry terse facts on the right — and the chips
+   * were still pulled up, covering them. Nothing caught it: every other
+   * multi fixture pages an *element*, whose pager sits on a panel header with nothing beside it, and a
+   * field with no instance renders no pager at all.
+   */
+  test('shares a fact-free read-only title row with its chips', async ({ page }, testInfo) => {
+    await open(page, '24-multi-authority-values', 'readonly', '24-multi-authority-values-instance');
+
+    const renderer = page.locator('app-cedar-component-renderer').filter({
+      has: page.locator('app-cedar-input-orcid'),
+    });
+    const geometry = await renderer.evaluate((element) => {
+      const header = element.querySelector(':scope > .non-iterable-component > app-cedar-component-header')!;
+      const pager = element.querySelector(':scope > .non-iterable-component > app-cedar-multi-pager')!;
+      const h = header.getBoundingClientRect();
+      const p = pager.getBoundingClientRect();
+      return {
+        headerCenter: h.top + h.height / 2,
+        pagerCenter: p.top + p.height / 2,
+        pagerTop: p.top,
+        headerBottom: h.bottom,
+      };
+    });
+
+    if (testInfo.project.name === 'desktop') {
+      expect(Math.abs(geometry.headerCenter - geometry.pagerCenter), 'the label and chips share one row').toBeLessThan(
+        1,
+      );
+    } else {
+      expect(geometry.pagerTop, 'a narrow field still gives the pager its own row').toBeGreaterThanOrEqual(
+        geometry.headerBottom,
+      );
+    }
   });
 
   test('states the attribute it holds, one occurrence at a time', async ({ page }) => {
@@ -2829,6 +3119,17 @@ test.describe('a multi-instance field paging its values', () => {
   });
 });
 
+/**
+ * Read-only is the host's alone.
+ *
+ * CEE offered the user a switch of its own, in a preferences menu, and it wrote
+ * straight to the state the widgets read — so a form embedded as a viewer could be
+ * made editable from inside it, and a host offering its own save button would then
+ * store the edits. Host configuration reached those widgets through that same
+ * control, which is why the control could override it, and why the menu had to stay
+ * instantiated even when configured invisible or read-only never arrived at all. Both
+ * the menu and the switch are gone, and `readOnlyMode` reaches the widgets directly.
+ */
 test.describe('read-only belongs to the host', () => {
   test('renders read-only from configuration alone', async ({ page }) => {
     await open(page, '01-input-types', 'readonly');
@@ -2839,7 +3140,7 @@ test.describe('read-only belongs to the host', () => {
     await expect(page.locator('.cee-spec-box').first()).toBeVisible();
   });
 
-  test('renders the controls of a supplied instance, and none of them editable', async ({ page }) => {
+  test('renders populated controls from a supplied instance, and none of them editable', async ({ page }) => {
     await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
 
     await expect(page.locator('input[aria-label="email"]')).toHaveAttribute('readonly', 'true');
@@ -3158,21 +3459,6 @@ test.describe('date calendar selection', () => {
 });
 
 /**
- * A host page hears what CEE has to say.
- *
- * `eventHandler` is a documented input that was stored and read nowhere, so a host
- * passing one got silence. It now forwards `MessageHandlerService`'s traces and errors —
- * the narrow reading, since that service is where the value was always routed.
- *
- * Exercised through the real input on the real web component rather than the service in
- * isolation, which `harness/test/message-handler.spec.ts` already covers. The two halves
- * answer different questions: that one asks whether the contract holds, this one asks
- * whether the input is actually wired to it.
- *
- * No trigger is needed: CEE traces its config and its language-map choice on every load,
- * which is a real message from a real path rather than something contrived.
- */
-/**
  * Every icon CEE names has a glyph in the font CEE ships.
  *
  * The icon font is subsetted, and a ligature that is not in the subset does not
@@ -3212,6 +3498,21 @@ test.describe('the subsetted icon font', () => {
   });
 });
 
+/**
+ * A host page hears what CEE has to say.
+ *
+ * `eventHandler` is a documented input that was stored and read nowhere, so a host
+ * passing one got silence. It now forwards `MessageHandlerService`'s traces and errors —
+ * the narrow reading, since that service is where the value was always routed.
+ *
+ * Exercised through the real input on the real web component rather than the service in
+ * isolation, which `harness/test/message-handler.spec.ts` already covers. The two halves
+ * answer different questions: that one asks whether the contract holds, this one asks
+ * whether the input is actually wired to it.
+ *
+ * No trigger is needed: CEE traces its config and its language-map choice on every load,
+ * which is a real message from a real path rather than something contrived.
+ */
 test.describe('the host event handler', () => {
   test('receives CEE diagnostics through the web component input', async ({ page }) => {
     await open(page, '01-input-types', undefined, undefined, undefined, '&e=1');

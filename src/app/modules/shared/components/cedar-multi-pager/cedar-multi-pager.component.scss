@@ -1,3 +1,5 @@
+@use '../../../../../cee-tokens' as tokens;
+
 .mat-icon {
   font-size: 18px;
 }
@@ -15,19 +17,71 @@
  * the intent was here and had never rendered.
  */
 
+/*
+ * The three actions take the height of the occurrence chips beside them rather than
+ * Material's 48px.
+ *
+ * The row is drawn over a field's title row, which is 20px. At 48px it hung 15px below
+ * the field's name and pushed the control down by that much, which was most of the space
+ * under a repeating field's name. 32px is what the chips in the same row already measure,
+ * and it leaves the 18px glyph 7px of padding on every side. The invisible 48px touch
+ * target Material centres on each button comes down with it: left at 48px it would have
+ * covered the top of the control below, so a click meant for the box would have deleted
+ * an occurrence instead.
+ */
+.pager-actions .mat-mdc-icon-button {
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+}
+
+/* `::ng-deep`, because Material renders the touch target inside the button's own template. */
+.pager-actions ::ng-deep .mat-mdc-button-touch-target {
+  width: 32px;
+  height: 32px;
+}
+
+/*
+ * An element's pager is pulled onto its panel header.
+ *
+ * It takes that header's own height and covers it exactly, so the row is centred on the
+ * heading without an offset that has to know how tall a chip renders, and the first
+ * field stays where an element with no pager puts it. It stops where the header's
+ * content does: the trailing icon slot, the 24px the expansion chevron takes beside the
+ * panel title, and 8px of air between the two. A field with more than a page of
+ * occurrences grows the row past the minimum and moves the content down with it.
+ */
 .aligned-up {
   display: flex;
   flex-wrap: wrap;
   justify-content: right;
   align-items: center;
-  margin-right: 10px;
-  margin-bottom: 15px;
-  margin-top: -56px;
+  margin-right: tokens.$cee-header-trailing-slot + 32px;
+  min-height: 48px;
+  margin-top: -48px;
+  margin-bottom: 0;
 }
 
+/*
+ * Reading keeps the placement it already had: a chip-height row centred on the heading by
+ * offset, with the panel's own right margin, since no trailing slot is reserved there.
+ */
+:host-context(.cee-read-only) .aligned-up {
+  margin-right: 10px;
+  min-height: 0;
+  margin-top: -40px;
+  margin-bottom: 15px;
+}
+
+/*
+ * At embedding widths the pager takes a row of its own below the heading. Both selectors,
+ * so this beats the read-only rule above on specificity as well as order.
+ */
 @container cee (max-width: 620px) {
-  .aligned-up {
+  .aligned-up,
+  :host-context(.cee-read-only) .aligned-up {
     justify-content: flex-start;
+    min-height: 0;
     margin: 8px 0 12px;
   }
 }

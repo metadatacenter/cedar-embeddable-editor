@@ -24,7 +24,14 @@ const ROR_IRI_PREFIX = 'https://ror.org/';
 })
 export class CedarInputTextComponent extends CedarUIDirective implements OnInit {
   component!: FieldComponent;
-  options: FormGroup;
+  /*
+   * Both built in `ngOnInit`, because the control's validators come off the
+   * component and that arrives as an input. Asserted rather than made optional:
+   * Angular runs `ngOnInit` before it first checks the template that binds them,
+   * so there is no render in which they are absent. The same shape
+   * `AbstractAuthorityInputComponent` already uses.
+   */
+  options!: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
   constraintMinLength: number | null = null;
   constraintMaxLength: number | null = null;
@@ -37,15 +44,12 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
   originalValue: string | null = null;
 
   constructor(
-    fb: FormBuilder,
+    private readonly fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private htmlDetectService: HtmlDetectService,
   ) {
     super();
-    this.options = fb.group({
-      inputValue: this.inputValueControl,
-    });
   }
 
   override ngOnInit(): void {
@@ -60,6 +64,9 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     }
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl<string | null>(null, validators);
+    // Beside the control it holds. Built in the constructor, the group kept the
+    // control this line replaces — see `input-control-binding.spec.ts`.
+    this.options = this.fb.group({ inputValue: this.inputValueControl });
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
@@ -136,31 +143,28 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     this.handlerContext.changeValue(this.component, value);
   }
 
+  /**
+   * The counter under a text field: how much has been typed, against what the template
+   * allows.
+   *
+   * Assembled from the bounds a field actually states. It used to append a dash whether
+   * or not a bound stood on either side of it, so a field with a maximum and no minimum
+   * — the common case — read `0 /  - 15`. A range takes the ` .. ` a repeating
+   * component's occurrence range already uses, with `∞` for an unbounded maximum.
+   */
   getCharCountHint(): string {
-    let len = 0;
-    if (this.inputValueControl.value != null) {
-      len = this.inputValueControl.value.length;
+    const length = this.inputValueControl.value?.length ?? 0;
+    const { minLength, maxLength } = this.component.valueInfo;
+    if (minLength != null && maxLength != null) {
+      return `${length} / ${minLength} .. ${maxLength}`;
     }
-    let s = '' + len;
-    let min = null;
-    let max = null;
-    if (this.component.valueInfo.minLength != null) {
-      min = this.component.valueInfo.minLength;
+    if (maxLength != null) {
+      return `${length} / ${maxLength}`;
     }
-    if (this.component.valueInfo.maxLength != null) {
-      max = this.component.valueInfo.maxLength;
+    if (minLength != null) {
+      return `${length} / ${minLength} .. ∞`;
     }
-    if (min != null || max != null) {
-      s += ' / ';
-      if (min != null) {
-        s += min + ' ';
-      }
-      s += ' - ';
-      if (max != null) {
-        s += max;
-      }
-    }
-    return s;
+    return `${length}`;
   }
 
   goToLink() {

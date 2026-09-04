@@ -8,6 +8,8 @@ import { HandlerContext } from '../../util/handler-context';
 import { InputType } from '../../models/input-type.model';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { ComponentRenderDecision, decideComponentRender } from './component-render-decision';
+import { specHeaderFactsOf } from '../../util/field-spec';
+import { InstanceValueNode } from '../../util/instance-value-node';
 
 @Component({
   selector: 'app-cedar-component-renderer',
@@ -65,15 +67,39 @@ export class CedarComponentRendererComponent implements OnChanges {
   }
 
   /**
+   * Whether the occurrence chips can share a read-only field's title row.
+   *
+   * The earlier read-only placement always made a second row because some fields put terse facts
+   * beside their name. Most fields put that specification in their control instead, leaving the
+   * title row empty on the right; those can keep the chips beside the name without covering
+   * anything. Editable placement and narrow-width stacking remain unchanged.
+   */
+  shouldInlineReadOnlyPager(nonIterableComponent: FieldComponent): boolean {
+    return (
+      this.handlerContext.readOnlyMode &&
+      nonIterableComponent instanceof MultiFieldComponent &&
+      specHeaderFactsOf(nonIterableComponent).length === 0
+    );
+  }
+
+  /**
    * Whether to state the specification in place of the control.
    *
-   * Reading a template there is nothing to hold, so the box says what a value must be instead — and
-   * it has to replace the control rather than annotate it, because a placeholder is one line and
-   * cannot carry a link. Two widgets keep theirs: a radio or checkbox group is its own set of options,
-   * which is the form a reader wants to see, and it has no box to put anything in.
+   * Reading a template, or an unfilled field in a read-only instance, there is nothing to hold, so
+   * the box says what a value must be instead. It has to replace the control rather than annotate
+   * it: a native placeholder is one indivisible string, so it cannot italicize just `min`, `max`,
+   * `unit`, and the other specification keywords. A populated instance keeps its value widget.
+   *
+   * Three widgets keep theirs even when empty: a radio or checkbox group is its own set of options,
+   * which is the form a reader wants to see, and an attribute-value field is a container rather than
+   * one value that can be summarized in this box.
    */
   showSpecInsteadOfControl(nonIterableComponent: FieldComponent): boolean {
-    if (!this.handlerContext.statesSpecification) {
+    const statesUnfilledField =
+      this.handlerContext.statesSpecification ||
+      (this.handlerContext.readOnlyMode &&
+        !InstanceValueNode.holdsValue(this.handlerContext.getDataObjectNodeByPath(nonIterableComponent.path)));
+    if (!statesUnfilledField) {
       return false;
     }
     const inputType = nonIterableComponent.basicInfo.inputType;
@@ -87,9 +113,11 @@ export class CedarComponentRendererComponent implements OnChanges {
         !this.handlerContext.multiInstanceObjectService.hasMultiInstances(nonIterableComponent)
       ) {
         // Editing, an unoccupied repeating field is its add control and nothing else, which is right:
-        // there is no occurrence to show until someone adds one. Reading a template, the same field
-        // showed a name and a blank, so what it will look like was the one thing missing.
-        return this.handlerContext.statesSpecification;
+        // there is no occurrence to show until someone adds one. Read-only still draws the empty
+        // field, whether the host supplied an instance or only a template: an optional field omitted
+        // by an instance remains part of the form a reader is inspecting. Rendering the widget does
+        // not create an occurrence; it only keeps the field's empty visual affordance present.
+        return this.handlerContext.readOnlyMode;
       }
     }
     return true;

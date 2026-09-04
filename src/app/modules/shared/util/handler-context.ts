@@ -73,7 +73,10 @@ export class HandlerContext {
   public constructor(dataContext: DataContext, messageHandlerService: MessageHandlerService) {
     this.dataObjectBuilderService = new DataObjectBuilderHandler();
     this.multiInstanceObjectService = new MultiInstanceObjectHandler();
-    this.dataObjectManipulationService = new DataObjectStructureHandler(this.dataObjectBuilderService);
+    this.dataObjectManipulationService = new DataObjectStructureHandler(
+      this.dataObjectBuilderService,
+      messageHandlerService,
+    );
     this.dataObjectDataValueHandler = new DataObjectDataValueHandler(messageHandlerService);
     this.dataQualityReportBuilderService = new DataQualityReportBuilderHandler();
     this.dataContext = dataContext;
@@ -152,7 +155,6 @@ export class HandlerContext {
       this.dataContext,
       component,
       this.multiInstanceObjectService,
-      this.messageHandlerService,
     );
     this.multiInstanceObjectService.multiInstanceItemAdd(component);
     this.buildQualityReport();

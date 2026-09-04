@@ -20,8 +20,12 @@
     "check-fresh": "node check-bundle-fresh.mjs",
     "flake-hunt": "node check-bundle-fresh.mjs && for i in $(seq 1 ${RUNS:-20}); do echo \"--- run $i\"; playwright test --retries=0 --reporter=line || exit 1; done"
   },
+  "allowScripts": {
+    "esbuild@0.25.12": true,
+    "fsevents@2.3.2": true
+  },
   "dependencies": {
-    "cedar-model-typescript-library": "1.0.5"
+    "cedar-model-typescript-library": "1.0.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",

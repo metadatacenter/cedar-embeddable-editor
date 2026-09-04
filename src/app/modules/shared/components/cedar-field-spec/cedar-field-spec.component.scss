@@ -37,17 +37,13 @@
 
 /*
  * Facts are separated by a middle dot rather than by punctuation of their own, so each stays a
- * phrase and the line stays scannable. The separator is generated between adjacent items, never by
- * `:not(:first-child)`, which put a dot straight after the "Values" label — that label is the
- * line's first child, so every value counted as a later sibling.
+ * phrase and the line stays scannable. Generated between adjacent facts rather than by
+ * `:not(:first-child)`, which puts a dot in front of anything else the row ever carries.
  */
-.cee-field-spec-fact + .cee-field-spec-fact,
-.cee-field-spec-value + .cee-field-spec-value {
-  &::before {
-    content: '·';
-    margin: 0 6px;
-    color: rgba(0, 0, 0, 0.32);
-  }
+.cee-field-spec-fact + .cee-field-spec-fact::before {
+  content: '·';
+  margin: 0 6px;
+  color: rgba(0, 0, 0, 0.32);
 }
 
 /* A pattern can be long, and it is the one fact nobody should have to guess at. */
@@ -55,36 +51,10 @@
   overflow-wrap: anywhere;
 }
 
-/*
- * The lead-in word for a list — "Values", "Terms" — quiet enough not to read as a heading. It needs
- * its own left margin because it follows a fact rather than another value, so the dot separators
- * between siblings do not apply to it: without this the line read "0+ valuesValues North".
- */
-.cee-field-spec-term {
-  font-weight: 500;
-  margin-right: 6px;
-  color: rgba(0, 0, 0, 0.72);
-
-  &:not(:first-child) {
-    margin-left: 12px;
-  }
-}
-
-/* Which kind of authority: branch and ontology mean different scopes, and the word is the fact. */
-.cee-field-spec-kind {
-  font-variant: small-caps;
-  letter-spacing: 0.03em;
-  color: rgba(0, 0, 0, 0.5);
-  margin-right: 5px;
-}
-
-.cee-field-spec-source {
-  font-weight: 500;
-  margin-right: 4px;
-}
-
-.cee-field-spec-note {
-  margin-left: 4px;
+/* Lead-in words are signposts rather than values, set apart the way the box sets them apart. */
+.cee-field-spec-keyword {
+  font-style: italic;
+  font-weight: 400;
   color: rgba(0, 0, 0, 0.45);
 }
 
@@ -103,19 +73,4 @@
   line-height: 1.5;
   margin: 0 0 6px;
   color: rgba(0, 0, 0, 0.8);
-}
-
-/*
- * An authority reads as a link, because it is one: BioPortal's page for the branch, the ontology or
- * the class the field draws on. Underlined on hover rather than always, so a row of facts does not
- * turn into a row of rules.
- */
-.cee-field-spec-authority {
-  color: inherit;
-  text-decoration: none;
-
-  &:hover,
-  &:focus-visible {
-    text-decoration: underline;
-  }
 }

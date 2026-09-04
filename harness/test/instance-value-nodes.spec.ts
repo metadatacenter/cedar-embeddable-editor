@@ -125,6 +125,14 @@ describe('what CEE reads a node as', () => {
     expect(reportValue(CONTROLLED, emptyNode())).toBeNull();
     expect(reportValue(LINK, literalNode(''))).toBeNull();
   });
+
+  it('distinguishes an unfilled slot from values a read-only field must preserve', () => {
+    expect(InstanceValueNode.holdsValue(InstanceValueNode.emptySlot(true))).toBe(false);
+    expect(InstanceValueNode.holdsValue(InstanceValueNode.literalValue(''))).toBe(false);
+    expect(InstanceValueNode.holdsValue(InstanceValueNode.literalValue('0'))).toBe(true);
+    expect(InstanceValueNode.holdsValue(InstanceValueNode.iriValue('https://x/1'))).toBe(true);
+    expect(InstanceValueNode.holdsValue(InstanceValueNode.iriValue('https://x/1', 'One'))).toBe(true);
+  });
 });
 
 describe('a labelless controlled term satisfies a requirement', () => {

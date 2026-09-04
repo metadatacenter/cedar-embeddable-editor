@@ -46,8 +46,6 @@ export class AppDevComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     const load = async (file: string): Promise<CeeJsonObject> => (await fetch(`/assets/cee-demo/demo/${file}`)).json();
     const [templateObject, instanceObject] = await Promise.all([load('template.json'), load('metadata.json')]);
-    // Both at once, so the form is built with the instance already read. Two
-    // separate assignments would build it from the template alone.
     this.artifact = { templateObject, instanceObject };
   }
 }

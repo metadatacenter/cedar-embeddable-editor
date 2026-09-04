@@ -1,10 +1,9 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="half-width-with-margin" floatLabel="always">
-    <mat-label>{{ 'Generic.Name' | translate }}</mat-label>
+    <mat-label>{{ 'Generic.AttributeName' | translate }}</mat-label>
     <input
       matInput
       type="text"
-      [placeholder]="'Generic.AttributeName' | translate"
       [formControl]="nameInputControl"
       (input)="nameChanged($event)"
       (blur)="nameChanged($event)"
@@ -27,11 +26,10 @@
     }
   </mat-form-field>
   <mat-form-field class="half-width" floatLabel="always">
-    <mat-label>{{ 'Generic.Value' | translate }}</mat-label>
+    <mat-label>{{ 'Generic.AttributeValue' | translate }}</mat-label>
     <input
       matInput
       type="text"
-      [placeholder]="'Generic.AttributeValue' | translate"
       [formControl]="valueInputControl"
       (input)="valueChanged($event)"
       [readonly]="readOnlyMode"

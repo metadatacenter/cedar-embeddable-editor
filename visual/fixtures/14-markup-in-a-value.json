@@ -10,5 +10,15 @@
   "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
   "_text": {
     "@value": "<b data-safe-markup=\"1\">bold</b><img src=\"data:,\" onerror=\"window.__handlerRan = true\">"
+  },
+  "_numeric": {
+    "@value": "42",
+    "@type": "xsd:int"
+  },
+  "_email": {
+    "@value": "reader@example.org"
+  },
+  "_phone": {
+    "@value": "+1 650 555 0100"
   }
 }

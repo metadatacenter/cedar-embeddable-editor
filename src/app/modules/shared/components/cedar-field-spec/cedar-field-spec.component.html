@@ -1,8 +1,14 @@
 @if (hasContent) {
   @if (variant === 'facts') {
     <span class="cee-field-spec" role="note">
+      <!-- The same split the box states a fact with, so a heading row and a box read alike. -->
       @for (fact of facts; track fact.key) {
-        <span class="cee-field-spec-fact">{{ fact.key | translate: fact.params }}</span>
+        <span class="cee-field-spec-fact">
+          @if (keywordOf(fact); as keyword) {
+            <em class="cee-field-spec-keyword">{{ keyword | translate }}</em>
+          }
+          {{ fact.key | translate: fact.params }}
+        </span>
       }
     </span>
   }

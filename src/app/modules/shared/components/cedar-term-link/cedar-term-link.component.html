@@ -1,6 +1,12 @@
-<div class="cee-term-link" attr.aria-label="{{ fieldLabel }}">
+<div
+  class="cee-term-link"
+  [class.cee-term-link-single-line]="truncateLabel"
+  attr.aria-label="{{ fieldLabel }}"
+>
+  <!-- Optional authority branding belongs immediately before the value it identifies. -->
+  <span class="cee-term-link-prefix"><ng-content select="[termLinkPrefix]"></ng-content></span>
   @if (label) {
-    <span class="cee-term-link-label">{{ label }}</span>
+    <span class="cee-term-link-label" [attr.title]="truncateLabel ? label : null">{{ label }}</span>
   }
   @if (iri) {
     @if (label) {

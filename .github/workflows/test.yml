@@ -16,6 +16,9 @@ concurrency:
   group: test-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NPM_CONFIG_STRICT_ALLOW_SCRIPTS: "true"
+
 jobs:
   prepare:
     # arm64 Linux, because the visual suite runs inside Playwright's own container
@@ -40,7 +43,7 @@ jobs:
 
     steps:
       - name: Check out CEE
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: cedar-embeddable-editor
 
@@ -61,7 +64,7 @@ jobs:
       # maintenance, so this is the version with the longer life rather than the
       # smaller number. 26 does not exist yet.
       - name: Use Node.js 24
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24.19.0
           cache: npm
@@ -118,7 +121,7 @@ jobs:
         run: npm run audit:prod
 
       - name: Save the production build for browser shards
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cee-production-dist
           path: cedar-embeddable-editor/dist
@@ -137,12 +140,12 @@ jobs:
 
     steps:
       - name: Check out CEE
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: cedar-embeddable-editor
 
       - name: Restore the tested production build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: cee-production-dist
           path: cedar-embeddable-editor/dist

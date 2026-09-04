@@ -1,10 +1,30 @@
 <div class="cee-spec-box" role="note">
-  @if (fieldToDescribe | ceeSpecPlaceholder) {
-    <span class="cee-spec-box-facts">{{ fieldToDescribe | ceeSpecPlaceholder }}</span>
+  @if (facts.length > 0 || optionLabels) {
+    <span class="cee-spec-box-facts">
+      <!--
+        The lead-in word, where the fact has one, comes off `specKeywordOf` rather than out of a
+        list of cases here. A case list covered the facts somebody had thought to add to it, which
+        left `pattern` and `default` stating their own name in the value's own type.
+      -->
+      @for (fact of facts; track fact.key) {
+        <span class="cee-spec-box-fact">
+          @if (keywordOf(fact); as keyword) {
+            <em class="cee-spec-box-keyword">{{ keyword | translate }}</em>
+          }
+          {{ fact.key | translate: fact.params }}
+        </span>
+      }
+      @if (optionLabels) {
+        <span class="cee-spec-box-fact cee-spec-box-options">
+          <em class="cee-spec-box-keyword">{{ 'Spec.Keyword.Values' | translate }}</em>
+          {{ optionLabels }}
+        </span>
+      }
+    </span>
   }
   @if (defaultTerm) {
     <span class="cee-spec-box-source">
-      <span class="cee-spec-box-kind">{{ 'Spec.DefaultLabel' | translate }}</span>
+      <span class="cee-spec-box-default-kind">{{ 'Spec.DefaultLabel' | translate }}</span>
       @if (defaultTermLink) {
         <a class="cee-spec-box-link" [href]="defaultTermLink" target="_blank" rel="noopener">{{ defaultTerm.label }}</a>
       } @else {
@@ -18,7 +38,7 @@
       authority itself, and a word that is not the thing being linked to should not be part of it.
     -->
     <span class="cee-spec-box-source">
-      <span class="cee-spec-box-kind">{{ 'Spec.TermKind.' + source.kind | translate }}</span>
+      <em class="cee-spec-box-kind">{{ 'Spec.TermKind.' + source.kind | translate }}</em>
       @if (linkFor(source)) {
         <a class="cee-spec-box-link" [href]="linkFor(source)" target="_blank" rel="noopener"
           >{{ source.name }}

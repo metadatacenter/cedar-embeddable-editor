@@ -30,7 +30,17 @@
 }
 
 .cee-element-content {
-  padding-top: 12px;
+  padding-top: 4px;
+}
+
+/*
+ * Material gives an expanded panel a 64px header, although the same header is 48px collapsed. The
+ * extra expansion affordance around an already-open element buys nothing in either mode, and the
+ * 64px row plus the content padding was the large blank band between an element name and its first
+ * field. One height also means the heading does not shift when the panel opens.
+ */
+.mat-expansion-panel-header.mat-expanded {
+  height: 48px;
 }
 
 .non-iterable-component {
@@ -52,6 +62,37 @@
 }
 
 /*
+ * A read-only repeating field whose header carries no facts can put its occurrence chips beside the
+ * name. Grid makes that an actual shared row rather than another fixed negative offset; the control
+ * and description span both columns beneath it. Fields with header facts keep the existing stacked
+ * placement, so the two cannot cover each other.
+ */
+.inline-readonly-pager {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+
+  > app-cedar-component-header {
+    grid-column: 1;
+  }
+
+  > app-cedar-multi-pager {
+    grid-column: 2;
+  }
+
+  > .child-component-content {
+    grid-column: 1 / -1;
+  }
+}
+
+@container cee (max-width: 620px) {
+  .inline-readonly-pager {
+    display: block;
+  }
+}
+
+/*
  * Material card content supplies the element's heading-to-content gap. The
  * first ordinary field used to add its own 16px top padding as well, producing
  * a 32px blank band at every nesting level. Keep the field's bottom rhythm but
@@ -70,10 +111,5 @@
 
 .child-component-content {
   min-width: 0;
-  padding-top: 10px;
-
-  /* Tighter when read-only, for the reason given on the card's own padding above. */
-  :host-context(.cee-read-only) & {
-    padding-top: 4px;
-  }
+  padding-top: 4px;
 }

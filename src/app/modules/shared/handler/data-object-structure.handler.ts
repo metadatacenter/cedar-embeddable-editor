@@ -16,7 +16,48 @@ import { MessageHandlerService } from '../service/message-handler.service';
 import { InstanceArray, InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
 export class DataObjectStructureHandler {
-  constructor(private readonly dataObjectBuilderService: DataObjectBuilderHandler = new DataObjectBuilderHandler()) {}
+  /*
+   * The message service belongs to the handler rather than to one of its methods.
+   * Only `multiInstanceItemAdd` took it, and only `multiInstanceItemAdd` could
+   * report — which is the shape the defect below had: its two siblings had no way
+   * to say that they had been asked to do something impossible, so they asserted
+   * instead and threw.
+   */
+  constructor(
+    private readonly dataObjectBuilderService: DataObjectBuilderHandler = new DataObjectBuilderHandler(),
+    private readonly messageHandlerService: MessageHandlerService = new MessageHandlerService(),
+  ) {}
+
+  /**
+   * The list of occurrences at this path, or null when the instance holds
+   * something else there.
+   *
+   * `isInstanceArray`, not an assertion. `currentNodeAny as []` states the shape
+   * without checking it, and the walk genuinely answers null for a path a sparse
+   * instance does not carry — so `.splice` ran on a null. `performItemAdd` was
+   * given this guard and its two siblings kept the assertion.
+   */
+  private occurrencesFor(
+    instanceObject: InstanceExtractData,
+    templateRepresentation: TemplateComponent,
+    component: MultiComponent,
+    multiInstanceObjectService: MultiInstanceObjectHandler,
+    operation: string,
+  ): InstanceArray | null {
+    const node = this.getDataPathNodeRecursively(
+      instanceObject,
+      templateRepresentation,
+      component.path,
+      OccurrenceSelectors.fromCursor(multiInstanceObjectService),
+    );
+    if (isInstanceArray(node)) {
+      return node;
+    }
+    this.messageHandlerService.error(
+      `Cannot ${operation} an occurrence of ${component.path.join(' > ')}: the instance holds no list there.`,
+    );
+    return null;
+  }
 
   /**
    * The node a component path points at, given a choice of occurrence at each
@@ -132,7 +173,6 @@ export class DataObjectStructureHandler {
     dataContext: DataContext,
     component: MultiComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
-    messageHandlerService: MessageHandlerService,
   ): void {
     const multiInstanceInfo: MultiInstanceObjectInfo | null =
       multiInstanceObjectService.getMultiInstanceInfoForComponent(component);
@@ -146,14 +186,7 @@ export class DataObjectStructureHandler {
     // a second, envelope-free copy of the whole instance to build it into as
     // well — see `DataContext.instanceExtractData`, now a derived view.
     dataContext.mutate((instance) =>
-      this.performItemAdd(
-        instance,
-        templateRepresentation,
-        component,
-        multiInstanceObjectService,
-        multiInstanceInfo,
-        messageHandlerService,
-      ),
+      this.performItemAdd(instance, templateRepresentation, component, multiInstanceObjectService, multiInstanceInfo),
     );
   }
 
@@ -163,7 +196,6 @@ export class DataObjectStructureHandler {
     component: MultiComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
     multiInstanceInfo: MultiInstanceObjectInfo,
-    messageHandlerService: MessageHandlerService,
   ): void {
     // Somewhere to build one occurrence, thrown away once it has been taken out
     // again. A bare `{}` while a container was a plain object.
@@ -192,7 +224,7 @@ export class DataObjectStructureHandler {
     if (target !== null && newDataObject !== null) {
       target.splice(multiInstanceInfo.currentIndex + 1, 0, newDataObject);
     } else {
-      messageHandlerService.error('missing data in instance:' + component.path);
+      this.messageHandlerService.error('missing data in instance:' + component.path);
     }
   }
 
@@ -261,17 +293,26 @@ export class DataObjectStructureHandler {
     multiInstanceObjectService: MultiInstanceObjectHandler,
     multiInstanceInfo: MultiInstanceObjectInfo,
   ): void {
-    const currentNodeAny = this.getDataPathNodeRecursively(
+    const occurrences = this.occurrencesFor(
       instanceObject,
       templateRepresentation,
-      component.path,
-      OccurrenceSelectors.fromCursor(multiInstanceObjectService),
+      component,
+      multiInstanceObjectService,
+      'copy',
     );
-    const currentNodeArray = currentNodeAny as [];
-    const sourceItem = currentNodeArray[multiInstanceInfo.currentIndex];
-    const cloneItem = _.cloneDeep(sourceItem);
+    if (occurrences === null) {
+      return;
+    }
+    /*
+     * No guard on the occurrence itself. `MultiInstanceObjectInfo` keeps the
+     * cursor inside the occurrences that exist, and this list *is* what it counts,
+     * so an index it hands out addresses one of these. A check here could not fire,
+     * and one that cannot fire is worse than none: it reads as though the case
+     * happens.
+     */
+    const cloneItem = _.cloneDeep(occurrences[multiInstanceInfo.currentIndex]);
     this.clearElementInstanceIds(cloneItem, component);
-    currentNodeArray.splice(multiInstanceInfo.currentIndex + 1, 0, cloneItem as never);
+    occurrences.splice(multiInstanceInfo.currentIndex + 1, 0, cloneItem);
   }
 
   multiInstanceItemDelete(
@@ -289,7 +330,7 @@ export class DataObjectStructureHandler {
       this.performItemDelete(
         instance,
         templateRepresentation,
-        component.path,
+        component,
         multiInstanceObjectService,
         multiInstanceInfo,
       ),
@@ -299,18 +340,18 @@ export class DataObjectStructureHandler {
   private performItemDelete(
     instanceObject: InstanceExtractData,
     templateRepresentation: TemplateComponent,
-    path: string[],
+    component: MultiComponent,
     multiInstanceObjectService: MultiInstanceObjectHandler,
     multiInstanceInfo: MultiInstanceObjectInfo,
   ): void {
-    const currentNodeAny = this.getDataPathNodeRecursively(
+    const occurrences = this.occurrencesFor(
       instanceObject,
       templateRepresentation,
-      path,
-      OccurrenceSelectors.fromCursor(multiInstanceObjectService),
+      component,
+      multiInstanceObjectService,
+      'delete',
     );
-    const currentNodeArray = currentNodeAny as [];
-    currentNodeArray.splice(multiInstanceInfo.currentIndex, 1);
+    occurrences?.splice(multiInstanceInfo.currentIndex, 1);
   }
 
   /**

@@ -178,12 +178,23 @@ export class ActiveComponentRegistryService {
 
             if (keyName === null && InstanceValueNode.literal(dataObject[multiInstanceInfo.currentIndex]) === null) {
               handlerContext.changeAttributeValue(component, null, null);
-            } else if (keyName === '') {
-              // if it is an empty string, we silently accept it
-              return;
             }
             // This next line is actually needed, current index can change
             keyName = attributeNameOf(dataObject[multiInstanceInfo.currentIndex]);
+            if (keyName === '') {
+              // An unnamed occurrence is still the page being shown. A reused
+              // widget must receive it or it keeps the preceding page's name
+              // and value. An injected instance may name the slot without
+              // carrying a corresponding parent property, so its value is
+              // absent rather than a reason to skip the view update.
+              const value = isInstanceObject(parentDataObject)
+                ? InstanceValueNode.literal(parentDataObject.values[keyName])
+                : null;
+              if (uiComponent) {
+                uiComponent.setCurrentValue({ '': value ?? null });
+              }
+              return;
+            }
             if (keyName === null || !isInstanceObject(parentDataObject)) {
               return;
             }
@@ -207,13 +218,16 @@ export class ActiveComponentRegistryService {
                   ActiveComponentRegistryService.iriValueForWidget(pageNode, component, handlerContext.readOnlyMode),
                 );
               }
-            } else if (isInstanceObject(pageNode) && Object.keys(pageNode).length === 0) {
-              // A page with nothing on it at all. The controlled-term widget is
-              // still told, so it clears rather than keeping the previous
-              // page's term on screen.
-              if (uiComponent) {
-                uiComponent.setCurrentValue(undefined);
-              }
+              /*
+               * A page holding nothing falls through to the clear below, which is
+               * where it always went. There was a branch here for it, testing
+               * `Object.keys(pageNode).length === 0` — and a node is one of the
+               * model library's classes, whose own enumerable properties are never
+               * none, while an unfilled IRI-valued slot is an atom rather than a
+               * container. So the test could not hold either way, and the widget
+               * was cleared with `undefined` instead of `null` by a line that
+               * never ran.
+               */
             } else if (uiComponent) {
               uiComponent.setCurrentValue(null);
             }

@@ -2,18 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, ViewEnca
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FieldComponent } from '../../models/component/field-component.model';
 import { UserPreferencesService } from '../../service/user-preferences.service';
-import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../../models/ext-auth-categories.model';
-import { InputType } from '../../models/input-type.model';
-import { bioPortalSourceLink } from '../../util/bioportal-term-link';
-import {
-  SpecFact,
-  SpecTermSource,
-  specCardinalityFactsOf,
-  specDefaultFactsOf,
-  specTermSourcesOf,
-  specUnitFactsOf,
-  specValueFactsOf,
-} from '../../util/field-spec';
+import { SpecFact, specHeaderFactsOf, specKeywordOf } from '../../util/field-spec';
 
 /**
  * A field's specification, for a reader rather than for someone filling the form in.
@@ -21,8 +10,9 @@ import {
  * Read-only rendering has so far been the editor with its inputs disabled, which answers the wrong
  * question when there is no instance behind it: an empty box says where a value would go and nothing
  * about what an acceptable one is. This states the field instead — what it requires, how many
- * occurrences it takes, what an acceptable value looks like, which values are permitted, and the
- * description, in full and as text rather than inside a hover tooltip.
+ * what an acceptable value looks like, which values are permitted, and the description, in full and
+ * as text rather than inside a hover tooltip. Occurrence bounds live beside every repeating
+ * component's name, fields and elements alike.
  *
  * It renders nothing at all when the field states nothing, so a plain text field with no constraints
  * and no description does not gain an empty panel.
@@ -76,15 +66,6 @@ export class CedarFieldSpecComponent implements OnInit {
   }
 
   /**
-   * Beside the name: only what the field's own control cannot state.
-   *
-   * Most widgets have a placeholder, and `ceeSpecPlaceholder` puts the whole specification there —
-   * how many occurrences, the shape of a value, the permitted values, the authority. The exceptions
-   * have no such slot: a radio or checkbox group is a set of options rather than a box, a temporal
-   * row is three boxes with their own notation, and an attribute-value pair is two boxes whose
-   * placeholders name the pair. Those keep their facts here.
-   */
-  /**
    * What the field's own control cannot state.
    *
    * Almost nothing, by design: a widget's placeholder carries the whole specification, the declared
@@ -93,64 +74,12 @@ export class CedarFieldSpecComponent implements OnInit {
    * checkbox group are sets of options rather than boxes — where this is the only place left.
    */
   get facts(): ReadonlyArray<SpecFact> {
-    if (this.controlStatesTheSpecification()) {
-      return [];
-    }
-    return [
-      ...(this.optionsCarryTheDefault() ? [] : specDefaultFactsOf(this.fieldToDescribe)),
-      ...specCardinalityFactsOf(this.fieldToDescribe),
-      ...specValueFactsOf(this.fieldToDescribe),
-      ...specUnitFactsOf(this.fieldToDescribe),
-    ];
+    return specHeaderFactsOf(this.fieldToDescribe);
   }
 
-  /**
-   * Whether the field's own options state the declared default, which a radio or checkbox group
-   * does: the option carrying it is marked there. Stating it here as well was the same fact twice,
-   * a few centimetres apart.
-   *
-   * The mark appears only while the group stands in for the specification, and so does this — with
-   * an instance behind it the group shows an answer, and no default is stated anywhere, which is how
-   * every other field already behaves once a value fills the box that held the placeholder.
-   */
-  private optionsCarryTheDefault(): boolean {
-    const inputType = this.fieldToDescribe.basicInfo.inputType;
-    return inputType === InputType.radio || inputType === InputType.checkbox;
-  }
-
-  /** Whether this field's widget carries the specification in its own placeholder. */
-  private controlStatesTheSpecification(): boolean {
-    const inputType = this.fieldToDescribe.basicInfo.inputType;
-    return (
-      inputType === InputType.text ||
-      inputType === InputType.textarea ||
-      inputType === InputType.numeric ||
-      inputType === InputType.email ||
-      inputType === InputType.link ||
-      inputType === InputType.phoneNumber ||
-      inputType === InputType.controlled ||
-      inputType === InputType.list ||
-      inputType === InputType.temporal ||
-      // The seven external-authority fields are text boxes with a registry behind them, and each takes
-      // the same placeholder as the rest.
-      EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType)
-    );
-  }
-
-  /**
-   * The authorities a controlled field draws on, beside the name rather than in the box.
-   *
-   * They belong here because they are links: a reader asking what may go in the field wants to see
-   * the branch or the ontology, and placeholder text cannot be clicked. The value's own link-out
-   * inside the control answers a different question — what is this term? — and stays where it is.
-   */
-  get termSources(): ReadonlyArray<SpecTermSource> {
-    return specTermSourcesOf(this.fieldToDescribe);
-  }
-
-  /** Where the authority can be read about, or null when it names no acronym to address it by. */
-  linkFor(source: SpecTermSource): string | null {
-    return bioPortalSourceLink(source);
+  /** The lead-in word this fact is stated with, or null where it leads with none. */
+  keywordOf(fact: SpecFact): string | null {
+    return specKeywordOf(fact);
   }
 
   /** Whether this half has anything to state, which decides whether it appears at all. */

@@ -23,10 +23,11 @@ genuinely theirs.
         [label]="selectedData?.label ?? null"
         [iri]="selectedData?.iri ?? null"
         [fieldLabel]="cds.getRenderingLabelForComponent(component)"
+        [truncateLabel]="truncatesSelectedLabel"
       >
         @if (detailsUrl) {
           <a
-            mat-icon-button
+            class="cee-term-link-action"
             [href]="detailsUrl"
             target="_blank"
             rel="noopener"
@@ -62,6 +63,13 @@ genuinely theirs.
         attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
       />
       <mat-autocomplete #auto="matAutocomplete">
+        <!--
+          Resolved once. This binding was read through two `| async` pipes, one for the
+          emptiness test and one for the rows, and each `AsyncPipe` subscribes the
+          pipeline separately. Every subscription carries its own `debounceTime` and
+          `switchMap`, so a keystroke drove two chains and issued two lookups.
+        -->
+        @let terms = filteredOptions | async;
         @if (loadingOptions) {
           <mat-option disabled class="spinner-container">
             <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
@@ -75,11 +83,11 @@ genuinely theirs.
         @if (
           !lookupFailed &&
           (inputValueControl.value?.trim()?.length ?? 0) > 0 &&
-          ((filteredOptions | async)?.length ?? 0) === 0
+          (terms?.length ?? 0) === 0
         ) {
-          <mat-option disabled> No results found </mat-option>
+          <mat-option disabled>{{ 'Error.NoResults' | translate }}</mat-option>
         }
-        @for (option of filteredOptions | async; track option) {
+        @for (option of terms; track option) {
           <!--
             `mousedown` rather than `click`: it is the event that precedes the
             blur, which is the whole point. It tells the blur handler that the

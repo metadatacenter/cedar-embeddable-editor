@@ -6,8 +6,8 @@
     "CollapseAll": "Mindet bezár",
     "Copy": "Másolás",
     "Page": "Oldal",
-    "Name": "Név",
-    "Value": "Érték",
+    "Name": "név",
+    "Value": "érték",
     "AttributeName": "Attribútum név",
     "AttributeValue": "Attribútum érték",
     "Clear": "Törlés",
@@ -16,10 +16,11 @@
     "SelectYear": "Év kiválasztása",
     "SelectYearAndMonth": "Év és hónap kiválasztása",
     "SelectDate": "Dátum kiválasztása",
-    "NumberOnly": "Csak szám",
     "CedarLogo": "CEDAR logó",
     "DecimalSeconds": "tizedmásodpercek",
     "Filter": "Kezdjen el írni a szűréshez",
+    "OpenLink": "Hivatkozás megnyitása",
+    "PropertyIri": "Tulajdonság IRI: {{iri}}",
     "OpenAuthorityPage": "A {{authority}} oldal megnyitása",
     "FilterOrcid": "Kezdjen el írni kutatónevet vagy ORCID-ot",
     "FilterRor": "Kezdjen el írni intézménynevet vagy ROR-t",
@@ -52,7 +53,9 @@
   },
   "Error": {
     "ValueRequired": "A mező kitöltése kötelező",
-    "LookupFailed": "A keresés sikertelen: a szolgáltatás nem érhető el"
+    "LookupFailed": "A keresés sikertelen: a szolgáltatás nem érhető el",
+    "NoResults": "Nincs találat",
+    "NoTermsAvailable": "Nincs elérhető fogalom"
   },
   "Extra": {
     "SampleTemplate": {
@@ -81,6 +84,7 @@
     }
   },
   "Validation": {
+    "SelectAtLeastOne": "Legalább egy lehetőséget ki kell választani.",
     "Required": "Az érték megadása kötelező.",
     "Text": {
       "MinLength": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
@@ -126,24 +130,31 @@
     "DoiReverted": "Érvénytelen DOI, a módosítás elvetve; az utolsó érvényes DOI visszaállítva."
   },
   "Spec": {
-    "Cardinality": "{{min}}–{{max}} érték",
-    "CardinalityUnbounded": "{{min}}+ érték",
-    "MinLength": "min. {{minLength}} karakter",
-    "MaxLength": "max. {{maxLength}} karakter",
-    "Pattern": "minta: {{regex}}",
+    "MinLength": "{{minLength}} karakter",
+    "MaxLength": "{{maxLength}} karakter",
+    "Pattern": "{{regex}}",
     "NumberType": "{{numberType}}",
-    "UnitOfMeasure": "egység: {{unitOfMeasure}}",
-    "MinValue": "min. {{minValue}}",
-    "MaxValue": "max. {{maxValue}}",
+    "UnitOfMeasure": "{{unitOfMeasure}}",
+    "MinValue": "{{minValue}}",
+    "MaxValue": "{{maxValue}}",
     "DecimalPlaces": "{{decimalPlace}} tizedesjegy",
     "TemporalTimeFormat": "{{inputTimeFormat}} órakijelzés",
     "TemporalZoneRequired": "időzóna szükséges",
-    "PermittedValues": "Értékek",
+    "PermittedValues": "értékek",
+    "Keyword": {
+      "Min": "min.",
+      "Max": "max.",
+      "Unit": "egység:",
+      "Values": "értékek",
+      "Pattern": "minta:",
+      "Default": "alapérték:"
+    },
     "TermKind": {
       "branch": "ág",
       "ontology": "ontológia",
       "valueSet": "értékkészlet",
-      "class": "érték"
+      "class": "osztály",
+      "value": "érték"
     },
     "Notation": {
       "year": "ÉÉÉÉ",
@@ -156,7 +167,7 @@
     },
     "DecimalPlaceOne": "1 tizedesjegy",
     "TermIn": "ebből: {{container}}",
-    "DefaultValue": "alapérték: {{defaultValue}}",
+    "DefaultValue": "{{defaultValue}}",
     "DefaultLabel": "alapérték",
     "DefaultMark": "(alapérték)"
   }

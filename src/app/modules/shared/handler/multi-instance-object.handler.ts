@@ -249,11 +249,9 @@ export class MultiInstanceObjectHandler {
       const currentIdx = multiInstanceInfo.currentIndex;
       multiInstanceInfo.occurrences.splice(currentIdx, 1);
     }
-    // The cursor may now point past the end. `currentCount` already reflects the
-    // splice, because it reads the instance and the instance was spliced first.
-    if (multiInstanceInfo.currentIndex > multiInstanceInfo.currentCount - 1) {
-      multiInstanceInfo.currentIndex = multiInstanceInfo.currentCount - 1;
-    }
+    // The cursor may now point past the end, and `MultiInstanceObjectInfo` keeps
+    // it inside the occurrences that exist. It was clamped here by hand, which is
+    // the same rule applied in one of the places it holds — see that class.
   }
 
   /*

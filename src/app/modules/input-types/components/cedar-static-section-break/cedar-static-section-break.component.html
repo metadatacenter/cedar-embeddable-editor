@@ -1,6 +1,6 @@
 <h1 class="section-break-header">
   {{ cds.getRenderingLabelForComponent(component) }}
-  @if (hasHelpText) {
+  @if (hasHelpText && !readOnlyMode) {
     <mat-icon matTooltip="{{ component.labelInfo.description }}" class="icon-help">help</mat-icon>
   }
 </h1>

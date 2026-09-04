@@ -96,11 +96,19 @@ export class CedarValidators {
    * `Validators.required` on a FormGroup passes as soon as the group exists, so
    * it cannot express this — which is why the checkbox widget had no validator
    * and a required checkbox field never showed as unsatisfied.
+   *
+   * `listControlName` names the control holding the selection, and the check has
+   * to go through it. It used to ask whether any of the group's values was
+   * `true`, and nothing ever puts a `true` there: the widget writes the string
+   * `checked`, and Material's own `true` arrives during the click, before the
+   * `input` handler overwrites it. So the group stayed unsatisfied however many
+   * boxes were ticked. Testing the values for truthiness instead would not have
+   * helped, since one of them is the selection list itself and `[]` is truthy.
    */
-  static atLeastOneChecked(): ValidatorFn {
+  static atLeastOneChecked(listControlName: string): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const value = control.value ?? {};
-      const anyChecked = Object.values(value).some((v) => v === true);
+      const selected = control.get(listControlName)?.value;
+      const anyChecked = Array.isArray(selected) && selected.length > 0;
       return anyChecked ? null : { required: { message: 'Select at least one option.', value: null } };
     };
   }
@@ -111,30 +119,55 @@ export class CedarValidators {
    * The numeric widget shows this next to the field, so it has to stay in step
    * with the pattern actually applied — which is the reason it lives beside the
    * validator rather than in the component.
+   *
+   * A finished sentence, with nothing for a caller to add. Every branch used to open
+   * with a space and the widget closed with a period of its own, so the line rendered
+   * indented under the error above it and ended `...(-32768 to 32767)..`; a float with
+   * no declared decimal place ended `a float,.`, the comma left waiting for a clause
+   * that was never appended.
+   *
+   * Null for a field whose XSD type carries no hint worth showing.
    */
-  /** Null for a field whose XSD type carries no hint worth showing. */
   static describeNumberType(component: FieldComponent): string | null {
     const numberType = component.numberInfo?.numberType;
-    const decimalPlace = component.numberInfo?.decimalPlace;
-    const decimals = decimalPlace != null ? ` maximum ${decimalPlace} decimals.` : '';
+    const decimalPlace = component.numberInfo?.decimalPlace ?? null;
     switch (numberType) {
       case Xsd.int:
-        return ' The value should be an integer.';
+        return 'The value should be an integer.';
       case Xsd.long:
-        return ' The value should be a long integer.';
+        return 'The value should be a long integer.';
       case Xsd.byte:
-        return ' The value should be a byte (-128 to 127).';
+        return 'The value should be a byte (-128 to 127).';
       case Xsd.short:
-        return ' The value should be a short (-32768 to 32767).';
+        return 'The value should be a short (-32768 to 32767).';
       case Xsd.float:
-        return ' The value should be a float,' + decimals;
+        return CedarValidators.describeFractionalType('float', decimalPlace);
       case Xsd.double:
-        return ' The value should be a double,' + decimals;
+        return CedarValidators.describeFractionalType('double', decimalPlace);
       case Xsd.decimal:
-        return ' The value should be a decimal,' + decimals;
+        return CedarValidators.describeFractionalType('decimal', decimalPlace);
       default:
         return null;
     }
+  }
+
+  /**
+   * How a field that admits a fractional part reads, given the places it declares.
+   *
+   * Zero places admits no fraction at all, so naming the XSD type there states the
+   * opposite of the constraint: `a decimal with at most 0 decimal places` is a whole
+   * number, and reads as a contradiction. That case describes what is allowed instead
+   * of what the type is called.
+   */
+  private static describeFractionalType(typeName: string, decimalPlace: number | null): string {
+    if (decimalPlace === null) {
+      return `The value should be a ${typeName}.`;
+    }
+    if (decimalPlace === 0) {
+      return 'The value should be a number with no decimal places.';
+    }
+    const places = decimalPlace === 1 ? 'decimal place' : 'decimal places';
+    return `The value should be a ${typeName} with at most ${decimalPlace} ${places}.`;
   }
 
   /**

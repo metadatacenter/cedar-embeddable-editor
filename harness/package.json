@@ -12,6 +12,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage.enabled"
   },
+  "allowScripts": {
+    "fsevents@2.3.3": true
+  },
   "dependencies": {
     "lodash-es": "^4.18.1"
   },

@@ -33,6 +33,7 @@ import { ControlledFieldDataService } from '../../../shared/service/controlled-f
 import { MessageHandlerService } from '../../../shared/service/message-handler.service';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { bioPortalSourceLink, bioPortalTermLink } from '../../../shared/util/bioportal-term-link';
 import { SpecTermSource, specTermSourcesOf } from '../../../shared/util/field-spec';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
@@ -70,7 +71,14 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   justReverted = false;
   justCleared = false;
   component!: FieldComponent;
-  options: FormGroup;
+  /*
+   * Both built in `ngOnInit`, because the control's validators come off the
+   * component and that arrives as an input. Asserted rather than made optional:
+   * Angular runs `ngOnInit` before it first checks the template that binds them,
+   * so there is no render in which they are absent. The same shape
+   * `AbstractAuthorityInputComponent` already uses.
+   */
+  options!: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
   errorStateMatcher = new TextFieldErrorStateMatcher();
   @Input({ required: true }) handlerContext!: HandlerContext;
@@ -86,16 +94,13 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   lookupFailed = false;
 
   constructor(
-    fb: FormBuilder,
+    private readonly fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
     private controlledFieldDataService: ControlledFieldDataService,
     private messageHandlerService: MessageHandlerService,
   ) {
     super();
-    this.options = fb.group({
-      inputValue: this.inputValueControl,
-    });
   }
   override ngOnInit(): void {
     super.ngOnInit();
@@ -106,6 +111,9 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     }
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl<string | null>(null, validators);
+    // Beside the control it holds. Built in the constructor, the group kept the
+    // control this line replaces — see `input-control-binding.spec.ts`.
+    this.options = this.fb.group({ inputValue: this.inputValueControl });
 
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
@@ -136,9 +144,23 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   }
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
-      this.trigger?.panelClosingActions.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.trigger?.panelClosingActions.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
+        const selectionWasInProgress = this.selectionInProgress;
+        // `mousedown` set this before the blur. Selection clears it through
+        // `onSelectionChange`; an aborted press has no selection event, so the
+        // panel close is the one place that can release it. Without this, every
+        // later blur declines to reconcile for the lifetime of the widget.
+        this.selectionInProgress = false;
+        if (event?.source) {
+          return;
+        }
         if (this.selectedData !== null) {
           this.setCurrentValue(this.selectedData);
+        } else if (selectionWasInProgress) {
+          // The press suppressed its blur, and there is no selected term to put
+          // back. Complete that reconciliation here so an unstored query does
+          // not remain in an empty field after the user has left it.
+          this.onInputBlur();
         }
       });
     }
@@ -147,13 +169,14 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    * The offered terms, narrowed to those whose label matches what was typed.
    *
    * The endpoint is inconsistent about honouring the query, so the widget
-   * narrows the results itself — the same rule the seven authority widgets
-   * apply. A term with no label is dropped rather than shown blank.
+   * narrows the results itself — through `narrowByQuery`, which is the rule the
+   * seven authority widgets apply. This claimed the same rule in a comment while
+   * asking whether the label contained the whole query as one substring, so a
+   * term named in another order or with a word between was thrown away *after*
+   * the server had found it, and the panel then said "No results found".
    */
   filter(val: string): Observable<AuthorityTerm[]> {
-    return this.controlledFieldDataService
-      .getData(val, this.component)
-      .pipe(map((terms) => terms.filter((term) => term.label.toLowerCase().includes(val.toLowerCase()))));
+    return this.controlledFieldDataService.getData(val, this.component).pipe(map((terms) => narrowByQuery(terms, val)));
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
@@ -167,6 +190,19 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     timer(5000)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => (this.justReverted = false));
+  }
+
+  /**
+   * Whether the box holds text to search on.
+   *
+   * The panel says something different for each of the two ways a lookup comes back
+   * empty. A query that matched nothing says something about the query. An empty result
+   * for the empty query the field opens with says something about the constraint, which
+   * offers no terms at all, and calling that "no results found" would make a claim about
+   * a query nobody typed.
+   */
+  get hasQuery(): boolean {
+    return (this.inputValueControl.value?.trim().length ?? 0) > 0;
   }
 
   /** Bound to the option's `mousedown`, which precedes the blur it causes. */
@@ -206,7 +242,10 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     if (this.readOnlyMode || this.selectionInProgress) {
       return;
     }
-    const outcome = AuthoritySearchControl.reconcileOnBlur(this.inputValueControl, this.selectedData?.label ?? null);
+    const outcome = AuthoritySearchControl.reconcileOnBlur(
+      this.inputValueControl,
+      this.editableTermDisplay(this.selectedData),
+    );
     if (outcome === 'reverted') {
       this.showRevertHint();
     } else if (outcome === 'cleared') {
@@ -232,22 +271,16 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       const displayTerm = this.getBioPortalTermDisplayValue(currentValue);
       this.inputValueControl.setValue(displayTerm);
     } else {
-      this.inputValueControl.setValue(term?.label ?? (typeof currentValue === 'string' ? currentValue : null));
+      this.inputValueControl.setValue(
+        term !== null ? this.editableTermDisplay(term) : typeof currentValue === 'string' ? currentValue : null,
+      );
     }
   }
-  /*
-   * `unknown`, matching what `setCurrentValue` is handed. A controlled value arrives
-   * as a term; anything else — a plain string on a field whose constraint was
-   * removed — falls through the last branch and is shown as-is.
-   */
-  /**
-   * How a selected term reads in the box: "Label - https://iri".
-   *
-   * No parentheses around the IRI. This wrapped it — `label - (iri)` — where the
-   * seven external-authority fields render `label - iri`, and they are the same
-   * kind of value shown in the same kind of box, one row apart. `getCompoundValue`
-   * in `abstract-authority-input.component.ts` is the form they use.
-   */
+
+  /** Editable text for a selected term: its label, or its IRI when no label arrived. */
+  private editableTermDisplay(term: AuthorityTerm | null): string | null {
+    return term?.label?.trim() || term?.iri?.trim() || null;
+  }
   /**
    * The authorities this field draws on, for the box to state when it holds no value.
    *
@@ -266,6 +299,18 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     return bioPortalSourceLink(source);
   }
 
+  /**
+   * How a selected term reads in the box: "Label - https://iri".
+   *
+   * No parentheses around the IRI. This wrapped it — `label - (iri)` — where the
+   * seven external-authority fields render `label - iri`, and they are the same
+   * kind of value shown in the same kind of box, one row apart. `getCompoundValue`
+   * in `abstract-authority-input.component.ts` is the form they use.
+   *
+   * `unknown`, matching what `setCurrentValue` is handed. A controlled value arrives
+   * as a term; anything else — a plain string on a field whose constraint was
+   * removed — falls through the last branch and is shown as-is.
+   */
   getBioPortalTermDisplayValue(value: unknown): string {
     const term = isAuthorityTerm(value) ? value : { iri: '', label: '' };
     if (term.label && term.iri) {
@@ -273,15 +318,6 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     } else return value as string;
   }
 
-  /**
-   * The BioPortal page for the term the field holds, or null when it holds none.
-   *
-   * Derived rather than assigned. It used to be set as a side effect of the
-   * function that formats the display text, and that function only runs in
-   * read-only mode — so the link existed in one mode and not the other for no
-   * reason anyone chose. The constraint the term came through decides which
-   * Built from the constraint's acronym, in `bioPortalTermLink`.
-   */
   /**
    * Whether to render the term as a value rather than as a control. Same rule as the authority
    * fields: read-only with a term in hand, the identifier belongs in a link, and text inside an
@@ -291,6 +327,16 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     return this.readOnlyMode && this.selectedData !== null;
   }
 
+  /**
+   * The BioPortal page for the term the field holds, or null when it holds none.
+   *
+   * Derived rather than assigned. It used to be set as a side effect of the
+   * function that formats the display text, and that function only runs in
+   * read-only mode — so the link existed in one mode and not the other for no
+   * reason anyone chose. The constraint the term came through decides which
+   * ontology addresses it, so the page is built from that constraint's acronym,
+   * in `bioPortalTermLink`.
+   */
   get bioPortalTermLink(): string | null {
     return bioPortalTermLink(this.component.controlledInfo, this.selectedData?.iri);
   }

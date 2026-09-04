@@ -67,17 +67,19 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
   }
 
   valueChanged($event: Event): void {
-    let value: string | null = null;
+    const typed = $event ? ($event.target as HTMLTextAreaElement).value : this.valueInputControl.value;
 
-    if ($event) {
-      value = ($event.target as HTMLTextAreaElement).value;
-    } else {
-      value = this.valueInputControl.value;
-    }
-
-    if (value && value.length === 0) {
-      value = null;
-    }
+    // An emptied box says so as null, which is how the other nine widgets say it
+    // and what this widget's own Clear action has always passed. The guard that
+    // meant to do this read `value && value.length === 0` and could not run,
+    // since `''` is falsy — so an emptied box reached the model as `''` and was
+    // recorded as `{"@value": ""}`.
+    //
+    // `changeAttributeValue` folds the empty string in as well. That is the model
+    // boundary refusing a shape it cannot mean; this is the widget reporting what
+    // happened in the vocabulary its siblings use. Neither makes the other
+    // redundant.
+    const value = typed === '' ? null : typed;
     const name = this.nameInputControl.value;
     this.attributeNameError = this.handlerContext.changeAttributeValue(this.component, name, value);
     this.nameInputControl.setErrors(this.attributeNameError === null ? null : { attributeName: true });

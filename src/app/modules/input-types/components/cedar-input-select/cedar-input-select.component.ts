@@ -38,7 +38,14 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
 
   component!: FieldComponent;
   dropdownList: Record<string, string>[] = [];
-  options: FormGroup;
+  /*
+   * Both built in `ngOnInit`, because the control's validators come off the
+   * component and that arrives as an input. Asserted rather than made optional:
+   * Angular runs `ngOnInit` before it first checks the template that binds them,
+   * so there is no render in which they are absent. The same shape
+   * `AbstractAuthorityInputComponent` already uses.
+   */
+  options!: FormGroup;
   /*
    * A string or a list of them: a single-choice field holds the chosen label, a
    * multiple-choice field the chosen labels. `multipleChoice` is what decides
@@ -61,12 +68,9 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
   constructor(
     private activeComponentRegistry: ActiveComponentRegistryService,
     public cds: ComponentDataService,
-    fb: FormBuilder,
+    private readonly fb: FormBuilder,
   ) {
     super();
-    this.options = fb.group({
-      inputValue: this.inputValueControl,
-    });
   }
 
   override ngOnInit(): void {
@@ -79,6 +83,9 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     }
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl<string | string[] | null>(null, validators);
+    // Beside the control it holds. Built in the constructor, the group kept the
+    // control this line replaces — see `input-control-binding.spec.ts`.
+    this.options = this.fb.group({ inputValue: this.inputValueControl });
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
@@ -94,14 +101,16 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
       // Inside this branch the control is the multi-select's, so its value is the
       // list. Named separately rather than reused, because the else branch below
       // reads the same control as a single string.
-      const values = Array.isArray(raw) ? raw : [];
-      if (this.maxSelections === null || (values && values.length <= this.maxSelections)) {
-        this.selections = values;
+      const values = this.selectedLabels(raw);
+      if (this.maxSelections === null || values.length <= this.maxSelections) {
+        // A snapshot, not the control's array. This is rollback state and must
+        // not change underneath us if the select mutates its own value.
+        this.selections = [...values];
       } else {
-        this.inputValueControl.setValue(this.selections);
+        this.inputValueControl.setValue([...this.selections]);
       }
       // close dropdown if max selections reached
-      if (this.selectElement && this.maxSelections !== null && values && values.length === this.maxSelections) {
+      if (this.selectElement && this.maxSelections !== null && values.length === this.maxSelections) {
         this.selectElement.close();
       }
       this.changeValue(this.selections);
@@ -116,9 +125,27 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     // A multiple-choice field is handed the whole list, a single-choice field one
     // label. Both are values this control holds, which is why its type is the union
     // — narrowing to string alone dropped every multi-select's selection on load.
-    const value =
-      typeof currentValue === 'string' || Array.isArray(currentValue) ? (currentValue as string | string[]) : null;
-    this.inputValueControl.setValue(value);
+    if (this.component.choiceInfo.multipleChoice) {
+      // Model-to-view sync is also the initial state for the maxItems rollback.
+      // Keeping that state only in `inputChanged` meant a loaded selection was
+      // absent from the cache until the user made one successful edit.
+      //
+      // A cleared list is represented by one null literal in the instance.
+      // Project only actual labels: Angular's required validator considers
+      // [null] and [''] non-empty even though Material selects no option.
+      const values = this.selectedLabels(currentValue);
+      this.selections = [...values];
+      this.inputValueControl.setValue(values);
+    } else {
+      this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
+    }
+  }
+
+  /** The non-empty labels a multiple-choice control can actually select. */
+  private selectedLabels(value: unknown): string[] {
+    return Array.isArray(value)
+      ? value.filter((entry): entry is string => typeof entry === 'string' && entry.length > 0)
+      : [];
   }
 
   private populateItemsOnLoad(): void {
@@ -134,15 +161,32 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     }
   }
 
+  /**
+   * What a read-only field shows.
+   *
+   * A multiple-choice field holds a list, and the read-only input used to be
+   * bound to the control itself — so the DOM coerced the array on its way into
+   * the input's `value` and rendered `A,B`: no space, and nothing to say it is
+   * more than one value. Joined here instead, so what is shown is a decision
+   * rather than a coercion. A label containing a comma still reads ambiguously;
+   * a text input cannot express a list, and that is as far as one goes.
+   */
+  get readOnlyValue(): string {
+    const value = this.inputValueControl.value;
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    return value ?? '';
+  }
+
   clearValue($event: Event): void {
     $event.stopPropagation();
     this.inputValueControl.setValue(null);
-    const multi = this.component.choiceInfo.multipleChoice;
-    if (multi) {
-      this.changeValue(null);
-    } else {
-      this.changeValue(null);
-    }
+    // The record of what is selected, and it survived the clear: the bound guard
+    // below restores `selections` when a pick goes over `maxItems`, so a rejected
+    // pick put back a selection the user had cleared.
+    this.selections = [];
+    this.changeValue(null);
   }
 
   /*

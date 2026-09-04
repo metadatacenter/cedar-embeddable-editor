@@ -124,9 +124,9 @@ test.describe('host change notifications', () => {
   });
 
   test('read-only native control traffic does not report an instance change', async ({ page }) => {
-    // A blank read-only instance intentionally renders specifications instead of
-    // empty controls. Supply a filled instance so there is a real native control
-    // whose incidental DOM event can be exercised.
+    // A blank read-only instance intentionally renders specifications instead of empty controls.
+    // This fixture carries an email value so there is a real native value control whose incidental
+    // DOM event can be exercised.
     await open(page, '01-input-types', 'readonly', '14-markup-in-a-value');
     await recordChanges(page);
     await page.locator('input[aria-label="email"]').dispatchEvent('change');

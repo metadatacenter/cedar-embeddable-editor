@@ -32,8 +32,13 @@
           }
         </mat-chip-listbox>
       }
+      <!--
+        `hideSingleSelectionIndicator`, as above: nothing here is selectable, and without it
+        Material keeps a 12px cell for the selection checkmark at the head of the chip, so the
+        label sat 21px from the left edge and 9px from the right.
+      -->
       @if (getInstanceCount() < 1) {
-        <mat-chip-listbox [tabIndex]="0">
+        <mat-chip-listbox [tabIndex]="0" [hideSingleSelectionIndicator]="true">
           <mat-chip-option selectable="false" disabled="true" aria-label="No values yet">{{
             'Multi.NoInstancesYet' | translate
           }}</mat-chip-option>

@@ -57,6 +57,23 @@ export default defineConfig({
           statements: 70,
           branches: 60,
         },
+        /*
+         * The widgets that read values from users.
+         *
+         * A floor, not a target, and worth being honest about what it buys. It
+         * does not catch a wrong test: `atLeastOneChecked` was covered by a spec
+         * that handed it a shape no widget produces, and stayed green over a
+         * required field that could never be satisfied. What it catches is the
+         * case that produced most of what this floor was added after — a widget
+         * with no spec at all. Three of these were at zero, including the radio
+         * group, which is one of the two ways a template asks a closed question.
+         */
+        'src/app/modules/input-types/components/**/cedar-input-*.component.ts': {
+          statements: 62,
+          branches: 40,
+          functions: 50,
+          lines: 62,
+        },
       },
     },
   },

@@ -8,16 +8,15 @@
  */
 import { describe, expect, it } from 'vitest';
 import { SingleFieldComponent } from '@cee/models/field/single-field-component.model';
-import { MultiFieldComponent } from '@cee/models/field/multi-field-component.model';
 import { ChoiceOption } from '@cee/models/info/choice-option.model';
 import { FieldComponent } from '@cee/models/component/field-component.model';
 import { InputType } from '@cee/models/input-type.model';
 import {
   SpecFact,
   SpecFactKey,
-  specCardinalityFactsOf,
   specDefaultFactsOf,
   specDefaultTermOf,
+  specHeaderFactsOf,
   specOptionsOf,
   specTermSourcesOf,
   specUnitFactsOf,
@@ -31,8 +30,45 @@ const textField = (): FieldComponent => {
 };
 
 const keysOf = (field: FieldComponent): string[] => specValueFactsOf(field).map((fact: SpecFact) => fact.key);
-const cardinalityKeysOf = (field: FieldComponent): string[] =>
-  specCardinalityFactsOf(field).map((fact: SpecFact) => fact.key);
+
+describe('which facts occupy the field-name row', () => {
+  it.each([
+    InputType.text,
+    InputType.textarea,
+    InputType.numeric,
+    InputType.email,
+    InputType.link,
+    InputType.phoneNumber,
+    InputType.controlled,
+    InputType.list,
+    InputType.temporal,
+    InputType.orcid,
+  ])('leaves %s facts to the box that states that field specification', (inputType) => {
+    const field = new SingleFieldComponent();
+    field.basicInfo.inputType = inputType;
+    field.valueInfo.defaultValue = 'declared';
+
+    expect(specHeaderFactsOf(field)).toStrictEqual([]);
+  });
+
+  it('keeps an attribute-value default on the heading row above its two named boxes', () => {
+    const field = new SingleFieldComponent();
+    field.basicInfo.inputType = InputType.attributeValue;
+    field.valueInfo.defaultValue = 'declared';
+
+    expect(specHeaderFactsOf(field)).toStrictEqual([
+      { key: SpecFactKey.defaultValue, params: { defaultValue: 'declared' } },
+    ]);
+  });
+
+  it('does not repeat a radio default that its visible option already marks', () => {
+    const field = new SingleFieldComponent();
+    field.basicInfo.inputType = InputType.radio;
+    field.choiceInfo.choices = [new ChoiceOption('Alpha', true)];
+
+    expect(specHeaderFactsOf(field)).toStrictEqual([]);
+  });
+});
 
 describe('what a text field states', () => {
   it('states the pattern, which 193 fields declare and nothing had ever shown', () => {
@@ -129,31 +165,6 @@ describe('what a temporal field states', () => {
 
   it('says nothing about a zone that is not required, since its absence is the default', () => {
     expect(keysOf(temporal('minute', 'xsd:time'))).toStrictEqual([SpecFactKey.notationMinute]);
-  });
-});
-
-describe('how many occurrences a field takes', () => {
-  it('states the bounds for a repeating field', () => {
-    const field = new MultiFieldComponent();
-    field.basicInfo.inputType = InputType.text;
-    field.multiInfo.minItems = 1;
-    field.multiInfo.maxItems = 5;
-
-    expect(specCardinalityFactsOf(field)).toStrictEqual([{ key: SpecFactKey.cardinality, params: { min: 1, max: 5 } }]);
-  });
-
-  it('says "or more" rather than inventing an upper bound the template omits', () => {
-    const field = new MultiFieldComponent();
-    field.basicInfo.inputType = InputType.text;
-    field.multiInfo.minItems = 2;
-
-    expect(specCardinalityFactsOf(field)).toStrictEqual([
-      { key: SpecFactKey.cardinalityUnbounded, params: { min: 2 } },
-    ]);
-  });
-
-  it('says nothing for a single-occurrence field rather than "1 to 1"', () => {
-    expect(cardinalityKeysOf(textField())).toStrictEqual([]);
   });
 });
 
@@ -305,7 +316,12 @@ describe('what a controlled-term field states', () => {
     const field = new SingleFieldComponent();
     field.basicInfo.inputType = InputType.controlled;
     field.controlledInfo.classes = [
-      { uri: 'http://purl.obolibrary.org/obo/DOID_2841', prefLabel: 'asthma', source: 'DOID' },
+      {
+        uri: 'http://purl.obolibrary.org/obo/DOID_2841',
+        prefLabel: 'asthma',
+        source: 'DOID',
+        type: 'OntologyClass',
+      },
     ];
 
     expect(specTermSourcesOf(field)).toStrictEqual([
@@ -317,6 +333,21 @@ describe('what a controlled-term field states', () => {
         uri: 'http://purl.obolibrary.org/obo/DOID_2841',
       },
     ]);
+  });
+
+  it('distinguishes a fixed value from an ontology class when a producer records that type', () => {
+    const field = new SingleFieldComponent();
+    field.basicInfo.inputType = InputType.controlled;
+    field.controlledInfo.classes = [
+      {
+        uri: 'http://example.org/status/complete',
+        prefLabel: 'Complete',
+        source: 'STATUS',
+        type: 'Value',
+      },
+    ];
+
+    expect(specTermSourcesOf(field)[0].kind).toBe('value');
   });
 
   it('names no sources for a field that is not controlled', () => {

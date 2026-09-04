@@ -50,6 +50,11 @@ export class ControlledFieldDataService {
     postData.parameterObject.valueConstraints.classes = component.controlledInfo.classes;
     postData.parameterObject.valueConstraints.ontologies = component.controlledInfo.ontologies;
     postData.parameterObject.valueConstraints.valueSets = component.controlledInfo.valueSets;
+    // The arrangements too. Without them the endpoint has no way to know which values
+    // the author excluded, so every deleted term stayed selectable and a custom order
+    // was lost — the field's own specification, dropped between the template and the
+    // search that is supposed to honour it.
+    postData.parameterObject.valueConstraints.actions = component.controlledInfo.actions;
     // Random delay to prevent throttling
     const searchUrl = this.integratedSearchUrl;
     if (searchUrl === null) {

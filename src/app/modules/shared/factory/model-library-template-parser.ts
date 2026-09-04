@@ -100,7 +100,8 @@ const isMultiComponent = (component: CedarComponent): component is MultiComponen
   component instanceof MultiFieldComponent || component instanceof MultiElementComponent;
 
 /**
- * The four controlled-term constraint kinds, as one element type.
+ * The four controlled-term constraint kinds and the arrangements applied to them,
+ * as one element type.
  *
  * Derived from the exported `ControlledTermField` rather than named directly:
  * the library exports the field interfaces and the builders, not the constraint
@@ -108,11 +109,13 @@ const isMultiComponent = (component: CedarComponent): component is MultiComponen
  * path rather than to the model.
  */
 type ControlledConstraints = ControlledTermField['valueConstraints'];
+type ControlledAction = ControlledConstraints['actions'][number];
 type ControlledConstraintEntry =
   | ControlledConstraints['ontologies'][number]
   | ControlledConstraints['valueSets'][number]
   | ControlledConstraints['classes'][number]
-  | ControlledConstraints['branches'][number];
+  | ControlledConstraints['branches'][number]
+  | ControlledAction;
 
 /**
  * Builds CEE's component tree from the CEDAR Model TypeScript Library's parsed
@@ -352,6 +355,10 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     const iriMap = container.getChildrenInfo().getChildIriMap();
     for (const name of Object.keys(iriMap)) {
       entries[name] = String(iriMap[name]);
+      const child = component.getChildByName(name);
+      if (child !== null) {
+        child.propertyIri = entries[name];
+      }
     }
     component.contextEntries = entries;
   }
@@ -448,6 +455,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     fc.controlledInfo.valueSets = asJson(vc.valueSets);
     fc.controlledInfo.classes = asJson(vc.classes);
     fc.controlledInfo.branches = asJson(vc.branches);
+    fc.controlledInfo.actions = asJson(vc.actions.filter(ModelLibraryTemplateParser.isServableAction));
 
     if (vc.defaultValue != null) {
       fc.valueInfo.defaultValue = {
@@ -459,6 +467,30 @@ export class ModelLibraryTemplateParser implements TemplateParser {
       // `ValueInfo.defaultValue` says `string | number | boolean | AuthorityTerm | null`.
       fc.valueInfo.defaultValue = null;
     }
+  }
+
+  /**
+   * Whether the terminology server will accept this arrangement.
+   *
+   * It validates every action it is sent and answers 400 for the whole request when
+   * one of them is incomplete, so a malformed arrangement would cost the field its
+   * autocomplete rather than just its own effect. Incomplete is reachable: the
+   * library reads an absent `action`, `source` or `type` as empty, and an absent
+   * `termUri` as the empty IRI, so a template that stored a partial action parses
+   * into one. Dropping it here leaves the rest of the field's arrangements working.
+   *
+   * A `move` also has to name the position it moves its term to. The server sorts
+   * the move actions by that position before applying any of them, so one arriving
+   * without it fails the request on a null rather than being ignored.
+   */
+  private static isServableAction(action: ControlledAction): boolean {
+    if (action.termUri.isEmpty() || action.source.length === 0 || action.type.getJsonValue() === null) {
+      return false;
+    }
+    if (action.action === 'delete') {
+      return true;
+    }
+    return action.action === 'move' && action.to !== null;
   }
 
   /**

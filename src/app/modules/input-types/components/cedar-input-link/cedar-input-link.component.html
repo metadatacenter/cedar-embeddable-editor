@@ -1,5 +1,22 @@
 <form class="form-container" [formGroup]="options">
-  <mat-form-field class="full-width">
+  @if (showsLinkAsValue) {
+    <app-cedar-term-link
+      [iri]="inputValueControl.value"
+      [fieldLabel]="cds.getRenderingLabelForComponent(component)"
+    >
+      <a
+        class="cee-term-link-action"
+        [href]="inputValueControl.value"
+        target="_blank"
+        rel="noopener"
+        attr.aria-label="{{ 'Generic.OpenLink' | translate }}"
+        matTooltip="{{ 'Generic.OpenLink' | translate }}"
+      >
+        <mat-icon>{{ linkIconName }}</mat-icon>
+      </a>
+    </app-cedar-term-link>
+  }
+  <mat-form-field class="full-width" [class.cee-hidden]="showsLinkAsValue">
     <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
     <input
       matInput

@@ -2,11 +2,13 @@
   <mat-form-field class="full-width">
     <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
     @if (readOnlyMode) {
+      <!-- `[value]`, not the control: a text input cannot hold the list a
+      multiple-choice field selects, and binding one coerced it to `A,B`. -->
       <input
         matInput
         type="text"
         [placeholder]="component | ceeSpecPlaceholder"
-        [formControl]="inputValueControl"
+        [value]="readOnlyValue"
         readonly
         attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
       />

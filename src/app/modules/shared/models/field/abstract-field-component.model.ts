@@ -11,6 +11,7 @@ export abstract class AbstractFieldComponent implements FieldComponent {
   className = 'AbstractFieldComponent';
   name = '';
   path: string[] = [];
+  propertyIri: string | null = null;
   basicInfo: BasicInfo = new BasicInfo();
   valueInfo: ValueInfo = new ValueInfo();
   numberInfo: NumberInfo = new NumberInfo();

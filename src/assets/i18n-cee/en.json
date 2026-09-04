@@ -6,8 +6,8 @@
     "CollapseAll": "Collapse All",
     "Copy": "Copy",
     "Page": "Page",
-    "Name": "Name",
-    "Value": "Value",
+    "Name": "name",
+    "Value": "value",
     "AttributeName": "Attribute Name",
     "AttributeValue": "Attribute Value",
     "Clear": "Clear",
@@ -16,10 +16,11 @@
     "SelectYear": "Select Year",
     "SelectYearAndMonth": "Select Year and Month",
     "SelectDate": "Select Date",
-    "NumberOnly": "Number Only",
     "CedarLogo": "Cedar Logo",
     "DecimalSeconds": "decimal seconds",
     "Filter": "Start typing to filter",
+    "OpenLink": "Open link",
+    "PropertyIri": "Property IRI: {{iri}}",
     "OpenAuthorityPage": "Open the {{authority}} page",
     "FilterOrcid": "Start typing researcher name or ORCID",
     "FilterRor": "Start typing institution name or ROR",
@@ -52,7 +53,9 @@
   },
   "Error": {
     "ValueRequired": "The value is required",
-    "LookupFailed": "Search failed: the service could not be reached"
+    "LookupFailed": "Search failed: the service could not be reached",
+    "NoResults": "No results found",
+    "NoTermsAvailable": "No terms available"
   },
   "Extra": {
     "SampleTemplate": {
@@ -81,6 +84,7 @@
     }
   },
   "Validation": {
+    "SelectAtLeastOne": "Select at least one option.",
     "Required": "The value is required.",
     "Text": {
       "MinLength": "Value should be at least {{constraintMinLength}} chars long.",
@@ -126,24 +130,31 @@
     "DoiReverted": "Invalid DOI, edit was discarded; restored last valid DOI."
   },
   "Spec": {
-    "Cardinality": "{{min}}–{{max}} values",
-    "CardinalityUnbounded": "{{min}}+ values",
-    "MinLength": "min {{minLength}} chars",
-    "MaxLength": "max {{maxLength}} chars",
-    "Pattern": "pattern {{regex}}",
+    "MinLength": "{{minLength}} chars",
+    "MaxLength": "{{maxLength}} chars",
+    "Pattern": "{{regex}}",
     "NumberType": "{{numberType}}",
-    "UnitOfMeasure": "unit {{unitOfMeasure}}",
-    "MinValue": "min {{minValue}}",
-    "MaxValue": "max {{maxValue}}",
+    "UnitOfMeasure": "{{unitOfMeasure}}",
+    "MinValue": "{{minValue}}",
+    "MaxValue": "{{maxValue}}",
     "DecimalPlaces": "{{decimalPlace}} decimal places",
     "TemporalTimeFormat": "{{inputTimeFormat}} clock",
     "TemporalZoneRequired": "time zone required",
-    "PermittedValues": "Values",
+    "PermittedValues": "values",
+    "Keyword": {
+      "Min": "min",
+      "Max": "max",
+      "Unit": "unit",
+      "Values": "values",
+      "Pattern": "pattern",
+      "Default": "default"
+    },
     "TermKind": {
       "branch": "branch",
       "ontology": "ontology",
       "valueSet": "value set",
-      "class": "value"
+      "class": "class",
+      "value": "value"
     },
     "Notation": {
       "year": "YYYY",
@@ -156,7 +167,7 @@
     },
     "DecimalPlaceOne": "1 decimal place",
     "TermIn": "of the {{container}}",
-    "DefaultValue": "default {{defaultValue}}",
+    "DefaultValue": "{{defaultValue}}",
     "DefaultLabel": "default",
     "DefaultMark": "(default)"
   }

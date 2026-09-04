@@ -32,6 +32,13 @@ export class CedarTermLinkComponent {
   @Input({ required: true }) fieldLabel!: string;
 
   /**
+   * Keep an unusually long human label from displacing the identifier. PubMed titles are the case:
+   * the complete title remains in the DOM and in a hover title, while the visible label yields with
+   * an ellipsis so the PMID and the authority link stay on the same row.
+   */
+  @Input() truncateLabel = false;
+
+  /**
    * Whether the identifier can be followed. An `http` or `https` IRI addresses something a browser
    * can open; a `urn:`, a bare CURIE or anything else identifies without locating, and a link to it
    * would go nowhere.

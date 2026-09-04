@@ -17,19 +17,24 @@ import { CedarValidators } from '../../../shared/validation/cedar-validators';
 })
 export class CedarInputLinkComponent extends CedarUIDirective implements OnInit {
   component!: FieldComponent;
-  options: FormGroup;
+  /*
+   * Both built in `ngOnInit`, because the control's validators come off the
+   * component and that arrives as an input. Asserted rather than made optional:
+   * Angular runs `ngOnInit` before it first checks the template that binds them,
+   * so there is no render in which they are absent. The same shape
+   * `AbstractAuthorityInputComponent` already uses.
+   */
+  options!: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
+  linkIconName = 'open_in_new';
   @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
-    fb: FormBuilder,
+    private readonly fb: FormBuilder,
     public cds: ComponentDataService,
     private activeComponentRegistry: ActiveComponentRegistryService,
   ) {
     super();
-    this.options = fb.group({
-      inputValue: this.inputValueControl,
-    });
   }
 
   override ngOnInit(): void {
@@ -42,6 +47,9 @@ export class CedarInputLinkComponent extends CedarUIDirective implements OnInit 
 
     validators.push(CedarValidators.forComponent(this.component));
     this.inputValueControl = new FormControl<string | null>(null, validators);
+    // Beside the control it holds. Built in the constructor, the group kept the
+    // control this line replaces — see `input-control-binding.spec.ts`.
+    this.options = this.fb.group({ inputValue: this.inputValueControl });
   }
 
   @Input({ required: true }) set componentToRender(componentToRender: FieldComponent) {
@@ -56,6 +64,11 @@ export class CedarInputLinkComponent extends CedarUIDirective implements OnInit 
 
   setCurrentValue(currentValue: unknown): void {
     this.inputValueControl.setValue(typeof currentValue === 'string' ? currentValue : null);
+  }
+
+  /** A recorded IRI is a value to follow in read-only mode, not an inert input to edit. */
+  get showsLinkAsValue(): boolean {
+    return this.readOnlyMode && (this.inputValueControl.value?.length ?? 0) > 0;
   }
 
   clearValue(): void {

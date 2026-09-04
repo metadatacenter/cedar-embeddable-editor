@@ -88,6 +88,27 @@ export class InstanceValueNode {
   }
 
   /**
+   * Whether this node, or any occurrence in it, actually holds a field value.
+   *
+   * Read-only instance rendering needs this before choosing between a value widget and the
+   * structured specification box. An empty typed atom is still a real node, so presence alone is
+   * not enough; conversely, the string `0` and an IRI with no label are both genuine values. Looking
+   * at all three atom payloads keeps that distinction without asking the field type how to display
+   * the value.
+   */
+  static holdsValue(node: InstanceNode | null | undefined): boolean {
+    if (Array.isArray(node)) {
+      return node.some((entry) => InstanceValueNode.holdsValue(entry));
+    }
+    if (node === null || node === undefined || !InstanceValueNode.isValue(node)) {
+      return false;
+    }
+    return [InstanceValueNode.literal(node), InstanceValueNode.iri(node), InstanceValueNode.label(node)].some(
+      (value) => value !== null && value !== undefined && value !== '',
+    );
+  }
+
+  /**
    * The plain value a field holds, or null when it holds nothing.
    *
    * `iriValued` says whether this field's value *is* its IRI — links and the

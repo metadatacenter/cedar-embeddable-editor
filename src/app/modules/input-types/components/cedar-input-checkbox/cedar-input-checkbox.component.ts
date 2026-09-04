@@ -5,7 +5,7 @@ import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
-import { requireControl, requireFormArray } from '../../../shared/forms/form-control';
+import { requireFormArray } from '../../../shared/forms/form-control';
 import { InstanceValueNode } from '../../../shared/util/instance-value-node';
 
 @Component({
@@ -17,6 +17,9 @@ import { InstanceValueNode } from '../../../shared/util/instance-value-node';
   standalone: false,
 })
 export class CedarInputCheckboxComponent extends CedarUIDirective implements OnInit {
+  /** The control holding the selection, named once because the validator asks for it too. */
+  private static readonly SELECTION = 'checkedChoices';
+
   component!: FieldComponent;
   options: FormGroup;
   @Input({ required: true }) handlerContext!: HandlerContext;
@@ -28,21 +31,33 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     super();
     this.options = fb.group({
       // initialize checked box value holder
-      checkedChoices: new FormArray([]),
+      [CedarInputCheckboxComponent.SELECTION]: new FormArray([]),
     });
+  }
+
+  /**
+   * Whether to say the group needs an answer.
+   *
+   * A group has no `mat-form-field` to hang a `mat-error` inside, so the widget
+   * asks the question and the template renders the notice. Without it the
+   * validator installed below decided a required field's fate and told nobody:
+   * the markup to show the verdict did not exist, which is the same silence the
+   * validator was added to end.
+   */
+  get showsRequiredError(): boolean {
+    return !this.readOnlyMode && this.options.hasError('required');
   }
 
   override ngOnInit(): void {
     super.ngOnInit();
-    for (const choice of this.component.choiceInfo.choices) {
-      const fc = new FormControl();
-      this.options.addControl(this.getFormControlName(choice.label), fc);
-    }
+    this.component.choiceInfo.choices.forEach((_choice, index) => {
+      this.options.addControl(this.controlNameFor(index), new FormControl());
+    });
     if (this.component.valueInfo.requiredValue) {
       // The checkbox group installed no validators at all, so a required
       // checkbox field could never report itself unsatisfied — the data quality
       // report caught it while the widget stayed silent.
-      this.options.setValidators(CedarValidators.atLeastOneChecked());
+      this.options.setValidators(CedarValidators.atLeastOneChecked(CedarInputCheckboxComponent.SELECTION));
       this.options.updateValueAndValidity({ emitEvent: false });
     }
     this.populateValuesOnLoad();
@@ -54,33 +69,64 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
   }
 
   inputChanged(event: Event): void {
+    const checkbox = event.target as HTMLInputElement;
     // If readOnly -> revert the change
     if (this.readOnlyMode) {
-      const name = (event.target as HTMLInputElement).value;
-      const val = requireControl(this.options, this.getFormControlName(name)).value;
-      requireControl(this.options, this.getFormControlName(name)).setValue(!val);
+      const control = this.controlForLabel(checkbox.value);
+      control?.setValue(control.value ? null : 'checked');
       event.preventDefault();
       event.stopPropagation();
       return;
     }
-    const checkbox = event.target as HTMLInputElement;
     this.setInput(checkbox.checked, checkbox.value);
   }
 
+  /**
+   * Show what the instance holds. A sync, so it writes nothing back.
+   *
+   * It used to run the same path a tick runs, once per option, and each of those
+   * published the partly-updated selection. Paging from an occurrence holding
+   * `[B]` to one holding `[A]` therefore wrote `[A, B]` and then corrected itself
+   * — and both reached the host as `change` events, the first carrying a
+   * selection nobody had made and a quality report describing it. A host saving
+   * on change persisted it.
+   */
   setCurrentValue(currentValue: unknown): void {
-    const arrVal = currentValue as Array<string>;
+    const selected = Array.isArray(currentValue) ? (currentValue as string[]) : [];
 
     for (const choice of this.component.choiceInfo.choices) {
-      if (arrVal.indexOf(choice.label) >= 0) {
-        this.setInput(true, choice.label);
-      } else {
-        this.setInput(false, choice.label);
-      }
+      this.showInView(selected.includes(choice.label), choice.label);
     }
   }
 
-  getFormControlName(val: string): string {
-    return val.replace(/\s+/g, '');
+  /**
+   * The control name for the option at this position.
+   *
+   * A position, not the option's text. The name used to be the label with its
+   * whitespace stripped out, which fails twice over. Angular reads a `.` in a
+   * name passed to `FormGroup.get` as a path separator, so `Dr.` — a label real
+   * CEDAR templates carry — registered a control that could never be looked up
+   * again, and the lookup threw before the tick could reach the instance. And
+   * removing the spaces made `New York` and `NewYork` the same name, which
+   * `FormGroup.addControl` resolves by silently keeping the control already
+   * there, so both boxes drove one control.
+   *
+   * An index is unique by construction and contains nothing Angular reads as
+   * anything else.
+   */
+  controlNameFor(index: number): string {
+    return `choice${index}`;
+  }
+
+  /** Whether the box for this option is ticked. */
+  isChecked(label: string): boolean {
+    return this.controlForLabel(label)?.value === 'checked';
+  }
+
+  /** The control behind an option, or null for a label this field does not offer. */
+  private controlForLabel(label: string): AbstractControl | null {
+    const index = this.component.choiceInfo.choices.findIndex((choice) => choice.label === label);
+    return index < 0 ? null : this.options.get(this.controlNameFor(index));
   }
 
   private populateValuesOnLoad(): void {
@@ -99,12 +145,21 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
       }
     }
     for (const choice of this.component.choiceInfo.choices) {
-      this.setInput(choice.selectedByDefault, choice.label);
+      this.showInView(choice.selectedByDefault, choice.label);
     }
+    this.publishSelection();
   }
 
+  /** One option ticked or unticked by the user: show it, then record the result. */
   private setInput(isChecked: boolean, val: string): void {
-    const formArray: FormArray = requireFormArray(this.options, 'checkedChoices');
+    this.showInView(isChecked, val);
+    this.publishSelection();
+  }
+
+  /** Tick or untick one option. View only. */
+  private showInView(isChecked: boolean, val: string): void {
+    const formArray: FormArray = requireFormArray(this.options, CedarInputCheckboxComponent.SELECTION);
+    const control = this.controlForLabel(val);
 
     /* Selected */
     if (isChecked) {
@@ -112,26 +167,36 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
       if (formArray.value.indexOf(val) < 0) {
         formArray.push(new FormControl(val));
       }
-      requireControl(this.options, this.getFormControlName(val)).setValue('checked');
+      control?.setValue('checked');
     } else {
-      /* unselected */
-      // find the unselected element
-      let i = 0;
-
-      formArray.controls.forEach((ctrl: AbstractControl) => {
-        if (ctrl.value === val) {
-          // Remove the unselected element from the arrayForm
-          formArray.removeAt(i);
-          requireControl(this.options, this.getFormControlName(val)).setValue(null);
-          return;
-        }
-        i++;
-      });
+      const position = formArray.controls.findIndex((ctrl: AbstractControl) => ctrl.value === val);
+      if (position >= 0) {
+        formArray.removeAt(position);
+      }
+      // Outside the removal, because the box and the list are two records of one
+      // fact and must agree even when they had already drifted: clearing only
+      // where the list still held the label left a ticked box over a selection
+      // the model no longer carried.
+      control?.setValue(null);
     }
+  }
 
-    // Keep the values in the original sort order
-    const sortingArr = this.component.choiceInfo.choices.map((a) => a.label);
-    formArray.value.sort((a: string, b: string) => sortingArr.indexOf(a) - sortingArr.indexOf(b));
-    this.handlerContext.changeListValue(this.component, formArray.value);
+  /**
+   * Hand the whole selection to the model, in the order the template declares.
+   *
+   * Read off the controls rather than sorted in place. `FormArray.value` is a
+   * cached snapshot that the next push or removal rebuilds from the controls, so
+   * sorting it ordered the copy about to be discarded and left the controls as
+   * they were.
+   */
+  private publishSelection(): void {
+    const checked = new Set<string>(
+      requireFormArray(this.options, CedarInputCheckboxComponent.SELECTION).value as string[],
+    );
+    const declared = this.component.choiceInfo.choices.map((choice) => choice.label);
+    this.handlerContext.changeListValue(
+      this.component,
+      declared.filter((label) => checked.has(label)),
+    );
   }
 }

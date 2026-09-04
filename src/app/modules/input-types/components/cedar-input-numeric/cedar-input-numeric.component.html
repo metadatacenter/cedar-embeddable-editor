@@ -4,7 +4,7 @@
     <input
       matInput
       type="number"
-      [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ('Generic.NumberOnly' | translate)"
+      [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
       [formControl]="inputValueControl"
       (input)="inputChanged($event)"
       [readonly]="readOnlyMode"
@@ -24,7 +24,7 @@
       }}</mat-error>
     }
     @if (inputValueControl.getError('pattern') && !readOnlyMode) {
-      <mat-error class="mat-error align-start">{{ patternErrorMessage }}.</mat-error>
+      <mat-error class="mat-error align-start">{{ patternErrorMessage }}</mat-error>
     }
     @if (inputValueControl.getError('required') && !readOnlyMode) {
       <mat-error class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>

@@ -1,7 +1,17 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../models/component/field-component.model';
 import { bioPortalSourceLink, bioPortalTermLink } from '../../util/bioportal-term-link';
-import { SpecTermSource, specDefaultTermOf, specTermSourcesOf } from '../../util/field-spec';
+import {
+  SpecFact,
+  SpecTermSource,
+  specDefaultFactsOf,
+  specDefaultTermOf,
+  specOptionsOf,
+  specKeywordOf,
+  specTermSourcesOf,
+  specUnitFactsOf,
+  specValueFactsOf,
+} from '../../util/field-spec';
 
 /**
  * The box a field shows when it is read and holds nothing: the same rectangle a control draws, saying
@@ -26,6 +36,27 @@ import { SpecTermSource, specDefaultTermOf, specTermSourcesOf } from '../../util
 })
 export class CedarSpecBoxComponent {
   @Input({ required: true }) fieldToDescribe!: FieldComponent;
+
+  /** Value-shape facts, kept structured so their lead-in words can be styled independently. */
+  get facts(): ReadonlyArray<SpecFact> {
+    return [
+      ...specValueFactsOf(this.fieldToDescribe),
+      ...specDefaultFactsOf(this.fieldToDescribe),
+      ...specUnitFactsOf(this.fieldToDescribe),
+    ];
+  }
+
+  /** The lead-in word this fact is stated with, or null where it leads with none. */
+  keywordOf(fact: SpecFact): string | null {
+    return specKeywordOf(fact);
+  }
+
+  /** The option labels a closed list control would otherwise conceal. */
+  get optionLabels(): string {
+    return specOptionsOf(this.fieldToDescribe)
+      .map((option) => option.label)
+      .join(', ');
+  }
 
   /** The declared default when it is a term, which can be linked, rather than text, which cannot. */
   get defaultTerm(): { readonly label: string; readonly uri: string } | null {

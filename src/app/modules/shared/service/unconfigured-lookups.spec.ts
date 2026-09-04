@@ -63,7 +63,9 @@ const answered = <T>(observable: Observable<T>): Promise<T | typeof SILENCE> =>
 
 describe('controlled-term search with no terminology server', () => {
   const field = (): FieldComponent =>
-    ({ controlledInfo: { branches: [], classes: [], ontologies: [], valueSets: [] } }) as unknown as FieldComponent;
+    ({
+      controlledInfo: { branches: [], classes: [], ontologies: [], valueSets: [], actions: [] },
+    }) as unknown as FieldComponent;
 
   it('offers no terms and names the key that would turn it on', async () => {
     const { service, errors } = messaging();

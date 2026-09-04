@@ -24,21 +24,6 @@ const CASES = sweep(FIELD_KINDS, CARDINALITIES, NESTINGS);
 const VALUED = CASES.filter((c) => c.kind.write !== 'none');
 
 /**
- * Pull the plain value back out of an instance node.
- *
- * Mirrors `DataQualityReportBuilderHandler.extractPlainValue`: `@value` for
- * ordinary fields, the bare `@id` for links and external-authority fields, and
- * `rdfs:label` for controlled terms.
- *
- * The `!== undefined` checks are load-bearing, not defensive noise. Writing to
- * a link / ext-orcid / ext-ror field leaves the node as
- * `{'@id': <iri>, 'rdfs:label': undefined}` — CEE's `injectValue` takes the
- * controlled-term path and assigns a label it was never given. `JSON.stringify`
- * drops undefined-valued keys, so the node *looks* like `{"@id": …}` while
- * `DocumentKey.rdfsLabel in node` is still true. A key-presence check silently returns
- * undefined for every IRI-valued field.
- */
-/**
  * What a field ended up holding, as the sample that was written into it.
  *
  * `heldValue` answers for either side of the write/read boundary; a term comes

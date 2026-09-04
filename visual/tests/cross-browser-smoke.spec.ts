@@ -191,7 +191,8 @@ test('adds and removes a multi-instance value', async ({ page }) => {
 
 test('honors read-only mode', async ({ page }) => {
   // Two states, and neither is editable. With no instance behind it a field states its
-  // specification and renders no control at all; with one, the controls appear and are read-only.
+  // specification and renders no control at all; populated fields in an instance keep their value
+  // controls, read-only.
   await open(page, '01-input-types', 'readonly');
   await expect(page.locator('input[aria-label="text"]')).toHaveCount(0);
   await expect(page.locator('.cee-spec-box').first()).toBeVisible();

@@ -93,7 +93,7 @@
     </button>
   }
 
-  @if (valueControl.invalid && userEdited && !readOnlyMode) {
+  @if (showsValidationMessage) {
     <mat-error class="mat-error align-start cee-temporal-error">
       {{ validationMessage() }}
     </mat-error>

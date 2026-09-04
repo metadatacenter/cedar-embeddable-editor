@@ -65,16 +65,16 @@ interface AttributeWrite {
   value: InstanceNode;
 }
 
+/** Where an attribute name sits in the field's list of them, or -1. */
+const indexOfName = (names: InstanceArray, name: string): number =>
+  names.findIndex((n) => n instanceof InstanceDataAttributeValueFieldName && n.name === name);
+
 /**
  * Whether this write names an attribute.
  *
  * The dispatch used to ask whether the JSON fragment carried a reserved key.
  * A guard over a declared shape asks the same question of a value that has one.
  */
-/** Where an attribute name sits in the field's list of them, or -1. */
-const indexOfName = (names: InstanceArray, name: string): number =>
-  names.findIndex((n) => n instanceof InstanceDataAttributeValueFieldName && n.name === name);
-
 const isAttributeWrite = (write: InstanceNode | AttributeWrite): write is AttributeWrite =>
   typeof write === 'object' && write !== null && !Array.isArray(write) && 'name' in write && 'value' in write;
 
@@ -510,11 +510,20 @@ export class DataObjectDataValueHandler {
   ): string | null {
     const path = component.path;
 
-    if (value && value.length === 0) {
-      value = null;
-    }
-
-    const valueObject: AttributeWrite = { name: key, value: InstanceValueNode.literalValue(value) };
+    /*
+     * An emptied box holds nothing, which the instance records as `@value: null`.
+     *
+     * The guard meant to say so read `if (value && value.length === 0)`, and `''`
+     * is falsy, so it never ran once. The empty string went straight through and
+     * was written out as `{"@value": ""}` — a shape no other field produces, and
+     * one a consumer testing for null reads as an answer. The field's own Clear
+     * button passes null and always did, so the same box recorded two different
+     * things depending on how it was emptied.
+     */
+    const valueObject: AttributeWrite = {
+      name: key,
+      value: InstanceValueNode.literalValue(value === '' ? null : value),
+    };
 
     const representation = dataContext.templateRepresentation;
     if (representation === null) {

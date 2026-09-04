@@ -195,14 +195,32 @@
   border: none !important;
 }
 
+/*
+ * A field's pager is drawn over its title row rather than taking a row of its own.
+ *
+ * The two margins centre the 32px row on the 20px title row and then hand back all but
+ * the 6px it hangs below it, so the control starts flush under the pager instead of 15px
+ * further down. The arithmetic holds at any row height: a field with more than a page of
+ * occurrences grows this row by its paginator, and the control follows it down.
+ */
 .pager-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: right;
   align-items: center;
   margin-right: 10px;
-  /* Centre the 48px pager actions on the compact field-title row. */
-  margin-top: -33px;
+  margin-top: -26px;
+  margin-bottom: -4px;
+}
+
+/*
+ * A field's pager is drawn over its title row, so it stops before that row's trailing
+ * icon slot. Without the stop the delete button covered the help mark, taking both the
+ * glyph and the click. The template's own page pager shares the class but overlays
+ * nothing, so the rule names the field card.
+ */
+.non-iterable-component > app-cedar-multi-pager .pager-container {
+  margin-right: tokens.$cee-header-trailing-slot + 8px;
 }
 
 .pager-container-ro {
@@ -212,6 +230,15 @@
   align-items: center;
   margin-right: 10px;
   margin-top: 10px;
+}
+
+/*
+ * The renderer gives a fact-free read-only field a real two-column title row. Its pager no longer
+ * needs the stacked placement's 10px top margin; the grid centres the chip list beside the label.
+ * Global because the container class is inside the child pager component's emulated scope.
+ */
+.inline-readonly-pager > app-cedar-multi-pager .pager-container-ro {
+  margin-top: 0;
 }
 
 .pager-chips {
@@ -231,14 +258,20 @@
 /* At embedding widths the pager becomes its own row instead of covering the title. */
 @container cee (max-width: 620px) {
   .pager-container,
-  .pager-container-ro {
+  .pager-container-ro,
+  .non-iterable-component > app-cedar-multi-pager .pager-container {
     justify-content: flex-start;
     margin-top: 8px;
     margin-right: 0;
+    margin-bottom: 0;
   }
 
   .pager-chips {
     margin-right: 12px;
+  }
+
+  .inline-readonly-pager > app-cedar-multi-pager .pager-container-ro {
+    margin-top: 8px;
   }
 }
 
@@ -622,4 +655,29 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 .cee-hidden,
 .cee-hidden.mat-mdc-form-field {
   display: none;
+}
+
+/*
+ * A selected authority is already one compact read-only value row. Material's ordinary icon button
+ * is 48px square, appropriate beside an editable control but taller than that row; projected into
+ * the value it stretched every populated authority box from 36px to 62px and also stole wrapping
+ * width from long PubMed titles. Keep the link and its accessible name, but size this read-only
+ * affordance like the inline action it is. The editable `matSuffix` button remains untouched.
+ */
+.cee-term-link-action {
+  display: inline-flex;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: inherit;
+  text-decoration: none;
+
+  .mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    line-height: 18px;
+  }
 }

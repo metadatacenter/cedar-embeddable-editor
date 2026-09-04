@@ -553,6 +553,26 @@ describe('paged attribute-value fields', () => {
     expect(r.widget.last).toEqual({ colour: 'blue' });
   });
 
+  it('clears the preceding attribute when paging to an unnamed occurrence', () => {
+    // First sync the new slot so the model normalises it to the accepted empty
+    // name, then cross the boundary twice. Returning early for that empty name
+    // left the named occurrence in the reused widget on the second crossing.
+    const r = attrRig();
+    r.driver.handlerContext.addMultiInstance(r.component);
+    r.driver.handlerContext.changeAttributeValue(r.component, 'colour', 'blue');
+    r.driver.handlerContext.addMultiInstance(r.component);
+    r.sync();
+    expect(r.widget.last).toEqual({ '': null });
+
+    r.driver.handlerContext.setCurrentIndex(r.component, 0);
+    r.sync();
+    expect(r.widget.last).toEqual({ colour: 'blue' });
+
+    r.driver.handlerContext.setCurrentIndex(r.component, 1);
+    r.sync();
+    expect(r.widget.last).toEqual({ '': null });
+  });
+
   it('copies an attribute under a unique derived name', () => {
     const r = attrRig();
     r.driver.handlerContext.addMultiInstance(r.component);
@@ -598,15 +618,16 @@ describe('paged attribute-value fields', () => {
     expect(r.widget.last).toEqual({ '': null });
   });
 
-  /**
-   * An empty name is accepted in silence rather than replaced. An injected
-   * instance can carry one, and inventing a name for it would rewrite the
-   * user's data on load.
-   */
-  it('accepts an empty attribute name without pushing anything', () => {
+  /** The model reader drops a raw empty string; the registry must not turn the resulting empty list into a page. */
+  it('does not manufacture an attribute for an injected raw empty name', () => {
     const template = buildTemplate({ name: 'vs_attr_blank', children: [{ kind: ATTR, name: 'f' }] });
+    // A genuinely injected malformed/draft shape. Passing [''] through
+    // `instanceWith` did not create this case: the model writer normalised that
+    // unsupported raw string out of the array, so the old assertion exercised
+    // an empty list and could pass without reaching the empty-name branch.
+    const instance = { ...instanceWith(templateIdOf(template), {}, INSTANCE_IRI), _f: [''] };
     const driver = new CeeDriver(template, {
-      instance: instanceWith(templateIdOf(template), { _f: [''] }, 'https://example.org/i/1'),
+      instance,
     });
     const registry = new ActiveComponentRegistryService();
     const widget = new FakeWidget();
@@ -615,6 +636,7 @@ describe('paged attribute-value fields', () => {
     registry.registerComponent(component, widget as any);
 
     expect(() => registry.updateViewToModel(component, driver.handlerContext)).not.toThrow();
+    expect(attributeNames(arrayAt(driver.fullData, '_f'))).toEqual([]);
     expect(widget.pushed).toEqual([]);
   });
 });

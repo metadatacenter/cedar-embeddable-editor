@@ -150,3 +150,396 @@ describe('CedarInputControlledComponent model-to-view sync', () => {
     vi.useRealTimers();
   });
 });
+
+/**
+ * Which of the two empty results the panel is looking at.
+ *
+ * A lookup returning nothing used to render no row at all, so a constraint whose branch
+ * root its ontology had stopped serving looked identical to a term nobody has. The panel
+ * now says which, and `hasQuery` is what it decides on: text in the box means the query
+ * matched nothing, an empty box means the constraint offers nothing.
+ */
+describe('CedarInputControlledComponent empty-result wording', () => {
+  const built = (): CedarInputControlledComponent => {
+    const registry = {
+      registerComponent: vi.fn(),
+      unregisterComponent: vi.fn(),
+    } as unknown as ActiveComponentRegistryService;
+    const injector = Injector.create({
+      providers: [
+        { provide: UserPreferencesService, useValue: new UserPreferencesService() },
+        { provide: ChangeDetectorRef, useValue: { markForCheck: vi.fn() } },
+        { provide: ActiveComponentRegistryService, useValue: registry },
+      ],
+    });
+    return runInInjectionContext(
+      injector,
+      () =>
+        new CedarInputControlledComponent(
+          new FormBuilder(),
+          {} as ComponentDataService,
+          registry,
+          {} as ControlledFieldDataService,
+          {} as MessageHandlerService,
+        ),
+    );
+  };
+
+  it('reports no query for a field nobody has typed into', () => {
+    expect(built().hasQuery).toBe(false);
+  });
+
+  it('reports no query for whitespace, which matches nothing on purpose', () => {
+    const component = built();
+    component.inputValueControl.setValue('   ');
+    expect(component.hasQuery).toBe(false);
+  });
+
+  it('reports a query once there is text to search on', () => {
+    const component = built();
+    component.inputValueControl.setValue('Dataset');
+    expect(component.hasQuery).toBe(true);
+  });
+});
+
+/**
+ * Which of the terminology server's answers the panel keeps.
+ *
+ * The endpoint is inconsistent about honouring the query, so the widget narrows
+ * the results itself. Narrowing throws away real hits when it asks the wrong
+ * question, and the field then says "No results found" — which is true of the
+ * list and false of the search.
+ */
+describe('CedarInputControlledComponent result narrowing', () => {
+  const componentWithTerms = (terms: AuthorityTerm[]): CedarInputControlledComponent => {
+    const registry = {
+      registerComponent: vi.fn(),
+      unregisterComponent: vi.fn(),
+    } as unknown as ActiveComponentRegistryService;
+    const injector = Injector.create({
+      providers: [
+        { provide: UserPreferencesService, useValue: new UserPreferencesService() },
+        { provide: ChangeDetectorRef, useValue: { markForCheck: vi.fn() } },
+        { provide: ActiveComponentRegistryService, useValue: registry },
+      ],
+    });
+    return runInInjectionContext(
+      injector,
+      () =>
+        new CedarInputControlledComponent(
+          new FormBuilder(),
+          {} as ComponentDataService,
+          registry,
+          { getData: () => of(terms) } as unknown as ControlledFieldDataService,
+          {} as MessageHandlerService,
+        ),
+    );
+  };
+
+  const labelsFor = (terms: AuthorityTerm[], query: string): string[] => {
+    let kept: string[] = [];
+    componentWithTerms(terms)
+      .filter(query)
+      .subscribe((result) => (kept = result.map((term) => term.label)));
+    return kept;
+  };
+
+  it('keeps a term whose words the query names in another order', () => {
+    // The seven external authority fields match every word in any order, for
+    // exactly this reason. This one asked whether the label contained the whole
+    // query as one substring, and said so in a comment claiming the same rule.
+    const terms = [{ iri: 'https://example.org/1', label: 'cell death, programmed' }];
+
+    expect(labelsFor(terms, 'programmed cell death')).toEqual(['cell death, programmed']);
+  });
+
+  it('keeps a term the query names with a word between', () => {
+    const terms = [{ iri: 'https://example.org/2', label: 'Mark A. Musen' }];
+
+    expect(labelsFor(terms, 'Mark Musen')).toEqual(['Mark A. Musen']);
+  });
+
+  it('drops a term the query does not name', () => {
+    const terms = [{ iri: 'https://example.org/3', label: 'cell death' }];
+
+    expect(labelsFor(terms, 'apoptosis')).toEqual([]);
+  });
+
+  it('keeps everything for an empty query, which is how the panel opens', () => {
+    const terms = [
+      { iri: 'https://example.org/4', label: 'one' },
+      { iri: 'https://example.org/5', label: 'two' },
+    ];
+
+    expect(labelsFor(terms, '')).toEqual(['one', 'two']);
+  });
+});
+
+/**
+ * The controlled-term box: what it shows, and what a blur does to text in it.
+ *
+ * The same search-select-reconcile shape the seven authority fields have, but a
+ * separate implementation — it searches a terminology server rather than an
+ * authority, and was not part of the pass that gave those seven their blur
+ * handling. That is why it is asked the same questions here.
+ */
+describe('CedarInputControlledComponent', () => {
+  interface Harness {
+    component: CedarInputControlledComponent;
+    written: { iri: string | null; label: string | null }[];
+  }
+
+  const makeComponent = ({ readOnly = false, terms = [] as AuthorityTerm[] } = {}): Harness => {
+    const registry = {
+      registerComponent: vi.fn(),
+      unregisterComponent: vi.fn(),
+    } as unknown as ActiveComponentRegistryService;
+    const preferences = new UserPreferencesService();
+    preferences.setReadOnlyMode(readOnly);
+    const injector = Injector.create({
+      providers: [
+        { provide: UserPreferencesService, useValue: preferences },
+        { provide: ChangeDetectorRef, useValue: { markForCheck: vi.fn() } },
+        { provide: ActiveComponentRegistryService, useValue: registry },
+      ],
+    });
+    const component = runInInjectionContext(
+      injector,
+      () =>
+        new CedarInputControlledComponent(
+          new FormBuilder(),
+          {} as ComponentDataService,
+          registry,
+          { getData: () => of(terms) } as unknown as ControlledFieldDataService,
+          { errorObject: vi.fn() } as unknown as MessageHandlerService,
+        ),
+    );
+    component.component = {
+      basicInfo: { inputType: InputType.controlled },
+      valueInfo: { requiredValue: false },
+      controlledInfo: { ontologies: [], valueSets: [], classes: [], branches: [] },
+      path: ['term'],
+    } as never;
+    const written: { iri: string | null; label: string | null }[] = [];
+    component.handlerContext = {
+      changeControlledValue: (_c: unknown, iri: string | null, label: string | null) => written.push({ iri, label }),
+    } as never;
+    component.ngOnInit();
+    return { component, written };
+  };
+
+  const TERM: AuthorityTerm = { iri: 'http://purl.obolibrary.org/obo/DOID_162', label: 'cancer' };
+
+  describe('choosing a term', () => {
+    it('records both halves', () => {
+      const { component, written } = makeComponent();
+
+      component.onSelectionChange(TERM);
+
+      expect(written).toEqual([{ iri: TERM.iri, label: TERM.label }]);
+      expect(component.selectedData).toEqual(TERM);
+    });
+
+    it('records a term with no label as holding none', () => {
+      const { component, written } = makeComponent();
+
+      component.onSelectionChange({ iri: TERM.iri, label: '' });
+
+      expect(written).toEqual([{ iri: TERM.iri, label: null }]);
+    });
+
+    it('clears both the box and the value', () => {
+      const { component, written } = makeComponent();
+      component.onSelectionChange(TERM);
+      written.length = 0;
+
+      component.clearValue();
+
+      expect(component.selectedData).toBeNull();
+      expect(component.inputValueControl.value).toBeNull();
+      expect(written).toEqual([{ iri: null, label: null }]);
+    });
+
+    it('clears the value when the box is emptied', () => {
+      const { component, written } = makeComponent();
+      component.onSelectionChange(TERM);
+      written.length = 0;
+
+      component.inputChanged({ target: { value: '' } } as unknown as Event);
+
+      expect(written).toEqual([{ iri: null, label: null }]);
+    });
+
+    it('leaves the value alone while text is still being typed', () => {
+      const { component, written } = makeComponent();
+
+      component.inputChanged({ target: { value: 'can' } } as unknown as Event);
+
+      expect(written).toEqual([]);
+    });
+  });
+
+  describe('leaving the field', () => {
+    const withTrigger = (component: CedarInputControlledComponent): Subject<unknown> => {
+      const closing = new Subject<unknown>();
+      component.trigger = { panelClosingActions: closing } as unknown as MatAutocompleteTrigger;
+      component.ngAfterViewInit();
+      return closing;
+    };
+
+    it('discards text naming no term, and tells the model', () => {
+      const { component, written } = makeComponent();
+      component.inputValueControl.setValue('not a term');
+
+      component.onInputBlur();
+
+      expect(component.inputValueControl.value).toBe('');
+      expect(written).toEqual([{ iri: null, label: null }]);
+      expect(component.justCleared).toBe(true);
+    });
+
+    it('restores the chosen term when the text was edited away from it', () => {
+      const { component, written } = makeComponent();
+      component.onSelectionChange(TERM);
+      written.length = 0;
+      component.inputValueControl.setValue('canc');
+
+      component.onInputBlur();
+
+      expect(component.inputValueControl.value).toBe(TERM.label);
+      expect(component.justReverted).toBe(true);
+      expect(written).toEqual([]);
+    });
+
+    it('keeps the term being clicked rather than clearing it', () => {
+      const { component, written } = makeComponent();
+      component.inputValueControl.setValue('canc');
+
+      component.selectionStarting();
+      component.onInputBlur();
+
+      expect(written).toEqual([]);
+      expect(component.inputValueControl.value).toBe('canc');
+    });
+
+    it('releases an aborted suggestion press so a later blur still reconciles', () => {
+      // Mousedown sets the guard before the input blurs. A drag off the option
+      // closes the panel without selecting it; that close must release the
+      // guard or every subsequent blur is ignored for the rest of the session.
+      const { component, written } = makeComponent();
+      const closing = withTrigger(component);
+      component.selectionStarting();
+
+      closing.next(null);
+      component.inputValueControl.setValue('names no term');
+      component.onInputBlur();
+
+      expect(component.inputValueControl.value).toBe('');
+      expect(written).toEqual([{ iri: null, label: null }]);
+    });
+
+    it('clears an unstored query as soon as an empty-field suggestion press is aborted', () => {
+      const { component, written } = makeComponent();
+      const closing = withTrigger(component);
+      component.inputValueControl.setValue('half a name');
+      component.selectionStarting();
+
+      closing.next(null);
+
+      expect(component.inputValueControl.value).toBe('');
+      expect(written).toEqual([{ iri: null, label: null }]);
+    });
+
+    it('restores the selected term when the panel closes without a choice', () => {
+      const { component } = makeComponent();
+      const closing = withTrigger(component);
+      component.onSelectionChange(TERM);
+      component.inputValueControl.setValue('typed over it');
+
+      closing.next(null);
+
+      expect(component.inputValueControl.value).toBe(TERM.label);
+    });
+
+    it('does not overwrite the value when selection closes the panel', () => {
+      // Keep the controlled-term implementation on the same panel contract as
+      // the authority base: Material owns the control value on a selection
+      // close, while CEE restores it only on a cancellation close.
+      const { component } = makeComponent();
+      const closing = withTrigger(component);
+      component.onSelectionChange(TERM);
+      component.inputValueControl.setValue('selection-owned value');
+
+      closing.next({ source: {} });
+
+      expect(component.inputValueControl.value).toBe('selection-owned value');
+    });
+
+    it('leaves a read-only field alone', () => {
+      const { component, written } = makeComponent({ readOnly: true });
+      component.inputValueControl.setValue('text nobody can edit');
+
+      component.onInputBlur();
+
+      expect(component.inputValueControl.value).toBe('text nobody can edit');
+      expect(written).toEqual([]);
+    });
+  });
+
+  describe('what it shows', () => {
+    it('shows the label while the field is editable', () => {
+      const { component } = makeComponent();
+
+      component.setCurrentValue(TERM);
+
+      expect(component.inputValueControl.value).toBe(TERM.label);
+    });
+
+    it('shows a labelless term by its IRI and keeps it on an unchanged blur', () => {
+      // The instance reader deliberately accepts this corpus shape. Showing an
+      // empty label made the populated field look empty, hid Clear, and made a
+      // required Angular control disagree with the data-quality report.
+      const { component, written } = makeComponent();
+      const labelless = { iri: TERM.iri, label: '' };
+
+      component.setCurrentValue(labelless);
+      component.onInputBlur();
+
+      expect(component.inputValueControl.value).toBe(TERM.iri);
+      expect(component.inputValueControl.valid).toBe(true);
+      expect(written).toEqual([]);
+    });
+
+    it('shows the label and the identifier while it is read-only', () => {
+      const { component } = makeComponent({ readOnly: true });
+
+      component.setCurrentValue(TERM);
+
+      expect(component.inputValueControl.value).toBe(`${TERM.label} - ${TERM.iri}`);
+    });
+
+    it('renders a term as a value only when read-only and holding one', () => {
+      const editable = makeComponent();
+      editable.component.setCurrentValue(TERM);
+      expect(editable.component.showsTermAsValue).toBe(false);
+
+      const reading = makeComponent({ readOnly: true });
+      expect(reading.component.showsTermAsValue).toBe(false);
+      reading.component.setCurrentValue(TERM);
+      expect(reading.component.showsTermAsValue).toBe(true);
+    });
+
+    it('distinguishes a query that matched nothing from an empty constraint', () => {
+      // The panel says something different for each: one is about the query, the
+      // other about a constraint offering no terms at all.
+      const { component } = makeComponent();
+      expect(component.hasQuery).toBe(false);
+
+      component.inputValueControl.setValue('   ');
+      expect(component.hasQuery).toBe(false);
+
+      component.inputValueControl.setValue('cancer');
+      expect(component.hasQuery).toBe(true);
+    });
+  });
+});

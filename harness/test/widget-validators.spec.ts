@@ -34,7 +34,6 @@ const kindOf = (inputType: string, make: () => any, configure?: (b: any) => any)
 const componentFor = (kind: FieldKind) =>
   new CeeDriver(buildTemplate({ name: kind.key, children: [{ kind, name: 'f' }] })).findOrThrow(['_f']);
 
-/** Run the adapter the way Angular would. */
 /** One error detail: the validator's message and the value that produced it. */
 interface ErrorDetail {
   message: string;
@@ -50,6 +49,7 @@ interface ErrorDetail {
  */
 type ValidatedControl = Parameters<ReturnType<typeof CedarValidators.forComponent>>[0];
 
+/** Run the adapter the way Angular would. */
 const errorsFor = (kind: FieldKind, value: unknown): Record<string, ErrorDetail> | null =>
   CedarValidators.forComponent(componentFor(kind))({ value } as unknown as ValidatedControl) as Record<
     string,
@@ -306,7 +306,58 @@ describe('numeric hint text', () => {
       () => CedarBuilders.numericFieldBuilder(),
       (b) => b.withNumberType(NumberType.DOUBLE).withDecimalPlaces(3),
     );
-    expect(CedarValidators.describeNumberType(componentFor(kind))).toContain('3 decimals');
+    expect(CedarValidators.describeNumberType(componentFor(kind))).toContain('3 decimal places');
+  });
+
+  /**
+   * A fractional type allowed no fractional part is a whole number, so naming the type
+   * states the opposite of the constraint: `a decimal with at most 0 decimal places`
+   * reads as a contradiction.
+   */
+  it('describes zero declared places as a number rather than as its type', () => {
+    const kind = kindOf(
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => b.withNumberType(NumberType.DECIMAL).withDecimalPlaces(0),
+    );
+    expect(CedarValidators.describeNumberType(componentFor(kind))).toBe(
+      'The value should be a number with no decimal places.',
+    );
+  });
+
+  it('matches the noun to the count when only one place is allowed', () => {
+    const kind = kindOf(
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => b.withNumberType(NumberType.DOUBLE).withDecimalPlaces(1),
+    );
+    expect(CedarValidators.describeNumberType(componentFor(kind))).toContain('1 decimal place.');
+  });
+
+  /**
+   * The widget prints this as it stands. Every branch used to open with a space and end
+   * without its own period, leaving the rendered line indented under the error above it
+   * and closed with two — and a float with no decimal place declared trailed a comma
+   * into nothing.
+   */
+  it.each([
+    [NumberType.INT, undefined],
+    [NumberType.LONG, undefined],
+    [NumberType.BYTE, undefined],
+    [NumberType.SHORT, undefined],
+    [NumberType.FLOAT, undefined],
+    [NumberType.DOUBLE, undefined],
+    [NumberType.DECIMAL, 2],
+  ])('reads as a finished sentence for %s', (type, decimals) => {
+    const kind = kindOf(
+      'numeric',
+      () => CedarBuilders.numericFieldBuilder(),
+      (b) => (decimals == null ? b.withNumberType(type) : b.withNumberType(type).withDecimalPlaces(decimals)),
+    );
+
+    const message = CedarValidators.describeNumberType(componentFor(kind))!;
+
+    expect(message).toMatch(/^[^\s].*[^.,]\.$/);
   });
 });
 
@@ -316,18 +367,32 @@ describe('checkbox groups', () => {
    * it cannot express "at least one ticked". That is why the checkbox widget
    * carried no validator at all and a required checkbox field never showed as
    * unsatisfied, even though the report counted it.
+   *
+   * The group is asked through the control that records the selection, and this
+   * stub answers as that control does. It used to hand the validator
+   * `{ Alpha: false, Beta: true }` — a shape the widget does not produce and
+   * never has. The widget writes the string `checked` or null per option, so the
+   * validator's `=== true` test could not hold on a real form, and these three
+   * checks passed for years over a required field that could never be satisfied.
+   *
+   * A stub is still the right tool for the rule itself. What it has to be a stub
+   * *of* is the thing the widget builds, which is why
+   * `cedar-input-checkbox.component.spec.ts` drives the whole path with clicks.
    */
-  const validate = (value: unknown) => CedarValidators.atLeastOneChecked()({ value } as any);
+  const selecting = (selection: string[]) =>
+    CedarValidators.atLeastOneChecked('checkedChoices')({
+      get: (name: string) => (name === 'checkedChoices' ? { value: selection } : null),
+    } as any);
 
   it('rejects a group with nothing ticked', () => {
-    expect(validate({ Alpha: false, Beta: false })).not.toBeNull();
+    expect(selecting([])).not.toBeNull();
   });
 
   it('accepts a group with one ticked', () => {
-    expect(validate({ Alpha: false, Beta: true })).toBeNull();
+    expect(selecting(['Beta'])).toBeNull();
   });
 
-  it('rejects an empty group', () => {
-    expect(validate({})).not.toBeNull();
+  it('rejects a group whose selection control is missing', () => {
+    expect(CedarValidators.atLeastOneChecked('checkedChoices')({ get: () => null } as any)).not.toBeNull();
   });
 });

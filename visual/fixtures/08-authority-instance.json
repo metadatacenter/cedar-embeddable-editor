@@ -1,0 +1,52 @@
+{
+  "@id": "https://example.org/instances/external-authority-1",
+  "schema:name": "External authority instance",
+  "schema:description": "A supplied PubMed value for compact read-only rendering",
+  "_citation_pmid": {
+    "@id": "https://pubmed.ncbi.nlm.nih.gov/28715478",
+    "rdfs:label": "Loneliness is adversely associated with physical and mental health and lifestyle factors: Results from a Swiss national survey."
+  },
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    }
+  },
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/61069753-0000-4000-8000-610697530000",
+  "pav:createdOn": "2026-01-01T00:00:00-08:00",
+  "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001"
+}

@@ -14,6 +14,7 @@ import { ExternalAuthorityLookupService } from '../../../shared/service/external
 import { AuthoritySearchControl } from '../../../shared/util/authority-search-control';
 import { AuthorityDescriptor } from '../../../shared/models/authority/authority-descriptor.model';
 import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
+import { InputType } from '../../../shared/models/input-type.model';
 import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 
@@ -109,6 +110,11 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
   /** Which authority this field searches. The only thing a subclass decides. */
   abstract get descriptor(): AuthorityDescriptor;
 
+  /** PubMed's human label is an article title; keep it from turning one selected value into a card. */
+  get truncatesSelectedLabel(): boolean {
+    return this.descriptor.inputType === InputType.pmid;
+  }
+
   protected constructor(
     protected fb: FormBuilder,
     public cds: ComponentDataService,
@@ -180,6 +186,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
         // `panelClosingActions` emits the option-selection event that closed the
         // panel, or null when something else did. `source` is the option.
         const selectionMode = !!event?.source;
+        const selectionWasInProgress = this.selectionInProgress;
         // A press that closed the panel without choosing anything — dragged off
         // the option, or a click outside — leaves the flag set otherwise, and
         // the next blur would find it and decline to reconcile forever.
@@ -189,6 +196,11 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
         }
         if (this.selectedData !== null) {
           this.setCurrentValue(this.selectedData);
+        } else if (selectionWasInProgress) {
+          // The blur caused by the press was deliberately ignored. With no
+          // prior selection to restore, finish that deferred reconciliation now
+          // or the unstored query remains visible after the user has left.
+          this.reconcileWithSelection();
         }
       });
     }

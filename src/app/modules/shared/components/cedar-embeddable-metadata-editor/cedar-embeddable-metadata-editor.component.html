@@ -7,17 +7,20 @@
   >
     <!--  <mat-card-header>-->
     <div class="template-header" [class.template-header-paged]="dataContext.templateRepresentation?.hasPageBreaks()">
-      <div class="logo-block">
+      <a
+        class="logo-block"
+        href="https://www.npmjs.com/package/cedar-embeddable-editor"
+        target="_blank"
+        rel="noreferrer"
+        aria-label="CEE on npm"
+      >
         <div
           mat-card-avatar
           class="header-image"
-          (click)="launchMetadataCenter()"
-          role="link"
-          aria-label="Cedar logo - https://metadatacenter.org"
         ></div>
         <span class="cee-name">CEE</span>
         <span class="cee-version" [title]="ceeVersion">{{ ceeVersion }}</span>
-      </div>
+      </a>
       <div class="template-title-block">
         <h1 class="template-label">{{ dataContext.templateRepresentation?.labelInfo?.label }}</h1>
         @if (dataContext.templateRepresentation?.labelInfo?.description && showTemplateDescription) {
@@ -61,7 +64,10 @@
             </button>
           }
           @if (showDownloadMenu) {
-            <app-download-menu (downloadRequested)="download($event)"></app-download-menu>
+            <app-download-menu
+              [showInstanceDownloads]="!declaredValuesOnly"
+              (downloadRequested)="download($event)"
+            ></app-download-menu>
           }
         </div>
       </div>
