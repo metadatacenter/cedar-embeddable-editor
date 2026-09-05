@@ -9,7 +9,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, Validators } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 import { DateAdapter } from '@angular/material/core';
 import { MatDatepicker } from '@angular/material/datepicker';
 import { CustomDateAdapter } from '../../service/date-time/custom-date-adapter';
@@ -61,7 +61,6 @@ export class DatePickerComponent implements OnInit {
 
   @Input({ required: true }) dateMonthYear!: FormControl<Date | null>;
   @Input() dateFormat = DatePickerComponent.YEAR_FORMAT;
-  @Input() required = false;
   @Output() dateChangedEvent = new EventEmitter<Date>();
   private userPreferencesService: UserPreferencesService;
   readOnlyMode = false;
@@ -80,10 +79,6 @@ export class DatePickerComponent implements OnInit {
       this.readOnlyMode = mode;
     });
     this._dateTimeService.format = this.dateFormat;
-    if (this.required) {
-      this.dateMonthYear.addValidators(Validators.required);
-      this.dateMonthYear.updateValueAndValidity({ emitEvent: false });
-    }
   }
 
   /**

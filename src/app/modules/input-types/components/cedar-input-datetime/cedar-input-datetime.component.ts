@@ -22,6 +22,9 @@ import {
   CedarTemporalValue,
 } from '../../../shared/util/cedar-temporal-value';
 
+/** A part of a temporal value the user supplies, in the order the controls stand. */
+export type TemporalPart = 'date' | 'time' | 'fraction';
+
 @Component({
   selector: 'app-cedar-input-datetime',
   templateUrl: './cedar-input-datetime.component.html',
@@ -60,11 +63,15 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
    * `xsd:dateTime`. Reporting that would put an error on a form nobody has
    * touched.
    *
-   * Driven by real DOM events rather than by the change handlers: assigning
-   * `timePickerTime` fires the timepicker's `ngModelChange` exactly as a user
-   * edit does, and `setCurrentValue` can arrive on a later tick, so neither the
-   * handlers nor a post-init reset can tell the two apart. A programmatic
-   * assignment dispatches no `input` or `change` event; a user action does.
+   * Set on two signals, and both are needed. `writeValue` is one: only the part
+   * handlers and the clear action reach it, and each of those is a user acting
+   * on a part, while a value the model pushes in arrives through
+   * `setCurrentValue` and never comes near it. The host listeners below are the
+   * other: a keystroke the clock rejects emits nothing and reaches no handler,
+   * and still leaves a field somebody has touched. Until `writeValue` set it, a
+   * date picked from the calendar and an offset chosen from the list set it
+   * through neither — Material dispatches no DOM event for either — so a
+   * required dateTime with only its date picked stored nothing and said nothing.
    */
   userEdited = false;
 
@@ -81,7 +88,6 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   onUserEdit(): void {
     this.userEdited = true;
   }
-  required = false;
 
   @Input({ required: true }) handlerContext!: HandlerContext;
 
@@ -105,7 +111,6 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
       validators.push(Validators.required);
     }
     this.valueControl.setValidators(validators);
-    this.required = this.component.valueInfo.requiredValue;
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
@@ -150,7 +155,6 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.timePickerTime = null;
     this.decimalSeconds = null;
     this.timezone = null;
-    this.userEdited = true;
     this.writeValue();
   }
 
@@ -248,19 +252,63 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   }
 
   /**
+   * Which part of a value the user has begun is still missing, or null.
+   *
+   * A dateTime records nothing until it has both its date and its time, and a
+   * decimal-second field nothing until it has its fraction. The box meanwhile
+   * showed the parts entered over an instance holding null and said nothing —
+   * for a required field until the requirement spoke, for an optional one for
+   * good. Named in the order the controls stand, so a field missing both its
+   * date and its time asks for the date first. Nothing to say while reading,
+   * before the user has touched the field, or once the value is whole.
+   */
+  get missingPart(): TemporalPart | null {
+    if (this.readOnlyMode || !this.userEdited || !this.hasTemporalValue() || this.valueControl.value !== null) {
+      return null;
+    }
+    const temporalType = this.component.valueInfo.temporalType;
+    if ((temporalType === Xsd.dateTime || temporalType === Xsd.date) && !this.datetimeParsed.dateIsSet) {
+      return 'date';
+    }
+    if ((temporalType === Xsd.dateTime || temporalType === Xsd.time) && !this.datetimeParsed.timeIsSet) {
+      return 'time';
+    }
+    if (this.showDecimalSeconds() && this.datetimeParsed.decimalSeconds.length === 0) {
+      return 'fraction';
+    }
+    return null;
+  }
+
+  /** The message for each part the value may still lack, for the template's translate pipe. */
+  readonly missingPartKeys: Record<TemporalPart, string> = {
+    date: 'Validation.Temporal.MissingDate',
+    time: 'Validation.Temporal.MissingTime',
+    fraction: 'Validation.Temporal.MissingFraction',
+  };
+
+  /**
    * Whether to state what is wrong with the value.
    *
    * Two ways to earn it. An edit the user made, which is what `userEdited` is
    * for — an error on a form nobody has touched says nothing useful. And a
    * stored value the widget could not read, where the pickers are necessarily
    * empty and staying quiet would leave a blank field over an instance holding
-   * something, with nothing on screen connecting the two.
+   * something, with nothing on screen connecting the two. A value still being
+   * entered is `missingPart`'s to describe, and a requirement waits behind it:
+   * "a time is still needed" says more than "the value is required" about a
+   * field whose date is already in.
    */
   get showsValidationMessage(): boolean {
-    return !this.readOnlyMode && (this.unreadableValue !== null || (this.valueControl.invalid && this.userEdited));
+    return (
+      !this.readOnlyMode &&
+      this.missingPart === null &&
+      (this.unreadableValue !== null || (this.valueControl.invalid && this.userEdited))
+    );
   }
 
   private writeValue(): void {
+    // Only a user reaches here; see `userEdited`.
+    this.userEdited = true;
     const stored = this.datetimeParsed.toStorageRepresentation(this.temporalConfiguration());
     // An edit replaces whatever could not be read, so the notice about it goes.
     this.unreadableValue = null;

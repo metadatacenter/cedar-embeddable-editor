@@ -52,7 +52,6 @@
     "DeleteCurrent": "Delete current"
   },
   "Error": {
-    "ValueRequired": "The value is required",
     "LookupFailed": "Search failed: the service could not be reached",
     "NoResults": "No results found",
     "NoTermsAvailable": "No terms available"
@@ -86,6 +85,11 @@
   "Validation": {
     "SelectAtLeastOne": "Select at least one option.",
     "Required": "The value is required.",
+    "Temporal": {
+      "MissingDate": "A date is still needed. Nothing is recorded until the value is complete.",
+      "MissingTime": "A time is still needed. Nothing is recorded until the value is complete.",
+      "MissingFraction": "The fraction of a second is still needed. Nothing is recorded until the value is complete."
+    },
     "Text": {
       "MinLength": "Value should be at least {{constraintMinLength}} chars long.",
       "MaxLength": "Value should be at most {{constraintMaxLength}} chars long."

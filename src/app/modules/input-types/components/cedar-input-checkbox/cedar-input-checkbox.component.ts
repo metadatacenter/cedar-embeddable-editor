@@ -43,9 +43,17 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
    * validator installed below decided a required field's fate and told nobody:
    * the markup to show the verdict did not exist, which is the same silence the
    * validator was added to end.
+   *
+   * And only once somebody has been here. Every other widget waits for a
+   * touched or dirty control before stating a requirement — Material's form
+   * field does it for the text-like ones, a matcher of their own for the rest —
+   * and this group spoke on first render, so an empty form opened with red
+   * notices under its required checkbox groups and nowhere else. Material marks
+   * an option's control touched when the box loses focus and dirty when it is
+   * clicked, and a group is either as soon as one of its controls is.
    */
   get showsRequiredError(): boolean {
-    return !this.readOnlyMode && this.options.hasError('required');
+    return !this.readOnlyMode && (this.options.dirty || this.options.touched) && this.options.hasError('required');
   }
 
   override ngOnInit(): void {

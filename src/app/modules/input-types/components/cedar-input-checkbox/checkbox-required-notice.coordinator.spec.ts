@@ -57,8 +57,28 @@ describe('a required checkbox group', () => {
       .map((element) => (element.nativeElement as HTMLElement).textContent?.trim() ?? '')
       .join('');
 
-  it('renders a notice while nothing is ticked', async () => {
+  /**
+   * Focus a box and leave it. Material marks the control touched from the blur
+   * on a microtask, so the render has to wait for that before it can be asked.
+   */
+  const leave = async (fixture: Awaited<ReturnType<typeof render>>): Promise<void> => {
+    const box = fixture.debugElement.queryAll(By.css('input[type="checkbox"]'))[0].nativeElement as HTMLInputElement;
+    box.dispatchEvent(new Event('focus'));
+    box.dispatchEvent(new Event('blur'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+
+  it('renders no notice before anyone has been near the group', async () => {
     const fixture = await render(true);
+
+    expect(noticeText(fixture)).toBe('');
+  });
+
+  it('renders a notice once the group has been left with nothing ticked', async () => {
+    const fixture = await render(true);
+
+    await leave(fixture);
 
     expect(noticeText(fixture)).not.toBe('');
   });
@@ -75,6 +95,8 @@ describe('a required checkbox group', () => {
 
   it('renders no notice for a group the template does not require', async () => {
     const fixture = await render(false);
+
+    await leave(fixture);
 
     expect(noticeText(fixture)).toBe('');
   });

@@ -11,13 +11,13 @@
     "AttributeName": "Attribútum név",
     "AttributeValue": "Attribútum érték",
     "Clear": "Törlés",
-    "SelectDecimalSeconds": "Tizedes másodpercek kiválasztása",
+    "SelectDecimalSeconds": "Törtmásodpercek megadása",
     "SelectUtcOffset": "UTC-eltolás kiválasztása",
     "SelectYear": "Év kiválasztása",
     "SelectYearAndMonth": "Év és hónap kiválasztása",
     "SelectDate": "Dátum kiválasztása",
     "CedarLogo": "CEDAR logó",
-    "DecimalSeconds": "tizedmásodpercek",
+    "DecimalSeconds": "törtmásodpercek",
     "Filter": "Kezdjen el írni a szűréshez",
     "OpenLink": "Hivatkozás megnyitása",
     "PropertyIri": "Tulajdonság IRI: {{iri}}",
@@ -52,7 +52,6 @@
     "DeleteCurrent": "Aktuális törlése"
   },
   "Error": {
-    "ValueRequired": "A mező kitöltése kötelező",
     "LookupFailed": "A keresés sikertelen: a szolgáltatás nem érhető el",
     "NoResults": "Nincs találat",
     "NoTermsAvailable": "Nincs elérhető fogalom"
@@ -86,6 +85,11 @@
   "Validation": {
     "SelectAtLeastOne": "Legalább egy lehetőséget ki kell választani.",
     "Required": "Az érték megadása kötelező.",
+    "Temporal": {
+      "MissingDate": "Még meg kell adni a dátumot. Amíg az érték hiányos, nem rögzíthető.",
+      "MissingTime": "Még meg kell adni az időt. Amíg az érték hiányos, nem rögzíthető.",
+      "MissingFraction": "Még meg kell adni a másodperc törtrészét. Amíg az érték hiányos, nem rögzíthető."
+    },
     "Text": {
       "MinLength": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
       "MaxLength": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet."

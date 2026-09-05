@@ -136,6 +136,21 @@ describe('TimePickerComponent segment editing', () => {
     expect(input.value).toBe('05');
   });
 
+  it('shows the parts the model padded once the user leaves the clock', () => {
+    // A typed hour stores `09:00:00`, and `[(ngModel)]` writes that instant back
+    // while the hour still has focus. The other two boxes went on showing `MM`
+    // and `SS` over a stored `00` — a placeholder standing over a value, which is
+    // the one thing a placeholder must not do.
+    const { component, emitted } = makeComponent();
+    const input = focusOn(component, 'hour');
+    component.hourChanged('9');
+    component.writeValue(emitted[0]);
+
+    blurFrom(component, 'hour', input);
+
+    expect([component.hourDraft, component.minuteDraft, component.secondDraft]).toEqual(['09', '00', '00']);
+  });
+
   it('restores the stored value when a typed hour is out of range, and says so', () => {
     const { component, emitted } = makeComponent();
     component.hourChanged('9');

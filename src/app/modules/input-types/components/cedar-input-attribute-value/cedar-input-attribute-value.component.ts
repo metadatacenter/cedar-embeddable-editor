@@ -47,7 +47,19 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
+  /**
+   * The name box was typed into or left.
+   *
+   * Nothing to record while the form is read-only. `readonly` on the input stops
+   * keystrokes and nothing else: the blur this is also bound to still arrives,
+   * and it used to rewrite the slot — dropping the field's own context term on
+   * the way — so tabbing through a read-only form published a change event
+   * carrying an instance nobody had edited.
+   */
   nameChanged($event: Event): void {
+    if (this.readOnlyMode) {
+      return;
+    }
     let name: string | null = null;
 
     if ($event) {
@@ -67,6 +79,9 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
   }
 
   valueChanged($event: Event): void {
+    if (this.readOnlyMode) {
+      return;
+    }
     const typed = $event ? ($event.target as HTMLTextAreaElement).value : this.valueInputControl.value;
 
     // An emptied box says so as null, which is how the other nine widgets say it

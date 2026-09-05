@@ -1010,18 +1010,30 @@ test('radio selection uses primary color and keeps Clear on the selected row', a
  * nobody, which every stage but this one reports as working. Not one checkbox
  * field in any other fixture is required, so no baseline could have caught it.
  */
-test('a required checkbox group says so until an option is ticked', async ({ page }) => {
+/**
+ * A required checkbox group says so once it has been left empty, and not before.
+ *
+ * Every other widget waits for a touched or dirty control before stating a requirement, and this
+ * one used to speak on first render — an empty form opened with red notices under its required
+ * checkbox groups and nowhere else. Leaving a box is what makes it speak, as it is for a text field.
+ */
+test('a required checkbox group says so once it has been left empty, until an option is ticked', async ({ page }) => {
   await open(page, '25-required-choices');
 
   const group = page.locator('app-cedar-input-checkbox').first();
   const notice = group.locator('mat-error');
+  await expect(notice, 'a form nobody has touched states no requirement').toHaveCount(0);
+
+  const agree = group.getByRole('checkbox', { name: 'Agree' });
+  await agree.focus();
+  await agree.blur();
   await expect(notice).toBeVisible();
   await expect(notice).toHaveText(/at least one/i);
 
-  await group.getByRole('checkbox', { name: 'Agree' }).click();
+  await agree.click();
   await expect(notice).toHaveCount(0);
 
-  await group.getByRole('checkbox', { name: 'Agree' }).click();
+  await agree.click();
   await expect(group.locator('mat-error')).toBeVisible();
 });
 
@@ -1263,6 +1275,28 @@ test('numeric fields state their bounds in words', async ({ page }) => {
 });
 
 /**
+ * The spinner steps a numeric field by the precision the field declares.
+ *
+ * The browser's default step is one, which is right for an integer and wrong for a field declaring
+ * two decimal places: the arrows stepped past every value the field is for and snapped a typed
+ * `1.25` to a whole number. The step is derived from the declared type and places, so the arrows
+ * move by the smallest amount the field records.
+ */
+test('the spinner steps a numeric field by its declared precision', async ({ page }) => {
+  await open(page, '17-real-flat');
+
+  const twoPlaces = page.locator('input[aria-label="Numeric Decimal (2 dp)"]');
+  const fourPlaces = page.locator('input[aria-label="Numeric Decimal (4 dp)"]');
+  await expect(twoPlaces).toHaveAttribute('step', '0.01');
+  await expect(fourPlaces).toHaveAttribute('step', '0.0001');
+
+  await twoPlaces.fill('1.25');
+  await twoPlaces.press('ArrowUp');
+
+  await expect(twoPlaces).toHaveValue('1.26');
+});
+
+/**
  * One type size for a field's label and for the value inside it.
  *
  * They were two. CEE's chrome is `$cee-font-size`, and Material's typography
@@ -1345,7 +1379,7 @@ test('a field states its label and its value at one size', async ({ page }) => {
  *  - `app-orcid-details` and `app-ror-details` only render after a term is
  *    selected, which needs a reachable authority service.
  */
-const WIDGETS = [
+const WIDGETS: { name: string; selector: string; fixture: string; nth: number; touched?: boolean }[] = [
   { name: 'input-text', selector: 'app-cedar-input-text', fixture: '01-input-types', nth: 0 },
   { name: 'input-textarea', selector: 'app-cedar-input-text', fixture: '01-input-types', nth: 1 },
   { name: 'input-numeric', selector: 'app-cedar-input-numeric', fixture: '01-input-types', nth: 0 },
@@ -1355,8 +1389,16 @@ const WIDGETS = [
   { name: 'input-datetime', selector: 'app-cedar-input-datetime', fixture: '01-input-types', nth: 0 },
   { name: 'input-checkbox', selector: 'app-cedar-input-checkbox', fixture: '02-choices', nth: 0 },
   // The same widget with an answer required of it, which is the only state that
-  // draws its notice. Every other checkbox fixture leaves the field optional.
-  { name: 'input-checkbox-required', selector: 'app-cedar-input-checkbox', fixture: '25-required-choices', nth: 0 },
+  // draws its notice — once the group has been left empty, so the first box is
+  // focused and left before the photograph. Every other checkbox fixture leaves
+  // the field optional.
+  {
+    name: 'input-checkbox-required',
+    selector: 'app-cedar-input-checkbox',
+    fixture: '25-required-choices',
+    nth: 0,
+    touched: true,
+  },
   { name: 'input-multiple-choice', selector: 'app-cedar-input-multiple-choice', fixture: '02-choices', nth: 0 },
   { name: 'input-select', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 0 },
   { name: 'input-select-multi', selector: 'app-cedar-input-select', fixture: '02-choices', nth: 1 },
@@ -1407,6 +1449,12 @@ test.describe('widgets, clipped', () => {
 
       const element = all.nth(widget.nth);
       await expect(element).toBeVisible();
+      if (widget.touched) {
+        const box = element.getByRole('checkbox').first();
+        await box.focus();
+        await box.blur();
+        await expect(element.locator('mat-error')).toBeVisible();
+      }
       await expect(element).toHaveScreenshot(`widget-${widget.name}.png`);
     });
   }
@@ -2461,6 +2509,55 @@ test.describe('controlled terminology selection', () => {
     ).toHaveCount(1);
   });
 
+  /**
+   * A second pick from a list that still holds the first records the second.
+   *
+   * Material reports the deselection of the previous option through the same output as the
+   * choice, and after it. This panel reopens on a click, and its list is only replaced once the
+   * lookup for the newly chosen label answers — so a user who chose one term, clicked the box
+   * again and chose another before that answer arrived had the first recorded over the second,
+   * and the next blur then "reverted" the box to it. The lookup for the chosen label is left
+   * unanswered here, which is that race made certain.
+   */
+  test('a second pick from the list the first pick left behind records the second term', async ({ page }) => {
+    // Both name the word typed, because the widget narrows what the server returns to the query.
+    const terms = [
+      { id: 'http://purl.obolibrary.org/obo/NCBITaxon_9606', label: 'Homo sapiens' },
+      { id: 'http://purl.obolibrary.org/obo/NCBITaxon_63221', label: 'Homo neanderthalensis' },
+    ];
+    await page.route('http://127.0.0.1:9/unused/bioportal/integrated-search', async (route) => {
+      const asked = route.request().postDataJSON()?.parameterObject?.inputText;
+      if (asked === terms[0].label) {
+        // The lookup for the chosen label. Unanswered, so the list is not replaced.
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          collection: terms.map((term) => ({ id: term.id, '@id': term.id, prefLabel: term.label })),
+        }),
+      });
+    });
+
+    await open(page, '04-controlled-terms');
+    const field = page.locator('input[aria-label="organism"]');
+    await field.pressSequentially('Homo', { delay: 40 });
+    await passDebounceWindow(page);
+    await page.locator('mat-option').filter({ hasText: terms[0].label }).click();
+    await expect(field).toHaveValue(terms[0].label);
+
+    await field.click();
+    const second = page.locator('mat-option').filter({ hasText: terms[1].label });
+    await expect(second, 'the list the first pick left behind').toBeVisible();
+    await second.click();
+    await field.blur();
+
+    await expect(field, 'the second pick stands').toHaveValue(terms[1].label);
+    await expect(page.locator('.input-warning'), 'and nothing was reverted').toHaveCount(0);
+    expect(termOf(await currentMetadata(page), '_organism').iri).toBe(terms[1].id);
+  });
+
   test('a labelless loaded term falls back to its IRI and can be cleared', async ({ page }) => {
     const iri = 'http://purl.obolibrary.org/obo/NCBITaxon_9606';
     await open(page, '04-controlled-terms', undefined, '04-controlled-terms-labelless-instance');
@@ -3180,6 +3277,33 @@ test.describe('read-only belongs to the host', () => {
       await page.evaluate(() => JSON.stringify(document.querySelector('cedar-embeddable-editor')!.currentMetadata)),
       'and nothing reached the instance',
     ).toBe(before);
+  });
+
+  /**
+   * Nothing a reader does to a read-only form reaches the host.
+   *
+   * `readonly` on an input stops keystrokes and nothing else: focus and blur still arrive, and a
+   * widget bound to a blur decides for itself whether it means anything. The attribute-value field
+   * decided wrong — its name box rewrote the slot on every blur and dropped the field's own context
+   * term doing it, so tabbing through a read-only form published a change event carrying an
+   * instance nobody had edited. The instance here carries that term, as one saved by the workspace
+   * does; on the suite's other attribute instance the rewrite produced an identical document and the
+   * editor's own de-duplication hid the defect.
+   */
+  test('publishes nothing when a reader moves through a populated form', async ({ page }) => {
+    await open(page, '22-multi-field-values', 'readonly', '22-multi-field-values-context-instance');
+    await recordChanges(page);
+    const before = JSON.stringify(await currentMetadata(page));
+    expect(before, 'the instance arrived with its context term').toContain('properties/');
+
+    for (const input of await page.locator('input').all()) {
+      await input.focus();
+      await input.blur();
+    }
+    await page.waitForTimeout(300);
+
+    expect(await changeDetails(page), 'a read-only form has nothing to report').toEqual([]);
+    expect(JSON.stringify(await currentMetadata(page))).toBe(before);
   });
 
   test('offers the user nothing that leaves read-only', async ({ page }) => {

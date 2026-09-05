@@ -104,7 +104,15 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
 
   inputChanged($event: Event): void {
     const typed = ($event.target as HTMLTextAreaElement).value;
-    this.handlerContext.changeValue(this.component, typed.length === 0 ? null : typed);
+    const value = typed.length === 0 ? null : typed;
+    // Judge the text that was typed. Angular's number accessor has already handed
+    // the control `parseFloat` of it, so `1.50` in a one-decimal field validated
+    // as `1.5` and passed, while the model held `1.50` and the quality report
+    // failed it — the widget and the report disagreeing about one value, which is
+    // what `CedarValidators` exists to prevent. The box already shows the text,
+    // so the view is left alone.
+    this.inputValueControl.setValue(value, { emitModelToViewChange: false });
+    this.handlerContext.changeValue(this.component, value);
   }
 
   setCurrentValue(currentValue: unknown): void {
@@ -118,6 +126,26 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
   private setValueUIAndModel(value: string | null): void {
     this.inputValueControl.setValue(value);
     this.handlerContext.changeValue(this.component, value);
+  }
+
+  /**
+   * The amount the browser's spinner and arrow keys move the value by.
+   *
+   * Derived from what the field declares, because the browser's default is one:
+   * right for an integer, and wrong for a field declaring two decimal places,
+   * where the arrows stepped past every value the field is for and snapped a
+   * typed `1.25` to a whole number. A fractional type declaring no places takes
+   * any step, and a field declaring no type at all likewise.
+   */
+  get step(): string {
+    const { numberType, decimalPlace } = this.component.numberInfo;
+    if (numberType === Xsd.int || numberType === Xsd.long || numberType === Xsd.byte || numberType === Xsd.short) {
+      return '1';
+    }
+    if (decimalPlace === null || decimalPlace === undefined) {
+      return 'any';
+    }
+    return decimalPlace === 0 ? '1' : `0.${'0'.repeat(decimalPlace - 1)}1`;
   }
 
   /**

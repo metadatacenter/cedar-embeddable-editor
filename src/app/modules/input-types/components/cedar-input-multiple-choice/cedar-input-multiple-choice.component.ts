@@ -1,26 +1,11 @@
 import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  FormGroupDirective,
-  NgForm,
-  ValidatorFn,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
-import { ErrorStateMatcher } from '@angular/material/core';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { MatRadioChange } from '@angular/material/radio';
-
-export class MultipleChoiceErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
-    return !!(control && control.invalid && (control.dirty || control.touched));
-  }
-}
 
 @Component({
   selector: 'app-cedar-input-multiple-choice',
@@ -34,7 +19,6 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
   component!: FieldComponent;
   options: FormGroup;
   selectedChoiceInputControl = new FormControl<string | null>(null, null);
-  errorStateMatcher = new MultipleChoiceErrorStateMatcher();
   @Input({ required: true }) handlerContext!: HandlerContext;
   /** The last value pushed in by `setCurrentValue`, which is typed `unknown` there. */
   selected: unknown;

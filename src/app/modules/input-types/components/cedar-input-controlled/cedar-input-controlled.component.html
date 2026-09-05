@@ -121,11 +121,15 @@ different destinations worth having.
           </mat-option>
         }
         @for (option of terms; track option) {
-          <!-- `mousedown` precedes the blur it causes: see `selectionStarting`. -->
+          <!--
+            `mousedown` precedes the blur it causes: see `selectionStarting`. `$event`
+            goes along because this output also carries the deselection of the
+            previous option; see `onSelectionChange`.
+          -->
           <mat-option
             [value]="option.label"
             (mousedown)="selectionStarting()"
-            (onSelectionChange)="onSelectionChange(option)"
+            (onSelectionChange)="onSelectionChange(option, $event)"
             >{{ option.label }}</mat-option
           >
         }
