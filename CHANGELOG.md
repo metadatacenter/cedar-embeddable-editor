@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.6] - 2026-09-04
+
+This release aligns CEE's build-time model dependency with the public
+`cedar-model-typescript-library@1.0.6` package. It also fixes eleven field-widget
+defects found by two audits of the editor's input modes, most of them in how a
+required field reports an unanswered value and how a temporal or numeric field
+treats a value still being typed.
+
 ### Fixed
 
 - A required external authority field emptied by its clear action or by deleting its text reports
