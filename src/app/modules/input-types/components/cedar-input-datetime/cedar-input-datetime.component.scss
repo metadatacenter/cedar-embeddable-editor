@@ -31,8 +31,7 @@
  *
  * The colour repeats the time picker's literal rather than reading a token, because
  * no component stylesheet in CEE imports `_cee-tokens.scss` and this is not the
- * change that should introduce the first one. `--cee-color-*` is published API and
- * a separator glyph does not warrant growing it.
+ * change that should introduce the first one.
  *
  * `line-height` stays: it centres the glyph on the 48px control row and is layout
  * rather than type.

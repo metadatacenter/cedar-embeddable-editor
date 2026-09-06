@@ -6,7 +6,7 @@ import { AppDevComponent } from './app.component.dev';
 import { SharedModule } from './modules/shared/shared.module';
 import { JsonPipe } from '@angular/common';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './modules/shared/components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import * as fallbackMapEN from '../assets/i18n-cee/en.json';
 import * as fallbackMapHU from '../assets/i18n-cee/hu.json';
 import { MessageHandlerService } from './modules/shared/service/message-handler.service';
@@ -18,10 +18,11 @@ import { defineCustomElementOnce } from './custom-element';
   declarations: [AppDevComponent],
   bootstrap: [AppDevComponent],
   exports: [],
-  imports: [
-    BrowserModule,
-    SharedModule,
-    TranslateModule.forRoot({
+  imports: [BrowserModule, SharedModule],
+  providers: [
+    JsonPipe,
+    provideHttpClient(withXhr(), withInterceptorsFromDi()),
+    provideTranslateService({
       loader: {
         provide: TranslateLoader,
         useFactory: (
@@ -37,7 +38,6 @@ import { defineCustomElementOnce } from './custom-element';
       },
     }),
   ],
-  providers: [JsonPipe, provideHttpClient(withXhr(), withInterceptorsFromDi())],
 })
 export class AppModuleDev implements DoBootstrap {
   constructor(private injector: Injector) {}

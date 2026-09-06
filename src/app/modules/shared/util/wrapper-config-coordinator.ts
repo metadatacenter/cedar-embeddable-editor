@@ -5,7 +5,6 @@ import { ControlledFieldDataService, INTEGRATED_SEARCH_PATH } from '../service/c
 import { GlobalSettingsContextService } from '../service/global-settings-context.service';
 import { MessageHandlerService } from '../service/message-handler.service';
 import { HandlerContext } from './handler-context';
-import { TranslationMap } from './fallback-translate-loader';
 
 /** Host configuration and language initialization, kept out of artifact intake. */
 export class WrapperConfigCoordinator {
@@ -76,7 +75,7 @@ export class WrapperConfigCoordinator {
     if (configFlag(config, CEE_CONFIG_KEY.readOnlyMode, false)) {
       handlerContext.enableReadOnlyMode();
     }
-    this.translate.setDefaultLang(this.fallbackLanguage);
+    this.translate.setFallbackLang(this.fallbackLanguage);
     this.translate.use(this.defaultLanguage);
     this.reloadLanguageMapsIfSourceMoved(previousPathPrefix, languagesLoadedBefore);
   }
@@ -85,10 +84,11 @@ export class WrapperConfigCoordinator {
     if (this.globals.languageMapPathPrefix === previousPathPrefix) {
       return;
     }
-    languagesLoadedBefore.forEach((language) =>
-      this.translate
-        .reloadLang(language)
-        .subscribe((translations: TranslationMap) => this.translate.setTranslation(language, translations)),
-    );
+    // `reloadLang` forgets the stored map, fetches it again and announces the
+    // replacement, so subscribing is the whole of the work: the observable is cold and
+    // does nothing until something subscribes. Writing the result back with
+    // `setTranslation` as well would announce a second time, and every pipe listening
+    // for the change would re-read for nothing.
+    languagesLoadedBefore.forEach((language) => this.translate.reloadLang(language).subscribe());
   }
 }

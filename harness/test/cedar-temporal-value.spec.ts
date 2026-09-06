@@ -49,6 +49,20 @@ describe('the CEE temporal storage contract', () => {
     }
   });
 
+  it('refuses to serialize a fraction that is not digits, rather than emitting it verbatim', () => {
+    const configuration = config(Xsd.time, Temporal.decimalSecond);
+    const parsed = CedarTemporalValue.parse('12:30:45.125', configuration);
+
+    // The fraction is the one part a picker does not produce — the editor's box is free
+    // text — so it is the one part that can arrive as something other than digits. It is
+    // interpolated straight into the lexical value, so a serializer that took it on trust
+    // would write `12:30:45.ddd` into an instance.
+    for (const fraction of ['ddd', '1.5', '12e3', ' 125', '']) {
+      expect(CedarTemporalValue.serialize({ ...parsed!, fraction }, configuration), fraction).toBeNull();
+    }
+    expect(CedarTemporalValue.serialize({ ...parsed!, fraction: '125' }, configuration)).toBe('12:30:45.125');
+  });
+
   it('preserves an allowed offset while discarding finer time information', () => {
     const configuration = config(Xsd.dateTime, Temporal.day, true);
     const parsed = CedarTemporalValue.parse('2026-08-09T21:45:32.125-07:00', configuration);

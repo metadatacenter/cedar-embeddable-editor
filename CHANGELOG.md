@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.7] - 2026-09-06
+
+This release builds against the public `cedar-model-typescript-library@1.0.6` package, the same
+model 2.0.6 embedded. It moves the translation boundary to `@ngx-translate/core` 18, the line that
+supports Angular 22, says `integer` or `number` where a numeric field's specification printed an
+XSD type, and makes the typed parts of a temporal field accept digits and nothing else.
+
+### Changed
+
+- The translation boundary moves to `@ngx-translate/core` 18, the line that supports Angular 22, and
+  `@ngx-translate/http-loader` is gone: CEE's own loader makes the single request that package
+  existed to make. Nothing changes for an embedder, and `defaultLanguage` and `fallbackLanguage`
+  configure the editor exactly as before.
+
+- A language map refetched after the host moves `languageMapPathPrefix` is announced once rather
+  than twice, so a widget listening for the change re-reads its labels once. Version 18 stores and
+  announces what a reload fetches, which CEE used to do itself as well.
+
+- A numeric field's specification reads `integer` or `number` where it used to print the template's
+  XSD type. `xsd:decimal` is the template's vocabulary rather than a reader's, and the decimal
+  places, minimum and maximum stated beside it already say what constrains the value.
+
+### Fixed
+
+- The fractional second of a temporal field takes digits and nothing else. A letter typed there
+  stood in the box, and once the rest of the value was complete it reached the instance verbatim,
+  as `10:30:00.ddd`. The box now keeps the digits as they arrive, a fraction spelled `0.5` is still
+  read as `.5`, and the value layer refuses a fraction that is not digits whatever supplies it.
+
+- The hour, minute and second boxes refuse a character that is not a digit. Leaving a box already
+  restored the stored value, so nothing was recorded either way, but until then a letter sat in the
+  clock looking like a time.
+
 ## [2.0.6] - 2026-09-04
 
 This release aligns CEE's build-time model dependency with the public

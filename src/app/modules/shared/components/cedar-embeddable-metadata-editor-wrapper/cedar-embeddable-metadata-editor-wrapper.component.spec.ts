@@ -1,14 +1,19 @@
 import { type Mock, vi } from 'vitest';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper.component';
-import { ElementRef } from '@angular/core';
+import { ElementRef, Injector } from '@angular/core';
 import { ControlledFieldDataService, INTEGRATED_SEARCH_PATH } from '../../service/controlled-field-data.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
 import {
-  FakeMissingTranslationHandler,
+  DefaultMissingTranslationHandler,
+  MissingTranslationHandler,
+  TRANSLATE_SERVICE_CONFIG,
+  TranslateCompiler,
   TranslateDefaultParser,
-  TranslateFakeCompiler,
+  TranslateLoader,
+  TranslateNoOpCompiler,
+  TranslateParser,
   TranslateService,
   TranslateStore,
 } from '@ngx-translate/core';
@@ -38,7 +43,7 @@ const expectCalledOnceWith = (spy: Mock, ...args: unknown[]): void => {
 describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
   interface Mocks {
     setIntegratedSearchUrl: Mock;
-    setDefaultLang: Mock;
+    setFallbackLang: Mock;
     use: Mock;
     getLangs: Mock;
     reloadLang: Mock;
@@ -52,7 +57,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
   const make = (): { component: CedarEmbeddableMetadataEditorWrapperComponent; mocks: Mocks } => {
     const mocks: Mocks = {
       setIntegratedSearchUrl: vi.fn(),
-      setDefaultLang: vi.fn(),
+      setFallbackLang: vi.fn(),
       use: vi.fn(),
       // No language loaded yet, which is every case in this describe: the doubles
       // below record calls and load nothing. What happens once a map *is* loaded from
@@ -85,7 +90,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
       messaging as unknown as MessageHandlerService,
       { clear: mocks.clearRegistry } as unknown as ActiveComponentRegistryService,
       {
-        setDefaultLang: mocks.setDefaultLang,
+        setFallbackLang: mocks.setFallbackLang,
         use: mocks.use,
         getLangs: mocks.getLangs,
         reloadLang: mocks.reloadLang,
@@ -115,7 +120,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     for (const candidate of [before, after]) {
       expectCalledOnceWith(candidate.mocks.setIntegratedSearchUrl, '/terminology/' + INTEGRATED_SEARCH_PATH);
       expect(candidate.mocks.globalSettings.languageMapPathPrefix).toBe('/languages/');
-      expectCalledOnceWith(candidate.mocks.setDefaultLang, 'fr');
+      expectCalledOnceWith(candidate.mocks.setFallbackLang, 'fr');
       expectCalledOnceWith(candidate.mocks.use, 'hu');
       expect(candidate.component.handlerContext.readOnlyMode).toBe(true);
     }
@@ -139,7 +144,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
 
     expect(component.editorDataReady(), 'a template alone did not build the editor').toBe(true);
     // The languages a host did not choose, which is what a blank editor never reached.
-    expectCalledOnceWith(mocks.setDefaultLang, 'en');
+    expectCalledOnceWith(mocks.setFallbackLang, 'en');
     expectCalledOnceWith(mocks.use, 'en');
     expect(component.handlerContext.readOnlyMode).toBe(false);
   });
@@ -225,7 +230,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
       messaging as unknown as MessageHandlerService,
       { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
       {
-        setDefaultLang: vi.fn(),
+        setFallbackLang: vi.fn(),
         use: vi.fn(),
         getLangs: vi.fn(() => []),
         reloadLang: vi.fn(),
@@ -482,19 +487,24 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
     const loader = new FallbackTranslateLoader(http, messaging as unknown as MessageHandlerService, globalSettings, {
       en: BUILT_IN,
     });
-    // The empty default language matters: a language passed here would be loaded by
-    // the constructor, before the component has said anything.
-    const translate = new TranslateService(
-      new TranslateStore(),
-      loader,
-      new TranslateFakeCompiler(),
-      new TranslateDefaultParser(),
-      new FakeMissingTranslationHandler(),
-      true,
-      false,
-      false,
-      '',
-    );
+    // A real service over a fake loader, assembled by hand. `provideTranslateService`
+    // would say this more briefly, but it needs an Angular environment injector, and
+    // these specs deliberately run without `TestBed` or a zone; a static injector is
+    // enough, since the service asks for its collaborators through `inject()`.
+    //
+    // Naming no language matters: a `lang` here would be loaded on creation, before
+    // the component has said anything.
+    const translate = Injector.create({
+      providers: [
+        { provide: TranslateLoader, useValue: loader },
+        { provide: TranslateCompiler, useClass: TranslateNoOpCompiler, deps: [] },
+        { provide: TranslateParser, useClass: TranslateDefaultParser, deps: [] },
+        { provide: MissingTranslationHandler, useClass: DefaultMissingTranslationHandler, deps: [] },
+        { provide: TranslateStore, useClass: TranslateStore, deps: [] },
+        { provide: TRANSLATE_SERVICE_CONFIG, useValue: { fallbackLang: null, lang: undefined, isRoot: true } },
+        { provide: TranslateService, useClass: TranslateService, deps: [] },
+      ],
+    }).get(TranslateService);
     const component = new CedarEmbeddableMetadataEditorWrapperComponent(
       new ElementRef(document.createElement('cedar-embeddable-editor')),
       { setIntegratedSearchUrl: vi.fn() } as unknown as ControlledFieldDataService,
@@ -530,7 +540,10 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
 
     expect(fetched, 'the late prefix reached no loader').toEqual([PREFIX + 'en.json']);
     expect(translate.instant('Generic.ExpandAll'), 'the editor kept the built-in label').toBe('Alles Aufklappen');
-    expect(announced, 'nothing told the rendered widgets to re-read their labels').toEqual(['en']);
+    // Twice, and both are real: the built-in map becoming available, then the external
+    // map replacing it. A widget that rendered against the built-in labels has to hear
+    // the second one, which is what this test exists to catch.
+    expect(announced, 'nothing told the rendered widgets to re-read their labels').toEqual(['en', 'en']);
   });
 
   it('loads it once when the host configures before supplying the template', () => {
@@ -605,7 +618,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent invalid configuration va
       messaging as unknown as MessageHandlerService,
       { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
       {
-        setDefaultLang: vi.fn(),
+        setFallbackLang: vi.fn(),
         use: vi.fn(),
         getLangs: vi.fn(() => []),
         reloadLang: vi.fn(),

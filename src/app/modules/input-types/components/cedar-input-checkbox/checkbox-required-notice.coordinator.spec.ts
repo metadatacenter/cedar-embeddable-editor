@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { vi } from 'vitest';
 import { SharedModule } from '../../../shared/shared.module';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
@@ -35,8 +35,8 @@ describe('a required checkbox group', () => {
 
   const render = async (requiredValue: boolean) => {
     await TestBed.configureTestingModule({
-      imports: [SharedModule, InputTypesModule, TranslateModule.forRoot()],
-      providers: [provideHttpClient()],
+      imports: [SharedModule, InputTypesModule],
+      providers: [provideHttpClient(), provideTranslateService()],
     }).compileComponents();
     const fixture = TestBed.createComponent(CedarInputCheckboxComponent);
     fixture.componentInstance.handlerContext = {

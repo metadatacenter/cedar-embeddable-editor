@@ -26,7 +26,7 @@ import { DownloadMenuComponent } from './components/download-menu/download-menu.
 import { CedarMultiPagerComponent } from './components/cedar-multi-pager/cedar-multi-pager.component';
 import { InputTypesModule } from '../input-types/input-types.module';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/cedar-font-registrar.component';
 
@@ -52,7 +52,7 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     MatSelectModule,
     InputTypesModule,
     FormsModule,
-    TranslateModule,
+    TranslatePipe,
     MatCheckboxModule,
   ],
   declarations: [

@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { vi } from 'vitest';
 import inputTypesTemplate from '../../../../../visual/fixtures/01-input-types.json';
 import type { CeeJsonObject } from '../../../cee-public-api';
@@ -55,8 +55,8 @@ describe('Angular render coordination', () => {
 
   it('compiles and coordinates the real wrapper, editor, and renderer templates', async () => {
     await TestBed.configureTestingModule({
-      imports: [SharedModule, TranslateModule.forRoot()],
-      providers: [provideHttpClient()],
+      imports: [SharedModule],
+      providers: [provideHttpClient(), provideTranslateService()],
     }).compileComponents();
     const fixture = TestBed.createComponent(CedarEmbeddableMetadataEditorWrapperComponent);
     const ready = vi.fn();
@@ -81,8 +81,8 @@ describe('Angular render coordination', () => {
 
   it('releases every scoped widget registration across repeated editor lifecycles', async () => {
     await TestBed.configureTestingModule({
-      imports: [SharedModule, TranslateModule.forRoot()],
-      providers: [provideHttpClient()],
+      imports: [SharedModule],
+      providers: [provideHttpClient(), provideTranslateService()],
     }).compileComponents();
 
     for (let cycle = 0; cycle < 5; cycle++) {

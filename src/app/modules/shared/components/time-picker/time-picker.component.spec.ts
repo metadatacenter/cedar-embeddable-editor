@@ -151,6 +151,49 @@ describe('TimePickerComponent segment editing', () => {
     expect([component.hourDraft, component.minuteDraft, component.secondDraft]).toEqual(['09', '00', '00']);
   });
 
+  it('refuses a character that is not a digit, so no letter reaches the clock', () => {
+    const { component } = makeComponent();
+    let prevented = false;
+    const key = (k: string): KeyboardEvent =>
+      ({
+        key: k,
+        ctrlKey: false,
+        metaKey: false,
+        altKey: false,
+        preventDefault: () => (prevented = true),
+      }) as unknown as KeyboardEvent;
+
+    component.segmentKeydown(key('f'), 'minute');
+
+    expect(prevented, 'a letter must not be left in a segment to be read as a time').toBe(true);
+  });
+
+  it('lets a digit and the keys that edit or move through a segment past', () => {
+    const { component } = makeComponent();
+    const refused = (k: string, modifiers: Partial<KeyboardEvent> = {}): boolean => {
+      let prevented = false;
+      component.segmentKeydown(
+        {
+          key: k,
+          ctrlKey: false,
+          metaKey: false,
+          altKey: false,
+          ...modifiers,
+          preventDefault: () => (prevented = true),
+        } as unknown as KeyboardEvent,
+        'minute',
+      );
+      return prevented;
+    };
+
+    // Arrows step the clock, so they are prevented for that reason rather than refused.
+    expect(['Backspace', 'Delete', 'Tab', 'Home', 'End', 'ArrowLeft', 'ArrowRight'].map((k) => refused(k))).toEqual(
+      Array(7).fill(false),
+    );
+    expect(refused('7'), 'a digit is what the segment is for').toBe(false);
+    expect(refused('v', { metaKey: true }), 'paste is a shortcut, not a character').toBe(false);
+  });
+
   it('restores the stored value when a typed hour is out of range, and says so', () => {
     const { component, emitted } = makeComponent();
     component.hourChanged('9');

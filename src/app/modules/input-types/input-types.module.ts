@@ -48,7 +48,7 @@ import { SafeHtmlPipe } from '../shared/pipe/safe-html.pipe';
 import { DatePickerComponent } from '../shared/components/date-picker/date-picker.component';
 import { TimezonePickerComponent } from '../shared/components/timezone-picker/timezone-picker.component';
 import { TimePickerComponent } from '../shared/components/time-picker/time-picker.component';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { CedarInputPfasComponent } from './components/cedar-input-pfas/cedar-input-pfas.component';
@@ -81,7 +81,7 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     MatNativeDateModule,
     FormsModule,
     MatSelectModule,
-    TranslateModule,
+    TranslatePipe,
     MatProgressSpinnerModule,
     MatDividerModule,
   ],

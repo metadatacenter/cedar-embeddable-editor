@@ -251,6 +251,16 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit {
 
   /** Keep clock stepping available from the keyboard without permanent button towers. */
   segmentKeydown(event: KeyboardEvent, field: 'hour' | 'minute' | 'second'): void {
+    // A segment takes digits, and the keys that move around or edit one. Everything else
+    // that would leave a character behind is refused here. Blur already restores the
+    // stored value, so a letter never reached an instance, but until the box was left it
+    // sat in the clock looking like a time — and `inputmode="numeric"` only advises a
+    // touch keyboard, which is no constraint at all with a real one.
+    const printable = event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
+    if (printable && !/^\d$/.test(event.key)) {
+      event.preventDefault();
+      return;
+    }
     if (/^\d$/.test(event.key) && this.replaceOnNextKey === field) {
       event.preventDefault();
       this.replaceOnNextKey = null;
