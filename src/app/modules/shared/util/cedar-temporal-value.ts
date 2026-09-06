@@ -183,6 +183,16 @@ export class CedarTemporalValue {
     if (!configuration.timezoneEnabled) {
       parts.offset = null;
     }
+
+    // A fraction that is not digits has no canonical form, so it becomes absent rather
+    // than travelling on. `serialize` interpolates this part verbatim, and every other
+    // part reaches it through a picker that can only produce digits; the fraction is a
+    // free text box, so this is where a typed `ddd` would otherwise leave the editor as
+    // `…T10:30:00.ddd`. Absent makes the value incomplete, which is what stops it.
+    if (parts.fraction !== null && !/^\d+$/.test(parts.fraction)) {
+      parts.fraction = null;
+    }
+
     return parts;
   }
 

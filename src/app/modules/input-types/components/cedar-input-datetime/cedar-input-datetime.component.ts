@@ -135,8 +135,28 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.writeValue();
   }
 
-  decimalSecondsChanged(_event: unknown): void {
-    this.datetimeParsed.setDecimalSeconds(this.decimalSeconds);
+  /**
+   * Keep the digits and drop the rest, as they arrive.
+   *
+   * The box is text rather than `type="number"` so a fraction can hold leading zeros —
+   * `.050` is not `.05`. Its `pattern` attribute only feeds native form validation,
+   * which nothing here runs, so nothing was stopping a letter. Dropping on input rather
+   * than repairing on blur also covers a paste, and the value layer refuses a non-digit
+   * fraction besides, so a letter can neither be typed nor reach an instance.
+   */
+  decimalSecondsChanged(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    // The leading `0.` or `.` first, because a fraction spelled `0.5` is one a reader may
+    // reasonably type and has always been accepted; dropping non-digits before it would
+    // read that as `05`. What survives is the fraction's digits.
+    const digits = input.value.replace(/^0?\./, '').replace(/\D/g, '');
+    if (digits !== input.value) {
+      // ngModel re-renders only when the bound value changes, and a rejected character
+      // leaves it unchanged, so the box keeps the character unless it is written back.
+      input.value = digits;
+    }
+    this.decimalSeconds = digits;
+    this.datetimeParsed.setDecimalSeconds(digits);
     this.writeValue();
   }
 

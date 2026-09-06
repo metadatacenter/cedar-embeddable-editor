@@ -146,6 +146,17 @@ describe('CedarInputDatetimeComponent by granularity', () => {
   };
 
   /**
+   * Type into the fraction box the way a browser does, through the input event and the
+   * element behind it. The component reads and rewrites that element, so a test that only
+   * set the bound property would exercise neither the filtering nor the rewrite.
+   */
+  const typeFraction = (component: CedarInputDatetimeComponent, text: string): HTMLInputElement => {
+    const box = { value: text } as HTMLInputElement;
+    component.decimalSecondsChanged({ target: box } as unknown as Event);
+    return box;
+  };
+
+  /**
    * What the field says while a value is being entered, and when.
    *
    * A part picked from a popup — a date from the calendar, an offset from the
@@ -369,8 +380,7 @@ describe('CedarInputDatetimeComponent by granularity', () => {
       component.timeInputChanged(null);
       expect(written.at(-1)).toBeNull();
 
-      component.decimalSeconds = '250';
-      component.decimalSecondsChanged(null);
+      typeFraction(component, '250');
 
       expect(written.at(-1)).toBe('09:08:07.250');
     });
@@ -380,10 +390,33 @@ describe('CedarInputDatetimeComponent by granularity', () => {
       component.timePickerTime = new Date(2027, 0, 1, 9, 8, 7);
       component.timeInputChanged(null);
 
-      component.decimalSeconds = '0.5';
-      component.decimalSecondsChanged(null);
+      typeFraction(component, '0.5');
 
       expect(written.at(-1)).toBe('09:08:07.5');
+    });
+
+    it('keeps only the digits of a fraction the user types', () => {
+      const { component, written } = makeField(Xsd.time, Temporal.decimalSecond);
+      component.timePickerTime = new Date(2027, 0, 1, 9, 8, 7);
+      component.timeInputChanged(null);
+
+      const box = typeFraction(component, 'd2d5d');
+
+      expect(box.value, 'the box shows what it kept').toBe('25');
+      expect(written.at(-1)).toBe('09:08:07.25');
+    });
+
+    it('records nothing when a typed fraction has no digits at all', () => {
+      const { component, written } = makeField(Xsd.time, Temporal.decimalSecond);
+      component.timePickerTime = new Date(2027, 0, 1, 9, 8, 7);
+      component.timeInputChanged(null);
+
+      const box = typeFraction(component, 'ddd');
+
+      expect(box.value).toBe('');
+      // A fraction is a required part at this granularity, so the value stays incomplete
+      // rather than serializing as `09:08:07.ddd`.
+      expect(written.at(-1)).toBeNull();
     });
 
     it('appends the offset a field that enables one is given', () => {
