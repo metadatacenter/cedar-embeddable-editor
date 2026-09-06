@@ -1,22 +1,12 @@
-import { TranslateLoader } from '@ngx-translate/core';
+import { TranslateLoader, TranslationObject } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { MessageHandlerService } from '../service/message-handler.service';
 import { GlobalSettingsContextService } from '../service/global-settings-context.service';
 
-/**
- * A language map, in the shape ngx-translate consumes: keys nested down to strings.
- *
- * Declared here because ngx-translate 14 does not export a type for it — its
- * `TranslateLoader` says `Observable<any>`. A loader may return something narrower
- * than the interface promises, so this does.
- */
-export type TranslationMap = { [key: string]: string | TranslationMap };
-
 /** The built-in maps CEE ships, keyed by language code: `{ en: …, hu: … }`. */
-export type BuiltInTranslations = Record<string, TranslationMap>;
+export type BuiltInTranslations = Record<string, TranslationObject>;
 
 export class FallbackTranslateLoader implements TranslateLoader {
   constructor(
@@ -26,7 +16,7 @@ export class FallbackTranslateLoader implements TranslateLoader {
     private fallback: BuiltInTranslations,
   ) {}
 
-  getTranslation(lang: string): Observable<TranslationMap> {
+  getTranslation(lang: string): Observable<TranslationObject> {
     const languageMapPathPrefix = this.globalSettingsContextService.languageMapPathPrefix;
 
     if (languageMapPathPrefix != null) {
@@ -35,13 +25,13 @@ export class FallbackTranslateLoader implements TranslateLoader {
         'Loading language map from config path: "' + languageMapPathPrefix + '"',
       );
       this.messageHandlerService.traceGroup('language', 'Loading language map: "' + lang + '"');
-      const httpLoader = new TranslateHttpLoader(this.http, languageMapPathPrefix);
-      return httpLoader.getTranslation(lang).pipe(
-        // `TranslateHttpLoader` is typed `Observable<Object>` — it fetches whatever
-        // JSON is at the configured path and does not inspect it. Naming the shape
-        // here is the only place that knows what CEE asked for; nothing downstream
-        // can check it, since a language map is arbitrary nesting either way.
-        map((translations): TranslationMap => translations as TranslationMap),
+      // One GET, spelled out rather than delegated: `<prefix><language>.json` is the
+      // whole of what the dropped `@ngx-translate/http-loader` did for CEE, and a
+      // second package to compose a URL and hand it to the same `HttpClient` earned
+      // less than the dependency cost. Whatever JSON is at the path is what the
+      // language map is; nothing downstream can check it further, since a map is
+      // arbitrary nesting either way.
+      return this.http.get<TranslationObject>(`${languageMapPathPrefix}${lang}.json`).pipe(
         tap({
           next: () => {
             this.messageHandlerService.traceGroup('language', 'External language map loaded.');
@@ -61,7 +51,7 @@ export class FallbackTranslateLoader implements TranslateLoader {
     }
   }
 
-  getBuiltInVersion(lang: string): Observable<TranslationMap> {
+  getBuiltInVersion(lang: string): Observable<TranslationObject> {
     if (Object.hasOwn(this.fallback, lang)) {
       this.messageHandlerService.traceGroup('language', 'Using built-in language map for "' + lang + '"');
       return of(this.fallback[lang]);

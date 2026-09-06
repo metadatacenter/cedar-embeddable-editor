@@ -19,7 +19,7 @@ import {
 import { HandlerContext, InstanceMutation } from '../../util/handler-context';
 import { InstanceSerializer } from '../../util/instance-serializer';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
-import { TranslateLoader, TranslateService, USE_DEFAULT_LANG, USE_STORE } from '@ngx-translate/core';
+import { TranslateLoader, TranslateService, provideChildTranslateService } from '@ngx-translate/core';
 import { DataContext } from '../../util/data-context';
 import { HttpClient } from '@angular/common/http';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
@@ -56,22 +56,25 @@ import { WrapperConfigCoordinator } from '../../util/wrapper-config-coordinator'
     MessageHandlerService,
     RenderSchedulerService,
     UserPreferencesService,
-    {
-      provide: TranslateLoader,
-      useFactory: (
-        http: HttpClient,
-        messageHandlerService: MessageHandlerService,
-        globalSettingsContextService: GlobalSettingsContextService,
-      ) =>
-        FallbackTranslateLoaderFactory(http, messageHandlerService, globalSettingsContextService, {
-          en: fallbackMapEN,
-          hu: fallbackMapHU,
-        }),
-      deps: [HttpClient, MessageHandlerService, GlobalSettingsContextService],
-    },
-    { provide: USE_STORE, useValue: true },
-    { provide: USE_DEFAULT_LANG, useValue: true },
-    TranslateService,
+    // Each editor gets its own translation service, so two on one page keep separate
+    // languages and separate maps. The service is the root of an isolated subtree:
+    // it has no parent to inherit from, which is what stops one editor's language
+    // from reaching the other.
+    ...provideChildTranslateService({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: (
+          http: HttpClient,
+          messageHandlerService: MessageHandlerService,
+          globalSettingsContextService: GlobalSettingsContextService,
+        ) =>
+          FallbackTranslateLoaderFactory(http, messageHandlerService, globalSettingsContextService, {
+            en: fallbackMapEN,
+            hu: fallbackMapHU,
+          }),
+        deps: [HttpClient, MessageHandlerService, GlobalSettingsContextService],
+      },
+    }),
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,

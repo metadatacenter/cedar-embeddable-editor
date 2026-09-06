@@ -14,7 +14,7 @@ const make = (loaded: string[] = []) => {
   const trace = vi.fn();
   const traceGroup = vi.fn();
   const setIntegratedSearchUrl = vi.fn();
-  const setDefaultLang = vi.fn();
+  const setFallbackLang = vi.fn();
   const use = vi.fn();
   const reloadLang = vi.fn(() => of({ Generic: { ExpandAll: 'Expand' } }));
   const setTranslation = vi.fn();
@@ -22,7 +22,7 @@ const make = (loaded: string[] = []) => {
   const coordinator = new WrapperConfigCoordinator(
     { setIntegratedSearchUrl } as unknown as ControlledFieldDataService,
     { error, trace, traceGroup } as unknown as MessageHandlerService,
-    { getLangs: () => loaded, setDefaultLang, use, reloadLang, setTranslation } as unknown as TranslateService,
+    { getLangs: () => loaded, setFallbackLang, use, reloadLang, setTranslation } as unknown as TranslateService,
     globals,
   );
   const context = () => {
@@ -35,7 +35,7 @@ const make = (loaded: string[] = []) => {
     globals,
     error,
     setIntegratedSearchUrl,
-    setDefaultLang,
+    setFallbackLang,
     use,
     reloadLang,
     setTranslation,
@@ -49,7 +49,7 @@ describe('WrapperConfigCoordinator', () => {
 
     r.coordinator.apply(context);
 
-    expect(r.setDefaultLang).toHaveBeenCalledWith('en');
+    expect(r.setFallbackLang).toHaveBeenCalledWith('en');
     expect(r.use).toHaveBeenCalledWith('en');
     expect(context.readOnlyMode).toBe(false);
   });
@@ -71,7 +71,7 @@ describe('WrapperConfigCoordinator', () => {
     r.coordinator.apply(replacement);
 
     expect(r.setIntegratedSearchUrl).toHaveBeenCalledWith('/terminology/' + INTEGRATED_SEARCH_PATH);
-    expect(r.setDefaultLang).toHaveBeenLastCalledWith('fr');
+    expect(r.setFallbackLang).toHaveBeenLastCalledWith('fr');
     expect(r.use).toHaveBeenLastCalledWith('hu');
     expect(first.readOnlyMode).toBe(true);
     expect(replacement.readOnlyMode).toBe(true);
@@ -101,8 +101,10 @@ describe('WrapperConfigCoordinator', () => {
     r.coordinator.apply(r.context());
 
     expect(r.globals.languageMapPathPrefix).toBe('/maps/');
-    expect(r.reloadLang).toHaveBeenCalledTimes(2);
-    expect(r.setTranslation).toHaveBeenCalledWith('en', { Generic: { ExpandAll: 'Expand' } });
-    expect(r.setTranslation).toHaveBeenCalledWith('hu', { Generic: { ExpandAll: 'Expand' } });
+    expect(r.reloadLang).toHaveBeenCalledWith('en');
+    expect(r.reloadLang).toHaveBeenCalledWith('hu');
+    // `reloadLang` stores what it fetches and announces it. A second write of the same
+    // map would announce again, so the coordinator does not make one.
+    expect(r.setTranslation).not.toHaveBeenCalled();
   });
 });

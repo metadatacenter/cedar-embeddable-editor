@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The translation boundary moves to `@ngx-translate/core` 18, the line that supports Angular 22, and
+  `@ngx-translate/http-loader` is gone: CEE's own loader makes the single request that package
+  existed to make. Nothing changes for an embedder, and `defaultLanguage` and `fallbackLanguage`
+  configure the editor exactly as before.
+
+- A language map refetched after the host moves `languageMapPathPrefix` is announced once rather
+  than twice, so a widget listening for the change re-reads its labels once. Version 18 stores and
+  announces what a reload fetches, which CEE used to do itself as well.
+
 ## [2.0.6] - 2026-09-04
 
 This release aligns CEE's build-time model dependency with the public
