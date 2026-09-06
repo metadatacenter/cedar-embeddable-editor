@@ -1153,6 +1153,18 @@ test.describe('config presets', () => {
     await expect(page).toHaveScreenshot('preset-readonly.png', { fullPage: true });
   });
 
+  /**
+   * The screenshot beside this pins the whole read-only page, which makes it the thing that
+   * moves when any pixel does. What a numeric field calls its type is worth stating in words
+   * as well, because that is a decision rather than a rendering.
+   */
+  test('readonly: a numeric field names no XSD type', async ({ page }) => {
+    await open(page, '01-input-types', 'readonly');
+
+    await expect(page.locator('app-cedar-spec-box').filter({ hasText: 'integer' })).toHaveCount(1);
+    await expect(page.getByText('xsd:'), "no reader should meet the template's type vocabulary").toHaveCount(0);
+  });
+
   test('readonly: choice widgets', async ({ page }) => {
     await open(page, '02-choices', 'readonly');
     await expect(page).toHaveScreenshot('preset-readonly-choices.png', { fullPage: true });

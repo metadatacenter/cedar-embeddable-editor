@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   than twice, so a widget listening for the change re-reads its labels once. Version 18 stores and
   announces what a reload fetches, which CEE used to do itself as well.
 
+- A numeric field's specification reads `integer` or `number` where it used to print the template's
+  XSD type. `xsd:decimal` is the template's vocabulary rather than a reader's, and the decimal
+  places, minimum and maximum stated beside it already say what constrains the value.
+
 ### Fixed
 
 - The fractional second of a temporal field takes digits and nothing else. A letter typed there

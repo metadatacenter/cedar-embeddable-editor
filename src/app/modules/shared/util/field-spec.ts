@@ -1,6 +1,7 @@
 import { FieldComponent } from '../models/component/field-component.model';
 import { ChoiceOption } from '../models/info/choice-option.model';
 import { InputType } from '../models/input-type.model';
+import { Xsd } from '../models/xsd.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { isAuthorityTerm } from '../models/authority/authority-term.guard';
 import {
@@ -41,7 +42,8 @@ export const SpecFactKey = {
   maxValue: 'Spec.MaxValue',
   minLength: 'Spec.MinLength',
   minValue: 'Spec.MinValue',
-  numberType: 'Spec.NumberType',
+  numberTypeInteger: 'Spec.NumberTypeInteger',
+  numberTypeNumber: 'Spec.NumberTypeNumber',
   pattern: 'Spec.Pattern',
   notationYear: 'Spec.Notation.year',
   notationMonth: 'Spec.Notation.month',
@@ -124,13 +126,21 @@ function textFacts(field: FieldComponent): SpecFact[] {
   return facts;
 }
 
+/** The XSD types that admit no fractional part, whatever decimal places a field declares. */
+const WHOLE_NUMBER_TYPES: ReadonlySet<string> = new Set([Xsd.int, Xsd.long, Xsd.byte, Xsd.short]);
+
 function numericFacts(field: FieldComponent): SpecFact[] {
   const facts: SpecFact[] = [];
   // The unit is not among these. It reads last on the line, whatever else the field says, so it is
   // stated separately by `specUnitFactsOf` and appended after everything — see that function.
   const { numberType, minValue, maxValue, decimalPlace } = field.numberInfo;
   if (numberType !== null) {
-    facts.push(fact(SpecFactKey.numberType, { numberType }));
+    // `xsd:decimal` is the template's vocabulary, not a reader's, and the rest of the line already
+    // carries what constrains the value: the places, the minimum, the maximum. Two words rather than
+    // one, and separate keys rather than an interpolated name, because whole and fractional is the
+    // one distinction the rest of the line does not restate — an integer field states no decimal
+    // places, and neither does a decimal declaring none.
+    facts.push(fact(WHOLE_NUMBER_TYPES.has(numberType) ? SpecFactKey.numberTypeInteger : SpecFactKey.numberTypeNumber));
   }
   if (minValue !== null) {
     facts.push(fact(SpecFactKey.minValue, { minValue }));

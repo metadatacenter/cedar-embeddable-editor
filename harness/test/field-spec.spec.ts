@@ -100,7 +100,27 @@ describe('what a numeric field states', () => {
     field.numberInfo.minValue = 1;
     field.numberInfo.maxValue = 40;
 
-    expect(keysOf(field)).toStrictEqual([SpecFactKey.numberType, SpecFactKey.minValue, SpecFactKey.maxValue]);
+    expect(keysOf(field)).toStrictEqual([
+      SpecFactKey.numberTypeInteger,
+      SpecFactKey.minValue,
+      SpecFactKey.maxValue,
+    ]);
+  });
+
+  it('calls a fractional type a number and a whole one an integer, naming no XSD type', () => {
+    const typeKey = (numberType: string): string => {
+      const field = new SingleFieldComponent();
+      field.basicInfo.inputType = InputType.numeric;
+      field.numberInfo.numberType = numberType;
+      return keysOf(field)[0];
+    };
+
+    expect(['xsd:int', 'xsd:long', 'xsd:byte', 'xsd:short'].map(typeKey)).toStrictEqual(
+      Array(4).fill(SpecFactKey.numberTypeInteger),
+    );
+    expect(['xsd:decimal', 'xsd:float', 'xsd:double'].map(typeKey)).toStrictEqual(
+      Array(3).fill(SpecFactKey.numberTypeNumber),
+    );
   });
 
   it('keeps the unit out of that list, to be stated last on the line', () => {
