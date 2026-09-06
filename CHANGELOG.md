@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.7] - 2026-09-06
+
+This release builds against the public `cedar-model-typescript-library@1.0.6` package, the same
+model 2.0.6 embedded. It moves the translation boundary to `@ngx-translate/core` 18, the line that
+supports Angular 22, says `integer` or `number` where a numeric field's specification printed an
+XSD type, and makes the typed parts of a temporal field accept digits and nothing else.
+
 ### Changed
 
 - The translation boundary moves to `@ngx-translate/core` 18, the line that supports Angular 22, and
