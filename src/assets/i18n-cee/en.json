@@ -64,14 +64,14 @@
       "FindNoMatch": "No matching templates found"
     },
     "JsonLD": {
-      "Instance": "JSON-LD - Instance"
+      "Instance": "Instance - JSON-LD"
     },
-    "JsonSchemaTemplate": "JSON Schema - Template",
+    "JsonSchemaTemplate": "Template - JSON Schema",
     "Yaml": {
-      "Instance": "YAML - Instance",
-      "InstanceCompact": "Compact YAML - Instance",
-      "Template": "YAML - Template",
-      "TemplateCompact": "Compact YAML - Template"
+      "Instance": "Instance - YAML",
+      "InstanceCompact": "Instance - Compact YAML",
+      "Template": "Template - YAML",
+      "TemplateCompact": "Template - Compact YAML"
     },
     "DataQualityReport": "Data Quality Report"
   },
