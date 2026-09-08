@@ -17,6 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Compact YAML downloads retain the template's root ID but omit the IDs of nested fields and
   elements. Full YAML downloads continue to carry the complete identity tree.
 
+## [2.0.8] - 2026-09-08
+
+This release builds against the public `cedar-model-typescript-library@1.0.7` package, which
+confines an artifact's identity in compact YAML to the document root.
+
+### Changed
+
+- Compact YAML downloads carry the root artifact's identifier alone. The identifiers of nested
+  fields and elements belong to the full YAML form, which continues to carry the complete identity
+  tree.
+
 ## [2.0.7] - 2026-09-06
 
 This release builds against the public `cedar-model-typescript-library@1.0.6` package, the same
