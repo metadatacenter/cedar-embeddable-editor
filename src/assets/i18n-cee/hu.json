@@ -64,14 +64,14 @@
       "FindNoMatch": "Nincs egyező sablon"
     },
     "JsonLD": {
-      "Instance": "JSON-LD - Példány"
+      "Instance": "Példány - JSON-LD"
     },
-    "JsonSchemaTemplate": "JSON Séma - Sablon",
+    "JsonSchemaTemplate": "Sablon - JSON Séma",
     "Yaml": {
-      "Instance": "YAML - Példány",
-      "InstanceCompact": "Tömör YAML - Példány",
-      "Template": "YAML - Sablon",
-      "TemplateCompact": "Tömör YAML - Sablon"
+      "Instance": "Példány - YAML",
+      "InstanceCompact": "Példány - Tömör YAML",
+      "Template": "Sablon - YAML",
+      "TemplateCompact": "Sablon - Tömör YAML"
     },
     "DataQualityReport": "Adatminőségi riport"
   },

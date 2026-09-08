@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The download menu names each entry by the artifact it produces, then the serialization:
+  `Template - YAML`, `Template - Compact YAML`, `Template - JSON Schema`, `Instance - YAML`,
+  `Instance - Compact YAML`, `Instance - JSON-LD`. It lists the three template downloads before the
+  three instance downloads, with the data quality report last.
+
 - Compact YAML downloads retain the template's root ID but omit the IDs of nested fields and
   elements. Full YAML downloads continue to carry the complete identity tree.
 

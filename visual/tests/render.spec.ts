@@ -2684,15 +2684,15 @@ test('the download menu exposes only its supported artifact views', async ({ pag
   expect(await items.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-download')))).toEqual([
     'templateYaml',
     'templateYamlCompact',
+    'templateSource',
     'instanceYaml',
     'instanceYamlCompact',
-    'templateSource',
     'instance',
     'dataQuality',
   ]);
-  await expect(page.getByText('JSON Schema - Template', { exact: true })).toBeVisible();
-  await expect(page.getByText('Compact YAML - Instance', { exact: true })).toBeVisible();
-  await expect(page.getByText('Compact YAML - Template', { exact: true })).toBeVisible();
+  await expect(page.getByText('Template - JSON Schema', { exact: true })).toBeVisible();
+  await expect(page.getByText('Instance - Compact YAML', { exact: true })).toBeVisible();
+  await expect(page.getByText('Template - Compact YAML', { exact: true })).toBeVisible();
   await expect(page.getByText('JSON-LD - Instance - Core', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Template Rendering Data', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Multi-Instance Information', { exact: true })).toHaveCount(0);
@@ -2708,9 +2708,9 @@ test('a read-only template-only download menu does not offer an instance file', 
     'templateYamlCompact',
     'templateSource',
   ]);
-  await expect(page.getByText('YAML - Instance', { exact: true })).toHaveCount(0);
-  await expect(page.getByText('Compact YAML - Instance', { exact: true })).toHaveCount(0);
-  await expect(page.getByText('JSON-LD - Instance', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Instance - YAML', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Instance - Compact YAML', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Instance - JSON-LD', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Data Quality Report', { exact: true })).toHaveCount(0);
 });
 

@@ -107,15 +107,16 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
 ];
 
 /**
- * What the download menu offers, in reading order. The YAML views come first, full before compact;
- * JSON Schema follows them immediately before the JSON-LD instance, and the report comes last.
+ * What the download menu offers, in reading order. The template views come first and the instance
+ * views follow, each group running YAML, compact YAML, then the JSON serialization. The report
+ * comes last.
  */
 const DOWNLOAD_MENU_ORDER: readonly DownloadItemId[] = [
   'templateYaml',
   'templateYamlCompact',
+  'templateSource',
   'instanceYaml',
   'instanceYamlCompact',
-  'templateSource',
   'instance',
   'dataQuality',
 ];
