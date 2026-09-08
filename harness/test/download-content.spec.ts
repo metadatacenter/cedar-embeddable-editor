@@ -36,9 +36,9 @@ describe('the download menu', () => {
     expect(DOWNLOAD_MENU_ITEMS.map((item) => item.id)).toEqual([
       'templateYaml',
       'templateYamlCompact',
+      'templateSource',
       'instanceYaml',
       'instanceYamlCompact',
-      'templateSource',
       'instance',
       'dataQuality',
     ]);
