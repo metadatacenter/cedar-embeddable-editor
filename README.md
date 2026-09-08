@@ -2,31 +2,112 @@
 
 [![Test](https://github.com/metadatacenter/cedar-embeddable-editor/actions/workflows/test.yml/badge.svg?branch=develop)](https://github.com/metadatacenter/cedar-embeddable-editor/actions/workflows/test.yml)
 
-The CEDAR Embeddable Editor (CEE) is a reusable Web Component for adding
-structured, standards-based metadata authoring to web applications.
+The CEDAR Embeddable Editor (CEE) puts a metadata entry form inside a web
+application without anyone hand-writing that form. The host page supplies a
+template, and the CEE renders the fields the template calls for, checks what the
+user enters against the template's constraints, and returns the finished record
+as structured metadata in JSON-LD or YAML.
 
-The CEE dynamically renders data-entry forms from machine-actionable CEDAR
-templates and produces semantically rich metadata as JSON-LD. Templates define
-the fields, constraints, controlled vocabularies, and repeatable structures in a
-form, allowing the metadata-authoring experience to evolve independently of the
-application that embeds it. The CEE also supports ontology-backed value selection
-and persistent identifiers from external authorities such as ORCID and ROR.
+A template describes the metadata to collect, not the interface that collects it.
+It names the fields, their types and cardinalities, which of them repeat, and
+which draw their values from a controlled vocabulary or from an identifier
+authority such as ORCID or ROR. A platform can therefore adopt or revise a
+metadata standard by editing a template rather than by rewriting a form. The
+record that comes back preserves those bindings, since a controlled term carries
+its IRI beside its label and an authority field carries its persistent
+identifier.
 
-For the design rationale, architecture, and deployments in research platforms,
-see [*Author Once, Publish Everywhere: Portable Metadata Authoring with the CEDAR
-Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002), published in the
-*Data Science Journal* (2026).
+Templates follow the model defined by CEDAR, the metadata infrastructure
+maintained by the Stanford Division of Computational Medicine. Rendering a form
+needs neither a CEDAR account nor a running CEDAR installation. The CEE ships as
+a single JavaScript file defining a standard Web Component, so it embeds in a
+plain HTML page as readily as in an Angular, React, or Ember application.
 
-For embedding and using the CEE in a web application, see the
-[CEDAR Embeddable Editor documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/).
+## Documentation
 
-This README covers developing, building, and testing the component.
+The [CEDAR Embeddable Editor documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/)
+covers embedding the component in a page or a framework, configuring it,
+controlled terms and external identifiers, validation, appearance, and security.
+
+[Your First Embedded Editor](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/first-editor/)
+assembles a working page from the bundle, one element, and a template.
+[Templates and Metadata](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/templates-and-metadata/)
+gives the input properties, the output properties, and the change event a host
+reads.
+
+For the design rationale, the architecture, and deployments in research
+platforms, see [*Author Once, Publish Everywhere: Portable Metadata Authoring
+with the CEDAR Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002),
+published in the *Data Science Journal* (2026).
+
+## Installing
+
+Releases are published to npmjs.org as
+[`cedar-embeddable-editor`](https://www.npmjs.com/package/cedar-embeddable-editor)
+under the `latest` tag, the public stable channel, so an embedder installs the
+current release by name:
+
+```shell
+npm install cedar-embeddable-editor
+```
+
+To see which release that is, without depending on a version copied into a
+document that can go stale:
+
+```shell
+npm view cedar-embeddable-editor version
+```
+
+The package holds `cedar-embeddable-editor.js`, the self-contained bundle, and
+`cedar-embeddable-editor.d.ts`, the declarations for the element and its public
+API. Copy the bundle to the application's static assets and load it with a
+regular `<script>` tag. The bundle loads as a classic script, not as an ES
+module.
+
+## Embedding
+
+A host page needs the bundle, one `<cedar-embeddable-editor>` element, and a
+template:
+
+```html
+<cedar-embeddable-editor></cedar-embeddable-editor>
+
+<script src="/assets/cedar-embeddable-editor.js"></script>
+<script type="module">
+  const template = await (await fetch('/assets/dataset-template.json')).json();
+
+  await customElements.whenDefined('cedar-embeddable-editor');
+  const cee = document.querySelector('cedar-embeddable-editor');
+
+  cee.config = {
+    terminologyBaseUrl: 'https://terminology.metadatacenter.org/',
+    bridgeBaseUrl: 'https://bridge.metadatacenter.org/',
+  };
+
+  cee.templateObject = template;
+</script>
+```
+
+Templates, instances, and configuration are JavaScript objects, so a host assigns
+them as properties rather than as attributes. Waiting for
+`customElements.whenDefined()` guarantees the element exists. Set `config` before
+the form is built, and assign `templateObject` last, which renders it. The two
+service URLs are needed only for controlled-term and external-authority lookups.
+
+Read the record back from `currentMetadata` as CEDAR JSON-LD, or from
+`currentMetadataYaml` as YAML. The CEE neither submits nor stores it. The host
+decides when and where a record is saved.
+
+[Your First Embedded Editor](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/first-editor/)
+takes the same page apart step by step, and
+[Embedding in a Framework](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/frameworks/)
+covers Angular, React, and Ember.
 
 ## Building the Web Component
 
-The CEE is shipped as one JavaScript file that can be embedded in an application or
-HTML page. Do not concatenate named Angular output files manually: their names,
-locations, and module structure change when Angular changes builders.
+One command produces the single file an embedder loads. Do not concatenate named
+Angular output files manually: their names, locations, and module structure change
+when Angular changes builders.
 
 Build the production application, then run the browser suite against the
 single-file bundle it produced:
@@ -157,33 +238,12 @@ The unit tests run in Node and do not use `TestBed` or Angular's JIT compiler.
 Browser behavior belongs in the Playwright suite under `visual/`, which tests the
 shipped bundle rather than the sources.
 
-## Running
+## Running the Standalone Application
 
-### As an `npm` package
+The CEE also runs on its own, outside any host page, which shows a change to the
+sources immediately in a browser.
 
-Releases are published to npmjs.org as
-[`cedar-embeddable-editor`](https://www.npmjs.com/package/cedar-embeddable-editor)
-under the `latest` tag, so an embedder installs the current one by name:
-
-```shell
-npm install cedar-embeddable-editor
-```
-
-The `latest` tag is the public stable channel. To see the current release without
-depending on a version copied into this README:
-
-```shell
-npm view cedar-embeddable-editor version
-```
-
-### As a standalone application
-
-You can run the CEE as a standalone application. This is helpful for developers to
-see changes to the code reflected immediately in the application.
-
-Proceed with the following steps:
-
-#### Clone the repository
+### Clone the repository
 
 Clone this repository onto a local directory of your choice:
 
@@ -191,7 +251,7 @@ Clone this repository onto a local directory of your choice:
 git clone https://github.com/metadatacenter/cedar-embeddable-editor.git
 ```
 
-#### Edit configuration
+### Edit configuration
 
 Open the standalone application's configuration file, `src/app/app.component.dev.ts`.
 This minimal configuration enables lookups through the public CEDAR services:
@@ -209,7 +269,7 @@ For a different CEDAR deployment, replace both URLs with its service URLs. See
 the [configuration documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/configuration/)
 for all available settings.
 
-#### Build the project and start the server
+### Build the project and start the server
 
 1. Navigate to the CEE directory:
 
