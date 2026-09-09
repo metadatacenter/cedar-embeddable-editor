@@ -1,0 +1,9 @@
+<app-cedar-font-registrar></app-cedar-font-registrar>
+<div class="cedar-embeddable-field-root" (change)="suppressNativeChange($event)">
+  @if (renderedComponent) {
+    <app-cedar-field-widget
+      [componentToRender]="renderedComponent"
+      [handlerContext]="handlerContext"
+    ></app-cedar-field-widget>
+  }
+</div>

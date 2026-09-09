@@ -12,10 +12,14 @@ describe('defineCustomElementOnce', () => {
       },
     } as Pick<CustomElementRegistry, 'define' | 'get'>;
 
-    defineCustomElementOnce(() => {
-      createCount++;
-      return class extends HTMLElement {};
-    }, registry);
+    defineCustomElementOnce(
+      CEDAR_CUSTOM_ELEMENT_NAME,
+      () => {
+        createCount++;
+        return class extends HTMLElement {};
+      },
+      registry,
+    );
 
     expect(createCount).toBe(0);
     expect(defineCount).toBe(0);
@@ -33,7 +37,7 @@ describe('defineCustomElementOnce', () => {
       },
     } as Pick<CustomElementRegistry, 'define' | 'get'>;
 
-    defineCustomElementOnce(() => cedarElement, registry);
+    defineCustomElementOnce(CEDAR_CUSTOM_ELEMENT_NAME, () => cedarElement, registry);
 
     expect(definedName).toBe(CEDAR_CUSTOM_ELEMENT_NAME);
     expect(definedElement).toBe(cedarElement);

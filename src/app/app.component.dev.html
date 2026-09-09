@@ -25,6 +25,30 @@
   ></app-cedar-embeddable-metadata-editor-wrapper>
 </main>
 
+<section class="field-demo">
+  <h2>&lt;cedar-embeddable-field&gt;</h2>
+  <p>
+    One field and nothing around it, rendered by the same widget the form above uses. A host that has a field rather
+    than a template — a designer collecting a default value, say — embeds this instead of the editor.
+  </p>
+  <label class="field-demo-picker">
+    Field
+    <select [value]="selectedFieldIndex" (change)="selectField($event)">
+      @for (candidate of demoFields; track candidate.label; let index = $index) {
+        <option [value]="index">{{ candidate.label }}</option>
+      }
+    </select>
+  </label>
+  <app-cedar-embeddable-field-wrapper
+    [config]="ceeConfig"
+    [fieldObject]="selectedField"
+    (valueChange)="onFieldValue($event)"
+  ></app-cedar-embeddable-field-wrapper>
+  <p class="field-demo-value">
+    <code>valueChange</code>: {{ fieldValueJson }} <span>valid: {{ fieldValueValid }}</span>
+  </p>
+</section>
+
 <footer class="app-footer">
   <a
     href="https://computationalmedicine.stanford.edu"

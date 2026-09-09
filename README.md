@@ -103,6 +103,70 @@ takes the same page apart step by step, and
 [Embedding in a Framework](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/frameworks/)
 covers Angular, React, and Ember.
 
+## Embedding a Single Field
+
+The bundle registers a second element. `<cedar-embeddable-field>` renders one field's
+control — the same control the editor renders for that field, from the same component
+— and nothing of the form around it: no label, no description, no card. A host that
+holds a field artifact rather than a template puts this where the control belongs and
+draws the rest itself.
+
+Designing a template is what this is for. An author giving a field a default value
+needs somewhere to type it, and the box that collects one has to be the control the
+field will actually have: a date picker for a date, a term lookup for a controlled
+term, a bounded number box for a number.
+
+```html
+<cedar-embeddable-field></cedar-embeddable-field>
+
+<script src="/assets/cedar-embeddable-editor.js"></script>
+<script type="module">
+  const artifact = await (await fetch('/assets/organism-field.json')).json();
+
+  await customElements.whenDefined('cedar-embeddable-field');
+  const field = document.querySelector('cedar-embeddable-field');
+
+  field.config = { terminologyBaseUrl: 'https://terminology.metadatacenter.org/' };
+  field.addEventListener('valueChange', (event) => console.log(event.detail.value));
+
+  field.fieldObject = artifact;
+</script>
+```
+
+The value comes back as a discriminated union rather than as text, because the
+distinctions are real ones a host has to make again the moment it writes the value
+into an artifact: a number is a number, a term is an IRI with a label, and a checkbox
+group holds a set.
+
+```typescript
+import type { CedarEmbeddableFieldChangeDetail, CedarEmbeddableFieldValue } from 'cedar-embeddable-editor';
+
+declare function recordDefault(value: CedarEmbeddableFieldValue): void;
+
+const field = document.querySelector('cedar-embeddable-field');
+
+field?.addEventListener('valueChange', (event: CustomEvent<CedarEmbeddableFieldChangeDetail>) => {
+  const { value, valid } = event.detail;
+  if (valid) {
+    recordDefault(value);
+  }
+});
+```
+
+`fieldObject` may be reassigned as often as a host likes, and each assignment builds
+the control afresh — the field being designed changes type under its author's hand.
+`config` takes one assignment, as the editor's does. A value of a kind the field
+cannot hold is reported through `eventHandler` and ignored rather than coerced.
+
+Requiredness and cardinality belong to a field's deployment inside a template, and
+this element deploys nothing, so the value it acquires is single and is allowed to be
+absent. That is what makes it usable for a default, which is optional by definition. A
+field declaring its own default starts out holding it.
+
+`readOnlyMode` is the presentation half of the same element: with a value it shows the
+value, and with none it replaces the control with a statement of what the field will
+accept, which is what the editor shows for a template nobody has filled in.
+
 ## Building the Web Component
 
 One command produces the single file an embedder loads. Do not concatenate named

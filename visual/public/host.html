@@ -102,6 +102,44 @@
             second.config = configFor('second');
             first.templateObject = structuredClone(template);
             second.templateObject = structuredClone(template);
+          } else if (hostRoute === 'field') {
+            /**
+             * `?host=field` drives the `cedar-embeddable-field` element, which renders one field
+             * and no form around it.
+             *
+             * The field is sliced out of a template fixture rather than kept as a
+             * fixture of its own. A template's `properties` entry *is* a field
+             * artifact — an array-valued one wraps it in `items` — so this is a real
+             * artifact rather than one written to be convenient, and it stays in step
+             * with the fixtures the editor is screenshotted against.
+             */
+            await customElements.whenDefined('cedar-embeddable-field');
+            const fixture = params.get('t') || '01-input-types';
+            const property = params.get('p') || '_text';
+            const template = await (await fetch(`./fixtures/${fixture}.json`)).json();
+            const slot = (template.properties || {})[property];
+            if (!slot) {
+              window.__ceeError = `no property ${property} in ${fixture}`;
+              return;
+            }
+
+            const frame = document.querySelector('#frame');
+            frame.replaceChildren();
+            const field = document.createElement('cedar-embeddable-field');
+            field.id = 'field-under-test';
+            window.__ceeFieldChanges = [];
+            field.addEventListener('valueChange', (event) => window.__ceeFieldChanges.push(event.detail ?? null));
+            frame.appendChild(field);
+
+            field.config = {
+              defaultLanguage: 'en',
+              fallbackLanguage: 'en',
+              readOnlyMode: params.get('c') === 'readonly',
+              // Unreachable on purpose, exactly as the editor's presets are.
+              terminologyBaseUrl: 'http://127.0.0.1:9/unused/',
+              bridgeBaseUrl: 'http://127.0.0.1:9/',
+            };
+            field.fieldObject = slot.items || slot;
           } else if (hostRoute === 'lang') {
             /**
              * `?host=lang` drives translation through `languageMapPathPrefix`.

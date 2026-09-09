@@ -5,11 +5,9 @@ import { MultiElementComponent } from '../../models/element/multi-element-compon
 import { FieldComponent } from '../../models/component/field-component.model';
 import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
 import { HandlerContext } from '../../util/handler-context';
-import { InputType } from '../../models/input-type.model';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { ComponentRenderDecision, decideComponentRender } from './component-render-decision';
 import { specHeaderFactsOf } from '../../util/field-spec';
-import { InstanceValueNode } from '../../util/instance-value-node';
 
 @Component({
   selector: 'app-cedar-component-renderer',
@@ -80,30 +78,6 @@ export class CedarComponentRendererComponent implements OnChanges {
       nonIterableComponent instanceof MultiFieldComponent &&
       specHeaderFactsOf(nonIterableComponent).length === 0
     );
-  }
-
-  /**
-   * Whether to state the specification in place of the control.
-   *
-   * Reading a template, or an unfilled field in a read-only instance, there is nothing to hold, so
-   * the box says what a value must be instead. It has to replace the control rather than annotate
-   * it: a native placeholder is one indivisible string, so it cannot italicize just `min`, `max`,
-   * `unit`, and the other specification keywords. A populated instance keeps its value widget.
-   *
-   * Three widgets keep theirs even when empty: a radio or checkbox group is its own set of options,
-   * which is the form a reader wants to see, and an attribute-value field is a container rather than
-   * one value that can be summarized in this box.
-   */
-  showSpecInsteadOfControl(nonIterableComponent: FieldComponent): boolean {
-    const statesUnfilledField =
-      this.handlerContext.statesSpecification ||
-      (this.handlerContext.readOnlyMode &&
-        !InstanceValueNode.holdsValue(this.handlerContext.getDataObjectNodeByPath(nonIterableComponent.path)));
-    if (!statesUnfilledField) {
-      return false;
-    }
-    const inputType = nonIterableComponent.basicInfo.inputType;
-    return inputType !== InputType.radio && inputType !== InputType.checkbox && inputType !== InputType.attributeValue;
   }
 
   shouldRenderContentOfNonIterable(nonIterableComponent: FieldComponent): boolean {

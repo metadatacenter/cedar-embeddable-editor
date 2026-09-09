@@ -8,6 +8,7 @@ declare global {
   interface Window {
     __ceeChanges?: import('../../src/app/cee-public-api').CeeChangeDetail[];
     __ceeError?: string;
+    __ceeFieldChanges?: import('../../src/app/cee-public-api').CedarEmbeddableFieldChangeDetail[];
     __ceeEvents: CeeHostEvent[];
     __ceeFirstBootstrap?: unknown;
     __ceeFirstConstructor?: CustomElementConstructor;

@@ -12,7 +12,12 @@ import * as fallbackMapHU from '../assets/i18n-cee/hu.json';
 import { MessageHandlerService } from './modules/shared/service/message-handler.service';
 import { FallbackTranslateLoaderFactory } from './modules/shared/util/fallback-translate-loader-factory';
 import { GlobalSettingsContextService } from './modules/shared/service/global-settings-context.service';
-import { defineCustomElementOnce } from './custom-element';
+import {
+  CEDAR_CUSTOM_ELEMENT_NAME,
+  CEDAR_EMBEDDABLE_FIELD_CUSTOM_ELEMENT_NAME,
+  defineCustomElementOnce,
+} from './custom-element';
+import { CedarEmbeddableFieldWrapperComponent } from './modules/shared/components/cedar-embeddable-field-wrapper/cedar-embeddable-field-wrapper.component';
 
 @NgModule({
   declarations: [AppDevComponent],
@@ -43,8 +48,13 @@ export class AppModuleDev implements DoBootstrap {
   constructor(private injector: Injector) {}
 
   ngDoBootstrap(): void {
-    defineCustomElementOnce(() =>
+    defineCustomElementOnce(CEDAR_CUSTOM_ELEMENT_NAME, () =>
       createCustomElement(CedarEmbeddableMetadataEditorWrapperComponent, {
+        injector: this.injector,
+      }),
+    );
+    defineCustomElementOnce(CEDAR_EMBEDDABLE_FIELD_CUSTOM_ELEMENT_NAME, () =>
+      createCustomElement(CedarEmbeddableFieldWrapperComponent, {
         injector: this.injector,
       }),
     );

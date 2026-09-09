@@ -64,120 +64,15 @@
                 [fieldToDescribe]="nonIterableComponent"
                 variant="description"
               ></app-cedar-field-spec>
-              @if (showSpecInsteadOfControl(nonIterableComponent)) {
-                <app-cedar-spec-box [fieldToDescribe]="nonIterableComponent"></app-cedar-spec-box>
-              } @else {
-                @switch (decision.renderer) {
-                  @case ('numeric') {
-                    <app-cedar-input-numeric
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-numeric>
-                  }
-                  @case ('text') {
-                    <app-cedar-input-text
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-text>
-                  }
-                  @case ('controlled') {
-                    <app-cedar-input-controlled
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-controlled>
-                  }
-                  @case ('email') {
-                    <app-cedar-input-email
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-email>
-                  }
-                  @case ('checkbox') {
-                    <app-cedar-input-checkbox
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-checkbox>
-                  }
-                  @case ('select') {
-                    <app-cedar-input-select
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-select>
-                  }
-                  @case ('attribute-value') {
-                    <app-cedar-input-attribute-value
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-attribute-value>
-                  }
-                  @case ('multiple-choice') {
-                    <app-cedar-input-multiple-choice
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-multiple-choice>
-                  }
-                  @case ('datetime') {
-                    <app-cedar-input-datetime
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-datetime>
-                  }
-                  @case ('link') {
-                    <app-cedar-input-link
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-link>
-                  }
-                  @case ('orcid') {
-                    <app-cedar-input-orcid
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-orcid>
-                  }
-                  @case ('ror') {
-                    <app-cedar-input-ror
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-ror>
-                  }
-                  @case ('pfas') {
-                    <app-cedar-input-pfas
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-pfas>
-                  }
-                  @case ('pmid') {
-                    <app-cedar-input-pmid
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-pmid>
-                  }
-                  @case ('rrid') {
-                    <app-cedar-input-rrid
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-rrid>
-                  }
-                  @case ('nih-grant') {
-                    <app-cedar-input-nih-grant
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-nih-grant>
-                  }
-                  @case ('doi') {
-                    <app-cedar-input-doi
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-doi>
-                  }
-                  @case ('phone') {
-                    <app-cedar-input-phone
-                      [componentToRender]="nonIterableComponent"
-                      [handlerContext]="handlerContext"
-                    ></app-cedar-input-phone>
-                  }
-                }
-              }
+              <!--
+              The control itself, which is the one thing this renderer does not decide. The same
+              component serves the `cedar-embeddable-field` element, so a form and a lone field acquire and
+              present a value through one implementation.
+            -->
+              <app-cedar-field-widget
+                [componentToRender]="nonIterableComponent"
+                [handlerContext]="handlerContext"
+              ></app-cedar-field-widget>
             </div>
           }
         </div>
@@ -185,32 +80,10 @@
     }
     @case ('static') {
       @if (decision.component; as staticComponent) {
-        @switch (decision.renderer) {
-          @case ('section-break') {
-            <app-cedar-static-section-break
-              [componentToRender]="staticComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-static-section-break>
-          }
-          @case ('image') {
-            <app-cedar-static-image
-              [componentToRender]="staticComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-static-image>
-          }
-          @case ('youtube') {
-            <app-cedar-static-youtube
-              [componentToRender]="staticComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-static-youtube>
-          }
-          @case ('rich-text') {
-            <app-cedar-static-rich-text
-              [componentToRender]="staticComponent"
-              [handlerContext]="handlerContext"
-            ></app-cedar-static-rich-text>
-          }
-        }
+        <app-cedar-field-widget
+          [componentToRender]="staticComponent"
+          [handlerContext]="handlerContext"
+        ></app-cedar-field-widget>
       }
     }
   }

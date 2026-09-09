@@ -54,7 +54,7 @@ export const supportsMultiInstance = (kind: FieldKind): boolean => {
   return typeof db?.withMultiInstance === 'function';
 };
 
-const buildField = (spec: ChildSpec) => {
+export const buildField = (spec: ChildSpec) => {
   const { kind, name } = spec;
   let b = kind
     .make()

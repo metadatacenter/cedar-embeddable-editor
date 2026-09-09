@@ -83,6 +83,26 @@ const staticRendererByInputType = new Map<string, StaticRendererKind>(
   STATIC_RENDERER_ROUTES.map(({ inputType, renderer }) => [inputType, renderer]),
 );
 
+/**
+ * What a field widget renders, which is a narrower question than what a form does.
+ *
+ * A widget draws one control or one static block. Elements, templates and placeholders
+ * are the surrounding form's business, and an input type with no route is reported by
+ * whoever supplied it — the renderer walking a template, or the `cedar-embeddable-field`
+ * element validating the one artifact it was handed. Neither is a widget's to answer,
+ * so both arrive here as `none` and draw nothing.
+ */
+export type FieldWidgetDecision =
+  | { kind: 'field'; component: FieldComponent; renderer: FieldRendererKind }
+  | { kind: 'static'; component: StaticFieldComponent; renderer: StaticRendererKind }
+  | { kind: 'none' };
+
+/** The widget for this component, or `none` where a widget is not what it needs. */
+export function decideFieldWidget(component: CedarComponent): FieldWidgetDecision {
+  const decision = decideComponentRender(component);
+  return decision.kind === 'field' || decision.kind === 'static' ? decision : { kind: 'none' };
+}
+
 export type ComponentRenderDecision =
   | { kind: 'empty'; component: CedarComponent; reason: 'hidden' | 'placeholder' }
   | { kind: 'element'; component: ElementComponent; multiComponent: MultiElementComponent | null }
