@@ -15,8 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   out as a discriminated union rather than as text: a literal, a number, an ISO temporal
   literal, an IRI with a label, a list of literals, or an attribute-value field's named
   slots. `readOnlyMode` presents rather than acquires, replacing an empty control with a
-  statement of what the field will accept. The bundle grows by 15,474 gzip bytes, to 656,506
-  of the 840,000 the size gate allows.
+  statement of what the field will accept. `fieldObject` takes a field artifact rather than a
+  field model, because the element and its host hold separate copies of the model library and
+  CEE reads an artifact through class identity. The bundle grows by 15,474 gzip bytes, to
+  656,506 of the 840,000 the size gate allows.
 
 ### Changed
 

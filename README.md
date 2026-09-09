@@ -133,6 +133,20 @@ term, a bounded number box for a number.
 </script>
 ```
 
+A field artifact, not a field model. A host holding a `TemplateField` from the CEDAR
+Model TypeScript Library — a designer that just built one, say — writes it out and
+assigns the result rather than assigning the object.
+
+Assigning the object costs nothing and looks as though it should work, which is why
+this is worth stating. The element's copy of the model library sits inside the CEE
+bundle and the host's sits inside its own, so the two hold different classes, and CEE
+decides what a field is by identity: `field.cedarFieldType === CedarFieldType.TEXT`,
+and `instanceof` in three dozen other places. Every one of those comparisons is false
+for an instance built elsewhere, so the field renders as a default rather than
+failing. A serialization also survives the two packages pinning different versions of
+the model library, which shared objects would not. The editor's `templateObject`
+takes an artifact for the same reason.
+
 The value comes back as a discriminated union rather than as text, because the
 distinctions are real ones a host has to make again the moment it writes the value
 into an artifact: a number is a number, a term is an IRI with a label, and a checkbox

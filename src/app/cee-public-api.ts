@@ -321,6 +321,10 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
   /**
    * The template to render, as a parsed CEDAR artifact.
    *
+   * An artifact, not a model, for the reason given at `cedar-embeddable-field`'s
+   * `fieldObject`: the element and its host hold separate copies of the model library,
+   * and CEE reads a template through class identity.
+   *
    * Assignable more than once while no instance has been supplied: each one replaces the
    * form, building a fresh context, so nothing of the previous template survives. Once an
    * instance is loaded the template is fixed, and a further assignment is reported and
@@ -492,6 +496,19 @@ export interface CedarEmbeddableFieldElement extends HTMLElement {
 
   /**
    * The field to render, as a parsed CEDAR field artifact.
+   *
+   * An artifact, not a model. A host holding a `TemplateField` from the CEDAR Model
+   * TypeScript Library — a designer building one is the likely case — writes it out and
+   * assigns the result, rather than assigning the object.
+   *
+   * That is a constraint rather than a preference, and it is worth stating because the
+   * object would appear to work. Passing it costs nothing, but the element's copy of the
+   * model library is inside this bundle and the host's is inside its own, so the two hold
+   * different classes. CEE decides what a field is by identity — `field.cedarFieldType
+   * === CedarFieldType.TEXT`, and `instanceof` in three dozen other places — and every
+   * one of those comparisons is false for an instance built elsewhere. Nothing throws;
+   * the field falls through to a default rendering. A serialization also survives the two
+   * packages pinning different library versions, which class shapes do not.
    *
    * Assignable as often as a host likes, and each assignment builds the widget afresh.
    * Set-once protects answers somebody has been typing, and there are none here: the
