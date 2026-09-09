@@ -17,6 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Compact YAML downloads retain the template's root ID but omit the IDs of nested fields and
   elements. Full YAML downloads continue to carry the complete identity tree.
 
+## [2.0.9] - 2026-09-08
+
+This release carries the same shipped code as 2.0.8 against the same public
+`cedar-model-typescript-library@1.0.7` package. It exists because Angular embeds the root
+manifest in the browser bundle, so patching the development tooling changed the bundle's
+bytes.
+
+### Changed
+
+- The test runner and its coverage provider move to the release that closes an advisory
+  against them. Neither runs in a host page, and no shipped code changed.
+
 ## [2.0.8] - 2026-09-08
 
 This release builds against the public `cedar-model-typescript-library@1.0.7` package, which
