@@ -2,7 +2,7 @@
   "name": "cedar-embeddable-editor",
   "description": "A reusable Web Component for creating and editing CEDAR metadata instances.",
   "license": "BSD-2-Clause",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "engines": {
     "node": "^24.15.0"
   },
@@ -65,7 +65,7 @@
     "@eslint/js": "^9.39.5",
     "@types/lodash-es": "^4.17.11",
     "@types/node": "^24.9.2",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.11",
     "angular-eslint": "^22.1.0",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
@@ -75,6 +75,6 @@
     "prettier": "^3.1.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.66.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }
