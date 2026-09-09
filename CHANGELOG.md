@@ -40,6 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Compact YAML downloads retain the template's root ID but omit the IDs of nested fields and
   elements. Full YAML downloads continue to carry the complete identity tree.
 
+### Fixed
+
+- Reassigning `cedar-embeddable-field.fieldObject` recreates the control even when the field type
+  stays the same, so validators and other initialized settings follow the new artifact.
+- `cedar-embeddable-field` emits `valueChange` when validity changes even if the normalized value
+  does not, including numeric edits such as `1.5` to `1.50` and back.
+
 ## [2.0.9] - 2026-09-08
 
 This release carries the same shipped code as 2.0.8 against the same public

@@ -236,3 +236,43 @@ describe('an artifact the element cannot render', () => {
     expect(mounted.errors).toHaveBeenCalledWith(expect.stringContaining('page break'), null);
   });
 });
+
+describe('replacing a field and tracking validity', () => {
+  it('updates the live validators after replacing a field of the same type', async () => {
+    const mounted = await mount(textArtifact((builder) => builder.withMaxLength(3)));
+    mounted.element.fieldObject = textArtifact((builder) => builder.withMaxLength(10));
+    mounted.fixture.detectChanges();
+    await mounted.fixture.whenStable();
+    await type(mounted, 'abcdef');
+    const widget = mounted.fixture.debugElement.query(By.css('app-cedar-input-text')).componentInstance;
+    expect(mounted.element.currentValueValid).toBe(true);
+    expect(widget.inputValueControl.valid).toBe(true);
+    expect(widget.constraintMaxLength).toBe(10);
+  });
+
+  it('publishes a numeric validity change even when its normalized number is unchanged', async () => {
+    const field = artifactOf(
+      CedarBuilders.numericFieldBuilder()
+        .withTitle('Number')
+        .withDescription('Number')
+        .withSchemaName('Number')
+        .withDecimalPlaces(1)
+        .build(),
+    );
+    const mounted = await mount(field);
+    await type(mounted, '1.5');
+    expect(mounted.element.currentValueValid).toBe(true);
+    await type(mounted, '1.50');
+    expect(mounted.element.currentValueValid).toBe(false);
+    expect(mounted.changes.at(-1)).toEqual({ value: { kind: 'number', value: 1.5 }, valid: false });
+    await type(mounted, '1.5');
+    expect(mounted.element.currentValueValid).toBe(true);
+    expect(mounted.changes).toEqual([
+      { value: { kind: 'number', value: 1.5 }, valid: true },
+      { value: { kind: 'number', value: 1.5 }, valid: false },
+      { value: { kind: 'number', value: 1.5 }, valid: true },
+    ]);
+    await type(mounted, '1.5');
+    expect(mounted.changes).toHaveLength(3);
+  });
+});

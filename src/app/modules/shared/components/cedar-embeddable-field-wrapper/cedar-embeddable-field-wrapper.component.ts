@@ -131,7 +131,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
    * has to survive the field being replaced.
    */
   private assignedValue: CedarEmbeddableFieldValue | null = null;
-  private lastPublished: CedarEmbeddableFieldValue = NOTHING;
+  private lastPublished: CedarEmbeddableFieldChangeDetail = { value: NOTHING, valid: false };
   /** Raised while a host's own assignment is being written, so it is not echoed back. */
   private applyingAssignedValue = false;
 
@@ -299,7 +299,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
      * its own default is that default. Left at nothing, the first thing to touch the
      * instance would announce the default as though somebody had just chosen it.
      */
-    this.lastPublished = this.currentValue;
+    this.lastPublished = { value: this.currentValue, valid: this.currentValueValid };
     this.redraw();
     this.applyConfiguration();
     this.applyAssignedValue();
@@ -367,7 +367,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     } finally {
       this.applyingAssignedValue = false;
     }
-    this.lastPublished = this.currentValue;
+    this.lastPublished = { value: this.currentValue, valid: this.currentValueValid };
     this.redraw();
     this.scheduleWidgetSync();
   }
@@ -381,7 +381,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     void this.renderScheduler
       .schedule(() => {
         this.activeComponentRegistry.updateViewToModel(runtime.component, runtime.handlerContext);
-        this.lastPublished = this.currentValue;
+        this.lastPublished = { value: this.currentValue, valid: this.currentValueValid };
       })
       .then((rendered) => {
         if (rendered) {
@@ -395,10 +395,10 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Announce what the field now holds, when it holds something different.
+   * Announce a change to the value or whether it satisfies the field constraints.
    *
    * A host's own assignment is not announced back to it, and neither is a mutation
-   * that leaves the value where it was — focus, a paged occurrence, a keystroke that
+   * that leaves both value and validity where they were — focus, a paged occurrence, a keystroke that
    * replaces a character with itself.
    */
   private publishValue(): void {
@@ -406,11 +406,12 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
       return;
     }
     const value = this.currentValue;
-    if (sameFieldValue(value, this.lastPublished)) {
+    const valid = this.currentValueValid;
+    if (sameFieldValue(value, this.lastPublished.value) && valid === this.lastPublished.valid) {
       return;
     }
-    this.lastPublished = value;
-    const detail: CedarEmbeddableFieldChangeDetail = { value, valid: this.currentValueValid };
+    const detail: CedarEmbeddableFieldChangeDetail = { value, valid };
+    this.lastPublished = detail;
     this.host.nativeElement.dispatchEvent(
       new CustomEvent<CedarEmbeddableFieldChangeDetail>('valueChange', { detail, bubbles: true, composed: true }),
     );
