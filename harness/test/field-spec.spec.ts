@@ -376,6 +376,21 @@ describe('what a controlled-term field states', () => {
 });
 
 describe('a declared default', () => {
+  it.each([InputType.list, InputType.checkbox])('names every selected default for %s', (inputType) => {
+    const field = new SingleFieldComponent();
+    field.basicInfo.inputType = inputType;
+    field.choiceInfo.multipleChoice = true;
+    field.choiceInfo.choices = [
+      new ChoiceOption('Red', true),
+      new ChoiceOption('Green', false),
+      new ChoiceOption('Blue', true),
+    ];
+
+    expect(specDefaultFactsOf(field)).toStrictEqual([
+      { key: SpecFactKey.defaultValue, params: { defaultValue: 'Red, Blue' } },
+    ]);
+  });
+
   it('is named beside the field rather than left sitting in the control unlabelled', () => {
     const field = textField();
     field.valueInfo.defaultValue = 'TEST001-RK';
