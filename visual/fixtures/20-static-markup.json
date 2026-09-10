@@ -37,13 +37,11 @@
       "_video"
     ],
     "propertyLabels": {
-      "_section": "section",
       "_scripted": "scripted",
       "_inline": "inline",
       "_video": "video"
     },
     "propertyDescriptions": {
-      "_section": "section property description",
       "_scripted": "scripted property description",
       "_inline": "inline property description",
       "_video": "video property description"

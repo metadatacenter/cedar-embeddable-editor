@@ -6,6 +6,9 @@ import { Injectable } from '@angular/core';
 })
 export class ComponentDataService {
   public getRenderingLabelForComponent(component: CedarComponent): string {
+    if (component.labelInfo?.deploymentLabel != null) {
+      return component.labelInfo.deploymentLabel;
+    }
     if (
       component.labelInfo !== undefined &&
       component.labelInfo.preferredLabel !== undefined &&

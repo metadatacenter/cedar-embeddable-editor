@@ -538,18 +538,11 @@ export class ModelLibraryTemplateParser implements TemplateParser {
   }
 
   /**
-   * CEE's label rules, unchanged.
-   *
-   * The artifact's own `schema:name` wins unless it is missing or merely
-   * repeats the property key — CEDAR usually sets the two the same — in which
-   * case the parent's `_ui.propertyLabels` entry is used. Descriptions work the
-   * same way, with the literal string `Help Text` treated as absent because
-   * that is what the Template Editor writes when the author left it blank.
-   *
-   * The library has already resolved the parent's maps onto the child info, so
-   * `childInfo.label` and `childInfo.description` are those entries. It reports
-   * null where the walk would leave the value untouched, so a null is taken to
-   * mean "no entry" and the artifact's own value stands.
+   * Parent display overrides describe this deployment, so they take precedence
+   * over the reusable artifact's labels and description. A missing override
+   * falls back to the artifact; an explicit empty string remains an override.
+   * Keep the preferred label separately so displaying an override does not
+   * change the field's semantic metadata.
    */
   private static extractLabels(
     artifact: TemplateField | TemplateElement,
@@ -558,18 +551,8 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     fc: { labelInfo: LabelInfo },
   ): void {
     fc.labelInfo.preferredLabel = artifact.skos_prefLabel ?? null;
-    fc.labelInfo.description = artifact.schema_description;
-    fc.labelInfo.label = artifact.schema_name;
-
-    if (fc.labelInfo.description == null || fc.labelInfo.description === 'Help Text') {
-      if (childInfo.description != null) {
-        fc.labelInfo.description = childInfo.description;
-      }
-    }
-    if (fc.labelInfo.label == null || fc.labelInfo.label === name) {
-      if (childInfo.label != null) {
-        fc.labelInfo.label = childInfo.label;
-      }
-    }
+    fc.labelInfo.deploymentLabel = childInfo.label ?? null;
+    fc.labelInfo.description = childInfo.description ?? artifact.schema_description;
+    fc.labelInfo.label = artifact.schema_name ?? name;
   }
 }
