@@ -112,3 +112,19 @@ test.describe('presenting a value', () => {
     await expect(page.locator('cedar-embeddable-field .cee-spec-box')).toHaveCount(0);
   });
 });
+
+test('a rejected assignment stays rejected after changing the field type', async ({ page }) => {
+  await open(page, '_text', 'readonly');
+  await page.evaluate(() => {
+    document.querySelector('cedar-embeddable-field')!.value = { kind: 'number', value: 99 };
+  });
+  await expect(page.locator('cedar-embeddable-field .cee-spec-box')).toBeVisible();
+  await page.evaluate(async () => {
+    const template = await fetch('/fixtures/01-input-types.json').then((response) => response.json());
+    const field = template.properties._numeric;
+    field._valueConstraints.defaultValue = 7;
+    document.querySelector('cedar-embeddable-field')!.fieldObject = field;
+  });
+  await expect.poll(() => currentValue(page)).toEqual({ kind: 'number', value: 7 });
+  expect(await changes(page)).toEqual([]);
+});

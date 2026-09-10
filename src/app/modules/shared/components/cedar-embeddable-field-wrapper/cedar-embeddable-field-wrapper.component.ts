@@ -198,8 +198,10 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     if (value === null) {
       return;
     }
-    this.assignedValue = value;
-    this.applyAssignedValue();
+    const candidate = structuredClone(value);
+    if (this.runtime === null || this.applyValue(candidate)) {
+      this.assignedValue = candidate;
+    }
   }
 
   /** Configuration, which takes one assignment. */
@@ -302,7 +304,11 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     this.lastPublished = { value: this.currentValue, valid: this.currentValueValid };
     this.redraw();
     this.applyConfiguration();
-    this.applyAssignedValue();
+    if (this.assignedValue !== null && !this.applyValue(this.assignedValue)) {
+      // A pending value (or one for the previous field) that does not fit is
+      // discarded, so a later compatible field cannot resurrect a rejection.
+      this.assignedValue = null;
+    }
     this.scheduleWidgetSync();
   }
 
@@ -344,18 +350,16 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
    * same distinction the editor draws between an instance and a bare template, and it
    * is `instanceSupplied` in both places.
    */
-  private applyAssignedValue(): void {
+  private applyValue(value: CedarEmbeddableFieldValue): boolean {
     const runtime = this.runtime;
-    const value = this.assignedValue;
-    if (runtime === null || value === null) {
-      return;
+    if (runtime === null) {
+      return false;
     }
-    runtime.handlerContext.instanceSupplied = value.kind !== 'none';
     if (runtime.valueComponent === null) {
       if (value.kind !== 'none') {
         this.messageHandlerService.error('cedar-embeddable-field: "value" ignored, because a static field holds none.');
       }
-      return;
+      return value.kind === 'none';
     }
 
     this.applyingAssignedValue = true;
@@ -363,13 +367,16 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
       const refusal = writeFieldValue(value, runtime.valueComponent, runtime.handlerContext);
       if (refusal !== null) {
         this.messageHandlerService.error(`cedar-embeddable-field: ${refusal}`);
+        return false;
       }
     } finally {
       this.applyingAssignedValue = false;
     }
+    runtime.handlerContext.instanceSupplied = value.kind !== 'none';
     this.lastPublished = { value: this.currentValue, valid: this.currentValueValid };
     this.redraw();
     this.scheduleWidgetSync();
+    return true;
   }
 
   /** Push the model into the live widget once Angular has built it. */

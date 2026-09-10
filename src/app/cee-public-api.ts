@@ -526,7 +526,9 @@ export interface CedarEmbeddableFieldElement extends HTMLElement {
    * A value whose kind the field cannot take is reported through the event handler and
    * ignored, rather than being coerced into the nearest thing that would fit. An
    * attribute-value field takes none: its slots are named by the control that creates
-   * them.
+   * them. A value assigned before the field is checked when the field arrives.
+   * Accepted assignments survive compatible field replacements; incompatible ones
+   * are discarded and cannot reappear after a later replacement.
    */
   value: CedarEmbeddableFieldValue;
 

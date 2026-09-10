@@ -88,7 +88,7 @@ interface Mounted {
   errors: ReturnType<typeof vi.fn>;
 }
 
-const mount = async (field: CeeJsonObject, config: object = {}): Promise<Mounted> => {
+const mount = async (field: CeeJsonObject | null, config: object = {}): Promise<Mounted> => {
   await TestBed.configureTestingModule({
     imports: [SharedModule],
     providers: [provideHttpClient(), provideTranslateService()],
@@ -274,5 +274,48 @@ describe('replacing a field and tracking validity', () => {
     ]);
     await type(mounted, '1.5');
     expect(mounted.changes).toHaveLength(3);
+  });
+});
+
+describe('rejected assignments', () => {
+  const numeric = () =>
+    artifactOf(CedarBuilders.numericFieldBuilder().withSchemaName('Number').withDefaultValue(7).build());
+
+  it('does not replay a rejected number when text is replaced by a numeric field', async () => {
+    const mounted = await mount(textArtifact(), { readOnlyMode: true });
+    mounted.element.value = { kind: 'number', value: 99 };
+    mounted.fixture.detectChanges();
+    expect(mounted.element.handlerContext.instanceSupplied).toBe(false);
+    expect(mounted.fixture.debugElement.query(By.directive(CedarSpecBoxComponent))).not.toBeNull();
+    mounted.element.fieldObject = numeric();
+    expect(mounted.element.currentValue).toEqual({ kind: 'number', value: 7 });
+    expect(mounted.errors).toHaveBeenCalledTimes(1);
+    expect(mounted.changes).toEqual([]);
+  });
+
+  it('keeps the last accepted assignment after rejecting another', async () => {
+    const mounted = await mount(textArtifact());
+    mounted.element.value = { kind: 'literal', value: 'accepted' };
+    mounted.element.value = { kind: 'number', value: 99 };
+    mounted.element.fieldObject = textArtifact();
+    expect(mounted.element.currentValue).toEqual({ kind: 'literal', value: 'accepted' });
+    expect(mounted.changes).toEqual([]);
+  });
+
+  it('accepts a value before the field arrives', async () => {
+    const mounted = await mount(null);
+    mounted.element.value = { kind: 'number', value: 99 };
+    mounted.element.fieldObject = numeric();
+    expect(mounted.element.currentValue).toEqual({ kind: 'number', value: 99 });
+    expect(mounted.errors).not.toHaveBeenCalled();
+  });
+
+  it('discards a pending assignment rejected by the first field', async () => {
+    const mounted = await mount(null);
+    mounted.element.value = { kind: 'number', value: 99 };
+    mounted.element.fieldObject = textArtifact();
+    mounted.element.fieldObject = numeric();
+    expect(mounted.element.currentValue).toEqual({ kind: 'number', value: 7 });
+    expect(mounted.errors).toHaveBeenCalledTimes(1);
   });
 });
