@@ -9,6 +9,16 @@ import {
   CheckboxField,
   ComparisonError,
   ControlledTermField,
+  EmailField,
+  PhoneNumberField,
+  LinkField,
+  ExtOrcidField,
+  ExtRorField,
+  ExtPfasField,
+  ExtRridField,
+  ExtPubmedField,
+  ExtNihGrantIdField,
+  ExtDoiField,
   JsonNode,
   ChildDeploymentInfo,
   MultipleChoiceListField,
@@ -59,14 +69,37 @@ const ORPHAN_ORDER_ENTRY = 'jtr07';
  * when it decides which constraint object to build. A guard rather than a cast:
  * the check is real, and it is the one the model already trusts.
  *
- * This replaced holding `valueConstraints` as `any`, which typed every bound as
- * `any` and hid that the library returns an empty constraint object for the
- * email, link, phone-number and `ext-*` kinds — so a default value or a length
- * bound declared on one of those has never reached CEE.
+ * Literal and IRI defaults also have typed constraints, including email, phone,
+ * link and external-authority fields.
  */
 const isTextField = (field: TemplateField): field is TextField => field.cedarFieldType === CedarFieldType.TEXT;
 
 const isTextArea = (field: TemplateField): field is TextArea => field.cedarFieldType === CedarFieldType.TEXTAREA;
+
+const isLiteralDefaultField = (field: TemplateField): field is EmailField | PhoneNumberField =>
+  field.cedarFieldType === CedarFieldType.EMAIL || field.cedarFieldType === CedarFieldType.PHONE_NUMBER;
+
+type IriDefaultField =
+  | LinkField
+  | ExtOrcidField
+  | ExtRorField
+  | ExtPfasField
+  | ExtRridField
+  | ExtPubmedField
+  | ExtNihGrantIdField
+  | ExtDoiField;
+
+const isIriDefaultField = (field: TemplateField): field is IriDefaultField =>
+  [
+    CedarFieldType.LINK,
+    CedarFieldType.EXT_ORCID,
+    CedarFieldType.EXT_ROR,
+    CedarFieldType.EXT_PFAS,
+    CedarFieldType.EXT_RRID,
+    CedarFieldType.EXT_PUBMED,
+    CedarFieldType.EXT_NIH_GRANT_ID,
+    CedarFieldType.EXT_DOI,
+  ].includes(field.cedarFieldType);
 
 const isNumericField = (field: TemplateField): field is NumericField => field.cedarFieldType === CedarFieldType.NUMERIC;
 
@@ -400,8 +433,19 @@ export class ModelLibraryTemplateParser implements TemplateParser {
      * narrowing of what CEE reads: the kinds below are the only ones the library
      * gives a constraint object carrying these at all.
      */
-    if (isTextField(field) || isTextArea(field) || isListField(field)) {
+    if (
+      isTextField(field) ||
+      isTextArea(field) ||
+      isListField(field) ||
+      isLiteralDefaultField(field) ||
+      isRadioField(field) ||
+      isCheckboxField(field)
+    ) {
       fc.valueInfo.defaultValue = field.valueConstraints.defaultValue ?? null;
+    }
+
+    if (isIriDefaultField(field)) {
+      fc.valueInfo.defaultValue = field.valueConstraints.defaultValue?.getValue() ?? null;
     }
 
     if (isTextField(field)) {

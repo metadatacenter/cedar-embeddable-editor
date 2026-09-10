@@ -16,11 +16,11 @@
  * regex 150, minValue 127, default 96, selected 37, granularity 28.
  */
 import { describe, expect, it } from 'vitest';
-import { CedarBuilders, NumberType, TemporalGranularity, TemporalType } from 'cedar-model-typescript-library';
+import { CedarBuilders, Iri, NumberType, TemporalGranularity, TemporalType } from 'cedar-model-typescript-library';
 import { FIELD_KINDS, FieldKind } from '../src/axes';
-import { buildTemplate } from '../src/generate';
+import { buildTemplate, buildTemplateYaml } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { instanceWith, literalOf, literalValue, templateIdOf, termOf, xsdTypeOf } from '../src/values';
+import { instanceWith, iriOf, literalOf, literalValue, templateIdOf, termOf, xsdTypeOf } from '../src/values';
 import type { InstanceNode } from '@cee/models/instance-node.model';
 
 const kindOf = (
@@ -34,6 +34,27 @@ const kindOf = (
 
 const drive = (kind: FieldKind, name = 'f') =>
   new CeeDriver(buildTemplate({ name: `vc_${kind.key}`, children: [{ kind, name }] }));
+
+for (const [format, write] of [
+  ['JSON', buildTemplate],
+  ['YAML', buildTemplateYaml],
+] as const) {
+  describe(`${format} literal and identifier defaults`, () => {
+    for (const key of ['email', 'phone', 'link', 'orcid', 'ror', 'pfas', 'rrid', 'pubmed', 'nihGrant', 'doi']) {
+      it(`seeds the ${key} default before a widget exists`, () => {
+        const base = FIELD_KINDS.find((kind) => kind.key === key)!;
+        const literal = key === 'email' || key === 'phone';
+        const kind: FieldKind = {
+          ...base,
+          configure: (builder) => builder.withDefaultValue(literal ? base.sample : new Iri(base.sample)),
+        };
+        const driver = new CeeDriver(write({ name: `default_${key}`, children: [{ kind, name: 'f' }] }));
+        expect(driver.findOrThrow(['_f']).valueInfo.defaultValue).toBe(base.sample);
+        expect((literal ? literalOf : iriOf)(driver.extract.values._f)).toBe(base.sample);
+      });
+    }
+  });
+}
 
 describe('text constraints', () => {
   it('carries minLength and maxLength onto valueInfo', () => {
@@ -286,7 +307,13 @@ describe('temporal constraints', () => {
     ['dateTime/day', TemporalType.DATETIME, TemporalGranularity.DAY, '2026-08-20', '2026-08-20T00:00:00'],
     ['dateTime/hour', TemporalType.DATETIME, TemporalGranularity.HOUR, '2026-08-20T14', '2026-08-20T14:00:00'],
     ['dateTime/minute', TemporalType.DATETIME, TemporalGranularity.MINUTE, '2026-08-20T14:30', '2026-08-20T14:30:00'],
-    ['dateTime/second', TemporalType.DATETIME, TemporalGranularity.SECOND, '2026-08-20T14:30:45', '2026-08-20T14:30:45'],
+    [
+      'dateTime/second',
+      TemporalType.DATETIME,
+      TemporalGranularity.SECOND,
+      '2026-08-20T14:30:45',
+      '2026-08-20T14:30:45',
+    ],
     [
       'dateTime/decimalSecond',
       TemporalType.DATETIME,
