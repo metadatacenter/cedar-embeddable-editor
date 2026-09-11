@@ -1,4 +1,6 @@
 export class LabelInfo {
+  /** An explicit label for this use of the field in its parent template. */
+  deploymentLabel: string | null = null;
   /**
    * All three nullable: the library types a template's `schema:name` and
    * `schema:description` as `NullableString`, because a template is free to omit

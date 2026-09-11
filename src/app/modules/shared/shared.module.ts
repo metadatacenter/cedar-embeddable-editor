@@ -20,6 +20,8 @@ import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { CedarEmbeddableMetadataEditorComponent } from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { CedarComponentRendererComponent } from './components/cedar-component-renderer/cedar-component-renderer.component';
+import { CedarFieldWidgetComponent } from './components/cedar-field-widget/cedar-field-widget.component';
+import { CedarEmbeddableFieldWrapperComponent } from './components/cedar-embeddable-field-wrapper/cedar-embeddable-field-wrapper.component';
 import { CedarFieldSpecComponent } from './components/cedar-field-spec/cedar-field-spec.component';
 import { CedarSpecBoxComponent } from './components/cedar-spec-box/cedar-spec-box.component';
 import { DownloadMenuComponent } from './components/download-menu/download-menu.component';
@@ -61,12 +63,14 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     CedarEmbeddableMetadataEditorWrapperComponent,
     CedarFontRegistrarComponent,
     CedarComponentRendererComponent,
+    CedarFieldWidgetComponent,
+    CedarEmbeddableFieldWrapperComponent,
     CedarFieldSpecComponent,
     CedarSpecBoxComponent,
     DownloadMenuComponent,
     CedarMultiPagerComponent,
   ],
   providers: [],
-  exports: [CedarEmbeddableMetadataEditorWrapperComponent],
+  exports: [CedarEmbeddableMetadataEditorWrapperComponent, CedarEmbeddableFieldWrapperComponent],
 })
 export class SharedModule {}

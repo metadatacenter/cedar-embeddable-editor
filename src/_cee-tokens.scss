@@ -176,3 +176,14 @@ $cee-color-component-title: #0b3938;
 /// and the only stop it can aim at is one that does not move. It also puts the
 /// two marks in the same column on every row of a form.
 $cee-header-trailing-slot: 40px;
+
+/// The inset between the card's edge and everything it holds: the identity block
+/// and the provenance in the header, and every field below them.
+///
+/// One value, because the header and the content each stated their own and the
+/// two disagreed — the header held its contents 24px off the card where the
+/// content held the fields 32px off, at every width above 1067px. The version
+/// and status then ended 8px outside the fields they describe, and a host that
+/// puts a control of its own above the card and aligns it with the fields, as
+/// the Workbench does with the metadata's name, inherited that step.
+$cee-gutter-inline: clamp(12px, 3cqi, 32px);

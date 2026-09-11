@@ -27,13 +27,16 @@ const COMPONENT = path.resolve(
 const PUBLIC_API = path.resolve(__dirname, 'cee-public-api.ts');
 const ARTIFACT_COORDINATOR = path.resolve(__dirname, 'modules/shared/util/artifact-input-coordinator.ts');
 const CONFIG_COORDINATOR = path.resolve(__dirname, 'modules/shared/util/wrapper-config-coordinator.ts');
+const WIDGET_CONFIG_COORDINATOR = path.resolve(__dirname, 'modules/shared/util/widget-config-coordinator.ts');
 
 /**
  * The keys the two runtime config consumers actually read, resolved through the
  * shared key map rather than repeated string literals.
  */
 const componentKeys = (): string[] => {
-  const source = [COMPONENT, CONFIG_COORDINATOR].map((file) => fs.readFileSync(file, 'utf8')).join('\n');
+  const source = [COMPONENT, CONFIG_COORDINATOR, WIDGET_CONFIG_COORDINATOR]
+    .map((file) => fs.readFileSync(file, 'utf8'))
+    .join('\n');
   const names = [...source.matchAll(/CEE_CONFIG_KEY\.([a-zA-Z][a-zA-Z0-9]*)/g)].map(([, name]) => name);
   return [...new Set(names)].map((name) => CEE_CONFIG_KEY[name as keyof typeof CEE_CONFIG_KEY]).sort();
 };

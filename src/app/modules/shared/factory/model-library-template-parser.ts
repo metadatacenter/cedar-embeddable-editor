@@ -9,6 +9,16 @@ import {
   CheckboxField,
   ComparisonError,
   ControlledTermField,
+  EmailField,
+  PhoneNumberField,
+  LinkField,
+  ExtOrcidField,
+  ExtRorField,
+  ExtPfasField,
+  ExtRridField,
+  ExtPubmedField,
+  ExtNihGrantIdField,
+  ExtDoiField,
   JsonNode,
   ChildDeploymentInfo,
   MultipleChoiceListField,
@@ -59,14 +69,37 @@ const ORPHAN_ORDER_ENTRY = 'jtr07';
  * when it decides which constraint object to build. A guard rather than a cast:
  * the check is real, and it is the one the model already trusts.
  *
- * This replaced holding `valueConstraints` as `any`, which typed every bound as
- * `any` and hid that the library returns an empty constraint object for the
- * email, link, phone-number and `ext-*` kinds — so a default value or a length
- * bound declared on one of those has never reached CEE.
+ * Literal and IRI defaults also have typed constraints, including email, phone,
+ * link and external-authority fields.
  */
 const isTextField = (field: TemplateField): field is TextField => field.cedarFieldType === CedarFieldType.TEXT;
 
 const isTextArea = (field: TemplateField): field is TextArea => field.cedarFieldType === CedarFieldType.TEXTAREA;
+
+const isLiteralDefaultField = (field: TemplateField): field is EmailField | PhoneNumberField =>
+  field.cedarFieldType === CedarFieldType.EMAIL || field.cedarFieldType === CedarFieldType.PHONE_NUMBER;
+
+type IriDefaultField =
+  | LinkField
+  | ExtOrcidField
+  | ExtRorField
+  | ExtPfasField
+  | ExtRridField
+  | ExtPubmedField
+  | ExtNihGrantIdField
+  | ExtDoiField;
+
+const isIriDefaultField = (field: TemplateField): field is IriDefaultField =>
+  [
+    CedarFieldType.LINK,
+    CedarFieldType.EXT_ORCID,
+    CedarFieldType.EXT_ROR,
+    CedarFieldType.EXT_PFAS,
+    CedarFieldType.EXT_RRID,
+    CedarFieldType.EXT_PUBMED,
+    CedarFieldType.EXT_NIH_GRANT_ID,
+    CedarFieldType.EXT_DOI,
+  ].includes(field.cedarFieldType);
 
 const isNumericField = (field: TemplateField): field is NumericField => field.cedarFieldType === CedarFieldType.NUMERIC;
 
@@ -400,8 +433,19 @@ export class ModelLibraryTemplateParser implements TemplateParser {
      * narrowing of what CEE reads: the kinds below are the only ones the library
      * gives a constraint object carrying these at all.
      */
-    if (isTextField(field) || isTextArea(field) || isListField(field)) {
+    if (
+      isTextField(field) ||
+      isTextArea(field) ||
+      isListField(field) ||
+      isLiteralDefaultField(field) ||
+      isRadioField(field) ||
+      isCheckboxField(field)
+    ) {
       fc.valueInfo.defaultValue = field.valueConstraints.defaultValue ?? null;
+    }
+
+    if (isIriDefaultField(field)) {
+      fc.valueInfo.defaultValue = field.valueConstraints.defaultValue?.getValue() ?? null;
     }
 
     if (isTextField(field)) {
@@ -494,18 +538,11 @@ export class ModelLibraryTemplateParser implements TemplateParser {
   }
 
   /**
-   * CEE's label rules, unchanged.
-   *
-   * The artifact's own `schema:name` wins unless it is missing or merely
-   * repeats the property key — CEDAR usually sets the two the same — in which
-   * case the parent's `_ui.propertyLabels` entry is used. Descriptions work the
-   * same way, with the literal string `Help Text` treated as absent because
-   * that is what the Template Editor writes when the author left it blank.
-   *
-   * The library has already resolved the parent's maps onto the child info, so
-   * `childInfo.label` and `childInfo.description` are those entries. It reports
-   * null where the walk would leave the value untouched, so a null is taken to
-   * mean "no entry" and the artifact's own value stands.
+   * Parent display overrides describe this deployment, so they take precedence
+   * over the reusable artifact's labels and description. A missing override
+   * falls back to the artifact; an explicit empty string remains an override.
+   * Keep the preferred label separately so displaying an override does not
+   * change the field's semantic metadata.
    */
   private static extractLabels(
     artifact: TemplateField | TemplateElement,
@@ -514,18 +551,8 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     fc: { labelInfo: LabelInfo },
   ): void {
     fc.labelInfo.preferredLabel = artifact.skos_prefLabel ?? null;
-    fc.labelInfo.description = artifact.schema_description;
-    fc.labelInfo.label = artifact.schema_name;
-
-    if (fc.labelInfo.description == null || fc.labelInfo.description === 'Help Text') {
-      if (childInfo.description != null) {
-        fc.labelInfo.description = childInfo.description;
-      }
-    }
-    if (fc.labelInfo.label == null || fc.labelInfo.label === name) {
-      if (childInfo.label != null) {
-        fc.labelInfo.label = childInfo.label;
-      }
-    }
+    fc.labelInfo.deploymentLabel = childInfo.label ?? null;
+    fc.labelInfo.description = childInfo.description ?? artifact.schema_description;
+    fc.labelInfo.label = artifact.schema_name ?? name;
   }
 }

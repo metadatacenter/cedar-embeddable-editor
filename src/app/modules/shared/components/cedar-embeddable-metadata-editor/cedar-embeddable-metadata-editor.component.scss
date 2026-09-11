@@ -28,7 +28,7 @@
   align-items: center;
   gap: 12px 16px;
   min-width: 0;
-  padding: 16px clamp(12px, 2.5cqi, 24px);
+  padding: 16px tokens.$cee-gutter-inline;
   background: #ffffff;
   border-bottom: 1px solid #d7e0df;
 }
@@ -50,12 +50,17 @@
  * baselines — which is the thing screenshot.css was added to prevent. It hides the
  * text, not the box. A version longer than the box still ellipses, and costs no
  * layout.
+ *
+ * The stack is flush with the left of that track rather than centred in it, so
+ * the mark starts on the gutter every field below it starts on. Centred, a short
+ * version left the mark 16px inside a header whose right edge the provenance sat
+ * on, and the two sides of one row read as different margins.
  */
 .logo-block {
   grid-area: logo;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   flex: 0 0 72px;
   min-width: 0;
   color: inherit;
@@ -173,7 +178,7 @@
   display: grid;
   gap: 0;
   min-width: 0;
-  padding: 0 clamp(12px, 3cqi, 32px) 24px;
+  padding: 0 tokens.$cee-gutter-inline 24px;
 }
 
 @container cee (max-width: 1100px) {

@@ -321,6 +321,10 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
   /**
    * The template to render, as a parsed CEDAR artifact.
    *
+   * An artifact, not a model, for the reason given at `cedar-embeddable-field`'s
+   * `fieldObject`: the element and its host hold separate copies of the model library,
+   * and CEE reads a template through class identity.
+   *
    * Assignable more than once while no instance has been supplied: each one replaces the
    * form, building a fresh context, so nothing of the previous template survives. Once an
    * instance is loaded the template is fixed, and a further assignment is reported and
@@ -368,8 +372,179 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
   readonly dataQualityReport: CeeDataQualityReport;
 }
 
+/**
+ * What one field holds, in the terms its own type is written in.
+ *
+ * The six shapes a CEDAR field value comes in, kept apart rather than flattened to
+ * text: a number is a number, a term is an IRI with a label beside it, a checkbox
+ * group holds a set, and an attribute-value field holds named slots. A host writing
+ * one of these back into an artifact needs the distinction, and collapsing it here
+ * only means the host parses its own input again — which is the fault the CEDAR
+ * Embeddable Designer's single `defaultValue: string` has.
+ *
+ * `none` is an unfilled field. It is also what a numeric field reports while it holds
+ * something that is not yet a number, `3.` on the way to `3.5`; `valid` on the change
+ * detail separates that from empty.
+ */
+export type CedarEmbeddableFieldValue =
+  | { kind: 'none' }
+  /** Text, paragraph, email, phone, a radio choice, a single-choice list. */
+  | { kind: 'literal'; value: string }
+  /** A numeric field, once what it holds is a finite number. */
+  | { kind: 'number'; value: number }
+  /** A date or time, as the ISO literal its granularity calls for. */
+  | { kind: 'temporal'; value: string }
+  /** A controlled term or an external authority record; a link, whose label is null. */
+  | { kind: 'iri'; iri: string; label: string | null }
+  /** A checkbox group or a multi-select list. */
+  | { kind: 'literals'; values: string[] }
+  /** An attribute-value field, whose slots are named by whoever fills them in. */
+  | { kind: 'attributes'; values: Readonly<Record<string, string | null>> };
+
+/** Detail carried by the `cedar-embeddable-field` element's `valueChange` event. */
+export interface CedarEmbeddableFieldChangeDetail {
+  /** What the field now holds. */
+  value: CedarEmbeddableFieldValue;
+  /** Whether it satisfies the constraints the field declares. */
+  valid: boolean;
+}
+
+/**
+ * The configuration `cedar-embeddable-field` accepts.
+ *
+ * The subset of `CeeConfig` that describes a field rather than the form around one.
+ * The keys left out — the download menu, the expand controls, the template
+ * description — settle what an editor draws around its fields, and this element draws
+ * nothing around its own.
+ */
+export type CedarEmbeddableFieldConfig = Pick<
+  CeeConfig,
+  | 'readOnlyMode'
+  | 'trustTemplateRichText'
+  | 'terminologyBaseUrl'
+  | 'bridgeBaseUrl'
+  | 'defaultLanguage'
+  | 'fallbackLanguage'
+  | 'languageMapPathPrefix'
+>;
+
+/**
+ * One field's control, as a host sees it.
+ *
+ * Registered as `cedar-embeddable-field`. It renders exactly the widget the editor
+ * renders for that field — the same component, not a second implementation — and
+ * reports what the widget holds. Around it there is nothing: no label, no description,
+ * no card. A host that has a field artifact and wants a value for it draws its own
+ * surroundings and puts this where the control goes.
+ *
+ * Read-only is the presentation half of the same element. Editable, the field is a
+ * control to fill in; read-only with nothing in it, the widget is replaced by a
+ * statement of what the field will accept, which is what the editor shows when it
+ * renders a template nobody has filled in yet.
+ *
+ * A field artifact carries no requiredness and no cardinality — both belong to a
+ * field's deployment in a template, and this element deploys nothing — so the value
+ * it acquires is single and is allowed to be absent. That is what makes it usable for
+ * a default value, which is optional by definition.
+ */
+export interface CedarEmbeddableFieldElement extends HTMLElement {
+  /** Typed value event; the inherited overloads still handle every other DOM event. */
+  addEventListener(
+    type: 'valueChange',
+    listener:
+      | ((this: CedarEmbeddableFieldElement, event: CustomEvent<CedarEmbeddableFieldChangeDetail>) => unknown)
+      | null,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener<K extends keyof HTMLElementEventMap>(
+    type: K,
+    listener: (this: HTMLElement, event: HTMLElementEventMap[K]) => unknown,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+
+  removeEventListener(
+    type: 'valueChange',
+    listener:
+      | ((this: CedarEmbeddableFieldElement, event: CustomEvent<CedarEmbeddableFieldChangeDetail>) => unknown)
+      | null,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener<K extends keyof HTMLElementEventMap>(
+    type: K,
+    listener: (this: HTMLElement, event: HTMLElementEventMap[K]) => unknown,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions,
+  ): void;
+
+  /**
+   * Configuration. Takes one assignment, as the editor's does.
+   *
+   * The endpoints and the languages are facts about the deployment rather than about
+   * the field, and read-only is what this element *is* rather than a state it moves
+   * through: a host wanting the other mode creates the other element.
+   */
+  config: CedarEmbeddableFieldConfig;
+
+  /**
+   * The field to render, as a parsed CEDAR field artifact.
+   *
+   * An artifact, not a model. A host holding a `TemplateField` from the CEDAR Model
+   * TypeScript Library — a designer building one is the likely case — writes it out and
+   * assigns the result, rather than assigning the object.
+   *
+   * That is a constraint rather than a preference, and it is worth stating because the
+   * object would appear to work. Passing it costs nothing, but the element's copy of the
+   * model library is inside this bundle and the host's is inside its own, so the two hold
+   * different classes. CEE decides what a field is by identity — `field.cedarFieldType
+   * === CedarFieldType.TEXT`, and `instanceof` in three dozen other places — and every
+   * one of those comparisons is false for an instance built elsewhere. Nothing throws;
+   * the field falls through to a default rendering. A serialization also survives the two
+   * packages pinning different library versions, which class shapes do not.
+   *
+   * Assignable as often as a host likes, and each assignment builds the widget afresh.
+   * Set-once protects answers somebody has been typing, and there are none here: the
+   * field being designed changes type under its author's hand, and a designer that had
+   * to discard and rebuild an element for each change would pay a bootstrap for it.
+   *
+   * A field declaring its own default value starts out holding it, so a host can hand
+   * back what it read and see what it wrote.
+   */
+  fieldObject: CeeJsonObject;
+
+  /**
+   * What the field should hold, replacing whatever it holds now.
+   *
+   * A value whose kind the field cannot take is reported through the event handler and
+   * ignored, rather than being coerced into the nearest thing that would fit. An
+   * attribute-value field takes none: its slots are named by the control that creates
+   * them. A value assigned before the field is checked when the field arrives.
+   * Accepted assignments survive compatible field replacements; incompatible ones
+   * are discarded and cannot reappear after a later replacement.
+   */
+  value: CedarEmbeddableFieldValue;
+
+  /** Host callbacks, which may be replaced: the last one assigned receives. */
+  eventHandler: CeeEventHandler;
+
+  /** What the field holds. Read-only. */
+  readonly currentValue: CedarEmbeddableFieldValue;
+
+  /** Whether what it holds satisfies the field's constraints. Read-only. */
+  readonly currentValueValid: boolean;
+}
+
 declare global {
   interface HTMLElementTagNameMap {
     'cedar-embeddable-editor': CedarEmbeddableEditorElement;
+    'cedar-embeddable-field': CedarEmbeddableFieldElement;
   }
 }

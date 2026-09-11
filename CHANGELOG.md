@@ -7,7 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A second element, `cedar-embeddable-field`, registered by the same bundle. It renders one field's
+  control and nothing of the form around it, for a host that holds a field artifact rather
+  than a template — a designer collecting a default value, above all. The value goes in and
+  out as a discriminated union rather than as text: a literal, a number, an ISO temporal
+  literal, an IRI with a label, a list of literals, or an attribute-value field's named
+  slots. `readOnlyMode` presents rather than acquires, replacing an empty control with a
+  statement of what the field will accept. `fieldObject` takes a field artifact rather than a
+  field model, because the element and its host hold separate copies of the model library and
+  CEE reads an artifact through class identity. The bundle grows by 15,474 gzip bytes, to
+  656,506 of the 840,000 the size gate allows.
+
 ### Changed
+
+- Every field CEE renders now goes through one component. The eighteen-way widget switch and
+  the read-only choice between a control and a statement of the field's specification moved
+  out of the component renderer into `CedarFieldWidgetComponent`, which the renderer and the
+  new element both draw. A widget added or rerouted reaches both, and the element cannot
+  drift from the editor the way a second implementation would.
+
+- The three settings the widgets themselves read — the authority endpoints, whether template
+  rich text is trusted, and read-only mode — are applied by one coordinator that both elements
+  use, rather than by the editor alone.
 
 - The download menu names each entry by the artifact it produces, then the serialization:
   `Template - YAML`, `Template - Compact YAML`, `Template - JSON Schema`, `Instance - YAML`,
@@ -16,6 +39,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Compact YAML downloads retain the template's root ID but omit the IDs of nested fields and
   elements. Full YAML downloads continue to carry the complete identity tree.
+
+### Fixed
+
+- Reassigning `cedar-embeddable-field.fieldObject` recreates the control even when the field type
+  stays the same, so validators and other initialized settings follow the new artifact.
+- `cedar-embeddable-field` emits `valueChange` when validity changes even if the normalized value
+  does not, including numeric edits such as `1.5` to `1.50` and back.
+
+## [2.0.10] - 2026-09-10
+
+This release aligns CEE's build-time model dependency with the public
+`cedar-model-typescript-library@1.0.8` package. The model library remains compiled into CEE's
+browser bundle and is not a runtime dependency for embedding applications.
+
+### Changed
+
+- The application and visual-test dependency graphs now pin the same public
+  `cedar-model-typescript-library@1.0.8` tarball from npmjs.
 
 ## [2.0.9] - 2026-09-08
 

@@ -7,7 +7,6 @@ import { HandlerContext } from '../../util/handler-context';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { ExternalAuthorityLookupService } from '../../service/external-authority-lookup.service';
-import { AUTHORITY_DESCRIPTORS, EXTERNAL_AUTHORITY_PATH } from '../../models/authority/authority-descriptor.model';
 import { TemplateTrustService } from '../../service/template-trust.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { MessageHandlerService } from '../../service/message-handler.service';
@@ -15,8 +14,9 @@ import packageJson from 'package.json';
 import { DOWNLOAD_ITEMS, DownloadItemId } from '../../models/ui/download-item.model';
 import { downloadContentFor, downloadFilenameFor } from '../../util/download-content';
 import { triggerDownload } from '../../util/trigger-download';
-import { baseUrl, CEE_CONFIG_KEY, CeeConfig, configFlag } from '../../util/config-reader';
+import { CEE_CONFIG_KEY, CeeConfig, configFlag } from '../../util/config-reader';
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
+import { WidgetConfigCoordinator } from '../../util/widget-config-coordinator';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -27,7 +27,7 @@ import { RenderSchedulerService } from '../../service/render-scheduler.service';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
-  private static INNER_VERSION = '2026-09-08 19:27 ee0da788';
+  private static INNER_VERSION = '2026-09-10 21:52 e02940b5';
 
   dataContext: DataContext | null = null;
   handlerContext: HandlerContext | null = null;
@@ -80,6 +80,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
   allExpanded = true;
   ceeVersion: string;
 
+  private readonly widgetConfig: WidgetConfigCoordinator;
+
   /**
    * The template's own version and where it is in its lifecycle, which the header states beside its
    * name.
@@ -111,6 +113,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     private userPreferencesService: UserPreferencesService,
     private renderScheduler: RenderSchedulerService,
   ) {
+    this.widgetConfig = new WidgetConfigCoordinator(
+      this.externalAuthorityLookupService,
+      this.templateTrustService,
+      this.userPreferencesService,
+    );
     this.ceeVersion = packageJson.version;
     this.messageHandlerService.trace('CEDAR Embeddable Editor ' + CedarEmbeddableMetadataEditorComponent.INNER_VERSION);
   }
@@ -166,50 +173,14 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
         this.showTemplateDescription,
       );
 
-      this.bridgeBaseUrl = baseUrl(value, CEE_CONFIG_KEY.bridgeBaseUrl);
-
-      // Every external authority's two endpoints, in one loop.
-      //
-      // This was fourteen near-identical blocks — read a config key, fall back to
-      // a default path, prepend the base URL, hand the result to that
-      // authority's own service. An eighth authority cost two more blocks, a new
-      // service, and a new injected dependency here. Both paths now come from the
-      // descriptor, so a host moves all fourteen endpoints together by moving
-      // `bridgeBaseUrl`, or none of them — and the resource root they hang off is
-      // CEE's too, so what the host names is the server and nothing below it.
-      //
-      // Nothing is registered when the host names no bridge server, which is what
-      // makes an unconfigured lookup answer with no terms rather than with a
-      // request to whichever deployment the default happened to name.
-      const bridgeBaseUrl = this.bridgeBaseUrl;
-      if (bridgeBaseUrl !== null) {
-        const authorityRoot = bridgeBaseUrl + EXTERNAL_AUTHORITY_PATH;
-        for (const descriptor of AUTHORITY_DESCRIPTORS) {
-          this.externalAuthorityLookupService.setEndpoints(
-            descriptor.inputType,
-            authorityRoot + descriptor.searchPath,
-            authorityRoot + descriptor.detailsPath,
-          );
-        }
-      }
-
-      this.templateTrustService.setTrustTemplateRichText(
-        configFlag(value, CEE_CONFIG_KEY.trustTemplateRichText, this.templateTrustService.trustTemplateRichText),
-      );
-
-      this.readOnlyMode = configFlag(value, CEE_CONFIG_KEY.readOnlyMode, this.readOnlyMode);
       /*
-       * The widgets read read-only from `UserPreferencesService`, and this is what
-       * puts it there.
-       *
-       * It used to travel through the preferences menu: the host's flag was an input
-       * on that component, whose setter wrote to the service. So a piece of host
-       * configuration reached the form only by passing through a UI control — which
-       * is how the control came to be able to override it, and why the menu had to
-       * stay instantiated even when configured invisible, or read-only never
-       * arrived at all.
+       * The three settings the widgets themselves read, applied by the coordinator the
+       * `cedar-embeddable-field` element applies too. A setting handled here alone would work in a
+       * form and not in a lone field.
        */
-      this.userPreferencesService.setReadOnlyMode(this.readOnlyMode);
+      const widgets = this.widgetConfig.apply(value, this.readOnlyMode);
+      this.bridgeBaseUrl = widgets.bridgeBaseUrl;
+      this.readOnlyMode = widgets.readOnlyMode;
     }
   }
 

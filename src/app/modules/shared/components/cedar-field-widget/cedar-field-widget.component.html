@@ -1,0 +1,150 @@
+@switch (widgetDecision.kind) {
+  @case ('field') {
+    @if (widgetDecision.component; as fieldComponent) {
+      @if (showsSpecification) {
+        <app-cedar-spec-box [fieldToDescribe]="fieldComponent"></app-cedar-spec-box>
+      } @else {
+        @switch (widgetDecision.renderer) {
+          @case ('numeric') {
+            <app-cedar-input-numeric
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-numeric>
+          }
+          @case ('text') {
+            <app-cedar-input-text
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-text>
+          }
+          @case ('controlled') {
+            <app-cedar-input-controlled
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-controlled>
+          }
+          @case ('email') {
+            <app-cedar-input-email
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-email>
+          }
+          @case ('checkbox') {
+            <app-cedar-input-checkbox
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-checkbox>
+          }
+          @case ('select') {
+            <app-cedar-input-select
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-select>
+          }
+          @case ('attribute-value') {
+            <app-cedar-input-attribute-value
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-attribute-value>
+          }
+          @case ('multiple-choice') {
+            <app-cedar-input-multiple-choice
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-multiple-choice>
+          }
+          @case ('datetime') {
+            <app-cedar-input-datetime
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-datetime>
+          }
+          @case ('link') {
+            <app-cedar-input-link
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-link>
+          }
+          @case ('orcid') {
+            <app-cedar-input-orcid
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-orcid>
+          }
+          @case ('ror') {
+            <app-cedar-input-ror
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-ror>
+          }
+          @case ('pfas') {
+            <app-cedar-input-pfas
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-pfas>
+          }
+          @case ('pmid') {
+            <app-cedar-input-pmid
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-pmid>
+          }
+          @case ('rrid') {
+            <app-cedar-input-rrid
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-rrid>
+          }
+          @case ('nih-grant') {
+            <app-cedar-input-nih-grant
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-nih-grant>
+          }
+          @case ('doi') {
+            <app-cedar-input-doi
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-doi>
+          }
+          @case ('phone') {
+            <app-cedar-input-phone
+              [componentToRender]="fieldComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-input-phone>
+          }
+        }
+      }
+    }
+  }
+  @case ('static') {
+    @if (widgetDecision.component; as staticComponent) {
+      @switch (widgetDecision.renderer) {
+        @case ('section-break') {
+          <app-cedar-static-section-break
+            [componentToRender]="staticComponent"
+            [handlerContext]="handlerContext"
+          ></app-cedar-static-section-break>
+        }
+        @case ('image') {
+          <app-cedar-static-image
+            [componentToRender]="staticComponent"
+            [handlerContext]="handlerContext"
+          ></app-cedar-static-image>
+        }
+        @case ('youtube') {
+          <app-cedar-static-youtube
+            [componentToRender]="staticComponent"
+            [handlerContext]="handlerContext"
+          ></app-cedar-static-youtube>
+        }
+        @case ('rich-text') {
+          <app-cedar-static-rich-text
+            [componentToRender]="staticComponent"
+            [handlerContext]="handlerContext"
+          ></app-cedar-static-rich-text>
+        }
+      }
+    }
+  }
+}

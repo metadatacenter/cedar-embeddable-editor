@@ -103,7 +103,9 @@
               "src/app/modules/shared/service/render-scheduler.service.ts",
               "src/app/modules/shared/components/cedar-embeddable-metadata-editor-wrapper/cedar-embeddable-metadata-editor-wrapper.component.ts",
               "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.ts",
-              "src/app/modules/shared/components/cedar-component-renderer/cedar-component-renderer.component.ts"
+              "src/app/modules/shared/components/cedar-component-renderer/cedar-component-renderer.component.ts",
+              "src/app/modules/shared/components/cedar-field-widget/cedar-field-widget.component.ts",
+              "src/app/modules/shared/components/cedar-embeddable-field-wrapper/cedar-embeddable-field-wrapper.component.ts"
             ],
             "coverageReporters": ["text-summary", "json-summary"],
             "coverageThresholds": {

@@ -278,8 +278,10 @@ export function specDefaultFactsOf(field: FieldComponent): SpecFact[] {
   // way as every other default: named once, at the front, rather than marked inline in the list of
   // values. "default Green · Values Red, Green, Blue" reads as one fact then the set it comes from;
   // marking the list instead made a reader hunt for a parenthesis to learn the same thing.
-  const chosen = field.choiceInfo.choices.find((option) => option.selectedByDefault);
-  return chosen === undefined ? [] : [fact(SpecFactKey.defaultValue, { defaultValue: chosen.label })];
+  const chosen = field.choiceInfo.choices.filter((option) => option.selectedByDefault);
+  return chosen.length === 0
+    ? []
+    : [fact(SpecFactKey.defaultValue, { defaultValue: chosen.map((option) => option.label).join(', ') })];
 }
 
 /**

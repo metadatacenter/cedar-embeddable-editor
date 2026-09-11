@@ -485,7 +485,9 @@ const writeRaw = (name, document) => {
   let tb = common(CedarBuilders.templateBuilder(), 'StaticMarkup', 'templates').withSchemaDescription(
     'Static labels and URLs carrying executable markup',
   );
-  tb = tb.addChild(section, deploy(section, 'section'));
+  // Leave the deployment overrides absent: this fixture exercises the artifact's
+  // hostile label and description, which an explicit safe override would hide.
+  tb = tb.addChild(section, section.createDeploymentBuilder('_section').build());
   tb = tb.addChild(scripted, deploy(scripted, 'scripted'));
   tb = tb.addChild(inline, deploy(inline, 'inline'));
   tb = tb.addChild(video, deploy(video, 'video'));
