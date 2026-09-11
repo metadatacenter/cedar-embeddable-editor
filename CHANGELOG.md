@@ -47,6 +47,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cedar-embeddable-field` emits `valueChange` when validity changes even if the normalized value
   does not, including numeric edits such as `1.5` to `1.50` and back.
 
+## [2.0.10] - 2026-09-10
+
+This release aligns CEE's build-time model dependency with the public
+`cedar-model-typescript-library@1.0.8` package. The model library remains compiled into CEE's
+browser bundle and is not a runtime dependency for embedding applications.
+
+### Changed
+
+- The application and visual-test dependency graphs now pin the same public
+  `cedar-model-typescript-library@1.0.8` tarball from npmjs.
+
 ## [2.0.9] - 2026-09-08
 
 This release carries the same shipped code as 2.0.8 against the same public
