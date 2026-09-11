@@ -214,13 +214,22 @@ jobs:
           echo "version=${base}-dev.${date}.${sha}" >> "$GITHUB_OUTPUT"
 
       # The same two secrets every Java repository already uses to reach Nexus, so
-      # this needs no new credential. npm wants them as one base64 `user:password`.
+      # this needs no new credential. npm 11 ignores a per-registry `_auth`, which
+      # reaches the publish as ENEEDAUTH rather than as a rejected credential; the
+      # username and a base64 password are the pair it does read. An absent secret is
+      # reported here, where it names itself, rather than as that same ENEEDAUTH.
       - name: Point the scope at Nexus
         working-directory: cedar-embeddable-editor
         run: |
-          auth=$(printf '%s:%s' "${NEXUS_USERNAME}" "${NEXUS_PASSWORD}" | base64 | tr -d '\n')
+          for name in NEXUS_USERNAME NEXUS_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "${name} is empty: the Nexus secret is not available to this repository." >&2
+              exit 1
+            fi
+          done
           {
-            echo "//nexus.bmir.stanford.edu/repository/npm-cedar/:_auth=${auth}"
+            echo "//nexus.bmir.stanford.edu/repository/npm-cedar/:username=${NEXUS_USERNAME}"
+            echo "//nexus.bmir.stanford.edu/repository/npm-cedar/:_password=$(printf '%s' "${NEXUS_PASSWORD}" | base64 | tr -d '\n')"
             echo "//nexus.bmir.stanford.edu/repository/npm-cedar/:always-auth=true"
           } >> .npmrc
         env:
