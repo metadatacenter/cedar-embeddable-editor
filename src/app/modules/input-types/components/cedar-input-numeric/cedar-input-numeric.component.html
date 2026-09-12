@@ -14,6 +14,18 @@
     @if (unitOfMeasure) {
       <span matSuffix class="cee-numeric-unit">{{ unitOfMeasure }}</span>
     }
+    @if (inputValueControl.value && !readOnlyMode) {
+      <button
+        type="button"
+        tabindex="0"
+        matSuffix
+        mat-icon-button
+        attr.aria-label="{{ 'Generic.Clear' | translate }}"
+        (click)="clearValue()"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
     @if (inputValueControl.getError('min') && !readOnlyMode) {
       <mat-error class="mat-error align-start">{{
         'Validation.Numeric.MinValue' | translate: { constraintMinValue }
