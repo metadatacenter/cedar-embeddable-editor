@@ -79,6 +79,15 @@ test('every third-party selector CEE styles still matches an element', async ({ 
   await page.waitForTimeout(300);
   await sweep();
 
+  // A field showing a validation error, for the subscript's error wrapper. A
+  // required field reports itself the moment it is left empty.
+  await open(page, '06-validation');
+  const required = page.locator('input[aria-label="required_text"]');
+  await required.focus();
+  await required.blur();
+  await expect(page.locator('mat-error').first()).toBeVisible();
+  await sweep();
+
   const dead = declared.filter((s) => !seen.has(s) && !UNREACHABLE.has(s));
   expect(dead, 'these classes are styled by CEE but match nothing — the library renamed them').toEqual([]);
   expect(declared.length, 'no selectors were collected; the source scan is broken').toBeGreaterThan(10);
