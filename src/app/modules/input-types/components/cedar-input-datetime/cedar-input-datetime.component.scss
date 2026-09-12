@@ -7,8 +7,16 @@
   min-width: 0;
 }
 
+/*
+ * Wide enough for a date and the calendar toggle beside it, and no wider.
+ *
+ * It asked for 256px, which left about 100px of empty box to the right of
+ * `01/01/2026` — the widest thing a date field ever holds, since the year and
+ * year-month forms are shorter still. A control sized well past its content
+ * reads as an invitation to type more than a date.
+ */
 .cee-temporal-date {
-  flex: 0 1 256px;
+  flex: 0 1 176px;
   min-width: 176px;
 }
 
