@@ -1,5 +1,40 @@
+/*
+ * No stepper arrows.
+ *
+ * The browser draws a pair on every number input, and they are the only control
+ * CEE offers that changes a value rather than states one: they step by whatever
+ * the field's type declares, which increments an answer instead of correcting
+ * it. Every other widget clears its value through a close action at the right of
+ * the box, and the numeric field had none. Pressing the arrow keys in the box
+ * still steps the value, which is where that behaviour belongs.
+ */
+input[type='number'] {
+  appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+/*
+ * The unit of measure, on the same centre line as the value and the clear action.
+ *
+ * Material builds the suffix slot for icons and zeroes its line-height, so a run
+ * of text in it collapses to a zero-height line box that lands 7.5px below the
+ * value it belongs to. Centring the slot itself puts the unit and the action it
+ * sits beside on one line, and leaves both where they were horizontally. The
+ * slot holds only the clear action when a field declares no unit, and a single
+ * 48px item centres where it already sat.
+ */
+:host ::ng-deep .mat-mdc-form-field-icon-suffix {
+  display: flex;
+  align-items: center;
+}
+
 .cee-numeric-unit {
-  display: inline-block;
+  line-height: normal;
   padding-inline: 8px 12px;
   white-space: nowrap;
 }

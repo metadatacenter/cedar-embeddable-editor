@@ -469,13 +469,29 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 }
 
 /*
+ * Everything a field says below its box — the constraint hint, the validation
+ * error, the warning below — starts on the box's own left edge.
+ *
+ * Material insets all three by 16px, which puts them under the control's text
+ * rather than under its outline. On a form that is a column of boxes, the left
+ * edge of the box is the line the eye follows, and a line of type that starts
+ * 16px inside it reads as belonging to nothing.
+ *
+ * Two classes, because Material states the padding from one and its stylesheet
+ * is emitted after this one.
+ */
+.mat-mdc-form-field-subscript-wrapper .mat-mdc-form-field-hint-wrapper,
+.mat-mdc-form-field-subscript-wrapper .mat-mdc-form-field-error-wrapper {
+  padding-inline: 0;
+}
+
+/*
  * Non-blocking feedback, outside Material's mutually-exclusive hint/error
  * projection so a required field can still show its genuine validation error.
  */
 .input-warning {
   display: block;
   color: tokens.$cee-color-warning;
-  margin-inline: 16px;
   font-size: 12px;
   line-height: 22px;
   text-align: start;

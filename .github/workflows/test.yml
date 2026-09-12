@@ -201,11 +201,48 @@ jobs:
           name: cee-npm-package
           path: cedar-embeddable-editor/dist-npm/cedar-embeddable-editor
 
+      # Which of two names the staged manifest carries decides whether anything is
+      # published here. `scripts/npm-package.mjs` derives the channel from the version:
+      # a version carrying `-dev.` stages the scoped package for Nexus, and any other
+      # version stages the unscoped public package for npmjs. A release-prep commit
+      # sets that other version, so the public name sits on develop until the commit
+      # that advances to the next development version replaces it. Nothing is
+      # published from that commit, because the release it prepares publishes itself
+      # to npmjs.
+      #
+      # Refusing it was the first behaviour here, and release 2.0.10 showed the cost:
+      # a red run over a correct release, which teaches an operator to merge a red
+      # run. Any other name still fails the job: a package nobody named must not
+      # reach the dev channel.
+      - name: Decide whether this commit publishes
+        id: channel
+        working-directory: cedar-embeddable-editor
+        run: |
+          public=$(node -p "require('./package.json').name")
+          dev="@org.metadatacenter/${public}"
+          name=$(node -p "require('./dist-npm/cedar-embeddable-editor/package.json').name")
+          case "${name}" in
+            "${dev}")
+              echo "publish=true" >> "$GITHUB_OUTPUT"
+              ;;
+            "${public}")
+              summary="Release-prep commit: the staged package.json names ${name}, the public package the release publishes to npmjs. There is no dev package to publish."
+              echo "${summary}"
+              echo "${summary}" >> "$GITHUB_STEP_SUMMARY"
+              echo "publish=false" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "the staged package.json names ${name}, which is neither the dev package ${dev} nor the release package ${public}." >&2
+              exit 1
+              ;;
+          esac
+
       # The commit is what makes the version unique. package.json carries the version
       # a release wrote once and leaves it there across every commit until the next
       # release, so two different bundles would otherwise claim the same version.
       - name: Derive the dev version
         id: version
+        if: steps.channel.outputs.publish == 'true'
         working-directory: cedar-embeddable-editor
         run: |
           base=$(node -p "require('./package.json').version.split('-')[0]")
@@ -219,6 +256,7 @@ jobs:
       # username and a base64 password are the pair it does read. An absent secret is
       # reported here, where it names itself, rather than as that same ENEEDAUTH.
       - name: Point the scope at Nexus
+        if: steps.channel.outputs.publish == 'true'
         working-directory: cedar-embeddable-editor
         run: |
           for name in NEXUS_USERNAME NEXUS_PASSWORD; do
@@ -239,6 +277,7 @@ jobs:
       # Re-running a workflow on the same commit must not fail, and must not try to
       # overwrite an immutable version with different bytes.
       - name: Publish unless this commit is already published
+        if: steps.channel.outputs.publish == 'true'
         working-directory: cedar-embeddable-editor
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -253,9 +292,6 @@ jobs:
             const fs = require("node:fs");
             const path = `${process.env.STAGED}/package.json`;
             const manifest = JSON.parse(fs.readFileSync(path, "utf8"));
-            if (!manifest.name.startsWith("@org.metadatacenter/")) {
-              throw new Error(`refusing to publish ${manifest.name} to the dev channel`);
-            }
             manifest.version = process.env.VERSION;
             fs.writeFileSync(path, JSON.stringify(manifest, null, 2) + "\n");
           '

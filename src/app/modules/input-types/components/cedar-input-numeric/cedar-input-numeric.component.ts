@@ -129,7 +129,7 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
   }
 
   /**
-   * The amount the browser's spinner and arrow keys move the value by.
+   * The amount the arrow keys move the value by, the widget drawing no stepper.
    *
    * Derived from what the field declares, because the browser's default is one:
    * right for an integer, and wrong for a field declaring two decimal places,

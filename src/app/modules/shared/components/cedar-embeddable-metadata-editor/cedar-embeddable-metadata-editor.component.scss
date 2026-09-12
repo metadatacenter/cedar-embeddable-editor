@@ -1,6 +1,11 @@
 @use '../../../../../styles-common' as common;
 @use '../../../../../cee-tokens' as tokens;
 
+/* Angular Material fixes a card avatar at 40px, and the track the identity block
+ * occupies is wider than that so the version stamp has room to read. */
+$mark-size: 40px;
+$logo-track: 72px;
+
 :host {
   display: block;
   min-width: 0;
@@ -16,7 +21,7 @@
 }
 .template-header {
   display: grid;
-  grid-template-columns: 72px minmax(192px, 1fr) auto;
+  grid-template-columns: $logo-track minmax(192px, 1fr) auto;
   /*
    * Two rows: what the artifact is, then what can be done to it. The provenance shares the first row
    * with the icon and the name rather than sitting above them, and the controls take a row of their
@@ -54,14 +59,16 @@
  * The stack is flush with the left of that track rather than centred in it, so
  * the mark starts on the gutter every field below it starts on. Centred, a short
  * version left the mark 16px inside a header whose right edge the provenance sat
- * on, and the two sides of one row read as different margins.
+ * on, and the two sides of one row read as different margins. The name and the
+ * stamp centre on the mark instead of starting on that same edge, which left
+ * both of them hanging off its left side.
  */
 .logo-block {
   grid-area: logo;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  flex: 0 0 72px;
+  flex: 0 0 $logo-track;
   min-width: 0;
   color: inherit;
   text-decoration: none;
@@ -87,7 +94,6 @@
 
 .cee-version {
   display: block;
-  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -95,6 +101,19 @@
   line-height: 1;
   color: #666;
   margin-top: 2px;
+}
+
+/*
+ * Both lines take the mark's width before they take their own, which centres a
+ * short name or version under the mark. A version wider than the mark grows
+ * rightwards into the rest of the track, and one wider than the track ellipses
+ * there, as it did before.
+ */
+.cee-name,
+.cee-version {
+  min-width: $mark-size;
+  max-width: $logo-track;
+  text-align: center;
 }
 .template-title-block {
   grid-area: title;
