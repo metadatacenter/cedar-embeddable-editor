@@ -25,7 +25,7 @@
     "fsevents@2.3.2": true
   },
   "dependencies": {
-    "cedar-model-typescript-library": "1.0.8"
+    "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@1.0.9-dev.20260911.07caa05"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",
