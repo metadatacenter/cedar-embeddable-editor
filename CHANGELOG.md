@@ -47,6 +47,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cedar-embeddable-field` emits `valueChange` when validity changes even if the normalized value
   does not, including numeric edits such as `1.5` to `1.50` and back.
 
+## [2.0.11] - 2026-09-11
+
+This release carries CEE's field presentation changes against the same public
+`cedar-model-typescript-library@1.0.8` package 2.0.10 embedded. The model library remains compiled
+into CEE's browser bundle and is not a runtime dependency for embedding applications.
+
+### Changed
+
+- A field's hint, error and warning now start at the left edge of its box, a date field is sized to
+  the date it holds, the numeric stepper is replaced by a clear action with the unit centred, and
+  the CEE name and version are centred under the mark.
+
 ## [2.0.10] - 2026-09-10
 
 This release aligns CEE's build-time model dependency with the public
