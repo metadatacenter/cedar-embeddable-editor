@@ -1,3 +1,4 @@
+import { ControlDensityDirective } from '../shared/directives/control-density.directive';
 import { SpecPlaceholderPipe } from '../shared/pipe/spec-placeholder.pipe';
 import { CedarTermLinkComponent } from '../shared/components/cedar-term-link/cedar-term-link.component';
 import { NgModule } from '@angular/core';
@@ -59,6 +60,7 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
 
 @NgModule({
   imports: [
+    ControlDensityDirective,
     CommonModule,
     MatAutocompleteModule,
     MatCardModule,

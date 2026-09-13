@@ -34,7 +34,6 @@
           type="text"
           [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
           cdkTextareaAutosize
-          cdkAutosizeMinRows="6"
           [formControl]="inputValueControl"
           (input)="inputChanged($event)"
           attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"

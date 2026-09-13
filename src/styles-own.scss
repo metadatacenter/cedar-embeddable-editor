@@ -4,15 +4,11 @@
 @use 'cee-tokens' as tokens;
 @use 'cee-material-theme' as theme;
 @use '@angular/cdk' as cdk;
+@use 'cedar-compact';
 
 @include theme.core();
 
-// CEE publishes no theming surface. Eight `--cee-*` custom properties stood here,
-// described as versioned API; two were read nowhere, and the five colours never
-// reached a Material component, because the theme is compiled from Sass and no
-// override could touch it. What an embedder could actually move was the time
-// picker's focus colour and three element-heading metrics, and no embedder moved
-// any of them. Revisiting theming properly is on CEE-ROADMAP.md.
+// The compact control contract is documented in STYLING.md.
 :host {
   display: block;
   box-sizing: border-box;
@@ -514,9 +510,9 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  * that outranks this one. Measured, not assumed: without it the computed colour
  * stays rgba(0, 0, 0, 0.38).
  */
-.mat-form-field-appearance-outline .mdc-notched-outline__leading,
-.mat-form-field-appearance-outline .mdc-notched-outline__notch,
-.mat-form-field-appearance-outline .mdc-notched-outline__trailing {
+:host(:not([density='compact'])) .mat-form-field-appearance-outline .mdc-notched-outline__leading,
+:host(:not([density='compact'])) .mat-form-field-appearance-outline .mdc-notched-outline__notch,
+:host(:not([density='compact'])) .mat-form-field-appearance-outline .mdc-notched-outline__trailing {
   border-color: black !important;
 }
 

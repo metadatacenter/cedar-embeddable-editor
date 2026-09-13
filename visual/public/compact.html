@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CEDAR compact controls</title>
+    <style>
+      body {
+        margin: 24px;
+        font:
+          14px Arial,
+          sans-serif;
+        color: #333;
+        background: #f5f6f6;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      main {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(280px, 1fr));
+        gap: 20px;
+      }
+      section {
+        min-width: 0;
+        background: white;
+        padding: 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      h2 {
+        font-size: 16px;
+        margin: 0 0 20px;
+      }
+      label {
+        display: block;
+        margin: 12px 0 4px;
+      }
+      select {
+        padding: 6px;
+      }
+      @media (max-width: 900px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <script src="cedar-embeddable-editor.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Compact controls</h1>
+      <select aria-label="Fields">
+        <option value="01-input-types">Text, numbers and dates</option>
+        <option value="09-temporal">Temporal precision</option>
+      </select>
+    </header>
+    <main>
+      <section>
+        <h2>Read-only CEE — reference</h2>
+        <div id="readonly"></div>
+      </section>
+      <section>
+        <h2>Editable CEF</h2>
+        <div id="fields"></div>
+      </section>
+      <section>
+        <h2>Editable CEE</h2>
+        <div id="editable"></div>
+      </section>
+    </main>
+    <script>
+      async function show(name) {
+        const template = await fetch('fixtures/' + name + '.json').then((r) => r.json());
+        await customElements.whenDefined('cedar-embeddable-field');
+        for (const [id, readOnlyMode] of [
+          ['readonly', true],
+          ['editable', false],
+        ]) {
+          const editor = document.createElement('cedar-embeddable-editor');
+          editor.setAttribute('density', 'compact');
+          editor.config = { readOnlyMode, showDownloadMenu: false, showExpandCollapseAll: false };
+          editor.templateObject = structuredClone(template);
+          document.getElementById(id).replaceChildren(editor);
+        }
+        const children = [];
+        for (const key of template._ui.order) {
+          const field = template.properties[key]?.items ?? template.properties[key];
+          if (!field) continue;
+          const label = document.createElement('label');
+          label.textContent = field['schema:name'] ?? key;
+          const control = document.createElement('cedar-embeddable-field');
+          control.setAttribute('density', 'compact');
+          control.config = { readOnlyMode: false };
+          control.fieldObject = structuredClone(field);
+          children.push(label, control);
+        }
+        document.getElementById('fields').replaceChildren(...children);
+      }
+      document.querySelector('select').addEventListener('change', (e) => show(e.target.value));
+      show('01-input-types');
+    </script>
+  </body>
+</html>
