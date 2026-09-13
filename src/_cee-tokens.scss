@@ -158,7 +158,7 @@ $cee-color-warn: #f44336;
 // that has just discarded what the user typed has to say so while a required
 // field's own error is still showing, so the notice sits outside that slot — and
 // in a colour unlike the error red, or the two read as one message.
-$cee-color-warning: #856404;
+$cee-color-warning: #b45309;
 
 // Brand colors used directly in component CSS rather than through the theme.
 $cee-color-icon-hover: map.get($cee-brand-primary, 500);

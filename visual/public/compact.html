@@ -84,7 +84,7 @@
           ['editable', false],
         ]) {
           const editor = document.createElement('cedar-embeddable-editor');
-          editor.setAttribute('density', 'compact');
+          if (readOnlyMode) editor.setAttribute('density', 'comfortable');
           editor.config = { readOnlyMode, showDownloadMenu: false, showExpandCollapseAll: false };
           editor.templateObject = structuredClone(template);
           document.getElementById(id).replaceChildren(editor);
@@ -96,7 +96,7 @@
           const label = document.createElement('label');
           label.textContent = field['schema:name'] ?? key;
           const control = document.createElement('cedar-embeddable-field');
-          control.setAttribute('density', 'compact');
+
           control.config = { readOnlyMode: false };
           control.fieldObject = structuredClone(field);
           children.push(label, control);

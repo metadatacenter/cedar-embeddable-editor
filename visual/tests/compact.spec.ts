@@ -5,7 +5,7 @@ test('compact CEF matches read-only height and stays compact after typing and cl
   await page.goto(`/host.html?host=field&t=01-input-types&p=_text&b=${BUNDLE_VERSION}`);
   await page.waitForFunction(() => window.__ceeReady);
   const field = page.locator('cedar-embeddable-field');
-  await field.evaluate((el) => el.setAttribute('density', 'compact'));
+
   const box = field.locator('.mat-mdc-text-field-wrapper').first();
   await expect(box).toBeVisible();
   await expect.poll(async () => (await box.boundingBox())!.height).toBe(36);
@@ -16,6 +16,7 @@ test('compact CEF matches read-only height and stays compact after typing and cl
   await expect.poll(async () => (await box.boundingBox())!.height).toBe(36);
   const referencePage = await page.context().newPage();
   await open(referencePage, '01-input-types', 'readonly');
+  await referencePage.locator('cedar-embeddable-editor').evaluate((el) => el.setAttribute('density', 'comfortable'));
   const reference = referencePage.locator('.cee-spec-box').first();
   await expect(reference).toBeVisible();
   expect((await reference.boundingBox())!.height).toBe((await box.boundingBox())!.height);
@@ -30,7 +31,7 @@ test('compact CEF matches read-only height and stays compact after typing and cl
 test('editable compact CEE uses the same box height and keeps temporal placeholders whole', async ({ page }) => {
   await open(page, '09-temporal');
   const editor = page.locator('cedar-embeddable-editor');
-  await editor.evaluate((el) => el.setAttribute('density', 'compact'));
+
   const clocks = editor.locator('.cee-time-input-shell');
   await expect(clocks.first()).toBeVisible();
   for (const clock of await clocks.all()) {
@@ -57,7 +58,7 @@ test('compact paragraphs start with two rows and grow without clipping content',
   await page.goto(`/host.html?host=field&t=01-input-types&p=_textarea&b=${BUNDLE_VERSION}`);
   await page.waitForFunction(() => window.__ceeReady);
   const field = page.locator('cedar-embeddable-field');
-  await field.evaluate((el) => el.setAttribute('density', 'compact'));
+
   const input = field.locator('textarea');
   await expect(input).toBeVisible();
   await expect.poll(async () => (await input.boundingBox())!.height).toBeLessThanOrEqual(50);

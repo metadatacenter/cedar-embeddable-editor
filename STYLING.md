@@ -1,14 +1,13 @@
 # Shared compact controls: CEE, CEF and CED
 
 Read-only CEE is the reference. A single-line control is 36px high, with 14px
-regular text, a 22px line height, a 1px outline and 4px corners. Editing adds
+regular text, a 21px line height, a 1px outline and 4px corners. Editing adds
 interaction without enlarging the box when a value, clear button or calendar
 button appears. Precision, formatting and validation are independent of density.
 
-Set `density="compact"` on either `cedar-embeddable-editor` or
-`cedar-embeddable-field`. This is a presentation attribute, independent of
-`config.readOnlyMode`; it can change without recreating a control or losing input.
-Without it, existing editable layouts retain their current sizing.
+CEE and CEF use this read-only-based sizing by default, independently of
+`config.readOnlyMode`. `density="compact"` remains a supported explicit spelling.
+Use `density="comfortable"` only to request the older, larger editable sizing.
 
 ## Tokens
 
@@ -19,9 +18,9 @@ inherit through shadow roots. CED's native default inputs consume the same token
 | ----------------------------- | --------- | ------------------------------------ |
 | `--cedar-control-height`      | `36px`    | Single-line box and action height    |
 | `--cedar-control-font-size`   | `14px`    | Value text                           |
-| `--cedar-control-line-height` | `22px`    | Value line height                    |
+| `--cedar-control-line-height` | `21px`    | Value line height                    |
 | `--cedar-control-radius`      | `4px`     | Outline corners                      |
-| `--cedar-control-border`      | `#777`    | Resting outline                      |
+| `--cedar-control-border`      | `rgba(0, 0, 0, 0.38)`    | Resting outline                      |
 | `--cedar-control-focus`       | `#0f7686` | Focus outline                        |
 | `--cedar-textarea-min-rows`   | `2`       | Starting rows for compact paragraphs |
 | `--cedar-control-error`       | `#b42318` | Invalid outline and message          |

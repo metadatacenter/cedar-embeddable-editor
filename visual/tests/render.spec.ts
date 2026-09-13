@@ -1643,6 +1643,7 @@ test.describe('every external authority widget', () => {
       await expect(input, 'text naming no term cannot be saved, so it must not linger').toHaveValue('');
       await expect(page.locator('mat-error')).toHaveCount(0);
       await expect(page.locator('.input-warning')).toHaveCount(1);
+      await expect(page.locator('.input-warning')).toHaveCSS('color', 'rgb(180, 83, 9)');
     });
 
     /** Each widget's message names its own authority. */

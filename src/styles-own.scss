@@ -510,9 +510,9 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  * that outranks this one. Measured, not assumed: without it the computed colour
  * stays rgba(0, 0, 0, 0.38).
  */
-:host(:not([density='compact'])) .mat-form-field-appearance-outline .mdc-notched-outline__leading,
-:host(:not([density='compact'])) .mat-form-field-appearance-outline .mdc-notched-outline__notch,
-:host(:not([density='compact'])) .mat-form-field-appearance-outline .mdc-notched-outline__trailing {
+:host([density='comfortable']) .mat-form-field-appearance-outline .mdc-notched-outline__leading,
+:host([density='comfortable']) .mat-form-field-appearance-outline .mdc-notched-outline__notch,
+:host([density='comfortable']) .mat-form-field-appearance-outline .mdc-notched-outline__trailing {
   border-color: black !important;
 }
 

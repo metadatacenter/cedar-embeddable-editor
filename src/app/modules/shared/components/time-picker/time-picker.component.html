@@ -59,15 +59,15 @@
       </button>
     }
     @if (restoredSegment === 'hour') {
-      <div class="cee-time-validation" role="alert">
+      <div class="cee-time-validation input-warning" role="status">
         {{ (enableMeridian ? 'Validation.Time.InvalidHour12' : 'Validation.Time.InvalidHour24') | translate }}
       </div>
     }
     @if (restoredSegment === 'minute') {
-      <div class="cee-time-validation" role="alert">{{ 'Validation.Time.InvalidMinute' | translate }}</div>
+      <div class="cee-time-validation input-warning" role="status">{{ 'Validation.Time.InvalidMinute' | translate }}</div>
     }
     @if (restoredSegment === 'second') {
-      <div class="cee-time-validation" role="alert">{{ 'Validation.Time.InvalidSecond' | translate }}</div>
+      <div class="cee-time-validation input-warning" role="status">{{ 'Validation.Time.InvalidSecond' | translate }}</div>
     }
   </div>
 }
