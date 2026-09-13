@@ -3435,10 +3435,12 @@ test.describe('date display formats', () => {
 
 /**
  * Date, clock, fraction, offset and clear are separate components, but they are
- * perceived as one temporal control. Material gives a date field a 48px row as
- * soon as its calendar action is present, while CEE's compact fields otherwise
- * settle at 36px. Guard the shared action-row height so the pieces cannot drift
- * back into the stepped baseline seen in the filled migration template.
+ * perceived as one temporal control. Material would give the date field a taller
+ * row than its neighbours as soon as the calendar action appeared, because that
+ * action is an icon button. The compact adapter sizes suffix actions to the
+ * control height instead, so every piece holds the same 36px row. Guard that
+ * shared height so the pieces cannot drift back into the stepped baseline seen
+ * in the filled migration template.
  */
 test('temporal controls share one action-row height and wide-screen baseline', async ({ page }, testInfo) => {
   await open(page, '07-timezone');
@@ -3459,7 +3461,7 @@ test('temporal controls share one action-row height and wide-screen baseline', a
   });
 
   for (const box of composed) {
-    expect(box.height, 'every visible temporal control uses the Material action-row height').toBeCloseTo(48, 0);
+    expect(box.height, 'every visible temporal control uses the compact action-row height').toBeCloseTo(36, 0);
   }
   if (testInfo.project.name === 'desktop') {
     expect(Math.max(...composed.map(({ top }) => top)) - Math.min(...composed.map(({ top }) => top))).toBeLessThan(1);
@@ -3488,7 +3490,7 @@ test('temporal controls share one action-row height and wide-screen baseline', a
   });
 
   for (const box of [...filled.date, ...filled.fractionalTime]) {
-    expect(box.height).toBeCloseTo(48, 0);
+    expect(box.height).toBeCloseTo(36, 0);
   }
   if (testInfo.project.name === 'desktop') {
     for (const row of [filled.date, filled.fractionalTime]) {
