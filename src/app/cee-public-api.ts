@@ -452,8 +452,7 @@ export interface CedarEmbeddableFieldElement extends HTMLElement {
   addEventListener(
     type: 'valueChange',
     listener:
-      | ((this: CedarEmbeddableFieldElement, event: CustomEvent<CedarEmbeddableFieldChangeDetail>) => unknown)
-      | null,
+      ((this: CedarEmbeddableFieldElement, event: CustomEvent<CedarEmbeddableFieldChangeDetail>) => unknown) | null,
     options?: boolean | AddEventListenerOptions,
   ): void;
   addEventListener<K extends keyof HTMLElementEventMap>(
@@ -470,8 +469,7 @@ export interface CedarEmbeddableFieldElement extends HTMLElement {
   removeEventListener(
     type: 'valueChange',
     listener:
-      | ((this: CedarEmbeddableFieldElement, event: CustomEvent<CedarEmbeddableFieldChangeDetail>) => unknown)
-      | null,
+      ((this: CedarEmbeddableFieldElement, event: CustomEvent<CedarEmbeddableFieldChangeDetail>) => unknown) | null,
     options?: boolean | EventListenerOptions,
   ): void;
   removeEventListener<K extends keyof HTMLElementEventMap>(

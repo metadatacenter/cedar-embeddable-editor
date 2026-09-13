@@ -354,7 +354,7 @@ const branchSource = (branch: BranchConstraint): SpecTermSource => {
     kind: 'branch',
     name: branch.name ?? branch.uri ?? '',
     container,
-    acronym: namesItsOwnAcronym ? null : branch.acronym ?? null,
+    acronym: namesItsOwnAcronym ? null : (branch.acronym ?? null),
     uri: branch.uri ?? null,
   };
 };

@@ -52,7 +52,7 @@ export function isInstanceArray(node: InstanceNode | null | undefined): node is 
  */
 export function childOf(node: InstanceNode | null | undefined, key: string | number): InstanceNode | null {
   if (isInstanceArray(node)) {
-    return typeof key === 'number' ? node[key] ?? null : null;
+    return typeof key === 'number' ? (node[key] ?? null) : null;
   }
   if (isInstanceObject(node)) {
     return node.values[String(key)] ?? null;

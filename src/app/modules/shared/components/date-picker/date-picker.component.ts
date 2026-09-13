@@ -96,7 +96,7 @@ export class DatePickerComponent implements OnInit {
    * next month.
    */
   chosenYearHandler(normalizedYear: Date, datepicker: MatDatepicker<Date>): void {
-    const month = this.dateFormat === this.yearFormat ? 0 : this.dateMonthYear.value?.getMonth() ?? 0;
+    const month = this.dateFormat === this.yearFormat ? 0 : (this.dateMonthYear.value?.getMonth() ?? 0);
     const next = DatePickerComponent.localDate(normalizedYear.getFullYear(), month, 1);
     this.dateMonthYear.setValue(next);
     if (this.dateFormat === this.yearFormat) {
