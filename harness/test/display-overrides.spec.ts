@@ -129,6 +129,21 @@ for (const format of ['JSON', 'YAML']) {
       expect(rendered(component)).toBe('Lab ID');
       expect(component.labelInfo.deploymentLabel).toBeNull();
     });
+
+    // The YAML shape: the writers emit an entry only where it differs from the artifact's own name,
+    // so a reader restores the name wherever the document overrode nothing. An entry repeating the
+    // name therefore says no more than an absent one, in either serialization.
+    it('ignores an entry repeating the artifact name, and shows the preferred label instead', () => {
+      const component = childOf(
+        format,
+        { name: 'Artifact name', preferredLabel: 'Semantic label' },
+        { label: 'Artifact name' },
+      );
+
+      expect(rendered(component)).toBe('Semantic label');
+      expect(component.labelInfo.deploymentLabel).toBeNull();
+      expect(component.labelInfo.label).toBe('Artifact name');
+    });
   });
 
   describe(`${format} display descriptions`, () => {

@@ -545,9 +545,15 @@ export class ModelLibraryTemplateParser implements TemplateParser {
    * artifact's own label and description. What counts as one is the narrow part.
    *
    * CEDAR's writers fill `_ui.propertyLabels` and `_ui.propertyDescriptions` for every child,
-   * labelled or not, so the presence of an entry declares nothing. An entry repeating the property
-   * key is that fill: the Template Designer writes the key into both maps when a child is renamed,
-   * and the key identifies the child inside its parent rather than saying anything a reader wants.
+   * labelled or not, so the presence of an entry declares nothing. Two shapes are that fill. An
+   * entry repeating the property key is one: the Template Designer writes the key into both maps
+   * when a child is renamed, and the key identifies the child inside its parent rather than saying
+   * anything a reader wants. An entry repeating what the artifact says about itself is the other,
+   * which is what a YAML document comes back as — the YAML writers emit an entry only where it
+   * differs from the artifact's own value, so a reader restores the artifact's value wherever the
+   * document overrode nothing, and a template would otherwise label one way as JSON and another as
+   * YAML. The Java library reads both shapes as no override.
+   *
    * Anything else is an override, an explicit empty string included — a label the author cleared is
    * a label they cleared.
    *
@@ -561,16 +567,24 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     fc: { labelInfo: LabelInfo },
   ): void {
     fc.labelInfo.preferredLabel = artifact.skos_prefLabel ?? null;
-    fc.labelInfo.deploymentLabel = ModelLibraryTemplateParser.declared(childInfo.label, name);
+    fc.labelInfo.deploymentLabel = ModelLibraryTemplateParser.declared(childInfo.label, name, artifact.schema_name);
     fc.labelInfo.label = artifact.schema_name ?? null;
     fc.labelInfo.description =
-      ModelLibraryTemplateParser.authored(ModelLibraryTemplateParser.declared(childInfo.description, name)) ??
-      ModelLibraryTemplateParser.authored(artifact.schema_description);
+      ModelLibraryTemplateParser.authored(
+        ModelLibraryTemplateParser.declared(childInfo.description, name, artifact.schema_description),
+      ) ?? ModelLibraryTemplateParser.authored(artifact.schema_description);
   }
 
-  /** What the parent declares about this child, or null where the entry only repeats its key. */
-  private static declared(entry: string | null | undefined, key: string): string | null {
-    return entry == null || entry === key ? null : entry;
+  /**
+   * What the parent declares about this child, or null where the entry only repeats the property
+   * key or what the artifact already says about itself.
+   */
+  private static declared(
+    entry: string | null | undefined,
+    key: string,
+    own: string | null | undefined,
+  ): string | null {
+    return entry == null || entry === key || entry === own ? null : entry;
   }
 
   /**
