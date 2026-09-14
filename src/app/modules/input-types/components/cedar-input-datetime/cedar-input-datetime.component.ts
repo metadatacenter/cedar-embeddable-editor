@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   HostListener,
+  inject,
   Input,
   ViewEncapsulation,
   ChangeDetectionStrategy,
@@ -11,6 +12,7 @@ import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 import { Xsd } from '../../../shared/models/xsd.model';
@@ -88,6 +90,9 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   onUserEdit(): void {
     this.userEdited = true;
   }
+
+  /** The display-label rule, which names this control the way the form labels it. */
+  readonly cds = inject(ComponentDataService);
 
   @Input({ required: true }) handlerContext!: HandlerContext;
 

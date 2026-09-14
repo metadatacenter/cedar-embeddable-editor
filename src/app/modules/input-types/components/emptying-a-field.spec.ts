@@ -55,6 +55,7 @@ const inject = <T>(build: () => T): T => {
   const injector = Injector.create({
     providers: [
       { provide: ActiveComponentRegistryService, useValue: registry() },
+      { provide: ComponentDataService, useValue: new ComponentDataService() },
       { provide: UserPreferencesService, useValue: { readOnlyMode$: of(false) } },
       { provide: ChangeDetectorRef, useValue: { markForCheck: vi.fn(), detectChanges: vi.fn() } },
     ],

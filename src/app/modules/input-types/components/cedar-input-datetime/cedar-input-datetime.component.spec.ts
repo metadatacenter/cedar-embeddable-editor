@@ -6,6 +6,7 @@ import { InputType } from '../../../shared/models/input-type.model';
 import { Temporal } from '../../../shared/models/temporal.model';
 import { Xsd } from '../../../shared/models/xsd.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
+import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { UserPreferencesService } from '../../../shared/service/user-preferences.service';
 import { CedarInputDatetimeComponent } from './cedar-input-datetime.component';
 
@@ -23,6 +24,7 @@ describe('CedarInputDatetimeComponent model-to-view sync', () => {
         { provide: UserPreferencesService, useValue: new UserPreferencesService() },
         { provide: ChangeDetectorRef, useValue: { markForCheck: vi.fn(), detectChanges: vi.fn() } },
         { provide: ActiveComponentRegistryService, useValue: registry },
+        { provide: ComponentDataService, useValue: new ComponentDataService() },
       ],
     });
     const component = runInInjectionContext(
@@ -127,6 +129,7 @@ describe('CedarInputDatetimeComponent by granularity', () => {
         { provide: UserPreferencesService, useValue: new UserPreferencesService() },
         { provide: ChangeDetectorRef, useValue: { markForCheck: vi.fn(), detectChanges: vi.fn() } },
         { provide: ActiveComponentRegistryService, useValue: registry },
+        { provide: ComponentDataService, useValue: new ComponentDataService() },
       ],
     });
     const component = runInInjectionContext(
