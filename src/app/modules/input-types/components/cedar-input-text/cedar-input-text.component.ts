@@ -114,7 +114,7 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     this.isRichText = presented !== null && this.htmlDetectService.isHtmlString(presented);
     this.originalValue = this.isOrcid || this.isRor ? presented : null;
     // An identifier is shown by its last segment; the link keeps the whole IRI.
-    this.inputValueControl.setValue(this.originalValue === null ? text : this.originalValue.split('/').pop() ?? null);
+    this.inputValueControl.setValue(this.originalValue === null ? text : (this.originalValue.split('/').pop() ?? null));
   }
 
   /**

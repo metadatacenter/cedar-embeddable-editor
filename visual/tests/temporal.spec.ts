@@ -316,15 +316,16 @@ test.describe('the time picker', () => {
 
     await hour.fill('25');
     await expect(hour, 'do not interrupt while the user is still typing').toHaveValue('25');
-    await expect(picker.getByRole('alert')).toHaveCount(0);
+    await expect(picker.getByRole('status')).toHaveCount(0);
     expect(await storedValue(page, '_to_the_minute'), 'an invalid edit must never reach metadata').toBeNull();
 
     await hour.blur();
     await expect(hour, 'there was no previous value, so blur restores the empty field').toHaveValue('');
-    await expect(picker.getByRole('alert')).toContainText('00 to 23');
+    await expect(picker.getByRole('status')).toContainText('00 to 23');
+    await expect(picker.getByRole('status')).toHaveCSS('color', 'rgb(180, 83, 9)');
 
     await hour.fill('14');
-    await expect(picker.getByRole('alert'), 'a correction clears the feedback live').toHaveCount(0);
+    await expect(picker.getByRole('status'), 'a correction clears the feedback live').toHaveCount(0);
     await expect.poll(async () => String(await storedValue(page, '_to_the_minute'))).toContain('14:');
   });
 

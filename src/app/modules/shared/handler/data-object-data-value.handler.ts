@@ -204,7 +204,7 @@ export class DataObjectDataValueHandler {
 
     // The property IRI moves with the name, so an attribute keeps its identity
     // across a rename rather than being minted a new one.
-    const propertyIri = needsDeleting ? parentDataObject.iris[oldName] ?? '' : '';
+    const propertyIri = needsDeleting ? (parentDataObject.iris[oldName] ?? '') : '';
     if (needsDeleting) {
       parentDataObject.removeValue(oldName);
     }

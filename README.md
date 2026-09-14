@@ -25,6 +25,9 @@ plain HTML page as readily as in an Angular, React, or Ember application.
 
 ## Documentation
 
+For consistent compact controls across CEE, CEF and CED, see the
+[shared styling guide](STYLING.md).
+
 The [CEDAR Embeddable Editor documentation](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/)
 covers embedding the component in a page or a framework, configuring it,
 controlled terms and external identifiers, validation, appearance, and security.

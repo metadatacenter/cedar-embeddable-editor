@@ -47,6 +47,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cedar-embeddable-field` emits `valueChange` when validity changes even if the normalized value
   does not, including numeric edits such as `1.5` to `1.50` and back.
 
+## [2.0.12] - 2026-09-13
+
+This release aligns CEE's build-time model dependency with the public
+`cedar-model-typescript-library@1.0.9` package and carries the control presentation changes made
+since 2.0.11. The model library remains compiled into CEE's browser bundle and is not a runtime
+dependency for embedding applications.
+
+### Changed
+
+- Controls are compact by default, and CEE and CEF share the styling that makes them so. A
+  recovery warning is presented distinctly from an error.
+
+- The Angular toolchain moves to 22.1.8, which clears the advisories reported under it.
+
+- The application and visual-test dependency graphs now pin the same public
+  `cedar-model-typescript-library@1.0.9` tarball from npmjs.
+
 ## [2.0.11] - 2026-09-11
 
 This release carries CEE's field presentation changes against the same public

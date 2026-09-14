@@ -124,13 +124,11 @@ export class MultiInstanceObjectHandler {
         continue;
       }
 
-      if (
-        !(
-          component instanceof MultiElementComponent ||
-          component instanceof SingleElementComponent ||
-          component instanceof CedarTemplate
-        )
-      ) {
+      if (!(
+        component instanceof MultiElementComponent ||
+        component instanceof SingleElementComponent ||
+        component instanceof CedarTemplate
+      )) {
         return;
       }
       component = component.getChildByName(step);
@@ -149,13 +147,11 @@ export class MultiInstanceObjectHandler {
   }
 
   private buildRecursively(cedarComponent: CedarComponent, multiInstanceObject: MultiInstanceInfo): void {
-    if (
-      !(
-        cedarComponent instanceof MultiElementComponent ||
-        cedarComponent instanceof SingleElementComponent ||
-        cedarComponent instanceof CedarTemplate
-      )
-    ) {
+    if (!(
+      cedarComponent instanceof MultiElementComponent ||
+      cedarComponent instanceof SingleElementComponent ||
+      cedarComponent instanceof CedarTemplate
+    )) {
       return;
     }
     const elementComponent = cedarComponent as ElementComponent;
