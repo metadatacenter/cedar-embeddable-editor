@@ -184,6 +184,9 @@ type ControlledConstraintEntry =
  * to reproduce the difference.
  */
 export class ModelLibraryTemplateParser implements TemplateParser {
+  /** The Template Designer's placeholder for a description nobody wrote. */
+  private static readonly BLANK_DESCRIPTION = 'Help Text';
+
   /**
    * Read a template that arrived as JSON.
    *
@@ -538,11 +541,18 @@ export class ModelLibraryTemplateParser implements TemplateParser {
   }
 
   /**
-   * Parent display overrides describe this deployment, so they take precedence
-   * over the reusable artifact's labels and description. A missing override
-   * falls back to the artifact; an explicit empty string remains an override.
-   * Keep the preferred label separately so displaying an override does not
-   * change the field's semantic metadata.
+   * A parent display override describes this deployment, so it takes precedence over the reusable
+   * artifact's own label and description. What counts as one is the narrow part.
+   *
+   * CEDAR's writers fill `_ui.propertyLabels` and `_ui.propertyDescriptions` for every child,
+   * labelled or not, so the presence of an entry declares nothing. An entry repeating the property
+   * key is that fill: the Template Designer writes the key into both maps when a child is renamed,
+   * and the key identifies the child inside its parent rather than saying anything a reader wants.
+   * Anything else is an override, an explicit empty string included — a label the author cleared is
+   * a label they cleared.
+   *
+   * Keep the preferred label separately so displaying an override does not change the field's
+   * semantic metadata.
    */
   private static extractLabels(
     artifact: TemplateField | TemplateElement,
@@ -551,8 +561,23 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     fc: { labelInfo: LabelInfo },
   ): void {
     fc.labelInfo.preferredLabel = artifact.skos_prefLabel ?? null;
-    fc.labelInfo.deploymentLabel = childInfo.label ?? null;
-    fc.labelInfo.description = childInfo.description ?? artifact.schema_description;
-    fc.labelInfo.label = artifact.schema_name ?? name;
+    fc.labelInfo.deploymentLabel = ModelLibraryTemplateParser.declared(childInfo.label, name);
+    fc.labelInfo.label = artifact.schema_name ?? null;
+    fc.labelInfo.description =
+      ModelLibraryTemplateParser.authored(ModelLibraryTemplateParser.declared(childInfo.description, name)) ??
+      ModelLibraryTemplateParser.authored(artifact.schema_description);
+  }
+
+  /** What the parent declares about this child, or null where the entry only repeats its key. */
+  private static declared(entry: string | null | undefined, key: string): string | null {
+    return entry == null || entry === key ? null : entry;
+  }
+
+  /**
+   * A description someone wrote, or null for `Help Text` — what the Template Designer stores when
+   * the author left the box empty, and a string no form should put in front of a reader.
+   */
+  private static authored(description: string | null | undefined): string | null {
+    return description == null || description === ModelLibraryTemplateParser.BLANK_DESCRIPTION ? null : description;
   }
 }
