@@ -47,6 +47,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cedar-embeddable-field` emits `valueChange` when validity changes even if the normalized value
   does not, including numeric edits such as `1.5` to `1.50` and back.
 
+## [2.0.13] - 2026-09-14
+
+This release aligns CEE's build-time model dependency with the public
+`cedar-model-typescript-library@1.0.10` package and carries the labelling and toolbar changes made
+since 2.0.12. The model library remains compiled into CEE's browser bundle and is not a runtime
+dependency for embedding applications.
+
+### Changed
+
+- A field is labelled by what its template says about it rather than by its property key. A
+  parent's `_ui.propertyLabels` entry counts as an override only where it differs from the key, and
+  the order is override, `skos:prefLabel`, `schema:name`, then the key. Descriptions follow the same
+  test, with `Help Text` treated as absent wherever it appears.
+
+- The form's three actions are drawn as one row of icons. Expand All and Collapse All keep their
+  labels as the tooltip and the accessible name.
+
+- The application and visual-test dependency graphs now pin the same public
+  `cedar-model-typescript-library@1.0.10` tarball from npmjs.
+
+### Fixed
+
+- A parent's label or description entry that repeats what the artifact says about itself is read as
+  no override, which is how the Java library reads it. The YAML writers emit such an entry only
+  where it differs from the artifact's own value, so a reader restores that value wherever the
+  document overrode nothing. Without this, the model library's restored entries made `schema:name`
+  beat `skos:prefLabel`, and one template labelled its fields one way as JSON and another as YAML.
+
 ## [2.0.12] - 2026-09-13
 
 This release aligns CEE's build-time model dependency with the public
