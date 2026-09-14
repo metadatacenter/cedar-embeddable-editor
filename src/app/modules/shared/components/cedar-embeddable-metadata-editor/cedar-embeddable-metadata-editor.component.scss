@@ -182,15 +182,25 @@ $logo-track: 72px;
   min-width: 0;
 }
 
+/*
+ * Expand, collapse and download: three icons, one row.
+ *
+ * Expand and collapse were text buttons, which made the row read as two labelled
+ * actions and a glyph, at three heights. The words said what the arrows say.
+ *
+ * `--_cedar-height` is what `_cedar-compact.scss` sizes every icon button from,
+ * so redeclaring it here resizes all three — the download trigger among them,
+ * which belongs to another component — without a second rule competing with the
+ * one that already does this work. These are actions on the form rather than
+ * controls inside it, so they take a box of their own and sit closer together
+ * than the suffix buttons that adapter was written for.
+ */
 .expand-buttons {
+  --_cedar-height: #{tokens.$cee-toolbar-control-size};
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px;
-
-  button {
-    white-space: nowrap;
-  }
+  gap: tokens.$cee-toolbar-control-gap;
 }
 
 .template-content {
@@ -284,7 +294,4 @@ $logo-track: 72px;
     margin-right: 0;
   }
 
-  .expand-buttons button {
-    flex: 1 1 0;
-  }
 }

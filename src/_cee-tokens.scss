@@ -187,3 +187,14 @@ $cee-header-trailing-slot: 40px;
 /// puts a control of its own above the card and aligns it with the fields, as
 /// the Workbench does with the metadata's name, inherited that step.
 $cee-gutter-inline: clamp(12px, 3cqi, 32px);
+
+/// The controls above the form — expand, collapse and download — as one row of
+/// icon buttons.
+///
+/// Smaller than the control height the rest of CEE uses, and closer together
+/// than a row of buttons would normally sit, so the three read as one group of
+/// actions on the form rather than three buttons that happen to be adjacent.
+/// The box hugs a 24px icon, which is the size Material draws one at and the
+/// size `_cedar-compact.scss` assumes when it derives an icon button's padding.
+$cee-toolbar-control-size: 30px;
+$cee-toolbar-control-gap: 2px;

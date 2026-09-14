@@ -56,11 +56,23 @@
         }
         <div class="expand-buttons">
           @if (showExpandCollapseAll) {
-            <button mat-button (click)="openAll()">
-              <mat-icon>unfold_more</mat-icon>{{ 'Generic.ExpandAll' | translate }}
+            <button
+              mat-icon-button
+              class="expand-trigger"
+              (click)="openAll()"
+              [attr.aria-label]="'Generic.ExpandAll' | translate"
+              matTooltip="{{ 'Generic.ExpandAll' | translate }}"
+            >
+              <mat-icon>unfold_more</mat-icon>
             </button>
-            <button mat-button (click)="closeAll()">
-              <mat-icon>unfold_less</mat-icon>{{ 'Generic.CollapseAll' | translate }}
+            <button
+              mat-icon-button
+              class="expand-trigger"
+              (click)="closeAll()"
+              [attr.aria-label]="'Generic.CollapseAll' | translate"
+              matTooltip="{{ 'Generic.CollapseAll' | translate }}"
+            >
+              <mat-icon>unfold_less</mat-icon>
             </button>
           }
           @if (showDownloadMenu) {

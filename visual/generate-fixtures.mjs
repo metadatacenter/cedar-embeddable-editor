@@ -923,10 +923,10 @@ const writeRaw = (name, document) => {
    * in no test, which is the wrong half to leave untested when the loader is a
    * third-party package on its own release schedule.
    *
-   * `Generic.ExpandAll` is the override because it renders in the form's own title
-   * block on every template and behind no config key, so the two readings sit side
-   * by side: built-in text without a prefix,
-   * this text with one.
+   * `Generic.ExpandAll` is the override because it names the expand control in the
+   * form's own title block on every template and behind no config key, so the two
+   * readings sit side by side. The control is an icon, so the string arrives as its
+   * `aria-label` rather than as text on the page.
    */
   const languages = join(served, 'languages');
   mkdirSync(languages, { recursive: true });

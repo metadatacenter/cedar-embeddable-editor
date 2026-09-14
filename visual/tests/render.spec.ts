@@ -92,11 +92,10 @@ test.describe('host style isolation', () => {
    *
    * Scoped to what CEE states, which is what it can fix. Angular Material's own
    * stylesheet still carries rem — a button's metrics among them — so under 62.5%
-   * an `Expand All` button narrows from 121px to 114px while its 14px label does
-   * not move. That is a residue in a dependency, not in CEE, and it is the reason
-   * the widths below are CEE's own boxes rather than every box on the page: the
-   * template title sits in a `1fr` grid column beside those buttons and inherits
-   * their shrinkage.
+   * a Material button narrows while the text inside it does not move. That is a
+   * residue in a dependency, not in CEE, and it is the reason the widths below are
+   * CEE's own boxes rather than every box on the page: the template title sits in a
+   * `1fr` grid column beside the header's controls and inherits their shrinkage.
    */
   test('the host page cannot resize CEE by changing its root font size', async ({ page }) => {
     // The description is off in `base`, and it is the only consumer of
@@ -2111,10 +2110,18 @@ test.describe('template-authored strings that are not rich text', () => {
   test('reach the help tooltip as text too', async ({ page }) => {
     await open(page, '20-static-markup');
 
-    const described = page.locator('[id^="cdk-describedby-message"]').first();
+    // The message this help icon points at, rather than the first on the page: the
+    // header's expand, collapse and download controls carry tooltips of their own,
+    // and theirs are registered before any field's.
+    const help = page.locator('app-cedar-static-section-break mat-icon.icon-help').first();
+    const describedBy = (await help.getAttribute('aria-describedby')) ?? '';
+    const messageId = describedBy.split(/\s+/).find((id) => id.startsWith('cdk-describedby-message'));
+    expect(messageId, 'the help icon points at no description element').toBeTruthy();
+
+    const described = page.locator(`[id="${messageId}"]`);
     await expect(described).toContainText('onerror="window.__staticMarkupRan = true"');
 
-    await page.locator('mat-icon.icon-help').first().hover();
+    await help.hover();
     const tooltip = page.locator('.mat-mdc-tooltip-surface').first();
     await expect(tooltip).toBeVisible();
     await expect(tooltip).toContainText('onerror="window.__staticMarkupRan = true"');
@@ -3749,13 +3756,17 @@ test.describe('host inputs that fetch', () => {
    * be mistaken for the other.
    */
   /*
-   * `Generic.ExpandAll`, which renders in the form's own title block on every
-   * template and behind no configuration key.
+   * `Generic.ExpandAll`, which names the expand control in the form's own title
+   * block on every template and behind no configuration key.
    *
    * It was `App.Maintained` in the footer, chosen because the footer already had an
-   * assertion on it. The footer belongs to the host now, so the only rendered string
-   * either branch could be read from went with it — and this coverage is the half
-   * that was uncovered before someone added it, so it moves rather than lapses.
+   * assertion on it. The footer belongs to the host now, so the only string either
+   * branch could be read from went with it — and this coverage is the half that was
+   * uncovered before someone added it, so it moves rather than lapses.
+   *
+   * Read from `aria-label` rather than from the button's text, since the control is
+   * an icon and the translated string is its accessible name. That is the string a
+   * screen reader announces, so the assertion is on what the translation is for.
    */
   const BUILT_IN_LABEL = 'Expand All';
   const SERVED_LABEL = 'Unfurl the lot';
@@ -3770,13 +3781,12 @@ test.describe('host inputs that fetch', () => {
     await openHost(page, 'host=lang');
     await loadTemplateIntoHost(page);
 
-    // `toContainText`, not `toHaveText`: the button holds its icon's ligature text
-    // as well as the label, so an exact match would be asserting on `unfold_more`.
     const expand = page.locator('.expand-buttons button').first();
-    await expect(expand, 'the served language map did not reach the rendered form').toContainText(SERVED_LABEL, {
-      timeout: 10_000,
-    });
-    await expect(expand, 'the built-in map should have been overridden').not.toContainText(BUILT_IN_LABEL);
+    await expect(expand, 'the served language map did not reach the rendered form').toHaveAttribute(
+      'aria-label',
+      SERVED_LABEL,
+      { timeout: 10_000 },
+    );
   });
 
   test('an unreachable language map falls back to the built-in one', async ({ page }) => {
@@ -3784,9 +3794,10 @@ test.describe('host inputs that fetch', () => {
     await loadTemplateIntoHost(page);
 
     const expand = page.locator('.expand-buttons button').first();
-    await expect(expand, 'a 404 on the language map should not blank the interface').toContainText(BUILT_IN_LABEL, {
-      timeout: 10_000,
-    });
-    await expect(expand, 'nothing was served, so nothing should have overridden it').not.toContainText(SERVED_LABEL);
+    await expect(expand, 'a 404 on the language map should not blank the interface').toHaveAttribute(
+      'aria-label',
+      BUILT_IN_LABEL,
+      { timeout: 10_000 },
+    );
   });
 });
