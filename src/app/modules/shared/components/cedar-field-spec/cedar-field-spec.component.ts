@@ -58,11 +58,10 @@ export class CedarFieldSpecComponent implements OnInit {
 
   get description(): string | null {
     const description = this.fieldToDescribe.labelInfo.description;
-    // 'Help Text' is the Template Designer's placeholder, which the header already refuses to show.
-    // A specification repeating it would state the default as though an author had written it.
-    return description !== null && description !== undefined && description !== '' && description !== 'Help Text'
-      ? description
-      : null;
+    // The Template Designer's placeholder for a description nobody wrote is already absent by the
+    // time a component holds one: the parser is where that string is named. An empty one is a
+    // separate case, and it says as little.
+    return description !== null && description !== undefined && description !== '' ? description : null;
   }
 
   /**
