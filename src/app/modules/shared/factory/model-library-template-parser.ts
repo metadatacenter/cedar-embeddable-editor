@@ -184,6 +184,9 @@ type ControlledConstraintEntry =
  * to reproduce the difference.
  */
 export class ModelLibraryTemplateParser implements TemplateParser {
+  /** The Template Designer's placeholder for a description nobody wrote. */
+  private static readonly BLANK_DESCRIPTION = 'Help Text';
+
   /**
    * Read a template that arrived as JSON.
    *
@@ -538,11 +541,24 @@ export class ModelLibraryTemplateParser implements TemplateParser {
   }
 
   /**
-   * Parent display overrides describe this deployment, so they take precedence
-   * over the reusable artifact's labels and description. A missing override
-   * falls back to the artifact; an explicit empty string remains an override.
-   * Keep the preferred label separately so displaying an override does not
-   * change the field's semantic metadata.
+   * A parent display override describes this deployment, so it takes precedence over the reusable
+   * artifact's own label and description. What counts as one is the narrow part.
+   *
+   * CEDAR's writers fill `_ui.propertyLabels` and `_ui.propertyDescriptions` for every child,
+   * labelled or not, so the presence of an entry declares nothing. Two shapes are that fill. An
+   * entry repeating the property key is one: the Template Designer writes the key into both maps
+   * when a child is renamed, and the key identifies the child inside its parent rather than saying
+   * anything a reader wants. An entry repeating what the artifact says about itself is the other,
+   * which is what a YAML document comes back as — the YAML writers emit an entry only where it
+   * differs from the artifact's own value, so a reader restores the artifact's value wherever the
+   * document overrode nothing, and a template would otherwise label one way as JSON and another as
+   * YAML. The Java library reads both shapes as no override.
+   *
+   * Anything else is an override, an explicit empty string included — a label the author cleared is
+   * a label they cleared.
+   *
+   * Keep the preferred label separately so displaying an override does not change the field's
+   * semantic metadata.
    */
   private static extractLabels(
     artifact: TemplateField | TemplateElement,
@@ -551,8 +567,31 @@ export class ModelLibraryTemplateParser implements TemplateParser {
     fc: { labelInfo: LabelInfo },
   ): void {
     fc.labelInfo.preferredLabel = artifact.skos_prefLabel ?? null;
-    fc.labelInfo.deploymentLabel = childInfo.label ?? null;
-    fc.labelInfo.description = childInfo.description ?? artifact.schema_description;
-    fc.labelInfo.label = artifact.schema_name ?? name;
+    fc.labelInfo.deploymentLabel = ModelLibraryTemplateParser.declared(childInfo.label, name, artifact.schema_name);
+    fc.labelInfo.label = artifact.schema_name ?? null;
+    fc.labelInfo.description =
+      ModelLibraryTemplateParser.authored(
+        ModelLibraryTemplateParser.declared(childInfo.description, name, artifact.schema_description),
+      ) ?? ModelLibraryTemplateParser.authored(artifact.schema_description);
+  }
+
+  /**
+   * What the parent declares about this child, or null where the entry only repeats the property
+   * key or what the artifact already says about itself.
+   */
+  private static declared(
+    entry: string | null | undefined,
+    key: string,
+    own: string | null | undefined,
+  ): string | null {
+    return entry == null || entry === key || entry === own ? null : entry;
+  }
+
+  /**
+   * A description someone wrote, or null for `Help Text` — what the Template Designer stores when
+   * the author left the box empty, and a string no form should put in front of a reader.
+   */
+  private static authored(description: string | null | undefined): string | null {
+    return description == null || description === ModelLibraryTemplateParser.BLANK_DESCRIPTION ? null : description;
   }
 }
