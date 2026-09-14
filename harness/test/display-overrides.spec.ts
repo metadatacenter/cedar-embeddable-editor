@@ -178,3 +178,133 @@ for (const format of ['JSON', 'YAML']) {
     });
   });
 }
+
+/**
+ * The rule, enumerated over the axes it branches on, and asserted against both serialisations.
+ *
+ * The cases above each pin one situation. This pins the rule itself: for every combination of
+ * what the child is named, whether it carries a `skos:prefLabel`, and what the parent holds for
+ * it, the label a reader sees is stated here independently of the parser that produces it, and
+ * the two serialisations have to agree on it.
+ *
+ * The corpus cannot do this job. A divergence needs one child whose property key, `schema:name`
+ * and `skos:prefLabel` are three different strings, and neither fixture corpus has one: the
+ * numbered templates name a field for a reader and repeat that name in `_ui.propertyLabels`,
+ * while HuBMAP names every field for its key, so the key test catches it there. Both corpora
+ * pass whether or not the rule is right, which is exactly why this is written out by hand.
+ */
+describe('the display label rule', () => {
+  /** What the artifact calls itself. */
+  const NAMES = [
+    { title: 'named for its key', value: KEY },
+    { title: 'named for a reader', value: 'Artifact name' },
+  ];
+
+  /** The semantic label, which most fields do not carry. */
+  const PREFERRED = [
+    { title: 'no preferred label', value: undefined },
+    { title: 'a preferred label', value: 'Semantic label' },
+  ];
+
+  /** What the parent holds for this child, resolved against the name so "repeats it" is exact. */
+  const ENTRIES = [
+    { title: 'no entry', value: () => undefined },
+    { title: 'an entry repeating the key', value: () => KEY },
+    { title: 'an entry repeating the artifact name', value: (name: string) => name },
+    { title: 'a real override', value: () => 'Display override' },
+    { title: 'an override the author cleared', value: () => '' },
+  ];
+
+  /**
+   * The rule as stated, not as implemented: an entry the parent holds is an override only where
+   * it differs from both the property key and the artifact's own name, and a label then resolves
+   * override, `skos:prefLabel`, `schema:name`, key.
+   */
+  const expected = (name: string, preferredLabel: string | undefined, entry: string | undefined): string => {
+    const override = entry !== undefined && entry !== KEY && entry !== name;
+    return override ? entry! : (preferredLabel ?? name ?? KEY);
+  };
+
+  for (const named of NAMES) {
+    for (const preferred of PREFERRED) {
+      for (const held of ENTRIES) {
+        const entry = held.value(named.value);
+        const want = expected(named.value, preferred.value, entry);
+        it(`${named.title}, ${preferred.title}, ${held.title}: shows "${want}" in both serialisations`, () => {
+          const artifact = { name: named.value, preferredLabel: preferred.value };
+          const deployment = entry === undefined ? {} : { label: entry };
+
+          const viaJson = rendered(childOf('JSON', artifact, deployment));
+          const viaYaml = rendered(childOf('YAML', artifact, deployment));
+
+          expect(viaJson, 'the JSON reading does not follow the rule').toBe(want);
+          expect(viaYaml, 'the YAML reading disagrees with the JSON reading').toBe(viaJson);
+        });
+      }
+    }
+  }
+});
+
+/**
+ * An element child is read by the same code, and nothing else here proves it.
+ *
+ * `ModelLibraryTemplateParser.extractLabels` serves fields, elements and static fields alike, so
+ * an element's label resolves through the same chain and its parent's entry is narrowed by the
+ * same test. Asserted on `deploymentLabel` rather than the rendered string because the element
+ * builder has no `withPreferredLabel` — `TemplateElement` carries `skos:prefLabel` and the library
+ * offers no way to set it — so the rendered label falls to `schema:name` whether the entry was
+ * read as an override or not, and only the override itself distinguishes the two.
+ */
+for (const format of ['JSON', 'YAML']) {
+  describe(`${format} element children`, () => {
+    const NAME = 'Address block';
+    const elementChildOf = (deployment: Deployment = {}): CedarComponent => {
+      const element = CedarBuilders.templateElementBuilder()
+        .withAtId('https://repo.metadatacenter.org/template-elements/display')
+        .withSchemaName(NAME)
+        .build();
+
+      const deploymentBuilder = element.createDeploymentBuilder(KEY);
+      if (deployment.label !== undefined) {
+        deploymentBuilder.withLabel(deployment.label);
+      }
+
+      const template = CedarBuilders.templateBuilder().withAtId('urn:test:display').withSchemaName('Display').build();
+      template.addChild(element, deploymentBuilder.build());
+
+      const document =
+        format === 'JSON'
+          ? CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template)
+          : parseYaml(CedarWriters.yaml().getStrict().getTemplateWriter().getAsYamlString(template));
+      return new CeeDriver(document).findOrThrow([KEY]);
+    };
+
+    it('takes a real override from its parent', () => {
+      const element = elementChildOf({ label: 'Display override' });
+
+      expect(rendered(element)).toBe('Display override');
+      expect(element.labelInfo.deploymentLabel).toBe('Display override');
+    });
+
+    it('reads an entry repeating the key as no override', () => {
+      const element = elementChildOf({ label: KEY });
+
+      expect(element.labelInfo.deploymentLabel).toBeNull();
+      expect(rendered(element)).toBe(NAME);
+    });
+
+    it('reads an entry repeating its own name as no override', () => {
+      const element = elementChildOf({ label: NAME });
+
+      expect(element.labelInfo.deploymentLabel).toBeNull();
+      expect(rendered(element)).toBe(NAME);
+    });
+
+    it('carries no override where the parent declares nothing', () => {
+      const element = elementChildOf();
+
+      expect(element.labelInfo.deploymentLabel).toBeNull();
+      expect(rendered(element)).toBe(NAME);
+    });
+  });
+}

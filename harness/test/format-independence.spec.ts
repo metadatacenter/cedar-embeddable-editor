@@ -23,7 +23,7 @@ import { describe, expect, it } from 'vitest';
 import { DocumentKey } from '../src/document-keys';
 import { ModelLibraryTemplateParser } from '@cee/factory/model-library-template-parser';
 import { YamlTemplateParser } from '@cee/factory/yaml-template-parser';
-import { corpusTemplates, corpusTemplatesYaml, describeTree } from '../src/corpus';
+import { corpusTemplates, corpusTemplatesYaml, describeLabels, describeTree } from '../src/corpus';
 import { CeeDriver } from '../src/driver';
 
 const json = corpusTemplates();
@@ -127,6 +127,23 @@ describe('a template read from YAML', () => {
     const viaJson = describeTree(fromJson(pair.json).representation);
     const viaYaml = describeTree(fromYaml(pair.yaml).representation);
     expect(viaYaml.map(withoutUnexpressibleBound)).toEqual(viaJson.map(withoutUnexpressibleBound));
+  });
+
+  /**
+   * The same fields, and the same words in front of them.
+   *
+   * The comparison above comes out equal whenever the two readings build the
+   * same structure, and structure is not what a reader reads. A parent carries a
+   * label and a description for each of its children, YAML writes one only where
+   * it differs from what the child says about itself, and the reader restores
+   * the child's own value wherever the document overrode nothing. Get the
+   * restored entry's meaning wrong and every label in the corpus can move while
+   * the tree stays identical.
+   */
+  it.each(paired.map((p) => [p.id, p] as const))('template-%s labels the same fields', (_id, pair) => {
+    expect(describeLabels(fromYaml(pair.yaml).representation)).toEqual(
+      describeLabels(fromJson(pair.json).representation),
+    );
   });
 
   /**
