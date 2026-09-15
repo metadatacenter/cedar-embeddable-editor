@@ -1,24 +1,30 @@
 # Theming and the Visual Contract
 
-CEE's visual baselines went red across the Angular 14 → 22 upgrade, and they
-were right to. Angular Material 15 rewrote every component onto MDC: different
-DOM, different class names, different default metrics. The rendering changed
-whether or not CEE changed.
-
-That put a decision in the path of the upgrade, and the M3 token API still ahead
-puts it there again. Each failing snapshot is either a regression to fix or a
-restyle to accept, and nothing in a diff image says which. Answering it one
-snapshot at a time, at whatever hour the hop finishes, is how a gate worth having
-gets replaced by `--update-snapshots`. What follows is the standing answer: what
-CEE's appearance is actually committed to, what it merely happens to look like,
-and how to tell a diff of one kind from the other.
+CEE uses Angular Material's M3 system-token theme. A theme change is a visual
+migration: each changed snapshot must be explained as a regression to fix or a
+restyle to accept. The commitments below distinguish the two.
 
 ## Palette and ownership
 
-CEE's Material adapter consumes `cedar-design-tokens`: primary hue 500 (`#0f7686`)
-and accent A200 (`#ff5c55`). CED and CETP consume the same package. The palette
-adoption is a deliberate visual change; the M2 compatibility adapter remains in
-place, with its typography and density preserved. M3 is a separate migration.
+CEE's Material adapter consumes `cedar-design-tokens`, as do CED and CETP.
+It maps the shared palette directly to M3 light-theme roles: primary is CEDAR
+500 (`#0f7686`), secondary is primary 700, and tertiary is rust 500. Pale brand
+hues supply container roles; shared neutrals supply surfaces, text and borders.
+The M2 accent A200 value remains available in the shared package, but M3 has
+secondary and tertiary roles instead of an accent palette.
+
+`mat.theme()` emits the system at each CEE/CEF shadow host. Every color role is
+mapped explicitly, including native-select fallbacks, so Material's stock palette
+does not supply CEDAR colors. All typography levels and shorthands use the
+namespaced font stack and px values. The component stays light even when an
+embedding page requests a dark color scheme; dark mode is not a supported API.
+
+Material's M3 chrome is accepted: muted action icons, outlined unselected chips,
+tinted selected chips, rounded calendar surfaces and M3 choice/select treatment.
+CEE's card dimensions, control heights, status colors and layout stay governed
+by the contracts below. Comfortable inputs keep black resting outlines, with
+Material's primary focus and error states; the old forced-black border suppressed
+both states and has been removed.
 
 Brand values, type sizes and shared neutrals belong in that package. CEE's card
 geometry stays in `_cee-layout.scss`; Material integration stays in
@@ -40,7 +46,7 @@ CEE has no general runtime brand-palette API: changing a `--cedar-primary-*`
 property on a page does not recolor its compiled Material theme. Do not advertise
 an override until a browser test proves it reaches the affected controls.
 `--mat-*`, `--mdc-*` and private `--_cedar-*` properties are implementation details.
-A general appearance API remains part of the M3 work in
+A general appearance API remains separate work in
 [CEE-ROADMAP.md](../cedar-development/ops/CEE-ROADMAP.md).
 
 Shared prose sizes use the package's px scale so a host's root font size cannot
@@ -109,8 +115,9 @@ the MDC rewrite. The form-field rules were the riskiest of the old set: they
 overrode internal padding with `!important` against a DOM MDC replaces, so they
 could apply to the wrong box rather than merely stop applying. They are gone.
 `.mat-mdc-form-field-infix` no longer appears in CEE's stylesheets at all, and
-the 48px field box is asked of Material through `form-field-density(-2)`, which
-is where that height is now decided.
+the comfortable 48px field box is specified through `form-field-overrides()`
+in the adapter. The compact adapter specifies 36px by default and supports the
+public overrides in `STYLING.md`.
 
 ## How to Judge a Failing Snapshot
 
@@ -140,6 +147,7 @@ stop and say the baselines need human review.
 
 `cedar-design-tokens` holds CEDAR's values and may not reference Material.
 `_cee-material-theme.scss` is the only file that touches Material's theming API
-and records the renames behind it and the one still ahead. `styles-own.scss`
-holds the component and layout CSS. `visual/README.md` covers the baselines and
-packaging.
+and maps shared values to M3 roles and supported component overrides. `styles-own.scss`
+holds the component and layout CSS. `visual/tests/m3-theme.spec.ts` checks
+CEE/CEF compact overrides, comfortable focus, and overlay typography under a
+host font-size reset. `visual/README.md` covers the baselines and packaging.

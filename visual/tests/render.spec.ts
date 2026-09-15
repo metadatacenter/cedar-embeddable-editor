@@ -994,11 +994,11 @@ test('radio selection uses primary color and keeps Clear on the selected row', a
     const radioButton = element.querySelector('mat-radio-button')!;
     return {
       centers: [radio.top + radio.height / 2, button.top + button.height / 2],
-      selectedColor: getComputedStyle(radioButton).getPropertyValue('--mat-radio-selected-icon-color').trim(),
+      selectedColor: getComputedStyle(radioButton.querySelector('.mdc-radio__inner-circle')!).backgroundColor,
     };
   });
   expect(Math.abs(geometry.centers[0] - geometry.centers[1])).toBeLessThan(1);
-  expect(geometry.selectedColor).toBe('#0f7686');
+  expect(geometry.selectedColor).toBe('rgb(15, 118, 134)');
 });
 
 /**
@@ -1102,8 +1102,8 @@ test('a populated multi-select uses the focus color rather than the error color'
       return {
         invalid: field.classList.contains('mat-form-field-invalid'),
         arrowColor: getComputedStyle(arrow).color,
-        focusColor: resolvedColor(style.getPropertyValue('--mat-select-focused-arrow-color').trim()),
-        errorColor: resolvedColor(style.getPropertyValue('--mat-select-invalid-arrow-color').trim()),
+        focusColor: resolvedColor(style.getPropertyValue('--mat-sys-primary').trim()),
+        errorColor: resolvedColor(style.getPropertyValue('--mat-sys-error').trim()),
       };
     };
     return { single: read('single_list'), multi: read('multi_list') };

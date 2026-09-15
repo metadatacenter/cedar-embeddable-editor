@@ -1,4 +1,5 @@
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
+@use 'cee-material-theme' as theme;
 
 /* Shared compact control adapter for CEE and CEF. See STYLING.md.
  * Public --cedar-* tokens inherit from the host page through both shadow roots.
@@ -15,18 +16,7 @@
   --_cedar-focus: var(--cedar-control-focus, #{tokens.$color-primary});
   --_cedar-error: var(--cedar-control-error, #b42318);
 
-  --mat-select-trigger-text-size: var(--_cedar-font-size);
-  --mat-select-trigger-text-line-height: var(--_cedar-line-height);
-  --mat-form-field-container-height: var(--_cedar-height);
-  --mat-form-field-container-vertical-padding: var(--_cedar-padding);
-  --mat-form-field-container-text-size: var(--_cedar-font-size);
-  --mat-form-field-container-text-line-height: var(--_cedar-line-height);
-  --mat-form-field-outlined-container-shape: var(--_cedar-radius);
-  --mat-form-field-outlined-outline-color: var(--_cedar-border);
-  --mat-form-field-outlined-focus-outline-color: var(--_cedar-focus);
-  --mat-form-field-outlined-error-outline-color: var(--_cedar-error);
-  --mat-form-field-outlined-error-focus-outline-color: var(--_cedar-error);
-  --mat-form-field-error-text-color: var(--_cedar-error);
+  @include theme.compact-controls();
   font-size: var(--_cedar-font-size);
 
   .mat-mdc-select-arrow-wrapper {
@@ -35,7 +25,7 @@
 
   /* Suffix actions must not increase a populated control's height. */
   .mat-mdc-icon-button.mat-mdc-button-base {
-    --mat-icon-button-state-layer-size: var(--_cedar-height);
+    @include theme.icon-size(var(--_cedar-height));
     width: var(--_cedar-height);
     height: var(--_cedar-height);
     padding: calc((var(--_cedar-height) - 24px) / 2);
@@ -77,7 +67,6 @@
   }
 
   .cee-read-only {
-    --mat-form-field-container-height: var(--_cedar-height);
-    --mat-form-field-container-vertical-padding: var(--_cedar-padding);
+    @include theme.control-size(var(--_cedar-height), var(--_cedar-padding));
   }
 }

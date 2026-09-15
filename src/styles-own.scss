@@ -394,22 +394,8 @@ button.close {
   -webkit-appearance: none;
 }
 
-/*
- * No `.mat-mdc-form-field-infix` rule, and no per-widget copies of one.
- *
- * The field box is 48px, asked for through `mat.form-field-density(-2)` in
- * `_cee-material-theme.scss`, which is where the reasoning lives. Four rules used
- * to compute that height by hand — a compact 36px here, then 48px again for the
- * attribute-value pair, the temporal row and the offset selector, each because a
- * 48px suffix action made the compact height wrong for that widget. All four are
- * gone: with the height uniform, nothing needs correcting, and measuring confirms
- * removing even `align-self: center` changes no box.
- *
- * Worth keeping in mind if the height is ever revisited. Material's density scale
- * names 36px too, at -5, so the compact form is still available through the same
- * API — but 36px is only ever the height of an *empty* field, because CEE draws a
- * clear action as soon as one holds a value, and that action is 48px.
- */
+// Control metrics are emitted through the Material adapter: compact 36px,
+// comfortable 48px. The suffix action follows the box instead of enlarging it.
 
 /*
  * The multi-instance occurrence chips, a fifth smaller than Material's default.
@@ -438,11 +424,7 @@ button.close {
  * height rather than being removed.
  */
 app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
-  --mat-chip-container-height: 26px;
-
-  .mdc-evolution-chip__text-label {
-    font-size: tokens.$font-size-small;
-  }
+  @include theme.occurrence-chips();
 
   .mat-mdc-chip-action {
     padding-inline: 9px;
@@ -498,24 +480,10 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   z-index: 9999 !important;
 }
 
-/*
- * A black outline rather than Material's default.
- *
- * Legacy drew the outline as an SVG that inherited `color`, so one declaration
- * did it. MDC draws it as three bordered boxes — leading, notch and trailing —
- * and takes their colour from `border-color`, so the same intent needs all three
- * named. Left at the default they render rgba(0, 0, 0, 0.38), which is visibly
- * grey against the black the rest of the form uses.
- *
- * `!important` because MDC sets the same property from a three-class selector
- * (`.mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__leading`)
- * that outranks this one. Measured, not assumed: without it the computed colour
- * stays rgba(0, 0, 0, 0.38).
- */
-:host([density='comfortable']) .mat-form-field-appearance-outline .mdc-notched-outline__leading,
-:host([density='comfortable']) .mat-form-field-appearance-outline .mdc-notched-outline__notch,
-:host([density='comfortable']) .mat-form-field-appearance-outline .mdc-notched-outline__trailing {
-  border-color: black !important;
+// Comfortable controls retain their black resting outline. Material now owns
+// hover, focus and error states, which the old !important borders suppressed.
+:host([density='comfortable']) {
+  @include theme.comfortable-outline();
 }
 
 .mat-expansion-panel {
@@ -571,12 +539,11 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
    * stylesheet because Angular namespaces a custom property declared in one, which Material then
    * never reads.
    */
-  --mat-form-field-container-height: 36px;
-  --mat-form-field-container-vertical-padding: 6px;
+  @include theme.control-size(36px, 6px);
 
   /*
    * A choice option is 36px while editing, so a finger can hit it: a 20px control in 8px of padding,
-   * set by `mat.radio-density(-1)` and its checkbox twin. Nobody is hitting anything here, and a
+   * set by the Material adapter. Nobody is hitting anything here, and a
    * reader can go tighter than any level on Material's scale, which stops at 28px.
    *
    * The padding is what shrinks, rather than the state-layer token the density mixin sets, because
@@ -643,8 +610,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
    * a negation, which no selector written here can outrank without `!important` — and the token is
    * what that rule reads. The controls Material styles by class rather than by token follow below.
    */
-  --mat-form-field-filled-input-text-color: rgba(0, 0, 0, 0.54);
-  --mat-form-field-outlined-input-text-color: rgba(0, 0, 0, 0.54);
+  @include theme.declared-values();
 
   .mat-mdc-select-value-text,
   .mat-mdc-radio-button .mdc-label,
