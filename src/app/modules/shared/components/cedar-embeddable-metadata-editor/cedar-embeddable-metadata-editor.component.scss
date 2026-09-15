@@ -15,7 +15,7 @@ $logo-track: 72px;
 .header-image {
   background-image: url(common.$cedar-logo-80x80);
   background-size: cover;
-  background-color: #0b3938;
+  background-color: tokens.$color-component-title;
   /* Angular Material's card-avatar default adds 16px below the mark. The CEE name supplies its own
    * 4px separation, so retaining both created a conspicuous 20px hole in this compact identity. */
   margin-bottom: 0;
@@ -36,7 +36,7 @@ $logo-track: 72px;
   min-width: 0;
   padding: 16px layout.$cee-gutter-inline;
   background: #ffffff;
-  border-bottom: 1px solid #d7e0df;
+  border-bottom: 1px solid tokens.$border-rule;
 }
 
 /*
@@ -233,7 +233,7 @@ $logo-track: 72px;
   }
 
   .template-actions {
-    border-top: 1px solid #e5ebea;
+    border-top: 1px solid tokens.$border-rule-light;
     padding-top: 12px;
   }
 
@@ -294,5 +294,4 @@ $logo-track: 72px;
   .page-break-control {
     margin-right: 0;
   }
-
 }

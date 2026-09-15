@@ -277,7 +277,7 @@ app-sample-templates {
   .mat-expansion-panel {
     max-width: 90%;
     margin: 10px auto 0;
-    background-color: #f5f5f5;
+    background-color: tokens.$surface-panel;
   }
 
   .mat-expansion-panel-header-title .mat-icon {
@@ -441,7 +441,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   --mat-chip-container-height: 26px;
 
   .mdc-evolution-chip__text-label {
-    font-size: 12px;
+    font-size: tokens.$font-size-small;
   }
 
   .mat-mdc-chip-action {
@@ -455,7 +455,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 }
 
 .mat-mdc-tooltip.tooltip {
-  font-size: 12px;
+  font-size: tokens.$font-size-small;
 }
 
 .align-start {
@@ -490,7 +490,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 .input-warning {
   display: block;
   color: tokens.$color-warning;
-  font-size: 12px;
+  font-size: tokens.$font-size-small;
   line-height: 22px;
   text-align: start;
 }
@@ -519,7 +519,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 }
 
 .mat-expansion-panel {
-  border: 1px solid #777777;
+  border: 1px solid tokens.$border-control;
   box-shadow: none !important;
 }
 .mat-mdc-card {

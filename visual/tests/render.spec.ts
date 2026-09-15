@@ -998,7 +998,7 @@ test('radio selection uses primary color and keeps Clear on the selected row', a
     };
   });
   expect(Math.abs(geometry.centers[0] - geometry.centers[1])).toBeLessThan(1);
-  expect(geometry.selectedColor).toBe('#00897b');
+  expect(geometry.selectedColor).toBe('#0f7686');
 });
 
 /**

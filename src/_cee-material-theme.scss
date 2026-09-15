@@ -34,18 +34,10 @@
 // The applied theme
 // ---------------------------------------------------------------------------
 //
-// NOTE, and read this before the Material 15 hop: these are Angular's stock teal
-// and deep-orange palettes, not CEDAR's brand palettes from the design tokens.
-// That is what CEE renders today — stock teal 600 (#00897b) accounts for 35 of
-// the color values in the shipped bundle, while CEDAR's own #0f7686 appears
-// twice, both times outside the Material theme.
-//
-// This looks like an accident rather than a decision: the brand palettes are
-// fully specified and then applied to nothing but three custom properties. It is
-// recorded here as-is because changing it would be a visual change, and the
-// upgrade is not the place to make one silently. THEMING.md sets out the choice.
-$_applied-primary: mat.m2-define-palette(mat.$m2-teal-palette, 600);
-$_applied-accent: mat.m2-define-palette(mat.$m2-deep-orange-palette, A200, A100, A400);
+// Both palettes are CEDAR's. This changes color only; the M2 adapter and
+// component density stay in place until the separate M3 migration.
+$_applied-primary: mat.m2-define-palette(tokens.$brand-primary, 500);
+$_applied-accent: mat.m2-define-palette(tokens.$brand-accent, A200, A100, A400);
 
 // Typography. Two levels are named because two levels were wrong.
 //
@@ -98,7 +90,7 @@ $applied-theme: mat.m2-define-light-theme(
      * 0 is the default, so this changes nothing about the intended appearance. It
      * only makes the theme say so.
      */
-      density: 0,
+    density: 0,
   )
 );
 
