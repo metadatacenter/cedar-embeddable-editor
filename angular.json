@@ -28,7 +28,8 @@
             "styles": [],
             "stylePreprocessorOptions": {
               "includePaths": [
-                "src"
+                "src",
+                "node_modules"
               ]
             },
             "allowedCommonJsDependencies": [

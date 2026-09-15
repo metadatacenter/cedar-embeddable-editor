@@ -1,4 +1,5 @@
-@use '../../../../../cee-tokens' as tokens;
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
+@use 'cee-layout' as layout;
 
 .mat-icon {
   font-size: 18px;
@@ -56,7 +57,7 @@
   flex-wrap: wrap;
   justify-content: right;
   align-items: center;
-  margin-right: tokens.$cee-header-trailing-slot + 32px;
+  margin-right: layout.$cee-header-trailing-slot + 32px;
   min-height: 48px;
   margin-top: -48px;
   margin-bottom: 0;

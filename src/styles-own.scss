@@ -1,7 +1,9 @@
-// Brand values live in _cee-tokens.scss; the Material theming API is reached
-// only through _cee-material-theme.scss. Neither emits CSS on its own, so the
+// Brand values come from @org.metadatacenter/cedar-design-tokens, CEE's own card
+// measurements from _cee-layout.scss, and the Material theming API is reached only
+// through _cee-material-theme.scss. Neither emits CSS on its own, so the
 // `@include` call sites below still control emission order.
-@use 'cee-tokens' as tokens;
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
+@use 'cee-layout' as layout;
 @use 'cee-material-theme' as theme;
 @use '@angular/cdk' as cdk;
 @use 'cedar-compact';
@@ -15,8 +17,8 @@
   width: 100%;
   min-width: 0;
   container: cee / inline-size;
-  font-family: tokens.$cee-font-family;
-  font-size: tokens.$cee-font-size;
+  font-family: tokens.$font-family;
+  font-size: tokens.$font-size;
   line-height: normal;
 }
 
@@ -85,8 +87,8 @@
 }
 
 .cdk-overlay-container {
-  font-family: tokens.$cee-font-family;
-  font-size: tokens.$cee-font-size;
+  font-family: tokens.$font-family;
+  font-size: tokens.$font-size;
   line-height: normal;
 }
 
@@ -216,7 +218,7 @@
  * nothing, so the rule names the field card.
  */
 .non-iterable-component > app-cedar-multi-pager .pager-container {
-  margin-right: tokens.$cee-header-trailing-slot + 8px;
+  margin-right: layout.$cee-header-trailing-slot + 8px;
 }
 
 .pager-container-ro {
@@ -448,7 +450,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 }
 
 .mat-icon:hover {
-  color: tokens.$cee-color-icon-hover;
+  color: tokens.$color-icon-hover;
   scale: 1.2;
 }
 
@@ -487,7 +489,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  */
 .input-warning {
   display: block;
-  color: tokens.$cee-color-warning;
+  color: tokens.$color-warning;
   font-size: 12px;
   line-height: 22px;
   text-align: start;
@@ -529,7 +531,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   background-color: black;
 }
 .component-title {
-  color: tokens.$cee-color-component-title !important;
+  color: tokens.$color-component-title !important;
 }
 
 /**

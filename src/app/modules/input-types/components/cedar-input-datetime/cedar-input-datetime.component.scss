@@ -1,3 +1,5 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
+
 :host {
   display: flex;
   align-items: flex-start;
@@ -37,9 +39,9 @@
  * scale was settled, and it was the last size in the editor that belonged to no
  * scale.
  *
- * The colour repeats the time picker's literal rather than reading a token, because
- * no component stylesheet in CEE imports `_cee-tokens.scss` and this is not the
- * change that should introduce the first one.
+ * The colour is the muted text of the shared scale, which is what the time picker's
+ * own separator draws. It repeated that value as a literal while no component
+ * stylesheet here read a token.
  *
  * `line-height` stays: it centres the glyph on the 48px control row and is layout
  * rather than type.
@@ -47,7 +49,7 @@
 .cee-fraction-separator {
   align-self: center;
   margin-inline: 0 -1px;
-  color: #555;
+  color: tokens.$text-muted;
   line-height: 48px;
 }
 

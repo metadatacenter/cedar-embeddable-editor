@@ -1,4 +1,4 @@
-@use '../../../../../cee-tokens' as tokens;
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
 /*
  * The specification reads as one or two tight lines above the control, not as a panel. Anything a
@@ -6,13 +6,13 @@
  * its own options, so only the widgets that conceal their values get an enumeration.
  */
 .cee-field-spec {
-  font-family: tokens.$cee-font-family;
+  font-family: tokens.$font-family;
   /*
    * The reading size, the same as the label it follows and the description below it. It was the small
    * size, which made a specification harder to read than the form it describes; the facts are set
    * apart by colour and by the dot separators instead of by being shrunk.
    */
-  font-size: tokens.$cee-font-size;
+  font-size: tokens.$font-size;
   color: rgba(0, 0, 0, 0.62);
   /*
    * Baseline-aligned with the label it follows, and allowed to wrap as a unit: the facts are a
@@ -69,7 +69,7 @@
  * belongs to the icon beside it and is not an edge anything else should adopt.
  */
 .cee-field-spec-description {
-  font-size: tokens.$cee-font-size;
+  font-size: tokens.$font-size;
   line-height: 1.5;
   margin: 0 0 6px;
   color: rgba(0, 0, 0, 0.8);
