@@ -8,7 +8,7 @@
         matInput
         type="text"
         [placeholder]="component | ceeSpecPlaceholder"
-        [value]="readOnlyValue"
+        [value]="displayValue"
         readonly
         attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
       />
@@ -22,6 +22,7 @@
         (selectionChange)="inputChanged()"
         [aria-label]="cds.getRenderingLabelForComponent(component)"
       >
+        <mat-select-trigger>{{ displayValue }}</mat-select-trigger>
         @for (option of dropdownList; track option) {
           <mat-option [value]="option.id">{{ option.label }}</mat-option>
         }

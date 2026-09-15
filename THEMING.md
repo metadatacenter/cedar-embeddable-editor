@@ -22,7 +22,10 @@ embedding page requests a dark color scheme; dark mode is not a supported API.
 Material's M3 chrome is accepted: muted action icons, outlined unselected chips,
 tinted selected chips, rounded calendar surfaces and M3 choice/select treatment.
 CEE's card dimensions, control heights, status colors and layout stay governed
-by the contracts below. Comfortable inputs keep black resting outlines, with
+by the contracts below. Editable radio and checkbox options use 28px rows, with
+hit areas contained within each row. Selected list values use a spaced middle dot
+(` · `) in editable and read-only views. Attribute name/value inputs have 16px of
+clearance above their form. Comfortable inputs keep black resting outlines, with
 Material's primary focus and error states; the old forced-black border suppressed
 both states and has been removed.
 

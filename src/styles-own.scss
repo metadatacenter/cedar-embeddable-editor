@@ -542,7 +542,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   @include theme.control-size(36px, 6px);
 
   /*
-   * A choice option is 36px while editing, so a finger can hit it: a 20px control in 8px of padding,
+   * A choice option is 28px while editing: a 20px control in 4px of padding,
    * set by the Material adapter. Nobody is hitting anything here, and a
    * reader can go tighter than any level on Material's scale, which stops at 28px.
    *

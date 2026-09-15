@@ -646,9 +646,17 @@ test('attribute-value labels stay distinct and its pager aligns responsively', a
     return {
       header: { bottom: header.bottom, center: header.top + header.height / 2 },
       controls: { top: controls.top },
+      labelGap:
+        Math.min(
+          ...Array.from(
+            element.querySelectorAll('app-cedar-input-attribute-value .mdc-floating-label'),
+            (label) => label.getBoundingClientRect().top,
+          ),
+        ) - controls.bottom,
       actionCenter: action.top + action.height / 2,
     };
   });
+  expect(geometry.labelGap, 'floating attribute labels need clearance below the pager').toBeGreaterThanOrEqual(6);
   if (testInfo.project.name === 'desktop') {
     expect(Math.abs(geometry.header.center - geometry.actionCenter)).toBeLessThan(1);
   } else {
@@ -1071,7 +1079,7 @@ test('a read-only multiple-choice field reads its values as a list', async ({ pa
   await open(page, '25-required-choices', 'readonly', '25-required-choices-instance');
 
   const shown = page.locator('app-cedar-input-select input');
-  await expect(shown).toHaveValue('North, South');
+  await expect(shown).toHaveValue('North · South');
   await expect(page.locator('app-cedar-input-select')).toHaveScreenshot('widget-select-multi-readonly.png');
 });
 
@@ -1083,6 +1091,8 @@ test('a populated multi-select uses the focus color rather than the error color'
   await page.locator('mat-option').filter({ hasText: 'North' }).click();
   await page.locator('mat-option').filter({ hasText: 'South' }).click();
   await page.keyboard.press('Escape');
+
+  await expect(multi.locator('mat-select-trigger')).toHaveText('North · South');
 
   const state = await page.evaluate(() => {
     const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
@@ -1643,6 +1653,17 @@ test.describe('every external authority widget', () => {
       await expect(page.locator('mat-error')).toHaveCount(0);
       await expect(page.locator('.input-warning')).toHaveCount(1);
       await expect(page.locator('.input-warning')).toHaveCSS('color', 'rgb(180, 83, 9)');
+    });
+
+    test(`${label}: missing lookup configuration shows a visible search error`, async ({ page }) => {
+      await open(page, '08-authority');
+      const input = page.locator(`input[aria-label="${name}"]`);
+      await input.fill('test search');
+      await passDebounceWindow(page);
+      await expect(page.locator('mat-option.lookup-failed')).toContainText('Search failed');
+      await input.fill('another search');
+      await page.clock.setFixedTime(new Date(FROZEN.getTime() + 120_000));
+      await expect(page.locator('mat-option.lookup-failed')).toContainText('Search failed');
     });
 
     /** Each widget's message names its own authority. */
@@ -3827,4 +3848,27 @@ test('read-only property markers align with the card edge when occurrence contro
     expect(offsets.length).toBeGreaterThan(5);
     for (const { name, offset } of offsets) expect(Math.abs(offset), name ?? '').toBeLessThanOrEqual(1);
   }
+});
+
+test('editable choice rows are compact and their controls do not overlap adjacent options', async ({ page }) => {
+  await open(page, '02-choices');
+  for (const selector of ['mat-radio-button', 'mat-checkbox']) {
+    const options = page.locator(selector);
+    const rows = await options.evaluateAll((elements) =>
+      elements.map((element) => {
+        const box = element.getBoundingClientRect();
+        const input = element.querySelector('input')!.getBoundingClientRect();
+        return { height: box.height, top: box.top, bottom: box.bottom, inputTop: input.top, inputBottom: input.bottom };
+      }),
+    );
+    expect(rows.length).toBeGreaterThan(1);
+    for (const row of rows) {
+      expect(row.height).toBe(28);
+      expect(row.inputTop).toBeGreaterThanOrEqual(row.top);
+      expect(row.inputBottom).toBeLessThanOrEqual(row.bottom);
+    }
+    for (let i = 1; i < rows.length; i++) expect(rows[i].top - rows[i - 1].top).toBe(28);
+  }
+  const clear = page.getByRole('button', { name: 'Clear', exact: true }).first();
+  expect((await clear.boundingBox())!.height).toBe(28);
 });

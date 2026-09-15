@@ -118,7 +118,7 @@ $_colors: (
   }
 
   // Comfortable fields are 48px. Compact overrides these through the public
-  // CEDAR contract. Choice rows remain 36px with a 48px invisible touch target.
+  // CEDAR contract. Choice rows are 28px; hit areas stay within each option row.
   @include mat.form-field-overrides(
     (
       container-height: 48px,
@@ -130,14 +130,14 @@ $_colors: (
   );
   @include mat.radio-overrides(
     (
-      state-layer-size: 36px,
-      touch-target-display: block,
+      state-layer-size: 28px,
+      touch-target-display: none,
     )
   );
   @include mat.checkbox-overrides(
     (
-      state-layer-size: 36px,
-      touch-target-display: block,
+      state-layer-size: 28px,
+      touch-target-display: none,
     )
   );
   // CEE cards inside elements inherit this line box. M3's 24px body default
