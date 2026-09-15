@@ -47,7 +47,7 @@ property on a page does not recolor its compiled Material theme. Do not advertis
 an override until a browser test proves it reaches the affected controls.
 `--mat-*`, `--mdc-*` and private `--_cedar-*` properties are implementation details.
 A general appearance API remains separate work in
-[CEE-ROADMAP.md](../cedar-development/ops/CEE-ROADMAP.md).
+[FRONTEND-ROADMAP.md](../cedar-development/ops/FRONTEND-ROADMAP.md#cee).
 
 Shared prose sizes use the package's px scale so a host's root font size cannot
 change them. Explicit icon sizes and component-specific geometry stay local.

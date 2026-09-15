@@ -121,7 +121,7 @@ depend on the network.
 
 Needs Node 24.19.0, which is what the app build uses too — one version for
 everything, since Angular 15 ended the split that required two. See
-[CEE-RUNBOOK.md](../../cedar-development/ops/CEE-RUNBOOK.md).
+[FRONTEND-RUNBOOK.md](../../cedar-development/ops/FRONTEND-RUNBOOK.md#cee).
 
 First time:
 
