@@ -111,7 +111,7 @@ export class CedarTemporalValue {
 
     const parts = this.empty();
     const granularity = configuration.granularity;
-    let match: RegExpMatchArray | null = null;
+    let match: RegExpMatchArray | null;
 
     if (configuration.temporalType === Xsd.date) {
       if (granularity === Temporal.year && (match = value.match(/^(\d{4})$/)) !== null) {

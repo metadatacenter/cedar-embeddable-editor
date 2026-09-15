@@ -60,7 +60,7 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
     if (this.readOnlyMode) {
       return;
     }
-    let name: string | null = null;
+    let name: string | null;
 
     if ($event) {
       name = ($event.target as HTMLTextAreaElement).value;

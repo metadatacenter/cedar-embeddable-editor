@@ -11,14 +11,14 @@
 #
 # So both sides run the same container. Playwright publishes an image per release
 # carrying the browsers that release drives and the fonts they rasterise with, and
-# `v1.62.1-noble` is the one matching `visual/package.json`. Move that pin and the
+# `v1.63.0-noble` is the one matching `visual/package.json`. Move that pin and the
 # baselines move with it, exactly as an OS upgrade used to.
 #
 # `node_modules` is a named volume rather than the host's directory: the host's is
 # built for darwin-arm64 and its binaries do not run here.
 set -euo pipefail
 
-IMAGE="mcr.microsoft.com/playwright:v1.62.1-noble"
+IMAGE="mcr.microsoft.com/playwright:v1.63.0-noble"
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if ! docker info >/dev/null 2>&1; then
