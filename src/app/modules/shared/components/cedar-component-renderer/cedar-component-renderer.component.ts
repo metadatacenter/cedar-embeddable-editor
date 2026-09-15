@@ -76,6 +76,9 @@ export class CedarComponentRendererComponent implements OnChanges {
     return (
       this.handlerContext.readOnlyMode &&
       nonIterableComponent instanceof MultiFieldComponent &&
+      this.shouldRenderOccurrencePager() &&
+      (this.handlerContext.multiInstanceObjectService.getMultiInstanceInfoForComponent(nonIterableComponent)
+        ?.currentCount ?? 0) > 1 &&
       specHeaderFactsOf(nonIterableComponent).length === 0
     );
   }

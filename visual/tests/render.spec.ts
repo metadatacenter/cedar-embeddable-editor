@@ -3801,3 +3801,30 @@ test.describe('host inputs that fetch', () => {
     );
   });
 });
+
+test('read-only property markers align with the card edge when occurrence controls are absent', async ({ page }) => {
+  await open(page, '18-real-nested', 'readonly');
+  for (const pageNumber of [1, 2]) {
+    if (pageNumber === 2) {
+      await page.locator('.page-break-paginator-container mat-chip-option', { hasText: '2' }).first().click();
+    }
+    const cards = page.locator('.non-iterable-component');
+    await expect(cards.first()).toBeVisible();
+    const offsets = await cards.evaluateAll((elements) =>
+      elements.flatMap((card) => {
+        const marker = card.querySelector(':scope > app-cedar-component-header [data-property-iri]');
+        if (!marker || !marker.getClientRects().length) return [];
+        const pager = card.querySelector(':scope > app-cedar-multi-pager .pager-chips');
+        if (pager?.getClientRects().length) return [];
+        return [
+          {
+            name: marker.getAttribute('data-property-iri'),
+            offset: card.getBoundingClientRect().right - marker.getBoundingClientRect().right,
+          },
+        ];
+      }),
+    );
+    expect(offsets.length).toBeGreaterThan(5);
+    for (const { name, offset } of offsets) expect(Math.abs(offset), name ?? '').toBeLessThanOrEqual(1);
+  }
+});
