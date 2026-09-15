@@ -6,7 +6,7 @@
       readonly
       [value]="readOnlyValue()"
       [placeholder]="component | ceeSpecPlaceholder"
-      attr.aria-label="{{ component.labelInfo.label }}"
+      attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
     />
   </mat-form-field>
 }

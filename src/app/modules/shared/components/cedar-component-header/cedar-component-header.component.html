@@ -55,7 +55,7 @@
     nothing to stop against.
   -->
   <span class="header-trailing">
-    @if (!readOnlyMode && component.labelInfo.description && component.labelInfo.description !== 'Help Text') {
+    @if (!readOnlyMode && component.labelInfo.description) {
       <mat-icon
         matTooltip="{{ component.labelInfo.description }}"
         matTooltipClass="tooltip"

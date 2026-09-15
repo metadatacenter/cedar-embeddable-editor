@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import type { InstanceObject } from '@cee/models/instance-node.model';
+import { ComponentDataService } from '@cee/service/component-data.service';
 
 /**
  * A vendored snapshot of the CEDAR artifact corpus — real templates and
@@ -194,6 +195,37 @@ export const ceeSuiteCases = (): CeeSuiteCase[] => {
       : null;
     return { id, template, instance };
   });
+};
+
+/**
+ * What every child of a parsed tree puts in front of a reader.
+ *
+ * Separate from `describeTree`, which records the key and the structure around
+ * it. A key is not a label: a template keyed `lab_id` displays whatever the
+ * override, `skos:prefLabel` and `schema:name` chain resolves to, and two
+ * readings of one template can agree on every structural fact while disagreeing
+ * on every word the reader sees. That is not hypothetical — CEE read a restored
+ * `_ui.propertyLabels` entry as a deployment override, so a template labelled
+ * one way as JSON and another as YAML, and the structural comparison had
+ * nothing to say about it.
+ *
+ * Asking the real `ComponentDataService` rather than reproducing the chain here
+ * is the point. A copy of the rule would agree with itself after the rule
+ * changed.
+ */
+export const describeLabels = (node: any, depth = 0): string[] => {
+  const cds = new ComponentDataService();
+  const lines: string[] = [];
+  const indent = '  '.repeat(depth);
+  for (const child of node?.children ?? []) {
+    // An empty description and an absent one are the same to a reader: the header draws a help
+    // tooltip only for a truthy one. The two readings disagree about which of them a field nobody
+    // described comes back as, and that difference cannot reach a screen.
+    const description = child.labelInfo?.description ? child.labelInfo.description : '(none)';
+    lines.push(`${indent}${child.name} label=${cds.getRenderingLabelForComponent(child)} description=${description}`);
+    lines.push(...describeLabels(child, depth + 1));
+  }
+  return lines;
 };
 
 /**

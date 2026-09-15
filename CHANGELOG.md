@@ -47,6 +47,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cedar-embeddable-field` emits `valueChange` when validity changes even if the normalized value
   does not, including numeric edits such as `1.5` to `1.50` and back.
 
+## [2.0.14] - 2026-09-14
+
+This release aligns CEE's build-time model dependency with the public
+`cedar-model-typescript-library@1.0.11` package and corrects how a read-only temporal field is named
+to assistive technology. The model library remains compiled into CEE's browser bundle and is not a
+runtime dependency for embedding applications.
+
+### Changed
+
+- The application and visual-test dependency graphs now pin the same public
+  `cedar-model-typescript-library@1.0.11` tarball from npmjs, which carries every instance type a
+  container declares rather than the first.
+
+### Fixed
+
+- A read-only temporal field takes its accessible name from the label the form displays rather than
+  from `schema:name` alone. Every other widget already did, so a field shown as "Parent sample ID"
+  was announced as `parent_sample_id`, and a form read by ear gave out the property keys the display
+  rule exists to keep off the screen.
+
 ## [2.0.13] - 2026-09-14
 
 This release aligns CEE's build-time model dependency with the public
