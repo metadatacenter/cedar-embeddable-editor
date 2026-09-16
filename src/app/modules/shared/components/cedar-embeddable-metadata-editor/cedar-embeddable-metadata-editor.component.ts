@@ -27,7 +27,7 @@ import { WidgetConfigCoordinator } from '../../util/widget-config-coordinator';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
-  private static INNER_VERSION = '2026-09-14 18:08 849f5d70';
+  private static INNER_VERSION = '2026-09-15 18:40';
 
   dataContext: DataContext | null = null;
   handlerContext: HandlerContext | null = null;
