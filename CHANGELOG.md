@@ -47,6 +47,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cedar-embeddable-field` emits `valueChange` when validity changes even if the normalized value
   does not, including numeric edits such as `1.5` to `1.50` and back.
 
+## [2.0.15] - 2026-09-15
+
+This release aligns CEE's build-time model dependency with the public
+`cedar-model-typescript-library@1.0.12` package, moves the editor's theme to Material 3, and takes
+CEDAR's shared design values from the design-tokens package. The model library remains compiled into
+CEE's browser bundle and is not a runtime dependency for embedding applications.
+
+### Changed
+
+- The application and visual-test dependency graphs now pin the same public
+  `cedar-model-typescript-library@1.0.12` tarball from npmjs, which carries paragraph length
+  constraints and the Java library's YAML ontology URI form.
+
+- The embedded editor and field themes are Material 3. CEDAR's colours map to explicit M3 light
+  roles, typography stays in pixels at each shadow host, and compact controls, occurrence chips and
+  read-only values use supported component overrides rather than private selectors.
+
+- The font stack, the type scale, the brand palettes and the resolved colours come from
+  `@org.metadatacenter/cedar-design-tokens`. Four measurements of the card no other component draws
+  stay in CEE. The package is a build-time dependency: Sass compiles the values away, so the
+  published package names nothing scoped and an embedding application resolves nothing from Nexus.
+
+- A multiple-choice field separates its selected labels with a middle dot in both the editable and
+  the read-only view, so a label containing a comma no longer reads as two values.
+
+- Field spacing and list separators follow the reviewed baselines, and a read-only field's property
+  icons stay aligned when the field carries no occurrence controls.
+
+### Fixed
+
+- A lookup against an authority the host never configured reports that it is unavailable instead of
+  completing silently. An empty result and an unreachable service are no longer the same answer to
+  the person filling the form.
+
 ## [2.0.14] - 2026-09-14
 
 This release aligns CEE's build-time model dependency with the public

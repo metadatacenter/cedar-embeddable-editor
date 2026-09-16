@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable, timer } from 'rxjs';
+import { Observable, throwError, timer } from 'rxjs';
 import { IntegratedSearchResponse } from '../models/rest/integrated-search/integrated-search-response';
 import { IntegratedSearchRequest } from '../models/rest/integrated-search/integrated-search-request';
 import { FieldComponent } from '../models/component/field-component.model';
@@ -58,12 +58,9 @@ export class ControlledFieldDataService {
     // Random delay to prevent throttling
     const searchUrl = this.integratedSearchUrl;
     if (searchUrl === null) {
-      // No endpoint configured, so no terms to offer. The autocomplete shows its
-      // "no results" row, which is what an empty response produces anyway — and
-      // that is indistinguishable from a term nobody has, so say once which key
-      // is missing rather than let a host watch a working field find nothing.
+      // Report the missing host setting and let the widget show its lookup-failure row.
       this.reportUnconfigured();
-      return EMPTY;
+      return throwError(() => new Error('terminologyBaseUrl is not configured'));
     }
     const randomDelay = Math.floor(Math.random() * 2000);
     return timer(randomDelay).pipe(

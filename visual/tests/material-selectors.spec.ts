@@ -104,7 +104,7 @@ test('every third-party selector CEE styles still matches an element', async ({ 
  * of them precisely because nothing read them. They are gone: the five colours
  * never reached a Material component, no embedder set any of the eight, and a test
  * that a property is *published* passes just as well when the property does
- * nothing. Theming is on CEE-ROADMAP.md, to be designed rather than accumulated.
+ * nothing. Theming is on FRONTEND-ROADMAP.md#cee, to be designed rather than accumulated.
  */
 test('the namespaced font faces survive', async ({ page }) => {
   await open(page, '01-input-types');

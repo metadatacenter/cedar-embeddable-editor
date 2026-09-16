@@ -13,8 +13,8 @@
  * host which key was missing. They answer the same way here.
  */
 import { type Mock, vi } from 'vitest';
-import { firstValueFrom, Observable } from 'rxjs';
-import { defaultIfEmpty } from 'rxjs/operators';
+import { firstValueFrom, Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { ControlledFieldDataService } from './controlled-field-data.service';
 import { ExternalAuthorityLookupService } from './external-authority-lookup.service';
@@ -48,18 +48,17 @@ const messaging = (): { service: MessageHandlerService; errors: Mock } => {
 /** What the host was told, as one string. */
 const reported = (errors: Mock): string => errors.mock.calls.map(([message]) => String(message)).join('\n');
 
-/**
- * What a lookup answered, or `SILENCE` if it completed without emitting.
- *
- * An unconfigured lookup returns `EMPTY`, which is not the same as an empty
- * result: nothing is emitted at all, so the autocomplete's option list keeps
- * whatever it had and its spinner clears through `finalize`. Naming the
- * difference here keeps the assertions about behaviour rather than about a
- * value that never arrives.
- */
-const SILENCE = Symbol('completed without emitting');
-const answered = <T>(observable: Observable<T>): Promise<T | typeof SILENCE> =>
-  firstValueFrom(observable.pipe(defaultIfEmpty<T, typeof SILENCE>(SILENCE)));
+/** Missing configuration must reach the widget's visible lookup-failure handler. */
+const FAILED = Symbol('lookup failed');
+const answered = <T>(observable: Observable<T>): Promise<T | typeof FAILED> =>
+  firstValueFrom(
+    observable.pipe(
+      catchError((error: Error) => {
+        expect(error.message).toContain('is not configured');
+        return of(FAILED);
+      }),
+    ),
+  );
 
 describe('controlled-term search with no terminology server', () => {
   const field = (): FieldComponent =>
@@ -71,7 +70,7 @@ describe('controlled-term search with no terminology server', () => {
     const { service, errors } = messaging();
     const lookup = new ControlledFieldDataService(forbiddenHttp(), service);
 
-    expect(await answered(lookup.getData('lung', field()))).toBe(SILENCE);
+    expect(await answered(lookup.getData('lung', field()))).toBe(FAILED);
     expect(reported(errors)).toContain('"terminologyBaseUrl" is not configured');
   });
 
@@ -99,7 +98,7 @@ describe('external authority lookups with no bridge server', () => {
     const { service, errors } = messaging();
     const lookup = new ExternalAuthorityLookupService(forbiddenHttp(), service);
 
-    expect(await answered(lookup.search(InputType.orcid, 'curie'))).toBe(SILENCE);
+    expect(await answered(lookup.search(InputType.orcid, 'curie'))).toBe(FAILED);
     expect(reported(errors)).toContain('"bridgeBaseUrl" is not configured');
   });
 
@@ -118,18 +117,12 @@ describe('external authority lookups with no bridge server', () => {
     expect(reported(errors)).toContain(InputType.ror);
   });
 
-  /**
-   * Resolving an identifier goes quiet too, rather than throwing.
-   *
-   * The widget resolves rather than searches whenever the text looks like an
-   * identifier, so a pasted ORCID took the other path — and that path threw where
-   * this one returned nothing, from the same missing key.
-   */
-  it('resolves nothing, and does not throw', async () => {
+  /** Pasted identifiers use the same failure path as name searches. */
+  it('reports an observable error when resolving an identifier', async () => {
     const { service, errors } = messaging();
     const lookup = new ExternalAuthorityLookupService(forbiddenHttp(), service);
 
-    expect(await answered(lookup.resolve(InputType.orcid, '0000-0002-1825-0097'))).toBe(SILENCE);
+    expect(await answered(lookup.resolve(InputType.orcid, '0000-0002-1825-0097'))).toBe(FAILED);
     expect(errors).toHaveBeenCalledTimes(1);
   });
 

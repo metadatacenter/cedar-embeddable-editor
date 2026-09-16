@@ -59,7 +59,7 @@ describe('CedarInputSelectComponent', () => {
 
     component.setCurrentValue(['A', 'B']);
 
-    expect(component.readOnlyValue).toBe('A, B');
+    expect(component.displayValue).toBe('A · B');
   });
 
   it('reads a single selection back as itself', () => {
@@ -67,7 +67,7 @@ describe('CedarInputSelectComponent', () => {
 
     component.setCurrentValue('B');
 
-    expect(component.readOnlyValue).toBe('B');
+    expect(component.displayValue).toBe('B');
   });
 
   it('reads an unanswered field back as nothing', () => {
@@ -75,7 +75,16 @@ describe('CedarInputSelectComponent', () => {
 
     component.setCurrentValue(null);
 
-    expect(component.readOnlyValue).toBe('');
+    expect(component.displayValue).toBe('');
+  });
+
+  it('preserves punctuation in labels and stores the original selected values', () => {
+    const labels = ['A, B', 'C · D'];
+    const { component, written } = makeComponent(labels, { multiple: true });
+    component.setCurrentValue(labels);
+    component.inputChanged();
+    expect(component.displayValue).toBe('A, B · C · D');
+    expect(written.at(-1)).toEqual(labels);
   });
 
   it('forgets a cleared selection rather than restoring it at the bound', () => {

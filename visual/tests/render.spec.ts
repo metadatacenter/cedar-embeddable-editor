@@ -646,9 +646,17 @@ test('attribute-value labels stay distinct and its pager aligns responsively', a
     return {
       header: { bottom: header.bottom, center: header.top + header.height / 2 },
       controls: { top: controls.top },
+      labelGap:
+        Math.min(
+          ...Array.from(
+            element.querySelectorAll('app-cedar-input-attribute-value .mdc-floating-label'),
+            (label) => label.getBoundingClientRect().top,
+          ),
+        ) - controls.bottom,
       actionCenter: action.top + action.height / 2,
     };
   });
+  expect(geometry.labelGap, 'floating attribute labels need clearance below the pager').toBeGreaterThanOrEqual(6);
   if (testInfo.project.name === 'desktop') {
     expect(Math.abs(geometry.header.center - geometry.actionCenter)).toBeLessThan(1);
   } else {
@@ -994,11 +1002,11 @@ test('radio selection uses primary color and keeps Clear on the selected row', a
     const radioButton = element.querySelector('mat-radio-button')!;
     return {
       centers: [radio.top + radio.height / 2, button.top + button.height / 2],
-      selectedColor: getComputedStyle(radioButton).getPropertyValue('--mat-radio-selected-icon-color').trim(),
+      selectedColor: getComputedStyle(radioButton.querySelector('.mdc-radio__inner-circle')!).backgroundColor,
     };
   });
   expect(Math.abs(geometry.centers[0] - geometry.centers[1])).toBeLessThan(1);
-  expect(geometry.selectedColor).toBe('#00897b');
+  expect(geometry.selectedColor).toBe('rgb(15, 118, 134)');
 });
 
 /**
@@ -1071,7 +1079,7 @@ test('a read-only multiple-choice field reads its values as a list', async ({ pa
   await open(page, '25-required-choices', 'readonly', '25-required-choices-instance');
 
   const shown = page.locator('app-cedar-input-select input');
-  await expect(shown).toHaveValue('North, South');
+  await expect(shown).toHaveValue('North · South');
   await expect(page.locator('app-cedar-input-select')).toHaveScreenshot('widget-select-multi-readonly.png');
 });
 
@@ -1083,6 +1091,8 @@ test('a populated multi-select uses the focus color rather than the error color'
   await page.locator('mat-option').filter({ hasText: 'North' }).click();
   await page.locator('mat-option').filter({ hasText: 'South' }).click();
   await page.keyboard.press('Escape');
+
+  await expect(multi.locator('mat-select-trigger')).toHaveText('North · South');
 
   const state = await page.evaluate(() => {
     const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
@@ -1102,8 +1112,8 @@ test('a populated multi-select uses the focus color rather than the error color'
       return {
         invalid: field.classList.contains('mat-form-field-invalid'),
         arrowColor: getComputedStyle(arrow).color,
-        focusColor: resolvedColor(style.getPropertyValue('--mat-select-focused-arrow-color').trim()),
-        errorColor: resolvedColor(style.getPropertyValue('--mat-select-invalid-arrow-color').trim()),
+        focusColor: resolvedColor(style.getPropertyValue('--mat-sys-primary').trim()),
+        errorColor: resolvedColor(style.getPropertyValue('--mat-sys-error').trim()),
       };
     };
     return { single: read('single_list'), multi: read('multi_list') };
@@ -1643,6 +1653,17 @@ test.describe('every external authority widget', () => {
       await expect(page.locator('mat-error')).toHaveCount(0);
       await expect(page.locator('.input-warning')).toHaveCount(1);
       await expect(page.locator('.input-warning')).toHaveCSS('color', 'rgb(180, 83, 9)');
+    });
+
+    test(`${label}: missing lookup configuration shows a visible search error`, async ({ page }) => {
+      await open(page, '08-authority');
+      const input = page.locator(`input[aria-label="${name}"]`);
+      await input.fill('test search');
+      await passDebounceWindow(page);
+      await expect(page.locator('mat-option.lookup-failed')).toContainText('Search failed');
+      await input.fill('another search');
+      await page.clock.setFixedTime(new Date(FROZEN.getTime() + 120_000));
+      await expect(page.locator('mat-option.lookup-failed')).toContainText('Search failed');
     });
 
     /** Each widget's message names its own authority. */
@@ -3800,4 +3821,54 @@ test.describe('host inputs that fetch', () => {
       { timeout: 10_000 },
     );
   });
+});
+
+test('read-only property markers align with the card edge when occurrence controls are absent', async ({ page }) => {
+  await open(page, '18-real-nested', 'readonly');
+  for (const pageNumber of [1, 2]) {
+    if (pageNumber === 2) {
+      await page.locator('.page-break-paginator-container mat-chip-option', { hasText: '2' }).first().click();
+    }
+    const cards = page.locator('.non-iterable-component');
+    await expect(cards.first()).toBeVisible();
+    const offsets = await cards.evaluateAll((elements) =>
+      elements.flatMap((card) => {
+        const marker = card.querySelector(':scope > app-cedar-component-header [data-property-iri]');
+        if (!marker || !marker.getClientRects().length) return [];
+        const pager = card.querySelector(':scope > app-cedar-multi-pager .pager-chips');
+        if (pager?.getClientRects().length) return [];
+        return [
+          {
+            name: marker.getAttribute('data-property-iri'),
+            offset: card.getBoundingClientRect().right - marker.getBoundingClientRect().right,
+          },
+        ];
+      }),
+    );
+    expect(offsets.length).toBeGreaterThan(5);
+    for (const { name, offset } of offsets) expect(Math.abs(offset), name ?? '').toBeLessThanOrEqual(1);
+  }
+});
+
+test('editable choice rows are compact and their controls do not overlap adjacent options', async ({ page }) => {
+  await open(page, '02-choices');
+  for (const selector of ['mat-radio-button', 'mat-checkbox']) {
+    const options = page.locator(selector);
+    const rows = await options.evaluateAll((elements) =>
+      elements.map((element) => {
+        const box = element.getBoundingClientRect();
+        const input = element.querySelector('input')!.getBoundingClientRect();
+        return { height: box.height, top: box.top, bottom: box.bottom, inputTop: input.top, inputBottom: input.bottom };
+      }),
+    );
+    expect(rows.length).toBeGreaterThan(1);
+    for (const row of rows) {
+      expect(row.height).toBe(28);
+      expect(row.inputTop).toBeGreaterThanOrEqual(row.top);
+      expect(row.inputBottom).toBeLessThanOrEqual(row.bottom);
+    }
+    for (let i = 1; i < rows.length; i++) expect(rows[i].top - rows[i - 1].top).toBe(28);
+  }
+  const clear = page.getByRole('button', { name: 'Clear', exact: true }).first();
+  expect((await clear.boundingBox())!.height).toBe(28);
 });

@@ -1,3 +1,5 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
+
 :host {
   display: block;
   min-width: 0;
@@ -5,12 +7,12 @@
 
 /*
  * A nested element's heading, one step below a section break's 20px and above the
- * body, so the two levels do not read as one. The size is a literal rather than a
- * token because no component stylesheet in CEE imports `_cee-tokens.scss`, which
- * names the relationship from its own side.
+ * body, so the two levels do not read as one. That step was a literal here while
+ * the scale named only four of its five sizes; the shared package names this one,
+ * so the relationship is stated once rather than described in a comment.
  */
 .cee-element-heading {
-  font-size: 18px;
+  font-size: tokens.$font-size-element-heading;
   font-weight: 600;
 }
 

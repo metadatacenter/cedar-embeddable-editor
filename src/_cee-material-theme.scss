@@ -1,197 +1,220 @@
-// The only file in CEE that touches Angular Material's theming API.
-//
-// Everything Material's theming vocabulary is needed for lives here, so a
-// version hop that renames or removes part of that vocabulary is a change to one
-// file instead of a change to the brand. That is exactly how it played out:
-//
-//   * v18 renamed the M2 helpers — `define-palette` → `m2-define-palette`,
-//     `define-light-theme` → `m2-define-light-theme`,
-//     `define-typography-config` → `m2-define-typography-config`,
-//     `$teal-palette` → `$m2-teal-palette`. **Done**, applied by
-//     `ng update @angular/material@18` and confined to this file, which is the
-//     whole point of it existing.
-//
-// Still ahead:
-//
-//   * The M2 helpers are slated to go entirely in favour of M3's token-based
-//     `theme()` API, which is a different model rather than a renamed one. That
-//     one is a rewrite of the `$applied-theme` construction below, not a
-//     search-and-replace, and it will change what CEE looks like — so it is a
-//     decision, in the sense THEMING.md means, and not a migration step.
-//
-// Do not reach for _cee-tokens.scss when that happens: those are CEDAR's values
-// and are not Material's to restate.
-//
-// Emission order is deliberate. This file defines mixins and does not include
-// anything at the top level, because `@use` would then hoist Material's CSS
-// above the rules that override it in styles-own.scss and quietly change the
-// cascade. The call sites stay where they are; only the vocabulary moved.
-
+// Angular Material M3 adapter. Shared values belong to cedar-design-tokens;
+// Material roles and CEE's component metrics belong here. Emit only at the
+// existing call sites so @use cannot reorder the cascade inside either shadow root.
+@use 'sass:map';
 @use '@angular/material' as mat;
-@use 'cee-tokens' as tokens;
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
-// ---------------------------------------------------------------------------
-// The applied theme
-// ---------------------------------------------------------------------------
-//
-// NOTE, and read this before the Material 15 hop: these are Angular's stock teal
-// and deep-orange palettes, not CEDAR's brand palettes from _cee-tokens.scss.
-// That is what CEE renders today — stock teal 600 (#00897b) accounts for 35 of
-// the color values in the shipped bundle, while CEDAR's own #0f7686 appears
-// twice, both times outside the Material theme.
-//
-// This looks like an accident rather than a decision: the brand palettes are
-// fully specified and then applied to nothing but three custom properties. It is
-// recorded here as-is because changing it would be a visual change, and the
-// upgrade is not the place to make one silently. THEMING.md sets out the choice.
-$_applied-primary: mat.m2-define-palette(mat.$m2-teal-palette, 600);
-$_applied-accent: mat.m2-define-palette(mat.$m2-deep-orange-palette, A200, A100, A400);
-
-// Typography. Two levels are named because two levels were wrong.
-//
-// This config used to set a font family and nothing else, so every size came
-// from M2's defaults — and M2 puts `subtitle-1` and `body-1` at 16px, which is
-// what a Material form field uses for the text a user types and for its label.
-// CEE's own chrome is `$cee-font-size`, so a field's label rendered at 14px and
-// the value inside it at 16px. A temporal row showed three sizes at once: a 14px
-// label, a 16px date, a 14px clock.
-//
-// Nobody chose 16px. It is M2's default, in the same way stock teal is M2's
-// default palette, and the fix is the same shape: name the value CEDAR already
-// declares. Measured across the flat corpus fixture before this, 121 elements
-// rendered at 14px against 36 at 16px, so this moves the minority to the
-// majority rather than picking a third number.
-//
-// The line-heights stay at M2's absolute values rather than scaling with the
-// size. This is a change to glyph size, not to density: the 48px form-field
-// infix that the temporal row, the attribute-value widget and the offset
-// selector each override is measured against those line-heights, and shrinking
-// them would move every row while nothing asked for that.
-//
-// The letter-spacings are M2's, restated. They are `em`, so they follow the
-// size — but a level built without one gets `normal`, which would drop
-// Material's tracking as a side effect of naming a size.
-$_typography: mat.m2-define-typography-config(
-  $font-family: tokens.$cee-font-family-string,
-  $subtitle-1: mat.m2-define-typography-level(tokens.$cee-font-size, 28px, 400, null, 0.009375em),
-  $body-1: mat.m2-define-typography-level(tokens.$cee-font-size, 24px, 400, null, 0.03125em),
+// CEDAR already has a palette and semantic neutrals. Map those directly to M3's
+// light roles rather than pretending the old 50–900 hues are M3 tonal palettes.
+// Every color role is explicit, including the two native-select/scrim fallbacks.
+$_white: tokens.$color-on-primary;
+$_black: map.get(tokens.$brand-primary, contrast, 50);
+$_colors: (
+  primary: tokens.$color-primary,
+  on-primary: tokens.$color-on-primary,
+  primary-container: map.get(tokens.$brand-primary, 50),
+  on-primary-container: map.get(tokens.$brand-primary, 900),
+  primary-fixed: map.get(tokens.$brand-primary, 50),
+  primary-fixed-dim: map.get(tokens.$brand-primary, 100),
+  on-primary-fixed: map.get(tokens.$brand-primary, 900),
+  on-primary-fixed-variant: map.get(tokens.$brand-primary, 700),
+  inverse-primary: map.get(tokens.$brand-primary, 200),
+  secondary: map.get(tokens.$brand-primary, 700),
+  on-secondary: tokens.$color-on-primary,
+  secondary-container: tokens.$surface-tinted,
+  on-secondary-container: tokens.$color-component-title,
+  secondary-fixed: map.get(tokens.$brand-primary, 50),
+  secondary-fixed-dim: map.get(tokens.$brand-primary, 100),
+  on-secondary-fixed: map.get(tokens.$brand-primary, 900),
+  on-secondary-fixed-variant: map.get(tokens.$brand-primary, 700),
+  tertiary: map.get(tokens.$brand-accent, 500),
+  on-tertiary: map.get(tokens.$brand-accent, contrast, 500),
+  tertiary-container: map.get(tokens.$brand-accent, 50),
+  on-tertiary-container: map.get(tokens.$brand-accent, 900),
+  tertiary-fixed: map.get(tokens.$brand-accent, 50),
+  tertiary-fixed-dim: map.get(tokens.$brand-accent, 100),
+  on-tertiary-fixed: map.get(tokens.$brand-accent, 900),
+  on-tertiary-fixed-variant: map.get(tokens.$brand-accent, 700),
+  error: tokens.$color-warn,
+  on-error: $_black,
+  error-container: map.get(tokens.$brand-accent, 50),
+  on-error-container: map.get(tokens.$brand-accent, 900),
+  background: $_white,
+  on-background: tokens.$text-primary,
+  surface: $_white,
+  surface-bright: $_white,
+  surface-dim: tokens.$border-rule,
+  surface-container-lowest: $_white,
+  surface-container-low: $_white,
+  surface-container: tokens.$surface-panel,
+  surface-container-high: tokens.$surface-panel,
+  surface-container-highest: tokens.$border-rule-light,
+  surface-variant: tokens.$surface-panel,
+  surface-tint: tokens.$color-primary,
+  on-surface: tokens.$text-primary,
+  on-surface-variant: tokens.$text-muted,
+  inverse-surface: tokens.$text-muted,
+  inverse-on-surface: $_white,
+  outline: tokens.$border-control,
+  outline-variant: tokens.$border-rule,
+  shadow: $_black,
+  scrim: $_black,
+  neutral10: tokens.$text-primary,
+  neutral-variant20: tokens.$text-muted,
 );
 
-$applied-theme: mat.m2-define-light-theme(
-  (
-    color: (
-      primary: $_applied-primary,
-      accent: $_applied-accent,
-    ),
-    typography: $_typography,
-    /*
-     * Density is not optional, even at the default of 0.
-     *
-     * `all-component-themes` emits density styles only when the theme config
-     * carries the key, and from Material 16 several components take their size
-     * from those tokens rather than from a fixed rule. Omitted, the expansion
-     * panel header had no height at all: it collapsed to its text, 16px instead
-     * of 48px, and the panel body then overlapped it — which showed up not as a
-     * visual oddity but as clicks on the header timing out, because the body was
-     * intercepting them.
-     *
-     * 0 is the default, so this changes nothing about the intended appearance. It
-     * only makes the theme say so.
-     */
-      density: 0,
-  )
-);
-
-// ---------------------------------------------------------------------------
-// Emission points
-// ---------------------------------------------------------------------------
-
-/// Material's base styles. Must come before any component theme.
-///
-/// No `all-component-typographies()`. The Angular 15 migration left a note here
-/// asking whether it was needed, and it was carried unanswered to 22; the answer
-/// is no, on both of the conditions that note set out. CEE specifies typography
-/// in `$_typography`, which `$applied-theme` carries and `all-component-themes`
-/// emits, so the component styles were being written twice. And the hierarchy
-/// classes the call also brings — `.mat-headline-1` and its siblings — are used
-/// nowhere: the only mention of one in this repository was inside that note.
-///
-/// Removing it is invisible and not merely believed to be: the build is 13,678
-/// bytes smaller and all 356 bundle-level checks pass, every pixel snapshot
-/// among them.
 @mixin core() {
   @include mat.elevation-classes();
   @include mat.app-background();
 }
 
-/// Color and typography for every Material component CEE uses.
-///
-/// Plus one density override, for the form field alone: **CEE's field box is
-/// 48px**, and this is where that is decided.
-///
-/// It was 36px, expressed as `min-height: auto` with 5/7 padding forced onto
-/// `.mat-mdc-form-field-infix` — and 36px is what an *empty* field measured.
-/// Material's clear action is a 48px icon button, and CEE renders one in every
-/// widget that can hold a value, shown `@if` the value is there. So a field grew
-/// as the user typed into it. Measured on `01-input-types`: text, email, link and
-/// phone each 36px empty and 48px filled, with the page going 1006px to 1054px
-/// over five fields, while numeric stayed 36px because its suffix is a unit label
-/// rather than a button. A form in use was never the compact form; it was a mix of
-/// both, reflowing field by field.
-///
-/// That is what made 36px indefensible rather than merely smaller. Choosing 48px
-/// costs vertical space on a blank form and buys a height that does not depend on
-/// whether a field has a value, whether that value came from an authority lookup,
-/// or which buttons a widget happens to draw.
-///
-/// `form-field-density(-2)` rather than another override, because 48px *is* a
-/// level on Material's density scale — `m2-form-field.scss` maps -2 to 48px and
-/// -5 to 36px, so both heights CEE has ever rendered were already named by the
-/// API it was reaching past. Going through it deletes four hand-rolled rules and
-/// their seventeen `!important` declarations: the global infix rule, the
-/// attribute-value pair's copy, the temporal row's copy, and the offset
-/// selector's. `.mat-mdc-form-field-infix` no longer appears in CEE's stylesheets
-/// at all, which takes the Material internals CEE depends on from 18 to 17.
-///
-/// Not the theme's own `density` key: that applies to every component, and the
-/// note beside it records what happened when the expansion panel header lost its
-/// height. This is per-component and emitted after `all-component-themes`, which
-/// is how Material's API composes.
-///
-/// One visible consequence, and it is Material's design rather than a side
-/// effect. `$hide-label` in `m2-form-field.scss` is `$height < 52px`, so below -1
-/// the floating label is not drawn. Only the offset selector uses `<mat-label>` —
-/// every other field has its label commented out and gets one from
-/// `app-cedar-component-header` instead — and it now renders as resting text
-/// inside the box, reading "Select UTC offset" where it previously straddled its
-/// own outline. Which is the misalignment the reviewer's screenshot showed, fixed
-/// by asking Material for a height it supports instead of forcing one it does not.
-/// And two more density overrides, for the choice controls: **a radio or
-/// checkbox option is 36px**, decided here for the same reason.
-///
-/// Material draws a 20px control inside a 40px state layer, so a radio field of
-/// six options spent 240px on six words while the words themselves needed 120px.
-/// The multiple-choice widget then held its rows at 48px, because the clear
-/// action it draws beside the selected option is a 48px icon button. Reading
-/// down a template, that is the tallest thing on the page saying the least.
-///
-/// -1 rather than lower. Material stops drawing the invisible 48px touch target
-/// below -1 — `$touch-target-display` in `m2-radio.scss` and its checkbox twin
-/// turn it off once the scale passes -1 — and the control being smaller than the
-/// area that accepts a tap is the point of having both. At -1 the visible control
-/// is 36px and the target it keeps is still 48px, so this costs a third of the
-/// field's height and none of its reach.
-///
-/// The density tokens are what move: `.mdc-radio` takes
-/// `padding: calc((var(--mat-radio-state-layer-size) - 20px) / 2)`, and the
-/// checkbox insets `.mdc-checkbox__background` off the same token, so its box
-/// stays centred without being told where to sit. Read-only is unaffected, since
-/// `styles-own.scss` sets that padding outright and wants a control smaller than
-/// any level on the scale.
 @mixin component-themes() {
-  @include mat.all-component-themes($applied-theme);
-  @include mat.form-field-density(-2);
-  @include mat.radio-density(-1);
-  @include mat.checkbox-density(-1);
-  @include mat.strong-focus-indicators-theme($applied-theme);
+  // M3 components consume system tokens directly. No M2 theme construction or
+  // all-component-themes pass; re-root the system at each CEE/CEF shadow host.
+  color-scheme: light;
+  @include mat.theme(
+    (
+      color: (
+        theme-type: light,
+      ),
+      typography: tokens.$font-family,
+      density: 0,
+    ),
+    $_colors
+  );
+
+  // Material defaults use rem. Embedders own html's size, so state all levels
+  // in px, including the shorthand used by menus and datepicker overlays.
+  @each $role, $size, $height, $weight,
+    $tracking
+      in (
+        (body-large, tokens.$font-size, 24px, 400, 0.4375px),
+        (body-medium, tokens.$font-size, 24px, 400, 0.25px),
+        (body-small, tokens.$font-size-small, 20px, 400, 0.4px),
+        (label-large, tokens.$font-size, 20px, 500, 0.1px),
+        (label-medium, tokens.$font-size-small, 16px, 500, 0.5px),
+        (label-small, tokens.$font-size-small, 16px, 500, 0.5px),
+        (title-large, tokens.$font-size-heading, 28px, 400, 0px),
+        (title-medium, tokens.$font-size, 24px, 500, 0.15px),
+        (title-small, tokens.$font-size, 20px, 500, 0.1px),
+        (headline-large, tokens.$font-size-heading, 32px, 400, 0px),
+        (headline-medium, tokens.$font-size-heading, 28px, 400, 0px),
+        (headline-small, tokens.$font-size-element-heading, 24px, 400, 0px),
+        (display-large, tokens.$font-size-heading, 32px, 400, 0px),
+        (display-medium, tokens.$font-size-heading, 28px, 400, 0px),
+        (display-small, tokens.$font-size-element-heading, 24px, 400, 0px)
+      )
+  {
+    @include mat.theme-overrides(
+      (
+        #{$role}: #{$weight} #{$size}/#{$height} #{tokens.$font-family},
+        #{$role}-size: $size,
+        #{$role}-line-height: $height,
+        #{$role}-tracking: $tracking,
+        #{$role}-weight: $weight
+      )
+    );
+  }
+
+  // Comfortable fields are 48px. Compact overrides these through the public
+  // CEDAR contract. Choice rows are 28px; hit areas stay within each option row.
+  @include mat.form-field-overrides(
+    (
+      container-height: 48px,
+      container-vertical-padding: 12px,
+      filled-label-display: none,
+      filled-with-label-container-padding-top: 12px,
+      filled-with-label-container-padding-bottom: 12px,
+    )
+  );
+  @include mat.radio-overrides(
+    (
+      state-layer-size: 28px,
+      touch-target-display: none,
+    )
+  );
+  @include mat.checkbox-overrides(
+    (
+      state-layer-size: 28px,
+      touch-target-display: none,
+    )
+  );
+  // CEE cards inside elements inherit this line box. M3's 24px body default
+  // adds 4px to every nested label and makes the real nested form 512px taller.
+  @include mat.expansion-overrides(
+    (
+      container-text-line-height: 20px,
+    )
+  );
+  @include mat.strong-focus-indicators-theme(tokens.$color-primary);
+}
+
+// Keep the supported Material APIs in this adapter even when their emission
+// needs a more specific selector in the compact-control stylesheet.
+@mixin compact-controls() {
+  @include mat.select-overrides(
+    (
+      trigger-text-size: var(--_cedar-font-size),
+      trigger-text-line-height: var(--_cedar-line-height),
+    )
+  );
+  @include mat.form-field-overrides(
+    (
+      container-height: var(--_cedar-height),
+      container-vertical-padding: var(--_cedar-padding),
+      container-text-size: var(--_cedar-font-size),
+      container-text-line-height: var(--_cedar-line-height),
+      outlined-container-shape: var(--_cedar-radius),
+      outlined-outline-color: var(--_cedar-border),
+      outlined-focus-outline-color: var(--_cedar-focus),
+      outlined-error-outline-color: var(--_cedar-error),
+      outlined-error-focus-outline-color: var(--_cedar-error),
+      outlined-error-hover-outline-color: var(--_cedar-error),
+      error-text-color: var(--_cedar-error),
+    )
+  );
+}
+
+@mixin control-size($height, $padding) {
+  @include mat.form-field-overrides(
+    (
+      container-height: $height,
+      container-vertical-padding: $padding,
+    )
+  );
+}
+
+@mixin icon-size($size) {
+  @include mat.icon-button-overrides(
+    (
+      state-layer-size: $size,
+    )
+  );
+}
+
+@mixin occurrence-chips() {
+  @include mat.chips-overrides(
+    (
+      container-height: 26px,
+      label-text-size: tokens.$font-size-small,
+    )
+  );
+}
+
+@mixin declared-values() {
+  @include mat.form-field-overrides(
+    (
+      filled-input-text-color: rgba(0, 0, 0, 0.54),
+      outlined-input-text-color: rgba(0, 0, 0, 0.54),
+    )
+  );
+}
+
+@mixin comfortable-outline() {
+  @include mat.form-field-overrides(
+    (
+      outlined-outline-color: black,
+    )
+  );
 }

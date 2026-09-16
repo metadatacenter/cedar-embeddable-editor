@@ -161,22 +161,10 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
     }
   }
 
-  /**
-   * What a read-only field shows.
-   *
-   * A multiple-choice field holds a list, and the read-only input used to be
-   * bound to the control itself — so the DOM coerced the array on its way into
-   * the input's `value` and rendered `A,B`: no space, and nothing to say it is
-   * more than one value. Joined here instead, so what is shown is a decision
-   * rather than a coercion. A label containing a comma still reads ambiguously;
-   * a text input cannot express a list, and that is as far as one goes.
-   */
-  get readOnlyValue(): string {
+  /** Selected labels, separated consistently in editable and read-only views. */
+  get displayValue(): string {
     const value = this.inputValueControl.value;
-    if (Array.isArray(value)) {
-      return value.join(', ');
-    }
-    return value ?? '';
+    return Array.isArray(value) ? value.join(' · ') : (value ?? '');
   }
 
   clearValue($event: Event): void {

@@ -1,0 +1,43 @@
+// CEE's own layout constants.
+//
+// Measurements of CEE's card, which is a thing no other component draws. The
+// values every CEDAR component shares — the font stack, the type scale, the
+// brand palettes and the neutrals — are in
+// `@org.metadatacenter/cedar-design-tokens`, and a shared package carrying
+// these four would hand two other components the geometry of a card they do
+// not have.
+//
+// Nothing here may reference `@angular/material`, for the same reason that
+// rule holds for the shared values: `_cee-material-theme.scss` is the only
+// file that imports Material.
+
+/// The slot at the right of a component's title row, holding the help mark and
+/// the property-IRI glyph: 16px, 6px of gap, 18px.
+///
+/// A constant rather than the width of whichever icons a component happens to
+/// carry, because an editable occurrence pager overlays that row from the right
+/// and the only stop it can aim at is one that does not move. It also puts the
+/// two marks in the same column on every row of a form.
+$cee-header-trailing-slot: 40px;
+
+/// The inset between the card's edge and everything it holds: the identity block
+/// and the provenance in the header, and every field below them.
+///
+/// One value, because the header and the content each stated their own and the
+/// two disagreed — the header held its contents 24px off the card where the
+/// content held the fields 32px off, at every width above 1067px. The version
+/// and status then ended 8px outside the fields they describe, and a host that
+/// puts a control of its own above the card and aligns it with the fields, as
+/// the Workbench does with the metadata's name, inherited that step.
+$cee-gutter-inline: clamp(12px, 3cqi, 32px);
+
+/// The controls above the form — expand, collapse and download — as one row of
+/// icon buttons.
+///
+/// Smaller than the control height the rest of CEE uses, and closer together
+/// than a row of buttons would normally sit, so the three read as one group of
+/// actions on the form rather than three buttons that happen to be adjacent.
+/// The box hugs a 24px icon, which is the size Material draws one at and the
+/// size `_cedar-compact.scss` assumes when it derives an icon button's padding.
+$cee-toolbar-control-size: 30px;
+$cee-toolbar-control-gap: 2px;

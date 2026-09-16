@@ -1,4 +1,4 @@
-@use '../../../../../cee-tokens' as tokens;
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
 .section-break-header {
   box-sizing: border-box;
@@ -27,7 +27,7 @@
    * small is what a rem-sized heading looks like in a host that shrinks its root,
    * and CEE cannot see that it happened.
    */
-  font-size: tokens.$cee-font-size-heading;
+  font-size: tokens.$font-size-heading;
   font-weight: 600;
   line-height: 1.4;
 }

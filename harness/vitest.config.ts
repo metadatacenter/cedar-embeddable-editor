@@ -144,7 +144,7 @@ export default defineConfig({
        * language map from `visual/generate-fixtures.mjs` and asserts both the
        * fetched map and the built-in fallback.
        *
-       * `CEE-RUNBOOK.md` already makes this argument for the rest of `shared/` —
+       * `FRONTEND-RUNBOOK.md#cee` already makes this argument for the rest of `shared/` —
        * "the headline number for all of `shared/` is meaningless" — and this floor
        * had quietly acquired the same problem. Keep the list short: an entry here
        * must be unreachable to the harness, not just inconvenient to test.

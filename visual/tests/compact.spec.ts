@@ -66,3 +66,15 @@ test('compact paragraphs start with two rows and grow without clipping content',
   await expect.poll(async () => (await input.boundingBox())!.height).toBeGreaterThan(90);
   await expect(input).toHaveValue('One\nTwo\nThree\nFour\nFive');
 });
+
+test('Material choice controls use the shared CEDAR primary palette', async ({ page }) => {
+  await open(page, '02-choices');
+  const editor = page.locator('cedar-embeddable-editor');
+  const checkbox = editor.locator('mat-checkbox').first();
+  await expect(checkbox).toBeVisible();
+  await checkbox.locator('input').check();
+  await expect(checkbox.locator('.mdc-checkbox__background')).toHaveCSS('background-color', 'rgb(15, 118, 134)');
+  const radio = editor.locator('mat-radio-button').first();
+  await radio.locator('input').check();
+  await expect(radio.locator('.mdc-radio__inner-circle')).toHaveCSS('background-color', 'rgb(15, 118, 134)');
+});
