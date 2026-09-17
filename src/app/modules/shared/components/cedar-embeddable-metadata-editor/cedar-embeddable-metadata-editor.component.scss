@@ -86,8 +86,8 @@ $logo-track: 72px;
  */
 .cee-name {
   display: block;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: tokens.$font-size-small;
+  font-weight: var(--cedar-font-weight-medium, 500);
   letter-spacing: 0.08em;
   line-height: 1;
   color: #1f2937;
@@ -127,7 +127,7 @@ $logo-track: 72px;
   color: #173f3e;
   /* The one fluid step in CEE: a title scales with the container, in px. */
   font-size: clamp(19px, 3cqi, 26px);
-  font-weight: 500;
+  font-weight: var(--cedar-font-weight-medium, 500);
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
@@ -269,12 +269,12 @@ $logo-track: 72px;
   }
 
   .cee-name {
-    font-size: 9px;
+    font-size: tokens.$font-size-small;
   }
 
   .cee-version {
-    /* One step below `$cee-font-size-small`, where the header has stacked. */
-    font-size: 10px;
+    /* Keep version text readable when the header stacks. */
+    font-size: tokens.$font-size-small;
   }
 
   .template-actions,

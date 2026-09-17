@@ -34,9 +34,7 @@ export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex'
 const NEXUS_REGISTRY = 'https://nexus.bmir.stanford.edu/repository/npm-cedar/';
 const DEV_VERSION = /-dev\./;
 
-export const packageMetadata = (
-  rootPackage = readJson(resolve(ROOT, 'package.json')),
-) => {
+export const packageMetadata = (rootPackage = readJson(resolve(ROOT, 'package.json'))) => {
   const isDev = DEV_VERSION.test(rootPackage.version);
   return {
     name: isDev ? '@org.metadatacenter/cedar-embeddable-editor' : 'cedar-embeddable-editor',
@@ -50,6 +48,8 @@ export const packageMetadata = (
     types: 'cedar-embeddable-editor.d.ts',
     files: [
       'cedar-embeddable-editor.js',
+      'cedar-embeddable-editor.host-fonts.js',
+      'bundle-manifest.host-fonts.json',
       'cedar-embeddable-editor.d.ts',
       'bundle-manifest.json',
       'README.md',
@@ -123,6 +123,15 @@ export const assertSourceBundle = () => {
   if (manifest.sha256 !== digest || manifest.bytes !== bundle.byteLength) {
     throw new Error('browser bundle does not match its manifest. Run: npm run test:visual:prebuilt');
   }
+  const hosted = readFileSync(SOURCE_BUNDLE.replace('.js', '.host-fonts.js'));
+  const hostManifest = readJson(SOURCE_MANIFEST.replace('.json', '.host-fonts.json'));
+  if (hostManifest.sha256 !== sha256(hosted) || hostManifest.bytes !== hosted.byteLength) {
+    throw new Error('host-font bundle does not match its manifest');
+  }
+  if (hosted.byteLength >= bundle.byteLength || hosted.includes(Buffer.from('data:font/woff2;base64,d09GM'))) {
+    // Text fonts use this data URL; the separately encoded Material icon face must remain.
+    throw new Error('host-font bundle did not remove embedded text font data');
+  }
   return { bundle, manifest };
 };
 
@@ -135,6 +144,8 @@ const readTypes = () => {
 
 export const expectedFiles = () => ({
   'cedar-embeddable-editor.js': readFileSync(SOURCE_BUNDLE),
+  'cedar-embeddable-editor.host-fonts.js': readFileSync(SOURCE_BUNDLE.replace('.js', '.host-fonts.js')),
+  'bundle-manifest.host-fonts.json': readFileSync(SOURCE_MANIFEST.replace('.json', '.host-fonts.json')),
   'cedar-embeddable-editor.d.ts': readTypes(),
   'bundle-manifest.json': readFileSync(SOURCE_MANIFEST),
   'README.md': readFileSync(resolve(ROOT, 'README.md')),

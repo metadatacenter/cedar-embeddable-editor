@@ -41,6 +41,6 @@
  * stated a size of its own.
  */
 .page-break-label {
-  font-weight: bold;
+  font-weight: var(--cedar-font-weight-medium, 500);
   margin-right: 20px;
 }

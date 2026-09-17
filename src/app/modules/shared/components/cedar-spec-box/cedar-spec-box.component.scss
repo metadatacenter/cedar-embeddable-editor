@@ -57,7 +57,7 @@
 .cee-spec-box-kind,
 .cee-spec-box-default-kind {
   font-style: italic;
-  font-weight: 400;
+  font-weight: var(--cedar-font-weight-regular, 400);
 }
 
 /*

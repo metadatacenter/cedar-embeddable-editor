@@ -61,7 +61,7 @@ $bio-portal-icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYUAAACBCAMAAAA
   margin-right: 0.25em;
   color: rgba(0, 0, 0, 0.45);
   font-style: italic;
-  font-weight: 400;
+  font-weight: var(--cedar-font-weight-regular, 400);
 }
 
 /*

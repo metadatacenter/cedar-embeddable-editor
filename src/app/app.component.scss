@@ -35,7 +35,7 @@ $cedar-teal: #197b74;
   background: $cedar-teal;
   color: #fff;
   font-size: 20px;
-  font-weight: 500;
+  font-weight: var(--cedar-font-weight-medium, 500);
 }
 
 .app-logo {

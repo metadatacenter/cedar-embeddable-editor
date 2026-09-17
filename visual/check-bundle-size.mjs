@@ -63,25 +63,28 @@ const die = (message) => {
   process.exit(1);
 };
 
-let bundle;
-try {
-  bundle = readFileSync(COPY);
-} catch (error) {
-  die('cannot read public/cedar-embeddable-editor.js. Run: npm run build:production && npm run bundle\n' + error);
-}
+for (const file of [COPY, COPY.replace('.js', '.host-fonts.js')]) {
+  console.log(`  bundle-size: ${file.split('/').pop()}`);
+  let bundle;
+  try {
+    bundle = readFileSync(file);
+  } catch (error) {
+    die('cannot read public/cedar-embeddable-editor.js. Run: npm run build:production && npm run bundle\n' + error);
+  }
 
-const sizes = {
-  raw: bundle.byteLength,
-  gzip: gzipSync(bundle, { level: zlibConstants.Z_BEST_COMPRESSION }).byteLength,
-};
+  const sizes = {
+    raw: bundle.byteLength,
+    gzip: gzipSync(bundle, { level: zlibConstants.Z_BEST_COMPRESSION }).byteLength,
+  };
 
-const format = (bytes) => `${bytes.toLocaleString('en-US')} bytes`;
-for (const kind of ['raw', 'gzip']) {
-  const delta = LIMITS[kind] - sizes[kind];
-  console.log(
-    `  bundle-size: ${kind.padEnd(4)} ${format(sizes[kind])} / ${format(LIMITS[kind])} (${format(delta)} free)`,
-  );
-  if (delta < 0) {
-    die(`${kind} bundle is ${format(-delta)} over its ${format(LIMITS[kind])} limit.`);
+  const format = (bytes) => `${bytes.toLocaleString('en-US')} bytes`;
+  for (const kind of ['raw', 'gzip']) {
+    const delta = LIMITS[kind] - sizes[kind];
+    console.log(
+      `  bundle-size: ${kind.padEnd(4)} ${format(sizes[kind])} / ${format(LIMITS[kind])} (${format(delta)} free)`,
+    );
+    if (delta < 0) {
+      die(`${kind} bundle is ${format(-delta)} over its ${format(LIMITS[kind])} limit.`);
+    }
   }
 }

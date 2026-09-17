@@ -303,7 +303,7 @@ app-sample-templates {
 .notify-progress:before {
   font-family: 'CEE Material Icons';
   font-style: normal;
-  font-weight: 400;
+  font-weight: var(--cedar-font-weight-regular, 400);
   font-size: 18px;
   vertical-align: middle;
   speak: none;
@@ -661,4 +661,9 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
     font-size: 18px;
     line-height: 18px;
   }
+}
+
+// Interface emphasis uses the shared medium face; authored rich text keeps its own styles.
+.required-mark b {
+  font-weight: var(--cedar-font-weight-medium, 500);
 }

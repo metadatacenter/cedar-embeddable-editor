@@ -14,7 +14,7 @@
  */
 .cee-element-heading {
   font-size: tokens.$font-size-element-heading;
-  font-weight: 600;
+  font-weight: var(--cedar-font-weight-medium, 500);
 }
 
 .cee-element-content {

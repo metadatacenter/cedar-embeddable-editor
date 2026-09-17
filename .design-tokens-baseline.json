@@ -57,25 +57,11 @@
       "value": "0.25em",
       "count": 1
     },
-    "0acaf39a43f22dfd31d4": {
-      "file": "src/app/app.component.scss",
-      "rule": "typography",
-      "property": "font-weight",
-      "value": "500",
-      "count": 1
-    },
     "0c0334e14109aea9dc3c": {
       "file": "src/styles-own.scss",
       "rule": "color",
       "property": "background-color",
       "value": "black",
-      "count": 1
-    },
-    "0c147c365ca8dc7d4bb3": {
-      "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.scss",
-      "rule": "typography",
-      "property": "font-weight",
-      "value": "500",
       "count": 1
     },
     "0cc9cb0e4c8241f4d7e7": {
@@ -118,13 +104,6 @@
       "rule": "color",
       "property": "border",
       "value": "1px solid #ddd",
-      "count": 1
-    },
-    "0ff9ef3bdc793ef28f77": {
-      "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
-      "rule": "typography",
-      "property": "font-weight",
-      "value": "400",
       "count": 1
     },
     "12241961995a1720f163": {
@@ -330,13 +309,6 @@
       "value": "#b8daff",
       "count": 1
     },
-    "2cee81a7630108e1fce8": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "typography",
-      "property": "font-weight",
-      "value": "400",
-      "count": 1
-    },
     "2e88a5c9e1fb599d7dc0": {
       "file": "src/app/modules/input-types/components/cedar-static-section-break/cedar-static-section-break.component.scss",
       "rule": "color",
@@ -393,13 +365,6 @@
       "value": "10px",
       "count": 2
     },
-    "3be32b266707daa3af1d": {
-      "file": "src/app/modules/shared/components/cedar-component-renderer/cedar-component-renderer.component.scss",
-      "rule": "typography",
-      "property": "font-weight",
-      "value": "600",
-      "count": 1
-    },
     "3df2bd20858165b0a80f": {
       "file": "src/app/modules/input-types/components/cedar-static-image/cedar-static-image.component.scss",
       "rule": "color",
@@ -419,13 +384,6 @@
       "rule": "geometry",
       "property": "min-height",
       "value": "36px",
-      "count": 1
-    },
-    "3febb773bce349546275": {
-      "file": "src/app/modules/input-types/components/cedar-static-section-break/cedar-static-section-break.component.scss",
-      "rule": "typography",
-      "property": "font-weight",
-      "value": "600",
       "count": 1
     },
     "44b81e933a68f1613d89": {
@@ -484,13 +442,6 @@
       "value": "2px",
       "count": 1
     },
-    "4b81aaae57fbc89d3ff6": {
-      "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.scss",
-      "rule": "typography",
-      "property": "font-size",
-      "value": "9px",
-      "count": 1
-    },
     "4cd79031ebd17fa94157": {
       "file": "src/styles-own.scss",
       "rule": "color",
@@ -504,13 +455,6 @@
       "property": "color",
       "value": "#856404",
       "count": 1
-    },
-    "4e6d13c7ca7d8c091d4d": {
-      "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.scss",
-      "rule": "typography",
-      "property": "font-size",
-      "value": "10px",
-      "count": 2
     },
     "50334ae3921f862a880d": {
       "file": "src/app/modules/input-types/components/cedar-static-youtube/cedar-static-youtube.component.scss",
@@ -566,13 +510,6 @@
       "rule": "color",
       "property": "color",
       "value": "#6f6f6f",
-      "count": 1
-    },
-    "571d17f31a8f9a45046c": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "typography",
-      "property": "font-weight",
-      "value": "500",
       "count": 1
     },
     "577dcb0f43941a1134ba": {
@@ -678,13 +615,6 @@
       "rule": "typography",
       "property": "font-size",
       "value": "0.9em",
-      "count": 1
-    },
-    "68b31884ee42027719ce": {
-      "file": "src/styles-own.scss",
-      "rule": "typography",
-      "property": "font-weight",
-      "value": "400",
       "count": 1
     },
     "68e6545176469a2d6288": {
@@ -1044,13 +974,6 @@
       "value": "20px",
       "count": 2
     },
-    "a621fccd2038d5faa317": {
-      "file": "src/app/modules/shared/components/cedar-field-spec/cedar-field-spec.component.scss",
-      "rule": "typography",
-      "property": "font-weight",
-      "value": "400",
-      "count": 1
-    },
     "a643bc9d7d420344fb87": {
       "file": "src/app/modules/input-types/components/cedar-input-controlled/cedar-input-controlled.component.scss",
       "rule": "color",
@@ -1352,13 +1275,6 @@
       "value": "0 6px",
       "count": 2
     },
-    "e942e77885f2810ddf00": {
-      "file": "src/app/modules/input-types/components/cedar-input-controlled/cedar-input-controlled.component.scss",
-      "rule": "typography",
-      "property": "font-weight",
-      "value": "400",
-      "count": 1
-    },
     "e9a050d27cb1d60c525f": {
       "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
       "rule": "spacing",
@@ -1371,13 +1287,6 @@
       "rule": "spacing",
       "property": "margin",
       "value": "10px auto 0",
-      "count": 1
-    },
-    "ea1bba13f4c13e8f730b": {
-      "file": "src/app/modules/shared/components/cedar-spec-box/cedar-spec-box.component.scss",
-      "rule": "typography",
-      "property": "font-weight",
-      "value": "400",
       "count": 1
     },
     "ea81185153ce8b6953ff": {
@@ -1498,13 +1407,6 @@
       "property": "color",
       "value": "rgba(0, 0, 0, 0.32)",
       "count": 2
-    },
-    "fe2fd1db798a73bfe6a6": {
-      "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.scss",
-      "rule": "typography",
-      "property": "font-weight",
-      "value": "700",
-      "count": 1
     },
     "fe421c98a268be3403bb": {
       "file": "src/app/modules/input-types/components/cedar-input-controlled/cedar-input-controlled.component.scss",

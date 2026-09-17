@@ -109,7 +109,7 @@
   min-width: 52px;
   height: 48px;
   padding-inline: 10px;
-  font-weight: 400;
+  font-weight: var(--cedar-font-weight-regular, 400);
   letter-spacing: normal;
 }
 

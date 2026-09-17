@@ -29,6 +29,6 @@
    * and CEE cannot see that it happened.
    */
   font-size: tokens.$font-size-heading;
-  font-weight: 600;
+  font-weight: var(--cedar-font-weight-medium, 500);
   line-height: 1.4;
 }
