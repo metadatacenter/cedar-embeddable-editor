@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 .youtube-component {
   box-sizing: border-box;
   min-width: 0;
@@ -19,7 +20,7 @@
  */
 .video-error {
   margin: 15px;
-  padding: 10px 12px;
+  padding: 10px ui-tokens.$space-3;
   border: 1px solid #a1332b;
   border-radius: 4px;
   background-color: #fff5f4;

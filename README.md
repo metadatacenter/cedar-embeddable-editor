@@ -67,6 +67,24 @@ API. Copy the bundle to the application's static assets and load it with a
 regular `<script>` tag. The bundle loads as a classic script, not as an ES
 module.
 
+### Hosts that already supply CEDAR fonts
+
+The default `cedar-embeddable-editor.js` remains self-contained. Hosts that already
+register **CEE Roboto 400 and 500** can instead load
+`cedar-embeddable-editor.host-fonts.js`. Both bundles register CEE and CEF with the
+same public API; load only one. The host-font variant retains Material Icons but
+omits embedded text fonts. Without the host's font faces, text falls back to the
+shared system stack.
+
+Import the token package's `fonts/regular` and `fonts/medium` Sass exports in the
+host's global stylesheet before loading the host-font bundle. These exports are
+available in the token source; older snapshots can import the corresponding
+`fonts/_roboto-400.scss` and `fonts/_roboto-500.scss` partials through a configured
+Sass include path. Production builds generate and packaging verifies both bundles,
+with a separate SHA-256 manifest for each. Workspace detects whether its installed
+CEE package provides the host-font variant; older CEE packages retain standalone
+loading until their pin is advanced.
+
 ## Embedding
 
 A host page needs the bundle, one `<cedar-embeddable-editor>` element, and a

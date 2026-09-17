@@ -1234,7 +1234,7 @@ test('element headings establish hierarchy without doubling the first content ga
       };
     });
 
-  expect(await readMetrics()).toEqual({ fontSize: '18px', fontWeight: '600', headerHeight: 48, contentGap: 4 });
+  expect(await readMetrics()).toEqual({ fontSize: '18px', fontWeight: '500', headerHeight: 48, contentGap: 4 });
 });
 
 test('page navigation keeps its controls in a compact row', async ({ page }) => {

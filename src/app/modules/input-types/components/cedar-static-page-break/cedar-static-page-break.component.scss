@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 .page-break-paginator-container {
   margin-top: 0;
   margin-bottom: 0;
@@ -24,7 +25,7 @@
 
   ::ng-deep .mat-mdc-paginator-container {
     min-height: 48px;
-    padding-inline: 4px;
+    padding-inline: ui-tokens.$space-1;
   }
 
   ::ng-deep .mat-mdc-icon-button {
@@ -40,6 +41,6 @@
  * stated a size of its own.
  */
 .page-break-label {
-  font-weight: bold;
+  font-weight: var(--cedar-font-weight-medium, 500);
   margin-right: 20px;
 }

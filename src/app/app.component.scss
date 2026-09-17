@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 
 /*
@@ -30,11 +31,11 @@ $cedar-teal: #197b74;
   display: flex;
   align-items: center;
   height: 60px;
-  padding: 0 16px;
+  padding: 0 ui-tokens.$space-4;
   background: $cedar-teal;
   color: #fff;
   font-size: 20px;
-  font-weight: 500;
+  font-weight: var(--cedar-font-weight-medium, 500);
 }
 
 .app-logo {
@@ -54,7 +55,7 @@ $cedar-teal: #197b74;
   background: #eee;
 
   p {
-    margin: 0 0 4px;
+    margin: 0 0 ui-tokens.$space-1;
   }
 }
 
@@ -80,31 +81,31 @@ $cedar-teal: #197b74;
   border: 1px solid #ddd;
 
   h2 {
-    margin: 0 0 8px;
+    margin: 0 0 ui-tokens.$space-2;
     font-size: 1.1rem;
   }
 
   p {
-    margin: 0 0 12px;
+    margin: 0 0 ui-tokens.$space-3;
     max-width: 70ch;
   }
 }
 
 .field-demo-picker {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: ui-tokens.$space-3;
 
   select {
-    margin-left: 8px;
+    margin-left: ui-tokens.$space-2;
   }
 }
 
 .field-demo-value {
-  margin-top: 12px;
+  margin-top: ui-tokens.$space-3;
   font-family: monospace;
 
   span {
-    margin-left: 12px;
+    margin-left: ui-tokens.$space-3;
     color: #666;
   }
 }

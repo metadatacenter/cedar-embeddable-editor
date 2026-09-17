@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 /*
  * No stepper arrows.
  *
@@ -35,6 +36,6 @@ input[type='number'] {
 
 .cee-numeric-unit {
   line-height: normal;
-  padding-inline: 8px 12px;
+  padding-inline: ui-tokens.$space-2 ui-tokens.$space-3;
   white-space: nowrap;
 }

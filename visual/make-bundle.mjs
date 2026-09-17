@@ -97,13 +97,18 @@ export const produceBundle = async (dist = DEFAULT_DIST) => {
 };
 
 const main = async () => {
-  const { bundle, manifest, strategy, inputs } = await produceBundle();
-  mkdirSync(dirname(OUT), { recursive: true });
-  writeFileSync(OUT, bundle);
-  writeFileSync(MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`);
-  console.log(
-    `  bundle: ${strategy} of ${inputs.length} file(s) -> ${bundle.byteLength.toLocaleString('en-US')} bytes`,
-  );
+  for (const hostFonts of [false, true]) {
+    const dist = hostFonts ? resolve(DEFAULT_DIST, '../cedar-embeddable-editor-host-fonts') : DEFAULT_DIST;
+    const { bundle, manifest, strategy, inputs } = await produceBundle(dist);
+    const out = hostFonts ? OUT.replace('.js', '.host-fonts.js') : OUT;
+    const manifestPath = hostFonts ? MANIFEST.replace('.json', '.host-fonts.json') : MANIFEST;
+    mkdirSync(dirname(out), { recursive: true });
+    writeFileSync(out, bundle);
+    writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    console.log(
+      `  bundle: ${hostFonts ? 'host fonts' : 'standalone'} ${strategy} of ${inputs.length} file(s) -> ${bundle.byteLength.toLocaleString('en-US')} bytes`,
+    );
+  }
 };
 
 // Only run when invoked directly, so importing this for tests has no side effect.

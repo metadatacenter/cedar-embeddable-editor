@@ -1,10 +1,11 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
 :host {
   display: flex;
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: ui-tokens.$space-2 ui-tokens.$space-3;
   width: 100%;
   min-width: 0;
 }
@@ -25,7 +26,7 @@
 .cee-temporal-time {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: ui-tokens.$space-1;
   min-width: 0;
 }
 

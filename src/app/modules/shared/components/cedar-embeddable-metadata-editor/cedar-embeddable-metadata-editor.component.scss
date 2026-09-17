@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '../../../../../styles-common' as common;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 @use 'cee-layout' as layout;
@@ -32,9 +33,9 @@ $logo-track: 72px;
     'logo title provenance'
     'actions actions actions';
   align-items: center;
-  gap: 12px 16px;
+  gap: ui-tokens.$space-3 ui-tokens.$space-4;
   min-width: 0;
-  padding: 16px layout.$cee-gutter-inline;
+  padding: ui-tokens.$space-4 layout.$cee-gutter-inline;
   background: #ffffff;
   border-bottom: 1px solid tokens.$border-rule;
 }
@@ -85,12 +86,12 @@ $logo-track: 72px;
  */
 .cee-name {
   display: block;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: tokens.$font-size-small;
+  font-weight: var(--cedar-font-weight-medium, 500);
   letter-spacing: 0.08em;
   line-height: 1;
   color: #1f2937;
-  margin-top: 4px;
+  margin-top: ui-tokens.$space-1;
 }
 
 .cee-version {
@@ -126,7 +127,7 @@ $logo-track: 72px;
   color: #173f3e;
   /* The one fluid step in CEE: a title scales with the container, in px. */
   font-size: clamp(19px, 3cqi, 26px);
-  font-weight: 500;
+  font-weight: var(--cedar-font-weight-medium, 500);
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
@@ -176,7 +177,7 @@ $logo-track: 72px;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px 16px;
+  gap: ui-tokens.$space-2 ui-tokens.$space-4;
 }
 
 .page-break-control {
@@ -208,7 +209,7 @@ $logo-track: 72px;
   display: grid;
   gap: 0;
   min-width: 0;
-  padding: 0 layout.$cee-gutter-inline 24px;
+  padding: 0 layout.$cee-gutter-inline ui-tokens.$space-6;
 }
 
 @container cee (max-width: 1100px) {
@@ -224,8 +225,8 @@ $logo-track: 72px;
   }
 
   .template-header-paged {
-    row-gap: 8px;
-    padding-block: 12px;
+    row-gap: ui-tokens.$space-2;
+    padding-block: ui-tokens.$space-3;
   }
 
   .logo-block {
@@ -234,7 +235,7 @@ $logo-track: 72px;
 
   .template-actions {
     border-top: 1px solid tokens.$border-rule-light;
-    padding-top: 12px;
+    padding-top: ui-tokens.$space-3;
   }
 
   /*
@@ -251,7 +252,7 @@ $logo-track: 72px;
   }
 
   .template-header-paged .template-actions {
-    padding-top: 8px;
+    padding-top: ui-tokens.$space-2;
   }
 }
 
@@ -268,12 +269,12 @@ $logo-track: 72px;
   }
 
   .cee-name {
-    font-size: 9px;
+    font-size: tokens.$font-size-small;
   }
 
   .cee-version {
-    /* One step below `$cee-font-size-small`, where the header has stacked. */
-    font-size: 10px;
+    /* Keep version text readable when the header stacks. */
+    font-size: tokens.$font-size-small;
   }
 
   .template-actions,

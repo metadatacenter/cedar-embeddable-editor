@@ -3,12 +3,10 @@ import { describe, it } from 'node:test';
 
 import { packageMetadata } from './npm-package.mjs';
 
-
 const source = (version) => ({
   version,
   description: 'A reusable Web Component for creating and editing CEDAR metadata instances.',
 });
-
 
 describe('published CEE channel identity', () => {
   it('stages a stable version unscoped for npmjs', () => {
@@ -33,4 +31,11 @@ describe('published CEE channel identity', () => {
     assert.equal(metadata.version, '2.0.3-dev.20260827.1711.gab718c87781a');
     assert.equal(metadata.publishConfig.tag, 'dev');
   });
+});
+
+it('ships both font variants while retaining the standalone default', () => {
+  const metadata = packageMetadata(source('2.0.16'));
+  assert.equal(metadata.main, 'cedar-embeddable-editor.js');
+  assert.ok(metadata.files.includes('cedar-embeddable-editor.host-fonts.js'));
+  assert.ok(metadata.files.includes('bundle-manifest.host-fonts.json'));
 });

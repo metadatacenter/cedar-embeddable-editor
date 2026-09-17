@@ -1,0 +1,13 @@
+name: Design token adoption
+
+on:
+  pull_request:
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+jobs:
+  adoption:
+    uses: metadatacenter/cedar-design-tokens/.github/workflows/adoption.yml@develop

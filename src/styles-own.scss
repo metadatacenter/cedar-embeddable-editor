@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 // Brand values come from @org.metadatacenter/cedar-design-tokens, CEE's own card
 // measurements from _cee-layout.scss, and the Material theming API is reached only
 // through _cee-material-theme.scss. Neither emits CSS on its own, so the
@@ -218,7 +219,7 @@
  * nothing, so the rule names the field card.
  */
 .non-iterable-component > app-cedar-multi-pager .pager-container {
-  margin-right: layout.$cee-header-trailing-slot + 8px;
+  margin-right: layout.$cee-header-trailing-slot + ui-tokens.$space-2;
 }
 
 .pager-container-ro {
@@ -246,7 +247,7 @@
 .pager-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: ui-tokens.$space-1;
 }
 
 .pager-action-tooltip {
@@ -259,17 +260,17 @@
   .pager-container-ro,
   .non-iterable-component > app-cedar-multi-pager .pager-container {
     justify-content: flex-start;
-    margin-top: 8px;
+    margin-top: ui-tokens.$space-2;
     margin-right: 0;
     margin-bottom: 0;
   }
 
   .pager-chips {
-    margin-right: 12px;
+    margin-right: ui-tokens.$space-3;
   }
 
   .inline-readonly-pager > app-cedar-multi-pager .pager-container-ro {
-    margin-top: 8px;
+    margin-top: ui-tokens.$space-2;
   }
 }
 
@@ -302,7 +303,7 @@ app-sample-templates {
 .notify-progress:before {
   font-family: 'CEE Material Icons';
   font-style: normal;
-  font-weight: 400;
+  font-weight: var(--cedar-font-weight-regular, 400);
   font-size: 18px;
   vertical-align: middle;
   speak: none;
@@ -660,4 +661,9 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
     font-size: 18px;
     line-height: 18px;
   }
+}
+
+// Interface emphasis uses the shared medium face; authored rich text keeps its own styles.
+.required-mark b {
+  font-weight: var(--cedar-font-weight-medium, 500);
 }

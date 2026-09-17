@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
 :host {
@@ -13,11 +14,11 @@
  */
 .cee-element-heading {
   font-size: tokens.$font-size-element-heading;
-  font-weight: 600;
+  font-weight: var(--cedar-font-weight-medium, 500);
 }
 
 .cee-element-content {
-  padding-top: 4px;
+  padding-top: ui-tokens.$space-1;
 }
 
 /*
@@ -33,7 +34,7 @@
 .non-iterable-component {
   box-sizing: border-box;
   min-width: 0;
-  padding: 16px 0;
+  padding: ui-tokens.$space-4 0;
 
   /*
    * Half that when read-only. The 16px above and below gives a control room to be reached and
@@ -42,7 +43,7 @@
    * encapsulated selector, which a global rule of the same specificity loses to on order.
    */
   :host-context(.cee-read-only) & {
-    padding: 8px 0;
+    padding: ui-tokens.$space-2 0;
   }
   background: transparent;
   border-bottom: 1px solid #e1e7e6;
@@ -58,7 +59,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: 12px;
+  column-gap: ui-tokens.$space-3;
 
   > app-cedar-component-header {
     grid-column: 1;
@@ -98,5 +99,5 @@
 
 .child-component-content {
   min-width: 0;
-  padding-top: 4px;
+  padding-top: ui-tokens.$space-1;
 }

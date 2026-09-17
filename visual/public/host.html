@@ -43,9 +43,11 @@
        * would produce the same URL every time and bust nothing.
        */
       (function () {
-        var b = new URLSearchParams(location.search).get('b') || '';
+        var params = new URLSearchParams(location.search);
+        var b = params.get('b') || '';
+        var bundle = params.get('fonts') === 'host' ? 'cedar-embeddable-editor.host-fonts.js' : 'cedar-embeddable-editor.js';
         document.write(
-          '<script src="./cedar-embeddable-editor.js' + (b ? '?b=' + encodeURIComponent(b) : '') + '"><\/script>',
+          '<script src="./' + bundle + (b ? '?b=' + encodeURIComponent(b) : '') + '"><\/script>',
         );
       })();
     </script>

@@ -20,29 +20,17 @@
             "outputPath": "dist/cedar-embeddable-editor",
             "index": "src/index.html",
             "tsConfig": "tsconfig.app.json",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets",
-              "src/assets/i18n-cee"
-            ],
+            "assets": ["src/favicon.ico", "src/assets", "src/assets/i18n-cee"],
             "styles": [],
             "stylePreprocessorOptions": {
-              "includePaths": [
-                "src",
-                "node_modules"
-              ]
+              "includePaths": ["src", "node_modules"]
             },
-            "allowedCommonJsDependencies": [
-              "moment",
-              "moment-timezone"
-            ],
+            "allowedCommonJsDependencies": ["moment", "moment-timezone"],
             "extractLicenses": false,
             "sourceMap": true,
             "optimization": false,
             "browser": "src/main.ts",
-            "polyfills": [
-              "src/polyfills.ts"
-            ]
+            "polyfills": ["src/polyfills.ts"]
           },
           "configurations": {
             "coordinator-test": {
@@ -69,6 +57,19 @@
                   "type": "anyComponentStyle",
                   "maximumWarning": "350kb",
                   "maximumError": "400kb"
+                }
+              ]
+            },
+            "host-fonts": {
+              "outputPath": "dist/cedar-embeddable-editor-host-fonts",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                },
+                {
+                  "replace": "src/app/modules/shared/components/cedar-font-registrar/cedar-font-registrar.component.ts",
+                  "with": "src/app/modules/shared/components/cedar-font-registrar/cedar-font-registrar.host-fonts.ts"
                 }
               ]
             }
@@ -120,11 +121,7 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html",
-              "visual/**/*.ts"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html", "visual/**/*.ts"]
           }
         }
       }

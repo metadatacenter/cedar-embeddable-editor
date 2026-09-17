@@ -47,6 +47,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cedar-embeddable-field` emits `valueChange` when validity changes even if the normalized value
   does not, including numeric edits such as `1.5` to `1.50` and back.
 
+## [2.0.16] - 2026-09-17
+
+This release keeps CEE's build-time model dependency on the public
+`cedar-model-typescript-library@1.0.12` package and takes CEE's styling and typography from the
+shared design-tokens package. The model library remains compiled into CEE's browser bundle and is
+not a runtime dependency for embedding applications.
+
+### Added
+
+- A second published bundle, `cedar-embeddable-editor.host-fonts.js`, with its own
+  `bundle-manifest.host-fonts.json`. It carries no embedded text-font data and expects the host to
+  supply the font stack. The Material icon face stays embedded, because a host cannot supply it.
+
+### Changed
+
+- CEE's styling defaults, authoring density and typography resolve from
+  `@org.metadatacenter/cedar-design-tokens`. The weights arrive as emitted custom properties a host
+  can override, rather than as values repeated in CEE's own stylesheets.
+
 ## [2.0.15] - 2026-09-15
 
 This release aligns CEE's build-time model dependency with the public

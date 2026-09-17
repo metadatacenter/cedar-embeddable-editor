@@ -1,9 +1,10 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
 .section-break-header {
   box-sizing: border-box;
   background-color: silver;
-  padding: 6px 12px;
+  padding: 6px ui-tokens.$space-3;
   border-radius: 5px;
   margin: 5px 0;
 
@@ -14,7 +15,7 @@
    */
   :host-context(.cee-read-only) & {
     background-color: transparent;
-    padding: 10px 0 4px;
+    padding: 10px 0 ui-tokens.$space-1;
     border-bottom: 1px solid rgba(0, 0, 0, 0.12);
     border-radius: 0;
     margin: 6px 0 2px;
@@ -28,6 +29,6 @@
    * and CEE cannot see that it happened.
    */
   font-size: tokens.$font-size-heading;
-  font-weight: 600;
+  font-weight: var(--cedar-font-weight-medium, 500);
   line-height: 1.4;
 }

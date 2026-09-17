@@ -1,4 +1,3 @@
+// Shared embedded font faces only; registered outside shadow DOM.
+@use '@org.metadatacenter/cedar-design-tokens/fonts';
 @use '../../../../../styles-Material-Icons';
-@use '../../../../../styles-Roboto-300';
-@use '../../../../../styles-Roboto-400';
-@use '../../../../../styles-Roboto-500';
