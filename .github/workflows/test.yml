@@ -160,6 +160,27 @@ jobs:
           name: cee-production-dist
           path: cedar-embeddable-editor/dist
 
+      - name: Use Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.19.0
+          cache: npm
+          cache-dependency-path: |
+            cedar-embeddable-editor/package-lock.json
+
+      # `visual/make-bundle.mjs` compiles the application's Sass, which reaches the
+      # design tokens through `@org.metadatacenter/cedar-design-tokens`. The container
+      # mounts this checkout at /repo, so the package has to exist on the runner: the
+      # shard restores `dist`, and a built bundle carries no `node_modules`. Without
+      # this the font partials the registrar imports resolve to nothing, and every
+      # shard ends at `ENOENT .../cedar-design-tokens/fonts/_roboto-400.scss` — which
+      # a developer never sees, because a working copy has the package installed.
+      # The scope resolves from Nexus by the repository `.npmrc` and reads there are
+      # anonymous, so this needs no credential, exactly as `prepare` does not.
+      - name: Install the packages the visual bundle compiles against
+        working-directory: cedar-embeddable-editor
+        run: npm ci
+
       # Every shard uses the pinned browser/font image. The named node_modules
       # volume is runner-local, so parallel jobs cannot contaminate one another.
       - name: Run Playwright shard
