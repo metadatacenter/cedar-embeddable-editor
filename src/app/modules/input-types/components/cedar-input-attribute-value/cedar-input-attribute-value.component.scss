@@ -1,4 +1,5 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 :host {
   display: block;
-  padding-top: 16px;
+  padding-top: ui-tokens.$space-4;
 }

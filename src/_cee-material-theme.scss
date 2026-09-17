@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 // Angular Material M3 adapter. Shared values belong to cedar-design-tokens;
 // Material roles and CEE's component metrics belong here. Emit only at the
 // existing call sites so @use cannot reorder the cascade inside either shadow root.
@@ -36,8 +37,8 @@ $_colors: (
   tertiary-fixed-dim: map.get(tokens.$brand-accent, 100),
   on-tertiary-fixed: map.get(tokens.$brand-accent, 900),
   on-tertiary-fixed-variant: map.get(tokens.$brand-accent, 700),
-  error: tokens.$color-warn,
-  on-error: $_black,
+  error: tokens.$color-error,
+  on-error: tokens.$color-on-error,
   error-container: map.get(tokens.$brand-accent, 50),
   on-error-container: map.get(tokens.$brand-accent, 900),
   background: $_white,
@@ -122,10 +123,10 @@ $_colors: (
   @include mat.form-field-overrides(
     (
       container-height: 48px,
-      container-vertical-padding: 12px,
+      container-vertical-padding: ui-tokens.$space-3,
       filled-label-display: none,
-      filled-with-label-container-padding-top: 12px,
-      filled-with-label-container-padding-bottom: 12px,
+      filled-with-label-container-padding-top: ui-tokens.$space-3,
+      filled-with-label-container-padding-bottom: ui-tokens.$space-3,
     )
   );
   @include mat.radio-overrides(

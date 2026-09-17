@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 @use 'cee-layout' as layout;
 
@@ -83,6 +84,6 @@
   :host-context(.cee-read-only) .aligned-up {
     justify-content: flex-start;
     min-height: 0;
-    margin: 8px 0 12px;
+    margin: ui-tokens.$space-2 0 ui-tokens.$space-3;
   }
 }

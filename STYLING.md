@@ -1,4 +1,4 @@
-# Shared compact controls: CEE, CEF and CED
+# Shared controls: CEE, CEF, CED and CEFD
 
 Read-only CEE is the reference. A single-line control is 36px high, with 14px
 regular text, a 21px line height, a 1px outline and 4px corners. Editing adds
@@ -7,11 +7,14 @@ button appears. Precision, formatting and validation are independent of density.
 
 CEE and CEF use this read-only-based sizing by default, independently of
 `config.readOnlyMode`. `density="compact"` remains a supported explicit spelling.
+Use `density="authoring"` for the shared 32px authoring profile (12px text,
+18px line height, 2px corners). CED/CEFD use that profile for settings and embedded
+CEF. Host overrides take precedence in both compact and authoring profiles.
 Use `density="comfortable"` only to request the older, larger editable sizing.
 
 ## Tokens
 
-Set these CSS custom properties on a common ancestor of CED, CEE and CEF. They
+Set these CSS custom properties on a common ancestor of CED, CEFD, CEE and CEF. They
 inherit through shadow roots. CED's native default inputs consume the same tokens.
 
 | Token                         | Default   | Purpose                              |
@@ -53,3 +56,7 @@ After building the bundle and staging visual fixtures, serve `visual/public` wit
 `node visual/serve-public.mjs 4455` from the repository root. Open
 `http://127.0.0.1:4455/compact.html`. It places read-only CEE, editable CEF and
 editable CEE side by side, with simple and temporal fixture sets.
+
+Defaults and density profiles come from `cedar-design-tokens`; adapters must not
+redeclare public host override properties. Error text and borders use the shared
+`color-error` role, advisory notices use `color-warning`.

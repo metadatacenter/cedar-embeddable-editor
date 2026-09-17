@@ -5,16 +5,27 @@
  * Public --cedar-* tokens inherit from the host page through both shadow roots.
  * Keep Material implementation details here, never in an embedding application.
  */
+// Authoring is an explicit profile; do not assign public host override properties.
+:host([density='authoring']) {
+  --_cedar-density-height: #{tokens.$control-height-authoring};
+  --_cedar-density-font: #{tokens.$control-font-size-authoring};
+  --_cedar-density-line: #{tokens.$control-line-height-authoring};
+  --_cedar-density-radius: #{tokens.$control-radius-authoring};
+  --_cedar-density-border: #{tokens.$control-border-authoring};
+}
 :host(:not([density='comfortable'])) {
-  --_cedar-textarea-rows: var(--cedar-textarea-min-rows, 2);
-  --_cedar-height: var(--cedar-control-height, 36px);
-  --_cedar-font-size: var(--cedar-control-font-size, #{tokens.$font-size});
-  --_cedar-line-height: var(--cedar-control-line-height, 21px);
+  --_cedar-textarea-rows: var(--cedar-textarea-min-rows, #{tokens.$textarea-min-rows-default});
+  --_cedar-height: var(--cedar-control-height, var(--_cedar-density-height, #{tokens.$control-height-default}));
+  --_cedar-font-size: var(--cedar-control-font-size, var(--_cedar-density-font, #{tokens.$font-size}));
+  --_cedar-line-height: var(
+    --cedar-control-line-height,
+    var(--_cedar-density-line, #{tokens.$control-line-height-default})
+  );
   --_cedar-padding: calc((var(--_cedar-height) - var(--_cedar-line-height)) / 2);
-  --_cedar-radius: var(--cedar-control-radius, 4px);
-  --_cedar-border: var(--cedar-control-border, rgba(0, 0, 0, 0.38));
+  --_cedar-radius: var(--cedar-control-radius, var(--_cedar-density-radius, #{tokens.$control-radius-default}));
+  --_cedar-border: var(--cedar-control-border, var(--_cedar-density-border, #{tokens.$control-border-default}));
   --_cedar-focus: var(--cedar-control-focus, #{tokens.$color-primary});
-  --_cedar-error: var(--cedar-control-error, #b42318);
+  --_cedar-error: var(--cedar-control-error, #{tokens.$color-error});
 
   @include theme.compact-controls();
   font-size: var(--_cedar-font-size);

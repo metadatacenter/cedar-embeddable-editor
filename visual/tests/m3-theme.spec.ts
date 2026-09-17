@@ -60,3 +60,30 @@ test('M3 select and calendar overlays retain CEDAR typography under a host reset
   await expect(page.locator('.mat-datepicker-content')).toHaveCSS('background-color', 'rgb(245, 245, 245)');
   await expect(calendar).toHaveScreenshot('m3-calendar.png');
 });
+
+for (const host of ['editor', 'field'] as const) {
+  test(`${host} density profiles yield to inherited host overrides`, async ({ page }) => {
+    await page.goto(
+      `/host.html?t=06-validation${host === 'field' ? '&host=field&p=_short_text' : ''}&b=${BUNDLE_VERSION}`,
+    );
+    await page.waitForFunction(() => window.__ceeReady);
+    const element = page.locator(`cedar-embeddable-${host}`);
+    const input = element.locator('input[aria-label="short_text"]');
+    const box = input.locator('xpath=ancestor::mat-form-field').locator('.mat-mdc-text-field-wrapper');
+    await expect.poll(async () => (await box.boundingBox())!.height).toBe(36);
+    await element.evaluate((el) => el.setAttribute('density', 'authoring'));
+    await expect.poll(async () => (await box.boundingBox())!.height).toBe(32);
+    await expect(input).toHaveCSS('font-size', '12px');
+    await page.evaluate(() => {
+      document.body.style.setProperty('--cedar-control-height', '44px');
+      document.body.style.setProperty('--cedar-control-font-size', '16px');
+      document.body.style.setProperty('--cedar-control-line-height', '24px');
+    });
+    await expect.poll(async () => (await box.boundingBox())!.height).toBe(44);
+    await expect(input).toHaveCSS('font-size', '16px');
+    await element.evaluate((el) => el.setAttribute('density', 'compact'));
+    await expect.poll(async () => (await box.boundingBox())!.height).toBe(44);
+    await page.evaluate(() => document.body.removeAttribute('style'));
+    await expect.poll(async () => (await box.boundingBox())!.height).toBe(36);
+  });
+}

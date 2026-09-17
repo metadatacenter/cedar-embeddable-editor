@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 /*
  * Rich text an author composed, rendered at CEE's own weight.
  *
@@ -24,5 +25,5 @@
 
 :host {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: ui-tokens.$space-1;
 }
