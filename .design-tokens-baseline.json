@@ -169,13 +169,6 @@
       "value": "#1f2937",
       "count": 1
     },
-    "1c7fb328aeb7976e6daa": {
-      "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.scss",
-      "rule": "typography",
-      "property": "line-height",
-      "value": "1.25",
-      "count": 1
-    },
     "1d3432525b6461565c89": {
       "file": "src/app/modules/input-types/components/cedar-input-multiple-choice/cedar-input-multiple-choice.component.scss",
       "rule": "geometry",
@@ -799,13 +792,6 @@
       "value": "4px",
       "count": 1
     },
-    "9b482823fec2ff9bc071": {
-      "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.scss",
-      "rule": "color",
-      "property": "color",
-      "value": "#173f3e",
-      "count": 1
-    },
     "9b8ee1f4b9beaf856e15": {
       "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
       "rule": "typography",
@@ -944,13 +930,6 @@
       "rule": "typography",
       "property": "line-height",
       "value": "1.5",
-      "count": 1
-    },
-    "bea1dad35d83513dc47d": {
-      "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.scss",
-      "rule": "typography",
-      "property": "font-size",
-      "value": "clamp(19px, 3cqi, 26px)",
       "count": 1
     },
     "bf32ec7a2df616077870": {
