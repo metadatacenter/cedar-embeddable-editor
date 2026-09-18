@@ -24,8 +24,8 @@
   --_cedar-padding: calc((var(--_cedar-height) - var(--_cedar-line-height)) / 2);
   --_cedar-radius: var(--cedar-control-radius, var(--_cedar-density-radius, #{tokens.$control-radius-default}));
   --_cedar-border: var(--cedar-control-border, var(--_cedar-density-border, #{tokens.$control-border-default}));
-  --_cedar-focus: var(--cedar-control-focus, #{tokens.$color-primary});
-  --_cedar-error: var(--cedar-control-error, #{tokens.$color-error});
+  --_cedar-focus: var(--cedar-control-focus, #{tokens.$focus-ring-color});
+  --_cedar-error: var(--cedar-control-error, #{tokens.$control-invalid-border});
 
   @include theme.compact-controls();
   font-size: var(--_cedar-font-size);

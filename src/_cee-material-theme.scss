@@ -148,7 +148,7 @@ $_colors: (
       container-text-line-height: 20px,
     )
   );
-  @include mat.strong-focus-indicators-theme(tokens.$color-primary);
+  @include mat.strong-focus-indicators-theme(tokens.$focus-ring-color);
 }
 
 // Keep the supported Material APIs in this adapter even when their emission
