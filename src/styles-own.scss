@@ -615,3 +615,6 @@ mat-icon.cedar-icon {
 mat-icon.cedar-icon > svg {
   display: block;
 }
+
+:host .mat-mdc-menu-content { padding: tokens.$menu-padding; }
+:host .mat-mdc-menu-item { min-height: tokens.$menu-item-height; }

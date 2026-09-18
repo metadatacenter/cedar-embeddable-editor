@@ -148,6 +148,16 @@ $_colors: (
       container-text-line-height: 20px,
     )
   );
+  @include mat.menu-overrides((
+    container-color: tokens.$overlay-surface,
+    container-shape: tokens.$menu-radius,
+    container-elevation-shadow: tokens.$menu-shadow,
+    divider-color: tokens.$overlay-border,
+    item-leading-spacing: tokens.$menu-item-padding-inline,
+    item-trailing-spacing: tokens.$menu-item-padding-inline,
+    item-hover-state-layer-color: tokens.$action-hover-surface,
+    item-focus-state-layer-color: tokens.$action-hover-surface,
+  ));
   @include mat.strong-focus-indicators-theme(tokens.$focus-ring-color);
 }
 

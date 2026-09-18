@@ -58,6 +58,11 @@ test('every third-party selector CEE styles still matches an element', async ({ 
 
   await open(page, '01-input-types');
   await sweep();
+  await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
+  await page.locator('.download-trigger').click();
+  await expect(page.locator('.mat-mdc-menu-content')).toHaveCSS('padding', '4px');
+  await expect(page.locator('.mat-mdc-menu-item').first()).toHaveCSS('min-height', '36px');
+  await sweep();
   await open(page, '03-nested-multi');
   await sweep();
   // Page breaks, for the paginator classes.
