@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/motion';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 // Brand values come from @org.metadatacenter/cedar-design-tokens, CEE's own card
 // measurements from _cee-layout.scss, and the Material theming API is reached only
@@ -414,7 +415,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   text-align: start;
 }
 .cdk-overlay-container {
-  z-index: 9999 !important;
+  z-index: tokens.$layer-overlay !important;
 }
 
 // Comfortable controls retain their black resting outline. Material now owns
@@ -618,3 +619,5 @@ mat-icon.cedar-icon > svg {
 
 :host .mat-mdc-menu-content { padding: tokens.$menu-padding; }
 :host .mat-mdc-menu-item { min-height: tokens.$menu-item-height; }
+
+@include motion.reduced-motion;
