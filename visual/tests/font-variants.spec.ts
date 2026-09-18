@@ -16,7 +16,7 @@ const hostFonts = [400, 500]
 
 for (const hosted of [false, true]) {
   for (const field of [false, true]) {
-    test(`${field ? 'CEF' : 'CEE'} ${hosted ? 'host fonts' : 'standalone'} renders readable text and Material icons`, async ({
+    test(`${field ? 'CEF' : 'CEE'} ${hosted ? 'host fonts' : 'standalone'} renders readable text and shared SVG icons`, async ({
       page,
     }) => {
       if (hosted) {
@@ -40,8 +40,6 @@ for (const hosted of [false, true]) {
       );
       await page.evaluate(async () => {
         await document.fonts.ready;
-        // A plain CEF text field needs no icon, so explicitly exercise the retained face.
-        await document.fonts.load('24px "CEE Material Icons"', 'help');
       });
       const faces = await page.evaluate(() =>
         [...document.fonts].map((font) => ({
@@ -50,7 +48,7 @@ for (const hosted of [false, true]) {
           status: font.status,
         })),
       );
-      expect(faces.some((face) => face.family === 'CEE Material Icons' && face.status === 'loaded')).toBe(true);
+      expect(faces.some((face) => face.family.includes('Material Icons'))).toBe(false);
       const roboto = faces.filter((face) => face.family === 'CEE Roboto');
       expect(roboto.filter((face) => face.weight === '400').length).toBe(7);
       expect(roboto.filter((face) => face.weight === '500').length).toBe(7);
@@ -63,6 +61,7 @@ for (const hosted of [false, true]) {
       const input = page.locator('input[type="text"]').first();
       await input.fill('Font variant smoke');
       await expect(input).toHaveValue('Font variant smoke');
+      await expect(page.locator('svg[data-cedar-icon]').first()).toBeVisible();
       const tiny = page.locator('.cee-name, .cee-version');
       await expect(tiny).toHaveCount(field ? 0 : 2);
       for (const label of await tiny.all()) {

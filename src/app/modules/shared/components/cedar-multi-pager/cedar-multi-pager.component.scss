@@ -3,7 +3,8 @@
 @use 'cee-layout' as layout;
 
 .mat-icon {
-  font-size: 18px;
+  width: tokens.$icon-size-default;
+  height: tokens.$icon-size-default;
 }
 
 /*
@@ -34,7 +35,11 @@
 .pager-actions .mat-mdc-icon-button {
   width: 32px;
   height: 32px;
-  padding: 7px;
+  box-sizing: border-box;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* `::ng-deep`, because Material renders the touch target inside the button's own template. */

@@ -14,10 +14,7 @@
         rel="noreferrer"
         aria-label="CEE on npm"
       >
-        <div
-          mat-card-avatar
-          class="header-image"
-        ></div>
+        <div mat-card-avatar class="header-image"></div>
         <span class="cee-name">CEE</span>
         <span class="cee-version" [title]="ceeVersion">{{ ceeVersion }}</span>
       </a>
@@ -63,7 +60,7 @@
               [attr.aria-label]="'Generic.ExpandAll' | translate"
               matTooltip="{{ 'Generic.ExpandAll' | translate }}"
             >
-              <mat-icon>unfold_more</mat-icon>
+              <mat-icon cedarIcon="expand-all"></mat-icon>
             </button>
             <button
               mat-icon-button
@@ -72,7 +69,7 @@
               [attr.aria-label]="'Generic.CollapseAll' | translate"
               matTooltip="{{ 'Generic.CollapseAll' | translate }}"
             >
-              <mat-icon>unfold_less</mat-icon>
+              <mat-icon cedarIcon="collapse-all"></mat-icon>
             </button>
           }
           @if (showDownloadMenu) {

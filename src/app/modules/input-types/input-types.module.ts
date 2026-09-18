@@ -1,3 +1,4 @@
+import { CedarIconDirective } from '../shared/directives/cedar-icon.directive';
 import { ControlDensityDirective } from '../shared/directives/control-density.directive';
 import { SpecPlaceholderPipe } from '../shared/pipe/spec-placeholder.pipe';
 import { CedarTermLinkComponent } from '../shared/components/cedar-term-link/cedar-term-link.component';
@@ -60,6 +61,7 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
 
 @NgModule({
   imports: [
+    CedarIconDirective,
     ControlDensityDirective,
     CommonModule,
     MatAutocompleteModule,

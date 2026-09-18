@@ -20,36 +20,37 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
 })
 export class CedarComponentHeaderComponent implements OnInit {
   private static readonly FIELD_TYPE_ICONS: Readonly<Record<string, string>> = {
-    [InputType.numeric]: 'dialpad',
-    [InputType.text]: 'short_text',
-    [InputType.textarea]: 'notes',
-    [InputType.richText]: 'format_align_left',
-    [InputType.controlled]: 'device_hub',
-    [InputType.email]: 'email',
-    [InputType.link]: 'link',
-    [InputType.phoneNumber]: 'phone',
-    [InputType.list]: 'arrow_drop_down_circle',
-    [InputType.checkbox]: 'check_box',
-    [InputType.radio]: 'radio_button_checked',
-    [InputType.temporal]: 'event',
-    [InputType.image]: 'image',
-    [InputType.youtube]: 'play_circle_filled',
-    [InputType.sectionBreak]: 'remove',
-    [InputType.pageBreak]: 'insert_drive_file',
-    [InputType.attributeValue]: 'list_alt',
+    [InputType.orcid]: 'authority-person',
+    [InputType.ror]: 'authority-organization',
+    [InputType.pfas]: 'authority-chemical',
+    [InputType.pmid]: 'authority-publication',
+    [InputType.rrid]: 'authority-resource',
+    [InputType.nihGrant]: 'authority-grant',
+    [InputType.doi]: 'authority-doi',
+
+    [InputType.numeric]: 'field-number',
+    [InputType.text]: 'field-text',
+    [InputType.textarea]: 'field-paragraph',
+    [InputType.richText]: 'field-rich-text',
+    [InputType.controlled]: 'field-controlled',
+    [InputType.email]: 'field-email',
+    [InputType.link]: 'field-link',
+    [InputType.phoneNumber]: 'field-phone',
+    [InputType.list]: 'field-list',
+    [InputType.checkbox]: 'field-checkbox',
+    [InputType.radio]: 'field-radio',
+    [InputType.temporal]: 'field-date',
+    [InputType.image]: 'field-image',
+    [InputType.youtube]: 'field-video',
+    [InputType.sectionBreak]: 'field-section-break',
+    [InputType.pageBreak]: 'field-page-break',
+    [InputType.attributeValue]: 'field-attribute-value',
   };
 
   component!: CedarComponent;
   /** Null for a component that is not multi-instance, which is most of them. */
   multiComponent: MultiComponent | null = null;
   shouldRenderRequiredMark = false;
-  isOrcid = false;
-  isRor = false;
-  isPfas = false;
-  isPmid = false;
-  isRrid = false;
-  isNihGrant = false;
-  isDoi = false;
   fieldTypeIcon: string | null = null;
   isOntologyField = false;
   readOnlyMode = false;
@@ -81,13 +82,6 @@ export class CedarComponentHeaderComponent implements OnInit {
         ? (componentToRender as FieldComponent)
         : null;
     this.shouldRenderRequiredMark = false;
-    this.isOrcid = false;
-    this.isRor = false;
-    this.isPfas = false;
-    this.isPmid = false;
-    this.isRrid = false;
-    this.isNihGrant = false;
-    this.isDoi = false;
     this.fieldTypeIcon = null;
     this.isOntologyField = false;
 
@@ -105,22 +99,8 @@ export class CedarComponentHeaderComponent implements OnInit {
     if (this.component instanceof SingleFieldComponent || this.component instanceof MultiFieldComponent) {
       const fieldComp = this.component as unknown as FieldComponent;
       const inputType = fieldComp.basicInfo.inputType;
-      if (inputType === InputType.orcid) {
-        this.isOrcid = true;
-      } else if (inputType === InputType.ror) {
-        this.isRor = true;
-      } else if (inputType === InputType.pfas) {
-        this.isPfas = true;
-      } else if (inputType === InputType.pmid) {
-        this.isPmid = true;
-      } else if (inputType === InputType.rrid) {
-        this.isRrid = true;
-      } else if (inputType === InputType.nihGrant) {
-        this.isNihGrant = true;
-      } else if (inputType === InputType.doi) {
-        this.isDoi = true;
-      } else if (inputType) {
-        this.fieldTypeIcon = CedarComponentHeaderComponent.FIELD_TYPE_ICONS[inputType] ?? 'edit';
+      if (inputType) {
+        this.fieldTypeIcon = CedarComponentHeaderComponent.FIELD_TYPE_ICONS[inputType] ?? 'artifact-field';
         this.isOntologyField = inputType === InputType.controlled;
       }
       if (fieldComp.valueInfo.requiredValue) {

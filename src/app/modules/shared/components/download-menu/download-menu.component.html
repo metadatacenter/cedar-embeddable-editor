@@ -5,12 +5,12 @@
   [attr.aria-label]="'Generic.Download' | translate"
   matTooltip="{{ 'Generic.Download' | translate }}"
 >
-  <mat-icon>file_download</mat-icon>
+  <mat-icon cedarIcon="download"></mat-icon>
 </button>
 <mat-menu #menu="matMenu" class="cee-download-menu">
   @for (item of items; track item.id) {
     <button mat-menu-item type="button" [attr.data-download]="item.id" (click)="request(item.id)">
-      <mat-icon>{{ item.icon }}</mat-icon>
+      <mat-icon [cedarIcon]="item.icon"></mat-icon>
       {{ item.labelKey | translate }}
     </button>
   }

@@ -1,9 +1,6 @@
 <form class="form-container" [formGroup]="options">
   @if (showsLinkAsValue) {
-    <app-cedar-term-link
-      [iri]="inputValueControl.value"
-      [fieldLabel]="cds.getRenderingLabelForComponent(component)"
-    >
+    <app-cedar-term-link [iri]="inputValueControl.value" [fieldLabel]="cds.getRenderingLabelForComponent(component)">
       <a
         class="cee-term-link-action"
         [href]="inputValueControl.value"
@@ -12,7 +9,7 @@
         attr.aria-label="{{ 'Generic.OpenLink' | translate }}"
         matTooltip="{{ 'Generic.OpenLink' | translate }}"
       >
-        <mat-icon>{{ linkIconName }}</mat-icon>
+        <mat-icon [cedarIcon]="linkIconName"></mat-icon>
       </a>
     </app-cedar-term-link>
   }
@@ -35,7 +32,7 @@
         attr.aria-label="{{ 'Generic.Clear' | translate }}"
         (click)="clearValue()"
       >
-        <mat-icon>close</mat-icon>
+        <mat-icon cedarIcon="close"></mat-icon>
       </button>
     }
     @if (inputValueControl.getError('pattern') && !readOnlyMode) {

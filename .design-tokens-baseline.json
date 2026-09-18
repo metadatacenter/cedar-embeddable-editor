@@ -85,20 +85,6 @@
       "value": "0 6px",
       "count": 1
     },
-    "0dceed86702078e3d5d2": {
-      "file": "src/styles-own.scss",
-      "rule": "typography",
-      "property": "line-height",
-      "value": "1",
-      "count": 1
-    },
-    "0e3b9b23d31259f43c55": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "typography",
-      "property": "line-height",
-      "value": "0",
-      "count": 1
-    },
     "0f24c670854ee5552b1f": {
       "file": "src/app/app.component.scss",
       "rule": "color",
@@ -225,13 +211,6 @@
       "value": "rgba(0, 0, 0, 0.45)",
       "count": 1
     },
-    "1e7114893efaa42b9bdf": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "geometry",
-      "property": "height",
-      "value": "18px",
-      "count": 4
-    },
     "2026d3eacbca29fd2305": {
       "file": "src/_cedar-compact.scss",
       "rule": "spacing",
@@ -252,13 +231,6 @@
       "property": "color",
       "value": "rgba(0, 0, 0, 0.54)",
       "count": 1
-    },
-    "23609f203f8556e29320": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "typography",
-      "property": "line-height",
-      "value": "18px",
-      "count": 2
     },
     "2386f9a328e73129eece": {
       "file": "src/styles-own.scss",
@@ -294,13 +266,6 @@
       "property": "line-height",
       "value": "1.4",
       "count": 1
-    },
-    "2a6df85128732b157e79": {
-      "file": "src/styles-own.scss",
-      "rule": "typography",
-      "property": "font-family",
-      "value": "'CEE Material Icons'",
-      "count": 2
     },
     "2c28f2b4ebb54904de3e": {
       "file": "src/styles-own.scss",
@@ -420,13 +385,6 @@
       "property": "outlined-outline-color",
       "value": "black, ) )",
       "count": 1
-    },
-    "491a6b0f9948cdb99cff": {
-      "file": "src/styles-own.scss",
-      "rule": "typography",
-      "property": "font-size",
-      "value": "18px",
-      "count": 2
     },
     "4a1f6ac26d6122234ab4": {
       "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
@@ -575,13 +533,6 @@
       "value": "22px",
       "count": 1
     },
-    "6520d6853552a1efcb52": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "geometry",
-      "property": "height",
-      "value": "22px",
-      "count": 2
-    },
     "65acc3af9fc255327384": {
       "file": "src/styles-own.scss",
       "rule": "color",
@@ -652,13 +603,6 @@
       "value": "10px",
       "count": 1
     },
-    "6cf686b24fb95e1b6402": {
-      "file": "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.scss",
-      "rule": "spacing",
-      "property": "padding",
-      "value": "7px",
-      "count": 1
-    },
     "6d8079788e05e2907c00": {
       "file": "src/styles-own.scss",
       "rule": "spacing",
@@ -692,7 +636,7 @@
       "rule": "spacing",
       "property": "margin-right",
       "value": "0.8em",
-      "count": 2
+      "count": 1
     },
     "747f42c6aa5ae41b2163": {
       "file": "src/app/modules/input-types/components/cedar-input-text/cedar-input-text.component.scss",
@@ -727,20 +671,13 @@
       "rule": "typography",
       "property": "line-height",
       "value": "1em",
-      "count": 2
+      "count": 1
     },
     "7675f4f5f47a2eab15f1": {
       "file": "src/app/modules/input-types/components/cedar-static-image/cedar-static-image.component.scss",
       "rule": "typography",
       "property": "font-size",
       "value": "0.9em",
-      "count": 1
-    },
-    "76e2deebd6503156128f": {
-      "file": "src/styles-own.scss",
-      "rule": "geometry",
-      "property": "height",
-      "value": "18px",
       "count": 1
     },
     "7797430001e9c29066ec": {
@@ -791,20 +728,6 @@
       "property": "padding",
       "value": "6px",
       "count": 1
-    },
-    "7c85d7a013ad0fd06ef9": {
-      "file": "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.scss",
-      "rule": "typography",
-      "property": "font-size",
-      "value": "18px",
-      "count": 1
-    },
-    "7d94280f66719d262952": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "typography",
-      "property": "font-size",
-      "value": "18px",
-      "count": 2
     },
     "80e8dd2afabf5a8968d1": {
       "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.scss",
@@ -951,7 +874,7 @@
       "rule": "typography",
       "property": "font-size",
       "value": "24px",
-      "count": 2
+      "count": 1
     },
     "9f69658bc74b8b269345": {
       "file": "src/app/modules/shared/components/cedar-field-spec/cedar-field-spec.component.scss",
@@ -1050,13 +973,6 @@
       "property": "color",
       "value": "rgba(0, 0, 0, 0.54)",
       "count": 1
-    },
-    "b38a887fa37d61f25ed4": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "geometry",
-      "property": "height",
-      "value": "16px",
-      "count": 2
     },
     "b3ee3bca37a7384efb03": {
       "file": "src/app/app.component.scss",
@@ -1205,13 +1121,6 @@
       "value": "1px solid rgba(0, 0, 0, 0.38)",
       "count": 1
     },
-    "d77e6098871b9e956399": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "geometry",
-      "property": "height",
-      "value": "20px",
-      "count": 2
-    },
     "dce05ec179137bab8321": {
       "file": "src/app/modules/shared/components/cedar-term-link/cedar-term-link.component.scss",
       "rule": "color",
@@ -1245,7 +1154,7 @@
       "rule": "spacing",
       "property": "margin-left",
       "value": "0.2em",
-      "count": 2
+      "count": 1
     },
     "e52c5105ee562873c92d": {
       "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.scss",
@@ -1338,13 +1247,6 @@
       "value": "36px",
       "count": 1
     },
-    "f13ec79d1efbee15d9e8": {
-      "file": "src/styles-own.scss",
-      "rule": "typography",
-      "property": "line-height",
-      "value": "18px",
-      "count": 1
-    },
     "f23975b9901564653c7e": {
       "file": "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.scss",
       "rule": "spacing",
@@ -1420,13 +1322,6 @@
       "rule": "color",
       "property": "color",
       "value": "#383d41",
-      "count": 1
-    },
-    "ff2f63df9178a59bac5c": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "typography",
-      "property": "font-size",
-      "value": "17px",
       "count": 1
     }
   },

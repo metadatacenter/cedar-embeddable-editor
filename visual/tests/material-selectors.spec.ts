@@ -115,6 +115,6 @@ test('the namespaced font faces survive', async ({ page }) => {
     return faces;
   });
   expect(fonts, 'CEE namespaces its faces so an embedder cannot collide with them').toEqual(
-    expect.arrayContaining(['CEE Roboto', 'CEE Material Icons']),
+    expect.arrayContaining(['CEE Roboto']),
   );
 });

@@ -20,7 +20,7 @@ export interface DownloadItemDescriptor {
   id: DownloadItemId;
   /** Translation key for the menu entry, resolved through `translate`. */
   labelKey: string;
-  /** Material icon name shown beside the entry. */
+  /** Shared CEDAR icon name shown beside the entry. */
   icon: string;
   /** Appended to the artifact's name to make the saved file's name. */
   suffix: string;
@@ -51,7 +51,7 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
   {
     id: 'instance',
     labelKey: 'Extra.JsonLD.Instance',
-    icon: 'device_hub',
+    icon: 'property',
     suffix: 'instance',
     extension: 'json',
     mediaType: JSON_TYPE,
@@ -59,7 +59,7 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
   {
     id: 'instanceYaml',
     labelKey: 'Extra.Yaml.Instance',
-    icon: 'description',
+    icon: 'document',
     suffix: 'instance',
     extension: 'yaml',
     mediaType: YAML_TYPE,
@@ -67,7 +67,7 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
   {
     id: 'instanceYamlCompact',
     labelKey: 'Extra.Yaml.InstanceCompact',
-    icon: 'description',
+    icon: 'document',
     suffix: 'instance-compact',
     extension: 'yaml',
     mediaType: YAML_TYPE,
@@ -75,7 +75,7 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
   {
     id: 'templateSource',
     labelKey: 'Extra.JsonSchemaTemplate',
-    icon: 'view_module',
+    icon: 'artifact-template',
     suffix: 'template',
     extension: 'json',
     mediaType: JSON_TYPE,
@@ -83,7 +83,7 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
   {
     id: 'templateYaml',
     labelKey: 'Extra.Yaml.Template',
-    icon: 'description',
+    icon: 'document',
     suffix: 'template',
     extension: 'yaml',
     mediaType: YAML_TYPE,
@@ -91,7 +91,7 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
   {
     id: 'templateYamlCompact',
     labelKey: 'Extra.Yaml.TemplateCompact',
-    icon: 'description',
+    icon: 'document',
     suffix: 'template-compact',
     extension: 'yaml',
     mediaType: YAML_TYPE,
@@ -99,7 +99,7 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
   {
     id: 'dataQuality',
     labelKey: 'Extra.DataQualityReport',
-    icon: 'list_alt',
+    icon: 'list',
     suffix: 'data-quality',
     extension: 'json',
     mediaType: JSON_TYPE,

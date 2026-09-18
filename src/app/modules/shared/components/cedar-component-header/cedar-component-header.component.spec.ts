@@ -85,18 +85,18 @@ describe('CedarComponentHeaderComponent', () => {
 
   describe('the mark for the kind of value', () => {
     it.each([
-      [InputType.text, 'short_text'],
-      [InputType.textarea, 'notes'],
-      [InputType.numeric, 'dialpad'],
-      [InputType.email, 'email'],
-      [InputType.link, 'link'],
-      [InputType.phoneNumber, 'phone'],
-      [InputType.list, 'arrow_drop_down_circle'],
-      [InputType.checkbox, 'check_box'],
-      [InputType.radio, 'radio_button_checked'],
-      [InputType.temporal, 'event'],
-      [InputType.attributeValue, 'list_alt'],
-      [InputType.controlled, 'device_hub'],
+      [InputType.text, 'field-text'],
+      [InputType.textarea, 'field-paragraph'],
+      [InputType.numeric, 'field-number'],
+      [InputType.email, 'field-email'],
+      [InputType.link, 'field-link'],
+      [InputType.phoneNumber, 'field-phone'],
+      [InputType.list, 'field-list'],
+      [InputType.checkbox, 'field-checkbox'],
+      [InputType.radio, 'field-radio'],
+      [InputType.temporal, 'field-date'],
+      [InputType.attributeValue, 'field-attribute-value'],
+      [InputType.controlled, 'field-controlled'],
     ])('marks a %s field with %s', (inputType, icon) => {
       const header = makeHeader();
 
@@ -110,7 +110,7 @@ describe('CedarComponentHeaderComponent', () => {
 
       header.componentToRender = singleField('something-new');
 
-      expect(header.fieldTypeIcon).toBe('edit');
+      expect(header.fieldTypeIcon).toBe('artifact-field');
     });
 
     it('names a controlled field as the one that draws on an ontology', () => {
@@ -131,52 +131,21 @@ describe('CedarComponentHeaderComponent', () => {
     });
   });
 
-  describe('the authorities, which carry their own mark instead', () => {
-    const flagsOf = (header: CedarComponentHeaderComponent) => ({
-      orcid: header.isOrcid,
-      ror: header.isRor,
-      pfas: header.isPfas,
-      pmid: header.isPmid,
-      rrid: header.isRrid,
-      nihGrant: header.isNihGrant,
-      doi: header.isDoi,
-    });
-
+  describe('authority meanings', () => {
     it.each([
-      [InputType.orcid, 'orcid'],
-      [InputType.ror, 'ror'],
-      [InputType.pfas, 'pfas'],
-      [InputType.pmid, 'pmid'],
-      [InputType.rrid, 'rrid'],
-      [InputType.nihGrant, 'nihGrant'],
-      [InputType.doi, 'doi'],
-    ])('raises %s and nothing else', (inputType, flag) => {
+      [InputType.orcid, 'authority-person'],
+      [InputType.ror, 'authority-organization'],
+      [InputType.pfas, 'authority-chemical'],
+      [InputType.pmid, 'authority-publication'],
+      [InputType.rrid, 'authority-resource'],
+      [InputType.nihGrant, 'authority-grant'],
+      [InputType.doi, 'authority-doi'],
+    ])('uses the shared meaning for %s', (inputType, icon) => {
       const header = makeHeader();
-
       header.componentToRender = singleField(inputType);
-
-      const raised = Object.entries(flagsOf(header))
-        .filter(([, value]) => value)
-        .map(([name]) => name);
-      expect(raised).toEqual([flag]);
-      expect(header.fieldTypeIcon, 'an authority carries its own mark, not a type icon').toBeNull();
-    });
-
-    it('lowers the previous authority when the header moves to another', () => {
-      const header = makeHeader();
-      header.componentToRender = singleField(InputType.orcid);
-
-      header.componentToRender = singleField(InputType.doi);
-
-      expect(flagsOf(header)).toEqual({
-        orcid: false,
-        ror: false,
-        pfas: false,
-        pmid: false,
-        rrid: false,
-        nihGrant: false,
-        doi: true,
-      });
+      expect(header.fieldTypeIcon).toBe(icon);
+      header.componentToRender = singleField(InputType.text);
+      expect(header.fieldTypeIcon).toBe('field-text');
     });
   });
 

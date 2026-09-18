@@ -34,7 +34,7 @@ genuinely theirs.
             attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
             matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
           >
-            <mat-icon>{{ linkIconName }}</mat-icon>
+            <mat-icon [cedarIcon]="linkIconName"></mat-icon>
           </a>
         }
       </app-cedar-term-link>
@@ -80,11 +80,7 @@ genuinely theirs.
             {{ 'Error.LookupFailed' | translate }}
           </mat-option>
         }
-        @if (
-          !lookupFailed &&
-          (inputValueControl.value?.trim()?.length ?? 0) > 0 &&
-          (terms?.length ?? 0) === 0
-        ) {
+        @if (!lookupFailed && (inputValueControl.value?.trim()?.length ?? 0) > 0 && (terms?.length ?? 0) === 0) {
           <mat-option disabled>{{ 'Error.NoResults' | translate }}</mat-option>
         }
         @for (option of terms; track option) {
@@ -127,7 +123,7 @@ genuinely theirs.
           attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
           matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
         >
-          <mat-icon>{{ linkIconName }}</mat-icon>
+          <mat-icon [cedarIcon]="linkIconName"></mat-icon>
         </a>
       }
       @if (inputValueControl.value && !readOnlyMode) {
@@ -140,7 +136,7 @@ genuinely theirs.
           matTooltip="{{ 'Generic.Clear' | translate }}"
           (click)="clearValue()"
         >
-          <mat-icon>close</mat-icon>
+          <mat-icon cedarIcon="close"></mat-icon>
         </button>
       }
       @if (inputValueControl.getError('required') && !readOnlyMode) {

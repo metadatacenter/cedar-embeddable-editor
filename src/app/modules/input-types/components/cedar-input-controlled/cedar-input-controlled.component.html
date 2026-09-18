@@ -144,7 +144,7 @@ different destinations worth having.
           attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
           matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: 'BioPortal' } }}"
         >
-          <mat-icon>open_in_new</mat-icon>
+          <mat-icon cedarIcon="external"></mat-icon>
         </a>
       }
       @if (inputValueControl.value && !readOnlyMode) {
@@ -157,7 +157,7 @@ different destinations worth having.
           matTooltip="{{ 'Generic.Clear' | translate }}"
           (click)="clearValue()"
         >
-          <mat-icon>close</mat-icon>
+          <mat-icon cedarIcon="close"></mat-icon>
         </button>
       }
       @if (inputValueControl.getError('required') && !readOnlyMode) {

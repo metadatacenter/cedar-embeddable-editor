@@ -386,50 +386,36 @@ for (const [fixture, description] of FIXTURES) {
 }
 
 test.describe('field type markers', () => {
-  test('simple fields use the bundled icon font without adding accessible noise', async ({ page }) => {
+  test('simple fields render shared SVGs without adding accessible noise', async ({ page }) => {
     await open(page, '01-input-types');
-
     const slots = page.locator('[data-field-type-icon]');
     await expect(slots).toHaveCount(7);
-    await expect(slots.locator('.field-type-icon')).toHaveText([
-      'short_text',
-      'notes',
-      'dialpad',
-      'email',
-      'phone',
-      'link',
-      'event',
-    ]);
-
-    const renderedIcons = await slots.evaluateAll((elements) =>
-      elements.map((slot) => {
-        const icon = slot.querySelector('.field-type-icon') as HTMLElement;
-        return {
-          ariaHidden: slot.getAttribute('aria-hidden'),
-          fontFamily: getComputedStyle(icon).fontFamily,
-          clientWidth: icon.clientWidth,
-          scrollWidth: icon.scrollWidth,
-        };
-      }),
-    );
-    expect(renderedIcons).toEqual(
-      renderedIcons.map((icon) => ({
-        ...icon,
-        ariaHidden: 'true',
-        fontFamily: '"CEE Material Icons"',
-        scrollWidth: icon.clientWidth,
-      })),
-    );
+    const names = [
+      'field-text',
+      'field-paragraph',
+      'field-number',
+      'field-email',
+      'field-phone',
+      'field-link',
+      'field-date',
+    ];
+    for (let i = 0; i < names.length; i++) {
+      const slot = slots.nth(i);
+      await expect(slot).toHaveAttribute('aria-hidden', 'true');
+      const svg = slot.locator('svg');
+      await expect(svg).toHaveAttribute('data-cedar-icon', names[i]);
+      await expect(svg).toHaveAttribute('stroke', 'currentColor');
+      await expect(svg).toHaveAttribute('stroke-width', '2');
+      await expect(svg).toBeVisible();
+    }
   });
 
-  test('controlled terms get the ontology marker while authority fields keep their identities', async ({ page }) => {
+  test('controlled terms and authorities use shared semantic icons', async ({ page }) => {
     await open(page, '04-controlled-terms');
-
-    const ontologyMarker = page.locator('.ontology-icon-slot');
-    await expect(ontologyMarker).toHaveCount(1);
-    await expect(ontologyMarker.locator('.field-type-icon')).toHaveText('device_hub');
-    await expect(page.locator('.authority-icon-slot')).toHaveCount(2);
-    await expect(page.locator('[data-field-type-icon]')).toHaveCount(1);
+    await expect(page.locator('.ontology-icon-slot svg')).toHaveAttribute('data-cedar-icon', 'field-controlled');
+    await expect(page.locator('[data-cedar-icon="authority-person"]')).toHaveCount(1);
+    await expect(page.locator('[data-cedar-icon="authority-organization"]')).toHaveCount(1);
+    await expect(page.locator('[data-field-type-icon]')).toHaveCount(3);
   });
 
   test('fields and elements expose their property IRI from a quiet non-link marker', async ({ page }) => {
@@ -440,7 +426,7 @@ test.describe('field type markers', () => {
     const iri = await elementMarker.getAttribute('data-property-iri');
     expect(iri).toMatch(/^https:\/\/schema\.metadatacenter\.org\/properties\//);
     await expect(elementMarker).toHaveAttribute('aria-label', `Property IRI: ${iri}`);
-    await expect(elementMarker.locator('.property-iri-icon')).toHaveText('device_hub');
+    await expect(elementMarker.locator('svg')).toHaveAttribute('data-cedar-icon', 'property');
     await expect(elementMarker.locator('a')).toHaveCount(0);
     await expect(elementMarker).toHaveCSS('color', 'rgb(107, 107, 107)');
 
@@ -654,11 +640,13 @@ test('attribute-value labels stay distinct and its pager aligns responsively', a
           ),
         ) - controls.bottom,
       actionCenter: action.top + action.height / 2,
+      actionHeight: action.height,
+      controlsHeight: controls.height,
     };
   });
   expect(geometry.labelGap, 'floating attribute labels need clearance below the pager').toBeGreaterThanOrEqual(6);
   if (testInfo.project.name === 'desktop') {
-    expect(Math.abs(geometry.header.center - geometry.actionCenter)).toBeLessThan(1);
+    expect(Math.abs(geometry.header.center - geometry.actionCenter), JSON.stringify(geometry)).toBeLessThan(1);
   } else {
     expect(
       geometry.controls.top,
@@ -2137,7 +2125,15 @@ test.describe('template-authored strings that are not rich text', () => {
     const help = page.locator('app-cedar-static-section-break mat-icon.icon-help').first();
     // Standalone CEE must compile the shared Sass size even when the host does
     // not provide the design-token CSS custom properties.
-    await expect(help).toHaveCSS('font-size', '14px');
+    await expect(help).toHaveCSS('width', '16px');
+    await expect(help).toHaveCSS('height', '16px');
+    await expect(help.locator('svg')).toHaveAttribute('data-cedar-icon', 'help');
+    const bounds = await help.evaluate((host) => {
+      const outer = host.getBoundingClientRect();
+      const svg = host.querySelector('svg')!.getBoundingClientRect();
+      return { width: svg.width, height: svg.height, top: svg.top - outer.top, left: svg.left - outer.left };
+    });
+    expect(bounds).toEqual({ width: 16, height: 16, top: 0, left: 0 });
     const describedBy = (await help.getAttribute('aria-describedby')) ?? '';
     const messageId = describedBy.split(/\s+/).find((id) => id.startsWith('cdk-describedby-message'));
     expect(messageId, 'the help icon points at no description element').toBeTruthy();
@@ -3628,44 +3624,16 @@ test.describe('date calendar selection', () => {
   });
 });
 
-/**
- * Every icon CEE names has a glyph in the font CEE ships.
- *
- * The icon font is subsetted, and a ligature that is not in the subset does not
- * fail — it renders as the literal word. `download` did exactly that: the menu
- * trigger measured 192px of invisible text and looked like an empty button, and
- * nothing failed, because no test looks at a glyph and the trigger appears in no
- * baseline.
- *
- * Measuring is what makes this answerable. A resolved ligature collapses to about
- * one em; an unresolved one is as wide as the word, so anything much wider than
- * its own font size is a missing glyph whatever it is called.
- */
-test.describe('the subsetted icon font', () => {
-  test('has a glyph for every icon the download menu names', async ({ page }) => {
-    await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
-    await page.locator('.download-trigger').click();
-
-    const wide = await page.evaluate(() => {
-      const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
-      return [...root.querySelectorAll('mat-icon')]
-        .map((icon) => {
-          const size = parseFloat(getComputedStyle(icon).fontSize);
-          const probe = document.createElement('span');
-          probe.style.cssText = `position:absolute;left:-9999px;font-family:${
-            getComputedStyle(icon).fontFamily
-          };font-size:${size}px`;
-          probe.textContent = icon.textContent!.trim();
-          root.appendChild(probe);
-          const width = probe.getBoundingClientRect().width;
-          probe.remove();
-          return { name: icon.textContent!.trim(), width, size };
-        })
-        .filter((entry) => entry.width > entry.size * 1.6);
-    });
-
-    expect(wide, `these icon names have no glyph and render as text: ${JSON.stringify(wide)}`).toEqual([]);
-  });
+test('every download menu icon renders shared SVG without font requests', async ({ page }) => {
+  await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
+  await page.locator('.download-trigger').click();
+  const icons = page.locator('mat-icon');
+  expect(await icons.count()).toBeGreaterThan(7);
+  for (const icon of await icons.all()) {
+    await expect(icon).toHaveClass(/cedar-icon/);
+    await expect(icon.locator('svg[data-cedar-icon]')).toHaveCount(1);
+    await expect(icon).toHaveText('');
+  }
 });
 
 /**

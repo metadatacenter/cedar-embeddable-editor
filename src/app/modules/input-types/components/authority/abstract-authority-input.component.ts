@@ -94,7 +94,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
   loadingOptions = false;
   justReverted = false;
   justCleared = false;
-  linkIconName = 'open_in_new';
+  linkIconName = 'external';
 
   /**
    * Whether the last search failed rather than returned nothing.

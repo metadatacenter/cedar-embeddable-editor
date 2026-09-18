@@ -62,31 +62,6 @@
   @include cdk.text-field-autosize();
 }
 
-.material-icons {
-  font-family: 'CEE Material Icons';
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px; /* Preferred icon size */
-  display: inline-block;
-  line-height: 1;
-  text-transform: none;
-  letter-spacing: normal;
-  word-wrap: normal;
-  white-space: nowrap;
-  direction: ltr;
-
-  /* Support for all WebKit browsers. */
-  -webkit-font-smoothing: antialiased;
-  /* Support for Safari and Chrome. */
-  text-rendering: optimizeLegibility;
-
-  /* Support for Firefox. */
-  -moz-osx-font-smoothing: grayscale;
-
-  /* Support for IE. */
-  font-feature-settings: 'liga';
-}
-
 .cdk-overlay-container {
   font-family: tokens.$font-family;
   font-size: tokens.$font-size;
@@ -165,7 +140,8 @@
 
 .icon-help {
   margin-left: 10px;
-  font-size: tokens.$font-size !important;
+  width: tokens.$icon-size-small !important;
+  height: tokens.$icon-size-small !important;
 }
 
 .icon-src {
@@ -294,46 +270,6 @@ app-sample-templates {
   padding: 15px;
   border: 1px solid transparent;
   border-radius: 4px;
-}
-
-.notify-info:before,
-.notify-success:before,
-.notify-error:before,
-.notify-warning:before,
-.notify-progress:before {
-  font-family: 'CEE Material Icons';
-  font-style: normal;
-  font-weight: var(--cedar-font-weight-regular, 400);
-  font-size: 18px;
-  vertical-align: middle;
-  speak: none;
-  display: inline-block;
-  text-decoration: inherit;
-  width: 1em;
-  margin-right: 0.8em;
-  text-align: center;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1em;
-  margin-left: 0.2em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.notify-info:before {
-  content: '\e88e';
-}
-
-.notify-success:before {
-  content: '\e86c';
-}
-
-.notify-error:before {
-  content: '\e000';
-}
-
-.notify-warning:before {
-  content: '\e002';
 }
 
 .notify-progress-icon {
@@ -656,14 +592,26 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   text-decoration: none;
 
   .mat-icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-    line-height: 18px;
+    width: tokens.$icon-size-small;
+    height: tokens.$icon-size-small;
   }
 }
 
 // Interface emphasis uses the shared medium face; authored rich text keeps its own styles.
 .required-mark b {
   font-weight: var(--cedar-font-weight-medium, 500);
+}
+
+mat-icon.cedar-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  width: tokens.$icon-size-default;
+  height: tokens.$icon-size-default;
+  font-family: inherit;
+}
+
+mat-icon.cedar-icon > svg {
+  display: block;
 }
