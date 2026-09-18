@@ -2135,6 +2135,9 @@ test.describe('template-authored strings that are not rich text', () => {
     // header's expand, collapse and download controls carry tooltips of their own,
     // and theirs are registered before any field's.
     const help = page.locator('app-cedar-static-section-break mat-icon.icon-help').first();
+    // Standalone CEE must compile the shared Sass size even when the host does
+    // not provide the design-token CSS custom properties.
+    await expect(help).toHaveCSS('font-size', '14px');
     const describedBy = (await help.getAttribute('aria-describedby')) ?? '';
     const messageId = describedBy.split(/\s+/).find((id) => id.startsWith('cdk-describedby-message'));
     expect(messageId, 'the help icon points at no description element').toBeTruthy();
