@@ -281,27 +281,27 @@ app-sample-templates {
 }
 
 .notify-info {
-  color: #004085;
-  background-color: #cce5ff;
-  border-color: #b8daff;
+  color: tokens.$status-info-text;
+  background-color: tokens.$status-info-surface;
+  border-color: tokens.$status-info-text;
 }
 
 .notify-success {
-  color: #155724;
-  background-color: #d4edda;
-  border-color: #c3e6cb;
+  color: tokens.$status-success-text;
+  background-color: tokens.$status-success-surface;
+  border-color: tokens.$status-success-text;
 }
 
 .notify-error {
-  color: #721c24;
-  background-color: #f8d7da;
-  border-color: #f5c6cb;
+  color: tokens.$status-error-text;
+  background-color: tokens.$status-error-surface;
+  border-color: tokens.$status-error-text;
 }
 
 .notify-warning {
-  color: #856404;
-  background-color: #fff3cd;
-  border-color: #ffeeba;
+  color: tokens.$status-warning-text;
+  background-color: tokens.$status-warning-surface;
+  border-color: tokens.$status-warning-text;
 }
 
 .notify-progress {
@@ -408,7 +408,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  */
 .input-warning {
   display: block;
-  color: tokens.$color-warning;
+  color: tokens.$status-warning-text;
   font-size: tokens.$font-size-small;
   line-height: 22px;
   text-align: start;

@@ -71,13 +71,6 @@
       "value": "15px",
       "count": 1
     },
-    "0d52ac3adad4ec8e7670": {
-      "file": "src/styles-own.scss",
-      "rule": "color",
-      "property": "background-color",
-      "value": "#cce5ff",
-      "count": 1
-    },
     "0dc27b0c8c270283ffe0": {
       "file": "src/app/modules/shared/components/cedar-field-spec/cedar-field-spec.component.scss",
       "rule": "spacing",
@@ -267,13 +260,6 @@
       "value": "1.4",
       "count": 1
     },
-    "2c28f2b4ebb54904de3e": {
-      "file": "src/styles-own.scss",
-      "rule": "color",
-      "property": "border-color",
-      "value": "#b8daff",
-      "count": 1
-    },
     "2e88a5c9e1fb599d7dc0": {
       "file": "src/app/modules/input-types/components/cedar-static-section-break/cedar-static-section-break.component.scss",
       "rule": "color",
@@ -372,13 +358,6 @@
       "value": "rgba(0, 0, 0, 0.38)",
       "count": 1
     },
-    "47466201a0b41f86daed": {
-      "file": "src/styles-own.scss",
-      "rule": "color",
-      "property": "color",
-      "value": "#004085",
-      "count": 1
-    },
     "47c406aae8e1d2bd2200": {
       "file": "src/_cee-material-theme.scss",
       "rule": "color",
@@ -405,13 +384,6 @@
       "rule": "color",
       "property": "background-color",
       "value": "#ff0000",
-      "count": 1
-    },
-    "4dc46af54546116d774c": {
-      "file": "src/styles-own.scss",
-      "rule": "color",
-      "property": "color",
-      "value": "#856404",
       "count": 1
     },
     "50334ae3921f862a880d": {
@@ -554,25 +526,11 @@
       "value": "10px 0 ui-tokens.$space-1",
       "count": 1
     },
-    "666b5570c637a2d6a9a5": {
-      "file": "src/styles-own.scss",
-      "rule": "color",
-      "property": "color",
-      "value": "#721c24",
-      "count": 1
-    },
     "680fb10842c20d058777": {
       "file": "src/app/modules/input-types/components/cedar-static-youtube/cedar-static-youtube.component.scss",
       "rule": "typography",
       "property": "font-size",
       "value": "0.9em",
-      "count": 1
-    },
-    "68e6545176469a2d6288": {
-      "file": "src/styles-own.scss",
-      "rule": "color",
-      "property": "color",
-      "value": "#155724",
       "count": 1
     },
     "690313f3526d321799c6": {
@@ -813,13 +771,6 @@
       "value": "1.5",
       "count": 1
     },
-    "937a6c748fcb41ca99c4": {
-      "file": "src/styles-own.scss",
-      "rule": "color",
-      "property": "background-color",
-      "value": "#d4edda",
-      "count": 1
-    },
     "93a36f035e05b4d2bf75": {
       "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
       "rule": "color",
@@ -988,25 +939,11 @@
       "value": "#ffffff",
       "count": 1
     },
-    "b60fdde14faa30b29b9f": {
-      "file": "src/styles-own.scss",
-      "rule": "color",
-      "property": "border-color",
-      "value": "#f5c6cb",
-      "count": 1
-    },
     "b6432c371916313979f1": {
       "file": "src/app/modules/shared/components/cedar-term-link/cedar-term-link.component.scss",
       "rule": "color",
       "property": "border",
       "value": "1px solid rgba(0, 0, 0, 0.38)",
-      "count": 1
-    },
-    "b7c76c4bba5fcfa58848": {
-      "file": "src/styles-own.scss",
-      "rule": "color",
-      "property": "background-color",
-      "value": "#f8d7da",
       "count": 1
     },
     "bc7d2fa7249893147ed8": {
@@ -1079,13 +1016,6 @@
       "value": "#eeeeee",
       "count": 1
     },
-    "c7e0357f9d335a0bd0eb": {
-      "file": "src/styles-own.scss",
-      "rule": "color",
-      "property": "background-color",
-      "value": "#fff3cd",
-      "count": 1
-    },
     "ca16e237220dc9f4f072": {
       "file": "src/app/modules/input-types/components/cedar-static-youtube/cedar-static-youtube.component.scss",
       "rule": "color",
@@ -1099,13 +1029,6 @@
       "property": "margin-right",
       "value": "10px",
       "count": 2
-    },
-    "ce8bb5bb31dff9ffbd20": {
-      "file": "src/styles-own.scss",
-      "rule": "color",
-      "property": "border-color",
-      "value": "#ffeeba",
-      "count": 1
     },
     "d1eb5e921e29cc6ce13d": {
       "file": "src/app/modules/shared/components/cedar-field-spec/cedar-field-spec.component.scss",
@@ -1210,13 +1133,6 @@
       "rule": "color",
       "property": "border",
       "value": "1px solid #a1332b",
-      "count": 1
-    },
-    "ed7d1bbaee9c77cbd9bd": {
-      "file": "src/styles-own.scss",
-      "rule": "color",
-      "property": "border-color",
-      "value": "#c3e6cb",
       "count": 1
     },
     "ef2122f4f530a8361963": {
