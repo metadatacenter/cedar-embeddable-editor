@@ -148,6 +148,7 @@ $_colors: (
       container-text-line-height: 20px,
     )
   );
+  @include mat.form-field-overrides((subscript-text-size: tokens.$form-help-size, subscript-text-line-height: tokens.$form-help-line-height));
   @include mat.menu-overrides((
     container-color: tokens.$overlay-surface,
     container-shape: tokens.$menu-radius,

@@ -409,8 +409,8 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 .input-warning {
   display: block;
   color: tokens.$status-warning-text;
-  font-size: tokens.$font-size-small;
-  line-height: 22px;
+  font-size: tokens.$form-help-size;
+  line-height: tokens.$form-help-line-height;
   text-align: start;
 }
 .cdk-overlay-container {

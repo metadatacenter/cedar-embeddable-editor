@@ -498,13 +498,6 @@
       "value": "24px",
       "count": 1
     },
-    "646806ccd946412a63c4": {
-      "file": "src/styles-own.scss",
-      "rule": "typography",
-      "property": "line-height",
-      "value": "22px",
-      "count": 1
-    },
     "65acc3af9fc255327384": {
       "file": "src/styles-own.scss",
       "rule": "color",
