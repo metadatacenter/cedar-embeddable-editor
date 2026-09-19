@@ -37,6 +37,10 @@
   /* Suffix actions must not increase a populated control's height. */
   .mat-mdc-icon-button.mat-mdc-button-base {
     @include theme.icon-size(var(--_cedar-height));
+    // Center SVG icons independently of the inherited text baseline and icon size.
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: var(--_cedar-height);
     height: var(--_cedar-height);
     padding: calc((var(--_cedar-height) - 24px) / 2);

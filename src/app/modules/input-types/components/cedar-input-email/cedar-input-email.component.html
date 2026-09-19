@@ -5,7 +5,7 @@
       spellcheck="false"
       matInput
       type="text"
-      [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : 'example@domain.com'"
+      [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
       [formControl]="inputValueControl"
       (input)="inputChanged($event)"
       [readonly]="readOnlyMode"
