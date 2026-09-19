@@ -621,3 +621,11 @@ mat-icon.cedar-icon > svg {
 :host .mat-mdc-menu-item { min-height: tokens.$menu-item-height; }
 
 @include motion.reduced-motion;
+
+// Center SVG controls within the toolbar button boxes. Inline icon baseline
+// alignment otherwise drops them below the page chips and paginator arrows.
+.expand-buttons .mat-mdc-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
