@@ -2,9 +2,9 @@
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
 .cee-time-picker {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: max-content;
   align-items: center;
-  flex-wrap: wrap;
   gap: ui-tokens.$space-2;
   min-width: 0;
 }
@@ -19,6 +19,10 @@
  * its second M and read `HH:MN`. The row wraps below 620px, which is where a
  * genuinely narrow viewport is meant to be handled.
  */
+.cee-time-picker:has(.cee-time-meridian) {
+  grid-template-columns: max-content max-content;
+}
+
 .cee-time-input-shell {
   display: inline-flex;
   align-items: center;
@@ -114,8 +118,12 @@
 }
 
 .cee-time-validation {
-  flex-basis: 100%;
-  margin-inline-start: 4px;
+  // Feedback wraps beneath the clock without contributing its sentence width
+  // to the inline picker's intrinsic size (and pushing fractions away).
+  grid-column: 1 / -1;
+  width: 0;
+  min-width: 100%;
+  margin: 0;
   color: tokens.$color-warning;
   font-size: tokens.$font-size;
   line-height: 1.35;
