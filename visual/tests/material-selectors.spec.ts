@@ -76,6 +76,9 @@ test('every third-party selector CEE styles still matches an element', async ({ 
   // An open select panel, for the option classes.
   await open(page, '02-choices');
   await page.locator('mat-select').first().click();
+  await expect(page.locator('mat-option').first()).toHaveCSS('min-height', '36px');
+  await expect(page.locator('mat-option').first()).toHaveCSS('padding-top', '4px');
+  await expect.poll(async () => (await page.locator('mat-option').first().boundingBox())!.height).toBe(36);
   await page.waitForTimeout(300);
   await sweep();
 
