@@ -629,3 +629,9 @@ mat-icon.cedar-icon > svg {
   align-items: center;
   justify-content: center;
 }
+
+/* Manual field resizing is forbidden; automatic content sizing remains available. */
+textarea,
+textarea.mat-mdc-input-element {
+  resize: none;
+}
