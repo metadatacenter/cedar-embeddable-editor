@@ -53,7 +53,7 @@ export class SpecPlaceholderPipe implements PipeTransform {
       // Plain labels. Which one is the default is stated as its own fact ahead of this, so marking it
       // here as well would be the same fact twice — and in the harder-to-read place.
       const shown = options.map((option) => option.label);
-      parts.push(`${this.translate.instant('Spec.PermittedValues')} ${shown.join(', ')}`);
+      parts.push(`${this.translate.instant('Spec.PermittedValues')} ${shown.join(' · ')}`);
     }
 
     return parts.join(' · ');

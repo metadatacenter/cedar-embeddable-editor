@@ -387,7 +387,7 @@ describe('a declared default', () => {
     ];
 
     expect(specDefaultFactsOf(field)).toStrictEqual([
-      { key: SpecFactKey.defaultValue, params: { defaultValue: 'Red, Blue' } },
+      { key: SpecFactKey.defaultValue, params: { defaultValue: 'Red · Blue' } },
     ]);
   });
 
