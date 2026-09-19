@@ -1,6 +1,12 @@
 <div class="cee-spec-box" role="note">
   @if (facts.length > 0 || optionLabels) {
     <span class="cee-spec-box-facts">
+      @if (optionLabels) {
+        <span class="cee-spec-box-fact cee-spec-box-options">
+          <em class="cee-spec-box-keyword">{{ 'Spec.Keyword.Values' | translate }}</em>
+          {{ optionLabels }}
+        </span>
+      }
       <!--
         The lead-in word, where the fact has one, comes off `specKeywordOf` rather than out of a
         list of cases here. A case list covered the facts somebody had thought to add to it, which
@@ -12,12 +18,6 @@
             <em class="cee-spec-box-keyword">{{ keyword | translate }}</em>
           }
           {{ fact.key | translate: fact.params }}
-        </span>
-      }
-      @if (optionLabels) {
-        <span class="cee-spec-box-fact cee-spec-box-options">
-          <em class="cee-spec-box-keyword">{{ 'Spec.Keyword.Values' | translate }}</em>
-          {{ optionLabels }}
         </span>
       }
     </span>

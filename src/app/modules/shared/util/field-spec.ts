@@ -274,10 +274,8 @@ export function specDefaultFactsOf(field: FieldComponent): SpecFact[] {
     // be a link, which is the same reason the authorities are not facts either.
     return [];
   }
-  // An enumeration declares its default by marking one of its own options, and it is stated the same
-  // way as every other default: named once, at the front, rather than marked inline in the list of
-  // values. "default Green · Values Red · Green · Blue" reads as one fact then the set it comes from;
-  // marking the list instead made a reader hunt for a parenthesis to learn the same thing.
+  // An enumeration declares its default by marking its own options. State the selected labels
+  // once as a separate default fact, after the list of available values in the summary box.
   const chosen = field.choiceInfo.choices.filter((option) => option.selectedByDefault);
   return chosen.length === 0
     ? []
