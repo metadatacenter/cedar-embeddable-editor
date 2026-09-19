@@ -636,13 +636,17 @@ textarea.mat-mdc-input-element {
   resize: none;
 }
 
-// Select and autocomplete overlays share the menu density contract. Material's
-// default option minimum is taller than CEDAR menus; allow wrapped labels to grow.
+// Select and autocomplete rows match the 28px choice rows.
+// Wrapped labels can grow without retaining Material's larger minimum height.
 :host .mat-mdc-option {
-  min-height: tokens.$menu-item-height;
+  min-height: 28px;
   height: auto;
   padding-block: tokens.$space-1;
   padding-inline: tokens.$menu-item-padding-inline;
   box-sizing: border-box;
   line-height: tokens.$form-help-line-height;
+}
+
+:host .mat-mdc-select-panel {
+  padding-block: tokens.$space-1;
 }

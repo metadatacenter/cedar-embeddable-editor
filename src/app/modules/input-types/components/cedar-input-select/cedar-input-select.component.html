@@ -29,7 +29,7 @@
         }
       </mat-select>
     }
-    @if (inputValueControl.value && !readOnlyMode) {
+    @if (inputValueControl.value && !readOnlyMode && !component.choiceInfo.multipleChoice) {
       <button
         type="button"
         tabindex="0"

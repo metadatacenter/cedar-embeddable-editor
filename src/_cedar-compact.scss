@@ -50,6 +50,15 @@
     }
   }
 
+  // Radio clear actions live in 28px option rows, not full-height text controls.
+  // Keep the selected row the same height as its unselected neighbours.
+  .choice-clear-button.mat-mdc-icon-button.mat-mdc-button-base {
+    @include theme.icon-size(28px);
+    width: 28px;
+    height: 28px;
+    padding: 2px;
+  }
+
   /* The clock is a native segmented control, using the same box as Material inputs. */
   .cee-time-input-shell {
     min-height: var(--_cedar-height);
