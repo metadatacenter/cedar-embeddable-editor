@@ -2,6 +2,7 @@
   <div class="cee-time-picker" role="group" attr.aria-label="{{ 'Generic.Time' | translate }}">
     <div class="cee-time-input-shell">
       <input
+        spellcheck="false"
         class="cee-time-segment cee-time-segment-hour"
         type="text"
         inputmode="numeric"
@@ -17,6 +18,7 @@
       @if (!disableMinute) {
         <span class="cee-time-separator" aria-hidden="true">:</span>
         <input
+          spellcheck="false"
           class="cee-time-segment cee-time-segment-minute"
           type="text"
           inputmode="numeric"
@@ -32,6 +34,7 @@
         @if (showSeconds) {
           <span class="cee-time-separator" aria-hidden="true">:</span>
           <input
+            spellcheck="false"
             class="cee-time-segment cee-time-segment-second"
             type="text"
             inputmode="numeric"
@@ -64,10 +67,14 @@
       </div>
     }
     @if (restoredSegment === 'minute') {
-      <div class="cee-time-validation input-warning" role="status">{{ 'Validation.Time.InvalidMinute' | translate }}</div>
+      <div class="cee-time-validation input-warning" role="status">
+        {{ 'Validation.Time.InvalidMinute' | translate }}
+      </div>
     }
     @if (restoredSegment === 'second') {
-      <div class="cee-time-validation input-warning" role="status">{{ 'Validation.Time.InvalidSecond' | translate }}</div>
+      <div class="cee-time-validation input-warning" role="status">
+        {{ 'Validation.Time.InvalidSecond' | translate }}
+      </div>
     }
   </div>
 }

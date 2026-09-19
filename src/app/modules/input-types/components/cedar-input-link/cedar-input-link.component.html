@@ -16,6 +16,7 @@
   <mat-form-field class="full-width" [class.cee-hidden]="showsLinkAsValue">
     <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
     <input
+      spellcheck="false"
       matInput
       [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
       type="text"

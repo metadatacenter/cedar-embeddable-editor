@@ -19,6 +19,7 @@
       <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
       @if (component.basicInfo.inputType === inputText) {
         <input
+          spellcheck="false"
           matInput
           type="text"
           [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
@@ -30,6 +31,7 @@
       }
       @if (component.basicInfo.inputType === inputTextarea) {
         <textarea
+          spellcheck="false"
           matInput
           type="text"
           [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
