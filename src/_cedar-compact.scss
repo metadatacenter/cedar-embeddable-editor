@@ -53,9 +53,9 @@
   // Radio clear actions live in 28px option rows, not full-height text controls.
   // Keep the selected row the same height as its unselected neighbours.
   .choice-clear-button.mat-mdc-icon-button.mat-mdc-button-base {
-    @include theme.icon-size(tokens.$control-height-authoring - tokens.$space-1);
-    width: tokens.$control-height-authoring - tokens.$space-1;
-    height: tokens.$control-height-authoring - tokens.$space-1;
+    @include theme.icon-size(var(--cedar-choice-row-height, #{tokens.$choice-row-height}));
+    width: var(--cedar-choice-row-height, #{tokens.$choice-row-height});
+    height: var(--cedar-choice-row-height, #{tokens.$choice-row-height});
     padding: calc(tokens.$space-1 / 2);
   }
 

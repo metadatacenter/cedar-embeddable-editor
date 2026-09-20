@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/controls';
 @use '@org.metadatacenter/cedar-design-tokens/motion';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 // Brand values come from @org.metadatacenter/cedar-design-tokens, CEE's own card
@@ -468,6 +469,13 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  * Scoped to `.cee-read-only` on the editor's own card, so editing is untouched, and written here
  * rather than in a component stylesheet because it reaches Material's internals across components.
  */
+// Shared editable choice typography; read-only and disabled states keep their own treatment.
+:host :where(.mat-mdc-checkbox:not(:has(input:disabled))) .mdc-label,
+:host :where(.mat-mdc-radio-button:not(:has(input:disabled))) .mdc-label,
+:host .mat-mdc-option:not([aria-disabled='true']) .mdc-list-item__primary-text {
+  @include controls.choice-text;
+}
+
 .cee-read-only {
   /*
    * Through Material's own tokens, not through selectors. `.mdc-text-field--outlined
@@ -639,12 +647,12 @@ textarea.mat-mdc-input-element {
 // Select and autocomplete rows match the 28px choice rows.
 // Wrapped labels can grow without retaining Material's larger minimum height.
 :host .mat-mdc-option {
-  min-height: tokens.$control-height-authoring - tokens.$space-1;
+  @include controls.choice-row;
   height: auto;
-  padding-block: tokens.$space-1;
+  padding-block: var(--cedar-choice-padding-block, #{tokens.$choice-padding-block});
   padding-inline: tokens.$menu-item-padding-inline;
   box-sizing: border-box;
-  line-height: tokens.$form-help-line-height;
+  line-height: var(--cedar-control-line-height, var(--cedar-choice-line-height, #{tokens.$choice-line-height}));
 }
 
 :host .mat-mdc-select-panel {

@@ -225,13 +225,6 @@
       "value": "20px",
       "count": 1
     },
-    "6ad234db9c2bfc212e2b": {
-      "file": "src/app/modules/input-types/components/cedar-input-datetime/cedar-input-datetime.component.scss",
-      "rule": "typography",
-      "property": "line-height",
-      "value": "48px",
-      "count": 1
-    },
     "872f11ae252b0f9e506b": {
       "file": "src/app/modules/input-types/components/cedar-input-multiple-choice/cedar-input-multiple-choice.component.scss",
       "rule": "geometry",
@@ -972,13 +965,6 @@
       "rule": "spacing",
       "property": "padding-inline",
       "value": "10px",
-      "count": 1
-    },
-    "577dcb0f43941a1134ba": {
-      "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
-      "rule": "spacing",
-      "property": "margin-inline-start",
-      "value": "4px",
       "count": 1
     },
     "9b8ee1f4b9beaf856e15": {
