@@ -639,7 +639,7 @@ textarea.mat-mdc-input-element {
 // Select and autocomplete rows match the 28px choice rows.
 // Wrapped labels can grow without retaining Material's larger minimum height.
 :host .mat-mdc-option {
-  min-height: 28px;
+  min-height: tokens.$control-height-authoring - tokens.$space-1;
   height: auto;
   padding-block: tokens.$space-1;
   padding-inline: tokens.$menu-item-padding-inline;
