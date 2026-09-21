@@ -13,7 +13,7 @@
     "AttributeValue": "Attribute Value",
     "Clear": "Clear",
     "SelectDecimalSeconds": "Select Decimal Seconds",
-    "SelectUtcOffset": "Select UTC offset",
+    "SelectUtcOffset": "Timezone unspecified",
     "SelectYear": "Select Year",
     "SelectYearAndMonth": "Select Year and Month",
     "SelectDate": "Select Date",

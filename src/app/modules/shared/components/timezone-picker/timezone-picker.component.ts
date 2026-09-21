@@ -88,7 +88,7 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
   ].map((id) => ({ id, label: TimezonePickerComponent.labelFor(id) }));
 
   @Input() getUserZone = false;
-  @Input() customPlaceholderText = 'Select UTC offset';
+  @Input() customPlaceholderText = 'Timezone unspecified';
 
   readonly form = new FormGroup({
     timezone: new FormControl<TZone | null>(null),
