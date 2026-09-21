@@ -98,3 +98,15 @@ describe('what an emptied attribute value records', () => {
     expect(InstanceValueNode.literal(root.values['colour'])).toBe('0');
   });
 });
+
+describe('attribute-name safety', () => {
+  it.each(['__proto__', 'constructor', 'prototype', '@id', '   ', 'bad\nname'])(
+    'rejects %s without changing the existing value',
+    (name) => {
+      const { handler, dataContext, field, multi, root } = attributeValueFixture();
+      const before = JSON.stringify(root);
+      expect(handler.changeAttributeValue(dataContext, field, multi, name, 'green')).toBeTruthy();
+      expect(JSON.stringify(root)).toBe(before);
+    },
+  );
+});

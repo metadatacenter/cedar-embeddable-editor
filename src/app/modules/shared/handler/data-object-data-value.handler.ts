@@ -187,7 +187,14 @@ export class DataObjectDataValueHandler {
       return null;
     }
 
-    if (AttributeValueNamePolicy.isReserved(newName)) {
+    if (
+      !newName.trim() ||
+      [...newName].some((character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127)
+    ) {
+      return 'Attribute name must contain text and no control characters.';
+    }
+    // Also guard object internals when a host still resolves an older model package.
+    if (['__proto__', 'constructor', 'prototype'].includes(newName) || AttributeValueNamePolicy.isReserved(newName)) {
       return `Attribute name "${newName}" is reserved for instance metadata.`;
     }
 

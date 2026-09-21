@@ -1,0 +1,16 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
+
+.single-choice-marker {
+  display: inline-block;
+  box-sizing: border-box;
+  width: tokens.$space-4;
+  height: tokens.$space-4;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  margin-inline-end: tokens.$space-4;
+  vertical-align: middle;
+  &.selected {
+    background: currentColor;
+    box-shadow: inset 0 0 0 tokens.$space-1 var(--cedar-overlay-surface, #{tokens.$overlay-surface});
+  }
+}
