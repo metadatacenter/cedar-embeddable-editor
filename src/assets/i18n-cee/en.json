@@ -29,7 +29,7 @@
     "FilterPmid": "Start typing publication name or PubMed ID",
     "FilterRrid": "Start typing research resource name or RRID",
     "FilterNihGrant": "Start typing grant details or NIH Grant ID",
-    "FilterDoi": "Start typing publication name or DOI",
+    "FilterDoi": "Search by title or enter DOI",
     "Time": "Time",
     "Hour": "Hour",
     "Minute": "Minute",
