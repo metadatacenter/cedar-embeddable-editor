@@ -708,13 +708,6 @@
       "value": "32px",
       "count": 2
     },
-    "bb2a7d871d73008f2acd": {
-      "file": "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.scss",
-      "rule": "spacing",
-      "property": "padding",
-      "value": "6px",
-      "count": 1
-    },
     "07e7401f1e56889da98b": {
       "file": "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.scss",
       "rule": "spacing",

@@ -36,7 +36,7 @@
   width: 32px;
   height: 32px;
   box-sizing: border-box;
-  padding: 6px;
+  padding: tokens.$space-3 * 0.5;
   display: inline-flex;
   align-items: center;
   justify-content: center;
