@@ -2,6 +2,7 @@
   <mat-form-field class="full-width">
     <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
     <input
+      spellcheck="false"
       matInput
       [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
       type="text"
@@ -18,7 +19,7 @@
         attr.aria-label="{{ 'Generic.Clear' | translate }}"
         (click)="clearValue()"
       >
-        <mat-icon>close</mat-icon>
+        <mat-icon cedarIcon="close"></mat-icon>
       </button>
     }
     @if (inputValueControl.getError('pattern') && !readOnlyMode) {

@@ -3,7 +3,7 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { ErrorStateMatcher, MatOptionSelectionChange } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Observable, of, timer } from 'rxjs';
-import { debounceTime, distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
+import { distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { HandlerContext } from '../../../shared/util/handler-context';
@@ -94,7 +94,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
   loadingOptions = false;
   justReverted = false;
   justCleared = false;
-  linkIconName = 'open_in_new';
+  linkIconName = 'external';
 
   /**
    * Whether the last search failed rather than returned nothing.
@@ -144,7 +144,6 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     if (!this.readOnlyMode) {
       this.filteredOptions = this.inputValueControl.valueChanges.pipe(
         startWith(''),
-        debounceTime(400),
         // The control holds text, never a term: every `mat-option` in the three
         // templates that drive this binds `[value]` to a compound string. The
         // read this replaces also handled an option object, which is what the
@@ -159,7 +158,8 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
             return of<AuthorityTerm[]>([]);
           }
           this.loadingOptions = true;
-          return this.filter(query).pipe(
+          return timer(400).pipe(
+            switchMap(() => this.filter(query)),
             // The one place a failed lookup is turned back into an empty list,
             // so it is also the one place that can record that it happened.
             // `filter` therefore lets its errors through rather than catching

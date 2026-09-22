@@ -407,7 +407,7 @@
         "@value"
       ],
       "schema:name": "radio",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -469,7 +469,8 @@
               "selectedByDefault": true
             },
             {
-              "label": "Two"
+              "label": "Two",
+              "selectedByDefault": false
             }
           ],
           "requiredValue": false,
@@ -504,7 +505,7 @@
           "@value"
         ],
         "schema:name": "checkbox",
-        "schema:description": null,
+        "schema:description": "",
         "pav:createdOn": "2026-01-01T00:00:00-08:00",
         "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
         "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -602,7 +603,7 @@
         "@value"
       ],
       "schema:name": "single_list",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -660,10 +661,12 @@
         "_valueConstraints": {
           "literals": [
             {
-              "label": "North"
+              "label": "North",
+              "selectedByDefault": false
             },
             {
-              "label": "South"
+              "label": "South",
+              "selectedByDefault": false
             }
           ],
           "requiredValue": false,
@@ -698,7 +701,7 @@
           "@value"
         ],
         "schema:name": "multi_list",
-        "schema:description": null,
+        "schema:description": "",
         "pav:createdOn": "2026-01-01T00:00:00-08:00",
         "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
         "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -758,13 +761,16 @@
         "_valueConstraints": {
           "literals": [
             {
-              "label": "Up"
+              "label": "Up",
+              "selectedByDefault": false
             },
             {
-              "label": "Down"
+              "label": "Down",
+              "selectedByDefault": false
             },
             {
-              "label": "Sideways"
+              "label": "Sideways",
+              "selectedByDefault": false
             }
           ],
           "requiredValue": false,
@@ -799,7 +805,7 @@
           "@value"
         ],
         "schema:name": "bounded_list",
-        "schema:description": null,
+        "schema:description": "",
         "pav:createdOn": "2026-01-01T00:00:00-08:00",
         "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
         "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",

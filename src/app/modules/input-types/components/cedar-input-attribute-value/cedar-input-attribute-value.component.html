@@ -2,6 +2,7 @@
   <mat-form-field class="half-width-with-margin" floatLabel="always">
     <mat-label>{{ 'Generic.AttributeName' | translate }}</mat-label>
     <input
+      spellcheck="false"
       matInput
       type="text"
       [formControl]="nameInputControl"
@@ -18,7 +19,7 @@
         attr.aria-label="{{ 'Generic.Clear' | translate }}"
         (click)="clearName()"
       >
-        <mat-icon>close</mat-icon>
+        <mat-icon cedarIcon="close"></mat-icon>
       </button>
     }
     @if (attributeNameError) {
@@ -28,6 +29,7 @@
   <mat-form-field class="half-width" floatLabel="always">
     <mat-label>{{ 'Generic.AttributeValue' | translate }}</mat-label>
     <input
+      spellcheck="false"
       matInput
       type="text"
       [formControl]="valueInputControl"
@@ -43,7 +45,7 @@
         attr.aria-label="{{ 'Generic.Clear' | translate }}"
         (click)="clearValue()"
       >
-        <mat-icon>close</mat-icon>
+        <mat-icon cedarIcon="close"></mat-icon>
       </button>
     }
   </mat-form-field>

@@ -55,7 +55,7 @@ export class CedarSpecBoxComponent {
   get optionLabels(): string {
     return specOptionsOf(this.fieldToDescribe)
       .map((option) => option.label)
-      .join(', ');
+      .join(' · ');
   }
 
   /** The declared default when it is a term, which can be linked, rather than text, which cannot. */

@@ -1,6 +1,7 @@
 @if (readOnlyMode) {
   <mat-form-field class="full-width">
     <input
+      spellcheck="false"
       matInput
       type="text"
       readonly
@@ -52,6 +53,7 @@
       -->
         <mat-form-field class="cee-fraction-field">
           <input
+            spellcheck="false"
             matInput
             type="text"
             inputmode="numeric"
@@ -88,7 +90,7 @@
       matTooltip="{{ 'Generic.Clear' | translate }}"
       (click)="clearValue()"
     >
-      <mat-icon>close</mat-icon>
+      <mat-icon cedarIcon="close"></mat-icon>
     </button>
   }
 

@@ -26,7 +26,7 @@ export class CedarInputLinkComponent extends CedarUIDirective implements OnInit 
    */
   options!: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
-  linkIconName = 'open_in_new';
+  linkIconName = 'external';
   @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(

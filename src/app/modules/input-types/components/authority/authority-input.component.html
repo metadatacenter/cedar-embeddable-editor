@@ -34,7 +34,7 @@ genuinely theirs.
             attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
             matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
           >
-            <mat-icon>{{ linkIconName }}</mat-icon>
+            <mat-icon [cedarIcon]="linkIconName"></mat-icon>
           </a>
         }
       </app-cedar-term-link>
@@ -48,6 +48,7 @@ genuinely theirs.
         over a value that had been found. It re-enables on the first keystroke.
       -->
       <input
+        spellcheck="false"
         matInput
         type="text"
         [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : (descriptor.placeholderKey | translate)"
@@ -72,7 +73,7 @@ genuinely theirs.
         @let terms = filteredOptions | async;
         @if (loadingOptions) {
           <mat-option disabled class="spinner-container">
-            <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
+            <span role="status">{{ 'Generic.Searching' | translate }}</span>
           </mat-option>
         }
         @if (lookupFailed && !loadingOptions) {
@@ -81,6 +82,7 @@ genuinely theirs.
           </mat-option>
         }
         @if (
+          !loadingOptions &&
           !lookupFailed &&
           (inputValueControl.value?.trim()?.length ?? 0) > 0 &&
           (terms?.length ?? 0) === 0
@@ -127,7 +129,7 @@ genuinely theirs.
           attr.aria-label="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
           matTooltip="{{ 'Generic.OpenAuthorityPage' | translate: { authority: descriptor.label } }}"
         >
-          <mat-icon>{{ linkIconName }}</mat-icon>
+          <mat-icon [cedarIcon]="linkIconName"></mat-icon>
         </a>
       }
       @if (inputValueControl.value && !readOnlyMode) {
@@ -140,7 +142,7 @@ genuinely theirs.
           matTooltip="{{ 'Generic.Clear' | translate }}"
           (click)="clearValue()"
         >
-          <mat-icon>close</mat-icon>
+          <mat-icon cedarIcon="close"></mat-icon>
         </button>
       }
       @if (inputValueControl.getError('required') && !readOnlyMode) {

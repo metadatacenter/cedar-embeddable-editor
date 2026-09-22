@@ -2,9 +2,10 @@
   <mat-form-field class="full-width">
     <!--    <mat-label>{{cds.getRenderingLabelForComponent(component)}}</mat-label>-->
     <input
+      spellcheck="false"
       matInput
       type="text"
-      [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : 'example@domain.com'"
+      [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
       [formControl]="inputValueControl"
       (input)="inputChanged($event)"
       [readonly]="readOnlyMode"
@@ -18,7 +19,7 @@
         attr.aria-label="{{ 'Generic.Clear' | translate }}"
         (click)="clearValue()"
       >
-        <mat-icon>close</mat-icon>
+        <mat-icon cedarIcon="close"></mat-icon>
       </button>
     }
     @if (inputValueControl.getError('email') && !readOnlyMode) {

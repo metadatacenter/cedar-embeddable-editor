@@ -1,28 +1,7 @@
 <div class="flex-container" [class.has-spec]="readOnlyMode && fieldToDescribe">
-  @if (isRor) {
-    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="ror-icon"></i></span>
-  }
-  @if (isOrcid) {
-    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="orcid-icon"></i></span>
-  }
-  @if (isPfas) {
-    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="pfas-icon"></i></span>
-  }
-  @if (isPmid) {
-    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="pmid-icon"></i></span>
-  }
-  @if (isRrid) {
-    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="rrid-icon"></i></span>
-  }
-  @if (isNihGrant) {
-    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="nih-grant-icon"></i></span>
-  }
-  @if (isDoi) {
-    <span class="field-icon-slot authority-icon-slot" aria-hidden="true"><i class="doi-icon"></i></span>
-  }
   @if (fieldTypeIcon) {
     <span class="field-icon-slot" [class.ontology-icon-slot]="isOntologyField" aria-hidden="true" data-field-type-icon>
-      <span class="material-icons field-type-icon">{{ fieldTypeIcon }}</span>
+      <mat-icon class="field-type-icon" [cedarIcon]="fieldTypeIcon"></mat-icon>
     </span>
   }
 
@@ -57,6 +36,7 @@
   <span class="header-trailing">
     @if (!readOnlyMode && component.labelInfo.description) {
       <mat-icon
+        cedarIcon="help"
         matTooltip="{{ component.labelInfo.description }}"
         matTooltipClass="tooltip"
         matTooltipPosition="right"
@@ -65,8 +45,7 @@
         class="icon-help icon-questionmark"
         role="tooltip"
         inline="false"
-        >help</mat-icon
-      >
+      ></mat-icon>
     }
 
     @if (component.propertyIri) {
@@ -77,7 +56,7 @@
         [attr.aria-label]="'Generic.PropertyIri' | translate: { iri: component.propertyIri }"
         [attr.data-property-iri]="component.propertyIri"
       >
-        <span class="material-icons property-iri-icon" aria-hidden="true">device_hub</span>
+        <mat-icon class="property-iri-icon" cedarIcon="property"></mat-icon>
       </span>
     }
   </span>

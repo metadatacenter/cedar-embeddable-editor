@@ -424,7 +424,7 @@
         "@type"
       ],
       "schema:name": "year_only",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -511,7 +511,7 @@
         "@type"
       ],
       "schema:name": "day_only",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -599,7 +599,7 @@
         "@type"
       ],
       "schema:name": "hour_only",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -687,7 +687,7 @@
         "@type"
       ],
       "schema:name": "to_the_minute",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -775,7 +775,7 @@
         "@type"
       ],
       "schema:name": "to_the_second",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -863,7 +863,7 @@
         "@type"
       ],
       "schema:name": "decimal_seconds",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -952,7 +952,7 @@
         "@type"
       ],
       "schema:name": "twelve_hour",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -1041,7 +1041,7 @@
         "@type"
       ],
       "schema:name": "twelve_hour_seconds",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",

@@ -406,7 +406,7 @@
         }
       },
       "schema:name": "contributor_orcid",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -484,7 +484,7 @@
         }
       },
       "schema:name": "institution_ror",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -562,7 +562,7 @@
         }
       },
       "schema:name": "chemical_pfas",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -640,7 +640,7 @@
         }
       },
       "schema:name": "citation_pmid",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -718,7 +718,7 @@
         }
       },
       "schema:name": "resource_rrid",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -796,7 +796,7 @@
         }
       },
       "schema:name": "award_nih",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -874,7 +874,7 @@
         }
       },
       "schema:name": "dataset_doi",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",

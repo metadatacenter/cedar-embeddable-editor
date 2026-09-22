@@ -25,7 +25,7 @@
 
 .cee-temporal-time {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: ui-tokens.$space-1;
   min-width: 0;
 }
@@ -48,10 +48,10 @@
  * rather than type.
  */
 .cee-fraction-separator {
-  align-self: center;
+  align-self: flex-start;
   margin-inline: 0 -1px;
   color: tokens.$text-muted;
-  line-height: 48px;
+  line-height: var(--_cedar-height, var(--cedar-control-height-default));
 }
 
 .cee-fraction-field {

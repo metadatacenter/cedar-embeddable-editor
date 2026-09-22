@@ -5,6 +5,7 @@
       <!-- `[value]`, not the control: a text input cannot hold the list a
       multiple-choice field selects, and binding one coerced it to `A,B`. -->
       <input
+        spellcheck="false"
         matInput
         type="text"
         [placeholder]="component | ceeSpecPlaceholder"
@@ -16,6 +17,7 @@
     @if (!readOnlyMode) {
       <mat-select
         #inputSelect
+        [hideSingleSelectionIndicator]="true"
         [formControl]="inputValueControl"
         [errorStateMatcher]="errorStateMatcher"
         multiple="{{ component.choiceInfo.multipleChoice }}"
@@ -24,11 +26,16 @@
       >
         <mat-select-trigger>{{ displayValue }}</mat-select-trigger>
         @for (option of dropdownList; track option) {
-          <mat-option [value]="option.id">{{ option.label }}</mat-option>
+          <mat-option #choice [value]="option.id">
+            @if (!component.choiceInfo.multipleChoice) {
+              <span class="single-choice-marker" [class.selected]="choice.selected" aria-hidden="true"></span>
+            }
+            {{ option.label }}
+          </mat-option>
         }
       </mat-select>
     }
-    @if (inputValueControl.value && !readOnlyMode) {
+    @if (inputValueControl.value && !readOnlyMode && !component.choiceInfo.multipleChoice) {
       <button
         type="button"
         tabindex="0"
@@ -37,7 +44,7 @@
         attr.aria-label="{{ 'Generic.Clear' | translate }}"
         (click)="clearValue($event)"
       >
-        <mat-icon>close</mat-icon>
+        <mat-icon cedarIcon="close"></mat-icon>
       </button>
     }
     @if (inputValueControl.hasError('required') && !readOnlyMode) {

@@ -1,6 +1,6 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
-    <input matInput [formControl]="selectedChoiceInputControl" style="display: none" />
+    <input spellcheck="false" matInput [formControl]="selectedChoiceInputControl" style="display: none" />
     <mat-radio-group [formControl]="selectedChoiceInputControl">
       @for (choice of component.choiceInfo.choices; track choice) {
         <div class="choice-option-row">
@@ -32,7 +32,7 @@
               attr.aria-label="{{ 'Generic.Clear' | translate }}"
               (click)="clearValue()"
             >
-              <mat-icon>close</mat-icon>
+              <mat-icon cedarIcon="close"></mat-icon>
             </button>
           }
         </div>

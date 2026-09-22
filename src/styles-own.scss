@@ -1,3 +1,5 @@
+@use '@org.metadatacenter/cedar-design-tokens/controls';
+@use '@org.metadatacenter/cedar-design-tokens/motion';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 // Brand values come from @org.metadatacenter/cedar-design-tokens, CEE's own card
 // measurements from _cee-layout.scss, and the Material theming API is reached only
@@ -60,31 +62,6 @@
    * pulls in autofill styling CEE does not use.
    */
   @include cdk.text-field-autosize();
-}
-
-.material-icons {
-  font-family: 'CEE Material Icons';
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px; /* Preferred icon size */
-  display: inline-block;
-  line-height: 1;
-  text-transform: none;
-  letter-spacing: normal;
-  word-wrap: normal;
-  white-space: nowrap;
-  direction: ltr;
-
-  /* Support for all WebKit browsers. */
-  -webkit-font-smoothing: antialiased;
-  /* Support for Safari and Chrome. */
-  text-rendering: optimizeLegibility;
-
-  /* Support for Firefox. */
-  -moz-osx-font-smoothing: grayscale;
-
-  /* Support for IE. */
-  font-feature-settings: 'liga';
 }
 
 .cdk-overlay-container {
@@ -165,7 +142,8 @@
 
 .icon-help {
   margin-left: 10px;
-  font-size: medium !important;
+  width: tokens.$icon-size-small !important;
+  height: tokens.$icon-size-small !important;
 }
 
 .icon-src {
@@ -296,46 +274,6 @@ app-sample-templates {
   border-radius: 4px;
 }
 
-.notify-info:before,
-.notify-success:before,
-.notify-error:before,
-.notify-warning:before,
-.notify-progress:before {
-  font-family: 'CEE Material Icons';
-  font-style: normal;
-  font-weight: var(--cedar-font-weight-regular, 400);
-  font-size: 18px;
-  vertical-align: middle;
-  speak: none;
-  display: inline-block;
-  text-decoration: inherit;
-  width: 1em;
-  margin-right: 0.8em;
-  text-align: center;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1em;
-  margin-left: 0.2em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.notify-info:before {
-  content: '\e88e';
-}
-
-.notify-success:before {
-  content: '\e86c';
-}
-
-.notify-error:before {
-  content: '\e000';
-}
-
-.notify-warning:before {
-  content: '\e002';
-}
-
 .notify-progress-icon {
   margin-right: 0.8em;
   line-height: 1em;
@@ -345,27 +283,27 @@ app-sample-templates {
 }
 
 .notify-info {
-  color: #004085;
-  background-color: #cce5ff;
-  border-color: #b8daff;
+  color: tokens.$status-info-text;
+  background-color: tokens.$status-info-surface;
+  border-color: tokens.$status-info-text;
 }
 
 .notify-success {
-  color: #155724;
-  background-color: #d4edda;
-  border-color: #c3e6cb;
+  color: tokens.$status-success-text;
+  background-color: tokens.$status-success-surface;
+  border-color: tokens.$status-success-text;
 }
 
 .notify-error {
-  color: #721c24;
-  background-color: #f8d7da;
-  border-color: #f5c6cb;
+  color: tokens.$status-error-text;
+  background-color: tokens.$status-error-surface;
+  border-color: tokens.$status-error-text;
 }
 
 .notify-warning {
-  color: #856404;
-  background-color: #fff3cd;
-  border-color: #ffeeba;
+  color: tokens.$status-warning-text;
+  background-color: tokens.$status-warning-surface;
+  border-color: tokens.$status-warning-text;
 }
 
 .notify-progress {
@@ -472,13 +410,13 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  */
 .input-warning {
   display: block;
-  color: tokens.$color-warning;
-  font-size: tokens.$font-size-small;
-  line-height: 22px;
+  color: tokens.$status-warning-text;
+  font-size: tokens.$form-help-size;
+  line-height: tokens.$form-help-line-height;
   text-align: start;
 }
 .cdk-overlay-container {
-  z-index: 9999 !important;
+  z-index: tokens.$layer-overlay !important;
 }
 
 // Comfortable controls retain their black resting outline. Material now owns
@@ -531,6 +469,13 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  * Scoped to `.cee-read-only` on the editor's own card, so editing is untouched, and written here
  * rather than in a component stylesheet because it reaches Material's internals across components.
  */
+// Shared editable choice typography; read-only and disabled states keep their own treatment.
+:host :where(.mat-mdc-checkbox:not(:has(input:disabled))) .mdc-label,
+:host :where(.mat-mdc-radio-button:not(:has(input:disabled))) .mdc-label,
+:host .mat-mdc-option:not([aria-disabled='true']) .mdc-list-item__primary-text {
+  @include controls.choice-text;
+}
+
 .cee-read-only {
   /*
    * Through Material's own tokens, not through selectors. `.mdc-text-field--outlined
@@ -656,14 +601,60 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   text-decoration: none;
 
   .mat-icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-    line-height: 18px;
+    width: tokens.$icon-size-small;
+    height: tokens.$icon-size-small;
   }
 }
 
 // Interface emphasis uses the shared medium face; authored rich text keeps its own styles.
 .required-mark b {
   font-weight: var(--cedar-font-weight-medium, 500);
+}
+
+mat-icon.cedar-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  width: tokens.$icon-size-default;
+  height: tokens.$icon-size-default;
+  font-family: inherit;
+}
+
+mat-icon.cedar-icon > svg {
+  display: block;
+}
+
+:host .mat-mdc-menu-content { padding: tokens.$menu-padding; }
+:host .mat-mdc-menu-item { min-height: tokens.$menu-item-height; }
+
+@include motion.reduced-motion;
+
+// Center SVG controls within the toolbar button boxes. Inline icon baseline
+// alignment otherwise drops them below the page chips and paginator arrows.
+.expand-buttons .mat-mdc-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Manual field resizing is forbidden; automatic content sizing remains available. */
+textarea,
+textarea.mat-mdc-input-element {
+  resize: none;
+}
+
+// Select and autocomplete rows match the 28px choice rows.
+// Wrapped labels can grow without retaining Material's larger minimum height.
+:host .mat-mdc-option {
+  @include controls.choice-row;
+  height: auto;
+  padding-block: var(--cedar-choice-padding-block, #{tokens.$choice-padding-block});
+  padding-inline: tokens.$menu-item-padding-inline;
+  box-sizing: border-box;
+  line-height: var(--cedar-control-line-height, var(--cedar-choice-line-height, #{tokens.$choice-line-height}));
+}
+
+:host .mat-mdc-select-panel {
+  padding-block: tokens.$space-1;
 }

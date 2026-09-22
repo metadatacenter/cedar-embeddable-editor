@@ -85,6 +85,21 @@ $_colors: (
     $_colors
   );
 
+  // Host M2 themes (notably OpenView) publish component color variables on
+  // html. Those cross shadow roots and outrank M3's system-token fallbacks.
+  // Rebind every choice color, including hover/focus/pressed and disabled roles,
+  // to this shadow host's CEDAR system palette through Material's public API.
+  $choice-theme: mat.define-theme(
+    (
+      color: (
+        use-system-variables: true,
+        system-variables-prefix: mat-sys,
+      ),
+    )
+  );
+  @include mat.checkbox-color($choice-theme);
+  @include mat.radio-color($choice-theme);
+
   // Material defaults use rem. Embedders own html's size, so state all levels
   // in px, including the shorthand used by menus and datepicker overlays.
   @each $role, $size, $height, $weight,
@@ -131,13 +146,13 @@ $_colors: (
   );
   @include mat.radio-overrides(
     (
-      state-layer-size: 28px,
+      state-layer-size: var(--cedar-choice-row-height, #{tokens.$choice-row-height}),
       touch-target-display: none,
     )
   );
   @include mat.checkbox-overrides(
     (
-      state-layer-size: 28px,
+      state-layer-size: var(--cedar-choice-row-height, #{tokens.$choice-row-height}),
       touch-target-display: none,
     )
   );
@@ -148,7 +163,25 @@ $_colors: (
       container-text-line-height: 20px,
     )
   );
-  @include mat.strong-focus-indicators-theme(tokens.$color-primary);
+  @include mat.form-field-overrides(
+    (
+      subscript-text-size: tokens.$form-help-size,
+      subscript-text-line-height: tokens.$form-help-line-height,
+    )
+  );
+  @include mat.menu-overrides(
+    (
+      container-color: tokens.$overlay-surface,
+      container-shape: tokens.$menu-radius,
+      container-elevation-shadow: tokens.$menu-shadow,
+      divider-color: tokens.$overlay-border,
+      item-leading-spacing: tokens.$menu-item-padding-inline,
+      item-trailing-spacing: tokens.$menu-item-padding-inline,
+      item-hover-state-layer-color: tokens.$action-hover-surface,
+      item-focus-state-layer-color: tokens.$action-hover-surface,
+    )
+  );
+  @include mat.strong-focus-indicators-theme(tokens.$focus-ring-color);
 }
 
 // Keep the supported Material APIs in this adapter even when their emission

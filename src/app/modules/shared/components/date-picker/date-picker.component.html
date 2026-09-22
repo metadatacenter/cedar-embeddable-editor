@@ -2,6 +2,7 @@
   <mat-form-field>
     <!--    <mat-label>Select Year</mat-label>-->
     <input
+      spellcheck="false"
       matInput
       readonly
       [placeholder]="dateNotation"
@@ -16,7 +17,9 @@
       same requirement once, for the whole row.
     -->
     @if (!readOnlyMode) {
-      <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+      <mat-datepicker-toggle matSuffix [for]="dp"
+        ><mat-icon matDatepickerToggleIcon cedarIcon="field-date"></mat-icon
+      ></mat-datepicker-toggle>
     }
     <mat-datepicker
       #dp
@@ -32,6 +35,7 @@
   <mat-form-field>
     <!--    <mat-label>Select Year and Month</mat-label>-->
     <input
+      spellcheck="false"
       matInput
       readonly
       [placeholder]="dateNotation"
@@ -40,7 +44,9 @@
       attr.aria-label="{{ 'Generic.SelectYearAndMonth' | translate }}"
     />
     @if (!readOnlyMode) {
-      <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+      <mat-datepicker-toggle matSuffix [for]="dp"
+        ><mat-icon matDatepickerToggleIcon cedarIcon="field-date"></mat-icon
+      ></mat-datepicker-toggle>
     }
     <mat-datepicker
       #dp
@@ -57,6 +63,7 @@
   <mat-form-field>
     <!--    <mat-label>Select Date</mat-label>-->
     <input
+      spellcheck="false"
       matInput
       readonly
       [placeholder]="dateNotation"
@@ -66,7 +73,9 @@
       attr.aria-label="{{ 'Generic.SelectDate' | translate }}"
     />
     @if (!readOnlyMode) {
-      <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+      <mat-datepicker-toggle matSuffix [for]="dp"
+        ><mat-icon matDatepickerToggleIcon cedarIcon="field-date"></mat-icon
+      ></mat-datepicker-toggle>
     }
     <!-- `(dateChange)` above is what carries the chosen date. `(opened)` emits
     nothing, so binding the same handler to it passed `undefined` and the body

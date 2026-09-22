@@ -58,6 +58,12 @@ test('every third-party selector CEE styles still matches an element', async ({ 
 
   await open(page, '01-input-types');
   await sweep();
+  await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
+  await page.locator('.download-trigger').click();
+  await expect(page.locator('.cdk-overlay-container')).toHaveCSS('z-index', '1100');
+  await expect(page.locator('.mat-mdc-menu-content')).toHaveCSS('padding', '4px');
+  await expect(page.locator('.mat-mdc-menu-item').first()).toHaveCSS('min-height', '36px');
+  await sweep();
   await open(page, '03-nested-multi');
   await sweep();
   // Page breaks, for the paginator classes.
@@ -70,6 +76,9 @@ test('every third-party selector CEE styles still matches an element', async ({ 
   // An open select panel, for the option classes.
   await open(page, '02-choices');
   await page.locator('mat-select').first().click();
+  await expect(page.locator('mat-option').first()).toHaveCSS('min-height', '28px');
+  await expect(page.locator('mat-option').first()).toHaveCSS('padding-top', '2px');
+  await expect.poll(async () => (await page.locator('mat-option').first().boundingBox())!.height).toBe(28);
   await page.waitForTimeout(300);
   await sweep();
 
@@ -115,6 +124,18 @@ test('the namespaced font faces survive', async ({ page }) => {
     return faces;
   });
   expect(fonts, 'CEE namespaces its faces so an embedder cannot collide with them').toEqual(
-    expect.arrayContaining(['CEE Roboto', 'CEE Material Icons']),
+    expect.arrayContaining(['CEE Roboto']),
   );
+});
+
+test('shared reduced motion keeps the download menu operable', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
+  await page.locator('.download-trigger').click();
+  const menu = page.locator('.mat-mdc-menu-panel');
+  await expect(menu).toBeVisible();
+  await expect(menu).toHaveCSS('animation-duration', '1e-05s');
+  await expect(page.locator('.cdk-overlay-container')).toHaveCSS('z-index', '1100');
+  await page.keyboard.press('Escape');
+  await expect(menu).toHaveCount(0);
 });

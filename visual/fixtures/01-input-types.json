@@ -412,7 +412,7 @@
         "@value"
       ],
       "schema:name": "text",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -496,7 +496,7 @@
         "@value"
       ],
       "schema:name": "textarea",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -582,7 +582,7 @@
         "@type"
       ],
       "schema:name": "numeric",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -666,7 +666,7 @@
         "@value"
       ],
       "schema:name": "email",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -750,7 +750,7 @@
         "@value"
       ],
       "schema:name": "phone",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -828,7 +828,7 @@
         }
       },
       "schema:name": "link",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -916,7 +916,7 @@
         "@type"
       ],
       "schema:name": "date",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",

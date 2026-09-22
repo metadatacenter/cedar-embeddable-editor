@@ -1,3 +1,4 @@
+import { CedarIconDirective } from './directives/cedar-icon.directive';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
@@ -34,6 +35,7 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
 
 @NgModule({
   imports: [
+    CedarIconDirective,
     CommonModule,
     MatMenuModule,
     MatCardModule,

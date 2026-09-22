@@ -386,7 +386,7 @@
         "@value"
       ],
       "schema:name": "title",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -473,7 +473,7 @@
         "@type"
       ],
       "schema:name": "measurement",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -561,7 +561,7 @@
         "@type"
       ],
       "schema:name": "collected_on",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -654,7 +654,7 @@
         }
       },
       "schema:name": "organism",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",

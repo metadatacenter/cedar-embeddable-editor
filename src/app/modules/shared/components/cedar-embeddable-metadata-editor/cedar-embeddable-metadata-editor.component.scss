@@ -124,11 +124,11 @@ $logo-track: 72px;
 
 .template-label {
   margin: 0;
-  color: #173f3e;
+  color: tokens.$color-artifact-title;
   /* The one fluid step in CEE: a title scales with the container, in px. */
-  font-size: clamp(19px, 3cqi, 26px);
+  font-size: tokens.$font-size-artifact-title;
   font-weight: var(--cedar-font-weight-medium, 500);
-  line-height: 1.25;
+  line-height: tokens.$line-height-artifact-title;
   overflow-wrap: anywhere;
 }
 

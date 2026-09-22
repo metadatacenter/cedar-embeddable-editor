@@ -1,5 +1,6 @@
 {
   "Generic": {
+    "Searching": "Searching…",
     "SAVE": "SAVE",
     "Infinite": "Infinite",
     "ExpandAll": "Expand All",
@@ -12,7 +13,7 @@
     "AttributeValue": "Attribute Value",
     "Clear": "Clear",
     "SelectDecimalSeconds": "Select Decimal Seconds",
-    "SelectUtcOffset": "Select UTC offset",
+    "SelectUtcOffset": "Timezone unspecified",
     "SelectYear": "Select Year",
     "SelectYearAndMonth": "Select Year and Month",
     "SelectDate": "Select Date",
@@ -28,7 +29,7 @@
     "FilterPmid": "Start typing publication name or PubMed ID",
     "FilterRrid": "Start typing research resource name or RRID",
     "FilterNihGrant": "Start typing grant details or NIH Grant ID",
-    "FilterDoi": "Start typing publication name or DOI",
+    "FilterDoi": "Search by title or enter DOI",
     "Time": "Time",
     "Hour": "Hour",
     "Minute": "Minute",

@@ -24,8 +24,8 @@
   --_cedar-padding: calc((var(--_cedar-height) - var(--_cedar-line-height)) / 2);
   --_cedar-radius: var(--cedar-control-radius, var(--_cedar-density-radius, #{tokens.$control-radius-default}));
   --_cedar-border: var(--cedar-control-border, var(--_cedar-density-border, #{tokens.$control-border-default}));
-  --_cedar-focus: var(--cedar-control-focus, #{tokens.$color-primary});
-  --_cedar-error: var(--cedar-control-error, #{tokens.$color-error});
+  --_cedar-focus: var(--cedar-control-focus, #{tokens.$focus-ring-color});
+  --_cedar-error: var(--cedar-control-error, #{tokens.$control-invalid-border});
 
   @include theme.compact-controls();
   font-size: var(--_cedar-font-size);
@@ -37,6 +37,10 @@
   /* Suffix actions must not increase a populated control's height. */
   .mat-mdc-icon-button.mat-mdc-button-base {
     @include theme.icon-size(var(--_cedar-height));
+    // Center SVG icons independently of the inherited text baseline and icon size.
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: var(--_cedar-height);
     height: var(--_cedar-height);
     padding: calc((var(--_cedar-height) - 24px) / 2);
@@ -44,6 +48,15 @@
       width: 100%;
       height: 100%;
     }
+  }
+
+  // Radio clear actions live in 28px option rows, not full-height text controls.
+  // Keep the selected row the same height as its unselected neighbours.
+  .choice-clear-button.mat-mdc-icon-button.mat-mdc-button-base {
+    @include theme.icon-size(var(--cedar-choice-row-height, #{tokens.$choice-row-height}));
+    width: var(--cedar-choice-row-height, #{tokens.$choice-row-height});
+    height: var(--cedar-choice-row-height, #{tokens.$choice-row-height});
+    padding: calc(tokens.$space-1 / 2);
   }
 
   /* The clock is a native segmented control, using the same box as Material inputs. */
