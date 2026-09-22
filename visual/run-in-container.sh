@@ -30,10 +30,16 @@ fi
 # Both sides on arm64, so neither emulates. CI names an arm64 Linux runner for the
 # same reason; a runner label that resolves to x86_64 would rasterise differently
 # and the baselines would be wrong again, quietly.
+reactor_mount=()
+if [ -n "${CEDAR_HOME:-}" ] && [ -d "$CEDAR_HOME/.reactor/artifacts" ]; then
+  # Isolated reactor manifests resolve immutable local tarballs at this absolute path.
+  reactor_mount=(-v "$CEDAR_HOME/.reactor/artifacts:$CEDAR_HOME/.reactor/artifacts:ro")
+fi
 exec docker run --rm --init \
   --platform linux/arm64 \
   --ipc=host \
   -v "$REPO":/repo \
+  "${reactor_mount[@]}" \
   -v cee-visual-node-modules:/repo/visual/node_modules \
   -w /repo/visual \
   -e CI="${CI:-}" \
