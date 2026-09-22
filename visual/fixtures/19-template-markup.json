@@ -296,7 +296,7 @@
         "_content": "<img src=\"./does-not-exist.png\" onerror=\"window.__templateMarkupRan = true\" alt=\"broken\"><a href=\"javascript:window.__templateMarkupRan = true\">js link</a><a href=\"https://example.org/ok\" ng-click=\"dc.goToMyWorkspace()\">ng link</a><iframe src=\"about:blank\" title=\"frame\"></iframe><script>window.__templateMarkupRan = true;</script><p style=\"color: rgb(12, 34, 56); font-size: 18px;\">styled text</p><table border=\"1\"><tbody><tr><td colspan=\"2\">cell</td></tr></tbody></table><ul><li>listed</li></ul><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==\" alt=\"inline\">"
       },
       "schema:name": "note",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",

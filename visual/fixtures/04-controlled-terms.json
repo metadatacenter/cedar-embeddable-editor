@@ -381,7 +381,7 @@
         }
       },
       "schema:name": "organism",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -459,7 +459,7 @@
         }
       },
       "schema:name": "contributor",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -541,7 +541,7 @@
           }
         },
         "schema:name": "institution",
-        "schema:description": null,
+        "schema:description": "",
         "pav:createdOn": "2026-01-01T00:00:00-08:00",
         "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
         "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",

@@ -323,7 +323,7 @@
         "_content": null
       },
       "schema:name": "section",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -351,7 +351,7 @@
         "_content": "<p>Some <strong>rich</strong> guidance text.</p>"
       },
       "schema:name": "note",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -379,7 +379,7 @@
         "_content": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNDAnIGhlaWdodD0nMTIwJz48cmVjdCB3aWR0aD0nMjQwJyBoZWlnaHQ9JzEyMCcgZmlsbD0ncmdiKDIzMiwyMzIsMjMyKScvPjxyZWN0IHg9JzIwJyB5PScyMCcgd2lkdGg9JzgwJyBoZWlnaHQ9JzgwJyBmaWxsPSdyZ2IoMCwxMDUsOTIpJy8+PHJlY3QgeD0nMTMwJyB5PScyMCcgd2lkdGg9JzQwJyBoZWlnaHQ9JzgwJyBmaWxsPSdyZ2IoMjQ5LDE2OCwzNyknLz48cmVjdCB4PScxODUnIHk9JzQ1JyB3aWR0aD0nMzUnIGhlaWdodD0nMzAnIGZpbGw9J3JnYigyLDExOSwxODkpJy8+PC9zdmc+"
       },
       "schema:name": "diagram",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -463,7 +463,7 @@
         "@value"
       ],
       "schema:name": "first",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -491,7 +491,7 @@
         "_content": null
       },
       "schema:name": "pb",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -575,7 +575,7 @@
         "@value"
       ],
       "schema:name": "second",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",

@@ -331,7 +331,7 @@
         "_content": "javascript:window.__staticMarkupRan = true"
       },
       "schema:name": "scripted",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -359,7 +359,7 @@
         "_content": "data:text/html;base64,PHNjcmlwdD53aW5kb3cuX19zdGF0aWNNYXJrdXBSYW4gPSB0cnVlPC9zY3JpcHQ+"
       },
       "schema:name": "inline",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -387,7 +387,7 @@
         "_content": "https://youtube.com.evil.example/watch?v=<img data-static-markup src=\"./does-not-exist.png\" onerror=\"window.__staticMarkupRan = true\"><b data-static-markup>bold</b>"
       },
       "schema:name": "video",
-      "schema:description": null,
+      "schema:description": "",
       "pav:createdOn": "2026-01-01T00:00:00-08:00",
       "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
       "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",

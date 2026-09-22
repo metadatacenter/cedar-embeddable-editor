@@ -350,10 +350,12 @@
         "_valueConstraints": {
           "literals": [
             {
-              "label": "North"
+              "label": "North",
+              "selectedByDefault": false
             },
             {
-              "label": "South"
+              "label": "South",
+              "selectedByDefault": false
             }
           ],
           "requiredValue": false,
@@ -388,7 +390,7 @@
           "@value"
         ],
         "schema:name": "list_no_values",
-        "schema:description": null,
+        "schema:description": "",
         "pav:createdOn": "2026-01-01T00:00:00-08:00",
         "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
         "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -477,7 +479,7 @@
           "@value"
         ],
         "schema:name": "paged_no_instances",
-        "schema:description": null,
+        "schema:description": "",
         "pav:createdOn": "2026-01-01T00:00:00-08:00",
         "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
         "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
@@ -566,7 +568,7 @@
           "@value"
         ],
         "schema:name": "paged_one_instance",
-        "schema:description": null,
+        "schema:description": "",
         "pav:createdOn": "2026-01-01T00:00:00-08:00",
         "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
         "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
