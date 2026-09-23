@@ -6,7 +6,13 @@
     [class.cee-declared-values]="declaredValuesOnly"
   >
     <!--  <mat-card-header>-->
-    <div class="template-header" [class.template-header-paged]="dataContext.templateRepresentation?.hasPageBreaks()">
+    <div
+      class="template-header"
+      [class.has-actions]="
+        dataContext.templateRepresentation?.hasPageBreaks() || showExpandCollapseAll || showDownloadMenu
+      "
+      [class.template-header-paged]="dataContext.templateRepresentation?.hasPageBreaks()"
+    >
       <a
         class="logo-block"
         href="https://www.npmjs.com/package/cedar-embeddable-editor"
@@ -42,44 +48,46 @@
           }
         </div>
       }
-      <div class="template-actions">
-        @if (dataContext.templateRepresentation?.hasPageBreaks()) {
-          <div class="page-break-control">
-            <app-cedar-static-page-break
-              [dataContext]="dataContext"
-              [pageBreakPaginatorService]="pageBreakPaginatorService"
-            ></app-cedar-static-page-break>
+      @if (dataContext.templateRepresentation?.hasPageBreaks() || showExpandCollapseAll || showDownloadMenu) {
+        <div class="template-actions">
+          @if (dataContext.templateRepresentation?.hasPageBreaks()) {
+            <div class="page-break-control">
+              <app-cedar-static-page-break
+                [dataContext]="dataContext"
+                [pageBreakPaginatorService]="pageBreakPaginatorService"
+              ></app-cedar-static-page-break>
+            </div>
+          }
+          <div class="expand-buttons">
+            @if (showExpandCollapseAll) {
+              <button
+                mat-icon-button
+                class="expand-trigger"
+                (click)="openAll()"
+                [attr.aria-label]="'Generic.ExpandAll' | translate"
+                matTooltip="{{ 'Generic.ExpandAll' | translate }}"
+              >
+                <mat-icon cedarIcon="expand-all"></mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                class="expand-trigger"
+                (click)="closeAll()"
+                [attr.aria-label]="'Generic.CollapseAll' | translate"
+                matTooltip="{{ 'Generic.CollapseAll' | translate }}"
+              >
+                <mat-icon cedarIcon="collapse-all"></mat-icon>
+              </button>
+            }
+            @if (showDownloadMenu) {
+              <app-download-menu
+                [showInstanceDownloads]="!declaredValuesOnly"
+                (downloadRequested)="download($event)"
+              ></app-download-menu>
+            }
           </div>
-        }
-        <div class="expand-buttons">
-          @if (showExpandCollapseAll) {
-            <button
-              mat-icon-button
-              class="expand-trigger"
-              (click)="openAll()"
-              [attr.aria-label]="'Generic.ExpandAll' | translate"
-              matTooltip="{{ 'Generic.ExpandAll' | translate }}"
-            >
-              <mat-icon cedarIcon="expand-all"></mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              class="expand-trigger"
-              (click)="closeAll()"
-              [attr.aria-label]="'Generic.CollapseAll' | translate"
-              matTooltip="{{ 'Generic.CollapseAll' | translate }}"
-            >
-              <mat-icon cedarIcon="collapse-all"></mat-icon>
-            </button>
-          }
-          @if (showDownloadMenu) {
-            <app-download-menu
-              [showInstanceDownloads]="!declaredValuesOnly"
-              (downloadRequested)="download($event)"
-            ></app-download-menu>
-          }
         </div>
-      </div>
+      }
     </div>
     <!--  </mat-card-header>-->
     <mat-card-content class="template-content">
