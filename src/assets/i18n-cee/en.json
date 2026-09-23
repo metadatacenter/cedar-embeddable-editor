@@ -42,7 +42,7 @@
     "DecrementSecond": "Decrement second",
     "ToggleMeridian": "Switch between AM and PM",
     "Download": "Download",
-    "TemplateVersion": "Version {{version}}",
+    "TemplateVersion": "Template version {{version}}",
     "StatusDraft": "Draft",
     "StatusPublished": "Published"
   },
