@@ -1,3 +1,5 @@
+import { ErrorStateMatcher } from '@angular/material/core';
+import { EditedFieldErrorStateMatcher } from './edited-field-error-state-matcher';
 import { CedarIconDirective } from '../shared/directives/cedar-icon.directive';
 import { ControlDensityDirective } from '../shared/directives/control-density.directive';
 import { SpecPlaceholderPipe } from '../shared/pipe/spec-placeholder.pipe';
@@ -122,6 +124,7 @@ import { CedarInputDoiComponent } from './components/cedar-input-doi/cedar-input
     CedarInputDoiComponent,
   ],
   providers: [
+    { provide: ErrorStateMatcher, useClass: EditedFieldErrorStateMatcher },
     { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline', subscriptSizing: 'dynamic' } },
     /*
      * Both overlay kinds CEE opens, because both default to Material's reposition

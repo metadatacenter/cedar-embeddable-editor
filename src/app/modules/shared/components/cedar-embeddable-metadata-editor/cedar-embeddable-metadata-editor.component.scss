@@ -25,17 +25,18 @@ $logo-track: 72px;
   display: grid;
   grid-template-columns: $logo-track minmax(192px, 1fr) auto;
   /*
-   * Two rows: what the artifact is, then what can be done to it. The provenance shares the first row
+   * The provenance shares the first row
    * with the icon and the name rather than sitting above them, and the controls take a row of their
-   * own so it can keep the right edge without displacing them.
+   * own when present, without reserving an empty row when the host hides them.
    */
-  grid-template-areas:
-    'logo title provenance'
-    'actions actions actions';
+  grid-template-areas: 'logo title provenance';
+  &.has-actions {
+    grid-template-areas: 'logo title provenance' 'actions actions actions';
+  }
   align-items: center;
-  gap: ui-tokens.$space-3 ui-tokens.$space-4;
+  gap: ui-tokens.$space-2 ui-tokens.$space-4;
   min-width: 0;
-  padding: ui-tokens.$space-4 layout.$cee-gutter-inline;
+  padding: ui-tokens.$space-2 layout.$cee-gutter-inline;
   background: #ffffff;
   border-bottom: 1px solid tokens.$border-rule;
 }
@@ -219,9 +220,6 @@ $logo-track: 72px;
      * The same two rows, narrower. Left out of a breakpoint's areas the provenance is placed
      * automatically, which put it after the controls — the bottom of the header rather than the top.
      */
-    grid-template-areas:
-      'logo title provenance'
-      'actions actions actions';
   }
 
   .template-header-paged {
@@ -259,9 +257,6 @@ $logo-track: 72px;
 @container cee (max-width: 520px) {
   .template-header {
     grid-template-columns: 52px minmax(0, 1fr) auto;
-    grid-template-areas:
-      'logo title provenance'
-      'actions actions actions';
   }
 
   .logo-block {

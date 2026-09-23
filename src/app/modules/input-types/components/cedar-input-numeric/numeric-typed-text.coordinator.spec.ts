@@ -35,7 +35,7 @@ describe('a numeric field typed into', () => {
       labelInfo: { label: 'amount', preferredLabel: null },
     }) as unknown as FieldComponent;
 
-  const render = async () => {
+  const render = async (component = field()) => {
     await TestBed.configureTestingModule({
       imports: [SharedModule, InputTypesModule],
       providers: [provideHttpClient(), provideTranslateService()],
@@ -43,7 +43,7 @@ describe('a numeric field typed into', () => {
     const fixture = TestBed.createComponent(CedarInputNumericComponent);
     const changeValue = vi.fn();
     fixture.componentInstance.handlerContext = { changeValue } as unknown as HandlerContext;
-    fixture.componentInstance.componentToRender = field();
+    fixture.componentInstance.componentToRender = component;
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -64,6 +64,25 @@ describe('a numeric field typed into', () => {
       .queryAll(By.css('mat-error'))
       .map((element) => (element.nativeElement as HTMLElement).textContent?.trim() ?? '')
       .join('');
+
+  it('shows out-of-range edits before blur and clears them on correction', async () => {
+    const component = field();
+    component.numberInfo.maxValue = 100;
+    const { fixture } = await render(component);
+    const input = fixture.debugElement.query(By.css('input')).nativeElement as HTMLInputElement;
+    input.focus();
+    input.value = '111';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.inputValueControl.touched).toBe(false);
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    expect(errorText(fixture)).not.toBe('');
+    input.value = '99';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(input.getAttribute('aria-invalid')).toBe('false');
+    expect(errorText(fixture)).toBe('');
+  });
 
   it('holds the typed text, and records it', async () => {
     const { fixture, changeValue } = await render();

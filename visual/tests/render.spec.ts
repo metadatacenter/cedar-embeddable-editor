@@ -837,7 +837,7 @@ test.describe('validation states', () => {
     await expect(page).toHaveScreenshot('validation-required.png', { fullPage: true });
   });
 
-  test('typed format errors wait for blur and then clear live', async ({ page }) => {
+  test('typed format errors appear immediately and clear live', async ({ page }) => {
     await open(page, '06-validation');
 
     const cases = [
@@ -852,10 +852,8 @@ test.describe('validation states', () => {
       const error = input.locator('xpath=ancestor::mat-form-field').locator('mat-error');
 
       await input.fill(entry.invalid);
-      await expect(error, `${entry.name} reported an error while the user was still typing`).toBeHidden();
-
-      await input.blur();
-      await expect(error, `${entry.name} did not report its error after blur`).toBeVisible();
+      await expect(input).toBeFocused();
+      await expect(error, `${entry.name} did not report its error while typing`).toBeVisible();
 
       await input.fill(entry.valid);
       await expect(error, `${entry.name} did not clear its error as soon as the value became valid`).toBeHidden();
