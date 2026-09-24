@@ -34,8 +34,16 @@ export const open = async (
   });
   const err = await page.evaluate(() => window.__ceeError);
   expect(err, `host page failed to load ${fixture}`).toBeFalsy();
-  // Material ripples and expansion-panel transitions.
-  await page.waitForTimeout(300);
+  // The host has settled its DOM and fonts. Wait for actual finite transitions
+  // instead of adding 300 ms to every fixture, including those with no animation.
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .every(
+        (animation) =>
+          animation.playState !== 'running' || animation.effect?.getComputedTiming().iterations === Infinity,
+      ),
+  );
 };
 
 /**

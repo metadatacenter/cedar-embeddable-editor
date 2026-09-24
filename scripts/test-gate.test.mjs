@@ -12,7 +12,7 @@ function gate(mode, workers, fail = '') {
   writeFileSync(path.join(directory, 'npm'), `#!${process.execPath}
 const fs = require('node:fs');
 const script = process.argv[3];
-const emit = event => fs.appendFileSync(process.env.GATE_LOG, JSON.stringify({event, script, workers: process.env.CEDAR_TEST_WORKERS})+'\\n');
+const emit = event => fs.appendFileSync(process.env.GATE_LOG, JSON.stringify({event, script, workers: process.env.CEDAR_TEST_WORKERS, vitest: process.env.VITEST_MAX_WORKERS})+'\\n');
 emit('start');
 setTimeout(() => { emit('end'); process.exit(script === process.env.GATE_FAIL ? 7 : 0); }, 50);
 `, { mode: 0o755 });
@@ -25,23 +25,24 @@ setTimeout(() => { emit('end'); process.exit(script === process.env.GATE_FAIL ? 
   } finally { rmSync(directory, { recursive: true, force: true }); }
 }
 
-test('full gate overlaps checks within budget and orders shared outputs', () => {
-  const { result, events } = gate('full', 2);
+for (const budget of [1, 2, 8]) test(`full gate preserves outputs within a ${budget}-worker budget`, () => {
+  const { result, events } = gate('full', budget);
   assert.equal(result.status, 0, result.stderr);
   let active = 0;
   let peak = 0;
   const finished = new Set();
   for (const event of events) {
     if (event.event === 'start') {
+      assert.equal(event.vitest, event.workers);
       active += Number(event.workers);
       peak = Math.max(peak, active);
-      assert.ok(active <= 2);
+      assert.ok(active <= budget);
       if (event.script === 'test:coordinator') assert.ok(finished.has('build:production'));
       if (event.script === 'test:visual:prebuilt') assert.equal(finished.size, 6);
       if (event.script === 'package:npm:prebuilt') assert.ok(finished.has('test:visual:prebuilt'));
     } else { active -= Number(event.workers); finished.add(event.script); }
   }
-  assert.equal(peak, 2);
+  assert.equal(peak, budget);
   assert.equal(finished.size, 8);
 });
 

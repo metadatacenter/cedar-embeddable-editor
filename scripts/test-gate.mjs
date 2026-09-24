@@ -10,13 +10,16 @@ if (!Number.isInteger(budget) || budget < 1 || budget > 16) {
 }
 const mode = process.argv[2] ?? 'full';
 if (!['full', 'prebuilt', 'nonvisual'].includes(mode)) throw new Error(`Unknown gate: ${mode}`);
+// Reserve capacity for build/lint/types while giving the two large Vitest tiers
+// more than one worker on larger machines. Never exceed the gate's total budget.
+const suiteWorkers = Math.max(1, Math.min(2, Math.floor(budget / 3)));
 const stages = [
   ...(mode === 'full' ? [{ name: 'build', script: 'build:production' }] : []),
-  { name: 'domain', script: 'test:domain:coverage' },
-  { name: 'unit', script: 'test:unit:ci' },
+  { name: 'domain', script: 'test:domain:coverage', weight: suiteWorkers },
+  { name: 'unit', script: 'test:unit:ci', weight: suiteWorkers },
   { name: 'lint', script: 'lint' },
   { name: 'types', script: 'typecheck' },
-  { name: 'coordinator', script: 'test:coordinator', after: mode === 'full' ? ['build'] : [] },
+  { name: 'coordinator', script: 'test:coordinator', weight: suiteWorkers, after: mode === 'full' ? ['build'] : [] },
   ...(mode !== 'nonvisual' ? [
     { name: 'visual', script: 'test:visual:prebuilt', weight: budget,
       after: ['domain', 'unit', 'lint', 'types', 'coordinator', ...(mode === 'full' ? ['build'] : [])] },
@@ -56,7 +59,7 @@ function schedule() {
         // Stay in the CLI process group so cancellation reaps test descendants.
         detached: false,
         stdio: ['ignore', 'pipe', 'pipe'],
-        env: { ...process.env, CEDAR_TEST_WORKERS: String(weight), NG_BUILD_MAX_WORKERS: String(weight) },
+        env: { ...process.env, CEDAR_TEST_WORKERS: String(weight), VITEST_MAX_WORKERS: String(weight), NG_BUILD_MAX_WORKERS: String(weight) },
       });
       running.set(stage.name, child);
       for (const stream of [child.stdout, child.stderr]) {
