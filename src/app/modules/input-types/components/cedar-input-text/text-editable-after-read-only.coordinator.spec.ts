@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { MatIcon } from '@angular/material/icon';
 import { provideHttpClient } from '@angular/common/http';
 import { provideTranslateService } from '@ngx-translate/core';
 import { vi } from 'vitest';
@@ -39,7 +40,7 @@ describe('a text field holding an ORCID', () => {
       controlledInfo: {},
     }) as unknown as FieldComponent;
 
-  const render = async () => {
+  const render = async (value: string = ORCID) => {
     await TestBed.configureTestingModule({
       imports: [SharedModule, InputTypesModule],
       providers: [provideHttpClient(), provideTranslateService()],
@@ -54,7 +55,7 @@ describe('a text field holding an ORCID', () => {
     fixture.componentInstance.componentToRender = field();
     fixture.detectChanges();
     await fixture.whenStable();
-    fixture.componentInstance.setCurrentValue(ORCID);
+    fixture.componentInstance.setCurrentValue(value);
     fixture.detectChanges();
     return { fixture, preferences };
   };
@@ -66,6 +67,21 @@ describe('a text field holding an ORCID', () => {
     expect(link).not.toBeNull();
     expect((link.nativeElement as HTMLAnchorElement).getAttribute('href')).toBe(ORCID);
     expect(fixture.debugElement.query(By.css('input'))).toBeNull();
+  });
+
+  it("marks the link with the authority's icon, the one an ORCID field's header shows", async () => {
+    const { fixture } = await render();
+
+    const icon = fixture.debugElement.query(By.css('a')).query(By.directive(MatIcon));
+    expect(icon.injector.get(MatIcon).svgIcon).toBe('cedar:authority-person');
+    expect(fixture.debugElement.query(By.css('a button'))).toBeNull();
+  });
+
+  it("marks a ROR with the organization icon a ROR field's header shows", async () => {
+    const { fixture } = await render('https://ror.org/00f54p054');
+
+    const icon = fixture.debugElement.query(By.css('a')).query(By.directive(MatIcon));
+    expect(icon.injector.get(MatIcon).svgIcon).toBe('cedar:authority-organization');
   });
 
   it('becomes an input over the whole identifier once the form is editable', async () => {

@@ -3,12 +3,7 @@
     <div class="mat-form-field-wrapper mat-form-field-flex mat-form-field-outline fake-input">
       @if (inputValueControl.getRawValue()) {
         <a href="{{ originalValue }}" target="_blank">
-          @if (isOrcid) {
-            <button matPrefix class="orcid-icon" (click)="goToLink()"></button>
-          }
-          @if (isRor) {
-            <button matPrefix class="ror-icon" (click)="goToLink()"></button>
-          }
+          <mat-icon class="identifier-icon" [cedarIcon]="isOrcid ? 'authority-person' : 'authority-organization'" aria-hidden="true"></mat-icon>
           <span class="text-class">{{ inputValueControl.getRawValue() }}</span>
         </a>
       }
