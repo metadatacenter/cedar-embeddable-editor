@@ -4,7 +4,7 @@
 .identifier-icon {
   width: tokens.$icon-size-small;
   height: tokens.$icon-size-small;
-  margin-right: 5px;
+  margin-right: tokens.$space-1;
   vertical-align: middle;
 }
 
