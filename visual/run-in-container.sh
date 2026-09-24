@@ -14,7 +14,7 @@
 # `v1.63.0-noble` is the one matching `visual/package.json`. Move that pin and the
 # baselines move with it, exactly as an OS upgrade used to.
 #
-# `node_modules` is a named volume rather than the host's directory: the host's is
+# `node_modules` is a private anonymous volume rather than the host's directory: the host's is
 # built for darwin-arm64 and its binaries do not run here.
 set -euo pipefail
 
@@ -35,12 +35,19 @@ if [ -n "${CEDAR_HOME:-}" ] && [ -d "$CEDAR_HOME/.reactor/artifacts" ]; then
   # Isolated reactor manifests resolve immutable local tarballs at this absolute path.
   reactor_mount=(-v "$CEDAR_HOME/.reactor/artifacts:$CEDAR_HOME/.reactor/artifacts:ro")
 fi
-exec docker run --rm --init \
+# Own the container as well as the Docker client, including interrupted builds.
+CONTAINER="cee-tests-$$-${RANDOM}"
+cleanup() { docker rm -f "$CONTAINER" >/dev/null 2>&1 || true; }
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+docker run --name "$CONTAINER" --rm --init \
   --platform linux/arm64 \
   --ipc=host \
+  -e CEDAR_TEST_WORKERS="${CEDAR_TEST_WORKERS:-}" \
   -v "$REPO":/repo \
-  "${reactor_mount[@]}" \
-  -v cee-visual-node-modules:/repo/visual/node_modules \
+  ${reactor_mount[@]+"${reactor_mount[@]}"} \
+  -v /repo/visual/node_modules \
   -w /repo/visual \
   -e CI="${CI:-}" \
   "$IMAGE" \

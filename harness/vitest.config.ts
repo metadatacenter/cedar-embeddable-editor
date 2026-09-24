@@ -56,6 +56,7 @@ export default defineConfig({
   // Root is the CEE repo, not `harness/` — the files under test are CEE's own
   // source, so the repo is the honest root.
   root: path.resolve(here, '..'),
+  cacheDir: path.resolve(here, 'node_modules/.vite'),
   plugins: [ceeStubs()],
   resolve: {
     alias: [
@@ -113,6 +114,7 @@ export default defineConfig({
     noExternal: TRANSFORM,
   },
   test: {
+    maxWorkers: process.env.CEDAR_TEST_WORKERS ? Number(process.env.CEDAR_TEST_WORKERS) : undefined,
     globals: true,
     environment: 'node',
     include: ['harness/test/**/*.spec.ts'],
@@ -125,6 +127,7 @@ export default defineConfig({
     testTimeout: 30_000,
     coverage: {
       provider: 'v8',
+      reportsDirectory: path.resolve(here, 'coverage'),
       // `.ts` explicitly. Without the extension Vitest 4 hands the component
       // `.html` templates to the coverage remapper, which parses them as
       // JavaScript and prints six "Unexpected JSX expression" stacks before
