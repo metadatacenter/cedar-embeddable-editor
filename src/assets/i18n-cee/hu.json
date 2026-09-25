@@ -90,10 +90,16 @@
   "Validation": {
     "SelectAtLeastOne": "Legalább egy lehetőséget ki kell választani.",
     "Required": "Az érték megadása kötelező.",
+    "Invalid": "Az érték érvénytelen.",
     "Temporal": {
       "MissingDate": "Még meg kell adni a dátumot. Amíg az érték hiányos, nem rögzíthető.",
       "MissingTime": "Még meg kell adni az időt. Amíg az érték hiányos, nem rögzíthető.",
-      "MissingFraction": "Még meg kell adni a másodperc törtrészét. Amíg az érték hiányos, nem rögzíthető."
+      "MissingFraction": "Még meg kell adni a másodperc törtrészét. Amíg az érték hiányos, nem rögzíthető.",
+      "InvalidDate": "Adjon meg egy érvényes dátumot.",
+      "InvalidTime": "Adjon meg egy érvényes időpontot.",
+      "InvalidDateTime": "Adjon meg érvényes dátumot és időpontot.",
+      "Granularity": "Az érték pontossága nem egyezik azzal, amit ez a mező rögzít.",
+      "UnexpectedTimezone": "Az érték időzóna-eltolást tartalmaz, amelyet ez a mező nem rögzít."
     },
     "Text": {
       "MinLength": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
@@ -113,7 +119,23 @@
     },
     "Numeric": {
       "MinValue": "Az érték legalább {{constraintMinValue}} kell legyen.",
-      "MaxValue": "Az érték legfeljebb {{constraintMaxValue}} lehet."
+      "MaxValue": "Az érték legfeljebb {{constraintMaxValue}} lehet.",
+      "Type": {
+        "Integer": "Az értéknek egész számnak kell lennie.",
+        "LongInteger": "Az értéknek hosszú egész számnak (long) kell lennie.",
+        "Byte": "Az értéknek bájtnak (-128 és 127 között) kell lennie.",
+        "Short": "Az értéknek rövid egész számnak (-32768 és 32767 között) kell lennie.",
+        "Float": "Az értéknek lebegőpontos számnak (float) kell lennie.",
+        "FloatOnePlace": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű lebegőpontos számnak (float) kell lennie.",
+        "FloatPlaces": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű lebegőpontos számnak (float) kell lennie.",
+        "Double": "Az értéknek dupla pontosságú lebegőpontos számnak (double) kell lennie.",
+        "DoubleOnePlace": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű, dupla pontosságú lebegőpontos számnak (double) kell lennie.",
+        "DoublePlaces": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű, dupla pontosságú lebegőpontos számnak (double) kell lennie.",
+        "Decimal": "Az értéknek tizedes törtnek (decimal) kell lennie.",
+        "DecimalOnePlace": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű tizedes törtnek (decimal) kell lennie.",
+        "DecimalPlaces": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű tizedes törtnek (decimal) kell lennie.",
+        "WholeNumber": "Az értéknek tizedesjegyek nélküli számnak kell lennie."
+      }
     },
     "Time": {
       "InvalidHour24": "Adjon meg egy órát 00 és 23 között. Az előző érték visszaállítva.",

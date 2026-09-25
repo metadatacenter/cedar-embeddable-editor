@@ -2701,6 +2701,28 @@ const takeDownload = async (
   return { filename: download.suggestedFilename(), body: Buffer.concat(chunks).toString('utf8') };
 };
 
+/**
+ * A numeric field's type constraint, in the language CEE was configured with.
+ *
+ * The sentence used to be English written into the validator, so a Hungarian form
+ * reported this one constraint in English beside messages that were not.
+ */
+test.describe('a numeric type error', () => {
+  for (const [preset, expected] of [
+    [undefined, 'The value should be an integer.'],
+    ['hu', 'Az értéknek egész számnak kell lennie.'],
+  ] as const) {
+    test(`reads in ${preset ?? 'en'}`, async ({ page }) => {
+      await open(page, '01-input-types', preset);
+      const input = page.locator('input[aria-label="numeric"]');
+      await input.fill('1.5');
+      await input.blur();
+
+      await expect(page.locator('mat-error').filter({ hasText: expected })).toBeVisible();
+    });
+  }
+});
+
 test('the download menu exposes only its supported artifact views', async ({ page }) => {
   await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
   await page.locator('.download-trigger').click();

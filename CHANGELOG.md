@@ -38,6 +38,14 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
 
 ### Changed
 
+- A numeric field's type constraint and a temporal field's errors follow the configured
+  language. The numeric sentence was English written into the validator, and the temporal
+  widget printed the data quality report's diagnostics, such as `Granularity is year, but the
+  padded month or day is not 01.`, to the person typing. Both now come from the language files:
+  the temporal widget asks for a valid date, time, or date and time, or names the precision or
+  timezone problem. The data quality report keeps its English diagnostics and stable `code`s,
+  since a host reads them as data.
+
 - Every field CEE renders now goes through one component. The eighteen-way widget switch and
   the read-only choice between a control and a statement of the field's specification moved
   out of the component renderer into `CedarFieldWidgetComponent`, which the renderer and the

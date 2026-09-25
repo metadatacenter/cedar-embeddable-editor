@@ -2,6 +2,7 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { Xsd } from '../models/xsd.model';
+import { Translatable } from '../models/ui/translatable.model';
 import { FieldValueValidator } from './field-value-validator';
 import { ValidationCode } from './validation-problem.model';
 
@@ -114,38 +115,36 @@ export class CedarValidators {
   }
 
   /**
-   * Hint text describing what a numeric field will accept.
+   * What a numeric field will accept, for the widget to print beside it.
    *
    * The numeric widget shows this next to the field, so it has to stay in step
    * with the pattern actually applied — which is the reason it lives beside the
    * validator rather than in the component.
    *
-   * A finished sentence, with nothing for a caller to add. Every branch used to open
-   * with a space and the widget closed with a period of its own, so the line rendered
-   * indented under the error above it and ended `...(-32768 to 32767)..`; a float with
-   * no declared decimal place ended `a float,.`, the comma left waiting for a clause
-   * that was never appended.
+   * A translation key rather than a sentence. It used to be English, written here,
+   * so a Hungarian form reported its numeric constraint in English beside messages
+   * that were not. Each key's sentence is finished, with nothing for a caller to add.
    *
    * Null for a field whose XSD type carries no hint worth showing.
    */
-  static describeNumberType(component: FieldComponent): string | null {
+  static describeNumberType(component: FieldComponent): Translatable | null {
     const numberType = component.numberInfo?.numberType;
     const decimalPlace = component.numberInfo?.decimalPlace ?? null;
     switch (numberType) {
       case Xsd.int:
-        return 'The value should be an integer.';
+        return { key: 'Validation.Numeric.Type.Integer' };
       case Xsd.long:
-        return 'The value should be a long integer.';
+        return { key: 'Validation.Numeric.Type.LongInteger' };
       case Xsd.byte:
-        return 'The value should be a byte (-128 to 127).';
+        return { key: 'Validation.Numeric.Type.Byte' };
       case Xsd.short:
-        return 'The value should be a short (-32768 to 32767).';
+        return { key: 'Validation.Numeric.Type.Short' };
       case Xsd.float:
-        return CedarValidators.describeFractionalType('float', decimalPlace);
+        return CedarValidators.describeFractionalType('Float', decimalPlace);
       case Xsd.double:
-        return CedarValidators.describeFractionalType('double', decimalPlace);
+        return CedarValidators.describeFractionalType('Double', decimalPlace);
       case Xsd.decimal:
-        return CedarValidators.describeFractionalType('decimal', decimalPlace);
+        return CedarValidators.describeFractionalType('Decimal', decimalPlace);
       default:
         return null;
     }
@@ -157,35 +156,50 @@ export class CedarValidators {
    * Zero places admits no fraction at all, so naming the XSD type there states the
    * opposite of the constraint: `a decimal with at most 0 decimal places` is a whole
    * number, and reads as a contradiction. That case describes what is allowed instead
-   * of what the type is called.
+   * of what the type is called. One place and several are separate keys, because a
+   * language decides for itself whether the noun follows the count.
    */
-  private static describeFractionalType(typeName: string, decimalPlace: number | null): string {
+  private static describeFractionalType(
+    typeName: 'Float' | 'Double' | 'Decimal',
+    decimalPlace: number | null,
+  ): Translatable {
     if (decimalPlace === null) {
-      return `The value should be a ${typeName}.`;
+      return { key: `Validation.Numeric.Type.${typeName}` };
     }
     if (decimalPlace === 0) {
-      return 'The value should be a number with no decimal places.';
+      return { key: 'Validation.Numeric.Type.WholeNumber' };
     }
-    const places = decimalPlace === 1 ? 'decimal place' : 'decimal places';
-    return `The value should be a ${typeName} with at most ${decimalPlace} ${places}.`;
+    return {
+      key: `Validation.Numeric.Type.${typeName}${decimalPlace === 1 ? 'OnePlace' : 'Places'}`,
+      params: { decimalPlace },
+    };
   }
 
   /**
-   * The message for whichever problem the control currently has.
+   * What to tell a user about a temporal field's current problem.
    *
-   * Lets a template render one `mat-error` carrying the validator's own text
-   * instead of a hand-written string per constraint, which is what let the
-   * messages drift from the checks in the first place.
+   * The problems carry English diagnostics written for the data quality report, such
+   * as `Granularity is year, but the padded month or day is not 01.`, which is a
+   * statement about storage rather than advice to the person typing. The widget used
+   * to print them as they stood. This answers from the problem's code instead, in the
+   * terms of the field: a date field asks for a date, a time field for a time.
    */
-  static firstMessage(control: AbstractControl): string | null {
-    if (!control || !control.errors) {
-      return null;
+  static describeTemporalProblem(control: AbstractControl, component: FieldComponent): Translatable {
+    const errors = control.errors ?? {};
+    if (errors['required']) {
+      return { key: 'Validation.Required' };
     }
-    for (const value of Object.values(control.errors)) {
-      if (value && typeof value === 'object' && 'message' in (value as object)) {
-        return (value as { message: string }).message;
-      }
+    if (errors[ValidationCode.temporalType] || errors[ValidationCode.temporalCalendar]) {
+      const temporalType = component.valueInfo.temporalType;
+      const kind = temporalType === Xsd.date ? 'Date' : temporalType === Xsd.time ? 'Time' : 'DateTime';
+      return { key: `Validation.Temporal.Invalid${kind}` };
     }
-    return null;
+    if (errors[ValidationCode.temporalGranularity]) {
+      return { key: 'Validation.Temporal.Granularity' };
+    }
+    if (errors[ValidationCode.timezone]) {
+      return { key: 'Validation.Temporal.UnexpectedTimezone' };
+    }
+    return { key: 'Validation.Invalid' };
   }
 }

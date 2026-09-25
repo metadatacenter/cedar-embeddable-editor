@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
-import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import * as english from '../../../../../assets/i18n-cee/en.json';
+import * as hungarian from '../../../../../assets/i18n-cee/hu.json';
 import { vi } from 'vitest';
 import { SharedModule } from '../../../shared/shared.module';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
@@ -40,6 +42,11 @@ describe('a numeric field typed into', () => {
       imports: [SharedModule, InputTypesModule],
       providers: [provideHttpClient(), provideTranslateService()],
     }).compileComponents();
+    // The shipped language files, so an error reads as a user reads it rather than as its key.
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('en', english);
+    translate.setTranslation('hu', hungarian);
+    translate.use('en');
     const fixture = TestBed.createComponent(CedarInputNumericComponent);
     const changeValue = vi.fn();
     fixture.componentInstance.handlerContext = { changeValue } as unknown as HandlerContext;
@@ -47,7 +54,7 @@ describe('a numeric field typed into', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
-    return { fixture, changeValue };
+    return { fixture, changeValue, translate };
   };
 
   /** What the browser does when someone types and leaves: the box holds the text, `input` and then `blur` fire. */
@@ -99,6 +106,18 @@ describe('a numeric field typed into', () => {
     typeAndLeave(fixture, '1.50');
 
     expect(errorText(fixture)).toContain('decimal place');
+  });
+
+  it('restates a visible error in the language the form switches to', async () => {
+    const { fixture, translate } = await render();
+    typeAndLeave(fixture, '1.50');
+    const inEnglish = errorText(fixture);
+
+    translate.use('hu');
+    fixture.detectChanges();
+
+    expect(inEnglish).toContain('decimal place');
+    expect(errorText(fixture)).toContain('tizedesjegy');
   });
 
   it('states nothing about a value within them', async () => {

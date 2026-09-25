@@ -100,8 +100,9 @@
     </mat-error>
   }
   @if (showsValidationMessage) {
+    @let message = validationMessage();
     <mat-error class="mat-error align-start cee-temporal-error">
-      {{ validationMessage() }}
+      {{ message.key | translate: message.params }}
     </mat-error>
   }
 }

@@ -82,7 +82,7 @@ describe('CedarInputDatetimeComponent model-to-view sync', () => {
     component.setCurrentValue('2021-06-06');
 
     expect(component.showsValidationMessage).toBe(true);
-    expect(component.validationMessage()).toContain('xsd:dateTime');
+    expect(component.validationMessage()).toEqual({ key: 'Validation.Temporal.InvalidDateTime' });
   });
 
   it('states nothing about a value it could read', () => {
@@ -239,7 +239,7 @@ describe('CedarInputDatetimeComponent by granularity', () => {
 
       expect(component.missingPart).toBeNull();
       expect(component.showsValidationMessage).toBe(true);
-      expect(component.validationMessage()).toBe('The value is required.');
+      expect(component.validationMessage()).toEqual({ key: 'Validation.Required' });
     });
 
     it('states a value it cannot read rather than a missing part', () => {

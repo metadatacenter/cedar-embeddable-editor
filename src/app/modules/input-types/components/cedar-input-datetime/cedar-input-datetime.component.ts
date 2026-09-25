@@ -10,6 +10,7 @@ import {
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { Translatable } from '../../../shared/models/ui/translatable.model';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
@@ -271,9 +272,9 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.valueControl.updateValueAndValidity({ emitEvent: false });
   }
 
-  /** Message for whichever constraint the current value violates. */
-  validationMessage(): string {
-    return CedarValidators.firstMessage(this.valueControl) ?? 'The value is required.';
+  /** What to tell the user about whichever constraint the current value violates. */
+  validationMessage(): Translatable {
+    return CedarValidators.describeTemporalProblem(this.valueControl, this.component);
   }
 
   /**

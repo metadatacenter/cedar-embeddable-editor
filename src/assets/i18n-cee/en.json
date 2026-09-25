@@ -90,10 +90,16 @@
   "Validation": {
     "SelectAtLeastOne": "Select at least one option.",
     "Required": "The value is required.",
+    "Invalid": "The value is not valid.",
     "Temporal": {
       "MissingDate": "A date is still needed. Nothing is recorded until the value is complete.",
       "MissingTime": "A time is still needed. Nothing is recorded until the value is complete.",
-      "MissingFraction": "The fraction of a second is still needed. Nothing is recorded until the value is complete."
+      "MissingFraction": "The fraction of a second is still needed. Nothing is recorded until the value is complete.",
+      "InvalidDate": "Enter a valid date.",
+      "InvalidTime": "Enter a valid time.",
+      "InvalidDateTime": "Enter a valid date and time.",
+      "Granularity": "The value does not match the precision this field records.",
+      "UnexpectedTimezone": "The value carries a timezone offset, which this field does not record."
     },
     "Text": {
       "MinLength": "Value should be at least {{constraintMinLength}} chars long.",
@@ -113,7 +119,23 @@
     },
     "Numeric": {
       "MinValue": "Value should be at least {{constraintMinValue}}.",
-      "MaxValue": "Value should be at most {{constraintMaxValue}}."
+      "MaxValue": "Value should be at most {{constraintMaxValue}}.",
+      "Type": {
+        "Integer": "The value should be an integer.",
+        "LongInteger": "The value should be a long integer.",
+        "Byte": "The value should be a byte (-128 to 127).",
+        "Short": "The value should be a short (-32768 to 32767).",
+        "Float": "The value should be a float.",
+        "FloatOnePlace": "The value should be a float with at most {{decimalPlace}} decimal place.",
+        "FloatPlaces": "The value should be a float with at most {{decimalPlace}} decimal places.",
+        "Double": "The value should be a double.",
+        "DoubleOnePlace": "The value should be a double with at most {{decimalPlace}} decimal place.",
+        "DoublePlaces": "The value should be a double with at most {{decimalPlace}} decimal places.",
+        "Decimal": "The value should be a decimal.",
+        "DecimalOnePlace": "The value should be a decimal with at most {{decimalPlace}} decimal place.",
+        "DecimalPlaces": "The value should be a decimal with at most {{decimalPlace}} decimal places.",
+        "WholeNumber": "The value should be a number with no decimal places."
+      }
     },
     "Time": {
       "InvalidHour24": "Enter an hour from 00 to 23. The previous value was restored.",

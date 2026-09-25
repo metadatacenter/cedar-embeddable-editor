@@ -8,6 +8,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { Numbers } from '../../../shared/models/numbers.model';
 import { Xsd } from '../../../shared/models/xsd.model';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { Translatable } from '../../../shared/models/ui/translatable.model';
 import { TranslateService } from '@ngx-translate/core';
 
 @Component({
@@ -38,7 +39,7 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
   unitOfMeasure: string | null = null;
   constraintMinValue: number | null = null;
   constraintMaxValue: number | null = null;
-  patternErrorMessage: string | null = null;
+  patternErrorMessage: Translatable | null = null;
   @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(
