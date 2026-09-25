@@ -14,6 +14,8 @@
     "Clear": "Clear",
     "SelectDecimalSeconds": "Select Decimal Seconds",
     "SelectUtcOffset": "Timezone unspecified",
+    "NonStandardUtcOffset": "(non-standard)",
+    "InvalidUtcOffset": "(invalid)",
     "SelectYear": "Select Year",
     "SelectYearAndMonth": "Select Year and Month",
     "SelectDate": "Select Date",
@@ -108,7 +110,8 @@
       "InvalidTime": "Enter a valid time.",
       "InvalidDateTime": "Enter a valid date and time.",
       "Granularity": "The value does not match the precision this field records.",
-      "UnexpectedTimezone": "The value carries a timezone offset, which this field does not record."
+      "UnexpectedTimezone": "The value carries a timezone offset, which this field does not record.",
+      "InvalidTimezoneOffset": "The timezone offset is not a valid UTC offset. Choose one from the list."
     },
     "Text": {
       "MinLength": "Value should be at least {{constraintMinLength}} chars long.",

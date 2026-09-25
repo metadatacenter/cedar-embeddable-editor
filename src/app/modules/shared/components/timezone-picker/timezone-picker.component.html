@@ -18,7 +18,14 @@
       attr.aria-label="{{ customPlaceholderText }}"
     >
       @for (zone of timeZones; track zone.id) {
-        <mat-option [value]="zone">{{ zone.label }}</mat-option>
+        <mat-option [value]="zone"
+          >{{ zone.label }}
+          @if (isInvalid(zone)) {
+            {{ 'Generic.InvalidUtcOffset' | translate }}
+          } @else if (isNonStandard(zone)) {
+            {{ 'Generic.NonStandardUtcOffset' | translate }}
+          }
+        </mat-option>
       }
     </mat-select>
   </mat-form-field>

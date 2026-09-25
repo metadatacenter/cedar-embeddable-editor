@@ -63,6 +63,57 @@ describe('TimezonePickerComponent', () => {
       expect(component.timeZones.map((zone) => zone.id)).toContain('+07:15');
     });
 
+    it('places an offset the list does not carry in order among the others', () => {
+      const { component } = makeComponent();
+
+      component.writeValue('+10:25');
+
+      const ids = component.timeZones.map((zone) => zone.id);
+      expect(ids.slice(ids.indexOf('+10:00'), ids.indexOf('+10:30') + 1)).toEqual(['+10:00', '+10:25', '+10:30']);
+    });
+
+    it('still offers the stored offset after the user chooses another', () => {
+      const { component, emitted } = makeComponent();
+      component.writeValue('+10:25');
+
+      component.form.controls.timezone.setValue(TimezonePickerComponent.zoneForOffset('+10:00'));
+
+      expect(emitted.at(-1)?.id).toBe('+10:00');
+      expect(component.timeZones.map((zone) => zone.id)).toContain('+10:25');
+    });
+
+    it('adds a stored offset to the list only once', () => {
+      const { component } = makeComponent();
+
+      component.writeValue('+10:25');
+      component.writeValue('+10:25');
+
+      expect(component.timeZones.filter((zone) => zone.id === '+10:25')).toHaveLength(1);
+    });
+
+    it('marks only an offset no zone in current use has as non-standard', () => {
+      expect(TimezonePickerComponent.isNonStandard(TimezonePickerComponent.zoneForOffset('+10:25')!)).toBe(true);
+      expect(TimezonePickerComponent.isNonStandard(TimezonePickerComponent.zoneForOffset('+05:45')!)).toBe(false);
+      expect(TimezonePickerComponent.isNonStandard(TimezonePickerComponent.zoneForOffset('Z')!)).toBe(false);
+    });
+
+    it('shows a stored offset outside the range XML Schema allows, marked invalid, rather than dropping it', () => {
+      const { component, emitted } = makeComponent();
+
+      component.writeValue('+05:60');
+
+      expect(shownOffset(component)).toBe('+05:60');
+      expect(TimezonePickerComponent.isInvalid(component.form.controls.timezone.value!)).toBe(true);
+      expect(emitted, 'showing it is not an edit').toEqual([]);
+    });
+
+    it('marks as invalid only an offset outside the range XML Schema allows', () => {
+      expect(TimezonePickerComponent.isInvalid({ id: '+05:60', label: 'UTC+05:60' })).toBe(true);
+      expect(TimezonePickerComponent.isInvalid({ id: '-15:00', label: 'UTC-15:00' })).toBe(true);
+      expect(TimezonePickerComponent.isInvalid(TimezonePickerComponent.zoneForOffset('+10:25')!)).toBe(false);
+      expect(TimezonePickerComponent.isInvalid(TimezonePickerComponent.zoneForOffset('Z')!)).toBe(false);
+    });
+
     it('shows nothing for an offset that is not one', () => {
       const { component } = makeComponent();
       component.writeValue('+05:30');
@@ -108,17 +159,13 @@ describe('TimezonePickerComponent', () => {
     });
 
     /*
-     * Looser than the offsets that exist, which run -12:00 to +14:00.
+     * Looser than the offsets zones use, which run -12:00 to +14:00, and on purpose.
      *
-     * The pattern special-cases `+14:00` above its `1[0-3]` hours, so the upper
-     * bound was thought about; the hour alternation applies to both signs, so
-     * `-13:00` and `-13:45` pass while no such offset exists. The list this
-     * widget offers is correctly bounded, so a user cannot choose one — it takes
-     * a host-supplied instance carrying it.
-     *
-     * Recorded as it behaves rather than tightened. Refusing it would show an
-     * empty control over an instance that holds something, and which of those is
-     * wanted is a product call.
+     * Validity is XML Schema's `timezoneFrag`, which allows fourteen hours either
+     * way, so `-13:00` and `-13:45` are valid values although no zone has them.
+     * The model library draws the line in the same place. The list offers only
+     * the offsets zones use, so a user cannot choose one of these; a stored value
+     * that carries one is shown as non-standard.
      */
     it.each(['-13:00', '-13:45'])('accepts %s, which is not an offset that exists', (offset) => {
       expect(TimezonePickerComponent.zoneForOffset(offset)?.id).toBe(offset);

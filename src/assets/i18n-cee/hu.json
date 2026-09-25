@@ -14,6 +14,8 @@
     "Clear": "Törlés",
     "SelectDecimalSeconds": "Törtmásodpercek megadása",
     "SelectUtcOffset": "UTC-eltolás kiválasztása",
+    "NonStandardUtcOffset": "(nem szabványos)",
+    "InvalidUtcOffset": "(érvénytelen)",
     "SelectYear": "Év kiválasztása",
     "SelectYearAndMonth": "Év és hónap kiválasztása",
     "SelectDate": "Dátum kiválasztása",
@@ -108,7 +110,8 @@
       "InvalidTime": "Adjon meg egy érvényes időpontot.",
       "InvalidDateTime": "Adjon meg érvényes dátumot és időpontot.",
       "Granularity": "Az érték pontossága nem egyezik azzal, amit ez a mező rögzít.",
-      "UnexpectedTimezone": "Az érték időzóna-eltolást tartalmaz, amelyet ez a mező nem rögzít."
+      "UnexpectedTimezone": "Az érték időzóna-eltolást tartalmaz, amelyet ez a mező nem rögzít.",
+      "InvalidTimezoneOffset": "Az időzóna-eltolás nem érvényes UTC-eltolás. Válasszon egyet a listából."
     },
     "Text": {
       "MinLength": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",

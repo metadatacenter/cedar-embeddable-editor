@@ -6,6 +6,7 @@ import { Xsd } from '../models/xsd.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
 import { ValidationCode, ValidationProblem } from './validation-problem.model';
 import { InstanceValueNode } from '../util/instance-value-node';
+import { CedarTemporalValue } from '../util/cedar-temporal-value';
 import { InstanceNode } from '../models/instance-node.model';
 import { JsonTemplateInstanceWriter } from 'cedar-model-typescript-library';
 
@@ -256,6 +257,8 @@ export class FieldValueValidator {
       out.push(
         this.problem(component, path, ValidationCode.timezone, 'Carries a timezone offset but none is enabled.', text),
       );
+    } else if (hasOffset && !CedarTemporalValue.isValidOffset(offsetMatch[0])) {
+      out.push(this.problem(component, path, ValidationCode.timezoneOffset, 'Not a valid xsd timezone offset.', text));
     }
 
     const [datePart, timePart] = rest.includes('T') ? rest.split('T') : [rest, null];

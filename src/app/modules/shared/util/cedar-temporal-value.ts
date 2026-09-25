@@ -48,6 +48,18 @@ export class CedarTemporalValue {
   private static readonly DATE_TIME =
     /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})?$/;
 
+  /**
+   * XML Schema's `timezoneFrag`: `Z`, or a signed offset of at most fourteen hours.
+   *
+   * The parser's patterns accept any `±HH:MM`, so a stored `+05:60` reads and is kept
+   * rather than dropped; this is what says whether it is a valid offset.
+   */
+  private static readonly XSD_OFFSET = /^(?:Z|[+-](?:(?:0\d|1[0-3]):[0-5]\d|14:00))$/;
+
+  static isValidOffset(offset: string): boolean {
+    return this.XSD_OFFSET.test(offset);
+  }
+
   static empty(): CedarTemporalParts {
     return {
       year: null,

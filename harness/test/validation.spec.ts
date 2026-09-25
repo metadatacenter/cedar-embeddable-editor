@@ -184,6 +184,18 @@ describe('temporal constraints', () => {
       'timezone',
     ],
     [
+      'an offset with sixty minutes',
+      () => temporal(TemporalType.DATETIME, TemporalGranularity.SECOND, true),
+      '2026-08-02T10:30:00+05:60',
+      'timezoneOffset',
+    ],
+    [
+      'an offset beyond fourteen hours',
+      () => temporal(TemporalType.DATETIME, TemporalGranularity.SECOND, true),
+      '2026-08-02T10:30:00-15:00',
+      'timezoneOffset',
+    ],
+    [
       'year granularity with a non-padding month',
       () => temporal(TemporalType.DATE, TemporalGranularity.YEAR),
       '2026-08-01',
@@ -236,6 +248,17 @@ describe('temporal constraints', () => {
       '2026-08-02T10:30:00-08:00',
     ],
     ['29 February in a leap year', () => temporal(TemporalType.DATE, TemporalGranularity.DAY), '2024-02-29'],
+    [
+      // No zone uses it, but XML Schema's range does, and so does the model library.
+      'an offset no zone in current use has',
+      () => temporal(TemporalType.DATETIME, TemporalGranularity.SECOND, true),
+      '2026-08-02T10:30:00-13:45',
+    ],
+    [
+      'the largest offset XML Schema allows',
+      () => temporal(TemporalType.DATETIME, TemporalGranularity.SECOND, true),
+      '2026-08-02T10:30:00-14:00',
+    ],
   ])('accepts %s', (_label, make, value) => {
     expect(codesFor(make(), value)).toEqual([]);
   });

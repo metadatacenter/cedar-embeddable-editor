@@ -200,6 +200,9 @@ export class CedarValidators {
     if (errors[ValidationCode.timezone]) {
       return { key: 'Validation.Temporal.UnexpectedTimezone' };
     }
+    if (errors[ValidationCode.timezoneOffset]) {
+      return { key: 'Validation.Temporal.InvalidTimezoneOffset' };
+    }
     return { key: 'Validation.Invalid' };
   }
 }
