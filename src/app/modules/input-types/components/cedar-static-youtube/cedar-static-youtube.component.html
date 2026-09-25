@@ -6,7 +6,7 @@
       [attr.height]="videoHeight"
       [attr.width]="videoWidth"
       [style.aspect-ratio]="videoWidth + ' / ' + videoHeight"
-      [attr.title]="videoTitle"
+      [attr.title]="videoTitle ?? ('Generic.YoutubeVideo' | translate)"
       loading="lazy"
       referrerpolicy="strict-origin-when-cross-origin"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -14,7 +14,7 @@
     ></iframe>
   }
   @if (contentError) {
-    <p class="video-error" role="alert">{{ contentError }}</p>
+    <p class="video-error" role="alert">{{ contentError.key | translate: contentError.params }}</p>
   }
   <mat-card-content>
     {{ component.labelInfo.description }}

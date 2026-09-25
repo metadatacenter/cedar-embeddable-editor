@@ -46,6 +46,19 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
   timezone problem. The data quality report keeps its English diagnostics and stable `code`s,
   since a host reads them as data.
 
+- The remaining English written into the source now comes from the language files, so a
+  Hungarian form no longer shows or announces it in English. This covers the explanation an
+  attribute-value field gives when it refuses a name, the explanation a static image or YouTube
+  field gives when it has nothing to show, the placeholders of the clock and of the decimal
+  seconds box, the notation a read-only date box states, and the accessible names of the
+  multi-instance pager, the required mark, the npm link and an untitled video. The English
+  text is unchanged. The date picker now writes its date in the configured language's
+  notation: English keeps `09/25/2026`, `09/2026` and `2026`, and Hungarian writes
+  `2026. 09. 25.`, `2026. 09.` and `2026.`. The picker reads back what it writes, and the value
+  it records is the same ISO date in either language. A domain test now fails when a template
+  or a message sink gains literal text that bypasses translation, apart from the product and
+  authority names listed with their reasons in `harness/i18n-allowlist.json`.
+
 - Every field CEE renders now goes through one component. The eighteen-way widget switch and
   the read-only choice between a control and a statement of the field's specification moved
   out of the component renderer into `CedarFieldWidgetComponent`, which the renderer and the

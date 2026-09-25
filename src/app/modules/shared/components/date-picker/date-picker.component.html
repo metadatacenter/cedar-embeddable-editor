@@ -5,7 +5,7 @@
       spellcheck="false"
       matInput
       readonly
-      [placeholder]="dateNotation"
+      [placeholder]="dateNotation | translate"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
       attr.aria-label="{{ 'Generic.SelectYear' | translate }}"
@@ -38,7 +38,7 @@
       spellcheck="false"
       matInput
       readonly
-      [placeholder]="dateNotation"
+      [placeholder]="dateNotation | translate"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
       attr.aria-label="{{ 'Generic.SelectYearAndMonth' | translate }}"
@@ -66,7 +66,7 @@
       spellcheck="false"
       matInput
       readonly
-      [placeholder]="dateNotation"
+      [placeholder]="dateNotation | translate"
       [matDatepicker]="dp"
       [formControl]="dateMonthYear"
       (dateChange)="chosenDateHandler($event)"

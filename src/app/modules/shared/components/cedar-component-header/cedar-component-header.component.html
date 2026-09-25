@@ -10,7 +10,7 @@
       {{ cds.getRenderingLabelForComponent(component) }}
       @if (shouldRenderRequiredMark) {
         <span>
-          <sup class="required-mark" aria-label="required"><b>*</b></sup>
+          <sup class="required-mark" attr.aria-label="{{ 'Generic.Required' | translate }}"><b>*</b></sup>
         </span>
       }
     </span>

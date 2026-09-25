@@ -44,13 +44,22 @@
     "Download": "Download",
     "TemplateVersion": "Template version {{version}}",
     "StatusDraft": "Draft",
-    "StatusPublished": "Published"
+    "StatusPublished": "Published",
+    "HourPlaceholder": "HH",
+    "MinutePlaceholder": "MM",
+    "SecondPlaceholder": "SS",
+    "DecimalSecondsPlaceholder": "sss",
+    "Required": "required",
+    "CeeOnNpm": "CEE on npm",
+    "YoutubeVideo": "YouTube video"
   },
   "Multi": {
     "NoInstancesYet": "No instances yet",
     "AddEmptyAfter": "Add empty after current",
     "AddCloneAfter": "Add clone after current",
-    "DeleteCurrent": "Delete current"
+    "DeleteCurrent": "Delete current",
+    "AllowsMultiValues": "Allows multi values.",
+    "NoValuesYet": "No values yet"
   },
   "Error": {
     "LookupFailed": "Search failed: the service could not be reached",
@@ -158,7 +167,12 @@
     "ControlledTermInvalid": "Entered value is not a term from the allowed set and has been cleared.",
     "ControlledTermReverted": "Not a term from the allowed set, edit was discarded; restored last valid term.",
     "DoiInvalid": "Entered value is not a valid DOI and has been cleared.",
-    "DoiReverted": "Invalid DOI, edit was discarded; restored last valid DOI."
+    "DoiReverted": "Invalid DOI, edit was discarded; restored last valid DOI.",
+    "Attribute": {
+      "NameInvalid": "Attribute name must contain text and no control characters.",
+      "NameReserved": "Attribute name \"{{name}}\" is reserved for instance metadata.",
+      "NameInUse": "Attribute name \"{{name}}\" is already used in this instance. Choose a unique name."
+    }
   },
   "Spec": {
     "MinLength": "{{minLength}} chars",
@@ -202,5 +216,17 @@
     "DefaultValue": "{{defaultValue}}",
     "DefaultLabel": "default",
     "DefaultMark": "(default)"
+  },
+  "StaticContent": {
+    "ImageNoUrl": "This image field has no URL.",
+    "ImageUnparseableUrl": "This image field holds a URL the browser cannot parse: {{url}}",
+    "ImageUnaddressableUrl": "This image field holds a URL that cannot address an image: {{url}}",
+    "ImageDataNotImage": "This image field holds a data: URL that carries something other than an image: {{url}}",
+    "ImageLoadFailed": "The image at this URL could not be loaded. It may be missing, or the address may not serve an image: {{url}}",
+    "VideoNoLink": "This video field has no YouTube link.",
+    "VideoNotALink": "This video field holds neither a YouTube link nor a video ID: {{url}}",
+    "VideoOtherHost": "This video field holds a link to {{host}}, and only YouTube videos can be embedded: {{url}}",
+    "VideoInvalidId": "This YouTube link carries a video ID that is not valid: {{url}}",
+    "VideoNoSingleVideo": "This YouTube link names no single video, so there is nothing to embed. Playlist, channel and search links cannot be embedded: {{url}}"
   }
 }

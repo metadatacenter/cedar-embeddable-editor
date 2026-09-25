@@ -1,3 +1,4 @@
+import { Translatable } from '../../../shared/models/ui/translatable.model';
 import { extractYouTubeVideoId, isYouTubeHost } from './youtube-video-id';
 
 /**
@@ -5,9 +6,9 @@ import { extractYouTubeVideoId, isYouTubeHost } from './youtube-video-id';
  *
  * Exactly one of the two is set — written as a union so that is a fact the compiler
  * holds rather than a promise this comment makes. `videoId` means embed it;
- * `error` means say why there is nothing to embed.
+ * `error` means say why there is nothing to embed, in a message the component translates.
  */
-export type StaticYoutubeView = { videoId: string; error: null } | { videoId: null; error: string };
+export type StaticYoutubeView = { videoId: string; error: null } | { videoId: null; error: Translatable };
 
 /**
  * Decide what the field shows, and when it shows nothing, say why.
@@ -27,7 +28,7 @@ export const resolveStaticYoutubeView = (content: string): StaticYoutubeView => 
   const candidate = content?.trim();
 
   if (!candidate) {
-    return { videoId: null, error: 'This video field has no YouTube link.' };
+    return { videoId: null, error: { key: 'StaticContent.VideoNoLink' } };
   }
 
   const videoId = extractYouTubeVideoId(candidate);
@@ -41,14 +42,14 @@ export const resolveStaticYoutubeView = (content: string): StaticYoutubeView => 
   } catch {
     return {
       videoId: null,
-      error: `This video field holds neither a YouTube link nor a video ID: ${candidate}`,
+      error: { key: 'StaticContent.VideoNotALink', params: { url: candidate } },
     };
   }
 
   if (!isYouTubeHost(parsed.hostname)) {
     return {
       videoId: null,
-      error: `This video field holds a link to ${parsed.hostname}, and only YouTube videos can be embedded: ${candidate}`,
+      error: { key: 'StaticContent.VideoOtherHost', params: { host: parsed.hostname, url: candidate } },
     };
   }
 
@@ -59,12 +60,12 @@ export const resolveStaticYoutubeView = (content: string): StaticYoutubeView => 
   if (namedAVideo) {
     return {
       videoId: null,
-      error: `This YouTube link carries a video ID that is not valid: ${candidate}`,
+      error: { key: 'StaticContent.VideoInvalidId', params: { url: candidate } },
     };
   }
 
   return {
     videoId: null,
-    error: `This YouTube link names no single video, so there is nothing to embed. Playlist, channel and search links cannot be embedded: ${candidate}`,
+    error: { key: 'StaticContent.VideoNoSingleVideo', params: { url: candidate } },
   };
 };

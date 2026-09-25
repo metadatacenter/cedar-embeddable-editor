@@ -18,6 +18,7 @@ import {
   isInstanceObject,
 } from '../models/instance-node.model';
 import { DataObjectUtil } from '../util/data-object-util';
+import { Translatable } from '../models/ui/translatable.model';
 import { valueIsIri } from '../models/ext-auth-categories.model';
 import { InstanceValueNode } from '../util/instance-value-node';
 import { MessageHandlerService } from '../service/message-handler.service';
@@ -161,7 +162,7 @@ export class DataObjectDataValueHandler {
     component: CedarComponent,
     write: AttributeWrite,
     declaredSiblingNames: ReadonlySet<string>,
-  ): string | null {
+  ): Translatable | null {
     const oldNameNode = dataObject[currentIndex];
     const oldName = oldNameNode instanceof InstanceDataAttributeValueFieldName ? oldNameNode.name : '';
     const newName = write.name ?? '';
@@ -191,18 +192,18 @@ export class DataObjectDataValueHandler {
       !newName.trim() ||
       [...newName].some((character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127)
     ) {
-      return 'Attribute name must contain text and no control characters.';
+      return { key: 'Validation.Attribute.NameInvalid' };
     }
     // Also guard object internals when a host still resolves an older model package.
     if (['__proto__', 'constructor', 'prototype'].includes(newName) || AttributeValueNamePolicy.isReserved(newName)) {
-      return `Attribute name "${newName}" is reserved for instance metadata.`;
+      return { key: 'Validation.Attribute.NameReserved', params: { name: newName } };
     }
 
     if (
       declaredSiblingNames.has(newName) ||
       this.isDuplicateAttributeName(newName, dataObject, parentDataObject, currentIndex)
     ) {
-      return `Attribute name "${newName}" is already used in this instance. Choose a unique name.`;
+      return { key: 'Validation.Attribute.NameInUse', params: { name: newName } };
     }
 
     const usedByAnotherSlot = this.isAttributeNameUsedElsewhere(dataObject, oldName, currentIndex);
@@ -254,7 +255,7 @@ export class DataObjectDataValueHandler {
     key = '',
     /** Serializable template children sharing the attribute's JSON object. */
     declaredSiblingNames: ReadonlySet<string> = new Set(),
-  ): string | null {
+  ): Translatable | null {
     if (path.length === 0) {
       if (component instanceof SingleFieldComponent) {
         if (!isAttributeWrite(valueObject)) {
@@ -514,7 +515,7 @@ export class DataObjectDataValueHandler {
     multiInstanceObjectService: MultiInstanceObjectHandler,
     key: string | null,
     value: string | null,
-  ): string | null {
+  ): Translatable | null {
     const path = component.path;
 
     /*
@@ -537,7 +538,7 @@ export class DataObjectDataValueHandler {
       return null;
     }
     const declaredSiblingNames = this.getDeclaredSiblingNames(component, representation);
-    let validationError: string | null = null;
+    let validationError: Translatable | null = null;
     dataContext.mutate((instance) => {
       validationError = this.setDataPathValueRecursively(
         instance,

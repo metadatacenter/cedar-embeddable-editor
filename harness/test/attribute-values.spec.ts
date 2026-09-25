@@ -31,6 +31,7 @@ import { InstanceObject } from '@cee/models/instance-node.model';
 import { arrayAt, objectAt } from '../src/nodes';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 import { literalOf, heldValue, attributeValue, instanceWith, templateIdOf } from '../src/values';
+import { readTranslatable as read } from '@cee/models/ui/translatable.testing';
 
 const ATTR: FieldKind = {
   key: 'attr',
@@ -281,7 +282,7 @@ describe('names the user did not supply', () => {
     // chooses a name that can safely become a JSON property.
     expect(valueOf(driver.extract, 'colour')).toBe('blue');
     expect(heldValue(driver.extract.values._av)).toEqual(['colour', null]);
-    expect(error).toContain('already used');
+    expect(read(error)).toContain('already used');
   });
 
   /**
@@ -296,8 +297,37 @@ describe('names the user did not supply', () => {
     driver.handlerContext.addMultiInstance(component);
     const error = driver.handlerContext.changeAttributeValue(component, 'colour', 'red');
 
-    expect(error).toBe('Attribute name "colour" is already used in this instance. Choose a unique name.');
+    expect(error).toEqual({ key: 'Validation.Attribute.NameInUse', params: { name: 'colour' } });
+    expect(read(error)).toBe('Attribute name "colour" is already used in this instance. Choose a unique name.');
+    expect(read(error, 'hu')).toBe(
+      'Az attribútum neve („colour”) már szerepel ebben a példányban. Adjon meg egyedi nevet.',
+    );
     driver.expectNoErrors('the duplicate is explained next to its input');
+  });
+
+  /**
+   * The explanation is a translation key with its parameters, not an English sentence, so the widget
+   * renders it in the configured language. Each refusal has a key of its own in both language files.
+   */
+  it.each([
+    ['@context', 'Validation.Attribute.NameReserved', 'Attribute name "@context" is reserved for instance metadata.'],
+    ['   ', 'Validation.Attribute.NameInvalid', 'Attribute name must contain text and no control characters.'],
+    [
+      'bad\u0007name',
+      'Validation.Attribute.NameInvalid',
+      'Attribute name must contain text and no control characters.',
+    ],
+  ])('explains the refusal of %j as a translatable message', (name, key, english) => {
+    const driver = new CeeDriver(flat());
+    const component = driver.findOrThrow(['_av']);
+    addAttribute(driver, component, null, 'held');
+
+    const error = driver.handlerContext.changeAttributeValue(component, name, 'held');
+
+    expect(error?.key).toBe(key);
+    expect(read(error)).toBe(english);
+    expect(read(error, 'hu')).not.toBe(english);
+    expect(read(error, 'hu')).not.toContain('{{');
   });
 
   it('rejects a name already occupied by an ordinary field', () => {
@@ -314,7 +344,7 @@ describe('names the user did not supply', () => {
 
     const error = driver.handlerContext.changeAttributeValue(component, '_text', 'would overwrite text');
 
-    expect(error).toContain('already used');
+    expect(read(error)).toContain('already used');
     expect(heldValue(driver.extract.values._av)).toEqual(['']);
   });
 
@@ -335,7 +365,7 @@ describe('names the user did not supply', () => {
 
     const error = driver.handlerContext.changeAttributeValue(component, '_text', 'must not claim a declared property');
 
-    expect(error).toContain('already used');
+    expect(read(error)).toContain('already used');
     expect(driver.extract.hasValue('_text')).toBe(false);
     expect(heldValue(driver.extract.values._av)).toEqual(['']);
   });
@@ -349,7 +379,7 @@ describe('names the user did not supply', () => {
 
       const error = driver.handlerContext.changeAttributeValue(component, reservedName, 'metadata must survive');
 
-      expect(error).toContain('reserved');
+      expect(read(error)).toContain('reserved');
       expect(heldValue(driver.extract.values._av)).toEqual(['']);
       expect(driver.extract.hasValue(reservedName)).toBe(false);
     },
@@ -370,7 +400,7 @@ describe('names the user did not supply', () => {
 
     const error = driver.handlerContext.changeAttributeValue(second, 'colour', 'red');
 
-    expect(error).toContain('already used');
+    expect(read(error)).toContain('already used');
     expect(valueOf(driver.extract, 'colour')).toBe('blue');
     expect(heldValue(driver.extract.values._second)).toEqual(['']);
   });
@@ -493,7 +523,7 @@ describe('attribute values inside elements', () => {
       'must not replace the nested text field',
     );
 
-    expect(error).toContain('already used');
+    expect(read(error)).toContain('already used');
     expect(heldValue(objectAt(driver.extract, '_el').values._av)).toEqual(['']);
   });
 

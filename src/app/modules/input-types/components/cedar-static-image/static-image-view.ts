@@ -1,12 +1,14 @@
+import { Translatable } from '../../../shared/models/ui/translatable.model';
+
 /**
  * What a static image field should render, decided from the template content and
  * whether the browser has already failed to load it.
  *
  * Exactly one of the two is set — written as a union so that is a fact the compiler
  * holds rather than a promise this comment makes. `src` means render the image;
- * `error` means render an explanation instead.
+ * `error` means render an explanation instead, which the component translates.
  */
-export type StaticImageView = { src: string; error: null } | { src: null; error: string };
+export type StaticImageView = { src: string; error: null } | { src: null; error: Translatable };
 
 /** Schemes that are usable in an `img` `src` and safe to hand the browser. */
 const RENDERABLE_SCHEMES = ['http:', 'https:', 'data:'];
@@ -66,7 +68,7 @@ export const resolveStaticImageView = (
   const candidate = content?.trim();
 
   if (!candidate) {
-    return { src: null, error: 'This image field has no URL.' };
+    return { src: null, error: { key: 'StaticContent.ImageNoUrl' } };
   }
 
   if (ABSOLUTE_URL.test(candidate)) {
@@ -74,17 +76,15 @@ export const resolveStaticImageView = (
     try {
       parsed = new URL(candidate);
     } catch {
-      return { src: null, error: `This image field holds a URL the browser cannot parse: ${candidate}` };
+      return { src: null, error: { key: 'StaticContent.ImageUnparseableUrl', params: { url: candidate } } };
     }
     if (!RENDERABLE_SCHEMES.includes(parsed.protocol.toLowerCase())) {
-      return { src: null, error: `This image field holds a URL that cannot address an image: ${candidate}` };
+      return { src: null, error: { key: 'StaticContent.ImageUnaddressableUrl', params: { url: candidate } } };
     }
     if (parsed.protocol.toLowerCase() === 'data:' && !IMAGE_DATA_URL.test(candidate)) {
       return {
         src: null,
-        error: `This image field holds a data: URL that carries something other than an image: ${nameDataUrl(
-          candidate,
-        )}`,
+        error: { key: 'StaticContent.ImageDataNotImage', params: { url: nameDataUrl(candidate) } },
       };
     }
   }
@@ -92,7 +92,7 @@ export const resolveStaticImageView = (
   if (loadFailed) {
     return {
       src: null,
-      error: `The image at this URL could not be loaded. It may be missing, or the address may not serve an image: ${candidate}`,
+      error: { key: 'StaticContent.ImageLoadFailed', params: { url: candidate } },
     };
   }
 

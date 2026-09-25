@@ -1,4 +1,5 @@
 import { resolveStaticImageView } from './static-image-view';
+import { readTranslatable as read } from '../../../shared/models/ui/translatable.testing';
 
 /**
  * These pin the behaviour a real template exercised and the component did not
@@ -38,11 +39,11 @@ describe('resolveStaticImageView', () => {
     });
 
     it('explains that the load failed', () => {
-      expect(view.error).toContain('could not be loaded');
+      expect(read(view.error)).toContain('could not be loaded');
     });
 
     it('names the URL, which is the only thing that lets an author fix it', () => {
-      expect(view.error).toContain(url);
+      expect(read(view.error)).toContain(url);
     });
   });
 
@@ -50,7 +51,7 @@ describe('resolveStaticImageView', () => {
     it.each([null, undefined, '', '   '])('reports %s as having no URL', (content) => {
       const view = resolveStaticImageView(content, false);
       expect(view.src).toBeNull();
-      expect(view.error).toBe('This image field has no URL.');
+      expect(read(view.error)).toBe('This image field has no URL.');
     });
 
     it.each(['javascript:alert(1)', 'file:///etc/passwd', 'ftp://example.org/a.png'])(
@@ -58,7 +59,7 @@ describe('resolveStaticImageView', () => {
       (content) => {
         const view = resolveStaticImageView(content, false);
         expect(view.src).toBeNull();
-        expect(view.error).toContain(content);
+        expect(read(view.error)).toContain(content);
       },
     );
 
@@ -81,24 +82,24 @@ describe('resolveStaticImageView', () => {
       (content) => {
         const view = resolveStaticImageView(content, false);
         expect(view.src).toBeNull();
-        expect(view.error).toContain('other than an image');
+        expect(read(view.error)).toContain('other than an image');
       },
     );
 
     it('names the media type of a rejected data URL without quoting the payload', () => {
       const view = resolveStaticImageView(`data:text/html;base64,${'A'.repeat(500)}`, false);
-      expect(view.error).toContain('data:text/html;base64,');
-      expect(view.error).not.toContain('AAAA');
+      expect(read(view.error)).toContain('data:text/html;base64,');
+      expect(read(view.error)).not.toContain('AAAA');
     });
 
     it('reports a URL the browser cannot parse', () => {
       const view = resolveStaticImageView('http://[unclosed', false);
       expect(view.src).toBeNull();
-      expect(view.error).toContain('cannot parse');
+      expect(read(view.error)).toContain('cannot parse');
     });
 
     it('prefers the content complaint over the load failure, since the load was never worth trying', () => {
-      expect(resolveStaticImageView('javascript:alert(1)', true).error).toContain('cannot address an image');
+      expect(read(resolveStaticImageView('javascript:alert(1)', true).error)).toContain('cannot address an image');
     });
   });
 });

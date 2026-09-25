@@ -44,13 +44,22 @@
     "Download": "Letöltés",
     "TemplateVersion": "Verzió {{version}}",
     "StatusDraft": "Vázlat",
-    "StatusPublished": "Közzétett"
+    "StatusPublished": "Közzétett",
+    "HourPlaceholder": "ÓÓ",
+    "MinutePlaceholder": "PP",
+    "SecondPlaceholder": "MM",
+    "DecimalSecondsPlaceholder": "mmm",
+    "Required": "kötelező",
+    "CeeOnNpm": "A CEE az npm-en",
+    "YoutubeVideo": "YouTube-videó"
   },
   "Multi": {
     "NoInstancesYet": "Még nincsenek példányok",
     "AddEmptyAfter": "Üres hozzáadása az aktuális után",
     "AddCloneAfter": "Klón hozzáadása az aktuális után",
-    "DeleteCurrent": "Aktuális törlése"
+    "DeleteCurrent": "Aktuális törlése",
+    "AllowsMultiValues": "Több érték is megadható.",
+    "NoValuesYet": "Még nincsenek értékek"
   },
   "Error": {
     "LookupFailed": "A keresés sikertelen: a szolgáltatás nem érhető el",
@@ -158,7 +167,12 @@
     "ControlledTermInvalid": "A megadott érték nem a megengedett halmaz eleme, ezért törölve lett.",
     "ControlledTermReverted": "Nem a megengedett halmaz eleme, a szerkesztés elvetve; visszaállítva az utolsó érvényes érték.",
     "DoiInvalid": "A megadott érték nem érvényes DOI, ezért törlésre került.",
-    "DoiReverted": "Érvénytelen DOI, a módosítás elvetve; az utolsó érvényes DOI visszaállítva."
+    "DoiReverted": "Érvénytelen DOI, a módosítás elvetve; az utolsó érvényes DOI visszaállítva.",
+    "Attribute": {
+      "NameInvalid": "Az attribútum neve nem lehet üres, és nem tartalmazhat vezérlőkaraktert.",
+      "NameReserved": "Az attribútum neve („{{name}}”) a példány metaadatai számára van fenntartva.",
+      "NameInUse": "Az attribútum neve („{{name}}”) már szerepel ebben a példányban. Adjon meg egyedi nevet."
+    }
   },
   "Spec": {
     "MinLength": "{{minLength}} karakter",
@@ -202,5 +216,17 @@
     "DefaultValue": "{{defaultValue}}",
     "DefaultLabel": "alapérték",
     "DefaultMark": "(alapérték)"
+  },
+  "StaticContent": {
+    "ImageNoUrl": "Ehhez a képmezőhöz nincs megadva URL.",
+    "ImageUnparseableUrl": "Ez a képmező olyan URL-t tartalmaz, amelyet a böngésző nem tud értelmezni: {{url}}",
+    "ImageUnaddressableUrl": "Ez a képmező olyan URL-t tartalmaz, amely nem hivatkozhat képre: {{url}}",
+    "ImageDataNotImage": "Ez a képmező olyan data: URL-t tartalmaz, amely nem képet hordoz: {{url}}",
+    "ImageLoadFailed": "Az ezen az URL-en található képet nem sikerült betölteni. Lehet, hogy hiányzik, vagy a cím nem képet szolgál ki: {{url}}",
+    "VideoNoLink": "Ehhez a videómezőhöz nincs megadva YouTube-hivatkozás.",
+    "VideoNotALink": "Ez a videómező sem YouTube-hivatkozást, sem videóazonosítót nem tartalmaz: {{url}}",
+    "VideoOtherHost": "Ez a videómező a(z) {{host}} címre mutató hivatkozást tartalmaz, de csak YouTube-videók ágyazhatók be: {{url}}",
+    "VideoInvalidId": "Ez a YouTube-hivatkozás érvénytelen videóazonosítót tartalmaz: {{url}}",
+    "VideoNoSingleVideo": "Ez a YouTube-hivatkozás nem egyetlen videóra mutat, így nincs mit beágyazni. Lejátszási listára, csatornára vagy keresésre mutató hivatkozás nem ágyazható be: {{url}}"
   }
 }

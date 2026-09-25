@@ -15,6 +15,7 @@ import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-libr
 import { isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 import { InstanceValueNode } from './instance-value-node';
 import type { CeeChangeOperation } from '../../../cee-public-api';
+import { Translatable } from '../models/ui/translatable.model';
 // import { RdfBuilderService } from '../service/rdf-builder.service';
 
 export interface InstanceMutation {
@@ -199,7 +200,7 @@ export class HandlerContext {
 
     if (attributeToCopy !== null && attributeFieldToCopy !== null) {
       let copyNumber = 1;
-      let validationError: string | null;
+      let validationError: Translatable | null;
       do {
         const suffix = copyNumber === 1 ? ' copy' : ` copy ${copyNumber}`;
         validationError = this.dataObjectDataValueHandler.changeAttributeValue(
@@ -347,7 +348,7 @@ export class HandlerContext {
     this.reportMutation('valueChanged', component, value);
   }
 
-  changeAttributeValue(component: FieldComponent, key: string | null, value: string | null): string | null {
+  changeAttributeValue(component: FieldComponent, key: string | null, value: string | null): Translatable | null {
     const validationError = this.dataObjectDataValueHandler.changeAttributeValue(
       this.dataContext,
       component,
