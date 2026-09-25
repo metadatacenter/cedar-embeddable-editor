@@ -67,6 +67,10 @@
     "JsonLD": {
       "Instance": "Példány - JSON-LD"
     },
+    "Rdf": {
+      "InstanceTurtle": "Példány - Turtle",
+      "InstanceNQuads": "Példány - N-Quads"
+    },
     "JsonSchemaTemplate": "Sablon - JSON Séma",
     "Yaml": {
       "Instance": "Példány - YAML",

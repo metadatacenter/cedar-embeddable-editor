@@ -3,6 +3,7 @@ import { CedarTemplate } from '../models/template/cedar-template.model';
 import { DOWNLOAD_ITEMS, DownloadItemId } from '../models/ui/download-item.model';
 import { DataContext } from './data-context';
 import { InstanceSerializer } from './instance-serializer';
+import { toNQuads, toTurtle } from './rdf-export';
 
 /**
  * What each download contains, and what it is called.
@@ -31,8 +32,11 @@ const asJson = (value: unknown): string => JSON.stringify(value ?? null, null, 2
  * working tree. The panel this replaces once printed `instanceExtractData`
  * straight out, which is a *model*, so what a developer saw was `_values` and
  * `_iris` — CEE's internals offered as their metadata.
+ *
+ * Asynchronous because the JSON-LD processor that produces the RDF downloads is;
+ * the other downloads resolve at once.
  */
-export const downloadContentFor = (id: DownloadItemId, dataContext: DataContext): string => {
+export const downloadContentFor = async (id: DownloadItemId, dataContext: DataContext): Promise<string> => {
   const template = templateModel(dataContext);
   switch (id) {
     case 'instance':
@@ -41,6 +45,10 @@ export const downloadContentFor = (id: DownloadItemId, dataContext: DataContext)
       return InstanceSerializer.toYaml(dataContext.instanceFullData, template);
     case 'instanceYamlCompact':
       return InstanceSerializer.toYaml(dataContext.instanceFullData, template, true);
+    case 'instanceTurtle':
+      return toTurtle(InstanceSerializer.toJson(dataContext.instanceFullData, template));
+    case 'instanceNQuads':
+      return toNQuads(InstanceSerializer.toJson(dataContext.instanceFullData, template));
     case 'templateSource':
       return asJson(dataContext.templateInput);
     case 'templateYaml':

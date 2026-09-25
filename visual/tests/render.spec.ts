@@ -2706,7 +2706,7 @@ test('the download menu exposes only its supported artifact views', async ({ pag
   await page.locator('.download-trigger').click();
 
   const items = page.locator('[data-download]');
-  await expect(items).toHaveCount(7);
+  await expect(items).toHaveCount(9);
   expect(await items.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-download')))).toEqual([
     'templateYaml',
     'templateYamlCompact',
@@ -2714,8 +2714,12 @@ test('the download menu exposes only its supported artifact views', async ({ pag
     'instanceYaml',
     'instanceYamlCompact',
     'instance',
+    'instanceTurtle',
+    'instanceNQuads',
     'dataQuality',
   ]);
+  await expect(page.getByText('Instance - Turtle', { exact: true })).toBeVisible();
+  await expect(page.getByText('Instance - N-Quads', { exact: true })).toBeVisible();
   await expect(page.getByText('Template - JSON Schema', { exact: true })).toBeVisible();
   await expect(page.getByText('Instance - Compact YAML', { exact: true })).toBeVisible();
   await expect(page.getByText('Template - Compact YAML', { exact: true })).toBeVisible();
@@ -2737,6 +2741,8 @@ test('a read-only template-only download menu does not offer an instance file', 
   await expect(page.getByText('Instance - YAML', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Instance - Compact YAML', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Instance - JSON-LD', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Instance - Turtle', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Instance - N-Quads', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Data Quality Report', { exact: true })).toHaveCount(0);
 });
 
@@ -2812,6 +2818,42 @@ test.describe('what a host page reads back', () => {
     expect(body).toContain('"colour"');
     expect(body).toContain('"blue"');
     expect(body, "CEE's working tree reached the file").not.toContain('"_values"');
+  });
+
+  test('the RDF downloads state a stored instance, as Turtle and as N-Quads', async ({ page }) => {
+    await open(page, '11-choice-default', undefined, '11-choice-default-instance', undefined, '&f=showDownloadMenu');
+
+    const turtle = await takeDownload(page, 'instanceTurtle');
+    expect(turtle.filename).toBe('ChoiceDefault-instance.ttl');
+    expect(turtle.body).toContain('@prefix schema: <http://schema.org/>.');
+    expect(turtle.body).toContain('<https://example.org/instances/choice-default-1>');
+    expect(turtle.body).toContain('"Private"');
+    expect(turtle.body, 'a JSON-LD processor must not have been skipped').not.toContain('"@context"');
+
+    const nquads = await takeDownload(page, 'instanceNQuads');
+    expect(nquads.filename).toBe('ChoiceDefault-instance.nq');
+    expect(nquads.body).toContain('"Private"');
+    const lines = nquads.body.trim().split('\n');
+    expect(lines.length).toBeGreaterThan(0);
+    expect(
+      lines.every((line) => line.endsWith(' .')),
+      'every N-Quads line is one statement',
+    ).toBe(true);
+  });
+
+  test('an attribute named before the save holds back the RDF download and says why', async ({ page }) => {
+    await open(page, '10-attribute-values', undefined, undefined, undefined, '&f=showDownloadMenu');
+    await page.locator('input[aria-label="Attribute Name"]').fill('colour');
+    await page.locator('input[aria-label="Attribute Value"]').fill('blue');
+
+    const downloads: string[] = [];
+    page.on('download', (download) => downloads.push(download.suggestedFilename()));
+    const reason = page.waitForEvent('console', (message) => message.text().includes('has no property IRI yet'));
+    await page.locator('.download-trigger').click();
+    await page.locator('[data-download="instanceTurtle"]').click();
+
+    expect((await reason).text()).toContain('"colour" has no property IRI yet');
+    expect(downloads, 'a file that silently lacks the attribute must not be saved').toEqual([]);
   });
 
   test('a YAML download arrives as YAML, under its own extension', async ({ page }) => {

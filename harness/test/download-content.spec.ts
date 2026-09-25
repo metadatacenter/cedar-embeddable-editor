@@ -40,6 +40,8 @@ describe('the download menu', () => {
       'instanceYaml',
       'instanceYamlCompact',
       'instance',
+      'instanceTurtle',
+      'instanceNQuads',
       'dataQuality',
     ]);
   });
@@ -54,16 +56,16 @@ describe('the download menu', () => {
 });
 
 describe('every download produces something', () => {
-  it.each(DOWNLOAD_ITEMS.map((item) => item.id))('%s is a non-empty string', (id) => {
-    const content = downloadContentFor(id, driverWithValue().dataContext);
+  it.each(DOWNLOAD_ITEMS.map((item) => item.id))('%s is a non-empty string', async (id) => {
+    const content = await downloadContentFor(id, driverWithValue().dataContext);
     expect(typeof content).toBe('string');
     expect(content.length).toBeGreaterThan(0);
   });
 });
 
 describe('the instance downloads', () => {
-  it('are a CEDAR document, not CEE working tree', () => {
-    const json = downloadContentFor('instance', driverWithValue().dataContext);
+  it('are a CEDAR document, not CEE working tree', async () => {
+    const json = await downloadContentFor('instance', driverWithValue().dataContext);
 
     expect(json).toContain('@context');
     expect(json).toContain('a stored value');
@@ -72,16 +74,16 @@ describe('the instance downloads', () => {
     expect(json, "CEE's own IRI model leaked into the download").not.toContain('_iris');
   });
 
-  it('read as YAML rather than as JSON when the YAML entry is chosen', () => {
-    const yaml = downloadContentFor('instanceYaml', driverWithValue().dataContext);
+  it('read as YAML rather than as JSON when the YAML entry is chosen', async () => {
+    const yaml = await downloadContentFor('instanceYaml', driverWithValue().dataContext);
 
     expect(yaml).toContain('a stored value');
     expect(yaml, 'a YAML download must not be a JSON object').not.toMatch(/^\s*\{/);
     expect(yaml).not.toContain('dataContainer');
   });
 
-  it('offers the model library compact YAML form as a separate download', () => {
-    const yaml = downloadContentFor('instanceYamlCompact', driverWithValue().dataContext);
+  it('offers the model library compact YAML form as a separate download', async () => {
+    const yaml = await downloadContentFor('instanceYamlCompact', driverWithValue().dataContext);
 
     expect(yaml).toContain('a stored value');
     expect(yaml, 'a YAML download must not be a JSON object').not.toMatch(/^\s*\{/);
@@ -90,10 +92,10 @@ describe('the instance downloads', () => {
 });
 
 describe('the template YAML downloads', () => {
-  it('offers the model library compact form as a distinct, smaller document', () => {
+  it('offers the model library compact form as a distinct, smaller document', async () => {
     const context = driverWithValue().dataContext;
-    const full = downloadContentFor('templateYaml', context);
-    const compact = downloadContentFor('templateYamlCompact', context);
+    const full = await downloadContentFor('templateYaml', context);
+    const compact = await downloadContentFor('templateYamlCompact', context);
 
     expect(compact.length).toBeLessThan(full.length);
     expect(full).toContain('modelVersion:');

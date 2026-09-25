@@ -25,7 +25,7 @@
             "stylePreprocessorOptions": {
               "includePaths": ["src", "node_modules"]
             },
-            "allowedCommonJsDependencies": ["moment", "moment-timezone"],
+            "allowedCommonJsDependencies": ["moment", "moment-timezone", "jsonld", "buffer", "readable-stream"],
             "extractLicenses": false,
             "sourceMap": true,
             "optimization": false,

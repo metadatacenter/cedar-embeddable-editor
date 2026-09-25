@@ -26,6 +26,16 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
   CEE reads an artifact through class identity. The bundle grows by 15,474 gzip bytes, to
   656,506 of the 840,000 the size gate allows.
 
+- Two RDF downloads, `Instance - Turtle` and `Instance - N-Quads`, after `Instance - JSON-LD`. A
+  JSON-LD processor, `jsonld`, converts the instance, and `n3` writes the Turtle from the N-Quads, so
+  both files state the same triples. The processor fetches nothing: an instance naming a remote
+  context fails to convert. It runs in safe mode, so a field it would otherwise drop fails the
+  download and reports the reason through the error channel rather than producing a file that
+  silently lacks it. Three CEDAR conventions are restated first: a node whose `@id` is `null`
+  becomes a blank node, an empty field states nothing, and a field name JSON-LD 1.1 would read as an
+  IRI keeps its IRI under a neutral term. The bundle grows by 57,019 gzip bytes, to 637,123 of
+  the 840,000 the size gate allows.
+
 ### Changed
 
 - Every field CEE renders now goes through one component. The eighteen-way widget switch and

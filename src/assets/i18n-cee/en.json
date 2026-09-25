@@ -67,6 +67,10 @@
     "JsonLD": {
       "Instance": "Instance - JSON-LD"
     },
+    "Rdf": {
+      "InstanceTurtle": "Instance - Turtle",
+      "InstanceNQuads": "Instance - N-Quads"
+    },
     "JsonSchemaTemplate": "Template - JSON Schema",
     "Yaml": {
       "Instance": "Instance - YAML",

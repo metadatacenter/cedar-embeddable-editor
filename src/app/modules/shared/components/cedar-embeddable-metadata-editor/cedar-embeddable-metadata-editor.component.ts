@@ -127,9 +127,11 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    *
    * Traced rather than silent: a page-initiated download can be refused by a
    * sandboxed host with no event to observe, so a developer seeing the trace and
-   * no file knows where to look.
+   * no file knows where to look. A view that cannot be produced, such as RDF from
+   * an instance whose context the processor refuses, is reported as an error and
+   * saves nothing, rather than a file that silently lacks what it failed on.
    */
-  download(id: DownloadItemId): void {
+  async download(id: DownloadItemId): Promise<void> {
     const { dataContext } = this;
     if (dataContext === null) {
       return;
@@ -140,7 +142,19 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
       return;
     }
     this.messageHandlerService.trace('CEDAR Embeddable Editor: downloading ' + filename);
-    triggerDownload(filename, item.mediaType, downloadContentFor(id, dataContext));
+    let content: string;
+    try {
+      content = await downloadContentFor(id, dataContext);
+    } catch (error) {
+      this.messageHandlerService.error(
+        'CEDAR Embeddable Editor: could not produce ' +
+          filename +
+          ': ' +
+          (error instanceof Error ? error.message : String(error)),
+      );
+      return;
+    }
+    triggerDownload(filename, item.mediaType, content);
   }
 
   ngOnDestroy(): void {

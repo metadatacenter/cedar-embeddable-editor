@@ -25,7 +25,7 @@ export interface DownloadItemDescriptor {
   /** Appended to the artifact's name to make the saved file's name. */
   suffix: string;
   /** File extension, without the dot. */
-  extension: 'json' | 'yaml';
+  extension: 'json' | 'yaml' | 'ttl' | 'nq';
   /** What the blob is labelled as, which decides how a browser treats it. */
   mediaType: string;
 }
@@ -34,6 +34,8 @@ export type DownloadItemId =
   | 'instance'
   | 'instanceYaml'
   | 'instanceYamlCompact'
+  | 'instanceTurtle'
+  | 'instanceNQuads'
   | 'templateSource'
   | 'templateYaml'
   | 'templateYamlCompact'
@@ -41,6 +43,8 @@ export type DownloadItemId =
 
 const JSON_TYPE = 'application/json';
 const YAML_TYPE = 'application/yaml';
+const TURTLE_TYPE = 'text/turtle';
+const NQUADS_TYPE = 'application/n-quads';
 
 /**
  * Every supported download.
@@ -71,6 +75,22 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
     suffix: 'instance-compact',
     extension: 'yaml',
     mediaType: YAML_TYPE,
+  },
+  {
+    id: 'instanceTurtle',
+    labelKey: 'Extra.Rdf.InstanceTurtle',
+    icon: 'property',
+    suffix: 'instance',
+    extension: 'ttl',
+    mediaType: TURTLE_TYPE,
+  },
+  {
+    id: 'instanceNQuads',
+    labelKey: 'Extra.Rdf.InstanceNQuads',
+    icon: 'property',
+    suffix: 'instance',
+    extension: 'nq',
+    mediaType: NQUADS_TYPE,
   },
   {
     id: 'templateSource',
@@ -108,8 +128,8 @@ export const DOWNLOAD_ITEMS: readonly DownloadItemDescriptor[] = [
 
 /**
  * What the download menu offers, in reading order. The template views come first and the instance
- * views follow, each group running YAML, compact YAML, then the JSON serialization. The report
- * comes last.
+ * views follow, each group running YAML, compact YAML, then the JSON serialization. The instance's
+ * RDF follows its JSON-LD, Turtle before N-Quads. The report comes last.
  */
 const DOWNLOAD_MENU_ORDER: readonly DownloadItemId[] = [
   'templateYaml',
@@ -118,6 +138,8 @@ const DOWNLOAD_MENU_ORDER: readonly DownloadItemId[] = [
   'instanceYaml',
   'instanceYamlCompact',
   'instance',
+  'instanceTurtle',
+  'instanceNQuads',
   'dataQuality',
 ];
 
@@ -133,6 +155,8 @@ const INSTANCE_ONLY_DOWNLOAD_IDS: ReadonlySet<DownloadItemId> = new Set([
   'instanceYaml',
   'instanceYamlCompact',
   'instance',
+  'instanceTurtle',
+  'instanceNQuads',
   'dataQuality',
 ]);
 
