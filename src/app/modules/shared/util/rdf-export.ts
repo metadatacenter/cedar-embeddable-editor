@@ -1,5 +1,6 @@
 import jsonld from 'jsonld';
-import { Parser, Writer } from 'n3';
+import type { JsonLdDocument } from 'jsonld';
+import { DataFactory, Parser, Writer } from 'n3';
 import type { JsonNode } from 'cedar-model-typescript-library';
 
 /**
@@ -9,8 +10,8 @@ import type { JsonNode } from 'cedar-model-typescript-library';
  * The document loader refuses every URL: an instance naming a remote context fails to convert
  * rather than making CEE fetch from somewhere its embedding contract never mentioned.
  *
- * CEDAR's JSON is not quite JSON-LD, in three deliberate ways that `toRdfReady` settles first. Past
- * those, the processor runs in safe mode, so anything else it would drop fails the conversion: a
+ * CEDAR's JSON conventions are settled by `toRdfReady` before JSON-LD expansion.
+ * Expansion warnings and invalid RDF terms fail conversion rather than discard information: a
  * download that fails says so, and one that silently loses a field does not.
  */
 const refuseRemoteContexts = async (url: string): Promise<never> => {
@@ -43,7 +44,9 @@ const asJson = (value: unknown): Json => {
 
 /** A field with nothing in it: `{}` for an IRI field, `{"@value": null}` for a literal one. */
 const isEmptyField = (value: Json): boolean =>
-  isObject(value) && (Object.keys(value).length === 0 || ('@value' in value && value['@value'] === null));
+  isObject(value) &&
+  (Object.keys(value).length === 0 ||
+    (value['@value'] === null && Object.keys(value).every((key) => ['@value', '@type', '@language'].includes(key))));
 
 /**
  * An attribute-value field's list of the attribute names it holds.
@@ -51,8 +54,15 @@ const isEmptyField = (value: Json): boolean =>
  * Each named attribute is a property of the same object with an IRI in the context, so the triples
  * are all there without the list, and the list itself names no property: it is structure.
  */
-const isAttributeNameList = (key: string, value: Json, node: JsonObject): boolean =>
+const isAttributeNameList = (
+  key: string,
+  value: Json,
+  node: JsonObject,
+  context: ReadonlyMap<string, Json>,
+  schema: Json,
+): boolean =>
   !key.startsWith('@') &&
+  (isAttributeSchema(schema) || (!context.has(key) && !context.has('@vocab'))) &&
   Array.isArray(value) &&
   value.length > 0 &&
   value.every((name) => typeof name === 'string' && name !== key && name in node);
@@ -69,6 +79,7 @@ const needsAlias = (term: string, prefixes: ReadonlySet<string>): boolean => {
   if (term.startsWith('@')) {
     return false;
   }
+  if (['__proto__', 'constructor', 'prototype'].includes(term)) return true;
   const colon = term.indexOf(':');
   if (colon > 0 && prefixes.has(term.slice(0, colon)) && !term.slice(colon + 1).startsWith('//')) {
     return false;
@@ -83,10 +94,41 @@ interface Scope {
   aliases: ReadonlyMap<string, string>;
   /** Numbers the aliases of one conversion. */
   next: { value: number };
+  names: ReadonlySet<string>;
+  definitions: ReadonlyMap<string, Json>;
 }
+
+const childSchema = (schema: Json, key: string): Json => {
+  const properties = isObject(schema) ? schema['properties'] : null;
+  const child = isObject(properties) ? properties[key] : null;
+  return isObject(child) && child['type'] === 'array' ? (child['items'] ?? null) : (child ?? null);
+};
+const isAttributeSchema = (schema: Json): boolean =>
+  isObject(schema) && isObject(schema['_ui']) && schema['_ui']['inputType'] === 'attribute-value';
+
+const allNames = (value: Json, names = new Set<string>()): ReadonlySet<string> => {
+  if (Array.isArray(value)) value.forEach((item) => allNames(item, names));
+  else if (isObject(value))
+    Object.entries(value).forEach(([key, member]) => {
+      names.add(key);
+      allNames(member, names);
+    });
+  return names;
+};
 
 /** This object's context with its IRI-like terms renamed, and the scope its own keys resolve in. */
 const enterContext = (context: Json, outer: Scope): { context: Json; scope: Scope } => {
+  if (context === null)
+    return { context, scope: { ...outer, prefixes: new Set(), aliases: new Map(), definitions: new Map() } };
+  if (Array.isArray(context)) {
+    let scope = outer;
+    const entries = context.map((entry) => {
+      const entered = enterContext(entry, scope);
+      scope = entered.scope;
+      return entered.context;
+    });
+    return { context: entries, scope };
+  }
   if (!isObject(context)) {
     return { context, scope: outer };
   }
@@ -95,12 +137,25 @@ const enterContext = (context: Json, outer: Scope): { context: Json; scope: Scop
     if (typeof definition === 'string' && /[/#]$/.test(definition) && !term.includes(':')) {
       prefixes.add(term);
     }
+    if (
+      isObject(definition) &&
+      definition['@prefix'] === true &&
+      typeof definition['@id'] === 'string' &&
+      !term.includes(':')
+    ) {
+      prefixes.add(term);
+    }
   }
   const aliases = new Map(outer.aliases);
+  const definitions = new Map(outer.definitions);
   const renamed: JsonObject = {};
   for (const [term, definition] of Object.entries(context)) {
+    definitions.set(term, definition);
     if (needsAlias(term, prefixes)) {
-      const alias = `cee-term-${outer.next.value++}`;
+      let alias: string;
+      do {
+        alias = `cee-term-${outer.next.value++}`;
+      } while (outer.names.has(alias));
       aliases.set(term, alias);
       renamed[alias] = definition;
     } else {
@@ -108,15 +163,22 @@ const enterContext = (context: Json, outer: Scope): { context: Json; scope: Scop
       renamed[term] = definition;
     }
   }
-  return { context: renamed, scope: { prefixes, aliases, next: outer.next } };
+  return { context: renamed, scope: { ...outer, prefixes, aliases, definitions } };
 };
 
-const convert = (node: Json, outer: Scope): Json => {
+const convert = (node: Json, outer: Scope, schema: Json): Json => {
   if (Array.isArray(node)) {
-    return node.filter((item) => !isEmptyField(item)).map((item) => convert(item, outer));
+    return node.map((item) => convert(item, outer, schema)).filter((item) => !isEmptyField(item));
   }
   if (!isObject(node)) {
     return node;
+  }
+  if ('@value' in node) {
+    if ('@id' in node) throw new Error('An RDF field cannot contain both @id and @value.');
+    if (Array.isArray(node['@type']) && node['@type'].length > 1)
+      throw new Error('An RDF literal has at most one datatype.');
+    if (node['@value'] === null && !isEmptyField(node))
+      throw new Error('A null literal carries metadata RDF would discard.');
   }
   const { context, scope } =
     '@context' in node ? enterContext(node['@context'], outer) : { context: undefined, scope: outer };
@@ -128,10 +190,18 @@ const convert = (node: Json, outer: Scope): Json => {
     if (key === '@context') {
       continue;
     }
-    if ((key === '@id' && value === null) || isEmptyField(value) || isAttributeNameList(key, value, node)) {
+    if (
+      (key === '@id' && value === null) ||
+      isAttributeNameList(key, value, node, scope.definitions, childSchema(schema, key))
+    ) {
       continue;
     }
-    const converted = convert(value, scope);
+    if (key === '@type' && '@value' in node && Array.isArray(value)) {
+      if (value.length === 1) ready[key] = value[0];
+      continue;
+    }
+    const converted = convert(value, scope, childSchema(schema, key));
+    if (isEmptyField(converted)) continue;
     if (Array.isArray(converted) && converted.length === 0) {
       continue;
     }
@@ -151,8 +221,122 @@ const convert = (node: Json, outer: Scope): Json => {
  * - A field name JSON-LD would read as an IRI is renamed, for the reason `needsAlias` gives. A term
  *   is only a local name for its IRI, so the renaming changes no triple.
  */
-export const toRdfReady = (node: Json): Json =>
-  convert(node, { prefixes: new Set(), aliases: new Map(), next: { value: 0 } });
+export const toRdfReady = (node: Json, schema: Json = null): Json =>
+  convert(
+    node,
+    { prefixes: new Set(), aliases: new Map(), definitions: new Map(), names: allNames(node), next: { value: 0 } },
+    schema,
+  );
+
+/** Validate without changing RDF identity. URL serialization would normalize the spelling. */
+const assertIri = (iri: string): void => {
+  if (iri.startsWith('_:')) {
+    if (!/^_:[A-Za-z0-9_][A-Za-z0-9._-]*$/.test(iri) || iri.endsWith('.'))
+      throw new Error('Invalid blank-node identifier.');
+    return;
+  }
+  if (
+    !/^[A-Za-z][A-Za-z0-9+.-]*:.+/.test(iri) ||
+    /%(?![0-9A-Fa-f]{2})/.test(iri) ||
+    iri.indexOf('#') !== iri.lastIndexOf('#')
+  ) {
+    throw new Error('RDF requires a well-formed absolute IRI: ' + iri);
+  }
+  // Square brackets are reserved for IP literals in an authority, never a path or opaque part.
+  if (iri.includes('[') || iri.includes(']')) {
+    const match = /^[A-Za-z][A-Za-z0-9+.-]*:\/\/([^/?#]*)(.*)$/.exec(iri);
+    if (!match || /[[\]]/.test(match[2])) throw new Error('Invalid brackets in RDF IRI.');
+    try {
+      new URL('http://' + match[1]);
+    } catch {
+      throw new Error('Invalid IP literal in RDF IRI.');
+    }
+  }
+  let query = false;
+  let fragment = false;
+  for (const character of iri) {
+    const cp = character.codePointAt(0)!;
+    if (character === '#') {
+      fragment = true;
+      query = false;
+    } else if (character === '?' && !fragment) query = true;
+    if (cp < 0x80) {
+      if (cp <= 0x20 || cp === 0x7f || '<>"{}|\\^`'.includes(character)) throw new Error('Invalid RDF IRI character.');
+    } else {
+      const ucs =
+        (cp >= 0xa0 && cp <= 0xd7ff) ||
+        (cp >= 0xf900 && cp <= 0xfdcf) ||
+        (cp >= 0xfdf0 && cp <= 0xffef) ||
+        (cp >= 0x10000 && cp <= 0xdfffd && (cp & 0xffff) <= 0xfffd) ||
+        (cp >= 0xe1000 && cp <= 0xefffd);
+      const privateChar =
+        (cp >= 0xe000 && cp <= 0xf8ff) || (cp >= 0xf0000 && cp <= 0xffffd) || (cp >= 0x100000 && cp <= 0x10fffd);
+      if (!ucs && !(query && privateChar)) throw new Error('Invalid Unicode RDF IRI character.');
+    }
+  }
+};
+
+/**
+ * Processors have URI-only checks and jsonld.js rewrites string-valued xsd:double literals.
+ * After expansion, validate every IRI and temporarily replace it with an opaque absolute IRI.
+ * Restore RDF terms by exact lookup after conversion. Every original IRI is replaced, so an
+ * input spelling that resembles our tokens cannot collide. Literal text is never replaced.
+ */
+const protectExpanded = (expanded: Json): { document: Json; restore: (iri: string) => string } => {
+  let tokenPrefix = 'urn:cedar:rdf:';
+  const inputText = JSON.stringify(expanded);
+  while (inputText.includes(tokenPrefix)) tokenPrefix += 'x:';
+  const forward = new Map<string, string>();
+  const reverse = new Map<string, string>();
+  const protect = (iri: Json): Json => {
+    if (typeof iri !== 'string') throw new Error('RDF identifiers and datatypes must be strings.');
+    assertIri(iri);
+    if (iri.startsWith('_:')) return iri;
+    let token = forward.get(iri);
+    if (!token) {
+      token = `${tokenPrefix}${forward.size}`;
+      forward.set(iri, token);
+      reverse.set(token, iri);
+    }
+    return token;
+  };
+  const walk = (node: Json): Json => {
+    if (Array.isArray(node)) return node.map(walk);
+    if (!isObject(node)) return node;
+    const result: JsonObject = {};
+    for (const [key, value] of Object.entries(node)) {
+      if (key === '@value' || key === '@language') {
+        result[key] = value;
+        continue;
+      }
+      if (key === '@index' || key === '@direction' || key === '@json')
+        throw new Error('RDF export cannot preserve ' + key + '.');
+      if (key === '@id' || key === '@type') {
+        // Numeric values still need the processor's datatype-specific numeric conversion.
+        result[key] =
+          key === '@type' && typeof node['@value'] === 'number'
+            ? value
+            : Array.isArray(value)
+              ? value.map(protect)
+              : protect(value);
+        if (key === '@type' && typeof node['@value'] === 'number') {
+          (Array.isArray(value) ? value : [value]).forEach((type) => {
+            if (typeof type !== 'string') throw new Error('Invalid datatype.');
+            assertIri(type);
+          });
+        }
+      } else {
+        if (key.startsWith('@') && !['@graph', '@list', '@reverse', '@included'].includes(key))
+          throw new Error('Unsupported expanded RDF keyword: ' + key);
+        const property = key.startsWith('@') ? key : (protect(key) as string);
+        if (key.startsWith('_:')) throw new Error('RDF predicates must be IRIs.');
+        result[property] = walk(value);
+      }
+    }
+    return result;
+  };
+  return { document: walk(expanded), restore: (iri) => reverse.get(iri) ?? iri };
+};
 
 /**
  * The processor's refusal, restated where CEDAR explains it.
@@ -178,20 +362,68 @@ const explained = (error: unknown): unknown => {
 };
 
 /** The instance as N-Quads, one statement per line. */
-export const toNQuads = async (instance: JsonNode): Promise<string> => {
-  const document = toRdfReady(asJson(instance));
+export const toNQuads = async (instance: JsonNode, schema?: JsonNode): Promise<string> => {
+  const document = toRdfReady(asJson(instance), schema ? asJson(schema) : null);
   if (!isObject(document)) {
     throw new Error('An instance is a JSON object');
   }
-  // Safe mode arrived in jsonld 6, after the type declarations were last written.
-  const options: jsonld.Options.ToRdf & { safe: boolean } = {
+  // jsonld's safe handler uses a URI-only regular expression. Defer identifier warnings
+  // to our RFC 3987 check on expanded IRIs; every other warning still refuses export.
+  type Event = { code: string; message: string; details: Record<string, unknown> };
+  const options: jsonld.Options.ToRdf & { eventHandler: (input: { event: Event }) => void } = {
     format: 'application/n-quads',
     documentLoader: refuseRemoteContexts,
-    safe: true,
+    eventHandler: ({ event }) => {
+      if (['relative @id reference', 'relative @type reference'].includes(event.code)) return;
+      throw Object.assign(new Error(event.message), { details: { event } });
+    },
   };
+  if (Object.keys(document).every((key) => ['@context', '@id'].includes(key))) {
+    if (typeof document['@id'] === 'string') assertIri(document['@id']);
+    // Still validate contexts, including the no-network rule, using an empty anonymous node.
+    await jsonld.expand(
+      { '@context': document['@context'] ?? {} } as JsonLdDocument,
+      {
+        ...options,
+        eventHandler: ({ event }: { event: Event }) => {
+          if (event.code !== 'empty object') options.eventHandler({ event });
+        },
+      } as typeof options,
+    );
+    return '';
+  }
   let nquads: unknown;
   try {
-    nquads = await jsonld.toRDF(document, options);
+    const expanded = await jsonld.expand(document, options);
+    const protectedRdf = protectExpanded(asJson(expanded));
+    const rdfOptions: jsonld.Options.ToRdf & { skipExpansion: boolean } = { ...options, skipExpansion: true };
+    nquads = await jsonld.toRDF(protectedRdf.document as JsonLdDocument, rdfOptions);
+    if (typeof nquads !== 'string') throw new Error('Expected N-Quads.');
+    const restore = (term: ReturnType<typeof DataFactory.namedNode> | import('n3').Term): import('n3').Term => {
+      if (term.termType === 'NamedNode') return DataFactory.namedNode(protectedRdf.restore(term.value));
+      if (term.termType === 'Literal')
+        return DataFactory.literal(
+          term.value,
+          term.language || DataFactory.namedNode(protectedRdf.restore(term.datatype.value)),
+        );
+      return term;
+    };
+    const writer = new Writer({ format: 'N-Quads' });
+    writer.addQuads(
+      new Parser({ format: 'N-Quads', blankNodePrefix: '' })
+        .parse(nquads)
+        .map((q) =>
+          DataFactory.quad(
+            restore(q.subject) as typeof q.subject,
+            restore(q.predicate) as typeof q.predicate,
+            restore(q.object) as typeof q.object,
+            restore(q.graph) as typeof q.graph,
+          ),
+        ),
+    );
+    nquads = await new Promise<string>((resolve, reject) =>
+      writer.end((error, text) => (error ? reject(error) : resolve(text))),
+    );
   } catch (error) {
     throw explained(error);
   }
@@ -207,8 +439,10 @@ export const toNQuads = async (instance: JsonNode): Promise<string> => {
  * Produced from the N-Quads, so both downloads state exactly the same triples. The prefixes are the
  * ones the instance's own context declares, which keeps the Turtle as readable as the JSON-LD.
  */
-export const toTurtle = async (instance: JsonNode): Promise<string> => {
-  const quads = new Parser({ format: 'N-Quads', blankNodePrefix: '' }).parse(await toNQuads(instance));
+export const toTurtle = async (instance: JsonNode, schema?: JsonNode): Promise<string> => {
+  const quads = new Parser({ format: 'N-Quads', blankNodePrefix: '' }).parse(await toNQuads(instance, schema));
+  if (quads.some((q) => q.graph.termType !== 'DefaultGraph'))
+    throw new Error('Turtle cannot preserve named graphs; use N-Quads.');
   const writer = new Writer({ format: 'Turtle', prefixes: declaredPrefixes(asJson(instance)) });
   writer.addQuads(quads);
   return new Promise((resolve, reject) =>

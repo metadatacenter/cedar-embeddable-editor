@@ -46,9 +46,15 @@ export const downloadContentFor = async (id: DownloadItemId, dataContext: DataCo
     case 'instanceYamlCompact':
       return InstanceSerializer.toYaml(dataContext.instanceFullData, template, true);
     case 'instanceTurtle':
-      return toTurtle(InstanceSerializer.toJson(dataContext.instanceFullData, template));
+      return toTurtle(
+        InstanceSerializer.toJson(dataContext.instanceFullData, template),
+        template ? CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template) : undefined,
+      );
     case 'instanceNQuads':
-      return toNQuads(InstanceSerializer.toJson(dataContext.instanceFullData, template));
+      return toNQuads(
+        InstanceSerializer.toJson(dataContext.instanceFullData, template),
+        template ? CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template) : undefined,
+      );
     case 'templateSource':
       return asJson(dataContext.templateInput);
     case 'templateYaml':

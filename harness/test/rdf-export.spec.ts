@@ -9,8 +9,10 @@
  * Past those, the processor runs in safe mode, so the corpus cases below prove that
  * nothing any of them holds is lost on the way.
  */
-import { describe, expect, it } from 'vitest';
-import { Parser, type Quad } from 'n3';
+import { afterAll, describe, expect, it } from 'vitest';
+import { readFileSync, writeFileSync } from 'node:fs';
+import jsonld from 'jsonld';
+import { Parser, Writer, type Quad } from 'n3';
 import { toNQuads, toTurtle } from '@cee/util/rdf-export';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { CedarTemplate } from '@cee/models/template/cedar-template.model';
@@ -31,11 +33,65 @@ const statements = (quads: Quad[]): string[] =>
 const fromNQuads = (text: string): Quad[] => new Parser({ format: 'N-Quads' }).parse(text);
 const fromTurtle = (text: string): Quad[] => new Parser({ format: 'Turtle' }).parse(text);
 
+/** Preserve blank-node relationships, graph names, literal datatypes and language tags. */
+const canonical = async (quads: Quad[]): Promise<string> => {
+  const writer = new Writer({ format: 'N-Quads' });
+  writer.addQuads(quads);
+  const nquads = await new Promise<string>((resolve, reject) =>
+    writer.end((error, text) => (error ? reject(error) : resolve(text))),
+  );
+  // @types/jsonld predates the supported N-Quads input form.
+  const canonizeNQuads = jsonld.canonize as unknown as (
+    input: string,
+    options: {
+      inputFormat: string;
+      format: string;
+      canonizeOptions: { algorithm: string; maxDeepIterations: number };
+    },
+  ) => Promise<string>;
+  return canonizeNQuads(nquads, {
+    inputFormat: 'application/n-quads',
+    format: 'application/n-quads',
+    canonizeOptions: { algorithm: 'RDFC-1.0', maxDeepIterations: 10_000 },
+  });
+};
+
 const PREFIXES = {
   xsd: XSD,
   schema: 'http://schema.org/',
   pav: 'http://purl.org/pav/',
 };
+
+describe('RDF dataset comparison', () => {
+  it('ignores blank-node labels while retaining cycles', async () => {
+    const a = '_:a <https://example.org/next> _:b .\n_:b <https://example.org/next> _:a .';
+    const b = '_:x <https://example.org/next> _:y .\n_:y <https://example.org/next> _:x .';
+    expect(await canonical(fromNQuads(a))).toEqual(await canonical(fromNQuads(b)));
+  });
+
+  it('distinguishes two separate nodes from a shared node', async () => {
+    const a =
+      '<https://example.org/s> <https://example.org/a> _:a .\n' +
+      '<https://example.org/s> <https://example.org/b> _:b .';
+    const b =
+      '<https://example.org/s> <https://example.org/a> _:a .\n' +
+      '<https://example.org/s> <https://example.org/b> _:a .';
+    expect(await canonical(fromNQuads(a))).not.toEqual(await canonical(fromNQuads(b)));
+  });
+
+  it('retains datatypes, language tags and graph names', async () => {
+    const statement = '<https://example.org/s> <https://example.org/p> ';
+    const variants = [
+      '"1"',
+      '"1"^^<http://www.w3.org/2001/XMLSchema#int>',
+      '"1"@en',
+      '"1"@fr',
+      '"1" <https://example.org/graph>',
+    ];
+    const normalized = await Promise.all(variants.map((value) => canonical(fromNQuads(statement + value + ' .'))));
+    expect(new Set(normalized).size).toBe(variants.length);
+  });
+});
 
 describe('an instance as RDF', () => {
   it('types literals and IRIs the way the context coerces them', async () => {
@@ -195,12 +251,46 @@ describe('every corpus instance', () => {
     return InstanceSerializer.toJson(driver.dataContext.instanceFullData, template);
   };
 
+  const exported: Array<{ id: string; source: ReturnType<typeof instanceFor> }> = [];
+  afterAll(() => {
+    // Opt-in evidence for the isolated Java/CEE processor comparison. No production data here.
+    const output = process.env.CEDAR_RDF_CORPUS_OUTPUT;
+    if (output) writeFileSync(output, JSON.stringify(exported, null, 2) + '\n');
+  });
+
   it.each(paired.map((c) => c.id))('case %s converts, and its Turtle states exactly its N-Quads', async (id) => {
     const instance = instanceFor(id);
-    const nquads = statements(fromNQuads(await toNQuads(instance)));
-    const turtle = statements(fromTurtle(await toTurtle(instance)));
+    exported.push({ id, source: instance });
+    const nquads = await canonical(fromNQuads(await toNQuads(instance)));
+    const turtle = await canonical(fromTurtle(await toTurtle(instance)));
 
     expect(nquads.length).toBeGreaterThan(0);
     expect(turtle).toEqual(nquads);
   });
+});
+
+// Shared authored contract; expected statements are independent of either implementation.
+const rdfCases = JSON.parse(readFileSync(new URL('../fixtures/rdf-corpus.json', import.meta.url), 'utf8')) as {
+  id: string;
+  source: Parameters<typeof toNQuads>[0];
+  template?: Parameters<typeof toNQuads>[1];
+  expect: string;
+  expectedNquads: string;
+}[];
+describe('independent RDF contract corpus', () => {
+  for (const fixture of rdfCases)
+    it(fixture.id, async () => {
+      const before = JSON.stringify(fixture.source);
+      if (fixture.expect === 'reject') {
+        await expect(toNQuads(fixture.source, fixture.template)).rejects.toThrow();
+        await expect(toTurtle(fixture.source, fixture.template)).rejects.toThrow();
+      } else {
+        const expected = await canonical(fromNQuads(fixture.expectedNquads));
+        expect(await canonical(fromNQuads(await toNQuads(fixture.source, fixture.template)))).toEqual(expected);
+        if (fixture.id === 'named-graph')
+          await expect(toTurtle(fixture.source, fixture.template)).rejects.toThrow('named graphs');
+        else expect(await canonical(fromTurtle(await toTurtle(fixture.source, fixture.template)))).toEqual(expected);
+      }
+      expect(JSON.stringify(fixture.source)).toEqual(before);
+    });
 });
