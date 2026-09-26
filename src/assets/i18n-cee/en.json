@@ -14,6 +14,8 @@
     "Clear": "Clear",
     "SelectDecimalSeconds": "Select Decimal Seconds",
     "SelectUtcOffset": "Timezone unspecified",
+    "NonStandardUtcOffset": "(non-standard)",
+    "InvalidUtcOffset": "(invalid)",
     "SelectYear": "Select Year",
     "SelectYearAndMonth": "Select Year and Month",
     "SelectDate": "Select Date",
@@ -42,15 +44,24 @@
     "DecrementSecond": "Decrement second",
     "ToggleMeridian": "Switch between AM and PM",
     "Download": "Download",
-    "TemplateVersion": "Version {{version}}",
+    "TemplateVersion": "Template version {{version}}",
     "StatusDraft": "Draft",
-    "StatusPublished": "Published"
+    "StatusPublished": "Published",
+    "HourPlaceholder": "HH",
+    "MinutePlaceholder": "MM",
+    "SecondPlaceholder": "SS",
+    "DecimalSecondsPlaceholder": "sss",
+    "Required": "required",
+    "CeeOnNpm": "CEE on npm",
+    "YoutubeVideo": "YouTube video"
   },
   "Multi": {
     "NoInstancesYet": "No instances yet",
     "AddEmptyAfter": "Add empty after current",
     "AddCloneAfter": "Add clone after current",
-    "DeleteCurrent": "Delete current"
+    "DeleteCurrent": "Delete current",
+    "AllowsMultiValues": "Allows multi values.",
+    "NoValuesYet": "No values yet"
   },
   "Error": {
     "LookupFailed": "Search failed: the service could not be reached",
@@ -66,6 +77,10 @@
     },
     "JsonLD": {
       "Instance": "Instance - JSON-LD"
+    },
+    "Rdf": {
+      "InstanceTurtle": "Instance - Turtle",
+      "InstanceNQuads": "Instance - N-Quads"
     },
     "JsonSchemaTemplate": "Template - JSON Schema",
     "Yaml": {
@@ -86,10 +101,17 @@
   "Validation": {
     "SelectAtLeastOne": "Select at least one option.",
     "Required": "The value is required.",
+    "Invalid": "The value is not valid.",
     "Temporal": {
       "MissingDate": "A date is still needed. Nothing is recorded until the value is complete.",
       "MissingTime": "A time is still needed. Nothing is recorded until the value is complete.",
-      "MissingFraction": "The fraction of a second is still needed. Nothing is recorded until the value is complete."
+      "MissingFraction": "The fraction of a second is still needed. Nothing is recorded until the value is complete.",
+      "InvalidDate": "Enter a valid date.",
+      "InvalidTime": "Enter a valid time.",
+      "InvalidDateTime": "Enter a valid date and time.",
+      "Granularity": "The value does not match the precision this field records.",
+      "UnexpectedTimezone": "The value carries a timezone offset, which this field does not record.",
+      "InvalidTimezoneOffset": "The timezone offset is not a valid UTC offset. Choose one from the list."
     },
     "Text": {
       "MinLength": "Value should be at least {{constraintMinLength}} chars long.",
@@ -109,7 +131,23 @@
     },
     "Numeric": {
       "MinValue": "Value should be at least {{constraintMinValue}}.",
-      "MaxValue": "Value should be at most {{constraintMaxValue}}."
+      "MaxValue": "Value should be at most {{constraintMaxValue}}.",
+      "Type": {
+        "Integer": "The value should be an integer.",
+        "LongInteger": "The value should be a long integer.",
+        "Byte": "The value should be a byte (-128 to 127).",
+        "Short": "The value should be a short (-32768 to 32767).",
+        "Float": "The value should be a float.",
+        "FloatOnePlace": "The value should be a float with at most {{decimalPlace}} decimal place.",
+        "FloatPlaces": "The value should be a float with at most {{decimalPlace}} decimal places.",
+        "Double": "The value should be a double.",
+        "DoubleOnePlace": "The value should be a double with at most {{decimalPlace}} decimal place.",
+        "DoublePlaces": "The value should be a double with at most {{decimalPlace}} decimal places.",
+        "Decimal": "The value should be a decimal.",
+        "DecimalOnePlace": "The value should be a decimal with at most {{decimalPlace}} decimal place.",
+        "DecimalPlaces": "The value should be a decimal with at most {{decimalPlace}} decimal places.",
+        "WholeNumber": "The value should be a number with no decimal places."
+      }
     },
     "Time": {
       "InvalidHour24": "Enter an hour from 00 to 23. The previous value was restored.",
@@ -132,7 +170,12 @@
     "ControlledTermInvalid": "Entered value is not a term from the allowed set and has been cleared.",
     "ControlledTermReverted": "Not a term from the allowed set, edit was discarded; restored last valid term.",
     "DoiInvalid": "Entered value is not a valid DOI and has been cleared.",
-    "DoiReverted": "Invalid DOI, edit was discarded; restored last valid DOI."
+    "DoiReverted": "Invalid DOI, edit was discarded; restored last valid DOI.",
+    "Attribute": {
+      "NameInvalid": "Attribute name must contain text and no control characters.",
+      "NameReserved": "Attribute name \"{{name}}\" is reserved for instance metadata.",
+      "NameInUse": "Attribute name \"{{name}}\" is already used in this instance. Choose a unique name."
+    }
   },
   "Spec": {
     "MinLength": "{{minLength}} chars",
@@ -176,5 +219,17 @@
     "DefaultValue": "{{defaultValue}}",
     "DefaultLabel": "default",
     "DefaultMark": "(default)"
+  },
+  "StaticContent": {
+    "ImageNoUrl": "This image field has no URL.",
+    "ImageUnparseableUrl": "This image field holds a URL the browser cannot parse: {{url}}",
+    "ImageUnaddressableUrl": "This image field holds a URL that cannot address an image: {{url}}",
+    "ImageDataNotImage": "This image field holds a data: URL that carries something other than an image: {{url}}",
+    "ImageLoadFailed": "The image at this URL could not be loaded. It may be missing, or the address may not serve an image: {{url}}",
+    "VideoNoLink": "This video field has no YouTube link.",
+    "VideoNotALink": "This video field holds neither a YouTube link nor a video ID: {{url}}",
+    "VideoOtherHost": "This video field holds a link to {{host}}, and only YouTube videos can be embedded: {{url}}",
+    "VideoInvalidId": "This YouTube link carries a video ID that is not valid: {{url}}",
+    "VideoNoSingleVideo": "This YouTube link names no single video, so there is nothing to embed. Playlist, channel and search links cannot be embedded: {{url}}"
   }
 }

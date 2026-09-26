@@ -10,6 +10,8 @@ import {
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { ValidationCode } from '../../../shared/validation/validation-problem.model';
+import { Translatable } from '../../../shared/models/ui/translatable.model';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
@@ -271,9 +273,9 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.valueControl.updateValueAndValidity({ emitEvent: false });
   }
 
-  /** Message for whichever constraint the current value violates. */
-  validationMessage(): string {
-    return CedarValidators.firstMessage(this.valueControl) ?? 'The value is required.';
+  /** What to tell the user about whichever constraint the current value violates. */
+  validationMessage(): Translatable {
+    return CedarValidators.describeTemporalProblem(this.valueControl, this.component);
   }
 
   /**
@@ -321,13 +323,17 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
    * something, with nothing on screen connecting the two. A value still being
    * entered is `missingPart`'s to describe, and a requirement waits behind it:
    * "a time is still needed" says more than "the value is required" about a
-   * field whose date is already in.
+   * field whose date is already in. A stored offset outside XML Schema's range
+   * earns it too: the control shows that offset, and the value holding it is
+   * invalid whether or not anyone has edited it.
    */
   get showsValidationMessage(): boolean {
     return (
       !this.readOnlyMode &&
       this.missingPart === null &&
-      (this.unreadableValue !== null || (this.valueControl.invalid && this.userEdited))
+      (this.unreadableValue !== null ||
+        this.valueControl.hasError(ValidationCode.timezoneOffset) ||
+        (this.valueControl.invalid && this.userEdited))
     );
   }
 
@@ -477,7 +483,7 @@ export class DatetimeRepresentation {
       that.decimalSeconds = parts.fraction ?? '';
     }
     if (parts.offset !== null) {
-      that.setTimezone(TimezonePickerComponent.zoneForOffset(parts.offset));
+      that.setTimezone(TimezonePickerComponent.zoneForStoredOffset(parts.offset));
     }
     return that;
   }

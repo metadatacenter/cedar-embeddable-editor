@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
+import { Translatable } from '../../../shared/models/ui/translatable.model';
 
 /** The one name/value pair the attribute-value widget displays at a time. */
 type AttributeValueView = Record<string, string | null>;
@@ -29,7 +30,7 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
   options: FormGroup;
   nameInputControl = new FormControl<string | null>(null, null);
   valueInputControl = new FormControl<string | null>(null, null);
-  attributeNameError: string | null = null;
+  attributeNameError: Translatable | null = null;
   @Input({ required: true }) handlerContext!: HandlerContext;
 
   constructor(

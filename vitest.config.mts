@@ -22,6 +22,7 @@ import { defineConfig } from 'vitest/config';
  */
 export default defineConfig({
   test: {
+    maxWorkers: process.env.CEDAR_TEST_WORKERS ? Number(process.env.CEDAR_TEST_WORKERS) : undefined,
     // Jasmine's `describe`/`it`/`expect` were globals under Karma, and keeping
     // them global is what makes this a runner change rather than a rewrite of
     // every spec.

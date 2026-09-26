@@ -82,7 +82,7 @@ describe('CedarInputDatetimeComponent model-to-view sync', () => {
     component.setCurrentValue('2021-06-06');
 
     expect(component.showsValidationMessage).toBe(true);
-    expect(component.validationMessage()).toContain('xsd:dateTime');
+    expect(component.validationMessage()).toEqual({ key: 'Validation.Temporal.InvalidDateTime' });
   });
 
   it('states nothing about a value it could read', () => {
@@ -239,7 +239,7 @@ describe('CedarInputDatetimeComponent by granularity', () => {
 
       expect(component.missingPart).toBeNull();
       expect(component.showsValidationMessage).toBe(true);
-      expect(component.validationMessage()).toBe('The value is required.');
+      expect(component.validationMessage()).toEqual({ key: 'Validation.Required' });
     });
 
     it('states a value it cannot read rather than a missing part', () => {
@@ -337,6 +337,52 @@ describe('CedarInputDatetimeComponent by granularity', () => {
       component.dateInputChanged(new Date(2027, 5, 17));
 
       expect(written.at(-1)).toBe('2027-06-17');
+    });
+
+    it('keeps a stored offset no zone in current use has when the date is edited', () => {
+      const { component, written } = makeField(Xsd.dateTime, Temporal.minute, { timezoneEnabled: true });
+      component.setCurrentValue('2026-08-20T14:30:00+10:25');
+
+      component.dateInputChanged(new Date(2027, 5, 17));
+
+      expect(written.at(-1)).toBe('2027-06-17T14:30:00+10:25');
+    });
+
+    it('leaves a stored offset outside the range XML Schema allows as it is when the value loads', () => {
+      const { component, written } = makeField(Xsd.dateTime, Temporal.second, { timezoneEnabled: true });
+
+      component.setCurrentValue('2026-08-20T14:30:15+05:60');
+
+      expect(written, 'loading must not rewrite the instance').toEqual([]);
+      expect(component.timezone?.id).toBe('+05:60');
+    });
+
+    it('says the stored offset is invalid before anyone edits the field', () => {
+      const { component } = makeField(Xsd.dateTime, Temporal.second, { timezoneEnabled: true });
+
+      component.setCurrentValue('2026-08-20T14:30:15+05:60');
+
+      expect(component.showsValidationMessage).toBe(true);
+      expect(component.validationMessage()).toEqual({ key: 'Validation.Temporal.InvalidTimezoneOffset' });
+    });
+
+    it('keeps an invalid stored offset when the date is edited', () => {
+      const { component, written } = makeField(Xsd.dateTime, Temporal.second, { timezoneEnabled: true });
+      component.setCurrentValue('2026-08-20T14:30:15+05:60');
+
+      component.dateInputChanged(new Date(2027, 5, 17));
+
+      expect(written.at(-1)).toBe('2027-06-17T14:30:15+05:60');
+    });
+
+    it('replaces an invalid stored offset only with one the user chooses', () => {
+      const { component, written } = makeField(Xsd.dateTime, Temporal.second, { timezoneEnabled: true });
+      component.setCurrentValue('2026-08-20T14:30:15+05:60');
+
+      component.timezoneInputChanged({ id: '+05:30', label: 'UTC+05:30' });
+
+      expect(written.at(-1)).toBe('2026-08-20T14:30:15+05:30');
+      expect(component.showsValidationMessage).toBe(false);
     });
 
     it('stores nothing until a dateTime has both halves', () => {

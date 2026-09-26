@@ -38,7 +38,9 @@
       }}</mat-error>
     }
     @if (inputValueControl.getError('pattern') && !readOnlyMode) {
-      <mat-error class="mat-error align-start">{{ patternErrorMessage }}</mat-error>
+      <mat-error class="mat-error align-start">{{
+        patternErrorMessage === null ? '' : (patternErrorMessage.key | translate: patternErrorMessage.params)
+      }}</mat-error>
     }
     @if (inputValueControl.getError('required') && !readOnlyMode) {
       <mat-error class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>

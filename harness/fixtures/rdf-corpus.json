@@ -1,0 +1,1454 @@
+[
+  {
+    "id": "plain",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "hello"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"hello\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "empty-string",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": ""
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "unicode",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "Français 中文 🧪"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"Français 中文 🧪\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "escaped-string",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "quote \" slash \\ tab\t newline\n"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"quote \\\" slash \\\\ tab\\t newline\\n\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "controls",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "\u0000\u0001\u001f"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"\\u0000\\u0001\\u001f\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "integer",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "003",
+        "@type": "xsd:integer"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"003\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "decimal",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "1.20",
+        "@type": "xsd:decimal"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"1.20\"^^<http://www.w3.org/2001/XMLSchema#decimal> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "boolean-lexical",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "true",
+        "@type": "xsd:boolean"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "date",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "2026-09-26",
+        "@type": "xsd:date"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"2026-09-26\"^^<http://www.w3.org/2001/XMLSchema#date> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "time",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "12:34:56",
+        "@type": "xsd:time"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"12:34:56\"^^<http://www.w3.org/2001/XMLSchema#time> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "year-month",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "2026-09",
+        "@type": "xsd:gYearMonth"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"2026-09\"^^<http://www.w3.org/2001/XMLSchema#gYearMonth> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "datetime",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "2026-09-26T12:34:56Z",
+        "@type": "xsd:dateTime"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"2026-09-26T12:34:56Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "language",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "bonjour",
+        "@language": "fr"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"bonjour\"@fr .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "language-case",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "Hello",
+        "@language": "EN-us"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"Hello\"@en-us .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "native-integer",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": 3
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"3\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "native-boolean",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": true
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "native-double",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": 1.5
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"1.5E0\"^^<http://www.w3.org/2001/XMLSchema#double> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "typed-double-string",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "120",
+        "@type": "xsd:double"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"120\"^^<http://www.w3.org/2001/XMLSchema#double> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "typed-double-number",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": 120,
+        "@type": "xsd:double"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"1.2E2\"^^<http://www.w3.org/2001/XMLSchema#double> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "small-double",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": 1.2e-20
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"1.2E-20\"^^<http://www.w3.org/2001/XMLSchema#double> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "typed-float-string",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "120",
+        "@type": "xsd:float"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"120\"^^<http://www.w3.org/2001/XMLSchema#float> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "custom-datatype",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "abc",
+        "@type": "https://example.org/custom"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"abc\"^^<https://example.org/custom> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "link",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@id": "https://example.org/link"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> <https://example.org/link> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "unicode-iri",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@id": "https://example.org/é"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> <https://example.org/é> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "nbsp-iri",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@id": "https://example.org/a b"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> <https://example.org/a b> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "context-iri-coercion",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": {
+          "@id": "https://example.org/p/field",
+          "@type": "@id"
+        }
+      },
+      "@id": "https://example.org/instance",
+      "Field": "https://example.org/link"
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> <https://example.org/link> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "context-datatype",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": {
+          "@id": "https://example.org/p/field",
+          "@type": "xsd:int"
+        }
+      },
+      "@id": "https://example.org/instance",
+      "Field": "9"
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"9\"^^<http://www.w3.org/2001/XMLSchema#int> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "context-language",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": {
+          "@id": "https://example.org/p/field",
+          "@language": "fr"
+        }
+      },
+      "@id": "https://example.org/instance",
+      "Field": "salut"
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"salut\"@fr .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "slash-name",
+    "source": {
+      "@context": {
+        "Date (month/year)": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Date (month/year)": {
+        "@value": "kept"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"kept\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "colon-name",
+    "source": {
+      "@context": {
+        "Time: start": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Time: start": {
+        "@value": "kept"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"kept\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "url-name",
+    "source": {
+      "@context": {
+        "https://example.org/name": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "https://example.org/name": {
+        "@value": "kept"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"kept\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "yaml-keyword",
+    "source": {
+      "@context": {
+        "type": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "type": {
+        "@value": "kept"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"kept\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "empty-fields",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a",
+        "B": "https://example.org/p/b",
+        "C": "https://example.org/p/c"
+      },
+      "@id": "https://example.org/instance",
+      "A": {},
+      "B": {
+        "@value": null
+      },
+      "C": []
+    },
+    "expectedNquads": "",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "empty-occurrences",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": [
+        {},
+        {
+          "@value": null
+        },
+        {
+          "@value": "kept"
+        }
+      ]
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/a> \"kept\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "root-blank",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": null,
+      "A": {
+        "@value": "kept"
+      }
+    },
+    "expectedNquads": "_:root <https://example.org/p/a> \"kept\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "repeated-nodes",
+    "source": {
+      "@context": {
+        "Sample": "https://example.org/p/sample"
+      },
+      "@id": "https://example.org/instance",
+      "Sample": [
+        {
+          "@id": null,
+          "@context": {
+            "Label": "https://example.org/p/label"
+          },
+          "Label": {
+            "@value": "first"
+          }
+        },
+        {
+          "@id": null,
+          "@context": {
+            "Label": "https://example.org/p/label"
+          },
+          "Label": {
+            "@value": "second"
+          }
+        }
+      ]
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/sample> _:first .\n_:first <https://example.org/p/label> \"first\" .\n<https://example.org/instance> <https://example.org/p/sample> _:second .\n_:second <https://example.org/p/label> \"second\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "distinct-equal-blank-nodes",
+    "source": {
+      "@context": {
+        "Sample": "https://example.org/p/sample",
+        "Label": "https://example.org/p/label"
+      },
+      "@id": "https://example.org/instance",
+      "Sample": [
+        {
+          "Label": {
+            "@value": "same"
+          }
+        },
+        {
+          "Label": {
+            "@value": "same"
+          }
+        }
+      ]
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/sample> _:a .\n_:a <https://example.org/p/label> \"same\" .\n<https://example.org/instance> <https://example.org/p/sample> _:b .\n_:b <https://example.org/p/label> \"same\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "nested-override",
+    "source": {
+      "@context": {
+        "Sample": "https://example.org/p/sample",
+        "Name": "https://example.org/p/outer"
+      },
+      "@id": "https://example.org/instance",
+      "Name": {
+        "@value": "root"
+      },
+      "Sample": {
+        "@id": "https://example.org/child",
+        "@context": {
+          "Name": "https://example.org/p/inner"
+        },
+        "Name": {
+          "@value": "child"
+        }
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/outer> \"root\" .\n<https://example.org/instance> <https://example.org/p/sample> <https://example.org/child> .\n<https://example.org/child> <https://example.org/p/inner> \"child\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "attribute-group",
+    "source": {
+      "@context": {
+        "colour": "https://example.org/p/colour",
+        "size": "https://example.org/p/size"
+      },
+      "@id": "https://example.org/instance",
+      "Attributes": [
+        "colour",
+        "size"
+      ],
+      "colour": {
+        "@value": "blue"
+      },
+      "size": {
+        "@value": "large"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/colour> \"blue\" .\n<https://example.org/instance> <https://example.org/p/size> \"large\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "annotations-nest",
+    "source": {
+      "@context": {
+        "_annotations": "@nest",
+        "note": "https://example.org/p/note"
+      },
+      "@id": "https://example.org/instance",
+      "_annotations": {
+        "note": [
+          {
+            "@value": "reviewed"
+          },
+          {
+            "@id": "https://example.org/ref"
+          }
+        ]
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/note> \"reviewed\" .\n<https://example.org/instance> <https://example.org/p/note> <https://example.org/ref> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "controlled-term-labels",
+    "source": {
+      "@context": {
+        "Term": "https://example.org/p/term",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "skos": "http://www.w3.org/2004/02/skos/core#"
+      },
+      "@id": "https://example.org/instance",
+      "Term": {
+        "@id": "https://example.org/term",
+        "rdfs:label": "label",
+        "skos:notation": "CODE"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/term> <https://example.org/term> .\n<https://example.org/term> <http://www.w3.org/2000/01/rdf-schema#label> \"label\" .\n<https://example.org/term> <http://www.w3.org/2004/02/skos/core#notation> \"CODE\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "provenance",
+    "source": {
+      "@context": {
+        "pav": "http://purl.org/pav/",
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "pav:derivedFrom": {
+          "@type": "@id"
+        },
+        "pav:createdOn": {
+          "@type": "xsd:dateTime"
+        }
+      },
+      "@id": "https://example.org/instance",
+      "pav:derivedFrom": "https://example.org/original",
+      "pav:createdOn": "2026-09-26T00:00:00Z"
+    },
+    "expectedNquads": "<https://example.org/instance> <http://purl.org/pav/derivedFrom> <https://example.org/original> .\n<https://example.org/instance> <http://purl.org/pav/createdOn> \"2026-09-26T00:00:00Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "rdf-types",
+    "source": {
+      "@id": "https://example.org/instance",
+      "@type": [
+        "https://example.org/A",
+        "https://example.org/B"
+      ]
+    },
+    "expectedNquads": "<https://example.org/instance> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/A> .\n<https://example.org/instance> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/B> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "rdf-list",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@list": [
+          "first",
+          "second"
+        ]
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/a> _:a .\n_:a <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> \"first\" .\n_:a <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:b .\n_:b <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> \"second\" .\n_:b <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "named-graph",
+    "source": {
+      "@id": "https://example.org/graph",
+      "@graph": [
+        {
+          "@id": "https://example.org/instance",
+          "https://example.org/p/field": {
+            "@value": "kept"
+          }
+        }
+      ]
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"kept\" <https://example.org/graph> .\n",
+    "expect": "dataset",
+    "rationale": "JSON-LD dataset probe; Turtle cannot preserve named graphs."
+  },
+  {
+    "id": "duplicate-rdf-statements",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": [
+        {
+          "@value": "same"
+        },
+        {
+          "@value": "same"
+        }
+      ]
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/a> \"same\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "alias-collision",
+    "source": {
+      "@context": {
+        "Date/year": "https://example.org/p/date",
+        "cee-term-0": "https://example.org/p/other"
+      },
+      "@id": "https://example.org/instance",
+      "Date/year": {
+        "@value": "2026"
+      },
+      "cee-term-0": {
+        "@value": "other"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/date> \"2026\" .\n<https://example.org/instance> <https://example.org/p/other> \"other\" .\n",
+    "expect": "dataset",
+    "rationale": "Aliasing must not overwrite a real child named cee-term-0."
+  },
+  {
+    "id": "literal-array-matches-child-names",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a",
+        "B": "https://example.org/p/b"
+      },
+      "@id": "https://example.org/instance",
+      "A": [
+        "B"
+      ],
+      "B": {
+        "@value": "kept"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/a> \"B\" .\n<https://example.org/instance> <https://example.org/p/b> \"kept\" .\n",
+    "expect": "dataset",
+    "rationale": "General JSON-LD boundary probe: string arrays are not always CEDAR attribute groups."
+  },
+  {
+    "id": "remote-context",
+    "source": {
+      "@context": "https://example.org/never-fetch",
+      "@id": "https://example.org/instance"
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "unmapped-field",
+    "source": {
+      "@context": {},
+      "@id": "https://example.org/instance",
+      "Unmapped": {
+        "@value": "lost"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "unmapped-attribute",
+    "source": {
+      "@context": {},
+      "@id": "https://example.org/instance",
+      "Attributes": [
+        "colour"
+      ],
+      "colour": {
+        "@value": "blue"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "mixed-id-value",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@id": "https://example.org/a",
+        "@value": "text"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "multiple-datatypes",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@value": "3",
+        "@type": [
+          "http://www.w3.org/2001/XMLSchema#int",
+          "http://www.w3.org/2001/XMLSchema#string"
+        ]
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "relative-value-id",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@id": "relative"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "malformed-value-id",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@id": "https://example.org/a b"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "empty-value-id",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@id": ""
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "null-context-term",
+    "source": {
+      "@context": {
+        "A": null
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@value": "lost"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "literal-with-label",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a",
+        "label": "https://example.org/p/label"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@value": "text",
+        "label": "label"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "null-literal-with-label",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a",
+        "label": "https://example.org/p/label"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@value": null,
+        "label": "kept label"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "mixed-id-null-value",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@id": "https://example.org/keep",
+        "@value": null
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "null-literal-with-label-with-sibling",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a",
+        "label": "https://example.org/p/label",
+        "Keep": "https://example.org/p/keep"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@value": null,
+        "label": "kept label"
+      },
+      "Keep": {
+        "@value": "unrelated"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "mixed-id-null-value-with-sibling",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a",
+        "Keep": "https://example.org/p/keep"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@id": "https://example.org/keep",
+        "@value": null
+      },
+      "Keep": {
+        "@value": "unrelated"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": "Reject rather than silently discard populated information or an invalid identifier."
+  },
+  {
+    "id": "nested-alias-scope",
+    "source": {
+      "@context": {
+        "Part": "https://example.org/p/part",
+        "Date/year": "https://example.org/p/outer"
+      },
+      "@id": "https://example.org/instance",
+      "Date/year": {
+        "@value": "outer"
+      },
+      "Part": {
+        "@id": "https://example.org/part",
+        "@context": {
+          "Date/year": "https://example.org/p/inner"
+        },
+        "Date/year": {
+          "@value": "inner"
+        }
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/outer> \"outer\" .\n<https://example.org/instance> <https://example.org/p/part> <https://example.org/part> .\n<https://example.org/part> <https://example.org/p/inner> \"inner\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "inherited-alias",
+    "source": {
+      "@context": {
+        "Part": "https://example.org/p/part",
+        "Date/year": "https://example.org/p/date"
+      },
+      "@id": "https://example.org/instance",
+      "Part": {
+        "@id": "https://example.org/part",
+        "Date/year": {
+          "@value": "inner"
+        }
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/part> <https://example.org/part> .\n<https://example.org/part> <https://example.org/p/date> \"inner\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "blank-node-cycle",
+    "source": {
+      "@context": {
+        "Next": "https://example.org/p/next"
+      },
+      "@id": "_:a",
+      "Next": {
+        "@id": "_:b",
+        "Next": {
+          "@id": "_:a"
+        }
+      }
+    },
+    "expectedNquads": "_:a <https://example.org/p/next> _:b .\n_:b <https://example.org/p/next> _:a .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "shared-blank-node",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a",
+        "B": "https://example.org/p/b",
+        "Name": "https://example.org/p/name"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@id": "_:shared",
+        "Name": {
+          "@value": "shared"
+        }
+      },
+      "B": {
+        "@id": "_:shared"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/a> _:shared .\n<https://example.org/instance> <https://example.org/p/b> _:shared .\n_:shared <https://example.org/p/name> \"shared\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "annotation-language",
+    "source": {
+      "@context": {
+        "_annotations": "@nest",
+        "note": "https://example.org/p/note"
+      },
+      "@id": "https://example.org/instance",
+      "_annotations": {
+        "note": {
+          "@value": "bonjour",
+          "@language": "fr"
+        }
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/note> \"bonjour\"@fr .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "array-context-alias",
+    "source": {
+      "@context": [
+        {
+          "Date/year": "https://example.org/p/date"
+        },
+        {
+          "A": "https://example.org/p/a"
+        }
+      ],
+      "@id": "https://example.org/instance",
+      "Date/year": {
+        "@value": "2026"
+      },
+      "A": {
+        "@value": "kept"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/date> \"2026\" .\n<https://example.org/instance> <https://example.org/p/a> \"kept\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "context-reset",
+    "source": {
+      "@context": [
+        {
+          "A": "https://example.org/p/old"
+        },
+        null,
+        {
+          "A": "https://example.org/p/a"
+        }
+      ],
+      "@id": "https://example.org/instance",
+      "A": {
+        "@value": "kept"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/a> \"kept\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "mapped-attribute-group",
+    "source": {
+      "@context": {
+        "Attributes": "https://example.org/p/group",
+        "colour": "https://example.org/p/colour"
+      },
+      "@id": "https://example.org/instance",
+      "Attributes": [
+        "colour"
+      ],
+      "colour": {
+        "@value": "blue"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/colour> \"blue\" .\n",
+    "expect": "dataset",
+    "rationale": "",
+    "template": {
+      "properties": {
+        "Attributes": {
+          "_ui": {
+            "inputType": "attribute-value"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "token-looking-datatype",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": 42,
+        "@type": "urn:cedar:rdf:0"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"42\"^^<urn:cedar:rdf:0> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "token-looking-literal",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "urn:cedar:rdf:0"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"urn:cedar:rdf:0\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "singleton-datatype",
+    "source": {
+      "@context": {
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "Field": "https://example.org/p/field"
+      },
+      "@id": "https://example.org/instance",
+      "Field": {
+        "@value": "003",
+        "@type": [
+          "http://www.w3.org/2001/XMLSchema#integer"
+        ]
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/field> \"003\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "invalid-escape",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@id": "https://example.org/%ZZ"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": ""
+  },
+  {
+    "id": "invalid-bracket",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@id": "https://example.org/a[b]"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": ""
+  },
+  {
+    "id": "invalid-ip",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@id": "https://[broken]/"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": ""
+  },
+  {
+    "id": "multiple-fragments",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@id": "https://example.org/a#b#c"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": ""
+  },
+  {
+    "id": "invalid-language",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@value": "kept",
+        "@language": "not valid"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": ""
+  },
+  {
+    "id": "blank-datatype",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@value": "kept",
+        "@type": "_:bad"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": ""
+  },
+  {
+    "id": "index-metadata",
+    "source": {
+      "@context": {
+        "A": "https://example.org/p/a"
+      },
+      "@id": "https://example.org/instance",
+      "A": {
+        "@value": "kept",
+        "@index": "lost"
+      }
+    },
+    "expectedNquads": null,
+    "expect": "reject",
+    "rationale": ""
+  },
+  {
+    "id": "prototype-field-name",
+    "source": {
+      "@context": {
+        "__proto__": "https://example.org/p/proto",
+        "constructor": "https://example.org/p/constructor"
+      },
+      "@id": "https://example.org/instance",
+      "__proto__": {
+        "@value": "first"
+      },
+      "constructor": {
+        "@value": "second"
+      }
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/proto> \"first\" .\n<https://example.org/instance> <https://example.org/p/constructor> \"second\" .\n",
+    "expect": "dataset",
+    "rationale": ""
+  },
+  {
+    "id": "explicit-prefix-flag",
+    "source": {
+      "@context": {
+        "pre": {
+          "@id": "https://example.org/p/",
+          "@prefix": true
+        },
+        "pre:A": {
+          "@type": "@id"
+        }
+      },
+      "@id": "https://example.org/instance",
+      "pre:A": "https://example.org/p/value"
+    },
+    "expectedNquads": "<https://example.org/instance> <https://example.org/p/A> <https://example.org/p/value> .\n",
+    "expect": "dataset",
+    "rationale": ""
+  }
+]

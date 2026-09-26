@@ -39,6 +39,8 @@ export class ValidationCode {
   static temporalGranularity = 'temporalGranularity';
   static temporalCalendar = 'temporalCalendar';
   static timezone = 'timezone';
+  /** An offset shaped `±HH:MM` but outside XML Schema's range, such as `+05:60`. */
+  static timezoneOffset = 'timezoneOffset';
   static choiceMembership = 'choiceMembership';
   static controlledStructure = 'controlledStructure';
   static iriMalformed = 'iriMalformed';

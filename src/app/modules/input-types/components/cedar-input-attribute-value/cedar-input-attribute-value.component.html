@@ -23,7 +23,9 @@
       </button>
     }
     @if (attributeNameError) {
-      <mat-error class="mat-error align-start">{{ attributeNameError }}</mat-error>
+      <mat-error class="mat-error align-start">{{
+        attributeNameError.key | translate: attributeNameError.params
+      }}</mat-error>
     }
   </mat-form-field>
   <mat-form-field class="half-width" floatLabel="always">

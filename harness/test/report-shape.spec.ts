@@ -46,8 +46,8 @@ describe('the report carries nothing but its answer', () => {
    */
   const INTERNALS = ['"_id"', '"_values"', '"_iris"', '"dataContainer"', '"className"', '"pageBreakChildren"', '"parsed"'];
 
-  it.each(paired.map((c) => c.id))('case %s downloads a report with no internals in it', (id) => {
-    const content = downloadContentFor('dataQuality', driverFor(id).dataContext);
+  it.each(paired.map((c) => c.id))('case %s downloads a report with no internals in it', async (id) => {
+    const content = await downloadContentFor('dataQuality', driverFor(id).dataContext);
     expect(INTERNALS.filter((needle) => content.includes(needle))).toEqual([]);
   });
 
@@ -57,8 +57,8 @@ describe('the report carries nothing but its answer', () => {
    * most any corpus case reports. A dump reintroduced anywhere in the report
    * fails here whatever it is called, which the name list above cannot promise.
    */
-  it('does not grow back', () => {
-    expect(downloadContentFor('dataQuality', driverFor('071').dataContext).length).toBeLessThan(8000);
+  it('does not grow back', async () => {
+    expect((await downloadContentFor('dataQuality', driverFor('071').dataContext)).length).toBeLessThan(8000);
   });
 });
 

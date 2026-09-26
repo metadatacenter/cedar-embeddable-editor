@@ -171,12 +171,4 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
     }
     return `${length}`;
   }
-
-  goToLink() {
-    if (this.originalValue !== null) {
-      window.open(this.originalValue, '_blank');
-    }
-  }
-
-  protected readonly window = window;
 }

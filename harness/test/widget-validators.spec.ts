@@ -13,11 +13,42 @@
  * result.
  */
 import { describe, expect, it } from 'vitest';
-import { CedarBuilders, NumberType } from 'cedar-model-typescript-library';
+import { CedarBuilders, NumberType, TemporalGranularity, TemporalType } from 'cedar-model-typescript-library';
 import { CedarValidators } from '@cee/validation/cedar-validators';
+import type { Translatable } from '@cee/models/ui/translatable.model';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
+
+/**
+ * What a user reads for a translation key, in one of the two shipped languages.
+ *
+ * The validators hand the widgets keys, so these tests read the sentences the way a
+ * form does: through the language file, with the parameters filled in.
+ */
+const I18N = path.resolve(__dirname, '../../src/assets/i18n-cee');
+const bundle = (lang: 'en' | 'hu'): Record<string, unknown> =>
+  JSON.parse(fs.readFileSync(path.join(I18N, `${lang}.json`), 'utf8'));
+const BUNDLES = { en: bundle('en'), hu: bundle('hu') };
+const lookup = (lang: 'en' | 'hu', key: string): string | undefined => {
+  let node: unknown = BUNDLES[lang];
+  for (const part of key.split('.')) {
+    node = typeof node === 'object' && node !== null ? (node as Record<string, unknown>)[part] : undefined;
+  }
+  return typeof node === 'string' ? node : undefined;
+};
+const read = (text: Translatable | null, lang: 'en' | 'hu' = 'en'): string => {
+  if (text === null) {
+    return '';
+  }
+  const template = lookup(lang, text.key);
+  if (template === undefined) {
+    throw new Error(`${lang}.json has no ${text.key}`);
+  }
+  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, name: string) => String(text.params?.[name] ?? `{{${name}}}`));
+};
 
 let seq = 0;
 const kindOf = (inputType: string, make: () => any, configure?: (b: any) => any): FieldKind => ({
@@ -265,16 +296,6 @@ describe('error details', () => {
     expect(errors['maxValue'].message).toContain('10');
     expect(errors['maxValue'].value).toBe('99');
   });
-
-  it('exposes the first message for a template to render', () => {
-    const kind = kindOf('email', () => CedarBuilders.emailFieldBuilder());
-    const control: any = { errors: errorsFor(kind, 'nope') };
-    expect(CedarValidators.firstMessage(control)).toContain('email');
-  });
-
-  it('returns no message when the control is clean', () => {
-    expect(CedarValidators.firstMessage({ errors: null } as any)).toBeNull();
-  });
 });
 
 describe('numeric hint text', () => {
@@ -297,7 +318,7 @@ describe('numeric hint text', () => {
       () => CedarBuilders.numericFieldBuilder(),
       (b) => b.withNumberType(type),
     );
-    expect(CedarValidators.describeNumberType(componentFor(kind))).toContain(expected);
+    expect(read(CedarValidators.describeNumberType(componentFor(kind)))).toContain(expected);
   });
 
   it('mentions the decimal limit when one is declared', () => {
@@ -306,7 +327,7 @@ describe('numeric hint text', () => {
       () => CedarBuilders.numericFieldBuilder(),
       (b) => b.withNumberType(NumberType.DOUBLE).withDecimalPlaces(3),
     );
-    expect(CedarValidators.describeNumberType(componentFor(kind))).toContain('3 decimal places');
+    expect(read(CedarValidators.describeNumberType(componentFor(kind)))).toContain('3 decimal places');
   });
 
   /**
@@ -320,7 +341,7 @@ describe('numeric hint text', () => {
       () => CedarBuilders.numericFieldBuilder(),
       (b) => b.withNumberType(NumberType.DECIMAL).withDecimalPlaces(0),
     );
-    expect(CedarValidators.describeNumberType(componentFor(kind))).toBe(
+    expect(read(CedarValidators.describeNumberType(componentFor(kind)))).toBe(
       'The value should be a number with no decimal places.',
     );
   });
@@ -331,7 +352,7 @@ describe('numeric hint text', () => {
       () => CedarBuilders.numericFieldBuilder(),
       (b) => b.withNumberType(NumberType.DOUBLE).withDecimalPlaces(1),
     );
-    expect(CedarValidators.describeNumberType(componentFor(kind))).toContain('1 decimal place.');
+    expect(read(CedarValidators.describeNumberType(componentFor(kind)))).toContain('1 decimal place.');
   });
 
   /**
@@ -355,9 +376,83 @@ describe('numeric hint text', () => {
       (b) => (decimals == null ? b.withNumberType(type) : b.withNumberType(type).withDecimalPlaces(decimals)),
     );
 
-    const message = CedarValidators.describeNumberType(componentFor(kind))!;
+    for (const lang of ['en', 'hu'] as const) {
+      const message = read(CedarValidators.describeNumberType(componentFor(kind)), lang);
 
-    expect(message).toMatch(/^[^\s].*[^.,]\.$/);
+      expect(message).toMatch(/^[^\s].*[^.,]\.$/);
+      expect(message, `${lang} left a parameter unfilled`).not.toContain('{{');
+    }
+  });
+});
+
+describe('temporal messages', () => {
+  /**
+   * The temporal problems carry diagnostics written for the data quality report, such
+   * as `Granularity is year, but the padded month or day is not 01.`. The widget used
+   * to print those. It now asks for a message by code, phrased for the person typing
+   * and in the form's language, while the report keeps its diagnostic.
+   */
+  const temporal = (type: TemporalType, granularity: TemporalGranularity, timezone = false): FieldKind =>
+    kindOf(
+      'temporal',
+      () => CedarBuilders.temporalFieldBuilder(),
+      (b) => b.withTemporalType(type).withTemporalGranularity(granularity).withTimezoneEnabled(timezone),
+    );
+  const messageFor = (kind: FieldKind, value: string): Translatable =>
+    CedarValidators.describeTemporalProblem(
+      { errors: failuresFor(kind, value) } as unknown as ValidatedControl,
+      componentFor(kind),
+    );
+
+  it.each([
+    ['a malformed date', temporal(TemporalType.DATE, TemporalGranularity.DAY), 'not a date', 'Enter a valid date.'],
+    [
+      'a date not in the calendar',
+      temporal(TemporalType.DATE, TemporalGranularity.DAY),
+      '2023-02-30',
+      'Enter a valid date.',
+    ],
+    ['a malformed time', temporal(TemporalType.TIME, TemporalGranularity.SECOND), 'noon', 'Enter a valid time.'],
+    [
+      'a malformed date and time',
+      temporal(TemporalType.DATETIME, TemporalGranularity.MINUTE),
+      'soon',
+      'Enter a valid date and time.',
+    ],
+    [
+      'finer information than the field records',
+      temporal(TemporalType.DATE, TemporalGranularity.YEAR),
+      '2023-05-01',
+      'The value does not match the precision this field records.',
+    ],
+    [
+      'an offset on a field that records none',
+      temporal(TemporalType.DATETIME, TemporalGranularity.SECOND),
+      '2023-08-30T13:02:03-10:00',
+      'The value carries a timezone offset, which this field does not record.',
+    ],
+  ])('asks the user about %s in their terms', (_case, kind, value, expected) => {
+    const message = messageFor(kind, value);
+
+    expect(read(message)).toBe(expected);
+    expect(read(message, 'hu')).not.toBe(expected);
+    expect(read(message, 'hu')).not.toContain('{{');
+  });
+
+  it('keeps the diagnostic for the report', () => {
+    const kind = temporal(TemporalType.DATE, TemporalGranularity.YEAR);
+
+    expect(failuresFor(kind, '2023-05-01')['temporalGranularity'].message).toContain('Granularity is year');
+  });
+
+  it('says a missing value is required, in the words every other widget uses', () => {
+    const kind = temporal(TemporalType.DATE, TemporalGranularity.DAY);
+    const message = CedarValidators.describeTemporalProblem(
+      { errors: { required: true } } as unknown as ValidatedControl,
+      componentFor(kind),
+    );
+
+    expect(message).toEqual({ key: 'Validation.Required' });
   });
 });
 

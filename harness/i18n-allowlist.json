@@ -1,0 +1,52 @@
+[
+  {
+    "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.html",
+    "text": "CEE",
+    "reason": "The product's name, shown beside its version in the header, is the same in every language."
+  },
+  {
+    "file": "src/app/modules/shared/factory/model-library-template-parser.ts",
+    "text": "Help Text",
+    "reason": "Not displayed. The Template Designer stores this placeholder as a description, and the parser compares against it to treat such a description as absent."
+  },
+  {
+    "file": "src/app/modules/shared/models/authority/authority-descriptor.model.ts",
+    "text": "ORCID",
+    "reason": "The name of an external identifier authority, which is the same in every language."
+  },
+  {
+    "file": "src/app/modules/shared/models/authority/authority-descriptor.model.ts",
+    "text": "ROR",
+    "reason": "The name of an external identifier authority, which is the same in every language."
+  },
+  {
+    "file": "src/app/modules/shared/models/authority/authority-descriptor.model.ts",
+    "text": "PFAS",
+    "reason": "The name of an external identifier authority, which is the same in every language."
+  },
+  {
+    "file": "src/app/modules/shared/models/authority/authority-descriptor.model.ts",
+    "text": "PubMed",
+    "reason": "The name of an external identifier authority, which is the same in every language."
+  },
+  {
+    "file": "src/app/modules/shared/models/authority/authority-descriptor.model.ts",
+    "text": "RRID",
+    "reason": "The name of an external identifier authority, which is the same in every language."
+  },
+  {
+    "file": "src/app/modules/shared/models/authority/authority-descriptor.model.ts",
+    "text": "NIH Grant",
+    "reason": "The name of an external identifier authority, which is the same in every language."
+  },
+  {
+    "file": "src/app/modules/shared/models/authority/authority-descriptor.model.ts",
+    "text": "DOI",
+    "reason": "The name of an external identifier authority, which is the same in every language."
+  },
+  {
+    "file": "src/app/modules/shared/validation/cedar-validators.ts",
+    "text": "Select at least one option.",
+    "reason": "Not displayed. It travels in the Angular validation error object; the checkbox template shows Validation.SelectAtLeastOne through the translate pipe."
+  }
+]

@@ -24,7 +24,7 @@ export class CedarStaticImageComponent extends CedarUIDirective {
   // was what this held: it is the same as a field with no URL, which
   // `staticImageView` already has an answer for. Nothing renders it either way —
   // `componentToRender` runs before the first change detection.
-  view: StaticImageView = { src: null, error: 'This image field has no URL.' };
+  view: StaticImageView = { src: null, error: { key: 'StaticContent.ImageNoUrl' } };
   /**
    * What `_ui._size` asked for, or nulls. Null means the attribute is left off
    * and the image renders at its own size — see `resolveStaticImageSize`.

@@ -18,10 +18,10 @@
           [tabIndex]="0"
           [hideSingleSelectionIndicator]="true"
           [value]="currentMultiInfo.currentIndex"
-          aria-label="Allows multi values."
+          attr.aria-label="{{ 'Multi.AllowsMultiValues' | translate }}"
         >
           @if (!hasMultiInstances()) {
-            <mat-chip-option selectable="false" disabled="true" aria-label="No values yet">{{
+            <mat-chip-option selectable="false" disabled="true" aria-label="{{ 'Multi.NoValuesYet' | translate }}">{{
               'Multi.NoInstancesYet' | translate
             }}</mat-chip-option>
           }
@@ -39,7 +39,7 @@
       -->
       @if (getInstanceCount() < 1) {
         <mat-chip-listbox [tabIndex]="0" [hideSingleSelectionIndicator]="true">
-          <mat-chip-option selectable="false" disabled="true" aria-label="No values yet">{{
+          <mat-chip-option selectable="false" disabled="true" aria-label="{{ 'Multi.NoValuesYet' | translate }}">{{
             'Multi.NoInstancesYet' | translate
           }}</mat-chip-option>
         </mat-chip-listbox>

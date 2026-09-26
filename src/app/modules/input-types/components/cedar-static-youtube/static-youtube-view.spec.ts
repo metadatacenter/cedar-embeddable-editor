@@ -1,4 +1,5 @@
 import { resolveStaticYoutubeView } from './static-youtube-view';
+import { readTranslatable as read } from '../../../shared/models/ui/translatable.testing';
 
 /**
  * `extractYouTubeVideoId` answers yes or no, and its own spec covers which
@@ -31,7 +32,7 @@ describe('resolveStaticYoutubeView', () => {
     ])('embeds nothing and says why for %s', (content) => {
       const view = resolveStaticYoutubeView(content);
       expect(view.videoId).toBeNull();
-      expect(view.error).toBeTruthy();
+      expect(read(view.error)).toBeTruthy();
     });
 
     it.each([
@@ -39,7 +40,7 @@ describe('resolveStaticYoutubeView', () => {
       'https://vimeo.com/76979871',
       'https://www.youtube.com/watch?v=not-valid',
     ])('names the offending value in the message for %s', (content) => {
-      expect(resolveStaticYoutubeView(content).error).toContain(content);
+      expect(read(resolveStaticYoutubeView(content).error)).toContain(content);
     });
   });
 
@@ -52,37 +53,39 @@ describe('resolveStaticYoutubeView', () => {
   describe('the cause is identified, not merely reported', () => {
     it('calls a playlist out as naming no single video', () => {
       const view = resolveStaticYoutubeView('https://www.youtube.com/playlist?list=PLrAXtmRdnEQy6');
-      expect(view.error).toContain('names no single video');
+      expect(read(view.error)).toContain('names no single video');
     });
 
     it('calls a channel link out the same way', () => {
-      expect(resolveStaticYoutubeView('https://www.youtube.com/@someChannel').error).toContain('names no single video');
+      expect(read(resolveStaticYoutubeView('https://www.youtube.com/@someChannel').error)).toContain(
+        'names no single video',
+      );
     });
 
     it('names the wrong host rather than blaming the ID', () => {
       const view = resolveStaticYoutubeView('https://vimeo.com/76979871');
-      expect(view.error).toContain('vimeo.com');
-      expect(view.error).toContain('only YouTube');
+      expect(read(view.error)).toContain('vimeo.com');
+      expect(read(view.error)).toContain('only YouTube');
     });
 
     it('treats a lookalike host as the wrong host, not as YouTube', () => {
-      expect(resolveStaticYoutubeView('https://www.youtube.com.evil.example/watch?v=1NBYWOKo9qo').error).toContain(
-        'only YouTube',
-      );
+      expect(
+        read(resolveStaticYoutubeView('https://www.youtube.com.evil.example/watch?v=1NBYWOKo9qo').error),
+      ).toContain('only YouTube');
     });
 
     it('calls a malformed ID on a real YouTube watch link a bad ID', () => {
-      expect(resolveStaticYoutubeView('https://www.youtube.com/watch?v=not-valid').error).toContain(
+      expect(read(resolveStaticYoutubeView('https://www.youtube.com/watch?v=not-valid').error)).toContain(
         'video ID that is not valid',
       );
     });
 
     it('says the field is empty rather than that it is malformed', () => {
-      expect(resolveStaticYoutubeView('   ').error).toBe('This video field has no YouTube link.');
+      expect(read(resolveStaticYoutubeView('   ').error)).toBe('This video field has no YouTube link.');
     });
 
     it('reports a value that is not a link at all as neither link nor ID', () => {
-      expect(resolveStaticYoutubeView('not a video').error).toContain('neither a YouTube link nor a video ID');
+      expect(read(resolveStaticYoutubeView('not a video').error)).toContain('neither a YouTube link nor a video ID');
     });
   });
 });

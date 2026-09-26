@@ -11,6 +11,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, FormControl, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { UserPreferencesService } from '../../service/user-preferences.service';
+import { CedarTemporalValue } from '../../util/cedar-temporal-value';
 
 /** A fixed UTC offset and its unambiguous display text. */
 export interface TZone {
@@ -114,7 +115,7 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
     if (offset === 'Z' || offset === '+00:00' || offset === '-00:00') {
       return TimezonePickerComponent.AVAILABLE_TIMEZONES.find((zone) => zone.id === 'Z') ?? null;
     }
-    if (!/^[+-](?:0\d|1[0-3]):[0-5]\d$|^[+-]14:00$/.test(offset)) {
+    if (!CedarTemporalValue.isValidOffset(offset)) {
       return null;
     }
     return (
@@ -123,6 +124,22 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
         label: TimezonePickerComponent.labelFor(offset),
       }
     );
+  }
+
+  /**
+   * The zone to show for an offset a stored value carries, valid or not.
+   *
+   * An offset shaped `±HH:MM` but outside XML Schema's range, such as `+05:60`, is
+   * kept as it stands so the control shows it and an edit writes it back unchanged.
+   * Only a choice from the list or a clear replaces it. Anything else is not an
+   * offset at all.
+   */
+  static zoneForStoredOffset(offset: string): TZone | null {
+    const zone = TimezonePickerComponent.zoneForOffset(offset);
+    if (zone !== null || !/^[+-]\d{2}:\d{2}$/.test(offset)) {
+      return zone;
+    }
+    return { id: offset, label: TimezonePickerComponent.labelFor(offset) };
   }
 
   private static zoneForMinutes(totalMinutes: number): TZone {
@@ -159,6 +176,34 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
     }
   }
 
+  /** Whether no zone in current use has this offset, so the list shows it only because a value holds it. */
+  static isNonStandard(zone: TZone): boolean {
+    return !TimezonePickerComponent.AVAILABLE_TIMEZONES.some((standard) => standard.id === zone.id);
+  }
+
+  /** Minutes east of UTC, the order the list is shown in. */
+  private static minutesOf(zone: TZone): number {
+    if (zone.id === 'Z') {
+      return 0;
+    }
+    const sign = zone.id.startsWith('-') ? -1 : 1;
+    const [hours, minutes] = zone.id.slice(1).split(':').map(Number);
+    return sign * (hours * 60 + minutes);
+  }
+
+  /** Whether the offset is outside XML Schema's range, so the value holding it is invalid. */
+  static isInvalid(zone: TZone): boolean {
+    return !CedarTemporalValue.isValidOffset(zone.id);
+  }
+
+  isNonStandard(zone: TZone): boolean {
+    return TimezonePickerComponent.isNonStandard(zone);
+  }
+
+  isInvalid(zone: TZone): boolean {
+    return TimezonePickerComponent.isInvalid(zone);
+  }
+
   compareZones(first: TZone | null, second: TZone | null): boolean {
     return first?.id === second?.id;
   }
@@ -185,7 +230,7 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
 
   writeValue(value: string | TZone | null): void {
     const offset = typeof value === 'string' ? value : value?.id;
-    const zone = this.ensureAvailable(offset ? TimezonePickerComponent.zoneForOffset(offset) : null);
+    const zone = this.ensureAvailable(offset ? TimezonePickerComponent.zoneForStoredOffset(offset) : null);
     this.form.controls.timezone.setValue(zone, { emitEvent: false });
   }
 
@@ -197,7 +242,9 @@ export class TimezonePickerComponent implements OnInit, OnChanges, ControlValueA
 
   private ensureAvailable(zone: TZone | null): TZone | null {
     if (zone !== null && !this.timeZones.some((candidate) => candidate.id === zone.id)) {
-      this.timeZones = [...this.timeZones, zone];
+      this.timeZones = [...this.timeZones, zone].sort(
+        (first, second) => TimezonePickerComponent.minutesOf(first) - TimezonePickerComponent.minutesOf(second),
+      );
     }
     return zone;
   }

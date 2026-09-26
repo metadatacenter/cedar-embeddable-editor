@@ -5,6 +5,7 @@ import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.m
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { StaticFieldComponent } from '../../../shared/models/static/static-field-component.model';
+import { Translatable } from '../../../shared/models/ui/translatable.model';
 import { resolveStaticYoutubeView } from './static-youtube-view';
 import { DEFAULT_YOUTUBE_SIZE, resolveYoutubeSize } from './static-youtube-size';
 
@@ -25,7 +26,7 @@ export class CedarStaticYoutubeComponent extends CedarUIDirective {
   videoWidth: number = DEFAULT_YOUTUBE_SIZE.width;
   videoHeight: number = DEFAULT_YOUTUBE_SIZE.height;
   videoEmbedUrl: SafeResourceUrl | null = null;
-  contentError: string | null = null;
+  contentError: Translatable | null = null;
 
   constructor(
     public cds: ComponentDataService,
@@ -48,12 +49,10 @@ export class CedarStaticYoutubeComponent extends CedarUIDirective {
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 
-  get videoTitle(): string {
+  /** The field's own name for the video, or null when it has none and the template falls back to a translated one. */
+  get videoTitle(): string | null {
     return (
-      this.component?.labelInfo?.label ||
-      this.component?.labelInfo?.preferredLabel ||
-      this.component?.name ||
-      'YouTube video'
+      this.component?.labelInfo?.label || this.component?.labelInfo?.preferredLabel || this.component?.name || null
     );
   }
 

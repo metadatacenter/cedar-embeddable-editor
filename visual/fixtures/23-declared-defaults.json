@@ -53,6 +53,12 @@
     "@context": {
       "type": "object",
       "properties": {
+        "_annotations": {
+          "type": "string",
+          "enum": [
+            "@nest"
+          ]
+        },
         "rdfs": {
           "type": "string",
           "format": "uri",
@@ -311,6 +317,40 @@
         "null"
       ],
       "format": "uri"
+    },
+    "_annotations": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "@id": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "@value": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "null"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "_title": {
       "@id": "https://repo.metadatacenter.org/template-fields/9865b509-0000-4000-8000-9865b5090000",
@@ -626,8 +666,8 @@
         "classes": [],
         "branches": [],
         "defaultValue": {
-          "rdfs:label": "Homo sapiens",
-          "termUri": "http://purl.obolibrary.org/obo/NCBITaxon_9606"
+          "termUri": "http://purl.obolibrary.org/obo/NCBITaxon_9606",
+          "rdfs:label": "Homo sapiens"
         },
         "requiredValue": false
       },

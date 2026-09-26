@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.18] - 2026-09-26
+
+Aligns with `cedar-model-typescript-library@1.0.15`.
+
+- Includes the standalone field element, localized validation, and lossless RDF export checks.
+
 ## [2.0.17] - 2026-09-21
 
 Aligns with `cedar-model-typescript-library@1.0.13`.
@@ -26,7 +32,38 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
   CEE reads an artifact through class identity. The bundle grows by 15,474 gzip bytes, to
   656,506 of the 840,000 the size gate allows.
 
+- Two RDF downloads, `Instance - Turtle` and `Instance - N-Quads`, after `Instance - JSON-LD`. A
+  JSON-LD processor, `jsonld`, converts the instance, and `n3` writes the Turtle from the N-Quads, so
+  both files state the same triples. The processor fetches nothing: an instance naming a remote
+  context fails to convert. It runs in safe mode, so a field it would otherwise drop fails the
+  download and reports the reason through the error channel rather than producing a file that
+  silently lacks it. Three CEDAR conventions are restated first: a node whose `@id` is `null`
+  becomes a blank node, an empty field states nothing, and a field name JSON-LD 1.1 would read as an
+  IRI keeps its IRI under a neutral term. The bundle grows by 57,019 gzip bytes, to 637,123 of
+  the 840,000 the size gate allows.
+
 ### Changed
+
+- A numeric field's type constraint and a temporal field's errors follow the configured
+  language. The numeric sentence was English written into the validator, and the temporal
+  widget printed the data quality report's diagnostics, such as `Granularity is year, but the
+  padded month or day is not 01.`, to the person typing. Both now come from the language files:
+  the temporal widget asks for a valid date, time, or date and time, or names the precision or
+  timezone problem. The data quality report keeps its English diagnostics and stable `code`s,
+  since a host reads them as data.
+
+- The remaining English written into the source now comes from the language files, so a
+  Hungarian form no longer shows or announces it in English. This covers the explanation an
+  attribute-value field gives when it refuses a name, the explanation a static image or YouTube
+  field gives when it has nothing to show, the placeholders of the clock and of the decimal
+  seconds box, the notation a read-only date box states, and the accessible names of the
+  multi-instance pager, the required mark, the npm link and an untitled video. The English
+  text is unchanged. The date picker now writes its date in the configured language's
+  notation: English keeps `09/25/2026`, `09/2026` and `2026`, and Hungarian writes
+  `2026. 09. 25.`, `2026. 09.` and `2026.`. The picker reads back what it writes, and the value
+  it records is the same ISO date in either language. A domain test now fails when a template
+  or a message sink gains literal text that bypasses translation, apart from the product and
+  authority names listed with their reasons in `harness/i18n-allowlist.json`.
 
 - Every field CEE renders now goes through one component. The eighteen-way widget switch and
   the read-only choice between a control and a statement of the field's specification moved
