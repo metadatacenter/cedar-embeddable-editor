@@ -21,7 +21,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
-import { CedarReaders, CedarWriters } from 'cedar-model-typescript-library';
+import { CedarReaders, CedarWriters, ReservedNames } from 'cedar-model-typescript-library';
 import { buildTemplateModel } from '../src/generate';
 import { FIELD_KINDS } from '../src/axes';
 
@@ -46,7 +46,7 @@ const emitted = (template: any) => JSON.parse(templateWriter.getAsJsonString(tem
 
 /** The child property names carried in `properties`, in `properties` key order. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const childProps = (node: any): string[] => Object.keys(node.properties).filter((k) => k.startsWith('_'));
+const childProps = (node: any): string[] => Object.keys(node.properties).filter((k) => k.startsWith('_') && !ReservedNames.isReservedName(k));
 
 describe('YAML: the child sequence position is authoritative', () => {
   // Reorder the YAML `children` sequence — the only order signal YAML carries —
