@@ -6,7 +6,7 @@ import { MultiElementComponent } from '../models/element/multi-element-component
 import { DataContext } from '../util/data-context';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
-import { AttributeValueNamePolicy, InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
+import { InstanceDataAttributeValueFieldName, ReservedNames } from 'cedar-model-typescript-library';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
@@ -194,8 +194,8 @@ export class DataObjectDataValueHandler {
     ) {
       return { key: 'Validation.Attribute.NameInvalid' };
     }
-    // Also guard object internals when a host still resolves an older model package.
-    if (['__proto__', 'constructor', 'prototype'].includes(newName) || AttributeValueNamePolicy.isReserved(newName)) {
+    // The model library's ReservedNames decides which names an attribute may not take.
+    if (ReservedNames.isReservedName(newName)) {
       return { key: 'Validation.Attribute.NameReserved', params: { name: newName } };
     }
 

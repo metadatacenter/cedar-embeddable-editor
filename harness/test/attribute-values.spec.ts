@@ -370,20 +370,41 @@ describe('names the user did not supply', () => {
     expect(heldValue(driver.extract.values._av)).toEqual(['']);
   });
 
-  it.each(['@context', '@anything', 'schema:name', '_annotations'])(
-    'rejects the reserved instance name %s',
-    (reservedName) => {
-      const driver = new CeeDriver(flat());
-      const component = driver.findOrThrow(['_av']);
-      addAttribute(driver, component, null, 'metadata must survive');
+  // The model library's ReservedNames decides these, the object internals included.
+  it.each([
+    '@context',
+    '@anything',
+    'schema:name',
+    'schema:identifier',
+    'pav:derivedFrom',
+    'skos:altLabel',
+    '_annotations',
+    '__proto__',
+    'constructor',
+    'prototype',
+  ])('rejects the reserved instance name %s', (reservedName) => {
+    const driver = new CeeDriver(flat());
+    const component = driver.findOrThrow(['_av']);
+    addAttribute(driver, component, null, 'metadata must survive');
 
-      const error = driver.handlerContext.changeAttributeValue(component, reservedName, 'metadata must survive');
+    const error = driver.handlerContext.changeAttributeValue(component, reservedName, 'metadata must survive');
 
-      expect(read(error)).toContain('reserved');
-      expect(heldValue(driver.extract.values._av)).toEqual(['']);
-      expect(driver.extract.hasValue(reservedName)).toBe(false);
-    },
-  );
+    expect(read(error)).toContain('reserved');
+    expect(heldValue(driver.extract.values._av)).toEqual(['']);
+    expect(driver.extract.hasValue(reservedName)).toBe(false);
+  });
+
+  // Only an attribute-value field's own key competes with YAML metadata; the names inside it do not.
+  it('accepts an attribute named after a YAML metadata key', () => {
+    const driver = new CeeDriver(flat());
+    const component = driver.findOrThrow(['_av']);
+    addAttribute(driver, component, null, 'kept');
+
+    const error = driver.handlerContext.changeAttributeValue(component, 'type', 'kept');
+
+    expect(error).toBeNull();
+    expect(driver.extract.hasValue('type')).toBe(true);
+  });
 
   it('rejects a name already used by another attribute-value field', () => {
     const template = buildTemplate({
