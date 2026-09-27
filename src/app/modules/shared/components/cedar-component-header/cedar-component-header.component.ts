@@ -7,6 +7,7 @@ import { ComponentTypeHandler } from '../../handler/component-type.handler';
 import { SingleFieldComponent } from '../../models/field/single-field-component.model';
 import { FieldComponent } from '../../models/component/field-component.model';
 import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
+import { StaticFieldComponent } from '../../models/static/static-field-component.model';
 import { InputType } from '../../models/input-type.model';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 
@@ -84,6 +85,11 @@ export class CedarComponentHeaderComponent implements OnInit {
     this.shouldRenderRequiredMark = false;
     this.fieldTypeIcon = null;
     this.isOntologyField = false;
+
+    if (componentToRender instanceof StaticFieldComponent && componentToRender.basicInfo.inputType) {
+      this.fieldTypeIcon =
+        CedarComponentHeaderComponent.FIELD_TYPE_ICONS[componentToRender.basicInfo.inputType] ?? 'artifact-field';
+    }
 
     if (ComponentTypeHandler.isMulti(componentToRender)) {
       this.multiComponent = componentToRender as MultiComponent;

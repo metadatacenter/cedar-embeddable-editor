@@ -61,16 +61,8 @@
   align-items: center;
   column-gap: ui-tokens.$space-3;
 
-  > app-cedar-component-header {
-    grid-column: 1;
-  }
-
   > app-cedar-multi-pager {
     grid-column: 2;
-  }
-
-  > .child-component-content {
-    grid-column: 1 / -1;
   }
 }
 
@@ -95,9 +87,4 @@
 ::ng-deep .cee-element-content > app-cedar-component-renderer:first-of-type > .non-iterable-component,
 ::ng-deep .cee-read-only .cee-element-content > app-cedar-component-renderer:first-of-type > .non-iterable-component {
   padding-top: 0;
-}
-
-.child-component-content {
-  min-width: 0;
-  padding-top: ui-tokens.$space-1;
 }

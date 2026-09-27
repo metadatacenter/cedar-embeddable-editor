@@ -230,10 +230,14 @@ describe('an artifact the element cannot render', () => {
     expect(inputIn(mounted).value).toBe('first');
   });
 
-  it('is a page break, which divides a form this element does not have', async () => {
-    const mounted = await mount(pageBreakArtifact());
-
-    expect(mounted.errors).toHaveBeenCalledWith(expect.stringContaining('page break'), null);
+  it('describes a standalone page break without creating pagination', async () => {
+    const mounted = await mount(pageBreakArtifact(), { readOnlyMode: true });
+    expect(mounted.errors).not.toHaveBeenCalled();
+    expect(mounted.fixture.debugElement.query(By.css('.title-label')).nativeElement.textContent).toContain('Next');
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type')).nativeElement.textContent).toContain(
+      'Page break',
+    );
+    expect(mounted.element.currentValue).toEqual({ kind: 'none' });
   });
 });
 
@@ -317,5 +321,47 @@ describe('rejected assignments', () => {
     mounted.element.fieldObject = numeric();
     expect(mounted.element.currentValue).toEqual({ kind: 'number', value: 7 });
     expect(mounted.errors).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('the complete read-only field presentation', () => {
+  it('owns its label, type and description without an empty specification box', async () => {
+    const mounted = await mount(
+      textArtifact((b) => b.withSchemaDescription('Explain this field')),
+      { readOnlyMode: true },
+    );
+    expect(mounted.fixture.debugElement.query(By.css('.title-label')).nativeElement.textContent).toContain('Sample');
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type')).nativeElement.textContent).toContain('Text');
+    expect(
+      mounted.fixture.debugElement.query(By.css('.cee-field-spec-description')).nativeElement.textContent,
+    ).toContain('Explain this field');
+    expect(mounted.fixture.debugElement.query(By.css('.cee-spec-box'))).toBeNull();
+    expect(mounted.fixture.debugElement.query(By.css('input'))).toBeNull();
+    expect(mounted.changes).toEqual([]);
+  });
+
+  it('keeps the editable element a bare control', async () => {
+    const mounted = await mount(textArtifact((b) => b.withSchemaDescription('Explain this field')));
+    expect(mounted.fixture.debugElement.query(By.css('app-cedar-component-header'))).toBeNull();
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type'))).toBeNull();
+    expect(inputIn(mounted)).toBeTruthy();
+  });
+
+  it('accepts read-only configuration after the artifact and replaces the presentation with the field', async () => {
+    await TestBed.configureTestingModule({
+      imports: [SharedModule],
+      providers: [provideHttpClient(), provideTranslateService()],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(CedarEmbeddableFieldWrapperComponent);
+    fixture.componentInstance.fieldObject = textArtifact();
+    fixture.componentInstance.config = { readOnlyMode: true };
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.fieldObject = temporalArtifact();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.debugElement.query(By.css('.title-label')).nativeElement.textContent).toContain('When');
+    expect(fixture.debugElement.query(By.css('.cee-field-type')).nativeElement.textContent).toContain('Date / time');
+    expect(fixture.debugElement.queryAll(By.css('app-cedar-component-header')).length).toBe(1);
   });
 });

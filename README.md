@@ -126,11 +126,16 @@ covers Angular, React, and Ember.
 
 ## Embedding a Single Field
 
-The bundle registers a second element. `<cedar-embeddable-field>` renders one field's
-control — the same control the editor renders for that field, from the same component
-— and nothing of the form around it: no label, no description, no card. A host that
-holds a field artifact rather than a template puts this where the control belongs and
-draws the rest itself.
+The bundle registers a second element. `<cedar-embeddable-field>` renders one field
+from its artifact. In editable mode it supplies the same bare control CEE uses,
+so a host such as CED can place it in its own form.
+
+With `config = { readOnlyMode: true }`, CEF owns the full presentation: label,
+field type, description, constraints, choices, sources and declared defaults where
+present. A supplied value is shown read-only. CEE uses the same field presentation,
+so preview hosts only need to supply the artifact and their dialog shell. A field
+with no constraints does not draw an empty specification box. Static fields show
+their content; a standalone page break is described without creating pagination.
 
 Designing a template is what this is for. An author giving a field a default value
 needs somewhere to type it, and the box that collects one has to be the control the

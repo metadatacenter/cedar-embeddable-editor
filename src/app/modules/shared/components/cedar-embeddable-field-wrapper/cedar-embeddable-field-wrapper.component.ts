@@ -267,18 +267,6 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
       return { dataContext, handlerContext, component, valueComponent: decision.component };
     }
     if (decision.kind === 'static') {
-      /*
-       * Except a page break, which is not a thing to draw. It divides a form into
-       * pages, and a form is the one thing this element does not have — so rendering
-       * it would put an empty element on the host's page with nothing to say why.
-       */
-      if (decision.renderer === 'page-break') {
-        this.messageHandlerService.error(
-          'cedar-embeddable-field: "fieldObject" rejected because a page break divides a form into pages and has nothing to ' +
-            'render on its own.',
-        );
-        return null;
-      }
       return { dataContext, handlerContext, component, valueComponent: null };
     }
     this.messageHandlerService.error(
@@ -287,6 +275,13 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
       }`,
     );
     return null;
+  }
+
+  /** A standalone page break has a description but no value control in either mode. */
+  get isPageBreak(): boolean {
+    if (this.renderedComponent === null) return false;
+    const decision = decideComponentRender(this.renderedComponent);
+    return decision.kind === 'static' && decision.renderer === 'page-break';
   }
 
   private install(runtime: FieldRuntime): void {

@@ -42,10 +42,13 @@
     @case ('field') {
       @if (decision.component; as nonIterableComponent) {
         <div
+          cedarFieldPresentation
+          [componentToRender]="nonIterableComponent"
+          [handlerContext]="handlerContext"
+          [showContent]="shouldRenderContentOfNonIterable(nonIterableComponent)"
           class="child-component-card non-iterable-component"
           [class.inline-readonly-pager]="shouldInlineReadOnlyPager(nonIterableComponent)"
         >
-          <app-cedar-component-header [componentToRender]="nonIterableComponent"></app-cedar-component-header>
           @if (nonIterableComponent.isMultiPage() && shouldRenderOccurrencePager()) {
             <app-cedar-multi-pager
               [componentToRender]="nonIterableComponent"
@@ -53,27 +56,6 @@
               [isAlignedUp]="false"
               [pageBreakPaginatorService]="pageBreakPaginatorService"
             ></app-cedar-multi-pager>
-          }
-          @if (shouldRenderContentOfNonIterable(nonIterableComponent)) {
-            <div class="child-component-content">
-              <!--
-              The description, beneath the label whose line already carries the terse facts. Renders
-              itself only in read-only mode, and only when the field has one, so an editor is untouched.
-            -->
-              <app-cedar-field-spec
-                [fieldToDescribe]="nonIterableComponent"
-                variant="description"
-              ></app-cedar-field-spec>
-              <!--
-              The control itself, which is the one thing this renderer does not decide. The same
-              component serves the `cedar-embeddable-field` element, so a form and a lone field acquire and
-              present a value through one implementation.
-            -->
-              <app-cedar-field-widget
-                [componentToRender]="nonIterableComponent"
-                [handlerContext]="handlerContext"
-              ></app-cedar-field-widget>
-            </div>
           }
         </div>
       }

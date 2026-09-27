@@ -349,7 +349,7 @@ test.describe('multiple editor instances', () => {
     // The read-only one has no controls to make read-only: with no instance behind it, each field
     // states its specification in a box instead. Which is the stronger form of the same claim.
     await expect(page.locator('#editor-second input')).toHaveCount(0);
-    await expect(page.locator('#editor-second .cee-spec-box').first()).toBeVisible();
+    await expect(page.locator('#editor-second .cee-field-type').first()).toHaveText('Text');
   });
 
   test('keep terminology and authority endpoints isolated', async ({ page }) => {
@@ -3197,11 +3197,12 @@ test.describe('a link rendered as a value', () => {
     expect((await linkField.locator('.cee-term-link').boundingBox())?.height).toBe(36);
   });
 
-  test('keeps an empty read-only template link as its specification box', async ({ page }) => {
+  test('describes an empty read-only template link without an empty box', async ({ page }) => {
     await open(page, '01-input-types', 'readonly');
 
     const linkRenderer = page.locator('.non-iterable-component').filter({ hasText: 'link property description' });
-    await expect(linkRenderer.locator('.cee-spec-box')).toBeVisible();
+    await expect(linkRenderer.locator('.cee-field-type')).toHaveText('Link');
+    await expect(linkRenderer.locator('.cee-spec-box')).toHaveCount(0);
     await expect(linkRenderer.locator('.cee-term-link')).toHaveCount(0);
     await expect(linkRenderer.locator('input')).toHaveCount(0);
   });

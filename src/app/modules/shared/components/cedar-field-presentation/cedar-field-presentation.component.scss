@@ -1,0 +1,39 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+:host(.inline-readonly-pager) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: tokens.$space-3;
+
+  > app-cedar-component-header {
+    grid-column: 1;
+  }
+
+  > .child-component-content {
+    grid-column: 1 / -1;
+  }
+}
+
+@container cee (max-width: 620px) {
+  :host(.inline-readonly-pager) {
+    display: block;
+  }
+}
+
+.child-component-content {
+  min-width: 0;
+  padding-top: tokens.$space-1;
+}
+
+.cee-field-type {
+  margin: 0 0 tokens.$space-1;
+  color: tokens.$text-muted;
+  font-size: tokens.$font-size;
+  overflow-wrap: anywhere;
+}

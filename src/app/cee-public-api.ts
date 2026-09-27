@@ -414,8 +414,8 @@ export interface CedarEmbeddableFieldChangeDetail {
  *
  * The subset of `CeeConfig` that describes a field rather than the form around one.
  * The keys left out — the download menu, the expand controls, the template
- * description — settle what an editor draws around its fields, and this element draws
- * nothing around its own.
+ * description — settle what an editor draws around a whole form. Field labels and
+ * descriptions belong to this element in read-only mode.
  */
 export type CedarEmbeddableFieldConfig = Pick<
   CeeConfig,
@@ -431,16 +431,13 @@ export type CedarEmbeddableFieldConfig = Pick<
 /**
  * One field's control, as a host sees it.
  *
- * Registered as `cedar-embeddable-field`. It renders exactly the widget the editor
- * renders for that field — the same component, not a second implementation — and
- * reports what the widget holds. Around it there is nothing: no label, no description,
- * no card. A host that has a field artifact and wants a value for it draws its own
- * surroundings and puts this where the control goes.
+ * Registered as `cedar-embeddable-field`. Editable, it renders the same bare value
+ * control as CEE, for a host that supplies its own surrounding form.
  *
- * Read-only is the presentation half of the same element. Editable, the field is a
- * control to fill in; read-only with nothing in it, the widget is replaced by a
- * statement of what the field will accept, which is what the editor shows when it
- * renders a template nobody has filled in yet.
+ * Read-only, it owns the complete field presentation shared with CEE: label, type,
+ * description and applicable constraints, choices, sources and defaults. A supplied
+ * value remains visible and cannot be edited. Static content is also described;
+ * a standalone page break has a label and type but does not create pagination.
  *
  * A field artifact carries no requiredness and no cardinality — both belong to a
  * field's deployment in a template, and this element deploys nothing — so the value
