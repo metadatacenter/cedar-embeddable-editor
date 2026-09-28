@@ -58,7 +58,13 @@ describe('CedarEmbeddableMetadataEditorComponent config', () => {
 
   // For every boolean display flag the config key and the field it sets share a
   // name, so one list drives both sides of the assertion.
-  const BOOLEAN_FLAGS = ['showDownloadMenu', 'showTemplateDescription', 'readOnlyMode', 'showExpandCollapseAll'];
+  const BOOLEAN_FLAGS = [
+    'previewMode',
+    'showDownloadMenu',
+    'showTemplateDescription',
+    'readOnlyMode',
+    'showExpandCollapseAll',
+  ];
 
   describe('every boolean flag maps its config key to its field', () => {
     BOOLEAN_FLAGS.forEach((flag) => {

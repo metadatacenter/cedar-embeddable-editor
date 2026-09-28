@@ -3,6 +3,7 @@
     appearance="outlined"
     class="template-card"
     [class.cee-read-only]="readOnlyMode"
+    [class.cee-preview]="previewMode && readOnlyMode"
     [class.cee-declared-values]="declaredValuesOnly"
   >
     <!--  <mat-card-header>-->
@@ -13,40 +14,42 @@
       "
       [class.template-header-paged]="dataContext.templateRepresentation?.hasPageBreaks()"
     >
-      <a
-        class="logo-block"
-        href="https://www.npmjs.com/package/cedar-embeddable-editor"
-        target="_blank"
-        rel="noreferrer"
-        attr.aria-label="{{ 'Generic.CeeOnNpm' | translate }}"
-      >
-        <div mat-card-avatar class="header-image"></div>
-        <span class="cee-name">CEE</span>
-        <span class="cee-version" [title]="ceeVersion">{{ ceeVersion }}</span>
-      </a>
-      <div class="template-title-block">
-        <h1 class="template-label">{{ dataContext.templateRepresentation?.labelInfo?.label }}</h1>
-        @if (dataContext.templateRepresentation?.labelInfo?.description && showTemplateDescription) {
-          <p class="template-description">{{ dataContext.templateRepresentation?.labelInfo?.description }}</p>
-        }
-      </div>
-      @if (templateVersion || templateStatus) {
-        <!--
+      @if (!previewMode || !readOnlyMode) {
+        <a
+          class="logo-block"
+          href="https://www.npmjs.com/package/cedar-embeddable-editor"
+          target="_blank"
+          rel="noreferrer"
+          attr.aria-label="{{ 'Generic.CeeOnNpm' | translate }}"
+        >
+          <div mat-card-avatar class="header-image"></div>
+          <span class="cee-name">CEE</span>
+          <span class="cee-version" [title]="ceeVersion">{{ ceeVersion }}</span>
+        </a>
+        <div class="template-title-block">
+          <h1 class="template-label">{{ dataContext.templateRepresentation?.labelInfo?.label }}</h1>
+          @if (dataContext.templateRepresentation?.labelInfo?.description && showTemplateDescription) {
+            <p class="template-description">{{ dataContext.templateRepresentation?.labelInfo?.description }}</p>
+          }
+        </div>
+        @if (templateVersion || templateStatus) {
+          <!--
           What the artifact says about itself, where a reader looks for it: the top right, above the
           controls rather than among them, so the buttons keep the right edge they were given.
         -->
-        <div class="template-provenance">
-          @if (templateVersion) {
-            <span class="template-version">{{
-              'Generic.TemplateVersion' | translate: { version: templateVersion }
-            }}</span>
-          }
-          @if (templateStatus) {
-            <span class="template-status">{{
-              (templateStatus === 'published' ? 'Generic.StatusPublished' : 'Generic.StatusDraft') | translate
-            }}</span>
-          }
-        </div>
+          <div class="template-provenance">
+            @if (templateVersion) {
+              <span class="template-version">{{
+                'Generic.TemplateVersion' | translate: { version: templateVersion }
+              }}</span>
+            }
+            @if (templateStatus) {
+              <span class="template-status">{{
+                (templateStatus === 'published' ? 'Generic.StatusPublished' : 'Generic.StatusDraft') | translate
+              }}</span>
+            }
+          </div>
+        }
       }
       @if (dataContext.templateRepresentation?.hasPageBreaks() || showExpandCollapseAll || showDownloadMenu) {
         <div class="template-actions">
@@ -91,6 +94,14 @@
     </div>
     <!--  </mat-card-header>-->
     <mat-card-content class="template-content">
+      @if (
+        previewMode &&
+        readOnlyMode &&
+        showTemplateDescription &&
+        dataContext.templateRepresentation?.labelInfo?.description
+      ) {
+        <p class="template-description">{{ dataContext.templateRepresentation?.labelInfo?.description }}</p>
+      }
       @for (childComponent of pageBreakPaginatorService.getCurrentPage(); track childComponent) {
         @if (!childComponent.hidden) {
           <app-cedar-component-renderer

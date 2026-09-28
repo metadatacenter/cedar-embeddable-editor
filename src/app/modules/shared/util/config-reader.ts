@@ -19,6 +19,7 @@ export type CeeConfig = Record<string, unknown>;
 /** The one runtime spelling of every host configuration key. */
 export const CEE_CONFIG_KEY = {
   showTemplateDescription: 'showTemplateDescription',
+  previewMode: 'previewMode',
   readOnlyMode: 'readOnlyMode',
   trustTemplateRichText: 'trustTemplateRichText',
   showDownloadMenu: 'showDownloadMenu',

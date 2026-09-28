@@ -48,6 +48,9 @@ export type CeeConfigKey = keyof CeeConfig;
 export interface CeeConfig {
   showTemplateDescription?: boolean;
 
+  /** Compact read-only embedding without the editor identity header. Keeps descriptions and pagination. */
+  previewMode?: boolean;
+
   /**
    * Renders the form without editing controls.
    *

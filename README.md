@@ -124,6 +124,11 @@ takes the same page apart step by step, and
 [Embedding in a Framework](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/frameworks/)
 covers Angular, React, and Ember.
 
+A read-only dialog host can set `previewMode: true` alongside `readOnlyMode: true`
+to omit CEE's identity header and use compact, content-sized form spacing. Template
+descriptions and page navigation remain available. Editing and ordinary CEE embeds
+retain their existing layout.
+
 ## Embedding a Single Field
 
 The bundle registers a second element. `<cedar-embeddable-field>` renders one field
@@ -134,7 +139,7 @@ With `config = { readOnlyMode: true }`, CEF owns the full presentation: label,
 field type, description, constraints, choices, sources and declared defaults where
 present. A supplied value is shown read-only. CEE uses the same field presentation,
 so preview hosts only need to supply the artifact and their dialog shell. A field
-with no constraints does not draw an empty specification box. Static fields show
+with no constraints still draws a read-only box labelled with its field type. Static fields show
 their content; a standalone page break is described without creating pagination.
 
 Designing a template is what this is for. An author giving a field a default value

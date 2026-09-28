@@ -3197,12 +3197,12 @@ test.describe('a link rendered as a value', () => {
     expect((await linkField.locator('.cee-term-link').boundingBox())?.height).toBe(36);
   });
 
-  test('describes an empty read-only template link without an empty box', async ({ page }) => {
+  test('describes an empty read-only template link in a visible field box', async ({ page }) => {
     await open(page, '01-input-types', 'readonly');
 
     const linkRenderer = page.locator('.non-iterable-component').filter({ hasText: 'link property description' });
     await expect(linkRenderer.locator('.cee-field-type')).toHaveText('Link');
-    await expect(linkRenderer.locator('.cee-spec-box')).toHaveCount(0);
+    await expect(linkRenderer.locator('.cee-spec-box')).toHaveText('Link');
     await expect(linkRenderer.locator('.cee-term-link')).toHaveCount(0);
     await expect(linkRenderer.locator('input')).toHaveCount(0);
   });

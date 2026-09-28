@@ -88,3 +88,21 @@
 ::ng-deep .cee-read-only .cee-element-content > app-cedar-component-renderer:first-of-type > .non-iterable-component {
   padding-top: 0;
 }
+
+:host-context(.cee-preview) {
+  .mat-expansion-panel {
+    border-radius: tokens.$control-radius-default;
+    box-shadow: none;
+    border: 1px solid tokens.$border-rule;
+  }
+  ::ng-deep .mat-expansion-panel-body {
+    padding: 0 tokens.$space-3 tokens.$space-2;
+  }
+  .cee-element-content {
+    padding: 0;
+  }
+}
+
+:host-context(.cee-preview):last-child > .non-iterable-component {
+  border-bottom: 0;
+}

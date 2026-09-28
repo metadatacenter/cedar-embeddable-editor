@@ -34,6 +34,7 @@ type ExpectedType = 'boolean' | 'string';
  */
 export const CONFIG_SCHEMA: Readonly<Record<string, ExpectedType>> = {
   [CEE_CONFIG_KEY.showTemplateDescription]: 'boolean',
+  [CEE_CONFIG_KEY.previewMode]: 'boolean',
 
   [CEE_CONFIG_KEY.readOnlyMode]: 'boolean',
   [CEE_CONFIG_KEY.trustTemplateRichText]: 'boolean',
