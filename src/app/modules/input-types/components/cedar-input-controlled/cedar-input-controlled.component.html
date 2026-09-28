@@ -43,8 +43,11 @@ different destinations worth having.
           } @else {
             <span class="cee-controlled-spec-source"
               ><em class="cee-controlled-spec-kind">{{ 'Spec.TermKind.' + source.kind | translate }}</em>
-              {{ source.name }}</span
-            >
+              {{ source.name }}
+              @if (source.container) {
+                {{ 'Spec.TermIn' | translate: { container: source.container } }}
+              }
+            </span>
           }
         }
       </div>

@@ -12,7 +12,8 @@
  * templates rather than invented.
  */
 import { describe, expect, it } from 'vitest';
-import { bioPortalTermLink } from '@cee/util/bioportal-term-link';
+import { bioPortalSourceLink, bioPortalTermLink } from '@cee/util/bioportal-term-link';
+import { SpecTermSource } from '@cee/util/field-spec';
 import { ControlledInfo } from '@cee/models/info/controlled-info.model';
 
 const controlled = (over: Partial<ControlledInfo>): ControlledInfo => Object.assign(new ControlledInfo(), over);
@@ -74,5 +75,39 @@ describe('the BioPortal link', () => {
   it('escapes an acronym rather than letting it shape the URL', () => {
     const link = bioPortalTermLink(controlled({ ontologies: [{ acronym: 'A/B?x=1' }] }), TERM);
     expect(link).toContain('/ontologies/A%2FB%3Fx%3D1?');
+  });
+});
+
+describe('the specification source link', () => {
+  const source = (over: Partial<SpecTermSource> = {}): SpecTermSource => ({
+    kind: 'branch',
+    name: 'A branch',
+    container: 'Exposure Value Set (EVS)',
+    acronym: 'EVS',
+    uri: TERM,
+    ...over,
+  });
+
+  it.each([null, ''])('does not invent an ontology when the acronym is %s', (acronym) => {
+    expect(bioPortalSourceLink(source({ acronym }))).toBeNull();
+  });
+
+  it.each(['branch', 'class'] as const)('links a %s to its exact concept', (kind) => {
+    const uri = 'https://example.org/term?a=1&b=two words#part';
+    const url = new URL(bioPortalSourceLink(source({ kind, uri, acronym: 'A/B?x=1' }))!);
+    expect(url.pathname).toBe('/ontologies/A%2FB%3Fx%3D1');
+    expect([...url.searchParams.entries()]).toEqual([
+      ['p', 'classes'],
+      ['conceptid', uri],
+    ]);
+    expect(url.hash).toBe('');
+  });
+
+  it.each(['ontology', 'valueSet', 'value'] as const)('links a %s to the collection page', (kind) => {
+    expect(bioPortalSourceLink(source({ kind }))).toBe('https://bioportal.bioontology.org/ontologies/EVS');
+  });
+
+  it('falls back to the known ontology when no concept URI is available', () => {
+    expect(bioPortalSourceLink(source({ uri: null }))).toBe('https://bioportal.bioontology.org/ontologies/EVS');
   });
 });
