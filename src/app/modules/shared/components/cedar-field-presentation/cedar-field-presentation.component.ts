@@ -14,6 +14,7 @@ import { decideFieldWidget, FieldWidgetDecision } from '../cedar-component-rende
 export class CedarFieldPresentationComponent {
   @Input({ required: true }) handlerContext!: HandlerContext;
   @Input() showContent = true;
+  @Input() showHeader = true;
   component!: CedarComponent;
   decision: FieldWidgetDecision = { kind: 'none' };
 

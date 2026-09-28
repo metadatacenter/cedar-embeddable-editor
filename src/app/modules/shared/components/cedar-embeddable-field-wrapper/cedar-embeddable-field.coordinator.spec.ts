@@ -340,6 +340,20 @@ describe('the complete read-only field presentation', () => {
     expect(mounted.changes).toEqual([]);
   });
 
+  it('lets a read-only preview host provide the heading without losing the field description or box', async () => {
+    const mounted = await mount(
+      textArtifact((b) => b.withSchemaDescription('Explain this field')),
+      { readOnlyMode: true, previewMode: true },
+    );
+    expect(mounted.fixture.debugElement.query(By.css('app-cedar-component-header'))).toBeNull();
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type')).nativeElement.textContent).toContain('Text');
+    expect(
+      mounted.fixture.debugElement.query(By.css('.cee-field-spec-description')).nativeElement.textContent,
+    ).toContain('Explain this field');
+    expect(mounted.fixture.debugElement.query(By.css('.cee-spec-box'))).not.toBeNull();
+    expect(mounted.changes).toEqual([]);
+  });
+
   it('keeps the editable element a bare control', async () => {
     const mounted = await mount(textArtifact((b) => b.withSchemaDescription('Explain this field')));
     expect(mounted.fixture.debugElement.query(By.css('app-cedar-component-header'))).toBeNull();

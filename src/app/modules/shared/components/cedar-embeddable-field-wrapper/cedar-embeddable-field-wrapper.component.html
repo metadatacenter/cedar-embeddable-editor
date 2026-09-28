@@ -7,7 +7,12 @@
   <!-- A new artifact needs fresh controls, including their initialization-time validators. -->
   @for (component of renderedComponent ? [renderedComponent] : []; track component) {
     @if (handlerContext.readOnlyMode || isPageBreak) {
-      <div cedarFieldPresentation [componentToRender]="component" [handlerContext]="handlerContext"></div>
+      <div
+        cedarFieldPresentation
+        [componentToRender]="component"
+        [handlerContext]="handlerContext"
+        [showHeader]="showHeader"
+      ></div>
     } @else {
       <app-cedar-field-widget
         [componentToRender]="component"

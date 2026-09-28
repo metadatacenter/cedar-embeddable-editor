@@ -35,7 +35,7 @@ import { MessageHandlerService } from '../../service/message-handler.service';
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
 import { TemplateTrustService } from '../../service/template-trust.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
-import { CeeConfig } from '../../util/config-reader';
+import { CEE_CONFIG_KEY, CeeConfig, configFlag } from '../../util/config-reader';
 import { DataContext } from '../../util/data-context';
 import { FallbackTranslateLoaderFactory } from '../../util/fallback-translate-loader-factory';
 import { HandlerContext } from '../../util/handler-context';
@@ -121,6 +121,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
   dataContext: DataContext = new DataContext();
   handlerContext: HandlerContext;
   renderedComponent: CedarComponent | null = null;
+  showHeader = true;
 
   private initialized = false;
   private readonly configuration: WrapperConfigCoordinator;
@@ -334,6 +335,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     }
     const config = this.configuration.config ?? {};
     this.configuration.apply(this.handlerContext);
+    this.showHeader = !(this.handlerContext.readOnlyMode && configFlag(config, CEE_CONFIG_KEY.previewMode, false));
     this.widgetConfig.apply(config, this.handlerContext.readOnlyMode);
   }
 

@@ -138,8 +138,10 @@ so a host such as CED can place it in its own form.
 With `config = { readOnlyMode: true }`, CEF owns the full presentation: label,
 field type, description, constraints, choices, sources and declared defaults where
 present. A supplied value is shown read-only. CEE uses the same field presentation,
-so preview hosts only need to supply the artifact and their dialog shell. A field
-with no constraints still draws a read-only box labelled with its field type. Static fields show
+so preview hosts only need to supply the artifact and their dialog shell. Set
+`previewMode: true` with `readOnlyMode: true` when the host supplies the field name
+in its own header; CEF then omits its header while retaining the type, description and value/specification.
+A text field with no constraints draws an empty read-only box. Static fields show
 their content; a standalone page break is described without creating pagination.
 
 Designing a template is what this is for. An author giving a field a default value

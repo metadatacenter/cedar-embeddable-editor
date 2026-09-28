@@ -48,7 +48,7 @@ export type CeeConfigKey = keyof CeeConfig;
 export interface CeeConfig {
   showTemplateDescription?: boolean;
 
-  /** Compact read-only embedding without the editor identity header. Keeps descriptions and pagination. */
+  /** Read-only embedding with a host-provided heading. Hides CEE's identity header or CEF's field header; keeps descriptions and controls. */
   previewMode?: boolean;
 
   /**
@@ -423,6 +423,7 @@ export interface CedarEmbeddableFieldChangeDetail {
 export type CedarEmbeddableFieldConfig = Pick<
   CeeConfig,
   | 'readOnlyMode'
+  | 'previewMode'
   | 'trustTemplateRichText'
   | 'terminologyBaseUrl'
   | 'bridgeBaseUrl'

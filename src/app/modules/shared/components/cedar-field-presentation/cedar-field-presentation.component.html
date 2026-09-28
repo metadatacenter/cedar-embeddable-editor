@@ -1,4 +1,6 @@
-<app-cedar-component-header [componentToRender]="component"></app-cedar-component-header>
+@if (showHeader) {
+  <app-cedar-component-header [componentToRender]="component"></app-cedar-component-header>
+}
 <ng-content></ng-content>
 @if (showContent) {
   <div class="child-component-content">
