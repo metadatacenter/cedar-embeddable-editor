@@ -344,11 +344,15 @@ const spelledOutName = (source: string | undefined, acronym: string | undefined)
   return name === '' || name === 'undefined' ? null : source;
 };
 
+/** Empty labels carry no display information; keep the next available label or identifier. */
+const sourceName = (...candidates: (string | undefined)[]): string =>
+  candidates.find((candidate) => candidate?.trim()) ?? '';
+
 const branchSource = (branch: BranchConstraint): SpecTermSource => {
   const container = spelledOutName(branch.source, branch.acronym);
   return {
     kind: 'branch',
-    name: branch.name ?? branch.uri ?? '',
+    name: sourceName(branch.name, branch.uri),
     container,
     acronym: branch.acronym ?? null,
     uri: branch.uri ?? null,
@@ -357,7 +361,7 @@ const branchSource = (branch: BranchConstraint): SpecTermSource => {
 
 const ontologySource = (ontology: OntologyConstraint): SpecTermSource => ({
   kind: 'ontology',
-  name: ontology.name ?? ontology.uri ?? '',
+  name: sourceName(ontology.name, ontology.uri),
   container: null,
   acronym: ontology.acronym ?? null,
   uri: ontology.uri ?? null,
@@ -365,7 +369,7 @@ const ontologySource = (ontology: OntologyConstraint): SpecTermSource => ({
 
 const valueSetSource = (valueSet: ValueSetConstraint): SpecTermSource => ({
   kind: 'valueSet',
-  name: valueSet.name ?? valueSet.uri ?? '',
+  name: sourceName(valueSet.name, valueSet.uri),
   container: null,
   acronym: valueSet.vsCollection ?? null,
   uri: valueSet.uri ?? null,
@@ -375,7 +379,7 @@ const classSource = (entry: ClassConstraint): SpecTermSource => ({
   // Some producers use the classes array for a fixed value. Preserve that distinction in the label
   // while treating an absent type as the ontology class shape the model names.
   kind: entry.type === 'Value' ? 'value' : 'class',
-  name: entry.prefLabel ?? entry.label ?? entry.uri ?? '',
+  name: sourceName(entry.prefLabel, entry.label, entry.uri),
   // A class names its ontology by acronym in `source`, where a branch names it in full. Reading it as
   // a container produced "class asthma of the DOID": an acronym in the slot for a spelled-out name.
   container: null,

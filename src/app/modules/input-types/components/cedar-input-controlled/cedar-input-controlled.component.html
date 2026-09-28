@@ -28,7 +28,7 @@ different destinations worth having.
         @if (component | ceeSpecPlaceholder) {
           <span class="cee-controlled-spec-facts">{{ component | ceeSpecPlaceholder }}</span>
         }
-        @for (source of specSources; track source.uri) {
+        @for (source of specSources; track $index) {
           @if (specSourceLink(source)) {
             <a class="cee-controlled-spec-source" [href]="specSourceLink(source)" target="_blank" rel="noopener"
               ><em class="cee-controlled-spec-kind">{{ 'Spec.TermKind.' + source.kind | translate }}</em>
@@ -36,7 +36,7 @@ different destinations worth having.
               @if (source.container) {
                 {{ 'Spec.TermIn' | translate: { container: source.container } }}
               }
-              @if (source.acronym && !source.container?.includes('(' + source.acronym + ')')) {
+              @if (source.acronym && !(source.container ?? source.name).includes('(' + source.acronym + ')')) {
                 ({{ source.acronym }})
               }
             </a>

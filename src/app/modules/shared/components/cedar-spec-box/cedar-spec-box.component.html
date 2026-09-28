@@ -35,7 +35,7 @@
       }
     </span>
   }
-  @for (source of termSources; track source.uri) {
+  @for (source of termSources; track $index) {
     <!--
       The kind stays outside the anchor. It says what sort of authority this is; the link goes to the
       authority itself, and a word that is not the thing being linked to should not be part of it.
@@ -48,7 +48,7 @@
           @if (source.container) {
             {{ 'Spec.TermIn' | translate: { container: source.container } }}
           }
-          @if (source.acronym && !source.container?.includes('(' + source.acronym + ')')) {
+          @if (source.acronym && !(source.container ?? source.name).includes('(' + source.acronym + ')')) {
             ({{ source.acronym }})
           }
         </a>
