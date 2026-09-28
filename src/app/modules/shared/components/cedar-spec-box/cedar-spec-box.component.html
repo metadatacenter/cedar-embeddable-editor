@@ -1,5 +1,5 @@
 <div class="cee-spec-box" role="note">
-  @if (!facts.length && !optionLabels && !defaultTerm && !termSources.length) {
+  @if (fieldToDescribe.basicInfo.inputType !== inputType.text && !facts.length && !optionLabels && !defaultTerm && !termSources.length) {
     <span>{{ 'FieldType.' + fieldToDescribe.basicInfo.inputType | translate }}</span>
   }
   @if (facts.length > 0 || optionLabels) {

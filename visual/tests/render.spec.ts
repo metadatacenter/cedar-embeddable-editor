@@ -413,6 +413,7 @@ test.describe('field type markers', () => {
   test('controlled terms and authorities use shared semantic icons', async ({ page }) => {
     await open(page, '04-controlled-terms');
     await expect(page.locator('.ontology-icon-slot svg')).toHaveAttribute('data-cedar-icon', 'field-controlled');
+    await expect(page.locator('.ontology-icon-slot')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await expect(page.locator('[data-cedar-icon="authority-person"]')).toHaveCount(1);
     await expect(page.locator('[data-cedar-icon="authority-organization"]')).toHaveCount(1);
     await expect(page.locator('[data-field-type-icon]')).toHaveCount(3);

@@ -335,7 +335,7 @@ describe('the complete read-only field presentation', () => {
     expect(
       mounted.fixture.debugElement.query(By.css('.cee-field-spec-description')).nativeElement.textContent,
     ).toContain('Explain this field');
-    expect(mounted.fixture.debugElement.query(By.css('.cee-spec-box')).nativeElement.textContent.trim()).toBe('Text');
+    expect(mounted.fixture.debugElement.query(By.css('.cee-spec-box')).nativeElement.textContent.trim()).toBe('');
     expect(mounted.fixture.debugElement.query(By.css('input'))).toBeNull();
     expect(mounted.changes).toEqual([]);
   });

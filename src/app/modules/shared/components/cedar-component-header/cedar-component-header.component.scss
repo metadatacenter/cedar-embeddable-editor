@@ -40,7 +40,7 @@
 /*
  * The child's property IRI is quiet deployment metadata rather than an action.
  * Keep the ontology glyph at the far edge of the heading, use neutral grey so
- * it cannot be confused with the teal controlled-term field badge, and expose
+ * it cannot be confused with the teal controlled-term field icon, and expose
  * the full value through the tooltip without turning it into a link.
  */
 .property-iri {
@@ -84,7 +84,7 @@
 /*
  * Every field gets the same alignment slot. Generic type icons are deliberately
  * quiet; external-authority marks retain their identity, and controlled terms
- * receive the one emphasized semantic badge in the set.
+ * use the primary colour without a background badge.
  */
 .field-icon-slot {
   display: inline-flex;
@@ -105,9 +105,7 @@
 
 .ontology-icon-slot {
   height: 24px;
-  color: #0b7480;
-  background: tokens.$surface-tinted;
-  border-radius: 50%;
+  color: tokens.$color-primary;
 }
 
 /* Keep the Material help icon aligned with text */

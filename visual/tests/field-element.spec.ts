@@ -119,7 +119,8 @@ test('a rejected assignment stays rejected after changing the field type', async
     document.querySelector('cedar-embeddable-field')!.value = { kind: 'number', value: 99 };
   });
   await expect(page.locator('cedar-embeddable-field .cee-field-type')).toHaveText('Text');
-  await expect(page.locator('cedar-embeddable-field .cee-spec-box')).toHaveText('Text');
+  await expect(page.locator('cedar-embeddable-field .cee-spec-box')).toBeVisible();
+  await expect(page.locator('cedar-embeddable-field .cee-spec-box')).toBeEmpty();
   await page.evaluate(async () => {
     const template = await fetch('/fixtures/01-input-types.json').then((response) => response.json());
     const field = template.properties._numeric;
