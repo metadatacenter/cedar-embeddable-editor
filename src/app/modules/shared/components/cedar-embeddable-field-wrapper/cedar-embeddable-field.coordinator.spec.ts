@@ -325,7 +325,7 @@ describe('rejected assignments', () => {
 });
 
 describe('the complete read-only field presentation', () => {
-  it('owns its label, type and description without an empty specification box', async () => {
+  it('owns its label, type, description and visible field box', async () => {
     const mounted = await mount(
       textArtifact((b) => b.withSchemaDescription('Explain this field')),
       { readOnlyMode: true },
@@ -335,7 +335,7 @@ describe('the complete read-only field presentation', () => {
     expect(
       mounted.fixture.debugElement.query(By.css('.cee-field-spec-description')).nativeElement.textContent,
     ).toContain('Explain this field');
-    expect(mounted.fixture.debugElement.query(By.css('.cee-spec-box'))).toBeNull();
+    expect(mounted.fixture.debugElement.query(By.css('.cee-spec-box')).nativeElement.textContent.trim()).toBe('Text');
     expect(mounted.fixture.debugElement.query(By.css('input'))).toBeNull();
     expect(mounted.changes).toEqual([]);
   });
