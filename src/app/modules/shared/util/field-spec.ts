@@ -104,7 +104,7 @@ export type SpecTermSource = {
    * not already know that DOID is the Human Disease Ontology learns nothing from the acronym alone.
    */
   readonly container: string | null;
-  /** The acronym or value-set collection, shown in parentheses after the name it abbreviates. */
+  /** The acronym or value-set collection, retained for links even when the container already names it. */
   readonly acronym: string | null;
   readonly uri: string | null;
 };
@@ -346,13 +346,11 @@ const spelledOutName = (source: string | undefined, acronym: string | undefined)
 
 const branchSource = (branch: BranchConstraint): SpecTermSource => {
   const container = spelledOutName(branch.source, branch.acronym);
-  const namesItsOwnAcronym =
-    container !== null && branch.acronym !== undefined && container.includes(`(${branch.acronym})`);
   return {
     kind: 'branch',
     name: branch.name ?? branch.uri ?? '',
     container,
-    acronym: namesItsOwnAcronym ? null : (branch.acronym ?? null),
+    acronym: branch.acronym ?? null,
     uri: branch.uri ?? null,
   };
 };

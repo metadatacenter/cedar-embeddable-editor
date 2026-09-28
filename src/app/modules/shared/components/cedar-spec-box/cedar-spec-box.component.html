@@ -48,7 +48,7 @@
           @if (source.container) {
             {{ 'Spec.TermIn' | translate: { container: source.container } }}
           }
-          @if (source.acronym) {
+          @if (source.acronym && !source.container?.includes('(' + source.acronym + ')')) {
             ({{ source.acronym }})
           }
         </a>
