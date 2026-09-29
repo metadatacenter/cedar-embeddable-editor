@@ -68,10 +68,8 @@ export class CedarFieldSpecComponent implements OnInit {
   /**
    * What the field's own control cannot state.
    *
-   * Almost nothing, by design: a widget's placeholder carries the whole specification, the declared
-   * default included, and read-only clears a prefilled default out of the control so that placeholder
-   * is visible. The exceptions are the two widgets with no placeholder at all — a radio group and a
-   * checkbox group are sets of options rather than boxes — where this is the only place left.
+   * Most empty read-only fields use a specification box for constraints and declared defaults.
+   * Choice groups and attribute-value fields keep their controls, so their facts belong here.
    */
   get facts(): ReadonlyArray<SpecFact> {
     return this.fieldToDescribe instanceof StaticFieldComponent ? [] : specHeaderFactsOf(this.fieldToDescribe);

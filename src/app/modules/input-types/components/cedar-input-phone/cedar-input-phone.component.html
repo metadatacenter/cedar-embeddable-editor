@@ -4,7 +4,6 @@
     <input
       spellcheck="false"
       matInput
-      [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
       type="text"
       [formControl]="inputValueControl"
       (input)="inputChanged($event)"

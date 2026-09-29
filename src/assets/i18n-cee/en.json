@@ -2,7 +2,7 @@
   "FieldType": {
     "numeric": "Number",
     "textfield": "Text",
-    "textarea": "Paragraph text",
+    "textarea": "Paragraph",
     "richtext": "Rich text",
     "controlled": "Controlled term",
     "email": "Email address",

@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input, ViewEncapsulation } from '@angular/core';
 import { FieldComponent } from '../../models/component/field-component.model';
-import { InputType } from '../../models/input-type.model';
 import { bioPortalSourceLink, bioPortalTermLink } from '../../util/bioportal-term-link';
 import {
   SpecFact,
@@ -37,7 +36,6 @@ import {
 })
 export class CedarSpecBoxComponent {
   @Input({ required: true }) fieldToDescribe!: FieldComponent;
-  readonly inputType = InputType;
 
   /** Value-shape facts, kept structured so their lead-in words can be styled independently. */
   get facts(): ReadonlyArray<SpecFact> {

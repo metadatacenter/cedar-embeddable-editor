@@ -141,7 +141,8 @@ present. A supplied value is shown read-only. CEE uses the same field presentati
 so preview hosts only need to supply the artifact and their dialog shell. Set
 `previewMode: true` with `readOnlyMode: true` when the host supplies the field name
 in its own header; CEF then omits its header while retaining the type, description and value/specification.
-A text field with no constraints draws an empty read-only box. Static fields show
+Read-only controls have no placeholder text. Fields without constraints draw empty
+boxes, with the type stated once above them (for example, `Paragraph`). Static fields show
 their content; a standalone page break is described without creating pagination.
 
 Designing a template is what this is for. An author giving a field a default value

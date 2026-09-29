@@ -85,7 +85,7 @@ different destinations worth having.
         spellcheck="false"
         matInput
         type="text"
-        [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ('Generic.Filter' | translate)"
+        [placeholder]="readOnlyMode ? '' : ('Generic.Filter' | translate)"
         #autoCompleteInput="matAutocompleteTrigger"
         [formControl]="inputValueControl"
         [errorStateMatcher]="errorStateMatcher"

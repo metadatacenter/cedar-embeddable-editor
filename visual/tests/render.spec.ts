@@ -1146,6 +1146,9 @@ test.describe('config presets', () => {
    */
   test('readonly: inputs are not editable', async ({ page }) => {
     await open(page, '01-input-types', 'readonly');
+    const paragraph = page.locator('.non-iterable-component').filter({ hasText: 'textarea property description' });
+    await expect(paragraph.locator('.cee-field-type')).toHaveText('Paragraph');
+    await expect(paragraph.locator('.cee-spec-box')).toBeEmpty();
     await expect(page).toHaveScreenshot('preset-readonly.png', { fullPage: true });
   });
 
@@ -3203,7 +3206,7 @@ test.describe('a link rendered as a value', () => {
 
     const linkRenderer = page.locator('.non-iterable-component').filter({ hasText: 'link property description' });
     await expect(linkRenderer.locator('.cee-field-type')).toHaveText('Link');
-    await expect(linkRenderer.locator('.cee-spec-box')).toHaveText('Link');
+    await expect(linkRenderer.locator('.cee-spec-box')).toBeEmpty();
     await expect(linkRenderer.locator('.cee-term-link')).toHaveCount(0);
     await expect(linkRenderer.locator('input')).toHaveCount(0);
   });
@@ -3346,6 +3349,9 @@ test.describe('read-only belongs to the host', () => {
 
     await expect(page.locator('input[aria-label="email"]')).toHaveAttribute('readonly', 'true');
     await expect(page.locator('input[aria-label="numeric"]')).toHaveAttribute('readonly', 'true');
+    await expect(
+      page.locator('input[placeholder]:not([placeholder=""]), textarea[placeholder]:not([placeholder=""])'),
+    ).toHaveCount(0);
   });
 
   /**

@@ -51,7 +51,7 @@ genuinely theirs.
         spellcheck="false"
         matInput
         type="text"
-        [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : (descriptor.placeholderKey | translate)"
+        [placeholder]="readOnlyMode ? '' : (descriptor.placeholderKey | translate)"
         #autoCompleteInput="matAutocompleteTrigger"
         [formControl]="inputValueControl"
         [errorStateMatcher]="errorStateMatcher"

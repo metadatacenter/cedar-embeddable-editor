@@ -70,8 +70,8 @@ export type SpecFact = {
  * A specification reads `min 12 chars · pattern ^HBM… · default HBM386.ZGKG.235`, and those lead-in
  * words are signposts rather than values — so they are set in italics, which means they have to be
  * marked up rather than baked into the fact's own string. The split lives here, beside the facts, so
- * the three surfaces that state a fact agree: the heading row, the box that replaces an empty
- * control, and the placeholder inside a control that has one. It used to live in the box's template
+ * the surfaces that state a fact agree: the heading row and the box that replaces an empty
+ * control. It used to live in the box's template
  * and covered four of the seven, so `pattern` and `default` read as values of themselves and the
  * heading row italicized nothing at all.
  *
@@ -219,10 +219,9 @@ function temporalFacts(field: FieldComponent): SpecFact[] {
 /**
  * The facts that occupy the field-name row in read-only rendering.
  *
- * Most widgets carry their specification in their own placeholder, so putting the same facts beside
- * the name would say them twice. Radio and checkbox groups have no placeholder, and an
- * attribute-value field has two boxes whose placeholders name the pair rather than its constraints;
- * those are the fields whose facts remain on the header row.
+ * Most empty read-only widgets use a specification box, so putting the same facts beside the name
+ * would say them twice. Radio, checkbox and attribute-value fields retain their controls and
+ * state their facts on the header row.
  *
  * Kept here rather than in the component that renders the facts because layout also needs to know
  * whether that row is occupied: a repeating field can share an empty row with its occurrence chips,

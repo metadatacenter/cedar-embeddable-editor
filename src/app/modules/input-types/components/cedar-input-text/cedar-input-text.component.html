@@ -17,7 +17,6 @@
           spellcheck="false"
           matInput
           type="text"
-          [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
           [formControl]="inputValueControl"
           (input)="inputChanged($event)"
           [readonly]="readOnlyMode"
@@ -29,7 +28,6 @@
           spellcheck="false"
           matInput
           type="text"
-          [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
           cdkTextareaAutosize
           [formControl]="inputValueControl"
           (input)="inputChanged($event)"

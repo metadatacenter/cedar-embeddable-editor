@@ -2,7 +2,7 @@
   "FieldType": {
     "numeric": "Szám",
     "textfield": "Szöveg",
-    "textarea": "Bekezdésszöveg",
+    "textarea": "Bekezdés",
     "richtext": "Formázott szöveg",
     "controlled": "Ellenőrzött fogalom",
     "email": "E-mail-cím",

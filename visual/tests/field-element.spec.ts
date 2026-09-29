@@ -134,7 +134,7 @@ test('a rejected assignment stays rejected after changing the field type', async
 // Every field route, using the same artifacts that exercise full CEE forms.
 const fieldPreviews = [
   ['01-input-types', '_text', 'Text'],
-  ['01-input-types', '_textarea', 'Paragraph text'],
+  ['01-input-types', '_textarea', 'Paragraph'],
   ['01-input-types', '_numeric', 'Number'],
   ['01-input-types', '_email', 'Email address'],
   ['01-input-types', '_phone', 'Phone number'],
@@ -176,6 +176,12 @@ for (const [fixture, property, typeName] of fieldPreviews) {
     const field = page.locator('cedar-embeddable-field');
     await expect(field.locator('.title-label')).not.toBeEmpty();
     await expect(field.locator('.cee-field-type')).toHaveText(typeName);
+    await expect(
+      field.locator('input[placeholder]:not([placeholder=""]), textarea[placeholder]:not([placeholder=""])'),
+    ).toHaveCount(0);
+    if (['_text', '_textarea', '_email', '_phone', '_link'].includes(property)) {
+      await expect(field.locator('.cee-spec-box')).toBeEmpty();
+    }
     const description = field
       .locator('.cee-field-spec-description, mat-card-content')
       .filter({ hasText: 'A description supplied by the field artifact.' });
