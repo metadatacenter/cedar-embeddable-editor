@@ -3697,6 +3697,19 @@ test.describe('date calendar selection', () => {
 test('every download menu icon renders shared SVG without font requests', async ({ page }) => {
   await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
   await page.locator('.download-trigger').click();
+  const menuIcons = page.locator('.cee-download-menu .mat-mdc-menu-item mat-icon');
+  expect(await menuIcons.count()).toBeGreaterThan(0);
+  for (const icon of await menuIcons.all()) {
+    const colors = await icon.evaluate(node => {
+      const probe = document.createElement('span');
+      probe.style.color = 'var(--cedar-color-primary)';
+      node.append(probe);
+      const expected = getComputedStyle(probe).color;
+      probe.remove();
+      return { actual: getComputedStyle(node).color, expected };
+    });
+    expect(colors.actual).toBe(colors.expected);
+  }
   const icons = page.locator('mat-icon');
   expect(await icons.count()).toBeGreaterThan(7);
   for (const icon of await icons.all()) {

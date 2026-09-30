@@ -658,3 +658,7 @@ textarea.mat-mdc-input-element {
 :host .mat-mdc-select-panel {
   padding-block: tokens.$space-1;
 }
+
+:host .cee-download-menu .mat-mdc-menu-item mat-icon {
+  color: var(--cedar-color-primary);
+}
