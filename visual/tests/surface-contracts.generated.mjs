@@ -25,9 +25,24 @@ const CONTRACTS = {
   "error-alert": {
     "color": "--cedar-status-error-text",
     "background-color": "--cedar-status-error-surface"
+  },
+  "authoring-label": {
+    "font-size": "--cedar-font-size",
+    "font-weight": "--cedar-font-weight-medium"
+  },
+  "authoring-control": {
+    "font-size": "--cedar-font-size",
+    "font-weight": "--cedar-font-weight-regular"
+  },
+  "authoring-table-cell": {
+    "padding-top": "--cedar-table-cell-padding-block-authoring",
+    "padding-bottom": "--cedar-table-cell-padding-block-authoring",
+    "line-height": "--cedar-form-help-line-height"
   }
 };
 const TOKEN_DEFAULTS = {
+  "--cedar-font-weight-regular": "400",
+  "--cedar-font-weight-medium": "500",
   "--cedar-font-size": "14px",
   "--cedar-surface-panel": "#f5f5f5",
   "--cedar-dialog-radius": "4px",
@@ -36,7 +51,9 @@ const TOKEN_DEFAULTS = {
   "--cedar-status-error-text": "#b42318",
   "--cedar-status-error-surface": "#fef3f2",
   "--cedar-status-warning-text": "#b45309",
-  "--cedar-status-warning-surface": "#fff8e5"
+  "--cedar-status-warning-surface": "#fff8e5",
+  "--cedar-form-help-line-height": "18px",
+  "--cedar-table-cell-padding-block-authoring": "2px"
 };
 // Central implementation. Consumer copies are generated; the adoption gate checks their bytes.
 import assert from 'node:assert/strict';
@@ -78,16 +95,15 @@ export async function checkSurface(page, surface, state, expect, testInfo) {
     (element, { rules, defaults }) => {
       const actual = getComputedStyle(element);
       const probe = document.createElement('span');
-      // Same parent preserves the active theme and shadow-root boundary; never copy a hex value.
+      // Void controls cannot render children. Keep the probe beside the target,
+      // inside the same shadow root, and carry its resolved token roles across.
       probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;';
-      element.append(probe);
+      element.parentNode.append(probe);
       const result = {};
       for (const [property, token] of Object.entries(rules)) {
         const tokenValue = actual.getPropertyValue(token).trim();
-        if (!tokenValue) {
-          if (!defaults[token]) throw Error(`Missing token ${token}`);
-          probe.style.setProperty(token, defaults[token]);
-        }
+        if (!tokenValue && !defaults[token]) throw Error(`Missing token ${token}`);
+        probe.style.setProperty(token, tokenValue || defaults[token]);
         probe.style.setProperty(property, `var(${token})`);
         result[property] = {
           actual: actual.getPropertyValue(property),
