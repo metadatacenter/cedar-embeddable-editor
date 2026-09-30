@@ -4,6 +4,7 @@
     <input
       spellcheck="false"
       matInput
+      [errorStateMatcher]="previewErrorStateMatcher"
       type="number"
       [step]="step"
       [formControl]="inputValueControl"
@@ -42,7 +43,7 @@
         patternErrorMessage === null ? '' : (patternErrorMessage.key | translate: patternErrorMessage.params)
       }}</mat-error>
     }
-    @if (inputValueControl.getError('required') && !readOnlyMode) {
+    @if (inputValueControl.getError('required') && !readOnlyMode && !quietEmptyPreview(inputValueControl.value)) {
       <mat-error class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
     }
     @if (!readOnlyMode) {

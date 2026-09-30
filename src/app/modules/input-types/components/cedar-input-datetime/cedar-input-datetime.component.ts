@@ -328,6 +328,8 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
    * invalid whether or not anyone has edited it.
    */
   get showsValidationMessage(): boolean {
+    if (this.quietEmptyPreview(this.valueControl.value) && !this.hasTemporalValue() && this.unreadableValue === null)
+      return false;
     return (
       !this.readOnlyMode &&
       this.missingPart === null &&

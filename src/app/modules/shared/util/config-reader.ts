@@ -20,6 +20,7 @@ export type CeeConfig = Record<string, unknown>;
 export const CEE_CONFIG_KEY = {
   showTemplateDescription: 'showTemplateDescription',
   previewMode: 'previewMode',
+  suppressEmptyFieldErrors: 'suppressEmptyFieldErrors',
   readOnlyMode: 'readOnlyMode',
   trustTemplateRichText: 'trustTemplateRichText',
   showDownloadMenu: 'showDownloadMenu',

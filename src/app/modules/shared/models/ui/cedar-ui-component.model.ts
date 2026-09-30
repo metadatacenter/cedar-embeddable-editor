@@ -1,3 +1,5 @@
+import { ErrorStateMatcher } from '@angular/material/core';
+import { EditedFieldErrorStateMatcher } from '../../../input-types/edited-field-error-state-matcher';
 import { ChangeDetectorRef, DestroyRef, Directive, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UserPreferencesService } from '../../service/user-preferences.service';
@@ -24,6 +26,21 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
   abstract setCurrentValue(currentValue: unknown): void;
 
   readOnlyMode = false;
+
+  quietEmptyPreview(value: unknown): boolean {
+    return (
+      this.userPreferencesService.suppressEmptyFieldErrors &&
+      (value == null || value === '' || (Array.isArray(value) && value.length === 0))
+    );
+  }
+
+  protected previewMatcher(delegate: ErrorStateMatcher): ErrorStateMatcher {
+    return {
+      isErrorState: (control, form) => !this.quietEmptyPreview(control?.value) && delegate.isErrorState(control, form),
+    };
+  }
+
+  readonly previewErrorStateMatcher = this.previewMatcher(new EditedFieldErrorStateMatcher());
 
   protected constructor() {}
   ngOnInit() {

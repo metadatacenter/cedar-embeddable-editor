@@ -140,6 +140,7 @@
       "InvalidTimezoneOffset": "The timezone offset is not a valid UTC offset. Choose one from the list."
     },
     "Text": {
+      "Pattern": "Value does not match the required format.",
       "MinLength": "Value should be at least {{constraintMinLength}} chars long.",
       "MaxLength": "Value should be at most {{constraintMaxLength}} chars long."
     },

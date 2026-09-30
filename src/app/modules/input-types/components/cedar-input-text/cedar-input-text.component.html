@@ -3,7 +3,11 @@
     <div class="mat-form-field-wrapper mat-form-field-flex mat-form-field-outline fake-input">
       @if (inputValueControl.getRawValue()) {
         <a href="{{ originalValue }}" target="_blank">
-          <mat-icon class="identifier-icon" [cedarIcon]="isOrcid ? 'authority-person' : 'authority-organization'" aria-hidden="true"></mat-icon>
+          <mat-icon
+            class="identifier-icon"
+            [cedarIcon]="isOrcid ? 'authority-person' : 'authority-organization'"
+            aria-hidden="true"
+          ></mat-icon>
           <span class="text-class">{{ inputValueControl.getRawValue() }}</span>
         </a>
       }
@@ -16,6 +20,7 @@
         <input
           spellcheck="false"
           matInput
+          [errorStateMatcher]="previewErrorStateMatcher"
           type="text"
           [formControl]="inputValueControl"
           (input)="inputChanged($event)"
@@ -27,6 +32,7 @@
         <textarea
           spellcheck="false"
           matInput
+          [errorStateMatcher]="previewErrorStateMatcher"
           type="text"
           cdkTextareaAutosize
           [formControl]="inputValueControl"
@@ -53,7 +59,10 @@
       @if (inputValueControl.getError('maxlength') && !readOnlyMode) {
         <mat-error>{{ 'Validation.Text.MaxLength' | translate: { constraintMaxLength } }}</mat-error>
       }
-      @if (inputValueControl.hasError('required') && !readOnlyMode) {
+      @if (inputValueControl.hasError('pattern') && !readOnlyMode) {
+        <mat-error>{{ 'Validation.Text.Pattern' | translate }}</mat-error>
+      }
+      @if (inputValueControl.hasError('required') && !readOnlyMode && !quietEmptyPreview(inputValueControl.value)) {
         <mat-error>{{ 'Validation.Required' | translate }}</mat-error>
       }
       @if (constraintMaxLength !== null && !readOnlyMode) {

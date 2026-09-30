@@ -77,6 +77,7 @@ export class WidgetConfigCoordinator {
      * instantiated even when configured invisible, or read-only never arrived at all.
      */
     const readOnlyMode = configFlag(config, CEE_CONFIG_KEY.readOnlyMode, currentReadOnly);
+    this.preferences.suppressEmptyFieldErrors = configFlag(config, CEE_CONFIG_KEY.suppressEmptyFieldErrors, false);
     this.preferences.setReadOnlyMode(readOnlyMode);
 
     return { readOnlyMode, bridgeBaseUrl };

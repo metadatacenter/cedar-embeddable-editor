@@ -46,7 +46,7 @@
         <mat-icon cedarIcon="close"></mat-icon>
       </button>
     }
-    @if (inputValueControl.hasError('required') && !readOnlyMode) {
+    @if (inputValueControl.hasError('required') && !readOnlyMode && !quietEmptyPreview(inputValueControl.value)) {
       <mat-error tabindex="0" class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
     }
     @if (maxSelections !== null && !readOnlyMode) {

@@ -4,6 +4,7 @@
     <input
       spellcheck="false"
       matInput
+      [errorStateMatcher]="previewErrorStateMatcher"
       type="text"
       [formControl]="nameInputControl"
       (input)="nameChanged($event)"
@@ -33,6 +34,7 @@
     <input
       spellcheck="false"
       matInput
+      [errorStateMatcher]="previewErrorStateMatcher"
       type="text"
       [formControl]="valueInputControl"
       (input)="valueChanged($event)"

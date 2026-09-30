@@ -5,6 +5,8 @@ import { BehaviorSubject } from 'rxjs';
   providedIn: 'root',
 })
 export class UserPreferencesService {
+  /** Preview hosts keep empty trial fields quiet without changing validation. */
+  suppressEmptyFieldErrors = false;
   private _readOnlyMode = new BehaviorSubject<boolean>(false);
 
   readonly readOnlyMode$ = this._readOnlyMode.asObservable();

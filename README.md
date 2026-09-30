@@ -129,6 +129,12 @@ to omit CEE's identity header and use compact, content-sized form spacing. Templ
 descriptions and page navigation remain available. `readOnlyMode` independently
 controls whether values can be edited. Ordinary embeds retain their existing layout.
 
+Trial hosts such as Workspace “Try out” and CED’s editable preview set
+`suppressEmptyFieldErrors: true`. Clearing a control then hides its error state and
+messages even after blur. Nonempty invalid values and incomplete temporal values still
+show errors. This affects presentation only: required fields remain invalid in the quality
+report. Ordinary metadata editing leaves the option off.
+
 ## Embedding a Single Field
 
 The bundle registers a second element. `<cedar-embeddable-field>` renders one field

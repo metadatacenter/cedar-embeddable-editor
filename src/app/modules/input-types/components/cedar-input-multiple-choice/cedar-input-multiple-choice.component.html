@@ -1,6 +1,12 @@
 <form class="form-container" [formGroup]="options">
   <mat-form-field class="full-width">
-    <input spellcheck="false" matInput [formControl]="selectedChoiceInputControl" style="display: none" />
+    <input
+      spellcheck="false"
+      matInput
+      [errorStateMatcher]="previewErrorStateMatcher"
+      [formControl]="selectedChoiceInputControl"
+      style="display: none"
+    />
     <mat-radio-group [formControl]="selectedChoiceInputControl">
       @for (choice of component.choiceInfo.choices; track choice) {
         <div class="choice-option-row">
@@ -38,7 +44,11 @@
         </div>
       }
     </mat-radio-group>
-    @if (selectedChoiceInputControl.getError('required') && !readOnlyMode) {
+    @if (
+      selectedChoiceInputControl.getError('required') &&
+      !readOnlyMode &&
+      !quietEmptyPreview(selectedChoiceInputControl.value)
+    ) {
       <mat-error class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
     }
   </mat-form-field>

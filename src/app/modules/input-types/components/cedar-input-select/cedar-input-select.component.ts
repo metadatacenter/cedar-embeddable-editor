@@ -52,7 +52,7 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
    * which, and the same flag decides how `changeValue` hands it on.
    */
   inputValueControl = new FormControl<string | string[] | null>(null, null);
-  errorStateMatcher = new TextFieldErrorStateMatcher();
+  errorStateMatcher = this.previewMatcher(new TextFieldErrorStateMatcher());
   selections: string[] = [];
   /**
    * How many options may be chosen at once, or null for no declared limit.

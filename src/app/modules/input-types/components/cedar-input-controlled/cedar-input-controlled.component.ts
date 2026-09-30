@@ -80,7 +80,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    */
   options!: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
-  errorStateMatcher = new TextFieldErrorStateMatcher();
+  errorStateMatcher = this.previewMatcher(new TextFieldErrorStateMatcher());
   @Input({ required: true }) handlerContext!: HandlerContext;
   model: AuthorityTerm | null = null;
   /**

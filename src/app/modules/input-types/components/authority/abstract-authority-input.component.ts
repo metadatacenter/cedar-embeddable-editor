@@ -72,7 +72,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    */
   options!: FormGroup;
   inputValueControl!: FormControl<string | null>;
-  errorStateMatcher = new AuthorityErrorStateMatcher();
+  errorStateMatcher = this.previewMatcher(new AuthorityErrorStateMatcher());
   /**
    * An empty list until `ngOnInit` builds the search pipeline, and for good in
    * read-only mode, where there is no autocomplete to feed. A real observable

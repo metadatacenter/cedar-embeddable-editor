@@ -140,6 +140,7 @@
       "InvalidTimezoneOffset": "Az időzóna-eltolás nem érvényes UTC-eltolás. Válasszon egyet a listából."
     },
     "Text": {
+      "Pattern": "Az érték nem felel meg az előírt formátumnak.",
       "MinLength": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
       "MaxLength": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet."
     },
