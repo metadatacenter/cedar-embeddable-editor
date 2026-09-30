@@ -91,6 +91,25 @@ describe('a numeric field typed into', () => {
     expect(errorText(fixture)).toBe('');
   });
 
+  it('shows one datatype error before checking narrower template bounds', async () => {
+    const component = field();
+    component.numberInfo.numberType = Xsd.short;
+    component.numberInfo.minValue = -100;
+    component.numberInfo.maxValue = 100;
+    const { fixture } = await render(component);
+    for (const value of ['666666', '-666666']) {
+      typeAndLeave(fixture, value);
+      expect(fixture.debugElement.queryAll(By.css('mat-error'))).toHaveLength(1);
+      expect(errorText(fixture)).toContain('short (-32768 to 32767)');
+    }
+    typeAndLeave(fixture, '101');
+    expect(errorText(fixture)).toBe('Value should be at most 100.');
+    typeAndLeave(fixture, '-101');
+    expect(errorText(fixture)).toBe('Value should be at least -100.');
+    typeAndLeave(fixture, '50');
+    expect(errorText(fixture)).toBe('');
+  });
+
   it('holds the typed text, and records it', async () => {
     const { fixture, changeValue } = await render();
 

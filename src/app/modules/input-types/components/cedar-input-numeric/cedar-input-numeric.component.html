@@ -26,12 +26,13 @@
         <mat-icon cedarIcon="close"></mat-icon>
       </button>
     }
-    @if (inputValueControl.getError('min') && !readOnlyMode) {
+    <!-- Resolve type/precision errors first; avoid repeating their range as a second error. -->
+    @if (inputValueControl.getError('min') && !inputValueControl.getError('pattern') && !readOnlyMode) {
       <mat-error class="mat-error align-start">{{
         'Validation.Numeric.MinValue' | translate: { constraintMinValue }
       }}</mat-error>
     }
-    @if (inputValueControl.getError('max') && !readOnlyMode) {
+    @if (inputValueControl.getError('max') && !inputValueControl.getError('pattern') && !readOnlyMode) {
       <mat-error class="mat-error align-start">{{
         'Validation.Numeric.MaxValue' | translate: { constraintMaxValue }
       }}</mat-error>
