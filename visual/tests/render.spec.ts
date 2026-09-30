@@ -3913,3 +3913,24 @@ test('editable choice rows are compact and their controls do not overlap adjacen
   const clear = page.getByRole('button', { name: 'Clear', exact: true }).first();
   expect((await clear.boundingBox())!.height).toBe(28);
 });
+
+test.describe('preview host heading', () => {
+  for (const readOnly of [false, true]) {
+    test(`preview omits identity header with readOnly=${readOnly}`, async ({ page }) => {
+      await open(
+        page,
+        '01-input-types',
+        undefined,
+        undefined,
+        undefined,
+        '&f=previewMode,showTemplateDescription' + (readOnly ? ',readOnlyMode' : ''),
+      );
+      await expect(page.locator('.logo-block')).toHaveCount(0);
+      await expect(page.locator('.template-title-block')).toHaveCount(0);
+      await expect(page.locator('.template-provenance')).toHaveCount(0);
+      await expect(page.locator('.template-content')).toHaveCSS('padding', '0px');
+      await expect(page.locator('.template-description')).toHaveCount(1);
+      if (!readOnly) await expect(page.locator('input[aria-label="text"]')).toBeEditable();
+    });
+  }
+});

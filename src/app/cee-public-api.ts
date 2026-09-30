@@ -48,7 +48,7 @@ export type CeeConfigKey = keyof CeeConfig;
 export interface CeeConfig {
   showTemplateDescription?: boolean;
 
-  /** Read-only embedding with a host-provided heading. Hides CEE's identity header or CEF's field header; keeps descriptions and controls. */
+  /** Embedding with a host-provided heading, in either read-only or editable mode. Hides CEE's identity header or CEF's field header; keeps descriptions and controls. */
   previewMode?: boolean;
 
   /**

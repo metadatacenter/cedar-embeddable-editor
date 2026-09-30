@@ -3,7 +3,7 @@
     appearance="outlined"
     class="template-card"
     [class.cee-read-only]="readOnlyMode"
-    [class.cee-preview]="previewMode && readOnlyMode"
+    [class.cee-preview]="previewMode"
     [class.cee-declared-values]="declaredValuesOnly"
   >
     <!--  <mat-card-header>-->
@@ -14,7 +14,7 @@
       "
       [class.template-header-paged]="dataContext.templateRepresentation?.hasPageBreaks()"
     >
-      @if (!previewMode || !readOnlyMode) {
+      @if (!previewMode) {
         <a
           class="logo-block"
           href="https://www.npmjs.com/package/cedar-embeddable-editor"
@@ -94,12 +94,7 @@
     </div>
     <!--  </mat-card-header>-->
     <mat-card-content class="template-content">
-      @if (
-        previewMode &&
-        readOnlyMode &&
-        showTemplateDescription &&
-        dataContext.templateRepresentation?.labelInfo?.description
-      ) {
+      @if (previewMode && showTemplateDescription && dataContext.templateRepresentation?.labelInfo?.description) {
         <p class="template-description">{{ dataContext.templateRepresentation?.labelInfo?.description }}</p>
       }
       @for (childComponent of pageBreakPaginatorService.getCurrentPage(); track childComponent) {

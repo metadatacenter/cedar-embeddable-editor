@@ -124,10 +124,10 @@ takes the same page apart step by step, and
 [Embedding in a Framework](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/frameworks/)
 covers Angular, React, and Ember.
 
-A read-only dialog host can set `previewMode: true` alongside `readOnlyMode: true`
+A dialog host can set `previewMode: true` in either read-only or editable mode
 to omit CEE's identity header and use compact, content-sized form spacing. Template
-descriptions and page navigation remain available. Editing and ordinary CEE embeds
-retain their existing layout.
+descriptions and page navigation remain available. `readOnlyMode` independently
+controls whether values can be edited. Ordinary embeds retain their existing layout.
 
 ## Embedding a Single Field
 
