@@ -32,6 +32,7 @@
 }
 
 .cee-field-type {
+  font-weight: var(--cedar-field-type-font-weight, var(--cedar-font-weight-regular, 400));
   margin: 0 0 tokens.$space-1;
   color: tokens.$text-muted;
   font-size: tokens.$font-size;
