@@ -3700,7 +3700,7 @@ test('every download menu icon renders shared SVG without font requests', async 
   const menuIcons = page.locator('.cee-download-menu .mat-mdc-menu-item mat-icon');
   expect(await menuIcons.count()).toBeGreaterThan(0);
   for (const icon of await menuIcons.all()) {
-    const colors = await icon.evaluate(node => {
+    const colors = await icon.evaluate((node) => {
       const probe = document.createElement('span');
       probe.style.color = 'var(--cedar-color-primary)';
       node.append(probe);
