@@ -17,10 +17,10 @@
 .video-error {
   margin: 15px;
   padding: 10px ui-tokens.$space-3;
-  border: 1px solid #8a6d3b;
+  border: 1px solid ui-tokens.$media-warning-border;
   border-radius: 4px;
-  background-color: #fffaf0;
-  color: #6b4e1e;
+  background-color: ui-tokens.$media-warning-surface;
+  color: ui-tokens.$media-warning-text;
   font-size: 0.9em;
   line-height: 1.4;
   /* URLs are long and have no spaces to break on. */
