@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/patterns';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
 /*
@@ -42,8 +43,7 @@
  */
 .cee-field-spec-fact + .cee-field-spec-fact::before {
   content: '·';
-  margin: 0 6px;
-  color: rgba(0, 0, 0, 0.32);
+  @include patterns.specification-separator;
 }
 
 /* A pattern can be long, and it is the one fact nobody should have to guess at. */
@@ -55,7 +55,7 @@
 .cee-field-spec-keyword {
   font-style: italic;
   font-weight: var(--cedar-font-weight-regular, 400);
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--cedar-specification-keyword-color, #{tokens.$specification-keyword-color});
 }
 
 /*

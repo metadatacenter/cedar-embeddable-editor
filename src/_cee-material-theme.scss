@@ -239,8 +239,8 @@ $_colors: (
 @mixin declared-values() {
   @include mat.form-field-overrides(
     (
-      filled-input-text-color: rgba(0, 0, 0, 0.54),
-      outlined-input-text-color: rgba(0, 0, 0, 0.54),
+      filled-input-text-color: tokens.$specification-text,
+      outlined-input-text-color: tokens.$specification-text,
     )
   );
 }

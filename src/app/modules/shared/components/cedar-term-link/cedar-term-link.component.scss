@@ -1,19 +1,15 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
+@use '@org.metadatacenter/cedar-design-tokens/patterns';
 /*
  * The rectangle a read-only form field draws, so a page of these still reads as the form it stands
  * for. It wraps rather than truncating: an identifier is long, and one a reader cannot finish
  * reading is not an identifier.
  */
 .cee-term-link {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 36px;
-  padding: 6px 6px 6px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.38);
-  border-radius: 4px;
-  line-height: 1.5;
+  @include patterns.specification-box(
+    $padding-end: var(--cedar-specification-padding-block, #{ui-tokens.$specification-padding-block})
+  );
+  line-height: var(--cedar-specification-line-height, #{ui-tokens.$specification-line-height});
   overflow-wrap: anywhere;
 }
 
@@ -34,14 +30,7 @@
  * quiet form of the one convention everybody reads as a link. Solid on hover and focus.
  */
 .cee-term-link-iri {
-  color: inherit;
-  text-decoration: underline dotted rgba(0, 0, 0, 0.42);
-  text-underline-offset: 2px;
-
-  &:hover,
-  &:focus-visible {
-    text-decoration: underline solid rgba(0, 0, 0, 0.54);
-  }
+  @include patterns.specification-link;
 }
 
 /* Pushed to the far end, where the control's own suffix sat. */

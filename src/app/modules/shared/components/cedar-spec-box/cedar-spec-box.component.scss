@@ -1,3 +1,5 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
+@use '@org.metadatacenter/cedar-design-tokens/patterns';
 /*
  * The same rectangle a read-only form field draws — the field's full width, a hairline border, 36px
  * where one line is enough — so a page of these still reads as a form. It grows instead of
@@ -5,17 +7,9 @@
  * a specification a reader cannot finish reading is not one.
  */
 .cee-spec-box {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 36px;
-  padding: 6px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.38);
-  border-radius: 4px;
-  color: rgba(0, 0, 0, 0.54);
-  line-height: 1.5;
+  @include patterns.specification-box;
+  color: var(--cedar-specification-text, #{ui-tokens.$specification-text});
+  line-height: var(--cedar-specification-line-height, #{ui-tokens.$specification-line-height});
   overflow-wrap: anywhere;
 }
 
@@ -27,22 +21,20 @@
 
 .cee-spec-box-fact + .cee-spec-box-fact::before {
   content: '·';
-  margin: 0 6px;
-  color: rgba(0, 0, 0, 0.32);
+  @include patterns.specification-separator;
 }
 
 .cee-spec-box-facts + .cee-spec-box-source::before,
 .cee-spec-box-source + .cee-spec-box-source::before {
   content: '·';
-  margin: 0 6px;
-  color: rgba(0, 0, 0, 0.32);
+  @include patterns.specification-separator;
 }
 
 /* Lead-in words are semantic signposts rather than values, so italics separate the two at a glance. */
 .cee-spec-box-keyword,
 .cee-spec-box-kind,
 .cee-spec-box-default-kind {
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--cedar-specification-keyword-color, #{ui-tokens.$specification-keyword-color});
 }
 
 .cee-spec-box-default-kind {
@@ -70,12 +62,5 @@
  * everybody reads as a link, and it goes solid on hover and focus.
  */
 .cee-spec-box-link {
-  color: inherit;
-  text-decoration: underline dotted rgba(0, 0, 0, 0.42);
-  text-underline-offset: 2px;
-
-  &:hover,
-  &:focus-visible {
-    text-decoration: underline solid rgba(0, 0, 0, 0.54);
-  }
+  @include patterns.specification-link;
 }

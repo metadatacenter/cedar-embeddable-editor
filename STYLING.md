@@ -60,3 +60,32 @@ editable CEE side by side, with simple and temporal fixture sets.
 Defaults and density profiles come from `cedar-design-tokens`; adapters must not
 redeclare public host override properties. Error text and borders use the shared
 `color-error` role, advisory notices use `color-warning`.
+
+## Ownership of local styles
+
+A scanner baseline is migration debt, not permission to copy a local rule.
+The aim is no unexplained deviations, not a component with no layout CSS.
+
+| Surface | Owner and review rule |
+| --- | --- |
+| Editable controls and density | Central control/choice roles, translated by `_cee-material-theme.scss` and `_cedar-compact.scss`. Material internals stay in these adapters. Pixel arithmetic that compensates for a Material border or intrinsic glyph must name that dependency and have a computed-layout test. |
+| Read-only boxes, facts and authority links | Central `patterns.specification-box`, `specification-separator` and `specification-link`. Components own their content, suffix placement and wrapping/truncation policy. Do not copy the surface recipe. |
+| Field headers, occurrence pager, nested elements | `_cee-layout.scss` and the owning component. Header trailing slots, pager overlap and responsive breakpoints are CEE geometry, not platform spacing defaults. Preserve the narrow-width and help/action collision tests. |
+| Images, video and authority branding | The owning component. Aspect ratios, resource-provided dimensions and BioPortal logo proportions are content constraints. A border, label font or warning color is still a shared design role. |
+| Demo application | `app.component.scss` belongs to the sample host, not the embedded editor. Its findings remain visible but must not justify copying its styling into CEE. |
+| Notifications, time picker and static-content hints | Remaining local typography, spacing and palette findings are migration debt. Adopt an existing role or introduce a reviewed reusable pattern; do not rubber-stamp these as customization. |
+
+Host customization belongs on the documented CSS properties. Read-only specification
+surfaces accept the control height, border and radius overrides above, plus
+`--cedar-specification-text`, `--cedar-specification-padding-block`,
+`--cedar-specification-padding-inline`, `--cedar-specification-line-height`,
+`--cedar-specification-separator-color`, `--cedar-specification-keyword-color`
+and `--cedar-specification-link-underline`. Defaults are embedded by the central
+recipe so a standalone CEE/CEF does not depend on a host stylesheet. The text and
+links remain readable, and boxes grow rather than clip when a value wraps.
+
+Changing a host property must be tested on both CEE and standalone CEF. The
+`visual/tests/specification-theme.spec.ts` checks exercise this at 375px; the full
+visual suite protects default appearance. A local exception must have a concrete
+reason, exact location and bounded occurrence count. Adding a copy must fail the
+adoption gate even when the original exception is approved.

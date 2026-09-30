@@ -77,7 +77,6 @@
 .form-container {
   min-width: 50%;
   max-width: 100%;
-  border: 0 solid red;
 }
 
 .full-width {
@@ -128,11 +127,6 @@
   }
 }
 
-.section-break-component {
-  background-color: #f0f8f7;
-  margin-top: 30px;
-}
-
 .youtube-component {
   background-color: #ff0000;
   margin-left: auto;
@@ -146,16 +140,8 @@
   height: tokens.$icon-size-small !important;
 }
 
-.icon-src {
-  margin-left: 10px;
-}
-
 .mat-mdc-card {
   margin-top: 5px;
-}
-
-.iterable-component {
-  background-color: #f6f1f6;
 }
 
 .non-iterable-component {
@@ -167,7 +153,7 @@
   width: 100%;
   max-width: none;
   min-width: 0;
-  background-color: #ffffff;
+  background-color: tokens.$surface-raised;
   margin: 0;
   border: none !important;
 }
@@ -561,7 +547,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   .mat-mdc-select-value-text,
   .mat-mdc-radio-button .mdc-label,
   .mat-mdc-checkbox .mdc-label {
-    color: rgba(0, 0, 0, 0.54);
+    color: tokens.$specification-text;
   }
 }
 
@@ -625,8 +611,12 @@ mat-icon.cedar-icon > svg {
   display: block;
 }
 
-:host .mat-mdc-menu-content { padding: tokens.$menu-padding; }
-:host .mat-mdc-menu-item { min-height: tokens.$menu-item-height; }
+:host .mat-mdc-menu-content {
+  padding: tokens.$menu-padding;
+}
+:host .mat-mdc-menu-item {
+  min-height: tokens.$menu-item-height;
+}
 
 @include motion.reduced-motion;
 
