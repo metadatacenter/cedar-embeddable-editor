@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { HandlerContext } from '../../util/handler-context';
 import { decideFieldWidget, FieldWidgetDecision } from '../cedar-component-renderer/component-render-decision';
+import { fieldTypeIcon } from '../../util/field-type-icon';
 
 /** The shared field label, description and value/specification, in CEE and read-only CEF. */
 @Component({
@@ -26,4 +27,6 @@ export class CedarFieldPresentationComponent {
   get inputType(): string | null {
     return this.decision.kind === 'none' ? null : this.decision.component.basicInfo.inputType;
   }
+
+  readonly typeIcon = fieldTypeIcon;
 }

@@ -32,9 +32,25 @@
 }
 
 .cee-field-type {
+  display: flex;
+  align-items: center;
+  gap: tokens.$space-1;
   font-weight: var(--cedar-field-type-font-weight, var(--cedar-font-weight-regular, 400));
   margin: 0 0 tokens.$space-1;
   color: tokens.$text-muted;
   font-size: tokens.$font-size;
   overflow-wrap: anywhere;
+}
+
+/* The same icon, at the same size, that the header draws beside a field's label. */
+.field-type-icon {
+  flex: 0 0 auto;
+  width: tokens.$icon-size-small;
+  height: tokens.$icon-size-small;
+  overflow: hidden;
+  line-height: tokens.$icon-size-small;
+}
+
+.ontology-icon {
+  color: tokens.$color-primary;
 }

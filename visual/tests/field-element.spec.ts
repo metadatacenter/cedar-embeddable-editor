@@ -15,7 +15,12 @@ import { expect, test, type Page } from '@playwright/test';
 import type { CedarEmbeddableFieldChangeDetail } from '../../src/app/cee-public-api';
 import { BUNDLE_VERSION } from './support/host';
 
-const open = async (page: Page, property: string, preset?: 'readonly', fixture = '01-input-types'): Promise<void> => {
+const open = async (
+  page: Page,
+  property: string,
+  preset?: 'readonly' | 'preview',
+  fixture = '01-input-types',
+): Promise<void> => {
   await page.goto(
     `/host.html?host=field&t=${fixture}&p=${property}${preset ? `&c=${preset}` : ''}&b=${BUNDLE_VERSION}`,
   );
@@ -202,6 +207,44 @@ for (const [fixture, property] of fieldPreviews) {
     expect(await changes(page)).toEqual([]);
     if (['_award_nih', '_numeric', '_attribute'].includes(property)) {
       await expect(field).toHaveScreenshot(`cef-${property}.png`);
+    }
+  });
+}
+
+/**
+ * A host that supplies a field's heading, as the Workspace's preview does, hides the field's header
+ * and with it the icon that names the field's type. The field states its type instead, with the icon
+ * its header would have drawn, so the host never has to know which icon a type takes.
+ */
+const hostTitledPreviews: Array<[fixture: string, property: string, type: string, icon: string]> = [
+  ['01-input-types', '_text', 'Text', 'field-text'],
+  ['04-controlled-terms', '_organism', 'Controlled term', 'field-controlled'],
+  ['08-authority', '_award_nih', 'NIH Grant ID', 'authority-grant'],
+  ['10-attribute-values', '_attribute', 'Attribute–value pairs', 'field-attribute-value'],
+];
+
+for (const [fixture, property, type, icon] of hostTitledPreviews) {
+  test(`a host-titled preview of ${property} states its type with its icon`, async ({ page }) => {
+    await open(page, property, 'preview', fixture);
+    await page.evaluate(
+      async ({ fixture, property }) => {
+        const template = await fetch(`/fixtures/${fixture}.json`).then((response) => response.json());
+        const slot = template.properties[property];
+        const field = slot.items || slot;
+        field['schema:description'] = 'A description supplied by the field artifact.';
+        document.querySelector('cedar-embeddable-field')!.fieldObject = field;
+      },
+      { fixture, property },
+    );
+    const field = page.locator('cedar-embeddable-field');
+    await expect(field.locator('app-cedar-component-header')).toHaveCount(0);
+    const statement = field.locator('.cee-field-type');
+    await expect(statement).toHaveText(type);
+    await expect(statement.locator('[data-field-type-icon]')).toBeVisible();
+    await expect(statement.locator('[data-field-type-icon]')).toHaveAttribute('data-mat-icon-name', icon);
+    expect(await changes(page)).toEqual([]);
+    if (['_award_nih', '_attribute'].includes(property)) {
+      await expect(field).toHaveScreenshot(`cef-preview-${property}.png`);
     }
   });
 }

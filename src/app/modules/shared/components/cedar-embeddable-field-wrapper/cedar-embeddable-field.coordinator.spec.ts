@@ -12,6 +12,7 @@
  * library is one a host could actually produce.
  */
 import { provideHttpClient } from '@angular/common/http';
+import { MatIcon } from '@angular/material/icon';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideTranslateService } from '@ngx-translate/core';
@@ -341,13 +342,17 @@ describe('the complete read-only field presentation', () => {
     expect(mounted.changes).toEqual([]);
   });
 
-  it('lets a read-only preview host provide the heading without losing the field description or box', async () => {
+  it('lets a read-only preview host provide the heading, stating the type with the icon the header would draw', async () => {
     const mounted = await mount(
       textArtifact((b) => b.withSchemaDescription('Explain this field')),
       { readOnlyMode: true, previewMode: true },
     );
     expect(mounted.fixture.debugElement.query(By.css('app-cedar-component-header'))).toBeNull();
-    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type'))).toBeNull();
+    // The host's heading replaces the header, and with it the icon that names the field's type.
+    const type = mounted.fixture.debugElement.query(By.css('.cee-field-type'));
+    expect(type.nativeElement.textContent.trim()).toBe('Text');
+    const icon = type.query(By.css('[data-field-type-icon]'));
+    expect(icon.injector.get(MatIcon).svgIcon).toBe('cedar:field-text');
     expect(
       mounted.fixture.debugElement.query(By.css('.cee-field-spec-description')).nativeElement.textContent,
     ).toContain('Explain this field');
