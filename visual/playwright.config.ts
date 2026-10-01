@@ -82,8 +82,16 @@ export default defineConfig({
        * responses are to fix it or to re-record deliberately. Moving the image
        * pin in `run-in-container.sh` is the one thing that will move every
        * baseline at once, exactly as an OS upgrade used to.
+       *
+       * The per-pixel threshold is lowered for the same reason. Playwright's
+       * default of 0.2 counts a pixel as unchanged while its colour stays close,
+       * and pale greys on white stay close. Measured on 2026-10-01, an image card
+       * that lost 30px of height and two widgets whose text changed colour passed
+       * against stale baselines, at differences of 0.10 to 0.15. Rasterisation
+       * noise between two runs of the same code stayed below 0.005.
        */
       maxDiffPixels: 0,
+      threshold: 0.02,
       animations: 'disabled',
       caret: 'hide',
       // Neutralises content that differs between two builds of the same code —
