@@ -12,6 +12,12 @@ const scenarios: Record<string, (page: Page) => Promise<void>> = {
     await open(page, '09-temporal');
     await page.locator('mat-datepicker-toggle button').first().click();
   },
+  form: async (page: Page) => {
+    await open(page, '03-nested-multi');
+  },
+  'read-only-form': async (page: Page) => {
+    await open(page, '17-real-flat', 'readonly');
+  },
 };
 for (const { surface, state, width, title } of surfaceCases(registry, scenarios))
   test(title, async ({ page }, testInfo) => {

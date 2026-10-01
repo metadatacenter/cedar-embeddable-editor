@@ -51,6 +51,47 @@
       "id": "cee.cee-view-4",
       "name": "CEE",
       "section": "Metadata Editor"
+    },
+    {
+      "id": "cee.form",
+      "name": "Form",
+      "section": "Metadata Editor",
+      "parent": "cee.cee-view-4",
+      "contract": "page",
+      "scenario": "form",
+      "selector": "app-cedar-embeddable-metadata-editor",
+      "states": ["open"],
+      "source": [
+        {
+          "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.html",
+          "anchor": "class=\"template-header\""
+        }
+      ],
+      "test": "visual/tests/surfaces.spec.ts"
+    },
+    {
+      "id": "cee.form-read-only",
+      "name": "Read-Only Form",
+      "section": "Metadata Editor",
+      "parent": "cee.cee-view-4",
+      "contract": "page",
+      "scenario": "read-only-form",
+      "selector": "app-cedar-embeddable-metadata-editor",
+      "states": ["open"],
+      "source": [
+        {
+          "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.html",
+          "anchor": "class=\"template-header\""
+        }
+      ],
+      "test": "visual/tests/surfaces.spec.ts",
+      "scaleDebt": [
+        {
+          "property": "border-radius",
+          "value": "2px",
+          "reason": "Material's checkbox box keeps its 2px corner as part of the glyph; at the 4px radius an 18px box reads as a rounded button."
+        }
+      ]
     }
   ]
 }

@@ -41,7 +41,8 @@ const CONTRACTS = {
   },
   "authoring-table-cell": {
     "line-height": "--cedar-control-line-height-authoring"
-  }
+  },
+  "page": {}
 };
 const SCALE = {
   "font-family": [
@@ -259,10 +260,13 @@ async function checkScale(target, surface, expect, testInfo) {
           }
         }
       };
-      const visit = (node) => {
-        for (const element of node.querySelectorAll('*')) {
-          if (element.shadowRoot) visit(element.shadowRoot);
+      // Another CEDAR component embedded here is checked by its own repository's surfaces.
+      const visit = (parent) => {
+        for (const element of parent.children) {
+          if (/^cedar-embeddable-/.test(element.localName)) continue;
           inspect(element);
+          if (element.shadowRoot) visit(element.shadowRoot);
+          visit(element);
         }
       };
       inspect(root);
