@@ -14,7 +14,9 @@
   @if (view.error) {
     <p class="image-error" role="alert">{{ view.error.key | translate: view.error.params }}</p>
   }
-  <mat-card-content>
-    <p>{{ component.labelInfo.description }}</p>
-  </mat-card-content>
+  @if (component.labelInfo.description) {
+    <mat-card-content>
+      <p>{{ component.labelInfo.description }}</p>
+    </mat-card-content>
+  }
 </mat-card>
