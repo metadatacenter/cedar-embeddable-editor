@@ -7,6 +7,7 @@ export interface Surface {
   scenario: string;
   states: string[];
   debt?: Record<string, { actual: string; expected: string; reason: string }>;
+  scaleDebt?: Array<{ property: string; value: string; reason: string }>;
 }
 export function surfaceCases(
   registry: { surfaces: Surface[] },

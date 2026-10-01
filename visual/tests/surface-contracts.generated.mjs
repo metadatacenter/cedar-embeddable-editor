@@ -43,21 +43,65 @@ const CONTRACTS = {
     "line-height": "--cedar-control-line-height-authoring"
   }
 };
+const SCALE = {
+  "font-family": [
+    "--cedar-font-family",
+    "--cedar-font-family-monospace"
+  ],
+  "font-size": [
+    "--cedar-font-size-small",
+    "--cedar-font-size",
+    "--cedar-font-size-element-heading",
+    "--cedar-font-size-heading",
+    "--cedar-font-size-artifact-title"
+  ],
+  "font-weight": [
+    "--cedar-font-weight-regular",
+    "--cedar-font-weight-medium"
+  ],
+  "color": [
+    "--cedar-text-primary",
+    "--cedar-text-muted",
+    "--cedar-text-title",
+    "--cedar-color-primary",
+    "--cedar-color-primary-strong",
+    "--cedar-color-on-primary",
+    "--cedar-status-error-text",
+    "--cedar-status-warning-text",
+    "--cedar-status-success-text"
+  ],
+  "border-radius": [
+    "--cedar-radius",
+    "--cedar-radius-pill"
+  ]
+};
 const TOKEN_DEFAULTS = {
   "--cedar-font-family": "\"CEE Roboto\", \"Helvetica Neue\", sans-serif",
+  "--cedar-font-family-monospace": "ui-monospace, SFMono-Regular, Menlo, monospace",
   "--cedar-font-weight-regular": "400",
   "--cedar-font-weight-medium": "500",
+  "--cedar-font-size-small": "12px",
   "--cedar-font-size": "14px",
+  "--cedar-font-size-element-heading": "18px",
+  "--cedar-font-size-heading": "20px",
+  "--cedar-font-size-artifact-title": "clamp(19px, 3cqi, 26px)",
   "--cedar-color-primary": "#0f7686",
+  "--cedar-color-primary-strong": "#0b6373",
+  "--cedar-color-on-primary": "#ffffff",
+  "--cedar-text-primary": "rgba(0, 0, 0, 0.87)",
+  "--cedar-text-muted": "#555",
+  "--cedar-text-title": "#173f3e",
   "--cedar-surface-raised": "#ffffff",
   "--cedar-surface-subtle": "#f4f6f6",
   "--cedar-status-error-text": "#b42318",
   "--cedar-status-error-surface": "#fef3f2",
   "--cedar-status-warning-text": "#b45309",
   "--cedar-status-warning-surface": "#fff8e5",
+  "--cedar-status-success-text": "#176b3a",
   "--cedar-control-line-height-default": "21px",
   "--cedar-control-line-height-authoring": "18px",
-  "--cedar-radius": "4px"
+  "--cedar-radius": "4px",
+  "--cedar-radius-pill": "9999px"
 };
 // Central implementation. Consumer copies are generated; the adoption gate checks their bytes.
 import assert from 'node:assert/strict';
@@ -95,6 +139,7 @@ export async function checkSurface(page, surface, state, expect, testInfo) {
   }
   if (surface.contract === 'menu') await checkMenuText(target, surface.id, expect);
   await checkIcons(target, surface.id, expect);
+  await checkScale(target, surface, expect, testInfo);
   const contract = CONTRACTS[surface.contract];
   assert.ok(contract, `Unknown contract: ${surface.contract}`);
   const values = await target.evaluate(
@@ -136,6 +181,103 @@ export async function checkSurface(page, surface, state, expect, testInfo) {
       expect(value.actual, `${surface.id}: ${property} must use ${value.token}`).toBe(value.expected);
     }
   }
+}
+
+// Everything a surface draws comes from the shared vocabulary: its two families, five sizes and two
+// weights with Roboto's own spacing, its text colours, and the one corner, the pill and a circle. A
+// framework default or a utility class that reintroduces any other value fails here, whatever the
+// source scan saw. The allowed values resolve in the surface's own context, so a host theme override
+// is honoured. A reviewed exception is a `scaleDebt` entry naming the exact value and the reason.
+async function checkScale(target, surface, expect, testInfo) {
+  const found = await target.evaluate(
+    async (root, { scale, defaults }) => {
+      // Sample the settled theme, not a colour transition another check has just started.
+      await Promise.all(
+        root
+          .getAnimations({ subtree: true })
+          .filter(
+            (animation) =>
+              animation.playState === 'running' && animation.effect?.getComputedTiming().iterations !== Infinity,
+          )
+          .map((animation) => animation.finished.catch(() => {})),
+      );
+      const probe = document.createElement('span');
+      probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;';
+      root.parentNode.append(probe);
+      const allowed = {};
+      for (const [property, tokens] of Object.entries(scale)) {
+        allowed[property] = new Set(
+          tokens.map((token) => {
+            probe.style.setProperty(property, `var(${token}, ${defaults[token]})`);
+            const value = getComputedStyle(probe).getPropertyValue(property);
+            probe.style.removeProperty(property);
+            return property === 'font-family' ? value.split(',')[0].replace(/["']/g, '').trim() : value;
+          }),
+        );
+      }
+      probe.remove();
+      allowed['border-radius'].add('0px').add('50%');
+      const found = new Map();
+      const note = (property, value, element) => {
+        if (!found.has(`${property}|${value}`)) {
+          const name = typeof element.className === 'string' ? element.className.trim().split(/\s+/)[0] : '';
+          found.set(`${property}|${value}`, {
+            property,
+            value,
+            element: element.tagName.toLowerCase() + (name ? `.${name}` : ''),
+          });
+        }
+      };
+      const inspect = (element) => {
+        if (!element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) || element.closest('svg'))
+          return;
+        const style = getComputedStyle(element);
+        const text =
+          [...element.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim()) ||
+          element.matches('input:not([type=checkbox]):not([type=radio]), select, textarea');
+        if (text) {
+          if (!allowed['font-size'].has(style.fontSize)) note('font-size', style.fontSize, element);
+          if (!allowed['font-weight'].has(style.fontWeight)) note('font-weight', style.fontWeight, element);
+          const family = style.fontFamily.split(',')[0].replace(/["']/g, '').trim();
+          if (!allowed['font-family'].has(family)) note('font-family', family, element);
+          if (!allowed.color.has(style.color)) note('color', style.color, element);
+          if (style.letterSpacing !== 'normal' && style.letterSpacing !== '0px')
+            note('letter-spacing', style.letterSpacing, element);
+        }
+        const drawn =
+          ['Top', 'Right', 'Bottom', 'Left'].some(
+            (side) => style[`border${side}Style`] !== 'none' && parseFloat(style[`border${side}Width`]) > 0,
+          ) || style.backgroundColor !== 'rgba(0, 0, 0, 0)';
+        if (drawn) {
+          // A corner that rounds its whole box is the pill, however a framework spells it.
+          const rect = element.getBoundingClientRect();
+          const full = Math.min(rect.width, rect.height) / 2;
+          for (const corner of ['TopLeft', 'TopRight', 'BottomRight', 'BottomLeft']) {
+            const radius = style[`border${corner}Radius`];
+            if (!allowed['border-radius'].has(radius) && !(radius.endsWith('px') && parseFloat(radius) >= full - 0.5))
+              note('border-radius', radius, element);
+          }
+        }
+      };
+      const visit = (node) => {
+        for (const element of node.querySelectorAll('*')) {
+          if (element.shadowRoot) visit(element.shadowRoot);
+          inspect(element);
+        }
+      };
+      inspect(root);
+      visit(root);
+      return [...found.values()];
+    },
+    { scale: SCALE, defaults: TOKEN_DEFAULTS },
+  );
+  await testInfo.attach(`scale-${surface.id}`, {
+    body: JSON.stringify({ id: surface.id, width: target.page().viewportSize().width, found }, null, 2),
+    contentType: 'application/json',
+  });
+  const reviewed = new Set((surface.scaleDebt ?? []).map((debt) => `${debt.property}: ${debt.value}`));
+  const drift = found.filter((value) => !reviewed.has(`${value.property}: ${value.value}`));
+  expect(drift, `${surface.id}: values outside the shared vocabulary`).toEqual([]);
 }
 
 // A correctly themed panel is insufficient when a button or nested label overrides it.
