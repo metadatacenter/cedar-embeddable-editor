@@ -229,8 +229,12 @@ async function checkScale(target, surface, expect, testInfo) {
           });
         }
       };
+      // Icons and the box Material draws as a checkbox's mark are glyphs, whose shapes belong to the
+      // symbol. The browser paints a native checkbox's mark with the same 2px corners, which no
+      // computed style reports.
+      const glyphs = 'svg, .mdc-checkbox__background';
       const inspect = (element) => {
-        if (!element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) || element.closest('svg'))
+        if (!element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) || element.closest(glyphs))
           return;
         const style = getComputedStyle(element);
         const text =

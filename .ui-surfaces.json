@@ -84,14 +84,7 @@
           "anchor": "class=\"template-header\""
         }
       ],
-      "test": "visual/tests/surfaces.spec.ts",
-      "scaleDebt": [
-        {
-          "property": "border-radius",
-          "value": "2px",
-          "reason": "Material's checkbox box keeps its 2px corner as part of the glyph; at the 4px radius an 18px box reads as a rounded button."
-        }
-      ]
+      "test": "visual/tests/surfaces.spec.ts"
     }
   ]
 }
