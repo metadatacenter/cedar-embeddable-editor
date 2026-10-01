@@ -789,11 +789,51 @@ test('an expansion panel collapses and expands', async ({ page }) => {
   await expect(page).toHaveScreenshot('nested-collapsed.png', { fullPage: true });
 });
 
+for (const preset of [undefined, 'readonly'] as const) {
+  test(`an element heading lines up with its fields${preset ? ' when read' : ''}`, async ({ page }) => {
+    await open(page, '03-nested-multi', preset);
+    // The chevron takes the slot a field's type icon takes, the title starts where a field's
+    // label does, and the heading's trailing marks end where a field's end.
+    const geometry = await page.evaluate(() => {
+      const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+      const panel = root.querySelector('mat-expansion-panel')!;
+      const heading = panel.querySelector('mat-expansion-panel-header')!;
+      const field = panel.querySelector('.cee-element-content app-cedar-component-header')!;
+      const box = (scope: Element, selector: string) => scope.querySelector(selector)!.getBoundingClientRect();
+      return {
+        chevron: box(heading, '[data-disclosure]').left,
+        icon: box(field, '[data-field-type-icon]').left,
+        title: box(heading, '.title-label').left,
+        label: box(field, '.title-label').left,
+        headingEnd: box(heading, '.property-iri').right,
+        fieldEnd: box(field, '.property-iri').right,
+      };
+    });
+    expect(Math.abs(geometry.chevron - geometry.icon)).toBeLessThan(1);
+    expect(Math.abs(geometry.title - geometry.label)).toBeLessThan(1);
+    expect(Math.abs(geometry.headingEnd - geometry.fieldEnd)).toBeLessThan(1);
+  });
+}
+
 test('a required field shows its indicator', async ({ page }) => {
   await open(page, '01-input-types');
   // `text` is the one deployed with withRequiredValue(true).
   await expect(page.getByText('text', { exact: false }).first()).toBeVisible();
   await expect(page).toHaveScreenshot('required-indicator.png', { fullPage: true });
+  // The raised mark must not make a required heading taller than an optional one, or the type icon
+  // centred beside it no longer lines up with the label.
+  const heights = await page.evaluate(() =>
+    [...document.querySelector('cedar-embeddable-editor')!.shadowRoot!.querySelectorAll('app-cedar-component-header')]
+      .filter((header) => header.querySelector('[data-field-type-icon]'))
+      .map((header) => ({
+        required: !!header.querySelector('.required-mark'),
+        height: header.getBoundingClientRect().height,
+      })),
+  );
+  const required = heights.filter((h) => h.required).map((h) => h.height);
+  const optional = heights.filter((h) => !h.required).map((h) => h.height);
+  expect(required.length).toBeGreaterThan(0);
+  expect(new Set([...required, ...optional])).toEqual(new Set([optional[0]]));
 });
 
 /**

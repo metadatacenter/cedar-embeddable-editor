@@ -4,13 +4,17 @@
       @if (decision.component; as iterableComponent) {
         <mat-accordion multi>
           <mat-expansion-panel
+            hideToggle
             (opened)="panelOpenState = true"
             (closed)="panelOpenState = false; allExpanded = false"
             [expanded]="panelOpenState"
           >
             <mat-expansion-panel-header>
               <mat-panel-title class="cee-element-heading">
-                <app-cedar-component-header [componentToRender]="iterableComponent"></app-cedar-component-header>
+                <app-cedar-component-header
+                  [componentToRender]="iterableComponent"
+                  [disclosure]="panelOpenState"
+                ></app-cedar-component-header>
               </mat-panel-title>
             </mat-expansion-panel-header>
             @if (decision.multiComponent) {

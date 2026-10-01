@@ -54,27 +54,35 @@
  * It takes that header's own height and covers it exactly, so the row is centred on the
  * heading without an offset that has to know how tall a chip renders, and the first
  * field stays where an element with no pager puts it. It stops where the header's
- * content does: the trailing icon slot, the 24px the expansion chevron takes beside the
- * panel title, and 8px of air between the two. A field with more than a page of
- * occurrences grows the row past the minimum and moves the content down with it.
+ * content does: the trailing icon slot, the content inset the heading keeps beyond the
+ * panel body's, and 8px of air. At embedding widths its own row starts at that inset,
+ * under the chevron. A field with more than a page of occurrences grows the row past the
+ * minimum and moves the content down with it.
  */
 .aligned-up {
   display: flex;
   flex-wrap: wrap;
   justify-content: right;
   align-items: center;
-  margin-right: layout.$cee-header-trailing-slot + 32px;
+  margin-right: calc(
+    #{layout.$cee-header-trailing-slot} + var(--_cee-element-heading-inset) - var(--_cee-element-body-inset) +
+      #{ui-tokens.$space-2}
+  );
   min-height: 48px;
   margin-top: -48px;
   margin-bottom: 0;
 }
 
 /*
- * Reading keeps the placement it already had: a chip-height row centred on the heading by
- * offset, with the panel's own right margin, since no trailing slot is reserved there.
+ * Reading keeps a chip-height row centred on the heading by offset. No trailing slot is reserved
+ * there, but the property glyph can still end the heading, so the row stops at that glyph's column
+ * instead of running under it. The chips' own trailing margin, which separates them from the
+ * editing actions, is the air between them and the glyph.
  */
 :host-context(.cee-read-only) .aligned-up {
-  margin-right: 10px;
+  margin-right: calc(
+    var(--_cee-element-heading-inset) - var(--_cee-element-body-inset) + #{ui-tokens.$icon-size-small}
+  );
   min-height: 0;
   margin-top: -40px;
   margin-bottom: 15px;
@@ -89,6 +97,7 @@
   :host-context(.cee-read-only) .aligned-up {
     justify-content: flex-start;
     min-height: 0;
-    margin: ui-tokens.$space-2 0 ui-tokens.$space-3;
+    margin: ui-tokens.$space-2 0 ui-tokens.$space-3
+      calc(var(--_cee-element-heading-inset) - var(--_cee-element-body-inset));
   }
 }

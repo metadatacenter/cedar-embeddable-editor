@@ -76,6 +76,12 @@ export class CedarComponentHeaderComponent implements OnInit {
     });
   }
 
+  /**
+   * Whether the element this header belongs to is expanded, or null for a header that does not
+   * open and close. The panel header is the control; the chevron only shows its state.
+   */
+  @Input() disclosure: boolean | null = null;
+
   @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;
     this.fieldToDescribe =

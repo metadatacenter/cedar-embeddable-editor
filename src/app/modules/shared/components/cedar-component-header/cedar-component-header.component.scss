@@ -1,4 +1,5 @@
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
+@use '@org.metadatacenter/cedar-design-tokens/patterns';
 @use 'cee-layout' as layout;
 
 :host {
@@ -65,20 +66,14 @@
 /*
  * The asterisk beside a required field's label.
  *
- * Was an inline style setting `font-size: medium`, which is an absolute keyword
- * — 16px whatever it sits in — so the mark was larger than the 14px label
- * carrying it. `1em` keeps it the size of that label, and `sup` already raises
- * it.
- *
- * The colour was `red`, which reads as an error rather than as a requirement: a
- * form of required fields opened covered in red marks before anyone had done
- * anything wrong, and CEE says a value is missing in its own error line and in
- * the quality report. Inherited instead of black outright, so the mark is the
- * colour of the label it belongs to and follows a host that themes that label.
+ * `1em` keeps it the size of the label carrying it. The colour is inherited rather than red, which
+ * reads as an error before anyone has done anything wrong; CEE says a value is missing in its own
+ * error line and in the quality report. The shared recipe raises the mark without enlarging the
+ * label's line box, which a plain `sup` did by four pixels: the label then sat below the field-type
+ * icon beside it, on required fields only.
  */
 .required-mark {
-  font-size: 1em;
-  color: inherit;
+  @include patterns.required-mark;
 }
 
 /*
@@ -101,6 +96,21 @@
   height: tokens.$icon-size-small;
   overflow: hidden;
   line-height: tokens.$icon-size-small;
+}
+
+/*
+ * An element's disclosure chevron takes the slot a field's type icon takes, so the element title
+ * lines up with its fields' labels. It points up while the element is open, as Material's did.
+ */
+.disclosure-slot {
+  color: tokens.$color-primary;
+}
+
+.disclosure-icon {
+  transition: transform tokens.$motion-duration-normal tokens.$motion-ease-standard;
+  &.expanded {
+    transform: rotate(180deg);
+  }
 }
 
 .ontology-icon-slot {
@@ -138,9 +148,12 @@
   white-space: nowrap;
 }
 
+// Clip only along the line: a long name still ends in an ellipsis, and the raised required mark,
+// which leaves the line box, is not cut off.
 .title-label {
   min-width: 0;
-  overflow: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
   text-overflow: ellipsis;
 }
 

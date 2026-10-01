@@ -29,13 +29,6 @@
       "value": "5px 0",
       "count": 1
     },
-    "07e7401f1e56889da98b": {
-      "file": "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.scss",
-      "rule": "spacing",
-      "property": "margin-right",
-      "value": "layout.$cee-header-trailing-slot + 32px",
-      "count": 1
-    },
     "09c7f2076b5ea5bdc3cd": {
       "file": "src/app/modules/input-types/components/cedar-input-controlled/cedar-input-controlled.component.scss",
       "rule": "spacing",
@@ -365,13 +358,6 @@
       "value": "Roboto, system-ui, sans-serif",
       "count": 1
     },
-    "5e309bfea4239906338d": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "typography",
-      "property": "font-size",
-      "value": "1em",
-      "count": 1
-    },
     "5e502c1ebb012e648f99": {
       "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
       "rule": "geometry",
@@ -580,13 +566,6 @@
       "rule": "color",
       "property": "background",
       "value": "white",
-      "count": 1
-    },
-    "93eee1793a2074adc064": {
-      "file": "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.scss",
-      "rule": "spacing",
-      "property": "margin-right",
-      "value": "10px",
       "count": 1
     },
     "950ead237f1e8d567032": {

@@ -1,5 +1,13 @@
 <div class="flex-container" [class.has-spec]="readOnlyMode && fieldToDescribe">
-  @if (fieldTypeIcon) {
+  @if (disclosure !== null) {
+    <span class="field-icon-slot disclosure-slot" aria-hidden="true" data-disclosure>
+      <mat-icon
+        class="field-type-icon disclosure-icon"
+        [class.expanded]="disclosure"
+        cedarIcon="chevron-down"
+      ></mat-icon>
+    </span>
+  } @else if (fieldTypeIcon) {
     <span class="field-icon-slot" [class.ontology-icon-slot]="isOntologyField" aria-hidden="true" data-field-type-icon>
       <mat-icon class="field-type-icon" [cedarIcon]="fieldTypeIcon"></mat-icon>
     </span>
