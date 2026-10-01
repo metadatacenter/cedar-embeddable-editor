@@ -7,9 +7,9 @@
  */
 .cee-term-link {
   @include patterns.specification-box(
-    $padding-end: var(--cedar-specification-padding-block, #{ui-tokens.$specification-padding-block})
+    $padding-end: var(--cedar-specification-padding-block, #{patterns.$specification-padding-block})
   );
-  line-height: var(--cedar-specification-line-height, #{ui-tokens.$specification-line-height});
+  line-height: var(--cedar-specification-line-height, var(--cedar-control-line-height-default));
   overflow-wrap: anywhere;
 }
 
@@ -20,8 +20,7 @@
 }
 
 .cee-term-link-dash {
-  margin: 0 6px;
-  color: rgba(0, 0, 0, 0.38);
+  @include patterns.specification-separator;
 }
 
 /*

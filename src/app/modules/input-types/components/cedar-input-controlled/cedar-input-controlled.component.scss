@@ -21,7 +21,7 @@ $bio-portal-icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYUAAACBCAMAAAA
   @include patterns.specification-box($padding-block: ui-tokens.$space-1);
   /* Spacing comes from the dot separators, so the box does not add its own between items. */
   gap: 0;
-  color: var(--cedar-specification-text, #{ui-tokens.$specification-text});
+  color: var(--cedar-specification-text, #{ui-tokens.$text-muted});
 }
 
 .cee-controlled-spec-facts {
@@ -49,8 +49,8 @@ $bio-portal-icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYUAAACBCAMAAAA
 }
 
 .cee-controlled-spec-kind {
-  margin-right: 0.25em;
-  color: var(--cedar-specification-keyword-color, #{ui-tokens.$specification-keyword-color});
+  margin-right: ui-tokens.$space-1;
+  color: var(--cedar-specification-keyword-color, #{ui-tokens.$text-muted});
   font-style: italic;
   font-weight: var(--cedar-font-weight-regular, 400);
 }

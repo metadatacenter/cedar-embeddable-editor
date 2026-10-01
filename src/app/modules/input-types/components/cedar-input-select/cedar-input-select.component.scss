@@ -11,6 +11,6 @@
   vertical-align: middle;
   &.selected {
     background: currentColor;
-    box-shadow: inset 0 0 0 tokens.$space-1 var(--cedar-overlay-surface, #{tokens.$overlay-surface});
+    box-shadow: inset 0 0 0 tokens.$space-1 var(--cedar-surface-raised, #{tokens.$surface-raised});
   }
 }

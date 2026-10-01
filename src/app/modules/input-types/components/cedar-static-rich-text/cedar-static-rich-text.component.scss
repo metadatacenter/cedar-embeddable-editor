@@ -10,9 +10,9 @@
  */
 :host ::ng-deep hr {
   height: 0;
-  margin: 10px 0;
+  margin: ui-tokens.$space-2 0;
   border: 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-top: 1px solid ui-tokens.$border-rule;
 }
 
 /*

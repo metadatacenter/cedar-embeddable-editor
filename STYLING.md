@@ -8,7 +8,7 @@ button appears. Precision, formatting and validation are independent of density.
 CEE and CEF use this read-only-based sizing by default, independently of
 `config.readOnlyMode`. `density="compact"` remains a supported explicit spelling.
 Use `density="authoring"` for the shared 32px authoring profile (12px text,
-18px line height, 2px corners). CED/CEFD use that profile for settings and embedded
+18px line height, the shared 4px corner). CED/CEFD use that profile for settings and embedded
 CEF. Host overrides take precedence in both compact and authoring profiles.
 Use `density="comfortable"` only to request the older, larger editable sizing.
 
@@ -59,7 +59,7 @@ editable CEE side by side, with simple and temporal fixture sets.
 
 Defaults and density profiles come from `cedar-design-tokens`; adapters must not
 redeclare public host override properties. Error text and borders use the shared
-`color-error` role, advisory notices use `color-warning`.
+`status-error-text` role, advisory notices use `status-warning-text`.
 
 ## Ownership of local styles
 

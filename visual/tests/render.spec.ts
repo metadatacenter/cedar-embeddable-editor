@@ -429,7 +429,8 @@ test.describe('field type markers', () => {
     await expect(elementMarker).toHaveAttribute('aria-label', `Property IRI: ${iri}`);
     await expect(elementMarker.locator('svg')).toHaveAttribute('data-cedar-icon', 'property');
     await expect(elementMarker.locator('a')).toHaveCount(0);
-    await expect(elementMarker).toHaveCSS('color', 'rgb(107, 107, 107)');
+    // The glyph takes the icon role like every other icon; quiet means no link and no badge.
+    await expect(elementMarker.locator('svg')).toHaveCSS('color', 'rgb(15, 118, 134)');
 
     const alignment = await elementMarker.evaluate((marker) => {
       const markerBox = marker.getBoundingClientRect();
@@ -3303,7 +3304,7 @@ test.describe('a multi-instance field paging its values', () => {
 
     const range = page.locator('.multi-instance-range').first();
     await expect(range).toHaveText('(0 .. ∞)');
-    await expect(range).toHaveCSS('color', 'rgb(107, 107, 107)');
+    await expect(range).toHaveCSS('color', 'rgb(85, 85, 85)');
     const chips = await boxesOf(page, '.mat-mdc-chip');
     expect(chips.length, 'two values page, so there are chips to collide with').toBeGreaterThan(0);
     const ranges = await boxesOf(page, '.multi-instance-range');

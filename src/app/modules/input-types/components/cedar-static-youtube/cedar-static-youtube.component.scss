@@ -15,14 +15,14 @@
 
 // Use the same amber notice palette as static images that cannot be displayed.
 .video-error {
-  margin: 15px;
-  padding: 10px ui-tokens.$space-3;
-  border: 1px solid ui-tokens.$media-warning-border;
-  border-radius: 4px;
-  background-color: ui-tokens.$media-warning-surface;
-  color: ui-tokens.$media-warning-text;
-  font-size: 0.9em;
-  line-height: 1.4;
+  margin: ui-tokens.$space-4;
+  padding: ui-tokens.$space-2 ui-tokens.$space-3;
+  border: 1px solid ui-tokens.$status-warning-text;
+  border-radius: ui-tokens.$radius;
+  background-color: ui-tokens.$status-warning-surface;
+  color: ui-tokens.$status-warning-text;
+  font-size: ui-tokens.$font-size-small;
+  line-height: ui-tokens.$control-line-height-authoring;
   /* URLs are long and have no spaces to break on. */
   overflow-wrap: anywhere;
 }

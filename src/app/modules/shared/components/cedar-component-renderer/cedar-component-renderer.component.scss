@@ -78,7 +78,7 @@ $element-content-inset: tokens.$space-4;
     padding: ui-tokens.$space-2 0;
   }
   background: transparent;
-  border-bottom: 1px solid #e1e7e6;
+  border-bottom: 1px solid tokens.$border-rule;
 }
 
 /*
@@ -126,7 +126,7 @@ $element-content-inset: tokens.$space-4;
   .mat-expansion-panel {
     --_cee-element-body-inset: #{tokens.$space-3};
     --_cee-element-heading-inset: #{tokens.$space-3};
-    border-radius: tokens.$control-radius-default;
+    border-radius: tokens.$radius;
     box-shadow: none;
     border: 1px solid tokens.$border-rule;
   }

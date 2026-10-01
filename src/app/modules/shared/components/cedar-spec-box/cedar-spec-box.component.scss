@@ -8,8 +8,8 @@
  */
 .cee-spec-box {
   @include patterns.specification-box;
-  color: var(--cedar-specification-text, #{ui-tokens.$specification-text});
-  line-height: var(--cedar-specification-line-height, #{ui-tokens.$specification-line-height});
+  color: var(--cedar-specification-text, #{ui-tokens.$text-muted});
+  line-height: var(--cedar-specification-line-height, var(--cedar-control-line-height-default));
   overflow-wrap: anywhere;
 }
 
@@ -34,15 +34,15 @@
 .cee-spec-box-keyword,
 .cee-spec-box-kind,
 .cee-spec-box-default-kind {
-  color: var(--cedar-specification-keyword-color, #{ui-tokens.$specification-keyword-color});
+  color: var(--cedar-specification-keyword-color, #{ui-tokens.$text-muted});
 }
 
 .cee-spec-box-default-kind {
-  margin-right: 5px;
+  margin-right: ui-tokens.$space-1;
 }
 
 .cee-spec-box-kind {
-  margin-right: 0.25em;
+  margin-right: ui-tokens.$space-1;
 }
 
 .cee-spec-box-keyword,

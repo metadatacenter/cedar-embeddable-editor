@@ -4,8 +4,8 @@
  * rather than part of its text, and the same grey the specification uses everywhere else.
  */
 .choice-default-mark {
-  margin-left: 6px;
-  color: tokens.$specification-text;
+  margin-left: tokens.$space-2;
+  color: var(--cedar-specification-text, #{tokens.$text-muted});
 }
 
 /*

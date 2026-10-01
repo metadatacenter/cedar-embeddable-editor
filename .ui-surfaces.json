@@ -45,14 +45,7 @@
           "anchor": "<mat-datepicker"
         }
       ],
-      "test": "visual/tests/surfaces.spec.ts",
-      "debt": {
-        "border-top-left-radius": {
-          "actual": "16px",
-          "expected": "4px",
-          "reason": "Existing Material calendar corners in the approved CEE visual baseline; adoption must be an explicit visual change."
-        }
-      }
+      "test": "visual/tests/surfaces.spec.ts"
     },
     {
       "id": "cee.cee-view-4",

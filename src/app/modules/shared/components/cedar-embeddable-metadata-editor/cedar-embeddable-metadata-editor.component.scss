@@ -11,12 +11,14 @@ $logo-track: 72px;
 :host {
   display: block;
   min-width: 0;
+  /* The editor's text colour is its own, not whatever the embedding page happens to use. */
+  color: tokens.$text-primary;
 }
 
 .header-image {
   background-image: url(common.$cedar-logo-80x80);
   background-size: cover;
-  background-color: tokens.$color-component-title;
+  background-color: tokens.$text-title;
   /* Angular Material's card-avatar default adds 16px below the mark. The CEE name supplies its own
    * 4px separation, so retaining both created a conspicuous 20px hole in this compact identity. */
   margin-bottom: 0;
@@ -37,7 +39,7 @@ $logo-track: 72px;
   gap: ui-tokens.$space-2 ui-tokens.$space-4;
   min-width: 0;
   padding: ui-tokens.$space-2 layout.$cee-gutter-inline;
-  background: #ffffff;
+  background: tokens.$surface-raised;
   border-bottom: 1px solid tokens.$border-rule;
 }
 
@@ -89,9 +91,8 @@ $logo-track: 72px;
   display: block;
   font-size: tokens.$font-size-small;
   font-weight: var(--cedar-font-weight-medium, 500);
-  letter-spacing: 0.08em;
-  line-height: 1;
-  color: #1f2937;
+  line-height: tokens.$font-size-small;
+  color: tokens.$text-primary;
   margin-top: ui-tokens.$space-1;
 }
 
@@ -101,9 +102,9 @@ $logo-track: 72px;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: tokens.$font-size-small;
-  line-height: 1;
-  color: #666;
-  margin-top: 2px;
+  line-height: tokens.$font-size-small;
+  color: tokens.$text-muted;
+  margin-top: ui-tokens.$space-1;
 }
 
 /*
@@ -125,20 +126,20 @@ $logo-track: 72px;
 
 .template-label {
   margin: 0;
-  color: tokens.$color-artifact-title;
+  color: tokens.$text-title;
   /* The one fluid step in CEE: a title scales with the container, in px. */
   font-size: tokens.$font-size-artifact-title;
   font-weight: var(--cedar-font-weight-medium, 500);
-  line-height: tokens.$line-height-artifact-title;
+  line-height: tokens.$line-height-heading;
   overflow-wrap: anywhere;
 }
 
 .template-description {
   max-width: 70ch;
-  margin: 6px 0 0;
-  color: #526260;
-  font-size: tokens.$font-size-lead;
-  line-height: 1.45;
+  margin: ui-tokens.$space-2 0 0;
+  color: tokens.$text-muted;
+  font-size: tokens.$font-size;
+  line-height: tokens.$control-line-height-default;
 }
 
 /*
@@ -155,11 +156,11 @@ $logo-track: 72px;
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  gap: 3px;
+  gap: ui-tokens.$space-1;
   min-width: 0;
-  color: #526260;
+  color: tokens.$text-muted;
   font-size: tokens.$font-size-small;
-  line-height: 1.3;
+  line-height: tokens.$control-line-height-authoring;
   white-space: nowrap;
 }
 
@@ -232,7 +233,7 @@ $logo-track: 72px;
   }
 
   .template-actions {
-    border-top: 1px solid tokens.$border-rule-light;
+    border-top: 1px solid tokens.$border-rule;
     padding-top: ui-tokens.$space-3;
   }
 
