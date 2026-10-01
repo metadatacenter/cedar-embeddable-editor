@@ -1,3 +1,5 @@
+@use '@org.metadatacenter/cedar-design-tokens/patterns';
+@use '@org.metadatacenter/cedar-design-tokens/icon-contract';
 @use '@org.metadatacenter/cedar-design-tokens/controls';
 @use '@org.metadatacenter/cedar-design-tokens/motion';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
@@ -269,24 +271,28 @@ app-sample-templates {
 }
 
 .notify-info {
+  --cedar-icon-color: #{tokens.$status-info-text};
   color: tokens.$status-info-text;
   background-color: tokens.$status-info-surface;
   border-color: tokens.$status-info-text;
 }
 
 .notify-success {
+  --cedar-icon-color: #{tokens.$status-success-text};
   color: tokens.$status-success-text;
   background-color: tokens.$status-success-surface;
   border-color: tokens.$status-success-text;
 }
 
 .notify-error {
+  --cedar-icon-color: #{tokens.$status-error-text};
   color: tokens.$status-error-text;
   background-color: tokens.$status-error-surface;
   border-color: tokens.$status-error-text;
 }
 
 .notify-warning {
+  --cedar-icon-color: #{tokens.$status-warning-text};
   color: tokens.$status-warning-text;
   background-color: tokens.$status-warning-surface;
   border-color: tokens.$status-warning-text;
@@ -396,6 +402,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  */
 .input-warning {
   display: block;
+  --cedar-icon-color: #{tokens.$status-warning-text};
   color: tokens.$status-warning-text;
   font-size: tokens.$form-help-size;
   line-height: tokens.$form-help-line-height;
@@ -650,5 +657,14 @@ textarea.mat-mdc-input-element {
 }
 
 :host .cee-download-menu .mat-mdc-menu-item mat-icon {
-  color: var(--cedar-color-primary);
+  @include patterns.menu-icon;
 }
+
+// Material menu labels use the same typography and theme recipe as native menus.
+:host .mat-mdc-menu-panel,
+:host .mat-mdc-menu-content .mat-mdc-menu-item,
+:host .mat-mdc-menu-content .mat-mdc-menu-item .mat-mdc-menu-item-text {
+  @include patterns.menu-text;
+}
+
+@include icon-contract.styles;

@@ -2,7 +2,12 @@
 const CONTRACTS = {
   "menu": {
     "background-color": "--cedar-overlay-surface",
-    "border-top-left-radius": "--cedar-menu-radius"
+    "border-top-left-radius": "--cedar-menu-radius",
+    "color": "--cedar-color-primary",
+    "font-family": "--cedar-font-family",
+    "font-size": "--cedar-font-size",
+    "font-weight": "--cedar-font-weight-regular",
+    "line-height": "--cedar-control-line-height-default"
   },
   "dialog": {
     "background-color": "--cedar-overlay-surface",
@@ -41,10 +46,13 @@ const CONTRACTS = {
   }
 };
 const TOKEN_DEFAULTS = {
+  "--cedar-font-family": "\"CEE Roboto\", \"Helvetica Neue\", sans-serif",
   "--cedar-font-weight-regular": "400",
   "--cedar-font-weight-medium": "500",
   "--cedar-font-size": "14px",
+  "--cedar-color-primary": "#0f7686",
   "--cedar-surface-panel": "#f5f5f5",
+  "--cedar-control-line-height-default": "21px",
   "--cedar-dialog-radius": "4px",
   "--cedar-menu-radius": "4px",
   "--cedar-overlay-surface": "#ffffff",
@@ -89,6 +97,8 @@ export async function checkSurface(page, surface, state, expect, testInfo) {
     await expect(target).toHaveAttribute('open', '');
     await expect(target.locator('li').first()).toBeVisible();
   }
+  if (surface.contract === 'menu') await checkMenuText(target, surface.id, expect);
+  await checkIcons(target, surface.id, expect);
   const contract = CONTRACTS[surface.contract];
   assert.ok(contract, `Unknown contract: ${surface.contract}`);
   const values = await target.evaluate(
@@ -130,4 +140,107 @@ export async function checkSurface(page, surface, state, expect, testInfo) {
       expect(value.actual, `${surface.id}: ${property} must use ${value.token}`).toBe(value.expected);
     }
   }
+}
+
+// A correctly themed panel is insufficient when a button or nested label overrides it.
+async function checkMenuText(target, id, expect) {
+  const differences = await target.evaluate(async (menu) => {
+    const properties = ['font-family', 'font-size', 'font-weight', 'line-height', 'color'];
+    const actions = [...menu.querySelectorAll('button, a, [role="menuitem"], [role="menuitemradio"]')];
+    const labels = actions.flatMap((action) => [action, ...action.querySelectorAll('span:not([aria-hidden="true"])')]);
+    const icons = [...menu.querySelectorAll('cedar-icon, app-icon, mat-icon, svg')];
+    const original = menu.getAttribute('style');
+    const failures = [];
+    try {
+      for (const alternate of [false, true]) {
+        if (alternate) {
+          menu.style.setProperty('--cedar-color-primary', 'rgb(101, 37, 142)');
+          menu.style.setProperty('--cedar-font-family', 'monospace');
+        }
+        // Read the settled theme, not the first frame of a consumer's colour transition.
+        await Promise.all(
+          menu
+            .getAnimations({ subtree: true })
+            .filter(
+              (animation) =>
+                animation.playState === 'running' && animation.effect?.getComputedTiming().iterations !== Infinity,
+            )
+            .map((animation) => animation.finished.catch(() => {})),
+        );
+        const expected = getComputedStyle(menu);
+        if (alternate && (expected.color !== 'rgb(101, 37, 142)' || expected.fontFamily !== 'monospace')) {
+          failures.push({ alternate, reason: 'Menu surface ignores the active theme' });
+        }
+        for (const icon of icons) {
+          if (getComputedStyle(icon).color !== expected.color) {
+            failures.push({
+              alternate,
+              icon: icon.tagName,
+              property: 'color',
+              actual: getComputedStyle(icon).color,
+              expected: expected.color,
+            });
+          }
+        }
+        for (const label of labels) {
+          const actual = getComputedStyle(label);
+          for (const property of properties) {
+            if (actual.getPropertyValue(property) !== expected.getPropertyValue(property)) {
+              failures.push({
+                alternate,
+                label: label.textContent.trim(),
+                property,
+                actual: actual.getPropertyValue(property),
+                expected: expected.getPropertyValue(property),
+              });
+            }
+          }
+        }
+      }
+    } finally {
+      if (original === null) menu.removeAttribute('style');
+      else menu.setAttribute('style', original);
+    }
+    return { actions: actions.length, failures };
+  });
+  expect(differences.actions, `${id}: menu must exercise real actions`).toBeGreaterThan(0);
+  expect(differences.failures, `${id}: menu labels must inherit central typography and theme`).toEqual([]);
+}
+
+// Shared by every registered surface and by whole-page checks. Text colour is
+// intentionally not the expected value: that is the inheritance bug this detects.
+export async function checkIcons(target, id, expect) {
+  const failures = await target
+    .locator('svg[data-cedar-icon], mat-icon, .material-icons, .fa, .glyphicon')
+    .evaluateAll((icons) => {
+      const failures = [];
+      for (const icon of icons) {
+        if (!icon.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
+        const style = getComputedStyle(icon);
+        const probe = document.createElement('span');
+        probe.style.color =
+          style.getPropertyValue('--cedar-icon-color').trim() ||
+          style.getPropertyValue('--cedar-color-primary').trim() ||
+          '#0f7686';
+        icon.parentNode.append(probe);
+        const expected = getComputedStyle(probe).color;
+        probe.remove();
+        if (
+          style.color !== expected ||
+          style.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
+          style.boxShadow !== 'none' ||
+          style.textShadow !== 'none'
+        ) {
+          failures.push({
+            icon: icon.getAttribute('data-cedar-icon') || icon.textContent.trim(),
+            color: style.color,
+            expected,
+            background: style.backgroundColor,
+            shadow: style.boxShadow,
+          });
+        }
+      }
+      return failures;
+    });
+  expect(failures, `${id}: shared icon foreground and flat glyph surface`).toEqual([]);
 }
