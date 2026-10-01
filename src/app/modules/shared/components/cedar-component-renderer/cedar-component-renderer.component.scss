@@ -20,7 +20,8 @@
 
 /*
  * The heading's trailing marks end where its fields' marks end. Material keeps 16px after a panel
- * title and 8px more for a hidden toggle; the chevron leads the heading, so neither gap is needed.
+ * title and 8px more for a hidden toggle; the chevron is one of the trailing marks, so neither gap
+ * is needed.
  */
 .mat-expansion-panel-header ::ng-deep .mat-content.mat-content-hide-toggle {
   margin-inline-end: 0;
@@ -30,7 +31,7 @@
  * An element's heading starts where its fields start: inside the panel body's inset and the
  * content's own. The heading and body insets are declared once, so the heading, the content and
  * the occurrence pager agree in either mode; the pager takes the content's inset as their
- * difference. The chevron and title then line up with the fields' type icons and labels, and the
+ * difference. The element's name then starts on the edge its fields' type icons start on, and the
  * heading's trailing marks end where theirs end. Editing keeps Material's 24px and 16px.
  */
 $element-content-inset: tokens.$space-4;

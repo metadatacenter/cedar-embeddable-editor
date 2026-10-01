@@ -793,25 +793,29 @@ test('an expansion panel collapses and expands', async ({ page }) => {
 for (const preset of [undefined, 'readonly'] as const) {
   test(`an element heading lines up with its fields${preset ? ' when read' : ''}`, async ({ page }) => {
     await open(page, '03-nested-multi', preset);
-    // The chevron takes the slot a field's type icon takes, the title starts where a field's
-    // label does, and the heading's trailing marks end where a field's end.
+    // The element's name starts where a field's type icon does, the chevron leads the heading's
+    // trailing marks, and those marks end where a field's end.
     const geometry = await page.evaluate(() => {
       const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
       const panel = root.querySelector('mat-expansion-panel')!;
       const heading = panel.querySelector('mat-expansion-panel-header')!;
       const field = panel.querySelector('.cee-element-content app-cedar-component-header')!;
       const box = (scope: Element, selector: string) => scope.querySelector(selector)!.getBoundingClientRect();
+      const trailing = heading.querySelector('.header-trailing')!;
+      const marks = [...trailing.querySelectorAll(':scope > *')].map((mark) => mark.getBoundingClientRect());
       return {
-        chevron: box(heading, '[data-disclosure]').left,
         icon: box(field, '[data-field-type-icon]').left,
         title: box(heading, '.title-label').left,
-        label: box(field, '.title-label').left,
+        chevronIsFirstMark: trailing.firstElementChild!.hasAttribute('data-disclosure'),
+        chevronRight: box(heading, '[data-disclosure]').right,
+        nextMarkLeft: marks.length > 1 ? marks[1].left : Infinity,
         headingEnd: box(heading, '.property-iri').right,
         fieldEnd: box(field, '.property-iri').right,
       };
     });
-    expect(Math.abs(geometry.chevron - geometry.icon)).toBeLessThan(1);
-    expect(Math.abs(geometry.title - geometry.label)).toBeLessThan(1);
+    expect(Math.abs(geometry.title - geometry.icon)).toBeLessThan(1);
+    expect(geometry.chevronIsFirstMark).toBe(true);
+    expect(geometry.chevronRight).toBeLessThanOrEqual(geometry.nextMarkLeft);
     expect(Math.abs(geometry.headingEnd - geometry.fieldEnd)).toBeLessThan(1);
   });
 }

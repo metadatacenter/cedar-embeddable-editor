@@ -34,6 +34,11 @@
   margin-left: auto;
 }
 
+/* An element's slot also holds its disclosure chevron, before the help mark. */
+.header-trailing.has-disclosure {
+  flex-basis: calc(#{layout.$cee-header-trailing-slot} + #{tokens.$icon-size-small} + #{tokens.$space-1});
+}
+
 :host-context(.cee-read-only) .header-trailing {
   flex: 0 0 auto;
 }
@@ -94,14 +99,20 @@
 }
 
 /*
- * An element's disclosure chevron takes the slot a field's type icon takes, so the element title
- * lines up with its fields' labels. It points up while the element is open, as Material's did.
+ * An element's disclosure chevron leads its trailing marks, so the element's name starts on the
+ * edge its fields' type icons start on. It points up while the element is open, as Material's did.
  */
 .disclosure-slot {
+  display: inline-flex;
+  align-items: center;
   color: tokens.$color-primary;
 }
 
 .disclosure-icon {
+  width: tokens.$icon-size-small;
+  height: tokens.$icon-size-small;
+  overflow: hidden;
+  line-height: tokens.$icon-size-small;
   transition: transform tokens.$motion-duration-normal tokens.$motion-ease-standard;
   &.expanded {
     transform: rotate(180deg);
