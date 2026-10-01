@@ -122,6 +122,8 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
   handlerContext: HandlerContext;
   renderedComponent: CedarComponent | null = null;
   showHeader = true;
+  /** Whether the field states its type, which only a host that hides the header and lacks the type asks for. */
+  showFieldType = false;
 
   private initialized = false;
   private readonly configuration: WrapperConfigCoordinator;
@@ -336,6 +338,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     const config = this.configuration.config ?? {};
     this.configuration.apply(this.handlerContext);
     this.showHeader = !(this.handlerContext.readOnlyMode && configFlag(config, CEE_CONFIG_KEY.previewMode, false));
+    this.showFieldType = !this.showHeader && configFlag(config, CEE_CONFIG_KEY.showFieldType, false);
     this.widgetConfig.apply(config, this.handlerContext.readOnlyMode);
   }
 

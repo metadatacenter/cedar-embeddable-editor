@@ -342,13 +342,27 @@ describe('the complete read-only field presentation', () => {
     expect(mounted.changes).toEqual([]);
   });
 
-  it('lets a read-only preview host provide the heading, stating the type with the icon the header would draw', async () => {
+  it('lets a read-only preview host provide the heading without losing the field description or box', async () => {
     const mounted = await mount(
       textArtifact((b) => b.withSchemaDescription('Explain this field')),
       { readOnlyMode: true, previewMode: true },
     );
     expect(mounted.fixture.debugElement.query(By.css('app-cedar-component-header'))).toBeNull();
-    // The host's heading replaces the header, and with it the icon that names the field's type.
+    // A host's own heading may already show the type, as the designer's field cards do.
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type'))).toBeNull();
+    expect(
+      mounted.fixture.debugElement.query(By.css('.cee-field-spec-description')).nativeElement.textContent,
+    ).toContain('Explain this field');
+    expect(mounted.fixture.debugElement.query(By.css('.cee-spec-box'))).not.toBeNull();
+    expect(mounted.changes).toEqual([]);
+  });
+
+  it('states the type with the icon the header would draw for a preview host whose heading lacks it', async () => {
+    const mounted = await mount(
+      textArtifact((b) => b.withSchemaDescription('Explain this field')),
+      { readOnlyMode: true, previewMode: true, showFieldType: true },
+    );
+    expect(mounted.fixture.debugElement.query(By.css('app-cedar-component-header'))).toBeNull();
     const type = mounted.fixture.debugElement.query(By.css('.cee-field-type'));
     expect(type.nativeElement.textContent.trim()).toBe('Text');
     const icon = type.query(By.css('[data-field-type-icon]'));
@@ -358,6 +372,12 @@ describe('the complete read-only field presentation', () => {
     ).toContain('Explain this field');
     expect(mounted.fixture.debugElement.query(By.css('.cee-spec-box'))).not.toBeNull();
     expect(mounted.changes).toEqual([]);
+  });
+
+  it('leaves the type to the header icon while the header is drawn, whatever showFieldType says', async () => {
+    const mounted = await mount(textArtifact(), { readOnlyMode: true, showFieldType: true });
+    expect(mounted.fixture.debugElement.query(By.css('[data-field-type-icon]'))).not.toBeNull();
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type'))).toBeNull();
   });
 
   it('keeps the editable element a bare control', async () => {

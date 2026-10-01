@@ -51,6 +51,13 @@ export interface CeeConfig {
   /** Embedding with a host-provided heading, in either read-only or editable mode. Hides CEE's identity header or CEF's field header; keeps descriptions and controls. */
   previewMode?: boolean;
 
+  /**
+   * For a read-only CEF preview whose host heading does not name the field's type. The hidden header
+   * carried the icon that names it, so CEF states the type above the description instead, with that
+   * icon. A host whose own heading already shows the type leaves this unset.
+   */
+  showFieldType?: boolean;
+
   /** Keep empty trial fields quiet without changing validity or nonempty-value errors. */
   suppressEmptyFieldErrors?: boolean;
 
@@ -427,6 +434,7 @@ export type CedarEmbeddableFieldConfig = Pick<
   CeeConfig,
   | 'readOnlyMode'
   | 'previewMode'
+  | 'showFieldType'
   | 'suppressEmptyFieldErrors'
   | 'trustTemplateRichText'
   | 'terminologyBaseUrl'

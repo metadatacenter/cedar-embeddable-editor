@@ -136,9 +136,11 @@
             field.config = {
               defaultLanguage: 'en',
               fallbackLanguage: 'en',
-              // `preview` is a host that supplies the field's heading, as the Workspace's preview does.
-              readOnlyMode: params.get('c') === 'readonly' || params.get('c') === 'preview',
-              previewMode: params.get('c') === 'preview',
+              // `preview` is a host that supplies the field's heading, as the designer's field cards do;
+              // `preview-typed` is one whose heading lacks the type, as the Workspace's preview does.
+              readOnlyMode: ['readonly', 'preview', 'preview-typed'].includes(params.get('c')),
+              previewMode: ['preview', 'preview-typed'].includes(params.get('c')),
+              showFieldType: params.get('c') === 'preview-typed',
               // Unreachable on purpose, exactly as the editor's presets are.
               terminologyBaseUrl: 'http://127.0.0.1:9/unused/',
               bridgeBaseUrl: 'http://127.0.0.1:9/',

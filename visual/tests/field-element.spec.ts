@@ -18,7 +18,7 @@ import { BUNDLE_VERSION } from './support/host';
 const open = async (
   page: Page,
   property: string,
-  preset?: 'readonly' | 'preview',
+  preset?: 'readonly' | 'preview' | 'preview-typed',
   fixture = '01-input-types',
 ): Promise<void> => {
   await page.goto(
@@ -212,9 +212,10 @@ for (const [fixture, property] of fieldPreviews) {
 }
 
 /**
- * A host that supplies a field's heading, as the Workspace's preview does, hides the field's header
- * and with it the icon that names the field's type. The field states its type instead, with the icon
- * its header would have drawn, so the host never has to know which icon a type takes.
+ * A host that supplies a field's heading hides the field's header, and with it the icon that names
+ * the field's type. A host whose heading lacks the type, as the Workspace's preview does, asks the
+ * field to state it, and the field does so with the icon its header would have drawn, so the host
+ * never has to know which icon a type takes.
  */
 const hostTitledPreviews: Array<[fixture: string, property: string, type: string, icon: string]> = [
   ['01-input-types', '_text', 'Text', 'field-text'],
@@ -225,7 +226,7 @@ const hostTitledPreviews: Array<[fixture: string, property: string, type: string
 
 for (const [fixture, property, type, icon] of hostTitledPreviews) {
   test(`a host-titled preview of ${property} states its type with its icon`, async ({ page }) => {
-    await open(page, property, 'preview', fixture);
+    await open(page, property, 'preview-typed', fixture);
     await page.evaluate(
       async ({ fixture, property }) => {
         const template = await fetch(`/fixtures/${fixture}.json`).then((response) => response.json());
@@ -248,3 +249,20 @@ for (const [fixture, property, type, icon] of hostTitledPreviews) {
     }
   });
 }
+
+test('a host whose heading already shows the type gets no type statement', async ({ page }) => {
+  await open(page, '_award_nih', 'preview', '08-authority');
+  await page.evaluate(async () => {
+    const template = await fetch('/fixtures/08-authority.json').then((response) => response.json());
+    const slot = template.properties._award_nih;
+    const field = slot.items || slot;
+    field['schema:description'] = 'A description supplied by the field artifact.';
+    document.querySelector('cedar-embeddable-field')!.fieldObject = field;
+  });
+  const field = page.locator('cedar-embeddable-field');
+  await expect(field.locator('.cee-field-spec-description')).toHaveText(
+    'A description supplied by the field artifact.',
+  );
+  await expect(field.locator('app-cedar-component-header')).toHaveCount(0);
+  await expect(field.locator('.cee-field-type')).toHaveCount(0);
+});

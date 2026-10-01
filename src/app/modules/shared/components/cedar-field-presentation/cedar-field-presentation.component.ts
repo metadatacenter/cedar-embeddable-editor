@@ -16,6 +16,7 @@ export class CedarFieldPresentationComponent {
   @Input({ required: true }) handlerContext!: HandlerContext;
   @Input() showContent = true;
   @Input() showHeader = true;
+  @Input() showFieldType = false;
   component!: CedarComponent;
   decision: FieldWidgetDecision = { kind: 'none' };
 

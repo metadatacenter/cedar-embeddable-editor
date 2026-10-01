@@ -6,12 +6,12 @@
   <div class="child-component-content">
     <!--
       A field's type icon, beside its label, names its type. A page break draws nothing else, so it states its
-      type. A host that supplies the heading hides the header and its icon, so the type is stated here, with
-      that icon.
+      type. A host whose own heading replaces the header without naming the type asks for it here, with the
+      icon the header would have drawn.
     -->
-    @if (inputType && (!showHeader || inputType === 'page-break')) {
+    @if (inputType && (showFieldType || inputType === 'page-break')) {
       <p class="cee-field-type">
-        @if (!showHeader) {
+        @if (showFieldType) {
           <mat-icon
             class="field-type-icon"
             [class.ontology-icon]="inputType === 'controlled'"

@@ -143,13 +143,21 @@ so a host such as CED can place it in its own form.
 
 With `config = { readOnlyMode: true }`, CEF owns the full presentation: label,
 field type, description, constraints, choices, sources and declared defaults where
-present. A supplied value is shown read-only. CEE uses the same field presentation,
-so preview hosts only need to supply the artifact and their dialog shell. Set
-`previewMode: true` with `readOnlyMode: true` when the host supplies the field name
-in its own header; CEF then omits its header while retaining the type, description and value/specification.
-Read-only controls have no placeholder text. Fields without constraints draw empty
-boxes, with the type stated once above them (for example, `Paragraph`). Static fields show
-their content; a standalone page break is described without creating pagination.
+present. The type is named by the icon beside the label. A supplied value is shown
+read-only. CEE uses the same field presentation, so preview hosts only need to supply
+the artifact and their dialog shell.
+
+Set `previewMode: true` with `readOnlyMode: true` when the host supplies the field name
+in its own header. CEF then omits its header, and with it the type icon, while
+retaining the description and value or specification. A host whose header leaves out
+the type, such as the Workspace's preview, also sets `showFieldType: true`.
+CEF then states the type above the description, with the icon its header would have
+drawn (for example, `Paragraph`). A host whose header already shows the type, as CED's
+field cards do, leaves it unset.
+
+Read-only controls have no placeholder text, and fields without constraints draw empty
+boxes. Static fields show their content. A standalone page break is described without
+creating pagination.
 
 Designing a template is what this is for. An author giving a field a default value
 needs somewhere to type it, and the box that collects one has to be the control the
