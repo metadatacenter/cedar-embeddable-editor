@@ -118,7 +118,6 @@ test('a rejected assignment stays rejected after changing the field type', async
   await page.evaluate(() => {
     document.querySelector('cedar-embeddable-field')!.value = { kind: 'number', value: 99 };
   });
-  await expect(page.locator('cedar-embeddable-field .cee-field-type')).toHaveText('Text');
   await expect(page.locator('cedar-embeddable-field .cee-spec-box')).toBeVisible();
   await expect(page.locator('cedar-embeddable-field .cee-spec-box')).toBeEmpty();
   await page.evaluate(async () => {
@@ -133,34 +132,34 @@ test('a rejected assignment stays rejected after changing the field type', async
 
 // Every field route, using the same artifacts that exercise full CEE forms.
 const fieldPreviews = [
-  ['01-input-types', '_text', 'Text'],
-  ['01-input-types', '_textarea', 'Paragraph'],
-  ['01-input-types', '_numeric', 'Number'],
-  ['01-input-types', '_email', 'Email address'],
-  ['01-input-types', '_phone', 'Phone number'],
-  ['01-input-types', '_link', 'Link'],
-  ['01-input-types', '_date', 'Date / time'],
-  ['02-choices', '_radio', 'Radio buttons'],
-  ['02-choices', '_checkbox', 'Checkboxes'],
-  ['02-choices', '_single_list', 'List'],
-  ['02-choices', '_multi_list', 'List'],
-  ['04-controlled-terms', '_organism', 'Controlled term'],
-  ['08-authority', '_contributor_orcid', 'ORCID'],
-  ['08-authority', '_institution_ror', 'ROR organization'],
-  ['08-authority', '_chemical_pfas', 'PFAS chemical'],
-  ['08-authority', '_citation_pmid', 'PubMed ID'],
-  ['08-authority', '_resource_rrid', 'Research resource ID'],
-  ['08-authority', '_award_nih', 'NIH Grant ID'],
-  ['08-authority', '_dataset_doi', 'DOI'],
-  ['10-attribute-values', '_attribute', 'Attribute–value pairs'],
-  ['05-static-paged', '_section', 'Section break'],
-  ['05-static-paged', '_note', 'Rich text'],
-  ['05-static-paged', '_pb', 'Page break'],
-  ['05-static-paged', '_diagram', 'Image'],
-  ['16-youtube', '_video', 'Video'],
+  ['01-input-types', '_text'],
+  ['01-input-types', '_textarea'],
+  ['01-input-types', '_numeric'],
+  ['01-input-types', '_email'],
+  ['01-input-types', '_phone'],
+  ['01-input-types', '_link'],
+  ['01-input-types', '_date'],
+  ['02-choices', '_radio'],
+  ['02-choices', '_checkbox'],
+  ['02-choices', '_single_list'],
+  ['02-choices', '_multi_list'],
+  ['04-controlled-terms', '_organism'],
+  ['08-authority', '_contributor_orcid'],
+  ['08-authority', '_institution_ror'],
+  ['08-authority', '_chemical_pfas'],
+  ['08-authority', '_citation_pmid'],
+  ['08-authority', '_resource_rrid'],
+  ['08-authority', '_award_nih'],
+  ['08-authority', '_dataset_doi'],
+  ['10-attribute-values', '_attribute'],
+  ['05-static-paged', '_section'],
+  ['05-static-paged', '_note'],
+  ['05-static-paged', '_pb'],
+  ['05-static-paged', '_diagram'],
+  ['16-youtube', '_video'],
 ];
 
-for (const [fixture, property, typeName] of fieldPreviews) {
+for (const [fixture, property] of fieldPreviews) {
   test(`read-only ${property} owns its complete presentation`, async ({ page }) => {
     await open(page, property, 'readonly', fixture);
     await page.evaluate(
@@ -175,7 +174,9 @@ for (const [fixture, property, typeName] of fieldPreviews) {
     );
     const field = page.locator('cedar-embeddable-field');
     await expect(field.locator('.title-label')).not.toBeEmpty();
-    await expect(field.locator('.cee-field-type')).toHaveText(typeName);
+    // A field's type icon names its type. A page break draws nothing else, so it states its type.
+    if (property === '_pb') await expect(field.locator('.cee-field-type')).toHaveText('Page break');
+    else await expect(field.locator('.cee-field-type')).toHaveCount(0);
     await expect(
       field.locator('input[placeholder]:not([placeholder=""]), textarea[placeholder]:not([placeholder=""])'),
     ).toHaveCount(0);

@@ -349,7 +349,7 @@ test.describe('multiple editor instances', () => {
     // The read-only one has no controls to make read-only: with no instance behind it, each field
     // states its specification in a box instead. Which is the stronger form of the same claim.
     await expect(page.locator('#editor-second input')).toHaveCount(0);
-    await expect(page.locator('#editor-second .cee-field-type').first()).toHaveText('Text');
+    await expect(page.locator('#editor-second .cee-spec-box').first()).toBeVisible();
   });
 
   test('keep terminology and authority endpoints isolated', async ({ page }) => {
@@ -1192,7 +1192,9 @@ test.describe('config presets', () => {
   test('readonly: inputs are not editable', async ({ page }) => {
     await open(page, '01-input-types', 'readonly');
     const paragraph = page.locator('.non-iterable-component').filter({ hasText: 'textarea property description' });
-    await expect(paragraph.locator('.cee-field-type')).toHaveText('Paragraph');
+    // A field's type icon names its type, so reading does not repeat it as text.
+    await expect(paragraph.locator('[data-field-type-icon]')).toHaveCount(1);
+    await expect(page.locator('.cee-field-type')).toHaveCount(0);
     await expect(paragraph.locator('.cee-spec-box')).toBeEmpty();
     await expect(page).toHaveScreenshot('preset-readonly.png', { fullPage: true });
   });
@@ -3250,7 +3252,6 @@ test.describe('a link rendered as a value', () => {
     await open(page, '01-input-types', 'readonly');
 
     const linkRenderer = page.locator('.non-iterable-component').filter({ hasText: 'link property description' });
-    await expect(linkRenderer.locator('.cee-field-type')).toHaveText('Link');
     await expect(linkRenderer.locator('.cee-spec-box')).toBeEmpty();
     await expect(linkRenderer.locator('.cee-term-link')).toHaveCount(0);
     await expect(linkRenderer.locator('input')).toHaveCount(0);

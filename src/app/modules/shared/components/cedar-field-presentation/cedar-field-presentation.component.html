@@ -4,7 +4,8 @@
 <ng-content></ng-content>
 @if (showContent) {
   <div class="child-component-content">
-    @if ((handlerContext.readOnlyMode || inputType === 'page-break') && inputType) {
+    <!-- A field's type icon names its type. A page break draws nothing else, so it states its type. -->
+    @if (inputType === 'page-break') {
       <p class="cee-field-type">{{ 'FieldType.' + inputType | translate }}</p>
     }
     @if (

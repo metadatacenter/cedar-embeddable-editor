@@ -325,13 +325,14 @@ describe('rejected assignments', () => {
 });
 
 describe('the complete read-only field presentation', () => {
-  it('owns its label, type, description and visible field box', async () => {
+  it('owns its label, description and visible field box, leaving the type to its icon', async () => {
     const mounted = await mount(
       textArtifact((b) => b.withSchemaDescription('Explain this field')),
       { readOnlyMode: true },
     );
     expect(mounted.fixture.debugElement.query(By.css('.title-label')).nativeElement.textContent).toContain('Sample');
-    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type')).nativeElement.textContent).toContain('Text');
+    expect(mounted.fixture.debugElement.query(By.css('[data-field-type-icon]'))).not.toBeNull();
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type'))).toBeNull();
     expect(
       mounted.fixture.debugElement.query(By.css('.cee-field-spec-description')).nativeElement.textContent,
     ).toContain('Explain this field');
@@ -346,7 +347,7 @@ describe('the complete read-only field presentation', () => {
       { readOnlyMode: true, previewMode: true },
     );
     expect(mounted.fixture.debugElement.query(By.css('app-cedar-component-header'))).toBeNull();
-    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type')).nativeElement.textContent).toContain('Text');
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type'))).toBeNull();
     expect(
       mounted.fixture.debugElement.query(By.css('.cee-field-spec-description')).nativeElement.textContent,
     ).toContain('Explain this field');
@@ -375,7 +376,6 @@ describe('the complete read-only field presentation', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(fixture.debugElement.query(By.css('.title-label')).nativeElement.textContent).toContain('When');
-    expect(fixture.debugElement.query(By.css('.cee-field-type')).nativeElement.textContent).toContain('Date / time');
     expect(fixture.debugElement.queryAll(By.css('app-cedar-component-header')).length).toBe(1);
   });
 });
