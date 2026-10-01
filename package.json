@@ -2,7 +2,7 @@
   "name": "cedar-embeddable-editor",
   "description": "A reusable Web Component for creating and editing CEDAR metadata instances.",
   "license": "BSD-2-Clause",
-  "version": "2.0.19-dev.20261001.7c566790",
+  "version": "2.0.19-dev.20261001.27d74d3b",
   "engines": {
     "node": "^24.15.0"
   },
