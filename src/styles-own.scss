@@ -120,6 +120,11 @@
   div {
     padding-top: ui-tokens.$space-4;
 
+    /* With no description or notice beneath it, the image keeps the same inset from the bottom edge. */
+    &:last-child {
+      padding-bottom: ui-tokens.$space-4;
+    }
+
     img {
       display: block;
       margin-left: auto;
