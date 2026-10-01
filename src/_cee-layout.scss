@@ -20,6 +20,11 @@
 /// two marks in the same column on every row of a form.
 $cee-header-trailing-slot: 40px;
 
+/// The property-IRI glyph's column, at the end of that slot. It is 2px wider than the 16px glyph it
+/// centres, so the glyph ends 1px inside the row, and the form's actions align their last glyph
+/// with it.
+$cee-property-slot: 18px;
+
 /// The inset between the card's edge and everything it holds: the identity block
 /// and the provenance in the header, and every field below them.
 ///

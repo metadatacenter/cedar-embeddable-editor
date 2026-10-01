@@ -50,7 +50,7 @@
  */
 .property-iri {
   display: inline-flex;
-  flex: 0 0 18px;
+  flex: 0 0 layout.$cee-property-slot;
   width: tokens.$icon-size-small;
   height: tokens.$icon-size-small;
   align-items: center;

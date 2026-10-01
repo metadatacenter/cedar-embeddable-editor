@@ -1555,7 +1555,7 @@ test.describe('the version stamp', () => {
 });
 
 /*
- * Expand All, Collapse All and the download menu, at the header's right edge.
+ * Expand All, Collapse All and the download menu, ending where the fields' marks end.
  *
  * Between 520px and 1100px the header stacks and those buttons take a row of
  * their own, shared with the paginator when the template has page breaks. That
@@ -1570,11 +1570,12 @@ test.describe('the version stamp', () => {
 test.describe('the header actions', () => {
   const rightEdges = (page: Page) =>
     page.locator('.template-header').evaluate((header) => {
-      const buttons = header.querySelector('.expand-buttons')!.getBoundingClientRect();
+      const root = header.getRootNode() as ShadowRoot;
+      const glyphs = [...header.querySelectorAll('.expand-buttons svg')];
       return {
-        // The header's content edge, which its padding holds off the card.
-        header: Math.round(header.getBoundingClientRect().right - parseFloat(getComputedStyle(header).paddingRight)),
-        buttons: Math.round(buttons.right),
+        // The column the fields' marks share ends with a field's property glyph.
+        field: Math.round(root.querySelector('.template-content .property-iri svg')!.getBoundingClientRect().right),
+        buttons: Math.round(glyphs.at(-1)!.getBoundingClientRect().right),
       };
     });
 
@@ -1587,7 +1588,7 @@ test.describe('the header actions', () => {
       await open(page, fixture);
 
       const edges = await rightEdges(page);
-      expect(edges.buttons, 'the buttons end where the header ends').toBe(edges.header);
+      expect(edges.buttons, "the last action ends where a field's property glyph ends").toBe(edges.field);
     });
   }
 });

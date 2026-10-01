@@ -1,3 +1,4 @@
+@use 'sass:math';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '../../../../../styles-common' as common;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
@@ -186,6 +187,11 @@ $logo-track: 72px;
   min-width: 0;
 }
 
+// A toolbar glyph sits inside its button by half their difference in size, and a property glyph
+// inside its slot by half theirs.
+$toolbar-glyph-inset: math.div(layout.$cee-toolbar-control-size - ui-tokens.$icon-size-default, 2);
+$property-glyph-inset: math.div(layout.$cee-property-slot - ui-tokens.$icon-size-small, 2);
+
 /*
  * Expand, collapse and download: three icons, one row.
  *
@@ -205,6 +211,11 @@ $logo-track: 72px;
   align-items: center;
   justify-content: flex-end;
   gap: layout.$cee-toolbar-control-gap;
+  /*
+   * The last glyph ends where a field's property glyph ends, so the group moves out by the
+   * difference between the two glyphs' insets.
+   */
+  margin-inline-end: $property-glyph-inset - $toolbar-glyph-inset;
 }
 
 .template-content {
@@ -273,12 +284,12 @@ $logo-track: 72px;
     font-size: tokens.$font-size-small;
   }
 
-  .template-actions,
-  .expand-buttons {
-    width: 100%;
-  }
-
+  /*
+   * The buttons stretch across the column rather than taking its width, so the end margin that
+   * aligns their last glyph still moves them.
+   */
   .template-actions {
+    width: 100%;
     align-items: stretch;
     flex-direction: column;
   }
