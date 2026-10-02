@@ -1,4 +1,11 @@
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
+// The space beneath the image is declared here because the global `.mat-mdc-card` rule,
+// which comes later at equal specificity, sets every card's bottom margin to zero. The
+// component's scoped selector outranks it, so the next field no longer abuts the image.
+.image-component {
+  margin-bottom: ui-tokens.$space-4;
+}
+
 /**
  * The failure notice, boxed so it reads as a message rather than as part of the
  * field. It used to say it sat on the card's khaki background; that background was

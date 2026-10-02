@@ -1,8 +1,12 @@
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
+// The space beneath the video is declared here because the global `.mat-mdc-card` rule,
+// which comes later at equal specificity, sets every card's bottom margin to zero. The
+// component's scoped selector outranks it, so the next field no longer abuts the video.
 .youtube-component {
   box-sizing: border-box;
   min-width: 0;
   max-width: 100%;
+  margin-bottom: ui-tokens.$space-4;
 }
 
 .youtube-player {
