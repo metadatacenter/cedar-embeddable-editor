@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/spacing';
 @use '@org.metadatacenter/cedar-design-tokens/patterns';
 @use '@org.metadatacenter/cedar-design-tokens/icon-contract';
 @use '@org.metadatacenter/cedar-design-tokens/controls';
@@ -91,7 +92,7 @@
 
 .half-width-with-margin {
   width: 49%;
-  margin-right: 1%;
+  @include spacing.apply(margin-right, split-column-gutter);
 }
 
 /*
@@ -187,7 +188,7 @@
  * nothing, so the rule names the field card.
  */
 .non-iterable-component > app-cedar-multi-pager .pager-container {
-  margin-right: layout.$cee-header-trailing-slot + ui-tokens.$space-2;
+  @include spacing.apply(margin-right, header-action-reserve);
 }
 
 .pager-container-ro {
@@ -269,7 +270,7 @@ app-sample-templates {
   line-height: 1em;
   margin-left: ui-tokens.$space-1;
   float: left;
-  margin-top: calc(#{ui-tokens.$space-1} / 2);
+  @include spacing.apply(margin-top, compact-static);
 }
 
 .notify-info {
@@ -646,10 +647,13 @@ textarea.mat-mdc-input-element {
 :host .mat-mdc-option {
   @include controls.choice-row;
   height: auto;
-  padding-block: calc(#{tokens.$space-1} / 2);
+  @include spacing.apply(padding-block, compact-static);
   padding-inline: tokens.$space-3;
   box-sizing: border-box;
-  line-height: var(--cedar-control-line-height, var(--cedar-control-line-height-default, #{tokens.$control-line-height-default}));
+  line-height: var(
+    --cedar-control-line-height,
+    var(--cedar-control-line-height-default, #{tokens.$control-line-height-default})
+  );
 }
 
 :host .mat-mdc-select-panel {

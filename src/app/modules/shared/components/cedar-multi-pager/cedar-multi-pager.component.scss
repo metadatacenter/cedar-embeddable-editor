@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/spacing';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 @use 'cee-layout' as layout;
@@ -36,7 +37,7 @@
   width: 32px;
   height: 32px;
   box-sizing: border-box;
-  padding: tokens.$space-3 * 0.5;
+  @include spacing.apply(padding, occurrence-action-inset);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -64,10 +65,7 @@
   flex-wrap: wrap;
   justify-content: right;
   align-items: center;
-  margin-right: calc(
-    #{layout.$cee-header-trailing-slot} + #{ui-tokens.$icon-size-small} + #{ui-tokens.$space-1} +
-      var(--_cee-element-heading-inset) - var(--_cee-element-body-inset) + #{ui-tokens.$space-2}
-  );
+  @include spacing.apply(margin-right, editable-occurrence-alignment);
   min-height: 48px;
   margin-top: -48px;
   margin-bottom: 0;
@@ -80,10 +78,7 @@
  * them from the editing actions, is the air between them and the chevron.
  */
 :host-context(.cee-read-only) .aligned-up {
-  margin-right: calc(
-    var(--_cee-element-heading-inset) - var(--_cee-element-body-inset) + 2 * #{ui-tokens.$icon-size-small} +
-      #{ui-tokens.$space-1}
-  );
+  @include spacing.apply(margin-right, read-only-occurrence-alignment);
   min-height: 0;
   margin-top: -40px;
   margin-bottom: ui-tokens.$space-4;
@@ -98,7 +93,6 @@
   :host-context(.cee-read-only) .aligned-up {
     justify-content: flex-start;
     min-height: 0;
-    margin: ui-tokens.$space-2 0 ui-tokens.$space-3
-      calc(var(--_cee-element-heading-inset) - var(--_cee-element-body-inset));
+    @include spacing.apply(margin, narrow-occurrence-alignment);
   }
 }

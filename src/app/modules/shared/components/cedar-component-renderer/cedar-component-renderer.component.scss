@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/spacing';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
@@ -38,7 +39,7 @@ $element-content-inset: tokens.$space-4;
 
 .mat-expansion-panel {
   --_cee-element-body-inset: #{tokens.$space-6};
-  --_cee-element-heading-inset: calc(#{tokens.$space-6} + #{$element-content-inset});
+  @include spacing.apply(--_cee-element-heading-inset, element-heading-inset);
 }
 
 .mat-expansion-panel-header {

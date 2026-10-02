@@ -50,13 +50,6 @@
       "value": "18px",
       "count": 1
     },
-    "2026d3eacbca29fd2305": {
-      "file": "src/_cedar-compact.scss",
-      "rule": "spacing",
-      "property": "padding-block",
-      "value": "calc(var(--_cedar-padding) - 1px)",
-      "count": 2
-    },
     "25f117e26ad1f56b7d4a": {
       "file": "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.scss",
       "rule": "geometry",
@@ -204,25 +197,11 @@
       "value": "6px",
       "count": 1
     },
-    "87d6311348979e234e73": {
-      "file": "src/app/app.component.scss",
-      "rule": "color",
-      "property": "$cedar-teal",
-      "value": "#197b74",
-      "count": 1
-    },
     "9e4f15a2d9fc473441d8": {
       "file": "src/styles-own.scss",
       "rule": "typography",
       "property": "font-size",
       "value": "24px",
-      "count": 1
-    },
-    "ae9cc879937adb2ff694": {
-      "file": "src/_cedar-compact.scss",
-      "rule": "spacing",
-      "property": "padding",
-      "value": "calc((var(--_cedar-height) - 24px) / 2)",
       "count": 1
     },
     "b3ee3bca37a7384efb03": {

@@ -1,8 +1,8 @@
-@use 'sass:math';
+@use '@org.metadatacenter/cedar-design-tokens/spacing';
+@use '@org.metadatacenter/cedar-design-tokens/controls';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '../../../../../styles-common' as common;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
-@use 'cee-layout' as layout;
 
 /* Angular Material fixes a card avatar at 40px, and the track the identity block
  * occupies is wider than that so the version stamp has room to read. */
@@ -39,7 +39,7 @@ $logo-track: 72px;
   align-items: center;
   gap: ui-tokens.$space-2 ui-tokens.$space-4;
   min-width: 0;
-  padding: ui-tokens.$space-2 layout.$cee-gutter-inline;
+  @include spacing.apply(padding, form-header);
   background: tokens.$surface-raised;
   border-bottom: 1px solid tokens.$border-rule;
 }
@@ -189,8 +189,6 @@ $logo-track: 72px;
 
 // A toolbar glyph sits inside its button by half their difference in size, and a property glyph
 // inside its slot by half theirs.
-$toolbar-glyph-inset: math.div(layout.$cee-toolbar-control-size - ui-tokens.$icon-size-default, 2);
-$property-glyph-inset: math.div(layout.$cee-property-slot - ui-tokens.$icon-size-small, 2);
 
 /*
  * Expand, collapse and download: three icons, one row.
@@ -206,23 +204,23 @@ $property-glyph-inset: math.div(layout.$cee-property-slot - ui-tokens.$icon-size
  * than the suffix buttons that adapter was written for.
  */
 .expand-buttons {
-  --_cedar-height: #{layout.$cee-toolbar-control-size};
+  @include controls.form-toolbar-height;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: layout.$cee-toolbar-control-gap;
+  @include spacing.apply(gap, compact-static);
   /*
    * The last glyph ends where a field's property glyph ends, so the group moves out by the
    * difference between the two glyphs' insets.
    */
-  margin-inline-end: $property-glyph-inset - $toolbar-glyph-inset;
+  @include spacing.apply(margin-inline-end, form-action-alignment);
 }
 
 .template-content {
   display: grid;
   gap: 0;
   min-width: 0;
-  padding: 0 layout.$cee-gutter-inline ui-tokens.$space-6;
+  @include spacing.apply(padding, form-content);
 }
 
 @container cee (max-width: 1100px) {

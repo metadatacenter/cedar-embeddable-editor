@@ -13,7 +13,7 @@
  * an embedded web component should cost no extra request. A host app serves its own
  * assets, so it is a file here.
  */
-$cedar-teal: #197b74;
+$cedar-teal: ui-tokens.$color-primary;
 
 /*
  * The host page's own font.

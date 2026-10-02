@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/spacing';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 .choice-option-row {
   display: flex;
@@ -18,7 +19,7 @@
 .choice-clear-button.mat-mdc-icon-button.mat-mdc-button-base {
   width: var(--cedar-row-height-compact, #{tokens.$row-height-compact});
   height: var(--cedar-row-height-compact, #{tokens.$row-height-compact});
-  padding: calc(#{tokens.$space-1} / 2);
+  @include spacing.apply(padding, compact-static);
 }
 
 .choice-clear-button ::ng-deep .mat-mdc-button-touch-target {
