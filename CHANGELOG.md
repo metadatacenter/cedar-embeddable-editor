@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.19] - 2026-10-02
+
+Aligns with `cedar-model-typescript-library@1.0.15`.
+
+- Includes `reveal` for taking the user to a field, data quality problems located by the entries that hold them, and stored problems shown at their fields.
+
 ## [2.0.18] - 2026-09-26
 
 Aligns with `cedar-model-typescript-library@1.0.15`.
