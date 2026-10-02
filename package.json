@@ -65,7 +65,7 @@
     "@angular/cli": "~22.2.0",
     "@angular/compiler-cli": "~22.2.0",
     "@eslint/js": "^10.0.1",
-    "@org.metadatacenter/cedar-design-tokens": "0.1.0-dev.20261001.af8f325e",
+    "@org.metadatacenter/cedar-design-tokens": "0.1.0-dev.20261002.c03c21a7",
     "@types/jsonld": "^1.5.15",
     "@types/lodash-es": "^4.17.11",
     "@types/n3": "^1.26.4",
