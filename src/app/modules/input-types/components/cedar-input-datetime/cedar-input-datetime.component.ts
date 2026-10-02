@@ -10,7 +10,6 @@ import {
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { AbstractControl, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
-import { ValidationCode } from '../../../shared/validation/validation-problem.model';
 import { Translatable } from '../../../shared/models/ui/translatable.model';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -25,6 +24,7 @@ import {
   CedarTemporalParts,
   CedarTemporalValue,
 } from '../../../shared/util/cedar-temporal-value';
+import { holdsConstraintError } from '../../edited-field-error-state-matcher';
 
 /** A part of a temporal value the user supplies, in the order the controls stand. */
 export type TemporalPart = 'date' | 'time' | 'fraction';
@@ -316,16 +316,16 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   /**
    * Whether to state what is wrong with the value.
    *
-   * Two ways to earn it. An edit the user made, which is what `userEdited` is
-   * for — an error on a form nobody has touched says nothing useful. And a
-   * stored value the widget could not read, where the pickers are necessarily
-   * empty and staying quiet would leave a blank field over an instance holding
-   * something, with nothing on screen connecting the two. A value still being
-   * entered is `missingPart`'s to describe, and a requirement waits behind it:
-   * "a time is still needed" says more than "the value is required" about a
-   * field whose date is already in. A stored offset outside XML Schema's range
-   * earns it too: the control shows that offset, and the value holding it is
-   * invalid whether or not anyone has edited it.
+   * A value that is there and wrong earns it whoever put it there: a stored
+   * value the widget could not read, where the pickers are necessarily empty and
+   * staying quiet would leave a blank field over an instance holding something,
+   * and a stored value that breaks one of the field's constraints, such as an
+   * offset outside XML Schema's range. A requirement nobody has answered waits
+   * for the user to reach the field, by editing it or by being taken to it,
+   * because on a form nobody has started every one of them would speak at once.
+   * A value still being entered is `missingPart`'s to describe, and a
+   * requirement waits behind it: "a time is still needed" says more than "the
+   * value is required" about a field whose date is already in.
    */
   get showsValidationMessage(): boolean {
     if (this.quietEmptyPreview(this.valueControl.value) && !this.hasTemporalValue() && this.unreadableValue === null)
@@ -334,8 +334,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
       !this.readOnlyMode &&
       this.missingPart === null &&
       (this.unreadableValue !== null ||
-        this.valueControl.hasError(ValidationCode.timezoneOffset) ||
-        (this.valueControl.invalid && this.userEdited))
+        (this.valueControl.invalid && (this.userEdited || this.revealed || holdsConstraintError(this.valueControl))))
     );
   }
 

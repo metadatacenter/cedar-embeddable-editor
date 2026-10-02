@@ -22,6 +22,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { CedarEmbeddableMetadataEditorComponent } from './components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component';
 import { CedarComponentRendererComponent } from './components/cedar-component-renderer/cedar-component-renderer.component';
 import { CedarFieldPresentationComponent } from './components/cedar-field-presentation/cedar-field-presentation.component';
+import { CedarFieldProblemsComponent } from './components/cedar-field-problems/cedar-field-problems.component';
 import { CedarFieldWidgetComponent } from './components/cedar-field-widget/cedar-field-widget.component';
 import { CedarEmbeddableFieldWrapperComponent } from './components/cedar-embeddable-field-wrapper/cedar-embeddable-field-wrapper.component';
 import { CedarFieldSpecComponent } from './components/cedar-field-spec/cedar-field-spec.component';
@@ -68,6 +69,7 @@ import { CedarFontRegistrarComponent } from './components/cedar-font-registrar/c
     CedarComponentRendererComponent,
     CedarFieldWidgetComponent,
     CedarFieldPresentationComponent,
+    CedarFieldProblemsComponent,
     CedarEmbeddableFieldWrapperComponent,
     CedarFieldSpecComponent,
     CedarSpecBoxComponent,

@@ -17,10 +17,11 @@ import { AuthorityTerm } from '../../../shared/models/authority/authority-search
 import { InputType } from '../../../shared/models/input-type.model';
 import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
+import { holdsConstraintError } from '../../edited-field-error-state-matcher';
 
 export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
-    return !!(control && control.invalid && (control.dirty || control.touched));
+    return !!(control && control.invalid && (control.dirty || control.touched || holdsConstraintError(control)));
   }
 }
 

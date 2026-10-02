@@ -37,9 +37,10 @@ import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { bioPortalSourceLink, bioPortalTermLink } from '../../../shared/util/bioportal-term-link';
 import { SpecTermSource, specTermSourcesOf } from '../../../shared/util/field-spec';
+import { holdsConstraintError } from '../../edited-field-error-state-matcher';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
-    return !!(control && control.invalid && (control.dirty || control.touched));
+    return !!(control && control.invalid && (control.dirty || control.touched || holdsConstraintError(control)));
   }
 }
 @Component({

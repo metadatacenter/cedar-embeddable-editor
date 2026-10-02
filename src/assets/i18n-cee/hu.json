@@ -202,6 +202,13 @@
       "NameInvalid": "Az attribútum neve nem lehet üres, és nem tartalmazhat vezérlőkaraktert.",
       "NameReserved": "Az attribútum neve („{{name}}”) a példány metaadatai számára van fenntartva.",
       "NameInUse": "Az attribútum neve („{{name}}”) már szerepel ebben a példányban. Adjon meg egyedi nevet."
+    },
+    "Report": {
+      "ChoiceMembership": "„{{value}}” nem szerepel a mező választási lehetőségei között.",
+      "ControlledStructure": "A tárolt kifejezésből hiányzik a címke vagy az IRI.",
+      "IriMalformed": "A tárolt azonosító nem érvényes IRI.",
+      "MinItems": "Legalább {{min}} bejegyzés szükséges.",
+      "MaxItems": "Legfeljebb {{max}} bejegyzés megengedett."
     }
   },
   "Spec": {

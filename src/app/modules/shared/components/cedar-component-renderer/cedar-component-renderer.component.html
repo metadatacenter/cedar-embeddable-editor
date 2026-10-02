@@ -25,6 +25,10 @@
                 [pageBreakPaginatorService]="pageBreakPaginatorService"
               ></app-cedar-multi-pager>
             }
+            <app-cedar-field-problems
+              [componentToShow]="iterableComponent"
+              [handlerContext]="handlerContext"
+            ></app-cedar-field-problems>
             @if (shouldRenderContentOfIterable(iterableComponent)) {
               <mat-card-content class="cee-element-content">
                 @for (childComponent of iterableComponent.children; track childComponent) {

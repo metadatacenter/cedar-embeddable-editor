@@ -1184,3 +1184,107 @@ const writeRaw = (name, document) => {
     }),
   );
 }
+
+// 26. An instance stored with something wrong in every kind of field.
+//
+//     What a form shows when it opens an instance whose stored values break the template, which is
+//     what production holds and no other fixture loads: each of these instances was written by a
+//     host, never typed into this form. Every field on the first page holds a bad value of its own
+//     kind, and one holds nothing although it is required. The second page holds the problems a host
+//     cannot reach without turning the page and moving a pager: a bad value in the second entry of
+//     a repeating element, another two entries deep in a nested one, and a repeating field short of
+//     its minimum.
+{
+  const opts = (m, labels) => (b) => labels.reduce((acc, label) => acc[m](label, false), b);
+  const email = field('email', () => CedarBuilders.emailFieldBuilder());
+  const website = field('website', () => CedarBuilders.linkFieldBuilder());
+  const phone = field('phone', () => CedarBuilders.phoneNumberFieldBuilder());
+  const code = field('code', () => CedarBuilders.textFieldBuilder(), (b) => b.withMinLength(8));
+  const count = field('count', () => CedarBuilders.numericFieldBuilder(), (b) => b.withNumberType(NumberType.INT));
+  const region = field('region', () => CedarBuilders.singleChoiceListFieldBuilder(), opts('addListOption', ['North', 'South']));
+  const answer = field('answer', () => CedarBuilders.radioFieldBuilder(), opts('addRadioOption', ['Yes', 'No']));
+  const consent = field('consent', () => CedarBuilders.checkboxFieldBuilder(), opts('addCheckboxOption', ['Agree', 'Decline']));
+  const contributor = field('contributor', () => CedarBuilders.extOrcidFieldBuilder());
+  const organism = field(
+    'organism',
+    () => CedarBuilders.controlledTermFieldBuilder(),
+    (b) =>
+      b.addOntology(
+        new ControlledTermOntologyBuilder()
+          .withAcronym('NCBITAXON')
+          .withName('NCBI Taxonomy')
+          .withNumTerms(1000000)
+          .withUri(new Iri('https://data.bioontology.org/ontologies/NCBITAXON'))
+          .build(),
+      ),
+  );
+  const title = field('title', () => CedarBuilders.textFieldBuilder());
+  const pb = field('pb', () => CedarBuilders.pageBreakFieldBuilder());
+  const aliases = field('aliases', () => CedarBuilders.textFieldBuilder());
+
+  let person = common(CedarBuilders.templateElementBuilder(), 'person', 'template-elements');
+  person = person.addChild(email, deploy(email, 'email'));
+  const personElement = person.build();
+
+  let member = common(CedarBuilders.templateElementBuilder(), 'member', 'template-elements');
+  member = member.addChild(email, deploy(email, 'email'));
+  const memberElement = member.build();
+  let team = common(CedarBuilders.templateElementBuilder(), 'team', 'template-elements');
+  team = team.addChild(memberElement, deploy(memberElement, 'member', { multi: true, minItems: 0, maxItems: null }));
+  const teamElement = team.build();
+
+  let tb = common(CedarBuilders.templateBuilder(), 'StoredProblems', 'templates').withSchemaDescription(
+    'An instance stored with a problem in every kind of field',
+  );
+  for (const [f, name] of [
+    [email, 'email'],
+    [website, 'website'],
+    [phone, 'phone'],
+    [code, 'code'],
+    [count, 'count'],
+    [region, 'region'],
+    [answer, 'answer'],
+    [consent, 'consent'],
+    [contributor, 'contributor'],
+    [organism, 'organism'],
+  ]) {
+    tb = tb.addChild(f, deploy(f, name));
+  }
+  tb = tb.addChild(title, deploy(title, 'title', { required: true }));
+  tb = tb.addChild(pb, deploy(pb, 'pb'));
+  tb = tb.addChild(personElement, deploy(personElement, 'person', { multi: true, minItems: 0, maxItems: null }));
+  tb = tb.addChild(teamElement, deploy(teamElement, 'team', { multi: true, minItems: 0, maxItems: null }));
+  tb = tb.addChild(aliases, deploy(aliases, 'aliases', { multi: true, minItems: 3, maxItems: null }));
+  write('26-stored-problems', tb.build());
+
+  const good = 'someone@example.org';
+  writeRaw(
+    '26-stored-problems-instance',
+    instance('StoredProblems', {
+      id: 'https://example.org/instances/stored-problems-1',
+      name: 'Stored problems instance',
+      description: 'Written by a host, with a problem in every field',
+      values: {
+        _email: literal('not-an-email'),
+        _website: link('https://a'),
+        _phone: literal('call me'),
+        _code: literal('abc'),
+        _count: typed('4.5', 'xsd:int'),
+        _region: literal('Elsewhere'),
+        _answer: literal('Maybe'),
+        _consent: [literal('Agree'), literal('Unsure')],
+        _contributor: controlled('orcid:0000-0002-1825-0097', 'Josiah Carberry'),
+        _organism: link('http://purl.obolibrary.org/obo/NCBITaxon_9606'),
+        _title: literal(null),
+        _person: [occurrence({ _email: literal(good) }), occurrence({ _email: literal('second-is-bad') })],
+        _team: [
+          occurrence({ _member: [occurrence({ _email: literal(good) })] }),
+          occurrence({
+            _member: [occurrence({ _email: literal(good) }), occurrence({ _email: literal('nested-is-bad') })],
+          }),
+        ],
+        _aliases: [literal('only one')],
+      },
+    }),
+  );
+}

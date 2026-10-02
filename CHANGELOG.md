@@ -55,6 +55,14 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
 
 ### Changed
 
+- A field shows what is wrong with a value loaded from a stored instance as soon as the form opens.
+  The error states waited for the control to be edited or touched, so a field the data quality
+  report listed as invalid showed nothing. An empty required field still waits, until the user
+  edits it or is taken to it with `reveal`.
+- The data quality report states at the field the problems no control can find: a stored choice
+  that is not one of the options, a term missing its label or its IRI, an authority identifier
+  that is not a valid IRI, and a list longer than its `maxItems`. A list shorter than its
+  `minItems` is stated once the user is taken to it.
 - The data quality report no longer reports `missingProperty`. It described a repeating field or
   element absent from the instance CEE read, which CEE writes out as an empty list, so it warned
   about a defect that saving removed and that no field could show.

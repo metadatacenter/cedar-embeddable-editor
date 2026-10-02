@@ -35,5 +35,11 @@
         [handlerContext]="handlerContext"
       ></app-cedar-field-widget>
     }
+    @if (decision.kind === 'field') {
+      <app-cedar-field-problems
+        [componentToShow]="component"
+        [handlerContext]="handlerContext"
+      ></app-cedar-field-problems>
+    }
   </div>
 }
