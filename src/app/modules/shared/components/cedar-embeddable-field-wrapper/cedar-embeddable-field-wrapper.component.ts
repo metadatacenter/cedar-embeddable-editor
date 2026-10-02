@@ -35,7 +35,7 @@ import { MessageHandlerService } from '../../service/message-handler.service';
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
 import { TemplateTrustService } from '../../service/template-trust.service';
 import { UserPreferencesService } from '../../service/user-preferences.service';
-import { CeeConfig } from '../../util/config-reader';
+import { CEE_CONFIG_KEY, CeeConfig, configFlag } from '../../util/config-reader';
 import { DataContext } from '../../util/data-context';
 import { FallbackTranslateLoaderFactory } from '../../util/fallback-translate-loader-factory';
 import { HandlerContext } from '../../util/handler-context';
@@ -121,6 +121,9 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
   dataContext: DataContext = new DataContext();
   handlerContext: HandlerContext;
   renderedComponent: CedarComponent | null = null;
+  showHeader = true;
+  /** Whether the field states its type, which only a host that hides the header and lacks the type asks for. */
+  showFieldType = false;
 
   private initialized = false;
   private readonly configuration: WrapperConfigCoordinator;
@@ -267,18 +270,6 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
       return { dataContext, handlerContext, component, valueComponent: decision.component };
     }
     if (decision.kind === 'static') {
-      /*
-       * Except a page break, which is not a thing to draw. It divides a form into
-       * pages, and a form is the one thing this element does not have — so rendering
-       * it would put an empty element on the host's page with nothing to say why.
-       */
-      if (decision.renderer === 'page-break') {
-        this.messageHandlerService.error(
-          'cedar-embeddable-field: "fieldObject" rejected because a page break divides a form into pages and has nothing to ' +
-            'render on its own.',
-        );
-        return null;
-      }
       return { dataContext, handlerContext, component, valueComponent: null };
     }
     this.messageHandlerService.error(
@@ -287,6 +278,13 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
       }`,
     );
     return null;
+  }
+
+  /** A standalone page break has a description but no value control in either mode. */
+  get isPageBreak(): boolean {
+    if (this.renderedComponent === null) return false;
+    const decision = decideComponentRender(this.renderedComponent);
+    return decision.kind === 'static' && decision.renderer === 'page-break';
   }
 
   private install(runtime: FieldRuntime): void {
@@ -339,6 +337,8 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     }
     const config = this.configuration.config ?? {};
     this.configuration.apply(this.handlerContext);
+    this.showHeader = !(this.handlerContext.readOnlyMode && configFlag(config, CEE_CONFIG_KEY.previewMode, false));
+    this.showFieldType = !this.showHeader && configFlag(config, CEE_CONFIG_KEY.showFieldType, false);
     this.widgetConfig.apply(config, this.handlerContext.readOnlyMode);
   }
 

@@ -3,8 +3,12 @@
     <div class="mat-form-field-wrapper mat-form-field-flex mat-form-field-outline fake-input">
       @if (inputValueControl.getRawValue()) {
         <a href="{{ originalValue }}" target="_blank">
-          <mat-icon class="identifier-icon" [cedarIcon]="isOrcid ? 'authority-person' : 'authority-organization'" aria-hidden="true"></mat-icon>
-          <span class="text-class">{{ inputValueControl.getRawValue() }}</span>
+          <mat-icon
+            class="identifier-icon"
+            [cedarIcon]="isOrcid ? 'authority-person' : 'authority-organization'"
+            aria-hidden="true"
+          ></mat-icon>
+          <span>{{ inputValueControl.getRawValue() }}</span>
         </a>
       }
     </div>
@@ -16,8 +20,8 @@
         <input
           spellcheck="false"
           matInput
+          [errorStateMatcher]="previewErrorStateMatcher"
           type="text"
-          [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
           [formControl]="inputValueControl"
           (input)="inputChanged($event)"
           [readonly]="readOnlyMode"
@@ -28,8 +32,8 @@
         <textarea
           spellcheck="false"
           matInput
+          [errorStateMatcher]="previewErrorStateMatcher"
           type="text"
-          [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
           cdkTextareaAutosize
           [formControl]="inputValueControl"
           (input)="inputChanged($event)"
@@ -55,7 +59,10 @@
       @if (inputValueControl.getError('maxlength') && !readOnlyMode) {
         <mat-error>{{ 'Validation.Text.MaxLength' | translate: { constraintMaxLength } }}</mat-error>
       }
-      @if (inputValueControl.hasError('required') && !readOnlyMode) {
+      @if (inputValueControl.hasError('pattern') && !readOnlyMode) {
+        <mat-error>{{ 'Validation.Text.Pattern' | translate }}</mat-error>
+      }
+      @if (inputValueControl.hasError('required') && !readOnlyMode && !quietEmptyPreview(inputValueControl.value)) {
         <mat-error>{{ 'Validation.Required' | translate }}</mat-error>
       }
       @if (constraintMaxLength !== null && !readOnlyMode) {

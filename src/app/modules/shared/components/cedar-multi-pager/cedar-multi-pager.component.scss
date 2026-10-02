@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/spacing';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 @use 'cee-layout' as layout;
@@ -36,7 +37,7 @@
   width: 32px;
   height: 32px;
   box-sizing: border-box;
-  padding: tokens.$space-3 * 0.5;
+  @include spacing.apply(padding, occurrence-action-inset);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -54,8 +55,9 @@
  * It takes that header's own height and covers it exactly, so the row is centred on the
  * heading without an offset that has to know how tall a chip renders, and the first
  * field stays where an element with no pager puts it. It stops where the header's
- * content does: the trailing icon slot, the 24px the expansion chevron takes beside the
- * panel title, and 8px of air between the two. A field with more than a page of
+ * content does: the trailing icon slot with its disclosure chevron, the content inset the
+ * heading keeps beyond the panel body's, and 8px of air. At embedding widths its own row
+ * starts at that inset, under the element's name. A field with more than a page of
  * occurrences grows the row past the minimum and moves the content down with it.
  */
 .aligned-up {
@@ -63,21 +65,23 @@
   flex-wrap: wrap;
   justify-content: right;
   align-items: center;
-  margin-right: layout.$cee-header-trailing-slot + 32px;
+  @include spacing.apply(margin-right, editable-occurrence-alignment);
   min-height: 48px;
   margin-top: -48px;
   margin-bottom: 0;
 }
 
 /*
- * Reading keeps the placement it already had: a chip-height row centred on the heading by
- * offset, with the panel's own right margin, since no trailing slot is reserved there.
+ * Reading keeps a chip-height row centred on the heading by offset. No trailing slot is reserved
+ * there, but the chevron and the property glyph still end the heading, so the row stops at the
+ * chevron's column instead of running under it. The chips' own trailing margin, which separates
+ * them from the editing actions, is the air between them and the chevron.
  */
 :host-context(.cee-read-only) .aligned-up {
-  margin-right: 10px;
+  @include spacing.apply(margin-right, read-only-occurrence-alignment);
   min-height: 0;
   margin-top: -40px;
-  margin-bottom: 15px;
+  margin-bottom: ui-tokens.$space-4;
 }
 
 /*
@@ -89,6 +93,6 @@
   :host-context(.cee-read-only) .aligned-up {
     justify-content: flex-start;
     min-height: 0;
-    margin: ui-tokens.$space-2 0 ui-tokens.$space-3;
+    @include spacing.apply(margin, narrow-occurrence-alignment);
   }
 }

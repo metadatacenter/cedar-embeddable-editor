@@ -1,0 +1,45 @@
+@if (showHeader) {
+  <app-cedar-component-header [componentToRender]="component"></app-cedar-component-header>
+}
+<ng-content></ng-content>
+@if (showContent) {
+  <div class="child-component-content">
+    <!--
+      A field's type icon, beside its label, names its type. A page break draws nothing else, so it states its
+      type. A host whose own heading replaces the header without naming the type asks for it here, with the
+      icon the header would have drawn.
+    -->
+    @if (inputType && (showFieldType || inputType === 'page-break')) {
+      <p class="cee-field-type">
+        @if (showFieldType) {
+          <mat-icon
+            class="field-type-icon"
+            [class.ontology-icon]="inputType === 'controlled'"
+            [cedarIcon]="typeIcon(inputType)"
+            aria-hidden="true"
+            data-field-type-icon
+          ></mat-icon>
+        }
+        {{ 'FieldType.' + inputType | translate }}
+      </p>
+    }
+    @if (
+      decision.kind === 'field' ||
+      (decision.kind === 'static' && decision.renderer !== 'image' && decision.renderer !== 'youtube')
+    ) {
+      <app-cedar-field-spec [fieldToDescribe]="decision.component" variant="description"></app-cedar-field-spec>
+    }
+    @if (inputType !== 'section-break' && inputType !== 'page-break') {
+      <app-cedar-field-widget
+        [componentToRender]="component"
+        [handlerContext]="handlerContext"
+      ></app-cedar-field-widget>
+    }
+    @if (decision.kind === 'field') {
+      <app-cedar-field-problems
+        [componentToShow]="component"
+        [handlerContext]="handlerContext"
+      ></app-cedar-field-problems>
+    }
+  </div>
+}

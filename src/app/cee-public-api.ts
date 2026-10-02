@@ -48,6 +48,19 @@ export type CeeConfigKey = keyof CeeConfig;
 export interface CeeConfig {
   showTemplateDescription?: boolean;
 
+  /** Embedding with a host-provided heading, in either read-only or editable mode. Hides CEE's identity header or CEF's field header; keeps descriptions and controls. */
+  previewMode?: boolean;
+
+  /**
+   * For a read-only CEF preview whose host heading does not name the field's type. The hidden header
+   * carried the icon that names it, so CEF states the type above the description instead, with that
+   * icon. A host whose own heading already shows the type leaves this unset.
+   */
+  showFieldType?: boolean;
+
+  /** Keep empty trial fields quiet without changing validity or nonempty-value errors. */
+  suppressEmptyFieldErrors?: boolean;
+
   /**
    * Renders the form without editing controls.
    *
@@ -164,6 +177,16 @@ export interface CeeValidationProblem {
   code: string;
   /** Path to the offending value, outermost first. */
   path: string[];
+  /**
+   * The entry taken at each repeating field or element along `path`, outermost first.
+   *
+   * A path names one place per entry of everything above it that repeats, and this
+   * says which entry holds the problem. A problem about a whole list, such as
+   * `minItems`, names the entries above the list and none of its own; a `required`
+   * problem names none, because any entry would satisfy it. Pass the problem to
+   * `reveal` to take the user to it.
+   */
+  occurrences: number[];
   /** The field's property name, which is the last path segment. */
   field: string;
   /** The field's declared `_ui.inputType`, or null where it declares none. */
@@ -172,6 +195,33 @@ export interface CeeValidationProblem {
   message: string;
   /** The value that failed, when there is one. */
   value?: unknown;
+}
+
+/**
+ * A place on the form: a field or element, in particular entries of what repeats.
+ *
+ * A `CeeValidationProblem` is one, so a host can pass a problem straight to `reveal`.
+ */
+export interface CeeLocation {
+  /** Component path from the template root, as a problem's `path` gives it. */
+  path: string[];
+  /**
+   * The entry to show at each repeating field or element along `path`, outermost first.
+   *
+   * Optional, and may be shorter than the repeating components along the path: those
+   * it does not reach stay on the entry they show.
+   */
+  occurrences?: number[];
+}
+
+/** What a host may ask of `reveal` beyond showing the field. */
+export interface CeeRevealOptions {
+  /**
+   * Whether to move keyboard focus to the field's control. Defaults to true. A host
+   * keeping focus in its own controls, such as a designer showing the field it has
+   * selected, passes false.
+   */
+  focus?: boolean;
 }
 
 /**
@@ -370,6 +420,21 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
 
   /** What CEE thinks of the instance. Read-only. */
   readonly dataQualityReport: CeeDataQualityReport;
+
+  /**
+   * Take the user to a field or element, and resolve whether it could be shown.
+   *
+   * Turns to the field's page, moves each repeating field or element above it to the
+   * named entry, opens the panels around it, scrolls it into view and focuses its
+   * control. A field the user is taken to also states an unanswered requirement, which
+   * a field nobody has reached keeps quiet.
+   *
+   * Resolves false, having changed nothing, for a path the template does not declare,
+   * a hidden field, or an entry that does not exist. A repeating element with no
+   * entries stops the reveal at the element, since nothing inside it is on the form.
+   * Available once the element is in the document and has a template.
+   */
+  readonly reveal: (location: CeeLocation, options?: CeeRevealOptions) => Promise<boolean>;
 }
 
 /**
@@ -414,12 +479,15 @@ export interface CedarEmbeddableFieldChangeDetail {
  *
  * The subset of `CeeConfig` that describes a field rather than the form around one.
  * The keys left out — the download menu, the expand controls, the template
- * description — settle what an editor draws around its fields, and this element draws
- * nothing around its own.
+ * description — settle what an editor draws around a whole form. Field labels and
+ * descriptions belong to this element in read-only mode.
  */
 export type CedarEmbeddableFieldConfig = Pick<
   CeeConfig,
   | 'readOnlyMode'
+  | 'previewMode'
+  | 'showFieldType'
+  | 'suppressEmptyFieldErrors'
   | 'trustTemplateRichText'
   | 'terminologyBaseUrl'
   | 'bridgeBaseUrl'
@@ -431,16 +499,13 @@ export type CedarEmbeddableFieldConfig = Pick<
 /**
  * One field's control, as a host sees it.
  *
- * Registered as `cedar-embeddable-field`. It renders exactly the widget the editor
- * renders for that field — the same component, not a second implementation — and
- * reports what the widget holds. Around it there is nothing: no label, no description,
- * no card. A host that has a field artifact and wants a value for it draws its own
- * surroundings and puts this where the control goes.
+ * Registered as `cedar-embeddable-field`. Editable, it renders the same bare value
+ * control as CEE, for a host that supplies its own surrounding form.
  *
- * Read-only is the presentation half of the same element. Editable, the field is a
- * control to fill in; read-only with nothing in it, the widget is replaced by a
- * statement of what the field will accept, which is what the editor shows when it
- * renders a template nobody has filled in yet.
+ * Read-only, it owns the complete field presentation shared with CEE: label, type,
+ * description and applicable constraints, choices, sources and defaults. A supplied
+ * value remains visible and cannot be edited. Static content is also described;
+ * a standalone page break has a label and type but does not create pagination.
  *
  * A field artifact carries no requiredness and no cardinality — both belong to a
  * field's deployment in a template, and this element deploys nothing — so the value

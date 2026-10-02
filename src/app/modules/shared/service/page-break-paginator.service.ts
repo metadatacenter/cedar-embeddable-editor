@@ -38,6 +38,21 @@ export class PageBreakPaginatorService {
     return this.pageBreakChildren[this.currentPageBreakIndex] ?? [];
   }
 
+  /**
+   * Turn to a page without pushing the instance to its widgets.
+   *
+   * For a caller that pushes the instance itself once it has finished changing
+   * what is on screen, as a reveal does after moving the cursors too. A sync
+   * scheduled here would be superseded by that one in any case.
+   */
+  showPage(pageNum: number): boolean {
+    if (pageNum < 0 || pageNum >= this.pageBreakChildren.length) {
+      return false;
+    }
+    this.currentPageBreakIndex = pageNum;
+    return true;
+  }
+
   setPageNumberAndGet(pageNum: number): CedarComponent[] | null {
     if (pageNum >= 0 && pageNum < this.pageBreakChildren.length) {
       this.currentPageBreakIndex = pageNum;

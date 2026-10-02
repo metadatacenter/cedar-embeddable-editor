@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, ViewChild, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import {
+  AbstractControl,
   FormBuilder,
   FormControl,
   FormGroup,
@@ -16,10 +17,11 @@ import { ActiveComponentRegistryService } from '../../../shared/service/active-c
 import { HandlerContext } from '../../../shared/util/handler-context';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
+import { holdsConstraintError } from '../../edited-field-error-state-matcher';
 
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
-    return !!(control && control.invalid && (control.dirty || control.touched));
+    return !!(control && control.invalid && (control.dirty || control.touched || holdsConstraintError(control)));
   }
 }
 @Component({
@@ -52,7 +54,7 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
    * which, and the same flag decides how `changeValue` hands it on.
    */
   inputValueControl = new FormControl<string | string[] | null>(null, null);
-  errorStateMatcher = new TextFieldErrorStateMatcher();
+  errorStateMatcher = this.previewMatcher(new TextFieldErrorStateMatcher());
   selections: string[] = [];
   /**
    * How many options may be chosen at once, or null for no declared limit.
@@ -119,6 +121,10 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
       this.inputValueControl.setValue(value);
       this.changeValue(value);
     }
+  }
+
+  protected override revealedControls(): AbstractControl[] {
+    return [this.options];
   }
 
   setCurrentValue(currentValue: unknown): void {

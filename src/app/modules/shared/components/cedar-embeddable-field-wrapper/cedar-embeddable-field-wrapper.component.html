@@ -1,7 +1,24 @@
 <app-cedar-font-registrar></app-cedar-font-registrar>
-<div class="cedar-embeddable-field-root" (change)="suppressNativeChange($event)">
+<div
+  class="cedar-embeddable-field-root"
+  [class.cee-read-only]="handlerContext.readOnlyMode"
+  (change)="suppressNativeChange($event)"
+>
   <!-- A new artifact needs fresh controls, including their initialization-time validators. -->
   @for (component of renderedComponent ? [renderedComponent] : []; track component) {
-    <app-cedar-field-widget [componentToRender]="component" [handlerContext]="handlerContext"></app-cedar-field-widget>
+    @if (handlerContext.readOnlyMode || isPageBreak) {
+      <div
+        cedarFieldPresentation
+        [componentToRender]="component"
+        [handlerContext]="handlerContext"
+        [showHeader]="showHeader"
+        [showFieldType]="showFieldType"
+      ></div>
+    } @else {
+      <app-cedar-field-widget
+        [componentToRender]="component"
+        [handlerContext]="handlerContext"
+      ></app-cedar-field-widget>
+    }
   }
 </div>

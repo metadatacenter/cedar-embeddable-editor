@@ -3,10 +3,10 @@
     <input
       spellcheck="false"
       matInput
+      [errorStateMatcher]="previewErrorStateMatcher"
       type="text"
       readonly
       [value]="readOnlyValue()"
-      [placeholder]="component | ceeSpecPlaceholder"
       attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
     />
   </mat-form-field>
@@ -55,6 +55,7 @@
           <input
             spellcheck="false"
             matInput
+            [errorStateMatcher]="previewErrorStateMatcher"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"

@@ -1,4 +1,5 @@
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
+@use '@org.metadatacenter/cedar-design-tokens/patterns';
 @use 'cee-layout' as layout;
 
 :host {
@@ -10,7 +11,7 @@
 .flex-container {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: tokens.$space-1;
   flex-wrap: nowrap;
 }
 
@@ -29,8 +30,13 @@
   flex: 0 0 layout.$cee-header-trailing-slot;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
+  gap: tokens.$space-1;
   margin-left: auto;
+}
+
+/* An element's slot also holds its disclosure chevron, before the help mark. */
+.header-trailing.has-disclosure {
+  flex-basis: calc(#{layout.$cee-header-trailing-slot} + #{tokens.$icon-size-small} + #{tokens.$space-1});
 }
 
 :host-context(.cee-read-only) .header-trailing {
@@ -39,19 +45,16 @@
 
 /*
  * The child's property IRI is quiet deployment metadata rather than an action.
- * Keep the ontology glyph at the far edge of the heading, use neutral grey so
- * it cannot be confused with the teal controlled-term field badge, and expose
- * the full value through the tooltip without turning it into a link.
+ * Keep the ontology glyph at the far edge of the heading and expose the full
+ * value through the tooltip without turning it into a link.
  */
 .property-iri {
   display: inline-flex;
-  flex: 0 0 18px;
+  flex: 0 0 layout.$cee-property-slot;
   width: tokens.$icon-size-small;
   height: tokens.$icon-size-small;
   align-items: center;
   justify-content: center;
-  color: #6b6b6b;
-  border-radius: 2px;
   cursor: help;
 }
 
@@ -65,26 +68,19 @@
 /*
  * The asterisk beside a required field's label.
  *
- * Was an inline style setting `font-size: medium`, which is an absolute keyword
- * — 16px whatever it sits in — so the mark was larger than the 14px label
- * carrying it. `1em` keeps it the size of that label, and `sup` already raises
- * it.
- *
- * The colour was `red`, which reads as an error rather than as a requirement: a
- * form of required fields opened covered in red marks before anyone had done
- * anything wrong, and CEE says a value is missing in its own error line and in
- * the quality report. Inherited instead of black outright, so the mark is the
- * colour of the label it belongs to and follows a host that themes that label.
+ * `1em` keeps it the size of the label carrying it. The colour is inherited rather than red, which
+ * reads as an error before anyone has done anything wrong; CEE says a value is missing in its own
+ * error line and in the quality report. The shared recipe raises the mark without enlarging the
+ * label's line box, which a plain `sup` did by four pixels: the label then sat below the field-type
+ * icon beside it, on required fields only.
  */
 .required-mark {
-  font-size: 1em;
-  color: inherit;
+  @include patterns.required-mark;
 }
 
 /*
- * Every field gets the same alignment slot. Generic type icons are deliberately
- * quiet; external-authority marks retain their identity, and controlled terms
- * receive the one emphasized semantic badge in the set.
+ * Every field gets the same alignment slot. Type icons take the icon role like every other glyph;
+ * external-authority marks retain their identity.
  */
 .field-icon-slot {
   display: inline-flex;
@@ -92,8 +88,7 @@
   width: 24px;
   height: 18px;
   align-items: center;
-  justify-content: center;
-  color: #627472;
+  justify-content: flex-start;
 }
 
 .field-type-icon {
@@ -103,11 +98,30 @@
   line-height: tokens.$icon-size-small;
 }
 
+/*
+ * An element's disclosure chevron leads its trailing marks, so the element's name starts on the
+ * edge its fields' type icons start on. It points up while the element is open, as Material's did.
+ */
+.disclosure-slot {
+  display: inline-flex;
+  align-items: center;
+  color: tokens.$color-primary;
+}
+
+.disclosure-icon {
+  width: tokens.$icon-size-small;
+  height: tokens.$icon-size-small;
+  overflow: hidden;
+  line-height: tokens.$icon-size-small;
+  transition: transform tokens.$motion-duration-normal tokens.$motion-ease-standard;
+  &.expanded {
+    transform: rotate(180deg);
+  }
+}
+
 .ontology-icon-slot {
   height: 24px;
-  color: #0b7480;
-  background: tokens.$surface-tinted;
-  border-radius: 50%;
+  color: tokens.$color-primary;
 }
 
 /* Keep the Material help icon aligned with text */
@@ -127,22 +141,24 @@
 }
 
 /*
- * Keep the occurrence range visible when a long name has to truncate. Field names are slightly
- * stronger than their surrounding specification, without taking on the full-bold weight of an
- * element heading. The range remains secondary in a medium grey at either rendering mode.
+ * Keep the occurrence range visible when a long name has to truncate. Field names are medium weight;
+ * the range is secondary text in either rendering mode.
  */
 .title {
   flex: 1 1 auto;
   display: inline-flex;
   align-items: baseline;
-  gap: 0.35em;
+  gap: tokens.$space-1;
   min-width: 0;
   white-space: nowrap;
 }
 
+// Clip only along the line: a long name still ends in an ellipsis, and the raised required mark,
+// which leaves the line box, is not cut off.
 .title-label {
   min-width: 0;
-  overflow: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
   text-overflow: ellipsis;
 }
 
@@ -152,7 +168,7 @@
 
 .multi-instance-range {
   flex: 0 0 auto;
-  color: #6b6b6b;
+  color: tokens.$text-muted;
   font-weight: var(--cedar-font-weight-regular, 400);
 }
 

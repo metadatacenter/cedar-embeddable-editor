@@ -7,6 +7,7 @@
  * Constraint counts quoted here come from the 51 HuBMAP assay templates, 1,416 fields.
  */
 import { describe, expect, it } from 'vitest';
+import { bioPortalSourceLink } from '@cee/util/bioportal-term-link';
 import { SingleFieldComponent } from '@cee/models/field/single-field-component.model';
 import { ChoiceOption } from '@cee/models/info/choice-option.model';
 import { FieldComponent } from '@cee/models/component/field-component.model';
@@ -279,7 +280,7 @@ describe('what a controlled-term field states', () => {
     ]);
   });
 
-  it('does not repeat an acronym a spelled-out name already carries', () => {
+  it('retains the link acronym when a spelled-out name already carries it', () => {
     // Real templates write a branch's source both ways. "Medical Subject Headings (MESH)" plus an
     // appended "(MESH)" is what this prevents.
     const field = new SingleFieldComponent();
@@ -298,10 +299,32 @@ describe('what a controlled-term field states', () => {
         kind: 'branch',
         name: 'Genes',
         container: 'Medical Subject Headings (MESH)',
-        acronym: null,
+        acronym: 'MESH',
         uri: 'http://purl.bioontology.org/ontology/MESH/D005796',
       },
     ]);
+    expect(bioPortalSourceLink(specTermSourcesOf(field)[0])).toBe(
+      'https://bioportal.bioontology.org/ontologies/MESH?p=classes&conceptid=' +
+        encodeURIComponent(field.controlledInfo.branches[0].uri!),
+    );
+  });
+
+  it.each([
+    ['Sampled Environmental Media', 'EVS_0000016'],
+    ['Type of Water Sampled', 'EVS_0000037'],
+    ['Survey Assessment Method', 'EVS_0000007'],
+    ['Exposure Assessment Method', 'EVS_0000002'],
+  ])('links the public template branch %s', (name, id) => {
+    const field = new SingleFieldComponent();
+    field.basicInfo.inputType = InputType.controlled;
+    const uri = `https://purl.exposure.io/vocab/evs/${id}`;
+    field.controlledInfo.branches = [{ source: 'Exposure Value Set (EVS)', acronym: 'EVS', name, uri }];
+
+    const source = specTermSourcesOf(field)[0];
+    expect(source.container).toBe('Exposure Value Set (EVS)');
+    expect(bioPortalSourceLink(source)).toBe(
+      'https://bioportal.bioontology.org/ontologies/EVS?p=classes&conceptid=' + encodeURIComponent(uri),
+    );
   });
 
   it('drops an ontology name that is only the word "undefined", as the HuBMAP corpus carries', () => {

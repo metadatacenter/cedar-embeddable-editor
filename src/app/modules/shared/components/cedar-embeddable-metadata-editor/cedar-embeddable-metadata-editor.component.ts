@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnDestroy, Optional, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import type { Template } from 'cedar-model-typescript-library';
 import { CedarTemplate } from '../../models/template/cedar-template.model';
 import { NullTemplate } from '../../models/template/null-template.model';
@@ -17,6 +17,7 @@ import { triggerDownload } from '../../util/trigger-download';
 import { CEE_CONFIG_KEY, CeeConfig, configFlag } from '../../util/config-reader';
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
 import { WidgetConfigCoordinator } from '../../util/widget-config-coordinator';
+import { FieldRevealService } from '../../service/field-reveal.service';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor',
@@ -27,7 +28,7 @@ import { WidgetConfigCoordinator } from '../../util/widget-config-coordinator';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
-  private static INNER_VERSION = '2026-09-26 15:47';
+  private static INNER_VERSION = '2026-10-02 11:59';
 
   dataContext: DataContext | null = null;
   handlerContext: HandlerContext | null = null;
@@ -42,6 +43,7 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
    * whether the menu is offered; what it offers is fixed.
    */
   showDownloadMenu = false;
+  previewMode = false;
 
   /**
    * Whether Expand All and Collapse All are offered.
@@ -112,6 +114,8 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     private templateTrustService: TemplateTrustService,
     private userPreferencesService: UserPreferencesService,
     private renderScheduler: RenderSchedulerService,
+    // Optional, and null by default, for the specs that build an editor by hand.
+    @Optional() private fieldReveal: FieldRevealService | null = null,
   ) {
     this.widgetConfig = new WidgetConfigCoordinator(
       this.externalAuthorityLookupService,
@@ -175,10 +179,12 @@ export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
     if (representation !== null && representation !== undefined) {
       this.pageBreakPaginatorService?.reset(representation.pageBreakChildren);
     }
+    this.fieldReveal?.usePaginator(this.pageBreakPaginatorService);
   }
 
   @Input() set config(value: CeeConfig | null) {
     if (value != null) {
+      this.previewMode = configFlag(value, CEE_CONFIG_KEY.previewMode, this.previewMode);
       this.showDownloadMenu = configFlag(value, CEE_CONFIG_KEY.showDownloadMenu, this.showDownloadMenu);
       this.showExpandCollapseAll = configFlag(value, CEE_CONFIG_KEY.showExpandCollapseAll, this.showExpandCollapseAll);
       this.showTemplateDescription = configFlag(

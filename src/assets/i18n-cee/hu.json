@@ -1,4 +1,30 @@
 {
+  "FieldType": {
+    "numeric": "Szám",
+    "textfield": "Szöveg",
+    "textarea": "Bekezdés",
+    "richtext": "Formázott szöveg",
+    "controlled": "Ellenőrzött fogalom",
+    "email": "E-mail-cím",
+    "link": "Hivatkozás",
+    "ext-orcid": "ORCID",
+    "ext-ror": "ROR-szervezet",
+    "ext-pfas": "PFAS-vegyület",
+    "ext-pubmed": "PubMed-azonosító",
+    "ext-rrid": "Kutatási erőforrás azonosítója",
+    "ext-nih-grant-id": "NIH-támogatás azonosítója",
+    "ext-doi": "DOI",
+    "phone-number": "Telefonszám",
+    "list": "Lista",
+    "checkbox": "Jelölőnégyzetek",
+    "radio": "Választógombok",
+    "temporal": "Dátum / idő",
+    "image": "Kép",
+    "youtube": "Videó",
+    "section-break": "Szakasztörés",
+    "page-break": "Oldaltörés",
+    "attribute-value": "Attribútum–érték párok"
+  },
   "Generic": {
     "Searching": "Keresés…",
     "SAVE": "MENTÉS",
@@ -114,6 +140,7 @@
       "InvalidTimezoneOffset": "Az időzóna-eltolás nem érvényes UTC-eltolás. Válasszon egyet a listából."
     },
     "Text": {
+      "Pattern": "Az érték nem felel meg az előírt formátumnak.",
       "MinLength": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
       "MaxLength": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet."
     },
@@ -175,6 +202,13 @@
       "NameInvalid": "Az attribútum neve nem lehet üres, és nem tartalmazhat vezérlőkaraktert.",
       "NameReserved": "Az attribútum neve („{{name}}”) a példány metaadatai számára van fenntartva.",
       "NameInUse": "Az attribútum neve („{{name}}”) már szerepel ebben a példányban. Adjon meg egyedi nevet."
+    },
+    "Report": {
+      "ChoiceMembership": "„{{value}}” nem szerepel a mező választási lehetőségei között.",
+      "ControlledStructure": "A tárolt kifejezésből hiányzik a címke vagy az IRI.",
+      "IriMalformed": "A tárolt azonosító nem érvényes IRI.",
+      "MinItems": "Legalább {{min}} bejegyzés szükséges.",
+      "MaxItems": "Legfeljebb {{max}} bejegyzés megengedett."
     }
   },
   "Spec": {

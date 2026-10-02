@@ -7,7 +7,9 @@ import { ComponentTypeHandler } from '../../handler/component-type.handler';
 import { SingleFieldComponent } from '../../models/field/single-field-component.model';
 import { FieldComponent } from '../../models/component/field-component.model';
 import { MultiFieldComponent } from '../../models/field/multi-field-component.model';
+import { StaticFieldComponent } from '../../models/static/static-field-component.model';
 import { InputType } from '../../models/input-type.model';
+import { fieldTypeIcon } from '../../util/field-type-icon';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 
 @Component({
@@ -19,34 +21,6 @@ import { UserPreferencesService } from '../../service/user-preferences.service';
   standalone: false,
 })
 export class CedarComponentHeaderComponent implements OnInit {
-  private static readonly FIELD_TYPE_ICONS: Readonly<Record<string, string>> = {
-    [InputType.orcid]: 'authority-person',
-    [InputType.ror]: 'authority-organization',
-    [InputType.pfas]: 'authority-chemical',
-    [InputType.pmid]: 'authority-publication',
-    [InputType.rrid]: 'authority-resource',
-    [InputType.nihGrant]: 'authority-grant',
-    [InputType.doi]: 'authority-doi',
-
-    [InputType.numeric]: 'field-number',
-    [InputType.text]: 'field-text',
-    [InputType.textarea]: 'field-paragraph',
-    [InputType.richText]: 'field-rich-text',
-    [InputType.controlled]: 'field-controlled',
-    [InputType.email]: 'field-email',
-    [InputType.link]: 'field-link',
-    [InputType.phoneNumber]: 'field-phone',
-    [InputType.list]: 'field-list',
-    [InputType.checkbox]: 'field-checkbox',
-    [InputType.radio]: 'field-radio',
-    [InputType.temporal]: 'field-date',
-    [InputType.image]: 'field-image',
-    [InputType.youtube]: 'field-video',
-    [InputType.sectionBreak]: 'field-section-break',
-    [InputType.pageBreak]: 'field-page-break',
-    [InputType.attributeValue]: 'field-attribute-value',
-  };
-
   component!: CedarComponent;
   /** Null for a component that is not multi-instance, which is most of them. */
   multiComponent: MultiComponent | null = null;
@@ -75,6 +49,12 @@ export class CedarComponentHeaderComponent implements OnInit {
     });
   }
 
+  /**
+   * Whether the element this header belongs to is expanded, or null for a header that does not
+   * open and close. The panel header is the control; the chevron only shows its state.
+   */
+  @Input() disclosure: boolean | null = null;
+
   @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {
     this.component = componentToRender;
     this.fieldToDescribe =
@@ -84,6 +64,10 @@ export class CedarComponentHeaderComponent implements OnInit {
     this.shouldRenderRequiredMark = false;
     this.fieldTypeIcon = null;
     this.isOntologyField = false;
+
+    if (componentToRender instanceof StaticFieldComponent && componentToRender.basicInfo.inputType) {
+      this.fieldTypeIcon = fieldTypeIcon(componentToRender.basicInfo.inputType);
+    }
 
     if (ComponentTypeHandler.isMulti(componentToRender)) {
       this.multiComponent = componentToRender as MultiComponent;
@@ -100,7 +84,7 @@ export class CedarComponentHeaderComponent implements OnInit {
       const fieldComp = this.component as unknown as FieldComponent;
       const inputType = fieldComp.basicInfo.inputType;
       if (inputType) {
-        this.fieldTypeIcon = CedarComponentHeaderComponent.FIELD_TYPE_ICONS[inputType] ?? 'artifact-field';
+        this.fieldTypeIcon = fieldTypeIcon(inputType);
         this.isOntologyField = inputType === InputType.controlled;
       }
       if (fieldComp.valueInfo.requiredValue) {

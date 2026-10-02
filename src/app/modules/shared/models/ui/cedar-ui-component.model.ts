@@ -1,3 +1,6 @@
+import { AbstractControl } from '@angular/forms';
+import { ErrorStateMatcher } from '@angular/material/core';
+import { EditedFieldErrorStateMatcher } from '../../../input-types/edited-field-error-state-matcher';
 import { ChangeDetectorRef, DestroyRef, Directive, inject, OnDestroy, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UserPreferencesService } from '../../service/user-preferences.service';
@@ -25,6 +28,21 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
 
   readOnlyMode = false;
 
+  quietEmptyPreview(value: unknown): boolean {
+    return (
+      this.userPreferencesService.suppressEmptyFieldErrors &&
+      (value == null || value === '' || (Array.isArray(value) && value.length === 0))
+    );
+  }
+
+  protected previewMatcher(delegate: ErrorStateMatcher): ErrorStateMatcher {
+    return {
+      isErrorState: (control, form) => !this.quietEmptyPreview(control?.value) && delegate.isErrorState(control, form),
+    };
+  }
+
+  readonly previewErrorStateMatcher = this.previewMatcher(new EditedFieldErrorStateMatcher());
+
   protected constructor() {}
   ngOnInit() {
     this.userPreferencesService.readOnlyMode$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((mode) => {
@@ -42,5 +60,27 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
   }
   protected onReadOnlyModeChange(_mode: boolean): void {
     this.cdr.markForCheck();
+  }
+
+  /**
+   * Whether the host has taken the user to this field.
+   *
+   * An unanswered requirement stays quiet on a form nobody has started, and speaks
+   * once the user reaches the field, whether by leaving it or by being taken to it.
+   */
+  revealed = false;
+
+  /** The user has been taken to this field, so its unanswered requirement speaks. */
+  markRevealed(): void {
+    this.revealed = true;
+    for (const control of this.revealedControls()) {
+      control.markAllAsTouched();
+    }
+    this.cdr.markForCheck();
+  }
+
+  /** The controls whose requirement a reveal makes visible. None for a field with nothing to answer. */
+  protected revealedControls(): AbstractControl[] {
+    return [];
   }
 }

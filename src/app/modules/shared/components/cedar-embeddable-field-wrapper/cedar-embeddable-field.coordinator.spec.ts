@@ -12,6 +12,7 @@
  * library is one a host could actually produce.
  */
 import { provideHttpClient } from '@angular/common/http';
+import { MatIcon } from '@angular/material/icon';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideTranslateService } from '@ngx-translate/core';
@@ -230,10 +231,14 @@ describe('an artifact the element cannot render', () => {
     expect(inputIn(mounted).value).toBe('first');
   });
 
-  it('is a page break, which divides a form this element does not have', async () => {
-    const mounted = await mount(pageBreakArtifact());
-
-    expect(mounted.errors).toHaveBeenCalledWith(expect.stringContaining('page break'), null);
+  it('describes a standalone page break without creating pagination', async () => {
+    const mounted = await mount(pageBreakArtifact(), { readOnlyMode: true });
+    expect(mounted.errors).not.toHaveBeenCalled();
+    expect(mounted.fixture.debugElement.query(By.css('.title-label')).nativeElement.textContent).toContain('Next');
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type')).nativeElement.textContent).toContain(
+      'Page break',
+    );
+    expect(mounted.element.currentValue).toEqual({ kind: 'none' });
   });
 });
 
@@ -317,5 +322,85 @@ describe('rejected assignments', () => {
     mounted.element.fieldObject = numeric();
     expect(mounted.element.currentValue).toEqual({ kind: 'number', value: 7 });
     expect(mounted.errors).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('the complete read-only field presentation', () => {
+  it('owns its label, description and visible field box, leaving the type to its icon', async () => {
+    const mounted = await mount(
+      textArtifact((b) => b.withSchemaDescription('Explain this field')),
+      { readOnlyMode: true },
+    );
+    expect(mounted.fixture.debugElement.query(By.css('.title-label')).nativeElement.textContent).toContain('Sample');
+    expect(mounted.fixture.debugElement.query(By.css('[data-field-type-icon]'))).not.toBeNull();
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type'))).toBeNull();
+    expect(
+      mounted.fixture.debugElement.query(By.css('.cee-field-spec-description')).nativeElement.textContent,
+    ).toContain('Explain this field');
+    expect(mounted.fixture.debugElement.query(By.css('.cee-spec-box')).nativeElement.textContent.trim()).toBe('');
+    expect(mounted.fixture.debugElement.query(By.css('input'))).toBeNull();
+    expect(mounted.changes).toEqual([]);
+  });
+
+  it('lets a read-only preview host provide the heading without losing the field description or box', async () => {
+    const mounted = await mount(
+      textArtifact((b) => b.withSchemaDescription('Explain this field')),
+      { readOnlyMode: true, previewMode: true },
+    );
+    expect(mounted.fixture.debugElement.query(By.css('app-cedar-component-header'))).toBeNull();
+    // A host's own heading may already show the type, as the designer's field cards do.
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type'))).toBeNull();
+    expect(
+      mounted.fixture.debugElement.query(By.css('.cee-field-spec-description')).nativeElement.textContent,
+    ).toContain('Explain this field');
+    expect(mounted.fixture.debugElement.query(By.css('.cee-spec-box'))).not.toBeNull();
+    expect(mounted.changes).toEqual([]);
+  });
+
+  it('states the type with the icon the header would draw for a preview host whose heading lacks it', async () => {
+    const mounted = await mount(
+      textArtifact((b) => b.withSchemaDescription('Explain this field')),
+      { readOnlyMode: true, previewMode: true, showFieldType: true },
+    );
+    expect(mounted.fixture.debugElement.query(By.css('app-cedar-component-header'))).toBeNull();
+    const type = mounted.fixture.debugElement.query(By.css('.cee-field-type'));
+    expect(type.nativeElement.textContent.trim()).toBe('Text');
+    const icon = type.query(By.css('[data-field-type-icon]'));
+    expect(icon.injector.get(MatIcon).svgIcon).toBe('cedar:field-text');
+    expect(
+      mounted.fixture.debugElement.query(By.css('.cee-field-spec-description')).nativeElement.textContent,
+    ).toContain('Explain this field');
+    expect(mounted.fixture.debugElement.query(By.css('.cee-spec-box'))).not.toBeNull();
+    expect(mounted.changes).toEqual([]);
+  });
+
+  it('leaves the type to the header icon while the header is drawn, whatever showFieldType says', async () => {
+    const mounted = await mount(textArtifact(), { readOnlyMode: true, showFieldType: true });
+    expect(mounted.fixture.debugElement.query(By.css('[data-field-type-icon]'))).not.toBeNull();
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type'))).toBeNull();
+  });
+
+  it('keeps the editable element a bare control', async () => {
+    const mounted = await mount(textArtifact((b) => b.withSchemaDescription('Explain this field')));
+    expect(mounted.fixture.debugElement.query(By.css('app-cedar-component-header'))).toBeNull();
+    expect(mounted.fixture.debugElement.query(By.css('.cee-field-type'))).toBeNull();
+    expect(inputIn(mounted)).toBeTruthy();
+  });
+
+  it('accepts read-only configuration after the artifact and replaces the presentation with the field', async () => {
+    await TestBed.configureTestingModule({
+      imports: [SharedModule],
+      providers: [provideHttpClient(), provideTranslateService()],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(CedarEmbeddableFieldWrapperComponent);
+    fixture.componentInstance.fieldObject = textArtifact();
+    fixture.componentInstance.config = { readOnlyMode: true };
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.fieldObject = temporalArtifact();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.debugElement.query(By.css('.title-label')).nativeElement.textContent).toContain('When');
+    expect(fixture.debugElement.queryAll(By.css('app-cedar-component-header')).length).toBe(1);
   });
 });

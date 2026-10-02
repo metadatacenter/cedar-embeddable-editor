@@ -51,7 +51,7 @@ genuinely theirs.
         spellcheck="false"
         matInput
         type="text"
-        [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : (descriptor.placeholderKey | translate)"
+        [placeholder]="readOnlyMode ? '' : (descriptor.placeholderKey | translate)"
         #autoCompleteInput="matAutocompleteTrigger"
         [formControl]="inputValueControl"
         [errorStateMatcher]="errorStateMatcher"
@@ -145,7 +145,7 @@ genuinely theirs.
           <mat-icon cedarIcon="close"></mat-icon>
         </button>
       }
-      @if (inputValueControl.getError('required') && !readOnlyMode) {
+      @if (inputValueControl.getError('required') && !readOnlyMode && !quietEmptyPreview(inputValueControl.value)) {
         <mat-error tabindex="0" class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
       }
     </mat-form-field>

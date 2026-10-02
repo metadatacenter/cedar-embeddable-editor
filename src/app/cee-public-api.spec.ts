@@ -24,17 +24,21 @@ const COMPONENT = path.resolve(
   __dirname,
   'modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.ts',
 );
+const FIELD_WRAPPER = path.resolve(
+  __dirname,
+  'modules/shared/components/cedar-embeddable-field-wrapper/cedar-embeddable-field-wrapper.component.ts',
+);
 const PUBLIC_API = path.resolve(__dirname, 'cee-public-api.ts');
 const ARTIFACT_COORDINATOR = path.resolve(__dirname, 'modules/shared/util/artifact-input-coordinator.ts');
 const CONFIG_COORDINATOR = path.resolve(__dirname, 'modules/shared/util/wrapper-config-coordinator.ts');
 const WIDGET_CONFIG_COORDINATOR = path.resolve(__dirname, 'modules/shared/util/widget-config-coordinator.ts');
 
 /**
- * The keys the two runtime config consumers actually read, resolved through the
- * shared key map rather than repeated string literals.
+ * The keys the runtime config consumers actually read, the editor's and the field
+ * element's, resolved through the shared key map rather than repeated string literals.
  */
 const componentKeys = (): string[] => {
-  const source = [COMPONENT, CONFIG_COORDINATOR, WIDGET_CONFIG_COORDINATOR]
+  const source = [COMPONENT, FIELD_WRAPPER, CONFIG_COORDINATOR, WIDGET_CONFIG_COORDINATOR]
     .map((file) => fs.readFileSync(file, 'utf8'))
     .join('\n');
   const names = [...source.matchAll(/CEE_CONFIG_KEY\.([a-zA-Z][a-zA-Z0-9]*)/g)].map(([, name]) => name);

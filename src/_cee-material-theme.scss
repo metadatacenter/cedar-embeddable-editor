@@ -23,24 +23,25 @@ $_colors: (
   inverse-primary: map.get(tokens.$brand-primary, 200),
   secondary: map.get(tokens.$brand-primary, 700),
   on-secondary: tokens.$color-on-primary,
-  secondary-container: tokens.$surface-tinted,
-  on-secondary-container: tokens.$color-component-title,
+  secondary-container: tokens.$surface-selected,
+  on-secondary-container: tokens.$text-title,
   secondary-fixed: map.get(tokens.$brand-primary, 50),
   secondary-fixed-dim: map.get(tokens.$brand-primary, 100),
   on-secondary-fixed: map.get(tokens.$brand-primary, 900),
   on-secondary-fixed-variant: map.get(tokens.$brand-primary, 700),
-  tertiary: map.get(tokens.$brand-accent, 500),
-  on-tertiary: map.get(tokens.$brand-accent, contrast, 500),
-  tertiary-container: map.get(tokens.$brand-accent, 50),
-  on-tertiary-container: map.get(tokens.$brand-accent, 900),
-  tertiary-fixed: map.get(tokens.$brand-accent, 50),
-  tertiary-fixed-dim: map.get(tokens.$brand-accent, 100),
-  on-tertiary-fixed: map.get(tokens.$brand-accent, 900),
-  on-tertiary-fixed-variant: map.get(tokens.$brand-accent, 700),
-  error: tokens.$color-error,
-  on-error: tokens.$color-on-error,
-  error-container: map.get(tokens.$brand-accent, 50),
-  on-error-container: map.get(tokens.$brand-accent, 900),
+  // One theme colour: Material's tertiary roles take the primary's, not a second brand hue.
+  tertiary: tokens.$color-primary,
+  on-tertiary: tokens.$color-on-primary,
+  tertiary-container: tokens.$surface-selected,
+  on-tertiary-container: tokens.$text-title,
+  tertiary-fixed: map.get(tokens.$brand-primary, 50),
+  tertiary-fixed-dim: map.get(tokens.$brand-primary, 100),
+  on-tertiary-fixed: map.get(tokens.$brand-primary, 900),
+  on-tertiary-fixed-variant: tokens.$color-primary-strong,
+  error: tokens.$status-error-text,
+  on-error: tokens.$color-on-primary,
+  error-container: tokens.$status-error-surface,
+  on-error-container: tokens.$status-error-text,
   background: $_white,
   on-background: tokens.$text-primary,
   surface: $_white,
@@ -48,16 +49,16 @@ $_colors: (
   surface-dim: tokens.$border-rule,
   surface-container-lowest: $_white,
   surface-container-low: $_white,
-  surface-container: tokens.$surface-panel,
-  surface-container-high: tokens.$surface-panel,
-  surface-container-highest: tokens.$border-rule-light,
-  surface-variant: tokens.$surface-panel,
+  surface-container: tokens.$surface-subtle,
+  surface-container-high: tokens.$surface-subtle,
+  surface-container-highest: tokens.$border-rule,
+  surface-variant: tokens.$surface-subtle,
   surface-tint: tokens.$color-primary,
   on-surface: tokens.$text-primary,
   on-surface-variant: tokens.$text-muted,
   inverse-surface: tokens.$text-muted,
   inverse-on-surface: $_white,
-  outline: tokens.$border-control,
+  outline: tokens.$control-border-default,
   outline-variant: tokens.$border-rule,
   shadow: $_black,
   scrim: $_black,
@@ -101,25 +102,26 @@ $_colors: (
   @include mat.radio-color($choice-theme);
 
   // Material defaults use rem. Embedders own html's size, so state all levels
-  // in px, including the shorthand used by menus and datepicker overlays.
-  @each $role, $size, $height, $weight,
-    $tracking
+  // in px, including the shorthand used by menus and datepicker overlays. Every
+  // level takes CEDAR's sizes and weights, with Roboto's own spacing: Material's
+  // per-level tracking made the same font read differently in each control.
+  @each $role, $size, $height, $weight
       in (
-        (body-large, tokens.$font-size, 24px, 400, 0.4375px),
-        (body-medium, tokens.$font-size, 24px, 400, 0.25px),
-        (body-small, tokens.$font-size-small, 20px, 400, 0.4px),
-        (label-large, tokens.$font-size, 20px, 500, 0.1px),
-        (label-medium, tokens.$font-size-small, 16px, 500, 0.5px),
-        (label-small, tokens.$font-size-small, 16px, 500, 0.5px),
-        (title-large, tokens.$font-size-heading, 28px, 400, 0px),
-        (title-medium, tokens.$font-size, 24px, 500, 0.15px),
-        (title-small, tokens.$font-size, 20px, 500, 0.1px),
-        (headline-large, tokens.$font-size-heading, 32px, 400, 0px),
-        (headline-medium, tokens.$font-size-heading, 28px, 400, 0px),
-        (headline-small, tokens.$font-size-element-heading, 24px, 400, 0px),
-        (display-large, tokens.$font-size-heading, 32px, 400, 0px),
-        (display-medium, tokens.$font-size-heading, 28px, 400, 0px),
-        (display-small, tokens.$font-size-element-heading, 24px, 400, 0px)
+        (body-large, tokens.$font-size, 24px, tokens.$font-weight-regular),
+        (body-medium, tokens.$font-size, 24px, tokens.$font-weight-regular),
+        (body-small, tokens.$font-size-small, 20px, tokens.$font-weight-regular),
+        (label-large, tokens.$font-size, 20px, tokens.$font-weight-medium),
+        (label-medium, tokens.$font-size-small, 16px, tokens.$font-weight-medium),
+        (label-small, tokens.$font-size-small, 16px, tokens.$font-weight-medium),
+        (title-large, tokens.$font-size-heading, 28px, tokens.$font-weight-medium),
+        (title-medium, tokens.$font-size, 24px, tokens.$font-weight-medium),
+        (title-small, tokens.$font-size, 20px, tokens.$font-weight-medium),
+        (headline-large, tokens.$font-size-heading, 32px, tokens.$font-weight-medium),
+        (headline-medium, tokens.$font-size-heading, 28px, tokens.$font-weight-medium),
+        (headline-small, tokens.$font-size-element-heading, 24px, tokens.$font-weight-medium),
+        (display-large, tokens.$font-size-heading, 32px, tokens.$font-weight-medium),
+        (display-medium, tokens.$font-size-heading, 28px, tokens.$font-weight-medium),
+        (display-small, tokens.$font-size-element-heading, 24px, tokens.$font-weight-medium)
       )
   {
     @include mat.theme-overrides(
@@ -127,11 +129,46 @@ $_colors: (
         #{$role}: #{$weight} #{$size}/#{$height} #{tokens.$font-family},
         #{$role}-size: $size,
         #{$role}-line-height: $height,
-        #{$role}-tracking: $tracking,
+        #{$role}-tracking: normal,
         #{$role}-weight: $weight
       )
     );
   }
+
+  // One corner for every box. Material's cards, panels and buttons default to 12px
+  // and fully rounded shapes; chips are the one pill.
+  @include mat.card-overrides(
+    (
+      elevated-container-shape: tokens.$radius,
+      outlined-container-shape: tokens.$radius,
+      filled-container-shape: tokens.$radius,
+    )
+  );
+  @include mat.expansion-overrides(
+    (
+      container-shape: tokens.$radius,
+    )
+  );
+  @include mat.button-overrides(
+    (
+      filled-container-shape: tokens.$radius,
+      outlined-container-shape: tokens.$radius,
+      protected-container-shape: tokens.$radius,
+      text-container-shape: tokens.$radius,
+      tonal-container-shape: tokens.$radius,
+    )
+  );
+  @include mat.chips-overrides(
+    (
+      container-shape-radius: tokens.$radius-pill,
+    )
+  );
+  @include mat.datepicker-overrides(
+    (
+      calendar-container-shape: tokens.$radius,
+      calendar-container-touch-shape: tokens.$radius,
+    )
+  );
 
   // Comfortable fields are 48px. Compact overrides these through the public
   // CEDAR contract. Choice rows are 28px; hit areas stay within each option row.
@@ -146,13 +183,13 @@ $_colors: (
   );
   @include mat.radio-overrides(
     (
-      state-layer-size: var(--cedar-choice-row-height, #{tokens.$choice-row-height}),
+      state-layer-size: var(--cedar-row-height-compact, #{tokens.$row-height-compact}),
       touch-target-display: none,
     )
   );
   @include mat.checkbox-overrides(
     (
-      state-layer-size: var(--cedar-choice-row-height, #{tokens.$choice-row-height}),
+      state-layer-size: var(--cedar-row-height-compact, #{tokens.$row-height-compact}),
       touch-target-display: none,
     )
   );
@@ -165,23 +202,23 @@ $_colors: (
   );
   @include mat.form-field-overrides(
     (
-      subscript-text-size: tokens.$form-help-size,
-      subscript-text-line-height: tokens.$form-help-line-height,
+      subscript-text-size: tokens.$font-size-small,
+      subscript-text-line-height: tokens.$control-line-height-authoring,
     )
   );
   @include mat.menu-overrides(
     (
-      container-color: tokens.$overlay-surface,
-      container-shape: tokens.$menu-radius,
-      container-elevation-shadow: tokens.$menu-shadow,
-      divider-color: tokens.$overlay-border,
-      item-leading-spacing: tokens.$menu-item-padding-inline,
-      item-trailing-spacing: tokens.$menu-item-padding-inline,
-      item-hover-state-layer-color: tokens.$action-hover-surface,
-      item-focus-state-layer-color: tokens.$action-hover-surface,
+      container-color: tokens.$surface-raised,
+      container-shape: tokens.$radius,
+      container-elevation-shadow: tokens.$shadow-overlay,
+      divider-color: tokens.$border-rule,
+      item-leading-spacing: tokens.$space-3,
+      item-trailing-spacing: tokens.$space-3,
+      item-hover-state-layer-color: tokens.$surface-selected,
+      item-focus-state-layer-color: tokens.$surface-selected,
     )
   );
-  @include mat.strong-focus-indicators-theme(tokens.$focus-ring-color);
+  @include mat.strong-focus-indicators-theme(tokens.$color-primary);
 }
 
 // Keep the supported Material APIs in this adapter even when their emission
@@ -239,8 +276,8 @@ $_colors: (
 @mixin declared-values() {
   @include mat.form-field-overrides(
     (
-      filled-input-text-color: rgba(0, 0, 0, 0.54),
-      outlined-input-text-color: rgba(0, 0, 0, 0.54),
+      filled-input-text-color: var(--cedar-specification-text, #{tokens.$text-muted}),
+      outlined-input-text-color: var(--cedar-specification-text, #{tokens.$text-muted}),
     )
   );
 }

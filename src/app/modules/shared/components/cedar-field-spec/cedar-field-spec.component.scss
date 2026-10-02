@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/patterns';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
 /*
@@ -10,10 +11,10 @@
   /*
    * The reading size, the same as the label it follows and the description below it. It was the small
    * size, which made a specification harder to read than the form it describes; the facts are set
-   * apart by colour and by the dot separators instead of by being shrunk.
+   * apart by the secondary text colour and by the dot separators instead of by being shrunk.
    */
   font-size: tokens.$font-size;
-  color: rgba(0, 0, 0, 0.62);
+  color: tokens.$text-muted;
   /*
    * Baseline-aligned with the label it follows, and allowed to wrap as a unit: the facts are a
    * trailing phrase on the name's line, not a column of their own.
@@ -22,7 +23,7 @@
   flex-wrap: wrap;
   align-items: baseline;
   column-gap: 0;
-  margin-left: 10px;
+  margin-left: tokens.$space-2;
   /*
    * Aligned to the row's right edge rather than trailing the name. Following the name put the facts
    * at a different horizontal position on every row, since names differ in length, so a column of
@@ -42,8 +43,7 @@
  */
 .cee-field-spec-fact + .cee-field-spec-fact::before {
   content: '·';
-  margin: 0 6px;
-  color: rgba(0, 0, 0, 0.32);
+  @include patterns.specification-separator;
 }
 
 /* A pattern can be long, and it is the one fact nobody should have to guess at. */
@@ -55,7 +55,7 @@
 .cee-field-spec-keyword {
   font-style: italic;
   font-weight: var(--cedar-font-weight-regular, 400);
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--cedar-specification-keyword-color, #{tokens.$text-muted});
 }
 
 /*
@@ -70,7 +70,7 @@
  */
 .cee-field-spec-description {
   font-size: tokens.$font-size;
-  line-height: 1.5;
-  margin: 0 0 6px;
-  color: rgba(0, 0, 0, 0.8);
+  line-height: tokens.$control-line-height-default;
+  margin: 0 0 tokens.$space-2;
+  color: tokens.$text-primary;
 }

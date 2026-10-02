@@ -1,3 +1,6 @@
+@use '@org.metadatacenter/cedar-design-tokens/spacing';
+@use '@org.metadatacenter/cedar-design-tokens/patterns';
+@use '@org.metadatacenter/cedar-design-tokens/icon-contract';
 @use '@org.metadatacenter/cedar-design-tokens/controls';
 @use '@org.metadatacenter/cedar-design-tokens/motion';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
@@ -77,7 +80,6 @@
 .form-container {
   min-width: 50%;
   max-width: 100%;
-  border: 0 solid red;
 }
 
 .full-width {
@@ -90,7 +92,7 @@
 
 .half-width-with-margin {
   width: 49%;
-  margin-right: 1%;
+  @include spacing.apply(margin-right, split-column-gutter);
 }
 
 /*
@@ -114,10 +116,14 @@
   max-width: 50%;
   margin-left: auto;
   margin-right: auto;
-  margin-bottom: 20px;
 
   div {
-    padding-top: 15px;
+    padding-top: ui-tokens.$space-4;
+
+    /* With no description or notice beneath it, the image keeps the same inset from the bottom edge. */
+    &:last-child {
+      padding-bottom: ui-tokens.$space-4;
+    }
 
     img {
       display: block;
@@ -128,38 +134,23 @@
   }
 }
 
-.section-break-component {
-  background-color: #f0f8f7;
-  margin-top: 30px;
-}
-
 .youtube-component {
-  background-color: #ff0000;
   margin-left: auto;
   margin-right: auto;
-  margin-bottom: 20px;
 }
 
 .icon-help {
-  margin-left: 10px;
+  margin-left: ui-tokens.$space-2;
   width: tokens.$icon-size-small !important;
   height: tokens.$icon-size-small !important;
 }
 
-.icon-src {
-  margin-left: 10px;
-}
-
 .mat-mdc-card {
-  margin-top: 5px;
-}
-
-.iterable-component {
-  background-color: #f6f1f6;
+  margin-top: ui-tokens.$space-1;
 }
 
 .non-iterable-component {
-  background-color: #f1f6f1;
+  background-color: tokens.$surface-subtle;
 }
 
 .template-card {
@@ -167,7 +158,7 @@
   width: 100%;
   max-width: none;
   min-width: 0;
-  background-color: #ffffff;
+  background-color: tokens.$surface-raised;
   margin: 0;
   border: none !important;
 }
@@ -185,7 +176,7 @@
   flex-wrap: wrap;
   justify-content: right;
   align-items: center;
-  margin-right: 10px;
+  margin-right: ui-tokens.$space-2;
   margin-top: -26px;
   margin-bottom: -4px;
 }
@@ -197,7 +188,7 @@
  * nothing, so the rule names the field card.
  */
 .non-iterable-component > app-cedar-multi-pager .pager-container {
-  margin-right: layout.$cee-header-trailing-slot + ui-tokens.$space-2;
+  @include spacing.apply(margin-right, header-action-reserve);
 }
 
 .pager-container-ro {
@@ -205,13 +196,13 @@
   flex-wrap: wrap;
   justify-content: right;
   align-items: center;
-  margin-right: 10px;
-  margin-top: 10px;
+  margin-right: ui-tokens.$space-2;
+  margin-top: ui-tokens.$space-2;
 }
 
 /*
  * The renderer gives a fact-free read-only field a real two-column title row. Its pager no longer
- * needs the stacked placement's 10px top margin; the grid centres the chip list beside the label.
+ * needs the stacked placement's top margin; the grid centres the chip list beside the label.
  * Global because the container class is inside the child pager component's emulated scope.
  */
 .inline-readonly-pager > app-cedar-multi-pager .pager-container-ro {
@@ -219,7 +210,7 @@
 }
 
 .pager-chips {
-  margin-right: 20px;
+  margin-right: ui-tokens.$space-4;
 }
 
 .pager-actions {
@@ -255,12 +246,12 @@
 app-sample-templates {
   .mat-expansion-panel {
     max-width: 90%;
-    margin: 10px auto 0;
-    background-color: tokens.$surface-panel;
+    margin: ui-tokens.$space-2 auto 0;
+    background-color: tokens.$surface-subtle;
   }
 
   .mat-expansion-panel-header-title .mat-icon {
-    margin-right: 15px;
+    margin-right: ui-tokens.$space-4;
   }
 }
 
@@ -269,54 +260,57 @@ app-sample-templates {
 .notify-error,
 .notify-warning,
 .notify-progress {
-  padding: 15px;
+  padding: ui-tokens.$space-4;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: tokens.$radius;
 }
 
 .notify-progress-icon {
-  margin-right: 0.8em;
+  margin-right: ui-tokens.$space-2;
   line-height: 1em;
-  margin-left: 0.2em;
+  margin-left: ui-tokens.$space-1;
   float: left;
-  margin-top: 2px;
+  @include spacing.apply(margin-top, compact-static);
 }
 
 .notify-info {
-  color: tokens.$status-info-text;
-  background-color: tokens.$status-info-surface;
-  border-color: tokens.$status-info-text;
+  --cedar-icon-color: #{tokens.$color-primary-strong};
+  color: tokens.$color-primary-strong;
+  background-color: tokens.$surface-selected;
+  border-color: tokens.$color-primary-strong;
 }
 
 .notify-success {
+  --cedar-icon-color: #{tokens.$status-success-text};
   color: tokens.$status-success-text;
   background-color: tokens.$status-success-surface;
   border-color: tokens.$status-success-text;
 }
 
 .notify-error {
+  --cedar-icon-color: #{tokens.$status-error-text};
   color: tokens.$status-error-text;
   background-color: tokens.$status-error-surface;
   border-color: tokens.$status-error-text;
 }
 
 .notify-warning {
+  --cedar-icon-color: #{tokens.$status-warning-text};
   color: tokens.$status-warning-text;
   background-color: tokens.$status-warning-surface;
   border-color: tokens.$status-warning-text;
 }
 
 .notify-progress {
-  color: #383d41;
-  background-color: #eeeeee;
-  border-color: #d6d8db;
+  color: tokens.$text-primary;
+  background-color: tokens.$surface-subtle;
+  border-color: tokens.$border-rule;
 }
 
 .close {
   float: right;
   font-size: 24px;
   line-height: 0.9;
-  text-shadow: 0 1px 0 #fff;
   opacity: 0.5;
   color: inherit;
 }
@@ -371,7 +365,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 }
 
 .mat-icon:hover {
-  color: tokens.$color-icon-hover;
+  color: tokens.$color-primary;
   scale: 1.2;
 }
 
@@ -410,9 +404,10 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  */
 .input-warning {
   display: block;
+  --cedar-icon-color: #{tokens.$status-warning-text};
   color: tokens.$status-warning-text;
-  font-size: tokens.$form-help-size;
-  line-height: tokens.$form-help-line-height;
+  font-size: tokens.$font-size-small;
+  line-height: tokens.$control-line-height-authoring;
   text-align: start;
 }
 .cdk-overlay-container {
@@ -426,19 +421,18 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 }
 
 .mat-expansion-panel {
-  border: 1px solid tokens.$border-control;
+  border: 1px solid tokens.$control-border-default;
   box-shadow: none !important;
 }
 .mat-mdc-card {
-  //border: 1px solid #777777;
   box-shadow: none !important;
   margin-bottom: 0;
 }
 .tooltip {
-  background-color: black;
+  background-color: tokens.$text-primary;
 }
 .component-title {
-  color: tokens.$color-component-title !important;
+  color: tokens.$text-title !important;
 }
 
 /**
@@ -450,10 +444,10 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  * do not read alike — so this one is coloured as the fault it reports.
  */
 .mat-mdc-option.lookup-failed {
-  color: #a1332b;
+  color: tokens.$status-error-text;
   font-style: italic;
   white-space: normal;
-  line-height: 1.3;
+  line-height: tokens.$control-line-height-default;
 }
 
 /*
@@ -561,7 +555,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   .mat-mdc-select-value-text,
   .mat-mdc-radio-button .mdc-label,
   .mat-mdc-checkbox .mdc-label {
-    color: rgba(0, 0, 0, 0.54);
+    color: var(--cedar-specification-text, #{tokens.$text-muted});
   }
 }
 
@@ -625,8 +619,12 @@ mat-icon.cedar-icon > svg {
   display: block;
 }
 
-:host .mat-mdc-menu-content { padding: tokens.$menu-padding; }
-:host .mat-mdc-menu-item { min-height: tokens.$menu-item-height; }
+:host .mat-mdc-menu-content {
+  padding: tokens.$space-1;
+}
+:host .mat-mdc-menu-item {
+  min-height: tokens.$control-height-default;
+}
 
 @include motion.reduced-motion;
 
@@ -649,12 +647,28 @@ textarea.mat-mdc-input-element {
 :host .mat-mdc-option {
   @include controls.choice-row;
   height: auto;
-  padding-block: var(--cedar-choice-padding-block, #{tokens.$choice-padding-block});
-  padding-inline: tokens.$menu-item-padding-inline;
+  @include spacing.apply(padding-block, compact-static);
+  padding-inline: tokens.$space-3;
   box-sizing: border-box;
-  line-height: var(--cedar-control-line-height, var(--cedar-choice-line-height, #{tokens.$choice-line-height}));
+  line-height: var(
+    --cedar-control-line-height,
+    var(--cedar-control-line-height-default, #{tokens.$control-line-height-default})
+  );
 }
 
 :host .mat-mdc-select-panel {
   padding-block: tokens.$space-1;
 }
+
+:host .cee-download-menu .mat-mdc-menu-item mat-icon {
+  @include patterns.menu-icon;
+}
+
+// Material menu labels use the same typography and theme recipe as native menus.
+:host .mat-mdc-menu-panel,
+:host .mat-mdc-menu-content .mat-mdc-menu-item,
+:host .mat-mdc-menu-content .mat-mdc-menu-item .mat-mdc-menu-item-text {
+  @include patterns.menu-text;
+}
+
+@include icon-contract.styles;

@@ -7,19 +7,9 @@ import { InstanceValueNode } from '../../util/instance-value-node';
 import { decideFieldWidget, FieldWidgetDecision } from '../cedar-component-renderer/component-render-decision';
 
 /**
- * One field's control, with nothing of the form around it.
- *
- * This is the whole of what CEE knows about acquiring and presenting a single value:
- * the routing from an input type to one of the eighteen widgets, the four static
- * blocks, and the read-only choice between a control and a statement of what the
- * field will accept. Everything a form adds around that — the label, the description,
- * the occurrence pager, the card it sits in — belongs to whoever is drawing the form.
- *
- * Two things render through it. `CedarComponentRendererComponent` walks a template and
- * draws this for every field in it, and the `cedar-embeddable-field` element draws
- * exactly one for a host that has a field rather than a template. Neither has a widget
- * switch of its own, which is the point: a widget added or rerouted reaches both, and
- * the element cannot drift from the editor the way a second implementation would.
+ * Routes one field to its value control, static content or read-only specification.
+ * The shared CedarFieldPresentationComponent supplies the label and description in CEE
+ * and read-only CEF. Editable CEF uses this bare control directly.
  */
 @Component({
   selector: 'app-cedar-field-widget',

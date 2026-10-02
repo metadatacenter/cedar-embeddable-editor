@@ -1,3 +1,4 @@
+@use '@org.metadatacenter/cedar-design-tokens/spacing';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
@@ -15,10 +16,43 @@
 .cee-element-heading {
   font-size: tokens.$font-size-element-heading;
   font-weight: var(--cedar-font-weight-medium, 500);
+  margin-inline-end: 0;
+}
+
+/*
+ * The heading's trailing marks end where its fields' marks end. Material keeps 16px after a panel
+ * title and 8px more for a hidden toggle; the chevron is one of the trailing marks, so neither gap
+ * is needed.
+ */
+.mat-expansion-panel-header ::ng-deep .mat-content.mat-content-hide-toggle {
+  margin-inline-end: 0;
+}
+
+/*
+ * An element's heading starts where its fields start: inside the panel body's inset and the
+ * content's own. The heading and body insets are declared once, so the heading, the content and
+ * the occurrence pager agree in either mode; the pager takes the content's inset as their
+ * difference. The element's name then starts on the edge its fields' type icons start on, and the
+ * heading's trailing marks end where theirs end. Editing keeps Material's 24px and 16px.
+ */
+$element-content-inset: tokens.$space-4;
+
+.mat-expansion-panel {
+  --_cee-element-body-inset: #{tokens.$space-6};
+  @include spacing.apply(--_cee-element-heading-inset, element-heading-inset);
+}
+
+.mat-expansion-panel-header {
+  padding-inline: var(--_cee-element-heading-inset);
+}
+
+.mat-expansion-panel ::ng-deep .mat-expansion-panel-body {
+  padding-inline: var(--_cee-element-body-inset);
 }
 
 .cee-element-content {
   padding-top: ui-tokens.$space-1;
+  padding-inline: $element-content-inset;
 }
 
 /*
@@ -46,7 +80,7 @@
     padding: ui-tokens.$space-2 0;
   }
   background: transparent;
-  border-bottom: 1px solid #e1e7e6;
+  border-bottom: 1px solid tokens.$border-rule;
 }
 
 /*
@@ -61,16 +95,8 @@
   align-items: center;
   column-gap: ui-tokens.$space-3;
 
-  > app-cedar-component-header {
-    grid-column: 1;
-  }
-
   > app-cedar-multi-pager {
     grid-column: 2;
-  }
-
-  > .child-component-content {
-    grid-column: 1 / -1;
   }
 }
 
@@ -97,7 +123,23 @@
   padding-top: 0;
 }
 
-.child-component-content {
-  min-width: 0;
-  padding-top: ui-tokens.$space-1;
+:host-context(.cee-preview) {
+  // A preview's content has no inset of its own, so the heading takes the body's alone.
+  .mat-expansion-panel {
+    --_cee-element-body-inset: #{tokens.$space-3};
+    --_cee-element-heading-inset: #{tokens.$space-3};
+    border-radius: tokens.$radius;
+    box-shadow: none;
+    border: 1px solid tokens.$border-rule;
+  }
+  ::ng-deep .mat-expansion-panel-body {
+    padding-bottom: tokens.$space-2;
+  }
+  .cee-element-content {
+    padding: 0;
+  }
+}
+
+:host-context(.cee-preview):last-child > .non-iterable-component {
+  border-bottom: 0;
 }

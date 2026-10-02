@@ -1,4 +1,11 @@
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as ui-tokens;
+// The space beneath the image is declared here because the global `.mat-mdc-card` rule,
+// which comes later at equal specificity, sets every card's bottom margin to zero. The
+// component's scoped selector outranks it, so the next field no longer abuts the image.
+.image-component {
+  margin-bottom: ui-tokens.$space-4;
+}
+
 /**
  * The failure notice, boxed so it reads as a message rather than as part of the
  * field. It used to say it sat on the card's khaki background; that background was
@@ -6,14 +13,14 @@
  * selector outranked it. The card is white, as every other field's is.
  */
 .image-error {
-  margin: 15px;
-  padding: 10px ui-tokens.$space-3;
-  border: 1px solid #8a6d3b;
-  border-radius: 4px;
-  background-color: #fffaf0;
-  color: #6b4e1e;
-  font-size: 0.9em;
-  line-height: 1.4;
+  margin: ui-tokens.$space-4;
+  padding: ui-tokens.$space-2 ui-tokens.$space-3;
+  border: 1px solid ui-tokens.$status-warning-text;
+  border-radius: ui-tokens.$radius;
+  background-color: ui-tokens.$status-warning-surface;
+  color: ui-tokens.$status-warning-text;
+  font-size: ui-tokens.$font-size-small;
+  line-height: ui-tokens.$control-line-height-authoring;
   /* URLs are long and have no spaces to break on. */
   overflow-wrap: anywhere;
 }

@@ -31,5 +31,5 @@
  * by six.
  */
 textarea[cdkTextareaAutosize] {
-  line-height: 24px;
+  line-height: tokens.$control-line-height-default;
 }

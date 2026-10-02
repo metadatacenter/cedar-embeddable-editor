@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ComponentDataService } from '../../../shared/service/component-data.service';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -114,6 +114,10 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
     // so the view is left alone.
     this.inputValueControl.setValue(value, { emitModelToViewChange: false });
     this.handlerContext.changeValue(this.component, value);
+  }
+
+  protected override revealedControls(): AbstractControl[] {
+    return [this.options];
   }
 
   setCurrentValue(currentValue: unknown): void {

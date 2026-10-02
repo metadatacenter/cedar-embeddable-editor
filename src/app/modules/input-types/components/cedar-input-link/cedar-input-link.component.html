@@ -18,7 +18,7 @@
     <input
       spellcheck="false"
       matInput
-      [placeholder]="readOnlyMode ? (component | ceeSpecPlaceholder) : ''"
+      [errorStateMatcher]="previewErrorStateMatcher"
       type="text"
       [formControl]="inputValueControl"
       (input)="inputChanged($event)"
@@ -39,7 +39,7 @@
     @if (inputValueControl.getError('pattern') && !readOnlyMode) {
       <mat-error class="mat-error align-start">{{ 'Validation.Link.Invalid' | translate }}</mat-error>
     }
-    @if (inputValueControl.getError('required') && !readOnlyMode) {
+    @if (inputValueControl.getError('required') && !readOnlyMode && !quietEmptyPreview(inputValueControl.value)) {
       <mat-error class="mat-error align-start">{{ 'Validation.Required' | translate }}</mat-error>
     }
   </mat-form-field>

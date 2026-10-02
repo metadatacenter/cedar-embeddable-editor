@@ -1,5 +1,5 @@
 import { AfterViewInit, Directive, Input, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ErrorStateMatcher, MatOptionSelectionChange } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Observable, of, timer } from 'rxjs';
@@ -17,10 +17,11 @@ import { AuthorityTerm } from '../../../shared/models/authority/authority-search
 import { InputType } from '../../../shared/models/input-type.model';
 import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
+import { holdsConstraintError } from '../../edited-field-error-state-matcher';
 
 export class AuthorityErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
-    return !!(control && control.invalid && (control.dirty || control.touched));
+    return !!(control && control.invalid && (control.dirty || control.touched || holdsConstraintError(control)));
   }
 }
 
@@ -72,7 +73,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    */
   options!: FormGroup;
   inputValueControl!: FormControl<string | null>;
-  errorStateMatcher = new AuthorityErrorStateMatcher();
+  errorStateMatcher = this.previewMatcher(new AuthorityErrorStateMatcher());
   /**
    * An empty list until `ngOnInit` builds the search pipeline, and for good in
    * read-only mode, where there is no autocomplete to feed. A real observable
@@ -310,6 +311,10 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     }
   }
 
+  protected override revealedControls(): AbstractControl[] {
+    return [this.options];
+  }
+
   setCurrentValue(value: AuthorityTerm): void {
     this.selectedData = value;
     this.inputValueControl.setValue(this.getCompoundValue(value), { emitEvent: true });
@@ -345,9 +350,8 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    * Whether to render the term as a value rather than as a control.
    *
    * Read-only with a term in hand: there is nothing to type into, and the identifier should be a
-   * link, which text inside an `input` cannot be. Read-only with nothing in hand keeps the control,
-   * whose placeholder states the specification — and with no instance behind the form the renderer
-   * has already replaced the whole field with its specification box.
+   * link, which text inside an `input` cannot be. An empty read-only input has no placeholder;
+   * the field renderer uses a specification box when there is no value to show.
    */
   get showsTermAsValue(): boolean {
     return this.readOnlyMode && this.selectedData !== null;

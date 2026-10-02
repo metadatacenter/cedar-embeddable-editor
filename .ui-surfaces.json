@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "repo": "cedar-embeddable-editor",
+  "browserHelper": "visual/tests/surface-contracts.generated.mjs",
+  "surfaces": [
+    {
+      "id": "cee.cee",
+      "name": "CEE",
+      "section": "Menus"
+    },
+    {
+      "id": "cee.download-menu",
+      "name": "Download Menu",
+      "section": "Menus",
+      "parent": "cee.cee",
+      "contract": "menu",
+      "scenario": "download",
+      "selector": ".mat-mdc-menu-panel",
+      "states": ["open"],
+      "source": [
+        {
+          "file": "src/app/modules/shared/components/download-menu/download-menu.component.html",
+          "anchor": "class=\"cee-download-menu\""
+        }
+      ],
+      "test": "visual/tests/surfaces.spec.ts"
+    },
+    {
+      "id": "cee.cee-view",
+      "name": "CEE",
+      "section": "Resource Dialogs"
+    },
+    {
+      "id": "cee.date-picker",
+      "name": "Date Picker",
+      "section": "Resource Dialogs",
+      "parent": "cee.cee-view",
+      "contract": "calendar",
+      "scenario": "date",
+      "selector": ".mat-datepicker-content",
+      "states": ["open"],
+      "source": [
+        {
+          "file": "src/app/modules/shared/components/date-picker/date-picker.component.html",
+          "anchor": "<mat-datepicker"
+        }
+      ],
+      "test": "visual/tests/surfaces.spec.ts"
+    },
+    {
+      "id": "cee.cee-view-4",
+      "name": "CEE",
+      "section": "Metadata Editor"
+    },
+    {
+      "id": "cee.form",
+      "name": "Form",
+      "section": "Metadata Editor",
+      "parent": "cee.cee-view-4",
+      "contract": "page",
+      "scenario": "form",
+      "selector": "app-cedar-embeddable-metadata-editor",
+      "states": ["open"],
+      "source": [
+        {
+          "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.html",
+          "anchor": "class=\"template-header\""
+        }
+      ],
+      "test": "visual/tests/surfaces.spec.ts"
+    },
+    {
+      "id": "cee.form-read-only",
+      "name": "Read-Only Form",
+      "section": "Metadata Editor",
+      "parent": "cee.cee-view-4",
+      "contract": "page",
+      "scenario": "read-only-form",
+      "selector": "app-cedar-embeddable-metadata-editor",
+      "states": ["open"],
+      "source": [
+        {
+          "file": "src/app/modules/shared/components/cedar-embeddable-metadata-editor/cedar-embeddable-metadata-editor.component.html",
+          "anchor": "class=\"template-header\""
+        }
+      ],
+      "test": "visual/tests/surfaces.spec.ts"
+    }
+  ]
+}

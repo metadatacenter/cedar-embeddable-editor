@@ -53,7 +53,12 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
    * clicked, and a group is either as soon as one of its controls is.
    */
   get showsRequiredError(): boolean {
-    return !this.readOnlyMode && (this.options.dirty || this.options.touched) && this.options.hasError('required');
+    return (
+      !this.readOnlyMode &&
+      !this.quietEmptyPreview(this.options.get(CedarInputCheckboxComponent.SELECTION)?.value) &&
+      (this.options.dirty || this.options.touched) &&
+      this.options.hasError('required')
+    );
   }
 
   override ngOnInit(): void {
@@ -87,6 +92,10 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
       return;
     }
     this.setInput(checkbox.checked, checkbox.value);
+  }
+
+  protected override revealedControls(): AbstractControl[] {
+    return [this.options];
   }
 
   /**

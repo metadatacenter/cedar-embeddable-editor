@@ -16,7 +16,9 @@
   @if (contentError) {
     <p class="video-error" role="alert">{{ contentError.key | translate: contentError.params }}</p>
   }
-  <mat-card-content>
-    {{ component.labelInfo.description }}
-  </mat-card-content>
+  @if (component.labelInfo.description) {
+    <mat-card-content>
+      {{ component.labelInfo.description }}
+    </mat-card-content>
+  }
 </mat-card>

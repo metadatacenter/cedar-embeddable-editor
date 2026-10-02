@@ -81,6 +81,16 @@ test('keeps a Material overlay inside the custom element', async ({ page }) => {
   expect(placement.outside).toBe(0);
 });
 
+test('keeps the space beneath a static image card', async ({ page }) => {
+  await open(page, '05-static-paged');
+  const margin = await page
+    .locator('app-cedar-static-image mat-card')
+    .first()
+    .evaluate((card) => getComputedStyle(card).marginBottom);
+  // A later global rule zeroes every card's bottom margin; without this space the next field abuts the image.
+  expect(margin).toBe('16px');
+});
+
 test('renders YouTube content as a native iframe without the Player API', async ({ page }) => {
   await page.route('https://www.youtube.com/embed/**', (route) =>
     route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>YouTube stub</title>' }),
@@ -95,11 +105,13 @@ test('renders YouTube content as a native iframe without the Player API', async 
     const card = component.querySelector('mat-card')!.getBoundingClientRect();
     const player = component.querySelector('iframe')!.getBoundingClientRect();
     return {
-      card: { width: card.width },
+      card: { width: card.width, marginBottom: getComputedStyle(component.querySelector('mat-card')!).marginBottom },
       player: { width: player.width, height: player.height },
     };
   });
   expect(dimensions.card.width).toBeCloseTo(400, 0);
+  // A later global rule zeroes every card's bottom margin; without this space the next field abuts the video.
+  expect(dimensions.card.marginBottom).toBe('16px');
   expect(dimensions.player.width).toBeCloseTo(398, 0);
   expect(dimensions.player.width / dimensions.player.height).toBeCloseTo(4 / 3, 2);
   await expect(page.locator('youtube-player')).toHaveCount(0);

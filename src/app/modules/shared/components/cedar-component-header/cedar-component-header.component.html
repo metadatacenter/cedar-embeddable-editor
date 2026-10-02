@@ -1,5 +1,5 @@
 <div class="flex-container" [class.has-spec]="readOnlyMode && fieldToDescribe">
-  @if (fieldTypeIcon) {
+  @if (fieldTypeIcon && disclosure === null) {
     <span class="field-icon-slot" [class.ontology-icon-slot]="isOntologyField" aria-hidden="true" data-field-type-icon>
       <mat-icon class="field-type-icon" [cedarIcon]="fieldTypeIcon"></mat-icon>
     </span>
@@ -33,7 +33,12 @@
     over the right of this row, and a slot that moved with the icons would leave it
     nothing to stop against.
   -->
-  <span class="header-trailing">
+  <span class="header-trailing" [class.has-disclosure]="disclosure !== null">
+    @if (disclosure !== null) {
+      <span class="disclosure-slot" aria-hidden="true" data-disclosure>
+        <mat-icon class="disclosure-icon" [class.expanded]="disclosure" cedarIcon="chevron-down"></mat-icon>
+      </span>
+    }
     @if (!readOnlyMode && component.labelInfo.description) {
       <mat-icon
         cedarIcon="help"

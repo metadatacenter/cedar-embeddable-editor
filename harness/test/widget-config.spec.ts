@@ -48,6 +48,7 @@ const stand = () => {
 
   return {
     endpoints,
+    preferences,
     readOnly,
     trusted: () => trusted,
     coordinator: new WidgetConfigCoordinator(authorities, trust, preferences),
@@ -131,4 +132,15 @@ describe('trusting a template author', () => {
 
     expect(stood.trusted()).toBe(true);
   });
+});
+
+it('opts both widgets into quiet empty fields without changing required validation or ordinary defaults', () => {
+  const preview = stand();
+  const ordinary = stand();
+  preview.coordinator.apply({ suppressEmptyFieldErrors: true }, false);
+  ordinary.coordinator.apply({}, false);
+  expect(preview.preferences.suppressEmptyFieldErrors).toBe(true);
+  expect(ordinary.preferences.suppressEmptyFieldErrors).toBe(false);
+  preview.coordinator.apply({}, false);
+  expect(preview.preferences.suppressEmptyFieldErrors).toBe(false);
 });

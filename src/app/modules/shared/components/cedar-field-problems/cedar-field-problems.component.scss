@@ -1,0 +1,11 @@
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
+
+/*
+ * The size and leading Material gives the error under a form field, so a problem the
+ * report found reads like one the control found, and sits in the same place.
+ */
+.cee-field-problem {
+  display: block;
+  font-size: tokens.$font-size-small;
+  line-height: tokens.$control-line-height-authoring;
+}

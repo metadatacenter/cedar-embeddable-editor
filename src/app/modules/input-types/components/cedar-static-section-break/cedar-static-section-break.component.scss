@@ -3,10 +3,10 @@
 
 .section-break-header {
   box-sizing: border-box;
-  background-color: silver;
-  padding: 6px ui-tokens.$space-3;
-  border-radius: 5px;
-  margin: 5px 0;
+  background-color: tokens.$surface-subtle;
+  padding: ui-tokens.$space-2 ui-tokens.$space-3;
+  border-radius: tokens.$radius;
+  margin: ui-tokens.$space-1 0;
 
   /*
    * Read-only, a rule under the words rather than a silver bar. The bar was the loudest thing on a
@@ -15,10 +15,10 @@
    */
   :host-context(.cee-read-only) & {
     background-color: transparent;
-    padding: 10px 0 ui-tokens.$space-1;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    padding: ui-tokens.$space-2 0 ui-tokens.$space-1;
+    border-bottom: 1px solid tokens.$border-rule;
     border-radius: 0;
-    margin: 6px 0 2px;
+    margin: ui-tokens.$space-2 0 0;
   }
   /*
    * 20px, from the scale, rather than 1.25rem.
@@ -30,5 +30,5 @@
    */
   font-size: tokens.$font-size-heading;
   font-weight: var(--cedar-font-weight-medium, 500);
-  line-height: 1.4;
+  line-height: tokens.$line-height-heading;
 }

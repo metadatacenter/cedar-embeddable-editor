@@ -30,9 +30,9 @@
   flex-shrink: 0;
   min-height: 48px;
   padding-inline: ui-tokens.$space-2;
-  border: 1px solid tokens.$border-control;
-  border-radius: 4px;
-  background: white;
+  border: 1px solid tokens.$control-border-default;
+  border-radius: tokens.$radius;
+  background: tokens.$surface-raised;
   color: inherit;
 
   &:focus-within {
@@ -55,13 +55,13 @@
   font-variant-numeric: tabular-nums;
 
   &::placeholder {
-    color: #6f6f6f;
+    color: tokens.$text-muted;
     opacity: 1;
   }
 
   &:focus {
-    background: color-mix(in srgb, #{tokens.$color-primary} 9%, transparent);
-    border-radius: 2px;
+    background: tokens.$surface-selected;
+    border-radius: tokens.$radius;
   }
 }
 
@@ -124,7 +124,7 @@
   width: 0;
   min-width: 100%;
   margin: 0;
-  color: tokens.$color-warning;
+  color: tokens.$status-warning-text;
   font-size: tokens.$font-size;
-  line-height: 1.35;
+  line-height: tokens.$control-line-height-default;
 }

@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import {
+  AbstractControl,
   FormBuilder,
   FormControl,
   FormGroup,
@@ -36,9 +37,10 @@ import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { narrowByQuery } from '../../../shared/util/authority-narrowing';
 import { bioPortalSourceLink, bioPortalTermLink } from '../../../shared/util/bioportal-term-link';
 import { SpecTermSource, specTermSourcesOf } from '../../../shared/util/field-spec';
+import { holdsConstraintError } from '../../edited-field-error-state-matcher';
 export class TextFieldErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null, _form: FormGroupDirective | NgForm | null): boolean {
-    return !!(control && control.invalid && (control.dirty || control.touched));
+    return !!(control && control.invalid && (control.dirty || control.touched || holdsConstraintError(control)));
   }
 }
 @Component({
@@ -80,7 +82,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
    */
   options!: FormGroup;
   inputValueControl = new FormControl<string | null>(null, null);
-  errorStateMatcher = new TextFieldErrorStateMatcher();
+  errorStateMatcher = this.previewMatcher(new TextFieldErrorStateMatcher());
   @Input({ required: true }) handlerContext!: HandlerContext;
   model: AuthorityTerm | null = null;
   /**
@@ -275,6 +277,10 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => (this.justCleared = false));
   }
+  protected override revealedControls(): AbstractControl[] {
+    return [this.options];
+  }
+
   setCurrentValue(currentValue: unknown): void {
     // Remember the term itself, not only its rendering. It is what the BioPortal
     // link is built from, and read-write selection records it the same way.

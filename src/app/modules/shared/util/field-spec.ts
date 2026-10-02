@@ -70,8 +70,8 @@ export type SpecFact = {
  * A specification reads `min 12 chars · pattern ^HBM… · default HBM386.ZGKG.235`, and those lead-in
  * words are signposts rather than values — so they are set in italics, which means they have to be
  * marked up rather than baked into the fact's own string. The split lives here, beside the facts, so
- * the three surfaces that state a fact agree: the heading row, the box that replaces an empty
- * control, and the placeholder inside a control that has one. It used to live in the box's template
+ * the surfaces that state a fact agree: the heading row and the box that replaces an empty
+ * control. It used to live in the box's template
  * and covered four of the seven, so `pattern` and `default` read as values of themselves and the
  * heading row italicized nothing at all.
  *
@@ -104,7 +104,7 @@ export type SpecTermSource = {
    * not already know that DOID is the Human Disease Ontology learns nothing from the acronym alone.
    */
   readonly container: string | null;
-  /** The acronym or value-set collection, shown in parentheses after the name it abbreviates. */
+  /** The acronym or value-set collection, retained for links even when the container already names it. */
   readonly acronym: string | null;
   readonly uri: string | null;
 };
@@ -219,10 +219,9 @@ function temporalFacts(field: FieldComponent): SpecFact[] {
 /**
  * The facts that occupy the field-name row in read-only rendering.
  *
- * Most widgets carry their specification in their own placeholder, so putting the same facts beside
- * the name would say them twice. Radio and checkbox groups have no placeholder, and an
- * attribute-value field has two boxes whose placeholders name the pair rather than its constraints;
- * those are the fields whose facts remain on the header row.
+ * Most empty read-only widgets use a specification box, so putting the same facts beside the name
+ * would say them twice. Radio, checkbox and attribute-value fields retain their controls and
+ * state their facts on the header row.
  *
  * Kept here rather than in the component that renders the facts because layout also needs to know
  * whether that row is occupied: a repeating field can share an empty row with its occurrence chips,
@@ -344,22 +343,24 @@ const spelledOutName = (source: string | undefined, acronym: string | undefined)
   return name === '' || name === 'undefined' ? null : source;
 };
 
+/** Empty labels carry no display information; keep the next available label or identifier. */
+const sourceName = (...candidates: (string | undefined)[]): string =>
+  candidates.find((candidate) => candidate?.trim()) ?? '';
+
 const branchSource = (branch: BranchConstraint): SpecTermSource => {
   const container = spelledOutName(branch.source, branch.acronym);
-  const namesItsOwnAcronym =
-    container !== null && branch.acronym !== undefined && container.includes(`(${branch.acronym})`);
   return {
     kind: 'branch',
-    name: branch.name ?? branch.uri ?? '',
+    name: sourceName(branch.name, branch.uri),
     container,
-    acronym: namesItsOwnAcronym ? null : (branch.acronym ?? null),
+    acronym: branch.acronym ?? null,
     uri: branch.uri ?? null,
   };
 };
 
 const ontologySource = (ontology: OntologyConstraint): SpecTermSource => ({
   kind: 'ontology',
-  name: ontology.name ?? ontology.uri ?? '',
+  name: sourceName(ontology.name, ontology.uri),
   container: null,
   acronym: ontology.acronym ?? null,
   uri: ontology.uri ?? null,
@@ -367,7 +368,7 @@ const ontologySource = (ontology: OntologyConstraint): SpecTermSource => ({
 
 const valueSetSource = (valueSet: ValueSetConstraint): SpecTermSource => ({
   kind: 'valueSet',
-  name: valueSet.name ?? valueSet.uri ?? '',
+  name: sourceName(valueSet.name, valueSet.uri),
   container: null,
   acronym: valueSet.vsCollection ?? null,
   uri: valueSet.uri ?? null,
@@ -377,7 +378,7 @@ const classSource = (entry: ClassConstraint): SpecTermSource => ({
   // Some producers use the classes array for a fixed value. Preserve that distinction in the label
   // while treating an absent type as the ontology class shape the model names.
   kind: entry.type === 'Value' ? 'value' : 'class',
-  name: entry.prefLabel ?? entry.label ?? entry.uri ?? '',
+  name: sourceName(entry.prefLabel, entry.label, entry.uri),
   // A class names its ontology by acronym in `source`, where a branch names it in full. Reading it as
   // a container produced "class asthma of the DOID": an acronym in the slot for a spelled-out name.
   container: null,

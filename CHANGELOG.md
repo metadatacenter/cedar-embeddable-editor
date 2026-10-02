@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.19] - 2026-10-02
+
+Aligns with `cedar-model-typescript-library@1.0.15`.
+
+- Includes `reveal` for taking the user to a field, data quality problems located by the entries that hold them, and stored problems shown at their fields.
+
 ## [2.0.18] - 2026-09-26
 
 Aligns with `cedar-model-typescript-library@1.0.15`.
@@ -20,6 +26,17 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
 ## [Unreleased]
 
 ### Added
+
+- `reveal(location, options)` on `cedar-embeddable-editor`, which takes the user to a field or
+  element: it turns to the field's page, moves each repeating field or element above it to the
+  named entry, opens the panels around it, scrolls it into view and focuses its control.
+  `{ focus: false }` scrolls without taking focus. It resolves to whether the field could be
+  shown, and changes nothing when it cannot. A problem from the data quality report is itself a
+  location, so a host listing the problems can pass each one straight to `reveal`.
+- `occurrences` on each data quality problem: the entry of each repeating field or element along
+  its path, outermost first. A path alone names one place per entry of everything above it, so a
+  host could not say which entry held a bad value. The same bad value in two entries is now two
+  problems.
 
 - A second element, `cedar-embeddable-field`, registered by the same bundle. It renders one field's
   control and nothing of the form around it, for a host that holds a field artifact rather
@@ -43,6 +60,18 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
   the 840,000 the size gate allows.
 
 ### Changed
+
+- A field shows what is wrong with a value loaded from a stored instance as soon as the form opens.
+  The error states waited for the control to be edited or touched, so a field the data quality
+  report listed as invalid showed nothing. An empty required field still waits, until the user
+  edits it or is taken to it with `reveal`.
+- The data quality report states at the field the problems no control can find: a stored choice
+  that is not one of the options, a term missing its label or its IRI, an authority identifier
+  that is not a valid IRI, and a list longer than its `maxItems`. A list shorter than its
+  `minItems` is stated once the user is taken to it.
+- The data quality report no longer reports `missingProperty`. It described a repeating field or
+  element absent from the instance CEE read, which CEE writes out as an empty list, so it warned
+  about a defect that saving removed and that no field could show.
 
 - A numeric field's type constraint and a temporal field's errors follow the configured
   language. The numeric sentence was English written into the validator, and the temporal
@@ -85,6 +114,9 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
 
 ### Fixed
 
+- `minItems` and `maxItems` on a repeating field inside a repeating element are checked in
+  every entry of the element. They were checked in the entry on screen, so the report changed
+  with the page the user had moved to.
 - Reassigning `cedar-embeddable-field.fieldObject` recreates the control even when the field type
   stays the same, so validators and other initialized settings follow the new artifact.
 - `cedar-embeddable-field` emits `valueChange` when validity changes even if the normalized value

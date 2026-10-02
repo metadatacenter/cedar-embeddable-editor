@@ -1,4 +1,30 @@
 {
+  "FieldType": {
+    "numeric": "Number",
+    "textfield": "Text",
+    "textarea": "Paragraph",
+    "richtext": "Rich text",
+    "controlled": "Controlled term",
+    "email": "Email address",
+    "link": "Link",
+    "ext-orcid": "ORCID",
+    "ext-ror": "ROR organization",
+    "ext-pfas": "PFAS chemical",
+    "ext-pubmed": "PubMed ID",
+    "ext-rrid": "Research resource ID",
+    "ext-nih-grant-id": "NIH Grant ID",
+    "ext-doi": "DOI",
+    "phone-number": "Phone number",
+    "list": "List",
+    "checkbox": "Checkboxes",
+    "radio": "Radio buttons",
+    "temporal": "Date / time",
+    "image": "Image",
+    "youtube": "Video",
+    "section-break": "Section break",
+    "page-break": "Page break",
+    "attribute-value": "Attribute–value pairs"
+  },
   "Generic": {
     "Searching": "Searching…",
     "SAVE": "SAVE",
@@ -114,6 +140,7 @@
       "InvalidTimezoneOffset": "The timezone offset is not a valid UTC offset. Choose one from the list."
     },
     "Text": {
+      "Pattern": "Value does not match the required format.",
       "MinLength": "Value should be at least {{constraintMinLength}} chars long.",
       "MaxLength": "Value should be at most {{constraintMaxLength}} chars long."
     },
@@ -175,6 +202,13 @@
       "NameInvalid": "Attribute name must contain text and no control characters.",
       "NameReserved": "Attribute name \"{{name}}\" is reserved for instance metadata.",
       "NameInUse": "Attribute name \"{{name}}\" is already used in this instance. Choose a unique name."
+    },
+    "Report": {
+      "ChoiceMembership": "\"{{value}}\" is not one of the options for this field.",
+      "ControlledStructure": "The stored term is missing its label or its IRI.",
+      "IriMalformed": "The stored identifier is not a valid IRI.",
+      "MinItems": "At least {{min}} entries are required.",
+      "MaxItems": "At most {{max}} entries are allowed."
     }
   },
   "Spec": {

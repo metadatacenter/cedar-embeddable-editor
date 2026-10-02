@@ -413,6 +413,7 @@ test.describe('field type markers', () => {
   test('controlled terms and authorities use shared semantic icons', async ({ page }) => {
     await open(page, '04-controlled-terms');
     await expect(page.locator('.ontology-icon-slot svg')).toHaveAttribute('data-cedar-icon', 'field-controlled');
+    await expect(page.locator('.ontology-icon-slot')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await expect(page.locator('[data-cedar-icon="authority-person"]')).toHaveCount(1);
     await expect(page.locator('[data-cedar-icon="authority-organization"]')).toHaveCount(1);
     await expect(page.locator('[data-field-type-icon]')).toHaveCount(3);
@@ -428,7 +429,8 @@ test.describe('field type markers', () => {
     await expect(elementMarker).toHaveAttribute('aria-label', `Property IRI: ${iri}`);
     await expect(elementMarker.locator('svg')).toHaveAttribute('data-cedar-icon', 'property');
     await expect(elementMarker.locator('a')).toHaveCount(0);
-    await expect(elementMarker).toHaveCSS('color', 'rgb(107, 107, 107)');
+    // The glyph takes the icon role like every other icon; quiet means no link and no badge.
+    await expect(elementMarker.locator('svg')).toHaveCSS('color', 'rgb(15, 118, 134)');
 
     const alignment = await elementMarker.evaluate((marker) => {
       const markerBox = marker.getBoundingClientRect();
@@ -788,11 +790,55 @@ test('an expansion panel collapses and expands', async ({ page }) => {
   await expect(page).toHaveScreenshot('nested-collapsed.png', { fullPage: true });
 });
 
+for (const preset of [undefined, 'readonly'] as const) {
+  test(`an element heading lines up with its fields${preset ? ' when read' : ''}`, async ({ page }) => {
+    await open(page, '03-nested-multi', preset);
+    // The element's name starts where a field's type icon does, the chevron leads the heading's
+    // trailing marks, and those marks end where a field's end.
+    const geometry = await page.evaluate(() => {
+      const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+      const panel = root.querySelector('mat-expansion-panel')!;
+      const heading = panel.querySelector('mat-expansion-panel-header')!;
+      const field = panel.querySelector('.cee-element-content app-cedar-component-header')!;
+      const box = (scope: Element, selector: string) => scope.querySelector(selector)!.getBoundingClientRect();
+      const trailing = heading.querySelector('.header-trailing')!;
+      const marks = [...trailing.querySelectorAll(':scope > *')].map((mark) => mark.getBoundingClientRect());
+      return {
+        icon: box(field, '[data-field-type-icon]').left,
+        title: box(heading, '.title-label').left,
+        chevronIsFirstMark: trailing.firstElementChild!.hasAttribute('data-disclosure'),
+        chevronRight: box(heading, '[data-disclosure]').right,
+        nextMarkLeft: marks.length > 1 ? marks[1].left : Infinity,
+        headingEnd: box(heading, '.property-iri').right,
+        fieldEnd: box(field, '.property-iri').right,
+      };
+    });
+    expect(Math.abs(geometry.title - geometry.icon)).toBeLessThan(1);
+    expect(geometry.chevronIsFirstMark).toBe(true);
+    expect(geometry.chevronRight).toBeLessThanOrEqual(geometry.nextMarkLeft);
+    expect(Math.abs(geometry.headingEnd - geometry.fieldEnd)).toBeLessThan(1);
+  });
+}
+
 test('a required field shows its indicator', async ({ page }) => {
   await open(page, '01-input-types');
   // `text` is the one deployed with withRequiredValue(true).
   await expect(page.getByText('text', { exact: false }).first()).toBeVisible();
   await expect(page).toHaveScreenshot('required-indicator.png', { fullPage: true });
+  // The raised mark must not make a required heading taller than an optional one, or the type icon
+  // centred beside it no longer lines up with the label.
+  const heights = await page.evaluate(() =>
+    [...document.querySelector('cedar-embeddable-editor')!.shadowRoot!.querySelectorAll('app-cedar-component-header')]
+      .filter((header) => header.querySelector('[data-field-type-icon]'))
+      .map((header) => ({
+        required: !!header.querySelector('.required-mark'),
+        height: header.getBoundingClientRect().height,
+      })),
+  );
+  const required = heights.filter((h) => h.required).map((h) => h.height);
+  const optional = heights.filter((h) => !h.required).map((h) => h.height);
+  expect(required.length).toBeGreaterThan(0);
+  expect(new Set([...required, ...optional])).toEqual(new Set([optional[0]]));
 });
 
 /**
@@ -1145,6 +1191,11 @@ test.describe('config presets', () => {
    */
   test('readonly: inputs are not editable', async ({ page }) => {
     await open(page, '01-input-types', 'readonly');
+    const paragraph = page.locator('.non-iterable-component').filter({ hasText: 'textarea property description' });
+    // A field's type icon names its type, so reading does not repeat it as text.
+    await expect(paragraph.locator('[data-field-type-icon]')).toHaveCount(1);
+    await expect(page.locator('.cee-field-type')).toHaveCount(0);
+    await expect(paragraph.locator('.cee-spec-box')).toBeEmpty();
     await expect(page).toHaveScreenshot('preset-readonly.png', { fullPage: true });
   });
 
@@ -1504,7 +1555,7 @@ test.describe('the version stamp', () => {
 });
 
 /*
- * Expand All, Collapse All and the download menu, at the header's right edge.
+ * Expand All, Collapse All and the download menu, ending where the fields' marks end.
  *
  * Between 520px and 1100px the header stacks and those buttons take a row of
  * their own, shared with the paginator when the template has page breaks. That
@@ -1519,11 +1570,12 @@ test.describe('the version stamp', () => {
 test.describe('the header actions', () => {
   const rightEdges = (page: Page) =>
     page.locator('.template-header').evaluate((header) => {
-      const buttons = header.querySelector('.expand-buttons')!.getBoundingClientRect();
+      const root = header.getRootNode() as ShadowRoot;
+      const glyphs = [...header.querySelectorAll('.expand-buttons svg')];
       return {
-        // The header's content edge, which its padding holds off the card.
-        header: Math.round(header.getBoundingClientRect().right - parseFloat(getComputedStyle(header).paddingRight)),
-        buttons: Math.round(buttons.right),
+        // The column the fields' marks share ends with a field's property glyph.
+        field: Math.round(root.querySelector('.template-content .property-iri svg')!.getBoundingClientRect().right),
+        buttons: Math.round(glyphs.at(-1)!.getBoundingClientRect().right),
       };
     });
 
@@ -1536,7 +1588,7 @@ test.describe('the header actions', () => {
       await open(page, fixture);
 
       const edges = await rightEdges(page);
-      expect(edges.buttons, 'the buttons end where the header ends').toBe(edges.header);
+      expect(edges.buttons, "the last action ends where a field's property glyph ends").toBe(edges.field);
     });
   }
 });
@@ -3197,11 +3249,11 @@ test.describe('a link rendered as a value', () => {
     expect((await linkField.locator('.cee-term-link').boundingBox())?.height).toBe(36);
   });
 
-  test('keeps an empty read-only template link as its specification box', async ({ page }) => {
+  test('describes an empty read-only template link in a visible field box', async ({ page }) => {
     await open(page, '01-input-types', 'readonly');
 
     const linkRenderer = page.locator('.non-iterable-component').filter({ hasText: 'link property description' });
-    await expect(linkRenderer.locator('.cee-spec-box')).toBeVisible();
+    await expect(linkRenderer.locator('.cee-spec-box')).toBeEmpty();
     await expect(linkRenderer.locator('.cee-term-link')).toHaveCount(0);
     await expect(linkRenderer.locator('input')).toHaveCount(0);
   });
@@ -3258,7 +3310,7 @@ test.describe('a multi-instance field paging its values', () => {
 
     const range = page.locator('.multi-instance-range').first();
     await expect(range).toHaveText('(0 .. ∞)');
-    await expect(range).toHaveCSS('color', 'rgb(107, 107, 107)');
+    await expect(range).toHaveCSS('color', 'rgb(85, 85, 85)');
     const chips = await boxesOf(page, '.mat-mdc-chip');
     expect(chips.length, 'two values page, so there are chips to collide with').toBeGreaterThan(0);
     const ranges = await boxesOf(page, '.multi-instance-range');
@@ -3344,6 +3396,9 @@ test.describe('read-only belongs to the host', () => {
 
     await expect(page.locator('input[aria-label="email"]')).toHaveAttribute('readonly', 'true');
     await expect(page.locator('input[aria-label="numeric"]')).toHaveAttribute('readonly', 'true');
+    await expect(
+      page.locator('input[placeholder]:not([placeholder=""]), textarea[placeholder]:not([placeholder=""])'),
+    ).toHaveCount(0);
   });
 
   /**
@@ -3689,6 +3744,19 @@ test.describe('date calendar selection', () => {
 test('every download menu icon renders shared SVG without font requests', async ({ page }) => {
   await open(page, '01-input-types', undefined, undefined, undefined, '&f=showDownloadMenu');
   await page.locator('.download-trigger').click();
+  const menuIcons = page.locator('.cee-download-menu .mat-mdc-menu-item mat-icon');
+  expect(await menuIcons.count()).toBeGreaterThan(0);
+  for (const icon of await menuIcons.all()) {
+    const colors = await icon.evaluate((node) => {
+      const probe = document.createElement('span');
+      probe.style.color = 'var(--cedar-color-primary)';
+      node.append(probe);
+      const expected = getComputedStyle(probe).color;
+      probe.remove();
+      return { actual: getComputedStyle(node).color, expected };
+    });
+    expect(colors.actual).toBe(colors.expected);
+  }
   const icons = page.locator('mat-icon');
   expect(await icons.count()).toBeGreaterThan(7);
   for (const icon of await icons.all()) {
@@ -3904,4 +3972,25 @@ test('editable choice rows are compact and their controls do not overlap adjacen
   }
   const clear = page.getByRole('button', { name: 'Clear', exact: true }).first();
   expect((await clear.boundingBox())!.height).toBe(28);
+});
+
+test.describe('preview host heading', () => {
+  for (const readOnly of [false, true]) {
+    test(`preview omits identity header with readOnly=${readOnly}`, async ({ page }) => {
+      await open(
+        page,
+        '01-input-types',
+        undefined,
+        undefined,
+        undefined,
+        '&f=previewMode,showTemplateDescription' + (readOnly ? ',readOnlyMode' : ''),
+      );
+      await expect(page.locator('.logo-block')).toHaveCount(0);
+      await expect(page.locator('.template-title-block')).toHaveCount(0);
+      await expect(page.locator('.template-provenance')).toHaveCount(0);
+      await expect(page.locator('.template-content')).toHaveCSS('padding', '0px');
+      await expect(page.locator('.template-description')).toHaveCount(1);
+      if (!readOnly) await expect(page.locator('input[aria-label="text"]')).toBeEditable();
+    });
+  }
 });

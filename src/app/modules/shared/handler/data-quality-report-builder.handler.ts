@@ -8,7 +8,6 @@ import { ElementComponent } from '../models/component/element-component.model';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
-import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
 import { HandlerContext } from '../util/handler-context';
 import { InstanceValueNode } from '../util/instance-value-node';
 import { valueIsIri } from '../models/ext-auth-categories.model';
@@ -17,22 +16,38 @@ import { ValidationCode, ValidationProblem } from '../validation/validation-prob
 import { InputType } from '../models/input-type.model';
 import { BasicInfo } from '../models/info/basic-info.model';
 import { MultiInfo } from '../models/info/multi-info.model';
-import { InstanceNode, isInstanceObject } from '../models/instance-node.model';
+import { InstanceNode, childOf, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 
 /**
- * What the two problem collectors read off a component.
+ * What the cardinality check reads off a component.
  *
  * `CedarComponent` declares neither `basicInfo` nor `multiInfo` — the first
- * belongs to fields, the second to multi-instance components — and both
- * collectors are called with elements, templates and fields alike. They already
- * optional-chain both and fall back, so the shape they actually require is the
- * common interface plus those two as optional. Written down rather than left as
- * `any`, which said nothing and permitted everything.
+ * belongs to fields, the second to multi-instance components — and the check is
+ * called with elements and fields alike. It already optional-chains both and
+ * falls back, so the shape it actually requires is the common interface plus
+ * those two as optional. Written down rather than left as `any`, which said
+ * nothing and permitted everything.
  */
 type InspectedComponent = CedarComponent & {
   basicInfo?: BasicInfo;
   multiInfo?: MultiInfo;
 };
+
+/**
+ * A node the walk has reached, and where it sits.
+ *
+ * `occurrences` holds the entry taken at each repeating component above the node,
+ * outermost first, which is the shape `HandlerContext.getDataObjectNodeAt` reads.
+ * A component path alone names one node per entry of every repeating ancestor, so
+ * a problem located by its path could not say which entry held the bad value, and
+ * a host could not take the user to it. `node` is null where the instance holds
+ * nothing, so the components below are still checked: an absent element is
+ * written out empty, and an empty element can still be too short a list.
+ */
+interface Located {
+  node: InstanceNode | null;
+  occurrences: number[];
+}
 
 /**
  * Builds the data quality report from a template and the instance under it.
@@ -41,85 +56,80 @@ type InspectedComponent = CedarComponent & {
  * and `templateRepresentation` were declared and never read, and `report` is a
  * local that one method builds and returns — it reaches the recursion as an
  * argument, which is why it never needed to be a field.
+ *
+ * The walk follows the instance, entry by entry, rather than the cursor each pager
+ * moves. Which entry is on screen must not change what the report says. The value
+ * checks already walked the whole instance; the cardinality checks read the count
+ * of the entry on screen, so a repeating field inside a repeating element was
+ * judged by whichever entry of the element the user had paged to.
  */
 export class DataQualityReportBuilderHandler {
   buildReport(dataContext: DataContext, handlerContext: HandlerContext): DataQualityReport {
     const report = new DataQualityReport();
 
     if (dataContext.templateRepresentation != null && dataContext.templateInput != null) {
-      const rootState = handlerContext.multiInstanceObjectService.rootState;
+      const root: Located = { node: dataContext.instanceFullData?.dataContainer ?? null, occurrences: [] };
       for (const child of dataContext.templateRepresentation.children) {
-        DataQualityReportBuilderHandler.buildRecursively(child, report, rootState.getState(child.name), handlerContext);
+        DataQualityReportBuilderHandler.buildRecursively(child, [root], report, handlerContext);
       }
     }
     report.computeValidity();
     return report;
   }
 
+  /**
+   * Check one component in every container that holds it.
+   *
+   * `parents` are the containers the component's property sits in: one per entry
+   * of each repeating element above it, so the same declaration is checked once
+   * for every place the instance can hold it.
+   */
   private static buildRecursively(
     component: CedarComponent,
+    parents: Located[],
     report: DataQualityReport,
-    multiInstanceState: MultiInstanceObjectInfo | null,
     handlerContext: HandlerContext,
   ): void {
-    if (
-      component instanceof SingleElementComponent ||
-      component instanceof MultiElementComponent ||
-      component instanceof CedarTemplate
-    ) {
-      const iterableComponent: ElementComponent = component as ElementComponent;
-      if (component instanceof MultiElementComponent) {
-        const multiCount = multiInstanceState?.currentCount ?? 0;
-        DataQualityReportBuilderHandler.collectPresenceProblems(
-          component,
-          handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
-          report,
-        );
-        DataQualityReportBuilderHandler.collectCardinalityProblems(component, multiCount, report);
-        if (multiCount > 0) {
-          const currentIndex = multiInstanceState?.currentIndex ?? -1;
-          const childStates = currentIndex >= 0 ? multiInstanceState?.occurrences[currentIndex] : undefined;
-          for (const childComponent of iterableComponent.children) {
-            DataQualityReportBuilderHandler.buildRecursively(
-              childComponent,
-              report,
-              childStates?.getState(childComponent.name) ?? null,
-              handlerContext,
-            );
-          }
+    if (component instanceof MultiElementComponent) {
+      const entries: Located[] = [];
+      for (const parent of parents) {
+        const held = DataQualityReportBuilderHandler.entriesOf(parent.node, component.name);
+        DataQualityReportBuilderHandler.collectCardinalityProblems(component, held.length, parent.occurrences, report);
+        held.forEach((node, index) => entries.push({ node, occurrences: [...parent.occurrences, index] }));
+      }
+      // An element nobody has added has no fields to count or check, which is what
+      // a host reading `requiredFieldValueCount` has always been told.
+      if (entries.length > 0) {
+        for (const childComponent of (component as ElementComponent).children) {
+          DataQualityReportBuilderHandler.buildRecursively(childComponent, entries, report, handlerContext);
         }
-      } else {
-        const childStates = multiInstanceState?.occurrences[0];
-        for (const childComponent of iterableComponent.children) {
-          DataQualityReportBuilderHandler.buildRecursively(
-            childComponent,
-            report,
-            childStates?.getState(childComponent.name) ?? null,
-            handlerContext,
-          );
-        }
+      }
+    } else if (component instanceof SingleElementComponent || component instanceof CedarTemplate) {
+      const containers = parents.map((parent) => ({
+        node: childOf(parent.node, component.name),
+        occurrences: parent.occurrences,
+      }));
+      for (const childComponent of (component as ElementComponent).children) {
+        DataQualityReportBuilderHandler.buildRecursively(childComponent, containers, report, handlerContext);
       }
     }
     if (component instanceof SingleFieldComponent || component instanceof MultiFieldComponent) {
       const nonIterableComponent = component as FieldComponent;
-      const dataValueObject: InstanceNode | null = handlerContext.getDataObjectNodeByPath(component.path);
       DataQualityReportBuilderHandler.collectFieldProblems(
         nonIterableComponent,
-        dataValueObject,
-        handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
+        parents,
+        handlerContext.getDataObjectNodeByPath(component.path),
         report,
       );
       if (component instanceof MultiFieldComponent) {
-        DataQualityReportBuilderHandler.collectPresenceProblems(
-          nonIterableComponent,
-          handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
-          report,
-        );
-        DataQualityReportBuilderHandler.collectCardinalityProblems(
-          nonIterableComponent,
-          multiInstanceState?.currentCount ?? 0,
-          report,
-        );
+        for (const parent of parents) {
+          DataQualityReportBuilderHandler.collectCardinalityProblems(
+            nonIterableComponent,
+            DataQualityReportBuilderHandler.entriesOf(parent.node, component.name).length,
+            parent.occurrences,
+            report,
+          );
+        }
       }
       DataQualityReportBuilderHandler.countRequirement(component, report, handlerContext);
     }
@@ -140,7 +150,8 @@ export class DataQualityReportBuilderHandler {
    * number.
    *
    * Whether a requirement is satisfied is asked of the whole instance, not of
-   * the page currently on screen. See `findAnyValue`.
+   * the page currently on screen. See `findAnyValue`. The problem therefore names
+   * no entry: it belongs to the declaration, and any entry would satisfy it.
    */
   private static countRequirement(
     component: SingleFieldComponent | MultiFieldComponent,
@@ -174,111 +185,65 @@ export class DataQualityReportBuilderHandler {
   }
 
   /**
-   * Constraint problems for one field, across every instance that holds a value.
+   * Constraint problems for one field, in every entry that holds a value.
    *
    * Walks the whole extract instance rather than the displayed page, for the
    * same reason `findAnyValue` does: which page is on screen must not change
-   * whether the instance is reported as sound.
+   * whether the instance is reported as sound. Each problem carries the entry it
+   * was found in, so the same bad value in two entries is two problems a host can
+   * take the user to, rather than one it cannot.
    */
   private static collectFieldProblems(
     component: FieldComponent,
+    parents: Located[],
     displayedNode: InstanceNode | null,
-    instance: InstanceNode | null,
     report: DataQualityReport,
   ): void {
-    const nodes = DataQualityReportBuilderHandler.collectNodes(component.path, instance);
-    // Fall back to the displayed node when the path resolves to nothing, so a
-    // field is still checked if the instance shape is unexpected.
-    const targets = nodes.length > 0 ? nodes : displayedNode == null ? [] : [displayedNode];
+    const targets: Array<{ node: InstanceNode; occurrences: number[] }> = [];
+    // A list the form pages through is one value per entry. A checkbox group or a
+    // multiple-choice list is one value that happens to be a list, and its entries
+    // are selections rather than places a host could send the user.
+    const paged = component instanceof MultiFieldComponent && component.isMultiPage();
+    for (const parent of parents) {
+      const held = childOf(parent.node, component.name);
+      if (isInstanceArray(held)) {
+        held.forEach((node, index) => {
+          if (node !== null && node !== undefined) {
+            targets.push({ node, occurrences: paged ? [...parent.occurrences, index] : parent.occurrences });
+          }
+        });
+      } else if (held !== null) {
+        targets.push({ node: held, occurrences: parent.occurrences });
+      }
+    }
+    // Fall back to the displayed node when the instance holds nothing at the path,
+    // so a field is still checked if the instance shape is unexpected.
+    if (targets.length === 0 && displayedNode != null) {
+      targets.push({ node: displayedNode, occurrences: [] });
+    }
 
     const seen = new Set<string>();
-    for (const node of targets) {
-      for (const p of FieldValueValidator.validateControlledNode(component, node, component.path)) {
-        DataQualityReportBuilderHandler.addProblem(report, p, seen);
+    for (const target of targets) {
+      for (const p of FieldValueValidator.validateControlledNode(component, target.node, component.path)) {
+        DataQualityReportBuilderHandler.addProblem(report, p.at(target.occurrences), seen);
       }
-      const value = DataQualityReportBuilderHandler.extractPlainValue(node, component);
+      const value = DataQualityReportBuilderHandler.extractPlainValue(target.node, component);
       for (const p of FieldValueValidator.validate(component, value, component.path)) {
-        DataQualityReportBuilderHandler.addProblem(report, p, seen);
+        DataQualityReportBuilderHandler.addProblem(report, p.at(target.occurrences), seen);
       }
     }
   }
 
   /**
-   * A multi child's array has to *be there*, whatever `minItems` says.
+   * `minItems` / `maxItems`, which nothing enforced outside the pager's buttons.
    *
-   * `collectCardinalityProblems` below asks how many entries an array holds. This
-   * asks the prior question, and they are genuinely different: CEDAR lists a multi
-   * child in its parent's JSON Schema `required` array independently of any floor,
-   * so the property is required to be present even when nothing constrains its
-   * length. `[]` satisfies that. Absent does not, and neither does `null`.
-   *
-   * Without this, an element with no `minItems` and no array reported valid — the
-   * cardinality check had nothing to compare against and returned early. The
-   * canonical validator rejects it, and that was the last case where the two
-   * disagreed. Verified by running `cedar-model-validation-library` itself rather
-   * than by reading the schema: with the floor removed from
-   * `multiple-element-items-template.json`, `[]` is valid while omitted gives
-   * `object has missing required properties` and `null` gives `null found, array
-   * expected`.
-   *
-   * Note it is not reachable from any template anyone has: across the corpus,
-   * HuBMAP and the validator's own fixtures there are 321 multi children and every
-   * one declares `minItems`. This closes the gap rather than fixing an outage.
-   *
-   * Attribute-value fields are exempt, and that is the model's distinction rather
-   * than a special case here — they are the one child kind CEDAR leaves out of
-   * `required`, because their names come from the user.
+   * Asked once per container holding the list, with the count that container
+   * holds, and located at that container.
    */
-  private static collectPresenceProblems(
-    component: InspectedComponent,
-    instance: InstanceNode | null,
-    report: DataQualityReport,
-  ): void {
-    const path: string[] = component?.path ?? [];
-    if (path.length === 0) {
-      return;
-    }
-    if (component.basicInfo?.inputType === InputType.attributeValue) {
-      return;
-    }
-
-    const name = path[path.length - 1];
-    const parents = DataQualityReportBuilderHandler.collectNodes(path.slice(0, -1), instance);
-    const inputType = component.basicInfo?.inputType ?? 'element';
-
-    for (const parent of parents) {
-      const present = isInstanceObject(parent) && parent.hasValue(name);
-      const value = present ? parent.values[name] : undefined;
-      // An array is the only shape that satisfies this, which is what the gate
-      // asks for — `[]` included. Worth testing the shape rather than just
-      // presence: an injected `null` does not survive as `null`. It is read into
-      // `{}`, an object where the template declares an array, which the canonical
-      // validator rejects for the same reason it rejects `null`.
-      if (Array.isArray(value)) {
-        continue;
-      }
-      report.problems.push(
-        new ValidationProblem(
-          path,
-          name,
-          inputType,
-          ValidationCode.missingProperty,
-          present
-            ? `Holds ${value === null ? 'null' : typeof value} where the template declares an array.`
-            : 'Is absent, and the template requires the property.',
-          value ?? null,
-        ),
-      );
-      // One complaint per component is enough; a second parent holding the same
-      // shape says nothing new.
-      return;
-    }
-  }
-
-  /** `minItems` / `maxItems`, which nothing enforced outside the pager's buttons. */
   private static collectCardinalityProblems(
     component: InspectedComponent,
     currentCount: number,
+    occurrences: number[],
     report: DataQualityReport,
   ): void {
     const multiInfo = component?.multiInfo;
@@ -298,6 +263,7 @@ export class DataQualityReportBuilderHandler {
           ValidationCode.minItems,
           `Has ${currentCount} of a minimum ${multiInfo.minItems}.`,
           currentCount,
+          occurrences,
         ),
       );
     }
@@ -310,14 +276,15 @@ export class DataQualityReportBuilderHandler {
           ValidationCode.maxItems,
           `Has ${currentCount} of a maximum ${multiInfo.maxItems}.`,
           currentCount,
+          occurrences,
         ),
       );
     }
   }
 
-  /** Deduplicate: the same violation on several instances is reported once per distinct code. */
+  /** Deduplicate: the same violation of one value is reported once. */
   private static addProblem(report: DataQualityReport, problem: ValidationProblem, seen: Set<string>): void {
-    const key = `${problem.path.join('/')}|${problem.code}|${String(problem.value)}`;
+    const key = `${problem.path.join('/')}|${problem.occurrences.join('/')}|${problem.code}|${String(problem.value)}`;
     if (seen.has(key)) {
       return;
     }
@@ -325,32 +292,19 @@ export class DataQualityReportBuilderHandler {
     report.problems.push(problem);
   }
 
-  /** Every node at `path`, branching into every array entry. Cursor-free, like findAnyValue. */
-  private static collectNodes(path: string[], node: InstanceNode | null, acc: InstanceNode[] = []): InstanceNode[] {
-    if (node === null || node === undefined) {
-      return acc;
+  /**
+   * The entries of a list a container holds, in order.
+   *
+   * No entries where the container holds nothing, and one where it holds a single
+   * node in place of a list. CEE writes either out as a list, so the count is the
+   * one the written instance will have.
+   */
+  private static entriesOf(container: InstanceNode | null, name: string): InstanceNode[] {
+    const held = childOf(container, name);
+    if (held === null) {
+      return [];
     }
-    if (Array.isArray(node)) {
-      for (const entry of node) {
-        DataQualityReportBuilderHandler.collectNodes(path, entry, acc);
-      }
-      return acc;
-    }
-    // Narrowed rather than assumed: `unknown` is what an instance node really is,
-    // and a primitive leaf reaches here on a path that expects more depth. It was
-    // pushed into `object[]` regardless while this was `any`.
-    if (typeof node !== 'object') {
-      return acc;
-    }
-    if (path.length === 0) {
-      acc.push(node);
-      return acc;
-    }
-    const [head, ...rest] = path;
-    if (!isInstanceObject(node) || !node.hasValue(head)) {
-      return acc;
-    }
-    return DataQualityReportBuilderHandler.collectNodes(rest, node.values[head] ?? null, acc);
+    return isInstanceArray(held) ? held : [held];
   }
 
   /**

@@ -1,7 +1,9 @@
+@use '@org.metadatacenter/cedar-design-tokens/spacing';
+@use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 .choice-option-row {
   display: flex;
   align-items: center;
-  min-height: 28px;
+  min-height: var(--cedar-row-height-compact, #{tokens.$row-height-compact});
 
   :host-context(.cee-read-only) & {
     min-height: 0;
@@ -10,19 +12,19 @@
 
 .choice-clear-button {
   flex: 0 0 auto;
-  margin-inline-start: 4px;
+  margin-inline-start: tokens.$space-1;
 }
 
-/* Keep Clear within its 28px option row, including its invisible touch target. */
+/* Keep Clear within its var(--cedar-row-height-compact, #{tokens.$row-height-compact}) option row, including its invisible touch target. */
 .choice-clear-button.mat-mdc-icon-button.mat-mdc-button-base {
-  width: 28px;
-  height: 28px;
-  padding: 2px;
+  width: var(--cedar-row-height-compact, #{tokens.$row-height-compact});
+  height: var(--cedar-row-height-compact, #{tokens.$row-height-compact});
+  @include spacing.apply(padding, compact-static);
 }
 
 .choice-clear-button ::ng-deep .mat-mdc-button-touch-target {
-  width: 28px;
-  height: 28px;
+  width: var(--cedar-row-height-compact, #{tokens.$row-height-compact});
+  height: var(--cedar-row-height-compact, #{tokens.$row-height-compact});
 }
 
 /*
@@ -30,8 +32,8 @@
  * rather than part of its text, and the same grey the specification uses everywhere else.
  */
 .choice-default-mark {
-  margin-left: 6px;
-  color: rgba(0, 0, 0, 0.54);
+  margin-left: tokens.$space-2;
+  color: var(--cedar-specification-text, #{tokens.$text-muted});
 }
 
 /*
