@@ -14,6 +14,8 @@ import {
   CeeDataQualityReport,
   CeeEventHandler,
   CeeJsonObject,
+  CeeLocation,
+  CeeRevealOptions,
   CeeTemplateAndInstance,
 } from '../../../../cee-public-api';
 import { HandlerContext, InstanceMutation } from '../../util/handler-context';
@@ -38,6 +40,7 @@ import { CedarTemplate } from '../../models/template/cedar-template.model';
 import { RenderSchedulerService } from '../../service/render-scheduler.service';
 import { ArtifactInputCoordinator } from '../../util/artifact-input-coordinator';
 import { WrapperConfigCoordinator } from '../../util/wrapper-config-coordinator';
+import { FieldRevealService } from '../../service/field-reveal.service';
 
 @Component({
   selector: 'app-cedar-embeddable-metadata-editor-wrapper',
@@ -52,6 +55,7 @@ import { WrapperConfigCoordinator } from '../../util/wrapper-config-coordinator'
     ActiveComponentRegistryService,
     ControlledFieldDataService,
     ExternalAuthorityLookupService,
+    FieldRevealService,
     GlobalSettingsContextService,
     MessageHandlerService,
     RenderSchedulerService,
@@ -99,6 +103,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private activeComponentRegistry: ActiveComponentRegistryService,
     private translateService: TranslateService,
     private globalSettingsContextService: GlobalSettingsContextService,
+    private fieldReveal: FieldRevealService,
   ) {
     this.artifacts = new ArtifactInputCoordinator(this.messageHandlerService);
     this.configuration = new WrapperConfigCoordinator(
@@ -136,6 +141,23 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.initialized = true;
     this.doInitialize();
   }
+
+  /**
+   * Take the user to a field or element, and resolve whether it could be shown.
+   *
+   * A getter returning the function, because an Angular element publishes inputs and
+   * nothing else. It is the same function on every read.
+   */
+  @Input() get reveal(): (location: CeeLocation, options?: CeeRevealOptions) => Promise<boolean> {
+    return this.revealLocation;
+  }
+
+  private readonly revealLocation = (location: CeeLocation, options: CeeRevealOptions = {}): Promise<boolean> => {
+    if (!this.editorDataReady()) {
+      return Promise.resolve(false);
+    }
+    return this.fieldReveal.reveal(this.handlerContext, location, options);
+  };
 
   /**
    * The instance, as CEDAR JSON.

@@ -5,6 +5,7 @@ import { ControlledFieldDataService, INTEGRATED_SEARCH_PATH } from '../../servic
 import { MessageHandlerService } from '../../service/message-handler.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { GlobalSettingsContextService } from '../../service/global-settings-context.service';
+import { FieldRevealService } from '../../service/field-reveal.service';
 import {
   DefaultMissingTranslationHandler,
   MissingTranslationHandler,
@@ -97,6 +98,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
         setTranslation: mocks.setTranslation,
       } as unknown as TranslateService,
       mocks.globalSettings as unknown as GlobalSettingsContextService,
+      { reveal: vi.fn() } as unknown as FieldRevealService,
     );
     return { component, mocks };
   };
@@ -237,6 +239,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
         setTranslation: vi.fn(),
       } as unknown as TranslateService,
       {} as unknown as GlobalSettingsContextService,
+      { reveal: vi.fn() } as unknown as FieldRevealService,
     );
     return { component, errors };
   };
@@ -512,6 +515,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
       { clear: vi.fn() } as unknown as ActiveComponentRegistryService,
       translate,
       globalSettings,
+      { reveal: vi.fn() } as unknown as FieldRevealService,
     );
     return { component, translate, fetched };
   };
@@ -625,6 +629,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent invalid configuration va
         setTranslation: vi.fn(),
       } as unknown as TranslateService,
       globalSettings,
+      { reveal: vi.fn() } as unknown as FieldRevealService,
     );
     component.ngOnInit();
     return { component, reported, integratedSearchUrls, globalSettings };

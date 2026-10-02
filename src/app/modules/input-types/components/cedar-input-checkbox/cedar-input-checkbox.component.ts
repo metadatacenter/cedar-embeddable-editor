@@ -94,6 +94,10 @@ export class CedarInputCheckboxComponent extends CedarUIDirective implements OnI
     this.setInput(checkbox.checked, checkbox.value);
   }
 
+  protected override revealedControls(): AbstractControl[] {
+    return [this.options];
+  }
+
   /**
    * Show what the instance holds. A sync, so it writes nothing back.
    *

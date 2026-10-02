@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, ViewChild, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import {
+  AbstractControl,
   FormBuilder,
   FormControl,
   FormGroup,
@@ -119,6 +120,10 @@ export class CedarInputSelectComponent extends CedarUIDirective implements OnIni
       this.inputValueControl.setValue(value);
       this.changeValue(value);
     }
+  }
+
+  protected override revealedControls(): AbstractControl[] {
+    return [this.options];
   }
 
   setCurrentValue(currentValue: unknown): void {

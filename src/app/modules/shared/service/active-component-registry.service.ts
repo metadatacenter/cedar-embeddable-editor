@@ -298,6 +298,11 @@ export class ActiveComponentRegistryService {
     }
   }
 
+  /** Tell the field's widget the user has been taken to it, if it is on screen. */
+  markRevealed(component: CedarComponent): void {
+    this.getUIComponent(component)?.markRevealed();
+  }
+
   registerMultiPagerComponent(modelComponent: CedarComponent, uiComponent: CedarMultiPagerComponent): void {
     for (const [registeredModel, registeredUI] of this.modelToMultiPagerUI) {
       if (registeredUI === uiComponent && registeredModel !== modelComponent) {

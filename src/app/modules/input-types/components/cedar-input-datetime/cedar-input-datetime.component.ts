@@ -8,7 +8,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, Validators } from '@angular/forms';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { ValidationCode } from '../../../shared/validation/validation-problem.model';
 import { Translatable } from '../../../shared/models/ui/translatable.model';
@@ -355,6 +355,10 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
       granularity: this.component.basicInfo.temporalGranularity,
       timezoneEnabled: this.component.basicInfo.timezoneEnabled === true,
     };
+  }
+
+  protected override revealedControls(): AbstractControl[] {
+    return [this.valueControl];
   }
 
   setCurrentValue(currentValue: unknown): void {

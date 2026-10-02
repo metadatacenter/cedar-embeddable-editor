@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
@@ -58,6 +58,10 @@ export class CedarInputEmailComponent extends CedarUIDirective implements OnInit
   inputChanged($event: Event): void {
     const typed = ($event.target as HTMLTextAreaElement).value;
     this.handlerContext.changeValue(this.component, typed.length === 0 ? null : typed);
+  }
+
+  protected override revealedControls(): AbstractControl[] {
+    return [this.options];
   }
 
   setCurrentValue(currentValue: unknown): void {

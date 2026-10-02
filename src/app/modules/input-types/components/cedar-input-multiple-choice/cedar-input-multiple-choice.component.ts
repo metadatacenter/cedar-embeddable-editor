@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
 import { ActiveComponentRegistryService } from '../../../shared/service/active-component-registry.service';
 import { HandlerContext } from '../../../shared/util/handler-context';
@@ -64,6 +64,10 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
   private setValueUIAndModel(value: string | null): void {
     this.selectedChoiceInputControl.setValue(value);
     this.handlerContext.changeValue(this.component, value);
+  }
+
+  protected override revealedControls(): AbstractControl[] {
+    return [this.options];
   }
 
   setCurrentValue(currentValue: unknown): void {

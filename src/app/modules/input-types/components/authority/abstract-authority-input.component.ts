@@ -1,5 +1,5 @@
 import { AfterViewInit, Directive, Input, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ErrorStateMatcher, MatOptionSelectionChange } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Observable, of, timer } from 'rxjs';
@@ -308,6 +308,10 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
       this.handlerContext.changeControlledValue(this.component, null, null);
       this.showClearedWarning();
     }
+  }
+
+  protected override revealedControls(): AbstractControl[] {
+    return [this.options];
   }
 
   setCurrentValue(value: AuthorityTerm): void {

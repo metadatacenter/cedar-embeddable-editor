@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  OnDestroy,
+  Optional,
+  SimpleChanges,
+  ViewEncapsulation,
+} from '@angular/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { ElementComponent } from '../../models/component/element-component.model';
 import { MultiElementComponent } from '../../models/element/multi-element-component.model';
@@ -8,6 +18,7 @@ import { HandlerContext } from '../../util/handler-context';
 import { PageBreakPaginatorService } from '../../service/page-break-paginator.service';
 import { ComponentRenderDecision, decideComponentRender } from './component-render-decision';
 import { specHeaderFactsOf } from '../../util/field-spec';
+import { FieldRevealService, RevealTarget } from '../../service/field-reveal.service';
 
 @Component({
   selector: 'app-cedar-component-renderer',
@@ -17,9 +28,23 @@ import { specHeaderFactsOf } from '../../util/field-spec';
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
-export class CedarComponentRendererComponent implements OnChanges {
+export class CedarComponentRendererComponent implements OnChanges, OnDestroy, RevealTarget {
   renderDecision: ComponentRenderDecision | null = null;
   panelOpenState = false;
+  private shown: CedarComponent | null = null;
+
+  /*
+   * Both optional, and null by default, because a renderer is also built by hand to
+   * test its decisions, where nothing is on a page to reveal.
+   */
+  constructor(
+    @Optional() private readonly elementRef: ElementRef<HTMLElement> | null = null,
+    @Optional() private readonly reveal: FieldRevealService | null = null,
+  ) {}
+
+  get host(): HTMLElement | null {
+    return this.elementRef?.nativeElement ?? null;
+  }
   @Input({ required: true }) handlerContext!: HandlerContext;
   @Input({ required: true }) pageBreakPaginatorService!: PageBreakPaginatorService;
   // tslint:disable-next-line:variable-name
@@ -35,6 +60,22 @@ export class CedarComponentRendererComponent implements OnChanges {
   }
   @Input({ required: true }) set componentToRender(componentToRender: CedarComponent) {
     this.renderDecision = decideComponentRender(componentToRender);
+    if (this.shown !== null) {
+      this.reveal?.unregisterTarget(this.shown, this);
+    }
+    this.shown = componentToRender;
+    this.reveal?.registerTarget(componentToRender, this);
+  }
+
+  ngOnDestroy(): void {
+    if (this.shown !== null) {
+      this.reveal?.unregisterTarget(this.shown, this);
+    }
+  }
+
+  /** Expand the element's panel, so a reveal can reach what it holds. */
+  open(): void {
+    this.panelOpenState = true;
   }
 
   ngOnChanges(changes: SimpleChanges): void {

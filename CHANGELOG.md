@@ -21,6 +21,12 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
 
 ### Added
 
+- `reveal(location, options)` on `cedar-embeddable-editor`, which takes the user to a field or
+  element: it turns to the field's page, moves each repeating field or element above it to the
+  named entry, opens the panels around it, scrolls it into view and focuses its control.
+  `{ focus: false }` scrolls without taking focus. It resolves to whether the field could be
+  shown, and changes nothing when it cannot. A problem from the data quality report is itself a
+  location, so a host listing the problems can pass each one straight to `reveal`.
 - `occurrences` on each data quality problem: the entry of each repeating field or element along
   its path, outermost first. A path alone names one place per entry of everything above it, so a
   host could not say which entry held a bad value. The same bad value in two entries is now two

@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import {
+  AbstractControl,
   FormBuilder,
   FormControl,
   FormGroup,
@@ -275,6 +276,10 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => (this.justCleared = false));
   }
+  protected override revealedControls(): AbstractControl[] {
+    return [this.options];
+  }
+
   setCurrentValue(currentValue: unknown): void {
     // Remember the term itself, not only its rendering. It is what the BioPortal
     // link is built from, and read-write selection records it the same way.

@@ -198,6 +198,33 @@ export interface CeeValidationProblem {
 }
 
 /**
+ * A place on the form: a field or element, in particular entries of what repeats.
+ *
+ * A `CeeValidationProblem` is one, so a host can pass a problem straight to `reveal`.
+ */
+export interface CeeLocation {
+  /** Component path from the template root, as a problem's `path` gives it. */
+  path: string[];
+  /**
+   * The entry to show at each repeating field or element along `path`, outermost first.
+   *
+   * Optional, and may be shorter than the repeating components along the path: those
+   * it does not reach stay on the entry they show.
+   */
+  occurrences?: number[];
+}
+
+/** What a host may ask of `reveal` beyond showing the field. */
+export interface CeeRevealOptions {
+  /**
+   * Whether to move keyboard focus to the field's control. Defaults to true. A host
+   * keeping focus in its own controls, such as a designer showing the field it has
+   * selected, passes false.
+   */
+  focus?: boolean;
+}
+
+/**
  * What CEE thinks of the instance currently in the form.
  *
  * Read through `dataQualityReport`. These four members are the whole object: it
@@ -393,6 +420,21 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
 
   /** What CEE thinks of the instance. Read-only. */
   readonly dataQualityReport: CeeDataQualityReport;
+
+  /**
+   * Take the user to a field or element, and resolve whether it could be shown.
+   *
+   * Turns to the field's page, moves each repeating field or element above it to the
+   * named entry, opens the panels around it, scrolls it into view and focuses its
+   * control. A field the user is taken to also states an unanswered requirement, which
+   * a field nobody has reached keeps quiet.
+   *
+   * Resolves false, having changed nothing, for a path the template does not declare,
+   * a hidden field, or an entry that does not exist. A repeating element with no
+   * entries stops the reveal at the element, since nothing inside it is on the form.
+   * Available once the element is in the document and has a template.
+   */
+  readonly reveal: (location: CeeLocation, options?: CeeRevealOptions) => Promise<boolean>;
 }
 
 /**
