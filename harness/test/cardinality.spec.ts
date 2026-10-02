@@ -389,22 +389,21 @@ describe('required values are page-independent', () => {
   });
 
   /**
-   * BEHAVIOUR CHANGE. This used to assert the two were reported *identically*.
+   * BEHAVIOUR CHANGE. This used to assert that the two differed in their reasons.
    *
-   * They agree on everything that decides the outcome — both invalid, both for a
-   * `minItems` violation, both counting no required fields — and that is what the
-   * previous assertion was protecting. But an absent property and an empty array
-   * are not the same document, and the canonical validator does not treat them as
-   * such. Run against `multiple-element-items-template.json` with
-   * `ops/cedar_validate.sh instance`:
+   * The canonical validator does tell them apart. Run against
+   * `multiple-element-items-template.json` with `ops/cedar_validate.sh instance`:
    *
    *   element `[]`      -> `/Participant: must have at least 1 items but found 0`
    *   element omitted   -> `object has missing required properties (['Participant'])`
    *
-   * So `missingProperty` on the absent one is the arbiter's own distinction, not a
-   * regression in ours. Collapsing it was hiding information the gate reports.
+   * But that is a verdict on the stored document, and the report describes the one
+   * CEE writes. CEE completes an instance against its template on the way out, so
+   * an omitted list leaves as `[]`, and the second complaint never reaches the
+   * server. Reporting it put a warning in front of the user that no field could
+   * show and that saving removed.
    */
-  it('an absent element and an empty one agree on the verdict but not on the reason', () => {
+  it('reports an absent element as the empty list CEE writes', () => {
     const template = threeInstances();
     const report = (elValue: unknown) => {
       const instance: any = instanceWith(templateIdOf(template), {}, INSTANCE_IRI);
@@ -418,20 +417,17 @@ describe('required values are page-independent', () => {
         valid: r.isValid,
         required: r.requiredFieldValueCount,
         codes: r.problems.map((p: any) => p.code).sort(),
+        written: driver.emitted._el,
       };
     };
 
     const absent = report(undefined);
     const empty = report([]);
 
-    // The verdict and the counts, which is what callers act on.
-    expect(absent.valid).toBe(empty.valid);
+    expect(absent.written).toEqual([]);
+    expect(absent).toEqual(empty);
     expect(absent.valid).toBe(false);
-    expect(absent.required).toBe(empty.required);
-
-    // The reasons, which is where they legitimately differ.
-    expect(empty.codes).toEqual(['minItems']);
-    expect(absent.codes).toEqual(['minItems', 'missingProperty']);
+    expect(absent.codes).toEqual(['minItems']);
   });
 
   /**
@@ -461,31 +457,27 @@ describe('required values are page-independent', () => {
   });
 
   /**
-   * BEHAVIOUR CHANGE, and the last case where CEE and the arbiter disagreed.
+   * BEHAVIOUR CHANGE, twice over.
    *
-   * This used to assert *vacuously valid*: with no `minItems` there was no floor
-   * to violate, the cardinality check returned early, and an element that was not
-   * there at all reported clean. Reasonable on its own terms, and wrong — CEDAR
-   * lists a multi child in its parent's JSON Schema `required` array independently
-   * of any floor, so the property has to be present whatever the floor says, and
-   * an array is the only shape that satisfies it.
-   *
-   * Settled by **running `cedar-model-validation-library`** rather than reading the
-   * schema — `ops/cedar_validate.sh instance`, with `minItems` stripped from
+   * This first asserted *vacuously valid*, and then *invalid*. CEDAR lists a multi
+   * child in its parent's JSON Schema `required` array independently of any floor,
+   * so the property has to be present whatever the floor says, and an array is the
+   * only shape that satisfies it. Settled by **running
+   * `cedar-model-validation-library`** rather than reading the schema —
+   * `ops/cedar_validate.sh instance`, with `minItems` stripped from
    * `multiple-element-items-template.json`:
    *
    *   element `[]`      -> valid
    *   element omitted   -> `object has missing required properties`
    *   element `null`     -> `null found, array expected`
    *
-   * Both halves are tested below, because a presence check that fires on `[]`
-   * would be a new divergence in the opposite direction — and the empty array is
-   * the case a zero-floor template exists to allow.
+   * That rule is satisfied by what CEE writes, which is what the report describes:
+   * the omitted element leaves as `[]`. So it is valid again, now for a reason that
+   * holds. The stored copy stays as it was until someone saves it.
    *
    * `minItems` has to be stripped by hand because the model library always writes
-   * one for a multi child. That is also why this was never an outage: across the
-   * corpus, HuBMAP and the validator's own fixtures there are 321 multi children
-   * and every one declares a floor.
+   * one for a multi child. Across the corpus, HuBMAP and the validator's own
+   * fixtures there are 321 multi children and every one declares a floor.
    */
   const noFloorTemplate = () => {
     const t: any = buildTemplate({
@@ -496,22 +488,16 @@ describe('required values are page-independent', () => {
     return t;
   };
 
-  /**
-   * Only the absent case. Its companion put a null where the list belongs, which
-   * is an invalid artifact the library will not build.
-   */
-  it('is invalid when no minItems is declared and the element is absent', () => {
+  it('is valid when no minItems is declared and the element is absent, since CEE writes the list', () => {
     const template = noFloorTemplate();
     const instance: any = instanceWith(templateIdOf(template), {}, SECOND_INSTANCE_IRI);
 
     const driver = new CeeDriver(template, { instance });
     driver.handlerContext.buildQualityReport();
 
-    expect(driver.qualityReport.problems.map((p: any) => p.code)).toContain('missingProperty');
-    expect(driver.qualityReport.isValid, 'the gate rejects this, so we must too').toBe(false);
-    // Not a `minItems` complaint: there is no floor to violate. The property is
-    // simply not there, which is a different thing and a different code.
-    expect(driver.qualityReport.problems.map((p: any) => p.code)).not.toContain('minItems');
+    expect(driver.emitted._el).toEqual([]);
+    expect(driver.qualityReport.problems).toEqual([]);
+    expect(driver.qualityReport.isValid).toBe(true);
   });
 
   it('is valid when no minItems is declared and the element is an empty array', () => {

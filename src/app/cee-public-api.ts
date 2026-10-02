@@ -177,6 +177,16 @@ export interface CeeValidationProblem {
   code: string;
   /** Path to the offending value, outermost first. */
   path: string[];
+  /**
+   * The entry taken at each repeating field or element along `path`, outermost first.
+   *
+   * A path names one place per entry of everything above it that repeats, and this
+   * says which entry holds the problem. A problem about a whole list, such as
+   * `minItems`, names the entries above the list and none of its own; a `required`
+   * problem names none, because any entry would satisfy it. Pass the problem to
+   * `reveal` to take the user to it.
+   */
+  occurrences: number[];
   /** The field's property name, which is the last path segment. */
   field: string;
   /** The field's declared `_ui.inputType`, or null where it declares none. */

@@ -19,7 +19,30 @@ export class ValidationProblem {
     public readonly message: string,
     /** The offending value, when there is one. */
     public readonly value: unknown = null,
+    /**
+     * The entry taken at each repeating component along `path`, outermost first.
+     *
+     * A field or element that repeats is listed for each of its entries, so a path
+     * names one place per entry of everything above it, and this says which. A
+     * problem about a whole list, such as `minItems`, names the entries above the
+     * list but none of its own. A `required` problem names none at all, because any
+     * entry would satisfy it.
+     */
+    public readonly occurrences: number[] = [],
   ) {}
+
+  /** The same problem, located in these entries. */
+  at(occurrences: number[]): ValidationProblem {
+    return new ValidationProblem(
+      this.path,
+      this.field,
+      this.inputType,
+      this.code,
+      this.message,
+      this.value,
+      occurrences,
+    );
+  }
 }
 
 /** Problem codes, so consumers can branch without matching on message text. */
@@ -46,20 +69,4 @@ export class ValidationCode {
   static iriMalformed = 'iriMalformed';
   static minItems = 'minItems';
   static maxItems = 'maxItems';
-  /**
-   * A multi child's array is absent from the instance, or is `null` rather than an
-   * array.
-   *
-   * Distinct from `minItems`, which is about how many entries an array that *is*
-   * there holds. CEDAR lists a multi child in its parent's JSON Schema `required`
-   * array independently of any `minItems`, so the property has to be present even
-   * when the floor is zero or absent — and `[]` satisfies that where `null` does
-   * not.
-   *
-   * The canonical validator raises two separate errors here, `object has missing
-   * required properties` and `null found, array expected`. They are one code with
-   * a distinguishing message, since the verdict is the same and a consumer that
-   * wants to tell them apart has the message.
-   */
-  static missingProperty = 'missingProperty';
 }

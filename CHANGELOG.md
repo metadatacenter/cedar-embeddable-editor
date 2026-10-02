@@ -21,6 +21,11 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
 
 ### Added
 
+- `occurrences` on each data quality problem: the entry of each repeating field or element along
+  its path, outermost first. A path alone names one place per entry of everything above it, so a
+  host could not say which entry held a bad value. The same bad value in two entries is now two
+  problems.
+
 - A second element, `cedar-embeddable-field`, registered by the same bundle. It renders one field's
   control and nothing of the form around it, for a host that holds a field artifact rather
   than a template — a designer collecting a default value, above all. The value goes in and
@@ -43,6 +48,10 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
   the 840,000 the size gate allows.
 
 ### Changed
+
+- The data quality report no longer reports `missingProperty`. It described a repeating field or
+  element absent from the instance CEE read, which CEE writes out as an empty list, so it warned
+  about a defect that saving removed and that no field could show.
 
 - A numeric field's type constraint and a temporal field's errors follow the configured
   language. The numeric sentence was English written into the validator, and the temporal
@@ -85,6 +94,9 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
 
 ### Fixed
 
+- `minItems` and `maxItems` on a repeating field inside a repeating element are checked in
+  every entry of the element. They were checked in the entry on screen, so the report changed
+  with the page the user had moved to.
 - Reassigning `cedar-embeddable-field.fieldObject` recreates the control even when the field type
   stays the same, so validators and other initialized settings follow the new artifact.
 - `cedar-embeddable-field` emits `valueChange` when validity changes even if the normalized value
