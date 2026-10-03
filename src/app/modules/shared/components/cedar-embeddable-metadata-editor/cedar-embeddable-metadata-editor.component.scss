@@ -208,7 +208,7 @@ $logo-track: 72px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  @include spacing.apply(gap, compact-static);
+  @include spacing.apply(gap, compact);
   /*
    * The last glyph ends where a field's property glyph ends, so the group moves out by the
    * difference between the two glyphs' insets.

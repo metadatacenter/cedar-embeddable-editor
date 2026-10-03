@@ -19,7 +19,7 @@
 .choice-clear-button.mat-mdc-icon-button.mat-mdc-button-base {
   width: var(--cedar-row-height-compact, #{tokens.$row-height-compact});
   height: var(--cedar-row-height-compact, #{tokens.$row-height-compact});
-  @include spacing.apply(padding, compact-static);
+  @include spacing.apply(padding, compact);
 }
 
 .choice-clear-button ::ng-deep .mat-mdc-button-touch-target {

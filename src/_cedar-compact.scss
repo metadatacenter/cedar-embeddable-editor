@@ -57,7 +57,7 @@
     @include theme.icon-size(var(--cedar-row-height-compact, #{tokens.$row-height-compact}));
     width: var(--cedar-row-height-compact, #{tokens.$row-height-compact});
     height: var(--cedar-row-height-compact, #{tokens.$row-height-compact});
-    @include spacing.apply(padding, compact-static);
+    @include spacing.apply(padding, compact);
   }
 
   /* The clock is a native segmented control, using the same box as Material inputs. */

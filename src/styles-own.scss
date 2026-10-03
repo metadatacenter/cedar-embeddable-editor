@@ -567,7 +567,7 @@ textarea.mat-mdc-input-element {
 :host .mat-mdc-option {
   @include controls.choice-row;
   height: auto;
-  @include spacing.apply(padding-block, compact-static);
+  @include spacing.apply(padding-block, compact);
   padding-inline: tokens.$space-3;
   box-sizing: border-box;
   line-height: var(
