@@ -78,13 +78,6 @@
       "value": "48px",
       "count": 1
     },
-    "44b81e933a68f1613d89": {
-      "file": "src/app/app.component.scss",
-      "rule": "color",
-      "property": "color",
-      "value": "#fff",
-      "count": 1
-    },
     "44bd35c5ee14bd906769": {
       "file": "src/styles-own.scss",
       "rule": "geometry",
@@ -169,13 +162,6 @@
       "value": "Roboto, system-ui, sans-serif",
       "count": 1
     },
-    "5e502c1ebb012e648f99": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "geometry",
-      "property": "height",
-      "value": "24px",
-      "count": 1
-    },
     "6b9a18466956dd746236": {
       "file": "src/app/modules/input-types/components/cedar-static-page-break/cedar-static-page-break.component.scss",
       "rule": "spacing",
@@ -197,20 +183,6 @@
       "value": "20px",
       "count": 2
     },
-    "762d8ffe2ff595601523": {
-      "file": "src/styles-own.scss",
-      "rule": "typography",
-      "property": "line-height",
-      "value": "0.9",
-      "count": 1
-    },
-    "765dd914d38852142e56": {
-      "file": "src/styles-own.scss",
-      "rule": "typography",
-      "property": "line-height",
-      "value": "1em",
-      "count": 1
-    },
     "7797430001e9c29066ec": {
       "file": "src/app/modules/shared/components/cedar-component-renderer/cedar-component-renderer.component.scss",
       "rule": "geometry",
@@ -230,20 +202,6 @@
       "rule": "spacing",
       "property": "padding",
       "value": "6px",
-      "count": 1
-    },
-    "7ec35a789bc4e7305775": {
-      "file": "src/styles-own.scss",
-      "rule": "geometry",
-      "property": "opacity",
-      "value": "0.5",
-      "count": 1
-    },
-    "9e4f15a2d9fc473441d8": {
-      "file": "src/styles-own.scss",
-      "rule": "typography",
-      "property": "font-size",
-      "value": "24px",
       "count": 1
     },
     "b3ee3bca37a7384efb03": {
@@ -267,25 +225,11 @@
       "value": "22px",
       "count": 2
     },
-    "c51b0881f807ac76a269": {
-      "file": "src/app/app.component.scss",
-      "rule": "typography",
-      "property": "font-size",
-      "value": "20px",
-      "count": 1
-    },
     "de13f7bb6c8545b5a90e": {
       "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
       "rule": "spacing",
       "property": "padding",
       "value": "ui-tokens.$space-3 1px",
-      "count": 1
-    },
-    "df1da42c23bfca59a69a": {
-      "file": "src/styles-own.scss",
-      "rule": "geometry",
-      "property": "height",
-      "value": "20px",
       "count": 1
     },
     "e543e2d8bd84263a2fe7": {

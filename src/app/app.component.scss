@@ -33,8 +33,8 @@ $cedar-teal: ui-tokens.$color-primary;
   height: 60px;
   padding: 0 ui-tokens.$space-4;
   background: $cedar-teal;
-  color: #fff;
-  font-size: 20px;
+  color: ui-tokens.$color-on-primary;
+  font-size: ui-tokens.$font-size-heading;
   font-weight: var(--cedar-font-weight-medium, 500);
 }
 
