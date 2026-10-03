@@ -164,8 +164,10 @@ $_colors: (
     )
   );
   // The calendar panel is an overlay, so it takes the menu's shadow rather than Material's elevation.
+  // The focused date takes the shared selection surface rather than Material's grey state layer.
   @include mat.datepicker-overrides(
     (
+      calendar-date-focus-state-background-color: var(--cedar-surface-selected, #{tokens.$surface-selected}),
       calendar-container-shape: tokens.$radius,
       calendar-container-touch-shape: tokens.$radius,
       calendar-container-elevation-shadow: var(--cedar-shadow-overlay, #{tokens.$shadow-overlay}),

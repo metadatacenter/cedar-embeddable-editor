@@ -45,14 +45,7 @@
           "anchor": "<mat-datepicker"
         }
       ],
-      "test": "visual/tests/surfaces.spec.ts",
-      "scaleDebt": [
-        {
-          "property": "background-color",
-          "value": "color(srgb 0 0 0 / 0.104471)",
-          "reason": "Material's focus state layer on the active date, found when the walk began reading backgrounds"
-        }
-      ]
+      "test": "visual/tests/surfaces.spec.ts"
     },
     {
       "id": "cee.cee-view-4",
