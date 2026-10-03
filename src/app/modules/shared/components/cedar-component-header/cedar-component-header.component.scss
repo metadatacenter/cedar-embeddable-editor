@@ -132,7 +132,7 @@
   align-items: center;
   justify-content: center;
   vertical-align: middle;
-  line-height: 1;
+  line-height: tokens.$line-height-tight;
 }
 
 /* Make the help icon a non-flexing fixed-size item. */
@@ -180,5 +180,5 @@
   align-items: center;
   justify-content: center;
   vertical-align: middle;
-  line-height: 1;
+  line-height: tokens.$line-height-tight;
 }

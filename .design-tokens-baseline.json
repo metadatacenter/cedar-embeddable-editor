@@ -99,13 +99,6 @@
       "value": "black, ) )",
       "count": 1
     },
-    "4a1f6ac26d6122234ab4": {
-      "file": "src/app/modules/shared/components/cedar-component-header/cedar-component-header.component.scss",
-      "rule": "typography",
-      "property": "line-height",
-      "value": "1",
-      "count": 2
-    },
     "4a9ce4a1b20512152502": {
       "file": "src/styles-own.scss",
       "rule": "spacing",
