@@ -213,7 +213,7 @@ const authority = (readOnly: boolean): Shown => {
 };
 
 const datetime = (readOnly: boolean): Shown => {
-  const widget = inject(readOnly, () => new CedarInputDatetimeComponent(new FormBuilder(), registry()));
+  const widget = inject(readOnly, () => new CedarInputDatetimeComponent(registry()));
   widget.componentToRender = field(InputType.temporal);
   widget.handlerContext = context();
   widget.ngOnInit();

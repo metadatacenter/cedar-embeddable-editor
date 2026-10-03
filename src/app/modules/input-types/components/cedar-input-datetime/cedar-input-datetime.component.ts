@@ -8,7 +8,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { AbstractControl, FormBuilder, FormControl, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, Validators } from '@angular/forms';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { Translatable } from '../../../shared/models/ui/translatable.model';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
@@ -98,10 +98,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
 
   @Input({ required: true }) handlerContext!: HandlerContext;
 
-  constructor(
-    fb: FormBuilder,
-    private activeComponentRegistry: ActiveComponentRegistryService,
-  ) {
+  constructor(private activeComponentRegistry: ActiveComponentRegistryService) {
     super();
     this.datetimeParsed = new DatetimeRepresentation();
     this.timePickerTime = null;

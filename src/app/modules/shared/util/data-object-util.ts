@@ -2,8 +2,7 @@ import { InstanceValueNode } from './instance-value-node';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
-import { InstanceArray, InstanceNode, InstanceObject } from '../models/instance-node.model';
-import { InstanceDataContainer } from 'cedar-model-typescript-library';
+import { InstanceArray, InstanceNode } from '../models/instance-node.model';
 import { isAuthorityTerm } from '../models/authority/authority-term.guard';
 import { CedarTemporalValue } from './cedar-temporal-value';
 
@@ -94,14 +93,6 @@ export class DataObjectUtil {
       inputType === InputType.controlled ||
       (inputType !== null && EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType))
     );
-  }
-
-  static getEmptyObject(): InstanceObject {
-    return new InstanceDataContainer();
-  }
-
-  static getEmptyList(): InstanceArray {
-    return [];
   }
 
   /**

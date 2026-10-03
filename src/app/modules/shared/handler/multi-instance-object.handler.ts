@@ -85,11 +85,6 @@ export class MultiInstanceObjectHandler {
     this.initialized = true;
   }
 
-  /** Read-only access to the root container; mutation stays inside this handler. */
-  get rootState(): MultiInstanceInfo {
-    return this.stateRoot;
-  }
-
   /** Whether the state tree has been built successfully for the current template. */
   isInitialized(): boolean {
     return this.initialized;

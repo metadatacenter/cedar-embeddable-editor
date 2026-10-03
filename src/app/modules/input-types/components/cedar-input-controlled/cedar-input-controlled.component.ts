@@ -364,8 +364,4 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     this.inputValueControl.setValue(null);
     this.handlerContext.changeControlledValue(this.component, null, null);
   }
-  private setValueUIAndModel(iri: string, label: string): void {
-    this.inputValueControl.setValue(label);
-    this.handlerContext.changeControlledValue(this.component, iri, label);
-  }
 }
