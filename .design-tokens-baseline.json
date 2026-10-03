@@ -162,6 +162,13 @@
       "value": "Roboto, system-ui, sans-serif",
       "count": 1
     },
+    "5ff8ef1a91fa17fad18c": {
+      "file": "src/_cee-material-theme.scss",
+      "rule": "typography",
+      "property": "expansion-overrides.container-text-line-height",
+      "value": "20px",
+      "count": 1
+    },
     "6b9a18466956dd746236": {
       "file": "src/app/modules/input-types/components/cedar-static-page-break/cedar-static-page-break.component.scss",
       "rule": "spacing",
@@ -225,11 +232,25 @@
       "value": "22px",
       "count": 2
     },
+    "ca05b858ca9378732ce2": {
+      "file": "src/_cee-material-theme.scss",
+      "rule": "geometry",
+      "property": "chips-overrides.container-height",
+      "value": "26px",
+      "count": 1
+    },
     "de13f7bb6c8545b5a90e": {
       "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
       "rule": "spacing",
       "property": "padding",
       "value": "ui-tokens.$space-3 1px",
+      "count": 1
+    },
+    "deceb0e2377937335e0d": {
+      "file": "src/_cee-material-theme.scss",
+      "rule": "geometry",
+      "property": "form-field-overrides.container-height",
+      "value": "48px",
       "count": 1
     },
     "e543e2d8bd84263a2fe7": {
@@ -269,5 +290,5 @@
     }
   },
   "exceptions": {},
-  "policy": 3
+  "policy": 4
 }
