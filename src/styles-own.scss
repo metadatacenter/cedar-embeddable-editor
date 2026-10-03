@@ -73,10 +73,6 @@
   line-height: normal;
 }
 
-.allow-cr {
-  white-space: pre;
-}
-
 .form-container {
   min-width: 50%;
   max-width: 100%;
@@ -359,9 +355,6 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 .tooltip {
   background-color: tokens.$text-primary;
 }
-.component-title {
-  color: tokens.$text-title !important;
-}
 
 /**
  * The "search failed" row in an autocomplete panel.
@@ -448,8 +441,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
    * sat on a line box sized by the inherited line-height, so shrinking the control changed nothing:
    * two 25px options still occupied 96px. A column of rows is as tall as the rows.
    */
-  .mat-mdc-radio-group,
-  .cee-checkbox-group {
+  .mat-mdc-radio-group {
     display: flex;
     flex-direction: column;
   }

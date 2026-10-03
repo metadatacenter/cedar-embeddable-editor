@@ -72,7 +72,7 @@ genuinely theirs.
         -->
         @let terms = filteredOptions | async;
         @if (loadingOptions) {
-          <mat-option disabled class="spinner-container">
+          <mat-option disabled>
             <span role="status">{{ 'Generic.Searching' | translate }}</span>
           </mat-option>
         }

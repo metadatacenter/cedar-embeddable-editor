@@ -103,7 +103,7 @@ different destinations worth having.
         -->
         @let terms = filteredOptions | async;
         @if (loading) {
-          <mat-option disabled class="spinner-container">
+          <mat-option disabled>
             <mat-progress-spinner mode="indeterminate" diameter="24"></mat-progress-spinner>
           </mat-option>
         }
