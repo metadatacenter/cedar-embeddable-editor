@@ -15,7 +15,7 @@
   --_cedar-density-border: #{tokens.$control-border-default};
 }
 :host(:not([density='comfortable'])) {
-  --_cedar-textarea-rows: var(--cedar-textarea-min-rows, #{tokens.$textarea-min-rows-default});
+  --_cedar-textarea-rows: var(--cedar-textarea-min-rows, 2);
   --_cedar-height: var(--cedar-control-height, var(--_cedar-density-height, #{tokens.$control-height-default}));
   --_cedar-font-size: var(--cedar-control-font-size, var(--_cedar-density-font, #{tokens.$font-size}));
   --_cedar-line-height: var(

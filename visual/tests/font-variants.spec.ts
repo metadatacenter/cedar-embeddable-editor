@@ -6,7 +6,7 @@ const hostFonts = [400, 500]
   .map((weight) =>
     readFileSync(
       new URL(
-        `../../node_modules/@org.metadatacenter/cedar-design-tokens/fonts/_roboto-${weight}.scss`,
+        `../../node_modules/@org.metadatacenter/cedar-design-tokens/scss/fonts/_roboto-${weight}.scss`,
         import.meta.url,
       ),
       'utf8',

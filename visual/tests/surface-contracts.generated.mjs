@@ -93,12 +93,10 @@ const SCALE = {
     "--cedar-status-warning-surface",
     "--cedar-status-success-text",
     "--cedar-status-success-surface",
-    "--cedar-status-unsaved-dot",
     "--cedar-dialog-backdrop"
   ],
   "shadow": [
-    "--cedar-shadow-overlay",
-    "--cedar-shadow-dialog"
+    "--cedar-shadow-overlay"
   ]
 };
 const TOKEN_DEFAULTS = {
@@ -127,14 +125,12 @@ const TOKEN_DEFAULTS = {
   "--cedar-status-warning-surface": "#fff8e5",
   "--cedar-status-success-text": "#176b3a",
   "--cedar-status-success-surface": "#ecfdf3",
-  "--cedar-status-unsaved-dot": "#eab308",
   "--cedar-dialog-backdrop": "rgba(0, 0, 0, 0.4)",
   "--cedar-control-line-height-default": "21px",
   "--cedar-control-line-height-authoring": "18px",
   "--cedar-radius": "4px",
   "--cedar-radius-pill": "9999px",
-  "--cedar-shadow-overlay": "0 4px 18px rgba(0, 0, 0, 0.13)",
-  "--cedar-shadow-dialog": "0 8px 24px rgba(0, 0, 0, 0.2)"
+  "--cedar-shadow-overlay": "0 4px 18px rgba(0, 0, 0, 0.13)"
 };
 // Central implementation. Consumer copies are generated; the adoption gate checks their bytes.
 import assert from 'node:assert/strict';

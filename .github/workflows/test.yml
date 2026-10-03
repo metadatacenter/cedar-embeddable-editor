@@ -173,7 +173,7 @@ jobs:
       # mounts this checkout at /repo, so the package has to exist on the runner: the
       # shard restores `dist`, and a built bundle carries no `node_modules`. Without
       # this the font partials the registrar imports resolve to nothing, and every
-      # shard ends at `ENOENT .../cedar-design-tokens/fonts/_roboto-400.scss` — which
+      # shard ends at `ENOENT .../cedar-design-tokens/scss/fonts/_roboto-400.scss` — which
       # a developer never sees, because a working copy has the package installed.
       # The scope resolves from Nexus by the repository `.npmrc` and reads there are
       # anonymous, so this needs no credential, exactly as `prepare` does not.
