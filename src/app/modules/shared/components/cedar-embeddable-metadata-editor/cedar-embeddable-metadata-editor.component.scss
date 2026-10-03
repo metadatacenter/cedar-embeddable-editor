@@ -92,7 +92,7 @@ $logo-track: 72px;
   display: block;
   font-size: tokens.$font-size-small;
   font-weight: var(--cedar-font-weight-medium, 500);
-  line-height: tokens.$font-size-small;
+  line-height: tokens.$line-height-tight;
   color: tokens.$text-primary;
   margin-top: ui-tokens.$space-1;
 }
@@ -103,7 +103,7 @@ $logo-track: 72px;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: tokens.$font-size-small;
-  line-height: tokens.$font-size-small;
+  line-height: tokens.$line-height-tight;
   color: tokens.$text-muted;
   margin-top: ui-tokens.$space-1;
 }

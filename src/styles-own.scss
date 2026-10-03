@@ -293,8 +293,10 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   scale: 1.2;
 }
 
-.mat-mdc-tooltip.tooltip {
-  font-size: tokens.$font-size-small;
+// Material's tooltips take the shared tooltip surface, as every other CEDAR tooltip does, rather than
+// the dark inverse surface Material draws them on.
+.mat-mdc-tooltip .mat-mdc-tooltip-surface {
+  @include patterns.tooltip-surface;
 }
 
 .align-start {

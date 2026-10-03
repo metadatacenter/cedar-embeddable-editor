@@ -46,6 +46,8 @@ $_colors: (
   on-background: tokens.$text-primary,
   surface: $_white,
   surface-bright: $_white,
+  // No component CEE uses draws with surface-dim or surface-container-highest, nor, since its
+  // tooltips take the shared tooltip surface, with inverse-surface. The roles still need values.
   surface-dim: tokens.$border-rule,
   surface-container-lowest: $_white,
   surface-container-low: $_white,

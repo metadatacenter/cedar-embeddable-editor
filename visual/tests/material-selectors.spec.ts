@@ -34,6 +34,7 @@ const scssFiles = (dir: string): string[] =>
 const UNREACHABLE = new Map([
   ['.mat-mdc-progress-spinner', 'only while an authority lookup is in flight'],
   ['.mat-mdc-tooltip', 'only while a tooltip is open, which needs a real hover'],
+  ['.mat-mdc-tooltip-surface', 'the surface inside an open tooltip'],
 ]);
 
 /** Comments mention class names they do not style, so they are stripped first. */

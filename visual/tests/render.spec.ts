@@ -2195,6 +2195,11 @@ test.describe('template-authored strings that are not rich text', () => {
     const tooltip = page.locator('.mat-mdc-tooltip-surface').first();
     await expect(tooltip).toBeVisible();
     await expect(tooltip).toContainText('onerror="window.__staticMarkupRan = true"');
+    // The shared tooltip surface rather than Material's dark one, although this host declares no
+    // CEDAR properties.
+    await expect(tooltip).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(tooltip).toHaveCSS('color', 'rgba(0, 0, 0, 0.87)');
+    await expect(tooltip).toHaveCSS('border-top-color', 'rgb(215, 224, 223)');
 
     const { becameMarkup } = await probes(page);
     expect(becameMarkup, 'the help text was parsed as markup').toBe(0);
