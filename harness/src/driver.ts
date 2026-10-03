@@ -12,10 +12,8 @@
  * writes. Nothing here is a reimplementation or a mock of CEE's logic.
  */
 import { DataContext } from '@cee/util/data-context';
-import { DocumentKey } from './document-keys';
 import { InstanceDeserializer } from '@cee/util/instance-deserializer';
 import type { InstanceObject } from '@cee/models/instance-node.model';
-import { ActiveComponentRegistryService } from '@cee/service/active-component-registry.service';
 import { HandlerContext } from '@cee/util/handler-context';
 import { MessageHandlerService } from '@cee/service/message-handler.service';
 import { PageBreakPaginatorService } from '@cee/service/page-break-paginator.service';

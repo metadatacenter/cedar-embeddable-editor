@@ -19,7 +19,6 @@
  * pinned.
  */
 import { describe, expect, it } from 'vitest';
-import { DocumentKey } from '../src/document-keys';
 import {
   CedarBuilders,
   ControlledTermOntologyBuilder,
@@ -29,19 +28,15 @@ import {
   TemporalType,
 } from 'cedar-model-typescript-library';
 import { ActiveComponentRegistryService } from '@cee/service/active-component-registry.service';
-import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import {
   containerValue,
   instanceWith,
-  linkNode,
   linkValue,
   listValue,
-  literalNode,
   literalValue,
-  termNode,
   termValue,
   templateIdOf,
 } from '../src/values';

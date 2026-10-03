@@ -10,8 +10,8 @@ import { DocumentKey } from '../src/document-keys';
 import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { at, infoOf } from '../src/nodes';
-import { linkNode, literalOf, termNode, heldValue, identityOf, linkValue, termValue } from '../src/values';
+import { infoOf } from '../src/nodes';
+import { heldValue, identityOf, linkValue, termValue } from '../src/values';
 import { MultiInstanceObjectHandler } from '@cee/handler/multi-instance-object.handler';
 import type { CedarComponent } from '@cee/models/component/cedar-component.model';
 

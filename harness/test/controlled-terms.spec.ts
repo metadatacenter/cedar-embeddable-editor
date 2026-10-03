@@ -15,7 +15,7 @@ import { CONSTRAINT_COMBINATIONS, MULTIPLICITY_COMBINATIONS, configureFor } from
 import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { labelOf, heldValue } from '../src/values';
+import { heldValue } from '../src/values';
 
 const controlledKind = (configure: (b: any) => any): FieldKind => ({
   key: 'term',

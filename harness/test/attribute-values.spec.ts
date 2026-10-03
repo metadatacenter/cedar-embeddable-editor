@@ -30,7 +30,7 @@ import { CeeDriver } from '../src/driver';
 import { InstanceObject } from '@cee/models/instance-node.model';
 import { arrayAt, objectAt } from '../src/nodes';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
-import { literalOf, heldValue, attributeValue, instanceWith, templateIdOf } from '../src/values';
+import { heldValue, attributeValue, instanceWith, templateIdOf } from '../src/values';
 import { readTranslatable as read } from '@cee/models/ui/translatable.testing';
 
 const ATTR: FieldKind = {

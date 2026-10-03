@@ -12,13 +12,11 @@
  * rather than after.
  */
 import { describe, expect, it } from 'vitest';
-import { DocumentKey } from '../src/document-keys';
-import { JsonTemplateInstanceReader } from 'cedar-model-typescript-library';
 import { CARDINALITIES, FIELD_KINDS, NESTINGS } from '../src/axes';
 import { sweep } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { InstanceDataContainer } from 'cedar-model-typescript-library';
-import { labelOf, literalOf, heldValue } from '../src/values';
+import { heldValue } from '../src/values';
 
 const CASES = sweep(FIELD_KINDS, CARDINALITIES, NESTINGS);
 const VALUED = CASES.filter((c) => c.kind.write !== 'none');

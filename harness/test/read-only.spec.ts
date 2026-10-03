@@ -14,26 +14,10 @@ import { describe, expect, it } from 'vitest';
 import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { at } from '../src/nodes';
-import {
-  instanceWith as buildInstance,
-  literalNode,
-  literalOf,
-  literalValue,
-  heldValue,
-  attributeValue,
-} from '../src/values';
+import { instanceWith as buildInstance, literalValue, heldValue } from '../src/values';
 
 const kind = (inputType: string) => FIELD_KINDS.find((k) => k.inputType === inputType)!;
 const TEXT = kind('textfield');
-const ATTRIBUTE_VALUE = kind('attribute-value');
-
-/** Build an instance by driving the editor, so it is shaped exactly as CEE emits it. */
-const instanceWith = (template: object, writes: Array<[string[], string]>) => {
-  const d = new CeeDriver(template);
-  for (const [path, value] of writes) d.setValue(path, TEXT, value);
-  return d.metadata;
-};
 
 describe('read-only mode', () => {
   const template = () => buildTemplate({ name: 'ro', children: [{ kind: TEXT, name: 'a', required: true }] });

@@ -27,7 +27,7 @@ import { CARDINALITIES, FIELD_KINDS } from '../src/axes';
 import { corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { instanceWith, literalNode, literalValue, heldValue } from '../src/values';
+import { instanceWith, literalValue, heldValue } from '../src/values';
 
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
 
