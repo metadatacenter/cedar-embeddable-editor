@@ -8,13 +8,12 @@
 }
 
 /*
- * A nested element's heading, one step below a section break's 20px and above the
- * body, so the two levels do not read as one. That step was a literal here while
- * the scale named only four of its five sizes; the shared package names this one,
- * so the relationship is stated once rather than described in a comment.
+ * A nested element's heading takes the large size, as a section break does. The
+ * element's panel header sets the two apart, so a section break inside an element
+ * never outranks the heading of the element that contains it.
  */
 .cee-element-heading {
-  font-size: tokens.$font-size-element-heading;
+  font-size: tokens.$font-size-large;
   font-weight: var(--cedar-font-weight-medium, 500);
   margin-inline-end: 0;
 }

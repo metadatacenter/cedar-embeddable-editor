@@ -53,8 +53,7 @@ const SCALE = {
   "font-size": [
     "--cedar-font-size-small",
     "--cedar-font-size",
-    "--cedar-font-size-element-heading",
-    "--cedar-font-size-heading",
+    "--cedar-font-size-large",
     "--cedar-font-size-artifact-title"
   ],
   "font-weight": [
@@ -109,9 +108,8 @@ const TOKEN_DEFAULTS = {
   "--cedar-font-weight-medium": "500",
   "--cedar-font-size-small": "12px",
   "--cedar-font-size": "14px",
-  "--cedar-font-size-element-heading": "18px",
-  "--cedar-font-size-heading": "20px",
-  "--cedar-font-size-artifact-title": "clamp(19px, 3cqi, 26px)",
+  "--cedar-font-size-large": "18px",
+  "--cedar-font-size-artifact-title": "clamp(20px, 3cqi, 26px)",
   "--cedar-color-primary": "#0f7686",
   "--cedar-color-primary-strong": "#0b6373",
   "--cedar-color-on-primary": "#ffffff",
@@ -218,7 +216,7 @@ export async function checkSurface(page, surface, state, expect, testInfo) {
   }
 }
 
-// Everything a surface draws comes from the shared vocabulary: its two families, five sizes and two
+// Everything a surface draws comes from the shared vocabulary: its two families, four sizes and two
 // weights with Roboto's own spacing, its text colours, its paint (backgrounds, borders, outlines and
 // shadows take only the vocabulary's colours), and the one corner, the pill and a circle. Generated
 // text in `::before` and `::after`, placeholders and SVG labels are text like any other. The family a

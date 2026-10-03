@@ -21,14 +21,15 @@
     margin: ui-tokens.$space-2 0 0;
   }
   /*
-   * 20px, from the scale, rather than 1.25rem.
+   * The large size, in px from the scale, rather than a rem size.
    *
    * Same size in a page whose root is 16px, and the same size in one whose root
    * is not — which is the whole difference. A reviewer reading this heading as
    * small is what a rem-sized heading looks like in a host that shrinks its root,
-   * and CEE cannot see that it happened.
+   * and CEE cannot see that it happened. A nested element's heading takes the
+   * same size, so a section break inside an element never outranks it.
    */
-  font-size: tokens.$font-size-heading;
+  font-size: tokens.$font-size-large;
   font-weight: var(--cedar-font-weight-medium, 500);
   line-height: tokens.$line-height-heading;
 }

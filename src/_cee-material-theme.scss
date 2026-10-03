@@ -113,15 +113,15 @@ $_colors: (
         (label-large, tokens.$font-size, 20px, tokens.$font-weight-medium),
         (label-medium, tokens.$font-size-small, 16px, tokens.$font-weight-medium),
         (label-small, tokens.$font-size-small, 16px, tokens.$font-weight-medium),
-        (title-large, tokens.$font-size-heading, 28px, tokens.$font-weight-medium),
+        (title-large, tokens.$font-size-large, 28px, tokens.$font-weight-medium),
         (title-medium, tokens.$font-size, 24px, tokens.$font-weight-medium),
         (title-small, tokens.$font-size, 20px, tokens.$font-weight-medium),
-        (headline-large, tokens.$font-size-heading, 32px, tokens.$font-weight-medium),
-        (headline-medium, tokens.$font-size-heading, 28px, tokens.$font-weight-medium),
-        (headline-small, tokens.$font-size-element-heading, 24px, tokens.$font-weight-medium),
-        (display-large, tokens.$font-size-heading, 32px, tokens.$font-weight-medium),
-        (display-medium, tokens.$font-size-heading, 28px, tokens.$font-weight-medium),
-        (display-small, tokens.$font-size-element-heading, 24px, tokens.$font-weight-medium)
+        (headline-large, tokens.$font-size-large, 32px, tokens.$font-weight-medium),
+        (headline-medium, tokens.$font-size-large, 28px, tokens.$font-weight-medium),
+        (headline-small, tokens.$font-size-large, 24px, tokens.$font-weight-medium),
+        (display-large, tokens.$font-size-large, 32px, tokens.$font-weight-medium),
+        (display-medium, tokens.$font-size-large, 28px, tokens.$font-weight-medium),
+        (display-small, tokens.$font-size-large, 24px, tokens.$font-weight-medium)
       )
   {
     @include mat.theme-overrides(
