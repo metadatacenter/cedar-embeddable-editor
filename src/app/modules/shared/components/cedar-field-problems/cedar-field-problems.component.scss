@@ -1,11 +1,22 @@
+@use '@org.metadatacenter/cedar-design-tokens/custom-properties';
+@use '@org.metadatacenter/cedar-design-tokens/patterns';
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
 /*
- * The size and leading Material gives the error under a form field, so a problem the
- * report found reads like one the control found, and sits in the same place.
+ * The shared recipe reads the shared roles as custom properties, and a page embedding CEE need not
+ * declare them. Declared here, the recipe resolves without the page.
+ */
+:host {
+  @include custom-properties.declare;
+}
+
+/*
+ * The shared field-error role, which every CEDAR component gives the error text under a control.
+ * The colour stays the one Material gives the control's own error, so a host's
+ * --cedar-control-error reaches a problem the report found as it reaches one the control found.
  */
 .cee-field-problem {
   display: block;
-  font-size: tokens.$font-size-small;
-  line-height: tokens.$control-line-height-authoring;
+  @include patterns.field-error;
+  color: var(--_cedar-error, #{tokens.$status-error-text});
 }
