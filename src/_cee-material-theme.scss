@@ -163,10 +163,13 @@ $_colors: (
       container-shape-radius: tokens.$radius-pill,
     )
   );
+  // The calendar panel is an overlay, so it takes the menu's shadow rather than Material's elevation.
   @include mat.datepicker-overrides(
     (
       calendar-container-shape: tokens.$radius,
       calendar-container-touch-shape: tokens.$radius,
+      calendar-container-elevation-shadow: var(--cedar-shadow-overlay, #{tokens.$shadow-overlay}),
+      calendar-container-touch-elevation-shadow: var(--cedar-shadow-overlay, #{tokens.$shadow-overlay}),
     )
   );
 
