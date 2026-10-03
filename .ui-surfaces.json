@@ -45,7 +45,24 @@
           "anchor": "<mat-datepicker"
         }
       ],
-      "test": "visual/tests/surfaces.spec.ts"
+      "test": "visual/tests/surfaces.spec.ts",
+      "scaleDebt": [
+        {
+          "property": "box-shadow",
+          "value": "rgba(0, 0, 0, 0.14)",
+          "reason": "Material's own elevation on the date picker, found when the walk began reading shadows; the shared overlay shadow would replace it"
+        },
+        {
+          "property": "box-shadow",
+          "value": "rgba(0, 0, 0, 0.12)",
+          "reason": "Material's own elevation on the date picker, found when the walk began reading shadows; the shared overlay shadow would replace it"
+        },
+        {
+          "property": "background-color",
+          "value": "color(srgb 0 0 0 / 0.104471)",
+          "reason": "Material's focus state layer on the active date, found when the walk began reading backgrounds"
+        }
+      ]
     },
     {
       "id": "cee.cee-view-4",

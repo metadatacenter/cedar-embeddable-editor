@@ -57,6 +57,20 @@
       "value": "32px",
       "count": 2
     },
+    "32af3f7cc6a03e766a99": {
+      "file": "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.scss",
+      "rule": "spacing",
+      "property": "margin-top",
+      "value": "-48px",
+      "count": 1
+    },
+    "34150c5478de69c0f560": {
+      "file": "src/app/modules/shared/components/cedar-multi-pager/cedar-multi-pager.component.scss",
+      "rule": "spacing",
+      "property": "margin-top",
+      "value": "-40px",
+      "count": 1
+    },
     "3e0537e535ccc68962a1": {
       "file": "src/app/modules/shared/components/time-picker/time-picker.component.scss",
       "rule": "geometry",
@@ -76,6 +90,13 @@
       "rule": "geometry",
       "property": "height",
       "value": "36px",
+      "count": 1
+    },
+    "44c5ec4cff9629fdd01e": {
+      "file": "src/styles-own.scss",
+      "rule": "spacing",
+      "property": "margin-top",
+      "value": "-26px",
       "count": 1
     },
     "47c406aae8e1d2bd2200": {
@@ -113,6 +134,13 @@
       "value": "10px",
       "count": 1
     },
+    "588686859fc186db2360": {
+      "file": "src/styles-own.scss",
+      "rule": "spacing",
+      "property": "margin-bottom",
+      "value": "-4px",
+      "count": 1
+    },
     "58cd2b3f9a209eef0da8": {
       "file": "src/app/modules/input-types/components/cedar-static-page-break/cedar-static-page-break.component.scss",
       "rule": "geometry",
@@ -125,6 +153,13 @@
       "rule": "geometry",
       "property": "min-height",
       "value": "48px",
+      "count": 1
+    },
+    "5be7effa169e101bdb14": {
+      "file": "src/app/modules/input-types/components/cedar-input-datetime/cedar-input-datetime.component.scss",
+      "rule": "spacing",
+      "property": "margin-inline",
+      "value": "0 -1px",
       "count": 1
     },
     "5c1f032bd644d05a74dd": {
@@ -195,6 +230,13 @@
       "rule": "spacing",
       "property": "padding",
       "value": "6px",
+      "count": 1
+    },
+    "7ec35a789bc4e7305775": {
+      "file": "src/styles-own.scss",
+      "rule": "geometry",
+      "property": "opacity",
+      "value": "0.5",
       "count": 1
     },
     "9e4f15a2d9fc473441d8": {
@@ -283,5 +325,5 @@
     }
   },
   "exceptions": {},
-  "policy": 2
+  "policy": 3
 }
