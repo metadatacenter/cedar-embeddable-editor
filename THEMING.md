@@ -7,11 +7,12 @@ restyle to accept. The commitments below distinguish the two.
 ## Palette and ownership
 
 CEE's Material adapter consumes `cedar-design-tokens`, as do CED and CETP.
-It maps the shared palette directly to M3 light-theme roles: primary is CEDAR
-500 (`#0f7686`), secondary is primary 700, and tertiary is rust 500. Pale brand
-hues supply container roles; shared neutrals supply surfaces, text and borders.
-The M2 accent A200 value remains available in the shared package, but M3 has
-secondary and tertiary roles instead of an accent palette.
+It maps the shared palette directly to M3 light-theme roles: primary is the
+theme colour (`#0f7686`), secondary is primary 700, and the tertiary roles take
+the primary's, because CEDAR has one theme colour. Pale brand hues supply
+container roles; shared neutrals supply surfaces, text and borders. The shared
+package's rust accent map is an input for the M2 themes of Monitoring and
+Bridging only.
 
 `mat.theme()` emits the system at each CEE/CEF shadow host. Every color role is
 mapped explicitly, including native-select fallbacks, so Material's stock palette
@@ -45,8 +46,8 @@ sets the common defaults. CEE and CEF support the compact-control properties in
 native controls support that same compact contract. Preserve those existing
 properties and the `density` attribute.
 
-CEE has no general runtime brand-palette API: changing a `--cedar-primary-*`
-property on a page does not recolor its compiled Material theme. Do not advertise
+CEE has no general runtime brand-palette API: changing `--cedar-color-primary`
+on a page does not recolor its compiled Material theme. Do not advertise
 an override until a browser test proves it reaches the affected controls.
 `--mat-*`, `--mdc-*` and private `--_cedar-*` properties are implementation details.
 A general appearance API remains separate work in
