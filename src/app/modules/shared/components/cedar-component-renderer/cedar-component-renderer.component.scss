@@ -63,11 +63,11 @@ $element-content-inset: tokens.$space-4;
 // hierarchy visible while leaving space to edit its fields in a narrow embed.
 @container cee-component (max-width: 240px) {
   .mat-expansion-panel {
-    --_cee-element-body-inset: 4%;
-    --_cee-element-heading-inset: 8%;
+    @include spacing.apply(--_cee-element-body-inset, element-narrow-inset);
+    @include spacing.apply(--_cee-element-heading-inset, element-narrow-heading-inset);
   }
   .cee-element-content {
-    padding-inline: 4%;
+    @include spacing.apply(padding-inline, element-narrow-inset);
   }
 }
 
