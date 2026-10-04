@@ -44,7 +44,15 @@ describe('the report carries nothing but its answer', () => {
    * `className`, `pageBreakChildren` and `parsed` are the component tree;
    * `dataContainer` is the instance model's own container.
    */
-  const INTERNALS = ['"_id"', '"_values"', '"_iris"', '"dataContainer"', '"className"', '"pageBreakChildren"', '"parsed"'];
+  const INTERNALS = [
+    '"_id"',
+    '"_values"',
+    '"_iris"',
+    '"dataContainer"',
+    '"className"',
+    '"pageBreakChildren"',
+    '"parsed"',
+  ];
 
   it.each(paired.map((c) => c.id))('case %s downloads a report with no internals in it', async (id) => {
     const content = await downloadContentFor('dataQuality', driverFor(id).dataContext);
@@ -135,7 +143,7 @@ describe('required counting', () => {
     expect(driver.qualityReport.problems.map((p: { code: string }) => p.code)).not.toContain('required');
   });
 
-  it('counts a required field in a repeated element once', () => {
+  it('counts a required declaration once and completes it only when every parent is filled', () => {
     const driver = new CeeDriver(
       buildTemplate({
         name: 'rc3',
@@ -145,11 +153,12 @@ describe('required counting', () => {
       }),
     );
     expect(counts(driver)).toEqual({ required: 1, filled: 0, isValid: false });
-    expect(driver.qualityReport.problems).toEqual([
-      expect.objectContaining({ path: ['_el', '_r'], field: '_r', code: 'required' }),
-    ]);
-    driver.setValue(['_el', '_r'], TEXT, 'first occurrence only');
-    expect(counts(driver)).toEqual({ required: 1, filled: 1, isValid: true });
+    expect(driver.qualityReport.problems.map((p: { occurrences: number[] }) => p.occurrences)).toEqual([[0], [1], [2]]);
+    for (const index of [0, 1, 2]) {
+      driver.handlerContext.setCurrentIndex(driver.findOrThrow(['_el']), index);
+      driver.setValue(['_el', '_r'], TEXT, 'filled');
+      expect(counts(driver)).toEqual({ required: 1, filled: index === 2 ? 1 : 0, isValid: index === 2 });
+    }
     expect(driver.qualityReport.problems).toEqual([]);
   });
 
@@ -189,12 +198,20 @@ describe('required counting', () => {
         name: 'rc4',
         children: [{ kind: TEXT, name: 'reason', required: true, cardinality: 'multi', minItems: 3, maxItems: 5 }],
         elements: [
-          { name: 'author', cardinality: 'multi', minItems: 3, children: [{ kind: TEXT, name: 'email', required: true }] },
+          {
+            name: 'author',
+            cardinality: 'multi',
+            minItems: 3,
+            children: [{ kind: TEXT, name: 'email', required: true }],
+          },
         ],
       }),
     );
     driver.setValue(['_reason'], TEXT, 'a reason');
-    driver.setValue(['_author', '_email'], TEXT, 'a@example.org');
+    for (const index of [0, 1, 2]) {
+      driver.handlerContext.setCurrentIndex(driver.findOrThrow(['_author']), index);
+      driver.setValue(['_author', '_email'], TEXT, 'a@example.org');
+    }
     expect(counts(driver)).toEqual({ required: 2, filled: 2, isValid: true });
   });
 });

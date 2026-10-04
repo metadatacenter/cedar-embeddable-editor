@@ -7,6 +7,11 @@
   min-width: 0;
 }
 
+mat-accordion {
+  display: block;
+  container: cee-component / inline-size;
+}
+
 /*
  * A nested element's heading takes the large size, as a section break does. The
  * element's panel header sets the two apart, so a section break inside an element
@@ -52,6 +57,18 @@ $element-content-inset: tokens.$space-4;
 .cee-element-content {
   padding-top: ui-tokens.$space-1;
   padding-inline: $element-content-inset;
+}
+
+// Fixed insets can consume the entire width several elements deep. Keep the
+// hierarchy visible while leaving space to edit its fields in a narrow embed.
+@container cee-component (max-width: 240px) {
+  .mat-expansion-panel {
+    --_cee-element-body-inset: 4%;
+    --_cee-element-heading-inset: 8%;
+  }
+  .cee-element-content {
+    padding-inline: 4%;
+  }
 }
 
 /*

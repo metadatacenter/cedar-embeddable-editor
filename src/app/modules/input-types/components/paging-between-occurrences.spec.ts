@@ -94,6 +94,7 @@ const field = (inputType: string, extra: Record<string, unknown> = {}): FieldCom
 /** A model that takes every write and holds nothing. */
 const context = (): HandlerContext =>
   ({
+    validation: { draftFor: () => null },
     changeValue: vi.fn(),
     changeListValue: vi.fn(),
     changeControlledValue: vi.fn(),

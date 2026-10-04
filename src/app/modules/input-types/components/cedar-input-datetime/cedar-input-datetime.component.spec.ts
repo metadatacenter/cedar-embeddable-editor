@@ -36,6 +36,7 @@ describe('CedarInputDatetimeComponent model-to-view sync', () => {
     } as unknown as FieldComponent;
     const written: (string | null)[] = [];
     component.handlerContext = {
+      validation: { draftFor: () => null },
       changeValue: (_c: unknown, value: string | null) => written.push(value),
     } as never;
     return { component, written };
@@ -136,6 +137,7 @@ describe('CedarInputDatetimeComponent by granularity', () => {
     } as unknown as FieldComponent;
     const written: (string | null)[] = [];
     component.handlerContext = {
+      validation: { draftFor: () => null },
       changeValue: (_c: unknown, value: string | null) => written.push(value),
     } as never;
     return { component, written };

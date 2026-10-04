@@ -6,6 +6,7 @@ import { ValidationCode, ValidationProblem } from '../../validation/validation-p
 import { componentsAlong, occurrencesOnScreen } from '../../util/component-location';
 import { FieldRevealService } from '../../service/field-reveal.service';
 import { MultiInfo } from '../../models/info/multi-info.model';
+import { AbstractFieldComponent } from '../../models/field/abstract-field-component.model';
 
 /** What a component with a list declares about its length. */
 type Bounded = CedarComponent & { multiInfo?: MultiInfo };
@@ -20,6 +21,11 @@ type Bounded = CedarComponent & { multiInfo?: MultiInfo };
  * problems and nowhere on the form.
  */
 const NOTICES: Partial<Record<string, (problem: ValidationProblem, component: Bounded) => Translatable>> = {
+  [ValidationCode.templateConstraint]: () => ({ key: 'Validation.Report.TemplateConstraint' }),
+  [ValidationCode.valueShape]: (problem) => ({
+    key: problem.inputType === 'element' ? 'Validation.Report.ElementShape' : 'Validation.Report.ValueShape',
+  }),
+  [ValidationCode.attributeName]: () => ({ key: 'Validation.Report.AttributeName' }),
   [ValidationCode.choiceMembership]: (problem) => ({
     key: 'Validation.Report.ChoiceMembership',
     params: { value: String(problem.value ?? '') },
@@ -36,8 +42,12 @@ const NOTICES: Partial<Record<string, (problem: ValidationProblem, component: Bo
   }),
 };
 
-/** Problems about a whole list, which are located by the entries above the list. */
-const LIST_CODES: ReadonlySet<string> = new Set([ValidationCode.minItems, ValidationCode.maxItems]);
+/** Problems applying across a field's entries, located by its containing elements. */
+const LIST_CODES: ReadonlySet<string> = new Set([
+  ValidationCode.minItems,
+  ValidationCode.maxItems,
+  ValidationCode.templateConstraint,
+]);
 
 /**
  * The report's problems with this field or element, in the entries on screen.
@@ -78,11 +88,16 @@ export class CedarFieldProblemsComponent {
 
     const notices = new Map<string, Translatable>();
     for (const problem of candidates) {
+      if (problem.code === ValidationCode.attributeName && this.componentToShow instanceof AbstractFieldComponent) {
+        const draft = context.validation.draftFor(this.componentToShow);
+        // Rejected names already have the widget's more specific explanation.
+        if (draft?.code === ValidationCode.attributeName && (draft.state as { error?: unknown })?.error) continue;
+      }
       const list = LIST_CODES.has(problem.code);
       if (!CedarFieldProblemsComponent.same(problem.occurrences, list ? above : onScreen)) {
         continue;
       }
-      if (problem.code === ValidationCode.minItems && !this.reveal?.wasRevealed(path, above)) {
+      if (problem.severity === 'warning' && !this.reveal?.wasRevealed(path, list ? above : onScreen)) {
         continue;
       }
       const notice = NOTICES[problem.code]!(problem, this.componentToShow);

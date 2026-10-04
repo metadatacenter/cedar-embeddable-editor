@@ -204,6 +204,10 @@
       "NameInUse": "Attribute name \"{{name}}\" is already used in this instance. Choose a unique name."
     },
     "Report": {
+      "TemplateConstraint": "This field has an invalid constraint in its template. Ask the template author to correct it.",
+      "ValueShape": "This value does not match the field type. Replace or clear it.",
+      "ElementShape": "This element contains malformed data. Edit a field inside it to replace a malformed value, or load a corrected instance.",
+      "AttributeName": "Choose a valid, unique name for this attribute.",
       "ChoiceMembership": "\"{{value}}\" is not one of the options for this field.",
       "ControlledStructure": "The stored term is missing its label or its IRI.",
       "IriMalformed": "The stored identifier is not a valid IRI.",

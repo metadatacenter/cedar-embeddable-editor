@@ -87,7 +87,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   private initialized = false;
   private readonly artifacts: ArtifactInputCoordinator;
   private readonly configuration: WrapperConfigCoordinator;
-  private lastPublishedMetadata = '';
+  private lastPublishedState = '';
   artifactRevision = 0;
 
   // Constructor-assigned, so no `= null` placeholder: unlike the editor's, which
@@ -234,24 +234,24 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.handlerContext = state.handlerContext;
     this.handlerContext.setMutationListener((mutation) => this.publishMutation(mutation));
     this.artifactRevision = state.revision;
-    this.lastPublishedMetadata = this.metadataKey();
+    this.lastPublishedState = this.validationStateKey();
     this.doInitialize();
   }
 
-  private metadataKey(): string {
-    return JSON.stringify(this.currentMetadata);
+  private validationStateKey(): string {
+    return JSON.stringify([this.currentMetadata, this.dataQualityReport]);
   }
 
-  /** Publish only mutations whose serialized result differs from the previous result. */
+  /** Publish changes to either serialized metadata or its quality report, including unfinished edits. */
   private publishMutation(mutation: InstanceMutation): void {
     const metadata = this.currentMetadata as CeeJsonObject;
-    const key = JSON.stringify(metadata);
-    if (key === this.lastPublishedMetadata) {
+    const report = this.dataQualityReport as CeeDataQualityReport;
+    const key = JSON.stringify([metadata, report]);
+    if (key === this.lastPublishedState) {
       return;
     }
-    this.lastPublishedMetadata = key;
+    this.lastPublishedState = key;
 
-    const report = this.dataQualityReport as CeeDataQualityReport;
     const instance = this.handlerContext.dataContext.instanceFullData;
     const multiOperation = mutation.operation === 'valueChanged' ? undefined : mutation.operation;
     const detail: CeeChangeDetail = {

@@ -39,9 +39,9 @@ gives the input properties, the output properties, and the change event a host
 reads.
 
 For the design rationale, the architecture, and deployments in research
-platforms, see [*Author Once, Publish Everywhere: Portable Metadata Authoring
-with the CEDAR Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002),
-published in the *Data Science Journal* (2026).
+platforms, see [_Author Once, Publish Everywhere: Portable Metadata Authoring
+with the CEDAR Embeddable Editor_](https://doi.org/10.5334/dsj-2026-002),
+published in the _Data Science Journal_ (2026).
 
 ## Installing
 
@@ -134,6 +134,23 @@ Trial hosts such as Workspace “Try out” and CED’s editable preview set
 messages even after blur. Nonempty invalid values and incomplete temporal values still
 show errors. This affects presentation only: required fields remain invalid in the quality
 report. Ordinary metadata editing leaves the option off.
+
+## Validation
+
+Read `dataQualityReport` for the whole instance, including nested and off-screen
+occurrences. Each problem has a code, `severity` (`warning` or `error`), a field
+`path` and occurrence indices. Pass a field problem to `reveal(problem)` to reach it.
+
+Missing required answers, insufficient occurrences and unnamed attribute rows are
+warnings. Invalid values, malformed incoming data and unfinished edits are errors.
+Either makes `isValid` false; the host decides whether saving is allowed. A required
+field must be answered in every existing containing element. A repeating field
+needs at least one answer within each such element.
+
+The report includes unfinished date/time and attribute-name edits, and `change`
+fires when metadata **or the report** changes. Invalid imported field IRIs and
+well-shaped numeric, temporal and IRI defaults remain available for correction.
+Terminology membership and server-side validation remain the host's responsibility.
 
 ## Embedding a Single Field
 

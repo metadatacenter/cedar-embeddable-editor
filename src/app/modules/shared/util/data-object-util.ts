@@ -1,3 +1,4 @@
+import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
 import { InstanceValueNode } from './instance-value-node';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
@@ -23,6 +24,7 @@ export class DataObjectUtil {
    * walking, purely to re-derive things the tree had.
    */
   static getEmptyValueWrapper(component: FieldComponent): InstanceNode {
+    if (component.basicInfo.inputType === InputType.attributeValue) return new InstanceDataAttributeValueFieldName('');
     return InstanceValueNode.emptySlot(
       DataObjectUtil.isIriValued(component),
       DataObjectUtil.xsdTypeForFullCopy(component),
@@ -70,9 +72,7 @@ export class DataObjectUtil {
         granularity: component.basicInfo.temporalGranularity,
         timezoneEnabled: component.basicInfo.timezoneEnabled === true,
       });
-      return normalized === null
-        ? []
-        : [InstanceValueNode.literalValue(normalized, DataObjectUtil.xsdTypeForFullCopy(component))];
+      return [InstanceValueNode.literalValue(normalized ?? declared, DataObjectUtil.xsdTypeForFullCopy(component))];
     }
     if (typeof declared === 'string' || typeof declared === 'number' || typeof declared === 'boolean') {
       return [InstanceValueNode.literalValue(String(declared), DataObjectUtil.xsdTypeForFullCopy(component))];

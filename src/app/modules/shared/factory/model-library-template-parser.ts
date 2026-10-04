@@ -50,6 +50,7 @@ import { InputType } from '../models/input-type.model';
 import { LabelInfo } from '../models/info/label-info.model';
 import { HandlerContext } from '../util/handler-context';
 import { TemplateParser } from './template-parser';
+import { withoutCheckedDefaults, restoreDeclaredDefaults } from './editable-template-defaults';
 import { MultiComponent } from '../models/component/multi-component.model';
 
 /**
@@ -200,7 +201,8 @@ export class ModelLibraryTemplateParser implements TemplateParser {
       .getTemplateReader()
       // `JsonNode` is the library's name for a parsed JSON object, and differs
       // from `object` only in declaring the index signature that makes it one.
-      .readFromObject(templateJson as JsonNode);
+      .readFromObject(withoutCheckedDefaults(templateJson as JsonNode));
+    restoreDeclaredDefaults(result.template, templateJson as JsonNode);
 
     ModelLibraryTemplateParser.report(result.parsingResult.getBlueprintComparisonErrors(), handlerContext);
     ModelLibraryTemplateParser.mapParsedTemplate(result.template, template);

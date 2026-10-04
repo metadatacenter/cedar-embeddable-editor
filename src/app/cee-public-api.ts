@@ -173,6 +173,8 @@ export interface CeeTemplateAndInstance {
  * TypeScript host could not read either without a cast.
  */
 export interface CeeValidationProblem {
+  /** Missing answers are warnings; invalid values and unfinished edits are errors. Both affect isValid. */
+  severity: 'warning' | 'error';
   /** Machine-readable code, e.g. `numberType` or `temporalGranularity`. */
   code: string;
   /** Path to the offending value, outermost first. */
@@ -183,7 +185,7 @@ export interface CeeValidationProblem {
    * A path names one place per entry of everything above it that repeats, and this
    * says which entry holds the problem. A problem about a whole list, such as
    * `minItems`, names the entries above the list and none of its own; a `required`
-   * problem names none, because any entry would satisfy it. Pass the problem to
+   * problem names the containing elements whose requirement is unfilled. Pass the problem to
    * `reveal` to take the user to it.
    */
   occurrences: number[];
@@ -243,15 +245,15 @@ export interface CeeDataQualityReport {
   /**
    * How many of those the instance fills.
    *
-   * A requirement is met when any occurrence carries a value, so this is
-   * unaffected by which page the form is showing.
+   * A required field needs at least one value in every existing containing element.
+   * This is unaffected by which occurrence the form is showing.
    */
   nonNullRequiredFieldValueCount: number;
   /**
    * Validation problems.
    *
-   * Includes one `required` problem for each unsatisfied required field
-   * declaration, while the two counters retain their existing aggregate view.
+   * Includes a located `required` warning for each containing element with an
+   * unanswered requirement. The two counters count declarations, not occurrences.
    */
   problems: CeeValidationProblem[];
   /** True when every required field is filled and no constraint is violated. */

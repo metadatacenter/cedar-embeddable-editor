@@ -1,14 +1,21 @@
+import { validAbsoluteIri } from './absolute-iri';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { Numbers } from '../models/numbers.model';
 import { Temporal } from '../models/temporal.model';
 import { Xsd } from '../models/xsd.model';
-import { EXTERNAL_AUTHORITY_INPUT_TYPES } from '../models/ext-auth-categories.model';
+import { EXTERNAL_AUTHORITY_INPUT_TYPES, valueIsIri } from '../models/ext-auth-categories.model';
 import { ValidationCode, ValidationProblem } from './validation-problem.model';
 import { InstanceValueNode } from '../util/instance-value-node';
 import { CedarTemporalValue } from '../util/cedar-temporal-value';
 import { InstanceNode } from '../models/instance-node.model';
-import { JsonTemplateInstanceWriter } from 'cedar-model-typescript-library';
+import {
+  InstanceDataEmptyAtom,
+  InstanceDataEmptyNode,
+  InstanceDataContainer,
+  InstanceDataAttributeValueFieldName,
+  JsonTemplateInstanceWriter,
+} from 'cedar-model-typescript-library';
 
 /**
  * Constraint checking for a single field value.
@@ -85,6 +92,26 @@ export class FieldValueValidator {
     );
   }
 
+  /** A malformed template must not silently switch off a constraint. */
+  static validateConfiguration(component: FieldComponent): ValidationProblem[] {
+    const problems: ValidationProblem[] = [];
+    const invalid = (message: string) =>
+      problems.push(this.problem(component, component.path, ValidationCode.templateConstraint, message, null));
+    const { minLength, maxLength, regex } = component.valueInfo;
+    if (minLength != null && maxLength != null && minLength > maxLength)
+      invalid('Minimum length exceeds maximum length.');
+    if (regex) {
+      try {
+        new RegExp(`^(?:${regex})$`);
+      } catch {
+        invalid('The template contains an invalid regular expression.');
+      }
+    }
+    const { minValue, maxValue } = component.numberInfo ?? {};
+    if (minValue != null && maxValue != null && minValue > maxValue) invalid('Minimum value exceeds maximum value.');
+    return problems;
+  }
+
   private static checkTextConstraints(
     component: FieldComponent,
     text: string,
@@ -119,19 +146,70 @@ export class FieldValueValidator {
 
   private static readonly EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  /**
-   * Link and phone patterns are taken verbatim from the widgets that owned
-   * them, so moving the check here changes nothing about which values are
-   * accepted. Both are looser than they look — the link one is unanchored,
-   * matching how Angular applies a `RegExp` (only string patterns get wrapped
-   * in `^...$`), so a URI embedded in surrounding text passes. Preserved rather
-   * than tightened: that is a product call, not a refactor.
-   */
-  private static readonly LINK = /(https?:\/\/)([\da-z.-]+)\.([a-z.]{2,6})[/\w .-]*\/?/i;
-  private static readonly PHONE = /^[+0-9\s\-()]+$/im;
-
-  /** Used only for external-authority fields, which store a bare IRI. */
-  private static readonly IRI = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\s]+$|^urn:[^\s]+$|^doi:[^\s]+$/;
+  private static readonly LINK = /^https?:\/\/[\da-z.-]+\.[a-z.]{2,63}(?:[/?#][^\s]*)?$/i;
+  private static readonly PHONE = /^[+0-9 \t\-()]+$/;
+  /** Check the stored node before extracting a plain value, which can hide malformed input. */
+  static validateNode(component: FieldComponent, node: InstanceNode, path: string[]): ValidationProblem[] {
+    if (node instanceof InstanceDataEmptyNode) return [];
+    if (node instanceof InstanceDataEmptyAtom) {
+      return node.hasDiscardedContent()
+        ? [
+            this.problem(
+              component,
+              path,
+              ValidationCode.valueShape,
+              'The supplied value has no usable literal or IRI.',
+              node.discarded,
+            ),
+          ]
+        : [];
+    }
+    if (
+      component.basicInfo.inputType === InputType.attributeValue &&
+      node instanceof InstanceDataAttributeValueFieldName
+    ) {
+      return node.name.trim() === ''
+        ? [
+            new ValidationProblem(
+              path,
+              component.name,
+              component.basicInfo.inputType,
+              ValidationCode.attributeName,
+              'An attribute needs a name.',
+              node.name,
+              [],
+              'warning',
+            ),
+          ]
+        : [];
+    }
+    const iriField =
+      component.basicInfo.inputType === InputType.controlled || valueIsIri(component.basicInfo.inputType as InputType);
+    if (
+      node instanceof InstanceDataContainer ||
+      (iriField ? !InstanceValueNode.isIriBearing(node) : !InstanceValueNode.isLiteral(node))
+    ) {
+      // A null literal is also a legacy spelling of an empty IRI slot.
+      if (InstanceValueNode.isLiteral(node) && InstanceValueNode.literal(node) == null) return [];
+      return [
+        this.problem(
+          component,
+          path,
+          ValidationCode.valueShape,
+          iriField ? 'This field requires an IRI value.' : 'This field requires a literal value.',
+          node instanceof InstanceDataContainer ? null : JsonTemplateInstanceWriter.writeValueNode(node),
+        ),
+      ];
+    }
+    if (
+      InstanceValueNode.isIriBearing(node) &&
+      !InstanceValueNode.iri(node) &&
+      component.basicInfo.inputType !== InputType.controlled
+    ) {
+      return [this.problem(component, path, ValidationCode.iriMalformed, 'The stored IRI is empty.', null)];
+    }
+    return this.validateControlledNode(component, node, path);
+  }
 
   private static checkFormat(component: FieldComponent, text: string, path: string[], out: ValidationProblem[]): void {
     const inputType = component.basicInfo.inputType;
@@ -139,16 +217,20 @@ export class FieldValueValidator {
     if (inputType === InputType.email && !this.EMAIL.test(text)) {
       out.push(this.problem(component, path, ValidationCode.email, 'Not a valid email address.', text));
     }
-    if (inputType === InputType.link && !this.LINK.test(text)) {
+    if (inputType === InputType.link && (!this.LINK.test(text) || !validAbsoluteIri(text))) {
       out.push(this.problem(component, path, ValidationCode.link, 'Not a valid URI.', text));
     }
     if (inputType === InputType.phoneNumber && !this.PHONE.test(text)) {
       out.push(this.problem(component, path, ValidationCode.phoneNumber, 'Not a valid phone number.', text));
     }
     // External authority fields store an IRI. Membership in the authority is a
-    // server question; well-formedness is not.
-    if (inputType !== null && EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType) && !this.IRI.test(text)) {
-      out.push(this.problem(component, path, ValidationCode.iriMalformed, 'Not a valid IRI.', text));
+    // server question; well-formedness and the accepted identifier schemes are not.
+    if (
+      inputType !== null &&
+      EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType) &&
+      (!validAbsoluteIri(text) || !/^(?:[a-z][a-z0-9+.-]*:\/\/|urn:|doi:)/i.test(text))
+    ) {
+      out.push(this.problem(component, path, ValidationCode.iriMalformed, 'Not a supported identifier IRI.', text));
     }
   }
 
@@ -200,7 +282,8 @@ export class FieldValueValidator {
     }
 
     const numeric = Number(text);
-    if (Number.isNaN(numeric)) {
+    if (!Number.isFinite(numeric)) {
+      out.push(this.problem(component, path, ValidationCode.numberType, 'Not a finite number.', text));
       return;
     }
 
@@ -261,6 +344,10 @@ export class FieldValueValidator {
       out.push(this.problem(component, path, ValidationCode.timezoneOffset, 'Not a valid xsd timezone offset.', text));
     }
 
+    if (rest.split('T').length > 2) {
+      out.push(this.problem(component, path, ValidationCode.temporalType, 'Not a valid temporal value.', text));
+      return;
+    }
     const [datePart, timePart] = rest.includes('T') ? rest.split('T') : [rest, null];
     const looksLikeTime = this.TIME_PART.test(rest);
 
@@ -291,7 +378,9 @@ export class FieldValueValidator {
       const [, y, mo, d] = dateStr.match(this.DATE_PART) ?? [];
       const month = Number(mo);
       const day = Number(d);
-      const daysInMonth = new Date(Number(y), month, 0).getDate();
+      const calendar = new Date(0);
+      calendar.setUTCFullYear(Number(y), month, 0);
+      const daysInMonth = calendar.getUTCDate();
       if (month < 1 || month > 12 || day < 1 || (daysInMonth && day > daysInMonth)) {
         out.push(this.problem(component, path, ValidationCode.temporalCalendar, 'Not a real calendar date.', text));
       }
@@ -492,7 +581,7 @@ export class FieldValueValidator {
         ),
       );
     }
-    if (hasId && !this.IRI.test(id as string)) {
+    if (hasId && !validAbsoluteIri(id as string)) {
       out.push(this.problem(component, path, ValidationCode.iriMalformed, '@id is not a valid IRI.', id));
     }
     return out;

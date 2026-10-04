@@ -281,7 +281,7 @@ describe('names the user did not supply', () => {
     // The first value stands; the duplicate row remains unnamed until the user
     // chooses a name that can safely become a JSON property.
     expect(valueOf(driver.extract, 'colour')).toBe('blue');
-    expect(heldValue(driver.extract.values._av)).toEqual(['colour', null]);
+    expect(heldValue(driver.extract.values._av)).toEqual(['colour', '']);
     expect(read(error)).toContain('already used');
   });
 

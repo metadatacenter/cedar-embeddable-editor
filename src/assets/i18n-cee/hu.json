@@ -204,6 +204,10 @@
       "NameInUse": "Az attribútum neve („{{name}}”) már szerepel ebben a példányban. Adjon meg egyedi nevet."
     },
     "Report": {
+      "TemplateConstraint": "A mező sablonjában érvénytelen korlátozás szerepel. Kérje meg a sablon szerzőjét a javításra.",
+      "ValueShape": "Ez az érték nem felel meg a mező típusának. Cserélje ki vagy törölje.",
+      "ElementShape": "Ez az elem hibás adatokat tartalmaz. A hibás érték lecseréléséhez szerkesszen egy benne lévő mezőt, vagy töltsön be egy javított példányt.",
+      "AttributeName": "Adjon meg érvényes, egyedi nevet az attribútumnak.",
       "ChoiceMembership": "„{{value}}” nem szerepel a mező választási lehetőségei között.",
       "ControlledStructure": "A tárolt kifejezésből hiányzik a címke vagy az IRI.",
       "IriMalformed": "A tárolt azonosító nem érvényes IRI.",

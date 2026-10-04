@@ -136,6 +136,13 @@ export class MultiInstanceObjectHandler {
     }
 
     if (state !== null) {
+      if (component instanceof MultiElementComponent) {
+        while (state.occurrences.length < count) {
+          const occurrence = new MultiInstanceInfo();
+          this.buildRecursively(component, occurrence);
+          state.addOccurrence(occurrence);
+        }
+      }
       state.currentCount = count;
       state.currentIndex = count > 0 ? 0 : -1;
     }

@@ -35,12 +35,13 @@ describe('read-only mode', () => {
   });
 
   it('validates an injected instance in a viewer', () => {
+    const validTemplate = template();
     const bad = buildInstance(
-      'https://repo.metadatacenter.org/templates/ro',
+      (validTemplate as Record<string, string>)['@id'],
       { _a: literalValue('fine') },
       'https://example.org/i/1',
     );
-    const viewer = new CeeDriver(template(), { readOnlyMode: true, instance: bad });
+    const viewer = new CeeDriver(validTemplate, { readOnlyMode: true, instance: bad });
     expect(viewer.dataContext.dataQualityReport).not.toBeNull();
     expect(viewer.qualityReport.isValid).toBe(true);
   });
@@ -82,4 +83,3 @@ describe('read-only mode', () => {
     driver.expectNoErrors('write in read-only mode');
   });
 });
-

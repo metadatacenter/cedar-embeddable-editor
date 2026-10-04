@@ -84,7 +84,7 @@
     </div>
   }
 
-  @if (hasTemporalValue() && !readOnlyMode) {
+  @if ((hasTemporalValue() || unreadableValue !== null) && !readOnlyMode) {
     <button
       type="button"
       mat-icon-button

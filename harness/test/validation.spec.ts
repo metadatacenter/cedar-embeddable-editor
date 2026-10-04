@@ -306,7 +306,7 @@ describe('text and format constraints', () => {
     expect(codesFor(make(), value)).toEqual([]);
   });
 
-  it('ignores an unparseable regex rather than failing every value', () => {
+  it('reports an unparseable template regex instead of silently disabling it', () => {
     // A broken pattern is the template's problem; it must not make every
     // instance invalid.
     expect(
@@ -314,7 +314,7 @@ describe('text and format constraints', () => {
         text((b) => b.withRegex('[unclosed')),
         'anything',
       ),
-    ).toEqual([]);
+    ).toEqual(['templateConstraint']);
   });
 });
 

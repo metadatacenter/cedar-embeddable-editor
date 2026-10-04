@@ -7,7 +7,8 @@ import { FieldComponent } from '../models/component/field-component.model';
 import { DataObjectDataValueHandler } from '../handler/data-object-data-value.handler';
 import { DataObjectStructureHandler } from '../handler/data-object-structure.handler';
 import { MessageHandlerService } from '../service/message-handler.service';
-import { DataQualityReportBuilderHandler } from '../handler/data-quality-report-builder.handler';
+import { FieldDraft, ValidationCoordinator } from '../validation/validation-coordinator';
+import { ValidationCode } from '../validation/validation-problem.model';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { InputType } from '../models/input-type.model';
@@ -34,7 +35,7 @@ export class HandlerContext {
   readonly multiInstanceObjectService: MultiInstanceObjectHandler;
   readonly dataObjectManipulationService: DataObjectStructureHandler;
   readonly dataObjectDataValueHandler: DataObjectDataValueHandler;
-  readonly dataQualityReportBuilderService: DataQualityReportBuilderHandler;
+  readonly validation: ValidationCoordinator;
   readonly dataContext: DataContext;
   readonly messageHandlerService: MessageHandlerService;
   // readonly rdfService: RdfBuilderService = null;
@@ -79,7 +80,7 @@ export class HandlerContext {
       messageHandlerService,
     );
     this.dataObjectDataValueHandler = new DataObjectDataValueHandler(messageHandlerService);
-    this.dataQualityReportBuilderService = new DataQualityReportBuilderHandler();
+    this.validation = new ValidationCoordinator(this);
     this.dataContext = dataContext;
     this.messageHandlerService = messageHandlerService;
     // How many occurrences a multi component has is a fact about the instance,
@@ -177,6 +178,8 @@ export class HandlerContext {
     if (!this.withinAddBound(component)) {
       return false;
     }
+    const sourceSlots = this.getDataObjectNodeByPath(component.path);
+    const sourceNode = isInstanceArray(sourceSlots) ? sourceSlots[multiInfo.currentIndex] : null;
     let attributeToCopy: { name: string; value: string | null } | null = null;
     let attributeFieldToCopy: MultiFieldComponent | null = null;
     if (component instanceof MultiFieldComponent && component.basicInfo.inputType === InputType.attributeValue) {
@@ -224,6 +227,8 @@ export class HandlerContext {
         this.messageHandlerService.error(`Unable to find a unique name for a copy of "${attributeToCopy.name}".`);
       }
     }
+    const copiedSlots = this.getDataObjectNodeByPath(component.path);
+    this.validation.copyDrafts(sourceNode, isInstanceArray(copiedSlots) ? copiedSlots[multiInfo.currentIndex] : null);
     this.buildQualityReport();
     this.reportMutation('multiInstanceCopied', component, {
       count: this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentCount ?? 0,
@@ -236,12 +241,31 @@ export class HandlerContext {
     if (!this.withinDeleteBound(component)) {
       return false;
     }
+    const slots = this.getDataObjectNodeByPath(component.path);
+    const index = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentIndex ?? -1;
+    const slot = isInstanceArray(slots) ? slots[index] : null;
+    const parent = this.getParentDataObjectNodeByPath(component.path);
+    const attributeName =
+      component instanceof MultiFieldComponent &&
+      component.basicInfo.inputType === InputType.attributeValue &&
+      slot instanceof InstanceDataAttributeValueFieldName
+        ? slot.name
+        : null;
     this.dataObjectManipulationService.multiInstanceItemDelete(
       this.dataContext,
       component,
       this.multiInstanceObjectService,
     );
     this.multiInstanceObjectService.multiInstanceItemDelete(component);
+    if (attributeName && isInstanceObject(parent)) {
+      const stillReferenced = Object.values(parent.values).some(
+        (held) =>
+          isInstanceArray(held) &&
+          held.some((node) => node instanceof InstanceDataAttributeValueFieldName && node.name === attributeName),
+      );
+      if (!stillReferenced) parent.removeValue(attributeName);
+      this.dataContext.invalidateDerivedViews();
+    }
     this.buildQualityReport();
     this.reportMutation('multiInstanceDeleted', component, {
       count: this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentCount ?? 0,
@@ -330,8 +354,9 @@ export class HandlerContext {
    * widgets call these with null on a clear, and always have. The declarations
    * said `string` and were the half that was wrong.
    */
-  changeValue(component: FieldComponent, value: string | null): void {
+  changeValue(component: FieldComponent, value: string | null, draft: FieldDraft | null = null): void {
     this.dataObjectDataValueHandler.changeValue(this.dataContext, component, this.multiInstanceObjectService, value);
+    this.validation.setDraft(component, draft);
     this.buildQualityReport();
     this.reportMutation('valueChanged', component, value);
     // this.rdfService.toRdf(this.dataContext.instanceFullData);
@@ -355,6 +380,17 @@ export class HandlerContext {
       this.multiInstanceObjectService,
       key,
       value,
+    );
+    this.validation.setDraft(
+      component,
+      validationError !== null || (!key && value !== null && value !== '')
+        ? {
+            code: ValidationCode.attributeName,
+            message: 'An attribute needs a valid, unique name before its value can be saved.',
+            value: { key, value },
+            state: { key, value, error: validationError },
+          }
+        : null,
     );
     this.buildQualityReport();
     this.reportMutation('valueChanged', component, { key, value });
@@ -385,7 +421,7 @@ export class HandlerContext {
   }
 
   buildQualityReport() {
-    this.dataContext.dataQualityReport = this.dataQualityReportBuilderService.buildReport(this.dataContext, this);
+    this.validation.validate();
     // this.rdfService.toRdf(this.dataContext.instanceFullData).then((rdf) => {
     //   console.log('RDF', rdf);
     //   console.log('Instance extract data', this.dataContext.instanceFullData);

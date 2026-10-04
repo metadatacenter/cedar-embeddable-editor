@@ -115,6 +115,15 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
    * pieces the widget needs from the model-library instance.
    */
   setCurrentValue(currentValue: unknown): void {
+    const draft = this.handlerContext.validation.draftFor(this.component);
+    if (draft?.code === 'attributeName') {
+      const state = draft.state as { key: string | null; value: string | null; error: Translatable | null };
+      this.nameInputControl.setValue(state.key);
+      this.valueInputControl.setValue(state.value);
+      this.attributeNameError = state.error;
+      this.nameInputControl.setErrors(state.error === null ? null : { attributeName: true });
+      return;
+    }
     this.attributeNameError = null;
     this.nameInputControl.setErrors(null);
     if (!isAttributeValueView(currentValue)) {
@@ -128,8 +137,10 @@ export class CedarInputAttributeValueComponent extends CedarUIDirective {
   }
 
   override deleteCurrentValue(): void {
-    const name = this.nameInputControl.value;
-    this.handlerContext.deleteAttributeValue(this.component, name);
+    // Deletion belongs to the coordinator; the box may hold a rejected name belonging to another slot.
+    this.attributeNameError = null;
+    this.nameInputControl.reset(null);
+    this.valueInputControl.reset(null);
   }
 
   clearName(): void {

@@ -71,6 +71,7 @@ const field = (inputType: string, extra: Record<string, unknown> = {}): FieldCom
 const recorder = (): { context: HandlerContext; written: unknown[] } => {
   const written: unknown[] = [];
   const context = {
+    validation: { draftFor: () => null },
     changeValue: (_c: unknown, value: unknown) => written.push(value),
     changeListValue: (_c: unknown, value: unknown) => written.push(value),
     changeControlledValue: (_c: unknown, iri: unknown, label: unknown) => written.push(iri, label),
