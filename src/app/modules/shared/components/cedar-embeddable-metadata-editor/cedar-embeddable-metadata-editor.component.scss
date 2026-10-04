@@ -4,10 +4,10 @@
 @use '../../../../../styles-common' as common;
 @use '@org.metadatacenter/cedar-design-tokens/tokens' as tokens;
 
-/* Angular Material fixes a card avatar at 40px, and the track the identity block
- * occupies is wider than that so the version stamp has room to read. */
+/* Angular Material fixes a card avatar at 40px. The name and the version stamp beside it share a
+ * column of fixed width, wide enough for a release version at this font size. */
 $mark-size: 40px;
-$logo-track: 72px;
+$identity-text: 72px;
 
 :host {
   display: block;
@@ -20,13 +20,13 @@ $logo-track: 72px;
   background-image: url(common.$cedar-logo-80x80);
   background-size: cover;
   background-color: tokens.$text-title;
-  /* Angular Material's card-avatar default adds 16px below the mark. The CEE name supplies its own
-   * 4px separation, so retaining both created a conspicuous 20px hole in this compact identity. */
+  /* Angular Material's card-avatar default adds 16px below the mark, which would make the identity
+   * taller than the mark it is centred on. */
   margin-bottom: 0;
 }
 .template-header {
   display: grid;
-  grid-template-columns: $logo-track minmax(192px, 1fr) auto;
+  grid-template-columns: auto minmax(192px, 1fr) auto;
   /*
    * The provenance shares the first row
    * with the icon and the name rather than sitting above them, and the controls take a row of their
@@ -45,81 +45,60 @@ $logo-track: 72px;
 }
 
 /*
- * The logo and the version stamp beneath it.
+ * The logo, with the component's name and its version stamp beside it.
  *
- * This block and .cee-version were each declared twice in this file, and the
- * second of each pair silently won: the block ended up pinned to `flex: 0 0 40px`
- * while the stamp was capped at `max-width: 100%` of it. Forty pixels is about six
- * characters at 12px, so every version rendered as "1.6.0-…" no matter what it
- * said — the ellipsis fell exactly where versions start to differ, which made the
- * stamp look present and current while telling you nothing.
+ * The name says whose form this is. The stamp alone read `2.0.4-dev.20260827.…`, which names a
+ * build without naming what was built, and the designer's preview panel puts this header beside
+ * another CEDAR component's.
  *
- * Widened to a fixed 72px, which fits a version at this font size with room to
- * spare. Fixed rather than sized to its content on purpose: content sizing would
- * make the header's width depend on how many characters the version happens to
- * have, so every hop that renamed it would shift the whole header and move the
- * baselines — which is the thing screenshot.css was added to prevent. It hides the
- * text, not the box. A version longer than the box still ellipses, and costs no
- * layout.
+ * The text column has a fixed width rather than its content's. Sized to its content, the header's
+ * width would depend on how many characters the version happens to have, so every release would
+ * shift the whole header and move the baselines that screenshot.css hides the stamp to protect. A
+ * version longer than the column ellipses within it and costs no layout.
  *
- * The stack is flush with the left of that track rather than centred in it, so
- * the mark starts on the gutter every field below it starts on. Centred, a short
- * version left the mark 16px inside a header whose right edge the provenance sat
- * on, and the two sides of one row read as different margins. The name and the
- * stamp centre on the mark instead of starting on that same edge, which left
- * both of them hanging off its left side.
+ * The mark starts on the gutter every field below it starts on. The name and the stamp share a
+ * left edge beside it and sit centred on its height, so the identity is no taller than the mark.
+ * It keeps to the top of the row, level with the title, when a description below the title makes
+ * the row taller than the mark.
  */
 .logo-block {
   grid-area: logo;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  flex: 0 0 $logo-track;
+  align-self: start;
+  display: grid;
+  grid-template-columns: $mark-size $identity-text;
+  grid-template-rows: 1fr 1fr;
+  @include spacing.apply(gap, compact);
+  column-gap: ui-tokens.$space-2;
   min-width: 0;
   color: inherit;
   text-decoration: none;
 }
 
-/*
- * The component's name, under its mark and above its version.
- *
- * The stamp alone read `2.0.4-dev.20260827.…`, which names a build without naming
- * what was built. Embedded next to another CEDAR component's header — the
- * designer's preview panel puts the two side by side — a mark and a version
- * string do not say whose form this is.
- */
-.cee-name {
-  display: block;
+.header-image {
+  grid-row: 1 / span 2;
+}
+
+.cee-name,
+.cee-version {
+  min-width: 0;
   font-size: tokens.$font-size-small;
-  font-weight: var(--cedar-font-weight-medium, 500);
   line-height: tokens.$line-height-tight;
+}
+
+.cee-name {
+  align-self: end;
+  font-weight: var(--cedar-font-weight-medium, 500);
   color: tokens.$text-primary;
-  margin-top: ui-tokens.$space-1;
 }
 
 .cee-version {
-  display: block;
+  align-self: start;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: tokens.$font-size-small;
-  line-height: tokens.$line-height-tight;
   color: tokens.$text-muted;
-  margin-top: ui-tokens.$space-1;
 }
 
-/*
- * Both lines take the mark's width before they take their own, which centres a
- * short name or version under the mark. A version wider than the mark grows
- * rightwards into the rest of the track, and one wider than the track ellipses
- * there, as it did before.
- */
-.cee-name,
-.cee-version {
-  min-width: $mark-size;
-  max-width: $logo-track;
-  text-align: center;
-}
 .template-title-block {
   grid-area: title;
   min-width: 0;
@@ -153,7 +132,9 @@ $logo-track: 72px;
 .template-provenance {
   grid-area: provenance;
   display: flex;
-  /* The status sits under the version it belongs to, both ending at the header's right edge. */
+  /* The status sits under the version it belongs to, both ending at the header's right edge, and
+   * the pair keeps to the top of the row as the identity opposite it does. */
+  align-self: start;
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
@@ -225,7 +206,7 @@ $logo-track: 72px;
 
 @container cee (max-width: 1100px) {
   .template-header {
-    grid-template-columns: 64px minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     /*
      * The same two rows, narrower. Left out of a breakpoint's areas the provenance is placed
      * automatically, which put it after the controls — the bottom of the header rather than the top.
@@ -235,10 +216,6 @@ $logo-track: 72px;
   .template-header-paged {
     row-gap: ui-tokens.$space-2;
     padding-block: ui-tokens.$space-3;
-  }
-
-  .logo-block {
-    flex-basis: 64px;
   }
 
   .template-actions {
@@ -265,21 +242,16 @@ $logo-track: 72px;
 }
 
 @container cee (max-width: 520px) {
+  /*
+   * The identity and the provenance take a row of their own above the title, so the title and its
+   * description have the full width rather than what is left beside a 120px identity.
+   */
   .template-header {
-    grid-template-columns: 52px minmax(0, 1fr) auto;
-  }
-
-  .logo-block {
-    flex-basis: 52px;
-  }
-
-  .cee-name {
-    font-size: tokens.$font-size-small;
-  }
-
-  .cee-version {
-    /* Keep version text readable when the header stacks. */
-    font-size: tokens.$font-size-small;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'logo provenance' 'title title';
+    &.has-actions {
+      grid-template-areas: 'logo provenance' 'title title' 'actions actions';
+    }
   }
 
   /*

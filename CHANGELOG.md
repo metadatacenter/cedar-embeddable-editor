@@ -112,6 +112,11 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
 - Compact YAML downloads retain the template's root ID but omit the IDs of nested fields and
   elements. Full YAML downloads continue to carry the complete identity tree.
 
+- The form's header sets CEE's name and version stamp beside the mark rather than beneath it, so
+  the identity is no taller than the mark. Beside a title with a description, the identity and the
+  template's version and status keep to the top of the row, level with the title. At 520px or
+  narrower they take a row of their own above the title, which then has the full width.
+
 - Every text box carries `autocomplete="off"`. A browser otherwise listed beneath a field what had
   been typed into any box with the same name or id, and Angular Material gives each input an id
   such as `mat-input-3`, so the list could hold values from an unrelated form.
