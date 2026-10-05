@@ -144,6 +144,9 @@
               // Unreachable on purpose, exactly as the editor's presets are.
               terminologyBaseUrl: 'http://127.0.0.1:9/unused/',
               bridgeBaseUrl: 'http://127.0.0.1:9/',
+              // ?f= and ?n= turn boolean keys on and off, as they do for the editor below.
+              ...Object.fromEntries((params.get('f') || '').split(',').filter(Boolean).map((flag) => [flag, true])),
+              ...Object.fromEntries((params.get('n') || '').split(',').filter(Boolean).map((flag) => [flag, false])),
             };
             field.fieldObject = slot.items || slot;
           } else if (hostRoute === 'lang') {
