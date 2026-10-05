@@ -366,6 +366,28 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     expect(Object.keys(component.currentMetadata).length).toBeGreaterThan(0);
   });
 
+  it('leaves currentMetadata empty when the combined input carries a template it refuses', () => {
+    const { component, errors } = make();
+    const reserved = structuredClone(validTemplate) as unknown as {
+      properties: Record<string, unknown>;
+      _ui: { order: string[] };
+    };
+    reserved.properties['@foo'] = reserved.properties['_text'];
+    delete reserved.properties['_text'];
+    reserved._ui.order = reserved._ui.order.map((key) => (key === '_text' ? '@foo' : key));
+
+    component.ngOnInit();
+    component.templateAndInstanceObject = {
+      templateObject: reserved as unknown as CeeJsonObject,
+      instanceObject: { '@id': 'https://repo.metadatacenter.org/template-instances/1' },
+    };
+
+    expect(component.currentMetadata).toEqual({});
+    expect(reported(errors)).toContain(
+      '"templateAndInstanceObject.templateObject" rejected because it is not a readable CEDAR template',
+    );
+  });
+
   /**
    * The two separate inputs are independent claims, which is what lets a host set
    * them in either order — the route three of the six consumers take.

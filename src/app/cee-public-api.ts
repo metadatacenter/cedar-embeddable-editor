@@ -417,10 +417,12 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
   /**
    * The instance as CEDAR JSON. Read-only.
    *
-   * An empty object until a template has been accepted, and after an input is refused because it is
-   * not a readable CEDAR artifact. Reading it straight after an assignment is how a host tells a
-   * refused template or instance from an accepted one. The refusal's reason goes to the event
-   * handler's `error`.
+   * An empty object while the editor holds no artifact. An input it refuses because it is not a
+   * readable CEDAR artifact leaves it holding none, so a host that assigns a template on its own, or a
+   * template and instance together through `templateAndInstanceObject`, reads an empty object straight
+   * after the assignment as a refusal. An instance assigned on its own is held while it waits for a
+   * template, so a template refused after it leaves this holding the instance. The refusal's reason
+   * goes to the event handler's `error`.
    */
   readonly currentMetadata: CeeJsonObject;
 
