@@ -340,6 +340,33 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
   });
 
   /**
+   * A template the reader refuses leaves `currentMetadata` empty, which is how a host tells a refused
+   * input from an accepted one at the moment it assigns it. A child stored under a reserved key is
+   * the refusal hosts meet: the meta-schema accepts such a template, and the reader does not.
+   */
+  it('leaves currentMetadata empty for a template whose child is stored under a reserved key', () => {
+    const { component, errors } = make();
+    const reserved = structuredClone(validTemplate) as unknown as {
+      properties: Record<string, unknown>;
+      _ui: { order: string[] };
+    };
+    reserved.properties['@foo'] = reserved.properties['_text'];
+    delete reserved.properties['_text'];
+    reserved._ui.order = reserved._ui.order.map((key) => (key === '_text' ? '@foo' : key));
+
+    component.ngOnInit();
+    component.templateObject = reserved as unknown as CeeJsonObject;
+
+    expect(component.templateJson).toBeNull();
+    expect(component.currentMetadata).toEqual({});
+    expect(reported(errors)).toContain('"templateObject" rejected because it is not a readable CEDAR template');
+
+    component.templateObject = validTemplate;
+
+    expect(Object.keys(component.currentMetadata).length).toBeGreaterThan(0);
+  });
+
+  /**
    * The two separate inputs are independent claims, which is what lets a host set
    * them in either order — the route three of the six consumers take.
    */
