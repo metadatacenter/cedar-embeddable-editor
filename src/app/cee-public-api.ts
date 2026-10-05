@@ -509,10 +509,11 @@ export type CedarEmbeddableFieldConfig = Pick<
  * value remains visible and cannot be edited. Static content is also described;
  * a standalone page break has a label and type but does not create pagination.
  *
- * A field artifact carries no requiredness and no cardinality — both belong to a
- * field's deployment in a template, and this element deploys nothing — so the value
- * it acquires is single and is allowed to be absent. That is what makes it usable for
- * a default value, which is optional by definition.
+ * Cardinality belongs to a field's deployment in a template, and this element deploys
+ * nothing, so the value it acquires is single. Requiredness is the field's own: an
+ * artifact that states `requiredValue: true` has an empty value reported as missing,
+ * unless the host sets `suppressEmptyFieldErrors`. CED writes a field on its own with
+ * `requiredValue: false`, which is what leaves a default value free to be empty.
  */
 export interface CedarEmbeddableFieldElement extends HTMLElement {
   /** Typed value event; the inherited overloads still handle every other DOM event. */
