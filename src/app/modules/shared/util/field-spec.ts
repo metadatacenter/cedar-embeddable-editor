@@ -1,4 +1,5 @@
 import { FieldComponent } from '../models/component/field-component.model';
+import { countKey } from './count-key';
 import { ChoiceOption } from '../models/info/choice-option.model';
 import { InputType } from '../models/input-type.model';
 import { Xsd } from '../models/xsd.model';
@@ -36,11 +37,13 @@ import {
 /** The translation keys a fact can carry. Named so a typo is a compile error rather than a blank. */
 export const SpecFactKey = {
   decimalPlaces: 'Spec.DecimalPlaces',
-  decimalPlaceOne: 'Spec.DecimalPlaceOne',
+  decimalPlacesOne: 'Spec.DecimalPlacesOne',
   defaultValue: 'Spec.DefaultValue',
   maxLength: 'Spec.MaxLength',
+  maxLengthOne: 'Spec.MaxLengthOne',
   maxValue: 'Spec.MaxValue',
   minLength: 'Spec.MinLength',
+  minLengthOne: 'Spec.MinLengthOne',
   minValue: 'Spec.MinValue',
   numberTypeInteger: 'Spec.NumberTypeInteger',
   numberTypeNumber: 'Spec.NumberTypeNumber',
@@ -80,7 +83,9 @@ export type SpecFact = {
  */
 const SPEC_FACT_KEYWORD: Partial<Record<SpecFactKeyValue, string>> = {
   [SpecFactKey.minLength]: 'Spec.Keyword.Min',
+  [SpecFactKey.minLengthOne]: 'Spec.Keyword.Min',
   [SpecFactKey.maxLength]: 'Spec.Keyword.Max',
+  [SpecFactKey.maxLengthOne]: 'Spec.Keyword.Max',
   [SpecFactKey.minValue]: 'Spec.Keyword.Min',
   [SpecFactKey.maxValue]: 'Spec.Keyword.Max',
   [SpecFactKey.unitOfMeasure]: 'Spec.Keyword.Unit',
@@ -115,10 +120,10 @@ function textFacts(field: FieldComponent): SpecFact[] {
   const facts: SpecFact[] = [];
   const { minLength, maxLength, regex } = field.valueInfo;
   if (minLength !== null) {
-    facts.push(fact(SpecFactKey.minLength, { minLength }));
+    facts.push(fact(countKey(SpecFactKey.minLength, minLength), { minLength }));
   }
   if (maxLength !== null) {
-    facts.push(fact(SpecFactKey.maxLength, { maxLength }));
+    facts.push(fact(countKey(SpecFactKey.maxLength, maxLength), { maxLength }));
   }
   if (regex !== null) {
     facts.push(fact(SpecFactKey.pattern, { regex }));
@@ -151,9 +156,7 @@ function numericFacts(field: FieldComponent): SpecFact[] {
   if (decimalPlace !== null) {
     // Singular and plural as separate keys rather than a formatted count: the interpolation cannot
     // choose between them, and "1 decimal places" is the kind of thing a reader notices.
-    facts.push(
-      decimalPlace === 1 ? fact(SpecFactKey.decimalPlaceOne) : fact(SpecFactKey.decimalPlaces, { decimalPlace }),
-    );
+    facts.push(fact(countKey(SpecFactKey.decimalPlaces, decimalPlace), { decimalPlace }));
   }
   return facts;
 }

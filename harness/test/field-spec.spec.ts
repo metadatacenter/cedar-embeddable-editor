@@ -101,11 +101,7 @@ describe('what a numeric field states', () => {
     field.numberInfo.minValue = 1;
     field.numberInfo.maxValue = 40;
 
-    expect(keysOf(field)).toStrictEqual([
-      SpecFactKey.numberTypeInteger,
-      SpecFactKey.minValue,
-      SpecFactKey.maxValue,
-    ]);
+    expect(keysOf(field)).toStrictEqual([SpecFactKey.numberTypeInteger, SpecFactKey.minValue, SpecFactKey.maxValue]);
   });
 
   it('calls a fractional type a number and a whole one an integer, naming no XSD type', () => {
@@ -429,9 +425,7 @@ describe('a declared default', () => {
     field.basicInfo.inputType = InputType.numeric;
     field.valueInfo.defaultValue = 0;
 
-    expect(specDefaultFactsOf(field)).toStrictEqual([
-      { key: SpecFactKey.defaultValue, params: { defaultValue: '0' } },
-    ]);
+    expect(specDefaultFactsOf(field)).toStrictEqual([{ key: SpecFactKey.defaultValue, params: { defaultValue: '0' } }]);
   });
 
   it('is left to the permitted-values list for an enumeration, which marks its own', () => {
@@ -469,7 +463,9 @@ describe('the less-travelled halves', () => {
     several.basicInfo.inputType = InputType.numeric;
     several.numberInfo.decimalPlace = 3;
 
-    expect(specValueFactsOf(single)).toStrictEqual([{ key: SpecFactKey.decimalPlaceOne, params: {} }]);
+    expect(specValueFactsOf(single)).toStrictEqual([
+      { key: SpecFactKey.decimalPlacesOne, params: { decimalPlace: 1 } },
+    ]);
     expect(specValueFactsOf(several)).toStrictEqual([{ key: SpecFactKey.decimalPlaces, params: { decimalPlace: 3 } }]);
   });
 

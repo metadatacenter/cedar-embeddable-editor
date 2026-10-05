@@ -1,3 +1,4 @@
+import { countKey } from '../util/count-key';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
@@ -170,7 +171,7 @@ export class CedarValidators {
       return { key: 'Validation.Numeric.Type.WholeNumber' };
     }
     return {
-      key: `Validation.Numeric.Type.${typeName}${decimalPlace === 1 ? 'OnePlace' : 'Places'}`,
+      key: countKey('Validation.Numeric.Type.' + typeName + 'Places', decimalPlace),
       params: { decimalPlace },
     };
   }

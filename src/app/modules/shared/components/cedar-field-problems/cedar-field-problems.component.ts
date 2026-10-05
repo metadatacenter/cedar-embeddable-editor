@@ -1,3 +1,4 @@
+import { countKey } from '../../util/count-key';
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { Translatable } from '../../models/ui/translatable.model';
@@ -33,11 +34,11 @@ const NOTICES: Partial<Record<string, (problem: ValidationProblem, component: Bo
   [ValidationCode.controlledStructure]: () => ({ key: 'Validation.Report.ControlledStructure' }),
   [ValidationCode.iriMalformed]: () => ({ key: 'Validation.Report.IriMalformed' }),
   [ValidationCode.minItems]: (_problem, component) => ({
-    key: 'Validation.Report.MinItems',
+    key: countKey('Validation.Report.MinItems', component.multiInfo?.minItems ?? 0),
     params: { min: component.multiInfo?.minItems ?? 0 },
   }),
   [ValidationCode.maxItems]: (_problem, component) => ({
-    key: 'Validation.Report.MaxItems',
+    key: countKey('Validation.Report.MaxItems', component.multiInfo?.maxItems ?? 0),
     params: { max: component.multiInfo?.maxItems ?? 0 },
   }),
 };
