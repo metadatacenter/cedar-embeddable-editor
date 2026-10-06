@@ -294,7 +294,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     component.templateObject = artifact('first');
     component.templateObject = second;
 
-    expect(component.templateJson).toBe(second);
+    expect(component.templateJson).toEqual(second);
+    expect(component.templateJson).not.toBe(second);
     expect(errors).not.toHaveBeenCalled();
   });
 
@@ -320,7 +321,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
     // The answers in front of a person were recorded against the template that would be
     // taken away, and there is no good answer to what becomes of them.
-    expect(component.templateJson).toBe(first);
+    expect(component.templateJson).toEqual(first);
+    expect(component.templateJson).not.toBe(first);
     expect(reported(errors)).toContain('"templateObject" ignored, because an instance is loaded');
   });
 
@@ -335,7 +337,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
     component.templateObject = corrected;
 
-    expect(component.templateJson).toBe(corrected);
+    expect(component.templateJson).toEqual(corrected);
+    expect(component.templateJson).not.toBe(corrected);
     expect(reported(errors)).not.toContain('"templateObject" ignored');
   });
 
@@ -400,8 +403,10 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     component.instanceObject = instance;
     component.templateObject = template;
 
-    expect(component.instanceJson).toBe(instance);
-    expect(component.templateJson).toBe(template);
+    expect(component.instanceJson).toEqual(instance);
+    expect(component.instanceJson).not.toBe(instance);
+    expect(component.templateJson).toEqual(template);
+    expect(component.templateJson).not.toBe(template);
     expect(errors).not.toHaveBeenCalled();
   });
 
@@ -412,7 +417,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     component.instanceObject = first;
     component.instanceObject = artifact('second');
 
-    expect(component.instanceJson).toBe(first);
+    expect(component.instanceJson).toEqual(first);
+    expect(component.instanceJson).not.toBe(first);
     expect(reported(errors)).toContain('"instanceObject" ignored, because the instance is already set');
   });
 
@@ -434,7 +440,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
     component.instanceObject = corrected;
 
-    expect(component.instanceJson).toBe(corrected);
+    expect(component.instanceJson).toEqual(corrected);
+    expect(component.instanceJson).not.toBe(corrected);
     expect(component.handlerContext.instanceSupplied).toBe(true);
     expect(component.editorDataReady(), 'the corrected first instance did not unblock the template').toBe(true);
     expect(reported(errors)).not.toContain('"instanceObject" ignored');
@@ -455,7 +462,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
     component.templateAndInstanceObject = corrected;
 
-    expect(component.templateAndInstanceJson).toBe(corrected);
+    expect(component.templateAndInstanceJson).toEqual(corrected);
+    expect(component.templateAndInstanceJson).not.toBe(corrected);
     expect(component.editorDataReady()).toBe(true);
     expect(reported(errors)).not.toContain('"templateAndInstanceObject" ignored');
   });
@@ -490,7 +498,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     component.templateAndInstanceObject = first;
     component.templateAndInstanceObject = { templateObject: artifact('second'), instanceObject: artifact('i') };
 
-    expect(component.templateAndInstanceJson).toBe(first);
+    expect(component.templateAndInstanceJson).toEqual(first);
+    expect(component.templateAndInstanceJson).not.toBe(first);
     expect(reported(errors)).toContain(
       '"templateAndInstanceObject" ignored, because the template and instance are already set',
     );
