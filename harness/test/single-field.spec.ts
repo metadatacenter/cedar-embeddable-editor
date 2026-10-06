@@ -409,3 +409,21 @@ describe('two values, the same or not', () => {
     expect(sameFieldValue(right, left)).toBe(expected);
   });
 });
+
+
+describe('numeric host values preserve significant digits', () => {
+  it.each([
+    ['9007199254740993', '9007199254740993'],
+    ['9007199254740992', 9007199254740992],
+    ['0.1234567890123456789', '0.1234567890123456789'],
+    ['1.50', 1.5],
+    ['1.5e2', 150],
+    ['-9007199254740993', '-9007199254740993'],
+  ])('round-trips %s', (literal, expected) => {
+    const kind = FIELD_KINDS.find((candidate) => candidate.key === 'numeric')!;
+    const { children, handlerContext } = mount(fieldArtifact(kind));
+    const field = valuedField(children);
+    expect(writeFieldValue({ kind: 'number', value: literal }, field, handlerContext)).toBeNull();
+    expect(readFieldValue(field, handlerContext)).toEqual({ kind: 'number', value: expected });
+  });
+});

@@ -466,8 +466,8 @@ export type CedarEmbeddableFieldValue =
   | { kind: 'none' }
   /** Text, paragraph, email, phone, a radio choice, a single-choice list. */
   | { kind: 'literal'; value: string }
-  /** A numeric field, once what it holds is a finite number. */
-  | { kind: 'number'; value: number }
+  /** A numeric field. Exact decimal strings preserve values a JavaScript number would round. */
+  | { kind: 'number'; value: number | string }
   /** A date or time, as the ISO literal its granularity calls for. */
   | { kind: 'temporal'; value: string }
   /** A controlled term or an external authority record; a link, whose label is null. */

@@ -74,7 +74,9 @@ export function readFieldValue(component: FieldComponent, handlerContext: Handle
   }
   if (component.basicInfo.inputType === InputType.numeric) {
     const parsed = Number(literal);
-    return literal.trim() !== '' && Number.isFinite(parsed) ? { kind: 'number', value: parsed } : NOTHING;
+    return Number.isFinite(parsed) && canonicalNumber(literal) !== null
+      ? { kind: 'number', value: canonicalNumber(literal) === canonicalNumber(String(parsed)) ? parsed : literal }
+      : NOTHING;
   }
   if (component.basicInfo.inputType === InputType.temporal) {
     return { kind: 'temporal', value: literal };
@@ -235,4 +237,16 @@ function sameAttributes(
     names.length === Object.keys(right).length &&
     names.every((name) => Object.hasOwn(right, name) && right[name] === left[name])
   );
+}
+
+/** Compare decimal values without converting their significant digits to floating point. */
+export function canonicalNumber(value: string): string | null {
+  const match = /^([+-]?)(\d+(?:\.\d*)?|\.\d+)(?:[eE]([+-]?\d+))?$/.exec(value.trim());
+  if (!match) return null;
+  const [integer, fraction = ''] = match[2].split('.');
+  const digits = (integer + fraction).replace(/^0+/, '');
+  if (!digits) return '0';
+  const coefficient = digits.replace(/0+$/, '');
+  const exponent = BigInt(match[3] ?? '0') - BigInt(fraction.length) + BigInt(digits.length - coefficient.length);
+  return `${match[1] === '-' ? '-' : ''}${coefficient}e${exponent}`;
 }
