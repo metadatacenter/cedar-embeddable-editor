@@ -28,7 +28,7 @@ import { FieldRevealService } from '../../service/field-reveal.service';
   standalone: false,
 })
 export class CedarEmbeddableMetadataEditorComponent implements OnDestroy {
-  private static INNER_VERSION = '2026-10-05 21:58';
+  private static INNER_VERSION = '2026-10-05 22:16 d35d722d';
 
   dataContext: DataContext | null = null;
   handlerContext: HandlerContext | null = null;
