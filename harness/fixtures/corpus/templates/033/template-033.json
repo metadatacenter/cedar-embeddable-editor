@@ -15,7 +15,7 @@
   "schema:identifier": "e0ef7a86-8a58-485b-ab7f-3e4fffcba6f1",
   "pav:version": "0.0.2",
   "bibo:status": "bibo:published",
-  "pav:previousVersion": "0.0.1",
+  "pav:previousVersion": "https://repo.metadatacenter.org/templates/3f0e4b2a-9c1d-4e5f-8a7b-6c5d4e3f2a10",
   "@context": {
     "schema": "http://schema.org/",
     "pav": "http://purl.org/pav/",
