@@ -427,3 +427,29 @@ describe('numeric host values preserve significant digits', () => {
     expect(readFieldValue(field, handlerContext)).toEqual({ kind: 'number', value: expected });
   });
 });
+
+
+describe('controller editability', () => {
+  it.each(FIELD_KINDS.filter((kind) => sampleValue(kind) !== null).map((kind) => [kind.key, kind] as const))(
+    'guards late user writes while allowing host assignment to %s', (_key, kind) => {
+      const { children, handlerContext } = mount(fieldArtifact(kind));
+      const field = valuedField(children);
+      const assigned = sampleValue(kind)!;
+      handlerContext.enableReadOnlyMode();
+      expect(writeFieldValue(assigned, field, handlerContext)).toBeNull();
+      const before = readFieldValue(field, handlerContext);
+      const mutations: unknown[] = [];
+      handlerContext.setMutationListener((event) => mutations.push(event));
+      handlerContext.changeValue(field, 'late edit');
+      handlerContext.changeListValue(field, ['late edit']);
+      handlerContext.changeControlledValue(field, 'urn:late', 'Late');
+      handlerContext.changeAttributeValue(field, 'late', 'edit');
+      handlerContext.deleteAttributeValue(field, 'late');
+      expect(readFieldValue(field, handlerContext)).toEqual(before);
+      expect(mutations).toEqual([]);
+      handlerContext.readOnlyMode = false;
+      expect(writeFieldValue({ kind: 'none' }, field, handlerContext)).toBeNull();
+      expect(readFieldValue(field, handlerContext)).toEqual({ kind: 'none' });
+    },
+  );
+});

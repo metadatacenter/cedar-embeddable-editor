@@ -810,3 +810,23 @@ describe('structural edits refuse an instance shaped the wrong way', () => {
     expect(driver.messages.errors.join('\n')).toMatch(/delete .* _f/i);
   });
 });
+
+
+describe('read-only structural commands', () => {
+  it.each(['addMultiInstance', 'copyMultiInstance', 'deleteMultiInstance'] as const)(
+    'refuses %s after editability changes', (command) => {
+      const driver = new CeeDriver(buildTemplate({
+        name: 'read_only_structure',
+        children: [{ kind: TEXT, name: 'f', cardinality: 'multi', minItems: 0 }],
+      }));
+      const field = driver.findOrThrow(['_f']);
+      expect(driver.handlerContext.addMultiInstance(field)).toBe(true);
+      const before = JSON.stringify(driver.extract);
+      driver.handlerContext.enableReadOnlyMode();
+      expect(driver.handlerContext[command](field)).toBe(false);
+      expect(JSON.stringify(driver.extract)).toBe(before);
+      driver.handlerContext.readOnlyMode = false;
+      expect(driver.handlerContext[command](field)).toBe(true);
+    },
+  );
+});

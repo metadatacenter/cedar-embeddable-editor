@@ -132,18 +132,18 @@ export function writeFieldValue(
 
   if (value.kind === 'none') {
     if (holdsLiteralList(component)) {
-      handlerContext.changeListValue(component, []);
+      handlerContext.changeListValue(component, [], 'host');
     } else if (isIriValued(component) && inputType === InputType.controlled) {
-      handlerContext.changeControlledValue(component, null, null);
+      handlerContext.changeControlledValue(component, null, null, 'host');
     } else {
-      handlerContext.changeValue(component, null);
+      handlerContext.changeValue(component, null, null, 'host');
     }
     return null;
   }
 
   if (holdsLiteralList(component)) {
     return value.kind === 'literals'
-      ? (handlerContext.changeListValue(component, [...value.values]), null)
+      ? (handlerContext.changeListValue(component, [...value.values], 'host'), null)
       : refusal(value, inputType, '"literals"');
   }
 
@@ -153,9 +153,9 @@ export function writeFieldValue(
     }
     if (inputType === InputType.link) {
       // A link's value is the IRI itself, with no label to keep beside it.
-      handlerContext.changeValue(component, value.iri);
+      handlerContext.changeValue(component, value.iri, null, 'host');
     } else {
-      handlerContext.changeControlledValue(component, value.iri, value.label);
+      handlerContext.changeControlledValue(component, value.iri, value.label, 'host');
     }
     return null;
   }
@@ -172,15 +172,15 @@ export function writeFieldValue(
   switch (value.kind) {
     case 'literal':
       return literalKind === '"literal"'
-        ? (handlerContext.changeValue(component, value.value), null)
+        ? (handlerContext.changeValue(component, value.value, null, 'host'), null)
         : refusal(value, inputType, literalKind);
     case 'number':
       return inputType === InputType.numeric
-        ? (handlerContext.changeValue(component, String(value.value)), null)
+        ? (handlerContext.changeValue(component, String(value.value), null, 'host'), null)
         : refusal(value, inputType, literalKind);
     case 'temporal':
       return inputType === InputType.temporal
-        ? (handlerContext.changeValue(component, value.value), null)
+        ? (handlerContext.changeValue(component, value.value, null, 'host'), null)
         : refusal(value, inputType, literalKind);
     default:
       return refusal(value, inputType, literalKind);

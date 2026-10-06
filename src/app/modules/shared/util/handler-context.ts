@@ -19,6 +19,9 @@ import type { CeeChangeOperation } from '../../../cee-public-api';
 import { Translatable } from '../models/ui/translatable.model';
 // import { RdfBuilderService } from '../service/rdf-builder.service';
 
+/** User edits are guarded; host writes and model normalization are explicit. */
+export type ValueMutationOrigin = 'user' | 'host' | 'normalization';
+
 export interface InstanceMutation {
   readonly operation: CeeChangeOperation;
   readonly path: string[];
@@ -150,7 +153,7 @@ export class HandlerContext {
 
   /** @returns whether an instance was added. */
   addMultiInstance(component: MultiComponent): boolean {
-    if (!this.withinAddBound(component)) {
+    if (this.readOnlyMode || !this.withinAddBound(component)) {
       return false;
     }
     this.dataObjectManipulationService.multiInstanceItemAdd(
@@ -175,7 +178,7 @@ export class HandlerContext {
     if (multiInfo === null || multiInfo.currentIndex < 0) {
       return this.addMultiInstance(component);
     }
-    if (!this.withinAddBound(component)) {
+    if (this.readOnlyMode || !this.withinAddBound(component)) {
       return false;
     }
     const sourceSlots = this.getDataObjectNodeByPath(component.path);
@@ -238,7 +241,7 @@ export class HandlerContext {
 
   /** @returns whether an instance was removed. */
   deleteMultiInstance(component: MultiComponent): boolean {
-    if (!this.withinDeleteBound(component)) {
+    if (this.readOnlyMode || !this.withinDeleteBound(component)) {
       return false;
     }
     const slots = this.getDataObjectNodeByPath(component.path);
@@ -354,7 +357,13 @@ export class HandlerContext {
    * widgets call these with null on a clear, and always have. The declarations
    * said `string` and were the half that was wrong.
    */
-  changeValue(component: FieldComponent, value: string | null, draft: FieldDraft | null = null): void {
+  changeValue(
+    component: FieldComponent,
+    value: string | null,
+    draft: FieldDraft | null = null,
+    origin: ValueMutationOrigin = 'user',
+  ): void {
+    if (this.readOnlyMode && origin === 'user') return;
     this.dataObjectDataValueHandler.changeValue(this.dataContext, component, this.multiInstanceObjectService, value);
     this.validation.setDraft(component, draft);
     this.buildQualityReport();
@@ -362,7 +371,8 @@ export class HandlerContext {
     // this.rdfService.toRdf(this.dataContext.instanceFullData);
   }
 
-  changeListValue(component: FieldComponent, value: string[] | null): void {
+  changeListValue(component: FieldComponent, value: string[] | null, origin: ValueMutationOrigin = 'user'): void {
+    if (this.readOnlyMode && origin === 'user') return;
     this.dataObjectDataValueHandler.changeListValue(
       this.dataContext,
       component,
@@ -374,6 +384,7 @@ export class HandlerContext {
   }
 
   changeAttributeValue(component: FieldComponent, key: string | null, value: string | null): Translatable | null {
+    if (this.readOnlyMode) return null;
     const validationError = this.dataObjectDataValueHandler.changeAttributeValue(
       this.dataContext,
       component,
@@ -398,6 +409,7 @@ export class HandlerContext {
   }
 
   deleteAttributeValue(component: FieldComponent, key: string | null): void {
+    if (this.readOnlyMode) return;
     this.dataObjectDataValueHandler.deleteAttributeValue(
       this.dataContext,
       component,
@@ -408,7 +420,13 @@ export class HandlerContext {
     this.reportMutation('valueChanged', component, { key, value: null });
   }
 
-  changeControlledValue(component: FieldComponent, atId: string | null, prefLabel: string | null): void {
+  changeControlledValue(
+    component: FieldComponent,
+    atId: string | null,
+    prefLabel: string | null,
+    origin: ValueMutationOrigin = 'user',
+  ): void {
+    if (this.readOnlyMode && origin === 'user') return;
     this.dataObjectDataValueHandler.changeControlledValue(
       this.dataContext,
       component,

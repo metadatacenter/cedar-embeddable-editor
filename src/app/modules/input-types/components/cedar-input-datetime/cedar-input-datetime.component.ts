@@ -407,7 +407,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
 
     if (normalized !== null && normalized !== stored) {
       this.revalidate(normalized);
-      this.handlerContext.changeValue(this.component, normalized);
+      this.handlerContext.changeValue(this.component, normalized, null, 'normalization');
     }
   }
 
