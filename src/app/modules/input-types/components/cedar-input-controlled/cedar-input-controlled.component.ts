@@ -26,7 +26,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { ErrorStateMatcher, MatOptionSelectionChange } from '@angular/material/core';
 import { Observable, of, timer } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, startWith, switchMap, tap, finalize } from 'rxjs/operators';
+import { distinctUntilChanged, map, startWith, switchMap, finalize } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
 import { isAuthorityTerm } from '../../../shared/models/authority/authority-term.guard';
@@ -117,32 +117,31 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     // control this line replaces — see `input-control-binding.spec.ts`.
     this.options = this.fb.group({ inputValue: this.inputValueControl });
 
-    if (!this.readOnlyMode) {
-      this.filteredOptions = this.inputValueControl.valueChanges.pipe(
-        startWith(''),
-        debounceTime(400),
-        distinctUntilChanged(),
-        tap(() => (this.loading = true)),
-        switchMap((val) => {
-          this.lookupFailed = false;
-          return this.filter(val || '').pipe(
-            /**
-             * Without this, a failing terminology server did not merely go
-             * unreported: the error reached `valueChanges`, which ends the
-             * observable, so the field's autocomplete stopped working for the
-             * rest of the session and only a reload brought it back. Catching
-             * here keeps the stream alive and records what happened.
-             */
-            catchLookupFailure<AuthorityTerm>((error) => {
-              this.lookupFailed = true;
-              this.messageHandlerService.errorObject(`terminology lookup failed for "${val}"`, error as object);
-            }),
-            finalize(() => (this.loading = false)),
-          );
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      );
-    }
+    this.filteredOptions = this.userPreferencesService.readOnlyMode$.pipe(
+      distinctUntilChanged(),
+      switchMap((readOnly) =>
+        readOnly
+          ? of<AuthorityTerm[]>([])
+          : this.inputValueControl.valueChanges.pipe(
+              startWith(this.inputValueControl.value ?? ''),
+              distinctUntilChanged(),
+              // Cancel the previous request immediately; debounce only the new request.
+              switchMap((val) => {
+                this.lookupFailed = false;
+                this.loading = true;
+                return timer(400).pipe(
+                  switchMap(() => this.filter(val || '')),
+                  catchLookupFailure<AuthorityTerm>((error) => {
+                    this.lookupFailed = true;
+                    this.messageHandlerService.errorObject(`terminology lookup failed for "${val}"`, error as object);
+                  }),
+                  finalize(() => (this.loading = false)),
+                );
+              }),
+            ),
+      ),
+      takeUntilDestroyed(this.destroyRef),
+    );
   }
   ngAfterViewInit(): void {
     if (!this.readOnlyMode) {
