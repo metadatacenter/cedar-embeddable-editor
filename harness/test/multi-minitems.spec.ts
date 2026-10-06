@@ -19,7 +19,7 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { arrayAt, objectAt } from '../src/nodes';
-import { literalNode, heldValue } from '../src/values';
+import { heldValue } from '../src/values';
 
 let seq = 0;
 const kindOf = (inputType: string, make: () => unknown, configure?: (b: unknown) => unknown): FieldKind =>

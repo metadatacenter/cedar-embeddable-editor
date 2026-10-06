@@ -20,7 +20,6 @@
  * field's own kind decides them — so neither is the library's to answer.
  */
 import { describe, expect, it } from 'vitest';
-import { DocumentKey } from '../src/document-keys';
 import { CedarBuilders, ControlledTermOntologyBuilder, Iri } from 'cedar-model-typescript-library';
 import type { InstanceNode } from '@cee/models/instance-node.model';
 import { FieldKind } from '../src/axes';

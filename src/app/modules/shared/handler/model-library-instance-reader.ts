@@ -51,13 +51,11 @@ export class ModelLibraryInstanceReader implements InstanceCardinalityReader {
         emit(myPath.slice(), node.length);
         // Only elements have anything underneath. A list of atoms is a
         // multi-valued field and the count is the whole story.
-        if (node[0] instanceof InstanceDataContainer) {
-          node.forEach((occurrence, i) => {
-            const occurrencePath = myPath.slice();
-            occurrencePath.push(indexSegment(i));
-            ModelLibraryInstanceReader.walk(occurrence as InstanceDataContainer, occurrencePath, emit);
-          });
-        }
+        node.forEach((occurrence, i) => {
+          if (occurrence instanceof InstanceDataContainer) {
+            ModelLibraryInstanceReader.walk(occurrence, [...myPath, indexSegment(i)], emit);
+          }
+        });
       } else if (node instanceof InstanceDataAttributeValueField) {
         ModelLibraryInstanceReader.emitAttributeValue(node, myPath, parentPath, emit);
       } else if (node instanceof InstanceDataContainer) {

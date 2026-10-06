@@ -142,43 +142,48 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     this.inputValueControl = new FormControl<string | null>(null, validators);
     this.options = this.fb.group({ inputValue: this.inputValueControl });
 
-    if (!this.readOnlyMode) {
-      this.filteredOptions = this.inputValueControl.valueChanges.pipe(
-        startWith(''),
-        // The control holds text, never a term: every `mat-option` in the three
-        // templates that drive this binds `[value]` to a compound string. The
-        // read this replaces also handled an option object, which is what the
-        // seven services it came from did before that was true.
-        map((v: string | null) => v ?? ''),
-        map((v: string) => v.trim()),
-        distinctUntilChanged(),
-        switchMap((query: string) => {
-          this.lookupFailed = false;
-          if (!query) {
-            this.loadingOptions = false;
-            return of<AuthorityTerm[]>([]);
-          }
-          this.loadingOptions = true;
-          return timer(400).pipe(
-            switchMap(() => this.filter(query)),
-            // The one place a failed lookup is turned back into an empty list,
-            // so it is also the one place that can record that it happened.
-            // `filter` therefore lets its errors through rather than catching
-            // them itself.
-            catchLookupFailure<AuthorityTerm>((error) => {
-              this.lookupFailed = true;
-              // Kept alongside the visible notice: the message tells a user the
-              // search failed, the console tells a developer how.
-              console.error(`CEE ERROR: ${this.descriptor.inputType} lookup failed for "${query}"`, error);
-            }),
-            finalize(() => {
-              this.loadingOptions = false;
-            }),
-          );
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      );
-    }
+    this.filteredOptions = this.userPreferencesService.readOnlyMode$.pipe(
+      distinctUntilChanged(),
+      switchMap((readOnly) =>
+        readOnly
+          ? of<AuthorityTerm[]>([])
+          : this.inputValueControl.valueChanges.pipe(
+              startWith(this.inputValueControl.value ?? ''),
+              // The control holds text, never a term: every `mat-option` in the three
+              // templates that drive this binds `[value]` to a compound string. The
+              // read this replaces also handled an option object, which is what the
+              // seven services it came from did before that was true.
+              map((v: string | null) => v ?? ''),
+              map((v: string) => v.trim()),
+              distinctUntilChanged(),
+              switchMap((query: string) => {
+                this.lookupFailed = false;
+                if (!query) {
+                  this.loadingOptions = false;
+                  return of<AuthorityTerm[]>([]);
+                }
+                this.loadingOptions = true;
+                return timer(400).pipe(
+                  switchMap(() => this.filter(query)),
+                  // The one place a failed lookup is turned back into an empty list,
+                  // so it is also the one place that can record that it happened.
+                  // `filter` therefore lets its errors through rather than catching
+                  // them itself.
+                  catchLookupFailure<AuthorityTerm>((error) => {
+                    this.lookupFailed = true;
+                    // Kept alongside the visible notice: the message tells a user the
+                    // search failed, the console tells a developer how.
+                    console.error(`CEE ERROR: ${this.descriptor.inputType} lookup failed for "${query}"`, error);
+                  }),
+                  finalize(() => {
+                    this.loadingOptions = false;
+                  }),
+                );
+              }),
+            ),
+      ),
+      takeUntilDestroyed(this.destroyRef),
+    );
   }
 
   ngAfterViewInit(): void {

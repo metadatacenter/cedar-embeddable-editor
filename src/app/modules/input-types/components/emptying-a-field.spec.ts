@@ -284,7 +284,7 @@ const FIELDS: EmptiedField[] = [
     name: 'a temporal field, by its clear action',
     empty: () => {
       const { context, written } = recorder();
-      const widget = inject(() => new CedarInputDatetimeComponent(new FormBuilder(), registry()));
+      const widget = inject(() => new CedarInputDatetimeComponent(registry()));
       widget.componentToRender = field(InputType.temporal);
       widget.handlerContext = context;
       widget.clearValue();

@@ -45,12 +45,18 @@ export class InstanceSerializer {
    * which side is authoritative, and that CEE's copy stops being load-bearing on
    * the way out.
    *
+   * A repeated child the tree omits is re-added as an empty list, not at its lower
+   * bound. The tree omits one only when the stored instance did, and the form then
+   * shows no occurrences of it. Writing the occurrences the library would start it
+   * with would save entries the user never saw, and the quality report, which
+   * describes the tree, would no longer describe the document CEE writes.
+   *
    * Without a template it is skipped rather than failed. A host can read
    * `currentMetadata` before a template has been parsed, and an instance written
    * from whatever the tree already carries is a better answer than none.
    */
   private static contracted(instance: TemplateInstance, template: Template | null): TemplateInstance {
-    return template === null ? instance : InstanceInflater.inflate(instance, template);
+    return template === null ? instance : InstanceInflater.inflate(instance, template, 'empty');
   }
 
   /**

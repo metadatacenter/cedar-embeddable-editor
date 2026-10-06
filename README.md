@@ -39,9 +39,9 @@ gives the input properties, the output properties, and the change event a host
 reads.
 
 For the design rationale, the architecture, and deployments in research
-platforms, see [*Author Once, Publish Everywhere: Portable Metadata Authoring
-with the CEDAR Embeddable Editor*](https://doi.org/10.5334/dsj-2026-002),
-published in the *Data Science Journal* (2026).
+platforms, see [_Author Once, Publish Everywhere: Portable Metadata Authoring
+with the CEDAR Embeddable Editor_](https://doi.org/10.5334/dsj-2026-002),
+published in the _Data Science Journal_ (2026).
 
 ## Installing
 
@@ -135,6 +135,23 @@ messages even after blur. Nonempty invalid values and incomplete temporal values
 show errors. This affects presentation only: required fields remain invalid in the quality
 report. Ordinary metadata editing leaves the option off.
 
+## Validation
+
+Read `dataQualityReport` for the whole instance, including nested and off-screen
+occurrences. Each problem has a code, `severity` (`warning` or `error`), a field
+`path` and occurrence indices. Pass a field problem to `reveal(problem)` to reach it.
+
+Missing required answers, insufficient occurrences and unnamed attribute rows are
+warnings. Invalid values, malformed incoming data and unfinished edits are errors.
+Either makes `isValid` false; the host decides whether saving is allowed. A required
+field must be answered in every existing containing element. A repeating field
+needs at least one answer within each such element.
+
+The report includes unfinished date/time and attribute-name edits, and `change`
+fires when metadata **or the report** changes. Invalid imported field IRIs and
+well-shaped numeric, temporal and IRI defaults remain available for correction.
+Terminology membership and server-side validation remain the host's responsibility.
+
 ## Embedding a Single Field
 
 The bundle registers a second element. `<cedar-embeddable-field>` renders one field
@@ -219,6 +236,20 @@ field?.addEventListener('valueChange', (event: CustomEvent<CedarEmbeddableFieldC
 the control afresh — the field being designed changes type under its author's hand.
 `config` takes one assignment, as the editor's does. A value of a kind the field
 cannot hold is reported through `eventHandler` and ignored rather than coerced.
+Malformed runtime payloads are also rejected, including assignments made before the
+field arrives. Accepted values and artifacts are copied; host mutation after an
+assignment does not change the editor. Getters and events return detached values.
+
+A numeric value has the shape `{ kind: 'number', value: number | string }`.
+Ordinary numbers remain numbers. When converting to a JavaScript number would lose
+significant digits or exceed its range, CEF returns the exact numeric string instead:
+`9007199254740993` and `0.1234567890123456789` retain every digit. Both forms may be
+assigned back through `value`. Constraint validity remains a separate result.
+
+Read-only mode guards user mutations in the controller, including late callbacks
+and structural edits. Explicit host `value` assignments still work. Controlled-term
+and external-authority searches cancel on a new query, a read-only transition, or
+widget destruction; an old response cannot overwrite a newer query.
 
 Requiredness and cardinality belong to a field's deployment inside a template, and
 this element deploys nothing, so the value it acquires is single and is allowed to be
@@ -412,3 +443,12 @@ for all available settings.
 
 3. In your browser, navigate to `http://localhost:4400/`. The app will
    automatically reload if you change any of the source files.
+
+The host lifecycle matrix in
+`src/app/modules/shared/components/wrapper-lifecycle-matrix.spec.ts` crosses three input
+arrival orders, host mutation, one or two simultaneous numeric/lookup wrapper pairs,
+ordinary/large-integer/precise-decimal values, initial/late/no read-only state,
+and superseded lookup success/error/completion (324 cases). It runs in `npm test`
+with real wrappers, artifact coordination, controllers and lookup streams; rendering
+and HTTP are substituted. The Angular coordinator suite separately verifies rendered
+controls, simultaneous wrappers, host events and malformed assignments.

@@ -1,0 +1,101 @@
+{
+  "@id": "https://example.org/instances/stored-constraints-1",
+  "schema:name": "Stored constraints instance",
+  "schema:description": "Written by a host, with a value that breaks each constraint",
+  "_pattern": {
+    "@value": "lower case"
+  },
+  "_shorttext": {
+    "@value": "short"
+  },
+  "_longtext": {
+    "@value": "far too long"
+  },
+  "_shortnote": {
+    "@value": "short"
+  },
+  "_longnote": {
+    "@value": "far too long"
+  },
+  "_measure": {
+    "@value": "1.234",
+    "@type": "xsd:decimal"
+  },
+  "_year": {
+    "@value": "2026-08-15",
+    "@type": "xsd:date"
+  },
+  "_day": {
+    "@value": "2026-08-01+05:00",
+    "@type": "xsd:date"
+  },
+  "_moment": {
+    "@value": "2026-08-01T10:00+05:60",
+    "@type": "xsd:dateTime"
+  },
+  "_answer": {
+    "@value": "Maybe"
+  },
+  "_region": {
+    "@value": "Elsewhere"
+  },
+  "_organism": {
+    "@id": "http://purl.obolibrary.org/obo/NCBITaxon_9606"
+  },
+  "_aliases": [
+    {
+      "@value": "only one"
+    }
+  ],
+  "_tags": [
+    {
+      "@value": "first"
+    },
+    {
+      "@value": "second"
+    }
+  ],
+  "@context": {
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "pav": "http://purl.org/pav/",
+    "schema": "http://schema.org/",
+    "oslc": "http://open-services.net/ns/core#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "rdfs:label": {
+      "@type": "xsd:string"
+    },
+    "schema:isBasedOn": {
+      "@type": "@id"
+    },
+    "schema:name": {
+      "@type": "xsd:string"
+    },
+    "schema:description": {
+      "@type": "xsd:string"
+    },
+    "pav:derivedFrom": {
+      "@type": "@id"
+    },
+    "pav:createdOn": {
+      "@type": "xsd:dateTime"
+    },
+    "pav:createdBy": {
+      "@type": "@id"
+    },
+    "pav:lastUpdatedOn": {
+      "@type": "xsd:dateTime"
+    },
+    "oslc:modifiedBy": {
+      "@type": "@id"
+    },
+    "skos:notation": {
+      "@type": "xsd:string"
+    }
+  },
+  "schema:isBasedOn": "https://repo.metadatacenter.org/templates/8e51f872-0000-4000-8000-8e51f8720000",
+  "pav:createdOn": "2026-01-01T00:00:00-08:00",
+  "pav:createdBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001",
+  "pav:lastUpdatedOn": "2026-01-01T00:00:00-08:00",
+  "oslc:modifiedBy": "https://metadatacenter.org/users/00000000-0000-0000-0000-000000000001"
+}

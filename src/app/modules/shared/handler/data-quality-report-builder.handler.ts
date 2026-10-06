@@ -16,7 +16,8 @@ import { ValidationCode, ValidationProblem } from '../validation/validation-prob
 import { InputType } from '../models/input-type.model';
 import { BasicInfo } from '../models/info/basic-info.model';
 import { MultiInfo } from '../models/info/multi-info.model';
-import { InstanceNode, childOf, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
+import { InstanceNode, childOf, isInstanceArray } from '../models/instance-node.model';
+import { InstanceDataContainer, InstanceDataEmptyAtom, InstanceDataEmptyNode } from 'cedar-model-typescript-library';
 
 /**
  * What the cardinality check reads off a component.
@@ -95,7 +96,11 @@ export class DataQualityReportBuilderHandler {
       for (const parent of parents) {
         const held = DataQualityReportBuilderHandler.entriesOf(parent.node, component.name);
         DataQualityReportBuilderHandler.collectCardinalityProblems(component, held.length, parent.occurrences, report);
-        held.forEach((node, index) => entries.push({ node, occurrences: [...parent.occurrences, index] }));
+        held.forEach((node, index) => {
+          const occurrences = [...parent.occurrences, index];
+          DataQualityReportBuilderHandler.collectElementShapeProblem(component, node, occurrences, report);
+          entries.push({ node, occurrences });
+        });
       }
       // An element nobody has added has no fields to count or check, which is what
       // a host reading `requiredFieldValueCount` has always been told.
@@ -109,18 +114,23 @@ export class DataQualityReportBuilderHandler {
         node: childOf(parent.node, component.name),
         occurrences: parent.occurrences,
       }));
+      for (const container of containers)
+        DataQualityReportBuilderHandler.collectElementShapeProblem(
+          component,
+          container.node,
+          container.occurrences,
+          report,
+        );
       for (const childComponent of (component as ElementComponent).children) {
         DataQualityReportBuilderHandler.buildRecursively(childComponent, containers, report, handlerContext);
       }
     }
     if (component instanceof SingleFieldComponent || component instanceof MultiFieldComponent) {
       const nonIterableComponent = component as FieldComponent;
-      DataQualityReportBuilderHandler.collectFieldProblems(
-        nonIterableComponent,
-        parents,
-        handlerContext.getDataObjectNodeByPath(component.path),
-        report,
-      );
+      const configuration = FieldValueValidator.validateConfiguration(nonIterableComponent);
+      for (const parent of parents)
+        report.problems.push(...configuration.map((problem) => problem.at(parent.occurrences)));
+      DataQualityReportBuilderHandler.collectFieldProblems(nonIterableComponent, parents, handlerContext, report);
       if (component instanceof MultiFieldComponent) {
         for (const parent of parents) {
           DataQualityReportBuilderHandler.collectCardinalityProblems(
@@ -131,64 +141,70 @@ export class DataQualityReportBuilderHandler {
           );
         }
       }
-      DataQualityReportBuilderHandler.countRequirement(component, report, handlerContext);
+      DataQualityReportBuilderHandler.countRequirement(component, parents, report);
     }
   }
 
-  /**
-   * Whether this field's requirement is declared, whether it is met, and the
-   * host-visible problem when it is not.
-   *
-   * One count per required field the template declares, whatever its
-   * cardinality. A multi field used to contribute one count per occurrence,
-   * which made the pair mean two different things in one report: three
-   * occurrences of one required field read as `3` while a required field inside
-   * an element repeated three times read as `1`. Neither number was per
-   * occurrence, because a single `satisfiedBy` answered for all of them — so
-   * filling one of three occurrences reported "3 of 3 filled". The verdict was
-   * right and the number was not, and a host has nothing to label but the
-   * number.
-   *
-   * Whether a requirement is satisfied is asked of the whole instance, not of
-   * the page currently on screen. See `findAnyValue`. The problem therefore names
-   * no entry: it belongs to the declaration, and any entry would satisfy it.
-   */
-  private static countRequirement(
-    component: SingleFieldComponent | MultiFieldComponent,
+  private static collectElementShapeProblem(
+    component: CedarComponent,
+    node: InstanceNode | null,
+    occurrences: number[],
     report: DataQualityReport,
-    handlerContext: HandlerContext,
   ): void {
-    if (!component.valueInfo.requiredValue) {
+    if (
+      node === null ||
+      node instanceof InstanceDataContainer ||
+      node instanceof InstanceDataEmptyNode ||
+      (node instanceof InstanceDataEmptyAtom && !node.hasDiscardedContent())
+    )
       return;
-    }
-    report.requiredFieldValueCount++;
-    const satisfiedBy = DataQualityReportBuilderHandler.findAnyValue(
-      component.path,
-      handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
-      component,
-    );
-    if (satisfiedBy !== null) {
-      report.nonNullRequiredFieldValueCount++;
-      return;
-    }
-    const path = component.path ?? [];
     report.problems.push(
       new ValidationProblem(
-        path,
-        path.length > 0 ? path[path.length - 1] : component.name,
-        component.basicInfo.inputType,
-        ValidationCode.required,
-        'A required value is missing.',
+        component.path,
+        component.name,
+        'element',
+        ValidationCode.valueShape,
+        'This element must contain fields, not a field value or a list in place of one element.',
         null,
+        occurrences,
       ),
     );
+  }
+
+  /** One declaration count, but an answer is required in every existing containing element. */
+  private static countRequirement(
+    component: SingleFieldComponent | MultiFieldComponent,
+    parents: Located[],
+    report: DataQualityReport,
+  ): void {
+    if (!component.valueInfo.requiredValue) return;
+    report.requiredFieldValueCount++;
+    let complete = true;
+    for (const parent of parents) {
+      const held = childOf(parent.node, component.name);
+      const entries = isInstanceArray(held) ? held : [held];
+      if (entries.some((entry) => DataQualityReportBuilderHandler.extractPlainValue(entry, component) !== null))
+        continue;
+      complete = false;
+      report.problems.push(
+        new ValidationProblem(
+          component.path,
+          component.name,
+          component.basicInfo.inputType,
+          ValidationCode.required,
+          'A required value is missing.',
+          null,
+          parent.occurrences,
+        ),
+      );
+    }
+    if (complete) report.nonNullRequiredFieldValueCount++;
   }
 
   /**
    * Constraint problems for one field, in every entry that holds a value.
    *
-   * Walks the whole extract instance rather than the displayed page, for the
-   * same reason `findAnyValue` does: which page is on screen must not change
+   * Walks the whole instance rather than the displayed page: which page is on screen must not change
    * whether the instance is reported as sound. Each problem carries the entry it
    * was found in, so the same bad value in two entries is two problems a host can
    * take the user to, rather than one it cannot.
@@ -196,7 +212,7 @@ export class DataQualityReportBuilderHandler {
   private static collectFieldProblems(
     component: FieldComponent,
     parents: Located[],
-    displayedNode: InstanceNode | null,
+    handlerContext: HandlerContext,
     report: DataQualityReport,
   ): void {
     const targets: Array<{ node: InstanceNode; occurrences: number[] }> = [];
@@ -207,6 +223,19 @@ export class DataQualityReportBuilderHandler {
     for (const parent of parents) {
       const held = childOf(parent.node, component.name);
       if (isInstanceArray(held)) {
+        if (component instanceof SingleFieldComponent) {
+          report.problems.push(
+            new ValidationProblem(
+              component.path,
+              component.name,
+              component.basicInfo.inputType,
+              ValidationCode.valueShape,
+              'This field accepts one value, not a list.',
+              null,
+              parent.occurrences,
+            ),
+          );
+        }
         held.forEach((node, index) => {
           if (node !== null && node !== undefined) {
             targets.push({ node, occurrences: paged ? [...parent.occurrences, index] : parent.occurrences });
@@ -216,15 +245,13 @@ export class DataQualityReportBuilderHandler {
         targets.push({ node: held, occurrences: parent.occurrences });
       }
     }
-    // Fall back to the displayed node when the instance holds nothing at the path,
-    // so a field is still checked if the instance shape is unexpected.
-    if (targets.length === 0 && displayedNode != null) {
-      targets.push({ node: displayedNode, occurrences: [] });
-    }
-
     const seen = new Set<string>();
     for (const target of targets) {
-      for (const p of FieldValueValidator.validateControlledNode(component, target.node, component.path)) {
+      const drafts = handlerContext.validation.problemsFor(component, target.node);
+      const stored = FieldValueValidator.validateNode(component, target.node, component.path).filter(
+        (problem) => !drafts.some((draft) => draft.code === problem.code),
+      );
+      for (const p of [...stored, ...drafts]) {
         DataQualityReportBuilderHandler.addProblem(report, p.at(target.occurrences), seen);
       }
       const value = DataQualityReportBuilderHandler.extractPlainValue(target.node, component);
@@ -284,7 +311,7 @@ export class DataQualityReportBuilderHandler {
 
   /** Deduplicate: the same violation of one value is reported once. */
   private static addProblem(report: DataQualityReport, problem: ValidationProblem, seen: Set<string>): void {
-    const key = `${problem.path.join('/')}|${problem.occurrences.join('/')}|${problem.code}|${String(problem.value)}`;
+    const key = JSON.stringify([problem.path, problem.occurrences, problem.code, problem.value]);
     if (seen.has(key)) {
       return;
     }
@@ -305,51 +332,6 @@ export class DataQualityReportBuilderHandler {
       return [];
     }
     return isInstanceArray(held) ? held : [held];
-  }
-
-  /**
-   * The first value held at `path` by any instance, or null.
-   *
-   * Deliberately cursor-free. `handlerContext.getDataObjectNodeByPath` resolves
-   * through each multi ancestor's `currentIndex`, so asking it whether a
-   * required field is filled answers only for the page currently on screen —
-   * the same instance reported valid or invalid depending on where the user had
-   * paged to. This walks the extract instance directly and branches into every
-   * array entry instead, so the answer depends on the data alone.
-   *
-   * Semantics: a requirement on a field inside a repeated element is met when
-   * at least one instance carries a value. Requiring every instance to carry
-   * one would need per-instance evaluation, which is a different and larger
-   * change; see the roadmap.
-   */
-  private static findAnyValue(
-    path: string[],
-    node: InstanceNode | null,
-    component: SingleFieldComponent | MultiFieldComponent,
-  ): unknown {
-    if (node === null || node === undefined) {
-      return null;
-    }
-    if (Array.isArray(node)) {
-      for (const entry of node) {
-        const found = DataQualityReportBuilderHandler.findAnyValue(path, entry, component);
-        if (found !== null) {
-          return found;
-        }
-      }
-      return null;
-    }
-    if (typeof node !== 'object') {
-      return null;
-    }
-    if (path.length === 0) {
-      return DataQualityReportBuilderHandler.extractPlainValue(node, component);
-    }
-    const [head, ...rest] = path;
-    if (!isInstanceObject(node) || !node.hasValue(head)) {
-      return null;
-    }
-    return DataQualityReportBuilderHandler.findAnyValue(rest, node.values[head] ?? null, component);
   }
 
   /**

@@ -8,7 +8,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
-import { AbstractControl, FormBuilder, FormControl, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, Validators } from '@angular/forms';
 import { CedarValidators } from '../../../shared/validation/cedar-validators';
 import { Translatable } from '../../../shared/models/ui/translatable.model';
 import { CedarUIDirective } from '../../../shared/models/ui/cedar-ui-component.model';
@@ -98,10 +98,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
 
   @Input({ required: true }) handlerContext!: HandlerContext;
 
-  constructor(
-    fb: FormBuilder,
-    private activeComponentRegistry: ActiveComponentRegistryService,
-  ) {
+  constructor(private activeComponentRegistry: ActiveComponentRegistryService) {
     super();
     this.datetimeParsed = new DatetimeRepresentation();
     this.timePickerTime = null;
@@ -300,7 +297,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     if ((temporalType === Xsd.dateTime || temporalType === Xsd.time) && !this.datetimeParsed.timeIsSet) {
       return 'time';
     }
-    if (this.showDecimalSeconds() && this.datetimeParsed.decimalSeconds.length === 0) {
+    if (this.showDecimalSeconds() && !/^\d+$/.test(this.datetimeParsed.decimalSeconds)) {
       return 'fraction';
     }
     return null;
@@ -345,7 +342,18 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     // An edit replaces whatever could not be read, so the notice about it goes.
     this.unreadableValue = null;
     this.revalidate(stored);
-    this.handlerContext.changeValue(this.component, stored);
+    this.handlerContext.changeValue(
+      this.component,
+      stored,
+      stored === null && this.hasTemporalValue()
+        ? {
+            code: 'incompleteValue',
+            message: 'Complete or clear the date/time value.',
+            value: null,
+            state: { ...this.datetimeParsed },
+          }
+        : null,
+    );
   }
 
   private temporalConfiguration(): CedarTemporalConfiguration {
@@ -361,6 +369,15 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
   }
 
   setCurrentValue(currentValue: unknown): void {
+    const draft = this.handlerContext.validation.draftFor(this.component);
+    this.userEdited = draft !== null;
+    if (draft?.code === 'incompleteValue') {
+      this.datetimeParsed = Object.assign(new DatetimeRepresentation(), draft.state);
+      this.unreadableValue = null;
+      this.revalidate(null);
+      this.showParts();
+      return;
+    }
     const configuration = this.temporalConfiguration();
     const stored = typeof currentValue === 'string' ? currentValue : null;
     this.revalidate(stored);
@@ -386,6 +403,15 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.datetimeParsed = DatetimeRepresentation.fromTemporalParts(parsed);
     const normalized = this.datetimeParsed.toStorageRepresentation(configuration);
 
+    this.showParts();
+
+    if (normalized !== null && normalized !== stored) {
+      this.revalidate(normalized);
+      this.handlerContext.changeValue(this.component, normalized, null, 'normalization');
+    }
+  }
+
+  private showParts(): void {
     // Each part is shown when the value carries it and cleared when it does not.
     // Only the zone was cleared before, which is what marked the other two as an
     // omission rather than a decision.
@@ -417,11 +443,6 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
     this.timezone = this.datetimeParsed.timezoneIsSet
       ? { id: this.datetimeParsed.timezoneOffset, label: this.datetimeParsed.timezoneName }
       : null;
-
-    if (normalized !== null && normalized !== stored) {
-      this.revalidate(normalized);
-      this.handlerContext.changeValue(this.component, normalized);
-    }
   }
 
   private clearDisplayedParts(): void {

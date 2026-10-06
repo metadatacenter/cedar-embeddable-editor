@@ -46,6 +46,8 @@ $_colors: (
   on-background: tokens.$text-primary,
   surface: $_white,
   surface-bright: $_white,
+  // No component CEE uses draws with surface-dim or surface-container-highest, nor, since its
+  // tooltips take the shared tooltip surface, with inverse-surface. The roles still need values.
   surface-dim: tokens.$border-rule,
   surface-container-lowest: $_white,
   surface-container-low: $_white,
@@ -113,15 +115,15 @@ $_colors: (
         (label-large, tokens.$font-size, 20px, tokens.$font-weight-medium),
         (label-medium, tokens.$font-size-small, 16px, tokens.$font-weight-medium),
         (label-small, tokens.$font-size-small, 16px, tokens.$font-weight-medium),
-        (title-large, tokens.$font-size-heading, 28px, tokens.$font-weight-medium),
+        (title-large, tokens.$font-size-large, 28px, tokens.$font-weight-medium),
         (title-medium, tokens.$font-size, 24px, tokens.$font-weight-medium),
         (title-small, tokens.$font-size, 20px, tokens.$font-weight-medium),
-        (headline-large, tokens.$font-size-heading, 32px, tokens.$font-weight-medium),
-        (headline-medium, tokens.$font-size-heading, 28px, tokens.$font-weight-medium),
-        (headline-small, tokens.$font-size-element-heading, 24px, tokens.$font-weight-medium),
-        (display-large, tokens.$font-size-heading, 32px, tokens.$font-weight-medium),
-        (display-medium, tokens.$font-size-heading, 28px, tokens.$font-weight-medium),
-        (display-small, tokens.$font-size-element-heading, 24px, tokens.$font-weight-medium)
+        (headline-large, tokens.$font-size-large, 32px, tokens.$font-weight-medium),
+        (headline-medium, tokens.$font-size-large, 28px, tokens.$font-weight-medium),
+        (headline-small, tokens.$font-size-large, 24px, tokens.$font-weight-medium),
+        (display-large, tokens.$font-size-large, 32px, tokens.$font-weight-medium),
+        (display-medium, tokens.$font-size-large, 28px, tokens.$font-weight-medium),
+        (display-small, tokens.$font-size-large, 24px, tokens.$font-weight-medium)
       )
   {
     @include mat.theme-overrides(
@@ -163,10 +165,15 @@ $_colors: (
       container-shape-radius: tokens.$radius-pill,
     )
   );
+  // The calendar panel is an overlay, so it takes the menu's shadow rather than Material's elevation.
+  // The focused date takes the shared selection surface rather than Material's grey state layer.
   @include mat.datepicker-overrides(
     (
+      calendar-date-focus-state-background-color: var(--cedar-surface-selected, #{tokens.$surface-selected}),
       calendar-container-shape: tokens.$radius,
       calendar-container-touch-shape: tokens.$radius,
+      calendar-container-elevation-shadow: var(--cedar-shadow-overlay, #{tokens.$shadow-overlay}),
+      calendar-container-touch-elevation-shadow: var(--cedar-shadow-overlay, #{tokens.$shadow-overlay}),
     )
   );
 

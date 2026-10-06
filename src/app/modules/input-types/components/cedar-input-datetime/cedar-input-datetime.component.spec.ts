@@ -1,5 +1,4 @@
 import { ChangeDetectorRef, Injector, runInInjectionContext } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
 import { vi } from 'vitest';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { InputType } from '../../../shared/models/input-type.model';
@@ -27,10 +26,7 @@ describe('CedarInputDatetimeComponent model-to-view sync', () => {
         { provide: ComponentDataService, useValue: new ComponentDataService() },
       ],
     });
-    const component = runInInjectionContext(
-      injector,
-      () => new CedarInputDatetimeComponent(new FormBuilder(), registry),
-    );
+    const component = runInInjectionContext(injector, () => new CedarInputDatetimeComponent(registry));
     // Through the input setter, which is what installs the validators — the
     // widget's own message comes off them.
     component.componentToRender = {
@@ -40,6 +36,7 @@ describe('CedarInputDatetimeComponent model-to-view sync', () => {
     } as unknown as FieldComponent;
     const written: (string | null)[] = [];
     component.handlerContext = {
+      validation: { draftFor: () => null },
       changeValue: (_c: unknown, value: string | null) => written.push(value),
     } as never;
     return { component, written };
@@ -132,10 +129,7 @@ describe('CedarInputDatetimeComponent by granularity', () => {
         { provide: ComponentDataService, useValue: new ComponentDataService() },
       ],
     });
-    const component = runInInjectionContext(
-      injector,
-      () => new CedarInputDatetimeComponent(new FormBuilder(), registry),
-    );
+    const component = runInInjectionContext(injector, () => new CedarInputDatetimeComponent(registry));
     component.componentToRender = {
       basicInfo: { temporalGranularity: granularity, timezoneEnabled, inputTimeFormat, inputType: InputType.temporal },
       valueInfo: { temporalType, requiredValue },
@@ -143,6 +137,7 @@ describe('CedarInputDatetimeComponent by granularity', () => {
     } as unknown as FieldComponent;
     const written: (string | null)[] = [];
     component.handlerContext = {
+      validation: { draftFor: () => null },
       changeValue: (_c: unknown, value: string | null) => written.push(value),
     } as never;
     return { component, written };

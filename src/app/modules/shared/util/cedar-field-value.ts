@@ -8,9 +8,6 @@ import { HandlerContext } from './handler-context';
 import { InstanceValueNode } from './instance-value-node';
 import type { CedarEmbeddableFieldValue } from '../../../cee-public-api';
 
-/** Nothing held, which every field can report and several start out holding. */
-const NOTHING: CedarEmbeddableFieldValue = { kind: 'none' };
-
 /** Whether this field's value is an IRI rather than a literal. */
 function isIriValued(component: FieldComponent): boolean {
   const inputType = component.basicInfo.inputType ?? '';
@@ -42,7 +39,7 @@ function holdsLiteralList(component: FieldComponent): boolean {
  * Flattening all six to text is what leaves a caller parsing its own output.
  *
  * `none` is what an unfilled field reports, and also what a numeric field reports
- * while it holds something that is not a number — `3.` on the way to `3.5`. The
+ * while it holds something that is not a number — `-` on the way to `-3.5`. The
  * widget shows that state as invalid, and `valid` on the change detail carries it, so
  * a host is told the difference between empty and unusable rather than being handed a
  * `NaN` to discover on its own.
@@ -58,23 +55,29 @@ export function readFieldValue(component: FieldComponent, handlerContext: Handle
     const values = entries
       .map((entry) => InstanceValueNode.literal(entry))
       .filter((value): value is string => value !== null && value !== undefined && value !== '');
-    return values.length === 0 ? NOTHING : { kind: 'literals', values };
+    return values.length === 0 ? { kind: 'none' } : { kind: 'literals', values };
   }
   if (isIriValued(component)) {
     const iri = InstanceValueNode.iri(node);
     if (iri === null || iri === undefined || iri === '') {
-      return NOTHING;
+      return { kind: 'none' };
     }
     return { kind: 'iri', iri, label: InstanceValueNode.label(node) ?? null };
   }
 
   const literal = InstanceValueNode.literal(node);
   if (literal === null || literal === undefined || literal === '') {
-    return NOTHING;
+    return { kind: 'none' };
   }
   if (component.basicInfo.inputType === InputType.numeric) {
     const parsed = Number(literal);
-    return literal.trim() !== '' && Number.isFinite(parsed) ? { kind: 'number', value: parsed } : NOTHING;
+    return canonicalNumber(literal) !== null
+      ? {
+          kind: 'number',
+          value:
+            Number.isFinite(parsed) && canonicalNumber(literal) === canonicalNumber(String(parsed)) ? parsed : literal,
+        }
+      : { kind: 'none' };
   }
   if (component.basicInfo.inputType === InputType.temporal) {
     return { kind: 'temporal', value: literal };
@@ -93,7 +96,7 @@ function readAttributes(component: FieldComponent, handlerContext: HandlerContex
   const slots = handlerContext.getDataObjectNodeByPath(component.path);
   const parent = handlerContext.getParentDataObjectNodeByPath(component.path);
   if (!isInstanceArray(slots) || !isInstanceObject(parent)) {
-    return NOTHING;
+    return { kind: 'none' };
   }
   const values: Record<string, string | null> = {};
   for (const slot of slots) {
@@ -101,7 +104,7 @@ function readAttributes(component: FieldComponent, handlerContext: HandlerContex
       values[slot.name] = InstanceValueNode.literal(parent.values[slot.name]) ?? null;
     }
   }
-  return Object.keys(values).length === 0 ? NOTHING : { kind: 'attributes', values };
+  return Object.keys(values).length === 0 ? { kind: 'none' } : { kind: 'attributes', values };
 }
 
 /**
@@ -123,6 +126,7 @@ export function writeFieldValue(
   component: FieldComponent,
   handlerContext: HandlerContext,
 ): string | null {
+  if (!isCedarFieldValue(value)) return '"value" ignored: malformed field value.';
   const inputType = component.basicInfo.inputType ?? 'a field';
 
   if (inputType === InputType.attributeValue) {
@@ -133,18 +137,18 @@ export function writeFieldValue(
 
   if (value.kind === 'none') {
     if (holdsLiteralList(component)) {
-      handlerContext.changeListValue(component, []);
+      handlerContext.changeListValue(component, [], 'host');
     } else if (isIriValued(component) && inputType === InputType.controlled) {
-      handlerContext.changeControlledValue(component, null, null);
+      handlerContext.changeControlledValue(component, null, null, 'host');
     } else {
-      handlerContext.changeValue(component, null);
+      handlerContext.changeValue(component, null, null, 'host');
     }
     return null;
   }
 
   if (holdsLiteralList(component)) {
     return value.kind === 'literals'
-      ? (handlerContext.changeListValue(component, [...value.values]), null)
+      ? (handlerContext.changeListValue(component, [...value.values], 'host'), null)
       : refusal(value, inputType, '"literals"');
   }
 
@@ -154,9 +158,9 @@ export function writeFieldValue(
     }
     if (inputType === InputType.link) {
       // A link's value is the IRI itself, with no label to keep beside it.
-      handlerContext.changeValue(component, value.iri);
+      handlerContext.changeValue(component, value.iri, null, 'host');
     } else {
-      handlerContext.changeControlledValue(component, value.iri, value.label);
+      handlerContext.changeControlledValue(component, value.iri, value.label, 'host');
     }
     return null;
   }
@@ -173,15 +177,15 @@ export function writeFieldValue(
   switch (value.kind) {
     case 'literal':
       return literalKind === '"literal"'
-        ? (handlerContext.changeValue(component, value.value), null)
+        ? (handlerContext.changeValue(component, value.value, null, 'host'), null)
         : refusal(value, inputType, literalKind);
     case 'number':
       return inputType === InputType.numeric
-        ? (handlerContext.changeValue(component, String(value.value)), null)
+        ? (handlerContext.changeValue(component, String(value.value), null, 'host'), null)
         : refusal(value, inputType, literalKind);
     case 'temporal':
       return inputType === InputType.temporal
-        ? (handlerContext.changeValue(component, value.value), null)
+        ? (handlerContext.changeValue(component, value.value, null, 'host'), null)
         : refusal(value, inputType, literalKind);
     default:
       return refusal(value, inputType, literalKind);
@@ -235,4 +239,54 @@ function sameAttributes(
     names.length === Object.keys(right).length &&
     names.every((name) => Object.hasOwn(right, name) && right[name] === left[name])
   );
+}
+
+/** Compare decimal values without converting their significant digits to floating point. */
+export function canonicalNumber(value: string): string | null {
+  const match = /^([+-]?)(\d+(?:\.\d*)?|\.\d+)(?:[eE]([+-]?\d+))?$/.exec(value.trim());
+  if (!match) return null;
+  const [integer, fraction = ''] = match[2].split('.');
+  const digits = (integer + fraction).replace(/^0+/, '');
+  if (!digits) return '0';
+  const coefficient = digits.replace(/0+$/, '');
+  const exponent = BigInt(match[3] ?? '0') - BigInt(fraction.length) + BigInt(digits.length - coefficient.length);
+  return `${match[1] === '-' ? '-' : ''}${coefficient}e${exponent}`;
+}
+
+/** Runtime validation for JavaScript/custom-element callers, before retaining or writing a value. */
+export function isCedarFieldValue(value: unknown): value is CedarEmbeddableFieldValue {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const candidate = value as Record<string, unknown>;
+  switch (candidate['kind']) {
+    case 'none':
+      return true;
+    case 'literal':
+    case 'temporal':
+      return typeof candidate['value'] === 'string';
+    case 'number':
+      return typeof candidate['value'] === 'number'
+        ? Number.isFinite(candidate['value'])
+        : typeof candidate['value'] === 'string' && canonicalNumber(candidate['value']) !== null;
+    case 'iri':
+      return (
+        typeof candidate['iri'] === 'string' && (candidate['label'] === null || typeof candidate['label'] === 'string')
+      );
+    case 'literals':
+      return (
+        Array.isArray(candidate['values']) &&
+        Array.from(candidate['values']).every((entry) => typeof entry === 'string')
+      );
+    case 'attributes': {
+      const values = candidate['values'];
+      return (
+        typeof values === 'object' &&
+        values !== null &&
+        !Array.isArray(values) &&
+        (Object.getPrototypeOf(values) === Object.prototype || Object.getPrototypeOf(values) === null) &&
+        Object.values(values).every((entry) => entry === null || typeof entry === 'string')
+      );
+    }
+    default:
+      return false;
+  }
 }

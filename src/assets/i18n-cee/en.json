@@ -142,7 +142,9 @@
     "Text": {
       "Pattern": "Value does not match the required format.",
       "MinLength": "Value should be at least {{constraintMinLength}} chars long.",
-      "MaxLength": "Value should be at most {{constraintMaxLength}} chars long."
+      "MinLengthOne": "Value should be at least {{constraintMinLength}} char long.",
+      "MaxLength": "Value should be at most {{constraintMaxLength}} chars long.",
+      "MaxLengthOne": "Value should be at most {{constraintMaxLength}} char long."
     },
     "Select": {
       "MaxSelection": "Select up to {{maxSelections}}"
@@ -165,13 +167,13 @@
         "Byte": "The value should be a byte (-128 to 127).",
         "Short": "The value should be a short (-32768 to 32767).",
         "Float": "The value should be a float.",
-        "FloatOnePlace": "The value should be a float with at most {{decimalPlace}} decimal place.",
+        "FloatPlacesOne": "The value should be a float with at most {{decimalPlace}} decimal place.",
         "FloatPlaces": "The value should be a float with at most {{decimalPlace}} decimal places.",
         "Double": "The value should be a double.",
-        "DoubleOnePlace": "The value should be a double with at most {{decimalPlace}} decimal place.",
+        "DoublePlacesOne": "The value should be a double with at most {{decimalPlace}} decimal place.",
         "DoublePlaces": "The value should be a double with at most {{decimalPlace}} decimal places.",
         "Decimal": "The value should be a decimal.",
-        "DecimalOnePlace": "The value should be a decimal with at most {{decimalPlace}} decimal place.",
+        "DecimalPlacesOne": "The value should be a decimal with at most {{decimalPlace}} decimal place.",
         "DecimalPlaces": "The value should be a decimal with at most {{decimalPlace}} decimal places.",
         "WholeNumber": "The value should be a number with no decimal places."
       }
@@ -204,16 +206,24 @@
       "NameInUse": "Attribute name \"{{name}}\" is already used in this instance. Choose a unique name."
     },
     "Report": {
+      "TemplateConstraint": "This field has an invalid constraint in its template. Ask the template author to correct it.",
+      "ValueShape": "This value does not match the field type. Replace or clear it.",
+      "ElementShape": "This element contains malformed data. Edit a field inside it to replace a malformed value, or load a corrected instance.",
+      "AttributeName": "Choose a valid, unique name for this attribute.",
       "ChoiceMembership": "\"{{value}}\" is not one of the options for this field.",
       "ControlledStructure": "The stored term is missing its label or its IRI.",
       "IriMalformed": "The stored identifier is not a valid IRI.",
       "MinItems": "At least {{min}} entries are required.",
-      "MaxItems": "At most {{max}} entries are allowed."
+      "MinItemsOne": "At least {{min}} entry is required.",
+      "MaxItems": "At most {{max}} entries are allowed.",
+      "MaxItemsOne": "At most {{max}} entry is allowed."
     }
   },
   "Spec": {
     "MinLength": "{{minLength}} chars",
+    "MinLengthOne": "{{minLength}} char",
     "MaxLength": "{{maxLength}} chars",
+    "MaxLengthOne": "{{maxLength}} char",
     "Pattern": "{{regex}}",
     "NumberTypeInteger": "integer",
     "NumberTypeNumber": "number",
@@ -248,7 +258,7 @@
       "second": "HH:MM:SS",
       "decimalSecond": "HH:MM:SS.sss"
     },
-    "DecimalPlaceOne": "1 decimal place",
+    "DecimalPlacesOne": "1 decimal place",
     "TermIn": "of the {{container}}",
     "DefaultValue": "{{defaultValue}}",
     "DefaultLabel": "default",

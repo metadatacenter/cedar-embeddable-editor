@@ -27,7 +27,7 @@ import { CARDINALITIES, FIELD_KINDS } from '../src/axes';
 import { corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { instanceWith, literalNode, literalValue, heldValue } from '../src/values';
+import { instanceWith, literalValue, heldValue } from '../src/values';
 
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);
 
@@ -65,7 +65,10 @@ describe('the JSON a host page receives', () => {
     // Compared through the library's reader on both sides: the field holds an
     // atom and the document holds whatever the writer made of it, so the claim
     // is that the value survived, not that the two are the same object.
-    expect(heldValue(emitted._f)).toEqual(heldValue(driver.fullData.values['_f']));
+    const held = heldValue(driver.fullData.values['_f']);
+    // Unnamed attribute draft slots cannot be properties of an exported instance.
+    const stored = VALUED[index].key === 'attrValue' && Array.isArray(held) ? held.filter((name) => name !== '') : held;
+    expect(heldValue(emitted._f)).toEqual(stored);
   });
 
   /**

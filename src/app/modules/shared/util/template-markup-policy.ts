@@ -217,10 +217,3 @@ export const sanitizeTemplateMarkup = (content: string): string => {
     RETURN_TRUSTED_TYPE: false,
   }) as string;
 };
-
-/** The policy's own description, for tests and for the README to stay honest against. */
-export const TEMPLATE_MARKUP_POLICY = {
-  tags: ALLOWED_TAGS,
-  attributes: ALLOWED_ATTR,
-  dataImages: DATA_IMAGE,
-} as const;

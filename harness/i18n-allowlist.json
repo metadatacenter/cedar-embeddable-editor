@@ -48,5 +48,15 @@
     "file": "src/app/modules/shared/validation/cedar-validators.ts",
     "text": "Select at least one option.",
     "reason": "Not displayed. It travels in the Angular validation error object; the checkbox template shows Validation.SelectAtLeastOne through the translate pipe."
+  },
+  {
+    "file": "src/app/modules/input-types/components/cedar-input-datetime/cedar-input-datetime.component.ts",
+    "text": "Complete or clear the date/time value.",
+    "reason": "Diagnostic text in the host quality report; the widget uses translated temporal messages."
+  },
+  {
+    "file": "src/app/modules/shared/util/handler-context.ts",
+    "text": "An attribute needs a valid, unique name before its value can be saved.",
+    "reason": "Diagnostic text in the host quality report; the widget uses translated attribute messages."
   }
 ]

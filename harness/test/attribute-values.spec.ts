@@ -30,7 +30,7 @@ import { CeeDriver } from '../src/driver';
 import { InstanceObject } from '@cee/models/instance-node.model';
 import { arrayAt, objectAt } from '../src/nodes';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
-import { literalOf, heldValue, attributeValue, instanceWith, templateIdOf } from '../src/values';
+import { heldValue, attributeValue, instanceWith, templateIdOf } from '../src/values';
 import { readTranslatable as read } from '@cee/models/ui/translatable.testing';
 
 const ATTR: FieldKind = {
@@ -281,7 +281,7 @@ describe('names the user did not supply', () => {
     // The first value stands; the duplicate row remains unnamed until the user
     // chooses a name that can safely become a JSON property.
     expect(valueOf(driver.extract, 'colour')).toBe('blue');
-    expect(heldValue(driver.extract.values._av)).toEqual(['colour', null]);
+    expect(heldValue(driver.extract.values._av)).toEqual(['colour', '']);
     expect(read(error)).toContain('already used');
   });
 

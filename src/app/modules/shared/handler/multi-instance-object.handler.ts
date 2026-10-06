@@ -85,11 +85,6 @@ export class MultiInstanceObjectHandler {
     this.initialized = true;
   }
 
-  /** Read-only access to the root container; mutation stays inside this handler. */
-  get rootState(): MultiInstanceInfo {
-    return this.stateRoot;
-  }
-
   /** Whether the state tree has been built successfully for the current template. */
   isInitialized(): boolean {
     return this.initialized;
@@ -141,6 +136,13 @@ export class MultiInstanceObjectHandler {
     }
 
     if (state !== null) {
+      if (component instanceof MultiElementComponent) {
+        while (state.occurrences.length < count) {
+          const occurrence = new MultiInstanceInfo();
+          this.buildRecursively(component, occurrence);
+          state.addOccurrence(occurrence);
+        }
+      }
       state.currentCount = count;
       state.currentIndex = count > 0 ? 0 : -1;
     }

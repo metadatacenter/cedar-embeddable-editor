@@ -25,10 +25,12 @@ export class ValidationProblem {
      * A field or element that repeats is listed for each of its entries, so a path
      * names one place per entry of everything above it, and this says which. A
      * problem about a whole list, such as `minItems`, names the entries above the
-     * list but none of its own. A `required` problem names none at all, because any
-     * entry would satisfy it.
+     * list but none of its own. A `required` problem names its containing elements:
+     * at least one value must be supplied in each existing parent.
      */
     public readonly occurrences: number[] = [],
+    /** Missing answers are warnings; malformed answers and unfinished edits are errors. Both affect isValid. */
+    public readonly severity: 'warning' | 'error' = code === 'required' || code === 'minItems' ? 'warning' : 'error',
   ) {}
 
   /** The same problem, located in these entries. */
@@ -41,6 +43,7 @@ export class ValidationProblem {
       this.message,
       this.value,
       occurrences,
+      this.severity,
     );
   }
 }
@@ -48,6 +51,11 @@ export class ValidationProblem {
 /** Problem codes, so consumers can branch without matching on message text. */
 export class ValidationCode {
   static required = 'required';
+  static valueShape = 'valueShape';
+  static attributeName = 'attributeName';
+  static incompleteValue = 'incompleteValue';
+  static templateConstraint = 'templateConstraint';
+  static templateMismatch = 'templateMismatch';
   static minLength = 'minLength';
   static maxLength = 'maxLength';
   static regex = 'regex';

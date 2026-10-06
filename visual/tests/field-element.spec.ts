@@ -266,3 +266,42 @@ test('a host whose heading already shows the type gets no type statement', async
   await expect(field.locator('app-cedar-component-header')).toHaveCount(0);
   await expect(field.locator('.cee-field-type')).toHaveCount(0);
 });
+
+test.describe('host ownership and numeric precision', () => {
+  for (const [first, next] of [
+    ['9007199254740992', '9007199254740993'],
+    ['0.1234567890123456788', '0.1234567890123456789'],
+  ]) {
+    test(`preserves adjacent numeric values ${first} and ${next}`, async ({ page }) => {
+      await open(page, '_numeric');
+      const input = page.locator('cedar-embeddable-field input');
+      await input.fill(first);
+      await expect.poll(async () => (await changes(page)).length).toBe(1);
+      await input.fill(next);
+      await expect.poll(async () => (await changes(page)).length).toBe(2);
+      expect(await currentValue(page)).toEqual({ kind: 'number', value: next });
+      await page.evaluate(() => {
+        const field = document.querySelector('cedar-embeddable-field')!;
+        field.value = field.currentValue;
+      });
+      await expect(input).toHaveValue(next);
+      expect((await changes(page)).length).toBe(2);
+    });
+  }
+
+  test('host event mutation cannot hide the next edit', async ({ page }) => {
+    await open(page, '_text');
+    await page.evaluate(() => {
+      document.querySelector('cedar-embeddable-field')!.addEventListener('valueChange', (event) => {
+        const detail = (event as CustomEvent<CedarEmbeddableFieldChangeDetail>).detail;
+        if (detail.value.kind === 'literal') detail.value.value = 'Second';
+      });
+    });
+    const input = page.locator('cedar-embeddable-field input');
+    await input.fill('First');
+    await expect.poll(async () => (await changes(page)).length).toBe(1);
+    await input.fill('Second');
+    await expect.poll(async () => (await changes(page)).length).toBe(2);
+    expect(await currentValue(page)).toEqual({ kind: 'literal', value: 'Second' });
+  });
+});

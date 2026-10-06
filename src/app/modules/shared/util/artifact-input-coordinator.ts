@@ -49,8 +49,11 @@ export class ArtifactInputCoordinator {
     if (!this.mayAcceptTemplate()) {
       return false;
     }
+    const snapshot = this.snapshot('templateObject', template);
+    if (snapshot === null) return false;
+    template = snapshot;
     // An instance accepted before its template is already the live waiting
-    // state. Re-read the host document for the candidate so template building
+    // state. Re-read the accepted snapshot for the candidate so template building
     // cannot mutate that live model before the whole transaction succeeds.
     const instance =
       this.acceptedInstanceJson === null ? null : this.readInstance('instanceObject', this.acceptedInstanceJson);
@@ -72,6 +75,12 @@ export class ArtifactInputCoordinator {
     if (!this.claimAvailable('instanceObject', ['instance'])) {
       return false;
     }
+    const snapshot = this.snapshot('instanceObject', instance);
+    if (snapshot === null) {
+      this._instanceInputRejected = true;
+      return false;
+    }
+    instance = snapshot;
     const parsed = this.readInstance('instanceObject', instance);
     if (parsed === null) {
       this._instanceInputRejected = true;
@@ -96,6 +105,9 @@ export class ArtifactInputCoordinator {
     if (!this.claimAvailable('templateAndInstanceObject', ['template', 'instance'])) {
       return false;
     }
+    const snapshot = this.snapshot('templateAndInstanceObject', value);
+    if (snapshot === null) return false;
+    value = snapshot;
     const { templateObject, instanceObject } = value;
     if (!ArtifactInputCoordinator.isJsonObject(templateObject)) {
       this.messages.error('Template Object is missing.');
@@ -119,6 +131,16 @@ export class ArtifactInputCoordinator {
     this.acceptedTemplate = templateObject;
     this._state = this.publish(candidate, null, null, value);
     return true;
+  }
+
+  /** Take ownership before parsing or retaining any part of a host document. */
+  private snapshot<T>(input: string, value: T): T | null {
+    try {
+      return structuredClone(value);
+    } catch {
+      this.messages.error(`CEDAR Embeddable Editor: "${input}" rejected because it cannot be copied as JSON data.`);
+      return null;
+    }
   }
 
   private buildCandidate(

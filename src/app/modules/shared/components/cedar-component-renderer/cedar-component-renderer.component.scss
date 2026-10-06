@@ -7,14 +7,18 @@
   min-width: 0;
 }
 
+mat-accordion {
+  display: block;
+  container: cee-component / inline-size;
+}
+
 /*
- * A nested element's heading, one step below a section break's 20px and above the
- * body, so the two levels do not read as one. That step was a literal here while
- * the scale named only four of its five sizes; the shared package names this one,
- * so the relationship is stated once rather than described in a comment.
+ * A nested element's heading takes the large size, as a section break does. The
+ * element's panel header sets the two apart, so a section break inside an element
+ * never outranks the heading of the element that contains it.
  */
 .cee-element-heading {
-  font-size: tokens.$font-size-element-heading;
+  font-size: tokens.$font-size-large;
   font-weight: var(--cedar-font-weight-medium, 500);
   margin-inline-end: 0;
 }
@@ -53,6 +57,18 @@ $element-content-inset: tokens.$space-4;
 .cee-element-content {
   padding-top: ui-tokens.$space-1;
   padding-inline: $element-content-inset;
+}
+
+// Fixed insets can consume the entire width several elements deep. Keep the
+// hierarchy visible while leaving space to edit its fields in a narrow embed.
+@container cee-component (max-width: 240px) {
+  .mat-expansion-panel {
+    @include spacing.apply(--_cee-element-body-inset, element-narrow-inset);
+    @include spacing.apply(--_cee-element-heading-inset, element-narrow-heading-inset);
+  }
+  .cee-element-content {
+    @include spacing.apply(padding-inline, element-narrow-inset);
+  }
 }
 
 /*

@@ -16,7 +16,12 @@ describe('CedarInputAttributeValueComponent', () => {
         { provide: ChangeDetectorRef, useValue: { markForCheck: (): void => undefined } },
       ],
     });
-    return runInInjectionContext(injector, () => new CedarInputAttributeValueComponent(new FormBuilder(), registry));
+    const component = runInInjectionContext(
+      injector,
+      () => new CedarInputAttributeValueComponent(new FormBuilder(), registry),
+    );
+    component.handlerContext = { validation: { draftFor: () => null } } as never;
+    return component;
   };
 
   it('accepts the name/value view object pushed by the active-component registry', () => {

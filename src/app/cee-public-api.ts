@@ -173,6 +173,8 @@ export interface CeeTemplateAndInstance {
  * TypeScript host could not read either without a cast.
  */
 export interface CeeValidationProblem {
+  /** Missing answers are warnings; invalid values and unfinished edits are errors. Both affect isValid. */
+  severity: 'warning' | 'error';
   /** Machine-readable code, e.g. `numberType` or `temporalGranularity`. */
   code: string;
   /** Path to the offending value, outermost first. */
@@ -183,7 +185,7 @@ export interface CeeValidationProblem {
    * A path names one place per entry of everything above it that repeats, and this
    * says which entry holds the problem. A problem about a whole list, such as
    * `minItems`, names the entries above the list and none of its own; a `required`
-   * problem names none, because any entry would satisfy it. Pass the problem to
+   * problem names the containing elements whose requirement is unfilled. Pass the problem to
    * `reveal` to take the user to it.
    */
   occurrences: number[];
@@ -243,15 +245,15 @@ export interface CeeDataQualityReport {
   /**
    * How many of those the instance fills.
    *
-   * A requirement is met when any occurrence carries a value, so this is
-   * unaffected by which page the form is showing.
+   * A required field needs at least one value in every existing containing element.
+   * This is unaffected by which occurrence the form is showing.
    */
   nonNullRequiredFieldValueCount: number;
   /**
    * Validation problems.
    *
-   * Includes one `required` problem for each unsatisfied required field
-   * declaration, while the two counters retain their existing aggregate view.
+   * Includes a located `required` warning for each containing element with an
+   * unanswered requirement. The two counters count declarations, not occurrences.
    */
   problems: CeeValidationProblem[];
   /** True when every required field is filled and no constraint is violated. */
@@ -412,7 +414,16 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
    */
   eventHandler: CeeEventHandler;
 
-  /** The instance as CEDAR JSON. Read-only. */
+  /**
+   * The instance as CEDAR JSON. Read-only.
+   *
+   * An empty object while the editor holds no artifact. An input it refuses because it is not a
+   * readable CEDAR artifact leaves it holding none, so a host that assigns a template on its own, or a
+   * template and instance together through `templateAndInstanceObject`, reads an empty object straight
+   * after the assignment as a refusal. An instance assigned on its own is held while it waits for a
+   * template, so a template refused after it leaves this holding the instance. The refusal's reason
+   * goes to the event handler's `error`.
+   */
   readonly currentMetadata: CeeJsonObject;
 
   /** The instance as CEDAR YAML. Read-only. */
@@ -448,15 +459,15 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
  * Embeddable Designer's single `defaultValue: string` has.
  *
  * `none` is an unfilled field. It is also what a numeric field reports while it holds
- * something that is not yet a number, `3.` on the way to `3.5`; `valid` on the change
+ * something that is not yet a number, `-` on the way to `-3.5`; `valid` on the change
  * detail separates that from empty.
  */
 export type CedarEmbeddableFieldValue =
   | { kind: 'none' }
   /** Text, paragraph, email, phone, a radio choice, a single-choice list. */
   | { kind: 'literal'; value: string }
-  /** A numeric field, once what it holds is a finite number. */
-  | { kind: 'number'; value: number }
+  /** A numeric field. Exact decimal strings preserve values a JavaScript number would round. */
+  | { kind: 'number'; value: number | string }
   /** A date or time, as the ISO literal its granularity calls for. */
   | { kind: 'temporal'; value: string }
   /** A controlled term or an external authority record; a link, whose label is null. */
@@ -507,10 +518,11 @@ export type CedarEmbeddableFieldConfig = Pick<
  * value remains visible and cannot be edited. Static content is also described;
  * a standalone page break has a label and type but does not create pagination.
  *
- * A field artifact carries no requiredness and no cardinality — both belong to a
- * field's deployment in a template, and this element deploys nothing — so the value
- * it acquires is single and is allowed to be absent. That is what makes it usable for
- * a default value, which is optional by definition.
+ * Cardinality belongs to a field's deployment in a template, and this element deploys
+ * nothing, so the value it acquires is single. Requiredness is the field's own: an
+ * artifact that states `requiredValue: true` has an empty value reported as missing,
+ * unless the host sets `suppressEmptyFieldErrors`. CED writes a field on its own with
+ * `requiredValue: false`, which is what leaves a default value free to be empty.
  */
 export interface CedarEmbeddableFieldElement extends HTMLElement {
   /** Typed value event; the inherited overloads still handle every other DOM event. */

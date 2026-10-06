@@ -28,7 +28,7 @@ import { FieldKind } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { at } from '../src/nodes';
-import { literalNode, literalOf, heldValue } from '../src/values';
+import { heldValue } from '../src/values';
 
 const TEXT = {
   key: 'text',

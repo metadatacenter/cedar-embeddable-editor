@@ -99,10 +99,6 @@ export const xsdTypeOf = (node: ReadableValueNode): string | null | undefined =>
 export const isLiteral = (node: ReadableValueNode): boolean =>
   atomOf(node) instanceof InstanceDataStringAtom || atomOf(node) instanceof InstanceDataTypedAtom;
 
-/** True when the node carries an IRI, whether or not it also carries a label. */
-export const isIriBearing = (node: ReadableValueNode): boolean =>
-  atomOf(node) instanceof InstanceDataLinkAtom || atomOf(node) instanceof InstanceDataControlledAtom;
-
 /** A controlled term's pair, for asserting both halves at once. */
 export const termOf = (
   node: ReadableValueNode,
@@ -209,9 +205,6 @@ export const containerValue = (
 /** The occurrences of a multi child, in order. */
 export const listValue = (...occurrences: InstanceDataAtomType[]): InstanceDataAtomType =>
   occurrences;
-
-/** The node a slot holds when nothing has been put in it. */
-export const emptyValue = (): InstanceDataAtomType => new InstanceDataEmptyAtom();
 
 /**
  * What a node holds, as plain data, whichever side of the boundary it came from.

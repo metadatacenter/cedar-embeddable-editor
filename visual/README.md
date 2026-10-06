@@ -2,10 +2,8 @@
 
 Playwright screenshot regression for the **built web component**.
 
-> **Status: 360 tests:** 330 full Chromium checks across two viewports, plus
-> ten semantic smoke checks on each of Chromium, Firefox and WebKit. A run reports
-> 356 of them — four are `fixme`, held open on purpose because no fixture reaches
-> the two config flags they cover.
+> **Status: 1,452 tests:** 1,416 full Chromium checks across two viewports, plus
+> twelve semantic smoke checks on each of Chromium, Firefox and WebKit.
 
 ## Why this exists, and why it is separate from `harness/`
 

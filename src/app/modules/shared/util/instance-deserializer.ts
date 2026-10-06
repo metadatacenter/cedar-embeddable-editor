@@ -5,10 +5,13 @@ import {
   InstanceDataAtomType,
   InstanceDataContainer,
   InstanceDataEmptyAtom,
+  InstanceDataLinkAtom,
+  InstanceDataControlledAtom,
   JsonTemplateInstanceReader,
   TemplateInstance,
   JsonNode,
 } from 'cedar-model-typescript-library';
+import { validAbsoluteIri } from '../validation/absolute-iri';
 import { InstanceObject } from '../models/instance-node.model';
 
 /**
@@ -52,13 +55,43 @@ export class InstanceDeserializer {
     instanceJson: object,
     report?: (message: string) => void,
   ): { full: TemplateInstance; extract: InstanceObject } {
-    const compatibleInstance = InstanceDeserializer.canonicalizeLegacyOccurrenceIds(instanceJson);
+    const rejectedIris: Array<{ path: (string | number)[]; iri: string }> = [];
+    const compatibleInstance = InstanceDeserializer.canonicalizeLegacyOccurrenceIds(instanceJson, rejectedIris);
     const instance = CedarReaders.json()
       .getFebruary2024()
       .getTemplateInstanceReader()
       .readFromObject(compatibleInstance as JsonNode).instance;
 
     InstanceDeserializer.makeAttributeValuesEditable(instance.dataContainer);
+    // The strict reader may reject field IRIs before CEE can display an editable error.
+    // Restore exactly those values on the typed atoms; envelope identifiers stay strict.
+    for (const rejected of rejectedIris) {
+      let parent: InstanceDataAtomType = instance.dataContainer;
+      for (const step of rejected.path.slice(0, -1)) {
+        parent = Array.isArray(parent)
+          ? parent[Number(step)]
+          : parent instanceof InstanceDataContainer
+            ? parent.values[String(step)]
+            : null;
+        if (parent === null || parent === undefined) break;
+      }
+      const key = rejected.path.at(-1)!;
+      const node = Array.isArray(parent)
+        ? parent[Number(key)]
+        : parent instanceof InstanceDataContainer
+          ? parent.values[String(key)]
+          : null;
+      if (node instanceof InstanceDataLinkAtom || node instanceof InstanceDataControlledAtom) {
+        const restored =
+          node instanceof InstanceDataControlledAtom
+            ? InstanceDataControlledAtom.fromParsedNode(rejected.iri, node.label, node.type)
+            : InstanceDataLinkAtom.fromParsedNode(rejected.iri, node.type);
+        restored.language = node.language;
+        restored.notation = node.notation;
+        if (Array.isArray(parent)) parent[Number(key)] = restored;
+        else if (parent instanceof InstanceDataContainer) parent.setValue(String(key), restored);
+      }
+    }
 
     if (report) {
       InstanceDeserializer.reportDiscarded(instance.dataContainer, [], report);
@@ -83,10 +116,13 @@ export class InstanceDeserializer {
    * Clone while walking. A host owns the object it handed CEE, and loading it
    * must not repair the caller's copy as a side effect.
    */
-  private static canonicalizeLegacyOccurrenceIds(instanceJson: object): object {
-    const visit = (node: unknown, documentRoot: boolean): unknown => {
+  private static canonicalizeLegacyOccurrenceIds(
+    instanceJson: object,
+    rejectedIris: Array<{ path: (string | number)[]; iri: string }>,
+  ): object {
+    const visit = (node: unknown, documentRoot: boolean, path: (string | number)[]): unknown => {
       if (Array.isArray(node)) {
-        return node.map((entry) => visit(entry, false));
+        return node.map((entry, index) => visit(entry, false, [...path, index]));
       }
       if (node === null || typeof node !== 'object') {
         return node;
@@ -95,7 +131,7 @@ export class InstanceDeserializer {
       const source = node as Record<string, unknown>;
       const copy: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(source)) {
-        copy[key] = visit(value, false);
+        copy[key] = visit(value, false, [...path, key]);
       }
 
       if (
@@ -106,10 +142,19 @@ export class InstanceDeserializer {
       ) {
         copy['@id'] = null;
       }
+      if (
+        !documentRoot &&
+        JsonTemplateInstanceReader.isValueNode(source as JsonNode) &&
+        typeof source['@id'] === 'string' &&
+        !validAbsoluteIri(source['@id'])
+      ) {
+        rejectedIris.push({ path, iri: source['@id'] });
+        copy['@id'] = 'urn:cedar:unreadable-field-iri';
+      }
       return copy;
     };
 
-    return visit(instanceJson, true) as object;
+    return visit(instanceJson, true, []) as object;
   }
 
   /**

@@ -12,7 +12,15 @@ import { describe, expect, it } from 'vitest';
 import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { containerValue, heldValue, instanceWith, listValue, literalValue, templateIdOf } from '../src/values';
+import {
+  containerValue,
+  heldValue,
+  instanceWith,
+  listValue,
+  linkValue,
+  literalValue,
+  templateIdOf,
+} from '../src/values';
 
 const kind = (key: string) => FIELD_KINDS.find((k) => k.key === key)!;
 const EMAIL = kind('email');
@@ -116,7 +124,7 @@ describe('problem locations', () => {
     });
     const driver = reportOf(template, {
       _email: literalValue(BAD_EMAIL),
-      _link: literalValue('https://a'),
+      _link: linkValue('https://a'),
     });
 
     expect(located(driver).map((p: any) => p.code)).toEqual(['email', 'link']);
@@ -152,7 +160,7 @@ describe('problem locations', () => {
     expect(seen[1]).toEqual(seen[0]);
   });
 
-  it('names no entry for a required field, since any entry would satisfy it', () => {
+  it('locates each unsatisfied requirement in its containing element', () => {
     const template = buildTemplate({
       name: 'required_in_entries',
       elements: [
@@ -168,7 +176,10 @@ describe('problem locations', () => {
       _person: listValue(containerValue({ _name: literalValue(null) }), containerValue({ _name: literalValue(null) })),
     });
 
-    expect(located(driver)).toEqual([{ code: 'required', path: ['_person', '_name'], occurrences: [] }]);
+    expect(located(driver)).toEqual([
+      { code: 'required', path: ['_person', '_name'], occurrences: [0] },
+      { code: 'required', path: ['_person', '_name'], occurrences: [1] },
+    ]);
   });
 
   it("does not number a checkbox group's selections, which are one value", () => {

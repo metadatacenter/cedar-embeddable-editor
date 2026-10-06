@@ -286,7 +286,7 @@ const FIELDS: RequiredField[] = [
   {
     name: 'a temporal field, by its clear action',
     emptied: () => {
-      const widget = inject(() => new CedarInputDatetimeComponent(new FormBuilder(), registry()));
+      const widget = inject(() => new CedarInputDatetimeComponent(registry()));
       // Through the setter, which is what installs the validators.
       widget.componentToRender = required(InputType.temporal, {
         basicInfo: { inputType: InputType.temporal, temporalGranularity: Temporal.day, timezoneEnabled: false },

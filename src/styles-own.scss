@@ -73,10 +73,6 @@
   line-height: normal;
 }
 
-.allow-cr {
-  white-space: pre;
-}
-
 .form-container {
   min-width: 50%;
   max-width: 100%;
@@ -255,78 +251,6 @@ app-sample-templates {
   }
 }
 
-.notify-info,
-.notify-success,
-.notify-error,
-.notify-warning,
-.notify-progress {
-  padding: ui-tokens.$space-4;
-  border: 1px solid transparent;
-  border-radius: tokens.$radius;
-}
-
-.notify-progress-icon {
-  margin-right: ui-tokens.$space-2;
-  line-height: 1em;
-  margin-left: ui-tokens.$space-1;
-  float: left;
-  @include spacing.apply(margin-top, compact-static);
-}
-
-.notify-info {
-  --cedar-icon-color: #{tokens.$color-primary-strong};
-  color: tokens.$color-primary-strong;
-  background-color: tokens.$surface-selected;
-  border-color: tokens.$color-primary-strong;
-}
-
-.notify-success {
-  --cedar-icon-color: #{tokens.$status-success-text};
-  color: tokens.$status-success-text;
-  background-color: tokens.$status-success-surface;
-  border-color: tokens.$status-success-text;
-}
-
-.notify-error {
-  --cedar-icon-color: #{tokens.$status-error-text};
-  color: tokens.$status-error-text;
-  background-color: tokens.$status-error-surface;
-  border-color: tokens.$status-error-text;
-}
-
-.notify-warning {
-  --cedar-icon-color: #{tokens.$status-warning-text};
-  color: tokens.$status-warning-text;
-  background-color: tokens.$status-warning-surface;
-  border-color: tokens.$status-warning-text;
-}
-
-.notify-progress {
-  color: tokens.$text-primary;
-  background-color: tokens.$surface-subtle;
-  border-color: tokens.$border-rule;
-}
-
-.close {
-  float: right;
-  font-size: 24px;
-  line-height: 0.9;
-  opacity: 0.5;
-  color: inherit;
-}
-
-.close:hover {
-  opacity: 1;
-}
-
-button.close {
-  cursor: pointer;
-  padding: 0;
-  background-color: transparent;
-  border: 0;
-  -webkit-appearance: none;
-}
-
 // Control metrics are emitted through the Material adapter: compact 36px,
 // comfortable 48px. The suffix action follows the box instead of enlarging it.
 
@@ -369,8 +293,10 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   scale: 1.2;
 }
 
-.mat-mdc-tooltip.tooltip {
-  font-size: tokens.$font-size-small;
+// Material's tooltips take the shared tooltip surface, as every other CEDAR tooltip does, rather than
+// the dark inverse surface Material draws them on.
+.mat-mdc-tooltip .mat-mdc-tooltip-surface {
+  @include patterns.tooltip-surface;
 }
 
 .align-start {
@@ -430,9 +356,6 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 }
 .tooltip {
   background-color: tokens.$text-primary;
-}
-.component-title {
-  color: tokens.$text-title !important;
 }
 
 /**
@@ -520,8 +443,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
    * sat on a line box sized by the inherited line-height, so shrinking the control changed nothing:
    * two 25px options still occupied 96px. A column of rows is as tall as the rows.
    */
-  .mat-mdc-radio-group,
-  .cee-checkbox-group {
+  .mat-mdc-radio-group {
     display: flex;
     flex-direction: column;
   }
@@ -586,11 +508,11 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  */
 .cee-term-link-action {
   display: inline-flex;
-  flex: 0 0 20px;
+  flex: 0 0 ui-tokens.$icon-size-default;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: ui-tokens.$icon-size-default;
+  height: ui-tokens.$icon-size-default;
   color: inherit;
   text-decoration: none;
 
@@ -647,7 +569,7 @@ textarea.mat-mdc-input-element {
 :host .mat-mdc-option {
   @include controls.choice-row;
   height: auto;
-  @include spacing.apply(padding-block, compact-static);
+  @include spacing.apply(padding-block, compact);
   padding-inline: tokens.$space-3;
   box-sizing: border-box;
   line-height: var(

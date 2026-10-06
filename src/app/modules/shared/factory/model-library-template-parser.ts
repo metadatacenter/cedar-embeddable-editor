@@ -50,6 +50,7 @@ import { InputType } from '../models/input-type.model';
 import { LabelInfo } from '../models/info/label-info.model';
 import { HandlerContext } from '../util/handler-context';
 import { TemplateParser } from './template-parser';
+import { withoutCheckedDefaults, restoreDeclaredDefaults } from './editable-template-defaults';
 import { MultiComponent } from '../models/component/multi-component.model';
 
 /**
@@ -200,7 +201,8 @@ export class ModelLibraryTemplateParser implements TemplateParser {
       .getTemplateReader()
       // `JsonNode` is the library's name for a parsed JSON object, and differs
       // from `object` only in declaring the index signature that makes it one.
-      .readFromObject(templateJson as JsonNode);
+      .readFromObject(withoutCheckedDefaults(templateJson as JsonNode));
+    restoreDeclaredDefaults(result.template, templateJson as JsonNode);
 
     ModelLibraryTemplateParser.report(result.parsingResult.getBlueprintComparisonErrors(), handlerContext);
     ModelLibraryTemplateParser.mapParsedTemplate(result.template, template);
@@ -451,9 +453,15 @@ export class ModelLibraryTemplateParser implements TemplateParser {
       fc.valueInfo.defaultValue = field.valueConstraints.defaultValue?.getValue() ?? null;
     }
 
-    if (isTextField(field)) {
+    // A paragraph states character limits as a text field does, and the widget both share enforces
+    // them and counts against them. Only the text field's were read, so a paragraph's limits were
+    // neither checked as the user typed nor reported for a stored value. A pattern is a text field's
+    // alone.
+    if (isTextField(field) || isTextArea(field)) {
       fc.valueInfo.minLength = field.valueConstraints.minLength ?? null;
       fc.valueInfo.maxLength = field.valueConstraints.maxLength ?? null;
+    }
+    if (isTextField(field)) {
       fc.valueInfo.regex = field.valueConstraints.regex ?? null;
     }
 

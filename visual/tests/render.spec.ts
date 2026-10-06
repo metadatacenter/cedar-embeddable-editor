@@ -1554,6 +1554,36 @@ test.describe('the version stamp', () => {
   });
 });
 
+/**
+ * The mark, with CEE's name and version stamp beside it.
+ *
+ * The identity is no taller than the mark: the name and the stamp share a left edge to its right and
+ * sit within its height. Beside a title with a description it keeps to the top of the row, level with
+ * the title. At a narrow width it takes a row of its own, so the title has the full width below it.
+ */
+test.describe('the identity', () => {
+  for (const width of [1280, 480]) {
+    test(`sets the name and the stamp beside the mark at ${width}`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await open(page, '17-real-flat', undefined, undefined, undefined, '&f=showTemplateDescription');
+      const box = async (selector: string) => (await page.locator(selector).boundingBox())!;
+      const [mark, name, stamp, title] = await Promise.all(
+        ['.header-image', '.cee-name', '.cee-version', '.template-label'].map(box),
+      );
+
+      expect(mark.width).toBe(40);
+      expect(mark.height).toBe(40);
+      expect(name.x).toBe(mark.x + mark.width + 8);
+      expect(stamp.x).toBe(name.x);
+      expect(stamp.y).toBeGreaterThanOrEqual(name.y + name.height);
+      expect(name.y).toBeGreaterThanOrEqual(mark.y);
+      expect(stamp.y + stamp.height).toBeLessThanOrEqual(mark.y + mark.height);
+      if (width === 1280) expect(mark.y).toBeCloseTo(title.y, 0);
+      else expect(title.y).toBeGreaterThanOrEqual(mark.y + mark.height);
+    });
+  }
+});
+
 /*
  * Expand All, Collapse All and the download menu, ending where the fields' marks end.
  *
@@ -2195,6 +2225,11 @@ test.describe('template-authored strings that are not rich text', () => {
     const tooltip = page.locator('.mat-mdc-tooltip-surface').first();
     await expect(tooltip).toBeVisible();
     await expect(tooltip).toContainText('onerror="window.__staticMarkupRan = true"');
+    // The shared tooltip surface rather than Material's dark one, although this host declares no
+    // CEDAR properties.
+    await expect(tooltip).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(tooltip).toHaveCSS('color', 'rgba(0, 0, 0, 0.87)');
+    await expect(tooltip).toHaveCSS('border-top-color', 'rgb(215, 224, 223)');
 
     const { becameMarkup } = await probes(page);
     expect(becameMarkup, 'the help text was parsed as markup').toBe(0);

@@ -1,8 +1,6 @@
 export class Numbers {
   static PATTERN_XSD_INT_AND_LONG = '[+-]?(0|[1-9][0-9]*)';
   static PATTERN_XSD_FLOAT_AND_DOUBLE = '([+-]?((0|[1-9][0-9]*)(\\.[0-9]{0,maxDig})?|\\.[0-9]{0,maxDig}))';
-  /** xsd:decimal has no exponent form, unlike float and double. */
-  static PATTERN_XSD_DECIMAL = '([+-]?((0|[1-9][0-9]*)(\\.[0-9]{0,maxDig})?|\\.[0-9]{0,maxDig}))';
   /**
    * Bounds of the integral XSD types, as BigInt.
    *

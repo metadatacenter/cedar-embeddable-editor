@@ -42,12 +42,13 @@ const SINGLE_FIELD_TEMPLATE_ID = 'urn:cedar:cee:single-field-template';
  * element makes the missing statement in the only place it can be made once, here,
  * rather than asking every host to hand over a template it does not have.
  *
- * The deployment is bare, and that is the whole of what this decides. Requiredness
- * and cardinality live on the deployment rather than on the field, so a field artifact
- * carries neither and nothing here adds them: a lone value is single, and it is
- * allowed to be absent. Both matter for what the element is chiefly for — a default
- * value is optional by definition, and marking one required would put a validation
- * error under a box that is entitled to be empty.
+ * The deployment is bare, and that is the whole of what this decides. Cardinality lives
+ * on the deployment, so the value is single. Requiredness does not: the model keeps a
+ * field's `requiredValue` on the field itself, read from its `_valueConstraints`, so an
+ * artifact that states one keeps it here and an empty value is reported as missing.
+ * Nothing here adds one. CED writes a field on its own with `requiredValue: false`,
+ * which leaves a default value free to be empty, as a default must be. A host handed a
+ * required field quiets the report of its empty value with `suppressEmptyFieldErrors`.
  */
 export function templateForField(fieldJson: JsonNode): JsonNode {
   const field: TemplateField = CedarReaders.json().getStrict().getTemplateFieldReader().readFromObject(fieldJson).field;

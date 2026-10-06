@@ -142,7 +142,9 @@
     "Text": {
       "Pattern": "Az érték nem felel meg az előírt formátumnak.",
       "MinLength": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
-      "MaxLength": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet."
+      "MinLengthOne": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
+      "MaxLength": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet.",
+      "MaxLengthOne": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet."
     },
     "Select": {
       "MaxSelection": "Legfeljebb {{maxSelections}} lehetőség kiválasztása lehetséges"
@@ -165,13 +167,13 @@
         "Byte": "Az értéknek bájtnak (-128 és 127 között) kell lennie.",
         "Short": "Az értéknek rövid egész számnak (-32768 és 32767 között) kell lennie.",
         "Float": "Az értéknek lebegőpontos számnak (float) kell lennie.",
-        "FloatOnePlace": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű lebegőpontos számnak (float) kell lennie.",
+        "FloatPlacesOne": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű lebegőpontos számnak (float) kell lennie.",
         "FloatPlaces": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű lebegőpontos számnak (float) kell lennie.",
         "Double": "Az értéknek dupla pontosságú lebegőpontos számnak (double) kell lennie.",
-        "DoubleOnePlace": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű, dupla pontosságú lebegőpontos számnak (double) kell lennie.",
+        "DoublePlacesOne": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű, dupla pontosságú lebegőpontos számnak (double) kell lennie.",
         "DoublePlaces": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű, dupla pontosságú lebegőpontos számnak (double) kell lennie.",
         "Decimal": "Az értéknek tizedes törtnek (decimal) kell lennie.",
-        "DecimalOnePlace": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű tizedes törtnek (decimal) kell lennie.",
+        "DecimalPlacesOne": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű tizedes törtnek (decimal) kell lennie.",
         "DecimalPlaces": "Az értéknek legfeljebb {{decimalPlace}} tizedesjegyű tizedes törtnek (decimal) kell lennie.",
         "WholeNumber": "Az értéknek tizedesjegyek nélküli számnak kell lennie."
       }
@@ -204,16 +206,24 @@
       "NameInUse": "Az attribútum neve („{{name}}”) már szerepel ebben a példányban. Adjon meg egyedi nevet."
     },
     "Report": {
+      "TemplateConstraint": "A mező sablonjában érvénytelen korlátozás szerepel. Kérje meg a sablon szerzőjét a javításra.",
+      "ValueShape": "Ez az érték nem felel meg a mező típusának. Cserélje ki vagy törölje.",
+      "ElementShape": "Ez az elem hibás adatokat tartalmaz. A hibás érték lecseréléséhez szerkesszen egy benne lévő mezőt, vagy töltsön be egy javított példányt.",
+      "AttributeName": "Adjon meg érvényes, egyedi nevet az attribútumnak.",
       "ChoiceMembership": "„{{value}}” nem szerepel a mező választási lehetőségei között.",
       "ControlledStructure": "A tárolt kifejezésből hiányzik a címke vagy az IRI.",
       "IriMalformed": "A tárolt azonosító nem érvényes IRI.",
       "MinItems": "Legalább {{min}} bejegyzés szükséges.",
-      "MaxItems": "Legfeljebb {{max}} bejegyzés megengedett."
+      "MinItemsOne": "Legalább {{min}} bejegyzés szükséges.",
+      "MaxItems": "Legfeljebb {{max}} bejegyzés megengedett.",
+      "MaxItemsOne": "Legfeljebb {{max}} bejegyzés megengedett."
     }
   },
   "Spec": {
     "MinLength": "{{minLength}} karakter",
+    "MinLengthOne": "{{minLength}} karakter",
     "MaxLength": "{{maxLength}} karakter",
+    "MaxLengthOne": "{{maxLength}} karakter",
     "Pattern": "{{regex}}",
     "NumberTypeInteger": "egész szám",
     "NumberTypeNumber": "szám",
@@ -248,7 +258,7 @@
       "second": "ÓÓ:PP:MM",
       "decimalSecond": "ÓÓ:PP:MM.mmm"
     },
-    "DecimalPlaceOne": "1 tizedesjegy",
+    "DecimalPlacesOne": "1 tizedesjegy",
     "TermIn": "ebből: {{container}}",
     "DefaultValue": "{{defaultValue}}",
     "DefaultLabel": "alapérték",

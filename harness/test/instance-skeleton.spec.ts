@@ -24,7 +24,7 @@ import { CedarBuilders, NumberType, TemporalType } from 'cedar-model-typescript-
 import { FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
-import { labelOf, xsdTypeOf, heldValue } from '../src/values';
+import { xsdTypeOf, heldValue } from '../src/values';
 
 /** Every field type that takes a value; static content has no slot. */
 const VALUED = FIELD_KINDS.filter((k) => !k.isStatic);

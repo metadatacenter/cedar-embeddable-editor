@@ -2,6 +2,7 @@
   <mat-form-field class="full-width">
     <input
       spellcheck="false"
+      autocomplete="off"
       matInput
       [errorStateMatcher]="previewErrorStateMatcher"
       type="text"
@@ -54,6 +55,7 @@
         <mat-form-field class="cee-fraction-field">
           <input
             spellcheck="false"
+            autocomplete="off"
             matInput
             [errorStateMatcher]="previewErrorStateMatcher"
             type="text"
@@ -82,7 +84,7 @@
     </div>
   }
 
-  @if (hasTemporalValue() && !readOnlyMode) {
+  @if ((hasTemporalValue() || unreadableValue !== null) && !readOnlyMode) {
     <button
       type="button"
       mat-icon-button

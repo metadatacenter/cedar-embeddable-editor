@@ -6,7 +6,11 @@ import { MultiElementComponent } from '../models/element/multi-element-component
 import { DataContext } from '../util/data-context';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { SingleFieldComponent } from '../models/field/single-field-component.model';
-import { InstanceDataAttributeValueFieldName, ReservedNames } from 'cedar-model-typescript-library';
+import {
+  InstanceDataAttributeValueFieldName,
+  InstanceDataContainer,
+  ReservedNames,
+} from 'cedar-model-typescript-library';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
@@ -86,33 +90,20 @@ export class DataObjectDataValueHandler {
     this.messageHandlerService = messageHandlerService;
   }
 
-  /**
-   * Put `valueObject` where `target` sits, rather than editing `target` itself.
-   *
-   * The distinction is the point. Writing to a *place* — a container and the key
-   * under it — is the only form of write the model library's instance supports:
-   * its atoms expose getters and no setters, so a value is replaced by calling
-   * `setValue` on the parent, never mutated where it stands. Doing the same here
-   * against the plain-object tree makes the two describe the same operation, so
-   * the tree underneath can change without every caller changing with it.
-   *
-   * The node is still overwritten in place when the place cannot be reached — a
-   * value at the root of the walk has no parent to be replaced within. That case
-   * keeps the older behaviour rather than failing, and it is the one the model
-   * cannot represent, so it is worth it being the one that stands out.
-   */
+  /** Replace an atom in its owning container or existing occurrence slot. */
   private placeValue(
     parent: InstanceExtractData,
     key: string | number,
-    target: InstanceExtractData,
     valueObject: InstanceNode,
     fullPath: string[],
   ): void {
-    if (target === null || target === undefined) {
-      this.messageHandlerService.error('Unable to set missing data target:' + fullPath);
-      return;
-    }
-    if (typeof key === 'number' && isInstanceArray(parent)) {
+    if (
+      typeof key === 'number' &&
+      Number.isInteger(key) &&
+      key >= 0 &&
+      isInstanceArray(parent) &&
+      key < parent.length
+    ) {
       parent[key] = valueObject;
       return;
     }
@@ -256,10 +247,34 @@ export class DataObjectDataValueHandler {
     /** Serializable template children sharing the attribute's JSON object. */
     declaredSiblingNames: ReadonlySet<string> = new Set(),
   ): Translatable | null {
+    // Preserve malformed element atoms on load. An explicit child edit replaces
+    // that unusable atom with a container, just as it materializes an empty element.
+    // Never discard a list of potentially meaningful elements through a child edit.
+    if (
+      component instanceof SingleElementComponent &&
+      !isInstanceObject(dataObject) &&
+      !isInstanceArray(dataObject) &&
+      isInstanceObject(parentDataObject)
+    ) {
+      dataObject = new InstanceDataContainer();
+      parentDataObject.setValue(key, dataObject);
+    }
+    if (component instanceof MultiElementComponent && isInstanceArray(dataObject)) {
+      const index = multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentIndex ?? -1;
+      if (
+        Number.isInteger(index) &&
+        index >= 0 &&
+        index < dataObject.length &&
+        !isInstanceObject(dataObject[index]) &&
+        !isInstanceArray(dataObject[index])
+      ) {
+        dataObject[index] = new InstanceDataContainer();
+      }
+    }
     if (path.length === 0) {
       if (component instanceof SingleFieldComponent) {
         if (!isAttributeWrite(valueObject)) {
-          this.placeValue(parentDataObject, key, dataObject, valueObject, fullPath);
+          this.placeValue(parentDataObject, key, valueObject, fullPath);
         }
       } else {
         const multiField = component as MultiFieldComponent;
@@ -284,7 +299,7 @@ export class DataObjectDataValueHandler {
             );
           }
         } else if (isInstanceArray(dataObject)) {
-          this.placeValue(dataObject, currentIndex, dataObject[currentIndex] ?? null, valueObject, fullPath);
+          this.placeValue(dataObject, currentIndex, valueObject, fullPath);
         }
       }
     } else {

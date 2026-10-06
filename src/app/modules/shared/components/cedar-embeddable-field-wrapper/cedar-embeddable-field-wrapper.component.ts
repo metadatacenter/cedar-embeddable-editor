@@ -41,12 +41,9 @@ import { FallbackTranslateLoaderFactory } from '../../util/fallback-translate-lo
 import { HandlerContext } from '../../util/handler-context';
 import { WidgetConfigCoordinator } from '../../util/widget-config-coordinator';
 import { WrapperConfigCoordinator } from '../../util/wrapper-config-coordinator';
-import { readFieldValue, sameFieldValue, writeFieldValue } from '../../util/cedar-field-value';
+import { isCedarFieldValue, readFieldValue, sameFieldValue, writeFieldValue } from '../../util/cedar-field-value';
 import { templateForField } from '../../util/single-field-template';
 import { decideComponentRender } from '../cedar-component-renderer/component-render-decision';
-
-/** Nothing held, which is where every field starts and what an unfilled one reports. */
-const NOTHING: CedarEmbeddableFieldValue = { kind: 'none' };
 
 /** One field, parsed and ready to render. */
 interface FieldRuntime {
@@ -134,7 +131,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
    * has to survive the field being replaced.
    */
   private assignedValue: CedarEmbeddableFieldValue | null = null;
-  private lastPublished: CedarEmbeddableFieldChangeDetail = { value: NOTHING, valid: false };
+  private lastPublished: CedarEmbeddableFieldChangeDetail = { value: { kind: 'none' }, valid: false };
   /** Raised while a host's own assignment is being written, so it is not echoed back. */
   private applyingAssignedValue = false;
 
@@ -201,7 +198,17 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     if (value === null) {
       return;
     }
-    const candidate = structuredClone(value);
+    let candidate: unknown;
+    try {
+      candidate = structuredClone(value);
+    } catch {
+      this.messageHandlerService.error('cedar-embeddable-field: "value" ignored: expected a plain field value.');
+      return;
+    }
+    if (!isCedarFieldValue(candidate)) {
+      this.messageHandlerService.error('cedar-embeddable-field: "value" ignored: malformed field value.');
+      return;
+    }
     if (this.runtime === null || this.applyValue(candidate)) {
       this.assignedValue = candidate;
     }
@@ -223,7 +230,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
   @Input() get currentValue(): CedarEmbeddableFieldValue {
     const runtime = this.runtime;
     return runtime === null || runtime.valueComponent === null
-      ? NOTHING
+      ? { kind: 'none' }
       : readFieldValue(runtime.valueComponent, runtime.handlerContext);
   }
 
@@ -418,7 +425,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
       return;
     }
     const detail: CedarEmbeddableFieldChangeDetail = { value, valid };
-    this.lastPublished = detail;
+    this.lastPublished = structuredClone(detail);
     this.host.nativeElement.dispatchEvent(
       new CustomEvent<CedarEmbeddableFieldChangeDetail>('valueChange', { detail, bubbles: true, composed: true }),
     );

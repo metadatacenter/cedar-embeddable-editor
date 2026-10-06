@@ -19,6 +19,7 @@
       @if (component.basicInfo.inputType === inputText) {
         <input
           spellcheck="false"
+          autocomplete="off"
           matInput
           [errorStateMatcher]="previewErrorStateMatcher"
           type="text"
@@ -31,6 +32,7 @@
       @if (component.basicInfo.inputType === inputTextarea) {
         <textarea
           spellcheck="false"
+          autocomplete="off"
           matInput
           [errorStateMatcher]="previewErrorStateMatcher"
           type="text"
@@ -54,10 +56,14 @@
         </button>
       }
       @if (inputValueControl.getError('minlength') && !readOnlyMode) {
-        <mat-error>{{ 'Validation.Text.MinLength' | translate: { constraintMinLength } }}</mat-error>
+        <mat-error>{{
+          'Validation.Text.MinLength' | ceeCountKey: constraintMinLength | translate: { constraintMinLength }
+        }}</mat-error>
       }
       @if (inputValueControl.getError('maxlength') && !readOnlyMode) {
-        <mat-error>{{ 'Validation.Text.MaxLength' | translate: { constraintMaxLength } }}</mat-error>
+        <mat-error>{{
+          'Validation.Text.MaxLength' | ceeCountKey: constraintMaxLength | translate: { constraintMaxLength }
+        }}</mat-error>
       }
       @if (inputValueControl.hasError('pattern') && !readOnlyMode) {
         <mat-error>{{ 'Validation.Text.Pattern' | translate }}</mat-error>

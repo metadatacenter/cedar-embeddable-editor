@@ -28,7 +28,6 @@ import { infoOf, objectAt, arrayAt } from '../src/nodes';
 import {
   instanceWith,
   literalNode,
-  literalOf,
   heldValue,
   attributeValue,
   listValue,

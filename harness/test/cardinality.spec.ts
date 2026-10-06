@@ -252,9 +252,8 @@ describe('quality report value extraction', () => {
  * invalid depending on where the user had paged to.
  *
  * The report now decides satisfaction with `findAnyValue`, a cursor-free walk
- * of the extract instance that branches into every array entry. Semantics are
- * **at least one**: a requirement on a field inside a repeated element is met
- * when any instance carries a value.
+ * of the extract instance that branches into every array entry. Each existing containing element must satisfy the field requirement.
+ * The report remains independent of the currently displayed occurrence.
  *
  * The value *tree* still shows the displayed page — that is a snapshot of what
  * is on screen, and it is only the counters that should be page-independent.
@@ -283,8 +282,8 @@ describe('required values are page-independent', () => {
     });
   };
 
-  it.each([0, 1, 2])('a value on page %i satisfies the requirement from every page', (filledPage) => {
-    expect(validityFromEachPage(filledPage)).toEqual([true, true, true]);
+  it.each([0, 1, 2])('a value on page %i cannot satisfy another element occurrence', (filledPage) => {
+    expect(validityFromEachPage(filledPage)).toEqual([false, false, false]);
   });
 
   it('is invalid from every page when no instance carries a value', () => {
@@ -298,12 +297,14 @@ describe('required values are page-independent', () => {
     }
   });
 
-  it('becomes invalid again when the only value is cleared', () => {
+  it('becomes invalid again when one completed occurrence is cleared', () => {
     const driver = new CeeDriver(threeInstances());
     const el = driver.findOrThrow(['_el']);
 
-    driver.handlerContext.setCurrentIndex(el, 1);
-    driver.setValue(['_el', '_f'], TEXT, 'temporary');
+    for (const index of [0, 1, 2]) {
+      driver.handlerContext.setCurrentIndex(el, index);
+      driver.setValue(['_el', '_f'], TEXT, 'temporary');
+    }
     expect(driver.qualityReport.isValid).toBe(true);
 
     driver.setValue(['_el', '_f'], TEXT, '');
@@ -328,7 +329,7 @@ describe('required values are page-independent', () => {
 
     const node: any = driver.handlerContext.getDataObjectNodeByPath(['_el', '_f']);
     expect(literalOf(node) ?? null, 'page 0 is genuinely empty').toBeNull();
-    expect(driver.qualityReport.isValid, 'but the instance as a whole satisfies it').toBe(true);
+    expect(driver.qualityReport.isValid, 'an unfilled containing element keeps the form incomplete').toBe(false);
   });
 
   /**
@@ -545,7 +546,7 @@ describe('required values are page-independent', () => {
     driver.handlerContext.setCurrentIndex(inner, 0);
     driver.handlerContext.buildQualityReport();
 
-    expect(driver.qualityReport.isValid).toBe(true);
+    expect(driver.qualityReport.isValid).toBe(false);
   });
 });
 
@@ -808,4 +809,26 @@ describe('structural edits refuse an instance shaped the wrong way', () => {
 
     expect(driver.messages.errors.join('\n')).toMatch(/delete .* _f/i);
   });
+});
+
+describe('read-only structural commands', () => {
+  it.each(['addMultiInstance', 'copyMultiInstance', 'deleteMultiInstance'] as const)(
+    'refuses %s after editability changes',
+    (command) => {
+      const driver = new CeeDriver(
+        buildTemplate({
+          name: 'read_only_structure',
+          children: [{ kind: TEXT, name: 'f', cardinality: 'multi', minItems: 0 }],
+        }),
+      );
+      const field = driver.findOrThrow(['_f']);
+      expect(driver.handlerContext.addMultiInstance(field)).toBe(true);
+      const before = JSON.stringify(driver.extract);
+      driver.handlerContext.enableReadOnlyMode();
+      expect(driver.handlerContext[command](field)).toBe(false);
+      expect(JSON.stringify(driver.extract)).toBe(before);
+      driver.handlerContext.readOnlyMode = false;
+      expect(driver.handlerContext[command](field)).toBe(true);
+    },
+  );
 });

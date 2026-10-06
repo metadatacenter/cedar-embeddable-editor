@@ -179,7 +179,7 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
   }
 
   clickedDelete(): void {
-    this.handlerContext.deleteMultiInstance(this.component);
+    if (!this.handlerContext.deleteMultiInstance(this.component)) return;
     this.recomputeNumbers();
     this.scheduleAfterRender(() => {
       this.activeComponentRegistry.deleteCurrentValue(this.component);

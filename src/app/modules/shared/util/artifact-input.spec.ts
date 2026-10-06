@@ -4,6 +4,8 @@ import controlledInstance from '../../../../../visual/fixtures/04-controlled-ter
 import type { CeeJsonObject, CeeTemplateAndInstance } from '../../../cee-public-api';
 import { MessageHandlerService } from '../service/message-handler.service';
 import { DataContext } from './data-context';
+import { InstanceSerializer } from './instance-serializer';
+import { downloadContentFor } from './download-content';
 import { ArtifactInputCoordinator } from './artifact-input-coordinator';
 
 const template = controlledTemplate as unknown as CeeJsonObject;
@@ -21,7 +23,7 @@ describe('ArtifactInputCoordinator', () => {
 
     expect(coordinator.acceptTemplate(template)).toBe(true);
 
-    expect(coordinator.state.templateJson).toBe(template);
+    expect(coordinator.state.templateJson).toEqual(template);
     expect(coordinator.state.dataContext.templateRepresentation).not.toBeNull();
     expect(coordinator.state.handlerContext.dataContext).toBe(coordinator.state.dataContext);
     expect(coordinator.state.handlerContext.instanceSupplied).toBe(false);
@@ -41,8 +43,8 @@ describe('ArtifactInputCoordinator', () => {
       );
     }
 
-    expect(coordinator.state.templateJson).toBe(template);
-    expect(coordinator.state.instanceJson).toBe(instance);
+    expect(coordinator.state.templateJson).toEqual(template);
+    expect(coordinator.state.instanceJson).toEqual(instance);
     expect(coordinator.state.dataContext.templateRepresentation).not.toBeNull();
     expect(coordinator.state.handlerContext.instanceSupplied).toBe(true);
     expect(coordinator.state.revision).toBe(2);
@@ -67,7 +69,7 @@ describe('ArtifactInputCoordinator', () => {
     expect(coordinator.acceptCombined(combined)).toBe(true);
 
     expect(parse).toHaveBeenCalledTimes(1);
-    expect(coordinator.state.templateAndInstanceJson).toBe(combined);
+    expect(coordinator.state.templateAndInstanceJson).toEqual(combined);
     expect(coordinator.state.dataContext.templateRepresentation).not.toBeNull();
     expect(coordinator.state.handlerContext.instanceSupplied).toBe(true);
     expect(coordinator.state.revision).toBe(1);
@@ -84,7 +86,7 @@ describe('ArtifactInputCoordinator', () => {
     expect(error).toHaveBeenCalledWith(expect.stringContaining('not a readable CEDAR template'));
 
     expect(coordinator.acceptTemplate(template)).toBe(true);
-    expect(coordinator.state.templateJson).toBe(template);
+    expect(coordinator.state.templateJson).toEqual(template);
     expect(coordinator.state.revision).toBe(1);
   });
 
@@ -99,7 +101,7 @@ describe('ArtifactInputCoordinator', () => {
 
     expect(coordinator.acceptInstance(instance)).toBe(true);
     expect(coordinator.instanceInputRejected).toBe(false);
-    expect(coordinator.state.instanceJson).toBe(instance);
+    expect(coordinator.state.instanceJson).toEqual(instance);
   });
 
   it('rejects a mixed combined input without replacing either accepted artifact', () => {
@@ -123,5 +125,41 @@ describe('ArtifactInputCoordinator', () => {
     expect(error).toHaveBeenCalledWith(message);
 
     expect(coordinator.acceptCombined({ templateObject: template, instanceObject: instance })).toBe(true);
+  });
+});
+
+describe('accepted artifacts belong to the coordinator', () => {
+  it.each(['template', 'instance', 'combined'] as const)(
+    'isolates %s input before and after pairing',
+    async (first) => {
+      const { coordinator } = make();
+      const sourceTemplate = structuredClone(template);
+      const sourceInstance = structuredClone(instance);
+      if (first === 'combined') {
+        expect(coordinator.acceptCombined({ templateObject: sourceTemplate, instanceObject: sourceInstance })).toBe(
+          true,
+        );
+      } else if (first === 'template') {
+        expect(coordinator.acceptTemplate(sourceTemplate)).toBe(true);
+      } else {
+        expect(coordinator.acceptInstance(sourceInstance)).toBe(true);
+      }
+      sourceTemplate['schema:name'] = 'Host changed the template';
+      sourceInstance['_organism'] = { '@id': 'urn:host-overwrite' };
+      if (first === 'template') expect(coordinator.acceptInstance(instance)).toBe(true);
+      if (first === 'instance') expect(coordinator.acceptTemplate(template)).toBe(true);
+      const written = InstanceSerializer.toJson(coordinator.state.dataContext.instanceFullData) as CeeJsonObject;
+      expect(written['_organism']).toEqual(instance['_organism']);
+      const downloaded = JSON.parse(await downloadContentFor('templateSource', coordinator.state.dataContext));
+      expect(downloaded['schema:name']).toBe(template['schema:name']);
+    },
+  );
+
+  it('does not consume a claim when a host object cannot be cloned', () => {
+    const { coordinator, error } = make();
+    expect(coordinator.acceptTemplate({ ...template, callback: () => {} } as unknown as CeeJsonObject)).toBe(false);
+    expect(coordinator.state.revision).toBe(0);
+    expect(error).toHaveBeenCalled();
+    expect(coordinator.acceptTemplate(template)).toBe(true);
   });
 });

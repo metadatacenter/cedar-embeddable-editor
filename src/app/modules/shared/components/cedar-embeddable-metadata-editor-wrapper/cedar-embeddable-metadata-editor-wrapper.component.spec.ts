@@ -294,7 +294,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     component.templateObject = artifact('first');
     component.templateObject = second;
 
-    expect(component.templateJson).toBe(second);
+    expect(component.templateJson).toEqual(second);
+    expect(component.templateJson).not.toBe(second);
     expect(errors).not.toHaveBeenCalled();
   });
 
@@ -320,7 +321,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
     // The answers in front of a person were recorded against the template that would be
     // taken away, and there is no good answer to what becomes of them.
-    expect(component.templateJson).toBe(first);
+    expect(component.templateJson).toEqual(first);
+    expect(component.templateJson).not.toBe(first);
     expect(reported(errors)).toContain('"templateObject" ignored, because an instance is loaded');
   });
 
@@ -335,8 +337,58 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
     component.templateObject = corrected;
 
-    expect(component.templateJson).toBe(corrected);
+    expect(component.templateJson).toEqual(corrected);
+    expect(component.templateJson).not.toBe(corrected);
     expect(reported(errors)).not.toContain('"templateObject" ignored');
+  });
+
+  /**
+   * A template the reader refuses leaves `currentMetadata` empty, which is how a host tells a refused
+   * input from an accepted one at the moment it assigns it. A child stored under a reserved key is
+   * the refusal hosts meet: the meta-schema accepts such a template, and the reader does not.
+   */
+  it('leaves currentMetadata empty for a template whose child is stored under a reserved key', () => {
+    const { component, errors } = make();
+    const reserved = structuredClone(validTemplate) as unknown as {
+      properties: Record<string, unknown>;
+      _ui: { order: string[] };
+    };
+    reserved.properties['@foo'] = reserved.properties['_text'];
+    delete reserved.properties['_text'];
+    reserved._ui.order = reserved._ui.order.map((key) => (key === '_text' ? '@foo' : key));
+
+    component.ngOnInit();
+    component.templateObject = reserved as unknown as CeeJsonObject;
+
+    expect(component.templateJson).toBeNull();
+    expect(component.currentMetadata).toEqual({});
+    expect(reported(errors)).toContain('"templateObject" rejected because it is not a readable CEDAR template');
+
+    component.templateObject = validTemplate;
+
+    expect(Object.keys(component.currentMetadata).length).toBeGreaterThan(0);
+  });
+
+  it('leaves currentMetadata empty when the combined input carries a template it refuses', () => {
+    const { component, errors } = make();
+    const reserved = structuredClone(validTemplate) as unknown as {
+      properties: Record<string, unknown>;
+      _ui: { order: string[] };
+    };
+    reserved.properties['@foo'] = reserved.properties['_text'];
+    delete reserved.properties['_text'];
+    reserved._ui.order = reserved._ui.order.map((key) => (key === '_text' ? '@foo' : key));
+
+    component.ngOnInit();
+    component.templateAndInstanceObject = {
+      templateObject: reserved as unknown as CeeJsonObject,
+      instanceObject: { '@id': 'https://repo.metadatacenter.org/template-instances/1' },
+    };
+
+    expect(component.currentMetadata).toEqual({});
+    expect(reported(errors)).toContain(
+      '"templateAndInstanceObject.templateObject" rejected because it is not a readable CEDAR template',
+    );
   });
 
   /**
@@ -351,8 +403,10 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     component.instanceObject = instance;
     component.templateObject = template;
 
-    expect(component.instanceJson).toBe(instance);
-    expect(component.templateJson).toBe(template);
+    expect(component.instanceJson).toEqual(instance);
+    expect(component.instanceJson).not.toBe(instance);
+    expect(component.templateJson).toEqual(template);
+    expect(component.templateJson).not.toBe(template);
     expect(errors).not.toHaveBeenCalled();
   });
 
@@ -363,7 +417,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     component.instanceObject = first;
     component.instanceObject = artifact('second');
 
-    expect(component.instanceJson).toBe(first);
+    expect(component.instanceJson).toEqual(first);
+    expect(component.instanceJson).not.toBe(first);
     expect(reported(errors)).toContain('"instanceObject" ignored, because the instance is already set');
   });
 
@@ -385,7 +440,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
     component.instanceObject = corrected;
 
-    expect(component.instanceJson).toBe(corrected);
+    expect(component.instanceJson).toEqual(corrected);
+    expect(component.instanceJson).not.toBe(corrected);
     expect(component.handlerContext.instanceSupplied).toBe(true);
     expect(component.editorDataReady(), 'the corrected first instance did not unblock the template').toBe(true);
     expect(reported(errors)).not.toContain('"instanceObject" ignored');
@@ -406,7 +462,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
     component.templateAndInstanceObject = corrected;
 
-    expect(component.templateAndInstanceJson).toBe(corrected);
+    expect(component.templateAndInstanceJson).toEqual(corrected);
+    expect(component.templateAndInstanceJson).not.toBe(corrected);
     expect(component.editorDataReady()).toBe(true);
     expect(reported(errors)).not.toContain('"templateAndInstanceObject" ignored');
   });
@@ -441,7 +498,8 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     component.templateAndInstanceObject = first;
     component.templateAndInstanceObject = { templateObject: artifact('second'), instanceObject: artifact('i') };
 
-    expect(component.templateAndInstanceJson).toBe(first);
+    expect(component.templateAndInstanceJson).toEqual(first);
+    expect(component.templateAndInstanceJson).not.toBe(first);
     expect(reported(errors)).toContain(
       '"templateAndInstanceObject" ignored, because the template and instance are already set',
     );

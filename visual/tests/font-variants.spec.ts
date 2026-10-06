@@ -6,7 +6,7 @@ const hostFonts = [400, 500]
   .map((weight) =>
     readFileSync(
       new URL(
-        `../../node_modules/@org.metadatacenter/cedar-design-tokens/fonts/_roboto-${weight}.scss`,
+        `../../node_modules/@org.metadatacenter/cedar-design-tokens/scss/fonts/_roboto-${weight}.scss`,
         import.meta.url,
       ),
       'utf8',
@@ -52,7 +52,8 @@ for (const hosted of [false, true]) {
       const roboto = faces.filter((face) => face.family === 'CEE Roboto');
       expect(roboto.filter((face) => face.weight === '400').length).toBe(7);
       expect(roboto.filter((face) => face.weight === '500').length).toBe(7);
-      expect(roboto.filter((face) => face.weight === '300').length).toBe(hosted ? 0 : 7);
+      // Neither build carries the 300 weight; the shared vocabulary uses 400 and 500 only.
+      expect(roboto.filter((face) => face.weight === '300').length).toBe(0);
       expect(
         requested.some((url) =>
           url.includes(hosted ? 'cedar-embeddable-editor.host-fonts.js?' : 'cedar-embeddable-editor.js?'),
