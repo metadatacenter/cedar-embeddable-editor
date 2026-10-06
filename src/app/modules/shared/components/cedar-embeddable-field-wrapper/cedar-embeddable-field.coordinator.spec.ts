@@ -89,8 +89,8 @@ interface Mounted {
   errors: ReturnType<typeof vi.fn>;
 }
 
-const mount = async (field: CeeJsonObject | null, config: object = {}): Promise<Mounted> => {
-  await TestBed.configureTestingModule({
+const mount = async (field: CeeJsonObject | null, config: object = {}, configure = true): Promise<Mounted> => {
+  if (configure) await TestBed.configureTestingModule({
     imports: [SharedModule],
     providers: [provideHttpClient(), provideTranslateService()],
   }).compileComponents();
@@ -402,5 +402,32 @@ describe('the complete read-only field presentation', () => {
     await fixture.whenStable();
     expect(fixture.debugElement.query(By.css('.title-label')).nativeElement.textContent).toContain('When');
     expect(fixture.debugElement.queryAll(By.css('app-cedar-component-header')).length).toBe(1);
+  });
+});
+
+
+describe('host ownership of CEF snapshots', () => {
+  it('isolates empty snapshots across simultaneous wrappers', async () => {
+    const first = await mount(textArtifact());
+    const second = await mount(textArtifact(), {}, false);
+    Object.assign(first.element.currentValue, { kind: 'literal', value: 'contaminated' });
+    expect(first.element.currentValue).toEqual({ kind: 'none' });
+    expect(second.element.currentValue).toEqual({ kind: 'none' });
+  });
+
+  it('keeps event payload mutation out of the next-change comparison', async () => {
+    const mounted = await mount(textArtifact());
+    const delivered: unknown[] = [];
+    mounted.fixture.nativeElement.addEventListener('valueChange', (event: Event) => {
+      const detail = (event as CustomEvent<CedarEmbeddableFieldChangeDetail>).detail;
+      delivered.push(structuredClone(detail.value));
+      Object.assign(detail.value, { value: 'Second' });
+    });
+    await type(mounted, 'First');
+    await type(mounted, 'Second');
+    expect(delivered).toEqual([
+      { kind: 'literal', value: 'First' },
+      { kind: 'literal', value: 'Second' },
+    ]);
   });
 });

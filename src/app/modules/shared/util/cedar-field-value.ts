@@ -8,9 +8,6 @@ import { HandlerContext } from './handler-context';
 import { InstanceValueNode } from './instance-value-node';
 import type { CedarEmbeddableFieldValue } from '../../../cee-public-api';
 
-/** Nothing held, which every field can report and several start out holding. */
-const NOTHING: CedarEmbeddableFieldValue = { kind: 'none' };
-
 /** Whether this field's value is an IRI rather than a literal. */
 function isIriValued(component: FieldComponent): boolean {
   const inputType = component.basicInfo.inputType ?? '';
@@ -58,25 +55,25 @@ export function readFieldValue(component: FieldComponent, handlerContext: Handle
     const values = entries
       .map((entry) => InstanceValueNode.literal(entry))
       .filter((value): value is string => value !== null && value !== undefined && value !== '');
-    return values.length === 0 ? NOTHING : { kind: 'literals', values };
+    return values.length === 0 ? { kind: 'none' } : { kind: 'literals', values };
   }
   if (isIriValued(component)) {
     const iri = InstanceValueNode.iri(node);
     if (iri === null || iri === undefined || iri === '') {
-      return NOTHING;
+      return { kind: 'none' };
     }
     return { kind: 'iri', iri, label: InstanceValueNode.label(node) ?? null };
   }
 
   const literal = InstanceValueNode.literal(node);
   if (literal === null || literal === undefined || literal === '') {
-    return NOTHING;
+    return { kind: 'none' };
   }
   if (component.basicInfo.inputType === InputType.numeric) {
     const parsed = Number(literal);
     return Number.isFinite(parsed) && canonicalNumber(literal) !== null
       ? { kind: 'number', value: canonicalNumber(literal) === canonicalNumber(String(parsed)) ? parsed : literal }
-      : NOTHING;
+      : { kind: 'none' };
   }
   if (component.basicInfo.inputType === InputType.temporal) {
     return { kind: 'temporal', value: literal };
@@ -95,7 +92,7 @@ function readAttributes(component: FieldComponent, handlerContext: HandlerContex
   const slots = handlerContext.getDataObjectNodeByPath(component.path);
   const parent = handlerContext.getParentDataObjectNodeByPath(component.path);
   if (!isInstanceArray(slots) || !isInstanceObject(parent)) {
-    return NOTHING;
+    return { kind: 'none' };
   }
   const values: Record<string, string | null> = {};
   for (const slot of slots) {
@@ -103,7 +100,7 @@ function readAttributes(component: FieldComponent, handlerContext: HandlerContex
       values[slot.name] = InstanceValueNode.literal(parent.values[slot.name]) ?? null;
     }
   }
-  return Object.keys(values).length === 0 ? NOTHING : { kind: 'attributes', values };
+  return Object.keys(values).length === 0 ? { kind: 'none' } : { kind: 'attributes', values };
 }
 
 /**
