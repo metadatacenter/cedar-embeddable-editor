@@ -1288,3 +1288,109 @@ const writeRaw = (name, document) => {
     }),
   );
 }
+
+// 27. An instance stored with a value that breaks each constraint a field can state.
+//
+//     Fixture 26 covers what a value's own kind gets wrong. These are the problems a field's
+//     constraints raise, the ones the harness's problem-code matrix holds the report to: a pattern,
+//     each length on text and on a paragraph, decimal places, a date's precision, a timezone where
+//     the field records none and an offset out of range, an answer outside the options, a term with
+//     half of its identity, and lists too short and too long. A browser is where the sentence each
+//     one shows is chosen, in English and in Hungarian.
+{
+  const opts = (m, labels) => (b) => labels.reduce((acc, label) => acc[m](label, false), b);
+  const pattern = field('pattern', () => CedarBuilders.textFieldBuilder(), (b) => b.withRegex('[A-Z]+'));
+  const shorttext = field('shorttext', () => CedarBuilders.textFieldBuilder(), (b) => b.withMinLength(8));
+  const longtext = field('longtext', () => CedarBuilders.textFieldBuilder(), (b) => b.withMaxLength(5));
+  const shortnote = field('shortnote', () => CedarBuilders.textAreaBuilder(), (b) => b.withMinLength(8));
+  const longnote = field('longnote', () => CedarBuilders.textAreaBuilder(), (b) => b.withMaxLength(5));
+  const measure = field(
+    'measure',
+    () => CedarBuilders.numericFieldBuilder(),
+    (b) => b.withNumberType(NumberType.DECIMAL).withDecimalPlaces(2),
+  );
+  const year = field(
+    'year',
+    () => CedarBuilders.temporalFieldBuilder(),
+    (b) => b.withTemporalType(TemporalType.DATE).withTemporalGranularity(TemporalGranularity.YEAR),
+  );
+  const day = field(
+    'day',
+    () => CedarBuilders.temporalFieldBuilder(),
+    (b) => b.withTemporalType(TemporalType.DATE).withTemporalGranularity(TemporalGranularity.DAY),
+  );
+  const moment = field(
+    'moment',
+    () => CedarBuilders.temporalFieldBuilder(),
+    (b) =>
+      b
+        .withTemporalType(TemporalType.DATETIME)
+        .withTemporalGranularity(TemporalGranularity.MINUTE)
+        .withTimezoneEnabled(true),
+  );
+  const answer = field('answer', () => CedarBuilders.radioFieldBuilder(), opts('addRadioOption', ['Yes', 'No']));
+  const region = field('region', () => CedarBuilders.singleChoiceListFieldBuilder(), opts('addListOption', ['North', 'South']));
+  const organism = field(
+    'organism',
+    () => CedarBuilders.controlledTermFieldBuilder(),
+    (b) =>
+      b.addOntology(
+        new ControlledTermOntologyBuilder()
+          .withAcronym('NCBITAXON')
+          .withName('NCBI Taxonomy')
+          .withNumTerms(1000000)
+          .withUri(new Iri('https://data.bioontology.org/ontologies/NCBITAXON'))
+          .build(),
+      ),
+  );
+  const aliases = field('aliases', () => CedarBuilders.textFieldBuilder());
+  const tags = field('tags', () => CedarBuilders.textFieldBuilder());
+
+  let tb = common(CedarBuilders.templateBuilder(), 'StoredConstraints', 'templates').withSchemaDescription(
+    'An instance stored with a value that breaks each constraint a field can state',
+  );
+  for (const [f, name] of [
+    [pattern, 'pattern'],
+    [shorttext, 'shorttext'],
+    [longtext, 'longtext'],
+    [shortnote, 'shortnote'],
+    [longnote, 'longnote'],
+    [measure, 'measure'],
+    [year, 'year'],
+    [day, 'day'],
+    [moment, 'moment'],
+    [answer, 'answer'],
+    [region, 'region'],
+    [organism, 'organism'],
+  ]) {
+    tb = tb.addChild(f, deploy(f, name));
+  }
+  tb = tb.addChild(aliases, deploy(aliases, 'aliases', { multi: true, minItems: 3, maxItems: null }));
+  tb = tb.addChild(tags, deploy(tags, 'tags', { multi: true, minItems: 0, maxItems: 1 }));
+  write('27-stored-constraints', tb.build());
+
+  writeRaw(
+    '27-stored-constraints-instance',
+    instance('StoredConstraints', {
+      id: 'https://example.org/instances/stored-constraints-1',
+      name: 'Stored constraints instance',
+      description: 'Written by a host, with a value that breaks each constraint',
+      values: {
+        _pattern: literal('lower case'),
+        _shorttext: literal('short'),
+        _longtext: literal('far too long'),
+        _shortnote: literal('short'),
+        _longnote: literal('far too long'),
+        _measure: typed('1.234', 'xsd:decimal'),
+        _year: typed('2026-08-15', 'xsd:date'),
+        _day: typed('2026-08-01+05:00', 'xsd:date'),
+        _moment: typed('2026-08-01T10:00+05:60', 'xsd:dateTime'),
+        _answer: literal('Maybe'),
+        _region: literal('Elsewhere'),
+        _organism: link('http://purl.obolibrary.org/obo/NCBITaxon_9606'),
+        _aliases: [literal('only one')],
+        _tags: [literal('first'), literal('second')],
+      },
+    }),
+  );
+}
