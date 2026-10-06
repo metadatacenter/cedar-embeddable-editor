@@ -236,6 +236,20 @@ field?.addEventListener('valueChange', (event: CustomEvent<CedarEmbeddableFieldC
 the control afresh — the field being designed changes type under its author's hand.
 `config` takes one assignment, as the editor's does. A value of a kind the field
 cannot hold is reported through `eventHandler` and ignored rather than coerced.
+Malformed runtime payloads are also rejected, including assignments made before the
+field arrives. Accepted values and artifacts are copied; host mutation after an
+assignment does not change the editor. Getters and events return detached values.
+
+A numeric value has the shape `{ kind: 'number', value: number | string }`.
+Ordinary numbers remain numbers. When converting to a JavaScript number would lose
+significant digits or exceed its range, CEF returns the exact numeric string instead:
+`9007199254740993` and `0.1234567890123456789` retain every digit. Both forms may be
+assigned back through `value`. Constraint validity remains a separate result.
+
+Read-only mode guards user mutations in the controller, including late callbacks
+and structural edits. Explicit host `value` assignments still work. Controlled-term
+and external-authority searches cancel on a new query, a read-only transition, or
+widget destruction; an old response cannot overwrite a newer query.
 
 Requiredness and cardinality belong to a field's deployment inside a template, and
 this element deploys nothing, so the value it acquires is single and is allowed to be
@@ -429,3 +443,12 @@ for all available settings.
 
 3. In your browser, navigate to `http://localhost:4400/`. The app will
    automatically reload if you change any of the source files.
+
+The host lifecycle matrix in
+`src/app/modules/shared/components/wrapper-lifecycle-matrix.spec.ts` crosses three input
+arrival orders, host mutation, one or two simultaneous numeric/lookup wrapper pairs,
+ordinary/large-integer/precise-decimal values, initial/late/no read-only state,
+and superseded lookup success/error/completion (324 cases). It runs in `npm test`
+with real wrappers, artifact coordination, controllers and lookup streams; rendering
+and HTTP are substituted. The Angular coordinator suite separately verifies rendered
+controls, simultaneous wrappers, host events and malformed assignments.

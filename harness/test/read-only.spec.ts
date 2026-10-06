@@ -6,9 +6,8 @@
  * nothing, and none of it was covered: `DataContext.setInputTemplate` used to
  * skip building the quality report entirely when read-only.
  *
- * Worth stating plainly, because it is easy to assume otherwise: read-only is
- * a presentation concern. The handlers do not enforce it. See the
- * characterization at the end.
+ * User-originated commands are refused by the controller. Explicit host assignments
+ * remain available and still rebuild the quality report.
  */
 import { describe, expect, it } from 'vitest';
 import { FIELD_KINDS } from '../src/axes';
@@ -64,22 +63,15 @@ describe('read-only mode', () => {
     expect(ro.extract.hasValue('_a')).toBe(true);
   });
 
-  /**
-   * CHARACTERIZATION: the handlers do not enforce read-only.
-   *
-   * `changeValue` writes regardless; the flag is consumed by `CedarUIDirective`
-   * and the templates (`*ngIf="!readOnlyMode"`), which is to say the widgets
-   * simply never offer the edit. An embedder driving `HandlerContext` directly
-   * — or any future non-widget caller — is not protected by setting the flag.
-   *
-   * Pinned rather than reported as a defect: it is a coherent design, just not
-   * the one the flag's name suggests.
-   */
-  it('does not prevent a programmatic write', () => {
+  it('rejects user edits while accepting explicit host writes', () => {
     const driver = new CeeDriver(template(), { readOnlyMode: true });
-    driver.setValue(['_a'], TEXT, 'written anyway');
+    driver.setValue(['_a'], TEXT, 'late user edit');
+    expect(heldValue(driver.handlerContext.getDataObjectNodeByPath(['_a']))).toBeNull();
+    expect(driver.qualityReport.isValid).toBe(false);
 
-    expect(heldValue(driver.handlerContext.getDataObjectNodeByPath(['_a']))).toBe('written anyway');
-    driver.expectNoErrors('write in read-only mode');
+    driver.handlerContext.changeValue(driver.findOrThrow(['_a']), 'host assignment', null, 'host');
+    expect(heldValue(driver.handlerContext.getDataObjectNodeByPath(['_a']))).toBe('host assignment');
+    expect(driver.qualityReport.isValid).toBe(true);
+    driver.expectNoErrors('host write in read-only mode');
   });
 });

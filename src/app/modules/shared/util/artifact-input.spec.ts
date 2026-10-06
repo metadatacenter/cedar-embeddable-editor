@@ -128,28 +128,32 @@ describe('ArtifactInputCoordinator', () => {
   });
 });
 
-
 describe('accepted artifacts belong to the coordinator', () => {
-  it.each(['template', 'instance', 'combined'] as const)('isolates %s input before and after pairing', async (first) => {
-    const { coordinator } = make();
-    const sourceTemplate = structuredClone(template);
-    const sourceInstance = structuredClone(instance);
-    if (first === 'combined') {
-      expect(coordinator.acceptCombined({ templateObject: sourceTemplate, instanceObject: sourceInstance })).toBe(true);
-    } else if (first === 'template') {
-      expect(coordinator.acceptTemplate(sourceTemplate)).toBe(true);
-    } else {
-      expect(coordinator.acceptInstance(sourceInstance)).toBe(true);
-    }
-    sourceTemplate['schema:name'] = 'Host changed the template';
-    sourceInstance['_organism'] = { '@id': 'urn:host-overwrite' };
-    if (first === 'template') expect(coordinator.acceptInstance(instance)).toBe(true);
-    if (first === 'instance') expect(coordinator.acceptTemplate(template)).toBe(true);
-    const written = InstanceSerializer.toJson(coordinator.state.dataContext.instanceFullData) as CeeJsonObject;
-    expect(written['_organism']).toEqual(instance['_organism']);
-    const downloaded = JSON.parse(await downloadContentFor('templateSource', coordinator.state.dataContext));
-    expect(downloaded['schema:name']).toBe(template['schema:name']);
-  });
+  it.each(['template', 'instance', 'combined'] as const)(
+    'isolates %s input before and after pairing',
+    async (first) => {
+      const { coordinator } = make();
+      const sourceTemplate = structuredClone(template);
+      const sourceInstance = structuredClone(instance);
+      if (first === 'combined') {
+        expect(coordinator.acceptCombined({ templateObject: sourceTemplate, instanceObject: sourceInstance })).toBe(
+          true,
+        );
+      } else if (first === 'template') {
+        expect(coordinator.acceptTemplate(sourceTemplate)).toBe(true);
+      } else {
+        expect(coordinator.acceptInstance(sourceInstance)).toBe(true);
+      }
+      sourceTemplate['schema:name'] = 'Host changed the template';
+      sourceInstance['_organism'] = { '@id': 'urn:host-overwrite' };
+      if (first === 'template') expect(coordinator.acceptInstance(instance)).toBe(true);
+      if (first === 'instance') expect(coordinator.acceptTemplate(template)).toBe(true);
+      const written = InstanceSerializer.toJson(coordinator.state.dataContext.instanceFullData) as CeeJsonObject;
+      expect(written['_organism']).toEqual(instance['_organism']);
+      const downloaded = JSON.parse(await downloadContentFor('templateSource', coordinator.state.dataContext));
+      expect(downloaded['schema:name']).toBe(template['schema:name']);
+    },
+  );
 
   it('does not consume a claim when a host object cannot be cloned', () => {
     const { coordinator, error } = make();

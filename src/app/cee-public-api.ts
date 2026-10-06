@@ -459,7 +459,7 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
  * Embeddable Designer's single `defaultValue: string` has.
  *
  * `none` is an unfilled field. It is also what a numeric field reports while it holds
- * something that is not yet a number, `3.` on the way to `3.5`; `valid` on the change
+ * something that is not yet a number, `-` on the way to `-3.5`; `valid` on the change
  * detail separates that from empty.
  */
 export type CedarEmbeddableFieldValue =

@@ -207,7 +207,12 @@ describe('single fields', () => {
   it('pushes a controlled term as IRI and label when read-only', () => {
     const template = buildTemplate({ name: 'vs_ro', children: [{ kind: CONTROLLED, name: 'f' }] });
     const r = rig(CONTROLLED, ['_f'], template, { readOnlyMode: true });
-    r.driver.handlerContext.changeControlledValue(r.component, 'https://example.org/terms/human', 'Homo sapiens');
+    r.driver.handlerContext.changeControlledValue(
+      r.component,
+      'https://example.org/terms/human',
+      'Homo sapiens',
+      'host',
+    );
     r.sync();
     expect(r.widget.last).toEqual({ iri: 'https://example.org/terms/human', label: 'Homo sapiens' });
   });
@@ -245,17 +250,20 @@ describe('single fields', () => {
   it.each([
     ['numeric', NUMERIC, 42.5],
     ['temporal', TEMPORAL, '2026-08-20'],
-  ] as const)('clears a seeded %s default from a specification-only read-only control', (_name, fieldKind, declared) => {
-    const template = buildTemplate({
-      name: `vs_ro_${_name}_default`,
-      children: [{ kind: fieldKind, name: 'f', defaultValue: declared }],
-    });
-    const r = rig(fieldKind, ['_f'], template, { readOnlyMode: true });
+  ] as const)(
+    'clears a seeded %s default from a specification-only read-only control',
+    (_name, fieldKind, declared) => {
+      const template = buildTemplate({
+        name: `vs_ro_${_name}_default`,
+        children: [{ kind: fieldKind, name: 'f', defaultValue: declared }],
+      });
+      const r = rig(fieldKind, ['_f'], template, { readOnlyMode: true });
 
-    r.sync();
+      r.sync();
 
-    expect(r.widget.last).toBeNull();
-  });
+      expect(r.widget.last).toBeNull();
+    },
+  );
 
   it('pushes nothing when no widget is registered', () => {
     const driver = new CeeDriver(buildTemplate({ name: 'vs_none', children: [{ kind: TEXT, name: 'f' }] }));
@@ -447,13 +455,7 @@ describe('elements', () => {
       { iri: 'https://example.org/terms/human', label: 'Homo sapiens' },
       null,
     ],
-    [
-      'checkbox',
-      CHECKBOX,
-      listValue(literalValue('Option A'), literalValue('Option B')),
-      ['Option A', 'Option B'],
-      [],
-    ],
+    ['checkbox', CHECKBOX, listValue(literalValue('Option A'), literalValue('Option B')), ['Option A', 'Option B'], []],
   ] as const;
 
   it.each(

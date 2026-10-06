@@ -88,6 +88,11 @@ describe.each(depths)('invalid incoming values at depth %i', (depth) => {
       }
       // Host input is immutable even when the reader cannot make a value from it.
       expect(JSON.stringify(fixture.instance)).toBe(supplied);
+      if (readOnlyMode) {
+        driver.setValue(fixture.path, fieldKind, test.repair);
+        expect(driver.qualityReport).toEqual(initial);
+        driver.handlerContext.readOnlyMode = false;
+      }
       driver.setValue(fixture.path, fieldKind, test.repair);
       expect(driver.qualityReport.isValid, JSON.stringify([driver.qualityReport, driver.messages.errors])).toBe(true);
       expect(driver.qualityReport.problems).toEqual([]);
@@ -310,6 +315,12 @@ describe.each(depths)('invalid defaults at depth %i', (depth) => {
       );
       expect(driver.qualityReport.isValid).toBe(false);
       expect(JSON.stringify(fixture.template)).toBe(originalJson);
+      if (readOnlyMode) {
+        const before = driver.qualityReport;
+        driver.setValue(fixture.path, fieldKind, key === 'numeric' ? '50' : fieldKind.sample);
+        expect(driver.qualityReport).toEqual(before);
+        driver.handlerContext.readOnlyMode = false;
+      }
       driver.setValue(fixture.path, fieldKind, key === 'numeric' ? '50' : fieldKind.sample);
       expect(driver.qualityReport.isValid, JSON.stringify(driver.qualityReport)).toBe(true);
       expect(new CeeDriver(fixture.template, { instance: driver.emitted, readOnlyMode }).qualityReport.isValid).toBe(

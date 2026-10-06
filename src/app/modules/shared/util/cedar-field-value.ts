@@ -39,7 +39,7 @@ function holdsLiteralList(component: FieldComponent): boolean {
  * Flattening all six to text is what leaves a caller parsing its own output.
  *
  * `none` is what an unfilled field reports, and also what a numeric field reports
- * while it holds something that is not a number — `3.` on the way to `3.5`. The
+ * while it holds something that is not a number — `-` on the way to `-3.5`. The
  * widget shows that state as invalid, and `valid` on the change detail carries it, so
  * a host is told the difference between empty and unusable rather than being handed a
  * `NaN` to discover on its own.
@@ -71,8 +71,12 @@ export function readFieldValue(component: FieldComponent, handlerContext: Handle
   }
   if (component.basicInfo.inputType === InputType.numeric) {
     const parsed = Number(literal);
-    return Number.isFinite(parsed) && canonicalNumber(literal) !== null
-      ? { kind: 'number', value: canonicalNumber(literal) === canonicalNumber(String(parsed)) ? parsed : literal }
+    return canonicalNumber(literal) !== null
+      ? {
+          kind: 'number',
+          value:
+            Number.isFinite(parsed) && canonicalNumber(literal) === canonicalNumber(String(parsed)) ? parsed : literal,
+        }
       : { kind: 'none' };
   }
   if (component.basicInfo.inputType === InputType.temporal) {

@@ -102,3 +102,32 @@ it.each(cases)('$kind lookup cancels immediately on $transition', ({ kind, trans
     vi.useRealTimers();
   }
 });
+
+it.each(['controlled', 'authority'] as const)('%s lookup state belongs to each live wrapper scope', (kind) => {
+  vi.useFakeTimers();
+  const first = mountLookup(kind);
+  const second = mountLookup(kind);
+  try {
+    first.component.inputValueControl.setValue('first');
+    second.component.inputValueControl.setValue('second');
+    vi.advanceTimersByTime(400);
+    const firstRequest = first.requests[0];
+    const secondRequest = second.requests[0];
+    first.preferences.setReadOnlyMode(true);
+    expect(firstRequest.observed).toBe(false);
+    expect(secondRequest.observed).toBe(true);
+    expect(loading(first.component)).toBe(false);
+    expect(loading(second.component)).toBe(true);
+    firstRequest.error(new Error('Discarded failure'));
+    secondRequest.next([{ iri: 'urn:second', label: 'Second' }]);
+    secondRequest.complete();
+    expect(first.component.lookupFailed).toBe(false);
+    expect(first.delivered.flat()).toEqual([]);
+    expect(second.delivered.at(-1)).toEqual([{ iri: 'urn:second', label: 'Second' }]);
+    expect(loading(second.component)).toBe(false);
+  } finally {
+    first.injector.destroy();
+    second.injector.destroy();
+    vi.useRealTimers();
+  }
+});

@@ -284,9 +284,7 @@ describe('the shapes a field will and will not take', () => {
   it('clears a controlled term', () => {
     const { field, handlerContext } = mounted('controlled');
 
-    expect(
-      writeFieldValue({ kind: 'iri', iri: 'http://example.org/t', label: 'T' }, field, handlerContext),
-    ).toBeNull();
+    expect(writeFieldValue({ kind: 'iri', iri: 'http://example.org/t', label: 'T' }, field, handlerContext)).toBeNull();
     expect(writeFieldValue({ kind: 'none' }, field, handlerContext)).toBeNull();
     expect(readFieldValue(field, handlerContext)).toEqual({ kind: 'none' });
   });
@@ -294,7 +292,9 @@ describe('the shapes a field will and will not take', () => {
   it('clears a link', () => {
     const { field, handlerContext } = mounted('link');
 
-    expect(writeFieldValue({ kind: 'iri', iri: 'https://example.org/x', label: null }, field, handlerContext)).toBeNull();
+    expect(
+      writeFieldValue({ kind: 'iri', iri: 'https://example.org/x', label: null }, field, handlerContext),
+    ).toBeNull();
     expect(writeFieldValue({ kind: 'none' }, field, handlerContext)).toBeNull();
     expect(readFieldValue(field, handlerContext)).toEqual({ kind: 'none' });
   });
@@ -410,13 +410,14 @@ describe('two values, the same or not', () => {
   });
 });
 
-
 describe('numeric host values preserve significant digits', () => {
   it.each([
     ['9007199254740993', '9007199254740993'],
     ['9007199254740992', 9007199254740992],
     ['0.1234567890123456789', '0.1234567890123456789'],
     ['1.50', 1.5],
+    ['1e400', '1e400'],
+    ['1e-400', '1e-400'],
     ['1.5e2', 150],
     ['-9007199254740993', '-9007199254740993'],
   ])('round-trips %s', (literal, expected) => {
@@ -428,10 +429,10 @@ describe('numeric host values preserve significant digits', () => {
   });
 });
 
-
 describe('controller editability', () => {
   it.each(FIELD_KINDS.filter((kind) => sampleValue(kind) !== null).map((kind) => [kind.key, kind] as const))(
-    'guards late user writes while allowing host assignment to %s', (_key, kind) => {
+    'guards late user writes while allowing host assignment to %s',
+    (_key, kind) => {
       const { children, handlerContext } = mount(fieldArtifact(kind));
       const field = valuedField(children);
       const assigned = sampleValue(kind)!;
