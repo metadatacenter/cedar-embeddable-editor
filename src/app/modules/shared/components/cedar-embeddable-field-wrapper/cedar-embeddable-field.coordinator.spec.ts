@@ -27,7 +27,11 @@ import {
   TemporalType,
   TextFieldBuilder,
 } from 'cedar-model-typescript-library';
-import type { CedarEmbeddableFieldChangeDetail, CeeJsonObject } from '../../../../cee-public-api';
+import type {
+  CedarEmbeddableFieldChangeDetail,
+  CedarEmbeddableFieldValue,
+  CeeJsonObject,
+} from '../../../../cee-public-api';
 import { SharedModule } from '../../shared.module';
 import { CedarEmbeddableFieldWrapperComponent } from './cedar-embeddable-field-wrapper.component';
 import { CedarSpecBoxComponent } from '../cedar-spec-box/cedar-spec-box.component';
@@ -90,10 +94,11 @@ interface Mounted {
 }
 
 const mount = async (field: CeeJsonObject | null, config: object = {}, configure = true): Promise<Mounted> => {
-  if (configure) await TestBed.configureTestingModule({
-    imports: [SharedModule],
-    providers: [provideHttpClient(), provideTranslateService()],
-  }).compileComponents();
+  if (configure)
+    await TestBed.configureTestingModule({
+      imports: [SharedModule],
+      providers: [provideHttpClient(), provideTranslateService()],
+    }).compileComponents();
 
   const fixture = TestBed.createComponent(CedarEmbeddableFieldWrapperComponent);
   const changes: CedarEmbeddableFieldChangeDetail[] = [];
@@ -405,7 +410,6 @@ describe('the complete read-only field presentation', () => {
   });
 });
 
-
 describe('host ownership of CEF snapshots', () => {
   it('isolates empty snapshots across simultaneous wrappers', async () => {
     const first = await mount(textArtifact());
@@ -429,5 +433,44 @@ describe('host ownership of CEF snapshots', () => {
       { kind: 'literal', value: 'First' },
       { kind: 'literal', value: 'Second' },
     ]);
+  });
+});
+
+describe('runtime host value validation', () => {
+  const malformed: unknown[] = [
+    undefined,
+    42,
+    'text',
+    [],
+    {},
+    { kind: 'unknown' },
+    { kind: 'literal', value: 42 },
+    { kind: 'temporal', value: null },
+    { kind: 'number', value: NaN },
+    { kind: 'number', value: Infinity },
+    { kind: 'number', value: '0x10' },
+    { kind: 'number', value: '' },
+    { kind: 'iri', iri: 42, label: null },
+    { kind: 'iri', iri: 'urn:test' },
+    { kind: 'literals', values: ['ok', 42] },
+    { kind: 'literals', values: new Array(1) },
+    { kind: 'attributes', values: { bad: 42 } },
+    { kind: 'attributes', values: [] },
+    { kind: 'attributes', values: new Date() },
+    { kind: 'literal', value: () => 'bad' },
+  ];
+  it.each([false, true])('rejects malformed values with a pending field: %s', async (pending) => {
+    const mounted = await mount(pending ? null : textArtifact());
+    mounted.element.value = { kind: 'literal', value: 'Accepted' };
+    for (const value of malformed) {
+      mounted.errors.mockClear();
+      mounted.element.value = value as CedarEmbeddableFieldValue;
+      expect(mounted.errors, JSON.stringify(value)).toHaveBeenCalledOnce();
+    }
+    if (pending) mounted.element.fieldObject = textArtifact();
+    mounted.fixture.detectChanges();
+    await mounted.fixture.whenStable();
+    expect(mounted.element.currentValue).toEqual({ kind: 'literal', value: 'Accepted' });
+    expect(mounted.changes).toEqual([]);
   });
 });

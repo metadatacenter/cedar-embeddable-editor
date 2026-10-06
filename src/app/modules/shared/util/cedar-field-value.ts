@@ -122,6 +122,7 @@ export function writeFieldValue(
   component: FieldComponent,
   handlerContext: HandlerContext,
 ): string | null {
+  if (!isCedarFieldValue(value)) return '"value" ignored: malformed field value.';
   const inputType = component.basicInfo.inputType ?? 'a field';
 
   if (inputType === InputType.attributeValue) {
@@ -246,4 +247,42 @@ export function canonicalNumber(value: string): string | null {
   const coefficient = digits.replace(/0+$/, '');
   const exponent = BigInt(match[3] ?? '0') - BigInt(fraction.length) + BigInt(digits.length - coefficient.length);
   return `${match[1] === '-' ? '-' : ''}${coefficient}e${exponent}`;
+}
+
+/** Runtime validation for JavaScript/custom-element callers, before retaining or writing a value. */
+export function isCedarFieldValue(value: unknown): value is CedarEmbeddableFieldValue {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const candidate = value as Record<string, unknown>;
+  switch (candidate['kind']) {
+    case 'none':
+      return true;
+    case 'literal':
+    case 'temporal':
+      return typeof candidate['value'] === 'string';
+    case 'number':
+      return typeof candidate['value'] === 'number'
+        ? Number.isFinite(candidate['value'])
+        : typeof candidate['value'] === 'string' && canonicalNumber(candidate['value']) !== null;
+    case 'iri':
+      return (
+        typeof candidate['iri'] === 'string' && (candidate['label'] === null || typeof candidate['label'] === 'string')
+      );
+    case 'literals':
+      return (
+        Array.isArray(candidate['values']) &&
+        Array.from(candidate['values']).every((entry) => typeof entry === 'string')
+      );
+    case 'attributes': {
+      const values = candidate['values'];
+      return (
+        typeof values === 'object' &&
+        values !== null &&
+        !Array.isArray(values) &&
+        (Object.getPrototypeOf(values) === Object.prototype || Object.getPrototypeOf(values) === null) &&
+        Object.values(values).every((entry) => entry === null || typeof entry === 'string')
+      );
+    }
+    default:
+      return false;
+  }
 }

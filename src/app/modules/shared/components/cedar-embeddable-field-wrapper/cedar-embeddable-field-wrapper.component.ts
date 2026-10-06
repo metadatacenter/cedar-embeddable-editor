@@ -41,11 +41,9 @@ import { FallbackTranslateLoaderFactory } from '../../util/fallback-translate-lo
 import { HandlerContext } from '../../util/handler-context';
 import { WidgetConfigCoordinator } from '../../util/widget-config-coordinator';
 import { WrapperConfigCoordinator } from '../../util/wrapper-config-coordinator';
-import { readFieldValue, sameFieldValue, writeFieldValue } from '../../util/cedar-field-value';
+import { isCedarFieldValue, readFieldValue, sameFieldValue, writeFieldValue } from '../../util/cedar-field-value';
 import { templateForField } from '../../util/single-field-template';
 import { decideComponentRender } from '../cedar-component-renderer/component-render-decision';
-
-/** Nothing held, which is where every field starts and what an unfilled one reports. */
 
 /** One field, parsed and ready to render. */
 interface FieldRuntime {
@@ -200,7 +198,17 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     if (value === null) {
       return;
     }
-    const candidate = structuredClone(value);
+    let candidate: unknown;
+    try {
+      candidate = structuredClone(value);
+    } catch {
+      this.messageHandlerService.error('cedar-embeddable-field: "value" ignored: expected a plain field value.');
+      return;
+    }
+    if (!isCedarFieldValue(candidate)) {
+      this.messageHandlerService.error('cedar-embeddable-field: "value" ignored: malformed field value.');
+      return;
+    }
     if (this.runtime === null || this.applyValue(candidate)) {
       this.assignedValue = candidate;
     }
