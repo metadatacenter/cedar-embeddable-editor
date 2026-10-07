@@ -502,19 +502,41 @@ test.describe('real templates', () => {
     await page.waitForTimeout(300);
   };
 
+  /**
+   * Wait for what the screenshot draws, rather than for the network to fall quiet.
+   *
+   * Static images are decoded when the browser paints rather than before `__ceeReady`.
+   * The YouTube embeds load lazily, so only those near the viewport load at all, and a
+   * loaded stub draws the same blank card as a frame that never loaded. Each embed that
+   * has started loading is waited for, so that no navigation finishes mid-capture.
+   *
+   * `waitForLoadState('networkidle')` stood here and hung in a quarter of attempts when
+   * twelve ran at once. Playwright 1.63 clears a frame's idle state when a request starts,
+   * but will not restart the frame's idle timer once the frame has reported idle. The
+   * controlled-term field's opening lookup starts 0.4 to 2.4 seconds after the field
+   * renders and fails at once against the suite's unreachable terminology host. When it
+   * starts after page 1 has gone idle, the main frame cannot go idle again. The iframe
+   * page 2 adds then makes Playwright recompute idleness across frames and withdraw the
+   * event, and nothing restores it. The same sequence hangs a blank page with no CEE in it.
+   */
+  const mediaSettled = async (page: Page): Promise<void> => {
+    await page
+      .locator('cedar-embeddable-editor img')
+      .evaluateAll((images) => Promise.all(images.map((image) => (image as HTMLImageElement).decode())));
+    const embeds = page.frames().filter((frame) => frame !== page.mainFrame() && frame.url() !== 'about:blank');
+    await Promise.all(embeds.map((frame) => frame.waitForLoadState('load')));
+  };
+
   for (const [fixture, description] of REAL) {
     test(`${fixture} — ${description}`, async ({ page }) => {
       const stray = await hermetic(page);
       await open(page, fixture);
 
-      // Static images are fetched when the browser paints rather than before
-      // `__ceeReady`; wait for those fixture assets before taking the baseline.
-      await page.waitForLoadState('networkidle');
-
+      await mediaSettled(page);
       await expect(page).toHaveScreenshot(`${fixture}-page-1.png`, { fullPage: true });
 
       await gotoPage(page, 2);
-      await page.waitForLoadState('networkidle');
+      await mediaSettled(page);
       await expect(page).toHaveScreenshot(`${fixture}-page-2.png`, { fullPage: true });
 
       expectNoStrayHosts(stray);

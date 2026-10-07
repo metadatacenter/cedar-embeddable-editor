@@ -5,7 +5,7 @@ id: "https://repo.metadatacenter.org/templates/65c97bd4-1fb2-4355-8007-4edfe4370
 status: published
 version: 0.0.2
 modelVersion: 1.6.0
-previousVersion: "0.0.1"
+previousVersion: "https://repo.metadatacenter.org/templates/3f0e4b2a-9c1d-4e5f-8a7b-6c5d4e3f2a10"
 children:
   - key: "Title"
     type: text-field

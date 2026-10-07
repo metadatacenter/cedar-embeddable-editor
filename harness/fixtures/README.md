@@ -12,7 +12,9 @@ workspace.
 - 21 JSON instances
 
 Source: `metadatacenter/cedar-test-artifacts`, branch `develop`, commit
-`775448d5a4013a708229fed8535d22e4fc1e6a65`.
+`775448d5a4013a708229fed8535d22e4fc1e6a65`. Template 033 is taken from the later
+commit `ae8b13b8812e0bd9b59b8df4a07c13764e9ae35a`, which corrects its
+`pav:previousVersion`.
 
 To refresh it, copy `template-NNN.json`, `template-NNN.yaml`, and
 `instance-NNN.json` from that repository's `artifacts/templates/` and

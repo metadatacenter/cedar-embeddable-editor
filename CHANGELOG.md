@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.21] - 2026-10-06
+
+Aligns with `cedar-model-typescript-library@1.0.17`.
+
+- Holds property, constraint and default IRIs, versions and child keys to the Java readers' rules, and still opens an artifact's legacy identifiers.
+
 ## [2.0.20] - 2026-10-05
 
 Aligns with `cedar-model-typescript-library@1.0.16`.
