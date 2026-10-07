@@ -1618,6 +1618,10 @@ test.describe('the identity', () => {
  * No baseline covers that band — the two screenshot projects sit at 1280 and 480,
  * either side of it — so the width is set here, and the claim is a measurement
  * rather than an image.
+ *
+ * In preview mode the host supplies the heading, and the header holds the actions
+ * alone. It was a flex row there, which shrank the actions to their content and
+ * put the buttons at the left edge at every width above 520px.
  */
 test.describe('the header actions', () => {
   const rightEdges = (page: Page) =>
@@ -1642,6 +1646,15 @@ test.describe('the header actions', () => {
       const edges = await rightEdges(page);
       expect(edges.buttons, "the last action ends where a field's property glyph ends").toBe(edges.field);
     });
+
+    for (const width of [900, 1280])
+      test(`reach the right edge ${arrangement} in preview at ${width}px`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await open(page, fixture, undefined, undefined, undefined, '&f=previewMode');
+
+        const edges = await rightEdges(page);
+        expect(edges.buttons, "the last action ends where a field's property glyph ends").toBe(edges.field);
+      });
   }
 });
 
