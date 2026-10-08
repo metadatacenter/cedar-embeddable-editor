@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.22] - 2026-10-08
+
+Aligns with `cedar-model-typescript-library@1.0.17`.
+
+- Names the text faces `CEDAR Roboto`, which a host loading the host-fonts bundle must now register, sets code text in the body font, and holds an omitted repeated child to the empty list the form shows.
+
 ## [2.0.21] - 2026-10-06
 
 Aligns with `cedar-model-typescript-library@1.0.17`.
