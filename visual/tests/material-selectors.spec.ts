@@ -124,8 +124,8 @@ test('the namespaced font faces survive', async ({ page }) => {
     document.fonts.forEach((f) => faces.push(f.family));
     return faces;
   });
-  expect(fonts, 'CEE namespaces its faces so an embedder cannot collide with them').toEqual(
-    expect.arrayContaining(['CEE Roboto']),
+  expect(fonts, 'the text faces are namespaced so an embedder cannot collide with them').toEqual(
+    expect.arrayContaining(['CEDAR Roboto']),
   );
 });
 

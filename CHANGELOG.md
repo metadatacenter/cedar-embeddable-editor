@@ -133,6 +133,12 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
   been typed into any box with the same name or id, and Angular Material gives each input an id
   such as `mat-input-3`, so the list could hold values from an unrelated form.
 
+- The text faces are now named `CEDAR Roboto`, the family every CEDAR component shares, in
+  place of `CEE Roboto`. A host loading `cedar-embeddable-editor.host-fonts.js` must register
+  `CEDAR Roboto` 400 and 500; the faces it registered under the old name no longer reach CEE's
+  text, which falls back to the system stack. The self-contained bundle needs no change.
+- Code text is set in the body font. The shared monospace family has been retired.
+
 ### Fixed
 
 - `minItems` and `maxItems` on a repeating field inside a repeating element are checked in

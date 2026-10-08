@@ -49,7 +49,7 @@ for (const hosted of [false, true]) {
         })),
       );
       expect(faces.some((face) => face.family.includes('Material Icons'))).toBe(false);
-      const roboto = faces.filter((face) => face.family === 'CEE Roboto');
+      const roboto = faces.filter((face) => face.family === 'CEDAR Roboto');
       expect(roboto.filter((face) => face.weight === '400').length).toBe(7);
       expect(roboto.filter((face) => face.weight === '500').length).toBe(7);
       // Neither build carries the 300 weight; the shared vocabulary uses 400 and 500 only.

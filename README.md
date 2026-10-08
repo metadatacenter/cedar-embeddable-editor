@@ -70,7 +70,7 @@ module.
 ### Hosts that already supply CEDAR fonts
 
 The default `cedar-embeddable-editor.js` remains self-contained. Hosts that already
-register **CEE Roboto 400 and 500** can instead load
+register **CEDAR Roboto 400 and 500** can instead load
 `cedar-embeddable-editor.host-fonts.js`. Both bundles register CEE and CEF with the
 same public API; load only one. The host-font variant retains Material Icons but
 omits embedded text fonts. Without the host's font faces, text falls back to the

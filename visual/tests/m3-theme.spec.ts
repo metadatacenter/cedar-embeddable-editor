@@ -48,14 +48,14 @@ test('M3 select and calendar overlays retain CEDAR typography under a host reset
   const option = page.locator('mat-option').first();
   await expect(option).toBeVisible();
   await expect(option).toHaveCSS('font-size', '14px');
-  await expect(option).toHaveCSS('font-family', '"CEE Roboto", "Helvetica Neue", sans-serif');
+  await expect(option).toHaveCSS('font-family', '"CEDAR Roboto", "Helvetica Neue", sans-serif');
   await expect(page.locator('.mat-mdc-select-panel')).toHaveCSS('background-color', 'rgb(244, 246, 246)');
   await open(page, '09-temporal');
   await page.addStyleTag({ content: 'html { font-size: 10px; color-scheme: dark; }' });
   await page.locator('mat-datepicker-toggle button').first().click();
   const calendar = page.locator('mat-calendar');
   await expect(calendar).toBeVisible();
-  await expect(calendar).toHaveCSS('font-family', '"CEE Roboto", "Helvetica Neue", sans-serif');
+  await expect(calendar).toHaveCSS('font-family', '"CEDAR Roboto", "Helvetica Neue", sans-serif');
   await expect(calendar.locator('.mat-calendar-body-cell-content').first()).toHaveCSS('font-size', '14px');
   await expect(page.locator('.mat-datepicker-content')).toHaveCSS('background-color', 'rgb(244, 246, 246)');
   await expect(calendar).toHaveScreenshot('m3-calendar.png');

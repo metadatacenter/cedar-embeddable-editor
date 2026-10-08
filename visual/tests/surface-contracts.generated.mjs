@@ -99,7 +99,7 @@ const SCALE = {
   ]
 };
 const TOKEN_DEFAULTS = {
-  "--cedar-font-family": "\"CEE Roboto\", \"Helvetica Neue\", sans-serif",
+  "--cedar-font-family": "\"CEDAR Roboto\", \"Helvetica Neue\", sans-serif",
   "--cedar-font-weight-regular": "400",
   "--cedar-font-weight-medium": "500",
   "--cedar-font-size-small": "12px",

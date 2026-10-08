@@ -67,10 +67,12 @@ wholesale rather than subtly.
 are not obliged to use `type="module"`. See `visual/README.md` for how packaging
 holds this invariant across builders.
 
-**Font identity.** `CEE Roboto` and `CEE Material Icons` are locally namespaced
+**Font identity.** `CEDAR Roboto` and `CEE Material Icons` are locally namespaced
 faces, deliberately not the global `Roboto`/`Material Icons`, so an embedding page
-cannot collide with them. The icon ligature codepoints in the `notify-*` rules
-depend on `CEE Material Icons` specifically.
+cannot collide with them. `CEDAR Roboto` comes from `cedar-design-tokens` and is
+the family every CEDAR component and application shares, so a host and CEE that
+both register it register the same faces. The icon ligature codepoints in the
+`notify-*` rules depend on `CEE Material Icons` specifically.
 
 **Semantic status colors.** The `notify-info`/`success`/`error`/`warning`/
 `progress` palette and `.info-box` are plain CSS with no Material dependency.
