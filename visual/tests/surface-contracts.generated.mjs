@@ -47,8 +47,7 @@ const CONTRACTS = {
 };
 const SCALE = {
   "font-family": [
-    "--cedar-font-family",
-    "--cedar-font-family-monospace"
+    "--cedar-font-family"
   ],
   "font-size": [
     "--cedar-font-size-small",
@@ -101,7 +100,6 @@ const SCALE = {
 };
 const TOKEN_DEFAULTS = {
   "--cedar-font-family": "\"CEE Roboto\", \"Helvetica Neue\", sans-serif",
-  "--cedar-font-family-monospace": "ui-monospace, SFMono-Regular, Menlo, monospace",
   "--cedar-font-weight-regular": "400",
   "--cedar-font-weight-medium": "500",
   "--cedar-font-size-small": "12px",
