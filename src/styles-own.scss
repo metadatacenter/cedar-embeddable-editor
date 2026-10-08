@@ -325,6 +325,52 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
 }
 
 /*
+ * A selected authority term while nobody is editing its box. See `showsSettledTerm`.
+ *
+ * The term takes the input's place in the box, so the box grows when a term wraps, and the input
+ * covers it, transparent, to take the click or the Tab that starts an edit. A PubMed title yields
+ * with an ellipsis so its identifier stays on the line, as `.cee-term-link-single-line` lets it
+ * read-only. Every other term wraps as running text, so no identifier is ever out of view and the
+ * dash stays at the end of the label's line.
+ */
+.mat-mdc-form-field-infix:has(> .cee-settled-term) {
+  position: relative;
+}
+.cee-settled-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.cee-settled-term {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+.cee-settled-term-dash {
+  @include patterns.specification-separator;
+}
+.cee-settled-term-single-line {
+  display: flex;
+  align-items: baseline;
+  overflow: hidden;
+
+  .cee-settled-term-label {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cee-settled-term-dash,
+  .cee-settled-term-iri {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+/*
  * Non-blocking feedback, outside Material's mutually-exclusive hint/error
  * projection so a required field can still show its genuine validation error.
  */

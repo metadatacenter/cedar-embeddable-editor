@@ -62,8 +62,20 @@ genuinely theirs.
         (input)="inputChanged($event)"
         (blur)="onInputBlur()"
         [readonly]="readOnlyMode"
+        [class.cee-settled-input]="showsSettledTerm"
         attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
       />
+      @if (showsSettledTerm) {
+        <!-- The term as read-only draws it, for the eye only: the input under it holds the same text. -->
+        <span class="cee-settled-term" [class.cee-settled-term-single-line]="truncatesSelectedLabel" aria-hidden="true">
+          @if (selectedData?.label) {
+            <span class="cee-settled-term-label">{{ selectedData?.label }}</span>
+            <!-- The line may break after the dash, never before it. -->
+            <span class="cee-settled-term-dash">-</span><wbr />
+          }
+          <span class="cee-settled-term-iri">{{ selectedData?.iri }}</span>
+        </span>
+      }
       <mat-autocomplete #auto="matAutocomplete">
         <!--
           Resolved once. This binding was read through two `| async` pipes, one for the

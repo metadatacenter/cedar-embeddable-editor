@@ -95,6 +95,8 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
   loadingOptions = false;
   justReverted = false;
   justCleared = false;
+  /** Whether the user is in the box, between its focus and its blur. */
+  editing = false;
   linkIconName = 'external';
 
   /**
@@ -258,6 +260,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
   }
 
   inputFocused(): void {
+    this.editing = true;
     if (this.readOnlyMode) {
       return;
     }
@@ -272,6 +275,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    * why the rule lives outside the component.
    */
   onInputBlur(): void {
+    this.editing = false;
     if (this.readOnlyMode) {
       return;
     }
@@ -360,6 +364,20 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
    */
   get showsTermAsValue(): boolean {
     return this.readOnlyMode && this.selectedData !== null;
+  }
+
+  /**
+   * Whether to draw the selected term over the box while nobody is editing it.
+   *
+   * The box holds "Label - https://iri", and an `input` shows one line of it, cut wherever the box
+   * ends. With a long label the identifier is what went out of view, at desktop widths for a
+   * PubMed title and on a phone for every authority. So until the user enters the box, it shows the
+   * term as read-only does: a PubMed title shortened with an ellipsis and its identifier beside it,
+   * and any other term wrapped, the box growing to hold it. The input stays on top, transparent and
+   * holding the same text, so a click or Tab goes straight into it and editing is unchanged.
+   */
+  get showsSettledTerm(): boolean {
+    return !this.readOnlyMode && !this.editing && this.showsSelectedTerm;
   }
 
   get isEmpty(): boolean {
