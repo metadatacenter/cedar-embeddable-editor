@@ -21,7 +21,7 @@
 import { describe, expect, it } from 'vitest';
 import { DocumentKey } from '../src/document-keys';
 import { CedarBuilders, NumberType, TemporalType } from 'cedar-model-typescript-library';
-import { FIELD_KINDS } from '../src/axes';
+import { FIELD_KINDS, repeatingMinimum } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { xsdTypeOf, heldValue } from '../src/values';
@@ -44,7 +44,9 @@ describe('the slot a multi field starts with', () => {
     const driver = new CeeDriver(
       buildTemplate({
         name: `skm_${key}`,
-        children: [{ kind: fieldKind, name: 'f', cardinality: 'multi', minItems: 2, maxItems: 9 }],
+        children: [
+          { kind: fieldKind, name: 'f', cardinality: 'multi', minItems: repeatingMinimum(fieldKind, 2), maxItems: 9 },
+        ],
       }),
     );
     expect({
@@ -94,7 +96,6 @@ describe('the shape of an element', () => {
     });
     expect(new CeeDriver(template).extract.values._el).toEqual([]);
   });
-
 });
 
 describe('the XSD type a numeric or temporal slot declares', () => {

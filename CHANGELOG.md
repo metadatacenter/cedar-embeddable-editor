@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.22] - 2026-10-08
 
-Aligns with `cedar-model-typescript-library@1.0.17`.
+Aligns with `cedar-model-typescript-library@1.0.18`.
 
-- Names the text faces `CEDAR Roboto`, which a host loading the host-fonts bundle must now register, sets code text in the body font, and holds an omitted repeated child to the empty list the form shows.
+- Names the text faces `CEDAR Roboto`, which a host loading the host-fonts bundle must now register, refuses a template whose attribute-value field states a minimum above 0, sets code text in the body font, and holds an omitted repeated child to the empty list the form shows.
 
 ## [2.0.21] - 2026-10-06
 
@@ -144,6 +144,9 @@ Aligns with `cedar-model-typescript-library@1.0.13`.
   `CEDAR Roboto` 400 and 500; the faces it registered under the old name no longer reach CEE's
   text, which falls back to the system stack. The self-contained bundle needs no change.
 - Code text is set in the body font. The shared monospace family has been retired.
+- A template whose attribute-value field states a minimum above 0 is refused. Whoever fills in
+  the form names the attributes, so no template can require some, and an attribute-value field
+  now always starts with no rows.
 
 ### Fixed
 

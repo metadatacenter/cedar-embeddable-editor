@@ -156,6 +156,17 @@ export const CARDINALITIES = ['single', 'multi'] as const;
 export type Cardinality = (typeof CARDINALITIES)[number];
 
 /**
+ * The minimum a repeating field of this kind may state, given the one a sweep
+ * wants.
+ *
+ * Whoever fills in an attribute-value field names its attributes, so no
+ * template can require some: the model library refuses a minimum above 0 for
+ * that kind, and a sweep that gave every kind the same floor would build a
+ * template nothing can read. Every other kind keeps the floor asked for.
+ */
+export const repeatingMinimum = (kind: FieldKind, wanted: number): number => (kind.key === 'attrValue' ? 0 : wanted);
+
+/**
  * Nesting axis. Each position resolves paths differently in
  * `DataObjectStructureHandler.getDataPathNodeRecursively` — the multi-element
  * case is the one that consults `currentIndex`, so it is the only position

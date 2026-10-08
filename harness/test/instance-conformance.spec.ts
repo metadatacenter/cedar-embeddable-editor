@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CARDINALITIES, FIELD_KINDS } from '../src/axes';
+import { CARDINALITIES, FIELD_KINDS, repeatingMinimum } from '../src/axes';
 import { corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
@@ -39,7 +39,7 @@ describe('a freshly opened template', () => {
           kind,
           name: 'f',
           cardinality: cardinality === 'multi' ? 'multi' : undefined,
-          minItems: cardinality === 'multi' ? 2 : undefined,
+          minItems: cardinality === 'multi' ? repeatingMinimum(kind, 2) : undefined,
           maxItems: cardinality === 'multi' ? 5 : undefined,
         },
       ],
@@ -96,7 +96,7 @@ describe('a populated template', () => {
           kind,
           name: 'f',
           cardinality: cardinality === 'multi' ? 'multi' : undefined,
-          minItems: cardinality === 'multi' ? 2 : undefined,
+          minItems: cardinality === 'multi' ? repeatingMinimum(kind, 2) : undefined,
           maxItems: cardinality === 'multi' ? 5 : undefined,
         },
       ],

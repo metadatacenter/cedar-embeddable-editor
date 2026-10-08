@@ -49,10 +49,7 @@ exports[`the shape of an element > a single element 1`] = `
 
 exports[`the slot a multi field starts with > attrValue 1`] = `
 {
-  "holds": [
-    "",
-    "",
-  ],
+  "holds": [],
   "written": [],
 }
 `;

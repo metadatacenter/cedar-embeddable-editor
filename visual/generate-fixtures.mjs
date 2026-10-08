@@ -696,19 +696,16 @@ const writeRaw = (name, document) => {
   // in context rather than alone at the top of the form.
   tb = tb.addChild(before, deploy(before, 'label'));
   /**
-   * `minItems: 1`, deliberately.
+   * `minItems: 0`, the only minimum an attribute-value field may state.
    *
-   * An attribute-value field is always an array — the user supplies the names, so
-   * the template cannot know them — and built without an explicit `minItems` the
-   * builder leaves it at 0. At 0 the field's header, its pager and its add button
-   * all render correctly, but there is no occupied row, so
-   * `app-cedar-input-attribute-value` itself is not on the page and a clipped
-   * baseline of the widget would have nothing to photograph. Hence one row here.
-   *
-   * That is a fact about this fixture, not a complaint about the behaviour: a
-   * 0..4 field showing an add control and no row is right.
+   * An attribute-value field is always an array, and the user supplies the names,
+   * so no template can require some: the model refuses a minimum above 0. At 0
+   * the field's header, its pager and its add button render, but there is no
+   * occupied row, so `app-cedar-input-attribute-value` itself is not on the page.
+   * A test that photographs the widget adds the row first, as a user would, with
+   * `addAttributeRow`.
    */
-  tb = tb.addChild(av, deploy(av, 'attribute', { multi: true, minItems: 1, maxItems: 4 }));
+  tb = tb.addChild(av, deploy(av, 'attribute', { multi: true, minItems: 0, maxItems: 4 }));
   write('10-attribute-values', tb.build());
 
   /**

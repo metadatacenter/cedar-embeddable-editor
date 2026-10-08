@@ -22,6 +22,12 @@ for (const depth of [1, 3, 6]) {
         await page.getByRole('textbox', { name: 'Hour', exact: true }).fill('14');
         await page.getByRole('textbox', { name: 'Minute', exact: true }).fill('30');
       } else {
+        // The field starts with no rows; add one, as a user would, and leave it unnamed.
+        await page
+          .locator('app-cedar-component-renderer')
+          .filter({ hasNot: page.locator('app-cedar-component-renderer') })
+          .getByRole('button', { name: 'Add empty after current', exact: true })
+          .click();
         expect(
           (await page.getByRole('textbox', { name: 'Attribute Value', exact: true }).boundingBox())!.width,
         ).toBeGreaterThan(60);
