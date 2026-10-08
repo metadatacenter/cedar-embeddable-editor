@@ -283,7 +283,13 @@ $identity-text: 72px;
     display: flex;
     padding: 0;
     border: 0;
+    /*
+     * The actions take the whole row, as their grid area does outside preview. A flex item is
+     * otherwise as wide as its content, which left `flex-end` nothing to push against and put the
+     * buttons at the left edge at every width above 520px.
+     */
     .template-actions {
+      flex: 1 1 auto;
       padding: 0;
       border: 0;
     }

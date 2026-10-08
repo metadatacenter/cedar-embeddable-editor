@@ -102,7 +102,12 @@ $cedar-teal: ui-tokens.$color-primary;
 
 .field-demo-value {
   margin-top: ui-tokens.$space-3;
-  font-family: ui-tokens.$font-family-monospace;
+
+  // CEDAR has no monospace face: the event's name is set in the body font, not the browser's
+  // monospace.
+  code {
+    font-family: inherit;
+  }
 
   span {
     margin-left: ui-tokens.$space-3;
