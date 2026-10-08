@@ -21,9 +21,9 @@ export function draftTemplate(depth: number, type: 'temporal' | 'attrValue' | 't
   for (let level = depth - 1; level >= 0; level--) {
     const builder = CedarBuilders.templateElementBuilder().withSchemaName(`level${level}`).withTitle(`level${level}`);
     if (element === null) {
+      // An attribute-value field starts with no rows, since no template may require
+      // attributes; a test that needs an unnamed row adds one, as a user would.
       const deployment = field.createDeploymentBuilder('_f').withLabel('f');
-      // Attribute fields are always lists; an unnamed first row is intentional.
-      if (type === 'attrValue' && 'withMinItems' in deployment) deployment.withMinItems(1);
       builder.addChild(field, deployment.build());
     } else {
       builder.addChild(

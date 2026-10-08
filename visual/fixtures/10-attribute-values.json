@@ -422,7 +422,7 @@
     },
     "_attribute": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 0,
       "maxItems": 4,
       "items": {
         "@id": "https://repo.metadatacenter.org/template-fields/3e6d42ef-0000-4000-8000-3e6d42ef0000",

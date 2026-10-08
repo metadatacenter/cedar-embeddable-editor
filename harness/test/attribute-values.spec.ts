@@ -638,6 +638,31 @@ describe('attribute values inside elements', () => {
   });
 });
 
+describe('a minimum on an attribute-value field', () => {
+  /**
+   * Whoever fills in the form names an attribute-value field's attributes, so
+   * no template can require some. CEE refuses a stored template whose
+   * attribute-value field states a minimum above 0, rather than opening it with
+   * a floor no instance can be held to.
+   */
+  const statingMinimum = (minItems: number) => {
+    const t: any = buildTemplate({
+      name: 'av_minimum',
+      children: [{ kind: ATTR, name: 'av', cardinality: 'multi', minItems: 0, maxItems: 5 }],
+    });
+    t.properties._av.minItems = minItems;
+    return t;
+  };
+
+  it('refuses a template whose minimum is above 0', () => {
+    expect(() => new CeeDriver(statingMinimum(1))).toThrow('minItems must be zero in attribute-value field _av');
+  });
+
+  it('opens one whose minimum is 0', () => {
+    expect(() => new CeeDriver(statingMinimum(0))).not.toThrow();
+  });
+});
+
 describe('whether the pager has anything to page through', () => {
   /**
    * `hasMultiInstances` is what the multi-pager's template asks before showing

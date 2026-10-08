@@ -131,6 +131,30 @@ export const expectNoStrayHosts = (stray: string[]): void => {
   expect([...new Set(stray)], 'fixture reached an unstubbed external host').toEqual([]);
 };
 
+/**
+ * Adds an unnamed row to the page's attribute-value field, as its add button does.
+ *
+ * An attribute-value field starts with no rows, because no template may require
+ * attributes. The click is dispatched rather than performed, so the pointer does
+ * not move and no hover state or tooltip reaches a screenshot.
+ */
+export const addAttributeRow = async (page: Page): Promise<void> => {
+  await page
+    .locator('app-cedar-component-renderer')
+    .filter({ hasNot: page.locator('app-cedar-component-renderer') })
+    .getByRole('button', { name: 'Add empty after current', exact: true })
+    .dispatchEvent('click');
+  await expect(page.locator('input[aria-label="Attribute Name"]')).toBeVisible();
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .every(
+        (animation) =>
+          animation.playState !== 'running' || animation.effect?.getComputedTiming().iterations === Infinity,
+      ),
+  );
+};
+
 export const openTwoEditors = async (page: Page, fixture: string): Promise<void> => {
   await page.clock.setFixedTime(FROZEN);
   await page.goto(`/host.html?host=multi&t=${fixture}&b=${BUNDLE_VERSION}`);

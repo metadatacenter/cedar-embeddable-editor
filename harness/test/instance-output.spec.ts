@@ -23,7 +23,7 @@ import { DocumentKey } from '../src/document-keys';
 import { parse as parseYaml } from 'yaml';
 import { InstanceSerializer } from '@cee/util/instance-serializer';
 import { CedarTemplate } from '@cee/models/template/cedar-template.model';
-import { CARDINALITIES, FIELD_KINDS } from '../src/axes';
+import { CARDINALITIES, FIELD_KINDS, repeatingMinimum } from '../src/axes';
 import { corpusTemplates } from '../src/corpus';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
@@ -42,7 +42,7 @@ const filled = (kindIndex: number, cardinality: 'single' | 'multi') => {
           kind,
           name: 'f',
           cardinality: cardinality === 'multi' ? 'multi' : undefined,
-          minItems: cardinality === 'multi' ? 2 : undefined,
+          minItems: cardinality === 'multi' ? repeatingMinimum(kind, 2) : undefined,
           maxItems: cardinality === 'multi' ? 5 : undefined,
         },
       ],

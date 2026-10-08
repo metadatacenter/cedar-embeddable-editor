@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideTranslateService } from '@ngx-translate/core';
 import { draftTemplate } from '../../../../../harness/src/validation-state-fixtures';
 import { SharedModule } from '../shared.module';
@@ -11,6 +12,7 @@ import { MultiComponent } from '../models/component/multi-component.model';
 import { CedarInputDatetimeComponent } from '../../input-types/components/cedar-input-datetime/cedar-input-datetime.component';
 import { CedarInputAttributeValueComponent } from '../../input-types/components/cedar-input-attribute-value/cedar-input-attribute-value.component';
 import { CeeJsonObject } from '../../../cee-public-api';
+import { CedarMultiPagerComponent } from './cedar-multi-pager/cedar-multi-pager.component';
 
 for (const depth of [1, 3, 6]) {
   describe(`real widgets and coordinator at depth ${depth}`, () => {
@@ -31,6 +33,19 @@ for (const depth of [1, 3, 6]) {
         const chain = componentsAlong(context.dataContext.templateRepresentation, path)!;
         const field = chain.at(-1)! as FieldComponent;
         const parent = chain.at(-2)! as MultiComponent;
+        if (type === 'attrValue') {
+          // The field starts with no rows. Add one with the field's own add button, as a user
+          // would, and leave it unnamed. The click is what marks the renderers for checking.
+          const pager = fixture.debugElement
+            .queryAll(By.directive(CedarMultiPagerComponent))
+            .find((candidate) => candidate.componentInstance.component === field)!;
+          (pager.nativeElement as HTMLElement)
+            .querySelector<HTMLButtonElement>('button[aria-label="Add empty after current"]')!
+            .click();
+          fixture.detectChanges();
+          await fixture.whenStable();
+          fixture.detectChanges();
+        }
         const widget = registry.modelToUI.get(field)!;
         const report = () => context.dataContext.dataQualityReport!;
         const draftCode = type === 'temporal' ? 'incompleteValue' : 'attributeName';

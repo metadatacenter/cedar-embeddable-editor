@@ -19,6 +19,7 @@ import type { CedarEmbeddableEditorElement } from '../../src/app/cee-public-api'
 import {
   BUNDLE_VERSION,
   FROZEN,
+  addAttributeRow,
   changeDetails,
   currentMetadata,
   expectNoStrayHosts,
@@ -381,6 +382,8 @@ test.describe('multiple editor instances', () => {
 for (const [fixture, description] of FIXTURES) {
   test(`${fixture} — ${description}`, async ({ page }) => {
     await open(page, fixture);
+    // An attribute-value field starts with no rows; the baseline shows it with one, added as a user would.
+    if (fixture === '10-attribute-values') await addAttributeRow(page);
     await expect(page).toHaveScreenshot(`${fixture}.png`, { fullPage: true });
   });
 }
@@ -587,20 +590,23 @@ test('multi-instance pager renders its chips without covering a narrow expansion
 test('multi-instance actions track cardinality and always expose tooltips', async ({ page }) => {
   await open(page, '10-attribute-values');
 
-  const renderer = page.locator('app-cedar-component-renderer').filter({
-    has: page.locator('input[aria-label="Attribute Name"]'),
-  });
+  // The field allows 0 to 4 attributes. It starts with none, so there is nothing to delete.
+  const renderer = page
+    .locator('app-cedar-component-renderer')
+    .filter({ hasNot: page.locator('app-cedar-component-renderer') })
+    .filter({ has: page.getByRole('button', { name: 'Add empty after current', exact: true }) });
   const add = renderer.getByRole('button', { name: 'Add empty after current', exact: true });
   const copy = renderer.getByRole('button', { name: 'Add clone after current', exact: true });
   const remove = renderer.getByRole('button', { name: 'Delete current', exact: true });
 
   await expect(add).toBeEnabled();
-  await expect(copy).toBeEnabled();
   await expect(remove).toBeDisabled();
 
   await add.click();
+  await expect(copy).toBeEnabled();
   await expect(remove).toBeEnabled();
 
+  await add.click();
   await add.click();
   await add.click();
   await expect(add).toBeDisabled();
@@ -628,6 +634,7 @@ test('multi-instance actions track cardinality and always expose tooltips', asyn
 
 test('attribute-value labels stay distinct and its pager aligns responsively', async ({ page }, testInfo) => {
   await open(page, '10-attribute-values');
+  await addAttributeRow(page);
 
   const name = page.locator('input[aria-label="Attribute Name"]');
   const value = page.locator('input[aria-label="Attribute Value"]');
@@ -681,6 +688,7 @@ test('attribute-value labels stay distinct and its pager aligns responsively', a
 
 test('a new attribute-value row starts empty beneath its labels, not with redundant placeholders', async ({ page }) => {
   await open(page, '10-attribute-values');
+  await addAttributeRow(page);
 
   const renderer = page.locator('app-cedar-component-renderer').filter({
     has: page.locator('input[aria-label="Attribute Name"]'),
@@ -699,6 +707,7 @@ test('a new attribute-value row starts empty beneath its labels, not with redund
 
 test('an unsafe attribute name stays visible with a local explanation', async ({ page }) => {
   await open(page, '10-attribute-values');
+  await addAttributeRow(page);
 
   const name = page.locator('input[aria-label="Attribute Name"]');
   await name.fill('@context');
@@ -714,6 +723,7 @@ test('an unsafe attribute name stays visible with a local explanation', async ({
 
 test('cloning an attribute value copies it and preserves the source page', async ({ page }) => {
   await open(page, '10-attribute-values');
+  await addAttributeRow(page);
 
   const renderer = page.locator('app-cedar-component-renderer').filter({
     has: page.locator('input[aria-label="Attribute Name"]'),
@@ -750,6 +760,7 @@ test('cloning an attribute value copies it and preserves the source page', async
 
 test('an attribute-value field survives save and reload', async ({ page }) => {
   await open(page, '10-attribute-values');
+  await addAttributeRow(page);
 
   const name = page.locator('input[aria-label="Attribute Name"]');
   const value = page.locator('input[aria-label="Attribute Value"]');
@@ -776,6 +787,7 @@ test('an attribute-value field survives save and reload', async ({ page }) => {
 
 test('paging back to an unnamed attribute clears the preceding occurrence', async ({ page }) => {
   await open(page, '10-attribute-values');
+  await addAttributeRow(page);
 
   const renderer = page.locator('app-cedar-component-renderer').filter({
     has: page.locator('input[aria-label="Attribute Name"]'),
@@ -1520,6 +1532,7 @@ test.describe('widgets, clipped', () => {
   for (const widget of WIDGETS) {
     test(`${widget.name} renders as recorded`, async ({ page }) => {
       await open(page, widget.fixture);
+      if (widget.fixture === '10-attribute-values') await addAttributeRow(page);
 
       const all = page.locator(widget.selector);
       expect(
@@ -2951,6 +2964,7 @@ test.describe('what a host page reads back', () => {
 
   test('the instance download is a CEDAR document carrying what was typed', async ({ page }) => {
     await open(page, '10-attribute-values', undefined, undefined, undefined, '&f=showDownloadMenu');
+    await addAttributeRow(page);
 
     await page.locator('input[aria-label="Attribute Name"]').fill('colour');
     await page.locator('input[aria-label="Attribute Value"]').fill('blue');
@@ -2987,6 +3001,7 @@ test.describe('what a host page reads back', () => {
 
   test('an attribute named before the save holds back the RDF download and says why', async ({ page }) => {
     await open(page, '10-attribute-values', undefined, undefined, undefined, '&f=showDownloadMenu');
+    await addAttributeRow(page);
     await page.locator('input[aria-label="Attribute Name"]').fill('colour');
     await page.locator('input[aria-label="Attribute Value"]').fill('blue');
 
@@ -3002,6 +3017,7 @@ test.describe('what a host page reads back', () => {
 
   test('a YAML download arrives as YAML, under its own extension', async ({ page }) => {
     await open(page, '10-attribute-values', undefined, undefined, undefined, '&f=showDownloadMenu');
+    await addAttributeRow(page);
 
     // Both, as the JSON case does: filling the value is what takes focus off the
     // name and commits it. Filling the name alone downloads a form that has not
