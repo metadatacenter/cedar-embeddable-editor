@@ -378,10 +378,13 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
    * and CEE reads a template through class identity.
    *
    * Assignable more than once while no instance has been supplied: each one replaces the
-   * form, building a fresh context, so nothing of the previous template survives. Once an
-   * instance is loaded the template is fixed, and a further assignment is reported and
-   * ignored — the answers in front of a person were recorded against the template that
-   * would be taken away.
+   * form, building a fresh context. When the new template keeps the previous one's `@id`,
+   * so that it is an edit of it, the new form keeps as much of what the reader entered as
+   * it will take without showing an error, and drops the rest silently. Each pager stays
+   * on the entry the reader was looking at. A template with another `@id` starts the
+   * reader on an empty form. Once an instance is loaded the
+   * template is fixed, and a further assignment is reported and ignored — the answers in
+   * front of a person were recorded against the template that would be taken away.
    */
   templateObject: CeeJsonObject;
 

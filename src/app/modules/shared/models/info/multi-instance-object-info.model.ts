@@ -44,6 +44,16 @@ export class MultiInstanceObjectInfo {
     this.storedIndex = value;
   }
 
+  /**
+   * The entry last chosen, as chosen.
+   *
+   * `currentIndex` keeps it inside the entries the displayed path counts, which for a
+   * pager inside an entry not on screen is another entry's list.
+   */
+  get chosenIndex(): number {
+    return this.storedIndex;
+  }
+
   private storedIndex = -1;
 
   /**

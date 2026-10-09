@@ -86,7 +86,7 @@ export class DataObjectUtil {
    * Links and the external authority types store the IRI as `@id`; a controlled
    * term stores `@id` plus a label. None of them has a `@value` to leave null.
    */
-  private static isIriValued(component: FieldComponent): boolean {
+  static isIriValued(component: FieldComponent): boolean {
     const inputType = component?.basicInfo?.inputType;
     return (
       inputType === InputType.link ||

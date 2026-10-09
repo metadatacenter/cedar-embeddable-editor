@@ -342,14 +342,11 @@ export class DataQualityReportBuilderHandler {
    * the template: `{@id, rdfs:label}` shows its label for a controlled term and
    * its IRI for a link, and the instance cannot tell those apart.
    */
-  private static extractPlainValue(
-    dataObject: InstanceNode | null,
-    component: SingleFieldComponent | MultiFieldComponent,
-  ) {
+  static extractPlainValue(dataObject: InstanceNode | null, component: FieldComponent) {
     return InstanceValueNode.plainValue(dataObject, this.isIriValued(component));
   }
 
-  private static isIriValued(component: SingleFieldComponent | MultiFieldComponent): boolean {
+  private static isIriValued(component: FieldComponent): boolean {
     return component.basicInfo.inputType !== null && valueIsIri(component.basicInfo.inputType as InputType);
   }
 }

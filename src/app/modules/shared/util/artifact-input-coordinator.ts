@@ -4,6 +4,8 @@ import { DataContext } from './data-context';
 import { HandlerContext } from './handler-context';
 import { InstanceDeserializer } from './instance-deserializer';
 import { MessageHandlerService } from '../service/message-handler.service';
+import { CedarTemplate } from '../models/template/cedar-template.model';
+import { carryAnswers, reportedErrors, withdrawFlaggedAnswers } from './carried-answers';
 
 type ArtifactClaim = 'template' | 'instance';
 
@@ -61,9 +63,16 @@ export class ArtifactInputCoordinator {
       this._instanceInputRejected = true;
       return false;
     }
-    const candidate = this.buildCandidate('templateObject', template, instance, instance !== null);
+    let candidate = this.buildCandidate('templateObject', template, instance, instance !== null);
     if (candidate === null) {
       return false;
+    }
+    if (instance === null && !this.carryAnswers(candidate)) {
+      // A form whose carried answers could not be made sound is rebuilt rather than shown.
+      candidate = this.buildCandidate('templateObject', template, null, false);
+      if (candidate === null) {
+        return false;
+      }
     }
     this.commit(['template']);
     this.acceptedTemplate = template;
@@ -188,6 +197,79 @@ export class ArtifactInputCoordinator {
     return { ...candidate, templateJson, instanceJson, templateAndInstanceJson, revision: this.nextRevision };
   }
 
+  /**
+   * Give the form replacing the reader's what they have entered, when the new template is
+   * an edit of the one it replaces.
+   *
+   * An edit keeps the template's identifier. A host that shows a different artifact in the
+   * same element starts its reader on an empty form, as it always has: answers matched to
+   * it by key would be answers to questions nobody asked. `carryAnswers` decides which
+   * answers move, and puts each pager back on the entry the reader was looking at.
+   *
+   * Nothing carried may bring an error with it. Should the new form's report still hold an
+   * error that neither a form built afresh nor the reader's own form had, the place is given
+   * what a new form holds there, then emptied, and if that does not clear it the reader gets
+   * the fresh form. All of it is silent: losing an answer
+   * to a changed template is expected, and is not something to tell the reader about.
+   *
+   * False when the candidate has to be built again from nothing.
+   */
+  private carryAnswers(candidate: ArtifactEditorState): boolean {
+    const previous = this._state;
+    const next = candidate.dataContext;
+    const before = previous.dataContext.templateRepresentation;
+    const after = next.templateRepresentation;
+    const answered = previous.dataContext.instanceFullData;
+    const instance = next.instanceFullData;
+    if (!(before instanceof CedarTemplate) || !(after instanceof CedarTemplate)) {
+      return true;
+    }
+    if (answered === null || instance === null) {
+      return true;
+    }
+    if (after.isBasedOn === null || after.isBasedOn !== before.isBasedOn) {
+      return true;
+    }
+    const handler = candidate.handlerContext;
+    const allowed = new Set([
+      ...reportedErrors(next.dataQualityReport),
+      ...reportedErrors(previous.dataContext.dataQualityReport),
+    ]);
+    const form = { template: after, instance };
+    try {
+      const cursors = carryAnswers(
+        { template: before, instance: answered },
+        form,
+        handler.dataObjectBuilderService,
+        (place) => previous.handlerContext.multiInstanceObjectService.chosenIndexAt(place),
+      );
+      const settle = (): void => {
+        // Occurrence counts are read from the instance, which now holds the reader's.
+        handler.multiInstanceObjectService.buildNewOrFromMetadata(after, instance.dataContainer);
+        for (const cursor of cursors) {
+          handler.multiInstanceObjectService.setCurrentIndexAt(cursor.place, cursor.index);
+        }
+        next.invalidateDerivedViews();
+        handler.buildQualityReport();
+      };
+      settle();
+      for (const empty of [false, true]) {
+        if (withdrawFlaggedAnswers(form, next.dataQualityReport, allowed, handler.dataObjectBuilderService, empty)) {
+          settle();
+        }
+      }
+      const sound = [...reportedErrors(next.dataQualityReport)].every((error) => allowed.has(error));
+      if (!sound) {
+        this.messages.trace('CEDAR Embeddable Editor: answers not carried, because the new form would flag them.');
+      }
+      return sound;
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      this.messages.trace(`CEDAR Embeddable Editor: answers not carried to the new template: ${detail}`);
+      return false;
+    }
+  }
+
   private readInstance(input: string, instance: CeeJsonObject): TemplateInstance | null {
     try {
       return InstanceDeserializer.read(instance, (message) => this.messages.error(message)).full;
@@ -207,12 +289,12 @@ export class ArtifactInputCoordinator {
    * of them were recorded against the template being taken away, and there is no good answer to
    * what becomes of them. That is the case set-once exists for, and it still refuses.
    *
-   * With no instance there is nothing to lose. A host driving a live view of a template it is
-   * itself editing — a designer previewing its own work — is replacing a rendering rather than
-   * swapping an artifact out from under anyone, and making it discard the element and start a
-   * whole editor for each edit costs a second of bootstrapping to show a form that differs by a
-   * word. Each accepted template still builds a fresh context, so nothing of the previous one
-   * survives into the new form.
+   * With no instance supplied, the host is driving a live view of a template it is itself
+   * editing — a designer previewing its own work — and is replacing a rendering rather than
+   * swapping an artifact out from under anyone. Making it discard the element and start a whole
+   * editor for each edit costs a second of bootstrapping to show a form that differs by a word.
+   * Each accepted template still builds a fresh context. What a reader trying the form has
+   * entered is moved into it by `carryAnswers`, and nothing else of the previous form survives.
    */
   private mayAcceptTemplate(): boolean {
     if (!this.claimed.has('template') || !this.claimed.has('instance')) {

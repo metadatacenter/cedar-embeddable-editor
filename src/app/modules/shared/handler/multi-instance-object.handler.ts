@@ -265,6 +265,43 @@ export class MultiInstanceObjectHandler {
     return this.getDataPathNodeRecursively(this.stateRoot, this.templateRepresentation, path);
   }
 
+  /**
+   * The entry a pager was last turned to, at a place named entry by entry rather than
+   * through the cursors above it: `['_author', 1, '_affiliation']` is the affiliation
+   * pager in the second author. A single element's one entry is 0.
+   */
+  chosenIndexAt(place: ReadonlyArray<string | number>): number | null {
+    return this.stateAt(place)?.chosenIndex ?? null;
+  }
+
+  /** Turn the pager at such a place to an entry. A place the tree does not have is left alone. */
+  setCurrentIndexAt(place: ReadonlyArray<string | number>, index: number): void {
+    const state = this.stateAt(place);
+    if (state !== null) {
+      state.currentIndex = index;
+    }
+  }
+
+  private stateAt(place: ReadonlyArray<string | number>): MultiInstanceObjectInfo | null {
+    let container = this.stateRoot;
+    let state: MultiInstanceObjectInfo | null = null;
+    for (const step of place) {
+      if (typeof step === 'number') {
+        const occurrence = state?.occurrences[step];
+        if (occurrence === undefined) {
+          return null;
+        }
+        container = occurrence;
+      } else {
+        state = container.getState(step);
+        if (state === null) {
+          return null;
+        }
+      }
+    }
+    return state;
+  }
+
   private getDataPathNodeRecursively(
     multiInstanceObject: MultiInstanceInfo,
     /*
