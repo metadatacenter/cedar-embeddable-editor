@@ -34,6 +34,7 @@ import { InstanceValueNode } from './instance-value-node';
  * other: text that looks like a web address is still text.
  */
 export function carriedValue(before: FieldComponent, after: FieldComponent, answer: InstanceNode): InstanceNode | null {
+  if (holdsAnswer(answer) && !hasTemporalParts(before, after)) return null;
   let already: Set<string> | null = null;
   for (const candidate of [unchanged(after, answer), restate(before, after, answer)]) {
     if (candidate === null) {
@@ -46,6 +47,38 @@ export function carriedValue(before: FieldComponent, after: FieldComponent, answ
     }
   }
   return null;
+}
+
+/** Draft widget state can only be interpreted by a compatible input configuration. */
+export function compatibleDraft(before: FieldComponent, after: FieldComponent): boolean {
+  return (
+    before.basicInfo.inputType === after.basicInfo.inputType &&
+    (after.basicInfo.inputType !== InputType.temporal ||
+      _.isEqual(temporalConfiguration(before), temporalConfiguration(after)))
+  );
+}
+
+/** Storage padding is not information supplied by the reader. */
+function hasTemporalParts(before: FieldComponent, after: FieldComponent): boolean {
+  if (before.basicInfo.inputType !== InputType.temporal || after.basicInfo.inputType !== InputType.temporal)
+    return true;
+  const meaningful = (field: FieldComponent): Set<string> => {
+    const parts = new Set<string>();
+    const type = field.valueInfo.temporalType;
+    const precision = field.basicInfo.temporalGranularity;
+    const granularities = ['year', 'month', 'day', 'hour', 'minute', 'second', 'decimalSecond'];
+    const last = granularities.indexOf(precision ?? '');
+    if (type !== 'xsd:time') {
+      for (const [index, part] of ['year', 'month', 'day'].entries()) if (index <= last) parts.add(part);
+    }
+    if (type !== 'xsd:date') {
+      for (const [index, part] of ['hour', 'minute', 'second', 'decimalSecond'].entries())
+        if (index + 3 <= last) parts.add(part);
+    }
+    return parts;
+  };
+  const supplied = meaningful(before);
+  return [...meaningful(after)].every((part) => supplied.has(part));
 }
 
 /** Whether an entry holds anything: a value, or an attribute's name. */

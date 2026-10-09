@@ -148,6 +148,7 @@ export class DataContext {
     this.invalidateDerivedViews();
 
     this.savedTemplateID = null;
+    handlerContext.previewEdits.seed(this.instanceFullData.dataContainer);
     // Built in read-only mode too. The guard used to skip it on the reasoning
     // that nothing can be edited, so validity was uninteresting — but a viewer
     // showing an injected instance is exactly where knowing it is malformed

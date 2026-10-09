@@ -1,8 +1,6 @@
 import * as _ from 'lodash-es';
 import { InstanceDataAttributeValueFieldName, TemplateInstance } from 'cedar-model-typescript-library';
-import { DataObjectBuilderHandler } from '../handler/data-object-builder.handler';
 import { CedarComponent } from '../models/component/cedar-component.model';
-import { DataQualityReport } from '../models/data-quality-report.model';
 import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
 import { MultiElementComponent } from '../models/element/multi-element-component.model';
 import { AbstractFieldComponent } from '../models/field/abstract-field-component.model';
@@ -10,336 +8,238 @@ import { MultiFieldComponent } from '../models/field/multi-field-component.model
 import { InstanceNode, InstanceObject, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
 import { InputType } from '../models/input-type.model';
 import { CedarTemplate } from '../models/template/cedar-template.model';
-import { ValidationProblem } from '../validation/validation-problem.model';
-import { carriedValue, holdsAnswer } from './carried-value';
+import { carriedValue, holdsAnswer, compatibleDraft } from './carried-value';
 import { DataObjectUtil } from './data-object-util';
 import { InstanceValueNode } from './instance-value-node';
+import type { HandlerContext } from './handler-context';
+import { CarriedAnswerValidation } from './carried-answer-validation';
 
-/** A form: the template it renders and the instance a reader is filling in. */
 export interface CarriedForm {
   readonly template: CedarTemplate;
   readonly instance: TemplateInstance;
 }
 
-/**
- * A place in a form, named entry by entry: `['_author', 1, '_affiliation']` is the
- * affiliation list in the second author. A single element's one entry is 0.
- */
+/** A single element's one occurrence is also addressed with a zero. */
 export type FormPlace = ReadonlyArray<string | number>;
-
-/** The entry a pager should show once the new form is up. */
 export interface CarriedCursor {
   readonly place: FormPlace;
   readonly index: number;
 }
 
+type Holding = 'one' | 'paged' | 'selection';
+interface Carried {
+  readonly node: InstanceNode;
+  readonly answered: boolean;
+}
+interface Entry extends Carried {
+  readonly origin: number | null;
+}
+type Restated =
+  | { kind: 'kept'; node: InstanceNode; origin: number; answered: boolean }
+  | { kind: 'default' | 'rejected'; origin: number };
+
 /**
- * Move what a reader has entered in one form onto the form built to replace it, as
- * much of it as the new form will take without complaint.
- *
- * A host previewing a template it is editing assigns each edit as a new template,
- * and each one builds a new form. The reader trying the form out should lose as
- * little as possible, and should never be shown an error that comes from the
- * carrying: an answer the new form would flag is dropped without a word.
- *
- * Four rules decide it.
- *
- * - **Which child is which.** A child of the new template continues one of the old
- *   template's children with the same property IRI, which is what the instance's
- *   property is, or failing that with the same key. A field continues a field and an
- *   element an element. So an author renaming a field keeps its answers; a field
- *   moved into another element starts afresh.
- * - **What the reader entered.** An answer is whatever differs from what the old form
- *   started with, rebuilt from the old template to compare against, and an entry the
- *   reader added is compared with what the add button gives. Emptying a default counts:
- *   it stays empty. What the reader left alone is not carried, so it shows the new
- *   template's own state, such as a default the author has just changed.
- * - **Which values survive.** Each answer is kept as it stands, or restated for the new
- *   field, wherever the form's validator finds no error in it that the reader's entry
- *   did not already have — see `carriedValue`.
- * - **How many entries survive.** Entries keep their positions. Past a maximum the
- *   author has lowered, entries holding no answer go first, then the last ones. Short
- *   of a new minimum, the new form's own entries fill in. A field or element that
- *   becomes single keeps its first answered entry; one that becomes repeating holds it
- *   as its first. A checkbox group or multiple-choice list is one answer, its set of
- *   selections, rather than a list of entries.
- *
- * Writes into `next.instance`, which is expected to be the instance just built for
- * `next.template` and not yet shown to anyone, and returns where each pager should
- * stand so that the reader stays on the entry they were looking at, or the nearest
- * one before it that survived. `chosenIndex` reads where a pager stood in the old form.
+ * The preview's synchronization boundary. Match declarations once, migrate their
+ * editing state, then repair only unexpected findings. The candidate is private
+ * until this returns; an unrecoverable structural failure may still refuse it.
  */
 export function carryAnswers(
   previous: CarriedForm,
   next: CarriedForm,
-  builder: DataObjectBuilderHandler,
-  chosenIndex: (place: FormPlace) => number | null,
-): CarriedCursor[] {
-  const started = builder.buildNewFullDataObject(previous.template);
-  return new AnswerCarrier(builder, chosenIndex).container(
-    previous.template,
-    next.template,
-    previous.instance.dataContainer,
-    started.dataContainer,
-    next.instance.dataContainer,
-    [],
-  ).cursors;
-}
-
-/**
- * The errors a report holds, each named by its field and its kind.
- *
- * Not by entry: a form holding more entries than another repeats the template's own
- * problems once for each, and those are not errors the carrying caused.
- */
-export function reportedErrors(report: DataQualityReport | null): Set<string> {
-  return new Set(
-    (report?.problems ?? []).filter((problem) => problem.severity === 'error').map((problem) => errorKey(problem)),
-  );
-}
-
-/**
- * Put back what the new form would hold wherever its report finds an error that
- * neither a form built afresh nor the reader's own form had, or with `empty`, leave
- * the place empty.
- *
- * `carriedValue` asks the validator the report is built from, so the first pass
- * should rarely find anything. It is here so that the promise holds even where the
- * two see a value differently: whatever is carried, the reader is never shown an
- * error that the template alone, or their own entry, would not show them. The second
- * pass is for a template whose own default its constraints refuse, which a fresh form
- * shows nowhere while it has no entry to put the default in, but which an entry the
- * reader added would. True when anything was changed.
- */
-export function withdrawFlaggedAnswers(
-  form: CarriedForm,
-  report: DataQualityReport | null,
-  allowed: ReadonlySet<string>,
-  builder: DataObjectBuilderHandler,
-  empty = false,
+  before: HandlerContext,
+  after: HandlerContext,
 ): boolean {
-  let withdrawn = false;
-  for (const problem of report?.problems ?? []) {
-    if (problem.severity === 'error' && !allowed.has(errorKey(problem))) {
-      withdrawn = withdrawAt(form, problem, builder, empty) || withdrawn;
+  const validation = new CarriedAnswerValidation(
+    previous,
+    before.dataContext.dataQualityReport,
+    next,
+    after.dataContext.dataQualityReport,
+  );
+  const carrier = new AnswerCarrier(before, after, validation);
+  carrier.container(previous.template, next.template, previous.instance.dataContainer, next.instance.dataContainer, []);
+  const settle = () => {
+    after.multiInstanceObjectService.buildNewOrFromMetadata(next.template, next.instance.dataContainer);
+    carrier.restoreCursors(next);
+    after.dataContext.invalidateDerivedViews();
+    after.buildQualityReport();
+  };
+  settle();
+  // Every successful repair replaces a bad value or removes an optional branch.
+  // Re-resolve after each repair: removing an occurrence changes report addresses.
+  for (;;) {
+    const problems = validation.unexpected(next, after.dataContext.dataQualityReport);
+    if (problems.length === 0) {
+      after.previewEdits.seed(next.instance.dataContainer);
+      return true;
     }
+    if (!validation.repair(next, problems[0], after.dataObjectBuilderService)) return false;
+    settle();
   }
-  return withdrawn;
 }
-
-/** What was carried into one child or one entry. */
-interface Carried {
-  readonly node: InstanceNode;
-  /** Whether it holds anything the reader entered, rather than only what the new form put there. */
-  readonly answered: boolean;
-  /** Pager positions within it, named from it. */
-  readonly cursors: CarriedCursor[];
-}
-
-/** One entry of a list being fitted to its new bounds. */
-interface Entry extends Carried {
-  /** Its position in the old form, or null for an entry the new form supplied. */
-  readonly origin: number | null;
-}
-
-/** One entry of a field's answer, restated for the new field, or null where nothing survives. */
-interface Restated {
-  readonly node: InstanceNode | null;
-  readonly origin: number;
-}
-
-/**
- * How a component holds its entries.
- *
- * `selection` is a checkbox group or a multiple-choice list, whose list is one
- * answer rather than entries the form pages through.
- */
-type Holding = 'one' | 'paged' | 'selection';
 
 class AnswerCarrier {
   private readonly additions = new Map<CedarComponent, InstanceNode>();
+  /** Object references survive pruning, unlike an address captured before repair. */
+  private readonly cursors = new WeakMap<InstanceNode[], InstanceNode[]>();
 
   constructor(
-    private readonly builder: DataObjectBuilderHandler,
-    private readonly chosenIndex: (place: FormPlace) => number | null,
+    private readonly before: HandlerContext,
+    private readonly after: HandlerContext,
+    private readonly validation: CarriedAnswerValidation,
   ) {}
 
-  /**
-   * Carry the answers held by an element's entry, or by the instance root.
-   *
-   * `place` names the old entry, so that pagers in it can be read.
-   */
   container(
     before: AbstractElementComponent,
     after: AbstractElementComponent,
     answered: InstanceObject,
-    started: InstanceObject,
     target: InstanceObject,
     place: FormPlace,
-  ): { answered: boolean; cursors: CarriedCursor[] } {
+  ): boolean {
     let anything = false;
-    const cursors: CarriedCursor[] = [];
     const declared = new Set(after.children.map((child) => child.name));
     for (const [previous, component] of correspondingChildren(before, after)) {
-      if (!answered.hasValue(previous.name)) {
-        continue;
-      }
       const answer = answered.values[previous.name];
-      const start = started.values[previous.name] ?? null;
-      if (_.isEqual(answer, start)) {
-        continue;
-      }
+      if (answer === undefined) continue;
       const fresh = target.values[component.name] ?? null;
       const childPlace = [...place, previous.name];
       const carried =
         previous instanceof AbstractFieldComponent && component instanceof AbstractFieldComponent
-          ? this.field(previous, component, answer, start, fresh, childPlace, declared)
+          ? this.field(previous, component, answer, fresh, childPlace, declared)
           : previous instanceof AbstractElementComponent && component instanceof AbstractElementComponent
-            ? this.element(previous, component, answer, start, fresh, childPlace)
+            ? this.element(previous, component, answer, fresh, childPlace)
             : null;
-      if (carried === null) {
-        continue;
-      }
+      if (carried === null) continue;
       target.setValue(component.name, carried.node);
       if (component instanceof AbstractFieldComponent && component.basicInfo.inputType === InputType.attributeValue) {
         this.attributes(component, carried.node, answered, target);
       }
-      anything = anything || carried.answered;
-      cursors.push(...carried.cursors.map((cursor) => within(component.name, cursor)));
+      anything ||= carried.answered;
     }
-    return { answered: anything, cursors };
+    return anything;
   }
 
   private field(
     before: AbstractFieldComponent,
     after: AbstractFieldComponent,
     answer: InstanceNode,
-    start: InstanceNode | null,
     fresh: InstanceNode | null,
     place: FormPlace,
     declared: ReadonlySet<string>,
   ): Carried | null {
-    const restated = this.restated(before, after, answer, start, declared);
-    const given = restated.filter((entry): entry is { node: InstanceNode; origin: number } => entry.node !== null);
+    // Values and cursors have independent lifetimes. Even a pristine list has a pager.
+    if (!this.before.previewEdits.edited(answer)) {
+      if (fresh === null) return null;
+      if (Array.isArray(fresh) && holdingOf(after) === 'paged') {
+        this.rememberCursor(
+          before,
+          place,
+          fresh.map((node, origin) => ({ node, origin, answered: false })),
+          fresh,
+        );
+      }
+      if (_.isEqual(answer, fresh)) this.validation.inherit(answer, fresh, true);
+      return { node: fresh, answered: false };
+    }
+    const restated: Restated[] = entriesOf(answer).map((entry, origin) => {
+      const paged = holdingOf(before) === 'paged';
+      if (paged && !this.before.previewEdits.edited(entry)) return { kind: 'default', origin };
+      const draft = this.before.validation.draftAt(entry);
+      const retainDraft = draft !== null && compatibleDraft(before, after);
+      const node = carriedValue(before, after, entry);
+      if (node === null || (node instanceof InstanceDataAttributeValueFieldName && declared.has(node.name)))
+        return { kind: 'rejected', origin };
+      const baseline =
+        after instanceof MultiFieldComponent
+          ? this.freshEntry(after, fresh, paged ? this.before.previewEdits.slot(entry) : 0)
+          : (fresh ?? DataObjectUtil.getEmptyValueWrapper(after));
+      this.after.previewEdits.inherit(this.before.previewEdits, entry, node, baseline);
+      if (!paged) this.after.previewEdits.own(node);
+      this.validation.inherit(entry, node);
+      if (retainDraft) this.after.validation.restoreDraft(node, draft);
+      return { kind: 'kept', node, origin, answered: holdsAnswer(node) || retainDraft };
+    });
+    const given = restated.filter((entry): entry is Extract<Restated, { kind: 'kept' }> => entry.kind === 'kept');
     const holding = holdingOf(after);
     if (holding === 'one') {
-      // The first entry holding something, or else an emptied one: clearing a default is an answer too.
-      const chosen = given.find((entry) => holdsAnswer(entry.node)) ?? given[0];
-      return chosen === undefined ? null : { node: chosen.node, answered: holdsAnswer(chosen.node), cursors: [] };
+      const chosen = given.find((entry) => entry.answered) ?? given[0];
+      return chosen ? { node: chosen.node, answered: chosen.answered } : null;
     }
-    if (!(after instanceof MultiFieldComponent)) {
-      return null;
-    }
+    if (!(after instanceof MultiFieldComponent)) return null;
     if (holding === 'selection') {
-      // Every selection refused: the place shows what a new form holds. None made: an empty selection.
-      if (given.length === 0 && restated.length > 0) {
-        return null;
-      }
-      const entries = distinct(given).map((entry): Entry => ({
-        ...entry,
-        answered: holdsAnswer(entry.node),
-        cursors: [],
-      }));
+      if (given.length === 0 && restated.length > 0) return null;
+      const entries = distinct(given).map((entry): Entry => ({ ...entry, answered: holdsAnswer(entry.node) }));
       const fitted = fit(before, after, entries, () => DataObjectUtil.getEmptyValueWrapper(after));
-      return { node: fitted.map((entry) => entry.node), answered: fitted.some((entry) => entry.answered), cursors: [] };
+      return this.list(answer, fresh, fitted, false, before, place);
     }
     const entries: Entry[] =
       holdingOf(before) === 'paged'
-        ? restated.map((entry) => ({
-            node: entry.node ?? this.freshEntry(after, fresh, entry.origin),
-            answered: entry.node !== null && holdsAnswer(entry.node),
-            origin: entry.origin,
-            cursors: [],
-          }))
-        : given.map((entry) => ({ node: entry.node, answered: holdsAnswer(entry.node), origin: null, cursors: [] }));
-    if (entries.length === 0) {
-      return null;
-    }
+        ? restated.map((entry) => {
+            if (entry.kind === 'kept') return entry;
+            const old = entriesOf(answer)[entry.origin];
+            const node = this.freshEntry(after, fresh, this.before.previewEdits.slot(old));
+            if (entry.kind === 'default') {
+              this.after.previewEdits.inherit(this.before.previewEdits, old, node, node);
+              if (_.isEqual(old, node)) this.validation.inherit(old, node);
+            }
+            return { node, answered: false, origin: entry.origin };
+          })
+        : given.map((entry) => ({ node: entry.node, answered: entry.answered, origin: null }));
+    // An explicit empty collection is an edit. Only rejected nonempty input falls back.
+    if (entries.length === 0 && entriesOf(answer).length > 0) return null;
     const fitted = fit(before, after, entries, (index) => this.freshEntry(after, fresh, index));
-    return {
-      node: fitted.map((entry) => entry.node),
-      answered: fitted.some((entry) => entry.answered),
-      cursors: [{ place: [], index: this.cursorIndex(before, place, fitted) }],
-    };
-  }
-
-  /**
-   * Each entry of a field's answer, restated for the new field.
-   *
-   * Only entries the reader changed are restated; the rest come back as null. A
-   * single field or a selection differs from where it started as a whole, which is
-   * why it is being carried at all, so all its entries count as changed.
-   */
-  private restated(
-    before: AbstractFieldComponent,
-    after: AbstractFieldComponent,
-    answer: InstanceNode,
-    start: InstanceNode | null,
-    declared: ReadonlySet<string>,
-  ): Restated[] {
-    const paged = before instanceof MultiFieldComponent && holdingOf(before) === 'paged';
-    const startedEntries = entriesOf(start);
-    return entriesOf(answer).map((entry, origin) => {
-      const changed = !paged || !_.isEqual(entry, startedEntries[origin] ?? this.addition(before));
-      const node = changed ? carriedValue(before, after, entry) : null;
-      // An attribute cannot take the name of a property the template declares beside it.
-      const clashes = node instanceof InstanceDataAttributeValueFieldName && declared.has(node.name);
-      return { node: clashes ? null : node, origin };
-    });
+    return this.list(answer, fresh, fitted, true, before, place);
   }
 
   private element(
     before: AbstractElementComponent,
     after: AbstractElementComponent,
     answer: InstanceNode,
-    start: InstanceNode | null,
     fresh: InstanceNode | null,
     place: FormPlace,
   ): Carried | null {
-    const startedEntries = entriesOf(start);
+    const edited = this.before.previewEdits.edited(answer);
+    const oldEntries = entriesOf(answer);
     const freshEntries = entriesOf(fresh);
+    const occurrences = edited ? oldEntries : freshEntries;
     const entries: Entry[] = [];
-    entriesOf(answer).forEach((occurrence, origin) => {
-      if (!isInstanceObject(occurrence)) {
+    occurrences.forEach((occurrence, origin) => {
+      const old = oldEntries[origin];
+      if (!isInstanceObject(old)) {
+        entries.push({ node: occurrence, origin: null, answered: false });
         return;
       }
-      const startedEntry = startedEntries[origin];
-      const freshEntry = freshEntries[origin];
-      const target = isInstanceObject(freshEntry) ? freshEntry : this.newEntry(after);
-      const merged = this.container(
-        before,
-        after,
-        occurrence,
-        isInstanceObject(startedEntry) ? startedEntry : this.newEntry(before),
-        target,
-        [...place, origin],
-      );
-      entries.push({ node: target, answered: merged.answered, origin, cursors: merged.cursors });
+      const slot = edited ? this.before.previewEdits.slot(old) : origin;
+      const seeded = slot === null ? undefined : freshEntries[slot];
+      const target = isInstanceObject(seeded) ? this.cloneFresh(seeded) : this.newEntry(after);
+      const answered = this.container(before, after, old, target, [...place, origin]);
+      this.after.previewEdits.inherit(this.before.previewEdits, old, target, target);
+      this.validation.inherit(old, target);
+      entries.push({ node: target, answered, origin });
     });
     if (!(after instanceof MultiElementComponent)) {
       const chosen = entries.find((entry) => entry.answered) ?? entries[0];
-      return chosen === undefined
-        ? null
-        : { node: chosen.node, answered: chosen.answered, cursors: chosen.cursors.map((cursor) => within(0, cursor)) };
-    }
-    if (entries.length === 0) {
-      return null;
+      return chosen ? { node: chosen.node, answered: chosen.answered } : null;
     }
     const fitted = fit(before, after, entries, (index) => this.freshEntry(after, fresh, index));
-    return {
-      node: fitted.map((entry) => entry.node),
-      answered: fitted.some((entry) => entry.answered),
-      cursors: [
-        { place: [], index: this.cursorIndex(before, place, fitted) },
-        ...fitted.flatMap((entry, index) => entry.cursors.map((cursor) => within(index, cursor))),
-      ],
-    };
+    return this.list(answer, fresh, fitted, true, before, place);
   }
 
-  /**
-   * The values an attribute-value field holds, which sit beside it in its container
-   * under the names the reader gave them.
-   */
+  private list(
+    answer: InstanceNode,
+    fresh: InstanceNode | null,
+    entries: Entry[],
+    paged: boolean,
+    before: CedarComponent,
+    place: FormPlace,
+  ): Carried {
+    const nodes = entries.map((entry) => entry.node);
+    this.after.previewEdits.inherit(this.before.previewEdits, answer, nodes, fresh ?? []);
+    this.validation.inherit(answer, nodes);
+    if (fresh) this.validation.copyFresh(fresh, nodes, false);
+    if (paged) this.rememberCursor(before, place, entries, nodes);
+    return { node: nodes, answered: entries.some((entry) => entry.answered) };
+  }
+
   private attributes(
     field: AbstractFieldComponent,
     carried: InstanceNode,
@@ -348,70 +248,90 @@ class AnswerCarrier {
   ): void {
     let named = false;
     for (const slot of entriesOf(carried)) {
-      if (!(slot instanceof InstanceDataAttributeValueFieldName) || slot.name === '') {
-        continue;
-      }
+      if (!(slot instanceof InstanceDataAttributeValueFieldName) || slot.name === '') continue;
       named = true;
-      if (target.hasValue(slot.name) || !answered.hasValue(slot.name)) {
-        continue;
-      }
+      if (target.hasValue(slot.name) || !answered.hasValue(slot.name)) continue;
       target.setValue(slot.name, _.cloneDeep(answered.values[slot.name]));
-      if (answered.hasIri(slot.name)) {
-        target.setIri(slot.name, answered.iris[slot.name]);
+      if (answered.hasIri(slot.name)) target.setIri(slot.name, answered.iris[slot.name]);
+    }
+    if (named) target.removeIri(field.name);
+  }
+
+  private rememberCursor(before: CedarComponent, place: FormPlace, entries: Entry[], nodes: InstanceNode[]): void {
+    const chosen = holdingOf(before) === 'paged' ? this.before.multiInstanceObjectService.chosenIndexAt(place) : null;
+    const exact = entries.findIndex((entry) => entry.origin === chosen);
+    const index =
+      exact >= 0
+        ? exact
+        : Math.max(
+            _.findLastIndex(entries, (entry) => entry.origin !== null && chosen !== null && entry.origin < chosen),
+            0,
+          );
+    this.cursors.set(nodes, nodes.slice(0, index + 1).reverse());
+  }
+
+  restoreCursors(form: CarriedForm): void {
+    const visit = (component: AbstractElementComponent, container: InstanceObject, place: FormPlace) => {
+      for (const child of component.children) {
+        const node = container.values[child.name];
+        if (node === undefined) continue;
+        const childPlace = [...place, child.name];
+        if (Array.isArray(node)) {
+          const cursor = this.cursors.get(node);
+          if (cursor) {
+            const surviving = cursor.find((entry) => node.includes(entry));
+            this.after.multiInstanceObjectService.setCurrentIndexAt(
+              childPlace,
+              surviving ? node.indexOf(surviving) : 0,
+            );
+          }
+        }
+        if (child instanceof AbstractElementComponent) {
+          entriesOf(node).forEach((entry, index) => {
+            if (isInstanceObject(entry)) visit(child, entry, [...childPlace, index]);
+          });
+        }
       }
-    }
-    // Naming an attribute takes the field's own property IRI off the container.
-    if (named) {
-      target.removeIri(field.name);
-    }
+    };
+    visit(form.template, form.instance.dataContainer, []);
   }
 
-  /**
-   * Where a pager should stand: on the entry the reader was on, wherever fitting
-   * moved it, or on the nearest one before it when that entry went.
-   */
-  private cursorIndex(before: CedarComponent, place: FormPlace, fitted: Entry[]): number {
-    const chosen = holdingOf(before) === 'paged' ? this.chosenIndex(place) : null;
-    if (chosen === null || chosen < 0) {
-      return 0;
-    }
-    const kept = fitted.findIndex((entry) => entry.origin === chosen);
-    if (kept !== -1) {
-      return kept;
-    }
-    return Math.max(
-      _.findLastIndex(fitted, (entry) => entry.origin !== null && entry.origin < chosen),
-      0,
-    );
+  private cloneFresh<T extends InstanceNode>(node: T, slot: number | null = 0): T {
+    const copy = _.cloneDeep(node);
+    this.validation.copyFresh(node, copy);
+    this.after.previewEdits.seed(copy, slot);
+    return copy;
   }
 
-  /** What the new form holds at this position of a list, or what the add button gives past its end. */
-  private freshEntry(after: MultiFieldComponent | MultiElementComponent, fresh: InstanceNode | null, index: number) {
-    const held = entriesOf(fresh)[index];
-    return held === undefined ? this.addition(after) : _.cloneDeep(held);
+  private freshEntry(
+    after: MultiFieldComponent | MultiElementComponent,
+    fresh: InstanceNode | null,
+    index: number | null,
+  ): InstanceNode {
+    const held = index === null ? undefined : entriesOf(fresh)[index];
+    return held === undefined ? this.addition(after) : this.cloneFresh(held, index);
   }
 
-  /** A new entry of an element: what the add button gives a repeating one, or an empty single one. */
   private newEntry(component: AbstractElementComponent): InstanceObject {
     const entry = component instanceof MultiElementComponent ? this.addition(component) : null;
-    return isInstanceObject(entry) ? entry : this.builder.buildOccurrence(component);
+    return isInstanceObject(entry) ? entry : this.after.dataObjectBuilderService.buildOccurrence(component);
   }
 
-  /** What the add button gives this component, built once per carry and copied for each use. */
   private addition(component: MultiFieldComponent | MultiElementComponent): InstanceNode {
     let built = this.additions.get(component);
     if (built === undefined) {
       built =
-        this.builder.buildAddedOccurrence(component) ??
+        this.after.dataObjectBuilderService.buildAddedOccurrence(component) ??
         (component instanceof MultiFieldComponent
           ? DataObjectUtil.getEmptyValueWrapper(component)
-          : this.builder.buildOccurrence(component));
+          : this.after.dataObjectBuilderService.buildOccurrence(component));
       this.additions.set(component, built);
     }
-    return _.cloneDeep(built);
+    const copy = _.cloneDeep(built);
+    this.after.previewEdits.seed(copy, null);
+    return copy;
   }
 }
-
 /**
  * Which child of the new container continues which child of the old one, as
  * `[old, new]` pairs in the new container's order.
@@ -513,7 +433,7 @@ function fit(
     }
   }
   while (kept.length < after.multiInfo.getSafeMinItems()) {
-    kept.push({ node: fill(kept.length), answered: false, origin: null, cursors: [] });
+    kept.push({ node: fill(kept.length), answered: false, origin: null });
   }
   return kept;
 }
@@ -554,54 +474,4 @@ function entriesOf(node: InstanceNode | null): InstanceNode[] {
     return node;
   }
   return node === null ? [] : [node];
-}
-
-/** A cursor named from a child, named instead from the container holding it. */
-function within(step: string | number, cursor: CarriedCursor): CarriedCursor {
-  return { place: [step, ...cursor.place], index: cursor.index };
-}
-
-/** A field holding nothing: an empty slot, or as many as its list must have. */
-function emptied(field: AbstractFieldComponent): InstanceNode {
-  if (!(field instanceof MultiFieldComponent)) {
-    return DataObjectUtil.getEmptyValueWrapper(field);
-  }
-  return Array.from({ length: field.multiInfo.getSafeMinItems() }, () => DataObjectUtil.getEmptyValueWrapper(field));
-}
-
-function errorKey(problem: ValidationProblem): string {
-  return JSON.stringify([problem.path, problem.code]);
-}
-
-/** Give one child, in the entries a problem names, what a new form holds for it, or nothing at all. */
-function withdrawAt(
-  form: CarriedForm,
-  problem: ValidationProblem,
-  builder: DataObjectBuilderHandler,
-  empty: boolean,
-): boolean {
-  let component: AbstractElementComponent = form.template;
-  let container: InstanceNode | null = form.instance.dataContainer;
-  let entry = 0;
-  for (const [step, name] of problem.path.entries()) {
-    const child = component.getChildByName(name);
-    if (child === null || !isInstanceObject(container)) {
-      return false;
-    }
-    if (step === problem.path.length - 1) {
-      const value = empty && child instanceof AbstractFieldComponent ? emptied(child) : builder.buildChild(child);
-      if (value === null) {
-        return false;
-      }
-      container.setValue(name, value);
-      return true;
-    }
-    if (!(child instanceof AbstractElementComponent)) {
-      return false;
-    }
-    const held: InstanceNode | null = container.values[name] ?? null;
-    container = child instanceof MultiElementComponent ? (entriesOf(held)[problem.occurrences[entry++]] ?? null) : held;
-    component = child;
-  }
-  return false;
 }

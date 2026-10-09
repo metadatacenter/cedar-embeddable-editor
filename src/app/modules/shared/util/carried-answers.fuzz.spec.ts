@@ -250,6 +250,25 @@ function edit(rng: Random, children: readonly ChildSpec[]): { children: ChildSpe
 const written = (reader: Reader): Record<string, unknown> =>
   InstanceSerializer.toJson(reader.coordinator.state.dataContext.instanceFullData) as Record<string, unknown>;
 
+/** Independent oracle: renames preserve property identity, and one error cannot
+ * authorize arbitrarily many occurrences or a different offending value. */
+function errorCounts(reader: Reader, children: readonly ChildSpec[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const problem of reader.coordinator.state.dataContext.dataQualityReport?.problems ?? []) {
+    if (problem.severity !== 'error') continue;
+    let siblings = children;
+    const identity = problem.path.map((name) => {
+      const child = siblings.find((candidate) => candidate.key === name);
+      if (!child) throw new Error(`Unknown report path ${problem.path.join('/')}`);
+      siblings = isElement(child) ? child.element : [];
+      return child.iri ?? `https://schema.metadatacenter.org/properties/${encodeURIComponent(child.key)}`;
+    });
+    const key = JSON.stringify([identity, problem.code, problem.value]);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+}
+
 describe('carrying answers through edits nobody chose', () => {
   const runs = ONLY === undefined ? Array.from({ length: RUNS }, (_, run) => run) : [Number(ONLY)];
   it.each(runs)('run %i', (run) => {
@@ -258,7 +277,7 @@ describe('carrying answers through edits nobody chose', () => {
     const children = template(rng);
     const reader = new Reader().open(templateJson(children));
     fill(rng, reader, children);
-    const own = new Set(reader.errors());
+    const own = errorCounts(reader, children);
 
     // The same template again changes nothing.
     const before = written(reader);
@@ -268,7 +287,7 @@ describe('carrying answers through edits nobody chose', () => {
     // An edit brings no error with it, and leaves what it did not touch alone.
     const edited = edit(rng, children);
     const target = templateJson(edited.children);
-    const fresh = new Set(new Reader().open(target).errors());
+    const fresh = errorCounts(new Reader().open(target), edited.children);
     reader.open(target);
     if (ONLY !== undefined) {
       console.log(
@@ -278,7 +297,9 @@ describe('carrying answers through edits nobody chose', () => {
         JSON.stringify({ after: written(reader), errors: reader.errors(), trace: reader.trace.mock.calls }, null, 1),
       );
     }
-    expect(reader.errors().filter((error) => !fresh.has(error) && !own.has(error))).toEqual([]);
+    for (const [error, count] of errorCounts(reader, edited.children)) {
+      expect(count, error).toBeLessThanOrEqual((own.get(error) ?? 0) + (fresh.get(error) ?? 0));
+    }
     expect(reader.trace).not.toHaveBeenCalledWith(expect.stringContaining('answers not carried'));
     expect(reader.error).not.toHaveBeenCalled();
 

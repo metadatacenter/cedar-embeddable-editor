@@ -1,5 +1,4 @@
 import { FieldComponent } from '../models/component/field-component.model';
-import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { InstanceNode, isInstanceObject } from '../models/instance-node.model';
 import { CedarTemplate } from '../models/template/cedar-template.model';
 import { HandlerContext } from '../util/handler-context';
@@ -27,13 +26,15 @@ export class ValidationCoordinator {
   constructor(private readonly context: HandlerContext) {}
 
   private currentNode(component: FieldComponent): InstanceNode | null {
-    const held = this.context.getDataObjectNodeByPath(component.path);
-    if (component instanceof MultiFieldComponent && component.isMultiPage() && Array.isArray(held)) {
-      const index =
-        this.context.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentIndex ?? -1;
-      return held[index] ?? null;
-    }
-    return held;
+    return this.context.getCurrentValueNode(component);
+  }
+
+  draftAt(node: InstanceNode): FieldDraft | null {
+    return this.drafts.get(node) ?? null;
+  }
+
+  restoreDraft(node: InstanceNode, draft: FieldDraft): void {
+    this.drafts.set(node, structuredClone(draft));
   }
 
   setDraft(component: FieldComponent, draft: FieldDraft | null): void {

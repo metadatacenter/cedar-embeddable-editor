@@ -37,6 +37,7 @@ import { MessageHandlerService } from '../service/message-handler.service';
 import { ArtifactInputCoordinator } from './artifact-input-coordinator';
 import { InstanceValueNode } from './instance-value-node';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
+import { FieldDraft } from '../validation/validation-coordinator';
 
 export type FieldKind =
   | 'text'
@@ -300,6 +301,15 @@ export class Reader {
     return this;
   }
 
+  typeDraft(place: readonly Step[], draft: FieldDraft): this {
+    this.handler.changeValue(this.field(place), null, draft);
+    return this;
+  }
+
+  draft(place: readonly Step[]): FieldDraft | null {
+    return this.handler.validation.draftFor(this.field(place));
+  }
+
   /** Choose these options of a checkbox group or a multiple-choice list. */
   choose(place: readonly Step[], labels: string[]): this {
     this.handler.changeListValue(this.field(place), labels);
@@ -313,6 +323,18 @@ export class Reader {
       if (!this.handler.addMultiInstance(component as MultiComponent))
         throw new Error(`could not add to ${place.join('/')}`);
     }
+    return this;
+  }
+
+  remove(place: readonly Step[]): this {
+    if (!this.handler.deleteMultiInstance(this.visit(place) as MultiComponent))
+      throw new Error(`could not remove from ${place.join('/')}`);
+    return this;
+  }
+
+  copy(place: readonly Step[]): this {
+    if (!this.handler.copyMultiInstance(this.visit(place) as MultiComponent))
+      throw new Error(`could not copy ${place.join('/')}`);
     return this;
   }
 
