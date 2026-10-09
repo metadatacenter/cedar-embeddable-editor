@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.23] - 2026-10-08
+
+Aligns with `cedar-model-typescript-library@1.0.19`.
+
+- Starts a repeated field or element that states no `minItems` with no entry, since an absent bound now means zero, as it does in JSON Schema. Every template a CEDAR tool writes states its bounds and opens as before.
+
 ## [2.0.22] - 2026-10-08
 
 Aligns with `cedar-model-typescript-library@1.0.18`.
