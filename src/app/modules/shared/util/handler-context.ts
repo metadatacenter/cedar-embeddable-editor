@@ -267,7 +267,7 @@ export class HandlerContext {
       component,
       this.multiInstanceObjectService,
     );
-    this.multiInstanceObjectService.multiInstanceItemDelete(component);
+    this.multiInstanceObjectService.multiInstanceItemDelete(component, index);
     this.previewEdits.structure(slots);
     if (attributeName && isInstanceObject(parent)) {
       const stillReferenced = Object.values(parent.values).some(

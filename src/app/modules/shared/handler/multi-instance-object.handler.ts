@@ -237,19 +237,18 @@ export class MultiInstanceObjectHandler {
     multiInstanceInfo.currentIndex++;
   }
 
-  multiInstanceItemDelete(component: MultiComponent): void {
+  multiInstanceItemDelete(component: MultiComponent, removedIndex: number): void {
     const multiInstanceInfo = this.getDataPathNode(component.path);
     if (multiInstanceInfo === null) {
       return;
     }
 
     if (component instanceof MultiElementComponent) {
-      const currentIdx = multiInstanceInfo.currentIndex;
-      multiInstanceInfo.occurrences.splice(currentIdx, 1);
+      // The instance has already shrunk. Reading currentIndex now clamps the
+      // deleted last index to its predecessor and removes the wrong state tree.
+      multiInstanceInfo.occurrences.splice(removedIndex, 1);
     }
-    // The cursor may now point past the end, and `MultiInstanceObjectInfo` keeps
-    // it inside the occurrences that exist. It was clamped here by hand, which is
-    // the same rule applied in one of the places it holds — see that class.
+    multiInstanceInfo.currentIndex = Math.min(removedIndex, multiInstanceInfo.currentCount - 1);
   }
 
   /*

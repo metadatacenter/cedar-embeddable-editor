@@ -172,7 +172,7 @@ describe('moving occurrences before a template is set', () => {
     const { handlerContext, multi } = emptyContextAnd();
     const info = handlerContext.multiInstanceObjectService;
     expect(() => info.multiInstanceItemCopy(multi)).not.toThrow();
-    expect(() => info.multiInstanceItemDelete(multi)).not.toThrow();
+    expect(() => info.multiInstanceItemDelete(multi, 0)).not.toThrow();
     expect(() => info.multiInstanceItemAdd(multi)).not.toThrow();
   });
 });
