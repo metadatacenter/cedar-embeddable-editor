@@ -196,6 +196,14 @@ export class ModelLibraryTemplateParser implements TemplateParser {
    * `YamlTemplateParser` is four lines.
    */
   parse(templateJson: object, template: CedarTemplate, handlerContext: HandlerContext): void {
+    // The compatibility reader supplies missing blueprint attributes, even for
+    // an empty object or an instance. Require a schema container before asking
+    // it to tolerate legacy details; otherwise an invalid host edit erases the
+    // current form. An empty properties object is still an empty template.
+    const properties = (templateJson as JsonNode)['properties'];
+    if (!properties || typeof properties !== 'object' || Array.isArray(properties)) {
+      throw new Error('A JSON template must have a properties object.');
+    }
     const result = CedarReaders.json()
       .getFebruary2024()
       .getTemplateReader()

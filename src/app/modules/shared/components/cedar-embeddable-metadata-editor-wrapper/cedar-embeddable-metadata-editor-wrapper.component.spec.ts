@@ -251,6 +251,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
    * and none of them looks inside one. `id` makes a failure report readable.
    */
   const artifact = (id: string): CeeJsonObject => ({ '@id': id });
+  const schema = (id: string): CeeJsonObject => ({ '@id': id, properties: {} });
 
   /** What the host was told, as one string. */
   const reported = (errors: Mock): string => errors.mock.calls.map(([message]) => String(message)).join('\n');
@@ -289,9 +290,9 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
    */
   it('replaces a template that has no instance behind it', () => {
     const { component, errors } = make();
-    const second = artifact('second');
+    const second = schema('second');
 
-    component.templateObject = artifact('first');
+    component.templateObject = schema('first');
     component.templateObject = second;
 
     expect(component.templateJson).toEqual(second);
@@ -302,9 +303,9 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
   it('renders each replacement rather than the first one again', () => {
     const { component } = make();
 
-    component.templateObject = artifact('first');
+    component.templateObject = schema('first');
     const first = component.artifactRevision;
-    component.templateObject = artifact('second');
+    component.templateObject = schema('second');
 
     // The revision is what reaches the inner editor and asks it to render, so a
     // replacement that did not move it would leave the previous form on screen.
@@ -313,11 +314,11 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
   it('keeps the template once an instance is loaded against it, and reports the second', () => {
     const { component, errors } = make();
-    const first = artifact('first');
+    const first = schema('first');
 
-    component.instanceObject = artifact('instance');
+    component.instanceObject = schema('instance');
     component.templateObject = first;
-    component.templateObject = artifact('second');
+    component.templateObject = schema('second');
 
     // The answers in front of a person were recorded against the template that would be
     // taken away, and there is no good answer to what becomes of them.
@@ -328,7 +329,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
   it('reports an unreadable template without spending its claim, then accepts the correction', () => {
     const { component, errors } = make();
-    const corrected = artifact('corrected');
+    const corrected = schema('corrected');
 
     component.templateObject = { '@id': {} } as unknown as CeeJsonObject;
 
@@ -397,7 +398,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
    */
   it('accepts a template and an instance as one assignment each', () => {
     const { component, errors } = make();
-    const template = artifact('template');
+    const template = schema('template');
     const instance = artifact('instance');
 
     component.instanceObject = instance;
@@ -428,7 +429,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
     component.ngOnInit();
     component.instanceObject = { '@id': {} };
-    component.templateObject = {};
+    component.templateObject = { properties: {} };
 
     expect(component.instanceJson).toBeNull();
     expect(component.handlerContext.instanceSupplied).toBe(false);
@@ -449,10 +450,10 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
   it('leaves both claims reusable when the combined input contains an unreadable instance', () => {
     const { component, errors } = make();
-    const corrected = { templateObject: artifact('template'), instanceObject: artifact('instance') };
+    const corrected = { templateObject: schema('template'), instanceObject: artifact('instance') };
 
     component.ngOnInit();
-    component.templateAndInstanceObject = { templateObject: {}, instanceObject: { '@id': {} } };
+    component.templateAndInstanceObject = { templateObject: { properties: {} }, instanceObject: { '@id': {} } };
 
     expect(component.templateAndInstanceJson).toBeNull();
     expect(component.editorDataReady()).toBe(false);
@@ -470,9 +471,9 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
   it('spends both claims on the combined input, so neither separate input follows it', () => {
     const { component, errors } = make();
-    component.templateAndInstanceObject = { templateObject: artifact('t'), instanceObject: artifact('i') };
+    component.templateAndInstanceObject = { templateObject: schema('t'), instanceObject: artifact('i') };
 
-    component.templateObject = artifact('template');
+    component.templateObject = schema('template');
     component.instanceObject = artifact('instance');
 
     expect(component.templateJson).toBeNull();
@@ -485,7 +486,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     const { component, errors } = make();
     component.instanceObject = artifact('instance');
 
-    component.templateAndInstanceObject = { templateObject: artifact('t'), instanceObject: artifact('i') };
+    component.templateAndInstanceObject = { templateObject: schema('t'), instanceObject: artifact('i') };
 
     expect(component.templateAndInstanceJson).toBeNull();
     expect(reported(errors)).toContain('"templateAndInstanceObject" ignored, because the instance is already set');
@@ -493,10 +494,10 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
   it('names both halves when the combined input follows itself', () => {
     const { component, errors } = make();
-    const first = { templateObject: artifact('first'), instanceObject: artifact('i') };
+    const first = { templateObject: schema('first'), instanceObject: artifact('i') };
 
     component.templateAndInstanceObject = first;
-    component.templateAndInstanceObject = { templateObject: artifact('second'), instanceObject: artifact('i') };
+    component.templateAndInstanceObject = { templateObject: schema('second'), instanceObject: artifact('i') };
 
     expect(component.templateAndInstanceJson).toEqual(first);
     expect(component.templateAndInstanceJson).not.toBe(first);
@@ -592,7 +593,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
     translate.onTranslationChange.subscribe((event) => announced.push(event.lang));
 
     component.ngOnInit();
-    component.templateObject = {};
+    component.templateObject = { properties: {} };
 
     // The built-in map, since the host has named no source yet.
     expect(translate.instant('Generic.ExpandAll')).toBe('Expand All');
@@ -613,7 +614,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
 
     component.ngOnInit();
     component.config = { languageMapPathPrefix: PREFIX };
-    component.templateObject = {};
+    component.templateObject = { properties: {} };
 
     expect(fetched).toEqual([PREFIX + 'en.json']);
     expect(translate.instant('Generic.ExpandAll')).toBe('Alles Aufklappen');
@@ -628,7 +629,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
     const { component, fetched } = wire();
 
     component.ngOnInit();
-    component.templateObject = {};
+    component.templateObject = { properties: {} };
     component.config = { languageMapPathPrefix: PREFIX, defaultLanguage: 'de' };
 
     expect(fetched.filter((url) => url === PREFIX + 'de.json')).toHaveLength(1);
@@ -639,7 +640,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
     const { component, translate, fetched } = wire();
 
     component.ngOnInit();
-    component.templateObject = {};
+    component.templateObject = { properties: {} };
     component.config = { readOnlyMode: true };
 
     expect(fetched).toEqual([]);
