@@ -157,8 +157,12 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
               // seven services it came from did before that was true.
               map((v: string | null) => v ?? ''),
               map((v: string) => v.trim()),
-              distinctUntilChanged(),
-              switchMap((query: string) => {
+              // Equal text on a new occurrence must still retire the old lookup.
+              map((query) => ({ query, revision: this.valueRevision })),
+              distinctUntilChanged(
+                (before, after) => before.query === after.query && before.revision === after.revision,
+              ),
+              switchMap(({ query }) => {
                 this.lookupFailed = false;
                 if (!query) {
                   this.loadingOptions = false;
@@ -180,6 +184,7 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
                   finalize(() => {
                     this.loadingOptions = false;
                   }),
+                  startWith<AuthorityTerm[]>([]),
                 );
               }),
             ),
@@ -324,7 +329,10 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
     return [this.options];
   }
 
+  private valueRevision = 0;
+
   setCurrentValue(value: AuthorityTerm): void {
+    this.valueRevision++;
     this.selectedData = value;
     this.inputValueControl.setValue(this.getCompoundValue(value), { emitEvent: true });
   }

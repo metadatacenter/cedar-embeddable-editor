@@ -52,6 +52,7 @@ export type FieldKind =
   | 'multiList'
   | 'link'
   | 'orcid'
+  | 'controlled'
   | 'attribute';
 
 export interface FieldSpec {
@@ -168,6 +169,8 @@ function fieldOf(spec: FieldSpec): TemplateField {
     builder.withAtId(fieldId(spec.key)).withSchemaName(spec.key);
   const text = spec.default === undefined ? null : String(spec.default);
   switch (spec.kind) {
+    case 'controlled':
+      return named(CedarBuilders.controlledTermFieldBuilder()).build();
     case 'text':
       return named(CedarBuilders.textFieldBuilder())
         .withMinLength(spec.minLength ?? null)

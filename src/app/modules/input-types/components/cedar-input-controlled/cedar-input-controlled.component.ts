@@ -124,9 +124,14 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
           ? of<AuthorityTerm[]>([])
           : this.inputValueControl.valueChanges.pipe(
               startWith(this.inputValueControl.value ?? ''),
-              distinctUntilChanged(),
+              // Identical text can belong to a different occurrence or template.
+              // A model-to-view assignment starts a new lookup lifetime too.
+              map((query) => ({ query, revision: this.valueRevision })),
+              distinctUntilChanged(
+                (before, after) => before.query === after.query && before.revision === after.revision,
+              ),
               // Cancel the previous request immediately; debounce only the new request.
-              switchMap((val) => {
+              switchMap(({ query: val }) => {
                 this.lookupFailed = false;
                 this.loading = true;
                 return timer(400).pipe(
@@ -136,6 +141,7 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
                     this.messageHandlerService.errorObject(`terminology lookup failed for "${val}"`, error as object);
                   }),
                   finalize(() => (this.loading = false)),
+                  startWith<AuthorityTerm[]>([]),
                 );
               }),
             ),
@@ -280,7 +286,10 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
     return [this.options];
   }
 
+  private valueRevision = 0;
+
   setCurrentValue(currentValue: unknown): void {
+    this.valueRevision++;
     // Remember the term itself, not only its rendering. It is what the BioPortal
     // link is built from, and read-write selection records it the same way.
     const term = isAuthorityTerm(currentValue) ? currentValue : null;
