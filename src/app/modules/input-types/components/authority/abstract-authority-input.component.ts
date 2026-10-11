@@ -1,9 +1,10 @@
+import { LookupContext } from '../../../shared/util/lookup-context';
 import { AfterViewInit, Directive, Input, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ErrorStateMatcher, MatOptionSelectionChange } from '@angular/material/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { Observable, of, timer } from 'rxjs';
-import { distinctUntilChanged, finalize, map, startWith, switchMap } from 'rxjs/operators';
+import { distinctUntilChanged, finalize, map, scan, startWith, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { HandlerContext } from '../../../shared/util/handler-context';
@@ -158,18 +159,24 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
               map((v: string | null) => v ?? ''),
               map((v: string) => v.trim()),
               // Equal text on a new occurrence must still retire the old lookup.
-              map((query) => ({ query, revision: this.valueRevision })),
+              map((query) => ({ query, revision: this.valueRevision, scope: this.scopeRevision })),
               distinctUntilChanged(
                 (before, after) => before.query === after.query && before.revision === after.revision,
               ),
-              switchMap(({ query }) => {
+              scan((previous, next) => ({ ...next, clear: previous.scope !== next.scope }), {
+                query: '',
+                revision: -1,
+                scope: -1,
+                clear: true,
+              }),
+              switchMap(({ query, clear }) => {
                 this.lookupFailed = false;
                 if (!query) {
                   this.loadingOptions = false;
                   return of<AuthorityTerm[]>([]);
                 }
                 this.loadingOptions = true;
-                return timer(400).pipe(
+                const lookup = timer(400).pipe(
                   switchMap(() => this.filter(query)),
                   // The one place a failed lookup is turned back into an empty list,
                   // so it is also the one place that can record that it happened.
@@ -184,8 +191,8 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
                   finalize(() => {
                     this.loadingOptions = false;
                   }),
-                  startWith<AuthorityTerm[]>([]),
                 );
+                return clear ? lookup.pipe(startWith<AuthorityTerm[]>([])) : lookup;
               }),
             ),
       ),
@@ -330,9 +337,12 @@ export abstract class AbstractAuthorityInputComponent extends CedarUIDirective i
   }
 
   private valueRevision = 0;
+  private scopeRevision = 0;
+  private readonly lookupContext = new LookupContext();
 
   setCurrentValue(value: AuthorityTerm): void {
     this.valueRevision++;
+    if (this.lookupContext.changed(this.handlerContext, this.component)) this.scopeRevision++;
     this.selectedData = value;
     this.inputValueControl.setValue(this.getCompoundValue(value), { emitEvent: true });
   }

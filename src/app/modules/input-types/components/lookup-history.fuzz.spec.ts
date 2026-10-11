@@ -22,6 +22,7 @@ type Widget = CedarInputControlledComponent | CedarInputOrcidComponent;
 interface Request {
   editor: number;
   epoch: number;
+  scope: number;
   query: string;
   response: Subject<AuthorityTerm[]>;
   settled: boolean;
@@ -35,6 +36,7 @@ interface Actor {
   injector: ReturnType<typeof Injector.create>;
   field: FieldComponent;
   epoch: number;
+  scope: number;
   parent: number;
   child: number;
   readOnly: boolean;
@@ -84,11 +86,12 @@ function replay(kind: Kind, history: Command[]): void {
     actor.widget.ngOnDestroy();
     actor.injector.destroy();
   };
-  const sync = (actor: Actor) => {
+  const sync = (actor: Actor, contextChanged = true) => {
     actor.epoch++;
+    if (contextChanged) actor.scope++;
     actor.reader.turn(['group'], actor.parent).turn(['group', actor.parent, 'term'], actor.child);
     actor.registry.updateViewToModel(actor.field, actor.reader.coordinator.state.handlerContext);
-    expect(actor.options, 'model-to-view changes retire suggestions from the preceding context').toEqual([]);
+    if (contextChanged) expect(actor.options, 'navigation retires suggestions from the preceding context').toEqual([]);
     expect(actor.widget.selectedData, 'paging displays the addressed term').toEqual(
       actor.values[actor.parent][actor.child],
     );
@@ -106,6 +109,7 @@ function replay(kind: Kind, history: Command[]): void {
       requests.push({
         editor,
         epoch: actor.epoch,
+        scope: actor.scope,
         query,
         response,
         settled: false,
@@ -180,6 +184,7 @@ function replay(kind: Kind, history: Command[]): void {
         registry: new ActiveComponentRegistryService(),
         preferences: new UserPreferencesService(),
         epoch: 0,
+        scope: 0,
         parent: 0,
         child: 0,
         readOnly: false,
@@ -243,16 +248,21 @@ function replay(kind: Kind, history: Command[]): void {
           sync(actor);
         } else mount(actor, editor);
       } else if (command.op === 9 && actor.alive && !actor.readOnly) {
-        const offered = requests.find((request) => current(request) && actor.options.includes(request.term));
+        const offered = requests.find(
+          (request) =>
+            request.editor === editor && request.scope === actor.scope && actor.options.includes(request.term),
+        );
         if (offered) {
+          const previousOptions = actor.options;
           actor.widget.onSelectionChange(offered.term, { isUserInput: true });
           actor.values[actor.parent][actor.child] = offered.term;
-          sync(actor);
+          sync(actor, false);
+          expect(actor.options, 'selection within the same occurrence preserves its list').toEqual(previousOptions);
         }
       } else if (command.op === 10 && actor.alive && !actor.readOnly) {
         actor.widget.clearValue();
         actor.values[actor.parent][actor.child] = null;
-        sync(actor);
+        sync(actor, false);
       } else if (command.op === 11) {
         if (actor.alive) destroy(actor);
         else mount(actor, editor);

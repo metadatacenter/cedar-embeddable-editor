@@ -1,3 +1,4 @@
+import { LookupContext } from '../../../shared/util/lookup-context';
 import {
   AfterViewInit,
   Component,
@@ -26,7 +27,7 @@ import { HandlerContext } from '../../../shared/util/handler-context';
 import { catchLookupFailure } from '../../../shared/util/lookup-failure';
 import { ErrorStateMatcher, MatOptionSelectionChange } from '@angular/material/core';
 import { Observable, of, timer } from 'rxjs';
-import { distinctUntilChanged, map, startWith, switchMap, finalize } from 'rxjs/operators';
+import { distinctUntilChanged, map, scan, startWith, switchMap, finalize } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthorityTerm } from '../../../shared/models/authority/authority-search-response.model';
 import { isAuthorityTerm } from '../../../shared/models/authority/authority-term.guard';
@@ -126,23 +127,29 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
               startWith(this.inputValueControl.value ?? ''),
               // Identical text can belong to a different occurrence or template.
               // A model-to-view assignment starts a new lookup lifetime too.
-              map((query) => ({ query, revision: this.valueRevision })),
+              map((query) => ({ query, revision: this.valueRevision, scope: this.scopeRevision })),
               distinctUntilChanged(
                 (before, after) => before.query === after.query && before.revision === after.revision,
               ),
+              scan((previous, next) => ({ ...next, clear: previous.scope !== next.scope }), {
+                query: '' as string | null,
+                revision: -1,
+                scope: -1,
+                clear: true,
+              }),
               // Cancel the previous request immediately; debounce only the new request.
-              switchMap(({ query: val }) => {
+              switchMap(({ query: val, clear }) => {
                 this.lookupFailed = false;
                 this.loading = true;
-                return timer(400).pipe(
+                const lookup = timer(400).pipe(
                   switchMap(() => this.filter(val || '')),
                   catchLookupFailure<AuthorityTerm>((error) => {
                     this.lookupFailed = true;
                     this.messageHandlerService.errorObject(`terminology lookup failed for "${val}"`, error as object);
                   }),
                   finalize(() => (this.loading = false)),
-                  startWith<AuthorityTerm[]>([]),
                 );
+                return clear ? lookup.pipe(startWith<AuthorityTerm[]>([])) : lookup;
               }),
             ),
       ),
@@ -287,9 +294,12 @@ export class CedarInputControlledComponent extends CedarUIDirective implements O
   }
 
   private valueRevision = 0;
+  private scopeRevision = 0;
+  private readonly lookupContext = new LookupContext();
 
   setCurrentValue(currentValue: unknown): void {
     this.valueRevision++;
+    if (this.lookupContext.changed(this.handlerContext, this.component)) this.scopeRevision++;
     // Remember the term itself, not only its rendering. It is what the BioPortal
     // link is built from, and read-write selection records it the same way.
     const term = isAuthorityTerm(currentValue) ? currentValue : null;
