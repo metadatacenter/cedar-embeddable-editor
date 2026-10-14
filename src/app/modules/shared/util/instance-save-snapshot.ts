@@ -54,8 +54,10 @@ export function captureInstanceSave(
         return { node, path, savedId };
       });
       const baseline = structuredClone(submitted);
-      for (const { node, path, savedId } of updates) {
+      for (const { path, savedId } of updates) {
         at(baseline, path)['@id'] = savedId;
+      }
+      for (const { node, savedId } of updates) {
         if (live.has(node)) node.id = savedId;
       }
       acknowledged = true;

@@ -88,6 +88,18 @@ describe('repository identity acknowledgement', () => {
     expect(f.first.id).toBeNull();
   });
 
+  it('does not partially apply identities when serialization omitted a container', () => {
+    const f = fixture();
+    const snapshot = captureInstanceSave(
+      { Entries: [{ Nested: {} }] },
+      f.root,
+      () => f.root,
+      () => {},
+    );
+    expect(() => snapshot.acknowledge(f.stored)).toThrow();
+    expect([f.first.id, f.second.id, f.nested.id]).toEqual([null, null, null]);
+  });
+
   it('requires existing identities to remain unchanged', () => {
     const f = fixture();
     f.first.id = 'urn:existing';
