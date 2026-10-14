@@ -24,6 +24,7 @@ import { FallbackTranslateLoader } from '../../util/fallback-translate-loader';
 import { CeeConfig } from '../../util/config-reader';
 import { CeeChangeDetail, CeeJsonObject } from '../../../../cee-public-api';
 import inputTypesTemplate from '../../../../../../visual/fixtures/01-input-types.json';
+import nestedTemplate from '../../../../../../visual/fixtures/03-nested-multi.json';
 import { FieldComponent } from '../../models/component/field-component.model';
 
 const validTemplate = inputTypesTemplate as unknown as CeeJsonObject;
@@ -157,6 +158,32 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
    * apply — the settings it carries reach already-built widgets through services
    * they subscribe to, rather than by being read once at construction.
    */
+  it('adopts saved element IDs into the live form without a change event or remount', () => {
+    const { component, mocks } = make();
+    expect(component.captureSave()).toBeNull();
+    component.ngOnInit();
+    component.templateObject = nestedTemplate as unknown as CeeJsonObject;
+    const root = component.handlerContext.dataContext.instanceFullData;
+    const snapshot = component.captureSave()!;
+    expect(snapshot.needsElementIds).toBe(true);
+    const stored = structuredClone(snapshot.metadata);
+    const authors = stored['_author'] as CeeJsonObject[];
+    expect(authors.length).toBeGreaterThan(0);
+    authors.forEach((author, index) => {
+      author['@id'] = `urn:author:${index}`;
+      (author['_affiliation'] as CeeJsonObject[])?.forEach((affiliation, childIndex) => {
+        affiliation['@id'] = `urn:affiliation:${index}:${childIndex}`;
+      });
+    });
+    const changed = vi.fn();
+    mocks.host.addEventListener('change', changed);
+    const baseline = snapshot.acknowledge(stored);
+    expect(component.currentMetadata).toEqual(baseline);
+    expect(component.handlerContext.dataContext.instanceFullData).toBe(root);
+    expect(changed).not.toHaveBeenCalled();
+    expect(component.captureSave()!.needsElementIds).toBe(false);
+  });
+
   it('applies configuration assigned after the template', () => {
     const { component, mocks } = make();
 

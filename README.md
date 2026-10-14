@@ -119,6 +119,15 @@ Read the record back from `currentMetadata` as CEDAR JSON-LD, or from
 `currentMetadataYaml` as YAML. The CEE neither submits nor stores it. The host
 decides when and where a record is saved.
 
+For repository saves, call `captureSave()` immediately before submitting its `metadata`.
+If `needsElementIds` is true, read the stored instance after a successful write and verify
+that its ETag equals the write's returned ETag. Pass that document to the snapshot's
+`acknowledge(stored)` function before permitting another save. This adopts assigned element
+IDs without replacing the form, losing newer edits, or confusing reordered occurrences.
+The returned metadata is the submitted form with its assigned IDs, suitable for the host's
+dirty baseline. If readback or acknowledgement fails, retain the draft and block further
+writes until recovery; retrying with unidentified elements can replace their identities.
+
 [Your First Embedded Editor](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/first-editor/)
 takes the same page apart step by step, and
 [Embedding in a Framework](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/frameworks/)

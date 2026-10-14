@@ -147,6 +147,20 @@ export interface CeeJsonObject {
   [key: string]: CeeJsonValue;
 }
 
+/** A submitted form and an occurrence-safe acknowledgement of its repository identities. */
+export interface CeeSaveSnapshot {
+  readonly metadata: CeeJsonObject;
+  readonly needsElementIds: boolean;
+  /**
+   * Supply the full stored instance from the exact revision acknowledged by the write.
+   * Copies only element identifiers into surviving submitted occurrences, preserving later
+   * edits and reordering. Returns the submitted metadata with those IDs for a dirty baseline.
+   * Throws without changing the form if the snapshot or identities cannot be reconciled.
+   * One successful acknowledgement per snapshot; no change event or form remount.
+   */
+  readonly acknowledge: (stored: CeeJsonObject) => CeeJsonObject;
+}
+
 /**
  * A template and an instance of it, supplied together.
  *
@@ -428,6 +442,9 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
    * goes to the event handler's `error`.
    */
   readonly currentMetadata: CeeJsonObject;
+
+  /** Capture immediately before saving. Null while no readable form is loaded. */
+  readonly captureSave: () => CeeSaveSnapshot | null;
 
   /** The instance as CEDAR YAML. Read-only. */
   readonly currentMetadataYaml: string;

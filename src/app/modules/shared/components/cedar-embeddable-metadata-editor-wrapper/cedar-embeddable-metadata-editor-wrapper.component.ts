@@ -16,10 +16,12 @@ import {
   CeeJsonObject,
   CeeLocation,
   CeeRevealOptions,
+  CeeSaveSnapshot,
   CeeTemplateAndInstance,
 } from '../../../../cee-public-api';
 import { HandlerContext, InstanceMutation } from '../../util/handler-context';
 import { InstanceSerializer } from '../../util/instance-serializer';
+import { captureInstanceSave } from '../../util/instance-save-snapshot';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { TranslateLoader, TranslateService, provideChildTranslateService } from '@ngx-translate/core';
 import { DataContext } from '../../util/data-context';
@@ -173,6 +175,26 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     }
     return {};
   }
+
+  @Input() get captureSave(): () => CeeSaveSnapshot | null {
+    return this.captureSaveSnapshot;
+  }
+
+  private readonly captureSaveSnapshot = (): CeeSaveSnapshot | null => {
+    if (!this.editorDataReady()) return null;
+    const context = this.handlerContext.dataContext;
+    const root = context.instanceFullData?.dataContainer;
+    if (!root) return null;
+    return captureInstanceSave(
+      this.currentMetadata as CeeJsonObject,
+      root,
+      () => this.handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
+      () => {
+        context.invalidateDerivedViews();
+        this.lastPublishedState = this.validationStateKey();
+      },
+    );
+  };
 
   /**
    * The same instance, as CEDAR YAML.
