@@ -83,8 +83,8 @@
   },
   "Multi": {
     "NoInstancesYet": "No instances yet",
-    "AddEmptyAfter": "Add empty after current",
-    "AddCloneAfter": "Add clone after current",
+    "AddEmptyAfter": "Add empty instance here",
+    "AddCloneAfter": "Add copy of this instance",
     "DeleteCurrent": "Delete current",
     "AllowsMultiValues": "Allows multi values.",
     "NoValuesYet": "No values yet"

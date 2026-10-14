@@ -222,16 +222,35 @@
 /* At embedding widths the pager becomes its own row instead of covering the title. */
 @container cee (max-width: 620px) {
   .pager-container,
-  .pager-container-ro,
-  .non-iterable-component > app-cedar-multi-pager .pager-container {
+  .pager-container-ro {
     justify-content: flex-start;
     margin-top: ui-tokens.$space-2;
     margin-right: 0;
     margin-bottom: 0;
   }
 
+  /*
+   * A field's pager stays at the right of its own row. Editing, the delete button is centred under
+   * the property glyph that ends the field's heading. Reading, no actions follow the chips, so the
+   * last chip ends where the heading does.
+   */
+  .pager-container-ro,
+  .non-iterable-component > app-cedar-multi-pager .pager-container {
+    justify-content: flex-end;
+  }
+
+  .non-iterable-component > app-cedar-multi-pager .pager-container {
+    margin-top: ui-tokens.$space-2;
+    @include spacing.apply(margin-right, narrow-field-occurrence-alignment);
+    margin-bottom: 0;
+  }
+
   .pager-chips {
     margin-right: ui-tokens.$space-3;
+  }
+
+  .pager-container-ro .pager-chips {
+    margin-right: 0;
   }
 
   .inline-readonly-pager > app-cedar-multi-pager .pager-container-ro {

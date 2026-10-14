@@ -26,7 +26,7 @@ for (const depth of [1, 3, 6]) {
         await page
           .locator('app-cedar-component-renderer')
           .filter({ hasNot: page.locator('app-cedar-component-renderer') })
-          .getByRole('button', { name: 'Add empty after current', exact: true })
+          .getByRole('button', { name: 'Add empty instance here', exact: true })
           .click();
         expect(
           (await page.getByRole('textbox', { name: 'Attribute Value', exact: true }).boundingBox())!.width,

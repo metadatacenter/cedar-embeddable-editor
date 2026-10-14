@@ -85,14 +85,28 @@
 }
 
 /*
- * At embedding widths the pager takes a row of its own below the heading. Both selectors,
- * so this beats the read-only rule above on specificity as well as order.
+ * At embedding widths the pager takes a row of its own below the heading, at the right of it and
+ * within the heading's insets. Editing, the delete button is centred under the mark that ends the
+ * heading, whether that is the disclosure chevron or the property glyph. Both selectors, so this
+ * beats the read-only rule above on specificity as well as order.
  */
 @container cee (max-width: 620px) {
   .aligned-up,
   :host-context(.cee-read-only) .aligned-up {
-    justify-content: flex-start;
+    justify-content: flex-end;
     min-height: 0;
     @include spacing.apply(margin, narrow-occurrence-alignment);
+  }
+
+  /*
+   * Reading, no actions follow the chips, so the last chip ends where the heading does instead
+   * of keeping the margin that separates chips from actions.
+   */
+  :host-context(.cee-read-only) .aligned-up {
+    @include spacing.apply(margin, narrow-read-only-occurrence-alignment);
+  }
+
+  :host-context(.cee-read-only) .aligned-up .pager-chips {
+    margin-right: 0;
   }
 }

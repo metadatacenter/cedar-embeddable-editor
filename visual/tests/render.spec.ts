@@ -587,6 +587,46 @@ test('multi-instance pager renders its chips without covering a narrow expansion
   await expect(pager).toHaveScreenshot('pager.png');
 });
 
+/**
+ * At a narrow width an element's pager takes a row of its own and keeps to the right of it. Editing,
+ * the delete button is centred under the mark that ends the element's heading. Reading, the last chip
+ * ends where the heading does. Both used to start at the left, under the element's name.
+ */
+for (const mode of ['editable', 'readonly'] as const) {
+  test(`a narrow element's ${mode} pager ends under its heading's last mark`, async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'narrow', 'the pager takes a row of its own only at a narrow width');
+    await open(page, '03-nested-multi', mode === 'readonly' ? 'readonly' : undefined);
+
+    const elements = await page.evaluate(() => {
+      const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+      return Array.from(root.querySelectorAll('mat-expansion-panel'), (panel) => {
+        const header = panel.querySelector(':scope > mat-expansion-panel-header app-cedar-component-header')!;
+        const marks = header.querySelectorAll('.header-trailing mat-icon');
+        const mark = marks[marks.length - 1].getBoundingClientRect();
+        // The panel's own pager precedes the nested panels in document order.
+        const pager = panel.querySelector('.aligned-up')!;
+        const chips = pager.querySelectorAll('.mat-mdc-chip');
+        const remove = pager.querySelector('button[aria-label="Delete current"] mat-icon')?.getBoundingClientRect();
+        return {
+          headerRight: header.getBoundingClientRect().right,
+          markCenter: mark.left + mark.width / 2,
+          removeCenter: remove ? remove.left + remove.width / 2 : null,
+          chipRight: chips[chips.length - 1].getBoundingClientRect().right,
+        };
+      });
+    });
+
+    expect(elements, 'both elements repeat').toHaveLength(2);
+    for (const element of elements) {
+      if (mode === 'editable') {
+        expect(Math.abs(element.removeCenter! - element.markCenter), JSON.stringify(element)).toBeLessThan(1);
+      } else {
+        expect(Math.abs(element.chipRight - element.headerRight), JSON.stringify(element)).toBeLessThan(1);
+      }
+    }
+  });
+}
+
 test('multi-instance actions track cardinality and always expose tooltips', async ({ page }) => {
   await open(page, '10-attribute-values');
 
@@ -594,9 +634,9 @@ test('multi-instance actions track cardinality and always expose tooltips', asyn
   const renderer = page
     .locator('app-cedar-component-renderer')
     .filter({ hasNot: page.locator('app-cedar-component-renderer') })
-    .filter({ has: page.getByRole('button', { name: 'Add empty after current', exact: true }) });
-  const add = renderer.getByRole('button', { name: 'Add empty after current', exact: true });
-  const copy = renderer.getByRole('button', { name: 'Add clone after current', exact: true });
+    .filter({ has: page.getByRole('button', { name: 'Add empty instance here', exact: true }) });
+  const add = renderer.getByRole('button', { name: 'Add empty instance here', exact: true });
+  const copy = renderer.getByRole('button', { name: 'Add copy of this instance', exact: true });
   const remove = renderer.getByRole('button', { name: 'Delete current', exact: true });
 
   await expect(add).toBeEnabled();
@@ -614,8 +654,8 @@ test('multi-instance actions track cardinality and always expose tooltips', asyn
   await expect(remove).toBeEnabled();
 
   for (const [button, tooltip] of [
-    [add, 'Add empty after current'],
-    [copy, 'Add clone after current'],
+    [add, 'Add empty instance here'],
+    [copy, 'Add copy of this instance'],
     [remove, 'Delete current'],
   ] as const) {
     // Park the pointer away from the buttons before each hover. A tooltip opens
@@ -693,7 +733,7 @@ test('a new attribute-value row starts empty beneath its labels, not with redund
   const renderer = page.locator('app-cedar-component-renderer').filter({
     has: page.locator('input[aria-label="Attribute Name"]'),
   });
-  const add = renderer.locator('app-cedar-multi-pager button[aria-label="Add empty after current"]');
+  const add = renderer.locator('app-cedar-multi-pager button[aria-label="Add empty instance here"]');
   await add.click();
 
   const name = renderer.locator('input[aria-label="Attribute Name"]');
@@ -733,7 +773,7 @@ test('cloning an attribute value copies it and preserves the source page', async
   await name.fill('a1');
   await value.fill('v1');
 
-  await renderer.getByRole('button', { name: 'Add clone after current', exact: true }).click();
+  await renderer.getByRole('button', { name: 'Add copy of this instance', exact: true }).click();
   await expect(name).toHaveValue('a1 copy');
   await expect(value).toHaveValue('v1');
 
@@ -747,7 +787,7 @@ test('cloning an attribute value copies it and preserves the source page', async
   await renderer.getByRole('option', { name: '1', exact: true }).click();
   await renderer.getByRole('option', { name: '2', exact: true }).click();
   await expect(name).toHaveValue('a1 copy');
-  await renderer.getByRole('button', { name: 'Add clone after current', exact: true }).click();
+  await renderer.getByRole('button', { name: 'Add copy of this instance', exact: true }).click();
   await expect(name).toHaveValue('a1 copy copy');
   await expect(value).toHaveValue('v1');
   await expect(pages.filter({ hasText: '2' })).toHaveAttribute('aria-selected', 'false');
@@ -796,7 +836,7 @@ test('paging back to an unnamed attribute clears the preceding occurrence', asyn
   const value = renderer.locator('input[aria-label="Attribute Value"]');
   await name.fill('colour');
   await value.fill('blue');
-  await renderer.getByRole('button', { name: 'Add empty after current', exact: true }).click();
+  await renderer.getByRole('button', { name: 'Add empty instance here', exact: true }).click();
   await expect(name).toHaveValue('');
   await expect(value).toHaveValue('');
 
@@ -2341,7 +2381,7 @@ test.describe('an attribute-value field with no slot in the instance', () => {
 
     expect(await attributeRows(page), 'the field starts with no attributes').toBe(0);
 
-    await page.getByRole('button', { name: 'Add empty after current' }).first().click();
+    await page.getByRole('button', { name: 'Add empty instance here' }).first().click();
 
     await expect.poll(() => attributeRows(page), { message: 'clicking add should produce an attribute row' }).toBe(1);
     await expect(page.getByRole('textbox', { name: 'Attribute Name' }).first()).toBeVisible();
@@ -3441,6 +3481,58 @@ test.describe('a multi-instance field paging its values', () => {
         geometry.headerBottom,
       );
     }
+  });
+
+  /**
+   * At a narrow width an editable field's pager takes a row of its own and keeps to the right of it,
+   * so the delete button stands under the property glyph that ends the field's heading. It used to
+   * start at the left edge, under the field's name and away from the marks it sits with.
+   */
+  test('ends its own narrow row under the property glyph', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'narrow', 'the pager takes a row of its own only at a narrow width');
+    await open(page, '24-multi-authority-values');
+
+    const renderer = page
+      .locator('app-cedar-component-renderer')
+      .filter({ hasNot: page.locator('app-cedar-component-renderer') })
+      .filter({ has: page.getByRole('button', { name: 'Delete current', exact: true }) });
+    const geometry = await renderer.evaluate((element) => {
+      const field = element.querySelector(':scope > .non-iterable-component')!;
+      const header = field.querySelector(':scope > app-cedar-component-header')!.getBoundingClientRect();
+      const pager = field.querySelector(':scope > app-cedar-multi-pager')!.getBoundingClientRect();
+      const property = field.querySelector('.property-iri mat-icon')!.getBoundingClientRect();
+      const remove = field.querySelector('button[aria-label="Delete current"] mat-icon')!.getBoundingClientRect();
+      return {
+        headerBottom: header.bottom,
+        pagerTop: pager.top,
+        propertyCenter: property.left + property.width / 2,
+        removeCenter: remove.left + remove.width / 2,
+      };
+    });
+
+    expect(geometry.pagerTop, 'the pager has a row of its own').toBeGreaterThanOrEqual(geometry.headerBottom);
+    expect(
+      Math.abs(geometry.removeCenter - geometry.propertyCenter),
+      `the delete glyph is centred under the property glyph: ${JSON.stringify(geometry)}`,
+    ).toBeLessThan(1);
+  });
+
+  /** Reading, no actions follow the chips, so the last chip ends where the field's heading does. */
+  test('ends its own narrow read-only row where its heading does', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'narrow', 'the pager takes a row of its own only at a narrow width');
+    await open(page, '24-multi-authority-values', 'readonly', '24-multi-authority-values-instance');
+
+    const renderer = page.locator('app-cedar-component-renderer').filter({
+      has: page.locator('app-cedar-input-orcid'),
+    });
+    const geometry = await renderer.evaluate((element) => {
+      const field = element.querySelector(':scope > .non-iterable-component')!;
+      const header = field.querySelector(':scope > app-cedar-component-header')!.getBoundingClientRect();
+      const chips = field.querySelectorAll(':scope > app-cedar-multi-pager .mat-mdc-chip');
+      return { headerRight: header.right, chipRight: chips[chips.length - 1].getBoundingClientRect().right };
+    });
+
+    expect(Math.abs(geometry.chipRight - geometry.headerRight), JSON.stringify(geometry)).toBeLessThan(1);
   });
 
   test('states the attribute it holds, one occurrence at a time', async ({ page }) => {

@@ -83,8 +83,8 @@
   },
   "Multi": {
     "NoInstancesYet": "Még nincsenek példányok",
-    "AddEmptyAfter": "Üres hozzáadása az aktuális után",
-    "AddCloneAfter": "Klón hozzáadása az aktuális után",
+    "AddEmptyAfter": "Üres példány hozzáadása ide",
+    "AddCloneAfter": "E példány másolatának hozzáadása",
     "DeleteCurrent": "Aktuális törlése",
     "AllowsMultiValues": "Több érték is megadható.",
     "NoValuesYet": "Még nincsenek értékek"

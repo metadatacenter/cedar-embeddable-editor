@@ -142,7 +142,7 @@ export const addAttributeRow = async (page: Page): Promise<void> => {
   await page
     .locator('app-cedar-component-renderer')
     .filter({ hasNot: page.locator('app-cedar-component-renderer') })
-    .getByRole('button', { name: 'Add empty after current', exact: true })
+    .getByRole('button', { name: 'Add empty instance here', exact: true })
     .dispatchEvent('click');
   await expect(page.locator('input[aria-label="Attribute Name"]')).toBeVisible();
   await page.waitForFunction(() =>

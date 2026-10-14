@@ -40,7 +40,7 @@ for (const depth of [1, 3, 6]) {
             .queryAll(By.directive(CedarMultiPagerComponent))
             .find((candidate) => candidate.componentInstance.component === field)!;
           (pager.nativeElement as HTMLElement)
-            .querySelector<HTMLButtonElement>('button[aria-label="Add empty after current"]')!
+            .querySelector<HTMLButtonElement>('button[aria-label="Add empty instance here"]')!
             .click();
           fixture.detectChanges();
           await fixture.whenStable();
