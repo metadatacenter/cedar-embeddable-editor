@@ -187,6 +187,37 @@ jobs:
         working-directory: cedar-embeddable-editor
         run: bash visual/run-in-container.sh --shard=${{ matrix.shard }}/4
 
+  cee-demos:
+    name: CEE framework consumers
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Check out the consumer demos
+        uses: actions/checkout@v7
+        with:
+          repository: metadatacenter/cedar-component-demo
+          ref: develop
+          path: cedar-component-demo
+
+      - name: Use Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.19.0
+          cache: npm
+          cache-dependency-path: cedar-component-demo/*/package-lock.json
+
+      - name: Restore this build's CEE package
+        uses: actions/download-artifact@v8
+        with:
+          name: cee-npm-package
+          path: cee-candidate
+
+      # Always check CEE CI candidates, including stable release-preparation PRs.
+      # The local reactor reuses a passing check while embedding inputs are unchanged.
+      - name: Test the packaged CEE in Angular, React and Ember
+        run: python3 cedar-component-demo/scripts/check-demos.py --cee-package cee-candidate
+
   # Every merge to develop reaches the Nexus dev channel. Until this existed CEE was
   # published only by a release train, so between releases its dev channel stood
   # still while develop moved: on 2026-09-10 the newest dev package was the train's
@@ -194,7 +225,7 @@ jobs:
   # latest dev CEE was served a release-time build, and nothing said so.
   publish-dev:
     name: Publish the dev package
-    needs: [prepare, visual]
+    needs: [prepare, visual, cee-demos]
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -318,4 +349,3 @@ jobs:
           '
           npm publish "./${staged}" --tag dev
           npm view "${name}@${VERSION}" version
-
