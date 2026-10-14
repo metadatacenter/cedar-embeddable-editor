@@ -415,6 +415,20 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   border: 1px solid tokens.$control-border-default;
   box-shadow: none !important;
 }
+
+/*
+ * A field's own bottom padding is the gap above an element that follows it. An element has no
+ * padding, so two elements in a row touched. The second keeps the gap a field would have left:
+ * 16px when editing, 8px when reading.
+ */
+app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer:has(> mat-accordion) {
+  margin-top: ui-tokens.$space-4;
+
+  .cee-read-only & {
+    margin-top: ui-tokens.$space-2;
+  }
+}
+
 .mat-mdc-card {
   box-shadow: none !important;
   margin-bottom: 0;
