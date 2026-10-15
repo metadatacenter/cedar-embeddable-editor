@@ -1,4 +1,4 @@
-import type { CeeJsonObject, CeeTemplateAndInstance } from '../../../cee-public-api';
+import type { CeeJsonObject, CeeTemplateAndInstance, CeeRecoveryDraft } from '../../../cee-public-api';
 import type { TemplateInstance } from 'cedar-model-typescript-library';
 import { DataContext } from './data-context';
 import { HandlerContext } from './handler-context';
@@ -45,6 +45,38 @@ export class ArtifactInputCoordinator {
 
   get instanceInputRejected(): boolean {
     return this._instanceInputRejected;
+  }
+
+  acceptRecovery(value: CeeRecoveryDraft): boolean {
+    if (!this.claimAvailable('restoreDraft', ['template', 'instance'])) return false;
+    try {
+      const draft = structuredClone(value);
+      if (
+        draft?.format !== 'cedar-cee-draft' ||
+        draft.version !== 1 ||
+        !ArtifactInputCoordinator.isJsonObject(draft.template) ||
+        !ArtifactInputCoordinator.isJsonObject(draft.metadata)
+      )
+        return false;
+      const instance = this.readInstance('restoreDraft', draft.metadata);
+      if (!instance) return false;
+      const candidate = this.buildCandidate('restoreDraft', draft.template, instance, true);
+      if (!candidate) return false;
+      candidate.handlerContext.validation.restoreDrafts(instance.dataContainer, draft.drafts);
+      candidate.handlerContext.buildQualityReport();
+      this.commit(['template', 'instance']);
+      this.acceptedTemplate = draft.template;
+      this.acceptedInstanceJson = draft.metadata;
+      this._instanceInputRejected = false;
+      this._state = this.publish(candidate, null, null, {
+        templateObject: draft.template,
+        instanceObject: draft.metadata,
+      });
+      return true;
+    } catch {
+      this.messages.error('CEDAR Embeddable Editor: recovery draft could not be restored.');
+      return false;
+    }
   }
 
   acceptTemplate(template: CeeJsonObject): boolean {

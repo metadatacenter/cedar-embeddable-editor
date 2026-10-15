@@ -17,6 +17,7 @@ import {
   CeeLocation,
   CeeRevealOptions,
   CeeSaveSnapshot,
+  CeeRecoveryDraft,
   CeeTemplateAndInstance,
 } from '../../../../cee-public-api';
 import { HandlerContext, InstanceMutation } from '../../util/handler-context';
@@ -179,6 +180,26 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   @Input() get captureSave(): () => CeeSaveSnapshot | null {
     return this.captureSaveSnapshot;
   }
+
+  @Input() readonly captureDraft = (): CeeRecoveryDraft | null => {
+    if (!this.editorDataReady()) return null;
+    const template = this.artifacts.state.templateJson ?? this.artifacts.state.templateAndInstanceJson?.templateObject;
+    const root = this.dataContext.instanceFullData?.dataContainer;
+    if (!template || !root) return null;
+    return structuredClone({
+      format: 'cedar-cee-draft',
+      version: 1,
+      template,
+      metadata: this.currentMetadata as CeeJsonObject,
+      drafts: this.handlerContext.validation.captureDrafts(root),
+    });
+  };
+
+  @Input() readonly restoreDraft = (draft: CeeRecoveryDraft): boolean => {
+    if (!this.artifacts.acceptRecovery(draft)) return false;
+    this.installArtifactState();
+    return true;
+  };
 
   private readonly captureSaveSnapshot = (): CeeSaveSnapshot | null => {
     if (!this.editorDataReady()) return null;

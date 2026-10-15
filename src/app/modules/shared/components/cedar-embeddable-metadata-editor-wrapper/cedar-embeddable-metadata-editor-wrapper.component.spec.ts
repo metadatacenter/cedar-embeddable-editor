@@ -196,6 +196,56 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     expect(component.handlerContext.readOnlyMode).toBe(true);
   });
 
+  it('round-trips unfinished input independently of accepted metadata and restores validation', () => {
+    const { component } = make();
+    expect(component.captureDraft()).toBeNull();
+    component.ngOnInit();
+    component.templateObject = validTemplate;
+    const field = component.dataContext.templateRepresentation!.children.find(
+      (child): child is FieldComponent => 'basicInfo' in child,
+    )!;
+    component.handlerContext.changeValue(field, 'accepted');
+    component.handlerContext.validation.setDraft(field, {
+      code: 'unfinished',
+      message: 'Finish the input',
+      value: 'partial',
+      state: { text: 'partial' },
+    });
+    const captured = component.captureDraft()!;
+    const wire = JSON.parse(JSON.stringify(captured));
+    const { component: restored } = make();
+    restored.config = { readOnlyMode: true };
+    restored.ngOnInit();
+    expect(restored.restoreDraft(wire)).toBe(true);
+    expect(restored.currentMetadata).toEqual(component.currentMetadata);
+    expect(restored.captureDraft()).toEqual(captured);
+    expect(restored.dataQualityReport).toMatchObject({
+      isValid: false,
+      problems: expect.arrayContaining([expect.objectContaining({ code: 'unfinished', value: 'partial' })]),
+    });
+    expect(restored.handlerContext.readOnlyMode).toBe(true);
+    wire.drafts[0].draft.state.text = 'changed by host';
+    expect(restored.captureDraft()).toEqual(captured);
+    expect(restored.restoreDraft(captured), 'must not replace a claimed form').toBe(false);
+  });
+
+  it('rejects a corrupt recovery draft without consuming claims or changing the form', () => {
+    const source = make().component;
+    source.templateObject = validTemplate;
+    const draft = source.captureDraft()!;
+    const target = make().component;
+    for (const bad of [
+      { ...draft, version: 2 },
+      { ...draft, drafts: [{ path: ['missing'], draft: { code: 'x', message: 'x' } }] },
+      { ...draft, drafts: null },
+      { ...draft, metadata: { '@id': {} } },
+    ]) {
+      expect(target.restoreDraft(bad as typeof draft)).toBe(false);
+      expect(target.captureDraft()).toBeNull();
+    }
+    expect(target.restoreDraft(draft)).toBe(true);
+  });
+
   it('publishes actual model mutations once and suppresses no-op writes', () => {
     const { component, mocks } = make();
     const changes: CeeChangeDetail[] = [];

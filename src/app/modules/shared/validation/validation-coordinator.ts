@@ -1,5 +1,6 @@
 import { FieldComponent } from '../models/component/field-component.model';
-import { InstanceNode, isInstanceObject } from '../models/instance-node.model';
+import { InstanceNode, isInstanceObject, childOf } from '../models/instance-node.model';
+import type { CeeRecoveryDraft } from '../../../cee-public-api';
 import { CedarTemplate } from '../models/template/cedar-template.model';
 import { HandlerContext } from '../util/handler-context';
 import { DataQualityReportBuilderHandler } from '../handler/data-quality-report-builder.handler';
@@ -35,6 +36,48 @@ export class ValidationCoordinator {
 
   restoreDraft(node: InstanceNode, draft: FieldDraft): void {
     this.drafts.set(node, structuredClone(draft));
+  }
+
+  captureDrafts(root: InstanceNode): CeeRecoveryDraft['drafts'] {
+    const result: CeeRecoveryDraft['drafts'] = [];
+    const visit = (node: InstanceNode, path: Array<string | number>) => {
+      const draft = this.draftAt(node);
+      if (draft) result.push({ path, draft: structuredClone(draft) });
+      if (Array.isArray(node)) node.forEach((child, index) => visit(child, [...path, index]));
+      else if (isInstanceObject(node))
+        Object.entries(node.values).forEach(([key, child]) => visit(child, [...path, key]));
+    };
+    visit(root, []);
+    return result;
+  }
+
+  /** Validate every address before attaching any unfinished input. */
+  restoreDrafts(root: InstanceNode, drafts: CeeRecoveryDraft['drafts']): void {
+    if (!Array.isArray(drafts)) throw new Error('Invalid recovery drafts');
+    const seen = new Set<string>();
+    const entries = drafts.map((entry) => {
+      if (
+        !Array.isArray(entry?.path) ||
+        !entry.path.length ||
+        entry.path.some(
+          (part) => typeof part !== 'string' && !(typeof part === 'number' && Number.isSafeInteger(part) && part >= 0),
+        )
+      )
+        throw new Error('Invalid recovery address');
+      const key = JSON.stringify(entry.path);
+      const node = entry.path.reduce<InstanceNode | null>((parent, part) => childOf(parent, part), root);
+      if (
+        !node ||
+        typeof node !== 'object' ||
+        seen.has(key) ||
+        typeof entry.draft?.code !== 'string' ||
+        typeof entry.draft?.message !== 'string'
+      )
+        throw new Error('Invalid recovery input');
+      seen.add(key);
+      return { node, draft: structuredClone(entry.draft) };
+    });
+    entries.forEach(({ node, draft }) => this.restoreDraft(node, draft));
   }
 
   setDraft(component: FieldComponent, draft: FieldDraft | null): void {

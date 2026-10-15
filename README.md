@@ -119,6 +119,14 @@ Read the record back from `currentMetadata` as CEDAR JSON-LD, or from
 `currentMetadataYaml` as YAML. The CEE neither submits nor stores it. The host
 decides when and where a record is saved.
 
+For recovery across reloads, `captureDraft()` returns a JSON-serializable recovery document
+containing the template, accepted metadata and unfinished field input. This is **not** a
+server-saveable artifact. A host can give it to `restoreDraft(draft)` on a fresh element;
+the method returns `false` without consuming the artifact inputs if the format, version or
+input addresses cannot be restored. Restored input participates in ordinary validation.
+The host owns storage, account and deployment scoping, retention and fresh permission/revision
+checks; restoring a draft grants no write permission. Configure the fresh element normally.
+
 For repository saves, call `captureSave()` immediately before submitting its `metadata`.
 If `needsElementIds` is true, read the stored instance after a successful write and verify
 that its ETag equals the write's returned ETag. Pass that document to the snapshot's

@@ -147,6 +147,18 @@ export interface CeeJsonObject {
   [key: string]: CeeJsonValue;
 }
 
+/** Recovery data, not a server-saveable artifact. Hosts own storage and access checks. */
+export interface CeeRecoveryDraft {
+  format: 'cedar-cee-draft';
+  version: 1;
+  template: CeeJsonObject;
+  metadata: CeeJsonObject;
+  drafts: Array<{
+    path: Array<string | number>;
+    draft: { code: string; message: string; value: unknown; state: unknown };
+  }>;
+}
+
 /** A submitted form and an occurrence-safe acknowledgement of its repository identities. */
 export interface CeeSaveSnapshot {
   readonly metadata: CeeJsonObject;
@@ -445,6 +457,11 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
 
   /** Capture immediately before saving. Null while no readable form is loaded. */
   readonly captureSave: () => CeeSaveSnapshot | null;
+
+  /** Captures accepted values and unfinished input, independently of validity. */
+  readonly captureDraft: () => CeeRecoveryDraft | null;
+  /** Restore into a fresh element; rejects incompatible or malformed data atomically. */
+  readonly restoreDraft: (draft: CeeRecoveryDraft) => boolean;
 
   /** The instance as CEDAR YAML. Read-only. */
   readonly currentMetadataYaml: string;
