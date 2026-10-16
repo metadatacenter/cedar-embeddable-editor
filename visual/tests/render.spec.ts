@@ -51,8 +51,8 @@ const FIXTURES = [
  * of their own, so the narrow project would only repeat the desktop run.
  */
 function widthIndependent(): void {
-  test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name === 'narrow', 'nothing here depends on the width; the desktop run covers it');
+  test.beforeEach(() => {
+    test.skip(test.info().project.name === 'narrow', 'nothing here depends on the width; the desktop run covers it');
   });
 }
 
