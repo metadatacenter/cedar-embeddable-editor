@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { CEDAR_CUSTOM_ELEMENT_NAME, defineCustomElementOnce } from './custom-element';
 
 describe('defineCustomElementOnce', () => {

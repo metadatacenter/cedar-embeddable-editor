@@ -27,8 +27,13 @@ export default defineConfig({
     // them global is what makes this a runner change rather than a rewrite of
     // every spec.
     globals: true,
-    // Three specs touch `document`, `window` or `customElements`.
-    environment: 'jsdom',
+    // Most specs construct a subject with stub collaborators and need no DOM, and
+    // jsdom costs more to set up per file than those files take to run. The
+    // specs that do touch `document`, `window`, `customElements` or DOM events
+    // say so with a `// @vitest-environment jsdom` first line. A spec that needs
+    // one and lacks it fails outright: nothing in `src/` falls back quietly when
+    // a DOM is absent.
+    environment: 'node',
     include: ['src/**/*.spec.ts'],
     exclude: ['src/**/*.coordinator.spec.ts'],
     setupFiles: ['src/test-setup.ts'],

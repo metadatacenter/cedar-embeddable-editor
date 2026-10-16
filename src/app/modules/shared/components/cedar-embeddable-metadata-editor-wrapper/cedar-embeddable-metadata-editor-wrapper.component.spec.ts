@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { type Mock, vi } from 'vitest';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper.component';
 import { ElementRef, Injector } from '@angular/core';

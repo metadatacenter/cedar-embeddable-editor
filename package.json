@@ -13,7 +13,7 @@
     "build:production": "ng build --configuration=production && ng build --configuration=production,host-fonts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:unit:ci": "vitest run",
+    "test:unit:ci": "vitest run --coverage.enabled --coverage.reporter=text-summary",
     "test:unit:coverage": "vitest run --coverage.enabled",
     "test:coordinator": "ng run cedar-embeddable-editor:coordinator-test --watch=false",
     "test:domain": "npm --prefix harness test",

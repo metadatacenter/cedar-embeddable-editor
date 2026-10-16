@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /**
  * What the template rich-text policy keeps and what it removes.
  *
