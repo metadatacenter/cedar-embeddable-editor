@@ -135,12 +135,15 @@ jobs:
           cache-dependency-path: |
             cedar-embeddable-editor/package-lock.json
             cedar-embeddable-editor/harness/package-lock.json
+            cedar-embeddable-editor/visual/package-lock.json
 
+      # The type check covers the visual specs too, so it needs their Playwright types.
       - name: Install CEE test dependencies
         working-directory: cedar-embeddable-editor
         run: |
           npm ci
           npm --prefix harness ci
+          npm --prefix visual ci
 
       - name: Run source and domain gates
         working-directory: cedar-embeddable-editor
