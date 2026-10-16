@@ -108,7 +108,12 @@ export default defineConfig({
     },
     {
       name: 'narrow',
-      testIgnore: /cross-browser-smoke\.spec\.ts/,
+      // These read nothing the viewport width changes, or set a viewport of their own, so a
+      // second run at 480 px repeats the desktop run exactly. CEE's width-dependent styling is
+      // container queries that change grid and flex layout and never visibility, and no script
+      // reads the viewport. Specs that screenshot or measure keep running at both widths.
+      testIgnore:
+        /(?:cross-browser-smoke|presentation-matrix|surfaces|specification-theme|authority-search-status|host-change)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], viewport: { width: 480, height: 900 } },
     },
     {
