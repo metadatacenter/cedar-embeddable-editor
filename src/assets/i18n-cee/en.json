@@ -125,8 +125,8 @@
     }
   },
   "Validation": {
-    "SelectAtLeastOne": "Select at least one option.",
-    "Required": "The value is required.",
+    "SelectAtLeastOne": "Warning: Select at least one option.",
+    "Required": "Warning: The value is required.",
     "Invalid": "The value is not valid.",
     "Temporal": {
       "MissingDate": "A date is still needed. Nothing is recorded until the value is complete.",
@@ -216,8 +216,11 @@
       "MinItems": "At least {{min}} entries are required.",
       "MinItemsOne": "At least {{min}} entry is required.",
       "MaxItems": "At most {{max}} entries are allowed.",
-      "MaxItemsOne": "At most {{max}} entry is allowed."
-    }
+      "MaxItemsOne": "At most {{max}} entry is allowed.",
+      "IncompleteValue": "Complete or clear the unfinished value.",
+      "TemplateMismatch": "This metadata belongs to a different template. Open it with its original template."
+    },
+    "Warning": "Warning:"
   },
   "Spec": {
     "MinLength": "{{minLength}} chars",

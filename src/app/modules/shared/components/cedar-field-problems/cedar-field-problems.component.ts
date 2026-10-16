@@ -1,47 +1,12 @@
-import { countKey } from '../../util/count-key';
+import { REPORT_NOTICES } from '../../validation/validation-message';
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { CedarComponent } from '../../models/component/cedar-component.model';
 import { Translatable } from '../../models/ui/translatable.model';
 import { HandlerContext } from '../../util/handler-context';
-import { ValidationCode, ValidationProblem } from '../../validation/validation-problem.model';
+import { ValidationCode } from '../../validation/validation-problem.model';
 import { componentsAlong, occurrencesOnScreen } from '../../util/component-location';
 import { FieldRevealService } from '../../service/field-reveal.service';
-import { MultiInfo } from '../../models/info/multi-info.model';
 import { AbstractFieldComponent } from '../../models/field/abstract-field-component.model';
-
-/** What a component with a list declares about its length. */
-type Bounded = CedarComponent & { multiInfo?: MultiInfo };
-
-/**
- * How each problem a widget cannot state is put to the user.
- *
- * A widget states what its own control finds wrong. Some of what the data quality
- * report finds has no control to find it: a stored choice that is not one of the
- * options, a term missing half of itself, an identifier that is not an IRI, and a
- * list of the wrong length. Without this, those appeared in a host's list of
- * problems and nowhere on the form.
- */
-const NOTICES: Partial<Record<string, (problem: ValidationProblem, component: Bounded) => Translatable>> = {
-  [ValidationCode.templateConstraint]: () => ({ key: 'Validation.Report.TemplateConstraint' }),
-  [ValidationCode.valueShape]: (problem) => ({
-    key: problem.inputType === 'element' ? 'Validation.Report.ElementShape' : 'Validation.Report.ValueShape',
-  }),
-  [ValidationCode.attributeName]: () => ({ key: 'Validation.Report.AttributeName' }),
-  [ValidationCode.choiceMembership]: (problem) => ({
-    key: 'Validation.Report.ChoiceMembership',
-    params: { value: String(problem.value ?? '') },
-  }),
-  [ValidationCode.controlledStructure]: () => ({ key: 'Validation.Report.ControlledStructure' }),
-  [ValidationCode.iriMalformed]: () => ({ key: 'Validation.Report.IriMalformed' }),
-  [ValidationCode.minItems]: (_problem, component) => ({
-    key: countKey('Validation.Report.MinItems', component.multiInfo?.minItems ?? 0),
-    params: { min: component.multiInfo?.minItems ?? 0 },
-  }),
-  [ValidationCode.maxItems]: (_problem, component) => ({
-    key: countKey('Validation.Report.MaxItems', component.multiInfo?.maxItems ?? 0),
-    params: { max: component.multiInfo?.maxItems ?? 0 },
-  }),
-};
 
 /** Problems applying across a field's entries, located by its containing elements. */
 const LIST_CODES: ReadonlySet<string> = new Set([
@@ -71,14 +36,14 @@ export class CedarFieldProblemsComponent {
   // be taken around.
   private readonly reveal = inject(FieldRevealService, { optional: true });
 
-  get notices(): Translatable[] {
+  get notices(): (Translatable & { severity: string })[] {
     const context = this.handlerContext;
     if (context.readOnlyMode) {
       return [];
     }
     const path = this.componentToShow.path;
     const candidates = (context.dataContext.dataQualityReport?.problems ?? []).filter(
-      (problem) => NOTICES[problem.code] !== undefined && CedarFieldProblemsComponent.same(problem.path, path),
+      (problem) => REPORT_NOTICES[problem.code] !== undefined && CedarFieldProblemsComponent.same(problem.path, path),
     );
     if (candidates.length === 0) {
       return [];
@@ -87,7 +52,7 @@ export class CedarFieldProblemsComponent {
     const onScreen = occurrencesOnScreen(chain, context.multiInstanceObjectService);
     const above = occurrencesOnScreen(chain.slice(0, -1), context.multiInstanceObjectService);
 
-    const notices = new Map<string, Translatable>();
+    const notices = new Map<string, Translatable & { severity: string }>();
     for (const problem of candidates) {
       if (problem.code === ValidationCode.attributeName && this.componentToShow instanceof AbstractFieldComponent) {
         const draft = context.validation.draftFor(this.componentToShow);
@@ -101,8 +66,8 @@ export class CedarFieldProblemsComponent {
       if (problem.severity === 'warning' && !this.reveal?.wasRevealed(path, list ? above : onScreen)) {
         continue;
       }
-      const notice = NOTICES[problem.code]!(problem, this.componentToShow);
-      notices.set(`${notice.key}|${JSON.stringify(notice.params ?? {})}`, notice);
+      const notice = REPORT_NOTICES[problem.code]!(problem, this.componentToShow);
+      notices.set(`${notice.key}|${JSON.stringify(notice.params ?? {})}`, { ...notice, severity: problem.severity });
     }
     return [...notices.values()];
   }

@@ -938,7 +938,7 @@ test.describe('validation states', () => {
    * is touched or its form is submitted, so focusing and blurring is the whole
    * trick — no invalid input is needed for the `required` case.
    */
-  test('required fields show errors once touched', async ({ page }) => {
+  test('required fields show warnings once touched', async ({ page }) => {
     await open(page, '06-validation');
 
     // Fields are addressed by aria-label, which carries the template property

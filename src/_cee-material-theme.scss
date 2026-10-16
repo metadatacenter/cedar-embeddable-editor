@@ -296,3 +296,18 @@ $_colors: (
     )
   );
 }
+
+/** Required-value warnings use the same Material states without adopting the error colour. */
+@mixin warning-controls() {
+  @include mat.form-field-overrides(
+    (
+      outlined-error-outline-color: var(--_cedar-error),
+      outlined-error-focus-outline-color: var(--_cedar-error),
+      outlined-error-hover-outline-color: var(--_cedar-error),
+      outlined-error-label-text-color: var(--_cedar-error),
+      outlined-error-focus-label-text-color: var(--_cedar-error),
+      outlined-error-hover-label-text-color: var(--_cedar-error),
+      error-text-color: var(--_cedar-error),
+    )
+  );
+}

@@ -1,3 +1,5 @@
+import { componentsAlong } from '../../util/component-location';
+import { describeValidationProblem } from '../../validation/validation-message';
 import {
   Component,
   ElementRef,
@@ -328,7 +330,19 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    */
   @Input() get dataQualityReport(): object {
     if (!this.artifacts.instanceInputRejected) {
-      return JSON.parse(JSON.stringify(this.handlerContext.dataContext.dataQualityReport));
+      const context = this.handlerContext.dataContext;
+      const report = context.dataQualityReport;
+      if (!report) return {};
+      return JSON.parse(
+        JSON.stringify({
+          ...report,
+          problems: report.problems.map((problem) => {
+            const component = componentsAlong(context.templateRepresentation, problem.path)?.at(-1);
+            const description = describeValidationProblem(problem, component);
+            return { ...problem, displayMessage: this.translateService.instant(description.key, description.params) };
+          }),
+        }),
+      );
     }
     return {};
   }

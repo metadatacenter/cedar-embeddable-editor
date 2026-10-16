@@ -157,6 +157,9 @@ report. Ordinary metadata editing leaves the option off.
 Read `dataQualityReport` for the whole instance, including nested and off-screen
 occurrences. Each problem has a code, `severity` (`warning` or `error`), a field
 `path` and occurrence indices. Pass a field problem to `reveal(problem)` to reach it.
+Use `displayMessage` for the localized user-facing explanation; `message` retains
+the technical diagnostic for logs or a separate details disclosure. Older component
+bundles may omit `displayMessage`.
 
 Missing required answers, insufficient occurrences and unnamed attribute rows are
 warnings. Invalid values, malformed incoming data and unfinished edits are errors.

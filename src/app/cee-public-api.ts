@@ -219,8 +219,10 @@ export interface CeeValidationProblem {
   field: string;
   /** The field's declared `_ui.inputType`, or null where it declares none. */
   inputType: string | null;
-  /** Human-readable explanation. */
+  /** Technical diagnostic, retained in English for troubleshooting. */
   message: string;
+  /** Localized user-facing explanation. `message` retains the technical diagnostic. */
+  displayMessage?: string;
   /** The value that failed, when there is one. */
   value?: unknown;
 }

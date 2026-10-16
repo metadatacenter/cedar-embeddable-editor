@@ -20,3 +20,7 @@
   @include patterns.field-error;
   color: var(--_cedar-error, #{tokens.$status-error-text});
 }
+
+.cee-warning {
+  color: var(--cedar-control-warning, #{tokens.$status-warning-text});
+}

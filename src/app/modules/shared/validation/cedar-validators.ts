@@ -190,18 +190,22 @@ export class CedarValidators {
     if (errors['required']) {
       return { key: 'Validation.Required' };
     }
-    if (errors[ValidationCode.temporalType] || errors[ValidationCode.temporalCalendar]) {
+    return CedarValidators.describeTemporalCode(Object.keys(errors)[0] ?? '', component);
+  }
+
+  static describeTemporalCode(code: string, component: FieldComponent): Translatable {
+    if (code === ValidationCode.temporalType || code === ValidationCode.temporalCalendar) {
       const temporalType = component.valueInfo.temporalType;
       const kind = temporalType === Xsd.date ? 'Date' : temporalType === Xsd.time ? 'Time' : 'DateTime';
       return { key: `Validation.Temporal.Invalid${kind}` };
     }
-    if (errors[ValidationCode.temporalGranularity]) {
+    if (code === ValidationCode.temporalGranularity) {
       return { key: 'Validation.Temporal.Granularity' };
     }
-    if (errors[ValidationCode.timezone]) {
+    if (code === ValidationCode.timezone) {
       return { key: 'Validation.Temporal.UnexpectedTimezone' };
     }
-    if (errors[ValidationCode.timezoneOffset]) {
+    if (code === ValidationCode.timezoneOffset) {
       return { key: 'Validation.Temporal.InvalidTimezoneOffset' };
     }
     return { key: 'Validation.Invalid' };

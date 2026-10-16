@@ -45,7 +45,7 @@ const MESSAGES: Record<'en' | 'hu', Array<[string, string]>> = {
     ['region', '"Elsewhere" is not one of the options for this field.'],
     ['organism', 'The stored term is missing its label or its IRI.'],
     ['tags', 'At most 1 entry is allowed.'],
-    ['aliases', 'At least 3 entries are required.'],
+    ['aliases', 'Warning: At least 3 entries are required.'],
   ],
   hu: [
     ['pattern', 'Az érték nem felel meg az előírt formátumnak.'],
@@ -59,7 +59,7 @@ const MESSAGES: Record<'en' | 'hu', Array<[string, string]>> = {
     ['region', '„Elsewhere” nem szerepel a mező választási lehetőségei között.'],
     ['organism', 'A tárolt kifejezésből hiányzik a címke vagy az IRI.'],
     ['tags', 'Legfeljebb 1 bejegyzés megengedett.'],
-    ['aliases', 'Legalább 3 bejegyzés szükséges.'],
+    ['aliases', 'Figyelmeztetés: Legalább 3 bejegyzés szükséges.'],
   ],
 };
 

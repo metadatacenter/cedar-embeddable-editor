@@ -125,8 +125,8 @@
     }
   },
   "Validation": {
-    "SelectAtLeastOne": "Legalább egy lehetőséget ki kell választani.",
-    "Required": "Az érték megadása kötelező.",
+    "SelectAtLeastOne": "Figyelmeztetés: Legalább egy lehetőséget ki kell választani.",
+    "Required": "Figyelmeztetés: Az érték megadása kötelező.",
     "Invalid": "Az érték érvénytelen.",
     "Temporal": {
       "MissingDate": "Még meg kell adni a dátumot. Amíg az érték hiányos, nem rögzíthető.",
@@ -216,8 +216,11 @@
       "MinItems": "Legalább {{min}} bejegyzés szükséges.",
       "MinItemsOne": "Legalább {{min}} bejegyzés szükséges.",
       "MaxItems": "Legfeljebb {{max}} bejegyzés megengedett.",
-      "MaxItemsOne": "Legfeljebb {{max}} bejegyzés megengedett."
-    }
+      "MaxItemsOne": "Legfeljebb {{max}} bejegyzés megengedett.",
+      "IncompleteValue": "Fejezze be vagy törölje a hiányos értéket.",
+      "TemplateMismatch": "Ezek a metaadatok másik sablonhoz tartoznak. Nyissa meg őket az eredeti sablonjukkal."
+    },
+    "Warning": "Figyelmeztetés:"
   },
   "Spec": {
     "MinLength": "{{minLength}} karakter",
