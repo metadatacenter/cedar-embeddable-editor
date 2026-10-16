@@ -22,5 +22,5 @@
 }
 
 .cee-warning {
-  color: var(--cedar-control-warning, #{tokens.$status-warning-text});
+  color: var(--cedar-status-warning-text, #{tokens.$status-warning-text});
 }

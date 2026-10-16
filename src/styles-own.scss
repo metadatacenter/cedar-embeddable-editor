@@ -677,6 +677,6 @@ textarea.mat-mdc-input-element {
 /* Missing answers remain saveable. Scope the colour to this field's widget so a
  * missing repeated entry cannot recolour a nested field's blocking error. */
 .cee-warning-only {
-  --_cedar-error: var(--cedar-control-warning, #{tokens.$status-warning-text});
+  --_cedar-error: var(--cedar-status-warning-text, #{tokens.$status-warning-text});
   @include theme.warning-controls();
 }
