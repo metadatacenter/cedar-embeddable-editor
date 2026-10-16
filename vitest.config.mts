@@ -35,7 +35,17 @@ export default defineConfig({
     // a DOM is absent.
     environment: 'node',
     include: ['src/**/*.spec.ts'],
-    exclude: ['src/**/*.coordinator.spec.ts'],
+    exclude: [
+      'src/**/*.coordinator.spec.ts',
+      // The domain harness imports these five and runs them under its own floors,
+      // which count the serializer, carried answers and coordinator code they reach.
+      // Running them here as well repeated 1,277 tests for nothing either floor uses.
+      'src/app/modules/shared/util/host-input-history.fuzz.spec.ts',
+      'src/app/modules/shared/util/occurrence-history.fuzz.spec.ts',
+      'src/app/modules/shared/util/carried-answers.spec.ts',
+      'src/app/modules/shared/util/carried-answers.fuzz.spec.ts',
+      'src/app/modules/shared/util/carried-answers.matrix.spec.ts',
+    ],
     setupFiles: ['src/test-setup.ts'],
     // `harness/` has its own project and its own config; running both from here
     // would give two different meanings to `npm test` in the same repo.
