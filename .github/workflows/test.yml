@@ -81,24 +81,70 @@ jobs:
         working-directory: cedar-embeddable-editor
         run: npm run build:production
 
-      # The root `npm ci` is already done above. The harness runs on the runner;
-      # visual's host install is used only to stage the same bundle that packaging
-      # verifies. Browser execution still installs inside Playwright's container.
-      - name: Install CEE test dependencies
+      # The root `npm ci` is already done above. Visual's host install is used only to
+      # stage the same bundle that packaging verifies. Browser execution still installs
+      # inside Playwright's container.
+      - name: Install the visual staging dependencies
         working-directory: cedar-embeddable-editor
-        run: |
-          npm --prefix harness ci
-          npm --prefix visual ci
-
-      - name: Run source and domain gates
-        working-directory: cedar-embeddable-editor
-        run: npm run test:ci:nonvisual:prebuilt
+        run: npm --prefix visual ci
 
       - name: Stage and verify the distributable package
         working-directory: cedar-embeddable-editor
         run: |
           npm --prefix visual run prepare:all
           npm run package:npm:prebuilt
+
+      - name: Save the production build for browser shards
+        uses: actions/upload-artifact@v7
+        with:
+          name: cee-production-dist
+          path: cedar-embeddable-editor/dist
+          if-no-files-found: error
+          retention-days: 2
+
+      # The dev publish ships exactly these bytes rather than restaging them, so the
+      # package a consumer installs is the package this job verified.
+      - name: Save the staged npm package
+        uses: actions/upload-artifact@v7
+        with:
+          name: cee-npm-package
+          path: cedar-embeddable-editor/dist-npm/cedar-embeddable-editor
+          if-no-files-found: error
+          retention-days: 2
+
+  # The source and domain gates, beside the build rather than ahead of it. Nothing in
+  # them reads the production build, and nothing the visual shards or the consumer
+  # demos run reads their result, so as steps of `prepare` they held every shard back
+  # about 110 s. Publishing still waits for them.
+  gates:
+    name: Source and domain gates
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out CEE
+        uses: actions/checkout@v7
+        with:
+          path: cedar-embeddable-editor
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.19.0
+          cache: npm
+          cache-dependency-path: |
+            cedar-embeddable-editor/package-lock.json
+            cedar-embeddable-editor/harness/package-lock.json
+
+      - name: Install CEE test dependencies
+        working-directory: cedar-embeddable-editor
+        run: |
+          npm ci
+          npm --prefix harness ci
+
+      - name: Run source and domain gates
+        working-directory: cedar-embeddable-editor
+        run: npm run test:ci:nonvisual:prebuilt
 
       # Deliberately its own step, and deliberately not part of `test:ci`.
       #
@@ -119,24 +165,6 @@ jobs:
       - name: Audit what ships
         working-directory: cedar-embeddable-editor
         run: npm run audit:prod
-
-      - name: Save the production build for browser shards
-        uses: actions/upload-artifact@v7
-        with:
-          name: cee-production-dist
-          path: cedar-embeddable-editor/dist
-          if-no-files-found: error
-          retention-days: 2
-
-      # The dev publish ships exactly these bytes rather than restaging them, so the
-      # package a consumer installs is the package this job verified.
-      - name: Save the staged npm package
-        uses: actions/upload-artifact@v7
-        with:
-          name: cee-npm-package
-          path: cedar-embeddable-editor/dist-npm/cedar-embeddable-editor
-          if-no-files-found: error
-          retention-days: 2
 
   visual:
     name: Visual shard ${{ matrix.shard }}/4
@@ -225,7 +253,7 @@ jobs:
   # latest dev CEE was served a release-time build, and nothing said so.
   publish-dev:
     name: Publish the dev package
-    needs: [prepare, visual, cee-demos]
+    needs: [prepare, gates, visual, cee-demos]
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     timeout-minutes: 10
