@@ -1,0 +1,31 @@
+import { expect, test } from '@playwright/test';
+import { currentMetadata, open } from './support/host';
+
+test('repeated-value chips navigate and activate inside the component shadow root', async ({ page }) => {
+  await open(page, '22-multi-field-values', undefined, '22-multi-field-values-instance');
+  const pager = page.locator('app-cedar-multi-pager');
+  const first = pager.getByRole('option', { name: '1', exact: true });
+  const second = pager.getByRole('option', { name: '2', exact: true });
+  const name = page.getByLabel('Attribute Name', { exact: true });
+  const before = await currentMetadata(page);
+  await first.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(second).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(second).toHaveAttribute('aria-selected', 'true');
+  await expect(name).toHaveValue('colour');
+  await page.keyboard.press('Space');
+  await expect(second).toHaveAttribute('aria-selected', 'true');
+  await page.keyboard.press('Home');
+  await expect(first).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect(first).toHaveAttribute('aria-selected', 'true');
+  await expect(name).toHaveValue('depth');
+  await page.keyboard.press('End');
+  await expect(second).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(first).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(first).toBeFocused();
+  expect(await currentMetadata(page)).toEqual(before);
+});

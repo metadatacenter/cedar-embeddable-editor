@@ -26,9 +26,13 @@
             }}</mat-chip-option>
           }
           @for (pageNumber of pageNumbers; track pageNumber) {
-            <mat-chip-option [value]="pageNumber" (click)="chipClicked(pageNumber)" selectable="true">{{
-              pageNumber + 1
-            }}</mat-chip-option>
+            <mat-chip-option
+              [value]="pageNumber"
+              (selectionChange)="chipSelected($event, pageNumber)"
+              (keydown)="chipKeydown($event)"
+              selectable="true"
+              >{{ pageNumber + 1 }}</mat-chip-option
+            >
           }
         </mat-chip-listbox>
       }
