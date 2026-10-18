@@ -126,7 +126,7 @@ describe('text constraints', () => {
     expect(component.valueInfo.regex).toBe('^[A-Z]{3}$');
   });
 
-  it('reports a value that violates the regex, and accepts one that matches', () => {
+  it('reports a value that violates the regex, and accepts one that matches', async () => {
     const kind = kindOf(
       'textre2',
       'textfield',
@@ -135,11 +135,13 @@ describe('text constraints', () => {
     );
     const bad = drive(kind);
     bad.setValue(['_f'], kind, 'zzz');
+    await bad.settled();
     expect(bad.qualityReport.isValid).toBe(false);
     expect(bad.qualityReport.problems.map((p: any) => p.code)).toContain('regex');
 
     const good = drive(kind);
     good.setValue(['_f'], kind, 'ZZZ');
+    await good.settled();
     expect(good.qualityReport.isValid).toBe(true);
   });
 });

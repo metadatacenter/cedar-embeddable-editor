@@ -410,6 +410,23 @@ describe('the complete read-only field presentation', () => {
   });
 });
 
+it('publishes pending and completed pattern rejection separately, then recovers on valid input', async () => {
+  const mounted = await mount(textArtifact((builder) => builder.withRegex('[A-Z]+')));
+  await mounted.element.handlerContext.validation.settled();
+  mounted.changes.length = 0;
+  await type(mounted, 'bad');
+  expect(mounted.changes).toContainEqual({
+    value: { kind: 'literal', value: 'bad' },
+    valid: false,
+    pendingValidation: true,
+  });
+  await mounted.element.handlerContext.validation.settled();
+  expect(mounted.changes.at(-1)).toEqual({ value: { kind: 'literal', value: 'bad' }, valid: false });
+  await type(mounted, 'GOOD');
+  await mounted.element.handlerContext.validation.settled();
+  expect(mounted.changes.at(-1)).toEqual({ value: { kind: 'literal', value: 'GOOD' }, valid: true });
+});
+
 describe('host ownership of CEF snapshots', () => {
   it('isolates empty snapshots across simultaneous wrappers', async () => {
     const first = await mount(textArtifact());

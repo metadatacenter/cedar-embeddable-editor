@@ -352,7 +352,7 @@ it('cannot create an invisible value at index -1 of an empty repeating field', (
 describe.each(depths)('invalid template constraints at depth %i', (depth) => {
   it.each(['single', 'multi'] as const)(
     '%s field problems name the containing occurrence and survive value edits',
-    (cardinality) => {
+    async (cardinality) => {
       const fixture = nested(
         { kind: kind('text'), name: 'f', cardinality, minItems: 0 },
         cardinality === 'multi' ? [{ '@value': 'ok' }] : { '@value': 'ok' },
@@ -363,6 +363,7 @@ describe.each(depths)('invalid template constraints at depth %i', (depth) => {
       const field = cardinality === 'multi' ? schema.properties._f.items : schema.properties._f;
       field._valueConstraints.regex = '[';
       const driver = new CeeDriver(fixture.template, { instance: fixture.instance });
+      await driver.settled();
       const problem = () =>
         driver.qualityReport.problems.filter((p: ValidationProblem) => p.code === 'templateConstraint');
       expect(problem()).toContainEqual(
@@ -378,7 +379,9 @@ describe.each(depths)('invalid template constraints at depth %i', (depth) => {
       expect(problem()).toEqual(initial);
       expect(driver.qualityReport.isValid).toBe(false);
       field._valueConstraints.regex = '.*';
-      expect(new CeeDriver(fixture.template, { instance: driver.emitted }).qualityReport.isValid).toBe(true);
+      const repaired = new CeeDriver(fixture.template, { instance: driver.emitted });
+      await repaired.settled();
+      expect(repaired.qualityReport.isValid).toBe(true);
     },
   );
 });

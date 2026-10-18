@@ -115,6 +115,7 @@ export class CedarInputDatetimeComponent extends CedarUIDirective implements Aft
       validators.push(Validators.required);
     }
     this.valueControl.setValidators(validators);
+    this.valueControl.setAsyncValidators(CedarValidators.regexForComponent(componentToRender));
     this.activeComponentRegistry.registerComponent(this.component, this);
   }
 

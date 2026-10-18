@@ -144,7 +144,8 @@
       "MinLength": "Value should be at least {{constraintMinLength}} chars long.",
       "MinLengthOne": "Value should be at least {{constraintMinLength}} char long.",
       "MaxLength": "Value should be at most {{constraintMaxLength}} chars long.",
-      "MaxLengthOne": "Value should be at most {{constraintMaxLength}} char long."
+      "MaxLengthOne": "Value should be at most {{constraintMaxLength}} char long.",
+      "PatternUnavailable": "The pattern could not be checked. Ask the template author to simplify it, or check whether this page permits validation workers."
     },
     "Select": {
       "MaxSelection": "Select up to {{maxSelections}}"

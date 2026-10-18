@@ -1,4 +1,4 @@
-import { TextPolicy, NumericPolicy } from 'cedar-model-typescript-library';
+import { TextPolicy, NumericPolicy, RegexChecks } from 'cedar-model-typescript-library';
 import { validAbsoluteFieldIri } from './absolute-iri';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
@@ -101,13 +101,7 @@ export class FieldValueValidator {
     const { minLength, maxLength, regex } = component.valueInfo;
     if (minLength != null && maxLength != null && minLength > maxLength)
       invalid('Minimum length exceeds maximum length.');
-    if (regex) {
-      try {
-        new RegExp(`^(?:${regex})$`);
-      } catch {
-        invalid('The template contains an invalid regular expression.');
-      }
-    }
+    if (regex) this.checkRegex(component, null, component.path, problems);
     const { minValue, maxValue } = component.numberInfo ?? {};
     if (minValue != null && maxValue != null && NumericPolicy.compare(minValue, maxValue) > 0)
       invalid('Minimum value exceeds maximum value.');
@@ -131,18 +125,45 @@ export class FieldValueValidator {
         this.problem(component, path, ValidationCode.maxLength, `Longer than the maximum ${vi.maxLength}.`, text),
       );
     }
-    if (vi.regex != null && vi.regex !== '') {
-      let matches: boolean;
-      try {
-        // Anchored, matching how Angular's Validators.pattern behaves.
-        matches = new RegExp(`^(?:${vi.regex})$`).test(text);
-      } catch {
-        // An unparseable regex is the template's problem, not the value's.
-        return;
-      }
-      if (!matches) {
-        out.push(this.problem(component, path, ValidationCode.regex, `Does not match ${vi.regex}.`, text));
-      }
+    if (vi.regex) this.checkRegex(component, text, path, out);
+  }
+
+  private static checkRegex(
+    component: FieldComponent,
+    value: string | null,
+    path: string[],
+    out: ValidationProblem[],
+  ): void {
+    const pattern = component.valueInfo.regex;
+    if (!pattern) return;
+    const verdict = RegexChecks.inspect(pattern, value);
+    if (verdict === 'valid' || verdict === 'match') return;
+    if (verdict === 'pending') {
+      out.push(this.problem(component, path, ValidationCode.regexPending, 'Pattern validation is pending.', value));
+    } else if (verdict === 'invalid') {
+      // Configuration validation owns syntax errors; do not repeat them for each populated occurrence.
+      if (value === null)
+        out.push(
+          this.problem(
+            component,
+            path,
+            ValidationCode.templateConstraint,
+            'The template contains an invalid regular expression.',
+            null,
+          ),
+        );
+    } else if (verdict === 'mismatch') {
+      out.push(this.problem(component, path, ValidationCode.regex, `Does not match ${pattern}.`, value));
+    } else {
+      out.push(
+        this.problem(
+          component,
+          path,
+          ValidationCode.regexEvaluation,
+          `Pattern validation could not finish (${verdict}). Ask the template author to simplify the pattern or check worker permissions.`,
+          value,
+        ),
+      );
     }
   }
 

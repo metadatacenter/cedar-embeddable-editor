@@ -44,6 +44,13 @@ const codesFor = (kind: FieldKind, value: string): string[] => {
   return driver.qualityReport.problems.map((p: any) => p.code);
 };
 
+const settledCodesFor = async (kind: FieldKind, value: string): Promise<string[]> => {
+  const driver = new CeeDriver(buildTemplate({ name: kind.key, children: [{ kind, name: 'f' }] }));
+  driver.setValue(['_f'], kind, value);
+  await driver.settled();
+  return driver.qualityReport.problems.map((p: any) => p.code);
+};
+
 const numeric = (configure: (b: any) => any) => kindOf('numeric', () => CedarBuilders.numericFieldBuilder(), configure);
 const temporal = (type: any, granularity: any, timezone = false) =>
   kindOf(
@@ -288,8 +295,8 @@ describe('text and format constraints', () => {
       'iriMalformed',
     ],
     ['a non-IRI DOI', () => kindOf('ext-doi', () => CedarBuilders.extDoiFieldBuilder()), 'nope', 'iriMalformed'],
-  ])('%s → %s', (_label, make, value, code) => {
-    expect(codesFor(make(), value)).toContain(code);
+  ])('%s → %s', async (_label, make, value, code) => {
+    expect(await settledCodesFor(make(), value)).toContain(code);
   });
 
   it.each([
@@ -302,15 +309,15 @@ describe('text and format constraints', () => {
       'https://orcid.org/0000-0002-1825-0097',
     ],
     ['length exactly at the bounds', () => text((b) => b.withMinLength(3).withMaxLength(3)), 'abc'],
-  ])('accepts %s', (_label, make, value) => {
-    expect(codesFor(make(), value)).toEqual([]);
+  ])('accepts %s', async (_label, make, value) => {
+    expect(await settledCodesFor(make(), value)).toEqual([]);
   });
 
-  it('reports an unparseable template regex instead of silently disabling it', () => {
+  it('reports an unparseable template regex instead of silently disabling it', async () => {
     // A broken pattern is the template's problem; it must not make every
     // instance invalid.
     expect(
-      codesFor(
+      await settledCodesFor(
         text((b) => b.withRegex('[unclosed')),
         'anything',
       ),

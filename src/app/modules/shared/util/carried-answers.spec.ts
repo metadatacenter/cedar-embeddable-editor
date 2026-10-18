@@ -293,7 +293,6 @@ describe('a value restated for the changed field', () => {
     ['a new maximum length', text('f'), 'abcdef', text('f', { maxLength: 3 }), null],
     ['a new maximum length it fits', text('f'), 'abc', text('f', { maxLength: 3 }), 'abc'],
     ['a new minimum length', text('f'), 'ab', text('f', { minLength: 3 }), null],
-    ['a new pattern it breaks', text('f'), 'abc', text('f', { regex: '[A-Z]+' }), null],
     ['a new pattern it meets', text('f'), 'ABC', text('f', { regex: '[A-Z]+' }), 'ABC'],
     // Numbers.
     ['text to number', text('f'), '4', { kind: 'numeric', key: 'f' }, '4', 'xsd:decimal'],
@@ -691,4 +690,49 @@ describe('attributes a reader names', () => {
     replace(reader, [text('title')]);
     expect(reader.node(['colour'])).toBeNull();
   });
+});
+
+it('retains an answer when a changed pattern rejects it after bounded validation', async () => {
+  const r = new Reader().open(templateJson([text('f')])).type(['f'], 'abc');
+  r.open(templateJson([text('f', { regex: '[A-Z]+' })]));
+  expect(r.value(['f'])).toBe('abc');
+  expect(r.coordinator.state.dataContext.dataQualityReport?.pendingValidation).toBe(true);
+  await r.coordinator.state.handlerContext.validation.settled();
+  expect(r.value(['f'])).toBe('abc');
+  expect(r.errors()).toEqual(['f regex']);
+});
+
+it('cancels a candidate with pending pattern checks when its recovery addresses are invalid', async () => {
+  const r = new Reader();
+  const before = r.coordinator.state;
+  const template = templateJson([text('f', { regex: '(a+)+' })]);
+  const recovered = r.coordinator.acceptRecovery({
+    format: 'cedar-cee-draft',
+    version: 1,
+    template,
+    metadata: { '@context': {}, f: { '@value': 'a'.repeat(80) + '!' } },
+    drafts: [{ path: ['absent'], draft: { code: 'incompleteValue', message: 'Incomplete', value: null, state: null } }],
+  });
+  expect(recovered).toBe(false);
+  expect(r.coordinator.state).toBe(before);
+  r.open(templateJson([text('safe')])).type(['safe'], 'retained');
+  expect(r.value(['safe'])).toBe('retained');
+  expect(r.error).toHaveBeenCalledWith('CEDAR Embeddable Editor: recovery draft could not be restored.');
+});
+
+it('rejects a non-finite recovery source before spending its input claims', () => {
+  const r = new Reader();
+  const state = r.coordinator.state;
+  expect(
+    r.coordinator.acceptRecovery({
+      format: 'cedar-cee-draft',
+      version: 1,
+      template: templateJson([text('f')]),
+      metadata: { invalid: Number.NaN },
+      drafts: [],
+    }),
+  ).toBe(false);
+  expect(r.coordinator.state).toBe(state);
+  r.open(templateJson([text('f')])).type(['f'], 'still editable');
+  expect(r.value(['f'])).toBe('still editable');
 });

@@ -1,3 +1,4 @@
+import { ValidationCode } from '../validation/validation-problem.model';
 import * as _ from 'lodash-es';
 import {
   InstanceDataAttributeValueFieldName,
@@ -163,5 +164,12 @@ function errorsIn(field: FieldComponent, node: InstanceNode): string[] {
     ...FieldValueValidator.validateNode(field, node, field.path),
     ...FieldValueValidator.validate(field, DataQualityReportBuilderHandler.extractPlainValue(node, field), field.path),
   ];
-  return problems.filter((problem) => problem.severity === 'error').map((problem) => problem.code);
+  return problems
+    .filter(
+      (problem) =>
+        problem.severity === 'error' &&
+        problem.code !== ValidationCode.regexPending &&
+        problem.code !== ValidationCode.regexEvaluation,
+    )
+    .map((problem) => problem.code);
 }

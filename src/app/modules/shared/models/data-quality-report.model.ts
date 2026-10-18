@@ -25,6 +25,8 @@ export class DataQualityReport extends Object {
    */
   problems: ValidationProblem[] = [];
   isValid = false;
+  /** Present while worker checks are unresolved; no provisional answer is advertised as valid. */
+  declare pendingValidation?: boolean;
 
   constructor() {
     super();
@@ -32,7 +34,11 @@ export class DataQualityReport extends Object {
 
   /** True when nothing required is missing and no present value is invalid. */
   computeValidity() {
+    if (this.problems.some((problem) => problem.code === 'regexPending')) {
+      this.pendingValidation = true;
+      this.problems = this.problems.filter((problem) => problem.code !== 'regexPending');
+    }
     const nothingMissing = this.requiredFieldValueCount <= this.nonNullRequiredFieldValueCount;
-    this.isValid = nothingMissing && this.problems.length === 0;
+    this.isValid = !this.pendingValidation && nothingMissing && this.problems.length === 0;
   }
 }

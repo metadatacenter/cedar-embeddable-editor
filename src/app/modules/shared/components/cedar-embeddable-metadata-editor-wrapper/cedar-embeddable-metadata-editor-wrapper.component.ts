@@ -3,6 +3,8 @@ import { componentsAlong } from '../../util/component-location';
 import { describeValidationProblem } from '../../validation/validation-message';
 import {
   Component,
+  ChangeDetectorRef,
+  Optional,
   ElementRef,
   Input,
   OnDestroy,
@@ -110,6 +112,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private translateService: TranslateService,
     private globalSettingsContextService: GlobalSettingsContextService,
     private fieldReveal: FieldRevealService,
+    @Optional() private readonly validationView: ChangeDetectorRef | null = null,
   ) {
     this.artifacts = new ArtifactInputCoordinator(this.messageHandlerService);
     this.configuration = new WrapperConfigCoordinator(
@@ -279,6 +282,19 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.dataContext = state.dataContext;
     this.handlerContext = state.handlerContext;
     this.handlerContext.setMutationListener((mutation) => this.publishMutation(mutation));
+    const current = this.handlerContext;
+    current.setValidationListener(() => {
+      if (this.handlerContext !== current) return;
+      this.lastPublishedState = this.validationStateKey();
+      this.validationView?.markForCheck();
+      this.wrapper.nativeElement.dispatchEvent(
+        new CustomEvent<CeeDataQualityReport>('validationChange', {
+          detail: this.dataQualityReport as CeeDataQualityReport,
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    });
     this.artifactRevision = state.revision;
     this.lastPublishedState = this.validationStateKey();
     this.doInitialize();
@@ -349,6 +365,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   ngOnDestroy(): void {
+    this.handlerContext.validation.dispose();
     this.activeComponentRegistry.clear();
   }
 

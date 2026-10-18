@@ -49,6 +49,7 @@ export function describeValidationProblem(problem: ValidationProblem, component?
   const simple: Record<string, string> = {
     required: 'Validation.Required',
     regex: 'Validation.Text.Pattern',
+    regexEvaluation: 'Validation.Text.PatternUnavailable',
     email: 'Validation.Email.Invalid',
     link: 'Validation.Link.Invalid',
     phoneNumber: 'Validation.Phone.Invalid',

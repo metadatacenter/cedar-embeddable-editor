@@ -59,6 +59,8 @@ export class ValidationCode {
   static minLength = 'minLength';
   static maxLength = 'maxLength';
   static regex = 'regex';
+  static regexPending = 'regexPending';
+  static regexEvaluation = 'regexEvaluation';
   static email = 'email';
   static link = 'link';
   static phoneNumber = 'phoneNumber';

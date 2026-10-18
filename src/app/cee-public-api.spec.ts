@@ -127,6 +127,8 @@ const interfaceMembers = (name: string): string[] => {
 describe('the published report types and the objects behind them', () => {
   it('declare every member the report has, and only those', () => {
     const report = new DataQualityReport() as unknown as Record<string, unknown>;
+    // pendingValidation is present only while worker validation is unresolved.
+    report['pendingValidation'] = true;
     const carried = Object.getOwnPropertyNames(report);
     const declared = interfaceMembers('CeeDataQualityReport');
 

@@ -129,7 +129,12 @@ export class CarriedAnswerValidation {
           DataQualityReportBuilderHandler.extractPlainValue(node, field),
           field.path,
         ),
-      ].filter((finding) => finding.severity === 'error');
+      ].filter(
+        (finding) =>
+          finding.severity === 'error' &&
+          finding.code !== ValidationCode.regexPending &&
+          finding.code !== ValidationCode.regexEvaluation,
+      );
     const replacement = (index: number | null): InstanceNode => {
       const fresh = builder.buildChild(field);
       const candidate = Array.isArray(fresh) ? fresh[index ?? 0] : fresh;

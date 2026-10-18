@@ -50,6 +50,7 @@ export class ArtifactInputCoordinator {
 
   acceptRecovery(value: CeeRecoveryDraft): boolean {
     if (!this.claimAvailable('restoreDraft', ['template', 'instance'])) return false;
+    let candidate: ArtifactEditorState | null = null;
     try {
       const draft = JsonSourcePolicy.clone(value);
       if (
@@ -61,7 +62,7 @@ export class ArtifactInputCoordinator {
         return false;
       const instance = this.readInstance('restoreDraft', draft.metadata);
       if (!instance) return false;
-      const candidate = this.buildCandidate('restoreDraft', draft.template, instance, true);
+      candidate = this.buildCandidate('restoreDraft', draft.template, instance, true);
       if (!candidate) return false;
       candidate.handlerContext.validation.restoreDrafts(instance.dataContainer, draft.drafts);
       candidate.handlerContext.buildQualityReport();
@@ -75,6 +76,7 @@ export class ArtifactInputCoordinator {
       });
       return true;
     } catch {
+      candidate?.handlerContext.validation.dispose();
       this.messages.error('CEDAR Embeddable Editor: recovery draft could not be restored.');
       return false;
     }
@@ -102,6 +104,7 @@ export class ArtifactInputCoordinator {
     }
     if (instance === null && !this.carryAnswers(candidate)) {
       // A form whose carried answers could not be made sound is rebuilt rather than shown.
+      candidate.handlerContext.validation.dispose();
       candidate = this.buildCandidate('templateObject', template, null, false);
       if (candidate === null) {
         return false;
@@ -196,6 +199,7 @@ export class ArtifactInputCoordinator {
       candidate.dataContext.setInputTemplate(template, candidate.handlerContext, null);
       return candidate;
     } catch (error) {
+      candidate.handlerContext.validation.dispose();
       const detail = error instanceof Error ? error.message : String(error);
       this.messages.error(
         `CEDAR Embeddable Editor: "${input}" rejected because it is not a readable CEDAR template: ${detail}`,
@@ -226,6 +230,7 @@ export class ArtifactInputCoordinator {
     instanceJson: CeeJsonObject | null,
     templateAndInstanceJson: CeeTemplateAndInstance | null,
   ): ArtifactEditorState {
+    this._state.handlerContext.validation.dispose();
     this.nextRevision += 1;
     return { ...candidate, templateJson, instanceJson, templateAndInstanceJson, revision: this.nextRevision };
   }

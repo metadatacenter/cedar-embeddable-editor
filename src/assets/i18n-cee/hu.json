@@ -144,7 +144,8 @@
       "MinLength": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
       "MinLengthOne": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
       "MaxLength": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet.",
-      "MaxLengthOne": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet."
+      "MaxLengthOne": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet.",
+      "PatternUnavailable": "A minta ellenőrzése nem fejeződött be. Kérje a sablon szerzőjét a minta egyszerűsítésére, vagy ellenőrizze, hogy az oldal engedélyezi-e az ellenőrzési munkaszálakat."
     },
     "Select": {
       "MaxSelection": "Legfeljebb {{maxSelections}} lehetőség kiválasztása lehetséges"

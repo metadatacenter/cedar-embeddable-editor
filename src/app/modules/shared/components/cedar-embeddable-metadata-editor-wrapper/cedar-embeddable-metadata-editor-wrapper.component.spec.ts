@@ -106,6 +106,33 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     return { component, mocks };
   };
 
+  it('announces resolved validation without an instance edit and cancels replaced documents', async () => {
+    const { component, mocks } = make();
+    const template = structuredClone(validTemplate);
+    const properties = template['properties'] as CeeJsonObject;
+    const field = properties['_text'] as CeeJsonObject;
+    field['_valueConstraints'] = { ...(field['_valueConstraints'] as CeeJsonObject), regex: '[A-Z]+' };
+    const changed = vi.fn();
+    const validated = vi.fn();
+    mocks.host.addEventListener('change', changed);
+    mocks.host.addEventListener('validationChange', validated);
+    component.ngOnInit();
+    component.templateObject = template;
+    await component.handlerContext.validation.settled();
+    expect(validated).toHaveBeenCalled();
+    expect(changed).not.toHaveBeenCalled();
+    validated.mockClear();
+    const previous = component.handlerContext;
+    previous.changeValue(
+      previous.dataContext.templateRepresentation!.children.find((child) => child.name === '_text') as FieldComponent,
+      'bad',
+    );
+    component.templateObject = validTemplate;
+    await previous.validation.settled();
+    expect(validated).not.toHaveBeenCalled();
+    component.ngOnDestroy();
+  });
+
   it('applies config identically whether Angular supplies it before or after ngOnInit', () => {
     const config = {
       terminologyBaseUrl: '/terminology/',

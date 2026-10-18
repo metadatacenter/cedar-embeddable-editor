@@ -268,6 +268,8 @@ export interface CeeRevealOptions {
  * subset of what a host actually received.
  */
 export interface CeeDataQualityReport {
+  /** Worker validation is unresolved; isValid remains false until it settles. */
+  pendingValidation?: boolean;
   /**
    * How many required fields the template declares.
    *
@@ -367,6 +369,18 @@ export interface CeeEventHandler {
  * handler and meaningless for the three read-only getters below.
  */
 export interface CedarEmbeddableEditorElement extends HTMLElement {
+  /** Validity changed after asynchronous checks; the instance itself did not change. */
+  addEventListener(
+    type: 'validationChange',
+    listener: ((this: CedarEmbeddableEditorElement, event: CustomEvent<CeeDataQualityReport>) => unknown) | null,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  removeEventListener(
+    type: 'validationChange',
+    listener: ((this: CedarEmbeddableEditorElement, event: CustomEvent<CeeDataQualityReport>) => unknown) | null,
+    options?: boolean | EventListenerOptions,
+  ): void;
+
   /** Typed host mutation event; the inherited overloads still handle every other DOM event. */
   addEventListener(
     type: 'change',
@@ -524,6 +538,8 @@ export type CedarEmbeddableFieldValue =
 
 /** Detail carried by the `cedar-embeddable-field` element's `valueChange` event. */
 export interface CedarEmbeddableFieldChangeDetail {
+  /** Present while bounded pattern checks are unresolved; valid stays false. */
+  pendingValidation?: boolean;
   /** What the field now holds. */
   value: CedarEmbeddableFieldValue;
   /** Whether it satisfies the constraints the field declares. */

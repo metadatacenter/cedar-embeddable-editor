@@ -1,5 +1,8 @@
+import type { DestroyRef } from '@angular/core';
+import { RegexChecks } from 'cedar-model-typescript-library';
+import { Observable } from 'rxjs';
 import { countKey } from '../util/count-key';
-import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { AbstractControl, AsyncValidatorFn, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { Xsd } from '../models/xsd.model';
@@ -65,7 +68,10 @@ export class CedarValidators {
   /** Every declared constraint for this field, as a single Angular validator. */
   static forComponent(component: FieldComponent): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const problems = FieldValueValidator.validate(component, control.value, component.path ?? []);
+      const problems = [
+        ...FieldValueValidator.validateConfiguration(component),
+        ...FieldValueValidator.validate(component, control.value, component.path ?? []),
+      ].filter((problem) => problem.code !== ValidationCode.regexPending);
       if (problems.length === 0) {
         return null;
       }
@@ -90,6 +96,36 @@ export class CedarValidators {
       }
       return errors;
     };
+  }
+
+  /** Angular owns pending state and cancels the worker subscription when a control changes. */
+  static regexForComponent(
+    component: FieldComponent,
+    changed: () => void = () => {},
+    lifetime?: DestroyRef,
+  ): AsyncValidatorFn | null {
+    if (!component.valueInfo.regex) return null;
+    return (control) =>
+      new Observable<ValidationErrors | null>((observer) => {
+        const complete = () => {
+          const errors = checks.run(() => CedarValidators.forComponent(component)(control));
+          if (!checks.pending) {
+            observer.next(errors);
+            observer.complete();
+            changed();
+          }
+        };
+        const checks = new RegexChecks(complete);
+        const unregister = lifetime?.onDestroy(() => {
+          checks.dispose();
+          observer.complete();
+        });
+        complete();
+        return () => {
+          unregister?.();
+          checks.dispose();
+        };
+      });
   }
 
   /**

@@ -182,35 +182,51 @@ describe('draft lineage matrix', () => {
 });
 
 describe('recovery isolation matrix', () => {
-  it.each(structures.flatMap((structure) => ['value', 'configuration'].map((defect) => ({ ...structure, defect }))))(
-    'depth $depth mask $mask, $defect defect, multiple affected entries',
-    ({ depth, mask, defect }) => {
-      const nested = (bad: boolean) =>
-        shape(
-          {
-            kind: 'text',
-            key: 'value',
-            maxLength: 4,
-            ...(bad ? (defect === 'value' ? { default: 'too long' } : { regex: '[' }) : {}),
-          },
-          depth,
-          mask,
-        );
-      const schema = (bad: boolean): ChildSpec[] => [
-        { kind: 'text', key: 'safe' },
-        { key: 'optional', multi: true, element: nested(bad).children },
-      ];
-      const r = new Reader()
-        .open(templateJson(schema(false)))
-        .type(['safe'], 'unrelated')
-        .add(['optional'], 3);
-      r.open(templateJson(schema(true)));
-      expect(r.value(['safe'])).toBe('unrelated');
-      expect(r.errors()).toEqual([]);
-      expect(r.count(['optional'])).toBe(defect === 'configuration' ? 0 : 3);
-      expect(r.trace).not.toHaveBeenCalled();
-    },
-  );
+  it.each(
+    structures.flatMap((structure) =>
+      ['value', 'configuration', 'pattern'].map((defect) => ({ ...structure, defect })),
+    ),
+  )('depth $depth mask $mask, $defect defect, multiple affected entries', async ({ depth, mask, defect }) => {
+    const nested = (bad: boolean) =>
+      shape(
+        {
+          kind: 'text',
+          key: 'value',
+          maxLength: 4,
+          ...(bad
+            ? defect === 'value'
+              ? { default: 'too long' }
+              : defect === 'configuration'
+                ? { minLength: 5 }
+                : { regex: '[' }
+            : {}),
+        },
+        depth,
+        mask,
+      );
+    const schema = (bad: boolean): ChildSpec[] => [
+      { kind: 'text', key: 'safe' },
+      { key: 'optional', multi: true, element: nested(bad).children },
+    ];
+    const r = new Reader()
+      .open(templateJson(schema(false)))
+      .type(['safe'], 'unrelated')
+      .add(['optional'], 3);
+    r.open(templateJson(schema(true)));
+    expect(r.value(['safe'])).toBe('unrelated');
+    await r.coordinator.state.handlerContext.validation.settled();
+    expect(r.errors()).toEqual(
+      defect === 'pattern'
+        ? Array(3).fill(
+            `optional/${nested(true)
+              .place.filter((part) => typeof part === 'string')
+              .join('/')} templateConstraint`,
+          )
+        : [],
+    );
+    expect(r.count(['optional'])).toBe(defect === 'configuration' ? 0 : 3);
+    expect(r.trace).not.toHaveBeenCalled();
+  });
 });
 
 it('restores the nearest earlier pager entry when local recovery removes the selected entry', () => {

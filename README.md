@@ -170,6 +170,19 @@ needs at least one answer within each such element.
 The report includes unfinished date/time and attribute-name edits, and `change`
 fires when metadata **or the report** changes. Invalid imported field IRIs and
 well-shaped numeric, temporal and IRI defaults remain available for correction.
+Patterns run in a bounded worker, with the same no-flags, whole-value semantics as Java validation.
+While a check is running, `dataQualityReport.pendingValidation` is `true`, `isValid` is `false`,
+and no provisional pattern error is displayed. Listen for the composed `validationChange` event
+(the detail is the updated report) to refresh a host save gate without treating completion as an
+instance edit. CEF's `valueChange` detail carries the same optional `pendingValidation` flag
+and announces completion even when the completed result remains invalid. A timeout, resource limit or unavailable worker is a `regexEvaluation` error;
+hosts must not save while checks are pending or error problems remain. Worker execution needs
+`worker-src blob:` in the host CSP. There is no synchronous fallback.
+
+A template pattern change preserves existing preview answers. If a retained answer fails the new
+pattern, the completed report identifies it; a failed or unfinished check never clears the answer
+or removes its containing section. Replacing or destroying the editor cancels obsolete checks.
+
 Terminology membership and server-side validation remain the host's responsibility.
 
 ## Embedding a Single Field

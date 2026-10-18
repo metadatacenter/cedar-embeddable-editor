@@ -31,6 +31,7 @@ export interface InstanceMutation {
 
 export class HandlerContext {
   readonly previewEdits = new PreviewEditState();
+  private validationListener: (() => void) | null = null;
   private mutationListener: ((mutation: InstanceMutation) => void) | null = null;
   // No `= null` initialisers. The constructor assigns every one of these, so the
   // null was a placeholder that never survived construction — and declaring it
@@ -93,6 +94,13 @@ export class HandlerContext {
     // `MultiInstanceObjectInfo.currentCount` read the document — see that class.
     this.multiInstanceObjectService.setInstanceResolver((path) => this.getDataObjectNodeByPath(path));
     // this.rdfService = new RdfBuilderService();
+  }
+
+  setValidationListener(listener: () => void): void {
+    this.validationListener = listener;
+  }
+  validationChanged(): void {
+    this.validationListener?.();
   }
 
   /** Install the wrapper-owned bridge from model mutations to the host contract. */

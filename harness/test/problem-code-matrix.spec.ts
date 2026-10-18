@@ -153,10 +153,11 @@ const storedValues: Array<{
 
 describe.each(depths)('stored values that break a constraint, at depth %i', (depth) => {
   describe.each(modes)('readOnly=%s', (readOnlyMode) => {
-    it.each(storedValues)('$name is reported, survives navigation and can be repaired', (test) => {
+    it.each(storedValues)('$name is reported, survives navigation and can be repaired', async (test) => {
       const fixture = nested({ kind: test.kind, name: 'f', options: test.options }, test.value, depth);
       const supplied = JSON.stringify(fixture.instance);
       const driver = new CeeDriver(fixture.template, { instance: fixture.instance, readOnlyMode });
+      await driver.settled();
       const problem = driver.qualityReport.problems.find((p: ValidationProblem) => p.code === test.code);
       expect(problem, JSON.stringify(driver.qualityReport.problems)).toMatchObject({
         path: fixture.path,
@@ -179,8 +180,10 @@ describe.each(depths)('stored values that break a constraint, at depth %i', (dep
         driver.handlerContext.readOnlyMode = false;
       }
       driver.setValue(fixture.path, test.kind, test.repair);
+      await driver.settled();
       expect(driver.qualityReport.problems, JSON.stringify(driver.messages.errors)).toEqual([]);
       const reloaded = new CeeDriver(fixture.template, { instance: driver.emitted, readOnlyMode });
+      await reloaded.settled();
       expect(reloaded.qualityReport.isValid).toBe(true);
     });
   });

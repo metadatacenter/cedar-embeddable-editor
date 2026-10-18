@@ -6,7 +6,7 @@
  * `HandlerContext`, the way CEE's widgets do, so what the carrying takes to be an
  * answer is exactly what typing into the form produces.
  */
-import { vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import {
   BiboStatus,
   CedarBuilders,
@@ -242,12 +242,19 @@ export type Step = string | number;
  * Someone filling in the form: they type, choose, add entries and turn pagers, all
  * through the editor's own API.
  */
+const readers = new Set<Reader>();
+afterEach(() => {
+  for (const reader of readers) reader.coordinator.state.handlerContext.validation.dispose();
+  readers.clear();
+});
+
 export class Reader {
   readonly coordinator: ArtifactInputCoordinator;
   readonly error = vi.fn();
   readonly trace = vi.fn();
 
   constructor() {
+    readers.add(this);
     this.coordinator = new ArtifactInputCoordinator({
       error: this.error,
       trace: this.trace,

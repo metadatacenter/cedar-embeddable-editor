@@ -1,3 +1,4 @@
+import { RegexChecks } from 'cedar-model-typescript-library';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceNode, isInstanceObject, childOf } from '../models/instance-node.model';
 import type { CeeRecoveryDraft } from '../../../cee-public-api';
@@ -24,7 +25,26 @@ export class ValidationCoordinator {
   private readonly builder = new DataQualityReportBuilderHandler();
   private readonly drafts = new WeakMap<object, FieldDraft>();
 
+  private disposed = false;
+  private readonly regex = new RegexChecks(() => {
+    if (this.disposed) return;
+    this.validate();
+    this.context.validationChanged();
+  });
+
   constructor(private readonly context: HandlerContext) {}
+
+  async settled(): Promise<void> {
+    do {
+      await this.regex.settled();
+      if (!this.disposed) this.validate();
+    } while (!this.disposed && this.regex.pending);
+  }
+
+  dispose(): void {
+    this.disposed = true;
+    this.regex.dispose();
+  }
 
   private currentNode(component: FieldComponent): InstanceNode | null {
     return this.context.getCurrentValueNode(component);
@@ -122,7 +142,7 @@ export class ValidationCoordinator {
 
   validate(): void {
     const data = this.context.dataContext;
-    const report = this.builder.buildReport(data, this.context);
+    const report = this.regex.run(() => this.builder.buildReport(data, this.context));
     const template = data.templateRepresentation;
     const expected = template instanceof CedarTemplate ? template.isBasedOn : null;
     const actual = data.instanceFullData?.schema_isBasedOn?.getValue();

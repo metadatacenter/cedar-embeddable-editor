@@ -114,6 +114,7 @@ export default defineConfig({
     noExternal: TRANSFORM,
   },
   test: {
+    setupFiles: [path.resolve(here, '../scripts/test-support/regex-worker.ts')],
     maxWorkers: process.env.CEDAR_TEST_WORKERS ? Number(process.env.CEDAR_TEST_WORKERS) : undefined,
     globals: true,
     environment: 'node',
