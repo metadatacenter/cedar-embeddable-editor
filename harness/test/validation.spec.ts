@@ -82,6 +82,33 @@ describe('numeric constraints', () => {
     expect(codesFor(make(), value)).toContain(code);
   });
 
+  it.each([-1, 1.5])(
+    'reports malformed decimal precision %s without throwing',
+    (decimalPlaces) => {
+      expect(
+        codesFor(
+          numeric((b) => b.withNumberType(NumberType.DECIMAL).withDecimalPlaces(decimalPlaces)),
+          '1.2',
+        ),
+      ).toContain('templateConstraint');
+    },
+  );
+  it.each([
+    ['1e2', 2, 'numberType'],
+    ['01', 2, 'numberType'],
+    ['1.00', 1, 'decimalPlace'],
+    ['1.', 0, null],
+    ['.1', 1, null],
+    ['1.234', 1000000000, null],
+  ] as const)('preserves instance lexical compatibility for %s with %s places', (value, places, code) => {
+    const codes = codesFor(
+      numeric((b) => b.withNumberType(NumberType.DECIMAL).withDecimalPlaces(places)),
+      value,
+    );
+    if (code) expect(codes).toContain(code);
+    else expect(codes).toEqual([]);
+  });
+
   /**
    * The three types CEE previously had no constants for. They fell through
    * every branch of the widget's `if` chain and were checked nowhere.

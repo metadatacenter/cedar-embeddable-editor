@@ -102,9 +102,8 @@ export class FieldValueValidator {
     if (minLength != null && maxLength != null && minLength > maxLength)
       invalid('Minimum length exceeds maximum length.');
     if (regex) this.checkRegex(component, null, component.path, problems);
-    const { minValue, maxValue } = component.numberInfo ?? {};
-    if (minValue != null && maxValue != null && NumericPolicy.compare(minValue, maxValue) > 0)
-      invalid('Minimum value exceeds maximum value.');
+    const numericError = this.numericConfigurationError(component);
+    if (numericError) invalid(numericError);
     return problems;
   }
 
@@ -270,38 +269,53 @@ export class FieldValueValidator {
     [Xsd.short]: [Numbers.NUMBER_SHORT_MIN, Numbers.NUMBER_SHORT_MAX],
   };
 
+  private static numericConfigurationError(component: FieldComponent): string | null {
+    const { minValue, maxValue, decimalPlace } = component.numberInfo ?? {};
+    if (decimalPlace != null && (!Number.isSafeInteger(decimalPlace) || decimalPlace < 0))
+      return 'Decimal places must be a nonnegative integer.';
+    try {
+      if (minValue != null) NumericPolicy.value(minValue);
+      if (maxValue != null) NumericPolicy.value(maxValue);
+      if (minValue != null && maxValue != null && NumericPolicy.compare(minValue, maxValue) > 0)
+        return 'Minimum value exceeds maximum value.';
+    } catch {
+      return 'Numeric bounds must be finite decimal values.';
+    }
+    return null;
+  }
+
   private static checkNumeric(component: FieldComponent, text: string, path: string[], out: ValidationProblem[]): void {
     const ni = component.numberInfo;
     const numberType = ni.numberType;
     const integral = numberType != null && Object.prototype.hasOwnProperty.call(this.INTEGRAL_BOUNDS, numberType);
     const fractional = numberType === Xsd.float || numberType === Xsd.double || numberType === Xsd.decimal;
 
-    if (integral && !new RegExp(`^${Numbers.PATTERN_XSD_INT_AND_LONG}$`).test(text)) {
+    const invalidConfiguration = this.numericConfigurationError(component);
+    if (invalidConfiguration) {
+      out.push(this.problem(component, path, ValidationCode.templateConstraint, invalidConfiguration, text));
+      return;
+    }
+    // The existing instance widget grammar is deliberately narrower than decimal
+    // defaults/bounds: no exponent or redundant leading zeros. Keep its lexical
+    // precision rule (including trailing zeros) without compiling authored limits.
+    if (
+      (integral && !/^[+-]?(?:0|[1-9][0-9]*)$/.test(text)) ||
+      (fractional && !/^[+-]?(?:(?:0|[1-9][0-9]*)(?:\.[0-9]*)?|\.[0-9]+)$/.test(text))
+    ) {
       out.push(this.problem(component, path, ValidationCode.numberType, `Not a valid ${numberType}.`, text));
       return;
     }
-    if (fractional) {
-      const maxDig = ni.decimalPlace != null ? String(ni.decimalPlace) : '';
-      const pattern = Numbers.PATTERN_XSD_FLOAT_AND_DOUBLE.replace(/maxDig/g, maxDig);
-      if (!new RegExp(`^${pattern}$`).test(text)) {
-        // Distinguish "not a number" from "too many decimals", which is the
-        // difference between a typo and a precision constraint.
-        const anyDecimal = new RegExp(`^${Numbers.PATTERN_XSD_FLOAT_AND_DOUBLE.replace(/maxDig/g, '')}$`);
-        if (ni.decimalPlace != null && anyDecimal.test(text)) {
-          out.push(
-            this.problem(
-              component,
-              path,
-              ValidationCode.decimalPlace,
-              `More than ${ni.decimalPlace} decimal places.`,
-              text,
-            ),
-          );
-        } else {
-          out.push(this.problem(component, path, ValidationCode.numberType, `Not a valid ${numberType}.`, text));
-        }
-        return;
-      }
+    if (fractional && ni.decimalPlace != null && (text.split('.')[1]?.length ?? 0) > ni.decimalPlace) {
+      out.push(
+        this.problem(
+          component,
+          path,
+          ValidationCode.decimalPlace,
+          `More than ${ni.decimalPlace} decimal places.`,
+          text,
+        ),
+      );
+      return;
     }
 
     try {
@@ -316,7 +330,7 @@ export class FieldValueValidator {
     // Integral types compare as BigInt against the exact bounds. Going through `numeric`
     // would collapse every value near 2^63 onto the same double, which is how
     // 9223372036854775808 used to pass as an xsd:long. Reaching here as an integral type
-    // means the text already matched PATTERN_XSD_INT_AND_LONG, so BigInt cannot throw.
+    // means the text already matched the integral lexical rule, so BigInt cannot throw.
     const bounds = numberType == null ? undefined : this.INTEGRAL_BOUNDS[numberType];
     if (bounds) {
       const exact = BigInt(text);
