@@ -133,7 +133,7 @@ function fill(rng: Random, reader: Reader, children: readonly ChildSpec[], prefi
     if (isElement(child)) {
       if (child.multi) {
         const adds = between(rng, 0, 2);
-        for (let i = 0; i < adds; i++) attempt(() => reader.add(place));
+        for (let i = 0; i < adds; i++) add(reader, place, child.max);
         const count = reader.count(place) ?? 0;
         for (let entry = 0; entry < count; entry++) fill(rng, reader, child.element, [...place, entry]);
       } else {
@@ -143,35 +143,42 @@ function fill(rng: Random, reader: Reader, children: readonly ChildSpec[], prefi
     }
     if (chance(rng, 0.25)) continue;
     if (child.kind === 'checkbox' || child.kind === 'multiList') {
-      attempt(() =>
-        reader.choose(
-          place,
-          (child.options ?? []).filter(() => chance(rng, 0.5)),
-        ),
-      );
+      const labels = (child.options ?? []).filter(() => chance(rng, 0.5));
+      reader.choose(place, labels);
+      expect(reader.values(place), `choose ${place.join('/')}`).toEqual(labels.length ? labels : [null]);
     } else if (child.kind === 'radio' || child.kind === 'list') {
-      attempt(() => reader.type(place, pick(rng, [...(child.options ?? []), 'Zeta'])));
+      type(reader, place, pick(rng, [...(child.options ?? []), 'Zeta']));
     } else if (child.multi) {
       const adds = between(rng, 0, 3);
-      for (let i = 0; i < adds; i++) attempt(() => reader.add(place));
+      for (let i = 0; i < adds; i++) add(reader, place, child.max);
       const count = reader.count(place) ?? 0;
       for (let entry = 0; entry < count; entry++) {
-        if (chance(rng, 0.7)) attempt(() => reader.type([...place, entry], pick(rng, typed(child.kind))));
+        if (chance(rng, 0.7)) type(reader, [...place, entry], pick(rng, typed(child.kind)));
       }
     } else {
-      attempt(() => reader.type(place, pick(rng, typed(child.kind))));
+      type(reader, place, pick(rng, typed(child.kind)));
     }
   }
 }
 
 const typed = (kind: FieldKind): readonly string[] => TYPED[kind] ?? TYPED['text'];
 
-/** A reader can try what the form refuses, such as adding past a maximum. */
-function attempt(action: () => unknown): void {
-  try {
-    action();
-  } catch {
-    // The form refused, as it would refuse a person.
+/** Check the input reached the form before using that form as the carrying oracle. */
+function type(reader: Reader, place: Array<string | number>, value: string): void {
+  reader.type(place, value);
+  expect(reader.value(place), `type ${place.join('/')}`).toBe(value);
+}
+
+/** Only a known maximum permits an add refusal; every other failure must fail the run. */
+function add(reader: Reader, place: Array<string | number>, max: number | null | undefined): void {
+  const before = reader.count(place);
+  expect(before, `list at ${place.join('/')}`).not.toBeNull();
+  if (max != null && before! >= max) {
+    expect(() => reader.add(place)).toThrowError(new Error(`could not add to ${place.join('/')}`));
+    expect(reader.count(place)).toBe(before);
+  } else {
+    reader.add(place);
+    expect(reader.count(place), `add ${place.join('/')}`).toBe(before! + 1);
   }
 }
 
