@@ -16,7 +16,14 @@
  * regex 150, minValue 127, default 96, selected 37, granularity 28.
  */
 import { describe, expect, it } from 'vitest';
-import { CedarBuilders, Iri, NumberType, TemporalGranularity, TemporalType } from 'cedar-model-typescript-library';
+import {
+  CedarBuilders,
+  Iri,
+  NumericPolicy,
+  NumberType,
+  TemporalGranularity,
+  TemporalType,
+} from 'cedar-model-typescript-library';
 import { FIELD_KINDS, FieldKind } from '../src/axes';
 import { buildTemplate, buildTemplateYaml } from '../src/generate';
 import { CeeDriver } from '../src/driver';
@@ -239,8 +246,10 @@ describe('numeric constraints', () => {
     });
     const driver = new CeeDriver(template);
 
-    expect(driver.findOrThrow(['_f']).valueInfo.defaultValue).toBe(defaultValue);
-    expect(literalOf(driver.extract.values._f)).toBe(String(defaultValue));
+    expect(NumericPolicy.compare(String(driver.findOrThrow(['_f']).valueInfo.defaultValue), String(defaultValue))).toBe(
+      0,
+    );
+    expect(NumericPolicy.compare(String(literalOf(driver.extract.values._f)), String(defaultValue))).toBe(0);
     expect(xsdTypeOf(driver.extract.values._f)).toBe(numberType.getValue());
   });
 });

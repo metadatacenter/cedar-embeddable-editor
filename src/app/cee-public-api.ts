@@ -141,7 +141,13 @@ export interface CeeConfig {
 }
 
 /** A JSON-serialisable value, as it appears in a CEDAR artifact. */
-export type CeeJsonValue = string | number | boolean | null | CeeJsonObject | CeeJsonValue[];
+/** Exact numeric atoms returned by the model library's raw-source readers. Use its JSON writer for serialization. */
+export interface CeeExactNumber {
+  readonly cedarExactDecimal: true;
+  toString(): string;
+  toJSON(): unknown;
+}
+export type CeeJsonValue = string | number | CeeExactNumber | boolean | null | CeeJsonObject | CeeJsonValue[];
 
 export interface CeeJsonObject {
   [key: string]: CeeJsonValue;

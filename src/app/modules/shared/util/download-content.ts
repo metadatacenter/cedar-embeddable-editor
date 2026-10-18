@@ -1,3 +1,4 @@
+import { JsonSourcePolicy } from 'cedar-model-typescript-library';
 import { CedarWriters, Template } from 'cedar-model-typescript-library';
 import { CedarTemplate } from '../models/template/cedar-template.model';
 import { DOWNLOAD_ITEMS, DownloadItemId } from '../models/ui/download-item.model';
@@ -23,7 +24,7 @@ const templateModel = (dataContext: DataContext): Template | null => {
 };
 
 /** Two-space JSON, matching what the panels printed through the `json` pipe. */
-const asJson = (value: unknown): string => JSON.stringify(value ?? null, null, 2);
+const asJson = (value: unknown): string => JsonSourcePolicy.stringify(value ?? null, 2);
 
 /**
  * The bytes of one download.

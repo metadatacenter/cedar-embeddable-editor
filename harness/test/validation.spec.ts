@@ -539,3 +539,14 @@ describe('problem diagnostics', () => {
     expect(driver.qualityReport.problems.map((p: any) => p.code)).toContain('maxValue');
   });
 });
+
+it('compares precise decimal and long bounds without rounding either side', () => {
+  const decimal = numeric((b) =>
+    b.withNumberType(NumberType.DECIMAL).withMinValue('1.00000000000000001').withMaxValue('1.00000000000000003'),
+  );
+  expect(codesFor(decimal, '1.00000000000000002')).toEqual([]);
+  expect(codesFor(decimal, '1')).toContain('minValue');
+  expect(codesFor(decimal, '1.00000000000000004')).toContain('maxValue');
+  const long = numeric((b) => b.withNumberType(NumberType.LONG).withMaxValue('9007199254740992'));
+  expect(codesFor(long, '9007199254740993')).toContain('maxValue');
+});

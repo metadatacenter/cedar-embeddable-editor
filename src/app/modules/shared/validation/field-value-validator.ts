@@ -1,4 +1,4 @@
-import { TextPolicy } from 'cedar-model-typescript-library';
+import { TextPolicy, NumericPolicy } from 'cedar-model-typescript-library';
 import { validAbsoluteFieldIri } from './absolute-iri';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
@@ -109,7 +109,8 @@ export class FieldValueValidator {
       }
     }
     const { minValue, maxValue } = component.numberInfo ?? {};
-    if (minValue != null && maxValue != null && minValue > maxValue) invalid('Minimum value exceeds maximum value.');
+    if (minValue != null && maxValue != null && NumericPolicy.compare(minValue, maxValue) > 0)
+      invalid('Minimum value exceeds maximum value.');
     return problems;
   }
 
@@ -282,8 +283,9 @@ export class FieldValueValidator {
       }
     }
 
-    const numeric = Number(text);
-    if (!Number.isFinite(numeric)) {
+    try {
+      NumericPolicy.value(text);
+    } catch {
       out.push(this.problem(component, path, ValidationCode.numberType, 'Not a finite number.', text));
       return;
     }
@@ -301,10 +303,10 @@ export class FieldValueValidator {
         out.push(this.problem(component, path, ValidationCode.numberType, `Outside the range of ${numberType}.`, text));
       }
     }
-    if (ni.minValue != null && numeric < ni.minValue) {
+    if (ni.minValue != null && NumericPolicy.compare(text, ni.minValue) < 0) {
       out.push(this.problem(component, path, ValidationCode.minValue, `Below the minimum ${ni.minValue}.`, text));
     }
-    if (ni.maxValue != null && numeric > ni.maxValue) {
+    if (ni.maxValue != null && NumericPolicy.compare(text, ni.maxValue) > 0) {
       out.push(this.problem(component, path, ValidationCode.maxValue, `Above the maximum ${ni.maxValue}.`, text));
     }
   }

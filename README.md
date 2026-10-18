@@ -262,7 +262,8 @@ assignment does not change the editor. Getters and events return detached values
 
 A numeric value has the shape `{ kind: 'number', value: number | string }`.
 Ordinary numbers remain numbers. When converting to a JavaScript number would lose
-significant digits or exceed its range, CEF returns the exact numeric string instead:
+significant digits, exceed its range, or produce an integer outside its safe range,
+CEF returns the exact numeric string instead:
 `9007199254740993` and `0.1234567890123456789` retain every digit. Both forms may be
 assigned back through `value`. Constraint validity remains a separate result.
 

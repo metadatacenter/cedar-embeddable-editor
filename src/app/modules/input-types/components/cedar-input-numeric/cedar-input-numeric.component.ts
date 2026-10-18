@@ -1,3 +1,4 @@
+import { NumericPolicy } from 'cedar-model-typescript-library';
 import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
@@ -37,8 +38,8 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
    */
   inputValueControl = new FormControl<string | null>(null);
   unitOfMeasure: string | null = null;
-  constraintMinValue: number | null = null;
-  constraintMaxValue: number | null = null;
+  constraintMinValue: string | number | null = null;
+  constraintMaxValue: string | number | null = null;
   patternErrorMessage: Translatable | null = null;
   @Input({ required: true }) handlerContext!: HandlerContext;
 
@@ -57,8 +58,14 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
 
     const validators: ValidatorFn[] = [];
 
-    this.constraintMinValue = this.component.numberInfo.minValue;
-    this.constraintMaxValue = this.component.numberInfo.maxValue;
+    this.constraintMinValue =
+      this.component.numberInfo.minValue == null || typeof this.component.numberInfo.minValue === 'number'
+        ? this.component.numberInfo.minValue
+        : String(this.component.numberInfo.minValue);
+    this.constraintMaxValue =
+      this.component.numberInfo.maxValue == null || typeof this.component.numberInfo.maxValue === 'number'
+        ? this.component.numberInfo.maxValue
+        : String(this.component.numberInfo.maxValue);
 
     if (this.component.valueInfo.requiredValue) {
       validators.push(Validators.required);
@@ -82,11 +89,9 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
               [Xsd.short]: [Numbers.NUMBER_SHORT_MIN, Numbers.NUMBER_SHORT_MAX],
             }[numberType];
       if (implicitBounds) {
-        // `Number(...)` because the table carries `bigint` for `xsd:long`, whose
-        // bounds exceed the safe integer range. The control compares as a number
-        // either way; this states the narrowing instead of leaving it implicit.
-        this.constraintMinValue = this.constraintMinValue ?? Number(implicitBounds[0]);
-        this.constraintMaxValue = this.constraintMaxValue ?? Number(implicitBounds[1]);
+        // Display the full type bounds without narrowing xsd:long to a double.
+        this.constraintMinValue = this.constraintMinValue ?? displayNumber(String(implicitBounds[0]));
+        this.constraintMaxValue = this.constraintMaxValue ?? displayNumber(String(implicitBounds[1]));
       }
     }
     this.patternErrorMessage = CedarValidators.describeNumberType(this.component);
@@ -179,4 +184,9 @@ export class CedarInputNumericComponent extends CedarUIDirective implements OnIn
 
     return parts.join(', ');
   }
+}
+
+function displayNumber(text: string): number | string {
+  const value = NumericPolicy.value(text);
+  return typeof value === 'number' ? value : text;
 }

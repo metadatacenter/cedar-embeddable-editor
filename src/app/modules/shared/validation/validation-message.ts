@@ -70,11 +70,11 @@ export function describeValidationProblem(problem: ValidationProblem, component?
     }
     if (problem.code === 'minValue' || problem.code === 'maxValue') {
       const min = problem.code === 'minValue';
+      const bound = (min ? field.numberInfo.minValue : field.numberInfo.maxValue) ?? 0;
       return {
         key: 'Validation.Numeric.' + (min ? 'MinValue' : 'MaxValue'),
         params: {
-          [min ? 'constraintMinValue' : 'constraintMaxValue']:
-            (min ? field.numberInfo.minValue : field.numberInfo.maxValue) ?? 0,
+          [min ? 'constraintMinValue' : 'constraintMaxValue']: typeof bound === 'number' ? bound : String(bound),
         },
       };
     }

@@ -1,3 +1,4 @@
+import { JsonSourcePolicy } from 'cedar-model-typescript-library';
 import type { CeeJsonObject, CeeTemplateAndInstance, CeeRecoveryDraft } from '../../../cee-public-api';
 import type { TemplateInstance } from 'cedar-model-typescript-library';
 import { DataContext } from './data-context';
@@ -50,7 +51,7 @@ export class ArtifactInputCoordinator {
   acceptRecovery(value: CeeRecoveryDraft): boolean {
     if (!this.claimAvailable('restoreDraft', ['template', 'instance'])) return false;
     try {
-      const draft = structuredClone(value);
+      const draft = JsonSourcePolicy.clone(value);
       if (
         draft?.format !== 'cedar-cee-draft' ||
         draft.version !== 1 ||
@@ -177,7 +178,7 @@ export class ArtifactInputCoordinator {
   /** Take ownership before parsing or retaining any part of a host document. */
   private snapshot<T>(input: string, value: T): T | null {
     try {
-      return structuredClone(value);
+      return JsonSourcePolicy.clone(value);
     } catch {
       this.messages.error(`CEDAR Embeddable Editor: "${input}" rejected because it cannot be copied as JSON data.`);
       return null;

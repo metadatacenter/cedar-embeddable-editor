@@ -1,3 +1,4 @@
+import { JsonSourcePolicy } from 'cedar-model-typescript-library';
 import { componentsAlong } from '../../util/component-location';
 import { describeValidationProblem } from '../../validation/validation-message';
 import {
@@ -188,7 +189,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     const template = this.artifacts.state.templateJson ?? this.artifacts.state.templateAndInstanceJson?.templateObject;
     const root = this.dataContext.instanceFullData?.dataContainer;
     if (!template || !root) return null;
-    return structuredClone({
+    return JsonSourcePolicy.clone({
       format: 'cedar-cee-draft',
       version: 1,
       template,
@@ -284,14 +285,14 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
   }
 
   private validationStateKey(): string {
-    return JSON.stringify([this.currentMetadata, this.dataQualityReport]);
+    return JsonSourcePolicy.stringify([this.currentMetadata, this.dataQualityReport]);
   }
 
   /** Publish changes to either serialized metadata or its quality report, including unfinished edits. */
   private publishMutation(mutation: InstanceMutation): void {
     const metadata = this.currentMetadata as CeeJsonObject;
     const report = this.dataQualityReport as CeeDataQualityReport;
-    const key = JSON.stringify([metadata, report]);
+    const key = JsonSourcePolicy.stringify([metadata, report]);
     if (key === this.lastPublishedState) {
       return;
     }
@@ -333,8 +334,8 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
       const context = this.handlerContext.dataContext;
       const report = context.dataQualityReport;
       if (!report) return {};
-      return JSON.parse(
-        JSON.stringify({
+      return JsonSourcePolicy.parse(
+        JsonSourcePolicy.stringify({
           ...report,
           problems: report.problems.map((problem) => {
             const component = componentsAlong(context.templateRepresentation, problem.path)?.at(-1);

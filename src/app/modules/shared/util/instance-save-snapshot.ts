@@ -1,3 +1,4 @@
+import { JsonSourcePolicy } from 'cedar-model-typescript-library';
 import { InstanceDataContainer } from 'cedar-model-typescript-library';
 import { CeeJsonObject, CeeSaveSnapshot } from '../../../cee-public-api';
 import { validAbsoluteIri } from '../validation/absolute-iri';
@@ -36,11 +37,11 @@ export function captureInstanceSave(
   currentRoot: () => InstanceDataContainer | null,
   invalidate: () => void,
 ): CeeSaveSnapshot {
-  const submitted = structuredClone(metadata);
+  const submitted = JsonSourcePolicy.clone(metadata);
   const entries = containers(root).map((entry) => ({ ...entry, id: entry.node.id }));
   let acknowledged = false;
   return {
-    metadata: structuredClone(submitted),
+    metadata: JsonSourcePolicy.clone(submitted),
     needsElementIds: entries.some(({ id }) => !id),
     acknowledge(stored) {
       if (acknowledged || currentRoot() !== root) throw new Error('Save snapshot is no longer current.');
@@ -53,7 +54,7 @@ export function captureInstanceSave(
         if (live.has(node) && node.id !== id) throw new Error('Element identity changed during save.');
         return { node, path, savedId };
       });
-      const baseline = structuredClone(submitted);
+      const baseline = JsonSourcePolicy.clone(submitted);
       for (const { path, savedId } of updates) {
         at(baseline, path)['@id'] = savedId;
       }

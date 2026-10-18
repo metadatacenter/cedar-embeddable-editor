@@ -3231,7 +3231,10 @@ test.describe('host input timing', () => {
           readyAfterCorrection: readyCount,
           correctedName: afterCorrection['schema:name'],
           correctedValue:
-            typeof correctedField === 'object' && correctedField !== null && !Array.isArray(correctedField)
+            typeof correctedField === 'object' &&
+            correctedField !== null &&
+            !Array.isArray(correctedField) &&
+            '@value' in correctedField
               ? correctedField['@value']
               : undefined,
         };

@@ -475,7 +475,10 @@ export class ModelLibraryTemplateParser implements TemplateParser {
 
     if (isNumericField(field)) {
       fc.numberInfo.numberType = field.valueConstraints.numberType.getValue();
-      fc.valueInfo.defaultValue = field.valueConstraints.defaultValue ?? null;
+      fc.valueInfo.defaultValue =
+        field.valueConstraints.defaultValue == null || typeof field.valueConstraints.defaultValue === 'number'
+          ? field.valueConstraints.defaultValue
+          : String(field.valueConstraints.defaultValue);
       fc.numberInfo.unitOfMeasure = field.valueConstraints.unitOfMeasure ?? null;
       fc.numberInfo.minValue = field.valueConstraints.minValue ?? null;
       fc.numberInfo.maxValue = field.valueConstraints.maxValue ?? null;
