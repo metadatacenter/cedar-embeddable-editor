@@ -161,9 +161,11 @@ Use `displayMessage` for the localized user-facing explanation; `message` retain
 the technical diagnostic for logs or a separate details disclosure. Older component
 bundles may omit `displayMessage`.
 
-Missing required answers, insufficient occurrences and unnamed attribute rows are
-warnings. Invalid values, malformed incoming data and unfinished edits are errors.
-Either makes `isValid` false; the host decides whether saving is allowed. A required
+Each problem also carries a shared `category` and `blocksSave` decision. Structural defects
+(including malformed typed values and unnamed attributes) block instance saves. Well-formed
+values outside declared constraints and incomplete answers are quality warnings and remain
+saveable. Use `canSave` for the instance save gate and `isValid` for overall quality;
+`structurallyValid` reports the representation separately. A required
 field must be answered in every existing containing element. A repeating field
 needs at least one answer within each such element.
 
@@ -175,9 +177,15 @@ While a check is running, `dataQualityReport.pendingValidation` is `true`, `isVa
 and no provisional pattern error is displayed. Listen for the composed `validationChange` event
 (the detail is the updated report) to refresh a host save gate without treating completion as an
 instance edit. CEF's `valueChange` detail carries the same optional `pendingValidation` flag
-and announces completion even when the completed result remains invalid. A timeout, resource limit or unavailable worker is a `regexEvaluation` error;
-hosts must not save while checks are pending or error problems remain. Worker execution needs
+and announces completion even when the completed result remains invalid. A timeout, resource limit or unavailable worker is a `regexEvaluation` verification finding;
+`canSave` remains false while checks are pending. Worker execution needs
 `worker-src blob:` in the host CSP. There is no synchronous fallback.
+
+Populated controlled terms and external-authority values are checked on load, default seeding
+and edits using the configured services. `semanticChecks` records `passed`, `failed`,
+`notChecked` or `unavailable` for each occurrence. Membership uses the exact IRI and complete
+version-aware constraints. Missing configuration and service failures never count as success;
+those findings affect quality but do not prohibit saving a structurally sound instance.
 
 A template pattern change preserves existing preview answers. If a retained answer fails the new
 pattern, the completed report identifies it; a failed or unfinished check never clears the answer

@@ -1,3 +1,5 @@
+import { ValidationPolicy } from 'cedar-model-typescript-library';
+
 /**
  * One thing wrong with one value.
  *
@@ -6,6 +8,8 @@
  * lets the host point the user at a field.
  */
 export class ValidationProblem {
+  readonly category: 'structural' | 'constraint' | 'completeness' | 'verification';
+  readonly blocksSave: boolean;
   constructor(
     /** Component path from the template root, e.g. `['_author', '_email']`. */
     public readonly path: string[],
@@ -29,9 +33,14 @@ export class ValidationProblem {
      * at least one value must be supplied in each existing parent.
      */
     public readonly occurrences: number[] = [],
-    /** Missing answers are warnings; malformed answers and unfinished edits are errors. Both affect isValid. */
-    public readonly severity: 'warning' | 'error' = code === 'required' || code === 'minItems' ? 'warning' : 'error',
-  ) {}
+    /* Severity is presentation; the shared category determines the save policy. */
+    public readonly severity: 'warning' | 'error' = ValidationPolicy.severity(code),
+    /** Exact RFC 6901 location when supplied by the shared artifact validator. */
+    public readonly location?: string,
+  ) {
+    this.category = ValidationPolicy.category(code);
+    this.blocksSave = ValidationPolicy.blocksSave(code);
+  }
 
   /** The same problem, located in these entries. */
   at(occurrences: number[]): ValidationProblem {
@@ -44,6 +53,7 @@ export class ValidationProblem {
       this.value,
       occurrences,
       this.severity,
+      this.location,
     );
   }
 }
@@ -79,4 +89,9 @@ export class ValidationCode {
   static iriMalformed = 'iriMalformed';
   static minItems = 'minItems';
   static maxItems = 'maxItems';
+  static controlledTermMembership = 'controlledTermMembership';
+  static authorityIdentifier = 'authorityIdentifier';
+  static authorityMembership = 'authorityMembership';
+  static semanticNotChecked = 'semanticNotChecked';
+  static semanticUnavailable = 'semanticUnavailable';
 }

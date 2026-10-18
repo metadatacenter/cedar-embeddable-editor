@@ -70,8 +70,9 @@ test('keeps an unanswered requirement quiet until the user is taken to it', asyn
   await expect(title.locator('input')).toBeFocused();
   await expect(title.locator('mat-error')).toHaveCSS('color', 'rgb(180, 83, 9)');
   await expect(title.locator('.mdc-notched-outline__leading')).toHaveCSS('border-color', 'rgb(180, 83, 9)');
-  // The warning's appearance must not leak to a separate invalid value.
-  await expect(component(page, 'email').locator('mat-error')).toHaveCSS('color', 'rgb(180, 35, 24)');
+  // Quality findings remain amber, while the malformed integer remains a structural error.
+  await expect(component(page, 'email').locator('mat-error')).toHaveCSS('color', 'rgb(180, 83, 9)');
+  await expect(component(page, 'count').locator('mat-error')).toHaveCSS('color', 'rgb(180, 35, 24)');
 });
 
 test('turns to the page and the entries that hold a problem', async ({ page }) => {
@@ -145,7 +146,7 @@ test('publishes localized explanations without losing the technical diagnostic o
   expect(await reveal(page, problem!)).toBe(true);
 });
 
-test('a repeated field can show an amber missing-entry warning beside a red invalid value', async ({ page }) => {
+test('a repeated field shows both its missing-entry and length findings as amber warnings', async ({ page }) => {
   await page.route('**/fixtures/26-stored-problems.json', async (route) => {
     const response = await route.fetch();
     const template = await response.json();
@@ -156,7 +157,7 @@ test('a repeated field can show an amber missing-entry warning beside a red inva
   expect(await reveal(page, { path: ['_aliases'], occurrences: [0] })).toBe(true);
   const aliases = component(page, 'aliases');
   await expect(aliases.locator('app-cedar-input-text mat-error')).toHaveText('Value should be at least 12 chars long.');
-  await expect(aliases.locator('app-cedar-input-text mat-error')).toHaveCSS('color', 'rgb(180, 35, 24)');
+  await expect(aliases.locator('app-cedar-input-text mat-error')).toHaveCSS('color', 'rgb(180, 83, 9)');
   await expect(aliases.locator('.cee-field-problem')).toHaveText('Warning: At least 3 entries are required.');
   await expect(aliases.locator('.cee-field-problem')).toHaveCSS('color', 'rgb(180, 83, 9)');
 });

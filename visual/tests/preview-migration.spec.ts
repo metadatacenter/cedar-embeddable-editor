@@ -59,13 +59,15 @@ test('an unfinished email stays visible and keeps its finding after a rename', a
   await expect
     .poll(() =>
       page.evaluate(() =>
-        document
-          .querySelector('cedar-embeddable-editor')!
-          .dataQualityReport.problems.filter((problem) => problem.severity === 'error')
-          .map((problem) => ({ path: problem.path, code: problem.code })),
+        document.querySelector('cedar-embeddable-editor')!.dataQualityReport.problems.map((problem) => ({
+          path: problem.path,
+          code: problem.code,
+          severity: problem.severity,
+          blocksSave: problem.blocksSave,
+        })),
       ),
     )
-    .toEqual([{ path: ['renamed'], code: 'email' }]);
+    .toEqual([{ path: ['renamed'], code: 'email', severity: 'warning', blocksSave: false }]);
 });
 
 test('deleting a default occurrence stays deleted after a preview edit', async ({ page }) => {

@@ -74,9 +74,8 @@ describe('a populated template', () => {
    *
    * So the interesting assertion is not that these conform — they should not —
    * but that CEE and the library agree about why. CEE's own data quality report
-   * raises `minItems` on the same field, which is the answer a user sees; the
-   * validator raises `missingIndexInRealObject` on the same path, which is the
-   * answer the document gets. Two implementations, one verdict.
+   * raises `minItems` on the same field; the model validator reports the same
+   * completeness finding without treating a well-formed array as unsaveable.
    *
    * `listSingle/multi` joined them when the model library stopped inferring
    * `multipleChoice` from cardinality and read it from `_valueConstraints`
@@ -106,7 +105,8 @@ describe('a populated template', () => {
     const outcome = conformance(template, driver);
 
     if (PART_FILLED_CHOICE.includes(label)) {
-      expect(outcome.detail).toContain('missingIndexInRealObject');
+      expect(outcome.count).toBe(0);
+      expect(outcome.findingCodes).toContain('minItems');
       // `qualityReport` is a JSON round trip and so is typed `any`; name the one
       // member this reads rather than letting the parameter infer to `any`,
       // which the harness's `strict` no longer allows.

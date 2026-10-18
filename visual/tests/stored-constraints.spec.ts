@@ -71,6 +71,9 @@ for (const language of ['en', 'hu'] as const) {
     expect(await reveal(page, { path: ['_aliases'] })).toBe(true);
     for (const [label, message] of MESSAGES[language]) {
       await expect(said(page, label), label).toHaveText([message]);
+      // Malformed temporal/term shapes block saving; well-formed constraint failures remain quality warnings.
+      const color = label === 'moment' || label === 'organism' ? 'rgb(180, 35, 24)' : 'rgb(180, 83, 9)';
+      await expect(said(page, label), label).toHaveCSS('color', color);
     }
   });
 }

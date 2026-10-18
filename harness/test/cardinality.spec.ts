@@ -120,7 +120,8 @@ describe('required values', () => {
     );
     driver.setValue(['_f'], k);
     expect(driver.qualityReport.nonNullRequiredFieldValueCount, `${k.key} did not register as filled`).toBe(1);
-    expect(driver.qualityReport.isValid).toBe(true);
+    expect(driver.qualityReport.canSave).toBe(true);
+    expect(driver.qualityReport.isValid).toBe(driver.qualityReport.semanticChecks.length === 0);
   });
 
   it('does not count optional fields toward the requirement', () => {
@@ -224,7 +225,8 @@ describe('quality report value extraction', () => {
 
     // ...and the report now reads it.
     expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(1);
-    expect(driver.qualityReport.isValid).toBe(true);
+    expect(driver.qualityReport.canSave).toBe(true);
+    expect(driver.qualityReport.isValid).toBe(driver.qualityReport.semanticChecks.length === 0);
   });
 
   it('still reads a controlled term from its label, not its IRI', () => {
@@ -238,7 +240,8 @@ describe('quality report value extraction', () => {
     driver.setValue(['_f'], controlled);
 
     expect(driver.qualityReport.nonNullRequiredFieldValueCount).toBe(1);
-    expect(driver.qualityReport.isValid).toBe(true);
+    expect(driver.qualityReport.canSave).toBe(true);
+    expect(driver.qualityReport.isValid).toBe(driver.qualityReport.semanticChecks.length === 0);
   });
 });
 
@@ -390,21 +393,12 @@ describe('required values are page-independent', () => {
   });
 
   /**
-   * BEHAVIOUR CHANGE. This used to assert that the two differed in their reasons.
-   *
-   * The canonical validator does tell them apart. Run against
-   * `multiple-element-items-template.json` with `ops/cedar_validate.sh instance`:
-   *
-   *   element `[]`      -> `/Participant: must have at least 1 items but found 0`
-   *   element omitted   -> `object has missing required properties (['Participant'])`
-   *
-   * But that is a verdict on the stored document, and the report describes the one
-   * CEE writes. CEE completes an instance against its template on the way out, so
-   * an omitted list leaves as `[]`, and the second complaint never reaches the
-   * server. Reporting it put a warning in front of the user that no field could
-   * show and that saving removed.
+   * An empty list has the required structural property but can be incomplete.
+   * An omitted property is a structural defect, even though the export writer
+   * completes a copy of the document. Reading that copy must not clear the
+   * finding from the current editing state.
    */
-  it('reports an absent element as the empty list CEE writes', () => {
+  it('distinguishes an omitted structural element from an incomplete empty list', () => {
     const template = threeInstances();
     const report = (elValue: unknown) => {
       const instance: any = instanceWith(templateIdOf(template), {}, INSTANCE_IRI);
@@ -426,9 +420,9 @@ describe('required values are page-independent', () => {
     const empty = report([]);
 
     expect(absent.written).toEqual([]);
-    expect(absent).toEqual(empty);
+    expect(empty.codes).toEqual(['minItems']);
     expect(absent.valid).toBe(false);
-    expect(absent.codes).toEqual(['minItems']);
+    expect(absent.codes).toEqual(['minItems', 'missingProperty']);
   });
 
   /**
@@ -489,7 +483,7 @@ describe('required values are page-independent', () => {
     return t;
   };
 
-  it('is valid when no minItems is declared and the element is absent, since CEE writes the list', () => {
+  it('blocks an omitted structural element even when its exported copy completes the list', () => {
     const template = noFloorTemplate();
     const instance: any = instanceWith(templateIdOf(template), {}, SECOND_INSTANCE_IRI);
 
@@ -497,8 +491,10 @@ describe('required values are page-independent', () => {
     driver.handlerContext.buildQualityReport();
 
     expect(driver.emitted._el).toEqual([]);
-    expect(driver.qualityReport.problems).toEqual([]);
-    expect(driver.qualityReport.isValid).toBe(true);
+    expect(driver.qualityReport.problems).toEqual([
+      expect.objectContaining({ code: 'missingProperty', path: ['_el'], location: '/_el' }),
+    ]);
+    expect(driver.qualityReport.canSave).toBe(false);
   });
 
   it('is valid when no minItems is declared and the element is an empty array', () => {

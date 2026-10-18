@@ -25,6 +25,12 @@ export class DataQualityReport extends Object {
    */
   problems: ValidationProblem[] = [];
   isValid = false;
+  /** Whether the instance representation has any structural defect. */
+  structurallyValid = false;
+  /** Instance save policy: value-quality and completeness findings are advisory. */
+  canSave = false;
+  /** Every applicable semantic check, including checks that could not run. */
+  semanticChecks: SemanticVerification[] = [];
   /** Present while worker checks are unresolved; no provisional answer is advertised as valid. */
   declare pendingValidation?: boolean;
 
@@ -39,6 +45,21 @@ export class DataQualityReport extends Object {
       this.problems = this.problems.filter((problem) => problem.code !== 'regexPending');
     }
     const nothingMissing = this.requiredFieldValueCount <= this.nonNullRequiredFieldValueCount;
-    this.isValid = !this.pendingValidation && nothingMissing && this.problems.length === 0;
+    this.structurallyValid = !this.problems.some((problem) => problem.blocksSave);
+    this.canSave = this.structurallyValid && !this.pendingValidation;
+    this.isValid =
+      !this.pendingValidation &&
+      nothingMissing &&
+      this.problems.length === 0 &&
+      this.semanticChecks.every((check) => check.status === 'passed');
   }
+}
+
+export interface SemanticVerification {
+  path: string[];
+  occurrences: number[];
+  iri: string;
+  status: 'passed' | 'failed' | 'notChecked' | 'unavailable';
+  code: string;
+  message: string;
 }

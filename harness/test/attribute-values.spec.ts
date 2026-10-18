@@ -271,6 +271,22 @@ describe('names the user did not supply', () => {
     expect(driver.emitted._av).toEqual([]);
   });
 
+  it('distinguishes an empty editor row from a blank name imported as stored data', () => {
+    const template = flat();
+    const fresh = new CeeDriver(template);
+    fresh.handlerContext.addMultiInstance(fresh.findOrThrow(['_av']));
+    expect(fresh.qualityReport.canSave).toBe(true);
+    expect(fresh.qualityReport.problems).toContainEqual(
+      expect.objectContaining({ code: 'required', category: 'completeness', blocksSave: false }),
+    );
+    expect(fresh.emitted._av).toEqual([]);
+    const imported = new CeeDriver(template, { instance: { ...instanceWith(templateIdOf(template), {}), _av: [''] } });
+    expect(imported.qualityReport.canSave).toBe(false);
+    expect(imported.qualityReport.problems).toContainEqual(
+      expect.objectContaining({ category: 'structural', blocksSave: true }),
+    );
+  });
+
   it('does not let a second attribute overwrite the first by reusing its name', () => {
     const driver = new CeeDriver(flat());
     const component = driver.findOrThrow(['_av']);

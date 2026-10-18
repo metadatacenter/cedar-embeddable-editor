@@ -205,12 +205,17 @@ export interface CeeTemplateAndInstance {
  * TypeScript host could not read either without a cast.
  */
 export interface CeeValidationProblem {
-  /** Missing answers are warnings; invalid values and unfinished edits are errors. Both affect isValid. */
+  /** Shared rule category and instance save decision. Optional for older producers. */
+  category?: 'structural' | 'constraint' | 'completeness' | 'verification';
+  blocksSave?: boolean;
+  /** Structural defects are errors; value constraints and incomplete verification are warnings. */
   severity: 'warning' | 'error';
   /** Machine-readable code, e.g. `numberType` or `temporalGranularity`. */
   code: string;
   /** Path to the offending value, outermost first. */
   path: string[];
+  /** Exact RFC 6901 location, including atom properties, when available. */
+  location?: string;
   /**
    * The entry taken at each repeating field or element along `path`, outermost first.
    *
@@ -263,11 +268,21 @@ export interface CeeRevealOptions {
 /**
  * What CEE thinks of the instance currently in the form.
  *
- * Read through `dataQualityReport`. These four members are the whole object: it
- * carried three of CEE's internal working views as well, and the interface was a
- * subset of what a host actually received.
+ * Read through `dataQualityReport`. The report contains validation facts and
+ * counts, without CEE's internal model or working views.
  */
 export interface CeeDataQualityReport {
+  /** Separate structural/save facts from overall answer quality. */
+  structurallyValid?: boolean;
+  canSave?: boolean;
+  semanticChecks?: Array<{
+    path: string[];
+    occurrences: number[];
+    iri: string;
+    status: 'passed' | 'failed' | 'notChecked' | 'unavailable';
+    code: string;
+    message: string;
+  }>;
   /** Worker validation is unresolved; isValid remains false until it settles. */
   pendingValidation?: boolean;
   /**
@@ -292,7 +307,7 @@ export interface CeeDataQualityReport {
    * unanswered requirement. The two counters count declarations, not occurrences.
    */
   problems: CeeValidationProblem[];
-  /** True when every required field is filled and no constraint is violated. */
+  /** True when required answers, local constraints and applicable semantic checks all pass. */
   isValid: boolean;
 }
 
@@ -538,6 +553,11 @@ export type CedarEmbeddableFieldValue =
 
 /** Detail carried by the `cedar-embeddable-field` element's `valueChange` event. */
 export interface CedarEmbeddableFieldChangeDetail {
+  /** Local structure and semantic coverage, separate from default-value validity. */
+  structurallyValid?: boolean;
+  semanticChecks?: CeeDataQualityReport['semanticChecks'];
+  /** Validation facts accompanying a semantic check, for default-value consumers. */
+  problems?: CeeValidationProblem[];
   /** Present while bounded pattern checks are unresolved; valid stays false. */
   pendingValidation?: boolean;
   /** What the field now holds. */

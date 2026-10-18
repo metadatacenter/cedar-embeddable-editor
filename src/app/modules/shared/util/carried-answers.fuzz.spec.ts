@@ -262,7 +262,7 @@ const written = (reader: Reader): Record<string, unknown> =>
 function errorCounts(reader: Reader, children: readonly ChildSpec[]): Map<string, number> {
   const counts = new Map<string, number>();
   for (const problem of reader.coordinator.state.dataContext.dataQualityReport?.problems ?? []) {
-    if (problem.severity !== 'error') continue;
+    if (problem.category !== 'structural' && problem.category !== 'constraint') continue;
     let siblings = children;
     const identity = problem.path.map((name) => {
       const child = siblings.find((candidate) => candidate.key === name);

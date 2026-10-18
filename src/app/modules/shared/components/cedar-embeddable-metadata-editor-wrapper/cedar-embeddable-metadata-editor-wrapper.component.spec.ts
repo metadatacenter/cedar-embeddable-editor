@@ -133,6 +133,50 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     component.ngOnDestroy();
   });
 
+  it('a host report read retries expired verification on unchanged metadata and releases save when it settles', async () => {
+    let now = 1_000;
+    const clock = vi.spyOn(Date, 'now').mockImplementation(() => now);
+    const iri = 'https://orcid.org/0000-0002-1825-0097';
+    let status = 'unavailable';
+    const fetcher = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            iri,
+            status,
+            code: status === 'passed' ? 'authorityVerified' : 'semanticUnavailable',
+            message: 'Checked.',
+          }),
+        ),
+    );
+    vi.stubGlobal('fetch', fetcher);
+    const { component } = make();
+    try {
+      const template = structuredClone(validTemplate);
+      const link = (template['properties'] as CeeJsonObject)['_link'] as CeeJsonObject;
+      link['_ui'] = { inputType: 'ext-orcid' };
+      component.config = { bridgeBaseUrl: 'https://bridge.example.org/' };
+      component.ngOnInit();
+      component.templateObject = template;
+      component.instanceObject = { ...(component.currentMetadata as CeeJsonObject), _link: { '@id': iri } };
+      await component.handlerContext.validation.settled();
+      expect(component.dataQualityReport).toMatchObject({ canSave: true, semanticChecks: [{ status: 'unavailable' }] });
+      const before = component.currentMetadata;
+      now += 30_000;
+      status = 'passed';
+      expect(component.dataQualityReport).toMatchObject({ pendingValidation: true, canSave: false });
+      expect(component.dataQualityReport).toMatchObject({ pendingValidation: true });
+      expect(fetcher).toHaveBeenCalledTimes(2);
+      await component.handlerContext.validation.settled();
+      expect(component.dataQualityReport).toMatchObject({ canSave: true, semanticChecks: [{ status: 'passed' }] });
+      expect(component.currentMetadata).toEqual(before);
+    } finally {
+      component.ngOnDestroy();
+      clock.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('applies config identically whether Angular supplies it before or after ngOnInit', () => {
     const config = {
       terminologyBaseUrl: '/terminology/',

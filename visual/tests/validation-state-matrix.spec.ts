@@ -74,7 +74,10 @@ for (const depth of [1, 6]) {
     const template = draftTemplate(depth, 'temporal');
     let values: Record<string, unknown> = { _f: { '@value': 'not a date' } };
     for (let level = depth - 1; level >= 0; level--)
-      values = { [`_level${level}`]: level === depth - 1 ? [values, {}] : [values] };
+      values = {
+        [`_level${level}`]:
+          level === depth - 1 ? [values, { _f: { '@value': null, '@type': 'xsd:dateTime' } }] : [values],
+      };
     await page.route('**/fixtures/validation-state.json', (route) => route.fulfill({ json: template }));
     await page.route('**/fixtures/validation-state-instance.json', (route) =>
       route.fulfill({
@@ -110,7 +113,7 @@ for (const depth of [1, 3, 6]) {
   test(`a malformed element at depth ${depth} can be located and repaired`, async ({ page }) => {
     let values: object = { '@value': 'not an element' };
     for (let level = depth - 1; level >= 0; level--)
-      values = { [`_level${level}`]: level === depth - 1 ? [{}, values] : [values] };
+      values = { [`_level${level}`]: level === depth - 1 ? [{ _f: { '@value': null } }, values] : [values] };
     await page.route('**/fixtures/validation-state.json', (route) =>
       route.fulfill({ json: draftTemplate(depth, 'text') }),
     );

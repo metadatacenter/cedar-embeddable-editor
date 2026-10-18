@@ -237,6 +237,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
 
   /** Whether what it holds satisfies the field's own constraints. */
   @Input() get currentValueValid(): boolean {
+    this.runtime?.handlerContext.validation.refreshSemantic();
     return this.runtime?.dataContext.dataQualityReport?.isValid === true;
   }
 
@@ -427,6 +428,13 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     return {
       value: this.currentValue,
       valid: this.currentValueValid,
+      ...(this.runtime?.dataContext.dataQualityReport?.semanticChecks.length
+        ? {
+            structurallyValid: this.runtime.dataContext.dataQualityReport.structurallyValid,
+            semanticChecks: structuredClone(this.runtime.dataContext.dataQualityReport.semanticChecks),
+            problems: structuredClone(this.runtime.dataContext.dataQualityReport.problems),
+          }
+        : {}),
       ...(this.runtime?.dataContext.dataQualityReport?.pendingValidation ? { pendingValidation: true } : {}),
     };
   }
@@ -439,7 +447,10 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     if (
       sameFieldValue(detail.value, this.lastPublished.value) &&
       detail.valid === this.lastPublished.valid &&
-      detail.pendingValidation === this.lastPublished.pendingValidation
+      detail.pendingValidation === this.lastPublished.pendingValidation &&
+      detail.structurallyValid === this.lastPublished.structurallyValid &&
+      JSON.stringify(detail.semanticChecks) === JSON.stringify(this.lastPublished.semanticChecks) &&
+      JSON.stringify(detail.problems) === JSON.stringify(this.lastPublished.problems)
     ) {
       return;
     }

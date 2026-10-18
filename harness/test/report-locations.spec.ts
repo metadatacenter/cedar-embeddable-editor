@@ -124,10 +124,10 @@ describe('problem locations', () => {
     });
     const driver = reportOf(template, {
       _email: literalValue(BAD_EMAIL),
-      _link: linkValue('https://a'),
+      _link: linkValue('https://bad host'),
     });
 
-    expect(located(driver).map((p: any) => p.code)).toEqual(['email', 'link']);
+    expect(located(driver).map((p: any) => p.code)).toEqual(['email', 'iriMalformed']);
   });
 
   it('judges a list inside each entry of an element by that entry, whatever is on screen', () => {

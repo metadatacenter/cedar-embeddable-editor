@@ -11,9 +11,11 @@ import {
   JsonTemplateInstanceReader,
   TemplateInstance,
   JsonNode,
+  ValidationFinding,
+  ValidationPolicy,
 } from 'cedar-model-typescript-library';
 import { validAbsoluteIri } from '../validation/absolute-iri';
-import { InstanceObject } from '../models/instance-node.model';
+import { InstanceObject, InstanceNode, childOf, isInstanceObject } from '../models/instance-node.model';
 
 /**
  * Take in an instance a host page handed us.
@@ -45,6 +47,22 @@ import { InstanceObject } from '../models/instance-node.model';
  * container, which *is* the instance without its envelope.
  */
 export class InstanceDeserializer {
+  private static readonly readErrors = new WeakMap<object, Array<{ finding: ValidationFinding; suffix: string[] }>>();
+
+  /** Reader defects follow the affected node until that value is actually replaced. */
+  static structuralFindings(instance: TemplateInstance): ValidationFinding[] {
+    const findings: ValidationFinding[] = [];
+    const visit = (node: InstanceNode, path: (string | number)[]) => {
+      if (node === null || typeof node !== 'object') return;
+      for (const entry of this.readErrors.get(node) ?? [])
+        findings.push({ ...entry.finding, path: ValidationPolicy.pointer([...path, ...entry.suffix]) });
+      if (Array.isArray(node)) node.forEach((child, index) => visit(child, [...path, index]));
+      else if (isInstanceObject(node))
+        Object.entries(node.values).forEach(([key, child]) => visit(child, [...path, key]));
+    };
+    visit(instance.dataContainer, []);
+    return findings;
+  }
   /**
    * Read an injected instance into the two trees CEE edits.
    *
@@ -58,12 +76,33 @@ export class InstanceDeserializer {
   ): { full: TemplateInstance; extract: InstanceObject } {
     const rejectedIris: Array<{ path: (string | number)[]; iri: string }> = [];
     const compatibleInstance = InstanceDeserializer.canonicalizeLegacyOccurrenceIds(instanceJson, rejectedIris);
-    const instance = CedarReaders.json()
+    const read = CedarReaders.json()
       .getFebruary2024()
       .getTemplateInstanceReader()
-      .readFromObject(compatibleInstance as JsonNode).instance;
+      .readFromObject(compatibleInstance as JsonNode);
+    const instance = read.instance;
 
     InstanceDeserializer.makeAttributeValuesEditable(instance.dataContainer);
+    for (const finding of read.parsingResult
+      .getValidationReport()
+      .findings.filter((entry) => entry.category === 'structural')) {
+      const parts = finding.path
+        .slice(1)
+        .split('/')
+        .map((part) => part.replace(/~1/g, '/').replace(/~0/g, '~'));
+      let anchor: InstanceNode = instance.dataContainer;
+      let consumed = 0;
+      for (const part of parts) {
+        const child = childOf(anchor, Array.isArray(anchor) ? Number(part) : part);
+        if (child === null || typeof child !== 'object') break;
+        anchor = child;
+        consumed++;
+      }
+      if (anchor !== null && typeof anchor === 'object') {
+        const previous = this.readErrors.get(anchor) ?? [];
+        this.readErrors.set(anchor, [...previous, { finding, suffix: parts.slice(consumed) }]);
+      }
+    }
     // The strict reader may reject field IRIs before CEE can display an editable error.
     // Restore exactly those values on the typed atoms; envelope identifiers stay strict.
     for (const rejected of rejectedIris) {

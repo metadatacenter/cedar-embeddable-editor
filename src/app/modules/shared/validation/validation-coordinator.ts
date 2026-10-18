@@ -1,4 +1,10 @@
-import { RegexChecks } from 'cedar-model-typescript-library';
+import { SemanticChecks } from './semantic-checks';
+import { DataQualityReport } from '../models/data-quality-report.model';
+import { InstanceValueNode } from '../util/instance-value-node';
+import { InputType } from '../models/input-type.model';
+import { authorityDescriptorFor } from '../models/authority/authority-descriptor.model';
+import { validAbsoluteFieldIri } from './absolute-iri';
+import { InstanceValidator, RegexChecks } from 'cedar-model-typescript-library';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InstanceNode, isInstanceObject, childOf } from '../models/instance-node.model';
 import type { CeeRecoveryDraft } from '../../../cee-public-api';
@@ -6,6 +12,7 @@ import { CedarTemplate } from '../models/template/cedar-template.model';
 import { HandlerContext } from '../util/handler-context';
 import { DataQualityReportBuilderHandler } from '../handler/data-quality-report-builder.handler';
 import { ValidationCode, ValidationProblem } from './validation-problem.model';
+import { InstanceDeserializer } from '../util/instance-deserializer';
 
 /** An edit which cannot yet be represented as a stored value. Never part of exported metadata. */
 export interface FieldDraft {
@@ -26,6 +33,56 @@ export class ValidationCoordinator {
   private readonly drafts = new WeakMap<object, FieldDraft>();
 
   private disposed = false;
+  private terminologyBaseUrl: string | null = null;
+  private bridgeBaseUrl: string | null = null;
+  private readonly semantic = new SemanticChecks(() => {
+    if (this.disposed) return;
+    this.validate();
+    this.context.validationChanged();
+  });
+
+  configureSemantic(terminologyBaseUrl: string | null, bridgeBaseUrl: string | null): void {
+    if (this.terminologyBaseUrl === terminologyBaseUrl && this.bridgeBaseUrl === bridgeBaseUrl) return;
+    this.terminologyBaseUrl = terminologyBaseUrl;
+    this.bridgeBaseUrl = bridgeBaseUrl;
+    this.validate();
+  }
+
+  collectSemantic(
+    component: FieldComponent,
+    node: InstanceNode,
+    occurrences: number[],
+    report: DataQualityReport,
+  ): void {
+    const iri = InstanceValueNode.iri(node);
+    if (!iri || !validAbsoluteFieldIri(iri)) return;
+    const authority = authorityDescriptorFor(component.basicInfo.inputType as InputType);
+    if (!authority && component.basicInfo.inputType !== InputType.controlled) return;
+    let field = this.context.dataContext.templateInput as SchemaNode | undefined;
+    for (const part of component.path) {
+      field = field?.properties?.[part];
+      if (field?.type === 'array') field = field.items;
+    }
+    const url = authority
+      ? this.bridgeBaseUrl && `${this.bridgeBaseUrl}ext-auth/${authority.detailsPath}/verify`
+      : this.terminologyBaseUrl && `${this.terminologyBaseUrl}bioportal/validate-term`;
+    const body = authority ? { iri } : { iri, valueConstraints: field?._valueConstraints ?? {} };
+    const answer = this.semantic.inspect(url, body, iri);
+    report.semanticChecks.push({ ...answer, path: [...component.path], occurrences: [...occurrences] });
+    if (answer.status !== 'passed') {
+      report.problems.push(
+        new ValidationProblem(
+          component.path,
+          component.name,
+          component.basicInfo.inputType,
+          answer.code,
+          answer.message,
+          iri,
+          occurrences,
+        ),
+      );
+    }
+  }
   private readonly regex = new RegexChecks(() => {
     if (this.disposed) return;
     this.validate();
@@ -34,16 +91,22 @@ export class ValidationCoordinator {
 
   constructor(private readonly context: HandlerContext) {}
 
+  /** Host report/save reads retry expired semantic evidence without rebuilding every fresh report. */
+  refreshSemantic(): void {
+    if (!this.disposed && this.semantic.hasExpired()) this.validate();
+  }
+
   async settled(): Promise<void> {
     do {
-      await this.regex.settled();
+      await Promise.all([this.regex.settled(), this.semantic.settled()]);
       if (!this.disposed) this.validate();
-    } while (!this.disposed && this.regex.pending);
+    } while (!this.disposed && (this.regex.pending || this.semantic.pending));
   }
 
   dispose(): void {
     this.disposed = true;
     this.regex.dispose();
+    this.semantic.dispose();
   }
 
   private currentNode(component: FieldComponent): InstanceNode | null {
@@ -140,9 +203,68 @@ export class ValidationCoordinator {
       : [];
   }
 
+  /** Judge the current model before the export writer completes missing slots. */
+  private collectStructural(report: DataQualityReport): void {
+    const data = this.context.dataContext;
+    const template = data.templateRepresentation;
+    if (!(template instanceof CedarTemplate) || !template.parsed || !data.instanceFullData) return;
+    const model = InstanceValidator.validateReport(data.instanceFullData, template.parsed).findings;
+    const findings = [
+      ...model,
+      ...InstanceDeserializer.structuralFindings(data.instanceFullData).filter(
+        (finding) => !model.some((current) => current.category === 'structural' && current.path === finding.path),
+      ),
+    ];
+    for (const finding of findings) {
+      if (finding.category !== 'structural') continue;
+      const path: string[] = [];
+      const occurrences: number[] = [];
+      let schema = data.templateInput as SchemaNode | null | undefined;
+      for (const part of finding.path
+        .slice(1)
+        .split('/')
+        .map((value) => value.replace(/~1/g, '/').replace(/~0/g, '~'))) {
+        if (schema?.type === 'array' && /^(0|[1-9]\d*)$/.test(part)) {
+          occurrences.push(Number(part));
+          schema = schema.items;
+        } else if (schema?.properties && Object.hasOwn(schema.properties, part)) {
+          path.push(part);
+          schema = schema.properties[part];
+        } else break;
+        // Atom properties belong to the field's diagnostic, not the navigation path.
+        if (schema?._ui?.inputType) break;
+      }
+      const key = JSON.stringify([path, occurrences, finding.code]);
+      const existing = report.problems.findIndex(
+        (problem) => JSON.stringify([problem.path, problem.occurrences, problem.code]) === key,
+      );
+      const previous = report.problems[existing];
+      const problem = new ValidationProblem(
+        path,
+        path.at(-1) ?? '',
+        previous?.inputType ?? schema?._ui?.inputType ?? (schema?.properties ? 'element' : null),
+        finding.code,
+        finding.message,
+        previous?.value ?? null,
+        occurrences,
+        undefined,
+        finding.path,
+      );
+      if (existing === -1) report.problems.push(problem);
+      else report.problems[existing] = problem;
+    }
+  }
+
   validate(): void {
     const data = this.context.dataContext;
-    const report = this.regex.run(() => this.builder.buildReport(data, this.context));
+    this.semantic.begin();
+    const report = this.regex.run(() => {
+      const current = this.builder.buildReport(data, this.context);
+      this.collectStructural(current);
+      return current;
+    });
+    this.semantic.end();
+    if (this.semantic.pending) report.pendingValidation = true;
     const template = data.templateRepresentation;
     const expected = template instanceof CedarTemplate ? template.isBasedOn : null;
     const actual = data.instanceFullData?.schema_isBasedOn?.getValue();
@@ -160,7 +282,19 @@ export class ValidationCoordinator {
     }
     report.computeValidity();
     // Before a document exists, an empty report must not advertise a valid instance.
-    if (template === null || data.instanceFullData === null) report.isValid = false;
+    if (template === null || data.instanceFullData === null) {
+      report.isValid = false;
+      report.structurallyValid = false;
+      report.canSave = false;
+    }
     data.dataQualityReport = report;
   }
+}
+
+interface SchemaNode {
+  type?: string;
+  properties?: Record<string, SchemaNode>;
+  items?: SchemaNode;
+  _valueConstraints?: object;
+  _ui?: { inputType?: string };
 }

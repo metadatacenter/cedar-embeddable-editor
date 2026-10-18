@@ -36,7 +36,7 @@ export class CedarFieldProblemsComponent {
   // be taken around.
   private readonly reveal = inject(FieldRevealService, { optional: true });
 
-  get notices(): (Translatable & { severity: string })[] {
+  get notices(): (Translatable & { severity: string; category: string })[] {
     const context = this.handlerContext;
     if (context.readOnlyMode) {
       return [];
@@ -52,8 +52,11 @@ export class CedarFieldProblemsComponent {
     const onScreen = occurrencesOnScreen(chain, context.multiInstanceObjectService);
     const above = occurrencesOnScreen(chain.slice(0, -1), context.multiInstanceObjectService);
 
-    const notices = new Map<string, Translatable & { severity: string }>();
+    const notices = new Map<string, Translatable & { severity: string; category: string }>();
     for (const problem of candidates) {
+      // Links already expose malformed identifiers through their URL input error.
+      // Authority controls edit a search query, so their stored IRI still needs this notice.
+      if (problem.code === ValidationCode.iriMalformed && problem.inputType === 'link') continue;
       if (problem.code === ValidationCode.attributeName && this.componentToShow instanceof AbstractFieldComponent) {
         const draft = context.validation.draftFor(this.componentToShow);
         // Rejected names already have the widget's more specific explanation.
@@ -63,11 +66,15 @@ export class CedarFieldProblemsComponent {
       if (!CedarFieldProblemsComponent.same(problem.occurrences, list ? above : onScreen)) {
         continue;
       }
-      if (problem.severity === 'warning' && !this.reveal?.wasRevealed(path, list ? above : onScreen)) {
+      if (problem.category === 'completeness' && !this.reveal?.wasRevealed(path, list ? above : onScreen)) {
         continue;
       }
       const notice = REPORT_NOTICES[problem.code]!(problem, this.componentToShow);
-      notices.set(`${notice.key}|${JSON.stringify(notice.params ?? {})}`, { ...notice, severity: problem.severity });
+      notices.set(`${notice.key}|${JSON.stringify(notice.params ?? {})}`, {
+        ...notice,
+        severity: problem.severity,
+        category: problem.category,
+      });
     }
     return [...notices.values()];
   }

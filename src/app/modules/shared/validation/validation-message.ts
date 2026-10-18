@@ -48,6 +48,11 @@ export function describeValidationProblem(problem: ValidationProblem, component?
   const field = component instanceof AbstractFieldComponent ? component : undefined;
   const simple: Record<string, string> = {
     required: 'Validation.Required',
+    controlledTermMembership: 'Validation.Report.ControlledTermMembership',
+    authorityIdentifier: 'Validation.Report.AuthorityIdentifier',
+    authorityMembership: 'Validation.Report.AuthorityMembership',
+    semanticNotChecked: 'Validation.Report.SemanticNotChecked',
+    semanticUnavailable: 'Validation.Report.SemanticUnavailable',
     regex: 'Validation.Text.Pattern',
     regexEvaluation: 'Validation.Text.PatternUnavailable',
     email: 'Validation.Email.Invalid',

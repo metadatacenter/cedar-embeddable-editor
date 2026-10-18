@@ -22,6 +22,7 @@ import { FieldKind, FIELD_KINDS } from '../src/axes';
 import { buildTemplate } from '../src/generate';
 import { CeeDriver } from '../src/driver';
 import { linkNode, literalNode, termNode } from '../src/values';
+import { ValidationProblem } from '@cee/validation/validation-problem.model';
 
 const TEXT = FIELD_KINDS.find((k) => k.inputType === 'textfield')!;
 const CONTROLLED = FIELD_KINDS.find((k) => k.inputType === 'controlled')!;
@@ -82,17 +83,19 @@ describe('numeric constraints', () => {
     expect(codesFor(make(), value)).toContain(code);
   });
 
-  it.each([-1, 1.5])(
-    'reports malformed decimal precision %s without throwing',
-    (decimalPlaces) => {
-      expect(
-        codesFor(
-          numeric((b) => b.withNumberType(NumberType.DECIMAL).withDecimalPlaces(decimalPlaces)),
-          '1.2',
-        ),
-      ).toContain('templateConstraint');
-    },
-  );
+  it.each([-1, 1.5])('reports malformed decimal precision %s without throwing', (decimalPlaces) => {
+    const field = numeric((b) => b.withNumberType(NumberType.DECIMAL));
+    const template = buildTemplate({
+      name: 'invalid imported precision',
+      children: [{ kind: field, name: 'f' }],
+    }) as any;
+    template.properties._f._valueConstraints.decimalPlace = decimalPlaces;
+    const driver = new CeeDriver(template);
+    driver.setValue(['_f'], field, '1.2');
+    expect(driver.qualityReport.problems.map((problem: ValidationProblem) => problem.code)).toContain(
+      'templateConstraint',
+    );
+  });
   it.each([
     ['1e2', 2, 'numberType'],
     ['01', 2, 'numberType'],
@@ -308,7 +311,12 @@ describe('text and format constraints', () => {
     ['maxLength 3 given 8 characters', () => text((b) => b.withMaxLength(3)), 'abcdefgh', 'maxLength'],
     ['regex mismatch', () => text((b) => b.withRegex('^[A-Z]{3}$')), 'zzz', 'regex'],
     ['a malformed email', () => kindOf('email', () => CedarBuilders.emailFieldBuilder()), 'not-an-email', 'email'],
-    ['a non-URI link', () => kindOf('link', () => CedarBuilders.linkFieldBuilder()), 'totally not a uri', 'link'],
+    [
+      'a non-URI link',
+      () => kindOf('link', () => CedarBuilders.linkFieldBuilder()),
+      'totally not a uri',
+      'iriMalformed',
+    ],
     [
       'a nonsense phone number',
       () => kindOf('phone-number', () => CedarBuilders.phoneNumberFieldBuilder()),
@@ -337,7 +345,7 @@ describe('text and format constraints', () => {
     ],
     ['length exactly at the bounds', () => text((b) => b.withMinLength(3).withMaxLength(3)), 'abc'],
   ])('accepts %s', async (_label, make, value) => {
-    expect(await settledCodesFor(make(), value)).toEqual([]);
+    expect(await settledCodesFor(make(), value)).toEqual(_label === 'a valid ORCID IRI' ? ['semanticNotChecked'] : []);
   });
 
   it('reports an unparseable template regex instead of silently disabling it', async () => {
@@ -458,8 +466,8 @@ describe('controlled term structure', () => {
     return new CeeDriver(template, { instance }).qualityReport.problems.map((p: any) => p.code);
   };
 
-  it('reports an @id with no label', () => {
-    expect(withNode(linkNode('https://example.org/t/1'))).toContain('controlledStructure');
+  it('accepts an @id without an optional label while reporting unverified membership', () => {
+    expect(withNode(linkNode('https://example.org/t/1'))).toEqual(['semanticNotChecked']);
   });
 
   /**
@@ -496,14 +504,12 @@ describe('controlled term structure', () => {
     expect(withNode(termNode('banana', 'Banana'))).toContain('iriMalformed');
   });
 
-  it('accepts a well-formed pair', () => {
-    expect(withNode(termNode('https://example.org/t/1', 'Term'))).toEqual([]);
+  it('accepts the structure but marks a pair unverified without a terminology service', () => {
+    expect(withNode(termNode('https://example.org/t/1', 'Term'))).toEqual(['semanticNotChecked']);
   });
 
-  it('does not attempt membership, so an unrelated term passes', () => {
-    // Pinned so the boundary is explicit rather than an accident: this term
-    // belongs to no declared ontology and is still accepted.
-    expect(withNode(termNode('https://example.org/not-in-any-ontology', 'Elsewhere'))).toEqual([]);
+  it('does not claim an unrelated term is verified when no membership check can run', () => {
+    expect(withNode(termNode('https://example.org/not-in-any-ontology', 'Elsewhere'))).toEqual(['semanticNotChecked']);
   });
 });
 

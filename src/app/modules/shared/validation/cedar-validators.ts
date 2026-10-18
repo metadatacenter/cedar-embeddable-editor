@@ -88,7 +88,12 @@ export class CedarValidators {
           // A field with no declared input type is not one of the authority kinds,
           // so it has no key in this map and no error to attach.
           const inputType = component.basicInfo.inputType;
-          const key = inputType === null ? undefined : CedarValidators.AUTHORITY_KEYS[inputType];
+          const key =
+            inputType === InputType.link
+              ? 'pattern'
+              : inputType === null
+                ? undefined
+                : CedarValidators.AUTHORITY_KEYS[inputType];
           if (key) {
             errors[key] = detail;
           }

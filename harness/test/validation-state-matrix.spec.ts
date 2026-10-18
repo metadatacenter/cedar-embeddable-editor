@@ -9,7 +9,21 @@ const kind = (key: string): FieldKind => FIELD_KINDS.find((entry) => entry.key =
 const depths = [0, 1, 3, 6];
 const modes = [false, true];
 
-/** Each repeated ancestor has an empty sibling and the branch under test at index 1. */
+/** Empty answers still have the structural properties their field declares. */
+function emptyContainer(schema: any): Record<string, unknown> {
+  return Object.fromEntries(
+    (schema._ui.order as string[]).map((key) => {
+      const child = schema.properties[key];
+      if (child.type === 'array') return [key, []];
+      if (!child._ui?.inputType) return [key, emptyContainer(child)];
+      if (!child.properties?.['@value']) return [key, {}];
+      const datatype = child._valueConstraints?.numberType ?? child._valueConstraints?.temporalType;
+      return [key, { '@value': null, ...(datatype ? { '@type': datatype } : {}) }];
+    }),
+  );
+}
+
+/** Each repeated ancestor has a structurally valid empty sibling and the branch under test at index 1. */
 function nested(spec: ChildSpec, value: unknown, depth: number, elementCardinality: 'single' | 'multi' = 'multi') {
   let elements: ElementSpec[] = [];
   let children = [spec];
@@ -26,6 +40,20 @@ function nested(spec: ChildSpec, value: unknown, depth: number, elementCardinali
   }
   const template = buildTemplate({ name: 'state_matrix', children, elements });
   const instance = { '@context': {}, 'schema:isBasedOn': (template as Record<string, unknown>)['@id'], ...values };
+  // Fill only sibling occurrences, leaving the deliberately invalid target untouched.
+  let container: any = instance;
+  let schema: any = template;
+  for (const key of path.slice(0, -1)) {
+    const child = schema.properties[key];
+    if (child.type === 'array') {
+      container[key][0] = emptyContainer(child.items);
+      container = container[key][1];
+      schema = child.items;
+    } else {
+      container = container[key];
+      schema = child;
+    }
+  }
   return { template, instance, path, occurrences };
 }
 
@@ -34,7 +62,7 @@ const badValues = [
     name: 'label without an IRI',
     kind: 'controlled',
     value: { 'rdfs:label': 'orphan' },
-    code: 'valueShape',
+    code: 'controlledStructure',
     repair: 'Term',
   },
   {
@@ -76,7 +104,11 @@ describe.each(depths)('invalid incoming values at depth %i', (depth) => {
       const supplied = JSON.stringify(fixture.instance);
       const driver = new CeeDriver(fixture.template, { instance: fixture.instance, readOnlyMode });
       const problem = () => driver.qualityReport.problems.find((p: ValidationProblem) => p.code === test.code);
-      expect(problem()).toMatchObject({ path: fixture.path, occurrences: fixture.occurrences, severity: 'error' });
+      expect(problem()).toMatchObject({
+        path: fixture.path,
+        occurrences: fixture.occurrences,
+        severity: ['email', 'phoneNumber', 'minValue', 'maxValue'].includes(test.code) ? 'warning' : 'error',
+      });
       expect(driver.qualityReport.isValid).toBe(false);
       const initial = driver.qualityReport;
       for (let level = 0; level < depth; level++) {
@@ -94,10 +126,13 @@ describe.each(depths)('invalid incoming values at depth %i', (depth) => {
         driver.handlerContext.readOnlyMode = false;
       }
       driver.setValue(fixture.path, fieldKind, test.repair);
-      expect(driver.qualityReport.isValid, JSON.stringify([driver.qualityReport, driver.messages.errors])).toBe(true);
-      expect(driver.qualityReport.problems).toEqual([]);
+      expect(driver.qualityReport.isValid, JSON.stringify([driver.qualityReport, driver.messages.errors])).toBe(
+        test.kind !== 'controlled',
+      );
+      expect(driver.qualityReport.canSave).toBe(true);
+      expect(driver.qualityReport.problems.filter((p: ValidationProblem) => p.category !== 'verification')).toEqual([]);
       const reloaded = new CeeDriver(fixture.template, { instance: driver.emitted, readOnlyMode });
-      expect(reloaded.qualityReport.isValid).toBe(true);
+      expect(reloaded.qualityReport.canSave).toBe(true);
     });
   });
 });
@@ -126,6 +161,7 @@ describe.each([1, 3, 6])('required values in every containing occurrence at dept
     driver.handlerContext.setCurrentIndex(parent, 0);
     driver.setValue(fixture.path, kind('text'), 'repaired');
     expect(driver.qualityReport.isValid, JSON.stringify([driver.qualityReport, driver.messages.errors])).toBe(true);
+    expect(driver.qualityReport.canSave).toBe(true);
   });
 });
 
@@ -155,12 +191,17 @@ for (const numberType of [
   describe.each(depths)(`${numberType} bounds and live changes at depth %i`, (depth) => {
     it.each(numericCases)('$value → repair → invalid → clear → reload', ({ value, code }) => {
       const fieldKind = numericKind(numberType);
-      const fixture = nested({ kind: fieldKind, name: 'f' }, { '@value': value }, depth);
+      const fixture = nested(
+        { kind: fieldKind, name: 'f' },
+        { '@value': value, '@type': numberType.getValue() },
+        depth,
+      );
       const driver = new CeeDriver(fixture.template, { instance: fixture.instance });
-      expect(driver.qualityReport.isValid).toBe(code === null);
-      if (code)
+      const expectedCode = numberType.getValue() === 'xsd:byte' && value === '1000' ? 'numberType' : code;
+      expect(driver.qualityReport.isValid).toBe(expectedCode === null);
+      if (expectedCode)
         expect(driver.qualityReport.problems).toContainEqual(
-          expect.objectContaining({ code, occurrences: fixture.occurrences }),
+          expect.objectContaining({ code: expectedCode, occurrences: fixture.occurrences }),
         );
       fixture.path
         .slice(0, -1)
@@ -170,13 +211,21 @@ for (const numberType of [
       const events: boolean[] = [];
       driver.handlerContext.setMutationListener(() => events.push(driver.qualityReport.isValid));
       driver.setValue(fixture.path, fieldKind, '50');
-      expect(driver.qualityReport.problems).toEqual([]);
+      expect(driver.qualityReport.problems.filter((p: ValidationProblem) => p.category !== 'verification')).toEqual([]);
       driver.setValue(fixture.path, fieldKind, '1000');
+      const outsideDatatype = numberType.getValue() === 'xsd:byte';
       expect(driver.qualityReport.problems).toContainEqual(
-        expect.objectContaining({ code: 'maxValue', value: '1000' }),
+        expect.objectContaining({ code: outsideDatatype ? 'numberType' : 'maxValue', value: '1000' }),
       );
+      expect(driver.qualityReport.canSave).toBe(!outsideDatatype);
+      // 101 is well-formed for every datatype here and only violates the declared maximum.
+      driver.setValue(fixture.path, fieldKind, '101');
+      expect(driver.qualityReport.problems).toContainEqual(
+        expect.objectContaining({ code: 'maxValue', value: '101', category: 'constraint', blocksSave: false }),
+      );
+      expect(driver.qualityReport.canSave).toBe(true);
       driver.handlerContext.changeValue(driver.findOrThrow(fixture.path), null);
-      expect(events).toEqual([true, false, true]);
+      expect(events).toEqual([true, false, false, true]);
       expect(new CeeDriver(fixture.template, { instance: driver.emitted }).qualityReport.isValid).toBe(true);
     });
   });
@@ -203,19 +252,22 @@ const identifiers = [
 ] as const;
 describe.each(depths)('incoming identifiers at depth %i', (depth) => {
   describe.each(['orcid', 'controlled'])('%s', (key) => {
-    it('preserves the authority scheme policy independently of general IRI syntax', () => {
+    it('reports general IRI structure separately from unchecked authority semantics', () => {
       const iri = 'orcid:0000-0002-1825-0097';
       const value = key === 'controlled' ? { '@id': iri, 'rdfs:label': 'Term' } : { '@id': iri };
       const fixture = nested({ kind: kind(key), name: 'f' }, value, depth);
       const driver = new CeeDriver(fixture.template, { instance: fixture.instance });
-      expect(driver.qualityReport.isValid).toBe(key === 'controlled');
+      expect(driver.qualityReport.structurallyValid).toBe(true);
+      expect(driver.qualityReport.isValid).toBe(false);
+      expect(driver.qualityReport.semanticChecks[0].status).toBe('notChecked');
     });
     it.each(identifiers)('%s valid=%s; correction is immediate', (iri, valid) => {
       const fieldKind = kind(key);
       const value = key === 'controlled' ? { '@id': iri, 'rdfs:label': 'Term' } : { '@id': iri };
       const fixture = nested({ kind: fieldKind, name: 'f' }, value, depth);
       const driver = new CeeDriver(fixture.template, { instance: fixture.instance });
-      expect(driver.qualityReport.isValid).toBe(valid);
+      expect(driver.qualityReport.structurallyValid).toBe(valid);
+      expect(driver.qualityReport.isValid).toBe(false);
       if (!valid)
         expect(driver.qualityReport.problems).toContainEqual(
           expect.objectContaining({ code: 'iriMalformed', occurrences: fixture.occurrences }),
@@ -226,8 +278,9 @@ describe.each(depths)('incoming identifiers at depth %i', (depth) => {
           driver.handlerContext.setCurrentIndex(driver.findOrThrow(fixture.path.slice(0, index + 1)), 1),
         );
       driver.setValue(fixture.path, fieldKind);
-      expect(driver.qualityReport.isValid).toBe(true);
-      expect(new CeeDriver(fixture.template, { instance: driver.emitted }).qualityReport.isValid).toBe(true);
+      expect(driver.qualityReport.canSave).toBe(true);
+      expect(driver.qualityReport.semanticChecks[0].status).toBe('notChecked');
+      expect(new CeeDriver(fixture.template, { instance: driver.emitted }).qualityReport.canSave).toBe(true);
     });
   });
 });
@@ -289,7 +342,7 @@ const defaults = [
   { key: 'numeric', original: 50, incoming: '1000', code: 'maxValue' },
   { key: 'temporal', original: '2026-10-03', incoming: '2026-02-31', code: 'temporalCalendar' },
   { key: 'temporal', original: '2026-10-03', incoming: 'not a date', code: 'temporalType' },
-  { key: 'link', original: 'https://example.org/good', incoming: 'https://bad iri', code: 'link' },
+  { key: 'link', original: 'https://example.org/good', incoming: 'https://bad iri', code: 'iriMalformed' },
   { key: 'orcid', original: 'https://example.org/good', incoming: 'https://bad iri', code: 'iriMalformed' },
   {
     key: 'controlled',
@@ -327,8 +380,11 @@ describe.each(depths)('invalid defaults at depth %i', (depth) => {
         driver.handlerContext.readOnlyMode = false;
       }
       driver.setValue(fixture.path, fieldKind, key === 'numeric' ? '50' : fieldKind.sample);
-      expect(driver.qualityReport.isValid, JSON.stringify(driver.qualityReport)).toBe(true);
-      expect(new CeeDriver(fixture.template, { instance: driver.emitted, readOnlyMode }).qualityReport.isValid).toBe(
+      expect(driver.qualityReport.isValid, JSON.stringify(driver.qualityReport)).toBe(
+        !['orcid', 'controlled'].includes(key),
+      );
+      expect(driver.qualityReport.canSave).toBe(true);
+      expect(new CeeDriver(fixture.template, { instance: driver.emitted, readOnlyMode }).qualityReport.canSave).toBe(
         true,
       );
     });
@@ -404,6 +460,7 @@ describe.each([1, 3, 6])('malformed element occurrences at depth %i', (depth) =>
       expect(driver.qualityReport.problems).toContainEqual(
         expect.objectContaining({
           code: 'valueShape',
+          inputType: 'element',
           path: fixture.path.slice(0, -1),
           occurrences: fixture.occurrences,
           severity: 'error',
@@ -418,6 +475,7 @@ describe.each([1, 3, 6])('malformed element occurrences at depth %i', (depth) =>
           );
       driver.setValue(fixture.path, kind('text'), 'repaired');
       expect(driver.qualityReport.isValid, JSON.stringify(driver.qualityReport)).toBe(true);
+      expect(driver.qualityReport.canSave).toBe(true);
       expect(new CeeDriver(fixture.template, { instance: driver.emitted }).qualityReport.isValid).toBe(true);
     });
   });

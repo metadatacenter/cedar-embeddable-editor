@@ -1,6 +1,6 @@
 @for (notice of notices; track notice.key) {
   <mat-error class="mat-error align-start cee-field-problem" [class.cee-warning]="notice.severity === 'warning'">
-    @if (notice.severity === 'warning') {
+    @if (notice.category === 'completeness') {
       {{ 'Validation.Warning' | translate }}
     }
     {{ notice.key | translate: notice.params }}

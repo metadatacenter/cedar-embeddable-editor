@@ -16,7 +16,6 @@ import {
   ChildDeploymentInfoElementBuilder,
   AbstractFieldChildDeploymentInfoBuilder,
   AbstractDynamicChildDeploymentInfoBuilder,
-  Iri,
   NumberType,
   SchemaVersion,
   TemporalGranularity,
@@ -118,7 +117,33 @@ export function templateJson(children: readonly ChildSpec[], options: TemplateOp
     builder.addChild(built, deployment);
   }
   const template = builder.build();
-  return CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template) as unknown as CeeJsonObject;
+  const json = CedarWriters.json().getStrict().getTemplateWriter().getAsJsonNode(template) as unknown as CeeJsonObject;
+  // These reader fixtures deliberately include inconsistent imported definitions. Construct a valid
+  // definition first, then set the deliberately invalid wire values so authoring builders cannot prevent the
+  // test from exercising CEE's handling of that stored definition.
+  const applyOverrides = (specs: readonly ChildSpec[], parent: CeeJsonObject): void => {
+    const properties = parent['properties'] as Record<string, CeeJsonObject>;
+    for (const spec of specs) {
+      const property = properties[spec.key];
+      const definition = (property['items'] ?? property) as CeeJsonObject;
+      if ('element' in spec) applyOverrides(spec.element, definition);
+      else {
+        const constraints = definition['_valueConstraints'] as CeeJsonObject;
+        if (
+          spec.default !== undefined &&
+          ['text', 'textarea', 'email', 'phone', 'numeric', 'temporal', 'link'].includes(spec.kind)
+        ) {
+          constraints['defaultValue'] = String(spec.default);
+        }
+        if (spec.minLength !== undefined && spec.maxLength !== undefined && spec.minLength > spec.maxLength) {
+          constraints['minLength'] = spec.minLength;
+          constraints['maxLength'] = spec.maxLength;
+        }
+      }
+    }
+  };
+  applyOverrides(children, json);
+  return json;
 }
 
 /** A child and how its parent holds it, as `addChild` takes them. */
@@ -165,44 +190,41 @@ function deployed(child: ChildSpec): Deployed {
 
 function fieldOf(spec: FieldSpec): TemplateField {
   const selected = new Set(spec.selected ?? []);
+  const inconsistentLength =
+    spec.minLength !== undefined && spec.maxLength !== undefined && spec.minLength > spec.maxLength;
   const named = <T extends { withAtId(id: string): T; withSchemaName(name: string): T }>(builder: T): T =>
     builder.withAtId(fieldId(spec.key)).withSchemaName(spec.key);
-  const text = spec.default === undefined ? null : String(spec.default);
   switch (spec.kind) {
     case 'controlled':
       return named(CedarBuilders.controlledTermFieldBuilder()).build();
     case 'text':
       return named(CedarBuilders.textFieldBuilder())
-        .withMinLength(spec.minLength ?? null)
-        .withMaxLength(spec.maxLength ?? null)
+        .withMinLength(inconsistentLength ? null : (spec.minLength ?? null))
+        .withMaxLength(inconsistentLength ? null : (spec.maxLength ?? null))
         .withRegex(spec.regex ?? null)
-        .withDefaultValue(text)
         .withSchemaDescription(spec.help ?? null)
         .build();
     case 'textarea':
       return named(CedarBuilders.textAreaBuilder())
-        .withMinLength(spec.minLength ?? null)
-        .withMaxLength(spec.maxLength ?? null)
-        .withDefaultValue(text)
+        .withMinLength(inconsistentLength ? null : (spec.minLength ?? null))
+        .withMaxLength(inconsistentLength ? null : (spec.maxLength ?? null))
         .build();
     case 'email':
-      return named(CedarBuilders.emailFieldBuilder()).withDefaultValue(text).build();
+      return named(CedarBuilders.emailFieldBuilder()).build();
     case 'phone':
-      return named(CedarBuilders.phoneNumberFieldBuilder()).withDefaultValue(text).build();
+      return named(CedarBuilders.phoneNumberFieldBuilder()).build();
     case 'numeric':
       return named(CedarBuilders.numericFieldBuilder())
         .withNumberType(NumberType.forValue(spec.numberType ?? 'xsd:decimal'))
         .withMinValue(spec.minValue ?? null)
         .withMaxValue(spec.maxValue ?? null)
         .withDecimalPlaces(spec.decimals ?? null)
-        .withDefaultValue(spec.default === undefined ? null : Number(spec.default))
         .build();
     case 'temporal':
       return named(CedarBuilders.temporalFieldBuilder())
         .withTemporalType(TemporalType.forValue(spec.temporalType ?? 'xsd:date'))
         .withTemporalGranularity(TemporalGranularity.forValue(spec.granularity ?? 'day'))
         .withTimezoneEnabled(spec.timezone === true)
-        .withDefaultValue(text)
         .build();
     case 'radio': {
       const builder = named(CedarBuilders.radioFieldBuilder());
@@ -225,9 +247,7 @@ function fieldOf(spec: FieldSpec): TemplateField {
       return builder.build();
     }
     case 'link':
-      return named(CedarBuilders.linkFieldBuilder())
-        .withDefaultValue(text === null ? null : new Iri(text))
-        .build();
+      return named(CedarBuilders.linkFieldBuilder()).build();
     case 'orcid':
       return named(CedarBuilders.extOrcidFieldBuilder()).build();
     case 'attribute':
@@ -402,7 +422,7 @@ export class Reader {
   /** Every error the form's report holds, as `path code`. */
   errors(): string[] {
     return (this.coordinator.state.dataContext.dataQualityReport?.problems ?? [])
-      .filter((problem) => problem.severity === 'error')
+      .filter((problem) => problem.category === 'structural' || problem.category === 'constraint')
       .map((problem) => `${problem.path.join('/')} ${problem.code}`);
   }
 }

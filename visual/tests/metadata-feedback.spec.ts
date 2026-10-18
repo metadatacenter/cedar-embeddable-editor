@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { open } from './support/host';
 
-test('numeric errors appear while typing and clear before leaving the field', async ({ page }, testInfo) => {
+test('numeric range warnings appear while typing and clear before leaving the field', async ({ page }, testInfo) => {
   await open(page, '17-real-flat');
   const input = page.getByRole('spinbutton', { name: 'Numeric Field', exact: true });
   const widget = page.locator('app-cedar-input-numeric').filter({ has: input });
@@ -9,8 +9,8 @@ test('numeric errors appear while typing and clear before leaving the field', as
   await expect(input).toBeFocused();
   await expect(input).toHaveAttribute('aria-invalid', 'true');
   await expect(widget.locator('mat-error')).toBeVisible();
-  await expect(widget.locator('mat-error')).toHaveCSS('color', 'rgb(180, 35, 24)');
-  await widget.screenshot({ path: testInfo.outputPath('immediate-numeric-error.png'), animations: 'disabled' });
+  await expect(widget.locator('mat-error')).toHaveCSS('color', 'rgb(180, 83, 9)');
+  await widget.screenshot({ path: testInfo.outputPath('immediate-numeric-warning.png'), animations: 'disabled' });
   await input.fill('99');
   await expect(input).toBeFocused();
   await expect(input).toHaveAttribute('aria-invalid', 'false');

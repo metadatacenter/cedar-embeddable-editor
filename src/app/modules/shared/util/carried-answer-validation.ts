@@ -71,7 +71,7 @@ export class CarriedAnswerValidation {
 
   private record(form: CarriedForm, report: DataQualityReport | null, into: WeakMap<object, Set<string>>): void {
     for (const problem of report?.problems ?? []) {
-      if (problem.severity !== 'error') continue;
+      if (problem.category !== 'structural' && problem.category !== 'constraint') continue;
       const node = locate(form, problem)?.node;
       if (node) {
         const codes = into.get(node) ?? new Set<string>();
@@ -103,7 +103,7 @@ export class CarriedAnswerValidation {
 
   unexpected(form: CarriedForm, report: DataQualityReport | null): ValidationProblem[] {
     return (report?.problems ?? []).filter((problem) => {
-      if (problem.severity !== 'error') return false;
+      if (problem.category !== 'structural' && problem.category !== 'constraint') return false;
       const node = locate(form, problem)?.node;
       return !node || !this.allowed.get(node)?.has(problem.code);
     });
@@ -131,7 +131,7 @@ export class CarriedAnswerValidation {
         ),
       ].filter(
         (finding) =>
-          finding.severity === 'error' &&
+          (finding.category === 'structural' || finding.category === 'constraint') &&
           finding.code !== ValidationCode.regexPending &&
           finding.code !== ValidationCode.regexEvaluation,
       );

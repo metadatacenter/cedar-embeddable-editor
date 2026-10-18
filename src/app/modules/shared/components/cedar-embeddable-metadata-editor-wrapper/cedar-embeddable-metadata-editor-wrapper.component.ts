@@ -347,6 +347,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    */
   @Input() get dataQualityReport(): object {
     if (!this.artifacts.instanceInputRejected) {
+      this.handlerContext.validation.refreshSemantic();
       const context = this.handlerContext.dataContext;
       const report = context.dataQualityReport;
       if (!report) return {};

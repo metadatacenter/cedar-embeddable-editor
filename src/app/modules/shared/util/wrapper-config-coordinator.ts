@@ -53,6 +53,7 @@ export class WrapperConfigCoordinator {
     const config = this._config ?? {};
 
     const terminologyBaseUrl = baseUrl(config, CEE_CONFIG_KEY.terminologyBaseUrl);
+    handlerContext.validation.configureSemantic(terminologyBaseUrl, baseUrl(config, CEE_CONFIG_KEY.bridgeBaseUrl));
     if (terminologyBaseUrl !== null) {
       this.controlledFields.setIntegratedSearchUrl(terminologyBaseUrl + INTEGRATED_SEARCH_PATH);
     }

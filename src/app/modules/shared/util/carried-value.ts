@@ -167,7 +167,7 @@ function errorsIn(field: FieldComponent, node: InstanceNode): string[] {
   return problems
     .filter(
       (problem) =>
-        problem.severity === 'error' &&
+        (problem.category === 'structural' || problem.category === 'constraint') &&
         problem.code !== ValidationCode.regexPending &&
         problem.code !== ValidationCode.regexEvaluation,
     )

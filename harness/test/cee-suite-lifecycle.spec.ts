@@ -88,7 +88,7 @@ describe('the production-derived CEE lifecycle corpus', () => {
   });
 
   it.each(templates.map((entry) => [entry.id, entry] as const))(
-    'template %s creates a model-readable, conformant instance',
+    'template %s creates a model-readable instance and reports inconsistent definitions',
     (id, entry) => {
       const driver = new CeeDriver(entry.template);
       const unsavedTemplateMessage =
@@ -113,8 +113,18 @@ describe('the production-derived CEE lifecycle corpus', () => {
       expect(parsedInstance.parsingResult.getBlueprintComparisonErrorCount()).toBe(0);
       expect(parsedInstance.parsingResult.getBlueprintComparisonWarningCount()).toBe(id === '048' ? 6 : 5);
       expect(
-        InstanceValidator.validate(parsedInstance.instance, parsedTemplate).getBlueprintComparisonErrors(),
-      ).toEqual([]);
+        InstanceValidator.validateReport(parsedInstance.instance, parsedTemplate)
+          .findings.filter((finding) => finding.category === 'structural')
+          .map(({ code, path }) => ({ code, path })),
+      ).toEqual(
+        id === '004'
+          ? [0, 1].map((index) => ({
+              code: 'templateConstraint',
+              path: `/Number 2/${index}/_valueConstraints/decimalPlace`,
+            }))
+          : [],
+      );
+      if (id === '004') expect(driver.qualityReport.canSave).toBe(false);
     },
   );
 
@@ -144,11 +154,32 @@ describe('the production-derived CEE lifecycle corpus', () => {
       // template requires ten repeated text slots and the source carries two.
       // CEE preserves those two rather than silently inventing eight values;
       // naming the exact inherited finding keeps it visible and self-expiring.
-      const expectedValidation = id === '002' ? ['missingIndexInRealObject at "/Multi Text Field/"'] : [];
+      const expectedValidation =
+        id === '004'
+          ? // Historical xsd:long fields declare decimalPlace=2. Keep the original artifact
+            // visible and blocked; its populated occurrences do not repair the definition.
+            [0, 1, 2].map((index) => ({
+              code: 'templateConstraint',
+              path: `/Number 2/${index}/_valueConstraints/decimalPlace`,
+            }))
+          : id === '029'
+            ? [
+                {
+                  code: 'missingProperty',
+                  path: '/Element with Several Fields, some Multi/1/Another text field/2/@value',
+                },
+              ]
+            : [];
       const actualValidation = validation
-        .getBlueprintComparisonErrors()
-        .map((error) => `${error.errorType.getValue()} at ${JSON.stringify(error.errorPath)}`);
+        .getValidationReport()
+        .findings.filter((finding) => finding.category === 'structural')
+        .map(({ code, path }) => ({ code, path }));
       expect(actualValidation).toEqual(expectedValidation);
+      if (id === '002')
+        expect(validation.getValidationReport().findings).toContainEqual(
+          expect.objectContaining({ code: 'minItems', path: '/Multi Text Field' }),
+        );
+      if (id === '004' || id === '029') expect(driver.qualityReport.canSave).toBe(false);
     },
   );
 });

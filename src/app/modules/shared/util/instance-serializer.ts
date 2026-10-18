@@ -1,4 +1,5 @@
 import { CedarWriters, InstanceInflater, JsonNode, Template, TemplateInstance } from 'cedar-model-typescript-library';
+import { cloneDeep } from 'lodash-es';
 
 /**
  * Hand the instance out in whatever serialisation is asked for.
@@ -56,7 +57,14 @@ export class InstanceSerializer {
    * from whatever the tree already carries is a better answer than none.
    */
   private static contracted(instance: TemplateInstance, template: Template | null): TemplateInstance {
-    return template === null ? instance : InstanceInflater.inflate(instance, template, 'empty');
+    // Export completion must not repair the live model merely because a host
+    // reads currentMetadata; structural findings clear only after a real edit.
+    if (template === null) return instance;
+    // Envelope wrappers include canonical null sentinels whose identity the
+    // model writer recognizes. Inflation only mutates the data container.
+    const copy: TemplateInstance = Object.assign(Object.create(Object.getPrototypeOf(instance)), instance);
+    copy.dataContainer = cloneDeep(instance.dataContainer);
+    return InstanceInflater.inflate(copy, template, 'empty');
   }
 
   /**

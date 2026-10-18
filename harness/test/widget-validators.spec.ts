@@ -296,6 +296,14 @@ describe('legacy error keys still fire', () => {
       ),
     ).toBeNull();
   });
+
+  it('routes a malformed link IRI to the existing URL error control', () => {
+    const errors = failuresFor(
+      kindOf('link', () => CedarBuilders.linkFieldBuilder()),
+      'example',
+    );
+    expect(Object.keys(errors)).toEqual(expect.arrayContaining(['iriMalformed', 'pattern']));
+  });
 });
 
 describe('error details', () => {
@@ -455,7 +463,7 @@ describe('temporal messages', () => {
   it('keeps the diagnostic for the report', () => {
     const kind = temporal(TemporalType.DATE, TemporalGranularity.YEAR);
 
-    expect(failuresFor(kind, '2023-05-01')['temporalGranularity'].message).toContain('Granularity is year');
+    expect(failuresFor(kind, '2023-05-01')['temporalGranularity'].message).toContain('year granularity');
   });
 
   it('says a missing value is required, in the words every other widget uses', () => {
