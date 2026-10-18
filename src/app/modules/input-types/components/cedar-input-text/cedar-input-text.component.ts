@@ -1,3 +1,4 @@
+import { TextPolicy } from 'cedar-model-typescript-library';
 import { Component, Input, OnInit, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { FieldComponent } from '../../../shared/models/component/field-component.model';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
@@ -63,7 +64,11 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
       validators.push(Validators.required);
     }
     validators.push(CedarValidators.forComponent(this.component));
-    this.inputValueControl = new FormControl<string | null>(null, validators);
+    this.inputValueControl = new FormControl<string | null>(
+      null,
+      validators,
+      CedarValidators.regexForComponent(this.component, () => this.cdr.markForCheck(), this.destroyRef),
+    );
     // Beside the control it holds. Built in the constructor, the group kept the
     // control this line replaces — see `input-control-binding.spec.ts`.
     this.options = this.fb.group({ inputValue: this.inputValueControl });
@@ -162,7 +167,7 @@ export class CedarInputTextComponent extends CedarUIDirective implements OnInit 
    * component's occurrence range already uses, with `∞` for an unbounded maximum.
    */
   getCharCountHint(): string {
-    const length = this.inputValueControl.value?.length ?? 0;
+    const length = TextPolicy.codePointLength(this.inputValueControl.value ?? '');
     const { minLength, maxLength } = this.component.valueInfo;
     if (minLength != null && maxLength != null) {
       return `${length} / ${minLength} .. ${maxLength}`;

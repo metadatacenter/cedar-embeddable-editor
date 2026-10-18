@@ -4,6 +4,7 @@ import {
   InstanceDataControlledAtom,
   InstanceDataEmptyAtom,
   InstanceDataLinkAtom,
+  InstanceDataLabelAtom,
   InstanceDataStringAtom,
   InstanceDataTypedAtom,
 } from 'cedar-model-typescript-library';
@@ -60,7 +61,7 @@ export class InstanceValueNode {
 
   /** The label this node carries, if it carries one. */
   static label(node: InstanceNode | null | undefined): string | null | undefined {
-    return node instanceof InstanceDataControlledAtom ? node.label : undefined;
+    return node instanceof InstanceDataControlledAtom || node instanceof InstanceDataLabelAtom ? node.label : undefined;
   }
 
   /**
@@ -131,6 +132,9 @@ export class InstanceValueNode {
     }
     if (node instanceof InstanceDataLinkAtom) {
       return InstanceValueNode.emptyToNull(node.id);
+    }
+    if (node instanceof InstanceDataLabelAtom) {
+      return iriValued ? null : InstanceValueNode.emptyToNull(node.label);
     }
     return null;
   }

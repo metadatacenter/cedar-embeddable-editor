@@ -46,6 +46,16 @@ const FIXTURES = [
   ['22-multi-field-values', 'multi-instance fields, whose pager shares the title row'],
 ] as const;
 
+/**
+ * Called first in a describe whose tests read nothing the viewport width changes, or set a viewport
+ * of their own, so the narrow project would only repeat the desktop run.
+ */
+function widthIndependent(): void {
+  test.beforeEach(() => {
+    test.skip(test.info().project.name === 'narrow', 'nothing here depends on the width; the desktop run covers it');
+  });
+}
+
 test.describe('host style isolation', () => {
   test('host and editor styles do not cross the custom-element boundary', async ({ page }) => {
     await open(page, '01-input-types');
@@ -587,6 +597,46 @@ test('multi-instance pager renders its chips without covering a narrow expansion
   await expect(pager).toHaveScreenshot('pager.png');
 });
 
+/**
+ * At a narrow width an element's pager takes a row of its own and keeps to the right of it. Editing,
+ * the delete button is centred under the mark that ends the element's heading. Reading, the last chip
+ * ends where the heading does. Both used to start at the left, under the element's name.
+ */
+for (const mode of ['editable', 'readonly'] as const) {
+  test(`a narrow element's ${mode} pager ends under its heading's last mark`, async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'narrow', 'the pager takes a row of its own only at a narrow width');
+    await open(page, '03-nested-multi', mode === 'readonly' ? 'readonly' : undefined);
+
+    const elements = await page.evaluate(() => {
+      const root = document.querySelector('cedar-embeddable-editor')!.shadowRoot!;
+      return Array.from(root.querySelectorAll('mat-expansion-panel'), (panel) => {
+        const header = panel.querySelector(':scope > mat-expansion-panel-header app-cedar-component-header')!;
+        const marks = header.querySelectorAll('.header-trailing mat-icon');
+        const mark = marks[marks.length - 1].getBoundingClientRect();
+        // The panel's own pager precedes the nested panels in document order.
+        const pager = panel.querySelector('.aligned-up')!;
+        const chips = pager.querySelectorAll('.mat-mdc-chip');
+        const remove = pager.querySelector('button[aria-label="Delete current"] mat-icon')?.getBoundingClientRect();
+        return {
+          headerRight: header.getBoundingClientRect().right,
+          markCenter: mark.left + mark.width / 2,
+          removeCenter: remove ? remove.left + remove.width / 2 : null,
+          chipRight: chips[chips.length - 1].getBoundingClientRect().right,
+        };
+      });
+    });
+
+    expect(elements, 'both elements repeat').toHaveLength(2);
+    for (const element of elements) {
+      if (mode === 'editable') {
+        expect(Math.abs(element.removeCenter! - element.markCenter), JSON.stringify(element)).toBeLessThan(1);
+      } else {
+        expect(Math.abs(element.chipRight - element.headerRight), JSON.stringify(element)).toBeLessThan(1);
+      }
+    }
+  });
+}
+
 test('multi-instance actions track cardinality and always expose tooltips', async ({ page }) => {
   await open(page, '10-attribute-values');
 
@@ -594,9 +644,9 @@ test('multi-instance actions track cardinality and always expose tooltips', asyn
   const renderer = page
     .locator('app-cedar-component-renderer')
     .filter({ hasNot: page.locator('app-cedar-component-renderer') })
-    .filter({ has: page.getByRole('button', { name: 'Add empty after current', exact: true }) });
-  const add = renderer.getByRole('button', { name: 'Add empty after current', exact: true });
-  const copy = renderer.getByRole('button', { name: 'Add clone after current', exact: true });
+    .filter({ has: page.getByRole('button', { name: 'Add empty instance here', exact: true }) });
+  const add = renderer.getByRole('button', { name: 'Add empty instance here', exact: true });
+  const copy = renderer.getByRole('button', { name: 'Add copy of this instance', exact: true });
   const remove = renderer.getByRole('button', { name: 'Delete current', exact: true });
 
   await expect(add).toBeEnabled();
@@ -614,8 +664,8 @@ test('multi-instance actions track cardinality and always expose tooltips', asyn
   await expect(remove).toBeEnabled();
 
   for (const [button, tooltip] of [
-    [add, 'Add empty after current'],
-    [copy, 'Add clone after current'],
+    [add, 'Add empty instance here'],
+    [copy, 'Add copy of this instance'],
     [remove, 'Delete current'],
   ] as const) {
     // Park the pointer away from the buttons before each hover. A tooltip opens
@@ -693,7 +743,7 @@ test('a new attribute-value row starts empty beneath its labels, not with redund
   const renderer = page.locator('app-cedar-component-renderer').filter({
     has: page.locator('input[aria-label="Attribute Name"]'),
   });
-  const add = renderer.locator('app-cedar-multi-pager button[aria-label="Add empty after current"]');
+  const add = renderer.locator('app-cedar-multi-pager button[aria-label="Add empty instance here"]');
   await add.click();
 
   const name = renderer.locator('input[aria-label="Attribute Name"]');
@@ -733,7 +783,7 @@ test('cloning an attribute value copies it and preserves the source page', async
   await name.fill('a1');
   await value.fill('v1');
 
-  await renderer.getByRole('button', { name: 'Add clone after current', exact: true }).click();
+  await renderer.getByRole('button', { name: 'Add copy of this instance', exact: true }).click();
   await expect(name).toHaveValue('a1 copy');
   await expect(value).toHaveValue('v1');
 
@@ -747,7 +797,7 @@ test('cloning an attribute value copies it and preserves the source page', async
   await renderer.getByRole('option', { name: '1', exact: true }).click();
   await renderer.getByRole('option', { name: '2', exact: true }).click();
   await expect(name).toHaveValue('a1 copy');
-  await renderer.getByRole('button', { name: 'Add clone after current', exact: true }).click();
+  await renderer.getByRole('button', { name: 'Add copy of this instance', exact: true }).click();
   await expect(name).toHaveValue('a1 copy copy');
   await expect(value).toHaveValue('v1');
   await expect(pages.filter({ hasText: '2' })).toHaveAttribute('aria-selected', 'false');
@@ -796,7 +846,7 @@ test('paging back to an unnamed attribute clears the preceding occurrence', asyn
   const value = renderer.locator('input[aria-label="Attribute Value"]');
   await name.fill('colour');
   await value.fill('blue');
-  await renderer.getByRole('button', { name: 'Add empty after current', exact: true }).click();
+  await renderer.getByRole('button', { name: 'Add empty instance here', exact: true }).click();
   await expect(name).toHaveValue('');
   await expect(value).toHaveValue('');
 
@@ -898,7 +948,7 @@ test.describe('validation states', () => {
    * is touched or its form is submitted, so focusing and blurring is the whole
    * trick — no invalid input is needed for the `required` case.
    */
-  test('required fields show errors once touched', async ({ page }) => {
+  test('required fields show warnings once touched', async ({ page }) => {
     await open(page, '06-validation');
 
     // Fields are addressed by aria-label, which carries the template property
@@ -1564,6 +1614,7 @@ test.describe('widgets, clipped', () => {
  * be edited at every hop.
  */
 test.describe('the version stamp', () => {
+  widthIndependent();
   const declared = JSON.parse(readFileSync(fileURLToPath(new URL('../../package.json', import.meta.url)), 'utf8'))
     .version as string;
 
@@ -1597,6 +1648,7 @@ test.describe('the version stamp', () => {
  * the title. At a narrow width it takes a row of its own, so the title has the full width below it.
  */
 test.describe('the identity', () => {
+  widthIndependent();
   for (const width of [1280, 480]) {
     test(`sets the name and the stamp beside the mark at ${width}`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
@@ -1637,6 +1689,7 @@ test.describe('the identity', () => {
  * put the buttons at the left edge at every width above 520px.
  */
 test.describe('the header actions', () => {
+  widthIndependent();
   const rightEdges = (page: Page) =>
     page.locator('.template-header').evaluate((header) => {
       const root = header.getRootNode() as ShadowRoot;
@@ -1672,6 +1725,7 @@ test.describe('the header actions', () => {
 });
 
 test.describe('external authority fields', () => {
+  widthIndependent();
   test('typing does not raise an error', async ({ page }) => {
     await open(page, '04-controlled-terms');
 
@@ -1731,6 +1785,7 @@ const AUTHORITY_FIELDS = [
 ] as const;
 
 test.describe('every external authority widget', () => {
+  widthIndependent();
   for (const [name, label] of AUTHORITY_FIELDS) {
     /**
      * REGRESSION: a validator pointed at the search control instead of the
@@ -1807,6 +1862,7 @@ test.describe('every external authority widget', () => {
  * busted. It passed 86 tests while doing nothing.
  */
 test.describe('the served bundle', () => {
+  widthIndependent();
   test('is fetched at a URL keyed to its mtime', async ({ page }) => {
     const requested: string[] = [];
     page.on('request', (r) => {
@@ -1844,6 +1900,7 @@ test.describe('the served bundle', () => {
  * port and a hope; on both counts here it changed what got deleted and when.
  */
 test.describe('ported from the deleted component specs', () => {
+  widthIndependent();
   /**
    * Where a choice field's value comes from, traced — because these two tests
    * initially killed no mutant, and the reason turned out to be worth writing down.
@@ -1956,6 +2013,7 @@ test.describe('ported from the deleted component specs', () => {
 });
 
 test.describe('declared non-enumerated defaults', () => {
+  widthIndependent();
   test('editable: a new instance starts with text, numeric, temporal and controlled-term defaults', async ({
     page,
   }) => {
@@ -2041,6 +2099,7 @@ test.describe('declared non-enumerated defaults', () => {
  * same name, unrelated job — it fills the dropdown's *option list*, not a value.
  */
 test.describe('a choice value reaches the widget by every load path', () => {
+  widthIndependent();
   const checkedRadio = (page: import('@playwright/test').Page) => page.getByRole('radio', { checked: true });
 
   test('templateObject alone applies the template default', async ({ page }) => {
@@ -2089,6 +2148,7 @@ test.describe('a choice value reaches the widget by every load path', () => {
  * here is that the check is *wired to the boundary* at all.
  */
 test.describe('an unusable configuration', () => {
+  widthIndependent();
   const errorsWhileLoading = async (page: import('@playwright/test').Page, extra: string): Promise<string[]> => {
     const errors: string[] = [];
     page.on('console', (message) => {
@@ -2128,6 +2188,7 @@ test.describe('an unusable configuration', () => {
  * never do.
  */
 test.describe('template rich text', () => {
+  widthIndependent();
   const shadowHtml = (page: import('@playwright/test').Page): Promise<string> =>
     page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.shadowRoot!.innerHTML);
 
@@ -2305,6 +2366,7 @@ test.describe('template-authored strings that are not rich text', () => {
  * have passed on an instance built with the slot already there.
  */
 test.describe('an attribute-value field with no slot in the instance', () => {
+  widthIndependent();
   const ceeErrors = (page: Page): string[] => {
     const errors: string[] = [];
     page.on('console', (message) => {
@@ -2341,7 +2403,7 @@ test.describe('an attribute-value field with no slot in the instance', () => {
 
     expect(await attributeRows(page), 'the field starts with no attributes').toBe(0);
 
-    await page.getByRole('button', { name: 'Add empty after current' }).first().click();
+    await page.getByRole('button', { name: 'Add empty instance here' }).first().click();
 
     await expect.poll(() => attributeRows(page), { message: 'clicking add should produce an attribute row' }).toBe(1);
     await expect(page.getByRole('textbox', { name: 'Attribute Name' }).first()).toBeVisible();
@@ -2376,6 +2438,7 @@ test.describe('an attribute-value field with no slot in the instance', () => {
  * flag and nothing else.
  */
 test.describe('markup in an instance value', () => {
+  widthIndependent();
   test('is escaped, not rendered, while the field is editable', async ({ page }) => {
     await open(page, '01-input-types', undefined, '14-markup-in-a-value');
 
@@ -2437,6 +2500,7 @@ test.describe('markup in an instance value', () => {
  * found nothing, and this test is about the request rather than the response.
  */
 test.describe('external authority endpoints', () => {
+  widthIndependent();
   const FIELDS = [
     // The path segment, not the authority's name: PFAS is served under `comp-tox`
     // and NIH Grant under `nih-grant`. These are the bridge server's own routes,
@@ -2843,6 +2907,7 @@ const takeDownload = async (
  * reported this one constraint in English beside messages that were not.
  */
 test.describe('a numeric type error', () => {
+  widthIndependent();
   for (const [preset, expected] of [
     [undefined, 'The value should be an integer.'],
     ['hu', 'Az értéknek egész számnak kell lennie.'],
@@ -2920,6 +2985,7 @@ test('a read-only template-only download menu does not offer an instance file', 
  * working; it does not need to re-verify YAML grammar the library already tests.
  */
 test.describe('what a host page reads back', () => {
+  widthIndependent();
   const read = (page: import('@playwright/test').Page) =>
     page.evaluate(() => {
       const cee = document.querySelector('cedar-embeddable-editor')!;
@@ -3079,6 +3145,7 @@ test.describe('what a host page reads back', () => {
 });
 
 test.describe('host input timing', () => {
+  widthIndependent();
   test('template-first separate inputs keep the supplied instance value', async ({ page }) => {
     await open(page, '11-choice-default', undefined, '11-choice-default-instance', 'template-first');
     await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName('Private');
@@ -3164,7 +3231,10 @@ test.describe('host input timing', () => {
           readyAfterCorrection: readyCount,
           correctedName: afterCorrection['schema:name'],
           correctedValue:
-            typeof correctedField === 'object' && correctedField !== null && !Array.isArray(correctedField)
+            typeof correctedField === 'object' &&
+            correctedField !== null &&
+            !Array.isArray(correctedField) &&
+            '@value' in correctedField
               ? correctedField['@value']
               : undefined,
         };
@@ -3443,6 +3513,58 @@ test.describe('a multi-instance field paging its values', () => {
     }
   });
 
+  /**
+   * At a narrow width an editable field's pager takes a row of its own and keeps to the right of it,
+   * so the delete button stands under the property glyph that ends the field's heading. It used to
+   * start at the left edge, under the field's name and away from the marks it sits with.
+   */
+  test('ends its own narrow row under the property glyph', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'narrow', 'the pager takes a row of its own only at a narrow width');
+    await open(page, '24-multi-authority-values');
+
+    const renderer = page
+      .locator('app-cedar-component-renderer')
+      .filter({ hasNot: page.locator('app-cedar-component-renderer') })
+      .filter({ has: page.getByRole('button', { name: 'Delete current', exact: true }) });
+    const geometry = await renderer.evaluate((element) => {
+      const field = element.querySelector(':scope > .non-iterable-component')!;
+      const header = field.querySelector(':scope > app-cedar-component-header')!.getBoundingClientRect();
+      const pager = field.querySelector(':scope > app-cedar-multi-pager')!.getBoundingClientRect();
+      const property = field.querySelector('.property-iri mat-icon')!.getBoundingClientRect();
+      const remove = field.querySelector('button[aria-label="Delete current"] mat-icon')!.getBoundingClientRect();
+      return {
+        headerBottom: header.bottom,
+        pagerTop: pager.top,
+        propertyCenter: property.left + property.width / 2,
+        removeCenter: remove.left + remove.width / 2,
+      };
+    });
+
+    expect(geometry.pagerTop, 'the pager has a row of its own').toBeGreaterThanOrEqual(geometry.headerBottom);
+    expect(
+      Math.abs(geometry.removeCenter - geometry.propertyCenter),
+      `the delete glyph is centred under the property glyph: ${JSON.stringify(geometry)}`,
+    ).toBeLessThan(1);
+  });
+
+  /** Reading, no actions follow the chips, so the last chip ends where the field's heading does. */
+  test('ends its own narrow read-only row where its heading does', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'narrow', 'the pager takes a row of its own only at a narrow width');
+    await open(page, '24-multi-authority-values', 'readonly', '24-multi-authority-values-instance');
+
+    const renderer = page.locator('app-cedar-component-renderer').filter({
+      has: page.locator('app-cedar-input-orcid'),
+    });
+    const geometry = await renderer.evaluate((element) => {
+      const field = element.querySelector(':scope > .non-iterable-component')!;
+      const header = field.querySelector(':scope > app-cedar-component-header')!.getBoundingClientRect();
+      const chips = field.querySelectorAll(':scope > app-cedar-multi-pager .mat-mdc-chip');
+      return { headerRight: header.right, chipRight: chips[chips.length - 1].getBoundingClientRect().right };
+    });
+
+    expect(Math.abs(geometry.chipRight - geometry.headerRight), JSON.stringify(geometry)).toBeLessThan(1);
+  });
+
   test('states the attribute it holds, one occurrence at a time', async ({ page }) => {
     await open(page, '22-multi-field-values', 'readonly', '22-multi-field-values-instance');
 
@@ -3582,6 +3704,7 @@ test.describe('read-only belongs to the host', () => {
  *
  */
 test.describe('config flags are wired to something', () => {
+  widthIndependent();
   const FLAGS: ReadonlyArray<{ flag: string; withFlags?: string[]; fixture?: string }> = [{ flag: 'showDownloadMenu' }];
 
   /**
@@ -3868,6 +3991,7 @@ test('every download menu icon renders shared SVG without font requests', async 
  * which is a real message from a real path rather than something contrived.
  */
 test.describe('the host event handler', () => {
+  widthIndependent();
   test('receives CEE diagnostics through the web component input', async ({ page }) => {
     await open(page, '01-input-types', undefined, undefined, undefined, '&e=1');
 
@@ -4061,6 +4185,7 @@ test('editable choice rows are compact and their controls do not overlap adjacen
 });
 
 test.describe('preview host heading', () => {
+  widthIndependent();
   for (const readOnly of [false, true]) {
     test(`preview omits identity header with readOnly=${readOnly}`, async ({ page }) => {
       await open(

@@ -127,6 +127,8 @@ const interfaceMembers = (name: string): string[] => {
 describe('the published report types and the objects behind them', () => {
   it('declare every member the report has, and only those', () => {
     const report = new DataQualityReport() as unknown as Record<string, unknown>;
+    // pendingValidation is present only while worker validation is unresolved.
+    report['pendingValidation'] = true;
     const carried = Object.getOwnPropertyNames(report);
     const declared = interfaceMembers('CeeDataQualityReport');
 
@@ -141,10 +143,12 @@ describe('the published report types and the objects behind them', () => {
     ).toEqual([]);
   });
 
-  it('declare every member a problem has, and only those', () => {
+  it('declare internal diagnostics plus the localized presentation supplied by the wrapper', () => {
     const problem = new ValidationProblem([], 'field', null, 'code', 'message') as unknown as Record<string, unknown>;
     const carried = Object.getOwnPropertyNames(problem);
-    const declared = interfaceMembers('CeeValidationProblem');
+    const publicMembers = interfaceMembers('CeeValidationProblem');
+    expect(publicMembers).toContain('displayMessage');
+    const declared = publicMembers.filter((member) => member !== 'displayMessage');
 
     expect(declared.length, 'the CeeValidationProblem members were not parsed').toBeGreaterThan(3);
     expect(

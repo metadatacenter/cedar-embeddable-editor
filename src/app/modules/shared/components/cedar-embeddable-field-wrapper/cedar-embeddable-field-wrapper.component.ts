@@ -168,6 +168,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.runtime?.handlerContext.validation.dispose();
     this.activeComponentRegistry.clear();
   }
 
@@ -236,6 +237,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
 
   /** Whether what it holds satisfies the field's own constraints. */
   @Input() get currentValueValid(): boolean {
+    this.runtime?.handlerContext.validation.refreshSemantic();
     return this.runtime?.dataContext.dataQualityReport?.isValid === true;
   }
 
@@ -296,17 +298,24 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
 
   private install(runtime: FieldRuntime): void {
     this.activeComponentRegistry.clear();
+    this.runtime?.handlerContext.validation.dispose();
     this.runtime = runtime;
     this.dataContext = runtime.dataContext;
     this.handlerContext = runtime.handlerContext;
     this.renderedComponent = runtime.component;
     this.handlerContext.setMutationListener(() => this.publishValue());
+    const current = this.handlerContext;
+    current.setValidationListener(() => {
+      if (this.handlerContext !== current) return;
+      this.redraw();
+      this.publishValue();
+    });
     /*
      * The baseline is what the field starts out holding, which for a field declaring
      * its own default is that default. Left at nothing, the first thing to touch the
      * instance would announce the default as though somebody had just chosen it.
      */
-    this.lastPublished = { value: this.currentValue, valid: this.currentValueValid };
+    this.lastPublished = this.valueState();
     this.redraw();
     this.applyConfiguration();
     if (this.assignedValue !== null && !this.applyValue(this.assignedValue)) {
@@ -380,7 +389,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
       this.applyingAssignedValue = false;
     }
     runtime.handlerContext.instanceSupplied = value.kind !== 'none';
-    this.lastPublished = { value: this.currentValue, valid: this.currentValueValid };
+    this.lastPublished = this.valueState();
     this.redraw();
     this.scheduleWidgetSync();
     return true;
@@ -395,7 +404,7 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
     void this.renderScheduler
       .schedule(() => {
         this.activeComponentRegistry.updateViewToModel(runtime.component, runtime.handlerContext);
-        this.lastPublished = { value: this.currentValue, valid: this.currentValueValid };
+        this.lastPublished = this.valueState();
       })
       .then((rendered) => {
         if (rendered) {
@@ -415,16 +424,36 @@ export class CedarEmbeddableFieldWrapperComponent implements OnInit, OnDestroy {
    * that leaves both value and validity where they were — focus, a paged occurrence, a keystroke that
    * replaces a character with itself.
    */
+  private valueState(): CedarEmbeddableFieldChangeDetail {
+    return {
+      value: this.currentValue,
+      valid: this.currentValueValid,
+      ...(this.runtime?.dataContext.dataQualityReport?.semanticChecks.length
+        ? {
+            structurallyValid: this.runtime.dataContext.dataQualityReport.structurallyValid,
+            semanticChecks: structuredClone(this.runtime.dataContext.dataQualityReport.semanticChecks),
+            problems: structuredClone(this.runtime.dataContext.dataQualityReport.problems),
+          }
+        : {}),
+      ...(this.runtime?.dataContext.dataQualityReport?.pendingValidation ? { pendingValidation: true } : {}),
+    };
+  }
+
   private publishValue(): void {
     if (this.applyingAssignedValue) {
       return;
     }
-    const value = this.currentValue;
-    const valid = this.currentValueValid;
-    if (sameFieldValue(value, this.lastPublished.value) && valid === this.lastPublished.valid) {
+    const detail = this.valueState();
+    if (
+      sameFieldValue(detail.value, this.lastPublished.value) &&
+      detail.valid === this.lastPublished.valid &&
+      detail.pendingValidation === this.lastPublished.pendingValidation &&
+      detail.structurallyValid === this.lastPublished.structurallyValid &&
+      JSON.stringify(detail.semanticChecks) === JSON.stringify(this.lastPublished.semanticChecks) &&
+      JSON.stringify(detail.problems) === JSON.stringify(this.lastPublished.problems)
+    ) {
       return;
     }
-    const detail: CedarEmbeddableFieldChangeDetail = { value, valid };
     this.lastPublished = structuredClone(detail);
     this.host.nativeElement.dispatchEvent(
       new CustomEvent<CedarEmbeddableFieldChangeDetail>('valueChange', { detail, bubbles: true, composed: true }),

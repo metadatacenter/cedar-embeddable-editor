@@ -26,7 +26,21 @@ function constrained(key: string, configure: (builder: any) => any): FieldKind {
   return { ...base, configure: (builder) => configure(base.configure ? base.configure(builder) : builder) };
 }
 
-/** Each repeated ancestor has an empty sibling and the branch under test at index 1. */
+/** Empty answers still have the structural properties their field declares. */
+function emptyContainer(schema: any): Record<string, unknown> {
+  return Object.fromEntries(
+    (schema._ui.order as string[]).map((key) => {
+      const child = schema.properties[key];
+      if (child.type === 'array') return [key, []];
+      if (!child._ui?.inputType) return [key, emptyContainer(child)];
+      if (!child.properties?.['@value']) return [key, {}];
+      const datatype = child._valueConstraints?.numberType ?? child._valueConstraints?.temporalType;
+      return [key, { '@value': null, ...(datatype ? { '@type': datatype } : {}) }];
+    }),
+  );
+}
+
+/** Each repeated ancestor has a structurally valid empty sibling and the branch under test at index 1. */
 function nested(spec: ChildSpec, value: unknown, depth: number) {
   let elements: ElementSpec[] = [];
   let children = [spec];
@@ -43,6 +57,20 @@ function nested(spec: ChildSpec, value: unknown, depth: number) {
   }
   const template = buildTemplate({ name: 'problem_codes', children, elements });
   const instance = { '@context': {}, 'schema:isBasedOn': (template as Record<string, unknown>)['@id'], ...values };
+  // Fill only sibling occurrences, leaving the deliberately invalid target untouched.
+  let container: any = instance;
+  let schema: any = template;
+  for (const key of path.slice(0, -1)) {
+    const child = schema.properties[key];
+    if (child.type === 'array') {
+      container[key][0] = emptyContainer(child.items);
+      container = container[key][1];
+      schema = child.items;
+    } else {
+      container = container[key];
+      schema = child;
+    }
+  }
   return { template, instance, path, occurrences };
 }
 
@@ -143,9 +171,9 @@ const storedValues: Array<{
     repair: 'Option A',
   },
   {
-    name: 'a term with an IRI and no label',
+    name: 'a term with a label and no IRI',
     kind: kind('controlled'),
-    value: { '@id': 'http://purl.obolibrary.org/obo/NCBITaxon_9606' },
+    value: { 'rdfs:label': 'Human' },
     code: 'controlledStructure',
     repair: 'Term',
   },
@@ -153,15 +181,17 @@ const storedValues: Array<{
 
 describe.each(depths)('stored values that break a constraint, at depth %i', (depth) => {
   describe.each(modes)('readOnly=%s', (readOnlyMode) => {
-    it.each(storedValues)('$name is reported, survives navigation and can be repaired', (test) => {
+    it.each(storedValues)('$name is reported, survives navigation and can be repaired', async (test) => {
       const fixture = nested({ kind: test.kind, name: 'f', options: test.options }, test.value, depth);
       const supplied = JSON.stringify(fixture.instance);
       const driver = new CeeDriver(fixture.template, { instance: fixture.instance, readOnlyMode });
+      await driver.settled();
       const problem = driver.qualityReport.problems.find((p: ValidationProblem) => p.code === test.code);
       expect(problem, JSON.stringify(driver.qualityReport.problems)).toMatchObject({
         path: fixture.path,
         occurrences: fixture.occurrences,
-        severity: 'error',
+        severity: ['controlledStructure', 'timezoneOffset'].includes(test.code) ? 'error' : 'warning',
+        blocksSave: ['controlledStructure', 'timezoneOffset'].includes(test.code),
       });
       expect(driver.qualityReport.isValid).toBe(false);
       const initial = driver.qualityReport;
@@ -179,9 +209,16 @@ describe.each(depths)('stored values that break a constraint, at depth %i', (dep
         driver.handlerContext.readOnlyMode = false;
       }
       driver.setValue(fixture.path, test.kind, test.repair);
-      expect(driver.qualityReport.problems, JSON.stringify(driver.messages.errors)).toEqual([]);
+      await driver.settled();
+      expect(
+        driver.qualityReport.problems.filter((p: ValidationProblem) => p.category !== 'verification'),
+        JSON.stringify(driver.messages.errors),
+      ).toEqual([]);
+      expect(driver.qualityReport.canSave).toBe(true);
       const reloaded = new CeeDriver(fixture.template, { instance: driver.emitted, readOnlyMode });
-      expect(reloaded.qualityReport.isValid).toBe(true);
+      await reloaded.settled();
+      expect(reloaded.qualityReport.isValid).toBe(test.kind.key !== 'controlled');
+      expect(reloaded.qualityReport.canSave).toBe(true);
     });
   });
 });
@@ -195,7 +232,14 @@ const storedLists = [
     code: 'minItems',
     severity: 'warning',
   },
-  { name: 'a list longer than its maximum', minItems: 0, maxItems: 1, entries: 2, code: 'maxItems', severity: 'error' },
+  {
+    name: 'a list longer than its maximum',
+    minItems: 0,
+    maxItems: 1,
+    entries: 2,
+    code: 'maxItems',
+    severity: 'warning',
+  },
 ];
 
 describe.each(depths)('stored lists outside their bounds, at depth %i', (depth) => {

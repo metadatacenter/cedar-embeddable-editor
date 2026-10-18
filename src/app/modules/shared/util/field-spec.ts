@@ -148,10 +148,10 @@ function numericFacts(field: FieldComponent): SpecFact[] {
     facts.push(fact(WHOLE_NUMBER_TYPES.has(numberType) ? SpecFactKey.numberTypeInteger : SpecFactKey.numberTypeNumber));
   }
   if (minValue !== null) {
-    facts.push(fact(SpecFactKey.minValue, { minValue }));
+    facts.push(fact(SpecFactKey.minValue, { minValue: typeof minValue === 'number' ? minValue : String(minValue) }));
   }
   if (maxValue !== null) {
-    facts.push(fact(SpecFactKey.maxValue, { maxValue }));
+    facts.push(fact(SpecFactKey.maxValue, { maxValue: typeof maxValue === 'number' ? maxValue : String(maxValue) }));
   }
   if (decimalPlace !== null) {
     // Singular and plural as separate keys rather than a formatted count: the interpolation cannot

@@ -119,6 +119,23 @@ Read the record back from `currentMetadata` as CEDAR JSON-LD, or from
 `currentMetadataYaml` as YAML. The CEE neither submits nor stores it. The host
 decides when and where a record is saved.
 
+For recovery across reloads, `captureDraft()` returns a JSON-serializable recovery document
+containing the template, accepted metadata and unfinished field input. This is **not** a
+server-saveable artifact. A host can give it to `restoreDraft(draft)` on a fresh element;
+the method returns `false` without consuming the artifact inputs if the format, version or
+input addresses cannot be restored. Restored input participates in ordinary validation.
+The host owns storage, account and deployment scoping, retention and fresh permission/revision
+checks; restoring a draft grants no write permission. Configure the fresh element normally.
+
+For repository saves, call `captureSave()` immediately before submitting its `metadata`.
+If `needsElementIds` is true, read the stored instance after a successful write and verify
+that its ETag equals the write's returned ETag. Pass that document to the snapshot's
+`acknowledge(stored)` function before permitting another save. This adopts assigned element
+IDs without replacing the form, losing newer edits, or confusing reordered occurrences.
+The returned metadata is the submitted form with its assigned IDs, suitable for the host's
+dirty baseline. If readback or acknowledgement fails, retain the draft and block further
+writes until recovery; retrying with unidentified elements can replace their identities.
+
 [Your First Embedded Editor](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/first-editor/)
 takes the same page apart step by step, and
 [Embedding in a Framework](https://metadatacenter.readthedocs.io/en/latest/cedar-embeddable-editor/frameworks/)
@@ -140,16 +157,40 @@ report. Ordinary metadata editing leaves the option off.
 Read `dataQualityReport` for the whole instance, including nested and off-screen
 occurrences. Each problem has a code, `severity` (`warning` or `error`), a field
 `path` and occurrence indices. Pass a field problem to `reveal(problem)` to reach it.
+Use `displayMessage` for the localized user-facing explanation; `message` retains
+the technical diagnostic for logs or a separate details disclosure. Older component
+bundles may omit `displayMessage`.
 
-Missing required answers, insufficient occurrences and unnamed attribute rows are
-warnings. Invalid values, malformed incoming data and unfinished edits are errors.
-Either makes `isValid` false; the host decides whether saving is allowed. A required
+Each problem also carries a shared `category` and `blocksSave` decision. Structural defects
+(including malformed typed values and unnamed attributes) block instance saves. Well-formed
+values outside declared constraints and incomplete answers are quality warnings and remain
+saveable. Use `canSave` for the instance save gate and `isValid` for overall quality;
+`structurallyValid` reports the representation separately. A required
 field must be answered in every existing containing element. A repeating field
 needs at least one answer within each such element.
 
 The report includes unfinished date/time and attribute-name edits, and `change`
 fires when metadata **or the report** changes. Invalid imported field IRIs and
 well-shaped numeric, temporal and IRI defaults remain available for correction.
+Patterns run in a bounded worker, with the same no-flags, whole-value semantics as Java validation.
+While a check is running, `dataQualityReport.pendingValidation` is `true`, `isValid` is `false`,
+and no provisional pattern error is displayed. Listen for the composed `validationChange` event
+(the detail is the updated report) to refresh a host save gate without treating completion as an
+instance edit. CEF's `valueChange` detail carries the same optional `pendingValidation` flag
+and announces completion even when the completed result remains invalid. A timeout, resource limit or unavailable worker is a `regexEvaluation` verification finding;
+`canSave` remains false while checks are pending. Worker execution needs
+`worker-src blob:` in the host CSP. There is no synchronous fallback.
+
+Populated controlled terms and external-authority values are checked on load, default seeding
+and edits using the configured services. `semanticChecks` records `passed`, `failed`,
+`notChecked` or `unavailable` for each occurrence. Membership uses the exact IRI and complete
+version-aware constraints. Missing configuration and service failures never count as success;
+those findings affect quality but do not prohibit saving a structurally sound instance.
+
+A template pattern change preserves existing preview answers. If a retained answer fails the new
+pattern, the completed report identifies it; a failed or unfinished check never clears the answer
+or removes its containing section. Replacing or destroying the editor cancels obsolete checks.
+
 Terminology membership and server-side validation remain the host's responsibility.
 
 ## Embedding a Single Field
@@ -242,7 +283,8 @@ assignment does not change the editor. Getters and events return detached values
 
 A numeric value has the shape `{ kind: 'number', value: number | string }`.
 Ordinary numbers remain numbers. When converting to a JavaScript number would lose
-significant digits or exceed its range, CEF returns the exact numeric string instead:
+significant digits, exceed its range, or produce an integer outside its safe range,
+CEF returns the exact numeric string instead:
 `9007199254740993` and `0.1234567890123456789` retain every digit. Both forms may be
 assigned back through `value`. Constraint validity remains a separate result.
 

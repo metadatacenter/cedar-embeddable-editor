@@ -12,6 +12,7 @@
  * a component and a value — the visual suite covers that the widgets render the
  * result.
  */
+import { firstValueFrom, Observable } from 'rxjs';
 import { describe, expect, it } from 'vitest';
 import { CedarBuilders, NumberType, TemporalGranularity, TemporalType } from 'cedar-model-typescript-library';
 import { CedarValidators } from '@cee/validation/cedar-validators';
@@ -87,6 +88,18 @@ const errorsFor = (kind: FieldKind, value: unknown): Record<string, ErrorDetail>
     ErrorDetail
   > | null;
 
+/** Await the real asynchronous Angular adapter for pattern checks. */
+const resolvedFailuresFor = async (kind: FieldKind, value: unknown): Promise<Record<string, ErrorDetail>> => {
+  const component = componentFor(kind);
+  const asyncValidator = CedarValidators.regexForComponent(component);
+  const control = { value } as unknown as ValidatedControl;
+  const errors = asyncValidator
+    ? await firstValueFrom(asyncValidator(control) as Observable<Record<string, ErrorDetail> | null>)
+    : CedarValidators.forComponent(component)(control);
+  if (!errors) throw new Error('Expected a validation failure');
+  return errors;
+};
+
 /**
  * The errors a value produces, when the point of the case is that it produces
  * some.
@@ -151,8 +164,8 @@ describe('the adapter reports the same problems as the report', () => {
       '999',
       'maxValue',
     ],
-  ])('%s produces the %s error', (_label, make, value, code) => {
-    expect(Object.keys(failuresFor(make(), value))).toContain(code);
+  ])('%s produces the %s error', async (_label, make, value, code) => {
+    expect(Object.keys(await resolvedFailuresFor(make(), value))).toContain(code);
   });
 
   it('returns null for a value that satisfies every constraint', () => {
@@ -240,8 +253,8 @@ describe('legacy error keys still fire', () => {
         ),
       '1',
     ],
-  ])('%s', (alias, make, value) => {
-    expect(Object.keys(failuresFor(make(), value))).toContain(alias);
+  ])('%s', async (alias, make, value) => {
+    expect(Object.keys(await resolvedFailuresFor(make(), value))).toContain(alias);
   });
 
   /**
@@ -282,6 +295,14 @@ describe('legacy error keys still fire', () => {
         'https://doi.org/10.1000/x',
       ),
     ).toBeNull();
+  });
+
+  it('routes a malformed link IRI to the existing URL error control', () => {
+    const errors = failuresFor(
+      kindOf('link', () => CedarBuilders.linkFieldBuilder()),
+      'example',
+    );
+    expect(Object.keys(errors)).toEqual(expect.arrayContaining(['iriMalformed', 'pattern']));
   });
 });
 
@@ -442,7 +463,7 @@ describe('temporal messages', () => {
   it('keeps the diagnostic for the report', () => {
     const kind = temporal(TemporalType.DATE, TemporalGranularity.YEAR);
 
-    expect(failuresFor(kind, '2023-05-01')['temporalGranularity'].message).toContain('Granularity is year');
+    expect(failuresFor(kind, '2023-05-01')['temporalGranularity'].message).toContain('year granularity');
   });
 
   it('says a missing value is required, in the words every other widget uses', () => {

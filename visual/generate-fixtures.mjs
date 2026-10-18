@@ -29,6 +29,7 @@ const {
   InstanceDataContainer,
   InstanceDataControlledAtom,
   InstanceDataEmptyAtom,
+  InstanceDataLabelAtom,
   InstanceDataLinkAtom,
   InstanceDataStringAtom,
   InstanceDataTypedAtom,
@@ -1263,15 +1264,15 @@ const writeRaw = (name, document) => {
       description: 'Written by a host, with a problem in every field',
       values: {
         _email: literal('not-an-email'),
-        _website: link('https://a'),
+        _website: link('not an iri'),
         _phone: literal('call me'),
         _code: literal('abc'),
         _count: typed('4.5', 'xsd:int'),
         _region: literal('Elsewhere'),
         _answer: literal('Maybe'),
         _consent: [literal('Agree'), literal('Unsure')],
-        _contributor: controlled('orcid:0000-0002-1825-0097', 'Josiah Carberry'),
-        _organism: link('http://purl.obolibrary.org/obo/NCBITaxon_9606'),
+        _contributor: controlled('not an iri', 'Josiah Carberry'),
+        _organism: new InstanceDataLabelAtom('Homo sapiens'),
         _title: literal(null),
         _person: [occurrence({ _email: literal(good) }), occurrence({ _email: literal('second-is-bad') })],
         _team: [
@@ -1292,7 +1293,7 @@ const writeRaw = (name, document) => {
 //     constraints raise, the ones the harness's problem-code matrix holds the report to: a pattern,
 //     each length on text and on a paragraph, decimal places, a date's precision, a timezone where
 //     the field records none and an offset out of range, an answer outside the options, a term with
-//     half of its identity, and lists too short and too long. A browser is where the sentence each
+//     a label but no identifier, and lists too short and too long. A browser is where the sentence each
 //     one shows is chosen, in English and in Hungarian.
 {
   const opts = (m, labels) => (b) => labels.reduce((acc, label) => acc[m](label, false), b);
@@ -1384,7 +1385,7 @@ const writeRaw = (name, document) => {
         _moment: typed('2026-08-01T10:00+05:60', 'xsd:dateTime'),
         _answer: literal('Maybe'),
         _region: literal('Elsewhere'),
-        _organism: link('http://purl.obolibrary.org/obo/NCBITaxon_9606'),
+        _organism: new InstanceDataLabelAtom('Homo sapiens'),
         _aliases: [literal('only one')],
         _tags: [literal('first'), literal('second')],
       },

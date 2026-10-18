@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /** Cross host ownership and ordering with concurrent controllers and asynchronous widget work.
  * Angular rendering is covered by the coordinator suite; only rendering/HTTP are replaced here.
  */

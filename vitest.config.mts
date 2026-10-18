@@ -27,10 +27,25 @@ export default defineConfig({
     // them global is what makes this a runner change rather than a rewrite of
     // every spec.
     globals: true,
-    // Three specs touch `document`, `window` or `customElements`.
-    environment: 'jsdom',
+    // Most specs construct a subject with stub collaborators and need no DOM, and
+    // jsdom costs more to set up per file than those files take to run. The
+    // specs that do touch `document`, `window`, `customElements` or DOM events
+    // say so with a `// @vitest-environment jsdom` first line. A spec that needs
+    // one and lacks it fails outright: nothing in `src/` falls back quietly when
+    // a DOM is absent.
+    environment: 'node',
     include: ['src/**/*.spec.ts'],
-    exclude: ['src/**/*.coordinator.spec.ts'],
+    exclude: [
+      'src/**/*.coordinator.spec.ts',
+      // The domain harness imports these five and runs them under its own floors,
+      // which count the serializer, carried answers and coordinator code they reach.
+      // Running them here as well repeated 1,277 tests for nothing either floor uses.
+      'src/app/modules/shared/util/host-input-history.fuzz.spec.ts',
+      'src/app/modules/shared/util/occurrence-history.fuzz.spec.ts',
+      'src/app/modules/shared/util/carried-answers.spec.ts',
+      'src/app/modules/shared/util/carried-answers.fuzz.spec.ts',
+      'src/app/modules/shared/util/carried-answers.matrix.spec.ts',
+    ],
     setupFiles: ['src/test-setup.ts'],
     // `harness/` has its own project and its own config; running both from here
     // would give two different meanings to `npm test` in the same repo.

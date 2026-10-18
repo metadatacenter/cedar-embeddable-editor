@@ -100,6 +100,7 @@
             "tsConfig": "tsconfig.spec.json",
             "runner": "vitest",
             "include": ["src/**/*.coordinator.spec.ts"],
+            "setupFiles": ["scripts/test-support/regex-worker.ts"],
             "coverage": true,
             "coverageInclude": [
               "src/app/modules/shared/service/render-scheduler.service.ts",

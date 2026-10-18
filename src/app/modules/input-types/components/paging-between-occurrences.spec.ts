@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { ChangeDetectorRef, Injector, runInInjectionContext } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';

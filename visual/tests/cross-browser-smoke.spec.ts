@@ -288,3 +288,65 @@ test('renders from a template alone, with no configuration at all', async ({ pag
 
   expect(result).toEqual({ rendered: true, hasFields: true, jsonKeys: true, yamlLength: true });
 });
+
+test('bounded regex validation keeps the page responsive and separates validity from edits', async ({ page }) => {
+  await page.route('**/fixtures/01-input-types.json', async (route) => {
+    const response = await route.fetch();
+    const template = await response.json();
+    template.properties._text._valueConstraints.regex = '(a+)+';
+    await route.fulfill({ json: template });
+  });
+  await open(page, '01-input-types');
+  const field = page.locator('input[aria-label="text"]');
+  await expect(field).toBeVisible();
+  await expect(page.locator('app-cedar-input-text mat-error')).toHaveCount(0);
+  await page.evaluate(() => {
+    const host = document.querySelector('cedar-embeddable-editor')!;
+    host.dataset.edits = '0';
+    host.dataset.validations = '0';
+    host.addEventListener('change', () => {
+      host.dataset.edits = String(Number(host.dataset.edits) + 1);
+    });
+    host.addEventListener('validationChange', () => {
+      host.dataset.validations = String(Number(host.dataset.validations) + 1);
+    });
+  });
+  const hostile = 'a'.repeat(80) + '!';
+  await field.fill(hostile);
+  await field.blur();
+  // A task queued on the UI thread must run while the worker evaluates the hostile input.
+  expect(await page.evaluate(() => new Promise((resolve) => setTimeout(() => resolve('responsive'), 0)))).toBe(
+    'responsive',
+  );
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        document.querySelector('cedar-embeddable-editor')!.dataQualityReport.problems.map((problem) => problem.code),
+      ),
+    )
+    .toContain('regexEvaluation');
+  await expect(field).toHaveValue(hostile);
+  await expect(page.locator('app-cedar-input-text mat-error')).toContainText('The pattern could not be checked');
+  const edits = await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.dataset.edits);
+  await expect
+    .poll(() => page.evaluate(() => Number(document.querySelector('cedar-embeddable-editor')!.dataset.validations)))
+    .toBeGreaterThan(0);
+  expect(await page.evaluate(() => document.querySelector('cedar-embeddable-editor')!.dataset.edits)).toBe(edits);
+  await field.fill('aa');
+  await field.blur();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => document.querySelector('cedar-embeddable-editor')!.dataQualityReport.pendingValidation === true,
+      ),
+    )
+    .toBe(false);
+  await expect(page.locator('app-cedar-input-text mat-error')).toHaveCount(0);
+  expect(
+    await page.evaluate(() =>
+      document
+        .querySelector('cedar-embeddable-editor')!
+        .dataQualityReport.problems.some((problem) => problem.code.startsWith('regex')),
+    ),
+  ).toBe(false);
+});

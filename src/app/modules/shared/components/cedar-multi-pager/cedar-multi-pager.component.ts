@@ -10,6 +10,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MultiComponent } from '../../models/component/multi-component.model';
 import { PageEvent } from '@angular/material/paginator';
+import { MatChipSelectionChange } from '@angular/material/chips';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { MultiInstanceObjectInfo } from '../../models/info/multi-instance-object-info.model';
 import { HandlerContext } from '../../util/handler-context';
@@ -146,6 +147,39 @@ export class CedarMultiPagerComponent implements OnInit, OnDestroy {
     } else {
       this.lastIndex = -1;
     }
+  }
+
+  chipSelected(event: MatChipSelectionChange, chipIdx: number): void {
+    if (!event.isUserInput) return;
+    // A pager always has a current occurrence; activating it again cannot deselect it.
+    if (!event.selected) event.source.select();
+    this.chipClicked(chipIdx);
+  }
+
+  chipKeydown(event: KeyboardEvent): void {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+    const target = (event.target as HTMLElement).closest<HTMLElement>('[role="option"]');
+    const list = target?.closest('mat-chip-listbox');
+    if (!target || !list) return;
+    const options = Array.from(list.querySelectorAll<HTMLElement>('[role="option"]')).filter(
+      (option) => option.getAttribute('aria-disabled') !== 'true',
+    );
+    const index = options.indexOf(target);
+    if (index < 0) return;
+    // Material 22 discovers chip focus through document.activeElement, which is the CEE host
+    // outside its shadow root. Follow the actual event target using the control's public roles.
+    const rtl = getComputedStyle(list).direction === 'rtl';
+    const delta = event.key === 'ArrowUp' || event.key === (rtl ? 'ArrowRight' : 'ArrowLeft') ? -1 : 1;
+    const next =
+      event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? options.length - 1
+          : Math.max(0, Math.min(options.length - 1, index + delta));
+    event.preventDefault();
+    event.stopPropagation();
+    options[next].focus();
   }
 
   chipClicked(chipIdx: number): void {

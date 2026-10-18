@@ -1,5 +1,10 @@
+import { JsonSourcePolicy } from 'cedar-model-typescript-library';
+import { componentsAlong } from '../../util/component-location';
+import { describeValidationProblem } from '../../validation/validation-message';
 import {
   Component,
+  ChangeDetectorRef,
+  Optional,
   ElementRef,
   Input,
   OnDestroy,
@@ -16,10 +21,13 @@ import {
   CeeJsonObject,
   CeeLocation,
   CeeRevealOptions,
+  CeeSaveSnapshot,
+  CeeRecoveryDraft,
   CeeTemplateAndInstance,
 } from '../../../../cee-public-api';
 import { HandlerContext, InstanceMutation } from '../../util/handler-context';
 import { InstanceSerializer } from '../../util/instance-serializer';
+import { captureInstanceSave } from '../../util/instance-save-snapshot';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { TranslateLoader, TranslateService, provideChildTranslateService } from '@ngx-translate/core';
 import { DataContext } from '../../util/data-context';
@@ -104,6 +112,7 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     private translateService: TranslateService,
     private globalSettingsContextService: GlobalSettingsContextService,
     private fieldReveal: FieldRevealService,
+    @Optional() private readonly validationView: ChangeDetectorRef | null = null,
   ) {
     this.artifacts = new ArtifactInputCoordinator(this.messageHandlerService);
     this.configuration = new WrapperConfigCoordinator(
@@ -174,6 +183,46 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     return {};
   }
 
+  @Input() get captureSave(): () => CeeSaveSnapshot | null {
+    return this.captureSaveSnapshot;
+  }
+
+  @Input() readonly captureDraft = (): CeeRecoveryDraft | null => {
+    if (!this.editorDataReady()) return null;
+    const template = this.artifacts.state.templateJson ?? this.artifacts.state.templateAndInstanceJson?.templateObject;
+    const root = this.dataContext.instanceFullData?.dataContainer;
+    if (!template || !root) return null;
+    return JsonSourcePolicy.clone({
+      format: 'cedar-cee-draft',
+      version: 1,
+      template,
+      metadata: this.currentMetadata as CeeJsonObject,
+      drafts: this.handlerContext.validation.captureDrafts(root),
+    });
+  };
+
+  @Input() readonly restoreDraft = (draft: CeeRecoveryDraft): boolean => {
+    if (!this.artifacts.acceptRecovery(draft)) return false;
+    this.installArtifactState();
+    return true;
+  };
+
+  private readonly captureSaveSnapshot = (): CeeSaveSnapshot | null => {
+    if (!this.editorDataReady()) return null;
+    const context = this.handlerContext.dataContext;
+    const root = context.instanceFullData?.dataContainer;
+    if (!root) return null;
+    return captureInstanceSave(
+      this.currentMetadata as CeeJsonObject,
+      root,
+      () => this.handlerContext.dataContext.instanceFullData?.dataContainer ?? null,
+      () => {
+        context.invalidateDerivedViews();
+        this.lastPublishedState = this.validationStateKey();
+      },
+    );
+  };
+
   /**
    * The same instance, as CEDAR YAML.
    *
@@ -233,20 +282,33 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
     this.dataContext = state.dataContext;
     this.handlerContext = state.handlerContext;
     this.handlerContext.setMutationListener((mutation) => this.publishMutation(mutation));
+    const current = this.handlerContext;
+    current.setValidationListener(() => {
+      if (this.handlerContext !== current) return;
+      this.lastPublishedState = this.validationStateKey();
+      this.validationView?.markForCheck();
+      this.wrapper.nativeElement.dispatchEvent(
+        new CustomEvent<CeeDataQualityReport>('validationChange', {
+          detail: this.dataQualityReport as CeeDataQualityReport,
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    });
     this.artifactRevision = state.revision;
     this.lastPublishedState = this.validationStateKey();
     this.doInitialize();
   }
 
   private validationStateKey(): string {
-    return JSON.stringify([this.currentMetadata, this.dataQualityReport]);
+    return JsonSourcePolicy.stringify([this.currentMetadata, this.dataQualityReport]);
   }
 
   /** Publish changes to either serialized metadata or its quality report, including unfinished edits. */
   private publishMutation(mutation: InstanceMutation): void {
     const metadata = this.currentMetadata as CeeJsonObject;
     const report = this.dataQualityReport as CeeDataQualityReport;
-    const key = JSON.stringify([metadata, report]);
+    const key = JsonSourcePolicy.stringify([metadata, report]);
     if (key === this.lastPublishedState) {
       return;
     }
@@ -285,12 +347,26 @@ export class CedarEmbeddableMetadataEditorWrapperComponent implements OnInit, On
    */
   @Input() get dataQualityReport(): object {
     if (!this.artifacts.instanceInputRejected) {
-      return JSON.parse(JSON.stringify(this.handlerContext.dataContext.dataQualityReport));
+      this.handlerContext.validation.refreshSemantic();
+      const context = this.handlerContext.dataContext;
+      const report = context.dataQualityReport;
+      if (!report) return {};
+      return JsonSourcePolicy.parse(
+        JsonSourcePolicy.stringify({
+          ...report,
+          problems: report.problems.map((problem) => {
+            const component = componentsAlong(context.templateRepresentation, problem.path)?.at(-1);
+            const description = describeValidationProblem(problem, component);
+            return { ...problem, displayMessage: this.translateService.instant(description.key, description.params) };
+          }),
+        }),
+      );
     }
     return {};
   }
 
   ngOnDestroy(): void {
+    this.handlerContext.validation.dispose();
     this.activeComponentRegistry.clear();
   }
 

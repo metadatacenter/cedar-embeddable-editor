@@ -20,6 +20,7 @@ for (const host of ['editor', 'field'] as const) {
       el.style.setProperty('--cedar-control-border', '#654321');
       el.style.setProperty('--cedar-control-focus', '#663399');
       el.style.setProperty('--cedar-control-error', '#993311');
+      el.style.setProperty('--cedar-status-warning-text', '#8a5a00');
     });
     await expect(input).toHaveCSS('font-size', '16px');
     await expect(input).toHaveCSS('line-height', '24px');
@@ -30,8 +31,10 @@ for (const host of ['editor', 'field'] as const) {
     await expect(outline).toHaveCSS('border-top-color', 'rgb(102, 51, 153)');
     await input.fill('abc');
     await input.blur();
-    await expect(element.locator('mat-error').first()).toHaveCSS('color', 'rgb(153, 51, 17)');
-    await expect(outline).toHaveCSS('border-top-color', 'rgb(153, 51, 17)');
+    // CEE reports answer quality; standalone CEF also edits defaults for CED and keeps its error style.
+    const findingColor = host === 'editor' ? 'rgb(138, 90, 0)' : 'rgb(153, 51, 17)';
+    await expect(element.locator('mat-error').first()).toHaveCSS('color', findingColor);
+    await expect(outline).toHaveCSS('border-top-color', findingColor);
     await input.fill('Retained');
     await element.evaluate((el) => el.setAttribute('density', 'comfortable'));
     await expect.poll(async () => (await box.boundingBox())!.height).toBe(48);

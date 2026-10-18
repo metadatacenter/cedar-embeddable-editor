@@ -222,16 +222,35 @@
 /* At embedding widths the pager becomes its own row instead of covering the title. */
 @container cee (max-width: 620px) {
   .pager-container,
-  .pager-container-ro,
-  .non-iterable-component > app-cedar-multi-pager .pager-container {
+  .pager-container-ro {
     justify-content: flex-start;
     margin-top: ui-tokens.$space-2;
     margin-right: 0;
     margin-bottom: 0;
   }
 
+  /*
+   * A field's pager stays at the right of its own row. Editing, the delete button is centred under
+   * the property glyph that ends the field's heading. Reading, no actions follow the chips, so the
+   * last chip ends where the heading does.
+   */
+  .pager-container-ro,
+  .non-iterable-component > app-cedar-multi-pager .pager-container {
+    justify-content: flex-end;
+  }
+
+  .non-iterable-component > app-cedar-multi-pager .pager-container {
+    margin-top: ui-tokens.$space-2;
+    @include spacing.apply(margin-right, narrow-field-occurrence-alignment);
+    margin-bottom: 0;
+  }
+
   .pager-chips {
     margin-right: ui-tokens.$space-3;
+  }
+
+  .pager-container-ro .pager-chips {
+    margin-right: 0;
   }
 
   .inline-readonly-pager > app-cedar-multi-pager .pager-container-ro {
@@ -396,6 +415,20 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   border: 1px solid tokens.$control-border-default;
   box-shadow: none !important;
 }
+
+/*
+ * A field's own bottom padding is the gap above an element that follows it. An element has no
+ * padding, so two elements in a row touched. The second keeps the gap a field would have left:
+ * 16px when editing, 8px when reading.
+ */
+app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer:has(> mat-accordion) {
+  margin-top: ui-tokens.$space-4;
+
+  .cee-read-only & {
+    margin-top: ui-tokens.$space-2;
+  }
+}
+
 .mat-mdc-card {
   box-shadow: none !important;
   margin-bottom: 0;
@@ -640,3 +673,10 @@ textarea.mat-mdc-input-element {
 }
 
 @include icon-contract.styles;
+
+/* Missing answers remain saveable. Scope the colour to this field's widget so a
+ * missing repeated entry cannot recolour a nested field's blocking error. */
+.cee-warning-only {
+  --_cedar-error: var(--cedar-status-warning-text, #{tokens.$status-warning-text});
+  @include theme.warning-controls();
+}

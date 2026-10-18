@@ -40,7 +40,7 @@
     "@value": "Elsewhere"
   },
   "_organism": {
-    "@id": "http://purl.obolibrary.org/obo/NCBITaxon_9606"
+    "rdfs:label": "Homo sapiens"
   },
   "_aliases": [
     {

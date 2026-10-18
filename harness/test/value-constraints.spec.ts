@@ -16,7 +16,14 @@
  * regex 150, minValue 127, default 96, selected 37, granularity 28.
  */
 import { describe, expect, it } from 'vitest';
-import { CedarBuilders, Iri, NumberType, TemporalGranularity, TemporalType } from 'cedar-model-typescript-library';
+import {
+  CedarBuilders,
+  Iri,
+  NumericPolicy,
+  NumberType,
+  TemporalGranularity,
+  TemporalType,
+} from 'cedar-model-typescript-library';
 import { FIELD_KINDS, FieldKind } from '../src/axes';
 import { buildTemplate, buildTemplateYaml } from '../src/generate';
 import { CeeDriver } from '../src/driver';
@@ -119,7 +126,7 @@ describe('text constraints', () => {
     expect(component.valueInfo.regex).toBe('^[A-Z]{3}$');
   });
 
-  it('reports a value that violates the regex, and accepts one that matches', () => {
+  it('reports a value that violates the regex, and accepts one that matches', async () => {
     const kind = kindOf(
       'textre2',
       'textfield',
@@ -128,11 +135,13 @@ describe('text constraints', () => {
     );
     const bad = drive(kind);
     bad.setValue(['_f'], kind, 'zzz');
+    await bad.settled();
     expect(bad.qualityReport.isValid).toBe(false);
     expect(bad.qualityReport.problems.map((p: any) => p.code)).toContain('regex');
 
     const good = drive(kind);
     good.setValue(['_f'], kind, 'ZZZ');
+    await good.settled();
     expect(good.qualityReport.isValid).toBe(true);
   });
 });
@@ -239,8 +248,10 @@ describe('numeric constraints', () => {
     });
     const driver = new CeeDriver(template);
 
-    expect(driver.findOrThrow(['_f']).valueInfo.defaultValue).toBe(defaultValue);
-    expect(literalOf(driver.extract.values._f)).toBe(String(defaultValue));
+    expect(NumericPolicy.compare(String(driver.findOrThrow(['_f']).valueInfo.defaultValue), String(defaultValue))).toBe(
+      0,
+    );
+    expect(NumericPolicy.compare(String(literalOf(driver.extract.values._f)), String(defaultValue))).toBe(0);
     expect(xsdTypeOf(driver.extract.values._f)).toBe(numberType.getValue());
   });
 });

@@ -9,7 +9,7 @@ import { DataContext } from '../util/data-context';
 import { MultiInstanceObjectHandler } from './multi-instance-object.handler';
 import { OccurrenceSelector, OccurrenceSelectors } from './occurrence-selector';
 import { DataObjectBuilderHandler } from './data-object-builder.handler';
-import { InstanceDataContainer, InstanceDataEmptyNode } from 'cedar-model-typescript-library';
+import { InstanceDataEmptyNode } from 'cedar-model-typescript-library';
 import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { TemplateComponent } from '../models/template/template-component.model';
 import { MessageHandlerService } from '../service/message-handler.service';
@@ -197,16 +197,7 @@ export class DataObjectStructureHandler {
     multiInstanceObjectService: MultiInstanceObjectHandler,
     multiInstanceInfo: MultiInstanceObjectInfo,
   ): void {
-    // Somewhere to build one occurrence, thrown away once it has been taken out
-    // again. A bare `{}` while a container was a plain object.
-    const dataObject = new InstanceDataContainer();
-    const cloneComponent = _.cloneDeep(component);
-    DataObjectBuilderHandler.setCurrentCountToMinRecursively(cloneComponent, component.path);
-    // The property IRIs each new occurrence needs travel on the component, so
-    // there is no sub-template to find first.
-    this.dataObjectBuilderService.buildRecursively(cloneComponent, dataObject);
-    const built = dataObject.values[component.name] ?? null;
-    const newDataObject = isInstanceArray(built) ? built[0] : null;
+    const newDataObject = this.dataObjectBuilderService.buildAddedOccurrence(component);
     const currentNodeAny = this.getDataPathNodeRecursively(
       instanceObject,
       templateRepresentation,

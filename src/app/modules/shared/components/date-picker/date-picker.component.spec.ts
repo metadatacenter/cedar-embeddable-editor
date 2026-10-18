@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { DestroyRef, ElementRef } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';

@@ -41,6 +41,9 @@ export class CedarInputMultipleChoiceComponent extends CedarUIDirective implemen
     }
     validators.push(CedarValidators.forComponent(this.component));
     this.selectedChoiceInputControl.setValidators(validators);
+    this.selectedChoiceInputControl.setAsyncValidators(
+      CedarValidators.regexForComponent(this.component, () => this.cdr.markForCheck(), this.destroyRef),
+    );
     this.selectedChoiceInputControl.updateValueAndValidity();
   }
 

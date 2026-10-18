@@ -8,12 +8,13 @@
  * builds of one template are the same document.
  */
 import {
+  JsonSourcePolicy,
+  YamlSourcePolicy,
   CedarBuilders,
   CedarWriters,
   ControlledTermDefaultValueBuilder,
   Iri,
 } from 'cedar-model-typescript-library';
-import { parse as parseYaml } from 'yaml';
 import { Cardinality, FieldKind, Nesting } from './axes';
 
 const FIXED_DATE = '2026-01-01T00:00:00-08:00';
@@ -261,7 +262,7 @@ export const buildTemplate = (spec: TemplateSpec): object => {
   const writer = CedarWriters.json().getStrict().getTemplateWriter();
   // Round through JSON so CEE receives a plain object, exactly as it would
   // from an HTTP response or a host-page injection.
-  return JSON.parse(JSON.stringify(writer.getAsJsonNode(buildTemplateModel(spec))));
+  return JsonSourcePolicy.parse(writer.getAsJsonString(buildTemplateModel(spec)));
 };
 
 /**
@@ -275,7 +276,7 @@ export const buildTemplate = (spec: TemplateSpec): object => {
  */
 export const buildTemplateYaml = (spec: TemplateSpec): object => {
   const yaml = CedarWriters.yaml().getStrict().getTemplateWriter().getAsYamlString(buildTemplateModel(spec));
-  return parseYaml(yaml) as object;
+  return YamlSourcePolicy.parse(yaml) as object;
 };
 
 /**
@@ -314,7 +315,7 @@ export const sweep = (
           kind,
           name: fieldName,
           cardinality,
-          minItems: cardinality === 'multi' ? options.multiFieldMinItems ?? 2 : undefined,
+          minItems: cardinality === 'multi' ? (options.multiFieldMinItems ?? 2) : undefined,
         };
         const label = `${kind.inputType}/${cardinality}/${nesting}`;
         let template: object;
@@ -332,7 +333,7 @@ export const sweep = (
               {
                 name: elName,
                 cardinality: elMulti ? 'multi' : ('single' as Cardinality),
-                minItems: elMulti ? options.multiElementMinItems ?? 2 : undefined,
+                minItems: elMulti ? (options.multiElementMinItems ?? 2) : undefined,
                 children: [child],
               },
             ],
@@ -349,12 +350,12 @@ export const sweep = (
               {
                 name: outerName,
                 cardinality: outerMulti ? 'multi' : ('single' as Cardinality),
-                minItems: outerMulti ? options.multiElementMinItems ?? 2 : undefined,
+                minItems: outerMulti ? (options.multiElementMinItems ?? 2) : undefined,
                 elements: [
                   {
                     name: innerName,
                     cardinality: innerMulti ? 'multi' : ('single' as Cardinality),
-                    minItems: innerMulti ? options.multiElementMinItems ?? 2 : undefined,
+                    minItems: innerMulti ? (options.multiElementMinItems ?? 2) : undefined,
                     children: [child],
                   },
                 ],

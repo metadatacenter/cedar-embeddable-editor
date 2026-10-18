@@ -141,10 +141,42 @@ export interface CeeConfig {
 }
 
 /** A JSON-serialisable value, as it appears in a CEDAR artifact. */
-export type CeeJsonValue = string | number | boolean | null | CeeJsonObject | CeeJsonValue[];
+/** Exact numeric atoms returned by the model library's raw-source readers. Use its JSON writer for serialization. */
+export interface CeeExactNumber {
+  readonly cedarExactDecimal: true;
+  toString(): string;
+  toJSON(): unknown;
+}
+export type CeeJsonValue = string | number | CeeExactNumber | boolean | null | CeeJsonObject | CeeJsonValue[];
 
 export interface CeeJsonObject {
   [key: string]: CeeJsonValue;
+}
+
+/** Recovery data, not a server-saveable artifact. Hosts own storage and access checks. */
+export interface CeeRecoveryDraft {
+  format: 'cedar-cee-draft';
+  version: 1;
+  template: CeeJsonObject;
+  metadata: CeeJsonObject;
+  drafts: Array<{
+    path: Array<string | number>;
+    draft: { code: string; message: string; value: unknown; state: unknown };
+  }>;
+}
+
+/** A submitted form and an occurrence-safe acknowledgement of its repository identities. */
+export interface CeeSaveSnapshot {
+  readonly metadata: CeeJsonObject;
+  readonly needsElementIds: boolean;
+  /**
+   * Supply the full stored instance from the exact revision acknowledged by the write.
+   * Copies only element identifiers into surviving submitted occurrences, preserving later
+   * edits and reordering. Returns the submitted metadata with those IDs for a dirty baseline.
+   * Throws without changing the form if the snapshot or identities cannot be reconciled.
+   * One successful acknowledgement per snapshot; no change event or form remount.
+   */
+  readonly acknowledge: (stored: CeeJsonObject) => CeeJsonObject;
 }
 
 /**
@@ -173,12 +205,17 @@ export interface CeeTemplateAndInstance {
  * TypeScript host could not read either without a cast.
  */
 export interface CeeValidationProblem {
-  /** Missing answers are warnings; invalid values and unfinished edits are errors. Both affect isValid. */
+  /** Shared rule category and instance save decision. Optional for older producers. */
+  category?: 'structural' | 'constraint' | 'completeness' | 'verification';
+  blocksSave?: boolean;
+  /** Structural defects are errors; value constraints and incomplete verification are warnings. */
   severity: 'warning' | 'error';
   /** Machine-readable code, e.g. `numberType` or `temporalGranularity`. */
   code: string;
   /** Path to the offending value, outermost first. */
   path: string[];
+  /** Exact RFC 6901 location, including atom properties, when available. */
+  location?: string;
   /**
    * The entry taken at each repeating field or element along `path`, outermost first.
    *
@@ -193,8 +230,10 @@ export interface CeeValidationProblem {
   field: string;
   /** The field's declared `_ui.inputType`, or null where it declares none. */
   inputType: string | null;
-  /** Human-readable explanation. */
+  /** Technical diagnostic, retained in English for troubleshooting. */
   message: string;
+  /** Localized user-facing explanation. `message` retains the technical diagnostic. */
+  displayMessage?: string;
   /** The value that failed, when there is one. */
   value?: unknown;
 }
@@ -229,11 +268,23 @@ export interface CeeRevealOptions {
 /**
  * What CEE thinks of the instance currently in the form.
  *
- * Read through `dataQualityReport`. These four members are the whole object: it
- * carried three of CEE's internal working views as well, and the interface was a
- * subset of what a host actually received.
+ * Read through `dataQualityReport`. The report contains validation facts and
+ * counts, without CEE's internal model or working views.
  */
 export interface CeeDataQualityReport {
+  /** Separate structural/save facts from overall answer quality. */
+  structurallyValid?: boolean;
+  canSave?: boolean;
+  semanticChecks?: Array<{
+    path: string[];
+    occurrences: number[];
+    iri: string;
+    status: 'passed' | 'failed' | 'notChecked' | 'unavailable';
+    code: string;
+    message: string;
+  }>;
+  /** Worker validation is unresolved; isValid remains false until it settles. */
+  pendingValidation?: boolean;
   /**
    * How many required fields the template declares.
    *
@@ -256,7 +307,7 @@ export interface CeeDataQualityReport {
    * unanswered requirement. The two counters count declarations, not occurrences.
    */
   problems: CeeValidationProblem[];
-  /** True when every required field is filled and no constraint is violated. */
+  /** True when required answers, local constraints and applicable semantic checks all pass. */
   isValid: boolean;
 }
 
@@ -333,6 +384,18 @@ export interface CeeEventHandler {
  * handler and meaningless for the three read-only getters below.
  */
 export interface CedarEmbeddableEditorElement extends HTMLElement {
+  /** Validity changed after asynchronous checks; the instance itself did not change. */
+  addEventListener(
+    type: 'validationChange',
+    listener: ((this: CedarEmbeddableEditorElement, event: CustomEvent<CeeDataQualityReport>) => unknown) | null,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  removeEventListener(
+    type: 'validationChange',
+    listener: ((this: CedarEmbeddableEditorElement, event: CustomEvent<CeeDataQualityReport>) => unknown) | null,
+    options?: boolean | EventListenerOptions,
+  ): void;
+
   /** Typed host mutation event; the inherited overloads still handle every other DOM event. */
   addEventListener(
     type: 'change',
@@ -378,10 +441,13 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
    * and CEE reads a template through class identity.
    *
    * Assignable more than once while no instance has been supplied: each one replaces the
-   * form, building a fresh context, so nothing of the previous template survives. Once an
-   * instance is loaded the template is fixed, and a further assignment is reported and
-   * ignored — the answers in front of a person were recorded against the template that
-   * would be taken away.
+   * form, building a fresh context. When the new template keeps the previous one's `@id`,
+   * so that it is an edit of it, the new form keeps as much of what the reader entered as
+   * it will take without showing an error, and drops the rest silently. Each pager stays
+   * on the entry the reader was looking at. A template with another `@id` starts the
+   * reader on an empty form. Once an instance is loaded the
+   * template is fixed, and a further assignment is reported and ignored — the answers in
+   * front of a person were recorded against the template that would be taken away.
    */
   templateObject: CeeJsonObject;
 
@@ -425,6 +491,14 @@ export interface CedarEmbeddableEditorElement extends HTMLElement {
    * goes to the event handler's `error`.
    */
   readonly currentMetadata: CeeJsonObject;
+
+  /** Capture immediately before saving. Null while no readable form is loaded. */
+  readonly captureSave: () => CeeSaveSnapshot | null;
+
+  /** Captures accepted values and unfinished input, independently of validity. */
+  readonly captureDraft: () => CeeRecoveryDraft | null;
+  /** Restore into a fresh element; rejects incompatible or malformed data atomically. */
+  readonly restoreDraft: (draft: CeeRecoveryDraft) => boolean;
 
   /** The instance as CEDAR YAML. Read-only. */
   readonly currentMetadataYaml: string;
@@ -479,6 +553,13 @@ export type CedarEmbeddableFieldValue =
 
 /** Detail carried by the `cedar-embeddable-field` element's `valueChange` event. */
 export interface CedarEmbeddableFieldChangeDetail {
+  /** Local structure and semantic coverage, separate from default-value validity. */
+  structurallyValid?: boolean;
+  semanticChecks?: CeeDataQualityReport['semanticChecks'];
+  /** Validation facts accompanying a semantic check, for default-value consumers. */
+  problems?: CeeValidationProblem[];
+  /** Present while bounded pattern checks are unresolved; valid stays false. */
+  pendingValidation?: boolean;
   /** What the field now holds. */
   value: CedarEmbeddableFieldValue;
   /** Whether it satisfies the constraints the field declares. */

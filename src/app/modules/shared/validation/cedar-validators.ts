@@ -1,5 +1,8 @@
+import type { DestroyRef } from '@angular/core';
+import { RegexChecks } from 'cedar-model-typescript-library';
+import { Observable } from 'rxjs';
 import { countKey } from '../util/count-key';
-import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { AbstractControl, AsyncValidatorFn, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { Xsd } from '../models/xsd.model';
@@ -65,7 +68,10 @@ export class CedarValidators {
   /** Every declared constraint for this field, as a single Angular validator. */
   static forComponent(component: FieldComponent): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const problems = FieldValueValidator.validate(component, control.value, component.path ?? []);
+      const problems = [
+        ...FieldValueValidator.validateConfiguration(component),
+        ...FieldValueValidator.validate(component, control.value, component.path ?? []),
+      ].filter((problem) => problem.code !== ValidationCode.regexPending);
       if (problems.length === 0) {
         return null;
       }
@@ -82,7 +88,12 @@ export class CedarValidators {
           // A field with no declared input type is not one of the authority kinds,
           // so it has no key in this map and no error to attach.
           const inputType = component.basicInfo.inputType;
-          const key = inputType === null ? undefined : CedarValidators.AUTHORITY_KEYS[inputType];
+          const key =
+            inputType === InputType.link
+              ? 'pattern'
+              : inputType === null
+                ? undefined
+                : CedarValidators.AUTHORITY_KEYS[inputType];
           if (key) {
             errors[key] = detail;
           }
@@ -90,6 +101,36 @@ export class CedarValidators {
       }
       return errors;
     };
+  }
+
+  /** Angular owns pending state and cancels the worker subscription when a control changes. */
+  static regexForComponent(
+    component: FieldComponent,
+    changed: () => void = () => {},
+    lifetime?: DestroyRef,
+  ): AsyncValidatorFn | null {
+    if (!component.valueInfo.regex) return null;
+    return (control) =>
+      new Observable<ValidationErrors | null>((observer) => {
+        const complete = () => {
+          const errors = checks.run(() => CedarValidators.forComponent(component)(control));
+          if (!checks.pending) {
+            observer.next(errors);
+            observer.complete();
+            changed();
+          }
+        };
+        const checks = new RegexChecks(complete);
+        const unregister = lifetime?.onDestroy(() => {
+          checks.dispose();
+          observer.complete();
+        });
+        complete();
+        return () => {
+          unregister?.();
+          checks.dispose();
+        };
+      });
   }
 
   /**
@@ -190,18 +231,22 @@ export class CedarValidators {
     if (errors['required']) {
       return { key: 'Validation.Required' };
     }
-    if (errors[ValidationCode.temporalType] || errors[ValidationCode.temporalCalendar]) {
+    return CedarValidators.describeTemporalCode(Object.keys(errors)[0] ?? '', component);
+  }
+
+  static describeTemporalCode(code: string, component: FieldComponent): Translatable {
+    if (code === ValidationCode.temporalType || code === ValidationCode.temporalCalendar) {
       const temporalType = component.valueInfo.temporalType;
       const kind = temporalType === Xsd.date ? 'Date' : temporalType === Xsd.time ? 'Time' : 'DateTime';
       return { key: `Validation.Temporal.Invalid${kind}` };
     }
-    if (errors[ValidationCode.temporalGranularity]) {
+    if (code === ValidationCode.temporalGranularity) {
       return { key: 'Validation.Temporal.Granularity' };
     }
-    if (errors[ValidationCode.timezone]) {
+    if (code === ValidationCode.timezone) {
       return { key: 'Validation.Temporal.UnexpectedTimezone' };
     }
-    if (errors[ValidationCode.timezoneOffset]) {
+    if (code === ValidationCode.timezoneOffset) {
       return { key: 'Validation.Temporal.InvalidTimezoneOffset' };
     }
     return { key: 'Validation.Invalid' };

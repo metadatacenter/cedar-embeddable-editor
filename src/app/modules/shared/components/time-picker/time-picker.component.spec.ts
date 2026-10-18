@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { DestroyRef } from '@angular/core';
 import { Observable } from 'rxjs';
 import { describe, expect, it } from 'vitest';

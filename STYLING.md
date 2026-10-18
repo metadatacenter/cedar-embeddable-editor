@@ -27,6 +27,7 @@ inherit through shadow roots. CED's native default inputs consume the same token
 | `--cedar-control-focus`       | `#0f7686` | Focus outline                        |
 | `--cedar-textarea-min-rows`   | `2`       | Starting rows for compact paragraphs |
 | `--cedar-control-error`       | `#b42318` | Invalid outline and message          |
+| `--cedar-status-warning-text` | `#b45309` | Missing-answer outline and message   |
 
 Keep height at least 32px, with room for a 24px action. Multiline text, multiple
 values, long labels and error messages may increase total height; they must wrap,

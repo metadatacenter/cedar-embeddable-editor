@@ -83,8 +83,8 @@
   },
   "Multi": {
     "NoInstancesYet": "Még nincsenek példányok",
-    "AddEmptyAfter": "Üres hozzáadása az aktuális után",
-    "AddCloneAfter": "Klón hozzáadása az aktuális után",
+    "AddEmptyAfter": "Üres példány hozzáadása ide",
+    "AddCloneAfter": "E példány másolatának hozzáadása",
     "DeleteCurrent": "Aktuális törlése",
     "AllowsMultiValues": "Több érték is megadható.",
     "NoValuesYet": "Még nincsenek értékek"
@@ -125,8 +125,8 @@
     }
   },
   "Validation": {
-    "SelectAtLeastOne": "Legalább egy lehetőséget ki kell választani.",
-    "Required": "Az érték megadása kötelező.",
+    "SelectAtLeastOne": "Figyelmeztetés: Legalább egy lehetőséget ki kell választani.",
+    "Required": "Figyelmeztetés: Az érték megadása kötelező.",
     "Invalid": "Az érték érvénytelen.",
     "Temporal": {
       "MissingDate": "Még meg kell adni a dátumot. Amíg az érték hiányos, nem rögzíthető.",
@@ -144,7 +144,8 @@
       "MinLength": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
       "MinLengthOne": "Az érték legalább {{constraintMinLength}} karakter hosszú kell legyen.",
       "MaxLength": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet.",
-      "MaxLengthOne": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet."
+      "MaxLengthOne": "Az érték legfeljebb {{constraintMaxLength}} karakter hosszú lehet.",
+      "PatternUnavailable": "A minta ellenőrzése nem fejeződött be. Kérje a sablon szerzőjét a minta egyszerűsítésére, vagy ellenőrizze, hogy az oldal engedélyezi-e az ellenőrzési munkaszálakat."
     },
     "Select": {
       "MaxSelection": "Legfeljebb {{maxSelections}} lehetőség kiválasztása lehetséges"
@@ -213,11 +214,19 @@
       "ChoiceMembership": "„{{value}}” nem szerepel a mező választási lehetőségei között.",
       "ControlledStructure": "A tárolt kifejezésből hiányzik a címke vagy az IRI.",
       "IriMalformed": "A tárolt azonosító nem érvényes IRI.",
+      "ControlledTermMembership": "Ez a fogalom nem szerepel a mező engedélyezett szókészletében.",
+      "AuthorityIdentifier": "Ez az azonosító nem a kiválasztott nyilvántartáshoz tartozik.",
+      "AuthorityMembership": "A nyilvántartás nem találta ezt az azonosítót.",
+      "SemanticNotChecked": "Ezt az értéket még nem ellenőrizte a terminológiai szolgáltatás vagy a nyilvántartás.",
+      "SemanticUnavailable": "A terminológiai szolgáltatás vagy a nyilvántartás nem érhető el. Ez az érték nincs ellenőrizve.",
       "MinItems": "Legalább {{min}} bejegyzés szükséges.",
       "MinItemsOne": "Legalább {{min}} bejegyzés szükséges.",
       "MaxItems": "Legfeljebb {{max}} bejegyzés megengedett.",
-      "MaxItemsOne": "Legfeljebb {{max}} bejegyzés megengedett."
-    }
+      "MaxItemsOne": "Legfeljebb {{max}} bejegyzés megengedett.",
+      "IncompleteValue": "Fejezze be vagy törölje a hiányos értéket.",
+      "TemplateMismatch": "Ezek a metaadatok másik sablonhoz tartoznak. Nyissa meg őket az eredeti sablonjukkal."
+    },
+    "Warning": "Figyelmeztetés:"
   },
   "Spec": {
     "MinLength": "{{minLength}} karakter",

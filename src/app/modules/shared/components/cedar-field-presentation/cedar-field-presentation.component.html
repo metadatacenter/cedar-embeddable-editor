@@ -31,6 +31,7 @@
     }
     @if (inputType !== 'section-break' && inputType !== 'page-break') {
       <app-cedar-field-widget
+        [class.cee-warning-only]="warningOnly"
         [componentToRender]="component"
         [handlerContext]="handlerContext"
       ></app-cedar-field-widget>

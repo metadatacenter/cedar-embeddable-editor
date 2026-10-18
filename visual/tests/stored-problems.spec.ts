@@ -66,8 +66,13 @@ test('keeps an unanswered requirement quiet until the user is taken to it', asyn
 
   expect(await reveal(page, { path: ['_title'] })).toBe(true);
 
-  await expect(title.locator('mat-error')).toHaveText(['The value is required.']);
+  await expect(title.locator('mat-error')).toHaveText(['Warning: The value is required.']);
   await expect(title.locator('input')).toBeFocused();
+  await expect(title.locator('mat-error')).toHaveCSS('color', 'rgb(180, 83, 9)');
+  await expect(title.locator('.mdc-notched-outline__leading')).toHaveCSS('border-color', 'rgb(180, 83, 9)');
+  // Quality findings remain amber, while the malformed integer remains a structural error.
+  await expect(component(page, 'email').locator('mat-error')).toHaveCSS('color', 'rgb(180, 83, 9)');
+  await expect(component(page, 'count').locator('mat-error')).toHaveCSS('color', 'rgb(180, 35, 24)');
 });
 
 test('turns to the page and the entries that hold a problem', async ({ page }) => {
@@ -107,7 +112,8 @@ test('states a list too short for its minimum once the user is taken to it', asy
 
   expect(await reveal(page, { path: ['_aliases'] })).toBe(true);
 
-  await expect(aliases.locator('.cee-field-problem')).toHaveText(['At least 3 entries are required.']);
+  await expect(aliases.locator('.cee-field-problem')).toHaveText(['Warning: At least 3 entries are required.']);
+  await expect(aliases.locator('.cee-field-problem')).toHaveCSS('color', 'rgb(180, 83, 9)');
 });
 
 test('leaves focus where it is when the host asks', async ({ page }) => {
@@ -130,4 +136,28 @@ test('refuses a place the form does not have, and changes nothing', async ({ pag
   const problem = await problemAt(page, ['_team', '_member', '_email'], 'email');
   expect(await reveal(page, problem!)).toBe(true);
   await expect(page.locator('app-cedar-input-email input:focus')).toHaveValue('nested-is-bad');
+});
+
+test('publishes localized explanations without losing the technical diagnostic or location', async ({ page }) => {
+  const problem = await problemAt(page, ['_organism'], 'controlledStructure');
+  expect(problem?.displayMessage).toBe('The stored term is missing its label or its IRI.');
+  expect(problem?.message).toContain('@id');
+  expect(problem?.severity).toBe('error');
+  expect(await reveal(page, problem!)).toBe(true);
+});
+
+test('a repeated field shows both its missing-entry and length findings as amber warnings', async ({ page }) => {
+  await page.route('**/fixtures/26-stored-problems.json', async (route) => {
+    const response = await route.fetch();
+    const template = await response.json();
+    template.properties._aliases.items._valueConstraints.minLength = 12;
+    await route.fulfill({ json: template });
+  });
+  await open(page, FIXTURE, undefined, INSTANCE);
+  expect(await reveal(page, { path: ['_aliases'], occurrences: [0] })).toBe(true);
+  const aliases = component(page, 'aliases');
+  await expect(aliases.locator('app-cedar-input-text mat-error')).toHaveText('Value should be at least 12 chars long.');
+  await expect(aliases.locator('app-cedar-input-text mat-error')).toHaveCSS('color', 'rgb(180, 83, 9)');
+  await expect(aliases.locator('.cee-field-problem')).toHaveText('Warning: At least 3 entries are required.');
+  await expect(aliases.locator('.cee-field-problem')).toHaveCSS('color', 'rgb(180, 83, 9)');
 });

@@ -1,3 +1,9 @@
+import { afterEach } from 'vitest';
+const activeDrivers = new Set<CeeDriver>();
+afterEach(() => {
+  for (const driver of activeDrivers) driver.handlerContext.validation.dispose();
+  activeDrivers.clear();
+});
 /**
  * Headless CEE.
  *
@@ -79,7 +85,12 @@ export class CeeDriver {
   readonly messages: RecordingMessageHandler;
   readonly paginator: PageBreakPaginatorService;
 
+  async settled(): Promise<void> {
+    await this.handlerContext.validation.settled();
+  }
+
   constructor(template: object, opts: DriverOptions = {}) {
+    activeDrivers.add(this);
     this.messages = new RecordingMessageHandler();
     this.dataContext = new DataContext();
     this.handlerContext = new HandlerContext(this.dataContext, this.messages);
@@ -89,11 +100,9 @@ export class CeeDriver {
 
     // The paginator only touches these collaborators during page navigation.
     // The headless startup path calls reset(), so neither has work to perform.
-    this.paginator = new PageBreakPaginatorService(
-      null as never,
-      this.handlerContext,
-      { schedule: () => Promise.resolve(false) } as unknown as RenderSchedulerService,
-    );
+    this.paginator = new PageBreakPaginatorService(null as never, this.handlerContext, {
+      schedule: () => Promise.resolve(false),
+    } as unknown as RenderSchedulerService);
 
     if (opts.instance) {
       // Exactly what CedarEmbeddableMetadataEditorComponent

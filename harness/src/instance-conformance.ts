@@ -5,6 +5,7 @@ import { CedarReaders, InstanceValidator, JsonNode } from 'cedar-model-typescrip
 export interface ConformanceOutcome {
   count: number;
   detail: string;
+  findingCodes?: string[];
 }
 
 /**
@@ -28,6 +29,7 @@ export const validateWithModel = (template: object, instance: object): Conforman
   const result = InstanceValidator.validate(parsedInstance, parsedTemplate);
   return {
     count: result.getBlueprintComparisonErrorCount(),
+    findingCodes: result.getValidationReport().findings.map((finding) => finding.code),
     detail: result
       .getBlueprintComparisonErrors()
       .map((e) => `${e.errorType.getValue()} at ${JSON.stringify(e.errorPath)}`)

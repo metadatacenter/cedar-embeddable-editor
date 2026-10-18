@@ -1,4 +1,8 @@
+import { JsonSourcePolicy } from 'cedar-model-typescript-library';
 import {
+  NumericPolicy,
+  ExactDecimal,
+  TextPolicy,
   JsonNode,
   Template,
   TemplateElement,
@@ -27,20 +31,21 @@ function deferredDefault(source: JsonNode): number | string | { termUri: string;
     typeof term['termUri'] === 'string' &&
     term['termUri'] !== '' &&
     typeof term['rdfs:label'] === 'string' &&
-    term['rdfs:label'].trim() !== ''
+    !TextPolicy.isBlank(term['rdfs:label'])
   )
     return { termUri: term['termUri'], label: term['rdfs:label'] };
-  if (
-    type === 'numeric' &&
-    (typeof value === 'number' ||
-      (typeof value === 'string' && /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(value))) &&
-    Number.isFinite(Number(value))
-  )
-    return Number(value);
+  if (type === 'numeric' && (typeof value === 'number' || typeof value === 'string' || ExactDecimal.isExact(value))) {
+    try {
+      const exact = NumericPolicy.value(value);
+      return typeof exact === 'number' ? exact : String(exact);
+    } catch {
+      return undefined;
+    }
+  }
   return undefined;
 }
 export function withoutCheckedDefaults(source: JsonNode): JsonNode {
-  const copy = structuredClone(source);
+  const copy = JsonSourcePolicy.clone(source);
   const visit = (node: JsonNode) => {
     if (deferredDefault(node) !== undefined) delete (node['_valueConstraints'] as JsonNode)['defaultValue'];
     const properties = node['properties'] as JsonNode | undefined;
@@ -71,8 +76,8 @@ export function restoreDeclaredDefaults(model: Template | TemplateElement | Temp
         .withTermUri(new Iri(value.termUri))
         .withRdfsLabel(value.label)
         .build();
-    if (model.cedarFieldType === CedarFieldType.NUMERIC && typeof value === 'number')
-      (model as NumericField).valueConstraints.defaultValue = value;
+    if (model.cedarFieldType === CedarFieldType.NUMERIC && (typeof value === 'number' || typeof value === 'string'))
+      (model as NumericField).valueConstraints.defaultValue = NumericPolicy.value(value);
     if (model.cedarFieldType === CedarFieldType.TEMPORAL && typeof value === 'string')
       (model as TemporalField).valueConstraints.defaultValue = value;
   }

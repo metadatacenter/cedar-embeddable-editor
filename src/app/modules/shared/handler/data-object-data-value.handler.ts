@@ -1,3 +1,4 @@
+import { TextPolicy } from 'cedar-model-typescript-library';
 import { MultiInstanceObjectInfo } from '../models/info/multi-instance-object-info.model';
 import { CedarComponent } from '../models/component/cedar-component.model';
 import { SingleElementComponent } from '../models/element/single-element-component.model';
@@ -180,7 +181,7 @@ export class DataObjectDataValueHandler {
     }
 
     if (
-      !newName.trim() ||
+      TextPolicy.isBlank(newName) ||
       [...newName].some((character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127)
     ) {
       return { key: 'Validation.Attribute.NameInvalid' };

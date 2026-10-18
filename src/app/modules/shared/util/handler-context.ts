@@ -13,7 +13,8 @@ import { InstanceExtractData } from '../models/instance-extract-data.model';
 import { MultiFieldComponent } from '../models/field/multi-field-component.model';
 import { InputType } from '../models/input-type.model';
 import { InstanceDataAttributeValueFieldName } from 'cedar-model-typescript-library';
-import { isInstanceArray, isInstanceObject } from '../models/instance-node.model';
+import { InstanceNode, isInstanceArray, isInstanceObject } from '../models/instance-node.model';
+import { PreviewEditState } from './preview-edit-state';
 import { InstanceValueNode } from './instance-value-node';
 import type { CeeChangeOperation } from '../../../cee-public-api';
 import { Translatable } from '../models/ui/translatable.model';
@@ -29,6 +30,8 @@ export interface InstanceMutation {
 }
 
 export class HandlerContext {
+  readonly previewEdits = new PreviewEditState();
+  private validationListener: (() => void) | null = null;
   private mutationListener: ((mutation: InstanceMutation) => void) | null = null;
   // No `= null` initialisers. The constructor assigns every one of these, so the
   // null was a placeholder that never survived construction — and declaring it
@@ -91,6 +94,13 @@ export class HandlerContext {
     // `MultiInstanceObjectInfo.currentCount` read the document — see that class.
     this.multiInstanceObjectService.setInstanceResolver((path) => this.getDataObjectNodeByPath(path));
     // this.rdfService = new RdfBuilderService();
+  }
+
+  setValidationListener(listener: () => void): void {
+    this.validationListener = listener;
+  }
+  validationChanged(): void {
+    this.validationListener?.();
   }
 
   /** Install the wrapper-owned bridge from model mutations to the host contract. */
@@ -162,6 +172,10 @@ export class HandlerContext {
       this.multiInstanceObjectService,
     );
     this.multiInstanceObjectService.multiInstanceItemAdd(component);
+    const addedSlots = this.getDataObjectNodeByPath(component.path);
+    const addedIndex = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentIndex ?? -1;
+    if (isInstanceArray(addedSlots)) this.previewEdits.seed(addedSlots[addedIndex] ?? null, null);
+    this.previewEdits.structure(addedSlots);
     this.buildQualityReport();
     this.reportMutation('multiInstanceAdded', component, {
       count: this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentCount ?? 0,
@@ -231,6 +245,8 @@ export class HandlerContext {
       }
     }
     const copiedSlots = this.getDataObjectNodeByPath(component.path);
+    this.previewEdits.copy(sourceNode, isInstanceArray(copiedSlots) ? copiedSlots[multiInfo.currentIndex] : null);
+    this.previewEdits.structure(copiedSlots);
     this.validation.copyDrafts(sourceNode, isInstanceArray(copiedSlots) ? copiedSlots[multiInfo.currentIndex] : null);
     this.buildQualityReport();
     this.reportMutation('multiInstanceCopied', component, {
@@ -259,7 +275,8 @@ export class HandlerContext {
       component,
       this.multiInstanceObjectService,
     );
-    this.multiInstanceObjectService.multiInstanceItemDelete(component);
+    this.multiInstanceObjectService.multiInstanceItemDelete(component, index);
+    this.previewEdits.structure(slots);
     if (attributeName && isInstanceObject(parent)) {
       const stillReferenced = Object.values(parent.values).some(
         (held) =>
@@ -364,8 +381,10 @@ export class HandlerContext {
     origin: ValueMutationOrigin = 'user',
   ): void {
     if (this.readOnlyMode && origin === 'user') return;
+    const previous = this.getCurrentValueNode(component);
     this.dataObjectDataValueHandler.changeValue(this.dataContext, component, this.multiInstanceObjectService, value);
     this.validation.setDraft(component, draft);
+    this.previewEdits.write(previous, this.getCurrentValueNode(component), draft !== null, origin === 'normalization');
     this.buildQualityReport();
     this.reportMutation('valueChanged', component, value);
     // this.rdfService.toRdf(this.dataContext.instanceFullData);
@@ -373,18 +392,21 @@ export class HandlerContext {
 
   changeListValue(component: FieldComponent, value: string[] | null, origin: ValueMutationOrigin = 'user'): void {
     if (this.readOnlyMode && origin === 'user') return;
+    const previous = this.getCurrentValueNode(component);
     this.dataObjectDataValueHandler.changeListValue(
       this.dataContext,
       component,
       this.multiInstanceObjectService,
       value,
     );
+    this.previewEdits.write(previous, this.getCurrentValueNode(component), false, origin === 'normalization');
     this.buildQualityReport();
     this.reportMutation('valueChanged', component, value);
   }
 
   changeAttributeValue(component: FieldComponent, key: string | null, value: string | null): Translatable | null {
     if (this.readOnlyMode) return null;
+    const previous = this.getCurrentValueNode(component);
     const validationError = this.dataObjectDataValueHandler.changeAttributeValue(
       this.dataContext,
       component,
@@ -403,6 +425,11 @@ export class HandlerContext {
           }
         : null,
     );
+    this.previewEdits.write(
+      previous,
+      this.getCurrentValueNode(component),
+      this.validation.draftFor(component) !== null,
+    );
     this.buildQualityReport();
     this.reportMutation('valueChanged', component, { key, value });
     return validationError;
@@ -410,12 +437,14 @@ export class HandlerContext {
 
   deleteAttributeValue(component: FieldComponent, key: string | null): void {
     if (this.readOnlyMode) return;
+    const previous = this.getCurrentValueNode(component);
     this.dataObjectDataValueHandler.deleteAttributeValue(
       this.dataContext,
       component,
       this.multiInstanceObjectService,
       key,
     );
+    this.previewEdits.write(previous, this.getCurrentValueNode(component), false);
     this.buildQualityReport();
     this.reportMutation('valueChanged', component, { key, value: null });
   }
@@ -427,6 +456,7 @@ export class HandlerContext {
     origin: ValueMutationOrigin = 'user',
   ): void {
     if (this.readOnlyMode && origin === 'user') return;
+    const previous = this.getCurrentValueNode(component);
     this.dataObjectDataValueHandler.changeControlledValue(
       this.dataContext,
       component,
@@ -434,8 +464,19 @@ export class HandlerContext {
       atId,
       prefLabel,
     );
+    this.previewEdits.write(previous, this.getCurrentValueNode(component), false, origin === 'normalization');
     this.buildQualityReport();
     this.reportMutation('valueChanged', component, { iri: atId, label: prefLabel });
+  }
+
+  /** The actual occurrence, independent of whether its field stores one value or a selection. */
+  getCurrentValueNode(component: FieldComponent): InstanceNode | null {
+    const held = this.getDataObjectNodeByPath(component.path);
+    if (component instanceof MultiFieldComponent && component.isMultiPage() && isInstanceArray(held)) {
+      const index = this.multiInstanceObjectService.getMultiInstanceInfoForComponent(component)?.currentIndex ?? -1;
+      return held[index] ?? null;
+    }
+    return held;
   }
 
   buildQualityReport() {

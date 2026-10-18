@@ -11,7 +11,8 @@ import { InstanceDataContainer, TemplateInstance, TemplateInstanceBuilder } from
 import * as _ from 'lodash-es';
 import { DataObjectUtil } from '../util/data-object-util';
 import { AbstractElementComponent } from '../models/element/abstract-element-component.model';
-import { InstanceArray, InstanceObject } from '../models/instance-node.model';
+import { InstanceArray, InstanceNode, InstanceObject, isInstanceArray } from '../models/instance-node.model';
+import { MultiComponent } from '../models/component/multi-component.model';
 
 /**
  * Builds a new instance from a template, including every declared default the
@@ -44,23 +45,14 @@ export class DataObjectBuilderHandler {
         const occurrences: InstanceArray = [];
         dataObject.setValue(targetName, occurrences);
         if (multiElement.multiInfo.getSafeMinItems() > 0) {
-          const dummyTargetObject = new InstanceDataContainer();
-          DataObjectBuilderHandler.addPropertyIris(component, dummyTargetObject);
-          for (const childComponent of iterableComponent.children) {
-            this.buildRecursively(childComponent, dummyTargetObject);
-          }
+          const dummyTargetObject = this.buildOccurrence(multiElement);
           for (let idx = 0; idx < multiElement.multiInfo.getSafeMinItems(); idx++) {
             occurrences.push(_.cloneDeep(dummyTargetObject));
           }
         }
       } else {
         // Single Element || Template
-        const occurrence = new InstanceDataContainer();
-        dataObject.setValue(targetName, occurrence);
-        DataObjectBuilderHandler.addPropertyIris(component, occurrence);
-        for (const childComponent of iterableComponent.children) {
-          this.buildRecursively(childComponent, occurrence);
-        }
+        dataObject.setValue(targetName, this.buildOccurrence(component));
       }
     }
     if (component instanceof SingleFieldComponent || component instanceof MultiFieldComponent) {
@@ -86,6 +78,43 @@ export class DataObjectBuilderHandler {
         dataObject.setValue(targetName, value);
       }
     }
+  }
+
+  /**
+   * One occurrence of an element, holding nothing but what its template declares.
+   *
+   * What a multi element is padded to its minimum with, and what a single element
+   * or a template holds. Both used to be built inline, a few lines apart.
+   */
+  public buildOccurrence(component: AbstractElementComponent): InstanceObject {
+    const occurrence = new InstanceDataContainer();
+    DataObjectBuilderHandler.addPropertyIris(component, occurrence);
+    for (const childComponent of component.children) {
+      this.buildRecursively(childComponent, occurrence);
+    }
+    return occurrence;
+  }
+
+  /**
+   * The occurrence the add button gives a multi field or element.
+   *
+   * Built on a copy whose minimum is at least one, so that there is an occurrence to
+   * take, with the property IRIs it needs travelling on the component.
+   */
+  public buildAddedOccurrence(component: MultiComponent): InstanceNode | null {
+    const holder = new InstanceDataContainer();
+    const clone = _.cloneDeep(component);
+    DataObjectBuilderHandler.setCurrentCountToMinRecursively(clone, component.path);
+    this.buildRecursively(clone, holder);
+    const built = holder.values[component.name] ?? null;
+    return isInstanceArray(built) ? (built[0] ?? null) : null;
+  }
+
+  /** What a new instance holds for this child, in any container that holds it. */
+  public buildChild(component: CedarComponent): InstanceNode | null {
+    const holder = new InstanceDataContainer();
+    this.buildRecursively(component, holder);
+    return holder.values[component.name] ?? null;
   }
 
   public static setCurrentCountToMinRecursively(component: CedarComponent, path: string[]): void {

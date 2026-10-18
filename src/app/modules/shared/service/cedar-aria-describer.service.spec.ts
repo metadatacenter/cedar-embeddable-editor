@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { ElementRef } from '@angular/core';
 import { CedarAriaDescriber } from './cedar-aria-describer.service';
 

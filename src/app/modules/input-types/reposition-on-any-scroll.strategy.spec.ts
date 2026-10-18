@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest';
 import { OverlayRef } from '@angular/cdk/overlay';
 import { RepositionOnAnyScrollStrategy } from './reposition-on-any-scroll.strategy';

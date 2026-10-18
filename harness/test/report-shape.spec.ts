@@ -24,7 +24,15 @@ import { downloadContentFor } from '@cee/util/download-content';
 const TEXT = FIELD_KINDS.find((k) => k.inputType === 'textfield')!;
 const CONTROLLED = FIELD_KINDS.find((k) => k.inputType === 'controlled')!;
 
-const MEMBERS = ['isValid', 'nonNullRequiredFieldValueCount', 'problems', 'requiredFieldValueCount'];
+const MEMBERS = [
+  'canSave',
+  'isValid',
+  'nonNullRequiredFieldValueCount',
+  'problems',
+  'requiredFieldValueCount',
+  'semanticChecks',
+  'structurallyValid',
+];
 
 const paired = ceeSuiteCases().filter((c) => c.template !== null && c.instance !== null);
 
@@ -34,7 +42,7 @@ const driverFor = (id: string): CeeDriver => {
 };
 
 describe('the report carries nothing but its answer', () => {
-  it.each(paired.map((c) => c.id))('case %s reports exactly the four contracted members', (id) => {
+  it.each(paired.map((c) => c.id))('case %s reports exactly the contracted quality and save-policy members', (id) => {
     expect(Object.keys(driverFor(id).qualityReport).sort()).toEqual(MEMBERS);
   });
 
@@ -61,12 +69,12 @@ describe('the report carries nothing but its answer', () => {
 
   /**
    * A ceiling, not a measurement. Case 071 is the corpus's largest template and
-   * its report was 1,325,298 bytes; it is 1,806 now, and five problems is the
-   * most any corpus case reports. A dump reintroduced anywhere in the report
+   * its report was 1,325,298 bytes. Explicit semantic coverage now records each
+   * populated authority/term occurrence, keeping this fixture below 16 KiB. A dump reintroduced anywhere in the report
    * fails here whatever it is called, which the name list above cannot promise.
    */
   it('does not grow back', async () => {
-    expect((await downloadContentFor('dataQuality', driverFor('071').dataContext)).length).toBeLessThan(8000);
+    expect((await downloadContentFor('dataQuality', driverFor('071').dataContext)).length).toBeLessThan(16000);
   });
 });
 
@@ -76,19 +84,21 @@ describe('the report carries nothing but its answer', () => {
  * got `{"_id": "…"}`, CEE's own spelling. The library writes the node now.
  */
 describe('a problem names the offending value as CEDAR writes it', () => {
-  it('gives a controlled term with no label as an @id document', () => {
+  it('retains the malformed label-only value in its structural finding', () => {
     const template = buildTemplate({ name: 'pv', children: [{ kind: CONTROLLED, name: 'term' }] });
     const driver = new CeeDriver(template, {
       instance: {
         '@context': {},
         'schema:isBasedOn': (template as Record<string, string>)['@id'],
-        _term: linkNode('https://example.org/t/1'),
+        _term: { 'rdfs:label': 'orphan' },
       },
     });
 
     const problem = driver.qualityReport.problems.find((p: { code: string }) => p.code === 'controlledStructure');
     expect(problem, 'the corpus shape that produces this problem stopped producing it').toBeDefined();
-    expect(problem.value).toEqual({ '@id': 'https://example.org/t/1' });
+    expect(problem.value).toEqual({ 'rdfs:label': 'orphan' });
+    expect(problem).toMatchObject({ category: 'structural', blocksSave: true });
+    expect(driver.qualityReport.canSave).toBe(false);
   });
 });
 

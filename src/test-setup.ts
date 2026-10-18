@@ -18,3 +18,5 @@
  * every spec to no purpose.
  */
 import '@angular/compiler';
+
+import '../scripts/test-support/regex-worker';

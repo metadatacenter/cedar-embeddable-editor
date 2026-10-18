@@ -81,24 +81,73 @@ jobs:
         working-directory: cedar-embeddable-editor
         run: npm run build:production
 
-      # The root `npm ci` is already done above. The harness runs on the runner;
-      # visual's host install is used only to stage the same bundle that packaging
-      # verifies. Browser execution still installs inside Playwright's container.
-      - name: Install CEE test dependencies
+      # The root `npm ci` is already done above. Visual's host install is used only to
+      # stage the same bundle that packaging verifies. Browser execution still installs
+      # inside Playwright's container.
+      - name: Install the visual staging dependencies
         working-directory: cedar-embeddable-editor
-        run: |
-          npm --prefix harness ci
-          npm --prefix visual ci
-
-      - name: Run source and domain gates
-        working-directory: cedar-embeddable-editor
-        run: npm run test:ci:nonvisual:prebuilt
+        run: npm --prefix visual ci
 
       - name: Stage and verify the distributable package
         working-directory: cedar-embeddable-editor
         run: |
           npm --prefix visual run prepare:all
           npm run package:npm:prebuilt
+
+      - name: Save the production build for browser shards
+        uses: actions/upload-artifact@v7
+        with:
+          name: cee-production-dist
+          path: cedar-embeddable-editor/dist
+          if-no-files-found: error
+          retention-days: 2
+
+      # The dev publish ships exactly these bytes rather than restaging them, so the
+      # package a consumer installs is the package this job verified.
+      - name: Save the staged npm package
+        uses: actions/upload-artifact@v7
+        with:
+          name: cee-npm-package
+          path: cedar-embeddable-editor/dist-npm/cedar-embeddable-editor
+          if-no-files-found: error
+          retention-days: 2
+
+  # The source and domain gates, beside the build rather than ahead of it. Nothing in
+  # them reads the production build, and nothing the visual shards or the consumer
+  # demos run reads their result, so as steps of `prepare` they held every shard back
+  # about 110 s. Publishing still waits for them.
+  gates:
+    name: Source and domain gates
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out CEE
+        uses: actions/checkout@v7
+        with:
+          path: cedar-embeddable-editor
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.19.0
+          cache: npm
+          cache-dependency-path: |
+            cedar-embeddable-editor/package-lock.json
+            cedar-embeddable-editor/harness/package-lock.json
+            cedar-embeddable-editor/visual/package-lock.json
+
+      # The type check covers the visual specs too, so it needs their Playwright types.
+      - name: Install CEE test dependencies
+        working-directory: cedar-embeddable-editor
+        run: |
+          npm ci
+          npm --prefix harness ci
+          npm --prefix visual ci
+
+      - name: Run source and domain gates
+        working-directory: cedar-embeddable-editor
+        run: npm run test:ci:nonvisual:prebuilt
 
       # Deliberately its own step, and deliberately not part of `test:ci`.
       #
@@ -119,24 +168,6 @@ jobs:
       - name: Audit what ships
         working-directory: cedar-embeddable-editor
         run: npm run audit:prod
-
-      - name: Save the production build for browser shards
-        uses: actions/upload-artifact@v7
-        with:
-          name: cee-production-dist
-          path: cedar-embeddable-editor/dist
-          if-no-files-found: error
-          retention-days: 2
-
-      # The dev publish ships exactly these bytes rather than restaging them, so the
-      # package a consumer installs is the package this job verified.
-      - name: Save the staged npm package
-        uses: actions/upload-artifact@v7
-        with:
-          name: cee-npm-package
-          path: cedar-embeddable-editor/dist-npm/cedar-embeddable-editor
-          if-no-files-found: error
-          retention-days: 2
 
   visual:
     name: Visual shard ${{ matrix.shard }}/4
@@ -187,6 +218,37 @@ jobs:
         working-directory: cedar-embeddable-editor
         run: bash visual/run-in-container.sh --shard=${{ matrix.shard }}/4
 
+  cee-demos:
+    name: CEE framework consumers
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Check out the consumer demos
+        uses: actions/checkout@v7
+        with:
+          repository: metadatacenter/cedar-component-demo
+          ref: develop
+          path: cedar-component-demo
+
+      - name: Use Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.19.0
+          cache: npm
+          cache-dependency-path: cedar-component-demo/*/package-lock.json
+
+      - name: Restore this build's CEE package
+        uses: actions/download-artifact@v8
+        with:
+          name: cee-npm-package
+          path: cee-candidate
+
+      # Always check CEE CI candidates, including stable release-preparation PRs.
+      # The local reactor reuses a passing check while embedding inputs are unchanged.
+      - name: Test the packaged CEE in Angular, React and Ember
+        run: python3 cedar-component-demo/scripts/check-demos.py --cee-package cee-candidate
+
   # Every merge to develop reaches the Nexus dev channel. Until this existed CEE was
   # published only by a release train, so between releases its dev channel stood
   # still while develop moved: on 2026-09-10 the newest dev package was the train's
@@ -194,7 +256,7 @@ jobs:
   # latest dev CEE was served a release-time build, and nothing said so.
   publish-dev:
     name: Publish the dev package
-    needs: [prepare, visual]
+    needs: [prepare, gates, visual, cee-demos]
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -318,4 +380,3 @@ jobs:
           '
           npm publish "./${staged}" --tag dev
           npm view "${name}@${VERSION}" version
-

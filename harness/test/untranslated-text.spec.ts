@@ -87,6 +87,8 @@ const EXCLUDED_FILES = new Set([
   'src/app/app.component.dev.html',
   'src/app/app.component.dev.ts',
   'src/app/modules/shared/validation/field-value-validator.ts',
+  // Semantic diagnostics are localized by stable codes in validation-message.ts.
+  'src/app/modules/shared/validation/semantic-checks.ts',
   'src/app/modules/shared/handler/data-quality-report-builder.handler.ts',
   'src/app/modules/shared/util/rdf-export.ts',
 ]);

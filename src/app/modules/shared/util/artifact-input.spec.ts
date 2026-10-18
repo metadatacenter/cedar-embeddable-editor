@@ -7,13 +7,19 @@ import { DataContext } from './data-context';
 import { InstanceSerializer } from './instance-serializer';
 import { downloadContentFor } from './download-content';
 import { ArtifactInputCoordinator } from './artifact-input-coordinator';
+import { InstanceDeserializer } from './instance-deserializer';
+import * as carriedAnswers from './carried-answers';
 
 const template = controlledTemplate as unknown as CeeJsonObject;
 const instance = controlledInstance as unknown as CeeJsonObject;
 
 const make = () => {
   const error = vi.fn();
-  const coordinator = new ArtifactInputCoordinator({ error } as unknown as MessageHandlerService);
+  const coordinator = new ArtifactInputCoordinator({
+    error,
+    trace: vi.fn(),
+    warning: vi.fn(),
+  } as unknown as MessageHandlerService);
   return { coordinator, error };
 };
 
@@ -76,17 +82,26 @@ describe('ArtifactInputCoordinator', () => {
     expect(error).not.toHaveBeenCalled();
   });
 
-  it('does not publish or spend a claim when template parsing fails', () => {
-    const { coordinator, error } = make();
-    const initial = coordinator.state;
+  it.each([{}, instance, { properties: null }, { properties: [] }, { properties: 'invalid' }])(
+    'does not publish or spend a claim when template parsing fails: %j',
+    (invalid) => {
+      const { coordinator, error } = make();
+      const initial = coordinator.state;
 
-    expect(coordinator.acceptTemplate({})).toBe(false);
-    expect(coordinator.state).toBe(initial);
-    expect(coordinator.state.revision).toBe(0);
-    expect(error).toHaveBeenCalledWith(expect.stringContaining('not a readable CEDAR template'));
+      expect(coordinator.acceptTemplate(invalid as CeeJsonObject)).toBe(false);
+      expect(coordinator.state).toBe(initial);
+      expect(coordinator.state.revision).toBe(0);
+      expect(error).toHaveBeenCalledWith(expect.stringContaining('not a readable CEDAR template'));
 
-    expect(coordinator.acceptTemplate(template)).toBe(true);
-    expect(coordinator.state.templateJson).toEqual(template);
+      expect(coordinator.acceptTemplate(template)).toBe(true);
+      expect(coordinator.state.templateJson).toEqual(template);
+      expect(coordinator.state.revision).toBe(1);
+    },
+  );
+
+  it('accepts an empty schema container despite missing legacy blueprint metadata', () => {
+    const { coordinator } = make();
+    expect(coordinator.acceptTemplate({ properties: {} })).toBe(true);
     expect(coordinator.state.revision).toBe(1);
   });
 
@@ -155,11 +170,84 @@ describe('accepted artifacts belong to the coordinator', () => {
     },
   );
 
-  it('does not consume a claim when a host object cannot be cloned', () => {
-    const { coordinator, error } = make();
-    expect(coordinator.acceptTemplate({ ...template, callback: () => {} } as unknown as CeeJsonObject)).toBe(false);
-    expect(coordinator.state.revision).toBe(0);
-    expect(error).toHaveBeenCalled();
+  it.each(['template', 'instance', 'combined'] as const)(
+    'does not consume a %s claim when a host object cannot be cloned',
+    (kind) => {
+      const { coordinator, error } = make();
+      const uncloneable = { callback: () => {} } as unknown as CeeJsonObject;
+      const accepted =
+        kind === 'template'
+          ? coordinator.acceptTemplate(uncloneable)
+          : kind === 'instance'
+            ? coordinator.acceptInstance(uncloneable)
+            : coordinator.acceptCombined({ templateObject: template, instanceObject: uncloneable });
+      expect(accepted).toBe(false);
+      expect(coordinator.state.revision).toBe(0);
+      expect(error).toHaveBeenCalled();
+      expect(coordinator.acceptCombined({ templateObject: template, instanceObject: instance })).toBe(true);
+    },
+  );
+});
+
+describe('host transactions under unexpected dependency failures', () => {
+  it('retains the waiting instance if rereading it fails, and permits retry', () => {
+    const { coordinator } = make();
+    expect(coordinator.acceptInstance(instance)).toBe(true);
+    const waiting = coordinator.state;
+    vi.spyOn(InstanceDeserializer, 'read').mockImplementationOnce(() => {
+      throw 'read failed';
+    });
+    expect(coordinator.acceptTemplate(template)).toBe(false);
+    expect(coordinator.state).toBe(waiting);
+    expect(coordinator.acceptTemplate(template)).toBe(true);
+  });
+
+  it('retains the preview if pairing an instance fails halfway through initialization', () => {
+    const { coordinator } = make();
+    expect(coordinator.acceptTemplate(template)).toBe(true);
+    const previous = coordinator.state;
+    vi.spyOn(DataContext.prototype, 'setInputTemplate').mockImplementationOnce(() => {
+      throw 'initialization failed';
+    });
+    expect(coordinator.acceptInstance(instance)).toBe(false);
+    expect(coordinator.state).toBe(previous);
+    expect(coordinator.instanceInputRejected).toBe(true);
+    expect(coordinator.acceptInstance(instance)).toBe(true);
+    expect(coordinator.instanceInputRejected).toBe(false);
+  });
+
+  it.each([false, new Error('unexpected carry failure'), 'unexpected carry failure'])(
+    'publishes a fresh form if carrying cannot complete: %s',
+    (failure) => {
+      const { coordinator } = make();
+      expect(coordinator.acceptTemplate(template)).toBe(true);
+      const previous = coordinator.state;
+      vi.spyOn(carriedAnswers, 'carryAnswers').mockImplementationOnce(() => {
+        if (failure === false) return false;
+        throw failure;
+      });
+      expect(coordinator.acceptTemplate(template)).toBe(true);
+      expect(coordinator.state.revision).toBe(previous.revision + 1);
+      expect(coordinator.state.dataContext).not.toBe(previous.dataContext);
+      expect(InstanceSerializer.toJson(coordinator.state.dataContext.instanceFullData)).toEqual(
+        InstanceSerializer.toJson(previous.dataContext.instanceFullData),
+      );
+    },
+  );
+
+  it('keeps the live form when both carrying and the fresh fallback fail', () => {
+    const { coordinator } = make();
+    expect(coordinator.acceptTemplate(template)).toBe(true);
+    const previous = coordinator.state;
+    vi.spyOn(carriedAnswers, 'carryAnswers').mockReturnValueOnce(false);
+    const initialize = DataContext.prototype.setInputTemplate;
+    vi.spyOn(DataContext.prototype, 'setInputTemplate')
+      .mockImplementationOnce(initialize)
+      .mockImplementationOnce(() => {
+        throw new Error('fallback failed');
+      });
+    expect(coordinator.acceptTemplate(template)).toBe(false);
+    expect(coordinator.state).toBe(previous);
     expect(coordinator.acceptTemplate(template)).toBe(true);
   });
 });

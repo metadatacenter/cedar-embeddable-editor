@@ -1,15 +1,11 @@
-/** Syntax only; identifier resolution and vocabulary membership require the host's services. */
+import { IdentifierPolicy } from 'cedar-model-typescript-library';
+
+/** Identifier syntax shared with the model; resolution and membership belong to the host. */
 export function validAbsoluteIri(value: string): boolean {
-  if (
-    !/^[a-z][a-z0-9+.-]*:.+$/i.test(value) ||
-    /[\s<>"{}|\\^`\p{Cc}\p{Cs}]/u.test(value) ||
-    /%(?![\da-f]{2})/i.test(value)
-  )
-    return false;
-  try {
-    const parsed = new URL(value);
-    return !/^https?:/i.test(value) || (/^https?:\/\//i.test(value) && !!parsed.hostname);
-  } catch {
-    return false;
-  }
+  return IdentifierPolicy.isValidAuthoringIri(value);
+}
+
+/** Populated field IRIs keep their original RDF spelling; no URL serialization or space stripping. */
+export function validAbsoluteFieldIri(value: string): boolean {
+  return IdentifierPolicy.isValidAuthoringIri(value, true);
 }

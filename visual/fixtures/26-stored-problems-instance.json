@@ -6,7 +6,7 @@
     "@value": "not-an-email"
   },
   "_website": {
-    "@id": "https://a"
+    "@id": "not an iri"
   },
   "_phone": {
     "@value": "call me"
@@ -33,11 +33,11 @@
     }
   ],
   "_contributor": {
-    "@id": "orcid:0000-0002-1825-0097",
+    "@id": "not an iri",
     "rdfs:label": "Josiah Carberry"
   },
   "_organism": {
-    "@id": "http://purl.obolibrary.org/obo/NCBITaxon_9606"
+    "rdfs:label": "Homo sapiens"
   },
   "_title": {
     "@value": null

@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { type Mock, vi } from 'vitest';
 import { CedarEmbeddableMetadataEditorWrapperComponent } from './cedar-embeddable-metadata-editor-wrapper.component';
 import { ElementRef, Injector } from '@angular/core';
@@ -24,6 +25,7 @@ import { FallbackTranslateLoader } from '../../util/fallback-translate-loader';
 import { CeeConfig } from '../../util/config-reader';
 import { CeeChangeDetail, CeeJsonObject } from '../../../../cee-public-api';
 import inputTypesTemplate from '../../../../../../visual/fixtures/01-input-types.json';
+import nestedTemplate from '../../../../../../visual/fixtures/03-nested-multi.json';
 import { FieldComponent } from '../../models/component/field-component.model';
 
 const validTemplate = inputTypesTemplate as unknown as CeeJsonObject;
@@ -96,12 +98,84 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
         getLangs: mocks.getLangs,
         reloadLang: mocks.reloadLang,
         setTranslation: mocks.setTranslation,
+        instant: (key: string) => key,
       } as unknown as TranslateService,
       mocks.globalSettings as unknown as GlobalSettingsContextService,
       { reveal: vi.fn() } as unknown as FieldRevealService,
     );
     return { component, mocks };
   };
+
+  it('announces resolved validation without an instance edit and cancels replaced documents', async () => {
+    const { component, mocks } = make();
+    const template = structuredClone(validTemplate);
+    const properties = template['properties'] as CeeJsonObject;
+    const field = properties['_text'] as CeeJsonObject;
+    field['_valueConstraints'] = { ...(field['_valueConstraints'] as CeeJsonObject), regex: '[A-Z]+' };
+    const changed = vi.fn();
+    const validated = vi.fn();
+    mocks.host.addEventListener('change', changed);
+    mocks.host.addEventListener('validationChange', validated);
+    component.ngOnInit();
+    component.templateObject = template;
+    await component.handlerContext.validation.settled();
+    expect(validated).toHaveBeenCalled();
+    expect(changed).not.toHaveBeenCalled();
+    validated.mockClear();
+    const previous = component.handlerContext;
+    previous.changeValue(
+      previous.dataContext.templateRepresentation!.children.find((child) => child.name === '_text') as FieldComponent,
+      'bad',
+    );
+    component.templateObject = validTemplate;
+    await previous.validation.settled();
+    expect(validated).not.toHaveBeenCalled();
+    component.ngOnDestroy();
+  });
+
+  it('a host report read retries expired verification on unchanged metadata and releases save when it settles', async () => {
+    let now = 1_000;
+    const clock = vi.spyOn(Date, 'now').mockImplementation(() => now);
+    const iri = 'https://orcid.org/0000-0002-1825-0097';
+    let status = 'unavailable';
+    const fetcher = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            iri,
+            status,
+            code: status === 'passed' ? 'authorityVerified' : 'semanticUnavailable',
+            message: 'Checked.',
+          }),
+        ),
+    );
+    vi.stubGlobal('fetch', fetcher);
+    const { component } = make();
+    try {
+      const template = structuredClone(validTemplate);
+      const link = (template['properties'] as CeeJsonObject)['_link'] as CeeJsonObject;
+      link['_ui'] = { inputType: 'ext-orcid' };
+      component.config = { bridgeBaseUrl: 'https://bridge.example.org/' };
+      component.ngOnInit();
+      component.templateObject = template;
+      component.instanceObject = { ...(component.currentMetadata as CeeJsonObject), _link: { '@id': iri } };
+      await component.handlerContext.validation.settled();
+      expect(component.dataQualityReport).toMatchObject({ canSave: true, semanticChecks: [{ status: 'unavailable' }] });
+      const before = component.currentMetadata;
+      now += 30_000;
+      status = 'passed';
+      expect(component.dataQualityReport).toMatchObject({ pendingValidation: true, canSave: false });
+      expect(component.dataQualityReport).toMatchObject({ pendingValidation: true });
+      expect(fetcher).toHaveBeenCalledTimes(2);
+      await component.handlerContext.validation.settled();
+      expect(component.dataQualityReport).toMatchObject({ canSave: true, semanticChecks: [{ status: 'passed' }] });
+      expect(component.currentMetadata).toEqual(before);
+    } finally {
+      component.ngOnDestroy();
+      clock.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
 
   it('applies config identically whether Angular supplies it before or after ngOnInit', () => {
     const config = {
@@ -157,6 +231,32 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
    * apply — the settings it carries reach already-built widgets through services
    * they subscribe to, rather than by being read once at construction.
    */
+  it('adopts saved element IDs into the live form without a change event or remount', () => {
+    const { component, mocks } = make();
+    expect(component.captureSave()).toBeNull();
+    component.ngOnInit();
+    component.templateObject = nestedTemplate as unknown as CeeJsonObject;
+    const root = component.handlerContext.dataContext.instanceFullData;
+    const snapshot = component.captureSave()!;
+    expect(snapshot.needsElementIds).toBe(true);
+    const stored = structuredClone(snapshot.metadata);
+    const authors = stored['_author'] as CeeJsonObject[];
+    expect(authors.length).toBeGreaterThan(0);
+    authors.forEach((author, index) => {
+      author['@id'] = `urn:author:${index}`;
+      (author['_affiliation'] as CeeJsonObject[])?.forEach((affiliation, childIndex) => {
+        affiliation['@id'] = `urn:affiliation:${index}:${childIndex}`;
+      });
+    });
+    const changed = vi.fn();
+    mocks.host.addEventListener('change', changed);
+    const baseline = snapshot.acknowledge(stored);
+    expect(component.currentMetadata).toEqual(baseline);
+    expect(component.handlerContext.dataContext.instanceFullData).toBe(root);
+    expect(changed).not.toHaveBeenCalled();
+    expect(component.captureSave()!.needsElementIds).toBe(false);
+  });
+
   it('applies configuration assigned after the template', () => {
     const { component, mocks } = make();
 
@@ -167,6 +267,56 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent lifecycle', () => {
     expect(component.editorDataReady()).toBe(true);
     expect(mocks.use).toHaveBeenLastCalledWith('hu');
     expect(component.handlerContext.readOnlyMode).toBe(true);
+  });
+
+  it('round-trips unfinished input independently of accepted metadata and restores validation', () => {
+    const { component } = make();
+    expect(component.captureDraft()).toBeNull();
+    component.ngOnInit();
+    component.templateObject = validTemplate;
+    const field = component.dataContext.templateRepresentation!.children.find(
+      (child): child is FieldComponent => 'basicInfo' in child,
+    )!;
+    component.handlerContext.changeValue(field, 'accepted');
+    component.handlerContext.validation.setDraft(field, {
+      code: 'unfinished',
+      message: 'Finish the input',
+      value: 'partial',
+      state: { text: 'partial' },
+    });
+    const captured = component.captureDraft()!;
+    const wire = JSON.parse(JSON.stringify(captured));
+    const { component: restored } = make();
+    restored.config = { readOnlyMode: true };
+    restored.ngOnInit();
+    expect(restored.restoreDraft(wire)).toBe(true);
+    expect(restored.currentMetadata).toEqual(component.currentMetadata);
+    expect(restored.captureDraft()).toEqual(captured);
+    expect(restored.dataQualityReport).toMatchObject({
+      isValid: false,
+      problems: expect.arrayContaining([expect.objectContaining({ code: 'unfinished', value: 'partial' })]),
+    });
+    expect(restored.handlerContext.readOnlyMode).toBe(true);
+    wire.drafts[0].draft.state.text = 'changed by host';
+    expect(restored.captureDraft()).toEqual(captured);
+    expect(restored.restoreDraft(captured), 'must not replace a claimed form').toBe(false);
+  });
+
+  it('rejects a corrupt recovery draft without consuming claims or changing the form', () => {
+    const source = make().component;
+    source.templateObject = validTemplate;
+    const draft = source.captureDraft()!;
+    const target = make().component;
+    for (const bad of [
+      { ...draft, version: 2 },
+      { ...draft, drafts: [{ path: ['missing'], draft: { code: 'x', message: 'x' } }] },
+      { ...draft, drafts: null },
+      { ...draft, metadata: { '@id': {} } },
+    ]) {
+      expect(target.restoreDraft(bad as typeof draft)).toBe(false);
+      expect(target.captureDraft()).toBeNull();
+    }
+    expect(target.restoreDraft(draft)).toBe(true);
   });
 
   it('publishes actual model mutations once and suppresses no-op writes', () => {
@@ -237,6 +387,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
         getLangs: vi.fn(() => []),
         reloadLang: vi.fn(),
         setTranslation: vi.fn(),
+        instant: (key: string) => key,
       } as unknown as TranslateService,
       {} as unknown as GlobalSettingsContextService,
       { reveal: vi.fn() } as unknown as FieldRevealService,
@@ -251,6 +402,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
    * and none of them looks inside one. `id` makes a failure report readable.
    */
   const artifact = (id: string): CeeJsonObject => ({ '@id': id });
+  const schema = (id: string): CeeJsonObject => ({ '@id': id, properties: {} });
 
   /** What the host was told, as one string. */
   const reported = (errors: Mock): string => errors.mock.calls.map(([message]) => String(message)).join('\n');
@@ -289,9 +441,9 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
    */
   it('replaces a template that has no instance behind it', () => {
     const { component, errors } = make();
-    const second = artifact('second');
+    const second = schema('second');
 
-    component.templateObject = artifact('first');
+    component.templateObject = schema('first');
     component.templateObject = second;
 
     expect(component.templateJson).toEqual(second);
@@ -302,9 +454,9 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
   it('renders each replacement rather than the first one again', () => {
     const { component } = make();
 
-    component.templateObject = artifact('first');
+    component.templateObject = schema('first');
     const first = component.artifactRevision;
-    component.templateObject = artifact('second');
+    component.templateObject = schema('second');
 
     // The revision is what reaches the inner editor and asks it to render, so a
     // replacement that did not move it would leave the previous form on screen.
@@ -313,11 +465,11 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
   it('keeps the template once an instance is loaded against it, and reports the second', () => {
     const { component, errors } = make();
-    const first = artifact('first');
+    const first = schema('first');
 
-    component.instanceObject = artifact('instance');
+    component.instanceObject = schema('instance');
     component.templateObject = first;
-    component.templateObject = artifact('second');
+    component.templateObject = schema('second');
 
     // The answers in front of a person were recorded against the template that would be
     // taken away, and there is no good answer to what becomes of them.
@@ -328,7 +480,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
   it('reports an unreadable template without spending its claim, then accepts the correction', () => {
     const { component, errors } = make();
-    const corrected = artifact('corrected');
+    const corrected = schema('corrected');
 
     component.templateObject = { '@id': {} } as unknown as CeeJsonObject;
 
@@ -397,7 +549,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
    */
   it('accepts a template and an instance as one assignment each', () => {
     const { component, errors } = make();
-    const template = artifact('template');
+    const template = schema('template');
     const instance = artifact('instance');
 
     component.instanceObject = instance;
@@ -428,7 +580,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
     component.ngOnInit();
     component.instanceObject = { '@id': {} };
-    component.templateObject = {};
+    component.templateObject = { properties: {} };
 
     expect(component.instanceJson).toBeNull();
     expect(component.handlerContext.instanceSupplied).toBe(false);
@@ -449,10 +601,10 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
   it('leaves both claims reusable when the combined input contains an unreadable instance', () => {
     const { component, errors } = make();
-    const corrected = { templateObject: artifact('template'), instanceObject: artifact('instance') };
+    const corrected = { templateObject: schema('template'), instanceObject: artifact('instance') };
 
     component.ngOnInit();
-    component.templateAndInstanceObject = { templateObject: {}, instanceObject: { '@id': {} } };
+    component.templateAndInstanceObject = { templateObject: { properties: {} }, instanceObject: { '@id': {} } };
 
     expect(component.templateAndInstanceJson).toBeNull();
     expect(component.editorDataReady()).toBe(false);
@@ -470,9 +622,9 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
   it('spends both claims on the combined input, so neither separate input follows it', () => {
     const { component, errors } = make();
-    component.templateAndInstanceObject = { templateObject: artifact('t'), instanceObject: artifact('i') };
+    component.templateAndInstanceObject = { templateObject: schema('t'), instanceObject: artifact('i') };
 
-    component.templateObject = artifact('template');
+    component.templateObject = schema('template');
     component.instanceObject = artifact('instance');
 
     expect(component.templateJson).toBeNull();
@@ -485,7 +637,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
     const { component, errors } = make();
     component.instanceObject = artifact('instance');
 
-    component.templateAndInstanceObject = { templateObject: artifact('t'), instanceObject: artifact('i') };
+    component.templateAndInstanceObject = { templateObject: schema('t'), instanceObject: artifact('i') };
 
     expect(component.templateAndInstanceJson).toBeNull();
     expect(reported(errors)).toContain('"templateAndInstanceObject" ignored, because the instance is already set');
@@ -493,10 +645,10 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent set-once inputs', () => 
 
   it('names both halves when the combined input follows itself', () => {
     const { component, errors } = make();
-    const first = { templateObject: artifact('first'), instanceObject: artifact('i') };
+    const first = { templateObject: schema('first'), instanceObject: artifact('i') };
 
     component.templateAndInstanceObject = first;
-    component.templateAndInstanceObject = { templateObject: artifact('second'), instanceObject: artifact('i') };
+    component.templateAndInstanceObject = { templateObject: schema('second'), instanceObject: artifact('i') };
 
     expect(component.templateAndInstanceJson).toEqual(first);
     expect(component.templateAndInstanceJson).not.toBe(first);
@@ -592,7 +744,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
     translate.onTranslationChange.subscribe((event) => announced.push(event.lang));
 
     component.ngOnInit();
-    component.templateObject = {};
+    component.templateObject = { properties: {} };
 
     // The built-in map, since the host has named no source yet.
     expect(translate.instant('Generic.ExpandAll')).toBe('Expand All');
@@ -613,7 +765,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
 
     component.ngOnInit();
     component.config = { languageMapPathPrefix: PREFIX };
-    component.templateObject = {};
+    component.templateObject = { properties: {} };
 
     expect(fetched).toEqual([PREFIX + 'en.json']);
     expect(translate.instant('Generic.ExpandAll')).toBe('Alles Aufklappen');
@@ -628,7 +780,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
     const { component, fetched } = wire();
 
     component.ngOnInit();
-    component.templateObject = {};
+    component.templateObject = { properties: {} };
     component.config = { languageMapPathPrefix: PREFIX, defaultLanguage: 'de' };
 
     expect(fetched.filter((url) => url === PREFIX + 'de.json')).toHaveLength(1);
@@ -639,7 +791,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent late language configurat
     const { component, translate, fetched } = wire();
 
     component.ngOnInit();
-    component.templateObject = {};
+    component.templateObject = { properties: {} };
     component.config = { readOnlyMode: true };
 
     expect(fetched).toEqual([]);
@@ -685,6 +837,7 @@ describe('CedarEmbeddableMetadataEditorWrapperComponent invalid configuration va
         getLangs: vi.fn(() => []),
         reloadLang: vi.fn(),
         setTranslation: vi.fn(),
+        instant: (key: string) => key,
       } as unknown as TranslateService,
       globalSettings,
       { reveal: vi.fn() } as unknown as FieldRevealService,

@@ -44,6 +44,8 @@ for (const inputType of [InputType.text, InputType.textarea]) {
     const input = fixture.debugElement.query(By.css('input, textarea')).nativeElement as HTMLInputElement;
     input.value = 'dsdsdsd';
     input.dispatchEvent(new Event('input'));
+    expect(fixture.componentInstance.inputValueControl.pending).toBe(true);
+    await vi.waitFor(() => expect(fixture.componentInstance.inputValueControl.pending).toBe(false));
     fixture.detectChanges();
     expect(input.getAttribute('aria-invalid')).toBe('true');
     expect(fixture.debugElement.query(By.css('mat-error')).nativeElement.textContent.trim()).toBe(
@@ -63,6 +65,7 @@ for (const inputType of [InputType.text, InputType.textarea]) {
     expect(fixture.componentInstance.quietEmptyPreview(' ')).toBe(false);
     input.value = 'dsdsdsd';
     input.dispatchEvent(new Event('input'));
+    await vi.waitFor(() => expect(fixture.componentInstance.inputValueControl.pending).toBe(false));
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('mat-error')).nativeElement.textContent.trim()).toBe(
       english.Validation.Text.Pattern,
@@ -79,6 +82,7 @@ for (const inputType of [InputType.text, InputType.textarea]) {
     TestBed.inject(UserPreferencesService).setReadOnlyMode(false);
     input.value = 'HBM123';
     input.dispatchEvent(new Event('input'));
+    await vi.waitFor(() => expect(fixture.componentInstance.inputValueControl.pending).toBe(false));
     fixture.detectChanges();
     expect(fixture.componentInstance.inputValueControl.valid).toBe(true);
     expect(fixture.debugElement.query(By.css('mat-error'))).toBeNull();

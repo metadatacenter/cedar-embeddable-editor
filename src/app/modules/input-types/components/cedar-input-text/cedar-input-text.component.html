@@ -65,6 +65,9 @@
           'Validation.Text.MaxLength' | ceeCountKey: constraintMaxLength | translate: { constraintMaxLength }
         }}</mat-error>
       }
+      @if (inputValueControl.hasError('regexEvaluation') && !readOnlyMode) {
+        <mat-error>{{ 'Validation.Text.PatternUnavailable' | translate }}</mat-error>
+      }
       @if (inputValueControl.hasError('pattern') && !readOnlyMode) {
         <mat-error>{{ 'Validation.Text.Pattern' | translate }}</mat-error>
       }

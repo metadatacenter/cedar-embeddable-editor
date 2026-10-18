@@ -183,7 +183,13 @@ export class DataQualityReportBuilderHandler {
     for (const parent of parents) {
       const held = childOf(parent.node, component.name);
       const entries = isInstanceArray(held) ? held : [held];
-      if (entries.some((entry) => DataQualityReportBuilderHandler.extractPlainValue(entry, component) !== null))
+      if (
+        entries.some((entry) =>
+          component.basicInfo.inputType === InputType.controlled
+            ? !!InstanceValueNode.iri(entry)
+            : DataQualityReportBuilderHandler.extractPlainValue(entry, component) !== null,
+        )
+      )
         continue;
       complete = false;
       report.problems.push(
@@ -254,6 +260,7 @@ export class DataQualityReportBuilderHandler {
       for (const p of [...stored, ...drafts]) {
         DataQualityReportBuilderHandler.addProblem(report, p.at(target.occurrences), seen);
       }
+      handlerContext.validation.collectSemantic(component, target.node, target.occurrences, report);
       const value = DataQualityReportBuilderHandler.extractPlainValue(target.node, component);
       for (const p of FieldValueValidator.validate(component, value, component.path)) {
         DataQualityReportBuilderHandler.addProblem(report, p.at(target.occurrences), seen);
@@ -342,14 +349,11 @@ export class DataQualityReportBuilderHandler {
    * the template: `{@id, rdfs:label}` shows its label for a controlled term and
    * its IRI for a link, and the instance cannot tell those apart.
    */
-  private static extractPlainValue(
-    dataObject: InstanceNode | null,
-    component: SingleFieldComponent | MultiFieldComponent,
-  ) {
+  static extractPlainValue(dataObject: InstanceNode | null, component: FieldComponent) {
     return InstanceValueNode.plainValue(dataObject, this.isIriValued(component));
   }
 
-  private static isIriValued(component: SingleFieldComponent | MultiFieldComponent): boolean {
+  private static isIriValued(component: FieldComponent): boolean {
     return component.basicInfo.inputType !== null && valueIsIri(component.basicInfo.inputType as InputType);
   }
 }

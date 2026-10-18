@@ -44,7 +44,11 @@ export class CedarInputEmailComponent extends CedarUIDirective implements OnInit
       validators.push(Validators.required);
     }
     validators.push(CedarValidators.forComponent(this.component));
-    this.inputValueControl = new FormControl<string | null>(null, validators);
+    this.inputValueControl = new FormControl<string | null>(
+      null,
+      validators,
+      CedarValidators.regexForComponent(this.component, () => this.cdr.markForCheck(), this.destroyRef),
+    );
     // Beside the control it holds. Built in the constructor, the group kept the
     // control this line replaces — see `input-control-binding.spec.ts`.
     this.options = this.fb.group({ inputValue: this.inputValueControl });

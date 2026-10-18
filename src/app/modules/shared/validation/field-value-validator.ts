@@ -1,78 +1,62 @@
-import { validAbsoluteIri } from './absolute-iri';
-import { FieldComponent } from '../models/component/field-component.model';
-import { InputType } from '../models/input-type.model';
-import { Numbers } from '../models/numbers.model';
-import { Temporal } from '../models/temporal.model';
-import { Xsd } from '../models/xsd.model';
-import { EXTERNAL_AUTHORITY_INPUT_TYPES, valueIsIri } from '../models/ext-auth-categories.model';
-import { ValidationCode, ValidationProblem } from './validation-problem.model';
-import { InstanceValueNode } from '../util/instance-value-node';
-import { CedarTemporalValue } from '../util/cedar-temporal-value';
-import { InstanceNode } from '../models/instance-node.model';
 import {
+  TextPolicy,
+  FieldValuePolicy,
+  ValidationField,
+  JsonTemplateInstanceWriter,
   InstanceDataEmptyAtom,
   InstanceDataEmptyNode,
   InstanceDataContainer,
+  InstanceDataLabelAtom,
   InstanceDataAttributeValueFieldName,
-  JsonTemplateInstanceWriter,
 } from 'cedar-model-typescript-library';
+import { validAbsoluteFieldIri } from './absolute-iri';
+import { FieldComponent } from '../models/component/field-component.model';
+import { InputType } from '../models/input-type.model';
+import { valueIsIri } from '../models/ext-auth-categories.model';
+import { ValidationCode, ValidationProblem } from './validation-problem.model';
+import { InstanceValueNode } from '../util/instance-value-node';
+import { InstanceNode } from '../models/instance-node.model';
 
-/**
- * Constraint checking for a single field value.
- *
- * Pure and framework-free: it takes a component and a plain value and returns
- * problems. That is deliberate — the widgets express the same constraints as
- * Angular validators, and the intent is that both eventually call this rather
- * than each holding its own opinion. Two of the defects found in this codebase
- * were exactly that: a second place deciding independently what the first had
- * already decided.
- *
- * Scope: everything checkable from the template plus the value. Controlled-term
- * *membership* is deliberately absent — it needs the terminology server, and a
- * report that silently skipped a network call would be worse than one that
- * never claimed to make it. Structural checks on controlled values are here.
- */
+/** Adapter from rendered components/occurrence nodes to the shared local validation rules. */
 export class FieldValueValidator {
-  /** Values that count as "nothing entered". */
-  private static isEmpty(value: unknown): boolean {
-    return value === null || value === undefined || value === '';
+  private static field(component: FieldComponent, plainValue = false): ValidationField {
+    return {
+      _ui: {
+        // The report extracts the label for a controlled term. Its IRI is checked on the node.
+        inputType:
+          plainValue && component.basicInfo.inputType === InputType.controlled
+            ? 'textfield'
+            : (component.basicInfo.inputType ?? undefined),
+        temporalGranularity: component.basicInfo.temporalGranularity,
+        timezoneEnabled: component.basicInfo.timezoneEnabled,
+      },
+      _valueConstraints: Object.fromEntries(
+        Object.entries({
+          minLength: component.valueInfo.minLength,
+          maxLength: component.valueInfo.maxLength,
+          regex: component.valueInfo.regex,
+          temporalType: component.valueInfo.temporalType,
+          numberType: component.numberInfo?.numberType,
+          minValue: component.numberInfo?.minValue,
+          maxValue: component.numberInfo?.maxValue,
+          decimalPlace: component.numberInfo?.decimalPlace,
+          literals: component.choiceInfo?.choices,
+        }).filter(([, value]) => value !== null && value !== undefined),
+      ),
+    };
   }
 
   static validate(component: FieldComponent, value: unknown, path: string[]): ValidationProblem[] {
-    // A multiple-choice select holds every selected label in one Angular control.
-    // Validate those labels independently: coercing the array to text produces
-    // `Option B,Option C`, which is naturally not one of the declared options and
-    // made every populated multi-select look invalid. The data-quality walk already
-    // reaches repeated instance nodes one at a time; this branch is principally the
-    // widget adapter seeing the control's native value shape.
-    if (Array.isArray(value)) {
-      return value.flatMap((entry) => this.validate(component, entry, path));
-    }
+    if (Array.isArray(value)) return value.flatMap((entry) => this.validate(component, entry, path));
+    return FieldValuePolicy.validate(this.field(component, true), value).map((finding) =>
+      this.problem(component, path, finding.code, finding.message, value),
+    );
+  }
 
-    // An absent value is the report's required check's business. Constraints
-    // describe what a value must look like *if present*.
-    if (this.isEmpty(value)) {
-      return [];
-    }
-
-    const problems: ValidationProblem[] = [];
-    const inputType = component.basicInfo.inputType;
-    const text = String(value);
-
-    this.checkTextConstraints(component, text, path, problems);
-    this.checkFormat(component, text, path, problems);
-
-    if (inputType === InputType.numeric) {
-      this.checkNumeric(component, text, path, problems);
-    }
-    if (inputType === InputType.temporal) {
-      this.checkTemporal(component, text, path, problems);
-    }
-    if (component.choiceInfo?.choices?.length > 0) {
-      this.checkChoiceMembership(component, text, path, problems);
-    }
-
-    return problems;
+  static validateConfiguration(component: FieldComponent): ValidationProblem[] {
+    return FieldValuePolicy.validateConfiguration(this.field(component)).map((finding) =>
+      this.problem(component, component.path, finding.code, finding.message, null),
+    );
   }
 
   private static problem(
@@ -84,7 +68,7 @@ export class FieldValueValidator {
   ): ValidationProblem {
     return new ValidationProblem(
       path,
-      path.length > 0 ? path[path.length - 1] : component.name,
+      path.length ? path[path.length - 1] : component.name,
       component.basicInfo.inputType,
       code,
       message,
@@ -92,62 +76,6 @@ export class FieldValueValidator {
     );
   }
 
-  /** A malformed template must not silently switch off a constraint. */
-  static validateConfiguration(component: FieldComponent): ValidationProblem[] {
-    const problems: ValidationProblem[] = [];
-    const invalid = (message: string) =>
-      problems.push(this.problem(component, component.path, ValidationCode.templateConstraint, message, null));
-    const { minLength, maxLength, regex } = component.valueInfo;
-    if (minLength != null && maxLength != null && minLength > maxLength)
-      invalid('Minimum length exceeds maximum length.');
-    if (regex) {
-      try {
-        new RegExp(`^(?:${regex})$`);
-      } catch {
-        invalid('The template contains an invalid regular expression.');
-      }
-    }
-    const { minValue, maxValue } = component.numberInfo ?? {};
-    if (minValue != null && maxValue != null && minValue > maxValue) invalid('Minimum value exceeds maximum value.');
-    return problems;
-  }
-
-  private static checkTextConstraints(
-    component: FieldComponent,
-    text: string,
-    path: string[],
-    out: ValidationProblem[],
-  ): void {
-    const vi = component.valueInfo;
-    if (vi.minLength != null && text.length < vi.minLength) {
-      out.push(
-        this.problem(component, path, ValidationCode.minLength, `Shorter than the minimum ${vi.minLength}.`, text),
-      );
-    }
-    if (vi.maxLength != null && text.length > vi.maxLength) {
-      out.push(
-        this.problem(component, path, ValidationCode.maxLength, `Longer than the maximum ${vi.maxLength}.`, text),
-      );
-    }
-    if (vi.regex != null && vi.regex !== '') {
-      let matches: boolean;
-      try {
-        // Anchored, matching how Angular's Validators.pattern behaves.
-        matches = new RegExp(`^(?:${vi.regex})$`).test(text);
-      } catch {
-        // An unparseable regex is the template's problem, not the value's.
-        return;
-      }
-      if (!matches) {
-        out.push(this.problem(component, path, ValidationCode.regex, `Does not match ${vi.regex}.`, text));
-      }
-    }
-  }
-
-  private static readonly EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  private static readonly LINK = /^https?:\/\/[\da-z.-]+\.[a-z.]{2,63}(?:[/?#][^\s]*)?$/i;
-  private static readonly PHONE = /^[+0-9 \t\-()]+$/;
   /** Check the stored node before extracting a plain value, which can hide malformed input. */
   static validateNode(component: FieldComponent, node: InstanceNode, path: string[]): ValidationProblem[] {
     if (node instanceof InstanceDataEmptyNode) return [];
@@ -162,29 +90,34 @@ export class FieldValueValidator {
               node.discarded,
             ),
           ]
-        : [];
+        : FieldValuePolicy.validateNode(this.field(component), {})
+            .filter((finding) => finding.category === 'structural')
+            .map((finding) => this.problem(component, path, finding.code, finding.message, {}));
     }
     if (
       component.basicInfo.inputType === InputType.attributeValue &&
       node instanceof InstanceDataAttributeValueFieldName
     ) {
-      return node.name.trim() === ''
+      return TextPolicy.isBlank(node.name)
         ? [
             new ValidationProblem(
               path,
               component.name,
               component.basicInfo.inputType,
-              ValidationCode.attributeName,
+              // An unnamed editor row is omitted by the writer. Raw stored blank
+              // names are still structural findings retained from the reader.
+              ValidationCode.required,
               'An attribute needs a name.',
               node.name,
               [],
-              'warning',
             ),
           ]
         : [];
     }
     const iriField =
       component.basicInfo.inputType === InputType.controlled || valueIsIri(component.basicInfo.inputType as InputType);
+    if (component.basicInfo.inputType === InputType.controlled && node instanceof InstanceDataLabelAtom)
+      return this.validateControlledNode(component, node, path);
     if (
       node instanceof InstanceDataContainer ||
       (iriField ? !InstanceValueNode.isIriBearing(node) : !InstanceValueNode.isLiteral(node))
@@ -208,338 +141,20 @@ export class FieldValueValidator {
     ) {
       return [this.problem(component, path, ValidationCode.iriMalformed, 'The stored IRI is empty.', null)];
     }
-    return this.validateControlledNode(component, node, path);
-  }
-
-  private static checkFormat(component: FieldComponent, text: string, path: string[], out: ValidationProblem[]): void {
-    const inputType = component.basicInfo.inputType;
-
-    if (inputType === InputType.email && !this.EMAIL.test(text)) {
-      out.push(this.problem(component, path, ValidationCode.email, 'Not a valid email address.', text));
-    }
-    if (inputType === InputType.link && (!this.LINK.test(text) || !validAbsoluteIri(text))) {
-      out.push(this.problem(component, path, ValidationCode.link, 'Not a valid URI.', text));
-    }
-    if (inputType === InputType.phoneNumber && !this.PHONE.test(text)) {
-      out.push(this.problem(component, path, ValidationCode.phoneNumber, 'Not a valid phone number.', text));
-    }
-    // External authority fields store an IRI. Membership in the authority is a
-    // server question; well-formedness and the accepted identifier schemes are not.
-    if (
-      inputType !== null &&
-      EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType) &&
-      (!validAbsoluteIri(text) || !/^(?:[a-z][a-z0-9+.-]*:\/\/|urn:|doi:)/i.test(text))
-    ) {
-      out.push(this.problem(component, path, ValidationCode.iriMalformed, 'Not a supported identifier IRI.', text));
-    }
-  }
-
-  /**
-   * Integer-like types and the implicit bounds the XSD type itself imposes.
-   *
-   * BigInt, because xsd:long's range exceeds what a double represents exactly — see
-   * Numbers. The comparison below must stay in BigInt for the same reason.
-   */
-  private static readonly INTEGRAL_BOUNDS: Record<string, [bigint, bigint]> = {
-    [Xsd.int]: [Numbers.NUMBER_INT_MIN, Numbers.NUMBER_INT_MAX],
-    [Xsd.long]: [Numbers.NUMBER_LONG_MIN, Numbers.NUMBER_LONG_MAX],
-    [Xsd.byte]: [Numbers.NUMBER_BYTE_MIN, Numbers.NUMBER_BYTE_MAX],
-    [Xsd.short]: [Numbers.NUMBER_SHORT_MIN, Numbers.NUMBER_SHORT_MAX],
-  };
-
-  private static checkNumeric(component: FieldComponent, text: string, path: string[], out: ValidationProblem[]): void {
-    const ni = component.numberInfo;
-    const numberType = ni.numberType;
-    const integral = numberType != null && Object.prototype.hasOwnProperty.call(this.INTEGRAL_BOUNDS, numberType);
-    const fractional = numberType === Xsd.float || numberType === Xsd.double || numberType === Xsd.decimal;
-
-    if (integral && !new RegExp(`^${Numbers.PATTERN_XSD_INT_AND_LONG}$`).test(text)) {
-      out.push(this.problem(component, path, ValidationCode.numberType, `Not a valid ${numberType}.`, text));
-      return;
-    }
-    if (fractional) {
-      const maxDig = ni.decimalPlace != null ? String(ni.decimalPlace) : '';
-      const pattern = Numbers.PATTERN_XSD_FLOAT_AND_DOUBLE.replace(/maxDig/g, maxDig);
-      if (!new RegExp(`^${pattern}$`).test(text)) {
-        // Distinguish "not a number" from "too many decimals", which is the
-        // difference between a typo and a precision constraint.
-        const anyDecimal = new RegExp(`^${Numbers.PATTERN_XSD_FLOAT_AND_DOUBLE.replace(/maxDig/g, '')}$`);
-        if (ni.decimalPlace != null && anyDecimal.test(text)) {
-          out.push(
-            this.problem(
-              component,
-              path,
-              ValidationCode.decimalPlace,
-              `More than ${ni.decimalPlace} decimal places.`,
-              text,
-            ),
-          );
-        } else {
-          out.push(this.problem(component, path, ValidationCode.numberType, `Not a valid ${numberType}.`, text));
-        }
-        return;
-      }
-    }
-
-    const numeric = Number(text);
-    if (!Number.isFinite(numeric)) {
-      out.push(this.problem(component, path, ValidationCode.numberType, 'Not a finite number.', text));
-      return;
-    }
-
-    // The type's own range, then any narrower range the template declares.
-    //
-    // Integral types compare as BigInt against the exact bounds. Going through `numeric`
-    // would collapse every value near 2^63 onto the same double, which is how
-    // 9223372036854775808 used to pass as an xsd:long. Reaching here as an integral type
-    // means the text already matched PATTERN_XSD_INT_AND_LONG, so BigInt cannot throw.
-    const bounds = numberType == null ? undefined : this.INTEGRAL_BOUNDS[numberType];
-    if (bounds) {
-      const exact = BigInt(text);
-      if (exact < bounds[0] || exact > bounds[1]) {
-        out.push(this.problem(component, path, ValidationCode.numberType, `Outside the range of ${numberType}.`, text));
-      }
-    }
-    if (ni.minValue != null && numeric < ni.minValue) {
-      out.push(this.problem(component, path, ValidationCode.minValue, `Below the minimum ${ni.minValue}.`, text));
-    }
-    if (ni.maxValue != null && numeric > ni.maxValue) {
-      out.push(this.problem(component, path, ValidationCode.maxValue, `Above the maximum ${ni.maxValue}.`, text));
-    }
-  }
-
-  /**
-   * Temporal values, which nothing validated anywhere before this.
-   *
-   * The stored form is built by `CedarTemporalValue` as `YYYY-MM-DD`,
-   * `HH:mm:ss`, the two joined by `T`, optionally a `.` and decimal seconds,
-   * optionally a trailing offset. A value entered through the widget is
-   * well-formed by construction; one injected by a host page is not.
-   */
-  private static readonly DATE_PART = /^(\d{4})-(\d{2})-(\d{2})$/;
-  private static readonly TIME_PART = /^(\d{2}):(\d{2})(?::(\d{2}))?(\.\d+)?$/;
-  private static readonly OFFSET_PART = /(Z|[+-]\d{2}:\d{2})$/;
-
-  private static checkTemporal(
-    component: FieldComponent,
-    text: string,
-    path: string[],
-    out: ValidationProblem[],
-  ): void {
-    const temporalType = component.valueInfo.temporalType;
-    const granularity = component.basicInfo.temporalGranularity;
-
-    let rest = text;
-    const offsetMatch = rest.match(this.OFFSET_PART);
-    const hasOffset = offsetMatch !== null;
-    if (hasOffset) {
-      rest = rest.slice(0, rest.length - offsetMatch[0].length);
-    }
-
-    if (hasOffset && component.basicInfo.timezoneEnabled !== true) {
-      out.push(
-        this.problem(component, path, ValidationCode.timezone, 'Carries a timezone offset but none is enabled.', text),
+    const typed = FieldValuePolicy.validateNode(this.field(component), JsonTemplateInstanceWriter.writeValueNode(node))
+      .filter((finding) => finding.code === 'valueType' || finding.code === 'missingProperty')
+      .map((finding) =>
+        this.problem(component, path, finding.code, finding.message, JsonTemplateInstanceWriter.writeValueNode(node)),
       );
-    } else if (hasOffset && !CedarTemporalValue.isValidOffset(offsetMatch[0])) {
-      out.push(this.problem(component, path, ValidationCode.timezoneOffset, 'Not a valid xsd timezone offset.', text));
-    }
-
-    if (rest.split('T').length > 2) {
-      out.push(this.problem(component, path, ValidationCode.temporalType, 'Not a valid temporal value.', text));
-      return;
-    }
-    const [datePart, timePart] = rest.includes('T') ? rest.split('T') : [rest, null];
-    const looksLikeTime = this.TIME_PART.test(rest);
-
-    // Shape must match the declared temporal type.
-    if (temporalType === Xsd.date) {
-      if (timePart !== null || looksLikeTime || !this.DATE_PART.test(rest)) {
-        out.push(this.problem(component, path, ValidationCode.temporalType, 'Not a valid xsd:date.', text));
-        return;
-      }
-    } else if (temporalType === Xsd.time) {
-      if (!looksLikeTime) {
-        out.push(this.problem(component, path, ValidationCode.temporalType, 'Not a valid xsd:time.', text));
-        return;
-      }
-    } else if (temporalType === Xsd.dateTime) {
-      if (timePart === null || !this.DATE_PART.test(datePart) || !this.TIME_PART.test(timePart)) {
-        out.push(this.problem(component, path, ValidationCode.temporalType, 'Not a valid xsd:dateTime.', text));
-        return;
-      }
-    }
-
-    const dateStr = temporalType === Xsd.time ? null : timePart !== null ? datePart : rest;
-    const timeStr = temporalType === Xsd.time ? rest : timePart;
-
-    if (dateStr !== null && this.DATE_PART.test(dateStr)) {
-      // `?? []` because `String.match` types its result nullable; the `test` on the
-      // line above already established the groups are there.
-      const [, y, mo, d] = dateStr.match(this.DATE_PART) ?? [];
-      const month = Number(mo);
-      const day = Number(d);
-      const calendar = new Date(0);
-      calendar.setUTCFullYear(Number(y), month, 0);
-      const daysInMonth = calendar.getUTCDate();
-      if (month < 1 || month > 12 || day < 1 || (daysInMonth && day > daysInMonth)) {
-        out.push(this.problem(component, path, ValidationCode.temporalCalendar, 'Not a real calendar date.', text));
-      }
-    }
-    if (timeStr !== null && this.TIME_PART.test(timeStr)) {
-      const [, h, mi, sec] = timeStr.match(this.TIME_PART) ?? [];
-      if (Number(h) > 23 || Number(mi) > 59 || (sec !== undefined && Number(sec) > 59)) {
-        out.push(this.problem(component, path, ValidationCode.temporalCalendar, 'Not a real time of day.', text));
-      }
-    }
-
-    this.checkGranularity(component, text, granularity, dateStr, timeStr, path, out);
-  }
-
-  /**
-   * Granularity says which parts the user supplies. The stored XSD lexical value
-   * remains complete, so hidden parts are permitted only at their neutral value:
-   * a year is `YYYY-01-01`, a minute is `HH:mm:00`, and a dateTime whose
-   * granularity stops at the day ends in `T00:00:00`.
-   *
-   * This is also the boundary for legacy values. The editor normalizes finer
-   * information away when it loads them; validation still reports the original
-   * value as over-precise until that normalization has happened.
-   */
-  private static checkGranularity(
-    component: FieldComponent,
-    text: string,
-    /** Null for a temporal field whose template declares no granularity, which the guard below has always expected. */
-    granularity: string | null,
-    dateStr: string | null,
-    timeStr: string | null,
-    path: string[],
-    out: ValidationProblem[],
-  ): void {
-    if (granularity == null) {
-      return;
-    }
-    const dateOnly = [Temporal.year, Temporal.month, Temporal.day];
-    const dateParts = dateStr?.match(this.DATE_PART) ?? null;
-    if (dateParts !== null) {
-      const [, , month, day] = dateParts;
-      if (granularity === Temporal.year && (month !== '01' || day !== '01')) {
-        out.push(
-          this.problem(
-            component,
-            path,
-            ValidationCode.temporalGranularity,
-            'Granularity is year, but the padded month or day is not 01.',
-            text,
-          ),
-        );
-      } else if (granularity === Temporal.month && day !== '01') {
-        out.push(
-          this.problem(
-            component,
-            path,
-            ValidationCode.temporalGranularity,
-            'Granularity is month, but the padded day is not 01.',
-            text,
-          ),
-        );
-      }
-    }
-
-    const timeParts = timeStr?.match(this.TIME_PART) ?? null;
-    const timeIsPaddedMidnight =
-      timeParts !== null &&
-      timeParts[1] === '00' &&
-      timeParts[2] === '00' &&
-      (timeParts[3] === undefined || timeParts[3] === '00') &&
-      timeParts[4] === undefined;
-    const dateTimePadding = component.valueInfo.temporalType === Xsd.dateTime && timeIsPaddedMidnight;
-    if (dateOnly.includes(granularity) && timeStr !== null && !dateTimePadding) {
-      out.push(
-        this.problem(
-          component,
-          path,
-          ValidationCode.temporalGranularity,
-          `Granularity is ${granularity}, but the padded time is not midnight.`,
-          text,
-        ),
-      );
-      return;
-    }
-    if (timeStr === null) {
-      return;
-    }
-    const parts = timeStr.match(this.TIME_PART);
-    const hasSeconds = parts !== null && parts[3] !== undefined;
-    const hasDecimal = parts !== null && parts[4] !== undefined;
-
-    if ((granularity === Temporal.second || granularity === Temporal.decimalSecond) && !hasSeconds) {
-      out.push(
-        this.problem(
-          component,
-          path,
-          ValidationCode.temporalGranularity,
-          `Granularity is ${granularity}, but the value has no seconds.`,
-          text,
-        ),
-      );
-    }
-    if (granularity === Temporal.decimalSecond && hasSeconds && !hasDecimal) {
-      out.push(
-        this.problem(
-          component,
-          path,
-          ValidationCode.temporalGranularity,
-          'Granularity is decimalSecond, but the value has no fractional seconds.',
-          text,
-        ),
-      );
-    }
-    const finerThanHour =
-      granularity === Temporal.hour &&
-      parts !== null &&
-      (parts[2] !== '00' || (hasSeconds && parts[3] !== '00') || hasDecimal);
-    const finerThanMinute =
-      granularity === Temporal.minute && parts !== null && ((hasSeconds && parts[3] !== '00') || hasDecimal);
-    const finerThanSecond = granularity === Temporal.second && hasDecimal;
-    if (finerThanHour || finerThanMinute || finerThanSecond) {
-      out.push(
-        this.problem(
-          component,
-          path,
-          ValidationCode.temporalGranularity,
-          `Granularity is ${granularity}, but the value contains finer information.`,
-          text,
-        ),
-      );
-    }
-  }
-
-  private static checkChoiceMembership(
-    component: FieldComponent,
-    text: string,
-    path: string[],
-    out: ValidationProblem[],
-  ): void {
-    const labels = component.choiceInfo.choices.map((c) => c.label);
-    if (!labels.includes(text)) {
-      out.push(
-        this.problem(
-          component,
-          path,
-          ValidationCode.choiceMembership,
-          `Not one of the declared options: ${labels.join(', ')}.`,
-          text,
-        ),
-      );
-    }
+    return [...typed, ...this.validateControlledNode(component, node, path)];
   }
 
   /**
    * Structural checks on a controlled-term node.
    *
    * Takes the raw node rather than the extracted value, because the point is
-   * the shape: a controlled term is an `@id` and an `rdfs:label` travelling
-   * together. Whether the term is a member of the declared ontologies, value
+   * the shape: a populated controlled term carries an `@id`; its label is optional
+   * unless the raw schema explicitly requires it. Whether the term is a member of the declared ontologies, value
    * sets, classes or branches cannot be answered without the terminology
    * server and is deliberately not attempted.
    */
@@ -564,13 +179,13 @@ export class FieldValueValidator {
       return [];
     }
     const out: ValidationProblem[] = [];
-    if (hasId !== hasLabel) {
+    if (hasLabel && !hasId) {
       out.push(
         this.problem(
           component,
           path,
           ValidationCode.controlledStructure,
-          hasId ? 'Has @id but no rdfs:label.' : 'Has rdfs:label but no @id.',
+          'Has rdfs:label but no @id.',
           // The library writes the node, rather than the node being handed over
           // as it stands. A problem's `value` is published contract, and an atom
           // serialises by its private fields — so what a host read here was
@@ -581,7 +196,7 @@ export class FieldValueValidator {
         ),
       );
     }
-    if (hasId && !validAbsoluteIri(id as string)) {
+    if (hasId && !validAbsoluteFieldIri(id as string)) {
       out.push(this.problem(component, path, ValidationCode.iriMalformed, '@id is not a valid IRI.', id));
     }
     return out;

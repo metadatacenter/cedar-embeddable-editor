@@ -1,9 +1,12 @@
-import type { CeeJsonObject, CeeTemplateAndInstance } from '../../../cee-public-api';
+import { JsonSourcePolicy } from 'cedar-model-typescript-library';
+import type { CeeJsonObject, CeeTemplateAndInstance, CeeRecoveryDraft } from '../../../cee-public-api';
 import type { TemplateInstance } from 'cedar-model-typescript-library';
 import { DataContext } from './data-context';
 import { HandlerContext } from './handler-context';
 import { InstanceDeserializer } from './instance-deserializer';
 import { MessageHandlerService } from '../service/message-handler.service';
+import { CedarTemplate } from '../models/template/cedar-template.model';
+import { carryAnswers } from './carried-answers';
 
 type ArtifactClaim = 'template' | 'instance';
 
@@ -45,6 +48,40 @@ export class ArtifactInputCoordinator {
     return this._instanceInputRejected;
   }
 
+  acceptRecovery(value: CeeRecoveryDraft): boolean {
+    if (!this.claimAvailable('restoreDraft', ['template', 'instance'])) return false;
+    let candidate: ArtifactEditorState | null = null;
+    try {
+      const draft = JsonSourcePolicy.clone(value);
+      if (
+        draft?.format !== 'cedar-cee-draft' ||
+        draft.version !== 1 ||
+        !ArtifactInputCoordinator.isJsonObject(draft.template) ||
+        !ArtifactInputCoordinator.isJsonObject(draft.metadata)
+      )
+        return false;
+      const instance = this.readInstance('restoreDraft', draft.metadata);
+      if (!instance) return false;
+      candidate = this.buildCandidate('restoreDraft', draft.template, instance, true);
+      if (!candidate) return false;
+      candidate.handlerContext.validation.restoreDrafts(instance.dataContainer, draft.drafts);
+      candidate.handlerContext.buildQualityReport();
+      this.commit(['template', 'instance']);
+      this.acceptedTemplate = draft.template;
+      this.acceptedInstanceJson = draft.metadata;
+      this._instanceInputRejected = false;
+      this._state = this.publish(candidate, null, null, {
+        templateObject: draft.template,
+        instanceObject: draft.metadata,
+      });
+      return true;
+    } catch {
+      candidate?.handlerContext.validation.dispose();
+      this.messages.error('CEDAR Embeddable Editor: recovery draft could not be restored.');
+      return false;
+    }
+  }
+
   acceptTemplate(template: CeeJsonObject): boolean {
     if (!this.mayAcceptTemplate()) {
       return false;
@@ -61,9 +98,17 @@ export class ArtifactInputCoordinator {
       this._instanceInputRejected = true;
       return false;
     }
-    const candidate = this.buildCandidate('templateObject', template, instance, instance !== null);
+    let candidate = this.buildCandidate('templateObject', template, instance, instance !== null);
     if (candidate === null) {
       return false;
+    }
+    if (instance === null && !this.carryAnswers(candidate)) {
+      // A form whose carried answers could not be made sound is rebuilt rather than shown.
+      candidate.handlerContext.validation.dispose();
+      candidate = this.buildCandidate('templateObject', template, null, false);
+      if (candidate === null) {
+        return false;
+      }
     }
     this.commit(['template']);
     this.acceptedTemplate = template;
@@ -136,7 +181,7 @@ export class ArtifactInputCoordinator {
   /** Take ownership before parsing or retaining any part of a host document. */
   private snapshot<T>(input: string, value: T): T | null {
     try {
-      return structuredClone(value);
+      return JsonSourcePolicy.clone(value);
     } catch {
       this.messages.error(`CEDAR Embeddable Editor: "${input}" rejected because it cannot be copied as JSON data.`);
       return null;
@@ -154,6 +199,7 @@ export class ArtifactInputCoordinator {
       candidate.dataContext.setInputTemplate(template, candidate.handlerContext, null);
       return candidate;
     } catch (error) {
+      candidate.handlerContext.validation.dispose();
       const detail = error instanceof Error ? error.message : String(error);
       this.messages.error(
         `CEDAR Embeddable Editor: "${input}" rejected because it is not a readable CEDAR template: ${detail}`,
@@ -184,8 +230,60 @@ export class ArtifactInputCoordinator {
     instanceJson: CeeJsonObject | null,
     templateAndInstanceJson: CeeTemplateAndInstance | null,
   ): ArtifactEditorState {
+    this._state.handlerContext.validation.dispose();
     this.nextRevision += 1;
     return { ...candidate, templateJson, instanceJson, templateAndInstanceJson, revision: this.nextRevision };
+  }
+
+  /**
+   * Give the form replacing the reader's what they have entered, when the new template is
+   * an edit of the one it replaces.
+   *
+   * An edit keeps the template's identifier. A host that shows a different artifact in the
+   * same element starts its reader on an empty form, as it always has: answers matched to
+   * it by key would be answers to questions nobody asked. `carryAnswers` decides which
+   * answers move, and puts each pager back on the entry the reader was looking at.
+   *
+   * The synchronizer moves compatible drafts and occurrence history as well as values.
+   * Validation evidence follows each moved node, including through renames and pruning.
+   * Unexpected value errors are repaired at that occurrence; a configuration defect in
+   * an added optional branch removes the smallest removable containing occurrence.
+   * Only an unrecoverable failure rebuilds the whole candidate. All recovery is silent.
+   *
+   * False when the candidate has to be built again from nothing.
+   */
+  private carryAnswers(candidate: ArtifactEditorState): boolean {
+    const previous = this._state;
+    const next = candidate.dataContext;
+    const before = previous.dataContext.templateRepresentation;
+    const after = next.templateRepresentation;
+    const answered = previous.dataContext.instanceFullData;
+    const instance = next.instanceFullData;
+    if (!(before instanceof CedarTemplate) || !(after instanceof CedarTemplate)) {
+      return true;
+    }
+    if (answered === null || instance === null) {
+      return true;
+    }
+    if (after.isBasedOn === null || after.isBasedOn !== before.isBasedOn) {
+      return true;
+    }
+    try {
+      const sound = carryAnswers(
+        { template: before, instance: answered },
+        { template: after, instance },
+        previous.handlerContext,
+        candidate.handlerContext,
+      );
+      if (!sound) {
+        this.messages.trace('CEDAR Embeddable Editor: answers not carried, because the new form would flag them.');
+      }
+      return sound;
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      this.messages.trace(`CEDAR Embeddable Editor: answers not carried to the new template: ${detail}`);
+      return false;
+    }
   }
 
   private readInstance(input: string, instance: CeeJsonObject): TemplateInstance | null {
@@ -207,12 +305,12 @@ export class ArtifactInputCoordinator {
    * of them were recorded against the template being taken away, and there is no good answer to
    * what becomes of them. That is the case set-once exists for, and it still refuses.
    *
-   * With no instance there is nothing to lose. A host driving a live view of a template it is
-   * itself editing — a designer previewing its own work — is replacing a rendering rather than
-   * swapping an artifact out from under anyone, and making it discard the element and start a
-   * whole editor for each edit costs a second of bootstrapping to show a form that differs by a
-   * word. Each accepted template still builds a fresh context, so nothing of the previous one
-   * survives into the new form.
+   * With no instance supplied, the host is driving a live view of a template it is itself
+   * editing — a designer previewing its own work — and is replacing a rendering rather than
+   * swapping an artifact out from under anyone. Making it discard the element and start a whole
+   * editor for each edit costs a second of bootstrapping to show a form that differs by a word.
+   * Each accepted template still builds a fresh context. What a reader trying the form has
+   * entered is moved into it by `carryAnswers`, and nothing else of the previous form survives.
    */
   private mayAcceptTemplate(): boolean {
     if (!this.claimed.has('template') || !this.claimed.has('instance')) {
