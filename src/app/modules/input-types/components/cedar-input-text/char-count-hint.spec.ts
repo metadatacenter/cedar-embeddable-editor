@@ -31,6 +31,13 @@ function textFieldWith(valueInfo: { minLength: number | null; maxLength: number 
 }
 
 describe('the character counter under a text field', () => {
+  it('counts the code points used by schema validation', () => {
+    const field = textFieldWith({ minLength: null, maxLength: 1 });
+    field.setCurrentValue('😀');
+    expect(field.getCharCountHint()).toBe('1 / 1');
+    field.setCurrentValue('e\u0301');
+    expect(field.getCharCountHint()).toBe('2 / 1');
+  });
   it('states a maximum on its own, with no operator standing beside nothing', () => {
     const field = textFieldWith({ minLength: null, maxLength: 15 });
 

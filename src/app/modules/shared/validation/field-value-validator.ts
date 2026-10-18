@@ -1,4 +1,5 @@
-import { validAbsoluteIri } from './absolute-iri';
+import { TextPolicy } from 'cedar-model-typescript-library';
+import { validAbsoluteFieldIri } from './absolute-iri';
 import { FieldComponent } from '../models/component/field-component.model';
 import { InputType } from '../models/input-type.model';
 import { Numbers } from '../models/numbers.model';
@@ -119,12 +120,12 @@ export class FieldValueValidator {
     out: ValidationProblem[],
   ): void {
     const vi = component.valueInfo;
-    if (vi.minLength != null && text.length < vi.minLength) {
+    if (vi.minLength != null && TextPolicy.codePointLength(text) < vi.minLength) {
       out.push(
         this.problem(component, path, ValidationCode.minLength, `Shorter than the minimum ${vi.minLength}.`, text),
       );
     }
-    if (vi.maxLength != null && text.length > vi.maxLength) {
+    if (vi.maxLength != null && TextPolicy.codePointLength(text) > vi.maxLength) {
       out.push(
         this.problem(component, path, ValidationCode.maxLength, `Longer than the maximum ${vi.maxLength}.`, text),
       );
@@ -168,7 +169,7 @@ export class FieldValueValidator {
       component.basicInfo.inputType === InputType.attributeValue &&
       node instanceof InstanceDataAttributeValueFieldName
     ) {
-      return node.name.trim() === ''
+      return TextPolicy.isBlank(node.name)
         ? [
             new ValidationProblem(
               path,
@@ -217,7 +218,7 @@ export class FieldValueValidator {
     if (inputType === InputType.email && !this.EMAIL.test(text)) {
       out.push(this.problem(component, path, ValidationCode.email, 'Not a valid email address.', text));
     }
-    if (inputType === InputType.link && (!this.LINK.test(text) || !validAbsoluteIri(text))) {
+    if (inputType === InputType.link && (!this.LINK.test(text) || !validAbsoluteFieldIri(text))) {
       out.push(this.problem(component, path, ValidationCode.link, 'Not a valid URI.', text));
     }
     if (inputType === InputType.phoneNumber && !this.PHONE.test(text)) {
@@ -228,7 +229,7 @@ export class FieldValueValidator {
     if (
       inputType !== null &&
       EXTERNAL_AUTHORITY_INPUT_TYPES.has(inputType as InputType) &&
-      (!validAbsoluteIri(text) || !/^(?:[a-z][a-z0-9+.-]*:\/\/|urn:|doi:)/i.test(text))
+      (!validAbsoluteFieldIri(text) || !/^(?:[a-z][a-z0-9+.-]*:\/\/|urn:|doi:)/i.test(text))
     ) {
       out.push(this.problem(component, path, ValidationCode.iriMalformed, 'Not a supported identifier IRI.', text));
     }
@@ -581,7 +582,7 @@ export class FieldValueValidator {
         ),
       );
     }
-    if (hasId && !validAbsoluteIri(id as string)) {
+    if (hasId && !validAbsoluteFieldIri(id as string)) {
       out.push(this.problem(component, path, ValidationCode.iriMalformed, '@id is not a valid IRI.', id));
     }
     return out;

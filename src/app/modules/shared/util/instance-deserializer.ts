@@ -1,3 +1,4 @@
+import { TextPolicy } from 'cedar-model-typescript-library';
 import {
   CedarReaders,
   InstanceDataAttributeValueField,
@@ -138,7 +139,7 @@ export class InstanceDeserializer {
         !documentRoot &&
         !JsonTemplateInstanceReader.isValueNode(source as JsonNode) &&
         typeof source['@id'] === 'string' &&
-        source['@id'].trim() === ''
+        TextPolicy.isBlank(source['@id'])
       ) {
         copy['@id'] = null;
       }
