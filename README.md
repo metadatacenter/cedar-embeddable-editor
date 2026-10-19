@@ -317,7 +317,7 @@ npm run build:production
 npm run test:visual:prebuilt
 ```
 
-Use Node 24.19.0, which `.nvmrc`, `package.json` and CI all specify. The build and
+Use Node 24.22.0, which `.nvmrc`, `package.json` and CI all specify. The build and
 tests use that same version, so the distribution is produced by the toolchain
 that exercises it.
 
@@ -401,7 +401,7 @@ The visual suite installs nothing here. It runs inside Playwright's own containe
 which carries the browsers it drives, and installs its dependencies there against a
 named volume — so it needs Docker running and no `playwright install` of its own.
 
-The CEE uses Angular 22.1 and Node 24.19.0. `.nvmrc`, the package `engines` field and
+The CEE uses Angular 22.2 and Node 24.22.0. `.nvmrc`, the package `engines` field and
 CI specify the Node version.
 
 The application bundle and the visual fixture generator each install the model
