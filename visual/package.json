@@ -28,7 +28,7 @@
     "cedar-model-typescript-library": "npm:@org.metadatacenter/cedar-model-typescript-library@1.0.21-dev.20261018.57e20c2"
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0",
+    "@playwright/test": "1.64.1",
     "esbuild": "^0.28.2"
   }
 }
