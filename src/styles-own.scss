@@ -307,6 +307,18 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
   }
 }
 
+/*
+ * Material 22.2.3 doubled the block margin of every chip in a chip set, from 4px to
+ * 8px, to keep the touch targets it introduced from overlapping. CEE switches those
+ * targets off in `_cee-material-theme.scss`, so the extra margin only made each pager
+ * and each row of chips 8px taller. The inline margins, and their right-to-left
+ * mirror, are still Material's. One class more than Material's
+ * `.mat-mdc-chip-set .mdc-evolution-chip` is what lets this win.
+ */
+.mat-mdc-chip-set .mdc-evolution-chip.mat-mdc-chip {
+  margin-block: 4px;
+}
+
 .mat-icon:hover {
   color: tokens.$color-primary;
   scale: 1.2;
