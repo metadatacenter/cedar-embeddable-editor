@@ -316,7 +316,7 @@ app-cedar-multi-pager .pager-chips .mat-mdc-chip.mat-mdc-standard-chip {
  * `.mat-mdc-chip-set .mdc-evolution-chip` is what lets this win.
  */
 .mat-mdc-chip-set .mdc-evolution-chip.mat-mdc-chip {
-  margin-block: 4px;
+  margin-block: tokens.$space-1;
 }
 
 .mat-icon:hover {
