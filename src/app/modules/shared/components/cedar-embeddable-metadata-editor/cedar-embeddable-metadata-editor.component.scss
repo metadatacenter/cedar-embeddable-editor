@@ -87,7 +87,7 @@ $identity-text: 72px;
 
 .cee-name {
   align-self: end;
-  font-weight: var(--cedar-font-weight-medium, 500);
+  font-weight: var(--cedar-font-weight-medium, #{ui-tokens.$font-weight-medium});
   color: tokens.$text-primary;
 }
 
@@ -109,7 +109,7 @@ $identity-text: 72px;
   color: tokens.$text-title;
   /* The one fluid step in CEE: a title scales with the container, in px. */
   font-size: tokens.$font-size-artifact-title;
-  font-weight: var(--cedar-font-weight-medium, 500);
+  font-weight: var(--cedar-font-weight-medium, #{ui-tokens.$font-weight-medium});
   line-height: tokens.$line-height-heading;
   overflow-wrap: anywhere;
 }

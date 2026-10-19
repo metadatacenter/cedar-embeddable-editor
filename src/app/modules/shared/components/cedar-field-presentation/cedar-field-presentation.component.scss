@@ -35,7 +35,7 @@
   display: flex;
   align-items: center;
   gap: tokens.$space-1;
-  font-weight: var(--cedar-field-type-font-weight, var(--cedar-font-weight-regular, 400));
+  font-weight: var(--cedar-field-type-font-weight, var(--cedar-font-weight-regular, #{tokens.$font-weight-regular}));
   margin: 0 0 tokens.$space-1;
   color: tokens.$text-muted;
   font-size: tokens.$font-size;

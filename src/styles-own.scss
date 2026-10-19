@@ -615,7 +615,7 @@ app-cedar-component-renderer:has(> mat-accordion) + app-cedar-component-renderer
 
 // Interface emphasis uses the shared medium face; authored rich text keeps its own styles.
 .required-mark b {
-  font-weight: var(--cedar-font-weight-medium, 500);
+  font-weight: var(--cedar-font-weight-medium, #{ui-tokens.$font-weight-medium});
 }
 
 mat-icon.cedar-icon {

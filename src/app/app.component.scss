@@ -35,7 +35,7 @@ $cedar-teal: ui-tokens.$color-primary;
   background: $cedar-teal;
   color: ui-tokens.$color-on-primary;
   font-size: ui-tokens.$font-size-large;
-  font-weight: var(--cedar-font-weight-medium, 500);
+  font-weight: var(--cedar-font-weight-medium, #{ui-tokens.$font-weight-medium});
 }
 
 .app-logo {
