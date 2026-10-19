@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.25] - 2026-10-19
+
+Aligns with `cedar-model-typescript-library@1.0.21`.
+
+- Moves to Angular, the CDK and Material 22.2.3, whose patch releases block `data:` and `vbscript:` URLs in the sanitizer and harden the compiler and runtime against prototype pollution, and ships DOMPurify 3.4.17 and n3 2.13.12. Chips keep their previous size, spacing and click area.
+
 ## [2.0.24] - 2026-10-18
 
 Aligns with `cedar-model-typescript-library@1.0.20`.

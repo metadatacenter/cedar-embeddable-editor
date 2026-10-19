@@ -160,9 +160,15 @@ $_colors: (
       tonal-container-shape: tokens.$radius,
     )
   );
+  // Material 22.2.3 gave every chip a 48px touch target: an invisible span centred on the
+  // chip that takes pointer events above and below it. CEE's chips sit on a field's title
+  // row beside its header and actions, so the span would take clicks meant for them. It is
+  // switched off here, as Material itself switches it off below density 0; the chip-set
+  // margin it arrived with is restored in `styles-own.scss`.
   @include mat.chips-overrides(
     (
       container-shape-radius: tokens.$radius-pill,
+      touch-target-display: none,
     )
   );
   // The calendar panel is an overlay, so it takes the menu's shadow rather than Material's elevation.
