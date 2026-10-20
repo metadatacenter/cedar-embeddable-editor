@@ -13,6 +13,7 @@ Aligns with `cedar-model-typescript-library@1.0.21`.
 - Marks the editor's and the field element's text with the language it is shown in, and a read-only value with its own language tag. Names temporal, choice and lookup controls by their field's label, announces field problems and lookup notices and links each to the control it concerns, returns focus to the control a clear button empties, and turns the page when Enter or Space selects a page chip. None of this changes what the form shows.
 - Makes a field's help and property marks keyboard stops that show their tooltips on focus, describes each control with its field's description, announces added, copied and deleted occurrences and page turns, marks value controls with the language their field declares, and lets a read-only term's identifier and link-out wrap on a narrow host rather than be cut off.
 - Marks a template's own title, labels, descriptions, options and static text with the language the template or element declares, and lets the clock's hour, minute and second boxes grow under wider text spacing where the browser can size a box to its content.
+- Takes model library 1.0.22-dev.20261020.d5ec2f3, which writes a template's and an element's language to their own context. A template the designer saves with a language now keeps it in the editor.
 
 ## [2.0.25] - 2026-10-19
 
