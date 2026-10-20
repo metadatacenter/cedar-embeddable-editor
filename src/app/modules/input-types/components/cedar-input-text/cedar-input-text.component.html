@@ -8,7 +8,7 @@
             [cedarIcon]="isOrcid ? 'authority-person' : 'authority-organization'"
             aria-hidden="true"
           ></mat-icon>
-          <span [attr.lang]="readOnlyValueLanguage">{{ inputValueControl.getRawValue() }}</span>
+          <span [attr.lang]="valueLanguageMark">{{ inputValueControl.getRawValue() }}</span>
         </a>
       }
     </div>
@@ -27,7 +27,7 @@
           [formControl]="inputValueControl"
           (input)="inputChanged($event)"
           [readonly]="readOnlyMode"
-          [attr.lang]="readOnlyValueLanguage"
+          [attr.lang]="valueLanguageMark"
           attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
         />
       }
@@ -44,7 +44,7 @@
           (input)="inputChanged($event)"
           attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
           [readonly]="readOnlyMode"
-          [attr.lang]="readOnlyValueLanguage"
+          [attr.lang]="valueLanguageMark"
         ></textarea>
       }
       @if (inputValueControl.value && !readOnlyMode) {
@@ -86,6 +86,6 @@
   <!-- The value came from the instance, so it is sanitized rather than trusted.
   See `safe-html.pipe.ts` for why this differs from the static rich-text field. -->
   @if (isRichText) {
-    <p [attr.lang]="readOnlyValueLanguage" [innerHTML]="inputValueControl.value || '' | safeHtml"></p>
+    <p [attr.lang]="valueLanguageMark" [innerHTML]="inputValueControl.value || '' | safeHtml"></p>
   }
 </form>

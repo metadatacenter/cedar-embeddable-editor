@@ -11,7 +11,7 @@
         type="text"
         [value]="displayValue"
         readonly
-        [attr.lang]="readOnlyValueLanguage"
+        [attr.lang]="valueLanguageMark"
         attr.aria-label="{{ cds.getRenderingLabelForComponent(component) }}"
       />
     }
@@ -25,9 +25,10 @@
         (selectionChange)="inputChanged()"
         [aria-label]="cds.getRenderingLabelForComponent(component)"
       >
-        <mat-select-trigger>{{ displayValue }}</mat-select-trigger>
+        <!-- The selection and the options are the field's values, in the language it declares for them. -->
+        <mat-select-trigger [attr.lang]="valueLanguageMark">{{ displayValue }}</mat-select-trigger>
         @for (option of dropdownList; track option) {
-          <mat-option #choice [value]="option.id">
+          <mat-option #choice [value]="option.id" [attr.lang]="declaredValueLanguage">
             @if (!component.choiceInfo.multipleChoice) {
               <span class="single-choice-marker" [class.selected]="choice.selected" aria-hidden="true"></span>
             }

@@ -18,10 +18,14 @@
             says which of the two the template picked without a second lookup. Only where the group
             is standing in for the specification: with an instance behind it, the selected option is
             an answer, and calling it the default would misdescribe it.
+
+            An option is a value, in the language the field declares for its values. An option carrying
+            the default mark is left in CEE's language, since the mark is part of its name.
           -->
           <mat-radio-button
             #option
             color="primary"
+            [attr.lang]="handlerContext.statesSpecification && choice.selectedByDefault ? null : declaredValueLanguage"
             [value]="choice.label"
             (change)="inputChanged($event)"
             [tabIndex]="readOnlyMode ? -1 : 0"

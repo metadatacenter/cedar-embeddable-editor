@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UserPreferencesService } from '../../service/user-preferences.service';
 import { ActiveComponentRegistryService } from '../../service/active-component-registry.service';
 import { CedarComponent } from '../component/cedar-component.model';
+import { BasicInfo } from '../info/basic-info.model';
 import { languageTag } from '../../a11y/language-tag';
 import { renderingLabelOf } from '../../service/component-data.service';
 
@@ -32,7 +33,7 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
    * The `@language` tag the shown value carries, set beside each `setCurrentValue`.
    *
    * A read-only widget marks the value with it, since an instance may hold text in a language other
-   * than CEE's own. An editable box does not: what it holds is whatever the user is typing.
+   * than CEE's own.
    */
   valueLanguage: string | null = null;
 
@@ -43,9 +44,26 @@ export abstract class CedarUIDirective implements OnInit, OnDestroy {
     return renderingLabelOf(this.component);
   }
 
-  /** The `lang` a read-only value is marked with, which is none while the box is editable. */
-  get readOnlyValueLanguage(): string | null {
-    return this.readOnlyMode ? languageTag(this.valueLanguage) : null;
+  /**
+   * The language the field declares for its values, as a `lang` tag, or null where it declares none
+   * or declares a tag that is not well formed. A static component declares none.
+   */
+  get declaredValueLanguage(): string | null {
+    const component = this.component;
+    return 'basicInfo' in component && component.basicInfo instanceof BasicInfo
+      ? languageTag(component.basicInfo.valueLanguage)
+      : null;
+  }
+
+  /**
+   * The `lang` the control showing the value is marked with.
+   *
+   * Read-only, that is the tag the shown value carries, where it carries one. Otherwise it is the
+   * language the field declares, since whatever is typed into the field is a value of it. The tag a
+   * stored value carries does not mark an editable box: what the box holds is being typed.
+   */
+  get valueLanguageMark(): string | null {
+    return (this.readOnlyMode ? languageTag(this.valueLanguage) : null) ?? this.declaredValueLanguage;
   }
 
   quietEmptyPreview(value: unknown): boolean {

@@ -9,4 +9,9 @@ export class BasicInfo {
   temporalGranularity: string | null = null;
   inputTimeFormat: string | null = null;
   timezoneEnabled = false;
+  /**
+   * The language the field declares for its values, which its `@context` states as `@language`, or
+   * null where it declares none. Held as written: a widget reads it as a language tag.
+   */
+  valueLanguage: string | null = null;
 }

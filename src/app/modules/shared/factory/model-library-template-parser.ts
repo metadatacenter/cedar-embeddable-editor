@@ -298,6 +298,7 @@ export class ModelLibraryTemplateParser implements TemplateParser {
           r as FieldComponent,
         );
         ModelLibraryTemplateParser.extractLabels(field, childInfo, name, r as FieldComponent);
+        (r as FieldComponent).basicInfo.valueLanguage = field.language.getValue();
       } else if (childInfo.atType === CedarArtifactType.TEMPLATE_ELEMENT) {
         const element = child as TemplateElement;
         r = isMulti ? new MultiElementComponent() : new SingleElementComponent();

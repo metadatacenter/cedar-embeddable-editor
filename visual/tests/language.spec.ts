@@ -1,9 +1,10 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { open } from './support/host';
+import { addAttributeRow, open } from './support/host';
 
 /**
- * WCAG 3.1.2, Language of Parts: CEE's own text is marked with the language it is shown in, and a
- * value an instance tags with `@language` is marked with that tag where CEE shows it as text.
+ * WCAG 3.1.2, Language of Parts: CEE's own text is marked with the language it is shown in, a value
+ * an instance tags with `@language` is marked with that tag where CEE shows it as text, and a
+ * control holding a value of a field that declares a language for its values is marked with it.
  *
  * The host page is English. Each element renders into a shadow root, where a `lang` on the root
  * reaches everything the form draws. Overlays and tooltip descriptions sit beside the root rather
@@ -143,4 +144,90 @@ test('an editable box holding tagged text is not marked, because what it holds i
   const text = page.locator('cedar-embeddable-editor').getByRole('textbox', { name: 'text', exact: true });
   await expect(text).toHaveValue('Guten Tag');
   await expect(text).not.toHaveAttribute('lang', /.*/);
+});
+
+/**
+ * Serve a fixture whose fields declare these languages for their values, as a field's `@context`
+ * states it with `@language`.
+ */
+const declareLanguages = async (page: Page, fixture: string, languages: Record<string, string>): Promise<void> => {
+  await page.route(`**/fixtures/${fixture}.json`, async (route) => {
+    const template = await (await route.fetch()).json();
+    for (const [property, language] of Object.entries(languages)) {
+      const field = template.properties[property];
+      (field.items ?? field)['@context']['@language'] = language;
+    }
+    await route.fulfill({ json: template });
+  });
+};
+
+test('an editable box of a field that declares a language for its values is marked with it', async ({ page }) => {
+  await declareLanguages(page, '01-input-types', {
+    _text: 'fr',
+    _textarea: 'de-CH',
+    _email: 'not a tag',
+    _numeric: 'fr',
+  });
+  await open(page, '01-input-types', 'hu');
+  const editor = page.locator('cedar-embeddable-editor');
+  await expect(editorRoot(page)).toHaveAttribute('lang', 'hu');
+  const text = editor.getByRole('textbox', { name: 'text', exact: true });
+  await expect(text).toHaveAttribute('lang', 'fr');
+  await expect(text).toHaveJSProperty('spellcheck', false);
+  await expect(editor.getByRole('textbox', { name: 'textarea', exact: true })).toHaveAttribute('lang', 'de-CH');
+  // A malformed tag is not asserted, and a number is no text in any language.
+  await expect(editor.getByRole('textbox', { name: 'email', exact: true })).not.toHaveAttribute('lang', /.*/);
+  await expect(editor.locator('app-cedar-input-numeric input')).not.toHaveAttribute('lang', /.*/);
+  // A field that declares nothing leaves its box in the form's language.
+  await expect(editor.getByRole('textbox', { name: 'phone', exact: true })).not.toHaveAttribute('lang', /.*/);
+});
+
+test('read only, a tagged value keeps its tag and an untagged one takes the declared language', async ({ page }) => {
+  await declareLanguages(page, '01-input-types', { _text: 'fr', _textarea: 'de-CH' });
+  await open(page, '01-input-types', 'readonly');
+  await assignTaggedInstance(page);
+  const editor = page.locator('cedar-embeddable-editor');
+  await expect(editor.getByRole('textbox', { name: 'text', exact: true })).toHaveAttribute('lang', 'de');
+  await expect(editor.getByRole('textbox', { name: 'textarea', exact: true })).toHaveAttribute('lang', 'de-CH');
+});
+
+test("a choice field's options and selection are marked with the language it declares", async ({ page }) => {
+  await declareLanguages(page, '02-choices', { _radio: 'fr', _checkbox: 'fr', _single_list: 'fr' });
+  await open(page, '02-choices');
+  const editor = page.locator('cedar-embeddable-editor');
+  for (const option of await editor.locator('mat-radio-button').all())
+    await expect(option).toHaveAttribute('lang', 'fr');
+  for (const option of await editor.locator('app-cedar-input-checkbox mat-checkbox').all())
+    await expect(option).toHaveAttribute('lang', 'fr');
+  const select = editor.getByRole('combobox', { name: 'single_list', exact: true });
+  await expect(select.locator('mat-select-trigger')).toHaveAttribute('lang', 'fr');
+  // The control keeps the form's language, so its name is read in it.
+  await expect(select).not.toHaveAttribute('lang', /.*/);
+  await select.click();
+  const options = page.getByRole('listbox', { name: 'single_list' }).getByRole('option');
+  expect(await options.count()).toBeGreaterThan(0);
+  for (const option of await options.all()) await expect(option).toHaveAttribute('lang', 'fr');
+  // A field that declares nothing leaves its options in the form's language.
+  await page.keyboard.press('Escape');
+  await editor.getByRole('combobox', { name: 'multi_list', exact: true }).click();
+  const undeclared = page.getByRole('listbox', { name: 'multi_list' }).getByRole('option');
+  expect(await undeclared.count()).toBeGreaterThan(0);
+  for (const option of await undeclared.all()) await expect(option).not.toHaveAttribute('lang', /.*/);
+});
+
+test("an attribute's value box is marked with the language its field declares, and its name box is not", async ({
+  page,
+}) => {
+  await declareLanguages(page, '10-attribute-values', { _attribute: 'fr' });
+  await open(page, '10-attribute-values');
+  await addAttributeRow(page);
+  const editor = page.locator('cedar-embeddable-editor');
+  await expect(editor.getByRole('textbox', { name: 'Attribute Value', exact: true })).toHaveAttribute('lang', 'fr');
+  await expect(editor.getByRole('textbox', { name: 'Attribute Name', exact: true })).not.toHaveAttribute('lang', /.*/);
+});
+
+test('the field element marks its editable box with the language its field declares', async ({ page }) => {
+  await declareLanguages(page, '01-input-types', { _text: 'fr' });
+  await open(page, '01-input-types', undefined, undefined, undefined, '&host=field&p=_text');
+  await expect(fieldRoot(page).getByRole('textbox', { name: 'text', exact: true })).toHaveAttribute('lang', 'fr');
 });

@@ -1,9 +1,14 @@
 <!-- The options form a group named by the field, so each is announced as an answer to it. -->
 <form class="form-container" [formGroup]="options" role="group" [attr.aria-label]="fieldLabel">
+  <!--
+    An option is a value, in the language the field declares for its values. An option carrying CEE's
+    own default mark is left in CEE's language, since the mark is part of its name.
+  -->
   @for (choice of component.choiceInfo.choices; track choice) {
     <div>
       <mat-checkbox
         color="primary"
+        [attr.lang]="handlerContext.statesSpecification && choice.selectedByDefault ? null : declaredValueLanguage"
         (input)="inputChanged($event)"
         [tabIndex]="readOnlyMode ? -1 : 0"
         [attr.aria-disabled]="readOnlyMode ? true : null"
